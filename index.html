@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Justax - AI-Powered Exam Preparation</title>
+    <style>
+        :root {
+            --primary: #4F46E5;
+            --secondary: #10B981;
+            --dark: #1F2937;
+            --light: #F9FAFB;
+            --accent: #F472B6;
+            --gray: #6B7280;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+        
+        body {
+            background-color: var(--light);
+            color: var(--dark);
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+        
+        header {
+            background: linear-gradient(135deg, var(--primary), #6366F1);
+            color: white;
+            padding: 1.5rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: white;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+
+        .logo img {
+            margin-right: 0.5rem;
+            height: 40px; /* Adjust the height as needed */
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+        }
+        
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: opacity 0.3s;
+        }
+        
+        .nav-links a:hover {
+            opacity: 0.8;
+        }
+        
+        .btn {
+            background-color: var(--secondary);
+            color: white;
+            padding: 0.7rem 1.8rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+        }
+        
+        .btn-outline {
+            background-color: transparent;
+            border: 2px solid white;
+        }
+        
+        .btn-outline:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            box-shadow: none;
+        }
+        
+        .hero {
+            padding: 6rem 0;
+            background: linear-gradient(rgba(31, 41, 55, 0.8), rgba(31, 41, 55, 0.9)), url('/api/placeholder/1200/800') center/cover no-repeat;
+            color: white;
+            text-align: center;
+        }
+        
+        .hero h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 1.5rem;
+            line-height: 1.2;
+        }
+        
+        .hero p {
+            font-size: 1.2rem;
+            max-width: 800px;
+            margin: 0 auto 2.5rem;
+            opacity: 0.9;
+        }
+        
+        .hero-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+        
+        .features {
+            padding: 5rem 0;
+            background-color: white;
+        }
+        
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--dark);
+        }
+        
+        .section-subtitle {
+            text-align: center;
+            font-size: 1.2rem;
+            color: var(--gray);
+            max-width: 700px;
+            margin: 0 auto 3rem;
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+        
+        .feature-card {
+            background-color: var(--light);
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .feature-icon {
+            background-color: var(--primary);
+            width: 60px;
+            height: 60px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            color: white;
+            font-size: 1.5rem;
+        }
+        
+        .feature-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--dark);
+        }
+        
+        .feature-card p {
+            color: var(--gray);
+        }
+        
+        .how-it-works {
+            padding: 5rem 0;
+            background-color: var(--light);
+        }
+        
+        .steps {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            max-width: 1000px;
+            margin: 0 auto;
+            position: relative;
+        }
+        
+        .steps:before {
+            content: '';
+            position: absolute;
+            top: 50px;
+            left: 10%;
+            right: 10%;
+            height: 4px;
+            background-color: var(--primary);
+            z-index: 0;
+        }
+        
+        .step {
+            flex: 1;
+            min-width: 220px;
+            text-align: center;
+            padding: 1rem;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .step-number {
+            background-color: var(--primary);
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 0 auto 1rem;
+        }
+        
+        .step h3 {
+            margin-bottom: 0.5rem;
+            font-size: 1.2rem;
+        }
+        
+        .step p {
+            font-size: 0.9rem;
+            color: var(--gray);
+        }
+        
+        .testimonials {
+            padding: 5rem 0;
+            background-color: white;
+        }
+        
+        .testimonials-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+        
+        .testimonial-card {
+            background-color: var(--light);
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+        
+        .testimonial-text {
+            font-style: italic;
+            margin-bottom: 1.5rem;
+            color: var(--dark);
+        }
+        
+        .testimonial-author {
+            display: flex;
+            align-items: center;
+        }
+        
+        .testimonial-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: var (--gray);
+            margin-right: 1rem;
+        }
+        
+        .testimonial-name {
+            font-weight: 600;
+        }
+        
+        .testimonial-role {
+            font-size: 0.9rem;
+            color: var(--gray);
+        }
+        
+        .pricing {
+            padding: 5rem 0;
+            background-color: var(--light);
+        }
+        
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        .pricing-card {
+            background-color: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            text-align: center;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .pricing-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .pricing-card.popular {
+            border: 2px solid var(--primary);
+            position: relative;
+        }
+        
+        .popular-badge {
+            position: absolute;
+            top: -12px;
+            right: 30px;
+            background-color: var(--primary);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .pricing-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .pricing-price {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: var(--dark);
+        }
+        
+        .pricing-period {
+            font-size: 1rem;
+            color: var(--gray);
+        }
+        
+        .pricing-features {
+            margin: 2rem 0;
+            text-align: left;
+        }
+        
+        .pricing-feature {
+            margin-bottom: 0.8rem;
+            display: flex;
+            align-items: center;
+        }
+        
+        .pricing-feature:before {
+            content: '✓';
+            color: var(--secondary);
+            margin-right: 0.5rem;
+            font-weight: bold;
+        }
+        
+        .cta {
+            padding: 5rem 0;
+            background: linear-gradient(135deg, var(--primary), #6366F1);
+            color: white;
+            text-align: center;
+        }
+        
+        .cta h2 {
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .cta p {
+            font-size: 1.2rem;
+            max-width: 800px;
+            margin: 0 auto 2.5rem;
+            opacity: 0.9;
+        }
+        
+        footer {
+            background-color: var(--dark);
+            color: white;
+            padding: 3rem 0 2rem;
+        }
+        
+        .footer-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+        }
+        
+        .footer-column h3 {
+            font-size: 1.2rem;
+            margin-bottom: 1.5rem;
+            color: white;
+        }
+        
+        .footer-links {
+            list-style: none;
+        }
+        
+        .footer-links li {
+            margin-bottom: 0.8rem;
+        }
+        
+        .footer-links a {
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .footer-links a:hover {
+            color: white;
+        }
+        
+        .social-links {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .social-link {
+            background-color: rgba(255, 255, 255, 0.1);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.3s;
+        }
+        
+        .social-link:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        
+        .copyright {
+            margin-top: 3rem;
+            text-align: center;
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.6);
+        }
+        
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            
+            .hero p {
+                font-size: 1rem;
+            }
+            
+            .section-title {
+                font-size: 2rem;
+            }
+            
+            .steps:before {
+                display: none;
+            }
+            
+            .hero-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .nav-container {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .nav-links {
+                gap: 1rem;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container nav-container">
+            <a href="#" class="logo">
+                <img src="assets/img/logo.svg" alt="Justax Logo">JUSTAX
+            </a>
+            <nav class="nav-links">
+                <a href="#features">Funkce</a>
+                <a href="#how-it-works">Jak to funguje</a>
+                <a href="#pricing">Ceník</a>
+                <a href="#contact">Kontakt</a>
+            </nav>
+            <a href="#signup" class="btn">Začít zdarma</a>
+        </div>
+    </header>
+    
+    <section class="hero">
+        <div class="container">
+            <h1>Připravte se na zkoušky s osobním AI tutorem</h1>
+            <p>Justax je revoluční online platforma pro přípravu na přijímací zkoušky z matematiky a českého jazyka s využitím umělé inteligence, která funguje jako osobní tutor v reálném čase.</p>
+            
+            <div class="hero-buttons">
+                <a href="#signup" class="btn">Vyzkoušejte zdarma</a>
+                <a href="#how-it-works" class="btn btn-outline">Jak to funguje</a>
+            </div>
+        </div>
+    </section>
+    
+    <section class="features" id="features">
+        <div class="container">
+            <h2 class="section-title">Výhody Justax</h2>
+            <p class="section-subtitle">Naše platforma využívá pokročilé technologie k vytvoření personalizovaného vzdělávání dostupného každému studentovi</p>
+            
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">AI</div>
+                    <h3>Integrace s Gemini</h3>
+                    <p>V současné době využíváme výkonný model Gemini pro inteligentní učení. V budoucnu plánujeme integraci s nejnovější verzí OpenAI pro ještě hlubší personalizované učení.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">⚙️</div>
+                    <h3>Osobní plán</h3>
+                    <p>Systém analyzuje úroveň znalostí a vytváří individuální plán vzdělávání, který se každý týden aktualizuje podle vašeho pokroku.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">📝</div>
+                    <h3>Reálné úkoly</h3>
+                    <p>AI generuje úkoly na základě reálných zkouškových testů, což zajišťuje maximální efektivitu přípravy na přijímačky.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">🎓</div>
+                    <h3>Krok za krokem vysvětlení</h3>
+                    <p>Získejte podrobné krok za krokem vysvětlení k každému úkolu, jako byste pracovali s osobním tutorem, ale za pětkrát nižší cenu.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">🔄</div>
+                    <h3>Stálá zpětná vazba</h3>
+                    <p>AI analyzuje vaše chyby a přizpůsobuje vzdělávání, zaměřujíc se na oblasti, kde je potřeba další praxe.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">⏱️</div>
+                    <h3>Lekce 24/7</h3>
+                    <p>Učte se v čase, který vám vyhovuje — AI tutor je k dispozici nepřetržitě, bez přestávek a víkendů, na rozdíl od běžných tutorů.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <section class="how-it-works" id="how-it-works">
+        <div class="container">
+            <h2 class="section-title">Jak to funguje</h2>
+            <p class="section-subtitle">Jen pár kroků k zahájení efektivní přípravy na zkoušky</p>
+            
+            <div class="steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <h3>Registrace</h3>
+                    <p>Vytvořte si účet na naší platformě za pár minut</p>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <h3>Diagnostika</h3>
+                    <p>Proveďte testování k určení úrovně vašich znalostí</p>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <h3>Osobní plán</h3>
+                    <p>Získejte individuální program přípravy</p>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <h3>Učení s AI</h3>
+                    <p>Začněte lekce s AI tutorem v čase, který vám vyhovuje</p>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <section class="testimonials">
+        <div class="container">
+            <h2 class="section-title">Ohlasy studentů</h2>
+            <p class="section-subtitle">Zjistěte, co o nás říkají ti, kteří již zlepšili své výsledky</p>
+            
+            <div class="testimonials-grid">
+                <div class="testimonial-card">
+                    <p class="testimonial-text">"Po měsíci lekcí s Justax se mé výsledky v matematice výrazně zlepšily. AI vysvětluje mnohem srozumitelněji než učitel ve škole a vždy trpělivě odpovídá na všechny otázky."</p>
+                    <div class="testimonial-author">
+                        <div class="testimonial-avatar"></div>
+                        <div>
+                            <div class="testimonial-name">Martin K.</div>
+                            <div class="testimonial-role">9. třída, Praha</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="testimonial-card">
+                    <p class="testimonial-text">"Bála jsem se českého jazyka, ale po lekcích na Justax jsem mnohem sebevědomější. Systém se přizpůsobuje mým slabým stránkám a pomáhá je překonat. Doporučuji všem!"</p>
+                    <div class="testimonial-author">
+                        <div class="testimonial-avatar"></div>
+                        <div>
+                            <div class="testimonial-name">Kateřina P.</div>
+                            <div class="testimonial-role">9. třída, Brno</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="testimonial-card">
+                    <p class="testimonial-text">"Syn se učí již 2 měsíce. Výsledky předčily očekávání. Platforma se skutečně přizpůsobuje jeho úrovni, a náklady jsou mnohem nižší než u tutorů. Děkujeme, Justax!"</p>
+                    <div class="testimonial-author">
+                        <div class="testimonial-avatar"></div>
+                        <div>
+                            <div class="testimonial-name">Jana V.</div>
+                            <div class="testimonial-role">Rodič, Olomouc</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <section class="pricing" id="pricing">
+        <div class="container">
+            <h2 class="section-title">Dostupné tarify</h2>
+            <p class="section-subtitle">Vyberte si vhodný plán pro přípravu na zkoušky</p>
+            
+            <div class="pricing-grid">
+                <div class="pricing-card">
+                    <h3>Základní</h3>
+                    <div class="pricing-price">
+                        499 Kč
+                        <span class="pricing-period">/měsíc</span>
+                    </div>
+                    <div class="pricing-features">
+                        <div class="pricing-feature">4 lekce s AI měsíčně</div>
+                        <div class="pricing-feature">Přístup k databázi úkolů</div>
+                        <div class="pricing-feature">Základní diagnostika</div>
+                    </div>
+                    <a href="#signup" class="btn btn-outline">Začít</a>
+                </div>
+                
+                <div class="pricing-card popular">
+                    <div class="popular-badge">Populární</div>
+                    <h3>Standard</h3>
+                    <div class="pricing-price">
+                        999 Kč
+                        <span class="pricing-period">/měsíc</span>
+                    </div>
+                    <div class="pricing-features">
+                        <div class="pricing-feature">12 lekcí s AI měsíčně</div>
+                        <div class="pricing-feature">Plný přístup k databázi úkolů</div>
+                        <div class="pricing-feature">Rozšířená diagnostika</div>
+                        <div class="pricing-feature">Týdenní aktualizace programu</div>
+                        <div class="pricing-feature">Sledování pokroku</div>
+                    </div>
+                    <a href="#signup" class="btn">Vybrat</a>
+                </div>
+                
+                <div class="pricing-card">
+                    <h3>Premium</h3>
+                    <div class="pricing-price">
+                        1499 Kč
+                        <span class="pricing-period">/měsíc</span>
+                    </div>
+                    <div class="pricing-features">
+                        <div class="pricing-feature">Neomezené lekce s AI</div>
+                        <div class="pricing-feature">Prioritní podpora</div>
+                        <div class="pricing-feature">Rozšířená analytika</div>
+                        <div class="pricing-feature">Simulace zkoušek</div>
+                        <div class="pricing-feature">Přístup k pokročilým modulům</div>
+                        <div class="pricing-feature">Konzultace s metodikem</div>
+                    </div>
+                    <a href="#signup" class="btn btn-outline">Vybrat</a>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <section class="cta">
+        <div class="container">
+            <h2>Připraveni zlepšit své známky na novou úroveň?</h2>
+            <p>Připojte se k stovkám studentů, kteří již úspěšně složili zkoušky s pomocí Justax. První lekce zdarma!</p>
+            <a href="#signup" class="btn">Začít zdarma</a>
+        </div>
+    </section>
+    
+    <footer id="contact">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-column">
+                    <h3>Justax</h3>
+                    <p>Revoluční platforma pro přípravu na přijímačky a maturitu s využitím umělé inteligence.</p>
+                    <div class="social-links">
+                        <a href="#" class="social-link">FB</a>
+                        <a href="#" class="social-link">IG</a>
+                        <a href="#" class="social-link">TG</a>
+                    </div>
+                </div>
+                
+                <div class="footer-column">
+                    <h3>Navigace</h3>
+                    <ul class="footer-links">
+                        <li><a href="#features">Funkce</a></li>
+                        <li><a href="#how-it-works">Jak to funguje</a></li>
+                        <li><a href="#pricing">Ceník</a></li>
+                        <li><a href="#contact">Kontakt</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-column">
+                    <h3>Předměty</h3>
+                    <ul class="footer-links">
+                        <li><a href="#">Matematika</a></li>
+                        <li><a href="#">Český jazyk</a></li>
+                        <li><a href="#">Brzy přibudou další</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-column">
+                    <h3>Kontakt</h3>
+                    <ul class="footer-links">
+                        <li>Email: admin@justax.space</li>
+                        <li>Telefon: +420 123 456 789</li>
+                        <li>Adresa: Praha, Česká republika</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="copyright">
+                &copy; 2025 Justax. Všechna práva vyhrazena.
+            </div>
+        </div>
+    </footer>
+    
+    <script>
+        // Simple animation for elements appearing on scroll
+        window.addEventListener('scroll', function() {
+            const elements = document.querySelectorAll('.feature-card, .step, .testimonial-card, .pricing-card');
+            
+            elements.forEach(element => {
+                const position = element.getBoundingClientRect();
+                
+                // If element is in viewport
+                if(position.top < window.innerHeight && position.bottom >= 0) {
+                    element.style.opacity = '1';
+                    element.style.transform = 'translateY(0)';
+                }
+            });
+        });
+        
+        // Initialize elements with starting state
+        document.addEventListener('DOMContentLoaded', function() {
+            const elements = document.querySelectorAll('.feature-card, .step, .testimonial-card, .pricing-card');
+            
+            elements.forEach(element => {
+                element.style.opacity = '0';
+                element.style.transform = 'translateY(20px)';
+                element.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            });
+            
+            // Trigger scroll event to show elements in initial viewport
+            window.dispatchEvent(new Event('scroll'));
+        });
+    </script>
+</body>
+</html>
