@@ -96,7 +96,7 @@
             width: 100%;
             padding: 14px 15px 14px 45px;
             border: 1px solid var(--border-color);
-            border-radius: var (--radius);
+            border-radius: var(--radius);
             font-size: 16px;
             transition: border-color 0.3s;
         }
@@ -357,28 +357,21 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/supabase-js/2.39.8/supabase.min.js"></script>
     <script>
         const SUPABASE_URL = 'https://xunitidnszlsqupiifhd.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh1bml0aWRuc3psc3F1cGlpZmhkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDEwMTY0MDQsImV4cCI6MjA1NjU5MjQwNH0.8v2dMEaAQYRhHmmJe15XkbA07Tsupc1iLT9oAsLEsWw';
 
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
-            auth: {
-                storage: localStorage,
-                autoRefreshToken: true,
-                detectSessionInUrl: true,
-                persistSession: true
-            }
-        });
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         document.addEventListener('DOMContentLoaded', initApp);
 
         async function initApp() {
             try {
-                const { data: { user } } = await supabase.auth.getUser();
+                const { data, error } = await supabase.auth.getUser();
                 
-                if (user) {
-                    showProfile(user);
+                if (data && data.user) {
+                    showProfile(data.user);
                 } else {
                     showAuthForm('login');
                 }
@@ -422,7 +415,7 @@
             msgEl.className = `message ${type}`;
             msgEl.style.display = 'block';
             
-            // Автоматически скрываем сообщение через 5 секунд
+// Автоматически скрываем сообщение через 5 секунд
             setTimeout(() => {
                 msgEl.style.opacity = '0';
                 setTimeout(() => {
@@ -544,7 +537,10 @@
             // Выход
             document.getElementById('logout-btn').addEventListener('click', async () => {
                 try {
-                    await supabase.auth.signOut();
+                    const { error } = await supabase.auth.signOut();
+                    if (error) {
+                        throw error;
+                    }
                     showMessage('Выход выполнен успешно', 'success');
                     setTimeout(() => {
                         location.reload();
@@ -556,7 +552,7 @@
             });
 
             // Переключение форм
-                        document.getElementById('to-login-link').addEventListener('click', () => showAuthForm('login'));
+            document.getElementById('to-login-link').addEventListener('click', () => showAuthForm('login'));
             document.getElementById('to-register-link').addEventListener('click', () => showAuthForm('register'));
             document.getElementById('forgot-password-link').addEventListener('click', () => showAuthForm('reset'));
             document.getElementById('to-login-link-from-reset').addEventListener('click', () => showAuthForm('login'));
@@ -599,10 +595,14 @@
         const checkPasswordResetToken = async () => {
             const hash = window.location.hash;
             if (hash && hash.includes('type=recovery')) {
-                const { data, error } = await supabase.auth.getUser();
-                if (!error && data.user) {
-                    // Тут можно добавить форму изменения пароля
-                    showMessage('Для смены пароля необходимо перейти в настройки профиля', 'success');
+                try {
+                    const { data, error } = await supabase.auth.getUser();
+                    if (!error && data && data.user) {
+                        // Тут можно добавить форму изменения пароля
+                        showMessage('Для смены пароля необходимо перейти в настройки профиля', 'success');
+                    }
+                } catch (err) {
+                    console.error('Ошибка проверки токена восстановления:', err);
                 }
             }
         };
