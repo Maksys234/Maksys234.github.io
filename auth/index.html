@@ -1,613 +1,802 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Система авторизации</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        :root {
-            --primary-color: #4361ee;
-            --primary-hover: #3a56d4;
-            --danger-color: #ef476f;
-            --danger-hover: #d63d60;
-            --success-color: #06d6a0;
-            --neutral-light: #f8f9fa;
-            --neutral-dark: #343a40;
-            --border-color: #dee2e6;
-            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            --radius: 8px;
-        }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Система авторизации</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --primary-hover: #3a56d4;
+            --danger-color: #ef476f;
+            --danger-hover: #d63d60;
+            --success-color: #06d6a0;
+            --neutral-light: #f8f9fa;
+            --neutral-dark: #343a40;
+            --border-color: #dee2e6;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --radius: 8px;
+        }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
-        body {
-            font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
-            line-height: 1.6;
-            color: var(--neutral-dark);
-            background-color: #f0f2f5;
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
+        body {
+            font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+            line-height: 1.6;
+            color: var(--neutral-dark);
+            background-color: #f0f2f5;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
 
-        .container {
-            width: 100%;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
 
-        .auth-container {
-            max-width: 450px;
-            margin: 0 auto;
-            background-color: white;
-            padding: 30px;
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-            transition: all 0.3s ease;
-        }
+        .auth-container {
+            max-width: 450px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+        }
 
-        .auth-form {
-            display: none;
-            margin-bottom: 20px;
-        }
+        .auth-form {
+            display: none;
+            margin-bottom: 20px;
+        }
 
-        .auth-form.active {
-            display: block;
-            animation: fadeIn 0.5s ease;
-        }
+        .auth-form.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
 
-        .form-logo {
-            text-align: center;
-            margin-bottom: 20px;
-        }
+        .form-logo {
+            text-align: center;
+            margin-bottom: 20px;
+        }
 
-        .form-title {
-            text-align: center;
-            margin-bottom: 25px;
-            color: var(--neutral-dark);
-            font-weight: 600;
-        }
+        .form-title {
+            text-align: center;
+            margin-bottom: 25px;
+            color: var(--neutral-dark);
+            font-weight: 600;
+        }
 
-        .input-group {
-            margin-bottom: 20px;
-            position: relative;
-        }
+        .input-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
 
-        .input-group i {
-            position: absolute;
-            left: 15px;
-            top: 15px;
-            color: #adb5bd;
-        }
+        .input-group i {
+            position: absolute;
+            left: 15px;
+            top: 15px;
+            color: #adb5bd;
+        }
 
-        .auth-form input {
-            width: 100%;
-            padding: 14px 15px 14px 45px;
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius);
-            font-size: 16px;
-            transition: border-color 0.3s;
-        }
+        .auth-form input {
+            width: 100%;
+            padding: 14px 15px 14px 45px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
 
-        .auth-form input:focus {
-            outline: none;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
-        }
+        .auth-form input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+        }
 
-        .auth-form button {
-            width: 100%;
-            padding: 14px;
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            border-radius: var(--radius);
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: 600;
-            transition: background-color 0.3s, transform 0.1s;
-        }
+        .auth-form button {
+            width: 100%;
+            padding: 14px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: var(--radius);
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: background-color 0.3s, transform 0.1s;
+        }
 
-        .auth-form button:hover {
-            background-color: var(--primary-hover);
-        }
+        .auth-form button:hover {
+            background-color: var(--primary-hover);
+        }
 
-        .auth-form button:active {
-            transform: scale(0.98);
-        }
+        .auth-form button:active {
+            transform: scale(0.98);
+        }
 
-        .message {
-            padding: 15px;
-            margin-bottom: 20px;
-            border-radius: var(--radius);
-            display: none;
-            text-align: center;
-            font-weight: 500;
-        }
+        .message {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: var (--radius);
+            display: none;
+            text-align: center;
+            font-weight: 500;
+        }
 
-        .success {
-            background-color: rgba(6, 214, 160, 0.2);
-            color: var(--success-color);
-            border: 1px solid var(--success-color);
-        }
+        .success {
+            background-color: rgba(6, 214, 160, 0.2);
+            color: var(--success-color);
+            border: 1px solid var(--success-color);
+        }
 
-        .error {
-            background-color: rgba(239, 71, 111, 0.2);
-            color: var(--danger-color);
-            border: 1px solid var(--danger-color);
-        }
+        .error {
+            background-color: rgba(239, 71, 111, 0.2);
+            color: var(--danger-color);
+            border: 1px solid var(--danger-color);
+        }
 
-        .auth-links {
-            text-align: center;
-            margin-top: 20px;
-            display: flex;
-            justify-content: space-between;
-        }
+        .auth-links {
+            text-align: center;
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-between;
+        }
 
-        .auth-links a {
-            color: var(--primary-color);
-            text-decoration: none;
-            cursor: pointer;
-            transition: color 0.3s;
-            font-size: 14px;
-        }
+        .auth-links a {
+            color: var(--primary-color);
+            text-decoration: none;
+            cursor: pointer;
+            transition: color 0.3s;
+            font-size: 14px;
+        }
 
-        .auth-links a:hover {
-            color: var(--primary-hover);
-            text-decoration: underline;
-        }
+        .auth-links a:hover {
+            color: var(--primary-hover);
+            text-decoration: underline;
+        }
 
-        .divider {
-            display: flex;
-            align-items: center;
-            margin: 25px 0;
-            color: #adb5bd;
-        }
+        .divider {
+            display: flex;
+            align-items: center;
+            margin: 25px 0;
+            color: #adb5bd;
+        }
 
-        .divider::before,
-        .divider::after {
-            content: "";
-            flex: 1;
-            border-bottom: 1px solid var(--border-color);
-        }
+        .divider::before,
+        .divider::after {
+            content: "";
+            flex: 1;
+            border-bottom: 1px solid var(--border-color);
+        }
 
-        .divider span {
-            padding: 0 10px;
-            font-size: 14px;
-        }
+        .divider span {
+            padding: 0 10px;
+            font-size: 14px;
+        }
 
-        /* Профиль пользователя */
-        .profile-container {
-            display: none;
-            max-width: 800px;
-            margin: 0 auto;
-            background-color: white;
-            padding: 30px;
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-        }
+        /* Профиль пользователя */
+        .profile-container {
+            display: none;
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+        }
 
-        .profile-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid var(--border-color);
-        }
+        .profile-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
 
-        .profile-info {
-            margin-bottom: 30px;
-        }
+        .profile-info {
+            margin-bottom: 30px;
+        }
 
-        .profile-avatar {
-            width: 100px;
-            height: 100px;
-            background-color: var(--primary-color);
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 40px;
-            border-radius: 50%;
-            margin-bottom: 20px;
-        }
+        .profile-avatar {
+            width: 100px;
+            height: 100px;
+            background-color: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            border-radius: 50%;
+            margin-bottom: 20px;
+        }
 
-        .logout-btn {
-            background-color: var(--danger-color);
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: var(--radius);
-            cursor: pointer;
-            font-weight: 600;
-            transition: background-color 0.3s;
-        }
+        .logout-btn {
+            background-color: var(--danger-color);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: var(--radius);
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color 0.3s;
+        }
 
-        .logout-btn:hover {
-            background-color: var(--danger-hover);
-        }
+        .logout-btn:hover {
+            background-color: var (--danger-hover);
+        }
 
-        .profile-section {
-            margin-bottom: 25px;
-        }
+        .profile-section {
+            margin-bottom: 25px;
+        }
 
-        .profile-section h3 {
-            margin-bottom: 15px;
-            font-size: 18px;
-        }
+        .profile-section h3 {
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
 
-        /* Адаптивность */
-        @media (max-width: 500px) {
-            .auth-container,
-            .profile-container {
-                padding: 20px;
-            }
+        /* Форма смены пароля */
+        #change-password-form {
+            display: none;
+        }
 
-            .auth-links {
-                flex-direction: column;
-                gap: 10px;
-            }
+        /* Индикатор загрузки */
+        .loader {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+        }
 
-            .profile-header {
-                flex-direction: column;
-                gap: 15px;
-                text-align: center;
-            }
-        }
-    </style>
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .btn-with-loader {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Адаптивность */
+        @media (max-width: 500px) {
+            .auth-container,
+            .profile-container {
+                padding: 20px;
+            }
+
+            .auth-links {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .profile-header {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <!-- Auth Block -->
-        <div class="auth-container">
-            <div id="auth-message" class="message"></div>
+    <div class="container">
+        <!-- Auth Block -->
+        <div class="auth-container">
+            <div id="auth-message" class="message"></div>
 
-            <!-- Registration Form -->
-            <div id="register-form" class="auth-form active">
-                <div class="form-logo">
-                    <i class="fas fa-user-plus fa-3x" style="color: var(--primary-color);"></i>
-                </div>
-                <h2 class="form-title">Регистрация</h2>
-                <div class="input-group">
-                    <i class="fas fa-user"></i>
-                    <input type="text" id="register-name" placeholder="Ваше имя" required>
-                </div>
-                <div class="input-group">
-                    <i class="fas fa-envelope"></i>
-                    <input type="email" id="register-email" placeholder="Email" required>
-                </div>
-                <div class="input-group">
-                    <i class="fas fa-lock"></i>
-                    <input type="password" id="register-password" placeholder="Пароль" required>
-                </div>
-                <button id="register-btn">Зарегистрироваться</button>
-                <div class="auth-links">
-                    <a id="to-login-link">Уже есть аккаунт? Войти</a>
-                </div>
-            </div>
+            <!-- Registration Form -->
+            <div id="register-form" class="auth-form">
+                <div class="form-logo">
+                    <i class="fas fa-user-plus fa-3x" style="color: var(--primary-color);"></i>
+                </div>
+                <h2 class="form-title">Регистрация</h2>
+                <div class="input-group">
+                    <i class="fas fa-user"></i>
+                    <input type="text" id="register-name" placeholder="Ваше имя" required>
+                </div>
+                <div class="input-group">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" id="register-email" placeholder="Email" required>
+                </div>
+                <div class="input-group">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="register-password" placeholder="Пароль" required>
+                </div>
+                <button id="register-btn" class="btn-with-loader">
+                    Зарегистрироваться
+                    <span id="register-loader" class="loader"></span>
+                </button>
+                <div class="auth-links">
+                    <a id="to-login-link">Уже есть аккаунт? Войти</a>
+                </div>
+            </div>
 
-            <!-- Login Form -->
-            <div id="login-form" class="auth-form">
-                <div class="form-logo">
-                    <i class="fas fa-sign-in-alt fa-3x" style="color: var(--primary-color);"></i>
-                </div>
-                <h2 class="form-title">Вход в аккаунт</h2>
-                <div class="input-group">
-                    <i class="fas fa-envelope"></i>
-                    <input type="email" id="login-email" placeholder="Email" required>
-                </div>
-                <div class="input-group">
-                    <i class="fas fa-lock"></i>
-                    <input type="password" id="login-password" placeholder="Пароль" required>
-                </div>
-                <button id="login-btn">Войти</button>
-                <div class="auth-links">
-                    <a id="to-register-link">Создать аккаунт</a>
-                    <a id="forgot-password-link">Забыли пароль?</a>
-                </div>
-            </div>
+            <!-- Login Form -->
+            <div id="login-form" class="auth-form active">
+                <div class="form-logo">
+                    <i class="fas fa-sign-in-alt fa-3x" style="color: var(--primary-color);"></i>
+                </div>
+                <h2 class="form-title">Вход в аккаунт</h2>
+                <div class="input-group">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" id="login-email" placeholder="Email" required>
+                </div>
+                <div class="input-group">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="login-password" placeholder="Пароль" required>
+                </div>
+                <button id="login-btn" class="btn-with-loader">
+                    Войти
+                    <span id="login-loader" class="loader"></span>
+                </button>
+                <div class="auth-links">
+                    <a id="to-register-link">Создать аккаунт</a>
+                    <a id="forgot-password-link">Забыли пароль?</a>
+                </div>
+            </div>
 
-            <!-- Password Reset Form -->
-            <div id="reset-form" class="auth-form">
-                <div class="form-logo">
-                    <i class="fas fa-key fa-3x" style="color: var(--primary-color);"></i>
-                </div>
-                <h2 class="form-title">Восстановление пароля</h2>
-                <div class="input-group">
-                    <i class="fas fa-envelope"></i>
-                    <input type="email" id="reset-email" placeholder="Email" required>
-                </div>
-                <button id="reset-btn">Отправить инструкции</button>
-                <div class="auth-links">
-                    <a id="to-login-link-from-reset">Вернуться ко входу</a>
-                </div>
-            </div>
-        </div>
+            <!-- Password Reset Form -->
+            <div id="reset-form" class="auth-form">
+                <div class="form-logo">
+                    <i class="fas fa-key fa-3x" style="color: var(--primary-color);"></i>
+                </div>
+                <h2 class="form-title">Восстановление пароля</h2>
+                <div class="input-group">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" id="reset-email" placeholder="Email" required>
+                </div>
+                <button id="reset-btn" class="btn-with-loader">
+                    Отправить инструкции
+                    <span id="reset-loader" class="loader"></span>
+                </button>
+                <div class="auth-links">
+                    <a id="to-login-link-from-reset">Вернуться ко входу</a>
+                </div>
+            </div>
 
-        <!-- Profile Block -->
-        <div id="profile-container" class="profile-container">
-            <div class="profile-header">
-                <h2>Личный кабинет</h2>
-                <button id="logout-btn" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Выйти</button>
-            </div>
-            
-            <div class="profile-info">
-                <div class="profile-avatar" id="user-avatar"></div>
-                <h3>Добро пожаловать, <span id="user-name">Пользователь</span>!</h3>
-                <p id="user-email">email@example.com</p>
-            </div>
-            
-            <div class="profile-section">
-                <h3>Основная информация</h3>
-                <p>Ваш аккаунт активен. Вы можете управлять настройками профиля ниже.</p>
-            </div>
-        </div>
-    </div>
+            <!-- Форма смены пароля -->
+            <div id="change-password-form" class="auth-form">
+                <div class="form-logo">
+                    <i class="fas fa-lock fa-3x" style="color: var(--primary-color);"></i>
+                </div>
+                <h2 class="form-title">Установка нового пароля</h2>
+                <div class="input-group">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="new-password" placeholder="Новый пароль" required>
+                </div>
+                <div class="input-group">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="confirm-password" placeholder="Подтвердите пароль" required>
+                </div>
+                <button id="change-password-btn" class="btn-with-loader">
+                    Сохранить пароль
+                    <span id="change-password-loader" class="loader"></span>
+                </button>
+            </div>
+        </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script>
-        const SUPABASE_URL = 'https://xunitidnszlsqupiifhd.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh1bml0aWRuc3psc3F1cGlpZmhkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDEwMTY0MDQsImV4cCI6MjA1NjU5MjQwNH0.8v2dMEaAQYRhHmmJe15XkbA07Tsupc1iLT9oAsLEsWw';
+        <!-- Profile Block -->
+        <div id="profile-container" class="profile-container">
+            <div class="profile-header">
+                <h2>Личный кабинет</h2>
+                <button id="logout-btn" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Выйти</button>
+            </div>
+            
+            <div class="profile-info">
+                <div class="profile-avatar" id="user-avatar"></div>
+                <h3>Добро пожаловать, <span id="user-name">Пользователь</span>!</h3>
+                <p id="user-email">email@example.com</p>
+            </div>
+            
+            <div class="profile-section">
+                <h3>Основная информация</h3>
+                <p>Ваш аккаунт активен. Вы можете управлять настройками профиля ниже.</p>
+            </div>
+        </div>
+    </div>
 
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
-            auth: {
-                storage: localStorage,
-                autoRefreshToken: true,
-                detectSessionInUrl: true,
-                persistSession: true
-            }
-        });
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // Настройки Supabase
+        const SUPABASE_URL = 'https://xunitidnszlsqupiifhd.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh1bml0aWRuc3psc3F1cGlpZmhkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDEwMTY0MDQsImV4cCI6MjA1NjU5MjQwNH0.8v2dMEaAQYRhHmmJe15XkbA07Tsupc1iLT9oAsLEsWw';
+        
+        // Создаем клиент Supabase с улучшенными настройками
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+            auth: {
+                autoRefreshToken: true,
+                persistSession: true,
+                detectSessionInUrl: true,
+                storageKey: 'supabase.auth.token', // Используем определенный ключ для хранения токена
+            }
+        });
 
-        document.addEventListener('DOMContentLoaded', initApp);
+        // Получение текущего домена для редиректов
+        const siteURL = window.location.origin;
 
-        async function initApp() {
-            try {
-                const { data: { user } } = await supabase.auth.getUser();
-                
-                if (user) {
-                    showProfile(user);
-                } else {
-                    showAuthForm('login');
-                }
+        document.addEventListener('DOMContentLoaded', initApp);
 
-                setupEventListeners();
-            } catch (error) {
-                console.error('Ошибка инициализации:', error.message);
-                showMessage('Ошибка подключения к серверу авторизации', 'error');
-            }
-        }
+        async function initApp() {
+            try {
+                // Проверяем автологин и наличие хэша в URL
+                handleUrlHash();
+                
+                // Получаем текущего пользователя
+                const { data: { user } } = await supabase.auth.getUser();
+                
+                if (user) {
+                    showProfile(user);
+                } else {
+                    // Проверяем, если в URL есть параметр для восстановления пароля
+                    const hash = window.location.hash;
+                    if (hash && hash.includes('type=recovery')) {
+                        showAuthForm('change-password');
+                    } else {
+                        showAuthForm('login');
+                    }
+                }
 
-        function showProfile(user) {
-            document.querySelector('.auth-container').style.display = 'none';
-            document.getElementById('profile-container').style.display = 'block';
-            
-            // Настраиваем профиль
-            document.getElementById('user-name').textContent = user.user_metadata?.name || 'Пользователь';
-            document.getElementById('user-email').textContent = user.email;
-            
-            // Устанавливаем аватар с инициалами
-            const name = user.user_metadata?.name || user.email;
-            const initials = name.split(' ')
-                .map(part => part.charAt(0))
-                .join('')
-                .toUpperCase()
-                .substring(0, 2);
-            
-            document.getElementById('user-avatar').textContent = initials;
-        }
+                setupEventListeners();
+            } catch (error) {
+                console.error('Ошибка инициализации:', error.message);
+                showMessage('Ошибка подключения к серверу авторизации', 'error');
+            }
+        }
 
-        function showAuthForm(formName) {
-            document.querySelectorAll('.auth-form').forEach(form => form.classList.remove('active'));
-            document.getElementById(`${formName}-form`).classList.add('active');
-            document.querySelector('.auth-container').style.display = 'block';
-            document.getElementById('profile-container').style.display = 'none';
-        }
+        // Обработка хэш-параметров URL
+        async function handleUrlHash() {
+            if (window.location.hash) {
+                try {
+                    // Проверяем и обрабатываем текущую сессию
+                    const { data: authData, error: authError } = await supabase.auth.getSession();
+                    
+                    if (authError) {
+                        console.error('Ошибка получения сессии:', authError.message);
+                    } else if (authData?.session) {
+                        showMessage('Авторизация успешна!', 'success');
+                    }
+                    
+                    // Очищаем URL от хэша
+                    if (!window.location.hash.includes('type=recovery')) {
+                        window.history.replaceState({}, document.title, window.location.pathname);
+                    }
+                } catch (error) {
+                    console.error('Ошибка обработки хэша URL:', error);
+                }
+            }
+        }
 
-        function showMessage(message, type = 'info') {
-            const msgEl = document.getElementById('auth-message');
-            msgEl.textContent = message;
-            msgEl.className = `message ${type}`;
-            msgEl.style.display = 'block';
-            
-            // Автоматически скрываем сообщение через 5 секунд
-            setTimeout(() => {
-                msgEl.style.opacity = '0';
-                setTimeout(() => {
-                    msgEl.style.display = 'none';
-                    msgEl.style.opacity = '1';
-                }, 300);
-            }, 5000);
-        }
+        function showProfile(user) {
+            document.querySelector('.auth-container').style.display = 'none';
+            document.getElementById('profile-container').style.display = 'block';
+            
+            // Настраиваем профиль
+            document.getElementById('user-name').textContent = user.user_metadata?.name || 'Пользователь';
+            document.getElementById('user-email').textContent = user.email;
+            
+            // Устанавливаем аватар с инициалами
+            const name = user.user_metadata?.name || user.email;
+            const initials = name.split(' ')
+                .map(part => part.charAt(0))
+                .join('')
+                .toUpperCase()
+                .substring(0, 2);
+            
+            document.getElementById('user-avatar').textContent = initials;
+        }
 
-        function validateEmail(email) {
-            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            return re.test(email);
-        }
+        function showAuthForm(formName) {
+            document.querySelectorAll('.auth-form').forEach(form => form.classList.remove('active'));
+            document.getElementById(`${formName}-form`).classList.add('active');
+            document.querySelector('.auth-container').style.display = 'block';
+            document.getElementById('profile-container').style.display = 'none';
+        }
 
-        function validatePassword(password) {
-            return password.length >= 6;
-        }
+        function showMessage(message, type = 'info') {
+            const msgEl = document.getElementById('auth-message');
+            msgEl.textContent = message;
+            msgEl.className = `message ${type}`;
+            msgEl.style.display = 'block';
+            
+            // Автоматически скрываем сообщение через 5 секунд
+            setTimeout(() => {
+                msgEl.style.opacity = '0';
+                setTimeout(() => {
+                    msgEl.style.display = 'none';
+                    msgEl.style.opacity = '1';
+                }, 300);
+            }, 5000);
+        }
 
-        function setupEventListeners() {
-            // Регистрация
-            document.getElementById('register-btn').addEventListener('click', async () => {
-                const nameEl = document.getElementById('register-name');
-                const emailEl = document.getElementById('register-email');
-                const passwordEl = document.getElementById('register-password');
-                
-                const name = nameEl.value.trim();
-                const email = emailEl.value.trim();
-                const password = passwordEl.value;
-                
-                // Валидация
-                if (!name) {
-                    showMessage('Пожалуйста, введите ваше имя', 'error');
-                    nameEl.focus();
-                    return;
-                }
-                
-                if (!validateEmail(email)) {
-                    showMessage('Пожалуйста, введите корректный email', 'error');
-                    emailEl.focus();
-                    return;
-                }
-                
-                if (!validatePassword(password)) {
-                    showMessage('Пароль должен содержать не менее 6 символов', 'error');
-                    passwordEl.focus();
-                    return;
-                }
+        function setLoading(buttonId, isLoading) {
+            const button = document.getElementById(buttonId);
+            const loader = document.getElementById(`${buttonId}-loader`);
+            
+            if (isLoading) {
+                button.disabled = true;
+                loader.style.display = 'inline-block';
+            } else {
+                button.disabled = false;
+                loader.style.display = 'none';
+            }
+        function validateEmail(email) {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(email);
+}
 
-                try {
-                    const { data, error } = await supabase.auth.signUp({
-                        email,
-                        password,
-                        options: { 
-                            data: { name } 
-                        }
-                    });
+function validatePassword(password) {
+    return password.length >= 6;
+}
 
-                    if (error) {
-                        showMessage(error.message, 'error');
-                    } else {
-                        showMessage('Проверьте почту для подтверждения аккаунта!', 'success');
-                        // Очищаем форму
-                        nameEl.value = '';
-                        emailEl.value = '';
-                        passwordEl.value = '';
-                        
-                        // Переход на форму входа через 2 секунды
-                        setTimeout(() => {
-                            showAuthForm('login');
-                        }, 2000);
-                    }
-                } catch (err) {
-                    showMessage('Произошла ошибка при регистрации', 'error');
-                    console.error(err);
-                }
-            });
+function setupEventListeners() {
+    // Регистрация
+    document.getElementById('register-btn').addEventListener('click', async () => {
+        const nameEl = document.getElementById('register-name');
+        const emailEl = document.getElementById('register-email');
+        const passwordEl = document.getElementById('register-password');
+        
+        const name = nameEl.value.trim();
+        const email = emailEl.value.trim();
+        const password = passwordEl.value;
+        
+        // Валидация
+        if (!name) {
+            showMessage('Пожалуйста, введите ваше имя', 'error');
+            nameEl.focus();
+            return;
+        }
+        
+        if (!validateEmail(email)) {
+            showMessage('Пожалуйста, введите корректный email', 'error');
+            emailEl.focus();
+            return;
+        }
+        
+        if (!validatePassword(password)) {
+            showMessage('Пароль должен содержать не менее 6 символов', 'error');
+            passwordEl.focus();
+            return;
+        }
 
-            // Вход
-            document.getElementById('login-btn').addEventListener('click', async () => {
-                const emailEl = document.getElementById('login-email');
-                const passwordEl = document.getElementById('login-password');
-                
-                const email = emailEl.value.trim();
-                const password = passwordEl.value;
-                
-                // Валидация
-                if (!validateEmail(email)) {
-                    showMessage('Пожалуйста, введите корректный email', 'error');
-                    emailEl.focus();
-                    return;
-                }
-                
-                if (!password) {
-                    showMessage('Пожалуйста, введите пароль', 'error');
-                    passwordEl.focus();
-                    return;
-                }
+        try {
+            setLoading('register-btn', true);
+            
+            const { data, error } = await supabase.auth.signUp({
+                email,
+                password,
+                options: { 
+                    data: { name },
+                    emailRedirectTo: `${siteURL}` // Редирект на текущий сайт
+                }
+            });
 
-                try {
-                    const { data, error } = await supabase.auth.signInWithPassword({ 
-                        email, 
-                        password 
-                    });
-                    
-                    if (error) {
-                        showMessage(error.message, 'error');
-                    } else {
-                        showMessage('Вход выполнен успешно!', 'success');
-                        setTimeout(() => {
-                            location.reload();
-                        }, 1000);
-                    }
-                } catch (err) {
-                    showMessage('Произошла ошибка при входе', 'error');
-                    console.error(err);
-                }
-            });
+            if (error) {
+                showMessage(error.message || 'Ошибка при регистрации', 'error');
+            } else {
+                showMessage('Проверьте почту для подтверждения аккаунта!', 'success');
+                nameEl.value = '';
+                emailEl.value = '';
+                passwordEl.value = '';
+                
+                setTimeout(() => {
+                    showAuthForm('login');
+                }, 2000);
+            }
+        } catch (err) {
+            showMessage('Произошла ошибка при регистрации', 'error');
+            console.error(err);
+        } finally {
+            setLoading('register-btn', false);
+        }
+    });
 
-            // Выход
-            document.getElementById('logout-btn').addEventListener('click', async () => {
-                try {
-                    await supabase.auth.signOut();
-                    showMessage('Выход выполнен успешно', 'success');
-                    setTimeout(() => {
-                        location.reload();
-                    }, 1000);
-                } catch (err) {
-                                    showMessage('Произошла ошибка при выходе', 'error');
-                console.error(err);
-            }
-        });
+    // Вход
+    document.getElementById('login-btn').addEventListener('click', async () => {
+        const emailEl = document.getElementById('login-email');
+        const passwordEl = document.getElementById('login-password');
+        
+        const email = emailEl.value.trim();
+        const password = passwordEl.value;
+        
+        // Валидация
+        if (!validateEmail(email)) {
+            showMessage('Пожалуйста, введите корректный email', 'error');
+            emailEl.focus();
+            return;
+        }
+        
+        if (!password) {
+            showMessage('Пожалуйста, введите пароль', 'error');
+            passwordEl.focus();
+            return;
+        }
 
-        // Переключение форм
-        document.getElementById('to-login-link').addEventListener('click', () => showAuthForm('login'));
-        document.getElementById('to-register-link').addEventListener('click', () => showAuthForm('register'));
-        document.getElementById('forgot-password-link').addEventListener('click', () => showAuthForm('reset'));
-        document.getElementById('to-login-link-from-reset').addEventListener('click', () => showAuthForm('login'));
+        try {
+            setLoading('login-btn', true);
+            
+            const { data, error } = await supabase.auth.signInWithPassword({ 
+                email, 
+                password 
+            });
+            
+            if (error) {
+                showMessage(error.message || 'Ошибка входа', 'error');
+            } else {
+                showMessage('Вход выполнен успешно!', 'success');
+                setTimeout(() => {
+                    location.reload();
+                }, 1000);
+            }
+        } catch (err) {
+            showMessage('Произошла ошибка при входе', 'error');
+            console.error(err);
+        } finally {
+            setLoading('login-btn', false);
+        }
+    });
 
-        // Сброс пароля
-        document.getElementById('reset-btn').addEventListener('click', async () => {
-            const emailEl = document.getElementById('reset-email');
-            const email = emailEl.value.trim();
-            
-            if (!validateEmail(email)) {
-                showMessage('Пожалуйста, введите корректный email', 'error');
-                emailEl.focus();
-                return;
-            }
-            
-            try {
-                const { error } = await supabase.auth.resetPasswordForEmail(email, {
-                    redirectTo: window.location.origin
-                });
-                
-                if (error) {
-                    showMessage(error.message, 'error');
-                } else {
-                    showMessage('Инструкции по сбросу пароля отправлены на вашу почту', 'success');
-                    emailEl.value = '';
-                    
-                    // Переход на форму входа через 2 секунды
-                    setTimeout(() => {
-                        showAuthForm('login');
-                    }, 2000);
-                }
-            } catch (err) {
-                showMessage('Произошла ошибка при отправке запроса', 'error');
-                console.error(err);
-            }
-        });
-    }
+    // Выход
+    document.getElementById('logout-btn').addEventListener('click', async () => {
+        try {
+            const { error } = await supabase.auth.signOut();
+            if (error) {
+                showMessage(error.message || 'Ошибка выхода', 'error');
+            } else {
+                showMessage('Выход выполнен успешно', 'success');
+                setTimeout(() => {
+                    location.reload();
+                }, 1000);
+            }
+        } catch (err) {
+            showMessage('Произошла ошибка при выходе', 'error');
+            console.error(err);
+        }
+    });
 
-    // Проверка URL на наличие токена восстановления пароля
-    const checkPasswordResetToken = async () => {
-        const hash = window.location.hash;
-        if (hash && hash.includes('type=recovery')) {
-            const { data, error } = await supabase.auth.getUser();
-            if (!error && data.user) {
-                // Тут можно добавить форму изменения пароля
-                showMessage('Для смены пароля необходимо перейти в настройки профиля', 'success');
-            }
-        }
-    };
-    
-    window.addEventListener('load', checkPasswordResetToken);
-</script>
-</body>
-</html>
+    // Переключение форм
+    document.getElementById('to-login-link').addEventListener('click', () => showAuthForm('login'));
+    document.getElementById('to-register-link').addEventListener('click', () => showAuthForm('register'));
+    document.getElementById('forgot-password-link').addEventListener('click', () => showAuthForm('reset'));
+    document.getElementById('to-login-link-from-reset').addEventListener('click', () => showAuthForm('login'));
+
+    // Сброс пароля
+    document.getElementById('reset-btn').addEventListener('click', async () => {
+        const emailEl = document.getElementById('reset-email');
+        const email = emailEl.value.trim();
+        
+        if (!validateEmail(email)) {
+            showMessage('Пожалуйста, введите корректный email', 'error');
+            emailEl.focus();
+            return;
+        }
+        
+        try {
+            setLoading('reset-btn', true);
+            
+            const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                redirectTo: `${siteURL}` // Редирект на текущий сайт
+            });
+            
+            if (error) {
+                showMessage(error.message || 'Ошибка сброса пароля', 'error');
+            } else {
+                showMessage('Инструкции по сбросу пароля отправлены на вашу почту', 'success');
+                emailEl.value = '';
+                
+                setTimeout(() => {
+                    showAuthForm('login');
+                }, 2000);
+            }
+        } catch (err) {
+            showMessage('Произошла ошибка при отправке запроса', 'error');
+            console.error(err);
+        } finally {
+            setLoading('reset-btn', false);
+        }
+    });
+
+    // Смена пароля
+    document.getElementById('change-password-btn').addEventListener('click', async () => {
+        const newPasswordEl = document.getElementById('new-password');
+        const confirmPasswordEl = document.getElementById('confirm-password');
+        
+        const newPassword = newPasswordEl.value;
+        const confirmPassword = confirmPasswordEl.value;
+        
+        if (!validatePassword(newPassword)) {
+            showMessage('Пароль должен содержать не менее 6 символов', 'error');
+            newPasswordEl.focus();
+            return;
+        }
+        
+        if (newPassword !== confirmPassword) {
+            showMessage('Пароли не совпадают', 'error');
+            confirmPasswordEl.focus();
+            return;
+        }
+        
+        try {
+            setLoading('change-password-btn', true);
+            
+            const { error } = await supabase.auth.updateUser({
+                password: newPassword
+            });
+            
+            if (error) {
+                showMessage(error.message || 'Ошибка смены пароля', 'error');
+            } else {
+                showMessage('Пароль успешно изменен!', 'success');
+                
+                newPasswordEl.value = '';
+                confirmPasswordEl.value = '';
+                
+                window.history.replaceState({}, document.title, window.location.pathname);
+                
+                setTimeout(() => {
+                    showAuthForm('login');
+                }, 2000);
+            }
+        } catch (err) {
+            showMessage('Произошла ошибка при смене пароля', 'error');
+            console.error(err);
+        } finally {
+            setLoading('change-password-btn', false);
+        }
+    });
+
+    setupEnterKeyHandlers();
+}
+
+// Настройка перехвата нажатия клавиши Enter
+function setupEnterKeyHandlers() {
+    // Для формы регистрации
+    document.getElementById('register-form').addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            document.getElementById('register-btn').click();
+        }
+    });
+
+    // Для формы входа
+    document.getElementById('login-form').addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            document.getElementById('login-btn').click();
+        }
+    });
+
+    // Для формы сброса пароля
+    document.getElementById('reset-form').addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            document.getElementById('reset-btn').click();
+        }
+    });
+
+    // Для формы смены пароля
+    document.getElementById('change-password-form').addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            document.getElementById('change-password-btn').click();
+        }
+    });
+}
+    </script>
