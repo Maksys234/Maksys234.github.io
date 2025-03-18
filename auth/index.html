@@ -921,35 +921,31 @@
             showMessage(translateError(errorMessage), 'error');
         }
 
-        // Kontrola dostupnosti uživatelského jména
-        registerUsername.addEventListener('blur', async function() {
-            const username = this.value.trim();
-            
-            if (username.length < 3) return;
-            
-            try {
-                const { data, error } = await supabase
-                    .from('profiles')
-                    .select('username')
-                    .eq('username', username)
-                    .single();
-                
-                if (error && error.code !== 'PGRST116') {
-                    throw error;
-                }
-                
-                if (data) {
-                    showMessage('Toto uživatelské jméno je již obsazené', 'error');
-                    this.focus();
-                }
-            } catch (error) {
-                // Ignorujeme chybu, pokud uživatelské jméno není nalezeno (což znamená, že je dostupné)
-                if (error.code !== 'PGRST116') {
-                    console.error('Chyba při kontrole uživatelského jména:', error);
-                }
-            }
-        });
-
+        // Функция проверки доступности имени пользователя
+  registerUsername.addEventListener('blur', async function() {
+    const username = this.value.trim();
+    
+    if (username.length < 3) return;
+    
+    try {
+        const { data, error } = await supabase
+            .from('profiles')
+            .select('username')
+            .eq('username', username)
+            .limit(1);
+        
+        if (error) {
+            throw error;
+        }
+        
+        if (data && data.length > 0) {
+            showMessage('Toto uživatelské jméno je již obsazené', 'error');
+            this.focus();
+        }
+    } catch (error) {
+        console.error('Chyba při kontrole uživatelského jména:', error);
+    }
+});
         // Optimalizace mobilního zobrazení
         function optimizeMobileView() {
             if (window.innerWidth < 768) {
