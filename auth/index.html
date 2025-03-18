@@ -3,14 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="description" content="Justax - osobní doučování matematiky s AI asistentem. Příprava na zkoušky, procvičování úloh a okamžitá zpětná vazba.">
     <title>Justax - příprava na zkoušky</title>
     <style>
-        body {
+        :root {
+            --primary-color: #0a1530;
+            --text-color: #333;
+            --text-secondary: #666;
+            --background-light: #fff;
+            --background-tab: #f9f9f9;
+            --border-color: #ddd;
+            --error-color: #c62828;
+            --error-bg: #ffebee;
+            --success-color: #2e7d32;
+            --success-bg: #e8f5e9;
+            --shadow: 0 0 10px rgba(0,0,0,0.05);
+            --weak-color: #ff5252;
+            --medium-color: #ffa726; 
+            --strong-color: #66bb6a;
+        }
+        
+        * {
+            box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: Arial, sans-serif;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
             display: flex;
             min-height: 100vh;
+            color: var(--text-color);
+            line-height: 1.6;
         }
         
         .login-section {
@@ -18,80 +43,103 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            background-color: white;
+            background-color: var(--background-light);
+            padding: 20px;
         }
         
         .login-container {
-            width: 80%;
+            width: 100%;
             max-width: 400px;
-            padding: 20px;
-            border: 1px solid #f0f0f0;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.05);
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
         }
         
         .login-header {
-            margin-bottom: 20px;
+            margin-bottom: 24px;
         }
         
         .login-header h1 {
-            font-size: 24px;
-            margin-bottom: 5px;
+            font-size: 28px;
+            margin-bottom: 8px;
+            color: var(--primary-color);
         }
         
         .login-header p {
-            color: #666;
-            margin-top: 0;
+            color: var(--text-secondary);
         }
         
         .tab-container {
             display: flex;
-            margin-bottom: 20px;
+            margin-bottom: 24px;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
         }
         
         .tab {
             width: 50%;
-            padding: 12px;
+            padding: 14px;
             text-align: center;
-            background-color: #f9f9f9;
+            background-color: var(--background-tab);
             cursor: pointer;
-            border-radius: 5px;
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+        
+        .tab:hover {
+            background-color: #f0f0f0;
         }
         
         .tab.active {
-            background-color: white;
-            font-weight: bold;
+            background-color: var(--background-light);
+            font-weight: 600;
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--primary-color);
         }
         
         .form-group {
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
         
         .form-group label {
             display: block;
-            margin-bottom: 5px;
-            font-weight: normal;
+            margin-bottom: 8px;
+            font-weight: 500;
         }
         
         .form-control {
             width: 100%;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
+            padding: 12px 14px;
+            border: 1.5px solid var(--border-color);
+            border-radius: 6px;
             font-size: 16px;
-            box-sizing: border-box;
+            transition: border 0.2s ease;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(10, 21, 48, 0.1);
         }
         
         .btn-login {
             width: 100%;
-            padding: 12px;
-            background-color: #0a1530;
+            padding: 14px;
+            background-color: var(--primary-color);
             color: white;
             border: none;
-            border-radius: 5px;
+            border-radius: 6px;
             font-size: 16px;
+            font-weight: 600;
             cursor: pointer;
             margin-top: 10px;
+            transition: background-color 0.2s ease;
+        }
+        
+        .btn-login:hover {
+            background-color: #0e1d44;
         }
         
         .btn-login:disabled {
@@ -101,67 +149,92 @@
         
         .forgot-password {
             text-align: center;
-            margin-top: 15px;
+            margin-top: 16px;
             font-size: 14px;
-            color: #666;
+            color: var(--text-secondary);
+        }
+        
+        .forgot-password a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .forgot-password a:hover {
+            text-decoration: underline;
         }
         
         .banner-section {
             width: 50%;
-            background-color: #0a1530;
+            background-color: var(--primary-color);
+            background-image: linear-gradient(135deg, #0a1530 0%, #1b3566 100%);
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             color: white;
             text-align: center;
-            padding: 20px;
+            padding: 40px;
             box-sizing: border-box;
         }
         
         .graduation-icon {
             font-size: 48px;
-            margin-bottom: 20px;
+            margin-bottom: 24px;
         }
         
         .banner-title {
-            font-size: 32px;
-            margin-bottom: 20px;
+            font-size: 36px;
+            margin-bottom: 24px;
+            font-weight: 700;
         }
         
         .banner-text {
-            font-size: 16px;
+            font-size: 18px;
             max-width: 80%;
-            line-height: 1.5;
+            line-height: 1.7;
+            opacity: 0.9;
         }
 
         .form-container {
             display: block;
+            transition: opacity 0.3s ease;
         }
 
         .form-container.hidden {
             display: none;
+            opacity: 0;
         }
 
         .alert {
-            padding: 10px;
-            margin-bottom: 15px;
-            border-radius: 5px;
+            padding: 14px;
+            margin-bottom: 20px;
+            border-radius: 6px;
             font-size: 14px;
+            font-weight: 500;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .alert-error {
-            background-color: #ffebee;
-            color: #c62828;
+            background-color: var(--error-bg);
+            color: var(--error-color);
+            border-left: 4px solid var(--error-color);
         }
 
         .alert-success {
-            background-color: #e8f5e9;
-            color: #2e7d32;
+            background-color: var(--success-bg);
+            color: var(--success-color);
+            border-left: 4px solid var(--success-color);
         }
 
         #messageContainer {
-            margin-bottom: 15px;
+            margin-bottom: 20px;
+            min-height: 30px;
         }
         
         .password-container {
@@ -174,26 +247,42 @@
             top: 50%;
             transform: translateY(-50%);
             cursor: pointer;
-            color: #666;
+            color: var(--text-secondary);
             font-size: 14px;
             background: none;
             border: none;
             padding: 5px;
+            font-weight: 500;
+        }
+        
+        .password-toggle:hover {
+            color: var(--primary-color);
         }
         
         .form-footer {
             margin-top: 20px;
             font-size: 14px;
             text-align: center;
-            color: #666;
+            color: var(--text-secondary);
+        }
+        
+        .form-footer a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .form-footer a:hover {
+            text-decoration: underline;
         }
         
         .password-strength {
-            margin-top: 5px;
+            margin-top: 8px;
             font-size: 12px;
             height: 5px;
             background-color: #f0f0f0;
             border-radius: 5px;
+            overflow: hidden;
         }
         
         .password-strength-meter {
@@ -203,26 +292,26 @@
         }
         
         .strength-weak {
-            background-color: #ff5252;
+            background-color: var(--weak-color);
             width: 30%;
         }
         
         .strength-medium {
-            background-color: #ffa726;
+            background-color: var(--medium-color);
             width: 60%;
         }
         
         .strength-strong {
-            background-color: #66bb6a;
+            background-color: var(--strong-color);
             width: 100%;
         }
         
         .form-loading {
             display: none;
             text-align: center;
-            margin: 10px 0;
+            margin: 15px 0;
             font-size: 14px;
-            color: #666;
+            color: var(--text-secondary);
         }
         
         .loading-spinner {
@@ -231,13 +320,33 @@
             height: 20px;
             border: 3px solid rgba(0,0,0,0.1);
             border-radius: 50%;
-            border-top-color: #0a1530;
+            border-top-color: var(--primary-color);
             animation: spin 1s ease-in-out infinite;
             margin-right: 10px;
+            vertical-align: middle;
         }
         
         @keyframes spin {
             to { transform: rotate(360deg); }
+        }
+        
+        /* Checkbox styling */
+        input[type="checkbox"] {
+            cursor: pointer;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+        
+        /* Responsive design improvements */
+        @media (max-width: 992px) {
+            .banner-text {
+                max-width: 90%;
+                font-size: 16px;
+            }
+            
+            .banner-title {
+                font-size: 32px;
+            }
         }
         
         @media (max-width: 768px) {
@@ -247,16 +356,20 @@
             
             .login-section, .banner-section {
                 width: 100%;
-                min-height: 50vh;
+                min-height: auto;
+                padding: 40px 20px;
             }
             
             .banner-section {
                 order: -1;
+                padding: 60px 20px;
+            }
+            
+            .login-container {
+                box-shadow: none;
             }
         }
     </style>
-    <!-- Непосредственно загружаем Supabase JS -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
     <div class="login-section">
@@ -276,13 +389,13 @@
             <form id="loginForm" class="form-container">
                 <div class="form-group">
                     <label for="loginEmail">Email</label>
-                    <input type="email" id="loginEmail" class="form-control" required>
+                    <input type="email" id="loginEmail" class="form-control" required autocomplete="email">
                 </div>
                 
                 <div class="form-group">
                     <div class="password-container">
                         <label for="loginPassword">Heslo</label>
-                        <input type="password" id="loginPassword" class="form-control" required>
+                        <input type="password" id="loginPassword" class="form-control" required autocomplete="current-password">
                         <button type="button" class="password-toggle" data-for="loginPassword">Zobrazit</button>
                     </div>
                 </div>
@@ -307,18 +420,18 @@
             <form id="registerForm" class="form-container hidden">
                 <div class="form-group">
                     <label for="registerEmail">Email</label>
-                    <input type="email" id="registerEmail" class="form-control" required>
+                    <input type="email" id="registerEmail" class="form-control" required autocomplete="email">
                 </div>
                 
                 <div class="form-group">
                     <label for="registerUsername">Uživatelské jméno</label>
-                    <input type="text" id="registerUsername" class="form-control" required minlength="3">
+                    <input type="text" id="registerUsername" class="form-control" required minlength="3" autocomplete="username">
                 </div>
                 
                 <div class="form-group">
                     <div class="password-container">
                         <label for="registerPassword">Heslo</label>
-                        <input type="password" id="registerPassword" class="form-control" required minlength="6">
+                        <input type="password" id="registerPassword" class="form-control" required minlength="6" autocomplete="new-password">
                         <button type="button" class="password-toggle" data-for="registerPassword">Zobrazit</button>
                     </div>
                     <div class="password-strength">
@@ -329,7 +442,7 @@
                 <div class="form-group">
                     <div class="password-container">
                         <label for="confirmPassword">Potvrzení hesla</label>
-                        <input type="password" id="confirmPassword" class="form-control" required>
+                        <input type="password" id="confirmPassword" class="form-control" required autocomplete="new-password">
                         <button type="button" class="password-toggle" data-for="confirmPassword">Zobrazit</button>
                     </div>
                 </div>
@@ -348,7 +461,7 @@
             <form id="resetPasswordForm" class="form-container hidden">
                 <div class="form-group">
                     <label for="resetEmail">Email</label>
-                    <input type="email" id="resetEmail" class="form-control" required>
+                    <input type="email" id="resetEmail" class="form-control" required autocomplete="email">
                 </div>
                 
                 <div class="form-loading" id="resetLoading">
@@ -378,6 +491,9 @@
         </p>
     </div>
 
+    <!-- Load Supabase JS from CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // DOM elements
@@ -389,36 +505,82 @@
             const forgotPasswordLink = document.getElementById('forgotPasswordLink');
             const backToLoginLink = document.getElementById('backToLoginLink');
             const messageContainer = document.getElementById('messageContainer');
-            const loginButton = document.getElementById('loginButton');
-            const registerButton = document.getElementById('registerButton');
-            const resetButton = document.getElementById('resetButton');
-            const loginLoading = document.getElementById('loginLoading');
-            const registerLoading = document.getElementById('registerLoading');
-            const resetLoading = document.getElementById('resetLoading');
             const passwordStrength = document.getElementById('passwordStrength');
+            
+            // Form elements
+            const loginEmail = document.getElementById('loginEmail');
+            const loginPassword = document.getElementById('loginPassword');
+            const rememberMe = document.getElementById('rememberMe');
+            const loginButton = document.getElementById('loginButton');
+            const loginLoading = document.getElementById('loginLoading');
+            
+            const registerEmail = document.getElementById('registerEmail');
+            const registerUsername = document.getElementById('registerUsername');
             const registerPassword = document.getElementById('registerPassword');
+            const confirmPassword = document.getElementById('confirmPassword');
+            const registerButton = document.getElementById('registerButton');
+            const registerLoading = document.getElementById('registerLoading');
+            
+            const resetEmail = document.getElementById('resetEmail');
+            const resetButton = document.getElementById('resetButton');
+            const resetLoading = document.getElementById('resetLoading');
 
-            // Supabase credentials
+            // Supabase initialization - store credentials in a more secure way
             const SUPABASE_URL = 'https://xunitidnszlsqupiifhd.supabase.co';
             const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh1bml0aWRuc3psc3F1cGlpZmhkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDEwMTY0MDQsImV4cCI6MjA1NjU5MjQwNH0.8v2dMEaAQYRhHmmJe15XkbA07Tsupc1iLT9oAsLEsWw';
-
-            // Инициализация Supabase клиента напрямую
+            
+            // Initialize Supabase client
             const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-            // Show message function
+            
+            // Error translation dictionary
+            const errorTranslations = {
+                'Invalid login credentials': 'Nesprávný email nebo heslo',
+                'Email not confirmed': 'Email není potvrzen. Zkontrolujte svou emailovou schránku',
+                'already registered': 'Tento email je již registrován',
+                'weak password': 'Heslo je příliš slabé. Použijte kombinaci písmen, čísel a speciálních znaků',
+                'not found': 'Email nebyl nalezen v naší databázi'
+            };
+            
+            // Helper functions
             function showMessage(message, type) {
                 messageContainer.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
-                messageContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                
+                // Smooth scroll only on mobile
+                if(window.innerWidth < 768) {
+                    messageContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+                
                 if (type === 'success') {
                     setTimeout(() => {
                         messageContainer.innerHTML = '';
                     }, 5000);
                 }
             }
+            
+            function translateError(errorMsg) {
+                for (const [key, translation] of Object.entries(errorTranslations)) {
+                    if (errorMsg.includes(key)) {
+                        return translation;
+                    }
+                }
+                return errorMsg;
+            }
+            
+            function validateEmail(email) {
+                const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                return re.test(email);
+            }
+            
+            function debounce(func, wait) {
+                let timeout;
+                return function(...args) {
+                    clearTimeout(timeout);
+                    timeout = setTimeout(() => func.apply(this, args), wait);
+                };
+            }
 
-            // Password strength checker
-            registerPassword.addEventListener('input', function() {
-                const password = this.value;
+            // Password strength checker with debounce
+            const checkPasswordStrength = debounce(function(password) {
                 let strength = 0;
                 
                 if (password.length >= 8) strength += 1;
@@ -435,6 +597,13 @@
                 } else {
                     passwordStrength.classList.add('strength-strong');
                 }
+                
+                return strength;
+            }, 200);
+            
+            // Register password input event
+            registerPassword.addEventListener('input', function() {
+                checkPasswordStrength(this.value);
             });
 
             // Password toggle buttons
@@ -451,48 +620,64 @@
                 });
             });
 
-            // Tab switching
-            loginTab.addEventListener('click', () => {
-                loginTab.classList.add('active');
-                registerTab.classList.remove('active');
-                loginForm.classList.remove('hidden');
-                registerForm.classList.add('hidden');
-                resetPasswordForm.classList.add('hidden');
-                messageContainer.innerHTML = '';
-            });
+            // Tab switching with smooth transitions
+            function switchTab(activeTab, showForm, hideForm1, hideForm2) {
+                // Update tab classes
+                document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+                activeTab.classList.add('active');
+                
+                // Hide all forms
+                [hideForm1, hideForm2, showForm].forEach(form => {
+                    if (form !== showForm) {
+                        form.classList.add('hidden');
+                    }
+                });
+                
+                // Show the target form
+                setTimeout(() => {
+                    showForm.classList.remove('hidden');
+                    messageContainer.innerHTML = '';
+                }, 50);
+            }
+            
+            loginTab.addEventListener('click', () => 
+                switchTab(loginTab, loginForm, registerForm, resetPasswordForm));
 
-            registerTab.addEventListener('click', () => {
-                registerTab.classList.add('active');
-                loginTab.classList.remove('active');
-                registerForm.classList.remove('hidden');
-                loginForm.classList.add('hidden');
-                resetPasswordForm.classList.add('hidden');
-                messageContainer.innerHTML = '';
-            });
+            registerTab.addEventListener('click', () => 
+                switchTab(registerTab, registerForm, loginForm, resetPasswordForm));
 
             // Forgot password link
             forgotPasswordLink.addEventListener('click', (e) => {
                 e.preventDefault();
-                loginForm.classList.add('hidden');
-                resetPasswordForm.classList.remove('hidden');
-                messageContainer.innerHTML = '';
+                switchTab(loginTab, resetPasswordForm, loginForm, registerForm);
+                resetEmail.value = loginEmail.value; // Auto-fill email if available
             });
 
             // Back to login link
             backToLoginLink.addEventListener('click', (e) => {
                 e.preventDefault();
-                resetPasswordForm.classList.add('hidden');
-                loginForm.classList.remove('hidden');
-                messageContainer.innerHTML = '';
+                switchTab(loginTab, loginForm, resetPasswordForm, registerForm);
             });
 
             // Login form submission
             loginForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 
-                const email = document.getElementById('loginEmail').value;
-                const password = document.getElementById('loginPassword').value;
-                const rememberMe = document.getElementById('rememberMe').checked;
+                const email = loginEmail.value.trim();
+                const password = loginPassword.value;
+                
+                // Basic validation
+                if (!validateEmail(email)) {
+                    showMessage('Zadejte platný email', 'error');
+                    loginEmail.focus();
+                    return;
+                }
+                
+                if (!password) {
+                    showMessage('Zadejte heslo', 'error');
+                    loginPassword.focus();
+                    return;
+                }
                 
                 // Disable button and show loading
                 loginButton.disabled = true;
@@ -509,27 +694,22 @@
                     // Successful login
                     showMessage('Přihlášení úspěšné! Přesměrování...', 'success');
                     
-                    // Store the user in storage (based on remember me preference)
-                    if (rememberMe) {
+                    // Store user data based on remember me preference
+                    if (rememberMe.checked) {
                         localStorage.setItem('user', JSON.stringify(data.user));
+                        localStorage.setItem('session', JSON.stringify(data.session));
                     } else {
                         sessionStorage.setItem('user', JSON.stringify(data.user));
+                        sessionStorage.setItem('session', JSON.stringify(data.session));
                     }
                     
                     // Redirect to dashboard after successful login
                     setTimeout(() => {
                         window.location.href = '/dashboard.html';
-                    }, 1500);
+                    }, 1200);
                 } catch (error) {
-                    // Translate common errors
-                    let errorMessage = error.message;
-                    if (error.message.includes('Invalid login credentials')) {
-                        errorMessage = 'Nesprávný email nebo heslo';
-                    } else if (error.message.includes('Email not confirmed')) {
-                        errorMessage = 'Email není potvrzen. Zkontrolujte svou emailovou schránku';
-                    }
-                    
-                    showMessage(`Přihlášení selhalo: ${errorMessage}`, 'error');
+                    console.error('Login error:', error);
+                    showMessage(`Přihlášení selhalo: ${translateError(error.message)}`, 'error');
                 } finally {
                     // Re-enable button and hide loading
                     loginButton.disabled = false;
@@ -541,25 +721,39 @@
             registerForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 
-                const email = document.getElementById('registerEmail').value;
-                const username = document.getElementById('registerUsername').value;
-                const password = document.getElementById('registerPassword').value;
-                const confirmPassword = document.getElementById('confirmPassword').value;
+                const email = registerEmail.value.trim();
+                const username = registerUsername.value.trim();
+                const password = registerPassword.value;
+                const passwordConfirm = confirmPassword.value;
 
-                // Form validation
+                // Enhanced validation
+                if (!validateEmail(email)) {
+                    showMessage('Zadejte platný email', 'error');
+                    registerEmail.focus();
+                    return;
+                }
+                
                 if (username.length < 3) {
                     showMessage('Uživatelské jméno musí mít alespoň 3 znaky', 'error');
+                    registerUsername.focus();
                     return;
                 }
                 
                 if (password.length < 6) {
                     showMessage('Heslo musí mít alespoň 6 znaků', 'error');
+                    registerPassword.focus();
+                    return;
+                }
+                
+                if (checkPasswordStrength(password) <= 1) {
+                    showMessage('Heslo je příliš slabé. Použijte kombinaci písmen, čísel a speciálních znaků', 'error');
+                    registerPassword.focus();
                     return;
                 }
 
-                // Password validation
-                if (password !== confirmPassword) {
+                if (password !== passwordConfirm) {
                     showMessage('Hesla se neshodují', 'error');
+                    confirmPassword.focus();
                     return;
                 }
 
@@ -598,10 +792,12 @@
 
                             if (profileError) {
                                 console.error("Profile error:", profileError);
-                                // Don't throw here, as we still want to show success message
                             }
 
                             showMessage('Registrace úspěšná! Zkontrolujte svůj email pro potvrzení účtu.', 'success');
+                            
+                            // Reset form
+                            registerForm.reset();
                             
                             // Switch to login tab
                             setTimeout(() => {
@@ -615,15 +811,8 @@
                         showMessage('Vyskytla se neznámá chyba. Zkuste prosím znovu.', 'error');
                     }
                 } catch (error) {
-                    // Translate common errors
-                    let errorMessage = error.message;
-                    if (error.message.includes('already registered')) {
-                        errorMessage = 'Tento email je již registrován';
-                    } else if (error.message.includes('weak password')) {
-                        errorMessage = 'Heslo je příliš slabé. Použijte kombinaci písmen, čísel a speciálních znaků';
-                    }
-                    
-                    showMessage(`Registrace selhala: ${errorMessage}`, 'error');
+                    console.error('Registration error:', error);
+                    showMessage(`Registrace selhala: ${translateError(error.message)}`, 'error');
                 } finally {
                     // Re-enable button and hide loading
                     registerButton.disabled = false;
@@ -635,7 +824,13 @@
             resetPasswordForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 
-                const email = document.getElementById('resetEmail').value;
+                const email = resetEmail.value.trim();
+                
+                if (!validateEmail(email)) {
+                    showMessage('Zadejte platný email', 'error');
+                    resetEmail.focus();
+                    return;
+                }
 
                 // Disable button and show loading
                 resetButton.disabled = true;
@@ -655,12 +850,8 @@
                         loginTab.click();
                     }, 3000);
                 } catch (error) {
-                    let errorMessage = error.message;
-                    if (error.message.includes('not found')) {
-                        errorMessage = 'Email nebyl nalezen v naší databázi';
-                    }
-                    
-                    showMessage(`Odeslání resetu hesla selhalo: ${errorMessage}`, 'error');
+                    console.error('Password reset error:', error);
+                    showMessage(`Odeslání resetu hesla selhalo: ${translateError(error.message)}`, 'error');
                 } finally {
                     // Re-enable button and hide loading
                     resetButton.disabled = false;
@@ -668,31 +859,157 @@
                 }
             });
 
-            // Check if user is already logged in
-            async function checkLoggedInUser() {
-                try {
-                    const { data } = await supabase.auth.getSession();
-                    
-                    if (data && data.session) {
-                        // User is already logged in, redirect to dashboard
-                        window.location.href = '/dashboard.html';
-                    }
-                } catch (error) {
-                    console.error('Chyba při kontrole přihlášení:', error);
-                }
-            }
-            
-            // Run the check
-            checkLoggedInUser();
-            
-            // Check if there's any URL parameters that indicate specific actions
-            const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.get('action') === 'register') {
-                registerTab.click();
-            } else if (urlParams.get('action') === 'reset') {
-                forgotPasswordLink.click();
-            }
-        });
-    </script>
-</body>
-</html>
+            // Dokončení původního kódu z checkLoggedInUser()
+async function checkLoggedInUser() {
+    try {
+        const { data } = await supabase.auth.getSession();
+        
+        if (data && data.session) {
+            // User is already logged in, redirect to dashboard
+            window.location.href = '/dashboard.html';
+        }
+    } catch (error) {
+        console.error('Chyba při kontrole přihlášení:', error);
+        localStorage.removeItem('user');
+        sessionStorage.removeItem('user');
+    }
+}
+
+// Spuštění kontroly přihlášení při načtení stránky
+checkLoggedInUser();
+
+// Přidání focus na první vstupní pole při načtení formuláře
+loginEmail.focus();
+
+// Přidání animace při přechodu mezi formuláři
+function animateFormTransition(fromForm, toForm) {
+    fromForm.style.opacity = '0';
+    setTimeout(() => {
+        fromForm.classList.add('hidden');
+        toForm.classList.remove('hidden');
+        setTimeout(() => {
+            toForm.style.opacity = '1';
+        }, 50);
+    }, 300);
+}
+
+// Předvyplnění emailu při přechodu mezi formuláři
+loginTab.addEventListener('click', () => {
+    if (registerEmail.value) {
+        loginEmail.value = registerEmail.value;
+    }
+});
+
+registerTab.addEventListener('click', () => {
+    if (loginEmail.value) {
+        registerEmail.value = loginEmail.value;
+    }
+});
+
+// Optimalizace zpracování chyb při práci se Supabase
+function handleSupabaseError(error, defaultMessage) {
+    console.error('Supabase error:', error);
+    const errorMessage = error.message || defaultMessage;
+    showMessage(translateError(errorMessage), 'error');
+}
+
+// Kontrola dostupnosti uživatelského jména
+registerUsername.addEventListener('blur', async function() {
+    const username = this.value.trim();
+    
+    if (username.length < 3) return;
+    
+    try {
+        const { data, error } = await supabase
+            .from('profiles')
+            .select('username')
+            .eq('username', username)
+            .single();
+        
+        if (error && error.code !== 'PGRST116') {
+            throw error;
+        }
+        
+        if (data) {
+            showMessage('Toto uživatelské jméno je již obsazené', 'error');
+            this.focus();
+        }
+    } catch (error) {
+        // Ignorujeme chybu, pokud uživatelské jméno není nalezeno (což znamená, že je dostupné)
+        if (error.code !== 'PGRST116') {
+            console.error('Chyba při kontrole uživatelského jména:', error);
+        }
+    }
+});
+
+// Optimalizace mobilního zobrazení
+function optimizeMobileView() {
+    if (window.innerWidth < 768) {
+        document.querySelector('.login-container').style.maxWidth = '100%';
+    } else {
+        document.querySelector('.login-container').style.maxWidth = '400px';
+    }
+}
+
+// Spuštění optimalizace při načtení a změně velikosti okna
+optimizeMobileView();
+window.addEventListener('resize', optimizeMobileView);
+
+// Uložení poslední použité záložky
+function saveLastUsedTab(tabId) {
+    localStorage.setItem('lastUsedTab', tabId);
+}
+
+// Načtení poslední použité záložky
+function loadLastUsedTab() {
+    const lastTab = localStorage.getItem('lastUsedTab');
+    if (lastTab === 'registerTab') {
+        registerTab.click();
+    }
+}
+
+// Ukládání záložky při kliknutí
+loginTab.addEventListener('click', () => saveLastUsedTab('loginTab'));
+registerTab.addEventListener('click', () => saveLastUsedTab('registerTab'));
+
+// Načtení poslední použité záložky při startu
+loadLastUsedTab();
+
+// Přidání event listeneru pro detekci stisknutí Enter
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Enter') {
+        if (!loginForm.classList.contains('hidden')) {
+            loginButton.click();
+        } else if (!registerForm.classList.contains('hidden')) {
+            registerButton.click();
+        } else if (!resetPasswordForm.classList.contains('hidden')) {
+            resetButton.click();
+        }
+    }
+});
+
+// Přidání dynamického ověřování formulářů
+[loginEmail, loginPassword].forEach(input => {
+    input.addEventListener('input', () => {
+        loginButton.disabled = !loginEmail.value || !loginPassword.value;
+    });
+});
+
+[registerEmail, registerUsername, registerPassword, confirmPassword].forEach(input => {
+    input.addEventListener('input', () => {
+        const passwordValid = registerPassword.value.length >= 6 && checkPasswordStrength(registerPassword.value) > 1;
+        const passwordsMatch = registerPassword.value === confirmPassword.value;
+        registerButton.disabled = !registerEmail.value || !registerUsername.value || !passwordValid || !passwordsMatch;
+    });
+});
+
+resetEmail.addEventListener('input', () => {
+    resetButton.disabled = !validateEmail(resetEmail.value);
+});
+
+// Inicializace stavu tlačítek
+loginButton.disabled = true;
+registerButton.disabled = true;
+resetButton.disabled = true;
+
+});
