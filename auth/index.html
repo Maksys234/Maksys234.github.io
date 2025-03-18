@@ -255,6 +255,8 @@
             }
         }
     </style>
+    <!-- Непосредственно загружаем Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
     <div class="login-section">
@@ -400,39 +402,10 @@
             const SUPABASE_URL = 'https://xunitidnszlsqupiifhd.supabase.co';
             const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh1bml0aWRuc3psc3F1cGlpZmhkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDEwMTY0MDQsImV4cCI6MjA1NjU5MjQwNH0.8v2dMEaAQYRhHmmJe15XkbA07Tsupc1iLT9oAsLEsWw';
 
-            // Initialize Supabase client - Fix for GitHub Pages
-            let supabase;
-            
-            // Helper function to load Supabase and handle errors
-            async function initializeSupabase() {
-                try {
-                    // Check if supabaseClient is already loaded
-                    if (typeof supabaseClient !== 'undefined') {
-                        supabase = supabaseClient.createClient(SUPABASE_URL, SUPABASE_KEY);
-                        return true;
-                    }
-                    
-                    // Load supabase-js dynamically
-                    return new Promise((resolve) => {
-                        const script = document.createElement('script');
-                        script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
-                        script.onload = () => {
-                            supabase = supabaseClient.createClient(SUPABASE_URL, SUPABASE_KEY);
-                            resolve(true);
-                        };
-                        script.onerror = () => {
-                            showMessage('Nepodařilo se načíst potřebné knihovny. Obnovte stránku nebo zkuste později.', 'error');
-                            resolve(false);
-                        };
-                        document.body.appendChild(script);
-                    });
-                } catch (error) {
-                    showMessage('Chyba při inicializaci: ' + error.message, 'error');
-                    return false;
-                }
-            }
+            // Инициализация Supabase клиента напрямую
+            const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-            // Show message function with better error handling
+            // Show message function
             function showMessage(message, type) {
                 messageContainer.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
                 messageContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -517,10 +490,6 @@
             loginForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 
-                // Check if Supabase is initialized
-                const isSupabaseInitialized = await initializeSupabase();
-                if (!isSupabaseInitialized) return;
-                
                 const email = document.getElementById('loginEmail').value;
                 const password = document.getElementById('loginPassword').value;
                 const rememberMe = document.getElementById('rememberMe').checked;
@@ -571,10 +540,6 @@
             // Registration form submission
             registerForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
-                
-                // Check if Supabase is initialized
-                const isSupabaseInitialized = await initializeSupabase();
-                if (!isSupabaseInitialized) return;
                 
                 const email = document.getElementById('registerEmail').value;
                 const username = document.getElementById('registerUsername').value;
@@ -670,10 +635,6 @@
             resetPasswordForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 
-                // Check if Supabase is initialized
-                const isSupabaseInitialized = await initializeSupabase();
-                if (!isSupabaseInitialized) return;
-                
                 const email = document.getElementById('resetEmail').value;
 
                 // Disable button and show loading
@@ -709,10 +670,6 @@
 
             // Check if user is already logged in
             async function checkLoggedInUser() {
-                // Check if Supabase is initialized
-                const isSupabaseInitialized = await initializeSupabase();
-                if (!isSupabaseInitialized) return;
-                
                 try {
                     const { data } = await supabase.auth.getSession();
                     
