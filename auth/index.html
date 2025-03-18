@@ -94,6 +94,11 @@
             margin-top: 10px;
         }
         
+        .btn-login:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        
         .forgot-password {
             text-align: center;
             margin-top: 15px;
@@ -158,6 +163,97 @@
         #messageContainer {
             margin-bottom: 15px;
         }
+        
+        .password-container {
+            position: relative;
+        }
+        
+        .password-toggle {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #666;
+            font-size: 14px;
+            background: none;
+            border: none;
+            padding: 5px;
+        }
+        
+        .form-footer {
+            margin-top: 20px;
+            font-size: 14px;
+            text-align: center;
+            color: #666;
+        }
+        
+        .password-strength {
+            margin-top: 5px;
+            font-size: 12px;
+            height: 5px;
+            background-color: #f0f0f0;
+            border-radius: 5px;
+        }
+        
+        .password-strength-meter {
+            height: 100%;
+            border-radius: 5px;
+            transition: width 0.3s ease;
+        }
+        
+        .strength-weak {
+            background-color: #ff5252;
+            width: 30%;
+        }
+        
+        .strength-medium {
+            background-color: #ffa726;
+            width: 60%;
+        }
+        
+        .strength-strong {
+            background-color: #66bb6a;
+            width: 100%;
+        }
+        
+        .form-loading {
+            display: none;
+            text-align: center;
+            margin: 10px 0;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(0,0,0,0.1);
+            border-radius: 50%;
+            border-top-color: #0a1530;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 10px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+            }
+            
+            .login-section, .banner-section {
+                width: 100%;
+                min-height: 50vh;
+            }
+            
+            .banner-section {
+                order: -1;
+            }
+        }
     </style>
 </head>
 <body>
@@ -182,11 +278,24 @@
                 </div>
                 
                 <div class="form-group">
-                    <label for="loginPassword">Heslo</label>
-                    <input type="password" id="loginPassword" class="form-control" required>
+                    <div class="password-container">
+                        <label for="loginPassword">Heslo</label>
+                        <input type="password" id="loginPassword" class="form-control" required>
+                        <button type="button" class="password-toggle" data-for="loginPassword">Zobrazit</button>
+                    </div>
                 </div>
                 
-                <button type="submit" class="btn-login">Přihlásit se</button>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="rememberMe"> Zapamatovat si mě
+                    </label>
+                </div>
+                
+                <div class="form-loading" id="loginLoading">
+                    <div class="loading-spinner"></div> Přihlašování...
+                </div>
+                
+                <button type="submit" class="btn-login" id="loginButton">Přihlásit se</button>
                 
                 <div class="forgot-password">
                     <a href="#" id="forgotPasswordLink">Zapomněli jste heslo?</a>
@@ -201,20 +310,37 @@
                 
                 <div class="form-group">
                     <label for="registerUsername">Uživatelské jméno</label>
-                    <input type="text" id="registerUsername" class="form-control" required>
+                    <input type="text" id="registerUsername" class="form-control" required minlength="3">
                 </div>
                 
                 <div class="form-group">
-                    <label for="registerPassword">Heslo</label>
-                    <input type="password" id="registerPassword" class="form-control" required minlength="6">
+                    <div class="password-container">
+                        <label for="registerPassword">Heslo</label>
+                        <input type="password" id="registerPassword" class="form-control" required minlength="6">
+                        <button type="button" class="password-toggle" data-for="registerPassword">Zobrazit</button>
+                    </div>
+                    <div class="password-strength">
+                        <div class="password-strength-meter" id="passwordStrength"></div>
+                    </div>
                 </div>
                 
                 <div class="form-group">
-                    <label for="confirmPassword">Potvrzení hesla</label>
-                    <input type="password" id="confirmPassword" class="form-control" required>
+                    <div class="password-container">
+                        <label for="confirmPassword">Potvrzení hesla</label>
+                        <input type="password" id="confirmPassword" class="form-control" required>
+                        <button type="button" class="password-toggle" data-for="confirmPassword">Zobrazit</button>
+                    </div>
                 </div>
                 
-                <button type="submit" class="btn-login">Registrovat se</button>
+                <div class="form-loading" id="registerLoading">
+                    <div class="loading-spinner"></div> Vytváření účtu...
+                </div>
+                
+                <button type="submit" class="btn-login" id="registerButton">Registrovat se</button>
+                
+                <div class="form-footer">
+                    Registrací souhlasíte s našimi <a href="#">Podmínkami služby</a> a <a href="#">Zásadami ochrany osobních údajů</a>
+                </div>
             </form>
 
             <form id="resetPasswordForm" class="form-container hidden">
@@ -223,7 +349,11 @@
                     <input type="email" id="resetEmail" class="form-control" required>
                 </div>
                 
-                <button type="submit" class="btn-login">Resetovat heslo</button>
+                <div class="form-loading" id="resetLoading">
+                    <div class="loading-spinner"></div> Odesílání...
+                </div>
+                
+                <button type="submit" class="btn-login" id="resetButton">Resetovat heslo</button>
                 
                 <div class="forgot-password">
                     <a href="#" id="backToLoginLink">Zpět na přihlášení</a>
@@ -246,179 +376,364 @@
         </p>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-        // Initialize Supabase client
-        const SUPABASE_URL = 'https://xunitidnszlsqupiifhd.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh1bml0aWRuc3psc3F1cGlpZmhkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDEwMTY0MDQsImV4cCI6MjA1NjU5MjQwNH0.8v2dMEaAQYRhHmmJe15XkbA07Tsupc1iLT9oAsLEsWw';
-        const supabase = supabaseClient.createClient(SUPABASE_URL, SUPABASE_KEY);
+        document.addEventListener('DOMContentLoaded', function() {
+            // DOM elements
+            const loginTab = document.getElementById('loginTab');
+            const registerTab = document.getElementById('registerTab');
+            const loginForm = document.getElementById('loginForm');
+            const registerForm = document.getElementById('registerForm');
+            const resetPasswordForm = document.getElementById('resetPasswordForm');
+            const forgotPasswordLink = document.getElementById('forgotPasswordLink');
+            const backToLoginLink = document.getElementById('backToLoginLink');
+            const messageContainer = document.getElementById('messageContainer');
+            const loginButton = document.getElementById('loginButton');
+            const registerButton = document.getElementById('registerButton');
+            const resetButton = document.getElementById('resetButton');
+            const loginLoading = document.getElementById('loginLoading');
+            const registerLoading = document.getElementById('registerLoading');
+            const resetLoading = document.getElementById('resetLoading');
+            const passwordStrength = document.getElementById('passwordStrength');
+            const registerPassword = document.getElementById('registerPassword');
 
-        // DOM elements
-        const loginTab = document.getElementById('loginTab');
-        const registerTab = document.getElementById('registerTab');
-        const loginForm = document.getElementById('loginForm');
-        const registerForm = document.getElementById('registerForm');
-        const resetPasswordForm = document.getElementById('resetPasswordForm');
-        const forgotPasswordLink = document.getElementById('forgotPasswordLink');
-        const backToLoginLink = document.getElementById('backToLoginLink');
-        const messageContainer = document.getElementById('messageContainer');
+            // Supabase credentials
+            const SUPABASE_URL = 'https://xunitidnszlsqupiifhd.supabase.co';
+            const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh1bml0aWRuc3psc3F1cGlpZmhkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDEwMTY0MDQsImV4cCI6MjA1NjU5MjQwNH0.8v2dMEaAQYRhHmmJe15XkbA07Tsupc1iLT9oAsLEsWw';
 
-        // Show message function
-        function showMessage(message, type) {
-            messageContainer.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
-            setTimeout(() => {
-                messageContainer.innerHTML = '';
-            }, 5000);
-        }
-
-        // Tab switching
-        loginTab.addEventListener('click', () => {
-            loginTab.classList.add('active');
-            registerTab.classList.remove('active');
-            loginForm.classList.remove('hidden');
-            registerForm.classList.add('hidden');
-            resetPasswordForm.classList.add('hidden');
-        });
-
-        registerTab.addEventListener('click', () => {
-            registerTab.classList.add('active');
-            loginTab.classList.remove('active');
-            registerForm.classList.remove('hidden');
-            loginForm.classList.add('hidden');
-            resetPasswordForm.classList.add('hidden');
-        });
-
-        // Forgot password link
-        forgotPasswordLink.addEventListener('click', (e) => {
-            e.preventDefault();
-            loginForm.classList.add('hidden');
-            resetPasswordForm.classList.remove('hidden');
-        });
-
-        // Back to login link
-        backToLoginLink.addEventListener('click', (e) => {
-            e.preventDefault();
-            resetPasswordForm.classList.add('hidden');
-            loginForm.classList.remove('hidden');
-        });
-
-        // Login form submission
-        loginForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('loginEmail').value;
-            const password = document.getElementById('loginPassword').value;
-
-            try {
-                const { data, error } = await supabase.auth.signInWithPassword({
-                    email,
-                    password
-                });
-
-                if (error) throw error;
-
-                // Successful login
-                showMessage('Přihlášení úspěšné! Přesměrování...', 'success');
-                
-                // Store the user in local storage
-                localStorage.setItem('user', JSON.stringify(data.user));
-                
-                // Redirect to dashboard after successful login
-                setTimeout(() => {
-                    window.location.href = '/dashboard.html';
-                }, 1500);
-            } catch (error) {
-                showMessage(`Přihlášení selhalo: ${error.message}`, 'error');
-            }
-        });
-
-        // Registration form submission
-        registerForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('registerEmail').value;
-            const username = document.getElementById('registerUsername').value;
-            const password = document.getElementById('registerPassword').value;
-            const confirmPassword = document.getElementById('confirmPassword').value;
-
-            // Password validation
-            if (password !== confirmPassword) {
-                showMessage('Hesla se neshodují', 'error');
-                return;
+            // Initialize Supabase client - Fix for GitHub Pages
+            let supabase;
+            
+            // Helper function to load Supabase and handle errors
+            async function initializeSupabase() {
+                try {
+                    // Check if supabaseClient is already loaded
+                    if (typeof supabaseClient !== 'undefined') {
+                        supabase = supabaseClient.createClient(SUPABASE_URL, SUPABASE_KEY);
+                        return true;
+                    }
+                    
+                    // Load supabase-js dynamically
+                    return new Promise((resolve) => {
+                        const script = document.createElement('script');
+                        script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
+                        script.onload = () => {
+                            supabase = supabaseClient.createClient(SUPABASE_URL, SUPABASE_KEY);
+                            resolve(true);
+                        };
+                        script.onerror = () => {
+                            showMessage('Nepodařilo se načíst potřebné knihovny. Obnovte stránku nebo zkuste později.', 'error');
+                            resolve(false);
+                        };
+                        document.body.appendChild(script);
+                    });
+                } catch (error) {
+                    showMessage('Chyba při inicializaci: ' + error.message, 'error');
+                    return false;
+                }
             }
 
-            try {
-                // Register new user
-                const { data, error: authError } = await supabase.auth.signUp({
-                    email,
-                    password,
-                    options: {
-                        data: {
-                            username
-                        }
+            // Show message function with better error handling
+            function showMessage(message, type) {
+                messageContainer.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+                messageContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                if (type === 'success') {
+                    setTimeout(() => {
+                        messageContainer.innerHTML = '';
+                    }, 5000);
+                }
+            }
+
+            // Password strength checker
+            registerPassword.addEventListener('input', function() {
+                const password = this.value;
+                let strength = 0;
+                
+                if (password.length >= 8) strength += 1;
+                if (password.match(/[A-Z]/)) strength += 1;
+                if (password.match(/[0-9]/)) strength += 1;
+                if (password.match(/[^A-Za-z0-9]/)) strength += 1;
+                
+                passwordStrength.className = 'password-strength-meter';
+                
+                if (strength <= 1) {
+                    passwordStrength.classList.add('strength-weak');
+                } else if (strength <= 3) {
+                    passwordStrength.classList.add('strength-medium');
+                } else {
+                    passwordStrength.classList.add('strength-strong');
+                }
+            });
+
+            // Password toggle buttons
+            document.querySelectorAll('.password-toggle').forEach(button => {
+                button.addEventListener('click', function() {
+                    const passwordInput = document.getElementById(this.getAttribute('data-for'));
+                    if (passwordInput.type === 'password') {
+                        passwordInput.type = 'text';
+                        this.textContent = 'Skrýt';
+                    } else {
+                        passwordInput.type = 'password';
+                        this.textContent = 'Zobrazit';
                     }
                 });
+            });
 
-                if (authError) throw authError;
+            // Tab switching
+            loginTab.addEventListener('click', () => {
+                loginTab.classList.add('active');
+                registerTab.classList.remove('active');
+                loginForm.classList.remove('hidden');
+                registerForm.classList.add('hidden');
+                resetPasswordForm.classList.add('hidden');
+                messageContainer.innerHTML = '';
+            });
 
-                if (data && data.user) {
-                    // Save user profile in profiles table
-                    const { error: profileError } = await supabase
-                        .from('profiles')
-                        .insert([
-                            { 
-                                id: data.user.id, 
-                                username, 
-                                email 
-                            }
-                        ]);
+            registerTab.addEventListener('click', () => {
+                registerTab.classList.add('active');
+                loginTab.classList.remove('active');
+                registerForm.classList.remove('hidden');
+                loginForm.classList.add('hidden');
+                resetPasswordForm.classList.add('hidden');
+                messageContainer.innerHTML = '';
+            });
 
-                    if (profileError) throw profileError;
+            // Forgot password link
+            forgotPasswordLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                loginForm.classList.add('hidden');
+                resetPasswordForm.classList.remove('hidden');
+                messageContainer.innerHTML = '';
+            });
 
-                    showMessage('Registrace úspěšná! Nyní se můžete přihlásit.', 'success');
+            // Back to login link
+            backToLoginLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                resetPasswordForm.classList.add('hidden');
+                loginForm.classList.remove('hidden');
+                messageContainer.innerHTML = '';
+            });
+
+            // Login form submission
+            loginForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                // Check if Supabase is initialized
+                const isSupabaseInitialized = await initializeSupabase();
+                if (!isSupabaseInitialized) return;
+                
+                const email = document.getElementById('loginEmail').value;
+                const password = document.getElementById('loginPassword').value;
+                const rememberMe = document.getElementById('rememberMe').checked;
+                
+                // Disable button and show loading
+                loginButton.disabled = true;
+                loginLoading.style.display = 'block';
+
+                try {
+                    const { data, error } = await supabase.auth.signInWithPassword({
+                        email,
+                        password
+                    });
+
+                    if (error) throw error;
+
+                    // Successful login
+                    showMessage('Přihlášení úspěšné! Přesměrování...', 'success');
                     
-                    // Switch to login tab
+                    // Store the user in storage (based on remember me preference)
+                    if (rememberMe) {
+                        localStorage.setItem('user', JSON.stringify(data.user));
+                    } else {
+                        sessionStorage.setItem('user', JSON.stringify(data.user));
+                    }
+                    
+                    // Redirect to dashboard after successful login
+                    setTimeout(() => {
+                        window.location.href = '/dashboard.html';
+                    }, 1500);
+                } catch (error) {
+                    // Translate common errors
+                    let errorMessage = error.message;
+                    if (error.message.includes('Invalid login credentials')) {
+                        errorMessage = 'Nesprávný email nebo heslo';
+                    } else if (error.message.includes('Email not confirmed')) {
+                        errorMessage = 'Email není potvrzen. Zkontrolujte svou emailovou schránku';
+                    }
+                    
+                    showMessage(`Přihlášení selhalo: ${errorMessage}`, 'error');
+                } finally {
+                    // Re-enable button and hide loading
+                    loginButton.disabled = false;
+                    loginLoading.style.display = 'none';
+                }
+            });
+
+            // Registration form submission
+            registerForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                // Check if Supabase is initialized
+                const isSupabaseInitialized = await initializeSupabase();
+                if (!isSupabaseInitialized) return;
+                
+                const email = document.getElementById('registerEmail').value;
+                const username = document.getElementById('registerUsername').value;
+                const password = document.getElementById('registerPassword').value;
+                const confirmPassword = document.getElementById('confirmPassword').value;
+
+                // Form validation
+                if (username.length < 3) {
+                    showMessage('Uživatelské jméno musí mít alespoň 3 znaky', 'error');
+                    return;
+                }
+                
+                if (password.length < 6) {
+                    showMessage('Heslo musí mít alespoň 6 znaků', 'error');
+                    return;
+                }
+
+                // Password validation
+                if (password !== confirmPassword) {
+                    showMessage('Hesla se neshodují', 'error');
+                    return;
+                }
+
+                // Disable button and show loading
+                registerButton.disabled = true;
+                registerLoading.style.display = 'block';
+
+                try {
+                    // Register new user
+                    const { data, error: authError } = await supabase.auth.signUp({
+                        email,
+                        password,
+                        options: {
+                            data: {
+                                username
+                            }
+                        }
+                    });
+
+                    if (authError) throw authError;
+
+                    // Check if user was created
+                    if (data && data.user) {
+                        try {
+                            // Save user profile in profiles table
+                            const { error: profileError } = await supabase
+                                .from('profiles')
+                                .insert([
+                                    { 
+                                        id: data.user.id, 
+                                        username, 
+                                        email,
+                                        created_at: new Date().toISOString()
+                                    }
+                                ]);
+
+                            if (profileError) {
+                                console.error("Profile error:", profileError);
+                                // Don't throw here, as we still want to show success message
+                            }
+
+                            showMessage('Registrace úspěšná! Zkontrolujte svůj email pro potvrzení účtu.', 'success');
+                            
+                            // Switch to login tab
+                            setTimeout(() => {
+                                loginTab.click();
+                            }, 2000);
+                        } catch (profileError) {
+                            console.error("Error saving profile:", profileError);
+                            showMessage('Účet byl vytvořen, ale profil nemohl být inicializován. Zkuste se přihlásit.', 'success');
+                        }
+                    } else {
+                        showMessage('Vyskytla se neznámá chyba. Zkuste prosím znovu.', 'error');
+                    }
+                } catch (error) {
+                    // Translate common errors
+                    let errorMessage = error.message;
+                    if (error.message.includes('already registered')) {
+                        errorMessage = 'Tento email je již registrován';
+                    } else if (error.message.includes('weak password')) {
+                        errorMessage = 'Heslo je příliš slabé. Použijte kombinaci písmen, čísel a speciálních znaků';
+                    }
+                    
+                    showMessage(`Registrace selhala: ${errorMessage}`, 'error');
+                } finally {
+                    // Re-enable button and hide loading
+                    registerButton.disabled = false;
+                    registerLoading.style.display = 'none';
+                }
+            });
+
+            // Reset password form submission
+            resetPasswordForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                // Check if Supabase is initialized
+                const isSupabaseInitialized = await initializeSupabase();
+                if (!isSupabaseInitialized) return;
+                
+                const email = document.getElementById('resetEmail').value;
+
+                // Disable button and show loading
+                resetButton.disabled = true;
+                resetLoading.style.display = 'block';
+
+                try {
+                    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                        redirectTo: window.location.origin + '/reset-password.html',
+                    });
+
+                    if (error) throw error;
+
+                    showMessage('Pokyny k obnovení hesla byly odeslány na váš email', 'success');
+                    
+                    // Switch back to login after a delay
                     setTimeout(() => {
                         loginTab.click();
-                    }, 2000);
+                    }, 3000);
+                } catch (error) {
+                    let errorMessage = error.message;
+                    if (error.message.includes('not found')) {
+                        errorMessage = 'Email nebyl nalezen v naší databázi';
+                    }
+                    
+                    showMessage(`Odeslání resetu hesla selhalo: ${errorMessage}`, 'error');
+                } finally {
+                    // Re-enable button and hide loading
+                    resetButton.disabled = false;
+                    resetLoading.style.display = 'none';
                 }
-            } catch (error) {
-                showMessage(`Registrace selhala: ${error.message}`, 'error');
-            }
-        });
+            });
 
-        // Reset password form submission
-        resetPasswordForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('resetEmail').value;
-
-            try {
-                const { error } = await supabase.auth.resetPasswordForEmail(email, {
-                    redirectTo: window.location.origin + '/reset-password.html',
-                });
-
-                if (error) throw error;
-
-                showMessage('Pokyny k obnovení hesla byly odeslány na váš email', 'success');
+            // Check if user is already logged in
+            async function checkLoggedInUser() {
+                // Check if Supabase is initialized
+                const isSupabaseInitialized = await initializeSupabase();
+                if (!isSupabaseInitialized) return;
                 
-                // Switch back to login after a delay
-                setTimeout(() => {
-                    loginTab.click();
-                }, 3000);
-            } catch (error) {
-                showMessage(`Odeslání resetu hesla selhalo: ${error.message}`, 'error');
-            }
-        });
-
-        // Check if user is already logged in
-        window.addEventListener('DOMContentLoaded', async () => {
-            try {
-                const { data } = await supabase.auth.getSession();
-                
-                if (data && data.session) {
-                    // User is already logged in, redirect to dashboard
-                    window.location.href = '/dashboard.html';
+                try {
+                    const { data } = await supabase.auth.getSession();
+                    
+                    if (data && data.session) {
+                        // User is already logged in, redirect to dashboard
+                        window.location.href = '/dashboard.html';
+                    }
+                } catch (error) {
+                    console.error('Chyba při kontrole přihlášení:', error);
                 }
-            } catch (error) {
-                console.error('Chyba při kontrole přihlášení:', error);
+            }
+            
+            // Run the check
+            checkLoggedInUser();
+            
+            // Check if there's any URL parameters that indicate specific actions
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('action') === 'register') {
+                registerTab.click();
+            } else if (urlParams.get('action') === 'reset') {
+                forgotPasswordLink.click();
             }
         });
     </script>
