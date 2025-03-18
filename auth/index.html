@@ -1,613 +1,420 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="cs">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Система авторизации</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>Justax - příprava na zkoušky</title>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <style>
-        :root {
-            --primary-color: #4361ee;
-            --primary-hover: #3a56d4;
-            --danger-color: #ef476f;
-            --danger-hover: #d63d60;
-            --success-color: #06d6a0;
-            --neutral-light: #f8f9fa;
-            --neutral-dark: #343a40;
-            --border-color: #dee2e6;
-            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            --radius: 8px;
-        }
-
-        * {
-            box-sizing: border-box;
+        body {
             margin: 0;
             padding: 0;
-        }
-
-        body {
-            font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
-            line-height: 1.6;
-            color: var(--neutral-dark);
-            background-color: #f0f2f5;
+            font-family: Arial, sans-serif;
+            display: flex;
             min-height: 100vh;
+        }
+        
+        .login-section {
+            width: 50%;
             display: flex;
             justify-content: center;
             align-items: center;
+            background-color: white;
+        }
+        
+        .login-container {
+            width: 80%;
+            max-width: 400px;
             padding: 20px;
+            border: 1px solid #f0f0f0;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.05);
         }
-
-        .container {
-            width: 100%;
-            max-width: 1200px;
-            margin: 0 auto;
+        
+        .login-header {
+            margin-bottom: 20px;
         }
-
-        .auth-container {
-            max-width: 450px;
-            margin: 0 auto;
+        
+        .login-header h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+        
+        .login-header p {
+            color: #666;
+            margin-top: 0;
+        }
+        
+        .tab-container {
+            display: flex;
+            margin-bottom: 20px;
+        }
+        
+        .tab {
+            width: 50%;
+            padding: 12px;
+            text-align: center;
+            background-color: #f9f9f9;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        
+        .tab.active {
             background-color: white;
-            padding: 30px;
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-            transition: all 0.3s ease;
+            font-weight: bold;
         }
-
-        .auth-form {
-            display: none;
-            margin-bottom: 20px;
-        }
-
-        .auth-form.active {
-            display: block;
-            animation: fadeIn 0.5s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .form-logo {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        .form-title {
-            text-align: center;
-            margin-bottom: 25px;
-            color: var(--neutral-dark);
-            font-weight: 600;
-        }
-
-        .input-group {
-            margin-bottom: 20px;
-            position: relative;
-        }
-
-        .input-group i {
-            position: absolute;
-            left: 15px;
-            top: 15px;
-            color: #adb5bd;
-        }
-
-        .auth-form input {
-            width: 100%;
-            padding: 14px 15px 14px 45px;
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius);
-            font-size: 16px;
-            transition: border-color 0.3s;
-        }
-
-        .auth-form input:focus {
-            outline: none;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
-        }
-
-        .auth-form button {
-            width: 100%;
-            padding: 14px;
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            border-radius: var(--radius);
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: 600;
-            transition: background-color 0.3s, transform 0.1s;
-        }
-
-        .auth-form button:hover {
-            background-color: var(--primary-hover);
-        }
-
-        .auth-form button:active {
-            transform: scale(0.98);
-        }
-
-        .message {
-            padding: 15px;
-            margin-bottom: 20px;
-            border-radius: var(--radius);
-            display: none;
-            text-align: center;
-            font-weight: 500;
-        }
-
-        .success {
-            background-color: rgba(6, 214, 160, 0.2);
-            color: var(--success-color);
-            border: 1px solid var(--success-color);
-        }
-
-        .error {
-            background-color: rgba(239, 71, 111, 0.2);
-            color: var(--danger-color);
-            border: 1px solid var(--danger-color);
-        }
-
-        .auth-links {
-            text-align: center;
-            margin-top: 20px;
-            display: flex;
-            justify-content: space-between;
-        }
-
-        .auth-links a {
-            color: var(--primary-color);
-            text-decoration: none;
-            cursor: pointer;
-            transition: color 0.3s;
-            font-size: 14px;
-        }
-
-        .auth-links a:hover {
-            color: var(--primary-hover);
-            text-decoration: underline;
-        }
-
-        .divider {
-            display: flex;
-            align-items: center;
-            margin: 25px 0;
-            color: #adb5bd;
-        }
-
-        .divider::before,
-        .divider::after {
-            content: "";
-            flex: 1;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .divider span {
-            padding: 0 10px;
-            font-size: 14px;
-        }
-
-        /* Профиль пользователя */
-        .profile-container {
-            display: none;
-            max-width: 800px;
-            margin: 0 auto;
-            background-color: white;
-            padding: 30px;
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-        }
-
-        .profile-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .profile-info {
-            margin-bottom: 30px;
-        }
-
-        .profile-avatar {
-            width: 100px;
-            height: 100px;
-            background-color: var(--primary-color);
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 40px;
-            border-radius: 50%;
-            margin-bottom: 20px;
-        }
-
-        .logout-btn {
-            background-color: var(--danger-color);
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: var(--radius);
-            cursor: pointer;
-            font-weight: 600;
-            transition: background-color 0.3s;
-        }
-
-        .logout-btn:hover {
-            background-color: var(--danger-hover);
-        }
-
-        .profile-section {
-            margin-bottom: 25px;
-        }
-
-        .profile-section h3 {
+        
+        .form-group {
             margin-bottom: 15px;
-            font-size: 18px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: normal;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        
+        .btn-login {
+            width: 100%;
+            padding: 12px;
+            background-color: #0a1530;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        
+        .forgot-password {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .banner-section {
+            width: 50%;
+            background-color: #0a1530;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            text-align: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        
+        .graduation-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+        
+        .banner-title {
+            font-size: 32px;
+            margin-bottom: 20px;
+        }
+        
+        .banner-text {
+            font-size: 16px;
+            max-width: 80%;
+            line-height: 1.5;
         }
 
-        /* Адаптивность */
-        @media (max-width: 500px) {
-            .auth-container,
-            .profile-container {
-                padding: 20px;
-            }
+        .form-container {
+            display: block;
+        }
 
-            .auth-links {
-                flex-direction: column;
-                gap: 10px;
-            }
+        .form-container.hidden {
+            display: none;
+        }
 
-            .profile-header {
-                flex-direction: column;
-                gap: 15px;
-                text-align: center;
-            }
+        .alert {
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .alert-error {
+            background-color: #ffebee;
+            color: #c62828;
+        }
+
+        .alert-success {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        #messageContainer {
+            margin-bottom: 15px;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <!-- Auth Block -->
-        <div class="auth-container">
-            <div id="auth-message" class="message"></div>
-
-            <!-- Registration Form -->
-            <div id="register-form" class="auth-form active">
-                <div class="form-logo">
-                    <i class="fas fa-user-plus fa-3x" style="color: var(--primary-color);"></i>
-                </div>
-                <h2 class="form-title">Регистрация</h2>
-                <div class="input-group">
-                    <i class="fas fa-user"></i>
-                    <input type="text" id="register-name" placeholder="Ваше имя" required>
-                </div>
-                <div class="input-group">
-                    <i class="fas fa-envelope"></i>
-                    <input type="email" id="register-email" placeholder="Email" required>
-                </div>
-                <div class="input-group">
-                    <i class="fas fa-lock"></i>
-                    <input type="password" id="register-password" placeholder="Пароль" required>
-                </div>
-                <button id="register-btn">Зарегистрироваться</button>
-                <div class="auth-links">
-                    <a id="to-login-link">Уже есть аккаунт? Войти</a>
-                </div>
-            </div>
-
-            <!-- Login Form -->
-            <div id="login-form" class="auth-form">
-                <div class="form-logo">
-                    <i class="fas fa-sign-in-alt fa-3x" style="color: var(--primary-color);"></i>
-                </div>
-                <h2 class="form-title">Вход в аккаунт</h2>
-                <div class="input-group">
-                    <i class="fas fa-envelope"></i>
-                    <input type="email" id="login-email" placeholder="Email" required>
-                </div>
-                <div class="input-group">
-                    <i class="fas fa-lock"></i>
-                    <input type="password" id="login-password" placeholder="Пароль" required>
-                </div>
-                <button id="login-btn">Войти</button>
-                <div class="auth-links">
-                    <a id="to-register-link">Создать аккаунт</a>
-                    <a id="forgot-password-link">Забыли пароль?</a>
-                </div>
-            </div>
-
-            <!-- Password Reset Form -->
-            <div id="reset-form" class="auth-form">
-                <div class="form-logo">
-                    <i class="fas fa-key fa-3x" style="color: var(--primary-color);"></i>
-                </div>
-                <h2 class="form-title">Восстановление пароля</h2>
-                <div class="input-group">
-                    <i class="fas fa-envelope"></i>
-                    <input type="email" id="reset-email" placeholder="Email" required>
-                </div>
-                <button id="reset-btn">Отправить инструкции</button>
-                <div class="auth-links">
-                    <a id="to-login-link-from-reset">Вернуться ко входу</a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Profile Block -->
-        <div id="profile-container" class="profile-container">
-            <div class="profile-header">
-                <h2>Личный кабинет</h2>
-                <button id="logout-btn" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Выйти</button>
+    <div class="login-section">
+        <div class="login-container">
+            <div class="login-header">
+                <h1>Vítejte v Justax</h1>
+                <p>Začněte svou cestu k úspěšným zkouškám</p>
             </div>
             
-            <div class="profile-info">
-                <div class="profile-avatar" id="user-avatar"></div>
-                <h3>Добро пожаловать, <span id="user-name">Пользователь</span>!</h3>
-                <p id="user-email">email@example.com</p>
+            <div class="tab-container">
+                <div class="tab active" id="loginTab">Přihlášení</div>
+                <div class="tab" id="registerTab">Registrace</div>
             </div>
             
-            <div class="profile-section">
-                <h3>Основная информация</h3>
-                <p>Ваш аккаунт активен. Вы можете управлять настройками профиля ниже.</p>
-            </div>
+            <div id="messageContainer"></div>
+
+            <form id="loginForm" class="form-container">
+                <div class="form-group">
+                    <label for="loginEmail">Email</label>
+                    <input type="email" id="loginEmail" class="form-control" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="loginPassword">Heslo</label>
+                    <input type="password" id="loginPassword" class="form-control" required>
+                </div>
+                
+                <button type="submit" class="btn-login">Přihlásit se</button>
+                
+                <div class="forgot-password">
+                    <a href="#" id="forgotPasswordLink">Zapomněli jste heslo?</a>
+                </div>
+            </form>
+
+            <form id="registerForm" class="form-container hidden">
+                <div class="form-group">
+                    <label for="registerEmail">Email</label>
+                    <input type="email" id="registerEmail" class="form-control" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="registerUsername">Uživatelské jméno</label>
+                    <input type="text" id="registerUsername" class="form-control" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="registerPassword">Heslo</label>
+                    <input type="password" id="registerPassword" class="form-control" required minlength="6">
+                </div>
+                
+                <div class="form-group">
+                    <label for="confirmPassword">Potvrzení hesla</label>
+                    <input type="password" id="confirmPassword" class="form-control" required>
+                </div>
+                
+                <button type="submit" class="btn-login">Registrovat se</button>
+            </form>
+
+            <form id="resetPasswordForm" class="form-container hidden">
+                <div class="form-group">
+                    <label for="resetEmail">Email</label>
+                    <input type="email" id="resetEmail" class="form-control" required>
+                </div>
+                
+                <button type="submit" class="btn-login">Resetovat heslo</button>
+                
+                <div class="forgot-password">
+                    <a href="#" id="backToLoginLink">Zpět na přihlášení</a>
+                </div>
+            </form>
         </div>
     </div>
+    
+    <div class="banner-section">
+        <div class="graduation-icon">
+            <svg width="64" height="64" fill="white" viewBox="0 0 24 24">
+                <path d="M12 3L1 9l11 6l9-4.91V17h2V9L12 3z M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z"/>
+            </svg>
+        </div>
+        
+        <h2 class="banner-title">Justax - příprava na zkoušky</h2>
+        
+        <p class="banner-text">
+            Získejte osobní doučování matematiky s naším AI asistentem. Procvičujte úlohy, získávejte okamžitou zpětnou vazbu a sledujte svůj pokrok.
+        </p>
+    </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
+        // Initialize Supabase client
         const SUPABASE_URL = 'https://xunitidnszlsqupiifhd.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh1bml0aWRuc3psc3F1cGlpZmhkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDEwMTY0MDQsImV4cCI6MjA1NjU5MjQwNH0.8v2dMEaAQYRhHmmJe15XkbA07Tsupc1iLT9oAsLEsWw';
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
-            auth: {
-                storage: localStorage,
-                autoRefreshToken: true,
-                detectSessionInUrl: true,
-                persistSession: true
-            }
-        });
+        // DOM elements
+        const loginTab = document.getElementById('loginTab');
+        const registerTab = document.getElementById('registerTab');
+        const loginForm = document.getElementById('loginForm');
+        const registerForm = document.getElementById('registerForm');
+        const resetPasswordForm = document.getElementById('resetPasswordForm');
+        const forgotPasswordLink = document.getElementById('forgotPasswordLink');
+        const backToLoginLink = document.getElementById('backToLoginLink');
+        const messageContainer = document.getElementById('messageContainer');
 
-        document.addEventListener('DOMContentLoaded', initApp);
-
-        async function initApp() {
-            try {
-                const { data: { user } } = await supabase.auth.getUser();
-                
-                if (user) {
-                    showProfile(user);
-                } else {
-                    showAuthForm('login');
-                }
-
-                setupEventListeners();
-            } catch (error) {
-                console.error('Ошибка инициализации:', error.message);
-                showMessage('Ошибка подключения к серверу авторизации', 'error');
-            }
-        }
-
-        function showProfile(user) {
-            document.querySelector('.auth-container').style.display = 'none';
-            document.getElementById('profile-container').style.display = 'block';
-            
-            // Настраиваем профиль
-            document.getElementById('user-name').textContent = user.user_metadata?.name || 'Пользователь';
-            document.getElementById('user-email').textContent = user.email;
-            
-            // Устанавливаем аватар с инициалами
-            const name = user.user_metadata?.name || user.email;
-            const initials = name.split(' ')
-                .map(part => part.charAt(0))
-                .join('')
-                .toUpperCase()
-                .substring(0, 2);
-            
-            document.getElementById('user-avatar').textContent = initials;
-        }
-
-        function showAuthForm(formName) {
-            document.querySelectorAll('.auth-form').forEach(form => form.classList.remove('active'));
-            document.getElementById(`${formName}-form`).classList.add('active');
-            document.querySelector('.auth-container').style.display = 'block';
-            document.getElementById('profile-container').style.display = 'none';
-        }
-
-        function showMessage(message, type = 'info') {
-            const msgEl = document.getElementById('auth-message');
-            msgEl.textContent = message;
-            msgEl.className = `message ${type}`;
-            msgEl.style.display = 'block';
-            
-            // Автоматически скрываем сообщение через 5 секунд
+        // Show message function
+        function showMessage(message, type) {
+            messageContainer.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
             setTimeout(() => {
-                msgEl.style.opacity = '0';
-                setTimeout(() => {
-                    msgEl.style.display = 'none';
-                    msgEl.style.opacity = '1';
-                }, 300);
+                messageContainer.innerHTML = '';
             }, 5000);
         }
 
-        function validateEmail(email) {
-            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            return re.test(email);
-        }
+        // Tab switching
+        loginTab.addEventListener('click', () => {
+            loginTab.classList.add('active');
+            registerTab.classList.remove('active');
+            loginForm.classList.remove('hidden');
+            registerForm.classList.add('hidden');
+            resetPasswordForm.classList.add('hidden');
+        });
 
-        function validatePassword(password) {
-            return password.length >= 6;
-        }
+        registerTab.addEventListener('click', () => {
+            registerTab.classList.add('active');
+            loginTab.classList.remove('active');
+            registerForm.classList.remove('hidden');
+            loginForm.classList.add('hidden');
+            resetPasswordForm.classList.add('hidden');
+        });
 
-        function setupEventListeners() {
-            // Регистрация
-            document.getElementById('register-btn').addEventListener('click', async () => {
-                const nameEl = document.getElementById('register-name');
-                const emailEl = document.getElementById('register-email');
-                const passwordEl = document.getElementById('register-password');
-                
-                const name = nameEl.value.trim();
-                const email = emailEl.value.trim();
-                const password = passwordEl.value;
-                
-                // Валидация
-                if (!name) {
-                    showMessage('Пожалуйста, введите ваше имя', 'error');
-                    nameEl.focus();
-                    return;
-                }
-                
-                if (!validateEmail(email)) {
-                    showMessage('Пожалуйста, введите корректный email', 'error');
-                    emailEl.focus();
-                    return;
-                }
-                
-                if (!validatePassword(password)) {
-                    showMessage('Пароль должен содержать не менее 6 символов', 'error');
-                    passwordEl.focus();
-                    return;
-                }
+        // Forgot password link
+        forgotPasswordLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            loginForm.classList.add('hidden');
+            resetPasswordForm.classList.remove('hidden');
+        });
 
-                try {
-                    const { data, error } = await supabase.auth.signUp({
-                        email,
-                        password,
-                        options: { 
-                            data: { name } 
-                        }
-                    });
+        // Back to login link
+        backToLoginLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            resetPasswordForm.classList.add('hidden');
+            loginForm.classList.remove('hidden');
+        });
 
-                    if (error) {
-                        showMessage(error.message, 'error');
-                    } else {
-                        showMessage('Проверьте почту для подтверждения аккаунта!', 'success');
-                        // Очищаем форму
-                        nameEl.value = '';
-                        emailEl.value = '';
-                        passwordEl.value = '';
-                        
-                        // Переход на форму входа через 2 секунды
-                        setTimeout(() => {
-                            showAuthForm('login');
-                        }, 2000);
-                    }
-                } catch (err) {
-                    showMessage('Произошла ошибка при регистрации', 'error');
-                    console.error(err);
-                }
-            });
+        // Login form submission
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
 
-            // Вход
-            document.getElementById('login-btn').addEventListener('click', async () => {
-                const emailEl = document.getElementById('login-email');
-                const passwordEl = document.getElementById('login-password');
+            try {
+                const { data, error } = await supabase.auth.signInWithPassword({
+                    email,
+                    password
+                });
+
+                if (error) throw error;
+
+                // Successful login
+                showMessage('Přihlášení úspěšné! Přesměrování...', 'success');
                 
-                const email = emailEl.value.trim();
-                const password = passwordEl.value;
+                // Store the user in local storage
+                localStorage.setItem('user', JSON.stringify(data.user));
                 
-                // Валидация
-                if (!validateEmail(email)) {
-                    showMessage('Пожалуйста, введите корректный email', 'error');
-                    emailEl.focus();
-                    return;
-                }
-                
-                if (!password) {
-                    showMessage('Пожалуйста, введите пароль', 'error');
-                    passwordEl.focus();
-                    return;
-                }
-
-                try {
-                    const { data, error } = await supabase.auth.signInWithPassword({ 
-                        email, 
-                        password 
-                    });
-                    
-                    if (error) {
-                        showMessage(error.message, 'error');
-                    } else {
-                        showMessage('Вход выполнен успешно!', 'success');
-                        setTimeout(() => {
-                            location.reload();
-                        }, 1000);
-                    }
-                } catch (err) {
-                    showMessage('Произошла ошибка при входе', 'error');
-                    console.error(err);
-                }
-            });
-
-            // Выход
-            document.getElementById('logout-btn').addEventListener('click', async () => {
-                try {
-                    await supabase.auth.signOut();
-                    showMessage('Выход выполнен успешно', 'success');
-                    setTimeout(() => {
-                        location.reload();
-                    }, 1000);
-                } catch (err) {
-                                    showMessage('Произошла ошибка при выходе', 'error');
-                console.error(err);
+                // Redirect to dashboard after successful login
+                setTimeout(() => {
+                    window.location.href = '/dashboard.html';
+                }, 1500);
+            } catch (error) {
+                showMessage(`Přihlášení selhalo: ${error.message}`, 'error');
             }
         });
 
-        // Переключение форм
-        document.getElementById('to-login-link').addEventListener('click', () => showAuthForm('login'));
-        document.getElementById('to-register-link').addEventListener('click', () => showAuthForm('register'));
-        document.getElementById('forgot-password-link').addEventListener('click', () => showAuthForm('reset'));
-        document.getElementById('to-login-link-from-reset').addEventListener('click', () => showAuthForm('login'));
+        // Registration form submission
+        registerForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('registerEmail').value;
+            const username = document.getElementById('registerUsername').value;
+            const password = document.getElementById('registerPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
 
-        // Сброс пароля
-        document.getElementById('reset-btn').addEventListener('click', async () => {
-            const emailEl = document.getElementById('reset-email');
-            const email = emailEl.value.trim();
-            
-            if (!validateEmail(email)) {
-                showMessage('Пожалуйста, введите корректный email', 'error');
-                emailEl.focus();
+            // Password validation
+            if (password !== confirmPassword) {
+                showMessage('Hesla se neshodují', 'error');
                 return;
             }
-            
+
             try {
-                const { error } = await supabase.auth.resetPasswordForEmail(email, {
-                    redirectTo: window.location.origin
+                // Register new user
+                const { data: authData, error: authError } = await supabase.auth.signUp({
+                    email,
+                    password,
+                    options: {
+                        data: {
+                            username
+                        }
+                    }
                 });
+
+                if (authError) throw authError;
+
+                // Save user profile in profiles table
+                const { error: profileError } = await supabase
+                    .from('profiles')
+                    .insert([
+                        { 
+                            id: authData.user.id, 
+                            username, 
+                            email 
+                        }
+                    ]);
+
+                if (profileError) throw profileError;
+
+                showMessage('Registrace úspěšná! Nyní se můžete přihlásit.', 'success');
                 
-                if (error) {
-                    showMessage(error.message, 'error');
-                } else {
-                    showMessage('Инструкции по сбросу пароля отправлены на вашу почту', 'success');
-                    emailEl.value = '';
-                    
-                    // Переход на форму входа через 2 секунды
-                    setTimeout(() => {
-                        showAuthForm('login');
-                    }, 2000);
-                }
-            } catch (err) {
-                showMessage('Произошла ошибка при отправке запроса', 'error');
-                console.error(err);
+                // Switch to login tab
+                setTimeout(() => {
+                    loginTab.click();
+                }, 2000);
+            } catch (error) {
+                showMessage(`Registrace selhala: ${error.message}`, 'error');
             }
         });
-    }
 
-    // Проверка URL на наличие токена восстановления пароля
-    const checkPasswordResetToken = async () => {
-        const hash = window.location.hash;
-        if (hash && hash.includes('type=recovery')) {
-            const { data, error } = await supabase.auth.getUser();
-            if (!error && data.user) {
-                // Тут можно добавить форму изменения пароля
-                showMessage('Для смены пароля необходимо перейти в настройки профиля', 'success');
+        // Reset password form submission
+        resetPasswordForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('resetEmail').value;
+
+            try {
+                const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                    redirectTo: window.location.origin + '/reset-password.html',
+                });
+
+                if (error) throw error;
+
+                showMessage('Pokyny k obnovení hesla byly odeslány na váš email', 'success');
+                
+                // Switch back to login after a delay
+                setTimeout(() => {
+                    loginTab.click();
+                }, 3000);
+            } catch (error) {
+                showMessage(`Odeslání resetu hesla selhalo: ${error.message}`, 'error');
             }
-        }
-    };
-    
-    window.addEventListener('load', checkPasswordResetToken);
-</script>
+        });
+
+        // Check if user is already logged in
+        window.addEventListener('DOMContentLoaded', async () => {
+            const { data } = await supabase.auth.getSession();
+            
+            if (data.session) {
+                // User is already logged in, redirect to dashboard
+                window.location.href = '/dashboard.html';
+            }
+        });
+    </script>
 </body>
 </html>
