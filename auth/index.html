@@ -579,27 +579,35 @@
             };
         }
 
-        // Password strength checker with debounce
+        // Функция проверки силы пароля с учетом пустого поля
         const checkPasswordStrength = debounce(function(password) {
             let strength = 0;
-            
-            if (password.length >= 8) strength += 1;
-            if (password.match(/[A-Z]/)) strength += 1;
-            if (password.match(/[0-9]/)) strength += 1;
-            if (password.match(/[^A-Za-z0-9]/)) strength += 1;
-            
-            passwordStrength.className = 'password-strength-meter';
-            
-            if (strength <= 1) {
-                passwordStrength.classList.add('strength-weak');
-            } else if (strength <= 3) {
-                passwordStrength.classList.add('strength-medium');
-            } else {
-                passwordStrength.classList.add('strength-strong');
-            }
-            
-            return strength;
+    
+    	 // Если пароль пустой, не показываем индикатор
+    	 if (!password || password.length === 0) {
+    		passwordStrength.className = 'password-strength-meter';
+    		passwordStrength.style.width = '0';
+    		return 0;
+		}
+    
+    	 if (password.length >= 8) strength += 1;
+    	 if (password.match(/[A-Z]/)) strength += 1;
+    	 if (password.match(/[0-9]/)) strength += 1;
+    	 if (password.match(/[^A-Za-z0-9]/)) strength += 1;
+    
+    	 passwordStrength.className = 'password-strength-meter';
+    
+    	 if (strength <= 1) {
+        	 passwordStrength.classList.add('strength-weak');
+    	 } else if (strength <= 3) {
+        	 passwordStrength.classList.add('strength-medium');
+    	 } else {
+        	 passwordStrength.classList.add('strength-strong');
+    	 }
+    
+    	 return strength;
         }, 200);
+
         
         // Register password input event
         registerPassword.addEventListener('input', function() {
@@ -996,12 +1004,33 @@
         });
 
         [registerEmail, registerUsername, registerPassword, confirmPassword].forEach(input => {
-            input.addEventListener('input', () => {
-                const passwordValid = registerPassword.value.length >= 6 && checkPasswordStrength(registerPassword.value) > 1;
-                const passwordsMatch = registerPassword.value === confirmPassword.value;
-                registerButton.disabled = !registerEmail.value || !registerUsername.value || !passwordValid || !passwordsMatch;
-            });
-        });
+    	input.addEventListener('input', () => {
+        // Изначально предполагаем, что кнопка может быть активна
+        	let shouldDisable = false;
+        
+        // Проверяем заполненность полей
+        	if (!registerEmail.value || !registerUsername.value || !registerPassword.value) {
+            	shouldDisable = true;
+        	}
+        
+        	// Проверяем силу пароля только если поле не пустое
+        	if (registerPassword.value) {
+            	const passwordStrengthValue = checkPasswordStrength(registerPassword.value);
+            	if (passwordStrengthValue <= 1 && registerPassword.value.length > 0) {
+                	shouldDisable = true;
+            		}
+        	}
+        
+        	// Проверяем совпадение паролей только если оба поля заполнены
+        	if (registerPassword.value && confirmPassword.value && 
+            	registerPassword.value !== confirmPassword.value) {
+            	shouldDisable = true;
+        	}
+        
+        	// Устанавливаем состояние кнопки
+        	registerButton.disabled = shouldDisable;
+    		});
+	});
 
         resetEmail.addEventListener('input', () => {
             resetButton.disabled = !validateEmail(resetEmail.value);
