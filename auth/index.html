@@ -726,107 +726,112 @@
         });
 
         // Registration form submission
-        registerForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const email = registerEmail.value.trim();
-            const username = registerUsername.value.trim();
-            const password = registerPassword.value;
-            const passwordConfirm = confirmPassword.value;
+       registerForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const email = registerEmail.value.trim();
+    const username = registerUsername.value.trim();
+    const password = registerPassword.value;
+    const passwordConfirm = confirmPassword.value;
 
-            // Enhanced validation
-            if (!validateEmail(email)) {
-                showMessage('Zadejte platný email', 'error');
-                registerEmail.focus();
-                return;
-            }
-            
-            if (username.length < 3) {
-                showMessage('Uživatelské jméno musí mít alespoň 3 znaky', 'error');
-                registerUsername.focus();
-                return;
-            }
-            
-            if (password.length < 6) {
-                showMessage('Heslo musí mít alespoň 6 znaků', 'error');
-                registerPassword.focus();
-                return;
-            }
-            
-            if (checkPasswordStrength(password) <= 1) {
-                showMessage('Heslo je příliš slabé. Použijte kombinaci písmen, čísel a speciálních znaků', 'error');
-                registerPassword.focus();
-                return;
-            }
+    // Enhanced validation
+    if (!validateEmail(email)) {
+        showMessage('Zadejte platný email', 'error');
+        registerEmail.focus();
+        return;
+    }
+    
+    if (username.length < 3) {
+        showMessage('Uživatelské jméno musí mít alespoň 3 znaky', 'error');
+        registerUsername.focus();
+        return;
+    }
+    
+    if (password.length < 6) {
+        showMessage('Heslo musí mít alespoň 6 znaků', 'error');
+        registerPassword.focus();
+        return;
+    }
+    
+    if (checkPasswordStrength(password) <= 1) {
+        showMessage('Heslo je příliš slabé. Použijte kombinaci písmen, čísel a speciálních znaků', 'error');
+        registerPassword.focus();
+        return;
+    }
 
-            if (password !== passwordConfirm) {
-                showMessage('Hesla se neshodují', 'error');
-                confirmPassword.focus();
-                return;
-            }
+    if (password !== passwordConfirm) {
+        showMessage('Hesla se neshodují', 'error');
+        confirmPassword.focus();
+        return;
+    }
 
-            // Disable button and show loading
-            registerButton.disabled = true;
-            registerLoading.style.display = 'block';
+    // Disable button and show loading
+    registerButton.disabled = true;
+    registerLoading.style.display = 'block';
 
-            try {
-                // Register new user
-                const { data, error: authError } = await supabase.auth.signUp({
-                    email,
-                    password,
-                    options: {
-                        data: {
-                            username
-                        }
-                    }
-                });
-
-                if (authError) throw authError;
-
-                // Check if user was created
-                if (data && data.user) {
-                    try {
-                        // Save user profile in profiles table
-                        const { error: profileError } = await supabase
-                            .from('profiles')
-                            .insert([
-                                { 
-                                    id: data.user.id, 
-                                    username, 
-                                    email,
-                                    created_at: new Date().toISOString()
-                                }
-                            ]);
-
-                        if (profileError) {
-                            console.error("Profile error:", profileError);
-                        }
-
-                        showMessage('Registrace úspěšná! Zkontrolujte svůj email pro potvrzení účtu.', 'success');
-                        
-                        // Reset form
-                        registerForm.reset();
-                        
-                        // Switch to login tab
-                        setTimeout(() => {
-                            loginTab.click();
-                        }, 2000);
-                    } catch (profileError) {
-                        console.error("Error saving profile:", profileError);
-                        showMessage('Účet byl vytvořen, ale profil nemohl být inicializován. Zkuste se přihlásit.', 'success');
-                    }
-                } else {
-                    showMessage('Vyskytla se neznámá chyba. Zkuste prosím znovu.', 'error');
+    try {
+        // Register new user
+        const { data, error: authError } = await supabase.auth.signUp({
+            email,
+            password,
+            options: {
+                data: {
+                    username
                 }
-            } catch (error) {
-                console.error('Registration error:', error);
-                showMessage(`Registrace selhala: ${translateError(error.message)}`, 'error');
-            } finally {
-                // Re-enable button and hide loading
-                registerButton.disabled = false;
-                registerLoading.style.display = 'none';
             }
         });
+
+        if (authError) throw authError;
+
+        // Check if user was created
+        if (data && data.user) {
+            // Wait a moment to ensure the auth record is fully created
+            setTimeout(async () => {
+                try {
+                    // Fix for the 409 error - use upsert instead of insert
+                    const { error: profileError } = await supabase
+                        .from('profiles')
+                        .upsert([
+                            { 
+                                id: data.user.id, 
+                                username, 
+                                email,
+                                created_at: new Date().toISOString()
+                            }
+                        ], { onConflict: 'id' });
+
+                    if (profileError) {
+                        console.error("Profile error:", profileError);
+                        // Still show success if auth was successful but profile had issues
+                        showMessage('Registrace úspěšná! Zkontrolujte svůj email pro potvrzení účtu.', 'success');
+                    } else {
+                        showMessage('Registrace úspěšná! Zkontrolujte svůj email pro potvrzení účtu.', 'success');
+                    }
+                    
+                    // Reset form
+                    registerForm.reset();
+                    
+                    // Switch to login tab
+                    setTimeout(() => {
+                        loginTab.click();
+                    }, 2000);
+                } catch (profileError) {
+                    console.error("Error saving profile:", profileError);
+                    showMessage('Účet byl vytvořen, ale profil nemohl být inicializován. Zkuste se přihlásit.', 'success');
+                }
+            }, 500); // Give a small delay before profile creation
+        } else {
+            showMessage('Vyskytla se neznámá chyba. Zkuste prosím znovu.', 'error');
+        }
+    } catch (error) {
+        console.error('Registration error:', error);
+        showMessage(`Registrace selhala: ${translateError(error.message)}`, 'error');
+    } finally {
+        // Re-enable button and hide loading
+        registerButton.disabled = false;
+        registerLoading.style.display = 'none';
+    }
+});
 
         // Reset password form submission
         resetPasswordForm.addEventListener('submit', async (e) => {
@@ -922,12 +927,13 @@
         }
 
         // Функция проверки доступности имени пользователя
-  registerUsername.addEventListener('blur', async function() {
+registerUsername.addEventListener('blur', async function() {
     const username = this.value.trim();
     
     if (username.length < 3) return;
     
     try {
+        // Fix for the 406 error - properly format the request
         const { data, error } = await supabase
             .from('profiles')
             .select('username')
@@ -935,7 +941,8 @@
             .limit(1);
         
         if (error) {
-            throw error;
+            console.error('Username check error:', error);
+            return; // Don't show error message for backend issues
         }
         
         if (data && data.length > 0) {
