@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Justax - příprava na zkoušky</title>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        .login-section {
+            width: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: white;
+        }
+        
+        .login-container {
+            width: 80%;
+            max-width: 400px;
+            padding: 20px;
+            border: 1px solid #f0f0f0;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.05);
+        }
+        
+        .login-header {
+            margin-bottom: 20px;
+        }
+        
+        .login-header h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+        
+        .login-header p {
+            color: #666;
+            margin-top: 0;
+        }
+        
+        .tab-container {
+            display: flex;
+            margin-bottom: 20px;
+        }
+        
+        .tab {
+            width: 50%;
+            padding: 12px;
+            text-align: center;
+            background-color: #f9f9f9;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        
+        .tab.active {
+            background-color: white;
+            font-weight: bold;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: normal;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        
+        .btn-login {
+            width: 100%;
+            padding: 12px;
+            background-color: #0a1530;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        
+        .forgot-password {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .banner-section {
+            width: 50%;
+            background-color: #0a1530;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            text-align: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        
+        .graduation-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+        
+        .banner-title {
+            font-size: 32px;
+            margin-bottom: 20px;
+        }
+        
+        .banner-text {
+            font-size: 16px;
+            max-width: 80%;
+            line-height: 1.5;
+        }
+
+        .form-container {
+            display: block;
+        }
+
+        .form-container.hidden {
+            display: none;
+        }
+
+        .alert {
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .alert-error {
+            background-color: #ffebee;
+            color: #c62828;
+        }
+
+        .alert-success {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        #messageContainer {
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-section">
+        <div class="login-container">
+            <div class="login-header">
+                <h1>Vítejte v Justax</h1>
+                <p>Začněte svou cestu k úspěšným zkouškám</p>
+            </div>
+            
+            <div class="tab-container">
+                <div class="tab active" id="loginTab">Přihlášení</div>
+                <div class="tab" id="registerTab">Registrace</div>
+            </div>
+            
+            <div id="messageContainer"></div>
+
+            <form id="loginForm" class="form-container">
+                <div class="form-group">
+                    <label for="loginEmail">Email</label>
+                    <input type="email" id="loginEmail" class="form-control" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="loginPassword">Heslo</label>
+                    <input type="password" id="loginPassword" class="form-control" required>
+                </div>
+                
+                <button type="submit" class="btn-login">Přihlásit se</button>
+                
+                <div class="forgot-password">
+                    <a href="#" id="forgotPasswordLink">Zapomněli jste heslo?</a>
+                </div>
+            </form>
+
+            <form id="registerForm" class="form-container hidden">
+                <div class="form-group">
+                    <label for="registerEmail">Email</label>
+                    <input type="email" id="registerEmail" class="form-control" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="registerUsername">Uživatelské jméno</label>
+                    <input type="text" id="registerUsername" class="form-control" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="registerPassword">Heslo</label>
+                    <input type="password" id="registerPassword" class="form-control" required minlength="6">
+                </div>
+                
+                <div class="form-group">
+                    <label for="confirmPassword">Potvrzení hesla</label>
+                    <input type="password" id="confirmPassword" class="form-control" required>
+                </div>
+                
+                <button type="submit" class="btn-login">Registrovat se</button>
+            </form>
+
+            <form id="resetPasswordForm" class="form-container hidden">
+                <div class="form-group">
+                    <label for="resetEmail">Email</label>
+                    <input type="email" id="resetEmail" class="form-control" required>
+                </div>
+                
+                <button type="submit" class="btn-login">Resetovat heslo</button>
+                
+                <div class="forgot-password">
+                    <a href="#" id="backToLoginLink">Zpět na přihlášení</a>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <div class="banner-section">
+        <div class="graduation-icon">
+            <svg width="64" height="64" fill="white" viewBox="0 0 24 24">
+                <path d="M12 3L1 9l11 6l9-4.91V17h2V9L12 3z M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z"/>
+            </svg>
+        </div>
+        
+        <h2 class="banner-title">Justax - příprava na zkoušky</h2>
+        
+        <p class="banner-text">
+            Získejte osobní doučování matematiky s naším AI asistentem. Procvičujte úlohy, získávejte okamžitou zpětnou vazbu a sledujte svůj pokrok.
+        </p>
+    </div>
+
+    <script>
+        // Initialize Supabase client
+        const SUPABASE_URL = 'https://xunitidnszlsqupiifhd.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh1bml0aWRuc3psc3F1cGlpZmhkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDEwMTY0MDQsImV4cCI6MjA1NjU5MjQwNH0.8v2dMEaAQYRhHmmJe15XkbA07Tsupc1iLT9oAsLEsWw';
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // DOM elements
+        const loginTab = document.getElementById('loginTab');
+        const registerTab = document.getElementById('registerTab');
+        const loginForm = document.getElementById('loginForm');
+        const registerForm = document.getElementById('registerForm');
+        const resetPasswordForm = document.getElementById('resetPasswordForm');
+        const forgotPasswordLink = document.getElementById('forgotPasswordLink');
+        const backToLoginLink = document.getElementById('backToLoginLink');
+        const messageContainer = document.getElementById('messageContainer');
+
+        // Show message function
+        function showMessage(message, type) {
+            messageContainer.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+            setTimeout(() => {
+                messageContainer.innerHTML = '';
+            }, 5000);
+        }
+
+        // Tab switching
+        loginTab.addEventListener('click', () => {
+            loginTab.classList.add('active');
+            registerTab.classList.remove('active');
+            loginForm.classList.remove('hidden');
+            registerForm.classList.add('hidden');
+            resetPasswordForm.classList.add('hidden');
+        });
+
+        registerTab.addEventListener('click', () => {
+            registerTab.classList.add('active');
+            loginTab.classList.remove('active');
+            registerForm.classList.remove('hidden');
+            loginForm.classList.add('hidden');
+            resetPasswordForm.classList.add('hidden');
+        });
+
+        // Forgot password link
+        forgotPasswordLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            loginForm.classList.add('hidden');
+            resetPasswordForm.classList.remove('hidden');
+        });
+
+        // Back to login link
+        backToLoginLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            resetPasswordForm.classList.add('hidden');
+            loginForm.classList.remove('hidden');
+        });
+
+        // Login form submission
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+
+            try {
+                const { data, error } = await supabase.auth.signInWithPassword({
+                    email,
+                    password
+                });
+
+                if (error) throw error;
+
+                // Successful login
+                showMessage('Přihlášení úspěšné! Přesměrování...', 'success');
+                
+                // Store the user in local storage
+                localStorage.setItem('user', JSON.stringify(data.user));
+                
+                // Redirect to dashboard after successful login
+                setTimeout(() => {
+                    window.location.href = '/dashboard.html';
+                }, 1500);
+            } catch (error) {
+                showMessage(`Přihlášení selhalo: ${error.message}`, 'error');
+            }
+        });
+
+        // Registration form submission
+        registerForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('registerEmail').value;
+            const username = document.getElementById('registerUsername').value;
+            const password = document.getElementById('registerPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            // Password validation
+            if (password !== confirmPassword) {
+                showMessage('Hesla se neshodují', 'error');
+                return;
+            }
+
+            try {
+                // Register new user
+                const { data: authData, error: authError } = await supabase.auth.signUp({
+                    email,
+                    password,
+                    options: {
+                        data: {
+                            username
+                        }
+                    }
+                });
+
+                if (authError) throw authError;
+
+                // Save user profile in profiles table
+                const { error: profileError } = await supabase
+                    .from('profiles')
+                    .insert([
+                        { 
+                            id: authData.user.id, 
+                            username, 
+                            email 
+                        }
+                    ]);
+
+                if (profileError) throw profileError;
+
+                showMessage('Registrace úspěšná! Nyní se můžete přihlásit.', 'success');
+                
+                // Switch to login tab
+                setTimeout(() => {
+                    loginTab.click();
+                }, 2000);
+            } catch (error) {
+                showMessage(`Registrace selhala: ${error.message}`, 'error');
+            }
+        });
+
+        // Reset password form submission
+        resetPasswordForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('resetEmail').value;
+
+            try {
+                const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                    redirectTo: window.location.origin + '/reset-password.html',
+                });
+
+                if (error) throw error;
+
+                showMessage('Pokyny k obnovení hesla byly odeslány na váš email', 'success');
+                
+                // Switch back to login after a delay
+                setTimeout(() => {
+                    loginTab.click();
+                }, 3000);
+            } catch (error) {
+                showMessage(`Odeslání resetu hesla selhalo: ${error.message}`, 'error');
+            }
+        });
+
+        // Check if user is already logged in
+        window.addEventListener('DOMContentLoaded', async () => {
+            const { data } = await supabase.auth.getSession();
+            
+            if (data.session) {
+                // User is already logged in, redirect to dashboard
+                window.location.href = '/dashboard.html';
+            }
+        });
+    </script>
+</body>
+</html>
