@@ -1,3 +1,6 @@
+Here is the complete code including the `DOMContentLoaded` event listener that initializes various functionalities for your login, registration, and password reset forms:
+
+```html
 <!DOCTYPE html>
 <html lang="cs">
 <head>
@@ -495,521 +498,524 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // DOM elements
-            const loginTab = document.getElementById('loginTab');
-            const registerTab = document.getElementById('registerTab');
-            const loginForm = document.getElementById('loginForm');
-            const registerForm = document.getElementById('registerForm');
-            const resetPasswordForm = document.getElementById('resetPasswordForm');
-            const forgotPasswordLink = document.getElementById('forgotPasswordLink');
-            const backToLoginLink = document.getElementById('backToLoginLink');
-            const messageContainer = document.getElementById('messageContainer');
-            const passwordStrength = document.getElementById('passwordStrength');
-            
-            // Form elements
-            const loginEmail = document.getElementById('loginEmail');
-            const loginPassword = document.getElementById('loginPassword');
-            const rememberMe = document.getElementById('rememberMe');
-            const loginButton = document.getElementById('loginButton');
-            const loginLoading = document.getElementById('loginLoading');
-            
-            const registerEmail = document.getElementById('registerEmail');
-            const registerUsername = document.getElementById('registerUsername');
-            const registerPassword = document.getElementById('registerPassword');
-            const confirmPassword = document.getElementById('confirmPassword');
-            const registerButton = document.getElementById('registerButton');
-            const registerLoading = document.getElementById('registerLoading');
-            
-            const resetEmail = document.getElementById('resetEmail');
-            const resetButton = document.getElementById('resetButton');
-            const resetLoading = document.getElementById('resetLoading');
+    document.addEventListener('DOMContentLoaded', function() {
+        // DOM elements
+        const loginTab = document.getElementById('loginTab');
+        const registerTab = document.getElementById('registerTab');
+        const loginForm = document.getElementById('loginForm');
+        const registerForm = document.getElementById('registerForm');
+        const resetPasswordForm = document.getElementById('resetPasswordForm');
+        const forgotPasswordLink = document.getElementById('forgotPasswordLink');
+        const backToLoginLink = document.getElementById('backToLoginLink');
+        const messageContainer = document.getElementById('messageContainer');
+        const passwordStrength = document.getElementById('passwordStrength');
+        
+        // Form elements
+        const loginEmail = document.getElementById('loginEmail');
+        const loginPassword = document.getElementById('loginPassword');
+        const rememberMe = document.getElementById('rememberMe');
+        const loginButton = document.getElementById('loginButton');
+        const loginLoading = document.getElementById('loginLoading');
+        
+        const registerEmail = document.getElementById('registerEmail');
+        const registerUsername = document.getElementById('registerUsername');
+        const registerPassword = document.getElementById('registerPassword');
+        const confirmPassword = document.getElementById('confirmPassword');
+        const registerButton = document.getElementById('registerButton');
+        const registerLoading = document.getElementById('registerLoading');
+        
+        const resetEmail = document.getElementById('resetEmail');
+        const resetButton = document.getElementById('resetButton');
+        const resetLoading = document.getElementById('resetLoading');
 
-            // Supabase initialization - store credentials in a more secure way
-            const SUPABASE_URL = 'https://xunitidnszlsqupiifhd.supabase.co';
-            const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh1bml0aWRuc3psc3F1cGlpZmhkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDEwMTY0MDQsImV4cCI6MjA1NjU5MjQwNH0.8v2dMEaAQYRhHmmJe15XkbA07Tsupc1iLT9oAsLEsWw';
+        // Supabase initialization - store credentials in a more secure way
+        const SUPABASE_URL = 'https://xunitidnszlsqupiifhd.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh1bml0aWRuc3psc3F1cGlpZmhkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDEwMTY0MDQsImV4cCI6MjA1NjU5MjQwNH0.8v2dMEaAQYRhHmmJe15XkbA07Tsupc1iLT9oAsLEsWw';
+        
+        // Initialize Supabase client
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        
+        // Error translation dictionary
+        const errorTranslations = {
+            'Invalid login credentials': 'Nesprávný email nebo heslo',
+            'Email not confirmed': 'Email není potvrzen. Zkontrolujte svou emailovou schránku',
+            'already registered': 'Tento email je již registrován',
+            'weak password': 'Heslo je příliš slabé. Použijte kombinaci písmen, čísel a speciálních znaků',
+            'not found': 'Email nebyl nalezen v naší databázi'
+        };
+        
+        // Helper functions
+        function showMessage(message, type) {
+            messageContainer.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
             
-            // Initialize Supabase client
-            const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-            
-            // Error translation dictionary
-            const errorTranslations = {
-                'Invalid login credentials': 'Nesprávný email nebo heslo',
-                'Email not confirmed': 'Email není potvrzen. Zkontrolujte svou emailovou schránku',
-                'already registered': 'Tento email je již registrován',
-                'weak password': 'Heslo je příliš slabé. Použijte kombinaci písmen, čísel a speciálních znaků',
-                'not found': 'Email nebyl nalezen v naší databázi'
-            };
-            
-            // Helper functions
-            function showMessage(message, type) {
-                messageContainer.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
-                
-                // Smooth scroll only on mobile
-                if(window.innerWidth < 768) {
-                    messageContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }
-                
-                if (type === 'success') {
-                    setTimeout(() => {
-                        messageContainer.innerHTML = '';
-                    }, 5000);
-                }
+            // Smooth scroll only on mobile
+            if(window.innerWidth < 768) {
+                messageContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
             
-            function translateError(errorMsg) {
-                for (const [key, translation] of Object.entries(errorTranslations)) {
-                    if (errorMsg.includes(key)) {
-                        return translation;
-                    }
-                }
-                return errorMsg;
-            }
-            
-            function validateEmail(email) {
-                const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                return re.test(email);
-            }
-            
-            function debounce(func, wait) {
-                let timeout;
-                return function(...args) {
-                    clearTimeout(timeout);
-                    timeout = setTimeout(() => func.apply(this, args), wait);
-                };
-            }
-
-            // Password strength checker with debounce
-            const checkPasswordStrength = debounce(function(password) {
-                let strength = 0;
-                
-                if (password.length >= 8) strength += 1;
-                if (password.match(/[A-Z]/)) strength += 1;
-                if (password.match(/[0-9]/)) strength += 1;
-                if (password.match(/[^A-Za-z0-9]/)) strength += 1;
-                
-                passwordStrength.className = 'password-strength-meter';
-                
-                if (strength <= 1) {
-                    passwordStrength.classList.add('strength-weak');
-                } else if (strength <= 3) {
-                    passwordStrength.classList.add('strength-medium');
-                } else {
-                    passwordStrength.classList.add('strength-strong');
-                }
-                
-                return strength;
-            }, 200);
-            
-            // Register password input event
-            registerPassword.addEventListener('input', function() {
-                checkPasswordStrength(this.value);
-            });
-
-            // Password toggle buttons
-            document.querySelectorAll('.password-toggle').forEach(button => {
-                button.addEventListener('click', function() {
-                    const passwordInput = document.getElementById(this.getAttribute('data-for'));
-                    if (passwordInput.type === 'password') {
-                        passwordInput.type = 'text';
-                        this.textContent = 'Skrýt';
-                    } else {
-                        passwordInput.type = 'password';
-                        this.textContent = 'Zobrazit';
-                    }
-                });
-            });
-
-            // Tab switching with smooth transitions
-            function switchTab(activeTab, showForm, hideForm1, hideForm2) {
-                // Update tab classes
-                document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
-                activeTab.classList.add('active');
-                
-                // Hide all forms
-                [hideForm1, hideForm2, showForm].forEach(form => {
-                    if (form !== showForm) {
-                        form.classList.add('hidden');
-                    }
-                });
-                
-                // Show the target form
+            if (type === 'success') {
                 setTimeout(() => {
-                    showForm.classList.remove('hidden');
                     messageContainer.innerHTML = '';
-                }, 50);
+                }, 5000);
+            }
+        }
+        
+        function translateError(errorMsg) {
+            for (const [key, translation] of Object.entries(errorTranslations)) {
+                if (errorMsg.includes(key)) {
+                    return translation;
+                }
+            }
+            return errorMsg;
+        }
+        
+        function validateEmail(email) {
+            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return re.test(email);
+        }
+        
+        function debounce(func, wait) {
+            let timeout;
+            return function(...args) {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(this, args), wait);
+            };
+        }
+
+        // Password strength checker with debounce
+        const checkPasswordStrength = debounce(function(password) {
+            let strength = 0;
+            
+            if (password.length >= 8) strength += 1;
+            if (password.match(/[A-Z]/)) strength += 1;
+            if (password.match(/[0-9]/)) strength += 1;
+            if (password.match(/[^A-Za-z0-9]/)) strength += 1;
+            
+            passwordStrength.className = 'password-strength-meter';
+            
+            if (strength <= 1) {
+                passwordStrength.classList.add('strength-weak');
+            } else if (strength <= 3) {
+                passwordStrength.classList.add('strength-medium');
+            } else {
+                passwordStrength.classList.add('strength-strong');
             }
             
-            loginTab.addEventListener('click', () => 
-                switchTab(loginTab, loginForm, registerForm, resetPasswordForm));
+            return strength;
+        }, 200);
+        
+        // Register password input event
+        registerPassword.addEventListener('input', function() {
+            checkPasswordStrength(this.value);
+        });
 
-            registerTab.addEventListener('click', () => 
-                switchTab(registerTab, registerForm, loginForm, resetPasswordForm));
-
-            // Forgot password link
-            forgotPasswordLink.addEventListener('click', (e) => {
-                e.preventDefault();
-                switchTab(loginTab, resetPasswordForm, loginForm, registerForm);
-                resetEmail.value = loginEmail.value; // Auto-fill email if available
-            });
-
-            // Back to login link
-            backToLoginLink.addEventListener('click', (e) => {
-                e.preventDefault();
-                switchTab(loginTab, loginForm, resetPasswordForm, registerForm);
-            });
-
-            // Login form submission
-            loginForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                
-                const email = loginEmail.value.trim();
-                const password = loginPassword.value;
-                
-                // Basic validation
-                if (!validateEmail(email)) {
-                    showMessage('Zadejte platný email', 'error');
-                    loginEmail.focus();
-                    return;
-                }
-                
-                if (!password) {
-                    showMessage('Zadejte heslo', 'error');
-                    loginPassword.focus();
-                    return;
-                }
-                
-                // Disable button and show loading
-                loginButton.disabled = true;
-                loginLoading.style.display = 'block';
-
-                try {
-                    const { data, error } = await supabase.auth.signInWithPassword({
-                        email,
-                        password
-                    });
-
-                    if (error) throw error;
-
-                    // Successful login
-                    showMessage('Přihlášení úspěšné! Přesměrování...', 'success');
-                    
-                    // Store user data based on remember me preference
-                    if (rememberMe.checked) {
-                        localStorage.setItem('user', JSON.stringify(data.user));
-                        localStorage.setItem('session', JSON.stringify(data.session));
-                    } else {
-                        sessionStorage.setItem('user', JSON.stringify(data.user));
-                        sessionStorage.setItem('session', JSON.stringify(data.session));
-                    }
-                    
-                    // Redirect to dashboard after successful login
-                    setTimeout(() => {
-                        window.location.href = '/dashboard.html';
-                    }, 1200);
-                } catch (error) {
-                    console.error('Login error:', error);
-                    showMessage(`Přihlášení selhalo: ${translateError(error.message)}`, 'error');
-                } finally {
-                    // Re-enable button and hide loading
-                    loginButton.disabled = false;
-                    loginLoading.style.display = 'none';
+        // Password toggle buttons
+        document.querySelectorAll('.password-toggle').forEach(button => {
+            button.addEventListener('click', function() {
+                const passwordInput = document.getElementById(this.getAttribute('data-for'));
+                if (passwordInput.type === 'password') {
+                    passwordInput.type = 'text';
+                    this.textContent = 'Skrýt';
+                } else {
+                    passwordInput.type = 'password';
+                    this.textContent = 'Zobrazit';
                 }
             });
+        });
 
-            // Registration form submission
-            registerForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
+        // Tab switching with smooth transitions
+        function switchTab(activeTab, showForm, hideForm1, hideForm2) {
+            // Update tab classes
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            activeTab.classList.add('active');
+            
+            // Hide all forms
+            [hideForm1, hideForm2, showForm].forEach(form => {
+                if (form !== showForm) {
+                    form.classList.add('hidden');
+                }
+            });
+            
+            // Show the target form
+            setTimeout(() => {
+                showForm.classList.remove('hidden');
+                messageContainer.innerHTML = '';
+            }, 50);
+        }
+        
+        loginTab.addEventListener('click', () => 
+            switchTab(loginTab, loginForm, registerForm, resetPasswordForm));
+
+        registerTab.addEventListener('click', () => 
+            switchTab(registerTab, registerForm, loginForm, resetPasswordForm));
+
+        // Forgot password link
+        forgotPasswordLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            switchTab(loginTab, resetPasswordForm, loginForm, registerForm);
+            resetEmail.value = loginEmail.value; // Auto-fill email if available
+        });
+
+        // Back to login link
+        backToLoginLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            switchTab(loginTab, loginForm, resetPasswordForm, registerForm);
+        });
+
+        // Login form submission
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = loginEmail.value.trim();
+            const password = loginPassword.value;
+            
+            // Basic validation
+            if (!validateEmail(email)) {
+                showMessage('Zadejte platný email', 'error');
+                loginEmail.focus();
+                return;
+            }
+            
+            if (!password) {
+                showMessage('Zadejte heslo', 'error');
+                loginPassword.focus();
+                return;
+            }
+            
+            // Disable button and show loading
+            loginButton.disabled = true;
+            loginLoading.style.display = 'block';
+
+            try {
+                const { data, error } = await supabase.auth.signInWithPassword({
+                    email,
+                    password
+                });
+
+                if (error) throw error;
+
+                // Successful login
+                showMessage('Přihlášení úspěšné! Přesměrování...', 'success');
                 
-                const email = registerEmail.value.trim();
-                const username = registerUsername.value.trim();
-                const password = registerPassword.value;
-                const passwordConfirm = confirmPassword.value;
-
-                // Enhanced validation
-                if (!validateEmail(email)) {
-                    showMessage('Zadejte platný email', 'error');
-                    registerEmail.focus();
-                    return;
+                // Store user data based on remember me preference
+                if (rememberMe.checked) {
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    localStorage.setItem('session', JSON.stringify(data.session));
+                } else {
+                    sessionStorage.setItem('user', JSON.stringify(data.user));
+                    sessionStorage.setItem('session', JSON.stringify(data.session));
                 }
                 
-                if (username.length < 3) {
-                    showMessage('Uživatelské jméno musí mít alespoň 3 znaky', 'error');
-                    registerUsername.focus();
-                    return;
-                }
-                
-                if (password.length < 6) {
-                    showMessage('Heslo musí mít alespoň 6 znaků', 'error');
-                    registerPassword.focus();
-                    return;
-                }
-                
-                if (checkPasswordStrength(password) <= 1) {
-                    showMessage('Heslo je příliš slabé. Použijte kombinaci písmen, čísel a speciálních znaků', 'error');
-                    registerPassword.focus();
-                    return;
-                }
+                // Redirect to dashboard after successful login
+                setTimeout(() => {
+                    window.location.href = '/dashboard.html';
+                }, 1200);
+            } catch (error) {
+                console.error('Login error:', error);
+                showMessage(`Přihlášení selhalo: ${translateError(error.message)}`, 'error');
+            } finally {
+                // Re-enable button and hide loading
+                loginButton.disabled = false;
+                loginLoading.style.display = 'none';
+            }
+        });
 
-                if (password !== passwordConfirm) {
-                    showMessage('Hesla se neshodují', 'error');
-                    confirmPassword.focus();
-                    return;
-                }
+        // Registration form submission
+        registerForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = registerEmail.value.trim();
+            const username = registerUsername.value.trim();
+            const password = registerPassword.value;
+            const passwordConfirm = confirmPassword.value;
 
-                // Disable button and show loading
-                registerButton.disabled = true;
-                registerLoading.style.display = 'block';
+            // Enhanced validation
+            if (!validateEmail(email)) {
+                showMessage('Zadejte platný email', 'error');
+                registerEmail.focus();
+                return;
+            }
+            
+            if (username.length < 3) {
+                showMessage('Uživatelské jméno musí mít alespoň 3 znaky', 'error');
+                registerUsername.focus();
+                return;
+            }
+            
+            if (password.length < 6) {
+                showMessage('Heslo musí mít alespoň 6 znaků', 'error');
+                registerPassword.focus();
+                return;
+            }
+            
+            if (checkPasswordStrength(password) <= 1) {
+                showMessage('Heslo je příliš slabé. Použijte kombinaci písmen, čísel a speciálních znaků', 'error');
+                registerPassword.focus();
+                return;
+            }
 
-                try {
-                    // Register new user
-                    const { data, error: authError } = await supabase.auth.signUp({
-                        email,
-                        password,
-                        options: {
-                            data: {
-                                username
-                            }
+            if (password !== passwordConfirm) {
+                showMessage('Hesla se neshodují', 'error');
+                confirmPassword.focus();
+                return;
+            }
+
+            // Disable button and show loading
+            registerButton.disabled = true;
+            registerLoading.style.display = 'block';
+
+            try {
+                // Register new user
+                const { data, error: authError } = await supabase.auth.signUp({
+                    email,
+                    password,
+                    options: {
+                        data: {
+                            username
                         }
-                    });
-
-                    if (authError) throw authError;
-
-                    // Check if user was created
-                    if (data && data.user) {
-                        try {
-                            // Save user profile in profiles table
-                            const { error: profileError } = await supabase
-                                .from('profiles')
-                                .insert([
-                                    { 
-                                        id: data.user.id, 
-                                        username, 
-                                        email,
-                                        created_at: new Date().toISOString()
-                                    }
-                                ]);
-
-                            if (profileError) {
-                                console.error("Profile error:", profileError);
-                            }
-
-                            showMessage('Registrace úspěšná! Zkontrolujte svůj email pro potvrzení účtu.', 'success');
-                            
-                            // Reset form
-                            registerForm.reset();
-                            
-                            // Switch to login tab
-                            setTimeout(() => {
-                                loginTab.click();
-                            }, 2000);
-                        } catch (profileError) {
-                            console.error("Error saving profile:", profileError);
-                            showMessage('Účet byl vytvořen, ale profil nemohl být inicializován. Zkuste se přihlásit.', 'success');
-                        }
-                    } else {
-                        showMessage('Vyskytla se neznámá chyba. Zkuste prosím znovu.', 'error');
                     }
-                } catch (error) {
-                    console.error('Registration error:', error);
-                    showMessage(`Registrace selhala: ${translateError(error.message)}`, 'error');
-                } finally {
-                    // Re-enable button and hide loading
-                    registerButton.disabled = false;
-                    registerLoading.style.display = 'none';
-                }
-            });
+                });
 
-            // Reset password form submission
-            resetPasswordForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
+                if (authError) throw authError;
+
+                // Check if user was created
+                if (data && data.user) {
+                    try {
+                        // Save user profile in profiles table
+                        const { error: profileError } = await supabase
+                            .from('profiles')
+                            .insert([
+                                { 
+                                    id: data.user.id, 
+                                    username, 
+                                    email,
+                                    created_at: new Date().toISOString()
+                                }
+                            ]);
+
+                        if (profileError) {
+                            console.error("Profile error:", profileError);
+                        }
+
+                        showMessage('Registrace úspěšná! Zkontrolujte svůj email pro potvrzení účtu.', 'success');
+                        
+                        // Reset form
+                        registerForm.reset();
+                        
+                        // Switch to login tab
+                        setTimeout(() => {
+                            loginTab.click();
+                        }, 2000);
+                    } catch (profileError) {
+                        console.error("Error saving profile:", profileError);
+                        showMessage('Účet byl vytvořen, ale profil nemohl být inicializován. Zkuste se přihlásit.', 'success');
+                    }
+                } else {
+                    showMessage('Vyskytla se neznámá chyba. Zkuste prosím znovu.', 'error');
+                }
+            } catch (error) {
+                console.error('Registration error:', error);
+                showMessage(`Registrace selhala: ${translateError(error.message)}`, 'error');
+            } finally {
+                // Re-enable button and hide loading
+                registerButton.disabled = false;
+                registerLoading.style.display = 'none';
+            }
+        });
+
+        // Reset password form submission
+        resetPasswordForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = resetEmail.value.trim();
+            
+            if (!validateEmail(email)) {
+                showMessage('Zadejte platný email', 'error');
+                resetEmail.focus();
+                return;
+            }
+
+            // Disable button and show loading
+            resetButton.disabled = true;
+            resetLoading.style.display = 'block';
+
+            try {
+                const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                    redirectTo: window.location.origin + '/reset-password.html',
+                });
+
+                if (error) throw error;
+
+                showMessage('Pokyny k obnovení hesla byly odeslány na váš email', 'success');
                 
-                const email = resetEmail.value.trim();
+                // Switch back to login after a delay
+                setTimeout(() => {
+                    loginTab.click();
+                }, 3000);
+            } catch (error) {
+                console.error('Password reset error:', error);
+                showMessage(`Odeslání resetu hesla selhalo: ${translateError(error.message)}`, 'error');
+            } finally {
+                // Re-enable button and hide loading
+                resetButton.disabled = false;
+                resetLoading.style.display = 'none';
+            }
+        });
+
+        // Dokončení původního kódu z checkLoggedInUser()
+        async function checkLoggedInUser() {
+            try {
+                const { data } = await supabase.auth.getSession();
                 
-                if (!validateEmail(email)) {
-                    showMessage('Zadejte platný email', 'error');
-                    resetEmail.focus();
-                    return;
+                if (data && data.session) {
+                    // User is already logged in, redirect to dashboard
+                    window.location.href = '/dashboard.html';
                 }
+            } catch (error) {
+                console.error('Chyba při kontrole přihlášení:', error);
+                localStorage.removeItem('user');
+                sessionStorage.removeItem('user');
+            }
+        }
 
-                // Disable button and show loading
-                resetButton.disabled = true;
-                resetLoading.style.display = 'block';
+        // Spuštění kontroly přihlášení při načtení stránky
+        checkLoggedInUser();
 
-                try {
-                    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-                        redirectTo: window.location.origin + '/reset-password.html',
-                    });
+        // Přidání focus na první vstupní pole při načtení formuláře
+        loginEmail.focus();
 
-                    if (error) throw error;
+        // Přidání animace při přechodu mezi formuláři
+        function animateFormTransition(fromForm, toForm) {
+            fromForm.style.opacity = '0';
+            setTimeout(() => {
+                fromForm.classList.add('hidden');
+                toForm.classList.remove('hidden');
+                setTimeout(() => {
+                    toForm.style.opacity = '1';
+                }, 50);
+            }, 300);
+        }
 
-                    showMessage('Pokyny k obnovení hesla byly odeslány na váš email', 'success');
-                    
-                    // Switch back to login after a delay
-                    setTimeout(() => {
-                        loginTab.click();
-                    }, 3000);
-                } catch (error) {
-                    console.error('Password reset error:', error);
-                    showMessage(`Odeslání resetu hesla selhalo: ${translateError(error.message)}`, 'error');
-                } finally {
-                    // Re-enable button and hide loading
-                    resetButton.disabled = false;
-                    resetLoading.style.display = 'none';
+        // Předvyplnění emailu při přechodu mezi formuláři
+        loginTab.addEventListener('click', () => {
+            if (registerEmail.value) {
+                loginEmail.value = registerEmail.value;
+            }
+        });
+
+        registerTab.addEventListener('click', () => {
+            if (loginEmail.value) {
+                registerEmail.value = loginEmail.value;
+            }
+        });
+
+        // Optimalizace zpracování chyb při práci se Supabase
+        function handleSupabaseError(error, defaultMessage) {
+            console.error('Supabase error:', error);
+            const errorMessage = error.message || defaultMessage;
+            showMessage(translateError(errorMessage), 'error');
+        }
+
+        // Kontrola dostupnosti uživatelského jména
+        registerUsername.addEventListener('blur', async function() {
+            const username = this.value.trim();
+            
+            if (username.length < 3) return;
+            
+            try {
+                const { data, error } = await supabase
+                    .from('profiles')
+                    .select('username')
+                    .eq('username', username)
+                    .single();
+                
+                if (error && error.code !== 'PGRST116') {
+                    throw error;
                 }
+                
+                if (data) {
+                    showMessage('Toto uživatelské jméno je již obsazené', 'error');
+                    this.focus();
+                }
+            } catch (error) {
+                // Ignorujeme chybu, pokud uživatelské jméno není nalezeno (což znamená, že je dostupné)
+                if (error.code !== 'PGRST116') {
+                    console.error('Chyba při kontrole uživatelského jména:', error);
+                }
+            }
+        });
+
+        // Optimalizace mobilního zobrazení
+        function optimizeMobileView() {
+            if (window.innerWidth < 768) {
+                document.querySelector('.login-container').style.maxWidth = '100%';
+            } else {
+                document.querySelector('.login-container').style.maxWidth = '400px';
+            }
+        }
+
+        // Spuštění optimalizace při načtení a změně velikosti okna
+        optimizeMobileView();
+        window.addEventListener('resize', optimizeMobileView);
+
+        // Uložení poslední použité záložky
+        function saveLastUsedTab(tabId) {
+            localStorage.setItem('lastUsedTab', tabId);
+        }
+
+        // Načtení poslední použité záložky
+        function loadLastUsedTab() {
+            const lastTab = localStorage.getItem('lastUsedTab');
+            if (lastTab === 'registerTab') {
+                registerTab.click();
+            }
+        }
+
+        // Ukládání záložky při kliknutí
+        loginTab.addEventListener('click', () => saveLastUsedTab('loginTab'));
+        registerTab.addEventListener('click', () => saveLastUsedTab('registerTab'));
+
+        // Načtení poslední použité záložky při startu
+        loadLastUsedTab();
+
+        // Přidání event listeneru pro detekci stisknutí Enter
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Enter') {
+                if (!loginForm.classList.contains('hidden')) {
+                    loginButton.click();
+                } else if (!registerForm.classList.contains('hidden')) {
+                    registerButton.click();
+                } else if (!resetPasswordForm.classList.contains('hidden')) {
+                    resetButton.click();
+                }
+            }
+        });
+
+        // Přidání dynamického ověřování formulářů
+        [loginEmail, loginPassword].forEach(input => {
+            input.addEventListener('input', () => {
+                loginButton.disabled = !loginEmail.value || !loginPassword.value;
             });
+        });
 
-            // Dokončení původního kódu z checkLoggedInUser()
-async function checkLoggedInUser() {
-    try {
-        const { data } = await supabase.auth.getSession();
-        
-        if (data && data.session) {
-            // User is already logged in, redirect to dashboard
-            window.location.href = '/dashboard.html';
-        }
-    } catch (error) {
-        console.error('Chyba při kontrole přihlášení:', error);
-        localStorage.removeItem('user');
-        sessionStorage.removeItem('user');
-    }
-}
+        [registerEmail, registerUsername, registerPassword, confirmPassword].forEach(input => {
+            input.addEventListener('input', () => {
+                const passwordValid = registerPassword.value.length >= 6 && checkPasswordStrength(registerPassword.value) > 1;
+                const passwordsMatch = registerPassword.value === confirmPassword.value;
+                registerButton.disabled = !registerEmail.value || !registerUsername.value || !passwordValid || !passwordsMatch;
+            });
+        });
 
-// Spuštění kontroly přihlášení při načtení stránky
-checkLoggedInUser();
+        resetEmail.addEventListener('input', () => {
+            resetButton.disabled = !validateEmail(resetEmail.value);
+        });
 
-// Přidání focus na první vstupní pole při načtení formuláře
-loginEmail.focus();
+                // Inicializace stavu tlačítek
+        loginButton.disabled = true;
+        registerButton.disabled = true;
+        resetButton.disabled = true;
 
-// Přidání animace při přechodu mezi formuláři
-function animateFormTransition(fromForm, toForm) {
-    fromForm.style.opacity = '0';
-    setTimeout(() => {
-        fromForm.classList.add('hidden');
-        toForm.classList.remove('hidden');
-        setTimeout(() => {
-            toForm.style.opacity = '1';
-        }, 50);
-    }, 300);
-}
-
-// Předvyplnění emailu při přechodu mezi formuláři
-loginTab.addEventListener('click', () => {
-    if (registerEmail.value) {
-        loginEmail.value = registerEmail.value;
-    }
-});
-
-registerTab.addEventListener('click', () => {
-    if (loginEmail.value) {
-        registerEmail.value = loginEmail.value;
-    }
-});
-
-// Optimalizace zpracování chyb při práci se Supabase
-function handleSupabaseError(error, defaultMessage) {
-    console.error('Supabase error:', error);
-    const errorMessage = error.message || defaultMessage;
-    showMessage(translateError(errorMessage), 'error');
-}
-
-// Kontrola dostupnosti uživatelského jména
-registerUsername.addEventListener('blur', async function() {
-    const username = this.value.trim();
-    
-    if (username.length < 3) return;
-    
-    try {
-        const { data, error } = await supabase
-            .from('profiles')
-            .select('username')
-            .eq('username', username)
-            .single();
-        
-        if (error && error.code !== 'PGRST116') {
-            throw error;
-        }
-        
-        if (data) {
-            showMessage('Toto uživatelské jméno je již obsazené', 'error');
-            this.focus();
-        }
-    } catch (error) {
-        // Ignorujeme chybu, pokud uživatelské jméno není nalezeno (což znamená, že je dostupné)
-        if (error.code !== 'PGRST116') {
-            console.error('Chyba při kontrole uživatelského jména:', error);
-        }
-    }
-});
-
-// Optimalizace mobilního zobrazení
-function optimizeMobileView() {
-    if (window.innerWidth < 768) {
-        document.querySelector('.login-container').style.maxWidth = '100%';
-    } else {
-        document.querySelector('.login-container').style.maxWidth = '400px';
-    }
-}
-
-// Spuštění optimalizace při načtení a změně velikosti okna
-optimizeMobileView();
-window.addEventListener('resize', optimizeMobileView);
-
-// Uložení poslední použité záložky
-function saveLastUsedTab(tabId) {
-    localStorage.setItem('lastUsedTab', tabId);
-}
-
-// Načtení poslední použité záložky
-function loadLastUsedTab() {
-    const lastTab = localStorage.getItem('lastUsedTab');
-    if (lastTab === 'registerTab') {
-        registerTab.click();
-    }
-}
-
-// Ukládání záložky při kliknutí
-loginTab.addEventListener('click', () => saveLastUsedTab('loginTab'));
-registerTab.addEventListener('click', () => saveLastUsedTab('registerTab'));
-
-// Načtení poslední použité záložky při startu
-loadLastUsedTab();
-
-// Přidání event listeneru pro detekci stisknutí Enter
-document.addEventListener('keydown', function(event) {
-    if (event.key === 'Enter') {
-        if (!loginForm.classList.contains('hidden')) {
-            loginButton.click();
-        } else if (!registerForm.classList.contains('hidden')) {
-            registerButton.click();
-        } else if (!resetPasswordForm.classList.contains('hidden')) {
-            resetButton.click();
-        }
-    }
-});
-
-// Přidání dynamického ověřování formulářů
-[loginEmail, loginPassword].forEach(input => {
-    input.addEventListener('input', () => {
-        loginButton.disabled = !loginEmail.value || !loginPassword.value;
     });
-});
-
-[registerEmail, registerUsername, registerPassword, confirmPassword].forEach(input => {
-    input.addEventListener('input', () => {
-        const passwordValid = registerPassword.value.length >= 6 && checkPasswordStrength(registerPassword.value) > 1;
-        const passwordsMatch = registerPassword.value === confirmPassword.value;
-        registerButton.disabled = !registerEmail.value || !registerUsername.value || !passwordValid || !passwordsMatch;
-    });
-});
-
-resetEmail.addEventListener('input', () => {
-    resetButton.disabled = !validateEmail(resetEmail.value);
-});
-
-// Inicializace stavu tlačítek
-loginButton.disabled = true;
-registerButton.disabled = true;
-resetButton.disabled = true;
-
-});
+</script>
+</body>
+</html>
