@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Justax - příprava na zkoušky</title>
-    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <style>
         body {
             margin: 0;
@@ -247,11 +246,12 @@
         </p>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
         // Initialize Supabase client
         const SUPABASE_URL = 'https://xunitidnszlsqupiifhd.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh1bml0aWRuc3psc3F1cGlpZmhkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDEwMTY0MDQsImV4cCI6MjA1NjU5MjQwNH0.8v2dMEaAQYRhHmmJe15XkbA07Tsupc1iLT9oAsLEsWw';
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        const supabase = supabaseClient.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         // DOM elements
         const loginTab = document.getElementById('loginTab');
@@ -347,7 +347,7 @@
 
             try {
                 // Register new user
-                const { data: authData, error: authError } = await supabase.auth.signUp({
+                const { data, error: authError } = await supabase.auth.signUp({
                     email,
                     password,
                     options: {
@@ -359,25 +359,27 @@
 
                 if (authError) throw authError;
 
-                // Save user profile in profiles table
-                const { error: profileError } = await supabase
-                    .from('profiles')
-                    .insert([
-                        { 
-                            id: authData.user.id, 
-                            username, 
-                            email 
-                        }
-                    ]);
+                if (data && data.user) {
+                    // Save user profile in profiles table
+                    const { error: profileError } = await supabase
+                        .from('profiles')
+                        .insert([
+                            { 
+                                id: data.user.id, 
+                                username, 
+                                email 
+                            }
+                        ]);
 
-                if (profileError) throw profileError;
+                    if (profileError) throw profileError;
 
-                showMessage('Registrace úspěšná! Nyní se můžete přihlásit.', 'success');
-                
-                // Switch to login tab
-                setTimeout(() => {
-                    loginTab.click();
-                }, 2000);
+                    showMessage('Registrace úspěšná! Nyní se můžete přihlásit.', 'success');
+                    
+                    // Switch to login tab
+                    setTimeout(() => {
+                        loginTab.click();
+                    }, 2000);
+                }
             } catch (error) {
                 showMessage(`Registrace selhala: ${error.message}`, 'error');
             }
@@ -408,11 +410,15 @@
 
         // Check if user is already logged in
         window.addEventListener('DOMContentLoaded', async () => {
-            const { data } = await supabase.auth.getSession();
-            
-            if (data.session) {
-                // User is already logged in, redirect to dashboard
-                window.location.href = '/dashboard.html';
+            try {
+                const { data } = await supabase.auth.getSession();
+                
+                if (data && data.session) {
+                    // User is already logged in, redirect to dashboard
+                    window.location.href = '/dashboard.html';
+                }
+            } catch (error) {
+                console.error('Chyba při kontrole přihlášení:', error);
             }
         });
     </script>
