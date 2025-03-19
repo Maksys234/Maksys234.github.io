@@ -1,0 +1,255 @@
+/* Dashboard specific styles */
+.welcome-banner {
+    background-color: var(--primary-light);
+    background-image: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
+    color: white;
+    border-radius: 8px;
+    padding: 2rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+}
+
+.welcome-content {
+    position: relative;
+    z-index: 2;
+    max-width: 600px;
+}
+
+.welcome-title {
+    font-size: 1.75rem;
+    margin-bottom: 1rem;
+    font-weight: 700;
+    color: var(--accent-color);
+}
+
+.welcome-text {
+    font-size: 1rem;
+    margin-bottom: 1.5rem;
+    opacity: 0.9;
+}
+
+.welcome-background {
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 240px;
+    height: 240px;
+    opacity: 0.1;
+    z-index: 1;
+}
+
+.stat-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.stat-card {
+    background-color: white;
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+}
+
+.stat-card-icon {
+    background-color: var(--background-gray);
+    border-radius: 50%;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1rem;
+}
+
+.stat-card-icon svg {
+    width: 24px;
+    height: 24px;
+    color: var(--primary-color);
+}
+
+.stat-card-title {
+    font-size: 0.875rem;
+    color: var(--text-light);
+    margin-bottom: 0.5rem;
+}
+
+.stat-card-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--text-dark);
+}
+
+.recent-activities {
+    margin-top: 1rem;
+}
+
+.activity-item {
+    display: flex;
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.activity-item:last-child {
+    border-bottom: none;
+}
+
+.activity-icon {
+    width: 36px;
+    height: 36px;
+    background-color: var(--background-gray);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1rem;
+}
+
+.activity-content {
+    flex: 1;
+}
+
+.activity-text {
+    margin-bottom: 0.25rem;
+}
+
+.activity-time {
+    font-size: 0.75rem;
+    color: var(--text-light);
+}
+
+.progress-container {
+    margin-bottom: 0.5rem;
+}
+
+.progress-label {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.25rem;
+    font-size: 0.875rem;
+}
+
+.progress-bar {
+    height: 8px;
+    background-color: var(--background-gray);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-value {
+    height: 100%;
+    background-color: var(--accent-color);
+    border-radius: 4px;
+}
+
+/* AI Tutor specific styles */
+.ai-chat-container {
+    height: 500px;
+    display: flex;
+    flex-direction: column;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+}
+
+.ai-chat-header {
+    padding: 1rem;
+    background-color: var(--primary-color);
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.ai-chat-title {
+    font-weight: 600;
+}
+
+.ai-chat-messages {
+    flex: 1;
+    padding: 1rem;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.message {
+    max-width: 70%;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1rem;
+    border-radius: 8px;
+    position: relative;
+}
+
+.message-user {
+    background-color: var(--accent-color);
+    color: white;
+    align-self: flex-end;
+    border-bottom-right-radius: 0;
+}
+
+.message-ai {
+    background-color: var(--background-gray);
+    color: var(--text-color);
+    align-self: flex-start;
+    border-bottom-left-radius: 0;
+}
+
+.message-time {
+    font-size: 0.75rem;
+    opacity: 0.7;
+    margin-top: 0.5rem;
+    text-align: right;
+}
+
+.ai-chat-input {
+    padding: 1rem;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+}
+
+.ai-chat-input input {
+    flex: 1;
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    margin-right: 0.5rem;
+}
+
+/* Responsive styles for dashboard */
+@media (max-width: 992px) {
+    .stat-cards {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .welcome-title {
+        font-size: 1.5rem;
+    }
+    
+    .welcome-background {
+        display: none;
+    }
+    
+    .stat-cards {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .welcome-banner {
+        padding: 1.5rem;
+    }
+    
+    .section {
+        padding: 1rem;
+    }
+}
