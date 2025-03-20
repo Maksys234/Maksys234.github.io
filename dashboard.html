@@ -13,7 +13,7 @@
     <header>
         <div class="header-container">
             <div class="logo">
-                <svg width="24" height="24" fill="white" viewBox="0 0 24 24">
+                <svg width="16" height="16" fill="white" viewBox="0 0 24 24">
                     <path d="M12 3L1 9l11 6l9-4.91V17h2V9L12 3z M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z"/>
                 </svg>
                 Justax
@@ -309,26 +309,20 @@
                     .from('avatars')
                     .upload(`${Date.now()}_${photoFile.name}`, photoFile);
 
-                                    if (data) {
-                        const avatarUrl = `${supabaseUrl}/storage/v1/object/public/avatars/${data.Key}`;
-                        const { error: updateError } = await supabase
-                            .from('profiles')
-                            .update({ avatar_url: avatarUrl })
-                            .eq('id', supabase.auth.user().id);
-
+                if (data) {
+                    const avatarUrl = `${supabaseUrl}/storage/v1/object/public/avatars/${data.Key}`;
+                    const { error: updateError } = await supabase
+                        .from('profiles')
+                        .update({ avatar_url: avatarUrl })
+                        .eq('id', supabase.auth.user().id);
                         if (updateError) {
                             console.error('Error updating profile:', updateError);
-                            alert('Chyba při aktualizaci profilu.');
                         } else {
-                            alert('Profil úspěšně aktualizován.');
-                            loadUserProfile();
+                            alert('Profilová fotka byla úspěšně aktualizována.');
                         }
                     } else {
-                        console.error('Error uploading avatar:', error);
-                        alert('Chyba při nahrávání profilové fotky.');
+                        console.error('Error uploading file:', error);
                     }
-                } else {
-                    alert('Vyberte prosím profilovou fotku.');
                 }
             });
         </script>
