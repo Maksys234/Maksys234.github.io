@@ -1,423 +1,368 @@
 <!DOCTYPE html>
 <html lang="cs">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard</title>
-  <link rel="stylesheet" href="assets/css/dashboard.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="description" content="Justax - osobní doučování matematiky s AI asistentem. Příprava na zkoušky, procvičování úloh a okamžitá zpětná vazba.">
+    <title>Justax - Dashboard</title>
+    <link rel="stylesheet" href="assets/css/styles.css">
+    <link rel="stylesheet" href="assets/css/dashboard.css">
 </head>
 <body>
-  <div class="main-container">
-    <!-- Sidebar -->
-    <aside class="sidebar">
-      <div class="user-profile" style="text-align:center; margin-bottom:20px;">
-        <div id="userInitials" style="font-size: 2rem; font-weight: bold; margin-bottom: 8px;">UN</div>
-        <div id="userNameDisplay" style="font-size: 1.1rem;">User Name</div>
-      </div>
-      <ul class="nav-menu">
-        <li class="nav-item">
-          <a class="nav-link active" href="#" data-section="dashboard">Dashboard</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="#" data-section="profile">Profile</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="#" data-section="settings">Settings</a>
-        </li>
-      </ul>
-      <button id="logoutButton" class="btn btn-outline" style="width:100%; margin-top:20px;">Logout</button>
-    </aside>
+    <header>
+        <div class="header-container">
+            <div class="logo">
+                <svg width="24" height="24" fill="white" viewBox="0 0 24 24">
+                    <path d="M12 3L1 9l11 6l9-4.91V17h2V9L12 3z M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z"/>
+                </svg>
+                Justax
+            </div>
+            <div class="user-menu">
+                <div class="user-info">
+                    <span id="userNameDisplay">Uživatel</span>
+                </div>
+                <div class="user-avatar" id="userMenuToggle">
+                    <span id="userInitials">U</span>
+                </div>
+                <div class="dropdown-menu" id="userDropdown">
+                    <a href="#" class="dropdown-item" data-section="profile">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="12" cy="7" r="4"></circle>
+                        </svg>
+                        Můj profil
+                    </a>
+                    <a href="#" class="dropdown-item" data-section="settings">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="3"></circle>
+                            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                        </svg>
+                        Nastavení
+                    </a>
+                    <a href="#" class="dropdown-item" id="logoutButton">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                            <polyline points="16 17 21 12 16 7"></polyline>
+                            <line x1="21" y1="12" x2="9" y2="12"></line>
+                        </svg>
+                        Odhlásit se
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
 
-    <!-- Content Area -->
-    <div class="content">
-      <!-- Welcome Banner -->
-      <div class="welcome-banner">
-        <div class="welcome-content">
-          <h1 id="userWelcomeName" class="welcome-title">Vítej, uživateli</h1>
-          <p class="welcome-text">Zde nalezneš přehled svého pokroku a aktivit.</p>
-        </div>
-        <!-- Фоновое изображение можно изменить или убрать, если není k dispozici -->
-        <img src="assets/img/banner-bg.png" alt="Banner Background" class="welcome-background">
-      </div>
+    <div class="main-container">
+        <aside class="sidebar">
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="#" class="nav-link active" data-section="dashboard">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="14" width="7" height="7"></rect>
+                            <rect x="3" y="14" width="7" height="7"></rect>
+                        </svg>
+                        Dashboard
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-section="practice">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 20h9"></path>
+                            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                        </svg>
+                        Procvičování
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-section="progress">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="12" y1="20" x2="12" y2="10"></line>
+                            <line x1="18" y1="20" x2="18" y2="4"></line>
+                            <line x1="6" y1="20" x2="6" y2="16"></line>
+                        </svg>
+                        Pokrok
+                    </a>
+                </li>
+            </ul>
+        </aside>
 
-      <!-- Stat Cards -->
-      <div class="stat-cards">
-        <div class="stat-card">
-          <div class="stat-card-icon">
-            <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="10"/>
-            </svg>
-          </div>
-          <div class="stat-card-title">Celkový čas</div>
-          <div class="stat-card-value">0h</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-card-icon">
-            <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
-              <rect x="4" y="4" width="16" height="16"/>
-            </svg>
-          </div>
-          <div class="stat-card-title">Vyřešené úlohy</div>
-          <div class="stat-card-value">0</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-card-icon">
-            <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
-              <line x1="4" y1="20" x2="20" y2="20"/>
-            </svg>
-          </div>
-          <div class="stat-card-title">Streak</div>
-          <div class="stat-card-value">0 dní</div>
-        </div>
-      </div>
+        <main class="content">
+            <!-- Dashboard Section -->
+            <div class="section-container" id="dashboard-section">
+                <div class="welcome-banner">
+                    <div class="welcome-content">
+                        <h1 class="welcome-title">Vítej zpět, <span id="userWelcomeName">Uživateli</span>!</h1>
+                        <p class="welcome-text">Pokračuj ve svém vzdělávání s personalizovaným AI doučováním.</p>
+                        <div>
+                            <a href="#" class="btn btn-primary" data-section="practice">Začít doučování</a>
+                            <a href="#" class="btn btn-outline" data-section="progress">Můj pokrok</a>
+                        </div>
+                    </div>
+                    <svg class="welcome-background" viewBox="0 0 24 24" fill="white">
+                        <path d="M12 3L1 9l11 6l11-6z M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z"/>
+                    </svg>
+                </div>
 
-      <!-- Progress Section -->
-      <div class="section" id="progress-section">
-        <h2 class="section-title">Pokrok</h2>
-        <div class="progress-container">
-          <div class="progress-label"><span>Algebra</span><span>0%</span></div>
-          <div class="progress-bar">
-            <div class="progress-value" style="width: 0%;"></div>
-          </div>
-        </div>
-        <div class="progress-container">
-          <div class="progress-label"><span>Geometrie</span><span>0%</span></div>
-          <div class="progress-bar">
-            <div class="progress-value" style="width: 0%;"></div>
-          </div>
-        </div>
-        <div class="progress-container">
-          <div class="progress-label"><span>Analýza</span><span>0%</span></div>
-          <div class="progress-bar">
-            <div class="progress-value" style="width: 0%;"></div>
-          </div>
-        </div>
-      </div>
+                <div class="stat-cards">
+                    <div class="stat-card">
+                        <div class="stat-card-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 20h9"></path>
+                                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                            </svg>
+                        </div>
+                        <div class="stat-card-title">Celkový čas doučování</div>
+                        <div class="stat-card-value">12.5h</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <polyline points="12 6 12 12 16 14"></polyline>
+                            </svg>
+                        </div>
+                        <div class="stat-card-title">Vyřešených úloh</div>
+                        <div class="stat-card-value">124</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M18 8h1a4 4 0 0 1 0 8h-1"></path>
+                                <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path>
+                                <line x1="6" y1="1" x2="6" y2="4"></line>
+                                <line x1="10" y1="1" x2="10" y2="4"></line>
+                                <line x1="14" y1="1" x2="14" y2="4"></line>
+                            </svg>
+                        </div>
+                        <div class="stat-card-title">Streak</div>
+                        <div class="stat-card-value">7 dní</div>
+                    </div>
+                </div>
 
-      <!-- Recent Activities Section -->
-      <div class="section" id="activities-section">
-        <h2 class="section-title">Nedávné aktivity</h2>
-        <div class="recent-activities">
-          <!-- Dynamicky vkládané aktivity -->
-        </div>
-      </div>
+                <div class="section">
+                    <div class="section-header">
+                        <h2 class="section-title">Nedávná aktivita</h2>
+                    </div>
+                    <div class="recent-activities">
+                        <div class="activity-item">
+                            <div class="activity-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M12 20h9"></path>
+                                    <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                                </svg>
+                            </div>
+                            <div class="activity-content">
+                                <div class="activity-text">Dokončené doučování: <strong>Derivace funkcí</strong></div>
+                                <div class="activity-time">Dnes, 14:35</div>
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect>
+                                    <rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect>
+                                    <line x1="6" y1="6" x2="6.01" y2="6"></line>
+                                    <line x1="6" y1="18" x2="6.01" y2="18"></line>
+                                </svg>
+                            </div>
+                            <div class="activity-content">
+                                <div class="activity-text">Vyřešeno 12 úloh: <strong>Kvadratické rovnice</strong></div>
+                                <div class="activity-time">Včera, 18:20</div>
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                    <polyline points="14 2 14 8 20 8"></polyline>
+                                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                                    <line x1="10" y1="9" x2="8" y2="9"></line>
+                                </svg>
+                            </div>
+                            <div class="activity-content">
+                                <div class="activity-text">Procvičován test: <strong>Maturitní příklady</strong></div>
+                                <div class="activity-time">21. března 2025</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-      <!-- AI Chat Section -->
-      <div class="ai-chat-container">
-        <div class="ai-chat-header">
-          <div class="ai-chat-title">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;">
-              <rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect>
-              <rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect>
-              <line x1="6" y1="6" x2="6.01" y2="6"></line>
-              <line x1="6" y1="18" x2="6.01" y2="18"></line>
-            </svg>
-            Algebra - osobní tutor
-          </div>
-        </div>
-        <div class="ai-chat-messages">
-          <!-- Chat messages vložené dynamicky -->
-        </div>
-        <div class="ai-chat-input">
-          <input type="text" placeholder="Napište zprávu" />
-          <button class="btn btn-primary">Odeslat</button>
-        </div>
-      </div>
+                <div class="section">
+                    <div class="section-header">
+                        <h2 class="section-title">Tvůj pokrok</h2>
+                    </div>
+                    <div class="progress-container">
+                        <div class="progress-label">
+                            <span>Algebra</span>
+                            <span>78%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-value" style="width: 78%"></div>
+                        </div>
+                    </div>
+                    <div class="progress-container">
+                        <div class="progress-label">
+                            <span>Geometrie</span>
+                            <span>65%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-value" style="width: 65%"></div>
+                        </div>
+                    </div>
+                    <div class="progress-container">
+                        <div class="progress-label">
+                            <span>Analýza</span>
+                            <span>42%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-value" style="width: 42%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile Section -->
+            <div class="section-container hidden" id="profile-section">
+                <div class="section">
+                    <div class="section-header">
+                        <h2 class="section-title">Můj profil</h2>
+                    </div>
+                    <div class="form-group">
+                        <label for="profileUsername">Uživatelské jméno</label>
+                        <input type="text" id="profileUsername" class="form-control" disabled>
+                    </div>
+                    <div class="form-group">
+                        <label for="profileEmail">Email</label>
+                        <input type="email" id="profileEmail" class="form-control" disabled>
+                    </div>
+                    <div class="form-group">
+                        <label for="profilePhoto">Profilová fotka</label>
+                        <input type="file" id="profilePhoto" class="form-control">
+                    </div>
+                    <button class="btn btn-primary" id="saveProfileButton">Uložit změny</button>
+                </div>
+            </div>
+
+            <!-- Settings Section -->
+            <div class="section-container hidden" id="settings-section">
+                <div class="section">
+                    <div class="section-header">
+                        <h2 class="section-title">Nastavení</h2>
+                    </div>
+                    <div class="form-group">
+                        <label for="settingsNotifications">Oznámení</label>
+                        <div class="checkbox-group">
+                            <label>
+                                <input type="checkbox" id="emailNotifications" checked>
+                                Emailová oznámení
+                            </label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="settingsLanguage">Jazyk</label>
+                        <select id="settingsLanguage" class="form-control">
+                            <option value="cs">Čeština</option>
+                            <option value="en">English</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-primary" id="saveSettingsButton">Uložit nastavení</button>
+                </div>
+            </div>
+        </main>
     </div>
-  </div>
 
-  <script>
-    // Initialize Supabase client
-    const supabaseUrl = 'https://xunitidnszlsqupiifhd.supabase.co';
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh1bml0aWRuc3psc3F1cGlpZmhkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDEwMTY0MDQsImV4cCI6MjA1NjU5MjQwNH0.8v2dMEaAQYR[...]';
-    const supabase = supabaseClient.createClient(supabaseUrl, supabaseKey);
-    
-    document.addEventListener('DOMContentLoaded', async function() {
-      // Check authentication state
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      
-      if (!session) {
-          window.location.href = '/auth/login.html';
-          return;
-      }
-    
-      // Initialize UI elements
-      const userNameDisplay = document.getElementById('userNameDisplay');
-      const userWelcomeName = document.getElementById('userWelcomeName');
-      const userInitials = document.getElementById('userInitials');
-      const chatMessages = document.querySelector('.ai-chat-messages');
-      const chatInput = document.querySelector('.ai-chat-input input');
-      const sendButton = document.querySelector('.ai-chat-input .btn');
-    
-      // Load user profile
-      async function loadUserProfile() {
-          const { data: profile, error } = await supabase
-              .from('profiles')
-              .select('*')
-              .eq('id', session.user.id)
-              .single();
-    
-          if (profile) {
-              userNameDisplay.textContent = profile.full_name;
-              userWelcomeName.textContent = profile.full_name;
-              userInitials.textContent = profile.full_name
-                  .split(' ')
-                  .map(n => n[0])
-                  .join('')
-                  .toUpperCase();
-          }
-      }
-    
-      // Load user statistics
-      async function loadUserStats() {
-          const { data: stats, error } = await supabase
-              .from('user_stats')
-              .select('*')
-              .eq('user_id', session.user.id)
-              .single();
-    
-          if (stats) {
-              document.querySelector('.stat-card:nth-child(1) .stat-card-value').textContent = `${stats.total_time}h`;
-              document.querySelector('.stat-card:nth-child(2) .stat-card-value').textContent = stats.solved_problems;
-              document.querySelector('.stat-card:nth-child(3) .stat-card-value').textContent = `${stats.streak} dní`;
-          }
-      }
-    
-      // Load user progress
-      async function loadUserProgress() {
-          const { data: progress, error } = await supabase
-              .from('user_progress')
-              .select('*')
-              .eq('user_id', session.user.id)
-              .single();
-    
-          if (progress) {
-              updateProgressBar('Algebra', progress.algebra);
-              updateProgressBar('Geometrie', progress.geometry);
-              updateProgressBar('Analýza', progress.analysis);
-          }
-      }
-    
-      function updateProgressBar(subject, value) {
-          const container = Array.from(document.querySelectorAll('.progress-container'))
-              .find(container => container.querySelector('.progress-label span').textContent === subject);
-          
-          if (container) {
-              container.querySelector('.progress-label span:last-child').textContent = `${value}%`;
-              container.querySelector('.progress-value').style.width = `${value}%`;
-          }
-      }
-    
-      // Load recent activities
-      async function loadRecentActivities() {
-          const { data: activities, error } = await supabase
-              .from('activities')
-              .select('*')
-              .eq('user_id', session.user.id)
-              .order('timestamp', { ascending: false })
-              .limit(3);
-    
-          if (activities && activities.length > 0) {
-              const recentActivitiesContainer = document.querySelector('.recent-activities');
-              recentActivitiesContainer.innerHTML = '';
-    
-              activities.forEach(activity => {
-                  const activityElement = createActivityElement(activity);
-                  recentActivitiesContainer.appendChild(activityElement);
-              });
-          }
-      }
-    
-      function createActivityElement(activity) {
-          const div = document.createElement('div');
-          div.className = 'activity-item';
-          div.innerHTML = `
-              <div class="activity-icon">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      ${getActivityIcon(activity.activity_type)}
-                  </svg>
-              </div>
-              <div class="activity-content">
-                  <div class="activity-text">${activity.description}</div>
-                  <div class="activity-time">${formatActivityTime(activity.timestamp)}</div>
-              </div>
-          `;
-          return div;
-      }
-    
-      function getActivityIcon(type) {
-          const icons = {
-              'practice': '<path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>',
-              'test': '<rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect><rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect>',
-              'tutorial': '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline>'
-          };
-          return icons[type] || icons['practice'];
-      }
-    
-      function formatActivityTime(timestamp) {
-          const date = new Date(timestamp);
-          const now = new Date();
-          const diff = now - date;
-          
-          if (diff < 86400000) { // Менее 24 часов
-              return date.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' });
-          } else if (diff < 172800000) { // Менее 48 часов
-              return 'Včera, ' + date.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' });
-          } else {
-              return date.toLocaleDateString('cs-CZ');
-          }
-      }
-    
-      // Chat functionality
-      let currentTopic = 'Algebra';
-    
-      async function sendMessage() {
-          const message = chatInput.value.trim();
-          if (!message) return;
-    
-          // Add user message to chat
-          addMessage(message, 'user');
-          chatInput.value = '';
-    
-          try {
-              // Save message to Supabase
-              const { data: savedMessage, error: messageError } = await supabase
-                  .from('messages')
-                  .insert([{
-                      user_id: session.user.id,
-                      content: message,
-                      topic: currentTopic,
-                      type: 'user'
-                  }])
-                  .single();
-    
-              if (messageError) throw messageError;
-    
-              // Get AI response
-              const aiResponse = await getAIResponse(message, currentTopic);
-              addMessage(aiResponse, 'ai');
-    
-              // Save AI response
-              await supabase
-                  .from('messages')
-                  .insert([{
-                      user_id: session.user.id,
-                      content: aiResponse,
-                      topic: currentTopic,
-                      type: 'ai'
-                  }]);
-    
-          } catch (error) {
-              console.error('Error:', error);
-              addMessage('Omlouváme se, došlo k chybě při zpracování zprávy.', 'system');
-          }
-      }
-    
-      async function getAIResponse(message, topic) {
-          // Simplified AI response logic - replace with actual AI integration
-          const responses = {
-              'Algebra': {
-                  'default': 'Rád ti pomůžu s algebrou. Co konkrétně potřebuješ vysvětlit?',
-                  'příklad': 'Pojďme ten příklad vyřešit krok po kroku.'
-              },
-              'Derivace': {
-                  'default': 'Derivace jsou základem diferenciálního počtu. Jak ti mohu pomoci?'
-              }
-          };
-    
-          return responses[topic]?.[message.toLowerCase()] || responses[topic]?.['default'] || 
-                 'Mohu ti s tímto tématem pomoci. Jak konkrétně ti mohu poradit?';
-      }
-    
-      function addMessage(content, type) {
-          const messageDiv = document.createElement('div');
-          messageDiv.className = `message message-${type}`;
-          
-          const contentDiv = document.createElement('div');
-          contentDiv.textContent = content;
-          
-          const timeDiv = document.createElement('div');
-          timeDiv.className = 'message-time';
-          timeDiv.textContent = new Date().toLocaleTimeString('cs-CZ', {
-              hour: '2-digit',
-              minute: '2-digit'
-          });
-          
-          messageDiv.appendChild(contentDiv);
-          messageDiv.appendChild(timeDiv);
-          chatMessages.appendChild(messageDiv);
-          chatMessages.scrollTop = chatMessages.scrollHeight;
-      }
-    
-      // Topic selection handling
-      document.querySelectorAll('.topic-btn').forEach(button => {
-          button.addEventListener('click', function() {
-              const topic = this.textContent;
-              document.querySelectorAll('.topic-btn').forEach(btn => btn.classList.remove('active'));
-              this.classList.add('active');
-              currentTopic = topic;
-              
-              // Update chat header
-              document.querySelector('.ai-chat-title').innerHTML = `
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;">
-                      <rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect>
-                      <rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect>
-                      <line x1="6" y1="6" x2="6.01" y2="6"></line>
-                      <line x1="6" y1="18" x2="6.01" y2="18"></line>
-                  </svg>
-                  ${topic} - osobní tutor
-              `;
-          });
-      });
-    
-      // Chat input handlers
-      sendButton.addEventListener('click', sendMessage);
-      chatInput.addEventListener('keypress', function(e) {
-          if (e.key === 'Enter') {
-              sendMessage();
-          }
-      });
-    
-      // Logout handler
-      document.getElementById('logoutButton').addEventListener('click', async function(e) {
-          e.preventDefault();
-          try {
-              await supabase.auth.signOut();
-              window.location.href = '/auth/login.html';
-          } catch (error) {
-              console.error('Error during logout:', error);
-          }
-      });
-    
-      // Section navigation
-      document.querySelectorAll('[data-section]').forEach(element => {
-          element.addEventListener('click', function(e) {
-              e.preventDefault();
-              const sectionId = this.getAttribute('data-section');
-              document.querySelectorAll('.section-container').forEach(section => {
-                  section.classList.add('hidden');
-              });
-              document.getElementById(`${sectionId}-section`)?.classList.remove('hidden');
-          });
-      });
-    
-      // Initialize dashboard
-      async function initializeDashboard() {
-          try {
-              await Promise.all([
-                  loadUserProfile(),
-                  loadUserStats(),
-                  loadUserProgress(),
-                  loadRecentActivities()
-              ]);
-          } catch (error) {
-              console.error('Error initializing dashboard:', error);
-          }
-      }
-    
-      // Start initialization
-      initializeDashboard();
-    });
-  </script>
+    <footer>
+        &copy; 2025 Justax. Všechna práva vyhrazena.
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.min.js"></script>
+    <script src="assets/js/dashboard.js"></script>
+    <script>
+        const supabaseUrl = 'https://xunitidnszlsqupiifhd.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh1bml0aWRuc3psc3F1cGlpZmhkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDEwMTY0MDQsImV4cCI6MjA1NjU5MjQwNH0.8v2dMEaAQYRhHmmJe15XkbA07Tsupc1iLT9oAsLEsWw';
+        const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+        // Check authentication status on page load
+        supabase.auth.onAuthStateChange((event, session) => {
+            if (!session) {
+                window.location.href = '/login.html';
+            }
+        });
+
+        async function loadUserProfile() {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) {
+                const { data: profile, error } = await supabase
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', session.user.id)
+                    .single();
+
+                if (profile) {
+                    document.getElementById('userNameDisplay').textContent = profile.full_name;
+                    document.getElementById('userWelcomeName').textContent = profile.full_name;
+                    document.getElementById('profileUsername').value = profile.username;
+                    document.getElementById('profileEmail').value = profile.email;
+                    document.getElementById('userInitials').textContent = profile.full_name
+                        .split(' ')
+                        .map(n => n[0])
+                        .join('')
+                        .toUpperCase();
+                }
+            }
+        }
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', loadUserProfile);
+
+        // Logout handler
+        document.getElementById('logoutButton').addEventListener('click', async () => {
+            await supabase.auth.signOut();
+            window.location.href = '/login.html';
+        });
+
+        // Save profile changes
+        document.getElementById('saveProfileButton').addEventListener('click', async () => {
+            const photoFile = document.getElementById('profilePhoto').files[0];
+            if (photoFile) {
+                const { data, error } = await supabase.storage
+                    .from('avatars')
+                    .upload(`${Date.now()}_${photoFile.name}`, photoFile);
+
+                if (data) {
+                    const { data: updateData, error: updateError } = await supabase
+                        .from('profiles')
+                        .update({ avatar_url: data.path })
+                        .eq('id', (await supabase.auth.getSession()).data.session.user.id);
+
+                    if (!updateError) {
+                        alert('Profil byl úspěšně aktualizován');
+                    }
+                }
+            }
+        });
+
+        // Save settings
+        document.getElementById('saveSettingsButton').addEventListener('click', async () => {
+            const notifications = document.getElementById('emailNotifications').checked;
+            const language = document.getElementById('settingsLanguage').value;
+
+            const { data, error } = await supabase
+                .from('user_settings')
+                .update({
+                    email_notifications: notifications,
+                    language: language
+                })
+                .eq('user_id', (await supabase.auth.getSession()).data.session.user.id);
+
+            if (!error) {
+                alert('Nastavení bylo úspěšně uloženo');
+            }
+        });
+    </script>
 </body>
 </html>
