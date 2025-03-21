@@ -10,6 +10,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- Font Awesome через CDN -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <style>
         /* Базовые стили */
@@ -156,6 +158,13 @@
             justify-content: center;
             margin-right: 0.75rem;
             font-weight: 500;
+            overflow: hidden;
+        }
+
+        .user-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
 
         .user-info {
@@ -691,6 +700,13 @@
             color: var(--white);
             font-weight: 500;
             font-size: 0.9rem;
+            overflow: hidden;
+        }
+
+        .user-avatar-sm img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
 
         .user-info-sm {
@@ -1082,9 +1098,9 @@
         </ul>
         
         <div class="user-profile">
-            <div class="user-avatar">MS</div>
+            <div class="user-avatar" id="sidebar-avatar">MS</div>
             <div class="user-info">
-                <div class="user-name">Maksys234</div>
+                <div class="user-name" id="sidebar-username">Maksys234</div>
                 <div class="user-role">Student</div>
             </div>
         </div>
@@ -1121,7 +1137,7 @@
                         <div class="stat-card-content">
                             <div class="stat-card-info">
                                 <h3 class="stat-card-title">Získaných odznaků</h3>
-                                <p class="stat-card-value">12</p>
+                                <p class="stat-card-value" id="badges-count">12</p>
                                 <p class="stat-card-change positive">+3 tento měsíc</p>
                             </div>
                             <div class="stat-card-icon badges-icon">
@@ -1134,7 +1150,7 @@
                         <div class="stat-card-content">
                             <div class="stat-card-info">
                                 <h3 class="stat-card-title">Vaše úroveň</h3>
-                                <p class="stat-card-value">8</p>
+                                <p class="stat-card-value" id="user-level">8</p>
                                 <p class="stat-card-change positive">+1 za poslední dva týdny</p>
                             </div>
                             <div class="stat-card-icon rank-icon">
@@ -1147,7 +1163,7 @@
                         <div class="stat-card-content">
                             <div class="stat-card-info">
                                 <h3 class="stat-card-title">Získané body</h3>
-                                <p class="stat-card-value">1,250</p>
+                                <p class="stat-card-value" id="earned-points">1,250</p>
                                 <p class="stat-card-change positive">+320 tento měsíc</p>
                             </div>
                             <div class="stat-card-icon points-icon">
@@ -1160,7 +1176,7 @@
                         <div class="stat-card-content">
                             <div class="stat-card-info">
                                 <h3 class="stat-card-title">Dny v řadě</h3>
-                                <p class="stat-card-value">7</p>
+                                <p class="stat-card-value" id="streak-days">7</p>
                                 <p class="stat-card-change">Nejlepší: 14 dní</p>
                             </div>
                             <div class="stat-card-icon streak-icon">
@@ -1175,7 +1191,7 @@
             <section class="badges-section animated delay-1">
                 <h2 class="section-title">Vaše odznaky</h2>
                 
-                <div class="badge-grid">
+                <div class="badge-grid" id="badges-grid">
                     <div class="badge-card">
                         <div class="badge-icon math">
                             <i class="fas fa-square-root-alt"></i>
@@ -1383,7 +1399,7 @@
                                 <th>Změna</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody id="leaderboard-body">
                             <tr>
                                 <td class="rank-cell">1</td>
                                 <td class="user-cell">
@@ -1459,9 +1475,9 @@
                             <tr class="highlight-row">
                                 <td class="rank-cell">5</td>
                                 <td class="user-cell">
-                                    <div class="user-avatar-sm">MS</div>
+                                    <div class="user-avatar-sm" id="current-user-avatar">MS</div>
                                     <div class="user-info-sm">
-                                        <div class="user-name-sm">Maksys234</div>
+                                        <div class="user-name-sm" id="current-user-name">Maksys234</div>
                                         <div class="user-level">Úroveň 8</div>
                                     </div>
                                 </td>
@@ -1520,7 +1536,7 @@
                 <div class="recent-achievements">
                     <h2 class="section-title">Nedávno získaná ocenění</h2>
                     
-                    <div class="achievements-list">
+                    <div class="achievements-list" id="recent-achievements">
                         <div class="achievement-item" style="animation-delay: 0.1s;">
                             <div class="achievement-item-icon streak-icon">
                                 <i class="fas fa-fire"></i>
@@ -1573,7 +1589,54 @@
     </main>
     
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        // Инициализация Supabase клиента
+        const SUPABASE_URL = 'https://xunitidnszlsqupiifhd.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh1bml0aWRuc3psc3F1cGlpZmhkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDEwMTY0MDQsImV4cCI6MjA1NjU5MjQwNH0.8v2dMEaAQYRhHmmJe15XkbA07Tsupc1iLT9oAsLEsWw';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Проверка авторизации - необходимо добавить в начало каждого скрипта дашборда
+            async function checkAuth() {
+                try {
+                    // Получаем текущую сессию
+                    const { data: { session }, error } = await supabase.auth.getSession();
+                    
+                    // Если ошибка или нет сессии, перенаправляем на страницу входа
+                    if (error || !session) {
+                        console.log("Нет активной сессии, перенаправление на страницу входа");
+                        window.location.href = "/auth/index.html";
+                        return false;
+                    }
+                    
+                    // Дополнительная проверка на истекший токен
+                    if (session.expires_at && (new Date(session.expires_at * 1000) < new Date())) {
+                        console.log("Сессия устарела, попытка обновления");
+                        const { data: { session: refreshedSession }, error: refreshError } = await supabase.auth.refreshSession();
+                        
+                        if (refreshError || !refreshedSession) {
+                            console.log("Не удалось обновить сессию, перенаправление на страницу входа");
+                            window.location.href = "/auth/index.html";
+                            return false;
+                        }
+                    }
+                    
+                    console.log("Пользователь авторизован");
+                    return true;
+                } catch (error) {
+                    console.error("Ошибка при проверке авторизации:", error);
+                    window.location.href = "/auth/index.html";
+                    return false;
+                }
+            }
+            
+            // Выполняем проверку при загрузке страницы
+            const isAuthenticated = await checkAuth();
+            
+            // Если пользователь не авторизован, скрипт остановится здесь из-за перенаправления
+            if (!isAuthenticated) return;
+            
+            // Остальной код скрипта выполняется только для авторизованных пользователей
+            
             // Анимация появления элементов достижений
             const animateElements = () => {
                 const achievementItems = document.querySelectorAll('.achievement-item');
@@ -1619,6 +1682,163 @@
             addMobileMenuToggle();
             window.addEventListener('resize', addMobileMenuToggle);
             
+            // Получение данных пользователя
+            async function fetchUserProfile() {
+                try {
+                    const { data: { user } } = await supabase.auth.getUser();
+                    
+                    if (user) {
+                        // Получение профиля из таблицы profiles
+                        const { data, error } = await supabase
+                            .from('profiles')
+                            .select('username, first_name, last_name, avatar_url, badges_count, level, points, streak_days')
+                            .eq('id', user.id)
+                            .single();
+                        
+                        if (error) {
+                            console.error('Error fetching profile:', error);
+                            return;
+                        }
+                        
+                        // Обновляем интерфейс
+                        document.getElementById('sidebar-username').textContent = data.username;
+                        document.getElementById('current-user-name').textContent = data.username;
+                        
+                        // Обновляем статистику
+                        if (data.badges_count) document.getElementById('badges-count').textContent = data.badges_count;
+                                                if (data.level) document.getElementById('user-level').textContent = data.level;
+                        if (data.points) document.getElementById('earned-points').textContent = data.points.toLocaleString();
+                        if (data.streak_days) document.getElementById('streak-days').textContent = data.streak_days;
+                        
+                        // Обновляем аватар, если есть
+                        if (data.avatar_url) {
+                            const avatarImages = `<img src="${data.avatar_url}" alt="${data.username}" />`;
+                            document.getElementById('sidebar-avatar').innerHTML = avatarImages;
+                            document.getElementById('current-user-avatar').innerHTML = avatarImages;
+                        } else {
+                            // Используем инициалы
+                            const initials = data.first_name && data.last_name 
+                                ? `${data.first_name.charAt(0)}${data.last_name.charAt(0)}` 
+                                : data.username.substring(0, 2).toUpperCase();
+                            document.getElementById('sidebar-avatar').textContent = initials;
+                            document.getElementById('current-user-avatar').textContent = initials;
+                        }
+                        
+                        // Загружаем значки пользователя
+                        fetchUserBadges(user.id);
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                }
+            }
+            
+            // Загрузка значков пользователя
+            async function fetchUserBadges(userId) {
+                try {
+                    const { data, error } = await supabase
+                        .from('badges')
+                        .select('*')
+                        .eq('user_id', userId)
+                        .order('earned_at', { ascending: false });
+                    
+                    if (error) {
+                        console.error('Error fetching badges:', error);
+                        return;
+                    }
+                    
+                    // Если данные есть, обновляем сетку значков
+                    if (data && data.length > 0) {
+                        updateBadgesGrid(data);
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                }
+            }
+            
+            // Обновление сетки значков
+            function updateBadgesGrid(badges) {
+                // Оставляем первые 8 значков, если их больше
+                const displayBadges = badges.slice(0, 8);
+                
+                // Обновляем последние полученные достижения
+                updateRecentAchievements(badges.slice(0, 3));
+            }
+            
+            // Обновление недавно полученных достижений
+            function updateRecentAchievements(recentBadges) {
+                if (!recentBadges || recentBadges.length === 0) return;
+                
+                const recentContainer = document.getElementById('recent-achievements');
+                
+                // Очищаем контейнер
+                // recentContainer.innerHTML = '';
+                
+                // В данном случае не будем очищать, так как у нас есть демо-данные
+                // Код для добавления новых данных из базы:
+                /*
+                recentBadges.forEach((badge, index) => {
+                    const badgeType = getBadgeType(badge.type);
+                    const formattedDate = formatDate(badge.earned_at);
+                    
+                    const badgeHtml = `
+                        <div class="achievement-item" style="animation-delay: ${0.1 * index}s;">
+                            <div class="achievement-item-icon ${badgeType}-icon">
+                                <i class="fas ${getBadgeIcon(badge.type)}"></i>
+                            </div>
+                            <div class="achievement-item-content">
+                                <h3 class="achievement-item-title">${badge.title}</h3>
+                                <p class="achievement-item-desc">${badge.description}</p>
+                                <div class="achievement-item-time">
+                                    <i class="far fa-clock"></i>
+                                    <span>${formattedDate}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    recentContainer.innerHTML += badgeHtml;
+                });
+                */
+            }
+            
+            // Получение типа значка по типу достижения
+            function getBadgeType(type) {
+                switch (type) {
+                    case 'math': return 'math';
+                    case 'language': return 'lang';
+                    case 'streak': return 'streak';
+                    default: return 'special';
+                }
+            }
+            
+            // Получение иконки для типа достижения
+            function getBadgeIcon(type) {
+                switch (type) {
+                    case 'math': return 'fa-square-root-alt';
+                    case 'language': return 'fa-spell-check';
+                    case 'streak': return 'fa-fire';
+                    default: return 'fa-award';
+                }
+            }
+            
+            // Форматирование даты
+            function formatDate(dateString) {
+                const date = new Date(dateString);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                
+                const yesterday = new Date(today);
+                yesterday.setDate(yesterday.getDate() - 1);
+                
+                if (date.setHours(0, 0, 0, 0) === today.getTime()) {
+                    return `Dnes, ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+                } else if (date.setHours(0, 0, 0, 0) === yesterday.getTime()) {
+                    return `Včera, ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+                } else {
+                    return `${date.getDate()}. ${date.getMonth() + 1}. ${date.getFullYear()}, ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+                }
+            }
+            
             // Фильтр для таблицы лидеров
             const filterButtons = document.querySelectorAll('.filter-btn');
             filterButtons.forEach(button => {
@@ -1627,11 +1847,39 @@
                     this.classList.add('active');
                     
                     const period = this.getAttribute('data-period');
-                    // Можно было бы здесь сделать реальную фильтрацию данных через AJAX,
-                    // но для демонстрации просто показываем сообщение
-                    alert(`Zobrazuji žebříček za období: ${period === 'week' ? 'tento týden' : period === 'month' ? 'tento měsíc' : 'celkově'}`);
+                    fetchLeaderboard(period);
                 });
             });
+            
+            // Загрузка таблицы лидеров
+            async function fetchLeaderboard(period = 'week') {
+                try {
+                    // В реальном приложении здесь был бы запрос к API или базе данных
+                    // Но для демонстрации используем существующие данные из HTML
+                    
+                    /*
+                    const { data, error } = await supabase
+                        .from('leaderboard')
+                        .select('*')
+                        .eq('period', period)
+                        .order('score', { ascending: false })
+                        .limit(10);
+                    
+                    if (error) {
+                        console.error('Error fetching leaderboard:', error);
+                        return;
+                    }
+                    
+                    // Обновить таблицу с полученными данными
+                    updateLeaderboardTable(data);
+                    */
+                    
+                    // В данном случае просто показываем сообщение о выбранном периоде
+                    console.log(`Zobrazuji žebříček za období: ${period === 'week' ? 'tento týden' : period === 'month' ? 'tento měsíc' : 'celkově'}`);
+                } catch (error) {
+                    console.error('Error:', error);
+                }
+            }
             
             // Обработка нажатий на уведомления
             const notifications = document.querySelector('.notifications');
@@ -1692,22 +1940,12 @@
                 });
             }, 500);
 
-            // Текущая дата и имя пользователя для персонализации
+            // Текущая дата для персонализации
             const currentDate = new Date("2025-03-21");
             const userName = "Maksys234";
             
-            // Обновить информацию о пользователе
-            const userAvatars = document.querySelectorAll('.user-avatar, .user-avatar-sm');
-            userAvatars.forEach(avatar => {
-                if (avatar.textContent === 'MS') {
-                    avatar.textContent = userName.substring(0, 2).toUpperCase();
-                }
-            });
-            
-            const userNames = document.querySelectorAll('.user-name');
-            userNames.forEach(name => {
-                name.textContent = userName;
-            });
+            // Вызываем функцию для получения данных пользователя
+            fetchUserProfile();
             
             // Показать текущее время в недавних достижениях
             const todaysAchievement = document.querySelector('.achievement-item:first-child .achievement-item-time span');

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Justax - Váš pokrok</title>
+    <title>Justax - Pokrok</title>
     <!-- Подключаем шрифты напрямую -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,6 +12,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Chart.js для графиков -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <style>
         /* Базовые стили */
@@ -157,6 +159,13 @@
             justify-content: center;
             margin-right: 0.75rem;
             font-weight: 500;
+            overflow: hidden;
+        }
+
+        .user-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
 
         .user-info {
@@ -276,104 +285,132 @@
             color: var(--dark);
         }
 
-        /* Карточки и графики */
-        .stats-overview {
+        /* Карточки прогресса */
+        .progress-overview {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 1.5rem;
-            margin-bottom: 1.75rem;
+            margin-bottom: 2rem;
         }
 
-        .stat-card {
+        .progress-card {
             background-color: var(--white);
             border-radius: var(--card-radius);
+            padding: 1.5rem;
             box-shadow: var(--shadow-sm);
-            overflow: hidden;
             transition: all 0.3s ease;
         }
 
-        .stat-card:hover {
+        .progress-card:hover {
             transform: translateY(-5px);
             box-shadow: var(--shadow-md);
         }
 
-        .stat-card-content {
+        .progress-info {
             display: flex;
-            padding: 1.5rem;
             align-items: center;
-            justify-content: space-between;
+            margin-bottom: 1.25rem;
         }
 
-        .stat-card-info {
-            flex-grow: 1;
-        }
-
-        .stat-card-title {
-            font-size: 1rem;
-            font-weight: 500;
-            color: var(--text-secondary);
-            margin-bottom: 0.75rem;
-        }
-
-        .stat-card-value {
-            font-size: 2rem;
-            font-weight: 700;
-            color: var(--dark);
-            margin-bottom: 0.5rem;
-        }
-
-        .stat-card-change {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-        }
-
-        .stat-card-change.positive {
-            color: #10b981;
-        }
-
-        .stat-card-change.negative {
-            color: var(--danger);
-        }
-
-        .stat-card-icon {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
+        .progress-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
+            margin-right: 1rem;
+            flex-shrink: 0;
+        }
+
+        .progress-icon i {
             font-size: 1.5rem;
             color: var(--white);
         }
 
-        .exercises-icon {
+        .progress-icon.math {
             background: linear-gradient(135deg, #4cc9f0, #4361ee);
         }
 
-        .time-icon {
-            background: linear-gradient(135deg, #4361ee, #3a0ca3);
-        }
-
-        .streak-icon {
+        .progress-icon.language {
             background: linear-gradient(135deg, #f72585, #b5179e);
         }
 
-        .score-icon {
+        .progress-icon.general {
             background: linear-gradient(135deg, #f8961e, #f3722c);
         }
 
-        /* Графики и карточки прогресса */
+        .progress-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+            color: var(--dark);
+        }
+
+        .progress-subtitle {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .progress-bar-container {
+            height: 12px;
+            background-color: #f0f0f0;
+            border-radius: 6px;
+            overflow: hidden;
+            margin-bottom: 0.75rem;
+        }
+
+        .progress-bar {
+            height: 100%;
+            border-radius: 6px;
+            transition: width 1.5s ease-in-out;
+        }
+
+        .progress-bar.math {
+            background: linear-gradient(to right, #4cc9f0, #4361ee);
+        }
+
+        .progress-bar.language {
+            background: linear-gradient(to right, #f72585, #b5179e);
+        }
+
+        .progress-bar.general {
+            background: linear-gradient(to right, #f8961e, #f3722c);
+        }
+
+        .progress-details {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .progress-percentage {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--dark);
+        }
+
+        .progress-status {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        /* Подробные графики активности */
+        .chart-section {
+            margin-bottom: 2rem;
+        }
+
+        .chart-container {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1.5rem;
+        }
+
         .chart-card {
             background-color: var(--white);
             border-radius: var(--card-radius);
-            box-shadow: var(--shadow-sm);
             padding: 1.5rem;
-            margin-bottom: 1.75rem;
-            transition: all 0.3s ease;
-        }
-
-        .chart-card:hover {
-            box-shadow: var(--shadow-md);
+            box-shadow: var(--shadow-sm);
         }
 
         .chart-header {
@@ -384,7 +421,7 @@
         }
 
         .chart-title {
-            font-size: 1.1rem;
+            font-size: 1.15rem;
             font-weight: 600;
             color: var(--dark);
         }
@@ -418,302 +455,334 @@
             border-color: var(--primary);
         }
 
-        .chart-container {
+        .chart-canvas-container {
             width: 100%;
             height: 300px;
             position: relative;
         }
 
-        /* Прогресс по предметам */
-        .subject-progress {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 1.75rem;
-        }
-
-        .subject-card {
+        /* Статистика выполнения */
+        .stats-card {
             background-color: var(--white);
             border-radius: var(--card-radius);
+            padding: 1.5rem;
             box-shadow: var(--shadow-sm);
-            overflow: hidden;
-            transition: all 0.3s ease;
+            height: 100%;
             display: flex;
             flex-direction: column;
         }
 
-        .subject-card:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--shadow-md);
-        }
-
-        .subject-header {
-            padding: 1.5rem;
-            border-bottom: 1px solid var(--gray-light);
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .subject-icon {
-            width: 50px;
-            height: 50px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            color: var(--white);
-        }
-
-        .math-icon {
-            background: linear-gradient(135deg, #4cc9f0, #4361ee);
-        }
-
-        .lang-icon {
-            background: linear-gradient(135deg, #f72585, #b5179e);
-        }
-
-        .subject-info {
-            flex-grow: 1;
-        }
-
-        .subject-title {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: var(--dark);
-            margin-bottom: 0.25rem;
-        }
-
-        .subject-subtitle {
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-        }
-
-        .subject-body {
-            padding: 1.5rem;
-            flex-grow: 1;
-        }
-
-        .progress-item {
+        .stats-header {
             margin-bottom: 1.25rem;
         }
 
-        .progress-item:last-child {
-            margin-bottom: 0;
+        .stats-title {
+            font-size: 1.15rem;
+            font-weight: 600;
+            color: var(--dark);
         }
 
-        .progress-header {
+        .stats-list {
+            flex-grow: 1;
             display: flex;
+            flex-direction: column;
             justify-content: space-between;
+        }
+
+        .stat-item {
+            padding: 1rem 0;
+            border-bottom: 1px solid var(--gray-light);
+        }
+
+        .stat-item:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
             margin-bottom: 0.5rem;
         }
 
-        .progress-label {
-            font-size: 0.9rem;
-            font-weight: 500;
-            color: var(--text-secondary);
+        .stat-value {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
-        .progress-value {
+        .stat-trend {
+            display: flex;
+            align-items: center;
+            font-size: 0.85rem;
+            font-weight: 500;
+            gap: 0.25rem;
+        }
+
+        .trend-up {
+            color: #10b981;
+        }
+
+        .trend-down {
+            color: var(--danger);
+        }
+
+        .trend-neutral {
+            color: var(--gray);
+        }
+
+        /* Таблица детального прогресса */
+        .detail-progress-section {
+            margin-bottom: 2rem;
+        }
+
+        .detail-progress-card {
+            background-color: var(--white);
+            border-radius: var(--card-radius);
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
+        }
+
+        .detail-progress-header {
+            padding: 1.25rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--gray-light);
+        }
+
+        .detail-progress-title {
+            font-size: 1.15rem;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .detail-progress-filter {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .detail-progress-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .detail-progress-table th {
+            padding: 1rem 1.5rem;
+            text-align: left;
+            color: var(--text-secondary);
+            font-weight: 500;
             font-size: 0.9rem;
+            border-bottom: 1px solid var(--gray-light);
+        }
+
+        .detail-progress-table td {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--gray-light);
+            font-size: 0.95rem;
+        }
+
+        .detail-progress-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .detail-progress-table tr:hover {
+            background-color: #f8faff;
+        }
+
+        .topic-cell {
+            font-weight: 500;
+            color: var(--dark);
+            width: 30%;
+        }
+
+        .skill-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--white);
+            margin-right: 0.5rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .skill-badge.math {
+            background-color: var(--primary-light);
+        }
+
+        .skill-badge.language {
+            background-color: var(--danger);
+        }
+
+        .score-cell {
             font-weight: 600;
             color: var(--primary);
         }
 
-        .progress-bar {
+        .completion-cell {
+            width: 20%;
+        }
+
+        .completion-bar {
             height: 8px;
             background-color: #f0f0f0;
             border-radius: 4px;
             overflow: hidden;
         }
 
-        .progress-fill {
+        .completion-fill {
             height: 100%;
             border-radius: 4px;
-            transition: width 1s ease;
         }
 
-        .progress-fill.math {
-            background: linear-gradient(to right, #4cc9f0, #4361ee);
+        .completion-fill.excellent {
+            background-color: #10b981;
         }
 
-        .progress-fill.lang {
-            background: linear-gradient(to right, #f72585, #b5179e);
+        .completion-fill.good {
+            background-color: var(--warning);
         }
 
-        .subject-footer {
-            padding: 1rem 1.5rem;
-            border-top: 1px solid var(--gray-light);
-            text-align: center;
+        .completion-fill.incomplete {
+            background-color: var(--danger);
         }
 
-        .subject-action {
-            color: var(--primary);
-            text-decoration: none;
-            font-weight: 500;
-            font-size: 0.95rem;
-            display: inline-flex;
-            align-items: center;
-            transition: all 0.2s ease;
+        .last-activity-cell {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
         }
 
-        .subject-action i {
-            margin-left: 0.5rem;
-            transition: transform 0.2s ease;
+        /* Рекомендации */
+        .recommendations-section {
+            margin-bottom: 2rem;
         }
 
-        .subject-action:hover {
-            color: var(--secondary);
+        .recommendations-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
         }
 
-        .subject-action:hover i {
-            transform: translateX(3px);
-        }
-
-        /* Достижения */
-        .achievements {
+        .recommendation-card {
             background-color: var(--white);
             border-radius: var(--card-radius);
-            box-shadow: var(--shadow-sm);
             padding: 1.5rem;
-            margin-bottom: 1.75rem;
-        }
-
-        .achievements-list {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 1.5rem;
-            margin-top: 1.25rem;
-        }
-
-        .achievement {
+            box-shadow: var(--shadow-sm);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            text-align: center;
-            padding: 1.25rem 1rem;
-            border-radius: var(--card-radius);
-            background-color: var(--light);
-            transition: all 0.3s ease;
         }
 
-        .achievement:hover {
+        .recommendation-card:hover {
             transform: translateY(-5px);
-            box-shadow: var(--shadow-sm);
+            box-shadow: var(--shadow-md);
         }
 
-        .achievement-icon {
-            width: 60px;
-            height: 60px;
-            border-radius: 30px;
-            background: var(--gradient-2);
+        .recommendation-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--gradient-1);
+        }
+
+        .recommendation-header {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 1.25rem;
+        }
+
+        .recommendation-icon {
+            width: 45px;
+            height: 45px;
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-bottom: 1rem;
-            color: var(--white);
-            font-size: 1.5rem;
+            margin-right: 1rem;
+            flex-shrink: 0;
         }
 
-        .achievement.locked .achievement-icon {
-            background: #d1d5db;
-            color: #9ca3af;
-        }
-
-        .achievement-title {
-            font-size: 0.95rem;
-            font-weight: 600;
-            color: var(--dark);
-            margin-bottom: 0.5rem;
-        }
-
-        .achievement-desc {
-            font-size: 0.8rem;
-            color: var(--text-secondary);
-        }
-
-        .achievement.locked .achievement-title {
-            color: var(--text-secondary);
-        }
-
-        .achievement.locked .achievement-desc {
-            color: var(--text-muted);
-        }
-
-        /* Последние тесты */
-        .recent-tests {
-            background-color: var(--white);
-            border-radius: var(--card-radius);
-            box-shadow: var(--shadow-sm);
-            padding: 1.5rem;
-            margin-bottom: 1.75rem;
-        }
-
-        .tests-list {
-            margin-top: 1.25rem;
-        }
-
-        .test-item {
-            display: flex;
-            align-items: center;
-            padding: 1rem;
-            border-bottom: 1px solid var(--gray-light);
-            transition: background-color 0.2s ease;
-        }
-
-        .test-item:last-child {
-            border-bottom: none;
-        }
-
-        .test-item:hover {
-            background-color: #f8faff;
-            border-radius: 8px;
-        }
-
-        .test-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        .recommendation-icon i {
             font-size: 1.25rem;
             color: var(--white);
-            margin-right: 1rem;
         }
 
-        .test-info {
+        .recommendation-icon.math {
+            background: linear-gradient(135deg, #4cc9f0, #4361ee);
+        }
+
+        .recommendation-icon.language {
+            background: linear-gradient(135deg, #f72585, #b5179e);
+        }
+
+        .recommendation-icon.general {
+            background: linear-gradient(135deg, #f8961e, #f3722c);
+        }
+
+        .recommendation-info {
             flex-grow: 1;
         }
 
-        .test-title {
-            font-size: 0.95rem;
-            font-weight: 500;
+        .recommendation-title {
+            font-size: 1.1rem;
+            font-weight: 600;
             color: var(--dark);
             margin-bottom: 0.25rem;
         }
 
-        .test-date {
-            font-size: 0.8rem;
-            color: var(--text-muted);
+        .recommendation-desc {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+            flex-grow: 1;
         }
 
-        .test-score {
-            font-size: 1.1rem;
-            font-weight: 600;
+        .recommendation-action {
+            margin-top: auto;
         }
 
-        .test-score.high {
-            color: #10b981;
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.75rem 1.25rem;
+            border-radius: 10px;
+            font-weight: 500;
+            font-size: 0.95rem;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: none;
+            gap: 0.5rem;
         }
 
-        .test-score.medium {
-            color: var(--warning);
+        .btn-primary {
+            background: var(--gradient-1);
+            color: white;
+            box-shadow: 0 4px 10px rgba(67, 97, 238, 0.2);
         }
 
-        .test-score.low {
-            color: var(--danger);
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(67, 97, 238, 0.25);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--primary);
+            box-shadow: 0 0 0 1px var(--primary) inset;
+        }
+
+        .btn-outline:hover {
+            background-color: rgba(67, 97, 238, 0.05);
         }
 
         /* Футер */
@@ -727,12 +796,8 @@
 
         /* Медиа-запросы для адаптивности */
         @media (max-width: 1200px) {
-            .subject-progress {
+            .chart-container {
                 grid-template-columns: 1fr;
-            }
-            
-            .stats-overview {
-                grid-template-columns: repeat(2, 1fr);
             }
         }
 
@@ -792,23 +857,20 @@
                 width: 100%;
             }
             
-            .stats-overview {
-                grid-template-columns: 1fr;
+            .detail-progress-table th:nth-child(2),
+            .detail-progress-table td:nth-child(2) {
+                display: none;
             }
             
-            .chart-header {
+            .detail-progress-header {
                 flex-direction: column;
                 align-items: flex-start;
                 gap: 1rem;
             }
             
-            .chart-filter {
+            .detail-progress-filter {
                 width: 100%;
                 justify-content: space-between;
-            }
-            
-            .achievements-list {
-                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
             }
         }
 
@@ -833,6 +895,11 @@
             .mobile-menu-toggle {
                 display: block;
             }
+            
+            .detail-progress-table th:nth-child(4),
+            .detail-progress-table td:nth-child(4) {
+                display: none;
+            }
         }
 
         /* Мобильное меню */
@@ -844,32 +911,6 @@
             color: var(--dark);
             font-size: 1.5rem;
             margin-right: 1rem;
-        }
-
-        /* Анимации */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .animated {
-            animation: fadeIn 0.5s ease forwards;
-        }
-
-        .delay-1 {
-            animation-delay: 0.1s;
-        }
-
-        .delay-2 {
-            animation-delay: 0.2s;
-        }
-
-        .delay-3 {
-            animation-delay: 0.3s;
-        }
-
-        .delay-4 {
-            animation-delay: 0.4s;
         }
 
         /* Темный режим */
@@ -905,20 +946,19 @@
             }
             
             .filter-btn:hover {
-                background-color: var(--primary-light);
-                border-color: var(--primary-light);
+                background-color: rgba(76, 201, 240, 0.1);
             }
             
-            .progress-bar {
+            .progress-bar-container, .completion-bar {
                 background-color: #2d3748;
             }
             
-            .achievement {
+            .detail-progress-table tr:hover {
                 background-color: #2d3748;
             }
             
-            .test-item:hover {
-                background-color: #1e2533;
+            .btn-outline {
+                box-shadow: 0 0 0 1px var(--primary) inset;
             }
         }
     </style>
@@ -935,7 +975,7 @@
         
         <ul class="sidebar-menu">
             <li class="sidebar-item">
-                <a href="dashboard.html" class="sidebar-link" id="dashboard-link">
+                <a href="dashboard.html" class="sidebar-link">
                     <i class="fas fa-th-large"></i>
                     <span>Dashboard</span>
                 </a>
@@ -973,9 +1013,9 @@
         </ul>
         
         <div class="user-profile">
-            <div class="user-avatar">MS</div>
+            <div class="user-avatar" id="sidebar-avatar">MS</div>
             <div class="user-info">
-                <div class="user-name">Maksys234</div>
+                <div class="user-name" id="sidebar-username">Maksys234</div>
                 <div class="user-role">Student</div>
             </div>
         </div>
@@ -992,312 +1032,335 @@
                 <div class="header-actions">
                     <div class="search-box">
                         <i class="fas fa-search"></i>
-                        <input type="text" placeholder="Hledat...">
+                        <input type="text" placeholder="Hledat témata...">
                     </div>
                     <div class="notifications">
                         <i class="fas fa-bell"></i>
-                        <span class="notification-badge">2</span>
+                        <span class="notification-badge">1</span>
                     </div>
                 </div>
             </div>
         </header>
         
         <div class="main-content">
-            <!-- Обзор статистики -->
-            <section class="stats-section animated">
-                <h2 class="section-title">Statistický přehled</h2>
+            <!-- Обзор прогресса -->
+            <section class="overview-section">
+                <h2 class="section-title">Přehled pokroku</h2>
                 
-                <div class="stats-overview">
-                    <div class="stat-card">
-                        <div class="stat-card-content">
-                            <div class="stat-card-info">
-                                <h3 class="stat-card-title">Dokončená cvičení</h3>
-                                <p class="stat-card-value">42</p>
-                                <p class="stat-card-change positive">+8 tento měsíc</p>
+                <div class="progress-overview">
+                    <div class="progress-card">
+                        <div class="progress-info">
+                            <div class="progress-icon math">
+                                <i class="fas fa-square-root-alt"></i>
                             </div>
-                            <div class="stat-card-icon exercises-icon">
-                                <i class="fas fa-tasks"></i>
+                            <div>
+                                <h3 class="progress-title">Matematika</h3>
+                                <p class="progress-subtitle">Algebraické výrazy, rovnice, geometrie...</p>
                             </div>
+                        </div>
+                        
+                        <div class="progress-bar-container">
+                            <div class="progress-bar math" id="math-progress" style="width: 0%"></div>
+                        </div>
+                        
+                        <div class="progress-details">
+                            <div class="progress-percentage" id="math-percentage">65%</div>
+                            <div class="progress-status">12/18 témat</div>
                         </div>
                     </div>
                     
-                    <div class="stat-card">
-                        <div class="stat-card-content">
-                            <div class="stat-card-info">
-                                <h3 class="stat-card-title">Celkový čas studia</h3>
-                                <p class="stat-card-value">28h</p>
-                                <p class="stat-card-change positive">+4.5h tento týden</p>
+                    <div class="progress-card">
+                        <div class="progress-info">
+                            <div class="progress-icon language">
+                                <i class="fas fa-language"></i>
                             </div>
-                            <div class="stat-card-icon time-icon">
-                                <i class="fas fa-clock"></i>
+                            <div>
+                                <h3 class="progress-title">Český jazyk</h3>
+                                <p class="progress-subtitle">Gramatika, pravopis, porozumění textu...</p>
                             </div>
+                        </div>
+                        
+                        <div class="progress-bar-container">
+                            <div class="progress-bar language" id="language-progress" style="width: 0%"></div>
+                        </div>
+                        
+                        <div class="progress-details">
+                            <div class="progress-percentage" id="language-percentage">72%</div>
+                            <div class="progress-status">16/22 témat</div>
                         </div>
                     </div>
                     
-                    <div class="stat-card">
-                        <div class="stat-card-content">
-                            <div class="stat-card-info">
-                                <h3 class="stat-card-title">Aktuální série</h3>
-                                <p class="stat-card-value">7</p>
-                                <p class="stat-card-change">Nejdelší: 14 dní</p>
+                    <div class="progress-card">
+                        <div class="progress-info">
+                            <div class="progress-icon general">
+                                <i class="fas fa-graduation-cap"></i>
                             </div>
-                            <div class="stat-card-icon streak-icon">
-                                <i class="fas fa-fire"></i>
+                            <div>
+                                <h3 class="progress-title">Celkový pokrok</h3>
+                                <p class="progress-subtitle">Všechny předměty a témata dohromady</p>
                             </div>
+                        </div>
+                        
+                        <div class="progress-bar-container">
+                            <div class="progress-bar general" id="general-progress" style="width: 0%"></div>
+                        </div>
+                        
+                        <div class="progress-details">
+                            <div class="progress-percentage" id="general-percentage">68%</div>
+                            <div class="progress-status">28/40 témat</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Графики активности -->
+            <section class="chart-section">
+                <div class="chart-container">
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3 class="chart-title">Aktivita a pokrok v čase</h3>
+                            <div class="chart-filter">
+                                <button class="filter-btn active" data-period="week">Týden</button>
+                                <button class="filter-btn" data-period="month">Měsíc</button>
+                                <button class="filter-btn" data-period="all">Celkově</button>
+                            </div>
+                        </div>
+                        
+                        <div class="chart-canvas-container">
+                            <canvas id="activityChart"></canvas>
                         </div>
                     </div>
                     
-                    <div class="stat-card">
-                        <div class="stat-card-content">
-                            <div class="stat-card-info">
-                                <h3 class="stat-card-title">Průměrné skóre</h3>
-                                <p class="stat-card-value">78%</p>
-                                <p class="stat-card-change positive">+5% za poslední měsíc</p>
+                    <div class="stats-card">
+                        <div class="stats-header">
+                            <h3 class="stats-title">Statistika aktivit</h3>
+                        </div>
+                        
+                        <div class="stats-list">
+                            <div class="stat-item">
+                                <div class="stat-label">Průměrný denní čas studia</div>
+                                <div class="stat-value">
+                                    48 minut
+                                    <span class="stat-trend trend-up">
+                                        <i class="fas fa-arrow-up"></i>
+                                        12%
+                                    </span>
+                                </div>
                             </div>
-                            <div class="stat-card-icon score-icon">
-                                <i class="fas fa-star"></i>
+                            
+                            <div class="stat-item">
+                                <div class="stat-label">Dokončená cvičení tento týden</div>
+                                <div class="stat-value">
+                                    14
+                                    <span class="stat-trend trend-up">
+                                        <i class="fas fa-arrow-up"></i>
+                                        3
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <div class="stat-item">
+                                <div class="stat-label">Průměrné skóre</div>
+                                <div class="stat-value">
+                                    78%
+                                    <span class="stat-trend trend-up">
+                                        <i class="fas fa-arrow-up"></i>
+                                        5%
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <div class="stat-item">
+                                <div class="stat-label">Dny v řadě</div>
+                                <div class="stat-value">
+                                    7
+                                    <span class="stat-trend trend-neutral">
+                                        <i class="fas fa-minus"></i>
+                                        0
+                                    </span>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </section>
             
-            <!-- График успеваемости -->
-            <section class="chart-section animated delay-1">
-                <div class="chart-card">
-                    <div class="chart-header">
-                        <h2 class="chart-title">Vývoj výkonu v čase</h2>
-                        <div class="chart-filter">
-                            <button class="filter-btn" data-period="week">Týden</button>
-                            <button class="filter-btn active" data-period="month">Měsíc</button>
-                            <button class="filter-btn" data-period="year">Rok</button>
+            <!-- Таблица детального прогресса -->
+            <section class="detail-progress-section">
+                <div class="detail-progress-card">
+                    <div class="detail-progress-header">
+                        <h3 class="detail-progress-title">Detailní přehled pokroku</h3>
+                        <div class="detail-progress-filter">
+                            <button class="filter-btn active" data-subject="all">Vše</button>
+                            <button class="filter-btn" data-subject="math">Matematika</button>
+                            <button class="filter-btn" data-subject="language">Český jazyk</button>
                         </div>
                     </div>
-                    <div class="chart-container">
-                        <canvas id="performanceChart"></canvas>
-                    </div>
+                    
+                    <table class="detail-progress-table">
+                        <thead>
+                            <tr>
+                                <th>Téma</th>
+                                <th>Dovednosti</th>
+                                <th>Skóre</th>
+                                <th>Dokončeno</th>
+                                <th>Poslední aktivita</th>
+                            </tr>
+                        </thead>
+                        <tbody id="progress-table-body">
+                            <tr>
+                                <td class="topic-cell">Algebraické výrazy</td>
+                                <td>
+                                    <span class="skill-badge math">Úpravy výrazů</span>
+                                    <span class="skill-badge math">Rozklady</span>
+                                </td>
+                                <td class="score-cell">92%</td>
+                                <td class="completion-cell">
+                                    <div class="completion-bar">
+                                        <div class="completion-fill excellent" style="width: 92%"></div>
+                                    </div>
+                                </td>
+                                <td class="last-activity-cell">Dnes, 15:30</td>
+                            </tr>
+                            
+                            <tr>
+                                <td class="topic-cell">Kvadratické rovnice</td>
+                                <td>
+                                    <span class="skill-badge math">Diskriminant</span>
+                                    <span class="skill-badge math">Řešení rovnic</span>
+                                </td>
+                                <td class="score-cell">85%</td>
+                                <td class="completion-cell">
+                                    <div class="completion-bar">
+                                        <div class="completion-fill excellent" style="width: 85%"></div>
+                                    </div>
+                                </td>
+                                <td class="last-activity-cell">Včera, 16:45</td>
+                            </tr>
+                            
+                            <tr>
+                                <td class="topic-cell">Pravopis</td>
+                                <td>
+                                    <span class="skill-badge language">Vyjmenovaná slova</span>
+                                    <span class="skill-badge language">Interpunkce</span>
+                                </td>
+                                <td class="score-cell">78%</td>
+                                <td class="completion-cell">
+                                    <div class="completion-bar">
+                                        <div class="completion-fill good" style="width: 78%"></div>
+                                    </div>
+                                </td>
+                                <td class="last-activity-cell">20. března 2025</td>
+                            </tr>
+                            
+                            <tr>
+                                <td class="topic-cell">Geometrie</td>
+                                <td>
+                                    <span class="skill-badge math">Pythagorova věta</span>
+                                    <span class="skill-badge math">Trojúhelníky</span>
+                                </td>
+                                <td class="score-cell">65%</td>
+                                <td class="completion-cell">
+                                    <div class="completion-bar">
+                                        <div class="completion-fill good" style="width: 65%"></div>
+                                    </div>
+                                </td>
+                                <td class="last-activity-cell">19. března 2025</td>
+                            </tr>
+                            
+                            <tr>
+                                <td class="topic-cell">Porozumění textu</td>
+                                <td>
+                                    <span class="skill-badge language">Rozbor textu</span>
+                                    <span class="skill-badge language">Analýza</span>
+                                </td>
+                                <td class="score-cell">95%</td>
+                                <td class="completion-cell">
+                                    <div class="completion-bar">
+                                        <div class="completion-fill excellent" style="width: 95%"></div>
+                                    </div>
+                                </td>
+                                <td class="last-activity-cell">18. března 2025</td>
+                            </tr>
+                            
+                            <tr>
+                                <td class="topic-cell">Funkce</td>
+                                <td>
+                                    <span class="skill-badge math">Lineární funkce</span>
+                                    <span class="skill-badge math">Grafy funkcí</span>
+                                </td>
+                                <td class="score-cell">42%</td>
+                                <td class="completion-cell">
+                                    <div class="completion-bar">
+                                        <div class="completion-fill incomplete" style="width: 42%"></div>
+                                    </div>
+                                </td>
+                                <td class="last-activity-cell">15. března 2025</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </section>
             
-            <!-- Прогресс по предметам -->
-            <section class="subjects-section animated delay-2">
-                <h2 class="section-title">Pokrok v předmětech</h2>
+            <!-- Рекомендации -->
+            <section class="recommendations-section">
+                <h2 class="section-title">Doporučení pro další zlepšení</h2>
                 
-                <div class="subject-progress">
-                    <div class="subject-card">
-                        <div class="subject-header">
-                            <div class="subject-icon math-icon">
-                                <i class="fas fa-square-root-alt"></i>
+                <div class="recommendations-grid">
+                    <div class="recommendation-card">
+                        <div class="recommendation-header">
+                            <div class="recommendation-icon math">
+                                <i class="fas fa-function"></i>
                             </div>
-                            <div class="subject-info">
-                                <h3 class="subject-title">Matematika</h3>
-                                <p class="subject-subtitle">Celkový pokrok: 65%</p>
-                            </div>
-                        </div>
-                        <div class="subject-body">
-                            <div class="progress-item">
-                                <div class="progress-header">
-                                    <span class="progress-label">Algebra</span>
-                                    <span class="progress-value">80%</span>
-                                </div>
-                                <div class="progress-bar">
-                                    <div class="progress-fill math" style="width: 80%"></div>
-                                </div>
-                            </div>
-                            <div class="progress-item">
-                                <div class="progress-header">
-                                    <span class="progress-label">Geometrie</span>
-                                    <span class="progress-value">60%</span>
-                                </div>
-                                <div class="progress-bar">
-                                    <div class="progress-fill math" style="width: 60%"></div>
-                                </div>
-                            </div>
-                            <div class="progress-item">
-                                <div class="progress-header">
-                                    <span class="progress-label">Rovnice</span>
-                                    <span class="progress-value">75%</span>
-                                </div>
-                                <div class="progress-bar">
-                                    <div class="progress-fill math" style="width: 75%"></div>
-                                </div>
-                            </div>
-                            <div class="progress-item">
-                                <div class="progress-header">
-                                    <span class="progress-label">Statistika</span>
-                                    <span class="progress-value">45%</span>
-                                </div>
-                                <div class="progress-bar">
-                                    <div class="progress-fill math" style="width: 45%"></div>
-                                </div>
+                            <div class="recommendation-info">
+                                <h4 class="recommendation-title">Funkce a jejich grafy</h4>
+                                <p class="recommendation-desc">Vaše skóre v této oblasti je nižší. Doporučujeme se zaměřit na pochopení grafů funkcí a jejich vlastností.</p>
                             </div>
                         </div>
-                        <div class="subject-footer">
-                            <a href="#" class="subject-action">Zobrazit detaily <i class="fas fa-arrow-right"></i></a>
+                        
+                        <div class="recommendation-action">
+                            <a href="procvicovani.html?topic=functions" class="btn btn-primary">
+                                <i class="fas fa-play"></i>
+                                Procvičovat
+                            </a>
                         </div>
                     </div>
                     
-                    <div class="subject-card">
-                        <div class="subject-header">
-                            <div class="subject-icon lang-icon">
-                                <i class="fas fa-language"></i>
+                    <div class="recommendation-card">
+                        <div class="recommendation-header">
+                            <div class="recommendation-icon math">
+                                <i class="fas fa-shapes"></i>
                             </div>
-                            <div class="subject-info">
-                                <h3 class="subject-title">Český jazyk</h3>
-                                <p class="subject-subtitle">Celkový pokrok: 72%</p>
-                            </div>
-                        </div>
-                        <div class="subject-body">
-                            <div class="progress-item">
-                                <div class="progress-header">
-                                    <span class="progress-label">Gramatika</span>
-                                    <span class="progress-value">85%</span>
-                                </div>
-                                <div class="progress-bar">
-                                    <div class="progress-fill lang" style="width: 85%"></div>
-                                </div>
-                            </div>
-                            <div class="progress-item">
-                                <div class="progress-header">
-                                    <span class="progress-label">Pravopis</span>
-                                    <span class="progress-value">70%</span>
-                                </div>
-                                <div class="progress-bar">
-                                    <div class="progress-fill lang" style="width: 70%"></div>
-                                </div>
-                            </div>
-                            <div class="progress-item">
-                                <div class="progress-header">
-                                    <span class="progress-label">Porozumění textu</span>
-                                    <span class="progress-value">65%</span>
-                                </div>
-                                <div class="progress-bar">
-                                    <div class="progress-fill lang" style="width: 65%"></div>
-                                </div>
-                            </div>
-                            <div class="progress-item">
-                                <div class="progress-header">
-                                    <span class="progress-label">Stylistika</span>
-                                    <span class="progress-value">60%</span>
-                                </div>
-                                <div class="progress-bar">
-                                    <div class="progress-fill lang" style="width: 60%"></div>
-                                </div>
+                            <div class="recommendation-info">
+                                <h4 class="recommendation-title">Geometrie trojúhelníků</h4>
+                                <p class="recommendation-desc">Zlepšete své znalosti geometrie trojúhelníků a využití Pythagorovy věty v praktických úlohách.</p>
                             </div>
                         </div>
-                        <div class="subject-footer">
-                            <a href="#" class="subject-action">Zobrazit detaily <i class="fas fa-arrow-right"></i></a>
+                        
+                        <div class="recommendation-action">
+                            <a href="procvicovani.html?topic=geometry" class="btn btn-primary">
+                                <i class="fas fa-play"></i>
+                                Procvičovat
+                            </a>
                         </div>
                     </div>
-                </div>
-            </section>
-            
-            <!-- Достижения -->
-            <section class="achievements-section animated delay-3">
-                <div class="achievements">
-                    <h2 class="section-title">Vaše ocenění</h2>
-                    <div class="achievements-list">
-                        <div class="achievement">
-                            <div class="achievement-icon">
-                                <i class="fas fa-award"></i>
+                    
+                    <div class="recommendation-card">
+                        <div class="recommendation-header">
+                            <div class="recommendation-icon language">
+                                <i class="fas fa-spell-check"></i>
                             </div>
-                            <h3 class="achievement-title">Pilný student</h3>
-                            <p class="achievement-desc">Dokončete 30 cvičení</p>
+                            <div class="recommendation-info">
+                                <h4 class="recommendation-title">Interpunkce ve větách</h4>
+                                <p class="recommendation-desc">Vaše skóre v interpunkci je 70%. Procvičte správné používání čárek a dalších interpunkčních znamének.</p>
+                            </div>
                         </div>
                         
-                        <div class="achievement">
-                            <div class="achievement-icon">
-                                <i class="fas fa-fire"></i>
-                            </div>
-                            <h3 class="achievement-title">Vytrvalec</h3>
-                            <p class="achievement-desc">Udržte si sérii 7 dní</p>
-                        </div>
-                        
-                        <div class="achievement">
-                            <div class="achievement-icon">
-                                <i class="fas fa-star"></i>
-                            </div>
-                            <h3 class="achievement-title">Hvězdný výkon</h3>
-                            <p class="achievement-desc">Získejte skóre 90%+ ve 3 testech</p>
-                        </div>
-                        
-                        <div class="achievement locked">
-                            <div class="achievement-icon">
-                                <i class="fas fa-trophy"></i>
-                            </div>
-                            <h3 class="achievement-title">Mistr matematiky</h3>
-                            <p class="achievement-desc">Dokončete 100% matematických modulů</p>
-                        </div>
-                        
-                        <div class="achievement locked">
-                            <div class="achievement-icon">
-                                <i class="fas fa-book"></i>
-                            </div>
-                            <h3 class="achievement-title">Jazykový expert</h3>
-                            <p class="achievement-desc">Dokončete 100% jazykových modulů</p>
-                        </div>
-                    </div>
-                </div>
-            </section>
-            
-            <!-- Последние тесты -->
-            <section class="tests-section animated delay-4">
-                <div class="recent-tests">
-                    <h2 class="section-title">Poslední absolvované testy</h2>
-                    <div class="tests-list">
-                        <div class="test-item">
-                            <div class="test-icon math-icon">
-                                <i class="fas fa-square-root-alt"></i>
-                            </div>
-                            <div class="test-info">
-                                <h3 class="test-title">Základy lineární algebry</h3>
-                                <p class="test-date">18. března 2025</p>
-                            </div>
-                            <div class="test-score high">92%</div>
-                        </div>
-                        
-                        <div class="test-item">
-                            <div class="test-icon lang-icon">
-                                <i class="fas fa-language"></i>
-                            </div>
-                            <div class="test-info">
-                                <h3 class="test-title">Gramatika - vyjmenovaná slova</h3>
-                                <p class="test-date">15. března 2025</p>
-                            </div>
-                            <div class="test-score high">85%</div>
-                        </div>
-                        
-                        <div class="test-item">
-                            <div class="test-icon math-icon">
-                                <i class="fas fa-square-root-alt"></i>
-                            </div>
-                            <div class="test-info">
-                                <h3 class="test-title">Kvadratické rovnice</h3>
-                                <p class="test-date">10. března 2025</p>
-                            </div>
-                            <div class="test-score medium">75%</div>
-                        </div>
-                        
-                        <div class="test-item">
-                            <div class="test-icon lang-icon">
-                                <i class="fas fa-language"></i>
-                            </div>
-                            <div class="test-info">
-                                <h3 class="test-title">Porozumění složitému textu</h3>
-                                <p class="test-date">5. března 2025</p>
-                            </div>
-                            <div class="test-score low">68%</div>
-                        </div>
-                        
-                        <div class="test-item">
-                            <div class="test-icon math-icon">
-                                <i class="fas fa-square-root-alt"></i>
-                            </div>
-                            <div class="test-info">
-                                <h3 class="test-title">Geometrické tvary</h3>
-                                <p class="test-date">1. března 2025</p>
-                            </div>
-                            <div class="test-score medium">78%</div>
+                        <div class="recommendation-action">
+                            <a href="procvicovani.html?topic=punctuation" class="btn btn-primary">
+                                <i class="fas fa-play"></i>
+                                Procvičovat
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -1310,143 +1373,56 @@
     </main>
     
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // График производительности
-            const performanceCtx = document.getElementById('performanceChart').getContext('2d');
-            const performanceData = {
-                labels: ['1. týden', '2. týden', '3. týden', '4. týden'],
-                datasets: [
-                    {
-                        label: 'Matematika',
-                        data: [65, 72, 68, 78],
-                        borderColor: '#4361ee',
-                        backgroundColor: 'rgba(67, 97, 238, 0.1)',
-                        tension: 0.4,
-                        fill: true
-                    },
-                    {
-                        label: 'Český jazyk',
-                        data: [70, 68, 75, 82],
-                        borderColor: '#f72585',
-                        backgroundColor: 'rgba(247, 37, 133, 0.1)',
-                        tension: 0.4,
-                        fill: true
+        // Инициализация Supabase клиента
+        const SUPABASE_URL = 'https://xunitidnszlsqupiifhd.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh1bml0aWRuc3psc3F1cGlpZmhkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDEwMTY0MDQsImV4cCI6MjA1NjU5MjQwNH0.8v2dMEaAQYRhHmmJe15XkbA07Tsupc1iLT9oAsLEsWw';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Проверка авторизации - необходимо добавить в начало каждого скрипта дашборда
+            async function checkAuth() {
+                try {
+                    // Получаем текущую сессию
+                    const { data: { session }, error } = await supabase.auth.getSession();
+                    
+                    // Если ошибка или нет сессии, перенаправляем на страницу входа
+                    if (error || !session) {
+                        console.log("Нет активной сессии, перенаправление на страницу входа");
+                        window.location.href = "/auth/index.html";
+                        return false;
                     }
-                ]
-            };
-            
-            const performanceChart = new Chart(performanceCtx, {
-                type: 'line',
-                data: performanceData,
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'top',
-                            labels: {
-                                usePointStyle: true,
-                                font: {
-                                    family: 'Poppins'
-                                }
-                            }
-                        },
-                        tooltip: {
-                            backgroundColor: 'rgba(0, 0, 0, 0.7)',
-                            titleFont: {
-                                family: 'Poppins',
-                                size: 13
-                            },
-                            bodyFont: {
-                                family: 'Poppins',
-                                size: 12
-                            },
-                            padding: 10,
-                            cornerRadius: 8,
-                            displayColors: true
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            max: 100,
-                            ticks: {
-                                font: {
-                                    family: 'Poppins'
-                                },
-                                callback: function(value) {
-                                    return value + '%';
-                                }
-                            },
-                            grid: {
-                                drawBorder: false,
-                                display: true,
-                                color: 'rgba(200, 200, 200, 0.2)'
-                            }
-                        },
-                        x: {
-                            ticks: {
-                                font: {
-                                    family: 'Poppins'
-                                }
-                            },
-                            grid: {
-                                display: false
-                            }
+                    
+                    // Дополнительная проверка на истекший токен
+                    if (session.expires_at && (new Date(session.expires_at * 1000) < new Date())) {
+                        console.log("Сессия устарела, попытка обновления");
+                        const { data: { session: refreshedSession }, error: refreshError } = await supabase.auth.refreshSession();
+                        
+                        if (refreshError || !refreshedSession) {
+                            console.log("Не удалось обновить сессию, перенаправление на страницу входа");
+                            window.location.href = "/auth/index.html";
+                            return false;
                         }
                     }
+                    
+                    console.log("Пользователь авторизован");
+                    return true;
+                } catch (error) {
+                    console.error("Ошибка при проверке авторизации:", error);
+                    window.location.href = "/auth/index.html";
+                    return false;
                 }
-            });
+            }
             
-            // Фильтр периода графика
-            const filterButtons = document.querySelectorAll('.filter-btn');
-            filterButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    filterButtons.forEach(btn => btn.classList.remove('active'));
-                    this.classList.add('active');
-                    
-                    const period = this.getAttribute('data-period');
-                    let labels, mathData, langData;
-                    
-                    switch(period) {
-                        case 'week':
-                            labels = ['Pondělí', 'Úterý', 'Středa', 'Čtvrtek', 'Pátek', 'Sobota', 'Neděle'];
-                            mathData = [65, 70, 68, 72, 78, 76, 80];
-                            langData = [70, 72, 68, 75, 73, 78, 82];
-                            break;
-                        case 'month':
-                            labels = ['1. týden', '2. týden', '3. týden', '4. týden'];
-                            mathData = [65, 72, 68, 78];
-                            langData = [70, 68, 75, 82];
-                            break;
-                        case 'year':
-                            labels = ['Leden', 'Únor', 'Březen', 'Duben', 'Květen', 'Červen', 'Červenec', 'Srpen', 'Září', 'Říjen', 'Listopad', 'Prosinec'];
-                            mathData = [50, 55, 60, 62, 65, 68, 70, 72, 75, 78, 80, 82];
-                            langData = [55, 58, 62, 65, 68, 70, 72, 75, 78, 80, 82, 85];
-                            break;
-                    }
-                    
-                    performanceChart.data.labels = labels;
-                    performanceChart.data.datasets[0].data = mathData;
-                    performanceChart.data.datasets[1].data = langData;
-                    performanceChart.update();
-                });
-            });
+            // Выполняем проверку при загрузке страницы
+            const isAuthenticated = await checkAuth();
             
-            // Анимация заполнения прогресс-баров
-            const progressBars = document.querySelectorAll('.progress-fill');
-            setTimeout(() => {
-                progressBars.forEach(bar => {
-                    const width = bar.style.width;
-                    bar.style.width = '0';
-                    setTimeout(() => {
-                        bar.style.width = width;
-                    }, 100);
-                });
-            }, 500);
+            // Если пользователь не авторизован, скрипт остановится здесь из-за перенаправления
+            if (!isAuthenticated) return;
+            
+            // Продолжаем выполнение кода только если пользователь авторизован
             
             // Мобильное меню
-            const addMobileMenuToggle = () => {
+            function addMobileMenuToggle() {
                 if (window.innerWidth <= 576 && !document.querySelector('.mobile-menu-toggle')) {
                     const menuToggle = document.createElement('button');
                     menuToggle.className = 'mobile-menu-toggle';
@@ -1470,26 +1446,312 @@
                     const header = document.querySelector('.header-content');
                     header.insertBefore(menuToggle, header.firstChild);
                 }
-            };
+            }
             
-            // Инициализация мобильного меню при загрузке и изменении размера
+            // Инициализация мобильного меню
             addMobileMenuToggle();
             window.addEventListener('resize', addMobileMenuToggle);
             
-            // Обработка нажатий на уведомления
-            const notifications = document.querySelector('.notifications');
-            if (notifications) {
-                notifications.addEventListener('click', function() {
-                    alert('Máte 2 nová oznámení:\n\n1. Dokončili jste 7 denní sérii! Gratulujeme!\n2. Nový test z matematiky je k dispozici.');
+            // Анимация заполнения прогресс-баров
+            function animateProgressBars() {
+                const mathProgress = document.getElementById('math-progress');
+                const languageProgress = document.getElementById('language-progress');
+                const generalProgress = document.getElementById('general-progress');
+                
+                const mathPercentage = parseInt(document.getElementById('math-percentage').textContent);
+                const languagePercentage = parseInt(document.getElementById('language-percentage').textContent);
+                const generalPercentage = parseInt(document.getElementById('general-percentage').textContent);
+                
+                setTimeout(() => {
+                    mathProgress.style.width = `${mathPercentage}%`;
+                    languageProgress.style.width = `${languagePercentage}%`;
+                    generalProgress.style.width = `${generalPercentage}%`;
+                }, 300);
+            }
+            
+            // Запускаем анимацию прогресс-баров
+            animateProgressBars();
+            
+            // Получение данных пользователя (имя для приветствия)
+            async function fetchUserProfile() {
+                try {
+                    const { data: { user } } = await supabase.auth.getUser();
+                    
+                    if (user) {
+                        // Получение профиля из таблицы profiles
+                        const { data, error } = await supabase
+                            .from('profiles')
+                            .select('username, first_name, last_name, avatar_url')
+                            .eq('id', user.id)
+                            .single();
+                        
+                        if (error) {
+                            console.error('Error fetching profile:', error);
+                            return;
+                        }
+                        
+                        // Обновляем имя пользователя в сайдбаре
+                        document.getElementById('sidebar-username').textContent = data.username;
+                        
+                        // Обновляем аватар, если есть
+                        if (data.avatar_url) {
+                            document.getElementById('sidebar-avatar').innerHTML = `<img src="${data.avatar_url}" alt="${data.username}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
+                        } else {
+                            // Используем инициалы
+                            const initials = data.first_name && data.last_name 
+                                ? `${data.first_name.charAt(0)}${data.last_name.charAt(0)}` 
+                                : data.username.substring(0, 2).toUpperCase();
+                            document.getElementById('sidebar-avatar').textContent = initials;
+                        }
+                        
+                        // Загружаем подробные данные о прогрессе
+                        fetchUserProgress(user.id);
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                }
+            }
+            
+            // Загрузка данных о прогрессе пользователя
+            async function fetchUserProgress(userId) {
+                try {
+                    // В реальном приложении здесь был бы запрос к базе данных для получения данных о прогрессе
+                    // Например:
+                    /*
+                    const { data, error } = await supabase
+                        .from('progress')
+                        .select('*')
+                        .eq('user_id', userId);
+                        
+                    if (error) throw error;
+                    
+                    // Обрабатываем полученные данные
+                    if (data) {
+                        updateProgressUI(data);
+                    }
+                    */
+                    
+                    // Для демонстрации используем статические данные
+                    console.log('Fetching progress data for user ID:', userId);
+                } catch (error) {
+                    console.error('Error fetching progress:', error);
+                }
+            }
+            
+            // График активности
+            function initActivityChart() {
+                const ctx = document.getElementById('activityChart').getContext('2d');
+                
+                // Данные по дням недели
+                const labels = ['Pondělí', 'Úterý', 'Středa', 'Čtvrtek', 'Pátek', 'Sobota', 'Neděle'];
+                const studyTimeData = [45, 30, 60, 75, 90, 60, 45]; // время в минутах
+                const scoreData = [65, 70, 75, 80, 85, 78, 72]; // проценты
+                
+                const activityChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            {
+                                label: 'Čas studia (min)',
+                                data: studyTimeData,
+                                backgroundColor: '#4361ee',
+                                borderRadius: 5,
+                                order: 2,
+                                yAxisID: 'y'
+                            },
+                            {
+                                label: 'Průměrné skóre (%)',
+                                data: scoreData,
+                                type: 'line',
+                                borderColor: '#f72585',
+                                backgroundColor: 'rgba(247, 37, 133, 0.1)',
+                                borderWidth: 3,
+                                pointBackgroundColor: '#f72585',
+                                pointRadius: 4,
+                                pointHoverRadius: 6,
+                                fill: true,
+                                tension: 0.2,
+                                order: 1,
+                                yAxisID: 'y1'
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: {
+                            mode: 'index',
+                            intersect: false
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Čas studia (min)',
+                                    color: '#4361ee'
+                                },
+                                grid: {
+                                    display: true,
+                                    color: 'rgba(200, 200, 200, 0.2)'
+                                },
+                                ticks: {
+                                    font: {
+                                        family: 'Poppins'
+                                    }
+                                }
+                            },
+                            y1: {
+                                beginAtZero: true,
+                                position: 'right',
+                                min: 0,
+                                max: 100,
+                                title: {
+                                    display: true,
+                                    text: 'Skóre (%)',
+                                    color: '#f72585'
+                                },
+                                grid: {
+                                    display: false
+                                },
+                                ticks: {
+                                    font: {
+                                        family: 'Poppins'
+                                    }
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    display: false
+                                },
+                                ticks: {
+                                    font: {
+                                        family: 'Poppins'
+                                    }
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: true,
+                                position: 'top',
+                                labels: {
+                                    usePointStyle: true,
+                                    boxWidth: 8,
+                                    font: {
+                                        family: 'Poppins',
+                                        size: 12
+                                    }
+                                }
+                            },
+                            tooltip: {
+                                enabled: true,
+                                mode: 'index',
+                                intersect: false,
+                                backgroundColor: 'rgba(30, 42, 58, 0.9)',
+                                titleFont: {
+                                    family: 'Poppins',
+                                    size: 13
+                                },
+                                bodyFont: {
+                                    family: 'Poppins',
+                                    size: 12
+                                },
+                                padding: 12,
+                                borderWidth: 0,
+                                cornerRadius: 8
+                            }
+                        }
+                    }
+                });
+                
+                // Обработчики фильтрации
+                const filterBtns = document.querySelectorAll('.chart-filter .filter-btn');
+                filterBtns.forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        filterBtns.forEach(b => b.classList.remove('active'));
+                        this.classList.add('active');
+                        
+                        const period = this.getAttribute('data-period');
+                        updateChartData(activityChart, period);
+                    });
+                });
+                
+                return activityChart;
+            }
+            
+            // Обновление данных графика в зависимости от выбранного периода
+            function updateChartData(chart, period) {
+                let labels, studyTimeData, scoreData;
+                
+                switch (period) {
+                    case 'week':
+                        labels = ['Pondělí', 'Úterý', 'Středa', 'Čtvrtek', 'Pátek', 'Sobota', 'Neděle'];
+                        studyTimeData = [45, 30, 60, 75, 90, 60, 45];
+                        scoreData = [65, 70, 75, 80, 85, 78, 72];
+                        break;
+                    case 'month':
+                        labels = ['1. týden', '2. týden', '3. týden', '4. týden'];
+                        studyTimeData = [240, 300, 280, 320];
+                        scoreData = [68, 72, 75, 78];
+                        break;
+                    case 'all':
+                        labels = ['Leden', 'Únor', 'Březen'];
+                        studyTimeData = [800, 980, 1250];
+                        scoreData = [65, 70, 78];
+                        break;
+                }
+                
+                chart.data.labels = labels;
+                chart.data.datasets[0].data = studyTimeData;
+                chart.data.datasets[1].data = scoreData;
+                chart.update();
+            }
+            
+            // Фильтрация таблицы прогресса
+            function initTableFilters() {
+                const filterBtns = document.querySelectorAll('.detail-progress-filter .filter-btn');
+                const tableRows = document.querySelectorAll('.detail-progress-table tbody tr');
+                
+                filterBtns.forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        filterBtns.forEach(b => b.classList.remove('active'));
+                        this.classList.add('active');
+                        
+                        const subject = this.getAttribute('data-subject');
+                        
+                        tableRows.forEach(row => {
+                            const skills = row.querySelector('td:nth-child(2)').querySelectorAll('.skill-badge');
+                            let matchesFilter = false;
+                            
+                            if (subject === 'all') {
+                                matchesFilter = true;
+                            } else {
+                                skills.forEach(skill => {
+                                    if (skill.classList.contains(subject)) {
+                                        matchesFilter = true;
+                                    }
+                                });
+                            }
+                            
+                            row.style.display = matchesFilter ? '' : 'none';
+                        });
+                    });
                 });
             }
+            
+            // Обработка нажатий на уведомления
+            document.querySelector('.notifications').addEventListener('click', function() {
+                alert('Máte 1 nové oznámení:\n\nNový modul "Statistika a pravděpodobnost" je k dispozici.');
+            });
             
             // Активные ссылки в сайдбаре
             const setActiveLink = () => {
                 const currentPage = window.location.pathname;
                 const navLinks = document.querySelectorAll('.sidebar-link');
                 
-                navLinks.forEach(link => {
+                                navLinks.forEach(link => {
                     link.classList.remove('active');
                     const linkPath = link.getAttribute('href');
                     if (currentPage.endsWith(linkPath)) {
@@ -1498,44 +1760,92 @@
                 });
             };
             
-            // Установка активной ссылки
-            setActiveLink();
-            
             // Поиск
             const searchInput = document.querySelector('.search-box input');
             if (searchInput) {
                 searchInput.addEventListener('keyup', function(e) {
                     if (e.key === 'Enter') {
-                        alert('Vyhledávání bude implementováno v příští aktualizaci!');
+                        alert('Vyhledávání témat bude implementováno v příští aktualizaci!');
+                        this.value = '';
                     }
                 });
             }
             
-            // Проверка темной темы для настройки графика
-            const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
-            if (prefersDarkScheme.matches) {
+            // Инициализация темной темы, если она включена в браузере
+            if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
                 document.body.classList.add('dark-mode');
-                Chart.defaults.color = '#cbd5e0';
+                
+                // Обновить цвета графика, если он уже инициализирован
+                if (window.activityChart) {
+                    window.activityChart.options.scales.y.grid.color = 'rgba(200, 200, 200, 0.1)';
+                    window.activityChart.update();
+                }
             }
             
-            // Анимация при прокрутке
-            const animateOnScroll = function() {
-                const elements = document.querySelectorAll('.animated');
-                
-                elements.forEach(element => {
-                    const elementPosition = element.getBoundingClientRect().top;
-                    const screenPosition = window.innerHeight;
-                    
-                    if (elementPosition < screenPosition - 100) {
-                        element.style.opacity = '1';
-                        element.style.transform = 'translateY(0)';
+            // Обновление при изменении темы в системе
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(e) {
+                if (e.matches) {
+                    document.body.classList.add('dark-mode');
+                    if (window.activityChart) {
+                        window.activityChart.options.scales.y.grid.color = 'rgba(200, 200, 200, 0.1)';
+                        window.activityChart.update();
                     }
-                });
-            };
+                } else {
+                    document.body.classList.remove('dark-mode');
+                    if (window.activityChart) {
+                        window.activityChart.options.scales.y.grid.color = 'rgba(200, 200, 200, 0.2)';
+                        window.activityChart.update();
+                    }
+                }
+            });
             
-            // Инициализация анимаций
-            window.addEventListener('scroll', animateOnScroll);
-            window.dispatchEvent(new Event('scroll'));
+            // Установка активной ссылки
+            setActiveLink();
+            
+            // Инициализация графика активности
+            window.activityChart = initActivityChart();
+            
+            // Инициализация фильтров таблицы
+            initTableFilters();
+            
+            // Вызываем функцию для получения данных пользователя
+            fetchUserProfile();
+            
+            // Определить текущую дату и время для персонализации данных
+            const now = new Date("2025-03-21 17:17:03");
+            const formattedDate = `${now.getDate()}. ${now.getMonth() + 1}. ${now.getFullYear()}`;
+            
+            // Отображение текущего пользователя
+            const currentUsername = "Maksys234";
+            const lastActivityElements = document.querySelectorAll('.last-activity-cell');
+            
+            // Обновить первую запись в таблице прогресса, чтобы показать активность сегодня
+            if (lastActivityElements.length > 0) {
+                lastActivityElements[0].textContent = `Dnes, ${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`;
+            }
+            
+            // Создание эффекта hover на рекомендуемых карточках
+            const recommendationCards = document.querySelectorAll('.recommendation-card');
+            recommendationCards.forEach(card => {
+                card.addEventListener('mouseover', function() {
+                    this.style.transform = 'translateY(-10px)';
+                });
+                
+                card.addEventListener('mouseout', function() {
+                    this.style.transform = 'translateY(-5px)';
+                });
+                
+                // Добавляем обработчик для кнопок
+                const button = card.querySelector('.btn');
+                if (button) {
+                    button.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        const topic = this.getAttribute('href').split('=')[1];
+                        alert(`Přesměrování na procvičování tématu: ${topic}`);
+                        window.location.href = "procvicovani.html";
+                    });
+                }
+            });
         });
     </script>
 </body>

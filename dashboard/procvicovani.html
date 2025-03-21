@@ -10,6 +10,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- Font Awesome через CDN -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <style>
         /* Базовые стили */
@@ -156,6 +158,13 @@
             justify-content: center;
             margin-right: 0.75rem;
             font-weight: 500;
+            overflow: hidden;
+        }
+
+        .user-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
 
         .user-info {
@@ -275,14 +284,14 @@
             color: var(--dark);
         }
 
-        /* Страница упражнений */
+        /* Категории упражнений */
         .categories-section {
             margin-bottom: 2rem;
         }
 
-        .categories-grid {
+        .categories-container {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
             gap: 1.5rem;
         }
 
@@ -290,15 +299,12 @@
             background-color: var(--white);
             border-radius: var(--card-radius);
             box-shadow: var(--shadow-sm);
-            overflow: hidden;
+            padding: 1.5rem;
+            text-align: center;
             transition: all 0.3s ease;
-            position: relative;
             cursor: pointer;
-        }
-
-        .category-card:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--shadow-md);
+            position: relative;
+            overflow: hidden;
         }
 
         .category-card::before {
@@ -307,98 +313,82 @@
             top: 0;
             left: 0;
             width: 100%;
-            height: 100%;
-            background: linear-gradient(to bottom, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.5));
-            z-index: 1;
-            transition: all 0.3s ease;
+            height: 4px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
         }
 
-        .category-card:hover::before {
-            background: linear-gradient(to bottom, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.6));
-        }
-
-        .category-card.math {
+        .category-card.math::before {
             background: var(--gradient-2);
         }
 
-        .category-card.lang {
+        .category-card.language::before {
             background: var(--gradient-3);
         }
 
-        .category-card.special {
+        .category-card.mixed::before {
             background: var(--gradient-4);
         }
 
-        .category-content {
-            position: relative;
-            z-index: 2;
-            padding: 2rem;
-            color: var(--white);
-            text-align: center;
+        .category-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .category-card:hover::before {
+            opacity: 1;
         }
 
         .category-icon {
-            width: 70px;
-            height: 70px;
+            width: 60px;
+            height: 60px;
             border-radius: 50%;
-            background-color: rgba(255, 255, 255, 0.2);
+            margin: 0 auto 1rem;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 1.5rem;
-            font-size: 2rem;
             color: var(--white);
-            transition: all 0.3s ease;
+            font-size: 1.5rem;
         }
 
-        .category-card:hover .category-icon {
-            background-color: rgba(255, 255, 255, 0.3);
-            transform: scale(1.1);
+        .category-icon.math {
+            background: var(--gradient-2);
+        }
+
+        .category-icon.language {
+            background: var(--gradient-3);
+        }
+
+        .category-icon.mixed {
+            background: var(--gradient-4);
         }
 
         .category-title {
-            font-size: 1.25rem;
+            font-size: 1.1rem;
             font-weight: 600;
+            color: var(--dark);
             margin-bottom: 0.5rem;
         }
 
         .category-desc {
-            font-size: 0.9rem;
-            opacity: 0.9;
-            margin-bottom: 1.25rem;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
         }
 
         .category-stats {
-            display: flex;
-            justify-content: center;
-            gap: 1.5rem;
-        }
-
-        .stat {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .stat-value {
-            font-size: 1.25rem;
-            font-weight: 600;
-            margin-bottom: 0.25rem;
-        }
-
-        .stat-label {
             font-size: 0.8rem;
-            opacity: 0.8;
+            color: var(--text-muted);
         }
 
         /* Рекомендуемые упражнения */
-        .recommended-exercises, .popular-exercises {
+        .recommended-section {
             margin-bottom: 2rem;
         }
 
-        .exercises-grid {
+        .recommended-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
             gap: 1.5rem;
         }
 
@@ -408,6 +398,7 @@
             box-shadow: var(--shadow-sm);
             overflow: hidden;
             transition: all 0.3s ease;
+            position: relative;
             display: flex;
             flex-direction: column;
         }
@@ -418,281 +409,250 @@
         }
 
         .exercise-header {
-            padding: 1.5rem;
-            border-bottom: 1px solid var(--gray-light);
-            display: flex;
-            align-items: center;
-            gap: 1rem;
+            position: relative;
+            height: 140px;
+            overflow: hidden;
         }
 
-        .exercise-icon {
-            width: 50px;
-            height: 50px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
+        .exercise-header img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .exercise-badge {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            padding: 0.5rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
             color: var(--white);
+            z-index: 1;
         }
 
-        .math-icon {
-            background: linear-gradient(135deg, #4cc9f0, #4361ee);
+        .exercise-badge.math {
+            background-color: var(--primary);
         }
 
-        .lang-icon {
-            background: linear-gradient(135deg, #f72585, #b5179e);
+        .exercise-badge.language {
+            background-color: var(--danger);
         }
 
-        .exercise-special {
-            background: linear-gradient(135deg, #f8961e, #f3722c);
+        .exercise-badge.mixed {
+            background-color: var(--warning);
         }
 
-        .exercise-info {
+        .exercise-body {
+            padding: 1.5rem;
             flex-grow: 1;
+            display: flex;
+            flex-direction: column;
         }
 
         .exercise-title {
             font-size: 1.1rem;
             font-weight: 600;
             color: var(--dark);
-            margin-bottom: 0.25rem;
-        }
-
-        .exercise-subtitle {
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .difficulty {
-            display: inline-flex;
-            align-items: center;
-            font-size: 0.8rem;
-            font-weight: 500;
-            padding: 0.25rem 0.5rem;
-            border-radius: 30px;
-            margin-left: auto;
-        }
-
-        .difficulty.easy {
-            background-color: rgba(76, 201, 240, 0.15);
-            color: var(--success);
-        }
-
-        .difficulty.medium {
-            background-color: rgba(248, 150, 30, 0.15);
-            color: var(--warning);
-        }
-
-        .difficulty.hard {
-            background-color: rgba(247, 37, 133, 0.15);
-            color: var(--danger);
-        }
-
-        .exercise-body {
-            padding: 1.5rem;
-            flex-grow: 1;
+            margin-bottom: 0.75rem;
+            line-height: 1.4;
         }
 
         .exercise-desc {
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             color: var(--text-secondary);
             margin-bottom: 1.25rem;
-            line-height: 1.5;
-        }
-
-        .progress-bar {
-            height: 8px;
-            background-color: #f0f0f0;
-            border-radius: 4px;
-            overflow: hidden;
-            margin-bottom: 0.5rem;
-        }
-
-        .progress-fill {
-            height: 100%;
-            border-radius: 4px;
-            transition: width 1s ease;
-        }
-
-        .progress-fill.math {
-            background: linear-gradient(to right, #4cc9f0, #4361ee);
-        }
-
-        .progress-fill.lang {
-            background: linear-gradient(to right, #f72585, #b5179e);
-        }
-
-        .progress-fill.special {
-            background: linear-gradient(to right, #f8961e, #f3722c);
-        }
-
-        .progress-stats {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-        }
-
-        .exercise-footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1rem 1.5rem;
-            border-top: 1px solid var(--gray-light);
-        }
-
-        .time-info {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            color: var(--text-secondary);
-            font-size: 0.85rem;
-        }
-
-        .btn-start {
-            background: var(--gradient-1);
-            color: var(--white);
-            border: none;
-            padding: 0.6rem 1.25rem;
-            border-radius: 50px;
-            font-size: 0.9rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .btn-start:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-md);
-        }
-
-        /* Прогресс по темам */
-        .topic-progress {
-            background-color: var(--white);
-            border-radius: var(--card-radius);
-            box-shadow: var(--shadow-sm);
-            padding: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .topics-list {
-            margin-top: 1.25rem;
-        }
-
-        .topic-item {
-            margin-bottom: 1.5rem;
-            animation: fadeIn 0.5s ease forwards;
-            opacity: 0;
-        }
-
-        .topic-item:last-child {
-            margin-bottom: 0;
-        }
-
-        .topic-header {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 0.75rem;
-        }
-
-        .topic-name {
-            font-size: 1rem;
-            font-weight: 500;
-            color: var(--dark);
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .topic-name i {
-            color: var(--primary);
-            font-size: 1.1rem;
-        }
-
-        .topic-stats {
-            font-size: 0.9rem;
-            font-weight: 500;
-            color: var(--text-secondary);
-        }
-
-        /* Недавняя активность */
-        .recent-activity {
-            background-color: var(--white);
-            border-radius: var(--card-radius);
-            box-shadow: var(--shadow-sm);
-            padding: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .activity-list {
-            margin-top: 1.25rem;
-        }
-
-        .activity-item {
-            display: flex;
-            align-items: flex-start;
-            padding: 1rem 0;
-            border-bottom: 1px solid var(--gray-light);
-            animation: fadeIn 0.5s ease forwards;
-            opacity: 0;
-        }
-
-        .activity-item:last-child {
-            border-bottom: none;
-        }
-
-        .activity-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.25rem;
-            color: var(--white);
-            margin-right: 1rem;
-            flex-shrink: 0;
-        }
-
-        .activity-icon.completed {
-            background: linear-gradient(135deg, #10b981, #059669);
-        }
-
-        .activity-icon.started {
-            background: linear-gradient(135deg, #f59e0b, #d97706);
-        }
-
-        .activity-content {
             flex-grow: 1;
         }
 
-        .activity-title {
-            font-size: 1rem;
-            font-weight: 500;
-            color: var(--dark);
-            margin-bottom: 0.25rem;
+        .exercise-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: auto;
         }
 
-        .activity-details {
+        .exercise-difficulty {
+            display: flex;
+            align-items: center;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .difficulty-indicator {
+            display: flex;
+            margin-left: 0.5rem;
+        }
+
+        .difficulty-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--gray-light);
+            margin-right: 3px;
+        }
+
+        .difficulty-dot.active {
+            background-color: var(--primary);
+        }
+
+        .exercise-time {
             font-size: 0.85rem;
             color: var(--text-secondary);
             display: flex;
             align-items: center;
+        }
+
+        .exercise-time i {
+            margin-right: 0.5rem;
+        }
+
+        .exercise-footer {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid var(--gray-light);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .progress-info {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 0.9rem;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: none;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: var(--gradient-1);
+            color: white;
+            box-shadow: 0 4px 10px rgba(67, 97, 238, 0.2);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(67, 97, 238, 0.25);
+        }
+
+        /* Недавно изученные упражнения */
+        .recent-section {
+            margin-bottom: 2rem;
+        }
+
+        .recent-exercises {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        /* Фильтры и сортировка */
+        .filter-section {
+            margin-bottom: 2rem;
+        }
+
+        .filter-card {
+            background-color: var(--white);
+            border-radius: var(--card-radius);
+            box-shadow: var(--shadow-sm);
+            padding: 1.5rem;
+        }
+
+        .filter-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.25rem;
+        }
+
+        .filter-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .filter-reset {
+            font-size: 0.9rem;
+            color: var(--primary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .filter-reset:hover {
+            text-decoration: underline;
+        }
+
+        .filter-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .filter-group {
+            margin-bottom: 1rem;
+        }
+
+        .filter-group-title {
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: var(--dark);
+            margin-bottom: 0.75rem;
+        }
+
+        .filter-list {
+            display: flex;
+            flex-wrap: wrap;
             gap: 0.75rem;
         }
 
-        .activity-time {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            margin-left: auto;
+        .filter-tag {
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            background-color: var(--light);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid var(--gray-light);
+        }
+
+        .filter-tag:hover {
+            background-color: rgba(67, 97, 238, 0.05);
+            border-color: var(--primary-light);
+        }
+
+        .filter-tag.active {
+            background-color: var(--primary);
+            color: var(--white);
+            border-color: var(--primary);
+        }
+
+        .sort-dropdown {
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            background-color: var(--light);
+            color: var(--text-secondary);
+            border: 1px solid var(--gray-light);
+            cursor: pointer;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        .sort-dropdown:focus {
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
         }
 
         /* Футер */
@@ -704,50 +664,55 @@
             font-size: 0.9rem;
         }
 
-        /* Модальное окно */
-        .modal {
-            display: none;
+        /* Модальное окно с информацией об упражнении */
+        .exercise-modal {
             position: fixed;
-            z-index: 1000;
-            left: 0;
             top: 0;
+            left: 0;
             width: 100%;
             height: 100%;
-            overflow: auto;
             background-color: rgba(0, 0, 0, 0.5);
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .modal.active {
             display: flex;
             align-items: center;
             justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .exercise-modal.active {
             opacity: 1;
+            visibility: visible;
         }
 
         .modal-content {
             background-color: var(--white);
-            margin: auto;
-            width: 90%;
-            max-width: 600px;
             border-radius: var(--card-radius);
             box-shadow: var(--shadow-lg);
-            animation: modalFadeIn 0.3s ease;
+            width: 90%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
             position: relative;
-            overflow: hidden;
+            animation: modalFadeIn 0.3s ease forwards;
+        }
+
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .modal-header {
             padding: 1.5rem;
             border-bottom: 1px solid var(--gray-light);
             display: flex;
-            align-items: center;
             justify-content: space-between;
+            align-items: center;
         }
 
         .modal-title {
-            font-size: 1.25rem;
+            font-size: 1.4rem;
             font-weight: 600;
             color: var(--dark);
         }
@@ -769,6 +734,51 @@
             padding: 1.5rem;
         }
 
+        .exercise-details {
+            margin-bottom: 1.5rem;
+        }
+
+        .exercise-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .info-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .info-value {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .exercise-overview {
+            margin-bottom: 1.5rem;
+        }
+
+        .overview-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 0.75rem;
+        }
+
+        .overview-text {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
         .modal-footer {
             padding: 1rem 1.5rem;
             border-top: 1px solid var(--gray-light);
@@ -777,82 +787,22 @@
             gap: 1rem;
         }
 
-        .btn {
-            padding: 0.6rem 1.25rem;
-            border-radius: 50px;
-            font-size: 0.9rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border: none;
-        }
-
         .btn-secondary {
-            background-color: var(--gray-light);
+            background-color: var(--light);
             color: var(--text-secondary);
+            border: 1px solid var(--gray-light);
         }
 
         .btn-secondary:hover {
-            background-color: var(--gray);
-            color: var(--white);
+            background-color: var(--gray-light);
         }
 
-        .btn-primary {
-            background: var(--gradient-1);
-            color: var(--white);
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-md);
-        }
-
-        /* Анимации */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        @keyframes modalFadeIn {
-            from { opacity: 0; transform: translateY(-20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .animated {
-            animation: fadeIn 0.5s ease forwards;
-        }
-
-        .delay-1 {
-            animation-delay: 0.1s;
-        }
-
-        .delay-2 {
-            animation-delay: 0.2s;
-        }
-
-        .delay-3 {
-            animation-delay: 0.3s;
-        }
-
-        .delay-4 {
-            animation-delay: 0.4s;
-        }
-
-        .delay-5 {
-            animation-delay: 0.5s;
+        .btn-lg {
+            padding: 0.75rem 1.5rem;
+            font-size: 0.95rem;
         }
 
         /* Медиа-запросы для адаптивности */
-        @media (max-width: 1200px) {
-            .categories-grid {
-                grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            }
-            
-            .exercises-grid {
-                grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            }
-        }
-
         @media (max-width: 992px) {
             :root {
                 --sidebar-width: 80px;
@@ -887,6 +837,10 @@
             .search-box input {
                 width: 200px;
             }
+            
+            .filter-options {
+                grid-template-columns: 1fr;
+            }
         }
 
         @media (max-width: 768px) {
@@ -909,19 +863,29 @@
                 width: 100%;
             }
             
-            .categories-grid, .exercises-grid {
-                grid-template-columns: 1fr;
+            .exercise-meta {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
             }
             
             .exercise-footer {
                 flex-direction: column;
-                gap: 1rem;
+                gap: 0.75rem;
                 align-items: flex-start;
             }
             
-            .btn-start {
+            .btn {
                 width: 100%;
                 justify-content: center;
+            }
+            
+            .modal-footer {
+                flex-direction: column;
+            }
+            
+            .modal-footer .btn {
+                width: 100%;
             }
         }
 
@@ -947,8 +911,8 @@
                 display: block;
             }
             
-            .modal-content {
-                width: 95%;
+            .categories-container {
+                grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
             }
         }
 
@@ -961,6 +925,28 @@
             color: var(--dark);
             font-size: 1.5rem;
             margin-right: 1rem;
+        }
+
+        /* Анимации */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animated {
+            animation: fadeIn 0.5s ease forwards;
+        }
+
+        .delay-1 {
+            animation-delay: 0.1s;
+        }
+
+        .delay-2 {
+            animation-delay: 0.2s;
+        }
+
+        .delay-3 {
+            animation-delay: 0.3s;
         }
 
         /* Темный режим */
@@ -989,17 +975,29 @@
                 color: #a0aec0;
             }
             
-            .progress-bar {
+            .category-card {
+                background-color: #1a202c;
+            }
+            
+            .difficulty-dot {
+                background-color: #4a5568;
+            }
+            
+            .filter-tag {
                 background-color: #2d3748;
+                border-color: #4a5568;
+            }
+            
+            .sort-dropdown {
+                background-color: #2d3748;
+                border-color: #4a5568;
+                color: var(--text-primary);
             }
             
             .btn-secondary {
-                background-color: #4a5568;
-                color: #e2e8f0;
-            }
-            
-            .btn-secondary:hover {
                 background-color: #2d3748;
+                border-color: #4a5568;
+                color: var(--text-primary);
             }
         }
     </style>
@@ -1016,7 +1014,7 @@
         
         <ul class="sidebar-menu">
             <li class="sidebar-item">
-                <a href="dashboard.html" class="sidebar-link" id="dashboard-link">
+                <a href="dashboard.html" class="sidebar-link">
                     <i class="fas fa-th-large"></i>
                     <span>Dashboard</span>
                 </a>
@@ -1054,9 +1052,9 @@
         </ul>
         
         <div class="user-profile">
-            <div class="user-avatar">MS</div>
+            <div class="user-avatar" id="sidebar-avatar">MS</div>
             <div class="user-info">
-                <div class="user-name">Maksys234</div>
+                <div class="user-name" id="sidebar-username">Maksys234</div>
                 <div class="user-role">Student</div>
             </div>
         </div>
@@ -1077,7 +1075,7 @@
                     </div>
                     <div class="notifications">
                         <i class="fas fa-bell"></i>
-                        <span class="notification-badge">3</span>
+                        <span class="notification-badge">2</span>
                     </div>
                 </div>
             </div>
@@ -1086,435 +1084,310 @@
         <div class="main-content">
             <!-- Категории упражнений -->
             <section class="categories-section animated">
-                <h2 class="section-title">Kategorie cvičení</h2>
+                <h2 class="section-title">Kategorie procvičování</h2>
                 
-                <div class="categories-grid">
-                    <div class="category-card math">
-                        <div class="category-content">
-                            <div class="category-icon">
-                                <i class="fas fa-square-root-alt"></i>
-                            </div>
-                            <h3 class="category-title">Matematika</h3>
-                            <p class="category-desc">Algebra, geometrie, rovnice a další matematické koncepty</p>
-                            <div class="category-stats">
-                                <div class="stat">
-                                    <span class="stat-value">42</span>
-                                    <span class="stat-label">Cvičení</span>
-                                </div>
-                                <div class="stat">
-                                    <span class="stat-value">65%</span>
-                                    <span class="stat-label">Dokončeno</span>
-                                </div>
-                            </div>
+                <div class="categories-container">
+                    <div class="category-card math" data-category="math">
+                        <div class="category-icon math">
+                            <i class="fas fa-square-root-alt"></i>
                         </div>
+                        <h3 class="category-title">Matematika</h3>
+                        <p class="category-desc">Algebra, geometrie, kombinatorika</p>
+                        <p class="category-stats">38 cvičení</p>
                     </div>
                     
-                    <div class="category-card lang">
-                        <div class="category-content">
-                            <div class="category-icon">
-                                <i class="fas fa-language"></i>
-                            </div>
-                            <h3 class="category-title">Český jazyk</h3>
-                            <p class="category-desc">Gramatika, pravopis, porozumění textu a stylistika</p>
-                            <div class="category-stats">
-                                <div class="stat">
-                                    <span class="stat-value">38</span>
-                                    <span class="stat-label">Cvičení</span>
-                                </div>
-                                <div class="stat">
-                                    <span class="stat-value">72%</span>
-                                    <span class="stat-label">Dokončeno</span>
-                                </div>
-                            </div>
+                    <div class="category-card language" data-category="language">
+                        <div class="category-icon language">
+                            <i class="fas fa-language"></i>
                         </div>
+                        <h3 class="category-title">Český jazyk</h3>
+                        <p class="category-desc">Pravopis, gramatika, porozumění textu</p>
+                        <p class="category-stats">42 cvičení</p>
                     </div>
                     
-                    <div class="category-card special">
-                        <div class="category-content">
-                            <div class="category-icon">
-                                <i class="fas fa-bolt"></i>
+                    <div class="category-card mixed" data-category="mixed">
+                        <div class="category-icon mixed">
+                            <i class="fas fa-random"></i>
+                        </div>
+                        <h3 class="category-title">Kombinované</h3>
+                        <p class="category-desc">Cvičení z různých předmětů</p>
+                        <p class="category-stats">15 cvičení</p>
+                    </div>
+                    
+                    <div class="category-card math" data-category="math-tests">
+                        <div class="category-icon math">
+                            <i class="fas fa-tasks"></i>
+                        </div>
+                        <h3 class="category-title">Cvičné testy</h3>
+                        <p class="category-desc">Přijímačky nanečisto</p>
+                        <p class="category-stats">12 testů</p>
+                    </div>
+                    
+                    <div class="category-card language" data-category="language-tests">
+                        <div class="category-icon language">
+                            <i class="fas fa-spell-check"></i>
+                        </div>
+                        <h3 class="category-title">Češtinářské testy</h3>
+                        <p class="category-desc">Komplexní testy z češtiny</p>
+                        <p class="category-stats">10 testů</p>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Фильтры и сортировка -->
+            <section class="filter-section animated delay-1">
+                <div class="filter-card">
+                    <div class="filter-header">
+                        <h3 class="filter-title">Filtry a řazení</h3>
+                        <span class="filter-reset" id="reset-filters">Obnovit filtry</span>
+                    </div>
+                    
+                    <div class="filter-options">
+                        <div class="filter-group">
+                            <h4 class="filter-group-title">Předmět</h4>
+                            <div class="filter-list">
+                                <span class="filter-tag active" data-filter="subject" data-value="all">Vše</span>
+                                <span class="filter-tag" data-filter="subject" data-value="math">Matematika</span>
+                                <span class="filter-tag" data-filter="subject" data-value="language">Český jazyk</span>
+                                <span class="filter-tag" data-filter="subject" data-value="mixed">Kombinované</span>
                             </div>
-                            <h3 class="category-title">Speciální tréninky</h3>
-                            <p class="category-desc">Intenzivní tréninky pro rychlou přípravu na zkoušky</p>
-                            <div class="category-stats">
-                                <div class="stat">
-                                    <span class="stat-value">15</span>
-                                    <span class="stat-label">Cvičení</span>
-                                </div>
-                                <div class="stat">
-                                    <span class="stat-value">40%</span>
-                                    <span class="stat-label">Dokončeno</span>
-                                </div>
+                        </div>
+                        
+                        <div class="filter-group">
+                            <h4 class="filter-group-title">Obtížnost</h4>
+                            <div class="filter-list">
+                                <span class="filter-tag active" data-filter="difficulty" data-value="all">Vše</span>
+                                <span class="filter-tag" data-filter="difficulty" data-value="easy">Lehká</span>
+                                <span class="filter-tag" data-filter="difficulty" data-value="medium">Střední</span>
+                                <span class="filter-tag" data-filter="difficulty" data-value="hard">Těžká</span>
                             </div>
+                        </div>
+                        
+                        <div class="filter-group">
+                            <h4 class="filter-group-title">Stav</h4>
+                            <div class="filter-list">
+                                <span class="filter-tag active" data-filter="status" data-value="all">Vše</span>
+                                <span class="filter-tag" data-filter="status" data-value="completed">Dokončené</span>
+                                <span class="filter-tag" data-filter="status" data-value="in-progress">Rozpracované</span>
+                                <span class="filter-tag" data-filter="status" data-value="not-started">Nezačaté</span>
+                            </div>
+                        </div>
+                        
+                        <div class="filter-group">
+                            <h4 class="filter-group-title">Řazení</h4>
+                            <select class="sort-dropdown" id="sort-option">
+                                <option value="recommended">Doporučené</option>
+                                <option value="newest">Nejnovější</option>
+                                <option value="popularity">Nejpopulárnější</option>
+                                <option value="difficulty-asc">Od nejlehčího</option>
+                                <option value="difficulty-desc">Od nejtěžšího</option>
+                            </select>
                         </div>
                     </div>
                 </div>
             </section>
             
             <!-- Рекомендуемые упражнения -->
-            <section class="recommended-exercises animated delay-1">
-                <h2 class="section-title">Doporučená cvičení pro vás</h2>
+            <section class="recommended-section animated delay-2">
+                <h2 class="section-title">Doporučená cvičení</h2>
                 
-                <div class="exercises-grid">
-                    <div class="exercise-card">
+                <div class="recommended-grid">
+                    <div class="exercise-card" data-id="ex1">
                         <div class="exercise-header">
-                            <div class="exercise-icon math-icon">
-                                <i class="fas fa-square-root-alt"></i>
-                            </div>
-                            <div class="exercise-info">
-                                <h3 class="exercise-title">Kvadratické rovnice</h3>
-                                <p class="exercise-subtitle">
-                                    <span>Algebra</span> • 
-                                    <span>15 úloh</span>
-                                </p>
-                            </div>
-                            <div class="difficulty medium">Střední</div>
+                            <img src="https://img.freepik.com/free-vector/hand-drawn-math-formulas_23-2148164804.jpg" alt="Algebraické výrazy">
+                            <span class="exercise-badge math">Matematika</span>
                         </div>
                         <div class="exercise-body">
-                            <p class="exercise-desc">Procvičte řešení kvadratických rovnic různými metodami, včetně diskriminantu a rozkladu na součin.</p>
-                            <div class="progress-bar">
-                                <div class="progress-fill math" style="width: 35%"></div>
-                            </div>
-                            <div class="progress-stats">
-                                <span>Pokrok: 35%</span>
-                                <span>5/15 dokončeno</span>
+                            <h3 class="exercise-title">Algebraické výrazy a jejich úpravy</h3>
+                            <p class="exercise-desc">Naučte se upravovat algebraické výrazy, včetně rozkladu a zjednodušování složitějších výrazů.</p>
+                            <div class="exercise-meta">
+                                <div class="exercise-difficulty">
+                                    Obtížnost:
+                                    <div class="difficulty-indicator">
+                                        <span class="difficulty-dot active"></span>
+                                        <span class="difficulty-dot active"></span>
+                                        <span class="difficulty-dot"></span>
+                                    </div>
+                                </div>
+                                <div class="exercise-time">
+                                    <i class="far fa-clock"></i>
+                                    20-30 min
+                                </div>
                             </div>
                         </div>
                         <div class="exercise-footer">
-                            <div class="time-info">
-                                <i class="far fa-clock"></i>
-                                <span>Přibližně 25 min</span>
-                            </div>
-                            <button class="btn-start">
-                                <span>Pokračovat</span>
-                                <i class="fas fa-arrow-right"></i>
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <div class="exercise-card">
-                        <div class="exercise-header">
-                            <div class="exercise-icon lang-icon">
-                                <i class="fas fa-language"></i>
-                            </div>
-                            <div class="exercise-info">
-                                <h3 class="exercise-title">Vyjmenovaná slova</h3>
-                                <p class="exercise-subtitle">
-                                    <span>Pravopis</span> • 
-                                    <span>20 úloh</span>
-                                </p>
-                            </div>
-                            <div class="difficulty easy">Lehká</div>
-                        </div>
-                        <div class="exercise-body">
-                            <p class="exercise-desc">Procvičte si správné používání vyjmenovaných slov a slov příbuzných, jejich pravopis a význam.</p>
-                            <div class="progress-bar">
-                                <div class="progress-fill lang" style="width: 70%"></div>
-                            </div>
-                            <div class="progress-stats">
-                                <span>Pokrok: 70%</span>
-                                <span>14/20 dokončeno</span>
-                            </div>
-                        </div>
-                        <div class="exercise-footer">
-                            <div class="time-info">
-                                <i class="far fa-clock"></i>
-                                <span>Přibližně 15 min</span>
-                            </div>
-                            <button class="btn-start">
-                                <span>Pokračovat</span>
-                                <i class="fas fa-arrow-right"></i>
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <div class="exercise-card">
-                        <div class="exercise-header">
-                            <div class="exercise-icon exercise-special">
-                                <i class="fas fa-bolt"></i>
-                            </div>
-                            <div class="exercise-info">
-                                <h3 class="exercise-title">Přijímačky - cvičný test</h3>
-                                <p class="exercise-subtitle">
-                                    <span>Kompletní test</span> • 
-                                    <span>30 úloh</span>
-                                </p>
-                            </div>
-                            <div class="difficulty hard">Těžká</div>
-                        </div>
-                        <div class="exercise-body">
-                            <p class="exercise-desc">Vyzkoušejte si kompletní přijímací test v reálných podmínkách se stejným časovým limitem jako u skutečné zkoušky.</p>
-                            <div class="progress-bar">
-                                <div class="progress-fill special" style="width: 0%"></div>
-                            </div>
-                            <div class="progress-stats">
-                                <span>Pokrok: 0%</span>
-                                <span>0/30 dokončeno</span>
-                            </div>
-                        </div>
-                        <div class="exercise-footer">
-                            <div class="time-info">
-                                <i class="far fa-clock"></i>
-                                <span>70 min</span>
-                            </div>
-                            <button class="btn-start" id="startTest">
-                                <span>Začít test</span>
+                            <span class="progress-info">65% dokončeno</span>
+                            <button class="btn btn-primary open-exercise">
                                 <i class="fas fa-play"></i>
+                                Pokračovat
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="exercise-card" data-id="ex2">
+                        <div class="exercise-header">
+                            <img src="https://img.freepik.com/free-vector/hand-drawn-czech-alphabet_23-2149158796.jpg" alt="Gramatická cvičení">
+                            <span class="exercise-badge language">Český jazyk</span>
+                        </div>
+                        <div class="exercise-body">
+                            <h3 class="exercise-title">Pravopis a interpunkce ve větách</h3>
+                            <p class="exercise-desc">Procvičte si správný pravopis, interpunkci a používání diakritiky v českém jazyce.</p>
+                            <div class="exercise-meta">
+                                <div class="exercise-difficulty">
+                                    Obtížnost:
+                                    <div class="difficulty-indicator">
+                                        <span class="difficulty-dot active"></span>
+                                        <span class="difficulty-dot active"></span>
+                                        <span class="difficulty-dot active"></span>
+                                    </div>
+                                </div>
+                                <div class="exercise-time">
+                                    <i class="far fa-clock"></i>
+                                    15-20 min
+                                </div>
+                            </div>
+                        </div>
+                        <div class="exercise-footer">
+                            <span class="progress-info">Nezačato</span>
+                            <button class="btn btn-primary open-exercise">
+                                <i class="fas fa-play"></i>
+                                Začít
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="exercise-card" data-id="ex3">
+                        <div class="exercise-header">
+                            <img src="https://img.freepik.com/free-vector/geometric-shapes-math-education-concept_23-2148496216.jpg" alt="Geometrické úlohy">
+                            <span class="exercise-badge math">Matematika</span>
+                        </div>
+                        <div class="exercise-body">
+                            <h3 class="exercise-title">Geometrické úlohy - trojúhelníky</h3>
+                            <p class="exercise-desc">Řešení různých typů úloh s trojúhelníky, včetně výpočtů obvodů, obsahů a použití Pythagorovy věty.</p>
+                            <div class="exercise-meta">
+                                <div class="exercise-difficulty">
+                                    Obtížnost:
+                                    <div class="difficulty-indicator">
+                                        <span class="difficulty-dot active"></span>
+                                        <span class="difficulty-dot"></span>
+                                        <span class="difficulty-dot"></span>
+                                    </div>
+                                </div>
+                                <div class="exercise-time">
+                                    <i class="far fa-clock"></i>
+                                    15-25 min
+                                </div>
+                            </div>
+                        </div>
+                        <div class="exercise-footer">
+                            <span class="progress-info">35% dokončeno</span>
+                            <button class="btn btn-primary open-exercise">
+                                <i class="fas fa-play"></i>
+                                Pokračovat
                             </button>
                         </div>
                     </div>
                 </div>
             </section>
             
-            <!-- Популярные упражнения -->
-            <section class="popular-exercises animated delay-2">
-                <h2 class="section-title">Populární cvičení</h2>
+            <!-- Недавно изученные упражнения -->
+            <section class="recent-section animated delay-3">
+                <h2 class="section-title">Naposledy procvičováno</h2>
                 
-                <div class="exercises-grid">
-                    <div class="exercise-card">
+                <div class="recent-exercises">
+                    <div class="exercise-card" data-id="ex4">
                         <div class="exercise-header">
-                            <div class="exercise-icon math-icon">
-                                <i class="fas fa-percentage"></i>
-                            </div>
-                            <div class="exercise-info">
-                                <h3 class="exercise-title">Procenta v praxi</h3>
-                                <p class="exercise-subtitle">
-                                    <span>Aplikovaná matematika</span> • 
-                                    <span>12 úloh</span>
-                                </p>
-                            </div>
-                            <div class="difficulty medium">Střední</div>
+                            <img src="https://img.freepik.com/free-vector/hand-drawn-text-analysis-concept_23-2148508248.jpg" alt="Porozumění textu">
+                            <span class="exercise-badge language">Český jazyk</span>
                         </div>
                         <div class="exercise-body">
-                            <p class="exercise-desc">Naučte se používat procenta v reálných situacích - slevy, úroky, daně a další praktické příklady.</p>
-                            <div class="progress-bar">
-                                <div class="progress-fill math" style="width: 50%"></div>
-                            </div>
-                            <div class="progress-stats">
-                                <span>Pokrok: 50%</span>
-                                <span>6/12 dokončeno</span>
+                            <h3 class="exercise-title">Porozumění textu a jeho analýza</h3>
+                            <p class="exercise-desc">Naučte se pracovat s textem, analyzovat jeho hlavní myšlenky a odpovídat na otázky.</p>
+                            <div class="exercise-meta">
+                                <div class="exercise-difficulty">
+                                    Obtížnost:
+                                    <div class="difficulty-indicator">
+                                        <span class="difficulty-dot active"></span>
+                                        <span class="difficulty-dot active"></span>
+                                        <span class="difficulty-dot"></span>
+                                    </div>
+                                </div>
+                                <div class="exercise-time">
+                                    <i class="far fa-clock"></i>
+                                    25-30 min
+                                </div>
                             </div>
                         </div>
                         <div class="exercise-footer">
-                            <div class="time-info">
-                                <i class="far fa-clock"></i>
-                                <span>Přibližně 20 min</span>
-                            </div>
-                            <button class="btn-start">
-                                <span>Pokračovat</span>
-                                <i class="fas fa-arrow-right"></i>
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <div class="exercise-card">
-                        <div class="exercise-header">
-                            <div class="exercise-icon lang-icon">
-                                <i class="fas fa-book"></i>
-                            </div>
-                            <div class="exercise-info">
-                                <h3 class="exercise-title">Porozumění textu</h3>
-                                <p class="exercise-subtitle">
-                                    <span>Čtení s porozuměním</span> • 
-                                    <span>10 úloh</span>
-                                </p>
-                            </div>
-                            <div class="difficulty medium">Střední</div>
-                        </div>
-                        <div class="exercise-body">
-                            <p class="exercise-desc">Zlepšete své dovednosti v porozumění složitějším textům a odpovídání na otázky související s obsahem.</p>
-                            <div class="progress-bar">
-                                <div class="progress-fill lang" style="width: 20%"></div>
-                            </div>
-                            <div class="progress-stats">
-                                <span>Pokrok: 20%</span>
-                                <span>2/10 dokončeno</span>
-                            </div>
-                        </div>
-                        <div class="exercise-footer">
-                            <div class="time-info">
-                                <i class="far fa-clock"></i>
-                                <span>Přibližně 30 min</span>
-                            </div>
-                            <button class="btn-start">
-                                <span>Pokračovat</span>
-                                <i class="fas fa-arrow-right"></i>
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <div class="exercise-card">
-                        <div class="exercise-header">
-                            <div class="exercise-icon math-icon">
-                                <i class="fas fa-shapes"></i>
-                            </div>
-                            <div class="exercise-info">
-                                <h3 class="exercise-title">Geometrické úlohy</h3>
-                                <p class="exercise-subtitle">
-                                    <span>Geometrie</span> • 
-                                    <span>15 úloh</span>
-                                </p>
-                            </div>
-                            <div class="difficulty medium">Střední</div>
-                        </div>
-                        <div class="exercise-body">
-                            <p class="exercise-desc">Procvičte si řešení geometrických úloh zahrnujících plochy, objemy, úhly a další geometrické koncepty.</p>
-                            <div class="progress-bar">
-                                <div class="progress-fill math" style="width: 80%"></div>
-                            </div>
-                            <div class="progress-stats">
-                                <span>Pokrok: 80%</span>
-                                <span>12/15 dokončeno</span>
-                            </div>
-                        </div>
-                        <div class="exercise-footer">
-                            <div class="time-info">
-                                <i class="far fa-clock"></i>
-                                <span>Přibližně 25 min</span>
-                            </div>
-                            <button class="btn-start">
-                                <span>Pokračovat</span>
-                                <i class="fas fa-arrow-right"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </section>
-            
-            <!-- Прогресс по темам -->
-            <section class="topic-progress-section animated delay-3">
-                <div class="topic-progress">
-                    <h2 class="section-title">Váš pokrok podle témat</h2>
-                    
-                    <div class="topics-list">
-                        <div class="topic-item" style="animation-delay: 0.1s;">
-                            <div class="topic-header">
-                                <div class="topic-name">
-                                    <i class="fas fa-calculator"></i>
-                                    <span>Algebra</span>
-                                </div>
-                                <div class="topic-stats">24/32 úloh</div>
-                            </div>
-                            <div class="progress-bar">
-                                <div class="progress-fill math" style="width: 75%"></div>
-                            </div>
-                        </div>
-                        
-                        <div class="topic-item" style="animation-delay: 0.2s;">
-                            <div class="topic-header">
-                                <div class="topic-name">
-                                    <i class="fas fa-shapes"></i>
-                                    <span>Geometrie</span>
-                                </div>
-                                <div class="topic-stats">18/30 úloh</div>
-                            </div>
-                            <div class="progress-bar">
-                                <div class="progress-fill math" style="width: 60%"></div>
-                            </div>
-                        </div>
-                        
-                        <div class="topic-item" style="animation-delay: 0.3s;">
-                            <div class="topic-header">
-                                <div class="topic-name">
-                                    <i class="fas fa-spell-check"></i>
-                                    <span>Pravopis</span>
-                                </div>
-                                <div class="topic-stats">22/25 úloh</div>
-                            </div>
-                            <div class="progress-bar">
-                                <div class="progress-fill lang" style="width: 88%"></div>
-                            </div>
-                        </div>
-                        
-                        <div class="topic-item" style="animation-delay: 0.4s;">
-                            <div class="topic-header">
-                                <div class="topic-name">
-                                    <i class="fas fa-book"></i>
-                                    <span>Porozumění textu</span>
-                                </div>
-                                <div class="topic-stats">13/20 úloh</div>
-                            </div>
-                            <div class="progress-bar">
-                                <div class="progress-fill lang" style="width: 65%"></div>
-                            </div>
-                        </div>
-                        
-                        <div class="topic-item" style="animation-delay: 0.5s;">
-                            <div class="topic-header">
-                                <div class="topic-name">
-                                    <i class="fas fa-bolt"></i>
-                                    <span>Přijímačkové testy</span>
-                                </div>
-                                <div class="topic-stats">3/10 testů</div>
-                            </div>
-                            <div class="progress-bar">
-                                <div class="progress-fill special" style="width: 30%"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-            
-            <!-- Недавняя активность -->
-            <section class="activity-section animated delay-4">
-                <div class="recent-activity">
-                    <h2 class="section-title">Nedávná aktivita</h2>
-                    
-                    <div class="activity-list">
-                        <div class="activity-item" style="animation-delay: 0.1s;">
-                            <div class="activity-icon completed">
-                                <i class="fas fa-check"></i>
-                            </div>
-                            <div class="activity-content">
-                                <h3 class="activity-title">Geometrické úlohy - Dokončeno</h3>
-                                <div class="activity-details">
-                                    <span>Skóre: 85%</span>
-                                    <span>12/15 správně</span>
-                                    <span class="activity-time">Dnes, 10:23</span>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="activity-item" style="animation-delay: 0.2s;">
-                            <div class="activity-icon started">
+                            <span class="progress-info">90% dokončeno</span>
+                            <button class="btn btn-primary open-exercise">
                                 <i class="fas fa-play"></i>
-                            </div>
-                            <div class="activity-content">
-                                <h3 class="activity-title">Kvadratické rovnice - Zahájeno</h3>
-                                <div class="activity-details">
-                                    <span>Pokrok: 35%</span>
-                                    <span>5/15 dokončeno</span>
-                                    <span class="activity-time">Včera, 15:45</span>
+                                Dokončit
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="exercise-card" data-id="ex5">
+                        <div class="exercise-header">
+                            <img src="https://img.freepik.com/free-vector/various-mathematical-operations_23-2148100850.jpg" alt="Lineární rovnice">
+                            <span class="exercise-badge math">Matematika</span>
+                        </div>
+                        <div class="exercise-body">
+                            <h3 class="exercise-title">Lineární rovnice a jejich soustavy</h3>
+                            <p class="exercise-desc">Procvičte si řešení lineárních rovnic o jedné neznámé a soustav rovnic o dvou neznámých.</p>
+                            <div class="exercise-meta">
+                                <div class="exercise-difficulty">
+                                    Obtížnost:
+                                    <div class="difficulty-indicator">
+                                        <span class="difficulty-dot active"></span>
+                                        <span class="difficulty-dot active"></span>
+                                        <span class="difficulty-dot"></span>
+                                    </div>
+                                </div>
+                                <div class="exercise-time">
+                                    <i class="far fa-clock"></i>
+                                    20-25 min
                                 </div>
                             </div>
                         </div>
-                        
-                        <div class="activity-item" style="animation-delay: 0.3s;">
-                            <div class="activity-icon completed">
-                                <i class="fas fa-check"></i>
-                            </div>
-                            <div class="activity-content">
-                                <h3 class="activity-title">Vyjmenovaná slova - Dokončeno</h3>
-                                <div class="activity-details">
-                                    <span>Skóre: 90%</span>
-                                    <span>18/20 správně</span>
-                                    <span class="activity-time">24. února 2025</span>
+                        <div class="exercise-footer">
+                            <span class="progress-info">100% dokončeno</span>
+                            <button class="btn btn-primary open-exercise">
+                                <i class="fas fa-redo"></i>
+                                Opakovat
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="exercise-card" data-id="ex6">
+                        <div class="exercise-header">
+                            <img src="https://img.freepik.com/free-vector/flat-exam-concept_23-2148170295.jpg" alt="Příjímačky nanečisto">
+                            <span class="exercise-badge mixed">Kombinované</span>
+                        </div>
+                        <div class="exercise-body">
+                            <h3 class="exercise-title">Přijímačky nanečisto - kombinovaný test</h3>
+                            <p class="exercise-desc">Kompletní test podobný skutečným přijímacím zkouškám, kombinující matematiku a český jazyk.</p>
+                            <div class="exercise-meta">
+                                <div class="exercise-difficulty">
+                                    Obtížnost:
+                                    <div class="difficulty-indicator">
+                                        <span class="difficulty-dot active"></span>
+                                        <span class="difficulty-dot active"></span>
+                                        <span class="difficulty-dot active"></span>
+                                    </div>
+                                </div>
+                                <div class="exercise-time">
+                                    <i class="far fa-clock"></i>
+                                    60-70 min
                                 </div>
                             </div>
                         </div>
-                        
-                        <div class="activity-item" style="animation-delay: 0.4s;">
-                            <div class="activity-icon completed">
-                                <i class="fas fa-check"></i>
-                            </div>
-                            <div class="activity-content">
-                                <h3 class="activity-title">Procenta v praxi - Částečně dokončeno</h3>
-                                <div class="activity-details">
-                                    <span>Pokrok: 50%</span>
-                                    <span>6/12 dokončeno</span>
-                                    <span class="activity-time">22. února 2025</span>
-                                </div>
-                            </div>
+                        <div class="exercise-footer">
+                            <span class="progress-info">50% dokončeno</span>
+                            <button class="btn btn-primary open-exercise">
+                                <i class="fas fa-play"></i>
+                                Pokračovat
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -1526,68 +1399,103 @@
         </footer>
     </main>
     
-    <!-- Модальное окно для начала теста -->
-    <div class="modal" id="testModal">
+    <!-- Модальное окно с детальной информацией об упражнении -->
+    <div class="exercise-modal" id="exercise-modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2 class="modal-title">Přijímačky - cvičný test</h2>
-                <button class="modal-close">&times;</button>
+                <h2 class="modal-title" id="modal-title">Název cvičení</h2>
+                <button class="modal-close" id="modal-close">&times;</button>
             </div>
             <div class="modal-body">
-                <p>Chystáte se začít komplexní cvičný test přijímacích zkoušek. Test obsahuje 30 úloh a má časový limit 70 minut.</p>
-                <p style="margin-top: 1rem;"><strong>Doporučení:</strong></p>
-                <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
-                    <li>Zajistěte si klidné prostředí bez rušení</li>
-                    <li>Připravte si papír a tužku na poznámky</li>
-                    <li>Časový limit je stejný jako u skutečné zkoušky</li>
-                </ul>
-                <p style="margin-top: 1rem;">Jste připraveni zahájit test?</p>
+                <div class="exercise-details">
+                    <div class="exercise-info">
+                        <div class="info-item">
+                            <span class="info-label">Předmět</span>
+                            <span class="info-value" id="modal-subject">Matematika</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Obtížnost</span>
+                            <span class="info-value" id="modal-difficulty">Střední</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Doba trvání</span>
+                            <span class="info-value" id="modal-time">20-30 minut</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Počet otázek</span>
+                            <span class="info-value" id="modal-questions">15</span>
+                        </div>
+                    </div>
+                    
+                    <div class="exercise-overview">
+                        <h3 class="overview-title">Popis cvičení</h3>
+                        <p class="overview-text" id="modal-description">
+                            Popis cvičení se načte dynamicky...
+                        </p>
+                    </div>
+                </div>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-secondary" id="cancelTest">Zrušit</button>
-                <button class="btn btn-primary" id="confirmTest">Zahájit test</button>
+                <button class="btn btn-secondary btn-lg" id="modal-close-btn">Zavřít</button>
+                <button class="btn btn-primary btn-lg" id="modal-start-btn">
+                    <i class="fas fa-play"></i>
+                    Začít cvičení
+                </button>
             </div>
         </div>
     </div>
     
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Анимация заполнения прогресс-баров
-            const progressBars = document.querySelectorAll('.progress-fill');
-            setTimeout(() => {
-                progressBars.forEach(bar => {
-                    const width = bar.style.width;
-                    bar.style.width = '0';
-                    setTimeout(() => {
-                        bar.style.width = width;
-                    }, 100);
-                });
-            }, 500);
+        // Инициализация Supabase клиента
+        const SUPABASE_URL = 'https://xunitidnszlsqupiifhd.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh1bml0aWRuc3psc3F1cGlpZmhkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDEwMTY0MDQsImV4cCI6MjA1NjU5MjQwNH0.8v2dMEaAQYRhHmmJe15XkbA07Tsupc1iLT9oAsLEsWw';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Проверка авторизации - необходимо добавить в начало каждого скрипта дашборда
+            async function checkAuth() {
+                try {
+                    // Получаем текущую сессию
+                    const { data: { session }, error } = await supabase.auth.getSession();
+                    
+                    // Если ошибка или нет сессии, перенаправляем на страницу входа
+                    if (error || !session) {
+                        console.log("Нет активной сессии, перенаправление на страницу входа");
+                        window.location.href = "/auth/index.html";
+                        return false;
+                    }
+                    
+                    // Дополнительная проверка на истекший токен
+                    if (session.expires_at && (new Date(session.expires_at * 1000) < new Date())) {
+                        console.log("Сессия устарела, попытка обновления");
+                        const { data: { session: refreshedSession }, error: refreshError } = await supabase.auth.refreshSession();
+                        
+                        if (refreshError || !refreshedSession) {
+                            console.log("Не удалось обновить сессию, перенаправление на страницу входа");
+                            window.location.href = "/auth/index.html";
+                            return false;
+                        }
+                    }
+                    
+                    console.log("Пользователь авторизован");
+                    return true;
+                } catch (error) {
+                    console.error("Ошибка при проверке авторизации:", error);
+                    window.location.href = "/auth/index.html";
+                    return false;
+                }
+            }
             
-            // Анимация элементов при загрузке
-            const animateElements = () => {
-                const activityItems = document.querySelectorAll('.activity-item');
-                activityItems.forEach((item, index) => {
-                    setTimeout(() => {
-                        item.style.opacity = '1';
-                        item.style.transform = 'translateY(0)';
-                    }, 100 + (index * 100));
-                });
-                
-                const topicItems = document.querySelectorAll('.topic-item');
-                topicItems.forEach((item, index) => {
-                    setTimeout(() => {
-                        item.style.opacity = '1';
-                        item.style.transform = 'translateY(0)';
-                    }, 100 + (index * 100));
-                });
-            };
+            // Выполняем проверку при загрузке страницы
+            const isAuthenticated = await checkAuth();
             
-            // Запуск анимации
-            setTimeout(animateElements, 300);
+            // Если пользователь не авторизован, скрипт остановится здесь из-за перенаправления
+            if (!isAuthenticated) return;
+            
+            // Продолжаем выполнение кода только если пользователь авторизован
             
             // Мобильное меню
-            const addMobileMenuToggle = () => {
+            function addMobileMenuToggle() {
                 if (window.innerWidth <= 576 && !document.querySelector('.mobile-menu-toggle')) {
                     const menuToggle = document.createElement('button');
                     menuToggle.className = 'mobile-menu-toggle';
@@ -1611,49 +1519,250 @@
                     const header = document.querySelector('.header-content');
                     header.insertBefore(menuToggle, header.firstChild);
                 }
-            };
+            }
             
             // Инициализация мобильного меню
             addMobileMenuToggle();
             window.addEventListener('resize', addMobileMenuToggle);
             
-            // Модальное окно для начала теста
-            const modal = document.getElementById('testModal');
-            const startTestBtn = document.getElementById('startTest');
-            const cancelTestBtn = document.getElementById('cancelTest');
-            const confirmTestBtn = document.getElementById('confirmTest');
-            const closeModalBtn = document.querySelector('.modal-close');
+            // Получение данных пользователя
+            async function fetchUserProfile() {
+                try {
+                    const { data: { user } } = await supabase.auth.getUser();
+                    
+                    if (user) {
+                        // Получение профиля из таблицы profiles
+                        const { data, error } = await supabase
+                            .from('profiles')
+                            .select('username, first_name, last_name, avatar_url')
+                            .eq('id', user.id)
+                            .single();
+                        
+                        if (error) {
+                            console.error('Error fetching profile:', error);
+                            return;
+                        }
+                        
+                        // Обновляем имя пользователя в сайдбаре
+                        document.getElementById('sidebar-username').textContent = data.username;
+                        
+                        // Обновляем аватар, если есть
+                        if (data.avatar_url) {
+                            document.getElementById('sidebar-avatar').innerHTML = `<img src="${data.avatar_url}" alt="${data.username}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
+                        } else {
+                            // Используем инициалы
+                            const initials = data.first_name && data.last_name 
+                                ? `${data.first_name.charAt(0)}${data.last_name.charAt(0)}` 
+                                : data.username.substring(0, 2).toUpperCase();
+                            document.getElementById('sidebar-avatar').textContent = initials;
+                        }
+                        
+                        // Загружаем упражнения пользователя
+                        fetchUserExercises(user.id);
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                }
+            }
             
-            startTestBtn.addEventListener('click', function() {
-                modal.classList.add('active');
+            // Загрузка упражнений пользователя
+            async function fetchUserExercises(userId) {
+                try {
+                    // В реальном приложении здесь был бы запрос к базе данных для получения упражнений пользователя
+                    // Например:
+                    /*
+                    const { data, error } = await supabase
+                        .from('user_exercises')
+                        .select('*')
+                        .eq('user_id', userId);
+                        
+                    if (error) throw error;
+                    
+                    // Обрабатываем полученные данные
+                    if (data) {
+                        updateExercisesUI(data);
+                    }
+                    */
+                    
+                    // Для демонстрации используем статические данные
+                    console.log('Fetching exercises data for user ID:', userId);
+                } catch (error) {
+                    console.error('Error fetching exercises:', error);
+                }
+            }
+            
+            // Фильтры и сортировка упражнений
+            const filterTags = document.querySelectorAll('.filter-tag');
+            filterTags.forEach(tag => {
+                tag.addEventListener('click', function() {
+                    const filter = this.getAttribute('data-filter');
+                    const value = this.getAttribute('data-value');
+                    
+                    // Удаляем активный класс у всех тегов с тем же фильтром
+                    document.querySelectorAll(`.filter-tag[data-filter="${filter}"]`).forEach(t => {
+                        t.classList.remove('active');
+                    });
+                    
+                    // Добавляем активный класс выбранному тегу
+                    this.classList.add('active');
+                    
+                    // Применяем фильтр
+                    applyFilters();
+                });
             });
             
-            const closeModal = () => {
-                modal.classList.remove('active');
-            };
+            const sortDropdown = document.getElementById('sort-option');
+            sortDropdown.addEventListener('change', applyFilters);
             
-            cancelTestBtn.addEventListener('click', closeModal);
-            closeModalBtn.addEventListener('click', closeModal);
+            document.getElementById('reset-filters').addEventListener('click', resetFilters);
             
-            confirmTestBtn.addEventListener('click', function() {
-                alert('Test se načítá... Brzy bude spuštěn.');
-                closeModal();
+            function resetFilters() {
+                // Сбрасываем все фильтры на значение "Все"
+                filterTags.forEach(tag => {
+                    if (tag.getAttribute('data-value') === 'all') {
+                        tag.classList.add('active');
+                    } else {
+                        tag.classList.remove('active');
+                    }
+                });
+                
+                // Сбрасываем сортировку на "Рекомендуемые"
+                sortDropdown.value = 'recommended';
+                
+                // Применяем фильтры
+                applyFilters();
+            }
+            
+            function applyFilters() {
+                // Получаем значения выбранных фильтров
+                const subjectFilter = document.querySelector('.filter-tag[data-filter="subject"].active').getAttribute('data-value');
+                const difficultyFilter = document.querySelector('.filter-tag[data-filter="difficulty"].active').getAttribute('data-value');
+                const statusFilter = document.querySelector('.filter-tag[data-filter="status"].active').getAttribute('data-value');
+                const sortOption = sortDropdown.value;
+                
+                // В реальном приложении здесь была бы логика фильтрации и сортировки упражнений
+                console.log('Applying filters:', { subjectFilter, difficultyFilter, statusFilter, sortOption });
+            }
+            
+            // Категории упражнений - обработчики кликов
+            const categoryCards = document.querySelectorAll('.category-card');
+            categoryCards.forEach(card => {
+                card.addEventListener('click', function() {
+                    const category = this.getAttribute('data-category');
+                    
+                    // Активируем соответствующий фильтр
+                    if (category.includes('math')) {
+                        document.querySelector('.filter-tag[data-filter="subject"][data-value="math"]').click();
+                    } else if (category.includes('language')) {
+                        document.querySelector('.filter-tag[data-filter="subject"][data-value="language"]').click();
+                    } else if (category.includes('mixed')) {
+                        document.querySelector('.filter-tag[data-filter="subject"][data-value="mixed"]').click();
+                    }
+                    
+                    // Прокрутка к разделу с упражнениями
+                    document.querySelector('.recommended-section').scrollIntoView({ behavior: 'smooth' });
+                });
             });
             
-            // Закрытие модального окна при клике вне его
-            window.addEventListener('click', function(event) {
-                if (event.target === modal) {
+            // Модальное окно с деталями упражнения
+                        // Модальное окно с деталями упражнения
+            const exerciseModal = document.getElementById('exercise-modal');
+            const modalTitle = document.getElementById('modal-title');
+            const modalSubject = document.getElementById('modal-subject');
+            const modalDifficulty = document.getElementById('modal-difficulty');
+            const modalTime = document.getElementById('modal-time');
+            const modalQuestions = document.getElementById('modal-questions');
+            const modalDescription = document.getElementById('modal-description');
+            
+            // Обработчики для открытия модального окна
+            const openExerciseButtons = document.querySelectorAll('.open-exercise');
+            openExerciseButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const exerciseCard = this.closest('.exercise-card');
+                    const exerciseId = exerciseCard.getAttribute('data-id');
+                    
+                    // Заполняем модальное окно данными упражнения
+                    const title = exerciseCard.querySelector('.exercise-title').textContent;
+                    const description = exerciseCard.querySelector('.exercise-desc').textContent;
+                    const time = exerciseCard.querySelector('.exercise-time').textContent.trim();
+                    
+                    // Определяем предмет по классу значка
+                    let subject = "Neznámý";
+                    const badge = exerciseCard.querySelector('.exercise-badge');
+                    if (badge.classList.contains('math')) {
+                        subject = "Matematika";
+                    } else if (badge.classList.contains('language')) {
+                        subject = "Český jazyk";
+                    } else if (badge.classList.contains('mixed')) {
+                        subject = "Kombinované";
+                    }
+                    
+                    // Определяем сложность по количеству активных точек
+                    let difficulty = "Lehká";
+                    const activeDots = exerciseCard.querySelectorAll('.difficulty-dot.active').length;
+                    if (activeDots === 2) {
+                        difficulty = "Střední";
+                    } else if (activeDots === 3) {
+                        difficulty = "Těžká";
+                    }
+                    
+                    // Заполняем модальное окно
+                    modalTitle.textContent = title;
+                    modalSubject.textContent = subject;
+                    modalDifficulty.textContent = difficulty;
+                    modalTime.textContent = time.replace('min', 'minut');
+                    modalQuestions.textContent = Math.floor(Math.random() * 10) + 10; // В реальном приложении здесь будет реальное значение
+                    modalDescription.textContent = description;
+                    
+                    // Устанавливаем текст кнопки "Начать" в зависимости от прогресса
+                    const progressInfo = exerciseCard.querySelector('.progress-info').textContent;
+                    const startButton = document.getElementById('modal-start-btn');
+                    
+                    if (progressInfo.includes('Nezačato')) {
+                        startButton.innerHTML = '<i class="fas fa-play"></i> Začít cvičení';
+                    } else if (progressInfo.includes('100%')) {
+                        startButton.innerHTML = '<i class="fas fa-redo"></i> Opakovat cvičení';
+                    } else {
+                        startButton.innerHTML = '<i class="fas fa-play"></i> Pokračovat';
+                    }
+                    
+                    // Открываем модальное окно
+                    exerciseModal.classList.add('active');
+                    
+                    // Устанавливаем data-id для кнопки "Начать"
+                    startButton.setAttribute('data-exercise-id', exerciseId);
+                });
+            });
+            
+            // Обработчики для закрытия модального окна
+            const modalClose = document.getElementById('modal-close');
+            const modalCloseBtn = document.getElementById('modal-close-btn');
+            
+            modalClose.addEventListener('click', closeModal);
+            modalCloseBtn.addEventListener('click', closeModal);
+            
+            // Закрытие модального окна по клику вне содержимого
+            exerciseModal.addEventListener('click', function(e) {
+                if (e.target === this) {
                     closeModal();
                 }
             });
             
-            // Обработка нажатий на уведомления
-            const notifications = document.querySelector('.notifications');
-            if (notifications) {
-                notifications.addEventListener('click', function() {
-                    alert('Máte 3 nová oznámení:\n\n1. Nový test z matematiky je k dispozici\n2. Dokončili jste 7 denní sérii! Gratulujeme!\n3. Nové materiály v sekci "Přijímačkové testy"');
-                });
+            function closeModal() {
+                exerciseModal.classList.remove('active');
             }
+            
+            // Обработчик для кнопки "Начать упражнение"
+            document.getElementById('modal-start-btn').addEventListener('click', function() {
+                const exerciseId = this.getAttribute('data-exercise-id');
+                alert(`Spouštění cvičení ID: ${exerciseId}. Tato funkce bude implementována v další verzi.`);
+                closeModal();
+            });
+            
+            // Обработка нажатий на уведомления
+            document.querySelector('.notifications').addEventListener('click', function() {
+                alert('Máte 2 nová oznámení:\n\n1. Nový modul "Statistika a pravděpodobnost" je k dispozici.\n2. Získali jste nový odznak za 7 dní studia v řadě!');
+            });
             
             // Активные ссылки в сайдбаре
             const setActiveLink = () => {
@@ -1669,38 +1778,109 @@
                 });
             };
             
-            // Установка активной ссылки
-            setActiveLink();
-            
-            // Поиск
+            // Поиск упражнений
             const searchInput = document.querySelector('.search-box input');
             if (searchInput) {
                 searchInput.addEventListener('keyup', function(e) {
                     if (e.key === 'Enter') {
-                        alert('Vyhledávání bude implementováno v příští aktualizaci!');
+                        const searchTerm = this.value.trim().toLowerCase();
+                        if (searchTerm) {
+                            // Простой поиск по заголовкам упражнений
+                            const exerciseCards = document.querySelectorAll('.exercise-card');
+                            let found = false;
+                            
+                            exerciseCards.forEach(card => {
+                                const title = card.querySelector('.exercise-title').textContent.toLowerCase();
+                                if (title.includes(searchTerm)) {
+                                    card.style.display = 'block';
+                                    found = true;
+                                } else {
+                                    card.style.display = 'none';
+                                }
+                            });
+                            
+                            if (!found) {
+                                alert(`Žádné cvičení neodpovídá hledanému výrazu "${this.value}". Zkuste jiný výraz.`);
+                                exerciseCards.forEach(card => {
+                                    card.style.display = 'block';
+                                });
+                            }
+                        } else {
+                            // Если поле поиска пустое, показываем все упражнения
+                            document.querySelectorAll('.exercise-card').forEach(card => {
+                                card.style.display = 'block';
+                            });
+                        }
                     }
                 });
             }
             
-            // Клик по карточкам категорий
-            const categoryCards = document.querySelectorAll('.category-card');
-            categoryCards.forEach(card => {
-                card.addEventListener('click', function() {
-                    const category = this.classList.contains('math') ? 'matematiky' : 
-                                     this.classList.contains('lang') ? 'českého jazyka' : 'speciálních tréninků';
-                    alert(`Přecházíte na kompletní seznam cvičení z ${category}`);
+            // Инициализация темной темы, если она включена в браузере
+            if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                document.body.classList.add('dark-mode');
+            }
+            
+            // Обновление при изменении темы в системе
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(e) {
+                if (e.matches) {
+                    document.body.classList.add('dark-mode');
+                } else {
+                    document.body.classList.remove('dark-mode');
+                }
+            });
+            
+            // Эффекты hover для карточек упражнений
+            const exerciseCards = document.querySelectorAll('.exercise-card');
+            exerciseCards.forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-10px)';
+                });
+                
+                card.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(-5px)';
                 });
             });
             
-            // Клик по кнопкам запуска упражнений
-            const startButtons = document.querySelectorAll('.btn-start:not(#startTest)');
-            startButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    const exerciseTitle = this.closest('.exercise-card').querySelector('.exercise-title').textContent;
-                    alert(`Spouštím cvičení: ${exerciseTitle}`);
-                });
+            // Обработчик клавиш ESC для закрытия модального окна
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && exerciseModal.classList.contains('active')) {
+                    closeModal();
+                }
             });
+            
+            // Установка активной ссылки
+            setActiveLink();
+            
+            // Вызываем функцию для получения данных пользователя
+            fetchUserProfile();
+            
+            // Определить текущую дату для персонализации
+            const now = new Date("2025-03-21 17:35:46");
+            const formattedDate = `${now.getDate()}. ${now.getMonth() + 1}. ${now.getFullYear()}`;
+            
+            // Отображение текущего пользователя
+            const currentUsername = "Maksys234";
+            
+            // Анимация прогресс-баров при прокрутке
+            const animateProgressOnScroll = () => {
+                const cards = document.querySelectorAll('.exercise-card');
+                cards.forEach(card => {
+                    const rect = card.getBoundingClientRect();
+                    const isVisible = rect.top < window.innerHeight && rect.bottom >= 0;
+                    
+                    if (isVisible) {
+                        card.style.opacity = '1';
+                        card.style.transform = 'translateY(0)';
+                    }
+                });
+            };
+            
+            // Запускаем анимацию при прокрутке
+            window.addEventListener('scroll', animateProgressOnScroll);
+            
+            // Первоначальный вызов анимации
+            setTimeout(animateProgressOnScroll, 300);
         });
     </script>
 </body>
-</html>
+</html> 
