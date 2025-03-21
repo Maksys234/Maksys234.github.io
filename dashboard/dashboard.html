@@ -1,22 +1,20 @@
 <!DOCTYPE html>
-<html lang="cs">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Justax - Dashboard</title>
-    <!-- Подключаем шрифты напрямую -->
+    <title>Justax Dashboard</title>
+    <!-- Připojení fontů -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Font Awesome через CDN -->
+    <!-- Font Awesome CDN -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Chart.js для графиков -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Supabase JS Client -->
+    <!-- Supabase JS client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <style>
-        /* Базовые стили */
+        /* Bazové styly */
         * {
             margin: 0;
             padding: 0;
@@ -60,7 +58,7 @@
             overflow-x: hidden;
         }
 
-        /* Сайдбар */
+        /* Sidebar */
         .sidebar {
             width: var(--sidebar-width);
             height: 100vh;
@@ -175,7 +173,7 @@
             opacity: 0.8;
         }
 
-        /* Основной контент */
+        /* Hlavní obsah */
         main {
             flex: 1;
             margin-left: var(--sidebar-width);
@@ -265,113 +263,99 @@
             font-weight: 600;
         }
 
-        /* Основное содержание */
+        /* Hlavní obsah */
         .main-content {
             display: grid;
             gap: 1.75rem;
         }
 
-        .welcome-card {
-            background-color: var(--white);
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 1.25rem;
+            color: var(--dark);
+        }
+
+        /* Uvítací banner */
+        .welcome-banner {
+            background: var(--gradient-2);
             border-radius: var(--card-radius);
-            padding: 1.5rem;
-            box-shadow: var(--shadow-sm);
+            box-shadow: var(--shadow-md);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .welcome-content {
             display: flex;
-            align-items: center;
             justify-content: space-between;
-            margin-bottom: 1.75rem;
+            align-items: center;
+            padding: 2.5rem 3rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .welcome-text-content {
+            max-width: 60%;
+            color: var(--white);
+        }
+
+        .welcome-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
         }
 
         .welcome-text {
-            flex-grow: 1;
-        }
-
-        .welcome-text h2 {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: var(--dark);
-            margin-bottom: 0.5rem;
-        }
-
-        .welcome-text p {
-            color: var(--text-secondary);
             font-size: 1rem;
-            max-width: 80%;
+            margin-bottom: 1.5rem;
+            opacity: 0.9;
+            line-height: 1.6;
         }
 
-        .welcome-actions {
-            margin-top: 1rem;
-        }
-
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            padding: 0.75rem 1.5rem;
-            border-radius: 12px;
-            font-weight: 500;
-            font-size: 0.95rem;
-            text-decoration: none;
-            transition: all 0.3s ease;
-            cursor: pointer;
-            border: none;
-        }
-
-        .btn-primary {
-            background: var(--gradient-1);
-            color: white;
-            box-shadow: 0 4px 12px rgba(67, 97, 238, 0.2);
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 16px rgba(67, 97, 238, 0.25);
-        }
-
-        .btn-outline {
-            background: transparent;
+        .welcome-button {
+            background-color: var(--white);
             color: var(--primary);
-            box-shadow: 0 0 0 1px var(--primary) inset;
+            border: none;
+            border-radius: 12px;
+            padding: 0.75rem 1.5rem;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         }
 
-        .btn-outline:hover {
-            background-color: rgba(67, 97, 238, 0.05);
+        .welcome-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
         }
 
-        .btn i {
-            margin-right: 0.5rem;
-        }
-
-        .welcome-illustration {
+        .welcome-image {
+            width: 300px;
+            height: 200px;
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 220px;
-            height: 180px;
-            overflow: hidden;
         }
 
-        .welcome-illustration img {
+        .welcome-image img {
             max-width: 100%;
             max-height: 100%;
-            object-fit: contain;
         }
 
-        /* Статистические карточки */
-        .stats-overview {
+        /* Statistické karty */
+        .stat-cards {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 1.5rem;
-            margin-bottom: 1.75rem;
         }
 
         .stat-card {
             background-color: var(--white);
             border-radius: var(--card-radius);
-            padding: 1.5rem;
             box-shadow: var(--shadow-sm);
+            overflow: hidden;
             transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
         }
 
         .stat-card:hover {
@@ -379,347 +363,243 @@
             box-shadow: var(--shadow-md);
         }
 
-        .stat-icon {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            margin-right: 1.25rem;
+        .stat-card-content {
             display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .stat-icon i {
-            font-size: 1.5rem;
-            color: var(--white);
-        }
-
-        .stat-icon.blue {
-            background: linear-gradient(135deg, #4895ef, #3a0ca3);
-        }
-
-        .stat-icon.purple {
-            background: linear-gradient(135deg, #7209b7, #560bad);
-        }
-
-        .stat-icon.pink {
-            background: linear-gradient(135deg, #f72585, #b5179e);
-        }
-
-        .stat-icon.orange {
-            background: linear-gradient(135deg, #fb5607, #ff006e);
-        }
-
-        .stat-info h3 {
-            font-size: 1.75rem;
-            font-weight: 700;
-            color: var(--dark);
-            margin-bottom: 0.25rem;
-        }
-
-        .stat-info p {
-            color: var(--text-secondary);
-            font-size: 0.95rem;
-            font-weight: 500;
-        }
-
-        /* Контейнер для чартов */
-        .chart-container {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1.75rem;
-            margin-bottom: 1.75rem;
-        }
-
-        .chart-card {
-            background-color: var(--white);
-            border-radius: var(--card-radius);
-            box-shadow: var(--shadow-sm);
             padding: 1.5rem;
-            transition: all 0.3s ease;
-            /* Добавляем явный дополнительный размер для контейнера чарта */
-            height: 320px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .chart-card:hover {
-            box-shadow: var(--shadow-md);
-        }
-
-        .chart-header {
-            display: flex;
+            align-items: center;
             justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.25rem;
         }
 
-        .chart-title {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: var(--dark);
-        }
-
-        .chart-canvas-container {
-            height: 250px;
-            width: 100%;
-            position: relative;
-        }
-
-        .chart-canvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100% !important;
-            height: 100% !important;
-        }
-
-        /* Расписание и задачи */
-        .tasks-schedule {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1.75rem;
-            margin-bottom: 1.75rem;
-        }
-
-        .tasks-card {
-            background-color: var(--white);
-            border-radius: var(--card-radius);
-            box-shadow: var(--shadow-sm);
-            padding: 1.5rem;
-            overflow: hidden;
-        }
-
-        .section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.25rem;
-        }
-
-        .section-title {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: var(--dark);
-        }
-
-        .view-all {
-            font-size: 0.9rem;
-            color: var(--primary);
-            text-decoration: none;
-            font-weight: 500;
-            transition: all 0.2s ease;
-        }
-
-        .view-all:hover {
-            color: var(--secondary);
-            text-decoration: underline;
-        }
-
-        .task-list {
-            list-style: none;
-        }
-
-        .task-item {
-            padding: 1rem 0;
-            border-bottom: 1px solid var(--gray-light);
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .task-item:last-child {
-            border-bottom: none;
-            padding-bottom: 0;
-        }
-
-        .task-checkbox {
-            width: 22px;
-            height: 22px;
-            border-radius: 4px;
-            border: 2px solid var(--gray-light);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            flex-shrink: 0;
-        }
-
-        .task-checkbox.completed {
-            background-color: var(--primary);
-            border-color: var(--primary);
-        }
-
-        .task-checkbox.completed i {
-            color: var(--white);
-            font-size: 0.8rem;
-        }
-
-        .task-content {
+        .stat-card-info {
             flex-grow: 1;
         }
 
-        .task-title {
-            font-size: 0.95rem;
-            font-weight: 500;
-            color: var(--dark);
-            transition: all 0.2s ease;
-        }
-
-        .task-date {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            margin-top: 0.25rem;
-        }
-
-        .task-item.completed .task-title {
-            text-decoration: line-through;
-            color: var(--text-muted);
-        }
-
-        /* Расписание */
-        .schedule-item {
-            padding: 1rem;
-            margin-bottom: 1rem;
-            border-radius: 12px;
-            position: relative;
-        }
-
-        .schedule-item::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 0;
-            bottom: 0;
-            width: 4px;
-            border-radius: 2px;
-        }
-
-        .schedule-item.math {
-            background-color: rgba(76, 201, 240, 0.1);
-        }
-
-        .schedule-item.math::before {
-            background-color: var(--info);
-        }
-
-        .schedule-item.language {
-            background-color: rgba(247, 37, 133, 0.1);
-        }
-
-        .schedule-item.language::before {
-            background-color: var(--danger);
-        }
-
-        .schedule-time {
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: var(--text-secondary);
-            margin-bottom: 0.5rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .schedule-time i {
-            color: var(--text-muted);
-            font-size: 0.8rem;
-        }
-
-        .schedule-title {
+        .stat-card-title {
             font-size: 1rem;
             font-weight: 500;
-            color: var(--dark);
-            margin-bottom: 0.25rem;
-        }
-
-        .schedule-desc {
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-        }
-
-        /* Новости и обновления */
-        .updates-section {
-            margin-bottom: 1.75rem;
-        }
-
-        .updates-card {
-            background-color: var(--white);
-            border-radius: var(--card-radius);
-            box-shadow: var(--shadow-sm);
-            padding: 1.5rem;
-        }
-
-        .update-list {
-            list-style: none;
-        }
-
-        .update-item {
-            padding: 1.25rem 0;
-            border-bottom: 1px solid var(--gray-light);
-            display: flex;
-            gap: 1rem;
-        }
-
-        .update-item:last-child {
-            border-bottom: none;
-            padding-bottom: 0;
-        }
-
-        .update-icon {
-            width: 48px;
-            height: 48px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--white);
-            flex-shrink: 0;
-        }
-
-        .update-icon.new-exercise {
-            background-color: var(--info);
-        }
-
-        .update-icon.important {
-            background-color: var(--danger);
-        }
-
-        .update-icon.achievement {
-            background-color: var(--warning);
-        }
-
-        .update-content {
-            flex-grow: 1;
-        }
-
-        .update-title {
-            font-size: 1rem;
-            font-weight: 500;
-            color: var(--dark);
-            margin-bottom: 0.25rem;
-        }
-
-        .update-desc {
-            font-size: 0.9rem;
             color: var(--text-secondary);
             margin-bottom: 0.75rem;
         }
 
-        .update-time {
-            font-size: 0.8rem;
+        .stat-card-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-card-change {
+            font-size: 0.85rem;
             color: var(--text-muted);
+        }
+
+        .stat-card-change.positive {
+            color: #10b981;
+        }
+
+        .stat-card-change.negative {
+            color: var(--danger);
+        }
+
+        .stat-card-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: var(--white);
         }
 
-        .update-time i {
-            font-size: 0.75rem;
+        .progress-icon {
+            background: linear-gradient(135deg, #4cc9f0, #4361ee);
         }
 
-        /* Футер */
+        .points-icon {
+            background: linear-gradient(135deg, #f8961e, #f3722c);
+        }
+
+        .streak-icon {
+            background: linear-gradient(135deg, #f72585, #b5179e);
+        }
+
+        .stat-card-footer {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid var(--gray-light);
+        }
+
+        .stat-card-footer a {
+            display: block;
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+
+        .stat-card-footer a i {
+            margin-left: 0.5rem;
+            transition: transform 0.2s ease;
+        }
+
+        .stat-card-footer a:hover i {
+            transform: translateX(3px);
+        }
+
+        /* Zkratky */
+        .shortcut-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .shortcut-card {
+            background-color: var(--white);
+            border-radius: var(--card-radius);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-sm);
+            text-decoration: none;
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            border: 1px solid transparent;
+        }
+
+        .shortcut-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-md);
+            border-color: var(--primary-light);
+        }
+
+        .shortcut-icon {
+            width: 70px;
+            height: 70px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.75rem;
+            margin-bottom: 1rem;
+            background-color: #f0f5ff;
+            color: var(--primary);
+            transition: all 0.3s ease;
+        }
+
+        .shortcut-card:hover .shortcut-icon {
+            background-color: var(--primary);
+            color: var(--white);
+        }
+
+        .shortcut-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--dark);
+        }
+
+        .shortcut-desc {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        /* Nedávné aktivity */
+        .activity-list {
+            background-color: var(--white);
+            border-radius: var(--card-radius);
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
+        }
+
+        .activity-item {
+            display: flex;
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--gray-light);
+            transition: background-color 0.2s ease;
+        }
+
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+
+        .activity-item:hover {
+            background-color: #f8faff;
+        }
+
+        .activity-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-right: 1rem;
+            color: white;
+        }
+
+        .activity-icon.completed {
+            background: linear-gradient(135deg, #10b981, #059669);
+        }
+
+        .activity-icon.badge {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+        }
+
+        .activity-icon.streak {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+        }
+
+        .activity-content {
+            flex-grow: 1;
+        }
+
+        .activity-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+            color: var(--dark);
+        }
+
+        .activity-desc {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.25rem;
+        }
+
+        .activity-time {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .view-all-link {
+            display: block;
+            text-align: center;
+            padding: 1rem;
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+            background-color: var(--white);
+            border-radius: 0 0 var(--card-radius) var(--card-radius);
+            box-shadow: var(--shadow-sm);
+            margin-top: 1rem;
+            transition: all 0.2s ease;
+        }
+
+        .view-all-link i {
+            margin-left: 0.5rem;
+            transition: transform 0.2s ease;
+        }
+
+        .view-all-link:hover i {
+            transform: translateX(3px);
+        }
+
+        /* Patička */
         .dashboard-footer {
             margin-top: 2rem;
             padding: 1.5rem 0;
@@ -728,38 +608,45 @@
             font-size: 0.9rem;
         }
 
-        /* Добавляем стиль для индикатора загрузки */
-        .loading-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgba(255, 255, 255, 0.7);
+        /* Nahrávací indikátor */
+        .loading {
             display: flex;
-            align-items: center;
             justify-content: center;
-            z-index: 9999;
+            align-items: center;
+            padding: 2rem;
+            font-size: 1rem;
+            color: var(--text-muted);
         }
 
-        .loading-spinner {
-            width: 50px;
-            height: 50px;
-            border: 5px solid var(--primary-light);
-            border-top-color: var(--primary);
+        .loading::after {
+            content: "";
+            width: 20px;
+            height: 20px;
+            margin-left: 15px;
+            border: 2px solid var(--primary);
             border-radius: 50%;
-            animation: spin 1s infinite linear;
+            border-top-color: transparent;
+            animation: loading-spinner 0.8s linear infinite;
         }
 
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        @keyframes loading-spinner {
+            to {
+                transform: rotate(360deg);
+            }
         }
 
-        /* Медиа-запросы для адаптивности */
+        /* Media queries pro responzivní design */
         @media (max-width: 1200px) {
-            .chart-container, .tasks-schedule {
-                grid-template-columns: 1fr;
+            .welcome-content {
+                padding: 2rem;
+            }
+            
+            .welcome-text-content {
+                max-width: 100%;
+            }
+            
+            .welcome-image {
+                display: none;
             }
         }
 
@@ -797,10 +684,6 @@
             .search-box input {
                 width: 200px;
             }
-            
-            .welcome-text p {
-                max-width: 100%;
-            }
         }
 
         @media (max-width: 768px) {
@@ -823,27 +706,12 @@
                 width: 100%;
             }
             
-            .stats-overview {
+            .stat-cards, .shortcut-grid {
                 grid-template-columns: 1fr;
             }
             
-            .welcome-card {
-                flex-direction: column;
-                text-align: center;
-            }
-            
-            .welcome-text {
-                margin-bottom: 1.5rem;
-            }
-            
-            .welcome-text p {
-                max-width: 100%;
-            }
-            
-            .welcome-illustration {
-                width: 180px;
-                height: 150px;
-                margin-top: 1rem;
+            .welcome-button {
+                width: 100%;
             }
         }
 
@@ -856,32 +724,28 @@
                 transform: translateX(-100%);
             }
             
-            main {
-                margin-left: 0;
-                width: 100%;
-            }
-            
             .search-box {
                 display: none;
             }
-            
-            .mobile-menu-toggle {
-                display: block;
-            }
         }
 
-        /* Мобильное меню */
-        .mobile-menu-toggle {
-            display: none;
-            background: none;
-            border: none;
-            cursor: pointer;
-            color: var(--dark);
-            font-size: 1.5rem;
-            margin-right: 1rem;
+        /* Animace a efekty */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Темный режим */
+        .main-content > section {
+            animation: fadeIn 0.6s ease forwards;
+        }
+
+        .stat-cards, .shortcut-grid, .activity-list {
+            opacity: 0;
+            animation: fadeIn 0.6s ease forwards;
+            animation-delay: 0.2s;
+        }
+
+        /* Tmavý režim */
         @media (prefers-color-scheme: dark) {
             :root {
                 --white: #1a202c;
@@ -907,35 +771,23 @@
                 color: #a0aec0;
             }
             
-            .schedule-item.math {
-                background-color: rgba(76, 201, 240, 0.15);
+            .welcome-button {
+                background-color: #2d3748;
+                color: #4cc9f0;
             }
             
-            .schedule-item.language {
-                background-color: rgba(247, 37, 133, 0.15);
+            .shortcut-icon {
+                background-color: #2d3748;
             }
             
-            .task-checkbox {
-                border-color: #4a5568;
-            }
-            
-            .btn-outline {
-                box-shadow: 0 0 0 1px var(--primary) inset;
-            }
-
-            .loading-overlay {
-                background-color: rgba(23, 25, 35, 0.7);
+            .activity-item:hover {
+                background-color: #1e2533;
             }
         }
     </style>
 </head>
 <body>
-    <!-- Индикатор загрузки -->
-    <div class="loading-overlay" id="loadingOverlay">
-        <div class="loading-spinner"></div>
-    </div>
-
-    <!-- Сайдбар -->
+    <!-- Sidebar -->
     <aside class="sidebar">
         <div class="sidebar-header">
             <a href="/" class="sidebar-logo">
@@ -946,37 +798,37 @@
         
         <ul class="sidebar-menu">
             <li class="sidebar-item">
-                <a href="dashboard.html" class="sidebar-link active">
+                <a href="/dashboard.html" class="sidebar-link active" id="dashboard-link">
                     <i class="fas fa-th-large"></i>
                     <span>Dashboard</span>
                 </a>
             </li>
             <li class="sidebar-item">
-                <a href="procvicovani.html" class="sidebar-link">
+                <a href="/dashboard/procvicovani.html" class="sidebar-link">
                     <i class="fas fa-book-open"></i>
                     <span>Procvičování</span>
                 </a>
             </li>
             <li class="sidebar-item">
-                <a href="pokrok.html" class="sidebar-link">
+                <a href="/dashboard/pokrok.html" class="sidebar-link">
                     <i class="fas fa-chart-line"></i>
                     <span>Pokrok</span>
                 </a>
             </li>
             <li class="sidebar-item">
-                <a href="oceneni.html" class="sidebar-link">
+                <a href="/dashboard/oceneni.html" class="sidebar-link">
                     <i class="fas fa-medal"></i>
                     <span>Ocenění</span>
                 </a>
             </li>
             <li class="sidebar-item">
-                <a href="materialy.html" class="sidebar-link">
+                <a href="/dashboard/materialy.html" class="sidebar-link">
                     <i class="fas fa-file-alt"></i>
                     <span>Materiály</span>
                 </a>
             </li>
             <li class="sidebar-item">
-                <a href="profile.html" class="sidebar-link">
+                <a href="/dashboard/profile.html" class="sidebar-link">
                     <i class="fas fa-user-cog"></i>
                     <span>Profil</span>
                 </a>
@@ -984,10 +836,10 @@
         </ul>
         
         <div class="user-profile">
-            <div class="user-avatar" id="sidebar-avatar">MS</div>
+            <div class="user-avatar" id="user-avatar">MS</div>
             <div class="user-info">
-                <div class="user-name" id="sidebar-username">Maksys234</div>
-                <div class="user-role">Student</div>
+                <div class="user-name" id="user-name">Načítání...</div>
+                <div class="user-role" id="user-role">Student</div>
             </div>
         </div>
         
@@ -996,7 +848,7 @@
         </div>
     </aside>
     
-    <main id="mainContent" style="display: none;">
+    <main>
         <header class="dashboard-header">
             <div class="header-content">
                 <h1>Dashboard</h1>
@@ -1007,230 +859,87 @@
                     </div>
                     <div class="notifications">
                         <i class="fas fa-bell"></i>
-                        <span class="notification-badge">3</span>
+                        <span class="notification-badge" id="notification-count">0</span>
                     </div>
                 </div>
             </div>
         </header>
         
         <div class="main-content">
-            <!-- Приветственная карточка -->
-            <div class="welcome-card">
-                <div class="welcome-text">
-                    <h2>Vítejte zpět, <span id="welcome-name">Maksys234</span>!</h2>
-                    <p>Pokračujte tam, kde jste skončili. Máte dokončeno 65% úloh z matematiky a 72% z českého jazyka.</p>
-                    <div class="welcome-actions">
-                        <a href="procvicovani.html" class="btn btn-primary">
-                            <i class="fas fa-play"></i> Pokračovat v učení
-                        </a>
-                        <a href="pokrok.html" class="btn btn-outline">
-                            <i class="fas fa-chart-line"></i> Zobrazit pokrok
-                        </a>
+            <section class="welcome-banner">
+                <div class="welcome-content">
+                    <div class="welcome-text-content">
+                        <h2 class="welcome-title">Vítejte ve vašem Dashboardu</h2>
+                        <p class="welcome-text">Zde můžete spravovat nastavení profilu, sledovat svůj pokrok a procvičovat své dovednosti.</p>
+                        <button class="welcome-button" id="start-practice-btn">Začít procvičovat</button>
+                    </div>
+                    <div class="welcome-image">
+                        <!-- SVG ilustrace -->
+                        <svg width="300" height="200" viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
+                            <rect x="400" y="300" width="300" height="200" rx="20" fill="#ffffff" opacity="0.1"/>
+                            <rect x="430" y="330" width="240" height="40" rx="8" fill="#ffffff" opacity="0.2"/>
+                            <rect x="430" y="390" width="240" height="80" rx="8" fill="#ffffff" opacity="0.2"/>
+                            <circle cx="250" cy="300" r="150" fill="#ffffff" opacity="0.1"/>
+                            <path d="M200,300 Q250,200 300,300 T400,300" stroke="#ffffff" stroke-width="8" fill="none" opacity="0.3"/>
+                            <path d="M180,350 L320,350" stroke="#ffffff" stroke-width="8" stroke-linecap="round" opacity="0.3"/>
+                            <path d="M200,380 L300,380" stroke="#ffffff" stroke-width="8" stroke-linecap="round" opacity="0.3"/>
+                        </svg>
                     </div>
                 </div>
-                <div class="welcome-illustration">
-                    <img src="https://cdn-icons-png.flaticon.com/512/4945/4945642.png" alt="Student learning">
-                </div>
-            </div>
+            </section>
             
-            <!-- Статистические карточки -->
-            <div class="stats-overview">
-                <div class="stat-card">
-                    <div class="stat-icon blue">
-                        <i class="fas fa-tasks"></i>
-                    </div>
-                    <div class="stat-info">
-                        <h3>42</h3>
-                        <p>Dokončená cvičení</p>
-                    </div>
-                </div>
+            <section class="dashboard-overview">
+                <h2 class="section-title">Přehled činností</h2>
                 
-                <div class="stat-card">
-                    <div class="stat-icon purple">
-                        <i class="fas fa-clock"></i>
-                    </div>
-                    <div class="stat-info">
-                        <h3>28h</h3>
-                        <p>Celkový čas studia</p>
-                    </div>
+                <div class="stat-cards" id="stats-container">
+                    <div class="loading">Načítání statistik...</div>
                 </div>
-                
-                <div class="stat-card">
-                    <div class="stat-icon pink">
-                        <i class="fas fa-fire"></i>
-                    </div>
-                    <div class="stat-info">
-                        <h3>7</h3>
-                        <p>Aktuální série (dní)</p>
-                    </div>
-                </div>
-                
-                <div class="stat-card">
-                    <div class="stat-icon orange">
-                        <i class="fas fa-star"></i>
-                    </div>
-                    <div class="stat-info">
-                        <h3>78%</h3>
-                        <p>Průměrné skóre</p>
-                    </div>
-                </div>
-            </div>
+            </section>
             
-            <!-- Графики прогресса -->
-            <div class="chart-container">
-                <div class="chart-card">
-                    <div class="chart-header">
-                        <h3 class="chart-title">Pokrok podle předmětů</h3>
-                    </div>
-                    <div class="chart-canvas-container">
-                        <canvas id="subjectsChart" class="chart-canvas"></canvas>
-                    </div>
-                </div>
-                
-                <div class="chart-card">
-                    <div class="chart-header">
-                        <h3 class="chart-title">Týdenní aktivita</h3>
-                    </div>
-                    <div class="chart-canvas-container">
-                        <canvas id="activityChart" class="chart-canvas"></canvas>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Задачи и расписание -->
-            <div class="tasks-schedule">
-                <div class="tasks-card">
-                    <div class="section-header">
-                        <h3 class="section-title">Aktuální úkoly</h3>
-                        <a href="#" class="view-all">Zobrazit vše</a>
-                    </div>
-                    
-                    <ul class="task-list">
-                        <li class="task-item">
-                            <div class="task-checkbox completed">
-                                <i class="fas fa-check"></i>
-                            </div>
-                            <div class="task-content">
-                                <h4 class="task-title">Dokončit cvičení z algebry</h4>
-                                <p class="task-date">Včera, 15:30</p>
-                            </div>
-                        </li>
-                        
-                        <li class="task-item">
-                            <div class="task-checkbox"></div>
-                            <div class="task-content">
-                                <h4 class="task-title">Přečíst text a odpovědět na otázky</h4>
-                                <p class="task-date">Dnes, 18:00</p>
-                            </div>
-                        </li>
-                        
-                        <li class="task-item">
-                            <div class="task-checkbox"></div>
-                            <div class="task-content">
-                                <h4 class="task-title">Procvičit kvadratické rovnice</h4>
-                                <p class="task-date">Zítra, 14:00</p>
-                            </div>
-                        </li>
-                        
-                        <li class="task-item">
-                            <div class="task-checkbox"></div>
-                            <div class="task-content">
-                                <h4 class="task-title">Připravit se na test z pravopisu</h4>
-                                <p class="task-date">22. března 2025</p>
-                            </div>
-                        </li>
-                    </ul>
-                </div>
-                
-                <div class="tasks-card">
-                    <div class="section-header">
-                        <h3 class="section-title">Plán na tento týden</h3>
-                        <a href="#" class="view-all">Zobrazit vše</a>
-                    </div>
-                    
-                    <div class="schedule-list">
-                        <div class="schedule-item math">
-                            <div class="schedule-time">
-                                <i class="far fa-calendar"></i>
-                                <span>Dnes, 17:00 - 18:30</span>
-                            </div>
-                            <h4 class="schedule-title">Algebraické výrazy</h4>
-                            <p class="schedule-desc">Rozklady, úpravy a zjednodušování výrazů</p>
+            <section class="shortcut-section">
+                <h2 class="section-title">Rychlé přístupy</h2>
+                <div class="shortcut-grid">
+                    <a href="/dashboard/profile.html" class="shortcut-card">
+                        <div class="shortcut-icon">
+                            <i class="fas fa-user-cog"></i>
                         </div>
-                        
-                        <div class="schedule-item language">
-                            <div class="schedule-time">
-                                <i class="far fa-calendar"></i>
-                                <span>Zítra, 16:00 - 17:30</span>
-                            </div>
-                            <h4 class="schedule-title">Porozumění textu</h4>
-                            <p class="schedule-desc">Práce s odbornými texty a jejich analýza</p>
-                        </div>
-                        
-                        <div class="schedule-item math">
-                            <div class="schedule-time">
-                                <i class="far fa-calendar"></i>
-                                <span>23. března, 15:00 - 16:30</span>
-                            </div>
-                            <h4 class="schedule-title">Kvadratické rovnice</h4>
-                            <p class="schedule-desc">Řešení rovnic a slovních úloh</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Новости и обновления -->
-            <section class="updates-section">
-                <div class="updates-card">
-                    <div class="section-header">
-                        <h3 class="section-title">Novinky a oznámení</h3>
-                        <a href="#" class="view-all">Zobrazit vše</a>
-                    </div>
+                        <h3 class="shortcut-title">Nastavení profilu</h3>
+                        <p class="shortcut-desc">Spravujte své osobní údaje a preference</p>
+                    </a>
                     
-                    <ul class="update-list">
-                        <li class="update-item">
-                            <div class="update-icon new-exercise">
-                                <i class="fas fa-book"></i>
-                            </div>
-                            <div class="update-content">
-                                <h4 class="update-title">Nový modul: Statistika a pravděpodobnost</h4>
-                                <p class="update-desc">Prozkoumejte základní koncepty statistiky a pravděpodobnosti s novými interaktivními cvičeními.</p>
-                                <div class="update-time">
-                                    <i class="far fa-clock"></i>
-                                    <span>Dnes, 10:15</span>
-                                </div>
-                            </div>
-                        </li>
-                        
-                        <li class="update-item">
-                            <div class="update-icon important">
-                                <i class="fas fa-exclamation-circle"></i>
-                            </div>
-                            <div class="update-content">
-                                <h4 class="update-title">Důležité: Přidány nové testové úlohy</h4>
-                                <p class="update-desc">Rozšířili jsme databázi testových úloh pro přípravu na přijímací zkoušky.</p>
-                                <div class="update-time">
-                                    <i class="far fa-clock"></i>
-                                    <span>Včera, 14:30</span>
-                                </div>
-                            </div>
-                        </li>
-                        
-                        <li class="update-item">
-                            <div class="update-icon achievement">
-                                <i class="fas fa-trophy"></i>
-                            </div>
-                            <div class="update-content">
-                                <h4 class="update-title">Získali jste nové ocenění!</h4>
-                                <p class="update-desc">Gratulujeme! Získali jste ocenění "7 dní v řadě" za každodenní aktivitu.</p>
-                                <div class="update-time">
-                                    <i class="far fa-clock"></i>
-                                    <span>20. března 2025</span>
-                                </div>
-                            </div>
-                        </li>
-                    </ul>
+                    <a href="/dashboard/pokrok.html" class="shortcut-card">
+                        <div class="shortcut-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <h3 class="shortcut-title">Pokrok</h3>
+                        <p class="shortcut-desc">Sledujte svoje učení a výkon</p>
+                    </a>
+                    
+                    <a href="/dashboard/procvicovani.html" class="shortcut-card">
+                        <div class="shortcut-icon">
+                            <i class="fas fa-book-open"></i>
+                        </div>
+                        <h3 class="shortcut-title">Procvičování</h3>
+                        <p class="shortcut-desc">Zlepšete své dovednosti pomocí cvičení</p>
+                    </a>
+                    
+                    <a href="/dashboard/oceneni.html" class="shortcut-card">
+                        <div class="shortcut-icon">
+                            <i class="fas fa-medal"></i>
+                        </div>
+                        <h3 class="shortcut-title">Ocenění</h3>
+                        <p class="shortcut-desc">Zobrazit získané odznaky a úspěchy</p>
+                    </a>
                 </div>
+            </section>
+            
+            <section class="recent-activity">
+                <h2 class="section-title">Nedávné aktivity</h2>
+                <div class="activity-list" id="activity-container">
+                    <div class="loading">Načítání aktivit...</div>
+                </div>
+                
+                <a href="/dashboard/aktivity.html" class="view-all-link">Zobrazit všechny aktivity <i class="fas fa-arrow-right"></i></a>
             </section>
         </div>
         
@@ -1240,308 +949,285 @@
     </main>
     
     <script>
-        // Инициализация Supabase клиента
-        const SUPABASE_URL = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10';
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        
-        document.addEventListener('DOMContentLoaded', async function() {
-            // Проверка авторизации - необходимо добавить в начало каждого скрипта дашборда
-            async function checkAuth() {
-                try {
-                    // Получаем текущую сессию с принудительной проверкой токена
-                    const { data: { session }, error } = await supabase.auth.getSession();
-                    
-                    // Если ошибка или нет сессии, перенаправляем на страницу входа
-                    if (error || !session) {
-                        console.log("Нет активной сессии, перенаправление на страницу входа");
-                        // Используем абсолютный путь для перенаправления
-                        window.location.href = "/auth/index.html";
-                        return false;
-                    }
-                    
-                    // Дополнительная проверка на истекший токен
-                    if (session.expires_at && (new Date(session.expires_at * 1000) < new Date())) {
-                        console.log("Сессия устарела, попытка обновления");
-                        const { data: { session: refreshedSession }, error: refreshError } = await supabase.auth.refreshSession();
-                        
-                        if (refreshError || !refreshedSession) {
-                            console.log("Не удалось обновить сессию, перенаправление на страницу входа");
-                            window.location.href = "/auth/index.html";
-                            return false;
-                        }
-                    }
-                    
-                    // Обязательная проверка данных пользователя
-                    const { data: { user }, error: userError } = await supabase.auth.getUser();
-                    if (userError || !user) {
-                        console.log("Пользователь не авторизован");
-                        window.location.href = "/auth/index.html";
-                        return false;
-                    }
-                    
-                    console.log("Пользователь авторизован:", user.email);
-                    return true;
-                } catch (error) {
-                    console.error("Ошибка при проверке авторизации:", error);
-                    window.location.href = "/auth/index.html";
-                    return false;
-                }
-            }
-            
-            // Выполняем проверку при загрузке страницы
-            const isAuthenticated = await checkAuth();
-            
-            // Если пользователь не авторизован, скрипт остановится здесь из-за перенаправления
-            if (!isAuthenticated) {
-                console.log("Перенаправление на страницу входа...");
-                window.location.href = "/auth/index.html";
-                return;
-            }
-            
-            // Показываем контент только после успешной авторизации
-            document.getElementById('mainContent').style.display = 'block';
-            document.getElementById('loadingOverlay').style.display = 'none';
-            
-            // Мобильное меню
-            function addMobileMenuToggle() {
-                if (window.innerWidth <= 576 && !document.querySelector('.mobile-menu-toggle')) {
-                    const menuToggle = document.createElement('button');
-                    menuToggle.className = 'mobile-menu-toggle';
-                    menuToggle.innerHTML = '<i class="fas fa-bars"></i>';
-                    
-                    menuToggle.addEventListener('click', function() {
-                        const sidebar = document.querySelector('.sidebar');
-                        const main = document.querySelector('main');
-                        
-                        if (sidebar.style.transform === 'translateX(0px)') {
-                            sidebar.style.transform = 'translateX(-100%)';
-                            main.style.marginLeft = '0';
-                            this.innerHTML = '<i class="fas fa-bars"></i>';
-                        } else {
-                            sidebar.style.transform = 'translateX(0)';
-                            main.style.marginLeft = 'var(--sidebar-width)';
-                            this.innerHTML = '<i class="fas fa-times"></i>';
-                        }
-                    });
-                    
-                    const header = document.querySelector('.header-content');
-                    header.insertBefore(menuToggle, header.firstChild);
-                }
-            }
-            
-            // Инициализация мобильного меню
-            addMobileMenuToggle();
-            window.addEventListener('resize', addMobileMenuToggle);
-            
-            // Получение данных пользователя (имя для приветствия)
-            async function fetchUserProfile() {
-                try {
-                    const { data: { user } } = await supabase.auth.getUser();
-                    
-                    if (user) {
-                        // Получение профиля из таблицы profiles
-                        const { data, error } = await supabase
-                            .from('profiles')
-                            .select('username, first_name, last_name, avatar_url')
-                            .eq('id', user.id)
-                            .single();
-                        
-                        if (error) {
-                            console.error('Error fetching profile:', error);
-                            return;
-                        }
-                        
-                        // Используем имя и фамилию, если они есть, иначе используем имя пользователя
-                        let displayName = data.username;
-                        if (data.first_name && data.last_name) {
-                            displayName = `${data.first_name} ${data.last_name}`;
-                        } else if (data.first_name) {
-                            displayName = data.first_name;
-                        }
-                        
-                        // Обновляем интерфейс
-                        document.getElementById('welcome-name').textContent = displayName;
-                        document.getElementById('sidebar-username').textContent = data.username;
-                        
-                        // Обновляем аватар, если есть
-                        if (data.avatar_url) {
-                            document.getElementById('sidebar-avatar').innerHTML = `<img src="${data.avatar_url}" alt="${data.username}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
-                        } else {
-                            // Используем инициалы
-                            const initials = data.first_name && data.last_name 
-                                ? `${data.first_name.charAt(0)}${data.last_name.charAt(0)}` 
-                                : data.username.substring(0, 2).toUpperCase();
-                            document.getElementById('sidebar-avatar').textContent = initials;
-                        }
-                    }
-                } catch (error) {
-                    console.error('Error:', error);
-                }
-            }
-            
-            // Вызываем функцию для получения данных пользователя
-            await fetchUserProfile();
-            
-            // График прогресса по предметам - исправленный код с ограничениями по размеру
-            const ctxSubjects = document.getElementById('subjectsChart').getContext('2d');
-            const subjectsChart = new Chart(ctxSubjects, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Matematika', 'Český jazyk', 'Neabsolvováno'],
-                    datasets: [{
-                        data: [65, 72, 100 - 65 - 72],
-                        backgroundColor: [
-                            '#4895ef',
-                            '#f72585',
-                            '#e2e8f0'
-                        ],
-                        borderWidth: 0,
-                        borderRadius: 5
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: true,
-                    cutout: '70%',
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: {
-                                padding: 20,
-                                font: {
-                                    family: 'Poppins',
-                                    size: 12
-                                }
-                            }
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    if (context.label === 'Neabsolvováno') {
-                                        return `Zbývá: ${context.raw}%`;
-                                    }
-                                    return `${context.label}: ${context.raw}%`;
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-            
-            // График недельной активности - исправленный код с ограничениями по размеру
-            const ctxActivity = document.getElementById('activityChart').getContext('2d');
-            const activityChart = new Chart(ctxActivity, {
-                type: 'bar',
-                data: {
-                    labels: ['Pondělí', 'Úterý', 'Středa', 'Čtvrtek', 'Pátek', 'Sobota', 'Neděle'],
-                    datasets: [{
-                        label: 'Čas studia (min)',
-                        data: [45, 30, 60, 75, 90, 60, 45],
-                        backgroundColor: '#4361ee',
-                        borderRadius: 5
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: true,
-                    plugins: {
-                        legend: {
-                            display: false
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            grid: {
-                                display: true,
-                                color: 'rgba(200, 200, 200, 0.2)'
-                            },
-                            ticks: {
-                                font: {
-                                    family: 'Poppins'
-                                }
-                            }
-                        },
-                        x: {
-                            grid: {
-                                display: false
-                            },
-                            ticks: {
-                                font: {
-                                    family: 'Poppins'
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-            
-            // Интерактивные элементы - обработчики кликов по задачам
-            const taskCheckboxes = document.querySelectorAll('.task-checkbox');
-            taskCheckboxes.forEach(checkbox => {
-                checkbox.addEventListener('click', function() {
-                    const taskItem = this.closest('.task-item');
-                    
-                    if (this.classList.contains('completed')) {
-                        this.classList.remove('completed');
-                        this.innerHTML = '';
-                        taskItem.classList.remove('completed');
-                    } else {
-                        this.classList.add('completed');
-                        this.innerHTML = '<i class="fas fa-check"></i>';
-                        taskItem.classList.add('completed');
-                    }
-                });
-            });
-            
-            // Обработчик нажатий на уведомления
-            document.querySelector('.notifications').addEventListener('click', function() {
-                alert('Máte 3 nová oznámení:\n\n1. Nový modul: Statistika a pravděpodobnost\n2. Přidány nové testové úlohy\n3. Získali jste ocenění "7 dní v řadě"');
-            });
-            
-            // Поиск
-            const searchInput = document.querySelector('.search-box input');
-            searchInput.addEventListener('keyup', function(e) {
-                if (e.key === 'Enter') {
-                    alert('Vyhledávání bude implementováno v příští aktualizaci!');
-                    this.value = '';
-                }
-            });
-            
-            // Инициализация темной темы, если она включена в браузере
-            if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-                document.body.classList.add('dark-mode');
-                
-                // Обновляем цвета графиков
-                subjectsChart.data.datasets[0].backgroundColor[2] = '#4a5568';
-                subjectsChart.update();
-            }
-            
-            // Обновление данных при изменении темы в системе
-            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(e) {
-                if (e.matches) {
-                    document.body.classList.add('dark-mode');
-                    subjectsChart.data.datasets[0].backgroundColor[2] = '#4a5568';
-                } else {
-                    document.body.classList.remove('dark-mode');
-                    subjectsChart.data.datasets[0].backgroundColor[2] = '#e2e8f0';
-                }
-                subjectsChart.update();
-            });
+        // Inicializace Supabase klienta
+        const supabaseUrl = 'https://your-supabase-url.supabase.co';
+        const supabaseAnonKey = 'your-supabase-anon-key';
+        const supabase = supabase.createClient(supabaseUrl, supabaseAnonKey);
 
-            // Создаем простую функцию для выхода из системы
-            window.logout = async function() {
-                try {
-                    const { error } = await supabase.auth.signOut();
-                    if (error) throw error;
-                    window.location.href = "/auth/index.html";
-                } catch (error) {
-                    console.error("Ошибка при выходе:", error);
-                    alert("Произошла ошибка при выходе из системы. Попробуйте еще раз.");
-                }
+        // Stav přihlášeného uživatele
+        let currentUser = null;
+
+        // DOM Elements
+        const userNameEl = document.getElementById('user-name');
+        const userAvatarEl = document.getElementById('user-avatar');
+        const notificationCountEl = document.getElementById('notification-count');
+        const statsContainer = document.getElementById('stats-container');
+        const activityContainer = document.getElementById('activity-container');
+        const startPracticeBtn = document.getElementById('start-practice-btn');
+
+        // Funkce pro formátování data
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffTime = Math.abs(now - date);
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            
+            if (diffDays === 0) {
+                return 'Dnes, ' + date.getHours() + ':' + (date.getMinutes() < 10 ? '0' : '') + date.getMinutes();
+            } else if (diffDays === 1) {
+                return 'Včera, ' + date.getHours() + ':' + (date.getMinutes() < 10 ? '0' : '') + date.getMinutes();
+            } else if (diffDays < 7) {
+                return diffDays + ' dny zpět';
+            } else {
+                return date.getDate() + '.' + (date.getMonth() + 1) + '.' + date.getFullYear();
             }
+        }
+
+        // Získání a zobrazení dat profilu
+        async function fetchAndDisplayUserProfile() {
+            try {
+                // Získání aktuálně přihlášeného uživatele
+                const { data: { user }, error: authError } = await supabase.auth.getUser();
+                
+                if (authError) throw authError;
+                if (!user) {
+                    // Přesměrování na přihlášení, pokud uživatel není přihlášen
+                    window.location.href = '/login.html';
+                    return;
+                }
+                
+                currentUser = user;
+                
+                // Získání profilu uživatele
+                const { data: profile, error: profileError } = await supabase
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', user.id)
+                    .single();
+                
+                if (profileError) throw profileError;
+                
+                // Aktualizace UI s daty uživatele
+                userNameEl.textContent = profile.username || user.email;
+                
+                // Nastavení iniciálů pro avatar
+                if (profile.first_name && profile.last_name) {
+                    userAvatarEl.textContent = profile.first_name.charAt(0) + profile.last_name.charAt(0);
+                } else {
+                    userAvatarEl.textContent = userNameEl.textContent.substring(0, 2).toUpperCase();
+                }
+                
+                // Načtení počtu notifikací (můžete implementovat podle potřeby)
+                notificationCountEl.textContent = '3'; // Pro demonstraci
+                
+                return profile;
+            } catch (error) {
+                console.error('Chyba při načítání profilu:', error);
+                userNameEl.textContent = 'Chyba načítání';
+            }
+        }
+
+        // Načtení a zobrazení statistik
+        async function fetchAndDisplayStats(profile) {
+            try {
+                if (!profile) return;
+                
+                // Načtení dokončených cvičení za poslední týden
+                const lastWeek = new Date();
+                lastWeek.setDate(lastWeek.getDate() - 7);
+                
+                const { data: recentExercises, error: exercisesError } = await supabase
+                    .from('user_exercises')
+                    .select('*')
+                    .eq('user_id', currentUser.id)
+                    .eq('status', 'completed')
+                    .gte('completed_at', lastWeek.toISOString())
+                    .order('completed_at', { ascending: false });
+                
+                if (exercisesError) throw exercisesError;
+                
+                // Vyčištění kontejneru statistik
+                statsContainer.innerHTML = '';
+                
+                // Karta dokončených cvičení
+                statsContainer.innerHTML += `
+                    <div class="stat-card">
+                        <div class="stat-card-content">
+                            <div class="stat-card-info">
+                                <h3 class="stat-card-title">Cvičení dokončeno</h3>
+                                <p class="stat-card-value">${profile.completed_exercises || 0}</p>
+                                <p class="stat-card-change positive">+${recentExercises.length} tento týden</p>
+                            </div>
+                            <div class="stat-card-icon progress-icon">
+                                <i class="fas fa-tasks"></i>
+                            </div>
+                        </div>
+                        <div class="stat-card-footer">
+                            <a href="/dashboard/pokrok.html">Zobrazit pokrok <i class="fas fa-arrow-right"></i></a>
+                        </div>
+                    </div>
+                `;
+                
+                // Karta získaných bodů
+                statsContainer.innerHTML += `
+                    <div class="stat-card">
+                        <div class="stat-card-content">
+                            <div class="stat-card-info">
+                                <h3 class="stat-card-title">Získané body</h3>
+                                <p class="stat-card-value">${profile.points || 0}</p>
+                                <p class="stat-card-change positive">+${recentExercises.reduce((sum, ex) => sum + (ex.score || 0), 0)} tento týden</p>
+                            </div>
+                            <div class="stat-card-icon points-icon">
+                                <i class="fas fa-star"></i>
+                            </div>
+                        </div>
+                        <div class="stat-card-footer">
+                            <a href="/dashboard/procvicovani.html">Získat více bodů <i class="fas fa-arrow-right"></i></a>
+                        </div>
+                    </div>
+                `;
+                
+                // Karta dnů v řadě
+                statsContainer.innerHTML += `
+                    <div class="stat-card">
+                        <div class="stat-card-content">
+                            <div class="stat-card-info">
+                                <h3 class="stat-card-title">Dny v řadě</h3>
+                                <p class="stat-card-value">${profile.streak_days || 0}</p>
+                                <p class="stat-card-change">Váš nejlepší: ${profile.streak_days || 0}</p>
+                            </div>
+                            <div class="stat-card-icon streak-icon">
+                                <i class="fas fa-fire"></i>
+                            </div>
+                        </div>
+                        <div class="stat-card-footer">
+                            <a href="/dashboard/procvicovani.html">Udržet sérii <i class="fas fa-arrow-right"></i></a>
+                        </div>
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Chyba při načítání statistik:', error);
+                statsContainer.innerHTML = '<p class="error">Nepodařilo se načíst statistiky. Zkuste to prosím později.</p>';
+            }
+        }
+
+        // Načtení a zobrazení nedávných aktivit
+        async function fetchAndDisplayActivities() {
+            try {
+                if (!currentUser) return;
+                
+                // Načtení nedávno dokončených cvičení
+                const { data: recentExercises, error: exercisesError } = await supabase
+                    .from('user_exercises')
+                    .select(`
+                        *,
+                        exercises(title)
+                    `)
+                    .eq('user_id', currentUser.id)
+                    .eq('status', 'completed')
+                    .order('completed_at', { ascending: false })
+                    .limit(5);
+                
+                if (exercisesError) throw exercisesError;
+                
+                // Načtení nedávno získaných odznaků
+                const { data: recentBadges, error: badgesError } = await supabase
+                    .from('user_badges')
+                    .select(`
+                        *,
+                        badges(title, description)
+                    `)
+                    .eq('user_id', currentUser.id)
+                    .order('earned_at', { ascending: false })
+                    .limit(5);
+                
+                if (badgesError) throw badgesError;
+                
+                // Kombinace všech aktivit a seřazení podle času
+                const allActivities = [
+                    ...recentExercises.map(item => ({
+                        type: 'exercise',
+                        title: 'Cvičení dokončeno',
+                        description: item.exercises.title,
+                        timestamp: item.completed_at,
+                        icon: 'check-circle',
+                        iconClass: 'completed'
+                    })),
+                    ...recentBadges.map(item => ({
+                        type: 'badge',
+                        title: 'Nový odznak získán',
+                        description: item.badges.title,
+                        timestamp: item.earned_at,
+                        icon: 'award',
+                        iconClass: 'badge'
+                    }))
+                ];
+                
+                // Přidání streaku, pokud existuje
+                if (currentUser && currentUser.streak_days && currentUser.streak_days >= 5) {
+                    allActivities.push({
+                        type: 'streak',
+                        title: `${currentUser.streak_days} dní v řadě!`,
+                        description: 'Pokračujte ve své sérii',
+                        timestamp: new Date().toISOString(),
+                        icon: 'fire',
+                        iconClass: 'streak'
+                    });
+                }
+                
+                // Seřazení aktivit podle času
+                allActivities.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                
+                // Zobrazení pouze prvních 3 aktivit
+                const recentActivities = allActivities.slice(0, 3);
+                
+                // Vyčištění kontejneru aktivit
+                activityContainer.innerHTML = '';
+                
+                if (recentActivities.length === 0) {
+                    activityContainer.innerHTML = '<p class="activity-item">Zatím nemáte žádné aktivity.</p>';
+                    return;
+                }
+                
+                // Vykreslení aktivit
+                recentActivities.forEach(activity => {
+                    activityContainer.innerHTML += `
+                        <div class="activity-item">
+                            <div class="activity-icon ${activity.iconClass}">
+                                <i class="fas fa-${activity.icon}"></i>
+                            </div>
+                            <div class="activity-content">
+                                <h3 class="activity-title">${activity.title}</h3>
+                                <p class="activity-desc">${activity.description}</p>
+                                <p class="activity-time">${formatDate(activity.timestamp)}</p>
+                            </div>
+                        </div>
+                    `;
+                });
+            } catch (error) {
+                console.error('Chyba při načítání aktivit:', error);
+                activityContainer.innerHTML = '<p class="error">Nepodařilo se načíst aktivity. Zkuste to prosím později.</p>';
+            }
+        }
+
+        // Obslužná funkce pro tlačítko "Začít procvičovat"
+        startPracticeBtn.addEventListener('click', () => {
+            window.location.href = '/dashboard/procvicovani.html';
         });
+
+        // Inicializace stránky
+        async function initializeDashboard() {
+            const profile = await fetchAndDisplayUserProfile();
+            if (profile) {
+                await Promise.all([
+                    fetchAndDisplayStats(profile),
+                    fetchAndDisplayActivities()
+                ]);
+            }
+        }
+
+        // Spuštění inicializace po načtení stránky
+        document.addEventListener('DOMContentLoaded', initializeDashboard);
     </script>
 </body>
 </html>
