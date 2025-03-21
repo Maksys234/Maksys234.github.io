@@ -6,30 +6,15 @@
     <title>Justax Dashboard</title>
     <link rel="stylesheet" href="dashboard.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap">
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            // Load the navigation bar
-            fetch("/navbar.html")
-                .then(response => response.text())
-                .then(data => {
-                    document.getElementById("sidebar-container").innerHTML = data;
-                    
-                    // Set active link
-                    const currentPage = window.location.pathname;
-                    if (currentPage.includes("dashboard.html") || currentPage === "/") {
-                        document.getElementById("dashboard-link").classList.add("active");
-                    }
-                });
-        });
-    </script>
+    <script src="/assets/js/common.js"></script>
 </head>
 <body>
+    <!-- Контейнер для сайдбара -->
     <div id="sidebar-container"></div>
     
     <main>
-        <header>
-            <h1>Dashboard</h1>
-        </header>
+        <!-- Контейнер для хедера -->
+        <div id="header-container"></div>
         
         <div class="main-content">
             <section class="welcome-banner">
@@ -74,22 +59,5 @@
             </section>
         </div>
     </main>
-    
-    <script>
-        // Toggle active status based on current page
-        function setActiveLink() {
-            const currentPath = window.location.pathname;
-            const links = document.querySelectorAll('.menu-link');
-            
-            links.forEach(link => {
-                if (link.getAttribute('href') === currentPath) {
-                    link.classList.add('active');
-                }
-            });
-        }
-        
-        // Call after sidebar is loaded
-        setTimeout(setActiveLink, 500);
-    </script>
 </body>
 </html>
