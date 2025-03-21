@@ -1,32 +1,1542 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="cs">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pokrok | Justax Dashboard</title>
-    <link rel="stylesheet" href="../dashboard.css">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap">
-    <script src="/assets/js/common.js"></script>
+    <title>Justax - Váš pokrok</title>
+    <!-- Подключаем шрифты напрямую -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome через CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js для графиков -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        /* Базовые стили */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        :root {
+            --primary: #4361ee;
+            --primary-light: #4895ef;
+            --secondary: #3f37c9;
+            --success: #4cc9f0;
+            --danger: #f72585;
+            --warning: #f8961e;
+            --info: #4895ef;
+            --dark: #1e2a3a;
+            --light: #f8f9fa;
+            --gray: #6c757d;
+            --gray-light: #dee2e6;
+            --gray-dark: #343a40;
+            --gradient-1: linear-gradient(135deg, #4361ee, #3a0ca3);
+            --gradient-2: linear-gradient(135deg, #4cc9f0, #4361ee);
+            --gradient-3: linear-gradient(135deg, #f72585, #7209b7);
+            --white: #ffffff;
+            --sidebar-width: 260px;
+            --transition-speed: 0.3s;
+            --card-radius: 16px;
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 5px 15px rgba(0, 0, 0, 0.07);
+            --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.1);
+            --text-primary: #2d3748;
+            --text-secondary: #4a5568;
+            --text-muted: #718096;
+        }
+
+        body {
+            background-color: #f6f8ff;
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            overflow-x: hidden;
+        }
+
+        /* Сайдбар */
+        .sidebar {
+            width: var(--sidebar-width);
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background: var(--gradient-1);
+            color: var(--white);
+            padding: 1.5rem 1rem;
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+            box-shadow: var(--shadow-lg);
+            transition: all var(--transition-speed) ease;
+        }
+
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding: 0 0.75rem;
+        }
+
+        .sidebar-logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--white);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .sidebar-logo i {
+            font-size: 1.75rem;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            flex-grow: 1;
+        }
+
+        .sidebar-item {
+            margin-bottom: 0.5rem;
+        }
+
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            color: rgba(255, 255, 255, 0.85);
+            text-decoration: none;
+            border-radius: 12px;
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+
+        .sidebar-link i {
+            margin-right: 0.75rem;
+            font-size: 1.2rem;
+            width: 24px;
+            text-align: center;
+        }
+
+        .sidebar-link.active, .sidebar-link:hover {
+            background-color: rgba(255, 255, 255, 0.15);
+            color: var(--white);
+        }
+
+        .sidebar-footer {
+            margin-top: auto;
+            padding: 1rem;
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.7);
+            text-align: center;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            margin-top: 1rem;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--primary-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 0.75rem;
+            font-weight: 500;
+        }
+
+        .user-info {
+            flex-grow: 1;
+        }
+
+        .user-name {
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .user-role {
+            font-size: 0.8rem;
+            opacity: 0.8;
+        }
+
+        /* Основной контент */
+        main {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            padding: 1.5rem 2rem;
+            transition: margin var(--transition-speed) ease;
+            width: calc(100% - var(--sidebar-width));
+        }
+
+        .dashboard-header {
+            margin-bottom: 2rem;
+            background-color: var(--white);
+            border-radius: var(--card-radius);
+            padding: 1.25rem 1.5rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-content h1 {
+            font-size: 1.75rem;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .search-box {
+            position: relative;
+        }
+
+        .search-box input {
+            width: 280px;
+            height: 44px;
+            border-radius: 22px;
+            padding: 0 1rem 0 2.5rem;
+            border: 1px solid var(--gray-light);
+            background-color: var(--light);
+            outline: none;
+            transition: all 0.2s ease;
+            font-size: 0.95rem;
+        }
+
+        .search-box input:focus {
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray);
+        }
+
+        .notifications {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .notifications i {
+            font-size: 1.4rem;
+            color: var(--gray-dark);
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            width: 20px;
+            height: 20px;
+            background-color: var(--danger);
+            color: white;
+            font-size: 0.7rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+
+        /* Основное содержание */
+        .main-content {
+            display: grid;
+            gap: 1.75rem;
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 1.25rem;
+            color: var(--dark);
+        }
+
+        /* Карточки и графики */
+        .stats-overview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 1.75rem;
+        }
+
+        .stat-card {
+            background-color: var(--white);
+            border-radius: var(--card-radius);
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .stat-card-content {
+            display: flex;
+            padding: 1.5rem;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .stat-card-info {
+            flex-grow: 1;
+        }
+
+        .stat-card-title {
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 0.75rem;
+        }
+
+        .stat-card-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-card-change {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .stat-card-change.positive {
+            color: #10b981;
+        }
+
+        .stat-card-change.negative {
+            color: var(--danger);
+        }
+
+        .stat-card-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: var(--white);
+        }
+
+        .exercises-icon {
+            background: linear-gradient(135deg, #4cc9f0, #4361ee);
+        }
+
+        .time-icon {
+            background: linear-gradient(135deg, #4361ee, #3a0ca3);
+        }
+
+        .streak-icon {
+            background: linear-gradient(135deg, #f72585, #b5179e);
+        }
+
+        .score-icon {
+            background: linear-gradient(135deg, #f8961e, #f3722c);
+        }
+
+        /* Графики и карточки прогресса */
+        .chart-card {
+            background-color: var(--white);
+            border-radius: var(--card-radius);
+            box-shadow: var(--shadow-sm);
+            padding: 1.5rem;
+            margin-bottom: 1.75rem;
+            transition: all 0.3s ease;
+        }
+
+        .chart-card:hover {
+            box-shadow: var(--shadow-md);
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .chart-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .chart-filter {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .filter-btn {
+            padding: 0.5rem 1rem;
+            background-color: var(--light);
+            border: 1px solid var(--gray-light);
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .filter-btn:hover {
+            background-color: var(--primary-light);
+            color: var(--white);
+            border-color: var(--primary-light);
+        }
+
+        .filter-btn.active {
+            background-color: var(--primary);
+            color: var(--white);
+            border-color: var(--primary);
+        }
+
+        .chart-container {
+            width: 100%;
+            height: 300px;
+            position: relative;
+        }
+
+        /* Прогресс по предметам */
+        .subject-progress {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 1.75rem;
+        }
+
+        .subject-card {
+            background-color: var(--white);
+            border-radius: var(--card-radius);
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .subject-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .subject-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--gray-light);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .subject-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: var(--white);
+        }
+
+        .math-icon {
+            background: linear-gradient(135deg, #4cc9f0, #4361ee);
+        }
+
+        .lang-icon {
+            background: linear-gradient(135deg, #f72585, #b5179e);
+        }
+
+        .subject-info {
+            flex-grow: 1;
+        }
+
+        .subject-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 0.25rem;
+        }
+
+        .subject-subtitle {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .subject-body {
+            padding: 1.5rem;
+            flex-grow: 1;
+        }
+
+        .progress-item {
+            margin-bottom: 1.25rem;
+        }
+
+        .progress-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+
+        .progress-label {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .progress-value {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .progress-bar {
+            height: 8px;
+            background-color: #f0f0f0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 1s ease;
+        }
+
+        .progress-fill.math {
+            background: linear-gradient(to right, #4cc9f0, #4361ee);
+        }
+
+        .progress-fill.lang {
+            background: linear-gradient(to right, #f72585, #b5179e);
+        }
+
+        .subject-footer {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid var(--gray-light);
+            text-align: center;
+        }
+
+        .subject-action {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.95rem;
+            display: inline-flex;
+            align-items: center;
+            transition: all 0.2s ease;
+        }
+
+        .subject-action i {
+            margin-left: 0.5rem;
+            transition: transform 0.2s ease;
+        }
+
+        .subject-action:hover {
+            color: var(--secondary);
+        }
+
+        .subject-action:hover i {
+            transform: translateX(3px);
+        }
+
+        /* Достижения */
+        .achievements {
+            background-color: var(--white);
+            border-radius: var(--card-radius);
+            box-shadow: var(--shadow-sm);
+            padding: 1.5rem;
+            margin-bottom: 1.75rem;
+        }
+
+        .achievements-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.25rem;
+        }
+
+        .achievement {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 1.25rem 1rem;
+            border-radius: var(--card-radius);
+            background-color: var(--light);
+            transition: all 0.3s ease;
+        }
+
+        .achievement:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .achievement-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 30px;
+            background: var(--gradient-2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+            color: var(--white);
+            font-size: 1.5rem;
+        }
+
+        .achievement.locked .achievement-icon {
+            background: #d1d5db;
+            color: #9ca3af;
+        }
+
+        .achievement-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 0.5rem;
+        }
+
+        .achievement-desc {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .achievement.locked .achievement-title {
+            color: var(--text-secondary);
+        }
+
+        .achievement.locked .achievement-desc {
+            color: var(--text-muted);
+        }
+
+        /* Последние тесты */
+        .recent-tests {
+            background-color: var(--white);
+            border-radius: var(--card-radius);
+            box-shadow: var(--shadow-sm);
+            padding: 1.5rem;
+            margin-bottom: 1.75rem;
+        }
+
+        .tests-list {
+            margin-top: 1.25rem;
+        }
+
+        .test-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            border-bottom: 1px solid var(--gray-light);
+            transition: background-color 0.2s ease;
+        }
+
+        .test-item:last-child {
+            border-bottom: none;
+        }
+
+        .test-item:hover {
+            background-color: #f8faff;
+            border-radius: 8px;
+        }
+
+        .test-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            color: var(--white);
+            margin-right: 1rem;
+        }
+
+        .test-info {
+            flex-grow: 1;
+        }
+
+        .test-title {
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: var(--dark);
+            margin-bottom: 0.25rem;
+        }
+
+        .test-date {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .test-score {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .test-score.high {
+            color: #10b981;
+        }
+
+        .test-score.medium {
+            color: var(--warning);
+        }
+
+        .test-score.low {
+            color: var(--danger);
+        }
+
+        /* Футер */
+        .dashboard-footer {
+            margin-top: 2rem;
+            padding: 1.5rem 0;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        /* Медиа-запросы для адаптивности */
+        @media (max-width: 1200px) {
+            .subject-progress {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-overview {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 992px) {
+            :root {
+                --sidebar-width: 80px;
+            }
+            
+            .sidebar-logo span, .sidebar-link span, .user-info, .sidebar-footer {
+                display: none;
+            }
+            
+            .sidebar-link i {
+                margin-right: 0;
+                font-size: 1.5rem;
+            }
+            
+            .sidebar-logo i {
+                margin-right: 0;
+            }
+            
+            .sidebar-header, .sidebar-link {
+                justify-content: center;
+            }
+            
+            .user-profile {
+                justify-content: center;
+                padding: 0.75rem;
+            }
+            
+            .user-avatar {
+                margin-right: 0;
+            }
+            
+            .search-box input {
+                width: 200px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            main {
+                padding: 1rem;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+            
+            .header-actions {
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            .search-box input {
+                width: 100%;
+            }
+            
+            .stats-overview {
+                grid-template-columns: 1fr;
+            }
+            
+            .chart-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+            
+            .chart-filter {
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            .achievements-list {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            }
+        }
+
+        @media (max-width: 576px) {
+            :root {
+                --sidebar-width: 0;
+            }
+            
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            
+            main {
+                margin-left: 0;
+                width: 100%;
+            }
+            
+            .search-box {
+                display: none;
+            }
+            
+            .mobile-menu-toggle {
+                display: block;
+            }
+        }
+
+        /* Мобильное меню */
+        .mobile-menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--dark);
+            font-size: 1.5rem;
+            margin-right: 1rem;
+        }
+
+        /* Анимации */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animated {
+            animation: fadeIn 0.5s ease forwards;
+        }
+
+        .delay-1 {
+            animation-delay: 0.1s;
+        }
+
+        .delay-2 {
+            animation-delay: 0.2s;
+        }
+
+        .delay-3 {
+            animation-delay: 0.3s;
+        }
+
+        .delay-4 {
+            animation-delay: 0.4s;
+        }
+
+        /* Темный режим */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --white: #1a202c;
+                --light: #2d3748;
+                --dark: #e2e8f0;
+                --gray-light: #4a5568;
+                --text-primary: #e2e8f0;
+                --text-secondary: #cbd5e0;
+                --text-muted: #a0aec0;
+            }
+            
+            body {
+                background-color: #171923;
+            }
+            
+            .search-box input {
+                background-color: #2d3748;
+                color: var(--text-primary);
+                border-color: #4a5568;
+            }
+            
+            .search-box i {
+                color: #a0aec0;
+            }
+            
+            .filter-btn {
+                background-color: #2d3748;
+                border-color: #4a5568;
+                color: var(--text-primary);
+            }
+            
+            .filter-btn:hover {
+                background-color: var(--primary-light);
+                border-color: var(--primary-light);
+            }
+            
+            .progress-bar {
+                background-color: #2d3748;
+            }
+            
+            .achievement {
+                background-color: #2d3748;
+            }
+            
+            .test-item:hover {
+                background-color: #1e2533;
+            }
+        }
+    </style>
 </head>
 <body>
-    <!-- Контейнер для сайдбара -->
-    <div id="sidebar-container"></div>
+    <!-- Сайдбар -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <a href="/" class="sidebar-logo">
+                <i class="fas fa-calculator"></i>
+                <span>Justax</span>
+            </a>
+        </div>
+        
+        <ul class="sidebar-menu">
+            <li class="sidebar-item">
+                <a href="dashboard.html" class="sidebar-link" id="dashboard-link">
+                    <i class="fas fa-th-large"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a href="procvicovani.html" class="sidebar-link">
+                    <i class="fas fa-book-open"></i>
+                    <span>Procvičování</span>
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a href="pokrok.html" class="sidebar-link active">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Pokrok</span>
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a href="oceneni.html" class="sidebar-link">
+                    <i class="fas fa-medal"></i>
+                    <span>Ocenění</span>
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a href="materialy.html" class="sidebar-link">
+                    <i class="fas fa-file-alt"></i>
+                    <span>Materiály</span>
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a href="profile.html" class="sidebar-link">
+                    <i class="fas fa-user-cog"></i>
+                    <span>Profil</span>
+                </a>
+            </li>
+        </ul>
+        
+        <div class="user-profile">
+            <div class="user-avatar">MS</div>
+            <div class="user-info">
+                <div class="user-name">Maksys234</div>
+                <div class="user-role">Student</div>
+            </div>
+        </div>
+        
+        <div class="sidebar-footer">
+            &copy; 2025 Justax
+        </div>
+    </aside>
     
     <main>
-        <!-- Контейнер для хедера -->
-        <div id="header-container"></div>
+        <header class="dashboard-header">
+            <div class="header-content">
+                <h1>Váš pokrok</h1>
+                <div class="header-actions">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" placeholder="Hledat...">
+                    </div>
+                    <div class="notifications">
+                        <i class="fas fa-bell"></i>
+                        <span class="notification-badge">2</span>
+                    </div>
+                </div>
+            </div>
+        </header>
         
         <div class="main-content">
-            <section class="welcome-banner">
-                <div class="welcome-content">
-                    <h2 class="welcome-title">Sledujte svůj pokrok</h2>
-                    <p class="welcome-text">Zde můžete vidět statistiky a výsledky vašeho učení.</p>
+            <!-- Обзор статистики -->
+            <section class="stats-section animated">
+                <h2 class="section-title">Statistický přehled</h2>
+                
+                <div class="stats-overview">
+                    <div class="stat-card">
+                        <div class="stat-card-content">
+                            <div class="stat-card-info">
+                                <h3 class="stat-card-title">Dokončená cvičení</h3>
+                                <p class="stat-card-value">42</p>
+                                <p class="stat-card-change positive">+8 tento měsíc</p>
+                            </div>
+                            <div class="stat-card-icon exercises-icon">
+                                <i class="fas fa-tasks"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-card-content">
+                            <div class="stat-card-info">
+                                <h3 class="stat-card-title">Celkový čas studia</h3>
+                                <p class="stat-card-value">28h</p>
+                                <p class="stat-card-change positive">+4.5h tento týden</p>
+                            </div>
+                            <div class="stat-card-icon time-icon">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-card-content">
+                            <div class="stat-card-info">
+                                <h3 class="stat-card-title">Aktuální série</h3>
+                                <p class="stat-card-value">7</p>
+                                <p class="stat-card-change">Nejdelší: 14 dní</p>
+                            </div>
+                            <div class="stat-card-icon streak-icon">
+                                <i class="fas fa-fire"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-card-content">
+                            <div class="stat-card-info">
+                                <h3 class="stat-card-title">Průměrné skóre</h3>
+                                <p class="stat-card-value">78%</p>
+                                <p class="stat-card-change positive">+5% za poslední měsíc</p>
+                            </div>
+                            <div class="stat-card-icon score-icon">
+                                <i class="fas fa-star"></i>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </section>
             
-            <!-- Add your progress tracking content here -->
+            <!-- График успеваемости -->
+            <section class="chart-section animated delay-1">
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h2 class="chart-title">Vývoj výkonu v čase</h2>
+                        <div class="chart-filter">
+                            <button class="filter-btn" data-period="week">Týden</button>
+                            <button class="filter-btn active" data-period="month">Měsíc</button>
+                            <button class="filter-btn" data-period="year">Rok</button>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="performanceChart"></canvas>
+                    </div>
+                </div>
+            </section>
             
+            <!-- Прогресс по предметам -->
+            <section class="subjects-section animated delay-2">
+                <h2 class="section-title">Pokrok v předmětech</h2>
+                
+                <div class="subject-progress">
+                    <div class="subject-card">
+                        <div class="subject-header">
+                            <div class="subject-icon math-icon">
+                                <i class="fas fa-square-root-alt"></i>
+                            </div>
+                            <div class="subject-info">
+                                <h3 class="subject-title">Matematika</h3>
+                                <p class="subject-subtitle">Celkový pokrok: 65%</p>
+                            </div>
+                        </div>
+                        <div class="subject-body">
+                            <div class="progress-item">
+                                <div class="progress-header">
+                                    <span class="progress-label">Algebra</span>
+                                    <span class="progress-value">80%</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill math" style="width: 80%"></div>
+                                </div>
+                            </div>
+                            <div class="progress-item">
+                                <div class="progress-header">
+                                    <span class="progress-label">Geometrie</span>
+                                    <span class="progress-value">60%</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill math" style="width: 60%"></div>
+                                </div>
+                            </div>
+                            <div class="progress-item">
+                                <div class="progress-header">
+                                    <span class="progress-label">Rovnice</span>
+                                    <span class="progress-value">75%</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill math" style="width: 75%"></div>
+                                </div>
+                            </div>
+                            <div class="progress-item">
+                                <div class="progress-header">
+                                    <span class="progress-label">Statistika</span>
+                                    <span class="progress-value">45%</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill math" style="width: 45%"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="subject-footer">
+                            <a href="#" class="subject-action">Zobrazit detaily <i class="fas fa-arrow-right"></i></a>
+                        </div>
+                    </div>
+                    
+                    <div class="subject-card">
+                        <div class="subject-header">
+                            <div class="subject-icon lang-icon">
+                                <i class="fas fa-language"></i>
+                            </div>
+                            <div class="subject-info">
+                                <h3 class="subject-title">Český jazyk</h3>
+                                <p class="subject-subtitle">Celkový pokrok: 72%</p>
+                            </div>
+                        </div>
+                        <div class="subject-body">
+                            <div class="progress-item">
+                                <div class="progress-header">
+                                    <span class="progress-label">Gramatika</span>
+                                    <span class="progress-value">85%</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill lang" style="width: 85%"></div>
+                                </div>
+                            </div>
+                            <div class="progress-item">
+                                <div class="progress-header">
+                                    <span class="progress-label">Pravopis</span>
+                                    <span class="progress-value">70%</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill lang" style="width: 70%"></div>
+                                </div>
+                            </div>
+                            <div class="progress-item">
+                                <div class="progress-header">
+                                    <span class="progress-label">Porozumění textu</span>
+                                    <span class="progress-value">65%</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill lang" style="width: 65%"></div>
+                                </div>
+                            </div>
+                            <div class="progress-item">
+                                <div class="progress-header">
+                                    <span class="progress-label">Stylistika</span>
+                                    <span class="progress-value">60%</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill lang" style="width: 60%"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="subject-footer">
+                            <a href="#" class="subject-action">Zobrazit detaily <i class="fas fa-arrow-right"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Достижения -->
+            <section class="achievements-section animated delay-3">
+                <div class="achievements">
+                    <h2 class="section-title">Vaše ocenění</h2>
+                    <div class="achievements-list">
+                        <div class="achievement">
+                            <div class="achievement-icon">
+                                <i class="fas fa-award"></i>
+                            </div>
+                            <h3 class="achievement-title">Pilný student</h3>
+                            <p class="achievement-desc">Dokončete 30 cvičení</p>
+                        </div>
+                        
+                        <div class="achievement">
+                            <div class="achievement-icon">
+                                <i class="fas fa-fire"></i>
+                            </div>
+                            <h3 class="achievement-title">Vytrvalec</h3>
+                            <p class="achievement-desc">Udržte si sérii 7 dní</p>
+                        </div>
+                        
+                        <div class="achievement">
+                            <div class="achievement-icon">
+                                <i class="fas fa-star"></i>
+                            </div>
+                            <h3 class="achievement-title">Hvězdný výkon</h3>
+                            <p class="achievement-desc">Získejte skóre 90%+ ve 3 testech</p>
+                        </div>
+                        
+                        <div class="achievement locked">
+                            <div class="achievement-icon">
+                                <i class="fas fa-trophy"></i>
+                            </div>
+                            <h3 class="achievement-title">Mistr matematiky</h3>
+                            <p class="achievement-desc">Dokončete 100% matematických modulů</p>
+                        </div>
+                        
+                        <div class="achievement locked">
+                            <div class="achievement-icon">
+                                <i class="fas fa-book"></i>
+                            </div>
+                            <h3 class="achievement-title">Jazykový expert</h3>
+                            <p class="achievement-desc">Dokončete 100% jazykových modulů</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Последние тесты -->
+            <section class="tests-section animated delay-4">
+                <div class="recent-tests">
+                    <h2 class="section-title">Poslední absolvované testy</h2>
+                    <div class="tests-list">
+                        <div class="test-item">
+                            <div class="test-icon math-icon">
+                                <i class="fas fa-square-root-alt"></i>
+                            </div>
+                            <div class="test-info">
+                                <h3 class="test-title">Základy lineární algebry</h3>
+                                <p class="test-date">18. března 2025</p>
+                            </div>
+                            <div class="test-score high">92%</div>
+                        </div>
+                        
+                        <div class="test-item">
+                            <div class="test-icon lang-icon">
+                                <i class="fas fa-language"></i>
+                            </div>
+                            <div class="test-info">
+                                <h3 class="test-title">Gramatika - vyjmenovaná slova</h3>
+                                <p class="test-date">15. března 2025</p>
+                            </div>
+                            <div class="test-score high">85%</div>
+                        </div>
+                        
+                        <div class="test-item">
+                            <div class="test-icon math-icon">
+                                <i class="fas fa-square-root-alt"></i>
+                            </div>
+                            <div class="test-info">
+                                <h3 class="test-title">Kvadratické rovnice</h3>
+                                <p class="test-date">10. března 2025</p>
+                            </div>
+                            <div class="test-score medium">75%</div>
+                        </div>
+                        
+                        <div class="test-item">
+                            <div class="test-icon lang-icon">
+                                <i class="fas fa-language"></i>
+                            </div>
+                            <div class="test-info">
+                                <h3 class="test-title">Porozumění složitému textu</h3>
+                                <p class="test-date">5. března 2025</p>
+                            </div>
+                            <div class="test-score low">68%</div>
+                        </div>
+                        
+                        <div class="test-item">
+                            <div class="test-icon math-icon">
+                                <i class="fas fa-square-root-alt"></i>
+                            </div>
+                            <div class="test-info">
+                                <h3 class="test-title">Geometrické tvary</h3>
+                                <p class="test-date">1. března 2025</p>
+                            </div>
+                            <div class="test-score medium">78%</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
         </div>
+        
+        <footer class="dashboard-footer">
+            <p>&copy; 2025 Justax.space | Všechna práva vyhrazena</p>
+        </footer>
     </main>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // График производительности
+            const performanceCtx = document.getElementById('performanceChart').getContext('2d');
+            const performanceData = {
+                labels: ['1. týden', '2. týden', '3. týden', '4. týden'],
+                datasets: [
+                    {
+                        label: 'Matematika',
+                        data: [65, 72, 68, 78],
+                        borderColor: '#4361ee',
+                        backgroundColor: 'rgba(67, 97, 238, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    },
+                    {
+                        label: 'Český jazyk',
+                        data: [70, 68, 75, 82],
+                        borderColor: '#f72585',
+                        backgroundColor: 'rgba(247, 37, 133, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }
+                ]
+            };
+            
+            const performanceChart = new Chart(performanceCtx, {
+                type: 'line',
+                data: performanceData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                usePointStyle: true,
+                                font: {
+                                    family: 'Poppins'
+                                }
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                            titleFont: {
+                                family: 'Poppins',
+                                size: 13
+                            },
+                            bodyFont: {
+                                family: 'Poppins',
+                                size: 12
+                            },
+                            padding: 10,
+                            cornerRadius: 8,
+                            displayColors: true
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: {
+                                font: {
+                                    family: 'Poppins'
+                                },
+                                callback: function(value) {
+                                    return value + '%';
+                                }
+                            },
+                            grid: {
+                                drawBorder: false,
+                                display: true,
+                                color: 'rgba(200, 200, 200, 0.2)'
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                font: {
+                                    family: 'Poppins'
+                                }
+                            },
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Фильтр периода графика
+            const filterButtons = document.querySelectorAll('.filter-btn');
+            filterButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    filterButtons.forEach(btn => btn.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    const period = this.getAttribute('data-period');
+                    let labels, mathData, langData;
+                    
+                    switch(period) {
+                        case 'week':
+                            labels = ['Pondělí', 'Úterý', 'Středa', 'Čtvrtek', 'Pátek', 'Sobota', 'Neděle'];
+                            mathData = [65, 70, 68, 72, 78, 76, 80];
+                            langData = [70, 72, 68, 75, 73, 78, 82];
+                            break;
+                        case 'month':
+                            labels = ['1. týden', '2. týden', '3. týden', '4. týden'];
+                            mathData = [65, 72, 68, 78];
+                            langData = [70, 68, 75, 82];
+                            break;
+                        case 'year':
+                            labels = ['Leden', 'Únor', 'Březen', 'Duben', 'Květen', 'Červen', 'Červenec', 'Srpen', 'Září', 'Říjen', 'Listopad', 'Prosinec'];
+                            mathData = [50, 55, 60, 62, 65, 68, 70, 72, 75, 78, 80, 82];
+                            langData = [55, 58, 62, 65, 68, 70, 72, 75, 78, 80, 82, 85];
+                            break;
+                    }
+                    
+                    performanceChart.data.labels = labels;
+                    performanceChart.data.datasets[0].data = mathData;
+                    performanceChart.data.datasets[1].data = langData;
+                    performanceChart.update();
+                });
+            });
+            
+            // Анимация заполнения прогресс-баров
+            const progressBars = document.querySelectorAll('.progress-fill');
+            setTimeout(() => {
+                progressBars.forEach(bar => {
+                    const width = bar.style.width;
+                    bar.style.width = '0';
+                    setTimeout(() => {
+                        bar.style.width = width;
+                    }, 100);
+                });
+            }, 500);
+            
+            // Мобильное меню
+            const addMobileMenuToggle = () => {
+                if (window.innerWidth <= 576 && !document.querySelector('.mobile-menu-toggle')) {
+                    const menuToggle = document.createElement('button');
+                    menuToggle.className = 'mobile-menu-toggle';
+                    menuToggle.innerHTML = '<i class="fas fa-bars"></i>';
+                    
+                    menuToggle.addEventListener('click', function() {
+                        const sidebar = document.querySelector('.sidebar');
+                        const main = document.querySelector('main');
+                        
+                        if (sidebar.style.transform === 'translateX(0px)') {
+                            sidebar.style.transform = 'translateX(-100%)';
+                            main.style.marginLeft = '0';
+                            this.innerHTML = '<i class="fas fa-bars"></i>';
+                        } else {
+                            sidebar.style.transform = 'translateX(0)';
+                            main.style.marginLeft = 'var(--sidebar-width)';
+                            this.innerHTML = '<i class="fas fa-times"></i>';
+                        }
+                    });
+                    
+                    const header = document.querySelector('.header-content');
+                    header.insertBefore(menuToggle, header.firstChild);
+                }
+            };
+            
+            // Инициализация мобильного меню при загрузке и изменении размера
+            addMobileMenuToggle();
+            window.addEventListener('resize', addMobileMenuToggle);
+            
+            // Обработка нажатий на уведомления
+            const notifications = document.querySelector('.notifications');
+            if (notifications) {
+                notifications.addEventListener('click', function() {
+                    alert('Máte 2 nová oznámení:\n\n1. Dokončili jste 7 denní sérii! Gratulujeme!\n2. Nový test z matematiky je k dispozici.');
+                });
+            }
+            
+            // Активные ссылки в сайдбаре
+            const setActiveLink = () => {
+                const currentPage = window.location.pathname;
+                const navLinks = document.querySelectorAll('.sidebar-link');
+                
+                navLinks.forEach(link => {
+                    link.classList.remove('active');
+                    const linkPath = link.getAttribute('href');
+                    if (currentPage.endsWith(linkPath)) {
+                        link.classList.add('active');
+                    }
+                });
+            };
+            
+            // Установка активной ссылки
+            setActiveLink();
+            
+            // Поиск
+            const searchInput = document.querySelector('.search-box input');
+            if (searchInput) {
+                searchInput.addEventListener('keyup', function(e) {
+                    if (e.key === 'Enter') {
+                        alert('Vyhledávání bude implementováno v příští aktualizaci!');
+                    }
+                });
+            }
+            
+            // Проверка темной темы для настройки графика
+            const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+            if (prefersDarkScheme.matches) {
+                document.body.classList.add('dark-mode');
+                Chart.defaults.color = '#cbd5e0';
+            }
+            
+            // Анимация при прокрутке
+            const animateOnScroll = function() {
+                const elements = document.querySelectorAll('.animated');
+                
+                elements.forEach(element => {
+                    const elementPosition = element.getBoundingClientRect().top;
+                    const screenPosition = window.innerHeight;
+                    
+                    if (elementPosition < screenPosition - 100) {
+                        element.style.opacity = '1';
+                        element.style.transform = 'translateY(0)';
+                    }
+                });
+            };
+            
+            // Инициализация анимаций
+            window.addEventListener('scroll', animateOnScroll);
+            window.dispatchEvent(new Event('scroll'));
+        });
+    </script>
 </body>
 </html>
