@@ -6,36 +6,58 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <meta name="description" content="Justax - osobní doučování matematiky s AI asistentem. Příprava na zkoušky, procvičování úloh a okamžitá zpětná vazba.">
     <title>Justax - příprava na zkoušky</title>
+    <!-- Подключаем шрифты напрямую -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome через CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --primary-color: #0a1530;
-            --text-color: #333;
-            --text-secondary: #666;
-            --background-light: #fff;
-            --background-tab: #f9f9f9;
-            --border-color: #ddd;
-            --error-color: #c62828;
-            --error-bg: #ffebee;
-            --success-color: #2e7d32;
-            --success-bg: #e8f5e9;
-            --shadow: 0 0 10px rgba(0,0,0,0.05);
-            --weak-color: #ff5252;
-            --medium-color: #ffa726; 
-            --strong-color: #66bb6a;
+            --primary: #4361ee;
+            --primary-light: #4895ef;
+            --secondary: #3f37c9;
+            --success: #4cc9f0;
+            --danger: #f72585;
+            --warning: #f8961e;
+            --info: #4895ef;
+            --dark: #1e2a3a;
+            --light: #f8f9fa;
+            --gray: #6c757d;
+            --gray-light: #dee2e6;
+            --gray-dark: #343a40;
+            --gradient-1: linear-gradient(135deg, #4361ee, #3a0ca3);
+            --gradient-2: linear-gradient(135deg, #4cc9f0, #4361ee);
+            --gradient-3: linear-gradient(135deg, #f72585, #7209b7);
+            --white: #ffffff;
+            --body-bg: #f6f8ff;
+            --text-primary: #2d3748;
+            --text-secondary: #4a5568;
+            --text-muted: #718096;
+            --weak-color: #f72585;
+            --medium-color: #f8961e; 
+            --strong-color: #4cc9f0;
+            --card-radius: 16px;
+            --btn-radius: 12px;
+            --input-radius: 10px;
+            --shadow-sm: 0 2px 8px rgba(0,0,0,0.05);
+            --shadow-md: 0 5px 15px rgba(0,0,0,0.07);
+            --shadow-lg: 0 10px 25px rgba(0,0,0,0.1);
         }
         
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
+            font-family: 'Poppins', sans-serif;
         }
         
         body {
-            font-family: 'Segoe UI', Arial, sans-serif;
             display: flex;
             min-height: 100vh;
-            color: var(--text-color);
+            color: var(--text-primary);
             line-height: 1.6;
+            background-color: var(--body-bg);
         }
         
         .login-section {
@@ -43,131 +65,175 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            background-color: var(--background-light);
+            background-color: var(--white);
             padding: 20px;
+            position: relative;
+            z-index: 1;
         }
         
         .login-container {
             width: 100%;
-            max-width: 400px;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: var(--shadow);
+            max-width: 450px;
+            padding: 40px;
+            border-radius: var(--card-radius);
+            box-shadow: var(--shadow-md);
+            background-color: var(--white);
             transition: all 0.3s ease;
+            position: relative;
+            z-index: 2;
         }
         
         .login-header {
-            margin-bottom: 24px;
+            margin-bottom: 30px;
+            text-align: center;
         }
         
         .login-header h1 {
             font-size: 28px;
-            margin-bottom: 8px;
-            color: var(--primary-color);
+            margin-bottom: 12px;
+            background: var(--gradient-1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            color: transparent;
+            display: inline-block;
+            font-weight: 700;
         }
         
         .login-header p {
             color: var(--text-secondary);
+            font-size: 1rem;
         }
         
         .tab-container {
             display: flex;
-            margin-bottom: 24px;
-            border-radius: 6px;
+            margin-bottom: 30px;
+            border-radius: 12px;
             overflow: hidden;
-            border: 1px solid var(--border-color);
+            border: 1px solid var(--gray-light);
+            box-shadow: var(--shadow-sm);
         }
         
         .tab {
             width: 50%;
-            padding: 14px;
+            padding: 15px;
             text-align: center;
-            background-color: var(--background-tab);
+            background-color: var(--light);
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.3s ease;
             font-weight: 500;
+            color: var(--text-secondary);
+            position: relative;
+            overflow: hidden;
         }
         
         .tab:hover {
-            background-color: #f0f0f0;
+            color: var(--primary);
+            background-color: rgba(67, 97, 238, 0.05);
         }
         
         .tab.active {
-            background-color: var(--background-light);
+            background-color: var(--white);
             font-weight: 600;
-            color: var(--primary-color);
-            border-bottom: 2px solid var(--primary-color);
+            color: var(--primary);
+        }
+        
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--gradient-1);
+            transition: all 0.3s ease;
         }
         
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 25px;
         }
         
         .form-group label {
             display: block;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
             font-weight: 500;
+            color: var(--text-primary);
+            font-size: 0.95rem;
         }
         
         .form-control {
             width: 100%;
-            padding: 12px 14px;
-            border: 1.5px solid var(--border-color);
-            border-radius: 6px;
-            font-size: 16px;
-            transition: border 0.2s ease;
+            padding: 14px 16px;
+            border: 1.5px solid var(--gray-light);
+            border-radius: var(--input-radius);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            color: var(--text-primary);
+            background-color: var(--light);
         }
         
         .form-control:focus {
             outline: none;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 2px rgba(10, 21, 48, 0.1);
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
+            background-color: var(--white);
         }
         
         .btn-login {
             width: 100%;
             padding: 14px;
-            background-color: var(--primary-color);
+            background: var(--gradient-1);
             color: white;
             border: none;
-            border-radius: 6px;
-            font-size: 16px;
+            border-radius: var(--btn-radius);
+            font-size: 1rem;
             font-weight: 600;
             cursor: pointer;
-            margin-top: 10px;
-            transition: background-color 0.2s ease;
+            margin-top: 15px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(67, 97, 238, 0.25);
+            position: relative;
+            overflow: hidden;
         }
         
         .btn-login:hover {
-            background-color: #0e1d44;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 16px rgba(67, 97, 238, 0.3);
+        }
+        
+        .btn-login:active {
+            transform: translateY(-1px);
         }
         
         .btn-login:disabled {
-            background-color: #cccccc;
+            background: linear-gradient(135deg, #b8c0e0, #9aa5cc);
             cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
         }
         
         .forgot-password {
             text-align: center;
-            margin-top: 16px;
-            font-size: 14px;
+            margin-top: 20px;
+            font-size: 0.9rem;
             color: var(--text-secondary);
         }
         
         .forgot-password a {
-            color: var(--primary-color);
+            color: var(--primary);
             text-decoration: none;
             font-weight: 500;
+            transition: all 0.3s ease;
         }
         
         .forgot-password a:hover {
+            color: var(--secondary);
             text-decoration: underline;
         }
         
         .banner-section {
             width: 50%;
-            background-color: var(--primary-color);
-            background-image: linear-gradient(135deg, #0a1530 0%, #1b3566 100%);
+            background: var(--gradient-1);
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -176,17 +242,48 @@
             text-align: center;
             padding: 40px;
             box-sizing: border-box;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .banner-section::before, .banner-section::after {
+            content: '';
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            z-index: 0;
+        }
+        
+        .banner-section::before {
+            top: -150px;
+            left: -150px;
+        }
+        
+        .banner-section::after {
+            bottom: -150px;
+            right: -150px;
         }
         
         .graduation-icon {
-            font-size: 48px;
-            margin-bottom: 24px;
+            position: relative;
+            margin-bottom: 30px;
+            z-index: 1;
+            animation: pulse 3s infinite alternate ease-in-out;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.1); }
         }
         
         .banner-title {
-            font-size: 36px;
+            font-size: 32px;
             margin-bottom: 24px;
             font-weight: 700;
+            position: relative;
+            z-index: 1;
         }
         
         .banner-text {
@@ -194,47 +291,76 @@
             max-width: 80%;
             line-height: 1.7;
             opacity: 0.9;
+            position: relative;
+            z-index: 1;
         }
 
         .form-container {
             display: block;
-            transition: opacity 0.3s ease;
+            transition: opacity 0.5s ease, transform 0.5s ease;
+            opacity: 1;
+            transform: translateY(0);
         }
 
         .form-container.hidden {
             display: none;
             opacity: 0;
+            transform: translateY(20px);
         }
 
         .alert {
-            padding: 14px;
-            margin-bottom: 20px;
-            border-radius: 6px;
-            font-size: 14px;
+            padding: 16px;
+            margin-bottom: 25px;
+            border-radius: 12px;
+            font-size: 0.95rem;
             font-weight: 500;
-            animation: fadeIn 0.3s ease;
+            animation: fadeInDown 0.5s ease forwards;
+            box-shadow: var(--shadow-sm);
+            position: relative;
+            padding-left: 50px;
         }
         
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
+        .alert::before {
+            font-family: "Font Awesome 6 Free";
+            font-weight: 900;
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 18px;
+        }
+        
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-20px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
         .alert-error {
-            background-color: var(--error-bg);
-            color: var(--error-color);
-            border-left: 4px solid var(--error-color);
+            background-color: rgba(247, 37, 133, 0.1);
+            color: var(--danger);
+            border-left: 4px solid var(--danger);
+        }
+        
+        .alert-error::before {
+            content: "\f071";
+            color: var(--danger);
         }
 
         .alert-success {
-            background-color: var(--success-bg);
-            color: var(--success-color);
-            border-left: 4px solid var(--success-color);
+            background-color: rgba(76, 201, 240, 0.1);
+            color: var(--success);
+            border-left: 4px solid var(--success);
+        }
+        
+        .alert-success::before {
+            content: "\f00c";
+            color: var(--success);
         }
 
         #messageContainer {
-            margin-bottom: 20px;
-            min-height: 30px;
+            margin-bottom: 25px;
+            min-height: 0;
+            transition: min-height 0.3s ease;
         }
         
         .password-container {
@@ -243,66 +369,71 @@
         
         .password-toggle {
             position: absolute;
-            right: 10px;
+            right: 15px;
             top: 50%;
             transform: translateY(-50%);
             cursor: pointer;
             color: var(--text-secondary);
-            font-size: 14px;
+            font-size: 0.9rem;
             background: none;
             border: none;
             padding: 5px;
             font-weight: 500;
+            transition: all 0.3s ease;
         }
         
         .password-toggle:hover {
-            color: var(--primary-color);
+            color: var(--primary);
         }
         
         .form-footer {
-            margin-top: 20px;
-            font-size: 14px;
+            margin-top: 25px;
+            font-size: 0.9rem;
             text-align: center;
             color: var(--text-secondary);
+            line-height: 1.6;
         }
         
         .form-footer a {
-            color: var(--primary-color);
+            color: var(--primary);
             text-decoration: none;
             font-weight: 500;
+            transition: all 0.3s ease;
         }
         
         .form-footer a:hover {
+            color: var(--secondary);
             text-decoration: underline;
         }
         
         .password-strength {
-            margin-top: 8px;
+            margin-top: 10px;
             font-size: 12px;
-            height: 5px;
+            height: 6px;
             background-color: #f0f0f0;
-            border-radius: 5px;
+            border-radius: 10px;
             overflow: hidden;
+            transition: all 0.3s ease;
         }
         
         .password-strength-meter {
             height: 100%;
-            border-radius: 5px;
-            transition: width 0.3s ease;
+            border-radius: 10px;
+            transition: width 0.4s ease-out;
         }
         
         .strength-weak {
-            background-color: var(--weak-color);
+            background: var(--weak-color);
             width: 30%;
         }
         
         .strength-medium {
-            background-color: var(--medium-color);
-            width: 60%;
+            background: var(--medium-color);
+            width: 65%;
         }
         
         .strength-strong {
-            background-color: var(--strong-color);
+            background: var(--strong-color);
             width: 100%;
         }
         
@@ -310,7 +441,7 @@
             display: none;
             text-align: center;
             margin: 15px 0;
-            font-size: 14px;
+            font-size: 0.9rem;
             color: var(--text-secondary);
         }
         
@@ -318,10 +449,10 @@
             display: inline-block;
             width: 20px;
             height: 20px;
-            border: 3px solid rgba(0,0,0,0.1);
+            border: 3px solid rgba(67, 97, 238, 0.2);
             border-radius: 50%;
-            border-top-color: var(--primary-color);
-            animation: spin 1s ease-in-out infinite;
+            border-top-color: var(--primary);
+            animation: spin 1s linear infinite;
             margin-right: 10px;
             vertical-align: middle;
         }
@@ -335,45 +466,172 @@
             cursor: pointer;
             margin-right: 8px;
             vertical-align: middle;
+            accent-color: var(--primary);
+        }
+        
+        label[for="rememberMe"] {
+            cursor: pointer;
+            user-select: none;
+        }
+        
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+        }
+        
+        /* Animation */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .animated {
+            animation: fadeIn 0.5s ease forwards;
+        }
+        
+        /* Wavy separator */
+        .wavy-separator {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            overflow: hidden;
+            line-height: 0;
+            z-index: 1;
+        }
+
+        .wavy-separator svg {
+            position: relative;
+            display: block;
+            width: calc(100% + 1.3px);
+            height: 61px;
+        }
+
+        .wavy-separator path {
+            fill: var(--white);
         }
         
         /* Responsive design improvements */
-        @media (max-width: 992px) {
+        @media (max-width: 1100px) {
             .banner-text {
-                max-width: 90%;
+                max-width: 95%;
                 font-size: 16px;
             }
             
             .banner-title {
-                font-size: 32px;
+                font-size: 28px;
+            }
+            
+            .login-container {
+                padding: 30px;
             }
         }
         
-        @media (max-width: 768px) {
+        @media (max-width: 900px) {
             body {
-                flex-direction: column;
+                flex-direction: column-reverse;
             }
             
             .login-section, .banner-section {
                 width: 100%;
                 min-height: auto;
-                padding: 40px 20px;
+            }
+            
+            .login-section {
+                padding: 40px 20px 60px;
             }
             
             .banner-section {
-                order: -1;
-                padding: 60px 20px;
+                padding: 80px 20px 120px;
+                border-radius: 0 0 30px 30px;
             }
             
             .login-container {
-                box-shadow: none;
+                margin-top: -60px;
+                padding: 30px 25px;
+            }
+            
+            .wavy-separator {
+                bottom: 0;
+                top: auto;
+                transform: rotate(180deg);
+            }
+        }
+        
+        @media (max-width: 600px) {
+            .login-container {
+                padding: 25px 20px;
+            }
+            
+            .login-header h1 {
+                font-size: 24px;
+            }
+            
+            .banner-title {
+                font-size: 24px;
+            }
+            
+            .banner-text {
+                font-size: 14px;
+            }
+        }
+        
+        /* Dark theme support */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --white: #1a202c;
+                --light: #2d3748;
+                --dark: #e2e8f0;
+                --body-bg: #141822;
+                --text-primary: #e2e8f0;
+                --text-secondary: #cbd5e0;
+                --text-muted: #a0aec0;
+                --gray-light: #4a5568;
+            }
+            
+            .form-control {
+                background-color: #2d3748;
+                color: #e2e8f0;
+            }
+            
+            .form-control:focus {
+                background-color: #2d3748;
+            }
+            
+            .password-strength {
+                background-color: #2d3748;
+            }
+            
+            .alert-error {
+                background-color: rgba(247, 37, 133, 0.15);
+            }
+            
+            .alert-success {
+                background-color: rgba(76, 201, 240, 0.15);
+            }
+            
+            .wavy-separator path {
+                fill: var(--white);
+            }
+            
+            .tab {
+                background-color: #2d3748;
+                color: var(--text-secondary);
+            }
+            
+            .tab:hover {
+                background-color: rgba(76, 201, 240, 0.1);
+            }
+            
+            .tab.active {
+                background-color: var(--white);
             }
         }
     </style>
 </head>
 <body>
     <div class="login-section">
-        <div class="login-container">
+        <div class="login-container animated">
             <div class="login-header">
                 <h1>Vítejte v Justax</h1>
                 <p>Začněte svou cestu k úspěšným zkouškám</p>
@@ -389,21 +647,24 @@
             <form id="loginForm" class="form-container">
                 <div class="form-group">
                     <label for="loginEmail">Email</label>
-                    <input type="email" id="loginEmail" class="form-control" required autocomplete="email">
+                    <input type="email" id="loginEmail" class="form-control" required autocomplete="email" placeholder="vas@email.cz">
                 </div>
                 
                 <div class="form-group">
                     <div class="password-container">
                         <label for="loginPassword">Heslo</label>
-                        <input type="password" id="loginPassword" class="form-control" required autocomplete="current-password">
-                        <button type="button" class="password-toggle" data-for="loginPassword">Zobrazit</button>
+                        <input type="password" id="loginPassword" class="form-control" required autocomplete="current-password" placeholder="••••••••">
+                        <button type="button" class="password-toggle" data-for="loginPassword">
+                            <i class="fas fa-eye"></i>
+                        </button>
                     </div>
                 </div>
                 
                 <div class="form-group">
-                    <label>
-                        <input type="checkbox" id="rememberMe"> Zapamatovat si mě
-                    </label>
+                    <div class="checkbox-container">
+                        <input type="checkbox" id="rememberMe">
+                        <label for="rememberMe">Zapamatovat si mě</label>
+                    </div>
                 </div>
                 
                 <div class="form-loading" id="loginLoading">
@@ -420,19 +681,21 @@
             <form id="registerForm" class="form-container hidden">
                 <div class="form-group">
                     <label for="registerEmail">Email</label>
-                    <input type="email" id="registerEmail" class="form-control" required autocomplete="email">
+                    <input type="email" id="registerEmail" class="form-control" required autocomplete="email" placeholder="vas@email.cz">
                 </div>
                 
                 <div class="form-group">
                     <label for="registerUsername">Uživatelské jméno</label>
-                    <input type="text" id="registerUsername" class="form-control" required minlength="3" autocomplete="username">
+                    <input type="text" id="registerUsername" class="form-control" required minlength="3" autocomplete="username" placeholder="Min. 3 znaky">
                 </div>
                 
                 <div class="form-group">
                     <div class="password-container">
                         <label for="registerPassword">Heslo</label>
-                        <input type="password" id="registerPassword" class="form-control" required minlength="6" autocomplete="new-password">
-                        <button type="button" class="password-toggle" data-for="registerPassword">Zobrazit</button>
+                        <input type="password" id="registerPassword" class="form-control" required minlength="6" autocomplete="new-password" placeholder="Min. 6 znaků">
+                        <button type="button" class="password-toggle" data-for="registerPassword">
+                            <i class="fas fa-eye"></i>
+                        </button>
                     </div>
                     <div class="password-strength">
                         <div class="password-strength-meter" id="passwordStrength"></div>
@@ -442,8 +705,10 @@
                 <div class="form-group">
                     <div class="password-container">
                         <label for="confirmPassword">Potvrzení hesla</label>
-                        <input type="password" id="confirmPassword" class="form-control" required autocomplete="new-password">
-                        <button type="button" class="password-toggle" data-for="confirmPassword">Zobrazit</button>
+                        <input type="password" id="confirmPassword" class="form-control" required autocomplete="new-password" placeholder="Zadejte heslo znovu">
+                        <button type="button" class="password-toggle" data-for="confirmPassword">
+                            <i class="fas fa-eye"></i>
+                        </button>
                     </div>
                 </div>
                 
@@ -461,7 +726,7 @@
             <form id="resetPasswordForm" class="form-container hidden">
                 <div class="form-group">
                     <label for="resetEmail">Email</label>
-                    <input type="email" id="resetEmail" class="form-control" required autocomplete="email">
+                    <input type="email" id="resetEmail" class="form-control" required autocomplete="email" placeholder="Zadejte svůj email">
                 </div>
                 
                 <div class="form-loading" id="resetLoading">
@@ -478,6 +743,14 @@
     </div>
     
     <div class="banner-section">
+        <div class="wavy-separator">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
+                <path d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z" opacity=".25"></path>
+                <path d="M0,0V15.81C13,36.92,27.64,56.86,47.69,72.05,99.41,111.27,165,111,224.58,91.58c31.15-10.15,60.09-26.07,89.67-39.8,40.92-19,84.73-46,130.83-49.67,36.26-2.85,70.9,9.42,98.6,31.56,31.77,25.39,62.32,62,103.63,73,40.44,10.79,81.35-6.69,119.13-24.28s75.16-39,116.92-43.05c59.73-5.85,113.28,22.88,168.9,38.84,30.2,8.66,59,6.17,87.09-7.5,22.43-10.89,48-26.93,60.65-49.24V0Z" opacity=".5"></path>
+                <path d="M0,0V5.63C149.93,59,314.09,71.32,475.83,42.57c43-7.64,84.23-20.12,127.61-26.46,59-8.63,112.48,12.24,165.56,35.4C827.93,77.22,886,95.24,951.2,90c86.53-7,172.46-45.71,248.8-84.81V0Z"></path>
+            </svg>
+        </div>
+
         <div class="graduation-icon">
             <svg width="64" height="64" fill="white" viewBox="0 0 24 24">
                 <path d="M12 3L1 9l11 6l9-4.91V17h2V9L12 3z M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z"/>
@@ -544,6 +817,7 @@
         // Helper functions
         function showMessage(message, type) {
             messageContainer.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+            messageContainer.style.minHeight = messageContainer.scrollHeight + 'px';
             
             // Smooth scroll only on mobile
             if(window.innerWidth < 768) {
@@ -553,6 +827,7 @@
             if (type === 'success') {
                 setTimeout(() => {
                     messageContainer.innerHTML = '';
+                    messageContainer.style.minHeight = '0';
                 }, 5000);
             }
         }
@@ -583,29 +858,29 @@
         const checkPasswordStrength = debounce(function(password) {
             let strength = 0;
     
-    	 // Если пароль пустой, не показываем индикатор
-    	 if (!password || password.length === 0) {
-    		passwordStrength.className = 'password-strength-meter';
-    		passwordStrength.style.width = '0';
-    		return 0;
-		}
+            // Если пароль пустой, не показываем индикатор
+            if (!password || password.length === 0) {
+                passwordStrength.className = 'password-strength-meter';
+                passwordStrength.style.width = '0';
+                return 0;
+            }
     
-    	 if (password.length >= 8) strength += 1;
-    	 if (password.match(/[A-Z]/)) strength += 1;
-    	 if (password.match(/[0-9]/)) strength += 1;
-    	 if (password.match(/[^A-Za-z0-9]/)) strength += 1;
+            if (password.length >= 8) strength += 1;
+            if (password.match(/[A-Z]/)) strength += 1;
+            if (password.match(/[0-9]/)) strength += 1;
+            if (password.match(/[^A-Za-z0-9]/)) strength += 1;
     
-    	 passwordStrength.className = 'password-strength-meter';
+            passwordStrength.className = 'password-strength-meter';
     
-    	 if (strength <= 1) {
-        	 passwordStrength.classList.add('strength-weak');
-    	 } else if (strength <= 3) {
-        	 passwordStrength.classList.add('strength-medium');
-    	 } else {
-        	 passwordStrength.classList.add('strength-strong');
-    	 }
+            if (strength <= 1) {
+                passwordStrength.classList.add('strength-weak');
+            } else if (strength <= 3) {
+                passwordStrength.classList.add('strength-medium');
+            } else {
+                passwordStrength.classList.add('strength-strong');
+            }
     
-    	 return strength;
+            return strength;
         }, 200);
 
         
@@ -618,12 +893,15 @@
         document.querySelectorAll('.password-toggle').forEach(button => {
             button.addEventListener('click', function() {
                 const passwordInput = document.getElementById(this.getAttribute('data-for'));
+                const icon = this.querySelector('i');
                 if (passwordInput.type === 'password') {
                     passwordInput.type = 'text';
-                    this.textContent = 'Skrýt';
+                    icon.classList.remove('fa-eye');
+                    icon.classList.add('fa-eye-slash');
                 } else {
                     passwordInput.type = 'password';
-                    this.textContent = 'Zobrazit';
+                    icon.classList.remove('fa-eye-slash');
+                    icon.classList.add('fa-eye');
                 }
             });
         });
@@ -634,18 +912,27 @@
             document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
             activeTab.classList.add('active');
             
-            // Hide all forms
-            [hideForm1, hideForm2, showForm].forEach(form => {
-                if (form !== showForm) {
-                    form.classList.add('hidden');
+            // Hide all forms with animation
+            [hideForm1, hideForm2].forEach(form => {
+                if (!form.classList.contains('hidden')) {
+                    form.style.opacity = '0';
+                    form.style.transform = 'translateY(10px)';
+                    setTimeout(() => {
+                        form.classList.add('hidden');
+                    }, 300);
                 }
             });
             
-            // Show the target form
+            // Show the target form with animation
             setTimeout(() => {
                 showForm.classList.remove('hidden');
                 messageContainer.innerHTML = '';
-            }, 50);
+                messageContainer.style.minHeight = '0';
+                setTimeout(() => {
+                    showForm.style.opacity = '1';
+                    showForm.style.transform = 'translateY(0)';
+                }, 50);
+            }, 300);
         }
         
         loginTab.addEventListener('click', () => 
@@ -726,112 +1013,112 @@
         });
 
         // Registration form submission
-       registerForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    
-    const email = registerEmail.value.trim();
-    const username = registerUsername.value.trim();
-    const password = registerPassword.value;
-    const passwordConfirm = confirmPassword.value;
+        registerForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = registerEmail.value.trim();
+            const username = registerUsername.value.trim();
+            const password = registerPassword.value;
+            const passwordConfirm = confirmPassword.value;
 
-    // Enhanced validation
-    if (!validateEmail(email)) {
-        showMessage('Zadejte platný email', 'error');
-        registerEmail.focus();
-        return;
-    }
-    
-    if (username.length < 3) {
-        showMessage('Uživatelské jméno musí mít alespoň 3 znaky', 'error');
-        registerUsername.focus();
-        return;
-    }
-    
-    if (password.length < 6) {
-        showMessage('Heslo musí mít alespoň 6 znaků', 'error');
-        registerPassword.focus();
-        return;
-    }
-    
-    if (checkPasswordStrength(password) <= 1) {
-        showMessage('Heslo je příliš slabé. Použijte kombinaci písmen, čísel a speciálních znaků', 'error');
-        registerPassword.focus();
-        return;
-    }
+            // Enhanced validation
+            if (!validateEmail(email)) {
+                showMessage('Zadejte platný email', 'error');
+                registerEmail.focus();
+                return;
+            }
+            
+            if (username.length < 3) {
+                showMessage('Uživatelské jméno musí mít alespoň 3 znaky', 'error');
+                registerUsername.focus();
+                return;
+            }
+            
+            if (password.length < 6) {
+                showMessage('Heslo musí mít alespoň 6 znaků', 'error');
+                registerPassword.focus();
+                return;
+            }
+            
+            if (checkPasswordStrength(password) <= 1) {
+                showMessage('Heslo je příliš slabé. Použijte kombinaci písmen, čísel a speciálních znaků', 'error');
+                registerPassword.focus();
+                return;
+            }
 
-    if (password !== passwordConfirm) {
-        showMessage('Hesla se neshodují', 'error');
-        confirmPassword.focus();
-        return;
-    }
+            if (password !== passwordConfirm) {
+                showMessage('Hesla se neshodují', 'error');
+                confirmPassword.focus();
+                return;
+            }
 
-    // Disable button and show loading
-    registerButton.disabled = true;
-    registerLoading.style.display = 'block';
+            // Disable button and show loading
+            registerButton.disabled = true;
+            registerLoading.style.display = 'block';
 
-    try {
-        // Register new user
-        const { data, error: authError } = await supabase.auth.signUp({
-            email,
-            password,
-            options: {
-                data: {
-                    username
+            try {
+                // Register new user
+                const { data, error: authError } = await supabase.auth.signUp({
+                    email,
+                    password,
+                    options: {
+                        data: {
+                            username
+                        }
+                    }
+                });
+
+                if (authError) throw authError;
+
+                // Check if user was created
+                if (data && data.user) {
+                    // Wait a moment to ensure the auth record is fully created
+                    setTimeout(async () => {
+                        try {
+                            // Fix for the 409 error - use upsert instead of insert
+                            const { error: profileError } = await supabase
+                                .from('profiles')
+                                .upsert([
+                                    { 
+                                        id: data.user.id, 
+                                        username, 
+                                        email,
+                                        created_at: new Date().toISOString()
+                                    }
+                                ], { onConflict: 'id' });
+
+                            if (profileError) {
+                                console.error("Profile error:", profileError);
+                                // Still show success if auth was successful but profile had issues
+                                showMessage('Registrace úspěšná! Zkontrolujte svůj email pro potvrzení účtu.', 'success');
+                            } else {
+                                showMessage('Registrace úspěšná! Zkontrolujte svůj email pro potvrzení účtu.', 'success');
+                            }
+                            
+                            // Reset form
+                            registerForm.reset();
+                            
+                            // Switch to login tab
+                            setTimeout(() => {
+                                loginTab.click();
+                            }, 2000);
+                        } catch (profileError) {
+                            console.error("Error saving profile:", profileError);
+                            showMessage('Účet byl vytvořen, ale profil nemohl být inicializován. Zkuste se přihlásit.', 'success');
+                        }
+                    }, 500); // Give a small delay before profile creation
+                } else {
+                    showMessage('Vyskytla se neznámá chyba. Zkuste prosím znovu.', 'error');
                 }
+            } catch (error) {
+                console.error('Registration error:', error);
+                showMessage(`Registrace selhala: ${translateError(error.message)}`, 'error');
+            } finally {
+                // Re-enable button and hide loading
+                registerButton.disabled = false;
+                registerLoading.style.display = 'none';
             }
         });
-
-        if (authError) throw authError;
-
-        // Check if user was created
-        if (data && data.user) {
-            // Wait a moment to ensure the auth record is fully created
-            setTimeout(async () => {
-                try {
-                    // Fix for the 409 error - use upsert instead of insert
-                    const { error: profileError } = await supabase
-                        .from('profiles')
-                        .upsert([
-                            { 
-                                id: data.user.id, 
-                                username, 
-                                email,
-                                created_at: new Date().toISOString()
-                            }
-                        ], { onConflict: 'id' });
-
-                    if (profileError) {
-                        console.error("Profile error:", profileError);
-                        // Still show success if auth was successful but profile had issues
-                        showMessage('Registrace úspěšná! Zkontrolujte svůj email pro potvrzení účtu.', 'success');
-                    } else {
-                        showMessage('Registrace úspěšná! Zkontrolujte svůj email pro potvrzení účtu.', 'success');
-                    }
-                    
-                    // Reset form
-                    registerForm.reset();
-                    
-                    // Switch to login tab
-                    setTimeout(() => {
-                        loginTab.click();
-                    }, 2000);
-                } catch (profileError) {
-                    console.error("Error saving profile:", profileError);
-                    showMessage('Účet byl vytvořen, ale profil nemohl být inicializován. Zkuste se přihlásit.', 'success');
-                }
-            }, 500); // Give a small delay before profile creation
-        } else {
-            showMessage('Vyskytla se neznámá chyba. Zkuste prosím znovu.', 'error');
-        }
-    } catch (error) {
-        console.error('Registration error:', error);
-        showMessage(`Registrace selhala: ${translateError(error.message)}`, 'error');
-    } finally {
-        // Re-enable button and hide loading
-        registerButton.disabled = false;
-        registerLoading.style.display = 'none';
-    }
-});
 
         // Reset password form submission
         resetPasswordForm.addEventListener('submit', async (e) => {
@@ -872,7 +1159,7 @@
             }
         });
 
-        // Dokončení původního kódu z checkLoggedInUser()
+        // Проверка авторизованного пользователя
         async function checkLoggedInUser() {
             try {
                 const { data } = await supabase.auth.getSession();
@@ -894,84 +1181,54 @@
         // Přidání focus na první vstupní pole při načtení formuláře
         loginEmail.focus();
 
-        // Přidání animace při přechodu mezi formuláři
-        function animateFormTransition(fromForm, toForm) {
-            fromForm.style.opacity = '0';
-            setTimeout(() => {
-                fromForm.classList.add('hidden');
-                toForm.classList.remove('hidden');
-                setTimeout(() => {
-                    toForm.style.opacity = '1';
-                }, 50);
-            }, 300);
-        }
-
-        // Předvyplnění emailu při přechodu mezi formuláři
-        loginTab.addEventListener('click', () => {
-            if (registerEmail.value) {
-                loginEmail.value = registerEmail.value;
+        // Проверка доступности имени пользователя
+        registerUsername.addEventListener('blur', async function() {
+            const username = this.value.trim();
+            
+            if (username.length < 3) return;
+            
+            try {
+                // Fix for the 406 error - properly format the request
+                const { data, error } = await supabase
+                    .from('profiles')
+                    .select('username')
+                    .eq('username', username)
+                    .limit(1);
+                
+                if (error) {
+                    console.error('Username check error:', error);
+                    return; // Don't show error message for backend issues
+                }
+                
+                if (data && data.length > 0) {
+                    showMessage('Toto uživatelské jméno je již obsazené', 'error');
+                    this.focus();
+                }
+            } catch (error) {
+                console.error('Chyba při kontrole uživatelského jména:', error);
             }
         });
 
-        registerTab.addEventListener('click', () => {
-            if (loginEmail.value) {
-                registerEmail.value = loginEmail.value;
-            }
-        });
-
-        // Optimalizace zpracování chyb při práci se Supabase
-        function handleSupabaseError(error, defaultMessage) {
-            console.error('Supabase error:', error);
-            const errorMessage = error.message || defaultMessage;
-            showMessage(translateError(errorMessage), 'error');
-        }
-
-        // Функция проверки доступности имени пользователя
-registerUsername.addEventListener('blur', async function() {
-    const username = this.value.trim();
-    
-    if (username.length < 3) return;
-    
-    try {
-        // Fix for the 406 error - properly format the request
-        const { data, error } = await supabase
-            .from('profiles')
-            .select('username')
-            .eq('username', username)
-            .limit(1);
-        
-        if (error) {
-            console.error('Username check error:', error);
-            return; // Don't show error message for backend issues
-        }
-        
-        if (data && data.length > 0) {
-            showMessage('Toto uživatelské jméno je již obsazené', 'error');
-            this.focus();
-        }
-    } catch (error) {
-        console.error('Chyba při kontrole uživatelského jména:', error);
-    }
-});
-        // Optimalizace mobilního zobrazení
+        // Оптимизация для мобильных устройств
         function optimizeMobileView() {
-            if (window.innerWidth < 768) {
+            if (window.innerWidth < 900) {
                 document.querySelector('.login-container').style.maxWidth = '100%';
+                document.querySelector('.login-container').style.width = '100%';
             } else {
-                document.querySelector('.login-container').style.maxWidth = '400px';
+                document.querySelector('.login-container').style.maxWidth = '450px';
             }
         }
 
-        // Spuštění optimalizace při načtení a změně velikosti okna
+        // Применение оптимизации при загрузке и изменении размера окна
         optimizeMobileView();
         window.addEventListener('resize', optimizeMobileView);
 
-        // Uložení poslední použité záložky
+        // Сохранение выбранной вкладки
         function saveLastUsedTab(tabId) {
             localStorage.setItem('lastUsedTab', tabId);
         }
 
-        // Načtení poslední použité záložky
+        // Загрузка последней использованной вкладки
         function loadLastUsedTab() {
             const lastTab = localStorage.getItem('lastUsedTab');
             if (lastTab === 'registerTab') {
@@ -979,14 +1236,14 @@ registerUsername.addEventListener('blur', async function() {
             }
         }
 
-        // Ukládání záložky při kliknutí
+        // Запоминание вкладки при клике
         loginTab.addEventListener('click', () => saveLastUsedTab('loginTab'));
         registerTab.addEventListener('click', () => saveLastUsedTab('registerTab'));
 
-        // Načtení poslední použité záložky při startu
+        // Загрузка последней выбранной вкладки при старте
         loadLastUsedTab();
 
-        // Přidání event listeneru pro detekci stisknutí Enter
+        // Обработка нажатия Enter
         document.addEventListener('keydown', function(event) {
             if (event.key === 'Enter') {
                 if (!loginForm.classList.contains('hidden')) {
@@ -999,7 +1256,7 @@ registerUsername.addEventListener('blur', async function() {
             }
         });
 
-        // Přidání dynamického ověřování formulářů
+        // Валидация полей формы при вводе
         [loginEmail, loginPassword].forEach(input => {
             input.addEventListener('input', () => {
                 loginButton.disabled = !loginEmail.value || !loginPassword.value;
@@ -1007,44 +1264,51 @@ registerUsername.addEventListener('blur', async function() {
         });
 
         [registerEmail, registerUsername, registerPassword, confirmPassword].forEach(input => {
-    	input.addEventListener('input', () => {
-        // Изначально предполагаем, что кнопка может быть активна
-        	let shouldDisable = false;
-        
-        // Проверяем заполненность полей
-        	if (!registerEmail.value || !registerUsername.value || !registerPassword.value) {
-            	shouldDisable = true;
-        	}
-        
-        	// Проверяем силу пароля только если поле не пустое
-        	if (registerPassword.value) {
-            	const passwordStrengthValue = checkPasswordStrength(registerPassword.value);
-            	if (passwordStrengthValue <= 1 && registerPassword.value.length > 0) {
-                	shouldDisable = true;
-            		}
-        	}
-        
-        	// Проверяем совпадение паролей только если оба поля заполнены
-        	if (registerPassword.value && confirmPassword.value && 
-            	registerPassword.value !== confirmPassword.value) {
-            	shouldDisable = true;
-        	}
-        
-        	// Устанавливаем состояние кнопки
-        	registerButton.disabled = shouldDisable;
-    		});
-	});
+            input.addEventListener('input', () => {
+                // Изначально предполагаем, что кнопка может быть активна
+                let shouldDisable = false;
+            
+                // Проверяем заполненность полей
+                if (!registerEmail.value || !registerUsername.value || !registerPassword.value) {
+                    shouldDisable = true;
+                }
+            
+                // Проверяем силу пароля только если поле не пустое
+                if (registerPassword.value) {
+                    const passwordStrengthValue = checkPasswordStrength(registerPassword.value);
+                    if (passwordStrengthValue <= 1 && registerPassword.value.length > 0) {
+                        shouldDisable = true;
+                    }
+                }
+            
+                // Проверяем совпадение паролей только если оба поля заполнены
+                if (registerPassword.value && confirmPassword.value && 
+                    registerPassword.value !== confirmPassword.value) {
+                    shouldDisable = true;
+                }
+            
+                // Устанавливаем состояние кнопки
+                registerButton.disabled = shouldDisable;
+            });
+        });
 
         resetEmail.addEventListener('input', () => {
             resetButton.disabled = !validateEmail(resetEmail.value);
         });
 
-                // Inicializace stavu tlačítek
+        // Инициализация состояния кнопок
         loginButton.disabled = true;
         registerButton.disabled = true;
         resetButton.disabled = true;
 
+        // Добавление анимации появления для элементов формы
+        document.querySelectorAll('.form-group, .form-footer, .forgot-password').forEach((el, index) => {
+            el.style.opacity = '0';
+            el.style.animation = 'fadeIn 0.5s ease forwards';
+            el.style.animationDelay = `${0.1 + (index * 0.1)}s`;
+        });
+
     });
-</script>
+    </script>
 </body>
 </html>
