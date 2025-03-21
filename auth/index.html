@@ -768,7 +768,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <script>
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', async function() {
         // DOM elements
         const loginTab = document.getElementById('loginTab');
         const registerTab = document.getElementById('registerTab');
@@ -804,6 +804,33 @@
         
         // Initialize Supabase client
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        
+        // Проверка, авторизован ли пользователь, и если да, перенаправляем в дашборд
+        async function checkLoggedInUser() {
+            try {
+                const { data: { session }, error } = await supabase.auth.getSession();
+                
+                if (error) {
+                    console.error('Ошибка при проверке сессии:', error);
+                    return false;
+                }
+                
+                if (session) {
+                    console.log('Пользователь уже авторизован, перенаправление на дашборд');
+                    window.location.href = '/dashboard/dashboard.html';
+                    return true;
+                }
+                
+                return false;
+            } catch (error) {
+                console.error('Ошибка при проверке авторизации:', error);
+                return false;
+            }
+        }
+        
+        // Выполняем проверку при загрузке страницы
+        const isLoggedIn = await checkLoggedInUser();
+        if (isLoggedIn) return; // Если пользователь авторизован, прерываем скрипт
         
         // Error translation dictionary
         const errorTranslations = {
@@ -1159,27 +1186,18 @@
             }
         });
 
-        // Проверка авторизованного пользователя
-        async function checkLoggedInUser() {
-            try {
-                const { data } = await supabase.auth.getSession();
-                
-                if (data && data.session) {
-                    // User is already logged in, redirect to dashboard
-                    window.location.href = '/dashboard/dashboard.html';
-                }
-            } catch (error) {
-                console.error('Chyba při kontrole přihlášení:', error);
-                localStorage.removeItem('user');
-                sessionStorage.removeItem('user');
+        // Предзаполнение email при переключении между формами
+        loginTab.addEventListener('click', () => {
+            if (registerEmail.value) {
+                loginEmail.value = registerEmail.value;
             }
-        }
+        });
 
-        // Spuštění kontroly přihlášení při načtení stránky
-        checkLoggedInUser();
-
-        // Přidání focus na první vstupní pole při načtení formuláře
-        loginEmail.focus();
+        registerTab.addEventListener('click', () => {
+            if (loginEmail.value) {
+                registerEmail.value = loginEmail.value;
+            }
+        });
 
         // Проверка доступности имени пользователя
         registerUsername.addEventListener('blur', async function() {
@@ -1223,7 +1241,7 @@
         optimizeMobileView();
         window.addEventListener('resize', optimizeMobileView);
 
-        // Сохранение выбранной вкладки
+        // Сохранение последней использованной вкладки
         function saveLastUsedTab(tabId) {
             localStorage.setItem('lastUsedTab', tabId);
         }
@@ -1236,11 +1254,11 @@
             }
         }
 
-        // Запоминание вкладки при клике
+        // Сохранение вкладки при клике
         loginTab.addEventListener('click', () => saveLastUsedTab('loginTab'));
         registerTab.addEventListener('click', () => saveLastUsedTab('registerTab'));
 
-        // Загрузка последней выбранной вкладки при старте
+        // Загрузка последней вкладки
         loadLastUsedTab();
 
         // Обработка нажатия Enter
@@ -1256,7 +1274,7 @@
             }
         });
 
-        // Валидация полей формы при вводе
+        // Проверка полей при вводе для активации/деактивации кнопок
         [loginEmail, loginPassword].forEach(input => {
             input.addEventListener('input', () => {
                 loginButton.disabled = !loginEmail.value || !loginPassword.value;
@@ -1301,13 +1319,12 @@
         registerButton.disabled = true;
         resetButton.disabled = true;
 
-        // Добавление анимации появления для элементов формы
+        // Анимации форм
         document.querySelectorAll('.form-group, .form-footer, .forgot-password').forEach((el, index) => {
             el.style.opacity = '0';
             el.style.animation = 'fadeIn 0.5s ease forwards';
             el.style.animationDelay = `${0.1 + (index * 0.1)}s`;
         });
-
     });
     </script>
 </body>
