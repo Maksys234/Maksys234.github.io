@@ -1,32 +1,2065 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="cs">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nastavení profilu | Justax Dashboard</title>
-    <link rel="stylesheet" href="../dashboard.css">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap">
-    <script src="/assets/js/common.js"></script>
+    <title>Justax - Váš profil</title>
+    <!-- Подключаем шрифты напрямую -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome через CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <style>
+        /* Базовые стили */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        :root {
+            --primary: #4361ee;
+            --primary-light: #4895ef;
+            --secondary: #3f37c9;
+            --success: #4cc9f0;
+            --danger: #f72585;
+            --warning: #f8961e;
+            --info: #4895ef;
+            --dark: #1e2a3a;
+            --light: #f8f9fa;
+            --gray: #6c757d;
+            --gray-light: #dee2e6;
+            --gray-dark: #343a40;
+            --gradient-1: linear-gradient(135deg, #4361ee, #3a0ca3);
+            --gradient-2: linear-gradient(135deg, #4cc9f0, #4361ee);
+            --gradient-3: linear-gradient(135deg, #f72585, #7209b7);
+            --gradient-4: linear-gradient(135deg, #f8961e, #f3722c);
+            --white: #ffffff;
+            --sidebar-width: 260px;
+            --transition-speed: 0.3s;
+            --card-radius: 16px;
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 5px 15px rgba(0, 0, 0, 0.07);
+            --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.1);
+            --text-primary: #2d3748;
+            --text-secondary: #4a5568;
+            --text-muted: #718096;
+        }
+
+        body {
+            background-color: #f6f8ff;
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            overflow-x: hidden;
+        }
+
+        /* Сайдбар */
+        .sidebar {
+            width: var(--sidebar-width);
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background: var(--gradient-1);
+            color: var(--white);
+            padding: 1.5rem 1rem;
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+            box-shadow: var(--shadow-lg);
+            transition: all var(--transition-speed) ease;
+        }
+
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding: 0 0.75rem;
+        }
+
+        .sidebar-logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--white);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .sidebar-logo i {
+            font-size: 1.75rem;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            flex-grow: 1;
+        }
+
+        .sidebar-item {
+            margin-bottom: 0.5rem;
+        }
+
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            color: rgba(255, 255, 255, 0.85);
+            text-decoration: none;
+            border-radius: 12px;
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+
+        .sidebar-link i {
+            margin-right: 0.75rem;
+            font-size: 1.2rem;
+            width: 24px;
+            text-align: center;
+        }
+
+        .sidebar-link.active, .sidebar-link:hover {
+            background-color: rgba(255, 255, 255, 0.15);
+            color: var(--white);
+        }
+
+        .sidebar-footer {
+            margin-top: auto;
+            padding: 1rem;
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.7);
+            text-align: center;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            margin-top: 1rem;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--primary-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 0.75rem;
+            font-weight: 500;
+            color: var(--white);
+            overflow: hidden;
+        }
+
+        .user-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .user-info {
+            flex-grow: 1;
+        }
+
+        .user-name {
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .user-role {
+            font-size: 0.8rem;
+            opacity: 0.8;
+        }
+
+        /* Основной контент */
+        main {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            padding: 1.5rem 2rem;
+            transition: margin var(--transition-speed) ease;
+            width: calc(100% - var(--sidebar-width));
+        }
+
+        .dashboard-header {
+            margin-bottom: 2rem;
+            background-color: var(--white);
+            border-radius: var(--card-radius);
+            padding: 1.25rem 1.5rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-content h1 {
+            font-size: 1.75rem;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .notifications {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .notifications i {
+            font-size: 1.4rem;
+            color: var(--gray-dark);
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            width: 20px;
+            height: 20px;
+            background-color: var(--danger);
+            color: white;
+            font-size: 0.7rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+
+        /* Основное содержание */
+        .main-content {
+            display: grid;
+            gap: 1.75rem;
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 1.25rem;
+            color: var(--dark);
+        }
+
+        /* Страница профиля */
+        .profile-overview {
+            display: grid;
+            grid-template-columns: minmax(300px, 25%) 1fr;
+            gap: 1.75rem;
+            margin-bottom: 1.75rem;
+        }
+        
+        .profile-card {
+            background-color: var(--white);
+            border-radius: var(--card-radius);
+            box-shadow: var(--shadow-sm);
+            padding: 2rem;
+            text-align: center;
+            height: min-content;
+        }
+        
+        .profile-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background-color: var(--primary-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            font-size: 2rem;
+            font-weight: 600;
+            color: var(--white);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .profile-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .profile-avatar .avatar-change {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.5);
+            color: var(--white);
+            padding: 0.5rem;
+            font-size: 0.8rem;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .profile-avatar:hover .avatar-change {
+            opacity: 1;
+        }
+        
+        .profile-name {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--dark);
+        }
+        
+        .profile-username {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+        }
+        
+        .profile-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+        
+        .profile-stat {
+            padding: 0.75rem;
+            background-color: var(--light);
+            border-radius: 10px;
+        }
+        
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 0.25rem;
+        }
+        
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+        
+        .profile-bio {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            margin-bottom: 1.5rem;
+        }
+        
+        .btn-edit-profile {
+            background: var(--gradient-1);
+            color: var(--white);
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 50px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-edit-profile:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .form-section {
+            background-color: var(--white);
+            border-radius: var(--card-radius);
+            box-shadow: var(--shadow-sm);
+            padding: 2rem;
+        }
+        
+        .form-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .form-title i {
+            color: var(--primary);
+        }
+        
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-group.full-width {
+            grid-column: span 2;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--gray-light);
+            border-radius: 8px;
+            font-size: 1rem;
+            color: var(--text-primary);
+            background-color: var(--light);
+            transition: all 0.3s ease;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
+        }
+        
+        textarea.form-control {
+            min-height: 120px;
+            resize: vertical;
+        }
+        
+        .form-select {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--gray-light);
+            border-radius: 8px;
+            font-size: 1rem;
+            color: var(--text-primary);
+            background-color: var(--light);
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%236c757d' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 16px 12px;
+        }
+        
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 50px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+        }
+        
+        .btn-primary {
+            background: var(--gradient-1);
+            color: var(--white);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--gray);
+            color: var(--gray-dark);
+        }
+        
+        .btn-outline:hover {
+            background-color: var(--gray-light);
+        }
+
+        /* Вкладки для настроек */
+        .settings-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--gray-light);
+            margin-bottom: 1.5rem;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .settings-tab {
+            padding: 0.75rem 1.25rem;
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            white-space: nowrap;
+            transition: all 0.3s ease;
+        }
+        
+        .settings-tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+        
+        .settings-tab:hover:not(.active) {
+            color: var(--text-primary);
+            border-bottom-color: var(--gray-light);
+        }
+        
+        .settings-content {
+            display: none;
+        }
+        
+        .settings-content.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        /* Переключатели */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 26px;
+        }
+        
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--gray-light);
+            border-radius: 34px;
+            transition: 0.4s;
+        }
+        
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            border-radius: 50%;
+            transition: 0.4s;
+        }
+        
+        input:checked + .toggle-slider {
+            background-color: var(--primary);
+        }
+        
+        input:checked + .toggle-slider:before {
+            transform: translateX(24px);
+        }
+        
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+            border-bottom: 1px solid var(--gray-light);
+        }
+        
+        .setting-item:last-child {
+            border-bottom: none;
+        }
+        
+        .setting-info {
+            flex-grow: 1;
+        }
+        
+        .setting-title {
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+        
+        .setting-desc {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+        
+        /* Секция безопасности */
+        .security-section {
+            margin-top: 1.75rem;
+        }
+        
+        .password-change {
+            background-color: var(--white);
+            border-radius: var(--card-radius);
+            box-shadow: var(--shadow-sm);
+            padding: 2rem;
+            margin-bottom: 1.75rem;
+        }
+        
+        /* Предупреждения */
+        .alert {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .alert-success {
+            background-color: rgba(76, 201, 240, 0.1);
+            border-left: 4px solid var(--success);
+            color: var(--success);
+        }
+        
+        .alert-danger {
+            background-color: rgba(247, 37, 133, 0.1);
+            border-left: 4px solid var(--danger);
+            color: var(--danger);
+        }
+        
+        .alert-warning {
+            background-color: rgba(248, 150, 30, 0.1);
+            border-left: 4px solid var(--warning);
+            color: var(--warning);
+        }
+        
+        /* Загрузчик */
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(67, 97, 238, 0.2);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Футер */
+        .dashboard-footer {
+            margin-top: 2rem;
+            padding: 1.5rem 0;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+        
+        /* Модальное окно */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.5);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 1;
+        }
+        
+        .modal-content {
+            background-color: var(--white);
+            margin: auto;
+            width: 90%;
+            max-width: 500px;
+            border-radius: var(--card-radius);
+            box-shadow: var(--shadow-lg);
+            animation: modalFadeIn 0.3s ease;
+            position: relative;
+        }
+        
+        .modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--gray-light);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--dark);
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--gray);
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+        
+        .modal-close:hover {
+            color: var(--danger);
+        }
+        
+        .modal-body {
+            padding: 1.5rem;
+        }
+        
+        .modal-footer {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid var(--gray-light);
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+        }
+        
+        /* Зона перетаскивания для загрузки фото */
+        .avatar-upload {
+            border: 2px dashed var(--gray-light);
+            border-radius: 8px;
+            padding: 2rem;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .avatar-upload:hover {
+            border-color: var(--primary-light);
+        }
+        
+        .avatar-upload.dragover {
+            background-color: rgba(67, 97, 238, 0.05);
+            border-color: var(--primary);
+        }
+        
+        .avatar-upload i {
+            font-size: 2rem;
+            color: var(--gray);
+            margin-bottom: 1rem;
+        }
+        
+        .avatar-upload p {
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+        
+        .avatar-upload span {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+        
+        #avatar-file {
+            display: none;
+        }
+        
+        .avatar-preview {
+            margin-top: 1.5rem;
+            display: none;
+        }
+        
+        .avatar-preview img {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--primary-light);
+        }
+        
+        /* Анимации */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .animated {
+            animation: fadeIn 0.5s ease forwards;
+        }
+        
+        .delay-1 {
+            animation-delay: 0.1s;
+        }
+        
+        .delay-2 {
+            animation-delay: 0.2s;
+        }
+        
+        .delay-3 {
+            animation-delay: 0.3s;
+        }
+
+        /* Медиа-запросы */
+        @media (max-width: 1200px) {
+            .profile-overview {
+                grid-template-columns: 1fr;
+            }
+            
+            .profile-card {
+                text-align: center;
+            }
+        }
+        
+        @media (max-width: 992px) {
+            :root {
+                --sidebar-width: 80px;
+            }
+            
+            .sidebar-logo span, .sidebar-link span, .user-info, .sidebar-footer {
+                display: none;
+            }
+            
+            .sidebar-link i {
+                margin-right: 0;
+                font-size: 1.5rem;
+            }
+            
+            .sidebar-logo i {
+                margin-right: 0;
+            }
+            
+            .sidebar-header, .sidebar-link {
+                justify-content: center;
+            }
+            
+            .user-profile {
+                justify-content: center;
+                padding: 0.75rem;
+            }
+            
+            .user-avatar {
+                margin-right: 0;
+            }
+            
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .form-group.full-width {
+                grid-column: span 1;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            main {
+                padding: 1rem;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+            
+            .form-section, .profile-card, .password-change {
+                padding: 1.5rem;
+            }
+            
+            .form-actions {
+                flex-direction: column;
+                gap: 0.75rem;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            :root {
+                --sidebar-width: 0;
+            }
+            
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            
+            main {
+                margin-left: 0;
+                width: 100%;
+            }
+            
+            .mobile-menu-toggle {
+                display: block;
+            }
+            
+            .settings-tab {
+                padding: 0.75rem 1rem;
+                font-size: 0.85rem;
+            }
+        }
+        
+        /* Мобильное меню */
+        .mobile-menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--dark);
+            font-size: 1.5rem;
+            margin-right: 1rem;
+        }
+        
+        /* Темный режим */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --white: #1a202c;
+                --light: #2d3748;
+                --dark: #e2e8f0;
+                --gray-light: #4a5568;
+                --text-primary: #e2e8f0;
+                --text-secondary: #cbd5e0;
+                --text-muted: #a0aec0;
+            }
+            
+            body {
+                background-color: #171923;
+            }
+            
+            .form-control, .form-select {
+                background-color: #2d3748;
+                color: var(--text-primary);
+                border-color: #4a5568;
+            }
+            
+            .form-select {
+                background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23cbd5e0' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+            }
+            
+            .profile-stat {
+                background-color: #2d3748;
+            }
+            
+            .btn-outline {
+                border-color: #4a5568;
+                color: #e2e8f0;
+            }
+            
+            .btn-outline:hover {
+                background-color: #4a5568;
+            }
+            
+            .avatar-upload {
+                border-color: #4a5568;
+            }
+        }
+    </style>
 </head>
 <body>
-    <!-- Контейнер для сайдбара -->
-    <div id="sidebar-container"></div>
+    <!-- Сайдбар -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <a href="/" class="sidebar-logo">
+                <i class="fas fa-calculator"></i>
+                <span>Justax</span>
+            </a>
+        </div>
+        
+        <ul class="sidebar-menu">
+            <li class="sidebar-item">
+                <a href="dashboard.html" class="sidebar-link" id="dashboard-link">
+                    <i class="fas fa-th-large"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a href="procvicovani.html" class="sidebar-link">
+                    <i class="fas fa-book-open"></i>
+                    <span>Procvičování</span>
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a href="pokrok.html" class="sidebar-link">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Pokrok</span>
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a href="oceneni.html" class="sidebar-link">
+                    <i class="fas fa-medal"></i>
+                    <span>Ocenění</span>
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a href="materialy.html" class="sidebar-link">
+                    <i class="fas fa-file-alt"></i>
+                    <span>Materiály</span>
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a href="profile.html" class="sidebar-link active">
+                    <i class="fas fa-user-cog"></i>
+                    <span>Profil</span>
+                </a>
+            </li>
+        </ul>
+        
+        <div class="user-profile">
+            <div class="user-avatar" id="sidebar-avatar">
+                <!-- Avatar will be loaded here -->
+                MS
+            </div>
+            <div class="user-info">
+                <div class="user-name" id="sidebar-username">Maksys234</div>
+                <div class="user-role">Student</div>
+            </div>
+        </div>
+        
+        <div class="sidebar-footer">
+            &copy; 2025 Justax
+        </div>
+    </aside>
     
     <main>
-        <!-- Контейнер для хедера -->
-        <div id="header-container"></div>
+        <header class="dashboard-header">
+            <div class="header-content">
+                <h1>Váš profil</h1>
+                <div class="header-actions">
+                    <div class="notifications">
+                        <i class="fas fa-bell"></i>
+                        <span class="notification-badge">1</span>
+                    </div>
+                </div>
+            </div>
+        </header>
         
         <div class="main-content">
-            <section class="welcome-banner">
-                <div class="welcome-content">
-                    <h2 class="welcome-title">Spravujte svůj profil</h2>
-                    <p class="welcome-text">Zde můžete upravit své osobní údaje a preference.</p>
+            <!-- Область уведомлений -->
+            <div id="alertArea"></div>
+            
+            <!-- Обзор профиля -->
+            <div class="profile-overview animated">
+                <!-- Карточка профиля с основной информацией -->
+                <div class="profile-card">
+                    <div class="profile-avatar" id="profile-avatar">
+                        <!-- Avatar will be loaded here -->
+                        MS
+                        <div class="avatar-change" id="change-avatar">
+                            <i class="fas fa-camera"></i> Změnit foto
+                        </div>
+                    </div>
+                    <h2 class="profile-name" id="profile-display-name">Maksys234</h2>
+                    <p class="profile-username" id="profile-username">@maksys234</p>
+                    
+                    <div class="profile-stats">
+                        <div class="profile-stat">
+                            <div class="stat-value" id="completed-exercises">42</div>
+                            <div class="stat-label">Cvičení</div>
+                        </div>
+                        <div class="profile-stat">
+                            <div class="stat-value" id="user-level">8</div>
+                            <div class="stat-label">Úroveň</div>
+                        </div>
+                        <div class="profile-stat">
+                            <div class="stat-value" id="user-badges">12</div>
+                            <div class="stat-label">Odznaky</div>
+                        </div>
+                    </div>
+                    
+                    <p class="profile-bio" id="profile-bio">Student připravující se na přijímací zkoušky. Zajímám se o matematiku a český jazyk.</p>
+                    
+                    <button class="btn-edit-profile" id="edit-profile-btn">Upravit profil</button>
+                </div>
+                
+                <!-- Форма с настройками профиля -->
+                <div class="form-section">
+                    <h2 class="form-title">
+                        <i class="fas fa-cog"></i>
+                        Nastavení profilu
+                    </h2>
+                    
+                    <div class="settings-tabs">
+                        <div class="settings-tab active" data-tab="personal">Osobní údaje</div>
+                        <div class="settings-tab" data-tab="preferences">Preference</div>
+                        <div class="settings-tab" data-tab="notifications">Oznámení</div>
+                        <div class="settings-tab" data-tab="account">Účet</div>
+                    </div>
+                    
+                    <!-- Вкладка с личными данными -->
+                    <div class="settings-content active" id="personal-tab">
+                        <form id="profile-form" class="animated delay-1">
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label for="first_name" class="form-label">Jméno</label>
+                                    <input type="text" id="first_name" name="first_name" class="form-control" placeholder="Vaše jméno">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="last_name" class="form-label">Příjmení</label>
+                                    <input type="text" id="last_name" name="last_name" class="form-control" placeholder="Vaše příjmení">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="username" class="form-label">Uživatelské jméno</label>
+                                    <input type="text" id="username" name="username" class="form-control" placeholder="Uživatelské jméno" readonly>
+                                    <small style="color: var(--text-muted); font-size: 0.8rem;">Uživatelské jméno nelze změnit.</small>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="email" class="form-label">Email</label>
+                                    <input type="email" id="email" name="email" class="form-control" placeholder="Váš email" readonly>
+                                    <small style="color: var(--text-muted); font-size: 0.8rem;">Pro změnu emailu kontaktujte podporu.</small>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="school" class="form-label">Škola</label>
+                                    <input type="text" id="school" name="school" class="form-control" placeholder="Název vaší školy">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="grade" class="form-label">Třída/Ročník</label>
+                                    <select id="grade" name="grade" class="form-select">
+                                        <option value="">Vyberte třídu</option>
+                                        <option value="6">6. třída</option>
+                                        <option value="7">7. třída</option>
+                                        <option value="8">8. třída</option>
+                                        <option value="9">9. třída</option>
+                                        <option value="1g">1. ročník gymnázia</option>
+                                        <option value="2g">2. ročník gymnázia</option>
+                                        <option value="3g">3. ročník gymnázia</option>
+                                        <option value="4g">4. ročník gymnázia</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="form-group full-width">
+                                    <label for="bio" class="form-label">O mně</label>
+                                    <textarea id="bio" name="bio" class="form-control" placeholder="Pár slov o sobě..."></textarea>
+                                </div>
+                            </div>
+                            
+                            <div class="form-actions">
+                                <button type="button" id="cancel-profile" class="btn btn-outline">Zrušit</button>
+                                <button type="submit" id="save-profile" class="btn btn-primary">
+                                    <span id="save-profile-text">Uložit změny</span>
+                                    <span id="save-profile-loading" style="display: none;">
+                                        <span class="loading-spinner"></span> Ukládání...
+                                    </span>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <!-- Вкладка с предпочтениями -->
+                    <div class="settings-content" id="preferences-tab">
+                        <form id="preferences-form" class="animated">
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <h3 class="setting-title">Tmavý režim</h3>
+                                    <p class="setting-desc">Přepnutí mezi tmavým a světlým režimem rozhraní.</p>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="dark_mode">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <h3 class="setting-title">Zvukové efekty</h3>
+                                    <p class="setting-desc">Povolit zvukové efekty při dokončení úkolů a získání odznaků.</p>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="sound_effects" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <h3 class="setting-title">Zobrazit pokrok ostatním</h3>
+                                    <p class="setting-desc">Umožnit ostatním studentům vidět váš pokrok a ocenění.</p>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="show_progress" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <h3 class="setting-title">Jazyk</h3>
+                                    <p class="setting-desc">Vyberte preferovaný jazyk rozhraní.</p>
+                                </div>
+                                <select id="language" name="language" class="form-select" style="width: auto;">
+                                    <option value="cs">Čeština</option>
+                                    <option value="en">English</option>
+                                    <option value="sk">Slovenčina</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-actions">
+                                <button type="button" id="reset-preferences" class="btn btn-outline">Obnovit výchozí</button>
+                                <button type="submit" id="save-preferences" class="btn btn-primary">Uložit nastavení</button>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <!-- Вкладка с настройками уведомлений -->
+                    <div class="settings-content" id="notifications-tab">
+                        <form id="notifications-form" class="animated">
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <h3 class="setting-title">Emailová oznámení</h3>
+                                    <p class="setting-desc">Zasílat důležitá oznámení na váš email.</p>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="email_notifications" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <h3 class="setting-title">Tipy pro studium</h3>
+                                    <p class="setting-desc">Zasílat týdenní tipy pro efektivnější studium.</p>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="study_tips" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <h3 class="setting-title">Upomínky na procvičování</h3>
+                                    <p class="setting-desc">Připomínat procvičování pro udržení denní série.</p>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="practice_reminders" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <h3 class="setting-title">Aktualizace obsahu</h3>
+                                    <p class="setting-desc">Oznámení o nových cvičeních a materiálech.</p>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="content_updates" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                            
+                            <div class="form-actions">
+                                <button type="button" id="disable-all" class="btn btn-outline">Vypnout vše</button>
+                                <button type="submit" id="save-notifications" class="btn btn-primary">Uložit nastavení</button>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <!-- Вкладка с настройками аккаунта -->
+                    <div class="settings-content" id="account-tab">
+                        <div class="animated">
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <h3 class="setting-title">Spojené účty</h3>
+                                    <p class="setting-desc">Propojte svůj účet s dalšími službami.</p>
+                                </div>
+                                <button type="button" class="btn btn-outline" style="padding: 0.5rem 1rem;">Propojit</button>
+                            </div>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <h3 class="setting-title">Exportovat data</h3>
+                                    <p class="setting-desc">Stáhnout kopii vašich dat a pokroku.</p>
+                                </div>
+                                <button type="button" class="btn btn-outline" style="padding: 0.5rem 1rem;">Export</button>
+                            </div>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <h3 class="setting-title">Odstranit účet</h3>
+                                    <p class="setting-desc">Trvale odstraní váš účet a všechna data.</p>
+                                </div>
+                                <button type="button" id="delete-account" class="btn btn-outline" style="color: var(--danger); padding: 0.5rem 1rem;">Odstranit</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Секция безопасности аккаунта -->
+            <section class="security-section animated delay-2">
+                <h2 class="section-title">Bezpečnost účtu</h2>
+                
+                <div class="password-change">
+                    <h2 class="form-title">
+                        <i class="fas fa-lock"></i>
+                        Změna hesla
+                    </h2>
+                    
+                    <form id="password-form">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="current_password" class="form-label">Současné heslo</label>
+                                <input type="password" id="current_password" name="current_password" class="form-control" placeholder="Zadejte současné heslo">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="new_password" class="form-label">Nové heslo</label>
+                                <input type="password" id="new_password" name="new_password" class="form-control" placeholder="Zadejte nové heslo">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="confirm_password" class="form-label">Potvrzení hesla</label>
+                                <input type="password" id="confirm_password" name="confirm_password" class="form-control" placeholder="Potvrďte nové heslo">
+                            </div>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="button" id="cancel-password" class="btn btn-outline">Zrušit</button>
+                            <button type="submit" id="save-password" class="btn btn-primary">
+                                <span id="save-password-text">Změnit heslo</span>
+                                <span id="save-password-loading" style="display: none;">
+                                    <span class="loading-spinner"></span> Měním heslo...
+                                </span>
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </section>
-            
-            <!-- Add your profile settings form here -->
-            
         </div>
+        
+        <footer class="dashboard-footer">
+            <p>&copy; 2025 Justax.space | Všechna práva vyhrazena</p>
+        </footer>
     </main>
+    
+    <!-- Модальное окно для загрузки фото -->
+    <div class="modal" id="avatar-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Změnit profilovou fotku</h2>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="avatar-upload" id="avatar-upload">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <p>Přetáhněte soubor sem nebo klikněte pro výběr</p>
+                    <span>Podporované formáty: JPG, PNG, GIF (max. 2MB)</span>
+                    <input type="file" id="avatar-file" accept="image/*">
+                </div>
+                
+                <div class="avatar-preview" id="avatar-preview">
+                    <img src="" alt="Preview" id="avatar-preview-img">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" id="cancel-avatar">Zrušit</button>
+                <button class="btn btn-primary" id="save-avatar">
+                    <span id="save-avatar-text">Uložit změny</span>
+                    <span id="save-avatar-loading" style="display: none;">
+                        <span class="loading-spinner"></span> Ukládání...
+                    </span>
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Инициализация Supabase клиента
+        const SUPABASE_URL = 'https://xunitidnszlsqupiifhd.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh1bml0aWRuc3psc3F1cGlpZmhkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDEwMTY0MDQsImV4cCI6MjA1NjU5MjQwNH0.8v2dMEaAQYRhHmmJe15XkbA07Tsupc1iLT9oAsLEsWw';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Мобильное меню
+            const addMobileMenuToggle = () => {
+                if (window.innerWidth <= 576 && !document.querySelector('.mobile-menu-toggle')) {
+                    const menuToggle = document.createElement('button');
+                    menuToggle.className = 'mobile-menu-toggle';
+                    menuToggle.innerHTML = '<i class="fas fa-bars"></i>';
+                    
+                    menuToggle.addEventListener('click', function() {
+                        const sidebar = document.querySelector('.sidebar');
+                        const main = document.querySelector('main');
+                        
+                        if (sidebar.style.transform === 'translateX(0px)') {
+                            sidebar.style.transform = 'translateX(-100%)';
+                            main.style.marginLeft = '0';
+                            this.innerHTML = '<i class="fas fa-bars"></i>';
+                        } else {
+                            sidebar.style.transform = 'translateX(0)';
+                            main.style.marginLeft = 'var(--sidebar-width)';
+                            this.innerHTML = '<i class="fas fa-times"></i>';
+                        }
+                    });
+                    
+                    const header = document.querySelector('.header-content');
+                    header.insertBefore(menuToggle, header.firstChild);
+                }
+            };
+            
+            // Инициализация мобильного меню
+            addMobileMenuToggle();
+            window.addEventListener('resize', addMobileMenuToggle);
+            
+            // Получение данных текущего пользователя
+            let currentUser = null;
+            let userProfile = null;
+            
+            async function getCurrentUser() {
+                try {
+                    const { data: { user }, error } = await supabase.auth.getUser();
+                    
+                    if (error) {
+                        showAlert("Chyba při načítání uživatele. Zkuste se odhlásit a znovu přihlásit.", "danger");
+                        console.error("Chyba načítání uživatele:", error);
+                        return null;
+                    }
+                    
+                    if (!user) {
+                        window.location.href = "/auth/index.html";
+                        return null;
+                    }
+                    
+                    return user;
+                } catch (error) {
+                    console.error("Chyba při získávání dat uživatele:", error);
+                    showAlert("Něco se pokazilo. Zkuste obnovit stránku.", "danger");
+                    return null;
+                }
+            }
+            
+            async function getUserProfile(userId) {
+                try {
+                    const { data, error } = await supabase
+                        .from('profiles')
+                        .select('*')
+                        .eq('id', userId)
+                        .single();
+                    
+                    if (error) {
+                        console.error("Error fetching profile:", error);
+                        return null;
+                    }
+                    
+                    return data;
+                } catch (error) {
+                    console.error("Error in getUserProfile:", error);
+                    return null;
+                }
+            }
+            
+            // Отображение уведомлений
+            function showAlert(message, type = "success") {
+                const alertArea = document.getElementById("alertArea");
+                const alertHtml = `
+                    <div class="alert alert-${type}">
+                        ${message}
+                    </div>
+                `;
+                
+                alertArea.innerHTML = alertHtml;
+                
+                // Скрыть уведомление через 5 секунд (если это не сообщение об ошибке)
+                if (type !== "danger") {
+                    setTimeout(() => {
+                        alertArea.innerHTML = "";
+                    }, 5000);
+                }
+            }
+            
+            // Загрузка данных пользователя и заполнение профиля
+            async function loadUserData() {
+                // Показываем сообщение о загрузке
+                showAlert("Načítání údajů profilu...", "info");
+                
+                // Получение текущего пользователя
+                currentUser = await getCurrentUser();
+                
+                if (!currentUser) {
+                    return;
+                }
+                
+                // Получение данных профиля
+                userProfile = await getUserProfile(currentUser.id);
+                
+                if (!userProfile) {
+                    showAlert("Nelze načíst profil. Zkuste obnovit stránku.", "danger");
+                    return;
+                }
+                
+                // Скрываем сообщение о загрузке
+                document.getElementById("alertArea").innerHTML = "";
+                
+                // Заполнение данных в профиле
+                populateProfileData(userProfile);
+                
+                // Заполнение формы профиля
+                populateProfileForm(userProfile);
+                
+                // Заполнение настроек
+                populatePreferences(userProfile);
+                
+                // Настройки уведомлений
+                populateNotifications(userProfile);
+            }
+            
+            function populateProfileData(profile) {
+                // Инициалы для аватарки, если нет изображения
+                const initials = profile.first_name && profile.last_name 
+                    ? `${profile.first_name.charAt(0)}${profile.last_name.charAt(0)}` 
+                    : profile.username.substring(0, 2).toUpperCase();
+                
+                // Аватарка в сайдбаре и в профиле
+                const avatarElements = [
+                    document.getElementById("sidebar-avatar"),
+                    document.getElementById("profile-avatar")
+                ];
+                
+                avatarElements.forEach(element => {
+                    if (profile.avatar_url) {
+                        element.innerHTML = `<img src="${profile.avatar_url}" alt="${profile.username}" />`;
+                    } else {
+                        element.textContent = initials;
+                    }
+                });
+                
+                // Имя пользователя в сайдбаре
+                document.getElementById("sidebar-username").textContent = profile.username;
+                
+                // Отображаемое имя (полное имя или имя пользователя)
+                const displayName = profile.first_name && profile.last_name 
+                    ? `${profile.first_name} ${profile.last_name}`
+                    : profile.username;
+                
+                document.getElementById("profile-display-name").textContent = displayName;
+                document.getElementById("profile-username").textContent = `@${profile.username}`;
+                
+                // Биография
+                document.getElementById("profile-bio").textContent = profile.bio || "Student připravující se na přijímací zkoušky.";
+                
+                // Статистика (примеры, данные могут быть получены из других таблиц)
+                document.getElementById("completed-exercises").textContent = profile.completed_exercises || "42";
+                document.getElementById("user-level").textContent = profile.level || "8";
+                document.getElementById("user-badges").textContent = profile.badges_count || "12";
+            }
+            
+                        function populateProfileForm(profile) {
+                // Заполнение полей формы профиля
+                document.getElementById("first_name").value = profile.first_name || "";
+                document.getElementById("last_name").value = profile.last_name || "";
+                document.getElementById("username").value = profile.username || "";
+                document.getElementById("email").value = profile.email || currentUser.email || "";
+                document.getElementById("school").value = profile.school || "";
+                document.getElementById("grade").value = profile.grade || "";
+                document.getElementById("bio").value = profile.bio || "";
+            }
+            
+            function populatePreferences(profile) {
+                // Заполнение настроек пользователя на основе данных из базы
+                const preferences = profile.preferences || {};
+                
+                // Темный режим
+                document.getElementById("dark_mode").checked = preferences.dark_mode || false;
+                
+                // Звуковые эффекты
+                document.getElementById("sound_effects").checked = preferences.sound_effects !== false; // По умолчанию включено
+                
+                // Показывать ли прогресс другим
+                document.getElementById("show_progress").checked = preferences.show_progress !== false; // По умолчанию включено
+                
+                // Язык
+                document.getElementById("language").value = preferences.language || "cs";
+                
+                // Применить темную тему, если она активирована
+                if (preferences.dark_mode) {
+                    document.body.classList.add('dark-mode');
+                }
+            }
+            
+            function populateNotifications(profile) {
+                // Заполнение настроек уведомлений
+                const notifications = profile.notifications || {};
+                
+                document.getElementById("email_notifications").checked = notifications.email !== false; // По умолчанию включено
+                document.getElementById("study_tips").checked = notifications.study_tips !== false; // По умолчанию включено
+                document.getElementById("practice_reminders").checked = notifications.practice_reminders !== false; // По умолчанию включено
+                document.getElementById("content_updates").checked = notifications.content_updates !== false; // По умолчанию включено
+            }
+            
+            // Переключение вкладок в настройках
+            const tabButtons = document.querySelectorAll('.settings-tab');
+            const tabContents = document.querySelectorAll('.settings-content');
+            
+            tabButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // Удаляем активный класс у всех вкладок
+                    tabButtons.forEach(tab => tab.classList.remove('active'));
+                    tabContents.forEach(content => content.classList.remove('active'));
+                    
+                    // Добавляем активный класс выбранной вкладке
+                    this.classList.add('active');
+                    const tabId = this.getAttribute('data-tab');
+                    document.getElementById(`${tabId}-tab`).classList.add('active');
+                });
+            });
+            
+            // Обработка нажатия на "Редактировать профиль"
+            document.getElementById("edit-profile-btn").addEventListener('click', function() {
+                // Переключаем на вкладку с личными данными
+                tabButtons.forEach(tab => tab.classList.remove('active'));
+                tabContents.forEach(content => content.classList.remove('active'));
+                
+                document.querySelector('[data-tab="personal"]').classList.add('active');
+                document.getElementById('personal-tab').classList.add('active');
+                
+                // Прокрутка к форме
+                document.querySelector('.form-section').scrollIntoView({ behavior: 'smooth' });
+            });
+            
+            // Отправка формы профиля
+            document.getElementById("profile-form").addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                // Показать индикатор загрузки
+                document.getElementById("save-profile-text").style.display = "none";
+                document.getElementById("save-profile-loading").style.display = "inline-block";
+                document.getElementById("save-profile").disabled = true;
+                
+                try {
+                    // Получение данных из формы
+                    const updatedProfile = {
+                        first_name: document.getElementById("first_name").value.trim(),
+                        last_name: document.getElementById("last_name").value.trim(),
+                        school: document.getElementById("school").value.trim(),
+                        grade: document.getElementById("grade").value,
+                        bio: document.getElementById("bio").value.trim(),
+                        updated_at: new Date().toISOString()
+                    };
+                    
+                    // Обновление данных в базе
+                    const { error } = await supabase
+                        .from('profiles')
+                        .update(updatedProfile)
+                        .eq('id', currentUser.id);
+                    
+                    if (error) throw error;
+                    
+                    // Обновляем локальные данные
+                    userProfile = { ...userProfile, ...updatedProfile };
+                    
+                    // Обновляем отображение
+                    populateProfileData(userProfile);
+                    
+                    showAlert("Váš profil byl úspěšně aktualizován!", "success");
+                } catch (error) {
+                    console.error("Chyba při aktualizaci profilu:", error);
+                    showAlert("Chyba při ukládání změn. Zkuste to prosím znovu.", "danger");
+                } finally {
+                    // Скрыть индикатор загрузки
+                    document.getElementById("save-profile-text").style.display = "inline-block";
+                    document.getElementById("save-profile-loading").style.display = "none";
+                    document.getElementById("save-profile").disabled = false;
+                }
+            });
+            
+            // Отмена редактирования профиля
+            document.getElementById("cancel-profile").addEventListener('click', function() {
+                // Восстанавливаем оригинальные значения
+                populateProfileForm(userProfile);
+            });
+            
+            // Изменение пароля
+            document.getElementById("password-form").addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const currentPassword = document.getElementById("current_password").value;
+                const newPassword = document.getElementById("new_password").value;
+                const confirmPassword = document.getElementById("confirm_password").value;
+                
+                // Проверка на совпадение паролей
+                if (newPassword !== confirmPassword) {
+                    showAlert("Nová hesla se neshodují. Zkuste to znovu.", "danger");
+                    return;
+                }
+                
+                // Проверка на минимальную длину
+                if (newPassword.length < 6) {
+                    showAlert("Heslo musí obsahovat alespoň 6 znaků.", "danger");
+                    return;
+                }
+                
+                // Показать индикатор загрузки
+                document.getElementById("save-password-text").style.display = "none";
+                document.getElementById("save-password-loading").style.display = "inline-block";
+                document.getElementById("save-password").disabled = true;
+                
+                try {
+                    // Сначала проверим текущий пароль, выполнив вход
+                    const { error: signInError } = await supabase.auth.signInWithPassword({
+                        email: userProfile.email || currentUser.email,
+                        password: currentPassword
+                    });
+                    
+                    if (signInError) {
+                        showAlert("Současné heslo je nesprávné. Zkuste to znovu.", "danger");
+                        throw signInError;
+                    }
+                    
+                    // Обновляем пароль
+                    const { error } = await supabase.auth.updateUser({
+                        password: newPassword
+                    });
+                    
+                    if (error) throw error;
+                    
+                    // Очищаем форму
+                    document.getElementById("current_password").value = "";
+                    document.getElementById("new_password").value = "";
+                    document.getElementById("confirm_password").value = "";
+                    
+                    showAlert("Vaše heslo bylo úspěšně změněno!", "success");
+                } catch (error) {
+                    console.error("Chyba při změně hesla:", error);
+                    // Не показываем сообщение, если ошибка уже была показана
+                    if (!error.message.includes("password")) {
+                        showAlert("Chyba při změně hesla. Zkuste to prosím znovu.", "danger");
+                    }
+                } finally {
+                    // Скрыть индикатор загрузки
+                    document.getElementById("save-password-text").style.display = "inline-block";
+                    document.getElementById("save-password-loading").style.display = "none";
+                    document.getElementById("save-password").disabled = false;
+                }
+            });
+            
+            // Отмена изменения пароля
+            document.getElementById("cancel-password").addEventListener('click', function() {
+                document.getElementById("current_password").value = "";
+                document.getElementById("new_password").value = "";
+                document.getElementById("confirm_password").value = "";
+            });
+            
+            // Сохранение настроек
+            document.getElementById("preferences-form").addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                try {
+                    const preferences = {
+                        dark_mode: document.getElementById("dark_mode").checked,
+                        sound_effects: document.getElementById("sound_effects").checked,
+                        show_progress: document.getElementById("show_progress").checked,
+                        language: document.getElementById("language").value
+                    };
+                    
+                    // Обновление в базе данных
+                    const { error } = await supabase
+                        .from('profiles')
+                        .update({ 
+                            preferences: preferences,
+                            updated_at: new Date().toISOString()
+                        })
+                        .eq('id', currentUser.id);
+                    
+                    if (error) throw error;
+                    
+                    // Обновляем локальные данные
+                    userProfile.preferences = preferences;
+                    
+                    // Применяем тему сразу, если изменилась
+                    if (preferences.dark_mode) {
+                        document.body.classList.add('dark-mode');
+                    } else {
+                        document.body.classList.remove('dark-mode');
+                    }
+                    
+                    showAlert("Vaše preference byly úspěšně uloženy!", "success");
+                } catch (error) {
+                    console.error("Chyba při ukládání preferencí:", error);
+                    showAlert("Chyba při ukládání preferencí. Zkuste to prosím znovu.", "danger");
+                }
+            });
+            
+            // Сброс настроек к значениям по умолчанию
+            document.getElementById("reset-preferences").addEventListener('click', function() {
+                document.getElementById("dark_mode").checked = false;
+                document.getElementById("sound_effects").checked = true;
+                document.getElementById("show_progress").checked = true;
+                document.getElementById("language").value = "cs";
+            });
+            
+            // Сохранение настроек уведомлений
+            document.getElementById("notifications-form").addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                try {
+                    const notifications = {
+                        email: document.getElementById("email_notifications").checked,
+                        study_tips: document.getElementById("study_tips").checked,
+                        practice_reminders: document.getElementById("practice_reminders").checked,
+                        content_updates: document.getElementById("content_updates").checked
+                    };
+                    
+                    // Обновление в базе данных
+                    const { error } = await supabase
+                        .from('profiles')
+                        .update({ 
+                            notifications: notifications,
+                            updated_at: new Date().toISOString()
+                        })
+                        .eq('id', currentUser.id);
+                    
+                    if (error) throw error;
+                    
+                    // Обновляем локальные данные
+                    userProfile.notifications = notifications;
+                    
+                    showAlert("Vaše nastavení oznámení bylo úspěšně uloženo!", "success");
+                } catch (error) {
+                    console.error("Chyba při ukládání nastavení oznámení:", error);
+                    showAlert("Chyba při ukládání nastavení oznámení. Zkuste to prosím znovu.", "danger");
+                }
+            });
+            
+            // Отключение всех уведомлений
+            document.getElementById("disable-all").addEventListener('click', function() {
+                document.getElementById("email_notifications").checked = false;
+                document.getElementById("study_tips").checked = false;
+                document.getElementById("practice_reminders").checked = false;
+                document.getElementById("content_updates").checked = false;
+            });
+            
+            // Обработчик для кнопки удаления аккаунта
+            document.getElementById("delete-account").addEventListener('click', function() {
+                if (confirm("Opravdu chcete trvale odstranit svůj účet? Tato akce nemůže být vrácena.")) {
+                    showAlert("Funkce odstranění účtu je momentálně deaktivována. Kontaktujte podporu pro další informace.", "warning");
+                }
+            });
+            
+            // Обработчик для кнопки модального окна аватара
+            document.getElementById("change-avatar").addEventListener('click', function() {
+                document.getElementById("avatar-modal").classList.add("active");
+            });
+            
+            // Закрытие модального окна
+            document.querySelector(".modal-close").addEventListener('click', function() {
+                document.getElementById("avatar-modal").classList.remove("active");
+            });
+            
+            document.getElementById("cancel-avatar").addEventListener('click', function() {
+                document.getElementById("avatar-modal").classList.remove("active");
+                document.getElementById("avatar-preview").style.display = "none";
+                document.getElementById("avatar-file").value = "";
+            });
+            
+            // Управление загрузкой аватара
+            const avatarUpload = document.getElementById("avatar-upload");
+            const avatarFile = document.getElementById("avatar-file");
+            const avatarPreview = document.getElementById("avatar-preview");
+            const avatarPreviewImg = document.getElementById("avatar-preview-img");
+            
+            // Открытие диалога выбора файла при клике на зону загрузки
+            avatarUpload.addEventListener('click', function() {
+                avatarFile.click();
+            });
+            
+            // Обработка перетаскивания файла
+            avatarUpload.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                this.classList.add('dragover');
+            });
+            
+            avatarUpload.addEventListener('dragleave', function() {
+                this.classList.remove('dragover');
+            });
+            
+            avatarUpload.addEventListener('drop', function(e) {
+                e.preventDefault();
+                this.classList.remove('dragover');
+                
+                if (e.dataTransfer.files.length) {
+                    avatarFile.files = e.dataTransfer.files;
+                    handleAvatarFileSelect();
+                }
+            });
+            
+            // Обработка выбора файла
+            avatarFile.addEventListener('change', handleAvatarFileSelect);
+            
+            function handleAvatarFileSelect() {
+                const file = avatarFile.files[0];
+                
+                if (!file) return;
+                
+                // Проверка размера файла (не более 2МБ)
+                if (file.size > 2 * 1024 * 1024) {
+                    showAlert("Soubor je příliš velký. Maximální velikost je 2MB.", "danger");
+                    avatarFile.value = "";
+                    return;
+                }
+                
+                // Проверка типа файла
+                if (!file.type.match('image.*')) {
+                    showAlert("Vyberte prosím obrázek (JPG, PNG, GIF).", "danger");
+                    avatarFile.value = "";
+                    return;
+                }
+                
+                // Предпросмотр изображения
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    avatarPreviewImg.src = e.target.result;
+                    avatarPreview.style.display = "block";
+                };
+                reader.readAsDataURL(file);
+            }
+            
+            // Сохранение нового аватара
+            document.getElementById("save-avatar").addEventListener('click', async function() {
+                const file = avatarFile.files[0];
+                
+                if (!file) {
+                    showAlert("Vyberte prosím soubor.", "danger");
+                    return;
+                }
+                
+                // Показать индикатор загрузки
+                document.getElementById("save-avatar-text").style.display = "none";
+                document.getElementById("save-avatar-loading").style.display = "inline-block";
+                document.getElementById("save-avatar").disabled = true;
+                
+                try {
+                    // Генерация уникального имени файла
+                    const fileExt = file.name.split('.').pop();
+                    const fileName = `avatar-${currentUser.id}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+                    const filePath = `avatars/${fileName}`;
+                    
+                    // Загрузка файла в Supabase Storage
+                    const { error: uploadError } = await supabase.storage
+                        .from('profiles')
+                        .upload(filePath, file);
+                    
+                    if (uploadError) throw uploadError;
+                    
+                    // Получение публичного URL для файла
+                    const { data: { publicUrl } } = supabase.storage
+                        .from('profiles')
+                        .getPublicUrl(filePath);
+                    
+                    // Обновление ссылки на аватар в профиле
+                    const { error: updateError } = await supabase
+                        .from('profiles')
+                        .update({ 
+                            avatar_url: publicUrl,
+                            updated_at: new Date().toISOString()
+                        })
+                        .eq('id', currentUser.id);
+                    
+                    if (updateError) throw updateError;
+                    
+                    // Обновляем локальные данные
+                    userProfile.avatar_url = publicUrl;
+                    
+                    // Обновляем аватарки на странице
+                    const avatarElements = [
+                        document.getElementById("sidebar-avatar"),
+                        document.getElementById("profile-avatar")
+                    ];
+                    
+                    avatarElements.forEach(element => {
+                        element.innerHTML = `<img src="${publicUrl}" alt="${userProfile.username}" />`;
+                    });
+                    
+                    // Закрываем модальное окно
+                    document.getElementById("avatar-modal").classList.remove("active");
+                    document.getElementById("avatar-preview").style.display = "none";
+                    document.getElementById("avatar-file").value = "";
+                    
+                    showAlert("Profilová fotka byla úspěšně aktualizována!", "success");
+                } catch (error) {
+                    console.error("Chyba při nahrávání avataru:", error);
+                    showAlert("Chyba při nahrávání souboru. Zkuste to prosím znovu.", "danger");
+                } finally {
+                    // Скрыть индикатор загрузки
+                    document.getElementById("save-avatar-text").style.display = "inline-block";
+                    document.getElementById("save-avatar-loading").style.display = "none";
+                    document.getElementById("save-avatar").disabled = false;
+                }
+            });
+            
+            // Обработка нажатий на уведомления
+            document.querySelector('.notifications').addEventListener('click', function() {
+                alert('Máte 1 nové oznámení:\n\nNový modul "Statistika a pravděpodobnost" je k dispozici.');
+            });
+            
+            // Загрузка данных пользователя при загрузке страницы
+            loadUserData();
+            
+            // Отслеживание изменения темы
+            const darkModeToggle = document.getElementById("dark_mode");
+            darkModeToggle.addEventListener('change', function() {
+                if (this.checked) {
+                    document.body.classList.add('dark-mode');
+                } else {
+                    document.body.classList.remove('dark-mode');
+                }
+            });
+            
+            // Запуск анимации при прокрутке
+            function checkScroll() {
+                const animatedElements = document.querySelectorAll('.animated:not(.active)');
+                animatedElements.forEach(element => {
+                    const elementPosition = element.getBoundingClientRect().top;
+                    const screenPosition = window.innerHeight;
+                    
+                    if (elementPosition < screenPosition - 50) {
+                        element.classList.add('active');
+                    }
+                });
+            }
+            
+            // Проверка прокрутки при загрузке и при прокрутке
+            window.addEventListener('scroll', checkScroll);
+            window.addEventListener('load', checkScroll);
+            
+            // Автоматически задаем текущую дату для примера
+            const currentDate = new Date("2025-03-21 16:35:04");
+            const formattedDate = `${currentDate.getDate()}. ${currentDate.getMonth() + 1}. ${currentDate.getFullYear()}`;
+            
+            // Вставляем информацию о текущем пользователе
+            const currentUsername = "Maksys234";
+            document.querySelectorAll('.user-name').forEach(element => {
+                element.textContent = currentUsername;
+            });
+        });
+    </script>
 </body>
 </html>
