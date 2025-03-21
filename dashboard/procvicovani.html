@@ -3,30 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Procvičování | Justax Dashboard</title>
+    <link rel="stylesheet" href="../dashboard.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap">
     <script>
         document.addEventListener("DOMContentLoaded", function() {
-            fetch("navbar.html")
+            // Load the navigation bar
+            fetch("/navbar.html")
                 .then(response => response.text())
                 .then(data => {
-                    document.getElementById("navbar").innerHTML = data;
+                    document.getElementById("sidebar-container").innerHTML = data;
+                    
+                    // Set active link
+                    document.getElementById("procvicovani-link").classList.add("active");
                 });
         });
     </script>
 </head>
 <body>
-    <header>
-        <h1>Procvičování</h1>
-    </header>
+    <div id="sidebar-container"></div>
+    
     <main>
-        <section id="practice">
-            <h2>Practice Section</h2>
-            <p>Practice your skills here.</p>
-        </section>
+        <header>
+            <h1>Procvičování</h1>
+        </header>
+        
+        <div class="main-content">
+            <section class="welcome-banner">
+                <div class="welcome-content">
+                    <h2 class="welcome-title">Procvičujte své dovednosti</h2>
+                    <p class="welcome-text">Vyberte si z různých cvičení pro zlepšení vašich dovedností.</p>
+                </div>
+            </section>
+            
+            <!-- Add your practice exercises content here -->
+            
+        </div>
     </main>
-    <footer>
-        <p>&copy; 2025 Your Website</p>
-    </footer>
 </body>
 </html>

@@ -3,34 +3,93 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Justax Dashboard</title>
+    <link rel="stylesheet" href="dashboard.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap">
     <script>
         document.addEventListener("DOMContentLoaded", function() {
-            fetch("navbar.html")
+            // Load the navigation bar
+            fetch("/navbar.html")
                 .then(response => response.text())
                 .then(data => {
-                    document.getElementById("navbar").innerHTML = data;
+                    document.getElementById("sidebar-container").innerHTML = data;
+                    
+                    // Set active link
+                    const currentPage = window.location.pathname;
+                    if (currentPage.includes("dashboard.html") || currentPage === "/") {
+                        document.getElementById("dashboard-link").classList.add("active");
+                    }
                 });
         });
     </script>
 </head>
 <body>
-    <header>
-        <h1>Dashboard</h1>
-    </header>
-    <div id="navbar"></div>
+    <div id="sidebar-container"></div>
+    
     <main>
-        <nav>
-            <ul>
-                <li><a href="dashboard/profile.html">Profile Settings</a></li>
-                <li><a href="dashboard/pokrok.html">Pokrok</a></li>
-                <li><a href="dashboard/procvicovani.html">Procvičování</a></li>
-            </ul>
-        </nav>
+        <header>
+            <h1>Dashboard</h1>
+        </header>
+        
+        <div class="main-content">
+            <section class="welcome-banner">
+                <div class="welcome-content">
+                    <h2 class="welcome-title">Vítejte ve vašem Dashboardu</h2>
+                    <p class="welcome-text">Zde můžete spravovat nastavení profilu, sledovat svůj pokrok a procvičovat své dovednosti.</p>
+                </div>
+            </section>
+            
+            <section class="stat-cards">
+                <div class="stat-card">
+                    <div class="stat-card-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="12" cy="7" r="4"></circle>
+                        </svg>
+                    </div>
+                    <h3 class="stat-card-title">Nastavení profilu</h3>
+                    <p class="stat-card-value">Spravujte své osobní údaje a preference</p>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-card-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+                        </svg>
+                    </div>
+                    <h3 class="stat-card-title">Pokrok</h3>
+                    <p class="stat-card-value">Sledujte svoje učení a výkon</p>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-card-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+                            <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="stat-card-title">Procvičování</h3>
+                    <p class="stat-card-value">Zlepšete své dovednosti pomocí cvičení</p>
+                </div>
+            </section>
+        </div>
     </main>
-    <footer>
-        <p>&copy; 2025 Your Website</p>
-    </footer>
+    
+    <script>
+        // Toggle active status based on current page
+        function setActiveLink() {
+            const currentPath = window.location.pathname;
+            const links = document.querySelectorAll('.menu-link');
+            
+            links.forEach(link => {
+                if (link.getAttribute('href') === currentPath) {
+                    link.classList.add('active');
+                }
+            });
+        }
+        
+        // Call after sidebar is loaded
+        setTimeout(setActiveLink, 500);
+    </script>
 </body>
 </html>

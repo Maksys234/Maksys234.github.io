@@ -3,30 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Pokrok | Justax Dashboard</title>
+    <link rel="stylesheet" href="../dashboard.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap">
     <script>
         document.addEventListener("DOMContentLoaded", function() {
-            fetch("navbar.html")
+            // Load the navigation bar
+            fetch("/navbar.html")
                 .then(response => response.text())
                 .then(data => {
-                    document.getElementById("navbar").innerHTML = data;
+                    document.getElementById("sidebar-container").innerHTML = data;
+                    
+                    // Set active link
+                    document.getElementById("pokrok-link").classList.add("active");
                 });
         });
     </script>
 </head>
 <body>
-    <header>
-        <h1>Pokrok</h1>
-    </header>
+    <div id="sidebar-container"></div>
+    
     <main>
-        <section id="progress-tracker">
-            <h2>Progress Tracker</h2>
-            <p>Track your progress here.</p>
-        </section>
+        <header>
+            <h1>Pokrok</h1>
+        </header>
+        
+        <div class="main-content">
+            <section class="welcome-banner">
+                <div class="welcome-content">
+                    <h2 class="welcome-title">Sledujte svůj pokrok</h2>
+                    <p class="welcome-text">Zde můžete vidět statistiky a výsledky vašeho učení.</p>
+                </div>
+            </section>
+            
+            <!-- Add your progress tracking content here -->
+            
+        </div>
     </main>
-    <footer>
-        <p>&copy; 2025 Your Website</p>
-    </footer>
 </body>
 </html>
