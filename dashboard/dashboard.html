@@ -1097,26 +1097,8 @@
     </div>
     
     <script>
-        // Inicializace Supabase klienta
-        let supabase;
-        try {
-            const supabaseUrl = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
-            const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10';
-            supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
-            
-            if (!supabase) {
-                throw new Error('Supabase klient se nepodařilo inicializovat.');
-            }
-        } catch (error) {
-            console.error('Chyba při inicializaci Supabase:', error);
-            showToast('Nelze se připojit k databázi. Zkontrolujte připojení k internetu.', 'error');
-            
-            // Nastavit minimální obsah bez Supabase
-            document.getElementById('global-error').style.display = 'block';
-            document.getElementById('global-error-message').textContent = 'Nelze se připojit k databázi. Zkontrolujte připojení k internetu.';
-        }
-
-        // Stav přihlášeného uživatele
+        // Глобальные переменные
+        let supabase = null;
         let currentUser = null;
 
         // DOM Elements
@@ -1136,21 +1118,58 @@
         const toast = document.getElementById('toast');
         const toastMessage = document.getElementById('toast-message');
 
-        // Sledování stavu připojení
+        // Инициализация Supabase клиента
+        function initSupabase() {
+            try {
+                const supabaseUrl = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
+                const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10';
+                
+                if (!window.supabase) {
+                    throw new Error('Supabase библиотека не загружена.');
+                }
+                
+                supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
+                
+                if (!supabase) {
+                    throw new Error('Не удалось инициализировать Supabase клиент.');
+                }
+                
+                return true;
+            } catch (error) {
+                console.error('Ошибка при инициализации Supabase:', error);
+                showToast('Не удалось подключиться к базе данных: ' + error.message, 'error');
+                
+                // Показать глобальную ошибку
+                globalErrorContainer.style.display = 'block';
+                document.getElementById('global-error-message').textContent = 
+                    'Не удалось подключиться к базе данных. Проверьте подключение к интернету.';
+                
+                return false;
+            }
+        }
+
+        // Отслеживание состояния соединения
         window.addEventListener('online', handleConnectionChange);
         window.addEventListener('offline', handleConnectionChange);
 
         function handleConnectionChange() {
             if (navigator.onLine) {
                 offlineBanner.style.display = 'none';
-                showToast('Jste znovu online!', 'success');
+                showToast('Вы снова онлайн!', 'success');
+                
+                // Повторно инициализировать Supabase, если необходимо
+                if (!supabase) {
+                    if (initSupabase()) {
+                        initializeDashboard();
+                    }
+                }
             } else {
                 offlineBanner.style.display = 'block';
-                showToast('Jste offline. Některé funkce nemusí být dostupné.', 'warning');
+                showToast('Вы офлайн. Некоторые функции могут быть недоступны.', 'warning');
             }
         }
 
-        // Funkce pro zobrazení toast notifikace
+        // Функция для отображения toast уведомлений
         function showToast(message, type = 'info') {
             toastMessage.textContent = message;
             toast.className = 'toast ' + type;
@@ -1169,64 +1188,83 @@
             }, 5000);
         }
 
-        // Funkce pro formátování data
+        // Функция для форматирования даты
         function formatDate(dateString) {
-            if (!dateString) return 'Neznámý čas';
+            if (!dateString) return 'Неизвестное время';
             
             try {
                 const date = new Date(dateString);
-                if (isNaN(date)) return 'Neplatné datum';
+                if (isNaN(date)) return 'Неверная дата';
                 
                 const now = new Date();
                 const diffTime = Math.abs(now - date);
                 const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
                 
                 if (diffDays === 0) {
-                    return 'Dnes, ' + date.getHours() + ':' + (date.getMinutes() < 10 ? '0' : '') + date.getMinutes();
+                    return 'Сегодня, ' + date.getHours() + ':' + (date.getMinutes() < 10 ? '0' : '') + date.getMinutes();
                 } else if (diffDays === 1) {
-                    return 'Včera, ' + date.getHours() + ':' + (date.getMinutes() < 10 ? '0' : '') + date.getMinutes();
+                    return 'Вчера, ' + date.getHours() + ':' + (date.getMinutes() < 10 ? '0' : '') + date.getMinutes();
                 } else if (diffDays < 7) {
-                    return diffDays + ' dny zpět';
+                    return diffDays + ' дней назад';
                 } else {
                     return date.getDate() + '.' + (date.getMonth() + 1) + '.' + date.getFullYear();
                 }
             } catch (error) {
-                console.error('Chyba při formátování data:', error);
-                return 'Neplatné datum';
+                console.error('Ошибка при форматировании даты:', error);
+                return 'Неверная дата';
             }
         }
 
-        // Získání a zobrazení dat profilu
+        // Получение и отображение данных профиля
         async function fetchAndDisplayUserProfile() {
             try {
-                // Kontrola připojení k internetu
+                // Проверка подключения к интернету
                 if (!navigator.onLine) {
-                    throw new Error('Nejste připojeni k internetu.');
+                    throw new Error('Вы не подключены к интернету.');
                 }
 
-                // Kontrola inicializace Supabase
+                // Проверка инициализации Supabase
                 if (!supabase) {
-                    throw new Error('Databázové připojení není dostupné.');
+                    if (!initSupabase()) {
+                        throw new Error('База данных недоступна.');
+                    }
                 }
                 
-                // Získání aktuálně přihlášeného uživatele
+                // Получение текущего аутентифицированного пользователя
                 const { data: { user }, error: authError } = await supabase.auth.getUser();
                 
                 if (authError) {
-                    console.error('Chyba autentizace:', authError);
-                    throw new Error('Nepodařilo se ověřit přihlášení: ' + authError.message);
+                    console.error('Ошибка аутентификации:', authError);
+                    throw new Error('Не удалось проверить вход: ' + authError.message);
                 }
                 
                 if (!user) {
-                    console.log('Uživatel není přihlášen, přesměrování na přihlášení.');
-                    // Přesměrování na přihlášení, pokud uživatel není přihlášen
-                    window.location.href = '/login.html';
-                    return null;
+                    console.log('Пользователь не вошел в систему, перенаправление на страницу входа.');
+                    // Перенаправление на страницу входа, если пользователь не вошел в систему
+                       window.location.href = 'auth/index.html';
+                    
+                    // Временный пользователь для демо
+                    currentUser = { 
+                        id: 'demo_user',
+                        email: 'Maksys234@example.com'
+                    };
+                    
+                    userNameEl.textContent = currentUser.email;
+                    userAvatarEl.textContent = 'MS';
+                    showToast('Демо-режим: пользователь не аутентифицирован', 'warning');
+                    
+                    return {
+                        username: 'Maksys234',
+                        completed_exercises: 12,
+                        points: 450,
+                        streak_days: 3,
+                        best_streak: 7
+                    };
                 }
                 
                 currentUser = user;
                 
-                // Získání profilu uživatele
+                // Получение профиля пользователя
                 const { data: profile, error: profileError } = await supabase
                     .from('profiles')
                     .select('*')
@@ -1234,19 +1272,50 @@
                     .single();
                 
                 if (profileError) {
-                    console.error('Chyba při načítání profilu:', profileError);
-                    throw new Error('Nepodařilo se načíst profil: ' + profileError.message);
+                    console.error('Ошибка при загрузке профиля:', profileError);
+                    
+                    // Создаем временный профиль, если не смогли получить его из базы
+                    const tempProfile = {
+                        username: user.email ? user.email.split('@')[0] : 'Пользователь',
+                        completed_exercises: 0,
+                        points: 0,
+                        streak_days: 0,
+                        best_streak: 0
+                    };
+                    
+                    // Установим данные пользователя
+                    userNameEl.textContent = tempProfile.username;
+                    userAvatarEl.textContent = tempProfile.username.substring(0, 2).toUpperCase();
+                    
+                    showToast('Профиль не найден, используя временный профиль', 'warning');
+                    
+                    return tempProfile;
                 }
                 
                 if (!profile) {
-                    console.warn('Profil nenalezen pro uživatele:', user.id);
-                    throw new Error('Profil uživatele nebyl nalezen.');
+                    console.warn('Профиль не найден для пользователя:', user.id);
+                    
+                    // Создаем временный профиль
+                    const tempProfile = {
+                        username: user.email ? user.email.split('@')[0] : 'Пользователь',
+                        completed_exercises: 0,
+                        points: 0,
+                        streak_days: 0,
+                        best_streak: 0
+                    };
+                    
+                    userNameEl.textContent = tempProfile.username;
+                    userAvatarEl.textContent = tempProfile.username.substring(0, 2).toUpperCase();
+                    
+                    showToast('Профиль пользователя не найден, используя временный профиль', 'warning');
+                    
+                    return tempProfile;
                 }
                 
-                // Aktualizace UI s daty uživatele
-                userNameEl.textContent = profile.username || user.email || 'Uživatel';
+                // Обновление UI данными пользователя
+                userNameEl.textContent = profile.username || user.email || 'Пользователь';
                 
-                // Nastavení iniciálů pro avatar
+                // Установка инициалов для аватара
                 if (profile.first_name && profile.last_name) {
                     userAvatarEl.textContent = profile.first_name.charAt(0) + profile.last_name.charAt(0);
                 } else if (profile.username) {
@@ -1257,10 +1326,10 @@
                     userAvatarEl.textContent = 'UN';
                 }
                 
-                // Skrytí globální chyby, pokud byla zobrazena
+                // Скрыть глобальную ошибку, если она отображалась
                 globalErrorContainer.style.display = 'none';
                 
-                // Načtení počtu notifikací
+                // Загрузка количества уведомлений
                 try {
                     const { data: notifications, error: notifError } = await supabase
                         .from('notifications')
@@ -1272,47 +1341,62 @@
                     
                     notificationCountEl.textContent = notifications ? notifications.length : '0';
                 } catch (notifErr) {
-                    console.warn('Chyba při načítání notifikací:', notifErr);
+                    console.warn('Ошибка при загрузке уведомлений:', notifErr);
                     notificationCountEl.textContent = '0';
                 }
                 
                 return profile;
             } catch (error) {
-                console.error('Chyba při načítání profilu:', error);
+                console.error('Ошибка при загрузке профиля:', error);
                 
-                // Zobrazení chybové zprávy
-                userNameEl.textContent = 'Chyba načítání';
+                // Отображение сообщения об ошибке
+                userNameEl.textContent = 'Ошибка загрузки';
                 userAvatarEl.textContent = 'ER';
                 
-                // Zobrazení globální chyby
+                // Отображение глобальной ошибки
                 globalErrorContainer.style.display = 'block';
                 document.getElementById('global-error-message').textContent = 
-                    error.message || 'Nepodařilo se načíst údaje profilu. Zkuste to prosím později.';
+                    error.message || 'Не удалось загрузить данные профиля. Пожалуйста, попробуйте позже.';
                 
-                // Zobrazení toast notifikace
-                showToast('Chyba při načítání profilu', 'error');
+                // Отображение toast уведомления
+                showToast('Ошибка при загрузке профиля', 'error');
                 
-                return null;
+                // Возвращаем временный профиль для демо
+                return {
+                    username: 'Maksys234',
+                    completed_exercises: 12,
+                    points: 450,
+                    streak_days: 3,
+                    best_streak: 7
+                };
             }
         }
 
-        // Načtení a zobrazení statistik
+        // Загрузка и отображение статистики
         async function fetchAndDisplayStats(profile) {
             try {
-                // Kontrola připojení a profilu
+                // Проверка подключения и профиля
                 if (!navigator.onLine) {
-                    throw new Error('Nejste připojeni k internetu.');
+                    throw new Error('Вы не подключены к интернету.');
                 }
                 
-                if (!profile || !currentUser) {
-                    throw new Error('Profil uživatele není k dispozici.');
+                if (!profile) {
+                    throw new Error('Профиль пользователя недоступен.');
                 }
                 
-                // Zobrazení načítacího stavu
-                statsContainer.innerHTML = '<div class="loading">Načítání statistik...</div>';
+                // Отображение состояния загрузки
+                statsContainer.innerHTML = '<div class="loading">Загрузка статистики...</div>';
                 statsErrorContainer.style.display = 'none';
                 
-                // Načtení dokončených cvičení za poslední týden
+                // Если нет Supabase или пользователя, используем демо-данные
+                if (!supabase || !currentUser) {
+                    setTimeout(() => {
+                        displayDemoStats(profile);
+                    }, 1000); // имитация задержки загрузки
+                    return;
+                }
+                
+                // Загрузка завершенных упражнений за последнюю неделю
                 const lastWeek = new Date();
                 lastWeek.setDate(lastWeek.getDate() - 7);
                 
@@ -1325,16 +1409,19 @@
                     .order('completed_at', { ascending: false });
                 
                 if (exercisesError) {
-                    console.error('Chyba při načítání cvičení:', exercisesError);
-                    throw new Error('Nelze načíst údaje o cvičeních: ' + exercisesError.message);
+                    console.error('Ошибка при загрузке упражнений:', exercisesError);
+                    
+                    // Используем демо-данные при ошибке
+                    displayDemoStats(profile);
+                    return;
                 }
                 
-                // Ochrana proti nulovým hodnotám
+                // Защита от нулевых значений
                 const completedExercises = profile.completed_exercises || 0;
                 const points = profile.points || 0;
                 const streakDays = profile.streak_days || 0;
                 
-                // Výpočet bodů získaných tento týden
+                // Расчет баллов, полученных на этой неделе
                 let weeklyPoints = 0;
                 if (recentExercises && recentExercises.length > 0) {
                     weeklyPoints = recentExercises.reduce((sum, ex) => {
@@ -1343,18 +1430,18 @@
                     }, 0);
                 }
                 
-                // Vyčištění kontejneru statistik
+                // Очистка контейнера статистики
                 statsContainer.innerHTML = '';
                 
-                // Karta dokončených cvičení
+                // Карта завершенных упражнений
                 statsContainer.innerHTML += `
                     <div class="stat-card">
                         <div class="stat-card-content">
                             <div class="stat-card-info">
-                                <h3 class="stat-card-title">Cvičení dokončeno</h3>
+                                <h3 class="stat-card-title">Упражнений выполнено</h3>
                                 <p class="stat-card-value">${completedExercises}</p>
                                 <p class="stat-card-change ${recentExercises && recentExercises.length > 0 ? 'positive' : ''}">
-                                    ${recentExercises && recentExercises.length > 0 ? '+' + recentExercises.length + ' tento týden' : 'Žádné nové tento týden'}
+                                    ${recentExercises && recentExercises.length > 0 ? '+' + recentExercises.length + ' за эту неделю' : 'Нет новых на этой неделе'}
                                 </p>
                             </div>
                             <div class="stat-card-icon progress-icon">
@@ -1362,20 +1449,20 @@
                             </div>
                         </div>
                         <div class="stat-card-footer">
-                            <a href="/dashboard/pokrok.html">Zobrazit pokrok <i class="fas fa-arrow-right"></i></a>
+                            <a href="/dashboard/pokrok.html">Посмотреть прогресс <i class="fas fa-arrow-right"></i></a>
                         </div>
                     </div>
                 `;
                 
-                // Karta získaných bodů
+                // Карта полученных баллов
                 statsContainer.innerHTML += `
                     <div class="stat-card">
                         <div class="stat-card-content">
                             <div class="stat-card-info">
-                                <h3 class="stat-card-title">Získané body</h3>
+                                <h3 class="stat-card-title">Набрано баллов</h3>
                                 <p class="stat-card-value">${points}</p>
                                 <p class="stat-card-change ${weeklyPoints > 0 ? 'positive' : ''}">
-                                    ${weeklyPoints > 0 ? '+' + weeklyPoints + ' tento týden' : 'Žádné nové body tento týden'}
+                                    ${weeklyPoints > 0 ? '+' + weeklyPoints + ' за эту неделю' : 'Нет новых баллов на этой неделе'}
                                 </p>
                             </div>
                             <div class="stat-card-icon points-icon">
@@ -1383,64 +1470,134 @@
                             </div>
                         </div>
                         <div class="stat-card-footer">
-                            <a href="/dashboard/procvicovani.html">Získat více bodů <i class="fas fa-arrow-right"></i></a>
+                            <a href="/dashboard/procvicovani.html">Заработать больше баллов <i class="fas fa-arrow-right"></i></a>
                         </div>
                     </div>
                 `;
                 
-                // Karta dnů v řadě
+                // Карта серии дней
                 statsContainer.innerHTML += `
                     <div class="stat-card">
                         <div class="stat-card-content">
                             <div class="stat-card-info">
-                                <h3 class="stat-card-title">Dny v řadě</h3>
+                                <h3 class="stat-card-title">Дней подряд</h3>
                                 <p class="stat-card-value">${streakDays}</p>
-                                <p class="stat-card-change">Váš nejlepší: ${profile.best_streak || streakDays}</p>
+                                <p class="stat-card-change">Ваш лучший результат: ${profile.best_streak || streakDays}</p>
                             </div>
                             <div class="stat-card-icon streak-icon">
                                 <i class="fas fa-fire"></i>
                             </div>
                         </div>
                         <div class="stat-card-footer">
-                            <a href="/dashboard/procvicovani.html">Udržet sérii <i class="fas fa-arrow-right"></i></a>
+                            <a href="/dashboard/procvicovani.html">Поддерживать серию <i class="fas fa-arrow-right"></i></a>
                         </div>
                     </div>
                 `;
                 
             } catch (error) {
-                console.error('Chyba při načítání statistik:', error);
+                console.error('Ошибка при загрузке статистики:', error);
                 
-                // Zobrazení chybového stavu
-                statsContainer.innerHTML = '';
+                // Отображение состояния ошибки
                 statsErrorContainer.style.display = 'block';
                 
-                // Log error pro analýzu
-                if (error.status) {
-                    console.error(`Chyba HTTP ${error.status}: ${error.statusText}`);
-                }
+                // Используем демо-данные при ошибке
+                displayDemoStats(profile);
                 
-                // Zobrazení toast notifikace
-                showToast('Nepodařilo se načíst statistiky', 'error');
+                // Отображение toast уведомления
+                showToast('Не удалось загрузить статистику', 'error');
             }
         }
 
-        // Načtení a zobrazení nedávných aktivit
+        // Отображение демо-статистики при отсутствии подключения
+        function displayDemoStats(profile) {
+            // Защита от нулевых значений
+            const completedExercises = profile ? (profile.completed_exercises || 0) : 12;
+            const points = profile ? (profile.points || 0) : 450;
+            const streakDays = profile ? (profile.streak_days || 0) : 3;
+            const bestStreak = profile ? (profile.best_streak || streakDays) : 7;
+            
+            // Очистка контейнера статистики
+            statsContainer.innerHTML = '';
+            
+            // Карта завершенных упражнений
+            statsContainer.innerHTML += `
+                <div class="stat-card">
+                    <div class="stat-card-content">
+                        <div class="stat-card-info">
+                            <h3 class="stat-card-title">Упражнений выполнено</h3>
+                            <p class="stat-card-value">${completedExercises}</p>
+                            <p class="stat-card-change positive">+3 за эту неделю</p>
+                        </div>
+                        <div class="stat-card-icon progress-icon">
+                            <i class="fas fa-tasks"></i>
+                        </div>
+                    </div>
+                    <div class="stat-card-footer">
+                        <a href="/dashboard/pokrok.html">Посмотреть прогресс <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                </div>
+            `;
+            
+            // Карта полученных баллов
+            statsContainer.innerHTML += `
+                <div class="stat-card">
+                    <div class="stat-card-content">
+                        <div class="stat-card-info">
+                            <h3 class="stat-card-title">Набрано баллов</h3>
+                            <p class="stat-card-value">${points}</p>
+                            <p class="stat-card-change positive">+75 за эту неделю</p>
+                        </div>
+                        <div class="stat-card-icon points-icon">
+                            <i class="fas fa-star"></i>
+                        </div>
+                    </div>
+                    <div class="stat-card-footer">
+                        <a href="/dashboard/procvicovani.html">Заработать больше баллов <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                </div>
+            `;
+            
+            // Карта серии дней
+            statsContainer.innerHTML += `
+                <div class="stat-card">
+                    <div class="stat-card-content">
+                        <div class="stat-card-info">
+                            <h3 class="stat-card-title">Дней подряд</h3>
+                            <p class="stat-card-value">${streakDays}</p>
+                            <p class="stat-card-change">Ваш лучший результат: ${bestStreak}</p>
+                        </div>
+                        <div class="stat-card-icon streak-icon">
+                            <i class="fas fa-fire"></i>
+                        </div>
+                    </div>
+                    <div class="stat-card-footer">
+                        <a href="/dashboard/procvicovani.html">Поддерживать серию <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Загрузка и отображение последних активностей
         async function fetchAndDisplayActivities() {
             try {
-                // Kontrola připojení a uživatele
+                // Проверка подключения и пользователя
                 if (!navigator.onLine) {
-                    throw new Error('Nejste připojeni k internetu.');
+                    throw new Error('Вы не подключены к интернету.');
                 }
                 
-                if (!currentUser) {
-                    throw new Error('Uživatel není přihlášen.');
-                }
-                
-                // Zobrazení načítacího stavu
-                activityContainer.innerHTML = '<div class="loading">Načítání aktivit...</div>';
+                // Отображение состояния загрузки
+                activityContainer.innerHTML = '<div class="loading">Загрузка активностей...</div>';
                 activityErrorContainer.style.display = 'none';
                 
-                // Načtení nedávno dokončených cvičení
+                // Если нет Supabase или пользователя, используем демо-данные
+                if (!supabase || !currentUser) {
+                    setTimeout(() => {
+                        displayDemoActivities();
+                    }, 1000); // имитация задержки загрузки
+                    return;
+                }
+                
+                // Загрузка недавно завершенных упражнений
                 const { data: recentExercises, error: exercisesError } = await supabase
                     .from('user_exercises')
                     .select(`
@@ -1453,11 +1610,13 @@
                     .limit(5);
                 
                 if (exercisesError) {
-                    console.error('Chyba při načítání cvičení:', exercisesError);
-                    throw new Error('Nelze načíst dokončená cvičení: ' + exercisesError.message);
+                    console.error('Ошибка при загрузке упражнений:', exercisesError);
+                    // Используем демо-данные при ошибке
+                    displayDemoActivities();
+                    return;
                 }
                 
-                // Načtení nedávno získaných odznaků
+                // Загрузка недавно полученных значков
                 const { data: recentBadges, error: badgesError } = await supabase
                     .from('user_badges')
                     .select(`
@@ -1469,63 +1628,63 @@
                     .limit(5);
                 
                 if (badgesError) {
-                    console.error('Chyba při načítání odznaků:', badgesError);
-                    // Pokračovat s cvičeními, ale vyloučit odznaky
-                    showToast('Některé aktivity se nepodařilo načíst', 'warning');
+                    console.error('Ошибка при загрузке значков:', badgesError);
+                    // Продолжить с упражнениями, но исключить значки
+                    showToast('Некоторые активности не удалось загрузить', 'warning');
                 }
                 
-                // Kombinace všech aktivit a seřazení podle času
+                // Объединение всех активностей и сортировка по времени
                 const allActivities = [
                     ...(recentExercises || []).map(item => ({
                         type: 'exercise',
-                        title: 'Cvičení dokončeno',
-                        description: item.exercises ? item.exercises.title : 'Neznámé cvičení',
+                        title: 'Упражнение выполнено',
+                        description: item.exercises ? item.exercises.title : 'Неизвестное упражнение',
                         timestamp: item.completed_at,
                         icon: 'check-circle',
                         iconClass: 'completed'
                     })),
-                    ...(recentBadges || []).map(item => ({
+                                        ...(recentBadges || []).map(item => ({
                         type: 'badge',
-                        title: 'Nový odznak získán',
-                        description: item.badges ? item.badges.title : 'Neznámý odznak',
+                        title: 'Получен новый значок',
+                        description: item.badges ? item.badges.title : 'Неизвестный значок',
                         timestamp: item.earned_at,
                         icon: 'award',
                         iconClass: 'badge'
                     }))
                 ];
                 
-                // Přidání streaku, pokud existuje
-                if (currentUser && currentUser.streak_days && currentUser.streak_days >= 5) {
+                // Добавление серии дней, если существует
+                if (currentUser.streak_days && currentUser.streak_days >= 5) {
                     allActivities.push({
                         type: 'streak',
-                        title: `${currentUser.streak_days} dní v řadě!`,
-                        description: 'Pokračujte ve své sérii',
+                        title: `${currentUser.streak_days} дней подряд!`,
+                        description: 'Продолжайте свою серию',
                         timestamp: new Date().toISOString(),
                         icon: 'fire',
                         iconClass: 'streak'
                     });
                 }
                 
-                // Seřazení aktivit podle času
+                // Сортировка активностей по времени
                 allActivities.sort((a, b) => {
                     const dateA = new Date(a.timestamp || 0);
                     const dateB = new Date(b.timestamp || 0);
                     return dateB - dateA;
                 });
                 
-                // Zobrazení pouze prvních 3 aktivit
+                // Отображение только первых 3 активностей
                 const recentActivities = allActivities.slice(0, 3);
                 
-                // Vyčištění kontejneru aktivit
+                // Очистка контейнера активностей
                 activityContainer.innerHTML = '';
                 
                 if (recentActivities.length === 0) {
                     activityContainer.innerHTML = `
                         <div class="activity-item">
                             <div class="activity-content" style="text-align: center; width: 100%;">
-                                <p>Zatím nemáte žádné aktivity.</p>
+                                <p>У вас пока нет активностей.</p>
                                 <p style="font-size: 0.9rem; color: var(--text-muted); margin-top: 0.5rem;">
-                                    Začněte procvičovat a sledujte svůj pokrok zde.
+                                    Начните тренироваться и следите за своим прогрессом здесь.
                                 </p>
                             </div>
                         </div>
@@ -1533,7 +1692,7 @@
                     return;
                 }
                 
-                // Vykreslení aktivit
+                // Отображение активностей
                 recentActivities.forEach(activity => {
                     activityContainer.innerHTML += `
                         <div class="activity-item">
@@ -1541,8 +1700,8 @@
                                 <i class="fas fa-${activity.icon}"></i>
                             </div>
                             <div class="activity-content">
-                                <h3 class="activity-title">${activity.title || 'Aktivita'}</h3>
-                                <p class="activity-desc">${activity.description || 'Bez popisu'}</p>
+                                <h3 class="activity-title">${activity.title || 'Активность'}</h3>
+                                <p class="activity-desc">${activity.description || 'Без описания'}</p>
                                 <p class="activity-time">${formatDate(activity.timestamp)}</p>
                             </div>
                         </div>
@@ -1550,23 +1709,67 @@
                 });
                 
             } catch (error) {
-                console.error('Chyba při načítání aktivit:', error);
+                console.error('Ошибка при загрузке активностей:', error);
                 
-                // Zobrazení chybového stavu
-                activityContainer.innerHTML = '';
+                // Отображение ошибки
                 activityErrorContainer.style.display = 'block';
                 
-                // Log error pro analýzu
-                if (error.status) {
-                    console.error(`Chyba HTTP ${error.status}: ${error.statusText}`);
-                }
+                // Использование демо-данных
+                displayDemoActivities();
                 
-                // Zobrazení toast notifikace
-                showToast('Nepodařilo se načíst aktivity', 'error');
+                // Отображение toast уведомления
+                showToast('Не удалось загрузить активности', 'error');
             }
         }
 
-        // Event handlers pro tlačítka opakování
+        // Отображение демо-активностей при отсутствии подключения
+        function displayDemoActivities() {
+            // Очистка контейнера активностей
+            activityContainer.innerHTML = '';
+            
+            // Демонстрационные активности
+            const demoActivities = [
+                {
+                    title: 'Упражнение выполнено',
+                    description: 'Основы расчета налогов',
+                    time: 'Сегодня, 14:30',
+                    icon: 'check-circle',
+                    iconClass: 'completed'
+                },
+                {
+                    title: 'Получен новый значок',
+                    description: 'Налоговый эксперт',
+                    time: 'Вчера, 18:15',
+                    icon: 'award',
+                    iconClass: 'badge'
+                },
+                {
+                    title: '3 дня подряд!',
+                    description: 'Продолжайте свою серию',
+                    time: 'Сегодня, 09:00',
+                    icon: 'fire',
+                    iconClass: 'streak'
+                }
+            ];
+            
+            // Отображение демо-активностей
+            demoActivities.forEach(activity => {
+                activityContainer.innerHTML += `
+                    <div class="activity-item">
+                        <div class="activity-icon ${activity.iconClass}">
+                            <i class="fas fa-${activity.icon}"></i>
+                        </div>
+                        <div class="activity-content">
+                            <h3 class="activity-title">${activity.title}</h3>
+                            <p class="activity-desc">${activity.description}</p>
+                            <p class="activity-time">${activity.time}</p>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // Обработчики событий для кнопок повтора
         statsRetryBtn.addEventListener('click', async () => {
             const profile = await fetchAndDisplayUserProfile();
             if (profile) {
@@ -1582,70 +1785,90 @@
             initializeDashboard();
         });
 
-        // Obslužná funkce pro tlačítko "Začít procvičovat"
+        // Обработчик для кнопки "Начать тренировку"
         startPracticeBtn.addEventListener('click', () => {
             try {
                 window.location.href = '/dashboard/procvicovani.html';
             } catch (error) {
-                console.error('Chyba při přesměrování:', error);
-                showToast('Nepodařilo se přesměrovat na procvičování', 'error');
+                console.error('Ошибка при перенаправлении:', error);
+                showToast('Не удалось перенаправить на страницу упражнений', 'error');
             }
         });
 
-        // Inicializace stránky
+        // Инициализация страницы
         async function initializeDashboard() {
             try {
-                // Kontrola online stavu
+                // Проверка состояния сети
                 handleConnectionChange();
+                
+                // Инициализация Supabase
+                if (!supabase) {
+                    initSupabase();
+                }
                 
                 const profile = await fetchAndDisplayUserProfile();
                 if (profile) {
-                    // Načítání dat paralelně pro rychlejší zobrazení
+                    // Параллельная загрузка данных для более быстрого отображения
                     await Promise.all([
                         fetchAndDisplayStats(profile),
                         fetchAndDisplayActivities()
                     ]);
                 }
             } catch (error) {
-                console.error('Chyba při inicializaci dashboardu:', error);
+                console.error('Ошибка при инициализации панели инструментов:', error);
                 
-                // Zobrazení globální chyby
+                // Отображение глобальной ошибки
                 globalErrorContainer.style.display = 'block';
                 document.getElementById('global-error-message').textContent = 
-                    'Nastala neočekávaná chyba. Prosím, zkuste to znovu později.';
+                    'Произошла непредвиденная ошибка. Пожалуйста, попробуйте позже.';
+                
+                // Использование демо-данных
+                const demoProfile = {
+                    username: 'Maksys234',
+                    completed_exercises: 12,
+                    points: 450,
+                    streak_days: 3,
+                    best_streak: 7
+                };
+                
+                userNameEl.textContent = demoProfile.username;
+                userAvatarEl.textContent = 'MS';
+                
+                displayDemoStats(demoProfile);
+                displayDemoActivities();
             }
         }
 
-        // Přidání správného zachycení chyb při načítání stránky
+        // Добавление правильного перехвата ошибок при загрузке страницы
         document.addEventListener('DOMContentLoaded', () => {
             try {
                 initializeDashboard();
             } catch (error) {
-                console.error('Fatální chyba při inicializaci aplikace:', error);
-                showToast('Aplikace se nepodařilo načíst správně', 'error');
+                console.error('Фатальная ошибка при инициализации приложения:', error);
+                showToast('Приложение не удалось правильно загрузить', 'error');
             }
         });
 
-        // Ošetření neočekávaných chyb (globální handler)
+        // Обработка непредвиденных ошибок (глобальный обработчик)
         window.addEventListener('error', (event) => {
-            console.error('Neošetřená chyba:', event.error);
-            showToast('Nastala neočekávaná chyba v aplikaci', 'error');
+            console.error('Необработанная ошибка:', event.error);
+            showToast('В приложении произошла непредвиденная ошибка', 'error');
             
-            // Zabránit výchozímu chování prohlížeče
+            // Предотвращение поведения браузера по умолчанию
             event.preventDefault();
         });
 
-        // Sledování selhání API požadavků
+        // Отслеживание неудачных запросов API
         window.addEventListener('unhandledrejection', (event) => {
-            console.error('Neočekávané selhání Promise:', event.reason);
+            console.error('Неожиданный сбой Promise:', event.reason);
             
             if (event.reason && event.reason.message) {
                 if (event.reason.message.includes('network') || 
                     event.reason.message.includes('fetch') ||
                     event.reason.message.includes('connection')) {
-                    showToast('Problém s připojením k serveru', 'warning');
+                    showToast('Проблема с подключением к серверу', 'warning');
                 } else {
-                    showToast('Operace se nezdařila', 'error');
+                    showToast('Операция не удалась', 'error');
                 }
             }
         });
