@@ -635,6 +635,111 @@
             }
         }
 
+        /* Error styling */
+        .error-message {
+            background-color: #fff2f5;
+            border-left: 4px solid var(--danger);
+            color: var(--danger);
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .error-message i {
+            margin-right: 0.75rem;
+            font-size: 1.25rem;
+        }
+
+        .error-container {
+            display: none;
+            margin-bottom: 1.5rem;
+        }
+
+        .retry-button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+            cursor: pointer;
+            margin-top: 0.5rem;
+            transition: all 0.2s ease;
+        }
+
+        .retry-button:hover {
+            background-color: var(--secondary);
+        }
+
+        .offline-banner {
+            display: none;
+            background-color: var(--warning);
+            color: white;
+            padding: 0.75rem;
+            text-align: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+        }
+
+        /* Toast notification */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: var(--white);
+            color: var(--text-primary);
+            border-radius: 8px;
+            padding: 1rem;
+            box-shadow: var(--shadow-lg);
+            max-width: 300px;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .toast.success {
+            border-left: 4px solid #10b981;
+        }
+
+        .toast.error {
+            border-left: 4px solid var(--danger);
+        }
+
+        .toast.warning {
+            border-left: 4px solid var(--warning);
+        }
+
+        .toast i {
+            margin-right: 0.75rem;
+            font-size: 1.25rem;
+        }
+
+        .toast.success i {
+            color: #10b981;
+        }
+
+        .toast.error i {
+            color: var(--danger);
+        }
+
+        .toast.warning i {
+            color: var(--warning);
+        }
+
         /* Media queries pro responzivní design */
         @media (max-width: 1200px) {
             .welcome-content {
@@ -787,6 +892,11 @@
     </style>
 </head>
 <body>
+    <!-- Offline banner -->
+    <div class="offline-banner" id="offline-banner">
+        <i class="fas fa-wifi"></i> Momentálně jste offline. Některé funkce nemusí fungovat správně.
+    </div>
+
     <!-- Sidebar -->
     <aside class="sidebar">
         <div class="sidebar-header">
@@ -849,6 +959,17 @@
     </aside>
     
     <main>
+        <!-- Global error container -->
+        <div class="error-container" id="global-error">
+            <div class="error-message">
+                <i class="fas fa-exclamation-circle"></i>
+                <div>
+                    <div id="global-error-message">Došlo k chybě při načítání dat.</div>
+                    <button class="retry-button" id="global-retry-btn">Zkusit znovu</button>
+                </div>
+            </div>
+        </div>
+
         <header class="dashboard-header">
             <div class="header-content">
                 <h1>Dashboard</h1>
@@ -890,6 +1011,16 @@
             
             <section class="dashboard-overview">
                 <h2 class="section-title">Přehled činností</h2>
+                
+                <div id="stats-error" class="error-container">
+                    <div class="error-message">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <div>
+                            <div>Nepodařilo se načíst statistiky.</div>
+                            <button class="retry-button" id="stats-retry-btn">Zkusit znovu</button>
+                        </div>
+                    </div>
+                </div>
                 
                 <div class="stat-cards" id="stats-container">
                     <div class="loading">Načítání statistik...</div>
@@ -935,6 +1066,17 @@
             
             <section class="recent-activity">
                 <h2 class="section-title">Nedávné aktivity</h2>
+                
+                <div id="activity-error" class="error-container">
+                    <div class="error-message">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <div>
+                            <div>Nepodařilo se načíst aktivity.</div>
+                            <button class="retry-button" id="activity-retry-btn">Zkusit znovu</button>
+                        </div>
+                    </div>
+                </div>
+                
                 <div class="activity-list" id="activity-container">
                     <div class="loading">Načítání aktivit...</div>
                 </div>
@@ -948,11 +1090,31 @@
         </footer>
     </main>
     
+    <!-- Toast notification -->
+    <div class="toast" id="toast">
+        <i class="fas fa-info-circle"></i>
+        <div id="toast-message"></div>
+    </div>
+    
     <script>
         // Inicializace Supabase klienta
-        const supabaseUrl = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
-        const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10';
-        const supabase = supabase.createClient(supabaseUrl, supabaseAnonKey);
+        let supabase;
+        try {
+            const supabaseUrl = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
+            const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10';
+            supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
+            
+            if (!supabase) {
+                throw new Error('Supabase klient se nepodařilo inicializovat.');
+            }
+        } catch (error) {
+            console.error('Chyba při inicializaci Supabase:', error);
+            showToast('Nelze se připojit k databázi. Zkontrolujte připojení k internetu.', 'error');
+            
+            // Nastavit minimální obsah bez Supabase
+            document.getElementById('global-error').style.display = 'block';
+            document.getElementById('global-error-message').textContent = 'Nelze se připojit k databázi. Zkontrolujte připojení k internetu.';
+        }
 
         // Stav přihlášeného uživatele
         let currentUser = null;
@@ -964,36 +1126,102 @@
         const statsContainer = document.getElementById('stats-container');
         const activityContainer = document.getElementById('activity-container');
         const startPracticeBtn = document.getElementById('start-practice-btn');
+        const statsErrorContainer = document.getElementById('stats-error');
+        const activityErrorContainer = document.getElementById('activity-error');
+        const globalErrorContainer = document.getElementById('global-error');
+        const statsRetryBtn = document.getElementById('stats-retry-btn');
+        const activityRetryBtn = document.getElementById('activity-retry-btn');
+        const globalRetryBtn = document.getElementById('global-retry-btn');
+        const offlineBanner = document.getElementById('offline-banner');
+        const toast = document.getElementById('toast');
+        const toastMessage = document.getElementById('toast-message');
+
+        // Sledování stavu připojení
+        window.addEventListener('online', handleConnectionChange);
+        window.addEventListener('offline', handleConnectionChange);
+
+        function handleConnectionChange() {
+            if (navigator.onLine) {
+                offlineBanner.style.display = 'none';
+                showToast('Jste znovu online!', 'success');
+            } else {
+                offlineBanner.style.display = 'block';
+                showToast('Jste offline. Některé funkce nemusí být dostupné.', 'warning');
+            }
+        }
+
+        // Funkce pro zobrazení toast notifikace
+        function showToast(message, type = 'info') {
+            toastMessage.textContent = message;
+            toast.className = 'toast ' + type;
+            
+            let icon = 'fa-info-circle';
+            if (type === 'success') icon = 'fa-check-circle';
+            if (type === 'error') icon = 'fa-exclamation-circle';
+            if (type === 'warning') icon = 'fa-exclamation-triangle';
+            
+            toast.querySelector('i').className = 'fas ' + icon;
+            
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 5000);
+        }
 
         // Funkce pro formátování data
         function formatDate(dateString) {
-            const date = new Date(dateString);
-            const now = new Date();
-            const diffTime = Math.abs(now - date);
-            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            if (!dateString) return 'Neznámý čas';
             
-            if (diffDays === 0) {
-                return 'Dnes, ' + date.getHours() + ':' + (date.getMinutes() < 10 ? '0' : '') + date.getMinutes();
-            } else if (diffDays === 1) {
-                return 'Včera, ' + date.getHours() + ':' + (date.getMinutes() < 10 ? '0' : '') + date.getMinutes();
-            } else if (diffDays < 7) {
-                return diffDays + ' dny zpět';
-            } else {
-                return date.getDate() + '.' + (date.getMonth() + 1) + '.' + date.getFullYear();
+            try {
+                const date = new Date(dateString);
+                if (isNaN(date)) return 'Neplatné datum';
+                
+                const now = new Date();
+                const diffTime = Math.abs(now - date);
+                const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+                
+                if (diffDays === 0) {
+                    return 'Dnes, ' + date.getHours() + ':' + (date.getMinutes() < 10 ? '0' : '') + date.getMinutes();
+                } else if (diffDays === 1) {
+                    return 'Včera, ' + date.getHours() + ':' + (date.getMinutes() < 10 ? '0' : '') + date.getMinutes();
+                } else if (diffDays < 7) {
+                    return diffDays + ' dny zpět';
+                } else {
+                    return date.getDate() + '.' + (date.getMonth() + 1) + '.' + date.getFullYear();
+                }
+            } catch (error) {
+                console.error('Chyba při formátování data:', error);
+                return 'Neplatné datum';
             }
         }
 
         // Získání a zobrazení dat profilu
         async function fetchAndDisplayUserProfile() {
             try {
+                // Kontrola připojení k internetu
+                if (!navigator.onLine) {
+                    throw new Error('Nejste připojeni k internetu.');
+                }
+
+                // Kontrola inicializace Supabase
+                if (!supabase) {
+                    throw new Error('Databázové připojení není dostupné.');
+                }
+                
                 // Získání aktuálně přihlášeného uživatele
                 const { data: { user }, error: authError } = await supabase.auth.getUser();
                 
-                if (authError) throw authError;
+                if (authError) {
+                    console.error('Chyba autentizace:', authError);
+                    throw new Error('Nepodařilo se ověřit přihlášení: ' + authError.message);
+                }
+                
                 if (!user) {
+                    console.log('Uživatel není přihlášen, přesměrování na přihlášení.');
                     // Přesměrování na přihlášení, pokud uživatel není přihlášen
                     window.location.href = '/login.html';
-                    return;
+                    return null;
                 }
                 
                 currentUser = user;
@@ -1005,32 +1233,84 @@
                     .eq('id', user.id)
                     .single();
                 
-                if (profileError) throw profileError;
+                if (profileError) {
+                    console.error('Chyba při načítání profilu:', profileError);
+                    throw new Error('Nepodařilo se načíst profil: ' + profileError.message);
+                }
+                
+                if (!profile) {
+                    console.warn('Profil nenalezen pro uživatele:', user.id);
+                    throw new Error('Profil uživatele nebyl nalezen.');
+                }
                 
                 // Aktualizace UI s daty uživatele
-                userNameEl.textContent = profile.username || user.email;
+                userNameEl.textContent = profile.username || user.email || 'Uživatel';
                 
                 // Nastavení iniciálů pro avatar
                 if (profile.first_name && profile.last_name) {
                     userAvatarEl.textContent = profile.first_name.charAt(0) + profile.last_name.charAt(0);
+                } else if (profile.username) {
+                    userAvatarEl.textContent = profile.username.substring(0, 2).toUpperCase();
+                } else if (user.email) {
+                    userAvatarEl.textContent = user.email.substring(0, 2).toUpperCase();
                 } else {
-                    userAvatarEl.textContent = userNameEl.textContent.substring(0, 2).toUpperCase();
+                    userAvatarEl.textContent = 'UN';
                 }
                 
-                // Načtení počtu notifikací (můžete implementovat podle potřeby)
-                notificationCountEl.textContent = '3'; // Pro demonstraci
+                // Skrytí globální chyby, pokud byla zobrazena
+                globalErrorContainer.style.display = 'none';
+                
+                // Načtení počtu notifikací
+                try {
+                    const { data: notifications, error: notifError } = await supabase
+                        .from('notifications')
+                        .select('*', { count: 'exact' })
+                        .eq('user_id', user.id)
+                        .eq('read', false);
+                        
+                    if (notifError) throw notifError;
+                    
+                    notificationCountEl.textContent = notifications ? notifications.length : '0';
+                } catch (notifErr) {
+                    console.warn('Chyba při načítání notifikací:', notifErr);
+                    notificationCountEl.textContent = '0';
+                }
                 
                 return profile;
             } catch (error) {
                 console.error('Chyba při načítání profilu:', error);
+                
+                // Zobrazení chybové zprávy
                 userNameEl.textContent = 'Chyba načítání';
+                userAvatarEl.textContent = 'ER';
+                
+                // Zobrazení globální chyby
+                globalErrorContainer.style.display = 'block';
+                document.getElementById('global-error-message').textContent = 
+                    error.message || 'Nepodařilo se načíst údaje profilu. Zkuste to prosím později.';
+                
+                // Zobrazení toast notifikace
+                showToast('Chyba při načítání profilu', 'error');
+                
+                return null;
             }
         }
 
         // Načtení a zobrazení statistik
         async function fetchAndDisplayStats(profile) {
             try {
-                if (!profile) return;
+                // Kontrola připojení a profilu
+                if (!navigator.onLine) {
+                    throw new Error('Nejste připojeni k internetu.');
+                }
+                
+                if (!profile || !currentUser) {
+                    throw new Error('Profil uživatele není k dispozici.');
+                }
+                
+                // Zobrazení načítacího stavu
+                statsContainer.innerHTML = '<div class="loading">Načítání statistik...</div>';
+                statsErrorContainer.style.display = 'none';
                 
                 // Načtení dokončených cvičení za poslední týden
                 const lastWeek = new Date();
@@ -1044,7 +1324,24 @@
                     .gte('completed_at', lastWeek.toISOString())
                     .order('completed_at', { ascending: false });
                 
-                if (exercisesError) throw exercisesError;
+                if (exercisesError) {
+                    console.error('Chyba při načítání cvičení:', exercisesError);
+                    throw new Error('Nelze načíst údaje o cvičeních: ' + exercisesError.message);
+                }
+                
+                // Ochrana proti nulovým hodnotám
+                const completedExercises = profile.completed_exercises || 0;
+                const points = profile.points || 0;
+                const streakDays = profile.streak_days || 0;
+                
+                // Výpočet bodů získaných tento týden
+                let weeklyPoints = 0;
+                if (recentExercises && recentExercises.length > 0) {
+                    weeklyPoints = recentExercises.reduce((sum, ex) => {
+                        const score = parseInt(ex.score) || 0;
+                        return sum + score;
+                    }, 0);
+                }
                 
                 // Vyčištění kontejneru statistik
                 statsContainer.innerHTML = '';
@@ -1055,8 +1352,10 @@
                         <div class="stat-card-content">
                             <div class="stat-card-info">
                                 <h3 class="stat-card-title">Cvičení dokončeno</h3>
-                                <p class="stat-card-value">${profile.completed_exercises || 0}</p>
-                                <p class="stat-card-change positive">+${recentExercises.length} tento týden</p>
+                                <p class="stat-card-value">${completedExercises}</p>
+                                <p class="stat-card-change ${recentExercises && recentExercises.length > 0 ? 'positive' : ''}">
+                                    ${recentExercises && recentExercises.length > 0 ? '+' + recentExercises.length + ' tento týden' : 'Žádné nové tento týden'}
+                                </p>
                             </div>
                             <div class="stat-card-icon progress-icon">
                                 <i class="fas fa-tasks"></i>
@@ -1074,8 +1373,10 @@
                         <div class="stat-card-content">
                             <div class="stat-card-info">
                                 <h3 class="stat-card-title">Získané body</h3>
-                                <p class="stat-card-value">${profile.points || 0}</p>
-                                <p class="stat-card-change positive">+${recentExercises.reduce((sum, ex) => sum + (ex.score || 0), 0)} tento týden</p>
+                                <p class="stat-card-value">${points}</p>
+                                <p class="stat-card-change ${weeklyPoints > 0 ? 'positive' : ''}">
+                                    ${weeklyPoints > 0 ? '+' + weeklyPoints + ' tento týden' : 'Žádné nové body tento týden'}
+                                </p>
                             </div>
                             <div class="stat-card-icon points-icon">
                                 <i class="fas fa-star"></i>
@@ -1093,8 +1394,8 @@
                         <div class="stat-card-content">
                             <div class="stat-card-info">
                                 <h3 class="stat-card-title">Dny v řadě</h3>
-                                <p class="stat-card-value">${profile.streak_days || 0}</p>
-                                <p class="stat-card-change">Váš nejlepší: ${profile.streak_days || 0}</p>
+                                <p class="stat-card-value">${streakDays}</p>
+                                <p class="stat-card-change">Váš nejlepší: ${profile.best_streak || streakDays}</p>
                             </div>
                             <div class="stat-card-icon streak-icon">
                                 <i class="fas fa-fire"></i>
@@ -1105,16 +1406,39 @@
                         </div>
                     </div>
                 `;
+                
             } catch (error) {
                 console.error('Chyba při načítání statistik:', error);
-                statsContainer.innerHTML = '<p class="error">Nepodařilo se načíst statistiky. Zkuste to prosím později.</p>';
+                
+                // Zobrazení chybového stavu
+                statsContainer.innerHTML = '';
+                statsErrorContainer.style.display = 'block';
+                
+                // Log error pro analýzu
+                if (error.status) {
+                    console.error(`Chyba HTTP ${error.status}: ${error.statusText}`);
+                }
+                
+                // Zobrazení toast notifikace
+                showToast('Nepodařilo se načíst statistiky', 'error');
             }
         }
 
         // Načtení a zobrazení nedávných aktivit
         async function fetchAndDisplayActivities() {
             try {
-                if (!currentUser) return;
+                // Kontrola připojení a uživatele
+                if (!navigator.onLine) {
+                    throw new Error('Nejste připojeni k internetu.');
+                }
+                
+                if (!currentUser) {
+                    throw new Error('Uživatel není přihlášen.');
+                }
+                
+                // Zobrazení načítacího stavu
+                activityContainer.innerHTML = '<div class="loading">Načítání aktivit...</div>';
+                activityErrorContainer.style.display = 'none';
                 
                 // Načtení nedávno dokončených cvičení
                 const { data: recentExercises, error: exercisesError } = await supabase
@@ -1128,7 +1452,10 @@
                     .order('completed_at', { ascending: false })
                     .limit(5);
                 
-                if (exercisesError) throw exercisesError;
+                if (exercisesError) {
+                    console.error('Chyba při načítání cvičení:', exercisesError);
+                    throw new Error('Nelze načíst dokončená cvičení: ' + exercisesError.message);
+                }
                 
                 // Načtení nedávno získaných odznaků
                 const { data: recentBadges, error: badgesError } = await supabase
@@ -1141,22 +1468,26 @@
                     .order('earned_at', { ascending: false })
                     .limit(5);
                 
-                if (badgesError) throw badgesError;
+                if (badgesError) {
+                    console.error('Chyba při načítání odznaků:', badgesError);
+                    // Pokračovat s cvičeními, ale vyloučit odznaky
+                    showToast('Některé aktivity se nepodařilo načíst', 'warning');
+                }
                 
                 // Kombinace všech aktivit a seřazení podle času
                 const allActivities = [
-                    ...recentExercises.map(item => ({
+                    ...(recentExercises || []).map(item => ({
                         type: 'exercise',
                         title: 'Cvičení dokončeno',
-                        description: item.exercises.title,
+                        description: item.exercises ? item.exercises.title : 'Neznámé cvičení',
                         timestamp: item.completed_at,
                         icon: 'check-circle',
                         iconClass: 'completed'
                     })),
-                    ...recentBadges.map(item => ({
+                    ...(recentBadges || []).map(item => ({
                         type: 'badge',
                         title: 'Nový odznak získán',
-                        description: item.badges.title,
+                        description: item.badges ? item.badges.title : 'Neznámý odznak',
                         timestamp: item.earned_at,
                         icon: 'award',
                         iconClass: 'badge'
@@ -1176,7 +1507,11 @@
                 }
                 
                 // Seřazení aktivit podle času
-                allActivities.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                allActivities.sort((a, b) => {
+                    const dateA = new Date(a.timestamp || 0);
+                    const dateB = new Date(b.timestamp || 0);
+                    return dateB - dateA;
+                });
                 
                 // Zobrazení pouze prvních 3 aktivit
                 const recentActivities = allActivities.slice(0, 3);
@@ -1185,7 +1520,16 @@
                 activityContainer.innerHTML = '';
                 
                 if (recentActivities.length === 0) {
-                    activityContainer.innerHTML = '<p class="activity-item">Zatím nemáte žádné aktivity.</p>';
+                    activityContainer.innerHTML = `
+                        <div class="activity-item">
+                            <div class="activity-content" style="text-align: center; width: 100%;">
+                                <p>Zatím nemáte žádné aktivity.</p>
+                                <p style="font-size: 0.9rem; color: var(--text-muted); margin-top: 0.5rem;">
+                                    Začněte procvičovat a sledujte svůj pokrok zde.
+                                </p>
+                            </div>
+                        </div>
+                    `;
                     return;
                 }
                 
@@ -1197,37 +1541,114 @@
                                 <i class="fas fa-${activity.icon}"></i>
                             </div>
                             <div class="activity-content">
-                                <h3 class="activity-title">${activity.title}</h3>
-                                <p class="activity-desc">${activity.description}</p>
+                                <h3 class="activity-title">${activity.title || 'Aktivita'}</h3>
+                                <p class="activity-desc">${activity.description || 'Bez popisu'}</p>
                                 <p class="activity-time">${formatDate(activity.timestamp)}</p>
                             </div>
                         </div>
                     `;
                 });
+                
             } catch (error) {
                 console.error('Chyba při načítání aktivit:', error);
-                activityContainer.innerHTML = '<p class="error">Nepodařilo se načíst aktivity. Zkuste to prosím později.</p>';
+                
+                // Zobrazení chybového stavu
+                activityContainer.innerHTML = '';
+                activityErrorContainer.style.display = 'block';
+                
+                // Log error pro analýzu
+                if (error.status) {
+                    console.error(`Chyba HTTP ${error.status}: ${error.statusText}`);
+                }
+                
+                // Zobrazení toast notifikace
+                showToast('Nepodařilo se načíst aktivity', 'error');
             }
         }
 
+        // Event handlers pro tlačítka opakování
+        statsRetryBtn.addEventListener('click', async () => {
+            const profile = await fetchAndDisplayUserProfile();
+            if (profile) {
+                fetchAndDisplayStats(profile);
+            }
+        });
+
+        activityRetryBtn.addEventListener('click', async () => {
+            fetchAndDisplayActivities();
+        });
+
+        globalRetryBtn.addEventListener('click', async () => {
+            initializeDashboard();
+        });
+
         // Obslužná funkce pro tlačítko "Začít procvičovat"
         startPracticeBtn.addEventListener('click', () => {
-            window.location.href = '/dashboard/procvicovani.html';
+            try {
+                window.location.href = '/dashboard/procvicovani.html';
+            } catch (error) {
+                console.error('Chyba při přesměrování:', error);
+                showToast('Nepodařilo se přesměrovat na procvičování', 'error');
+            }
         });
 
         // Inicializace stránky
         async function initializeDashboard() {
-            const profile = await fetchAndDisplayUserProfile();
-            if (profile) {
-                await Promise.all([
-                    fetchAndDisplayStats(profile),
-                    fetchAndDisplayActivities()
-                ]);
+            try {
+                // Kontrola online stavu
+                handleConnectionChange();
+                
+                const profile = await fetchAndDisplayUserProfile();
+                if (profile) {
+                    // Načítání dat paralelně pro rychlejší zobrazení
+                    await Promise.all([
+                        fetchAndDisplayStats(profile),
+                        fetchAndDisplayActivities()
+                    ]);
+                }
+            } catch (error) {
+                console.error('Chyba při inicializaci dashboardu:', error);
+                
+                // Zobrazení globální chyby
+                globalErrorContainer.style.display = 'block';
+                document.getElementById('global-error-message').textContent = 
+                    'Nastala neočekávaná chyba. Prosím, zkuste to znovu později.';
             }
         }
 
-        // Spuštění inicializace po načtení stránky
-        document.addEventListener('DOMContentLoaded', initializeDashboard);
+        // Přidání správného zachycení chyb při načítání stránky
+        document.addEventListener('DOMContentLoaded', () => {
+            try {
+                initializeDashboard();
+            } catch (error) {
+                console.error('Fatální chyba při inicializaci aplikace:', error);
+                showToast('Aplikace se nepodařilo načíst správně', 'error');
+            }
+        });
+
+        // Ošetření neočekávaných chyb (globální handler)
+        window.addEventListener('error', (event) => {
+            console.error('Neošetřená chyba:', event.error);
+            showToast('Nastala neočekávaná chyba v aplikaci', 'error');
+            
+            // Zabránit výchozímu chování prohlížeče
+            event.preventDefault();
+        });
+
+        // Sledování selhání API požadavků
+        window.addEventListener('unhandledrejection', (event) => {
+            console.error('Neočekávané selhání Promise:', event.reason);
+            
+            if (event.reason && event.reason.message) {
+                if (event.reason.message.includes('network') || 
+                    event.reason.message.includes('fetch') ||
+                    event.reason.message.includes('connection')) {
+                    showToast('Problém s připojením k serveru', 'warning');
+                } else {
+                    showToast('Operace se nezdařila', 'error');
+                }
+            }
+        });
     </script>
 </body>
 </html>
