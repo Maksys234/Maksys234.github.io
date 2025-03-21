@@ -437,6 +437,10 @@
             box-shadow: var(--shadow-sm);
             padding: 1.5rem;
             transition: all 0.3s ease;
+            /* Добавляем явный дополнительный размер для контейнера чарта */
+            height: 320px;
+            position: relative;
+            overflow: hidden;
         }
 
         .chart-card:hover {
@@ -456,9 +460,18 @@
             color: var(--dark);
         }
 
-        .chart-canvas {
+        .chart-canvas-container {
             height: 250px;
             width: 100%;
+            position: relative;
+        }
+
+        .chart-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100% !important;
+            height: 100% !important;
         }
 
         /* Расписание и задачи */
@@ -715,6 +728,34 @@
             font-size: 0.9rem;
         }
 
+        /* Добавляем стиль для индикатора загрузки */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255, 255, 255, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid var(--primary-light);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s infinite linear;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
         /* Медиа-запросы для адаптивности */
         @media (max-width: 1200px) {
             .chart-container, .tasks-schedule {
@@ -881,10 +922,19 @@
             .btn-outline {
                 box-shadow: 0 0 0 1px var(--primary) inset;
             }
+
+            .loading-overlay {
+                background-color: rgba(23, 25, 35, 0.7);
+            }
         }
     </style>
 </head>
 <body>
+    <!-- Индикатор загрузки -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+    </div>
+
     <!-- Сайдбар -->
     <aside class="sidebar">
         <div class="sidebar-header">
@@ -946,7 +996,7 @@
         </div>
     </aside>
     
-    <main>
+    <main id="mainContent" style="display: none;">
         <header class="dashboard-header">
             <div class="header-content">
                 <h1>Dashboard</h1>
@@ -1032,14 +1082,18 @@
                     <div class="chart-header">
                         <h3 class="chart-title">Pokrok podle předmětů</h3>
                     </div>
-                    <canvas id="subjectsChart" class="chart-canvas"></canvas>
+                    <div class="chart-canvas-container">
+                        <canvas id="subjectsChart" class="chart-canvas"></canvas>
+                    </div>
                 </div>
                 
                 <div class="chart-card">
                     <div class="chart-header">
                         <h3 class="chart-title">Týdenní aktivita</h3>
                     </div>
-                    <canvas id="activityChart" class="chart-canvas"></canvas>
+                    <div class="chart-canvas-container">
+                        <canvas id="activityChart" class="chart-canvas"></canvas>
+                    </div>
                 </div>
             </div>
             
@@ -1195,12 +1249,13 @@
             // Проверка авторизации - необходимо добавить в начало каждого скрипта дашборда
             async function checkAuth() {
                 try {
-                    // Получаем текущую сессию
+                    // Получаем текущую сессию с принудительной проверкой токена
                     const { data: { session }, error } = await supabase.auth.getSession();
                     
                     // Если ошибка или нет сессии, перенаправляем на страницу входа
                     if (error || !session) {
                         console.log("Нет активной сессии, перенаправление на страницу входа");
+                        // Используем абсолютный путь для перенаправления
                         window.location.href = "/auth/index.html";
                         return false;
                     }
@@ -1217,7 +1272,15 @@
                         }
                     }
                     
-                    console.log("Пользователь авторизован");
+                    // Обязательная проверка данных пользователя
+                    const { data: { user }, error: userError } = await supabase.auth.getUser();
+                    if (userError || !user) {
+                        console.log("Пользователь не авторизован");
+                        window.location.href = "/auth/index.html";
+                        return false;
+                    }
+                    
+                    console.log("Пользователь авторизован:", user.email);
                     return true;
                 } catch (error) {
                     console.error("Ошибка при проверке авторизации:", error);
@@ -1230,9 +1293,15 @@
             const isAuthenticated = await checkAuth();
             
             // Если пользователь не авторизован, скрипт остановится здесь из-за перенаправления
-            if (!isAuthenticated) return;
+            if (!isAuthenticated) {
+                console.log("Перенаправление на страницу входа...");
+                window.location.href = "/auth/index.html";
+                return;
+            }
             
-            // Продолжаем выполнение кода только если пользователь авторизован
+            // Показываем контент только после успешной авторизации
+            document.getElementById('mainContent').style.display = 'block';
+            document.getElementById('loadingOverlay').style.display = 'none';
             
             // Мобильное меню
             function addMobileMenuToggle() {
@@ -1312,9 +1381,9 @@
             }
             
             // Вызываем функцию для получения данных пользователя
-            fetchUserProfile();
+            await fetchUserProfile();
             
-            // График прогресса по предметам
+            // График прогресса по предметам - исправленный код с ограничениями по размеру
             const ctxSubjects = document.getElementById('subjectsChart').getContext('2d');
             const subjectsChart = new Chart(ctxSubjects, {
                 type: 'doughnut',
@@ -1333,7 +1402,7 @@
                 },
                 options: {
                     responsive: true,
-                    maintainAspectRatio: false,
+                    maintainAspectRatio: true,
                     cutout: '70%',
                     plugins: {
                         legend: {
@@ -1360,7 +1429,7 @@
                 }
             });
             
-            // График недельной активности
+            // График недельной активности - исправленный код с ограничениями по размеру
             const ctxActivity = document.getElementById('activityChart').getContext('2d');
             const activityChart = new Chart(ctxActivity, {
                 type: 'bar',
@@ -1375,7 +1444,7 @@
                 },
                 options: {
                     responsive: true,
-                    maintainAspectRatio: false,
+                    maintainAspectRatio: true,
                     plugins: {
                         legend: {
                             display: false
@@ -1460,6 +1529,18 @@
                 }
                 subjectsChart.update();
             });
+
+            // Создаем простую функцию для выхода из системы
+            window.logout = async function() {
+                try {
+                    const { error } = await supabase.auth.signOut();
+                    if (error) throw error;
+                    window.location.href = "/auth/index.html";
+                } catch (error) {
+                    console.error("Ошибка при выходе:", error);
+                    alert("Произошла ошибка при выходе из системы. Попробуйте еще раз.");
+                }
+            }
         });
     </script>
 </body>
