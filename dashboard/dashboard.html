@@ -4,60 +4,197 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Justax Dashboard</title>
-    <link rel="stylesheet" href="dashboard.css">
+    <link rel="stylesheet" href="styles\dashboard.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap">
-    <script src="/assets/js/common.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // Load the navigation bar
+            fetch("/navbar.html")
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById("sidebar-container").innerHTML = data;
+                    
+                    // Set active link
+                    const currentPage = window.location.pathname;
+                    if (currentPage.includes("dashboard.html") || currentPage === "/") {
+                        document.getElementById("dashboard-link").classList.add("active");
+                    }
+                });
+        });
+    </script>
 </head>
 <body>
-    <!-- Контейнер для сайдбара -->
     <div id="sidebar-container"></div>
     
     <main>
-        <!-- Контейнер для хедера -->
-        <div id="header-container"></div>
+        <header class="dashboard-header">
+            <div class="header-content">
+                <h1>Dashboard</h1>
+                <div class="header-actions">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" placeholder="Hledat...">
+                    </div>
+                    <div class="notifications">
+                        <i class="fas fa-bell"></i>
+                        <span class="notification-badge">3</span>
+                    </div>
+                </div>
+            </div>
+        </header>
         
         <div class="main-content">
             <section class="welcome-banner">
                 <div class="welcome-content">
-                    <h2 class="welcome-title">Vítejte ve vašem Dashboardu</h2>
-                    <p class="welcome-text">Zde můžete spravovat nastavení profilu, sledovat svůj pokrok a procvičovat své dovednosti.</p>
+                    <div class="welcome-text-content">
+                        <h2 class="welcome-title">Vítejte ve vašem Dashboardu</h2>
+                        <p class="welcome-text">Zde můžete spravovat nastavení profilu, sledovat svůj pokrok a procvičovat své dovednosti.</p>
+                        <button class="welcome-button">Začít procvičovat</button>
+                    </div>
+                    <div class="welcome-image">
+                        <img src="assets/images/dashboard-illustration.svg" alt="Dashboard ilustrace">
+                    </div>
                 </div>
             </section>
             
-            <section class="stat-cards">
-                <div class="stat-card">
-                    <div class="stat-card-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                            <circle cx="12" cy="7" r="4"></circle>
-                        </svg>
-                    </div>
-                    <h3 class="stat-card-title">Nastavení profilu</h3>
-                    <p class="stat-card-value">Spravujte své osobní údaje a preference</p>
-                </div>
+            <section class="dashboard-overview">
+                <h2 class="section-title">Přehled činností</h2>
                 
-                <div class="stat-card">
-                    <div class="stat-card-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
-                        </svg>
+                <div class="stat-cards">
+                    <div class="stat-card">
+                        <div class="stat-card-content">
+                            <div class="stat-card-info">
+                                <h3 class="stat-card-title">Cvičení dokončeno</h3>
+                                <p class="stat-card-value">24</p>
+                                <p class="stat-card-change positive">+5 tento týden</p>
+                            </div>
+                            <div class="stat-card-icon progress-icon">
+                                <i class="fas fa-tasks"></i>
+                            </div>
+                        </div>
+                        <div class="stat-card-footer">
+                            <a href="/dashboard/pokrok.html">Zobrazit pokrok <i class="fas fa-arrow-right"></i></a>
+                        </div>
                     </div>
-                    <h3 class="stat-card-title">Pokrok</h3>
-                    <p class="stat-card-value">Sledujte svoje učení a výkon</p>
-                </div>
-                
-                <div class="stat-card">
-                    <div class="stat-card-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
-                            <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
-                        </svg>
+                    
+                    <div class="stat-card">
+                        <div class="stat-card-content">
+                            <div class="stat-card-info">
+                                <h3 class="stat-card-title">Získané body</h3>
+                                <p class="stat-card-value">1,250</p>
+                                <p class="stat-card-change positive">+320 tento týden</p>
+                            </div>
+                            <div class="stat-card-icon points-icon">
+                                <i class="fas fa-star"></i>
+                            </div>
+                        </div>
+                        <div class="stat-card-footer">
+                            <a href="/dashboard/procvicovani.html">Získat více bodů <i class="fas fa-arrow-right"></i></a>
+                        </div>
                     </div>
-                    <h3 class="stat-card-title">Procvičování</h3>
-                    <p class="stat-card-value">Zlepšete své dovednosti pomocí cvičení</p>
+                    
+                    <div class="stat-card">
+                        <div class="stat-card-content">
+                            <div class="stat-card-info">
+                                <h3 class="stat-card-title">Dny v řadě</h3>
+                                <p class="stat-card-value">7</p>
+                                <p class="stat-card-change">Váš nejlepší: 12</p>
+                            </div>
+                            <div class="stat-card-icon streak-icon">
+                                <i class="fas fa-fire"></i>
+                            </div>
+                        </div>
+                        <div class="stat-card-footer">
+                            <a href="/dashboard/procvicovani.html">Udržet sérii <i class="fas fa-arrow-right"></i></a>
+                        </div>
+                    </div>
                 </div>
             </section>
+            
+            <section class="shortcut-section">
+                <h2 class="section-title">Rychlé přístupy</h2>
+                <div class="shortcut-grid">
+                    <a href="/dashboard/profile.html" class="shortcut-card">
+                        <div class="shortcut-icon">
+                            <i class="fas fa-user-cog"></i>
+                        </div>
+                        <h3 class="shortcut-title">Nastavení profilu</h3>
+                        <p class="shortcut-desc">Spravujte své osobní údaje a preference</p>
+                    </a>
+                    
+                    <a href="/dashboard/pokrok.html" class="shortcut-card">
+                        <div class="shortcut-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <h3 class="shortcut-title">Pokrok</h3>
+                        <p class="shortcut-desc">Sledujte svoje učení a výkon</p>
+                    </a>
+                    
+                    <a href="/dashboard/procvicovani.html" class="shortcut-card">
+                        <div class="shortcut-icon">
+                            <i class="fas fa-book-open"></i>
+                        </div>
+                        <h3 class="shortcut-title">Procvičování</h3>
+                        <p class="shortcut-desc">Zlepšete své dovednosti pomocí cvičení</p>
+                    </a>
+                    
+                    <a href="/dashboard/oceneni.html" class="shortcut-card">
+                        <div class="shortcut-icon">
+                            <i class="fas fa-medal"></i>
+                        </div>
+                        <h3 class="shortcut-title">Ocenění</h3>
+                        <p class="shortcut-desc">Zobrazit získané odznaky a úspěchy</p>
+                    </a>
+                </div>
+            </section>
+            
+            <section class="recent-activity">
+                <h2 class="section-title">Nedávné aktivity</h2>
+                <div class="activity-list">
+                    <div class="activity-item">
+                        <div class="activity-icon completed">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="activity-content">
+                            <h3 class="activity-title">Cvičení dokončeno</h3>
+                            <p class="activity-desc">Daňové odpisy - základní principy</p>
+                            <p class="activity-time">Dnes, 8:45</p>
+                        </div>
+                    </div>
+                    
+                    <div class="activity-item">
+                        <div class="activity-icon badge">
+                            <i class="fas fa-award"></i>
+                        </div>
+                        <div class="activity-content">
+                            <h3 class="activity-title">Nový odznak získán</h3>
+                            <p class="activity-desc">Odborník na DPH - úroveň 1</p>
+                            <p class="activity-time">Včera, 14:20</p>
+                        </div>
+                    </div>
+                    
+                    <div class="activity-item">
+                        <div class="activity-icon streak">
+                            <i class="fas fa-fire"></i>
+                        </div>
+                        <div class="activity-content">
+                            <h3 class="activity-title">5 dní v řadě!</h3>
+                            <p class="activity-desc">Pokračujte ve své sérii</p>
+                            <p class="activity-time">3 dny zpět</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <a href="/dashboard/aktivity.html" class="view-all-link">Zobrazit všechny aktivity <i class="fas fa-arrow-right"></i></a>
+            </section>
         </div>
+        
+        <footer class="dashboard-footer">
+            <p>&copy; 2025 Justax.space | Všechna práva vyhrazena</p>
+        </footer>
     </main>
+    
+    <script src="assets/js/dashboard.js"></script>
 </body>
 </html>
