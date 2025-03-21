@@ -1433,7 +1433,44 @@
             // Получение данных текущего пользователя
             let currentUser = null;
             let userProfile = null;
+            async function checkAuth() {
+              try {
+            // Получаем текущую сессию
+            const { data: { session }, error } = await supabase.auth.getSession();
             
+            // Если ошибка или нет сессии, перенаправляем на страницу входа
+            if (error || !session) {
+                console.log("Нет активной сессии, перенаправление на страницу входа");
+                window.location.href = "/auth/index.html";
+                return false;
+            }
+            
+            // Проверка на истекший токен
+            if (new Date(session.expires_at * 1000) < new Date()) {
+                console.log("Сессия устарела, попытка обновления");
+                const { data: { session: refreshedSession }, error: refreshError } = await supabase.auth.refreshSession();
+                
+                if (refreshError || !refreshedSession) {
+                    console.log("Не удалось обновить сессию, перенаправление на страницу входа");
+                    window.location.href = "/auth/index.html";
+                    return false;
+                }
+            }
+            
+            console.log("Пользователь авторизован");
+            return true;
+        } catch (error) {
+            console.error("Ошибка при проверке авторизации:", error);
+            window.location.href = "/auth/index.html";
+            return false;
+        }
+    }
+    
+    // Выполняем проверку при загрузке страницы
+    const isAuthenticated = await checkAuth();
+    
+    // Если пользователь не авторизован, скрипт остановится здесь из-за перенаправления
+    if (!isAuthenticated) return;
             async function getCurrentUser() {
                 try {
                     const { data: { user }, error } = await supabase.auth.getUser();
