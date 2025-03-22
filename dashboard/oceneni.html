@@ -4,17 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Justax - Ocenění</title>
-    <!-- Подключаем шрифты напрямую -->
+    <!-- Připojení fontů -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Font Awesome через CDN -->
+    <!-- Font Awesome CDN -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Supabase JS Client -->
+    <!-- Supabase JS client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <style>
-        /* Базовые стили */
+        /* Bazové styly */
         * {
             margin: 0;
             padding: 0;
@@ -59,7 +59,7 @@
             overflow-x: hidden;
         }
 
-        /* Сайдбар */
+        /* Sidebar */
         .sidebar {
             width: var(--sidebar-width);
             height: 100vh;
@@ -181,7 +181,7 @@
             opacity: 0.8;
         }
 
-        /* Основной контент */
+        /* Hlavní obsah */
         main {
             flex: 1;
             margin-left: var(--sidebar-width);
@@ -271,7 +271,7 @@
             font-weight: 600;
         }
 
-        /* Основное содержание */
+        /* Hlavní obsah */
         .main-content {
             display: grid;
             gap: 1.75rem;
@@ -284,7 +284,7 @@
             color: var(--dark);
         }
 
-        /* Секция достижений */
+        /* Sekce statistik */
         .achievement-stats {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -370,7 +370,7 @@
             background: linear-gradient(135deg, #0077b6, #0096c7);
         }
 
-        /* Секция разблокированных значков */
+        /* Sekce odznaků */
         .badges-section {
             margin-bottom: 2rem;
         }
@@ -490,7 +490,7 @@
             font-size: 0.7rem;
         }
 
-        /* Секция доступных достижений */
+        /* Sekce dostupných odznaků */
         .available-achievements {
             margin-bottom: 2rem;
         }
@@ -593,7 +593,7 @@
             color: var(--text-secondary);
         }
 
-        /* Таблица лидеров */
+        /* Tabulka porovnání */
         .leaderboard-section {
             margin-bottom: 2rem;
         }
@@ -763,7 +763,7 @@
             color: var(--gray);
         }
 
-        /* Недавно полученные достижения */
+        /* Nedávné odznaky */
         .recent-achievements {
             background-color: var(--white);
             border-radius: var(--card-radius);
@@ -827,7 +827,7 @@
             gap: 0.5rem;
         }
 
-        /* Футер */
+        /* Patička */
         .dashboard-footer {
             margin-top: 2rem;
             padding: 1.5rem 0;
@@ -836,7 +836,120 @@
             font-size: 0.9rem;
         }
 
-        /* Медиа-запросы для адаптивности */
+        /* Indikátor načítání */
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            font-size: 1rem;
+            color: var(--text-muted);
+        }
+
+        .loading::after {
+            content: "";
+            width: 20px;
+            height: 20px;
+            margin-left: 15px;
+            border: 2px solid var(--primary);
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: loading-spinner 0.8s linear infinite;
+        }
+
+        @keyframes loading-spinner {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Chybové hlášky */
+        .error-message {
+            background-color: #fff2f5;
+            border-left: 4px solid var(--danger);
+            color: var(--danger);
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .error-message i {
+            margin-right: 0.75rem;
+            font-size: 1.25rem;
+        }
+
+        .error-container {
+            display: none;
+            margin-bottom: 1.5rem;
+        }
+
+        .retry-button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+            cursor: pointer;
+            margin-top: 0.5rem;
+            transition: all 0.2s ease;
+        }
+
+        .retry-button:hover {
+            background-color: var(--secondary);
+        }
+
+        /* Prázdný stav */
+        .empty-state {
+            padding: 3rem 2rem;
+            text-align: center;
+            background-color: var(--white);
+            border-radius: var(--card-radius);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .empty-state-icon {
+            font-size: 3rem;
+            color: var(--gray-light);
+            margin-bottom: 1.5rem;
+        }
+
+        .empty-state-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 0.75rem;
+        }
+
+        .empty-state-desc {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            max-width: 500px;
+            margin: 0 auto 1.5rem auto;
+            line-height: 1.6;
+        }
+
+        .empty-state-action {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            background: var(--gradient-1);
+            color: var(--white);
+            font-weight: 500;
+            border-radius: 10px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .empty-state-action:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-md);
+        }
+
+        /* Media queries pro responzivní design */
         @media (max-width: 1200px) {
             .achievement-stats {
                 grid-template-columns: repeat(2, 1fr);
@@ -964,18 +1077,7 @@
             }
         }
 
-        /* Мобильное меню */
-        .mobile-menu-toggle {
-            display: none;
-            background: none;
-            border: none;
-            cursor: pointer;
-            color: var(--dark);
-            font-size: 1.5rem;
-            margin-right: 1rem;
-        }
-
-        /* Анимации */
+        /* Animace */
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
@@ -1001,7 +1103,7 @@
             animation-delay: 0.4s;
         }
 
-        /* Темный режим */
+        /* Temný režim */
         @media (prefers-color-scheme: dark) {
             :root {
                 --white: #1a202c;
@@ -1027,29 +1129,22 @@
                 color: #a0aec0;
             }
             
-            .filter-btn {
-                background-color: #2d3748;
-                border-color: #4a5568;
-                color: var(--text-primary);
+            .leaderboard-table tr:hover {
+                background-color: #1e2533;
             }
             
             .progress-bar {
                 background-color: #2d3748;
             }
             
-            .leaderboard-table tr:hover,
-            .highlight-row:hover {
-                background-color: #2d3748 !important;
-            }
-            
-            .highlight-row {
-                background-color: rgba(67, 97, 238, 0.15);
+            .empty-state-icon {
+                color: #4a5568;
             }
         }
     </style>
 </head>
 <body>
-    <!-- Сайдбар -->
+    <!-- Sidebar -->
     <aside class="sidebar">
         <div class="sidebar-header">
             <a href="/" class="sidebar-logo">
@@ -1060,37 +1155,37 @@
         
         <ul class="sidebar-menu">
             <li class="sidebar-item">
-                <a href="dashboard.html" class="sidebar-link" id="dashboard-link">
+                <a href="/dashboard.html" class="sidebar-link" id="dashboard-link">
                     <i class="fas fa-th-large"></i>
                     <span>Dashboard</span>
                 </a>
             </li>
             <li class="sidebar-item">
-                <a href="procvicovani.html" class="sidebar-link">
+                <a href="/dashboard/procvicovani.html" class="sidebar-link">
                     <i class="fas fa-book-open"></i>
                     <span>Procvičování</span>
                 </a>
             </li>
             <li class="sidebar-item">
-                <a href="pokrok.html" class="sidebar-link">
+                <a href="/dashboard/pokrok.html" class="sidebar-link">
                     <i class="fas fa-chart-line"></i>
                     <span>Pokrok</span>
                 </a>
             </li>
             <li class="sidebar-item">
-                <a href="oceneni.html" class="sidebar-link active">
+                <a href="/dashboard/oceneni.html" class="sidebar-link active">
                     <i class="fas fa-medal"></i>
                     <span>Ocenění</span>
                 </a>
             </li>
             <li class="sidebar-item">
-                <a href="materialy.html" class="sidebar-link">
+                <a href="/dashboard/materialy.html" class="sidebar-link">
                     <i class="fas fa-file-alt"></i>
                     <span>Materiály</span>
                 </a>
             </li>
             <li class="sidebar-item">
-                <a href="profile.html" class="sidebar-link">
+                <a href="/dashboard/profile.html" class="sidebar-link">
                     <i class="fas fa-user-cog"></i>
                     <span>Profil</span>
                 </a>
@@ -1098,10 +1193,10 @@
         </ul>
         
         <div class="user-profile">
-            <div class="user-avatar" id="sidebar-avatar">MS</div>
+            <div class="user-avatar" id="sidebar-user-avatar">MS</div>
             <div class="user-info">
-                <div class="user-name" id="sidebar-username">Maksys234</div>
-                <div class="user-role">Student</div>
+                <div class="user-name" id="sidebar-user-name">Načítání...</div>
+                <div class="user-role" id="sidebar-user-role">Student</div>
             </div>
         </div>
         
@@ -1111,37 +1206,50 @@
     </aside>
     
     <main>
+        <!-- Globální chybový kontejner -->
+        <div class="error-container" id="global-error">
+            <div class="error-message">
+                <i class="fas fa-exclamation-circle"></i>
+                <div>
+                    <div id="global-error-message">Došlo k chybě při načítání dat.</div>
+                    <button class="retry-button" id="global-retry-btn">Zkusit znovu</button>
+                </div>
+            </div>
+        </div>
+
         <header class="dashboard-header">
             <div class="header-content">
-                <h1>Vaše ocenění</h1>
+                <h1>Ocenění a odznaky</h1>
                 <div class="header-actions">
                     <div class="search-box">
                         <i class="fas fa-search"></i>
-                        <input type="text" placeholder="Hledat ocenění...">
+                        <input type="text" placeholder="Hledat odznaky...">
                     </div>
                     <div class="notifications">
                         <i class="fas fa-bell"></i>
-                        <span class="notification-badge">2</span>
+                        <span class="notification-badge" id="notification-count">0</span>
                     </div>
                 </div>
             </div>
         </header>
         
-        <div class="main-content">
-            <!-- Статистика достижений -->
-            <section class="stats-section animated">
-                <h2 class="section-title">Přehled ocenění</h2>
-                
-                <div class="achievement-stats">
+        <!-- Načítací indikátor -->
+        <div id="achievements-loading" class="loading">Načítání ocenění a odznaků</div>
+        
+        <!-- Hlavní obsah -->
+        <div id="achievements-content" style="display: none;">
+            <section class="main-content">
+                <!-- Statistiky odznaků -->
+                <div class="achievement-stats animated delay-1">
                     <div class="stat-card">
                         <div class="stat-card-content">
                             <div class="stat-card-info">
-                                <h3 class="stat-card-title">Získaných odznaků</h3>
-                                <p class="stat-card-value" id="badges-count">12</p>
-                                <p class="stat-card-change positive">+3 tento měsíc</p>
+                                <div class="stat-card-title">Získané odznaky</div>
+                                <div class="stat-card-value" id="badges-count">0</div>
+                                <div class="stat-card-change positive" id="badges-change">+0 za posledních 30 dní</div>
                             </div>
                             <div class="stat-card-icon badges-icon">
-                                <i class="fas fa-award"></i>
+                                <i class="fas fa-medal"></i>
                             </div>
                         </div>
                     </div>
@@ -1149,22 +1257,9 @@
                     <div class="stat-card">
                         <div class="stat-card-content">
                             <div class="stat-card-info">
-                                <h3 class="stat-card-title">Vaše úroveň</h3>
-                                <p class="stat-card-value" id="user-level">8</p>
-                                <p class="stat-card-change positive">+1 za poslední dva týdny</p>
-                            </div>
-                            <div class="stat-card-icon rank-icon">
-                                <i class="fas fa-crown"></i>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="stat-card">
-                        <div class="stat-card-content">
-                            <div class="stat-card-info">
-                                <h3 class="stat-card-title">Získané body</h3>
-                                <p class="stat-card-value" id="earned-points">1,250</p>
-                                <p class="stat-card-change positive">+320 tento měsíc</p>
+                                <div class="stat-card-title">Bodový zisk</div>
+                                <div class="stat-card-value" id="points-count">0</div>
+                                <div class="stat-card-change positive" id="points-change">+0 za posledních 30 dní</div>
                             </div>
                             <div class="stat-card-icon points-icon">
                                 <i class="fas fa-star"></i>
@@ -1175,785 +1270,686 @@
                     <div class="stat-card">
                         <div class="stat-card-content">
                             <div class="stat-card-info">
-                                <h3 class="stat-card-title">Dny v řadě</h3>
-                                <p class="stat-card-value" id="streak-days">7</p>
-                                <p class="stat-card-change">Nejlepší: 14 dní</p>
+                                <div class="stat-card-title">Série dnů</div>
+                                <div class="stat-card-value" id="streak-days">0</div>
+                                <div class="stat-card-change" id="streak-change">Nejdelší série: 0 dnů</div>
                             </div>
                             <div class="stat-card-icon streak-icon">
                                 <i class="fas fa-fire"></i>
                             </div>
                         </div>
                     </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-card-content">
+                            <div class="stat-card-info">
+                                <div class="stat-card-title">Pořadí</div>
+                                <div class="stat-card-value" id="rank-value">-</div>
+                                <div class="stat-card-change" id="rank-change">Z celkových <span id="total-users">0</span> uživatelů</div>
+                            </div>
+                            <div class="stat-card-icon rank-icon">
+                                <i class="fas fa-trophy"></i>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </section>
-            
-            <!-- Разблокированные значки -->
-            <section class="badges-section animated delay-1">
-                <h2 class="section-title">Vaše odznaky</h2>
                 
-                <div class="badge-grid" id="badges-grid">
-                    <div class="badge-card">
-                        <div class="badge-icon math">
-                            <i class="fas fa-square-root-alt"></i>
-                        </div>
-                        <h3 class="badge-title">Algebraický mistr</h3>
-                        <p class="badge-desc">Dokončení modulu Algebra s výsledkem nad 90%</p>
-                        <div class="badge-date">
-                            <i class="far fa-calendar-check"></i>
-                            <span>21. února 2025</span>
-                        </div>
-                    </div>
+                <!-- Sekce odznaků -->
+                <section class="badges-section animated delay-2">
+                    <h2 class="section-title">Vaše odznaky</h2>
                     
-                    <div class="badge-card">
-                        <div class="badge-icon math">
-                            <i class="fas fa-shapes"></i>
+                    <div id="user-badges-container">
+                        <!-- Prázdný stav - bude skrytý, pokud jsou odznaky -->
+                        <div class="empty-state" id="empty-badges" style="display: none;">
+                            <div class="empty-state-icon">
+                                <i class="fas fa-medal"></i>
+                            </div>
+                            <h3 class="empty-state-title">Zatím nemáte žádné odznaky</h3>
+                            <p class="empty-state-desc">
+                                Začněte procvičovat a plnit zadané úkoly, abyste získali své první odznaky.
+                                Odznaky jsou udělovány za dokončení cvičení, pravidelné procvičování a dosažení výsledků.
+                            </p>
+                            <a href="/dashboard/procvicovani.html" class="empty-state-action">
+                                <i class="fas fa-book-open"></i> Začít procvičovat
+                            </a>
                         </div>
-                        <h3 class="badge-title">Geometr</h3>
-                        <p class="badge-desc">Dokončení 15 geometrických úloh</p>
-                        <div class="badge-date">
-                            <i class="far fa-calendar-check"></i>
-                            <span>15. února 2025</span>
-                        </div>
-                    </div>
-                    
-                    <div class="badge-card">
-                        <div class="badge-icon lang">
-                            <i class="fas fa-spell-check"></i>
-                        </div>
-                        <h3 class="badge-title">Gramatický expert</h3>
-                        <p class="badge-desc">10 gramatických cvičení bez chyby</p>
-                        <div class="badge-date">
-                            <i class="far fa-calendar-check"></i>
-                            <span>10. února 2025</span>
+                        
+                        <!-- Grid s odznaky -->
+                        <div class="badge-grid" id="badge-grid">
+                            <!-- Zde budou dynamicky načtené odznaky uživatele -->
                         </div>
                     </div>
-                    
-                    <div class="badge-card">
-                        <div class="badge-icon lang">
-                            <i class="fas fa-book"></i>
-                        </div>
-                        <h3 class="badge-title">Čtenář</h3>
-                        <p class="badge-desc">Dokončení 5 cvičení porozumění textu</p>
-                        <div class="badge-date">
-                            <i class="far fa-calendar-check"></i>
-                            <span>5. února 2025</span>
-                        </div>
-                    </div>
-                    
-                    <div class="badge-card">
-                        <div class="badge-icon streak">
-                            <i class="fas fa-fire"></i>
-                        </div>
-                        <h3 class="badge-title">Týdenní série</h3>
-                        <p class="badge-desc">Učení 7 dní v řadě</p>
-                        <div class="badge-date">
-                            <i class="far fa-calendar-check"></i>
-                            <span>Dnes</span>
-                        </div>
-                    </div>
-                    
-                    <div class="badge-card">
-                        <div class="badge-icon math">
-                            <i class="fas fa-percentage"></i>
-                        </div>
-                        <h3 class="badge-title">Procenta v praxi</h3>
-                        <p class="badge-desc">Dokončení modulu Procenta s výsledkem nad 80%</p>
-                        <div class="badge-date">
-                            <i class="far fa-calendar-check"></i>
-                            <span>1. února 2025</span>
-                        </div>
-                    </div>
-                    
-                    <div class="badge-card">
-                        <div class="badge-icon special">
-                            <i class="fas fa-bolt"></i>
-                        </div>
-                        <h3 class="badge-title">Rychlé myšlení</h3>
-                        <p class="badge-desc">Dokončení 3 cvičení v čase pod 10 minut</p>
-                        <div class="badge-date">
-                            <i class="far fa-calendar-check"></i>
-                            <span>25. ledna 2025</span>
-                        </div>
-                    </div>
-                    
-                    <div class="badge-card">
-                        <div class="badge-icon lang">
-                            <i class="fas fa-pen-fancy"></i>
-                        </div>
-                        <h3 class="badge-title">Slovní mistr</h3>
-                        <p class="badge-desc">Dokončení všech cvičení Vyjmenovaná slova</p>
-                        <div class="badge-date">
-                            <i class="far fa-calendar-check"></i>
-                            <span>20. ledna 2025</span>
-                        </div>
-                    </div>
-                </div>
-            </section>
-            
-            <!-- Доступные достижения -->
-            <section class="available-achievements-section animated delay-2">
-                <h2 class="section-title">Další ocenění k získání</h2>
+                </section>
                 
-                <div class="achievement-grid">
-                    <div class="achievement-card">
-                        <div class="achievement-icon math-icon">
-                            <i class="fas fa-calculator"></i>
-                        </div>
-                        <div class="achievement-content">
-                            <h3 class="achievement-title">Mistr matematiky</h3>
-                            <p class="achievement-desc">Dokončete všechny matematické moduly s celkovým skóre nad 85%</p>
-                            <div class="progress-bar">
-                                <div class="progress-fill math" style="width: 65%"></div>
-                            </div>
-                            <div class="progress-stats">
-                                Pokrok: 65% dokončeno
-                            </div>
-                        </div>
-                    </div>
+                <!-- Dostupné odznaky -->
+                <section class="available-achievements animated delay-3">
+                    <h2 class="section-title">Dostupné odznaky</h2>
                     
-                    <div class="achievement-card">
-                        <div class="achievement-icon lang-icon">
-                            <i class="fas fa-language"></i>
-                        </div>
-                        <div class="achievement-content">
-                            <h3 class="achievement-title">Jazykový expert</h3>
-                            <p class="achievement-desc">Dokončete všechny jazykové moduly s celkovým skóre nad 85%</p>
-                            <div class="progress-bar">
-                                <div class="progress-fill lang" style="width: 72%"></div>
-                            </div>
-                            <div class="progress-stats">
-                                Pokrok: 72% dokončeno
-                            </div>
-                        </div>
+                    <div class="achievement-grid" id="available-badges-grid">
+                        <!-- Zde budou dynamicky načtené dostupné odznaky -->
                     </div>
+                </section>
+                
+                <!-- Nedávno získané odznaky -->
+                <section class="recent-achievements animated delay-4" id="recent-achievements-section">
+                    <h2 class="section-title">Nedávno získané odznaky</h2>
                     
-                    <div class="achievement-card">
-                        <div class="achievement-icon streak-icon">
-                            <i class="fas fa-calendar-alt"></i>
-                        </div>
-                        <div class="achievement-content">
-                            <h3 class="achievement-title">Měsíční série</h3>
-                            <p class="achievement-desc">Učte se 30 dní v řadě, ani jeden den nevynechejte</p>
-                            <div class="progress-bar">
-                                <div class="progress-fill streak" style="width: 23%"></div>
-                            </div>
-                            <div class="progress-stats">
-                                Pokrok: 7/30 dní
-                            </div>
-                        </div>
+                    <div class="achievements-list" id="recent-achievements-list">
+                        <!-- Zde budou dynamicky načtené nedávno získané odznaky -->
                     </div>
+                </section>
+                
+                <!-- Tabulka uživatelů -->
+                <section class="leaderboard-section animated delay-4">
+                    <h2 class="section-title">Žebříček uživatelů</h2>
                     
-                    <div class="achievement-card locked">
-                        <div class="achievement-icon">
-                            <i class="fas fa-trophy"></i>
-                        </div>
-                        <div class="achievement-content">
-                            <h3 class="achievement-title">Přijímačkový šampion</h3>
-                            <p class="achievement-desc">Dokončete 5 přijímačkových cvičných testů s výsledkem nad 90%</p>
-                            <div class="progress-bar">
-                                <div class="progress-fill special" style="width: 0%"></div>
-                            </div>
-                            <div class="progress-stats">
-                                Pokrok: 0/5 testů
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="achievement-card locked">
-                        <div class="achievement-icon">
-                            <i class="fas fa-brain"></i>
-                        </div>
-                        <div class="achievement-content">
-                            <h3 class="achievement-title">Rychlé myšlení II</h3>
-                            <p class="achievement-desc">Dokončete 10 cvičení v čase pod 10 minut každé, s přesností nad 90%</p>
-                            <div class="progress-bar">
-                                <div class="progress-fill special" style="width: 30%"></div>
-                            </div>
-                            <div class="progress-stats">
-                                Pokrok: 3/10 cvičení
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-            
-            <!-- Таблица лидеров -->
-            <section class="leaderboard-section animated delay-3">
-                <div class="leaderboard">
-                    <div class="leaderboard-header">
-                        <h2 class="leaderboard-title">Žebříček nejlepších studentů</h2>
-                        <div class="leaderboard-filter">
-                            <button class="filter-btn active" data-period="week">Tento týden</button>
-                            <button class="filter-btn" data-period="month">Tento měsíc</button>
-                            <button class="filter-btn" data-period="all">Celkově</button>
-                        </div>
-                    </div>
-                    
-                    <table class="leaderboard-table">
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>Student</th>
-                                <th>Skóre</th>
-                                <th>Odznaky</th>
-                                <th>Změna</th>
-                            </tr>
-                        </thead>
-                        <tbody id="leaderboard-body">
-                            <tr>
-                                <td class="rank-cell">1</td>
-                                <td class="user-cell">
-                                    <div class="user-avatar-sm">TK</div>
-                                    <div class="user-info-sm">
-                                        <div class="user-name-sm">Tomáš K.</div>
-                                        <div class="user-level">Úroveň 12</div>
-                                    </div>
-                                </td>
-                                <td class="score-cell">1,580</td>
-                                <td class="badge-count-cell">24</td>
-                                <td>
-                                    <div class="rank-indicator rank-same">
-                                        <i class="fas fa-minus"></i>
-                                        <span>Stejný</span>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="rank-cell">2</td>
-                                <td class="user-cell">
-                                    <div class="user-avatar-sm">AP</div>
-                                    <div class="user-info-sm">
-                                        <div class="user-name-sm">Anna P.</div>
-                                        <div class="user-level">Úroveň 11</div>
-                                    </div>
-                                </td>
-                                <td class="score-cell">1,490</td>
-                                <td class="badge-count-cell">21</td>
-                                <td>
-                                    <div class="rank-indicator rank-up">
-                                        <i class="fas fa-arrow-up"></i>
-                                        <span>+1</span>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="rank-cell">3</td>
-                                <td class="user-cell">
-                                    <div class="user-avatar-sm">JP</div>
-                                    <div class="user-info-sm">
-                                        <div class="user-name-sm">Jakub P.</div>
-                                        <div class="user-level">Úroveň 10</div>
-                                    </div>
-                                </td>
-                                <td class="score-cell">1,430</td>
-                                <td class="badge-count-cell">19</td>
-                                <td>
-                                    <div class="rank-indicator rank-down">
-                                        <i class="fas fa-arrow-down"></i>
-                                        <span>-1</span>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="rank-cell">4</td>
-                                <td class="user-cell">
-                                    <div class="user-avatar-sm">KN</div>
-                                    <div class="user-info-sm">
-                                        <div class="user-name-sm">Kateřina N.</div>
-                                        <div class="user-level">Úroveň 9</div>
-                                    </div>
-                                </td>
-                                <td class="score-cell">1,380</td>
-                                <td class="badge-count-cell">18</td>
-                                <td>
-                                    <div class="rank-indicator rank-up">
-                                        <i class="fas fa-arrow-up"></i>
-                                        <span>+2</span>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr class="highlight-row">
-                                <td class="rank-cell">5</td>
-                                <td class="user-cell">
-                                    <div class="user-avatar-sm" id="current-user-avatar">MS</div>
-                                    <div class="user-info-sm">
-                                        <div class="user-name-sm" id="current-user-name">Maksys234</div>
-                                        <div class="user-level">Úroveň 8</div>
-                                    </div>
-                                </td>
-                                <td class="score-cell">1,250</td>
-                                <td class="badge-count-cell">12</td>
-                                <td>
-                                    <div class="rank-indicator rank-up">
-                                        <i class="fas fa-arrow-up"></i>
-                                        <span>+3</span>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="rank-cell">6</td>
-                                <td class="user-cell">
-                                    <div class="user-avatar-sm">MH</div>
-                                    <div class="user-info-sm">
-                                        <div class="user-name-sm">Martin H.</div>
-                                        <div class="user-level">Úroveň 8</div>
-                                    </div>
-                                </td>
-                                <td class="score-cell">1,220</td>
-                                <td class="badge-count-cell">15</td>
-                                <td>
-                                    <div class="rank-indicator rank-down">
-                                        <i class="fas fa-arrow-down"></i>
-                                        <span>-1</span>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="rank-cell">7</td>
-                                <td class="user-cell">
-                                    <div class="user-avatar-sm">LS</div>
-                                    <div class="user-info-sm">
-                                        <div class="user-name-sm">Lucie S.</div>
-                                        <div class="user-level">Úroveň 7</div>
-                                    </div>
-                                </td>
-                                <td class="score-cell">1,180</td>
-                                <td class="badge-count-cell">13</td>
-                                <td>
-                                    <div class="rank-indicator rank-down">
-                                        <i class="fas fa-arrow-down"></i>
-                                        <span>-1</span>
-                                    </div>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </section>
-            
-            <!-- Недавние достижения -->
-            <section class="recent-section animated delay-4">
-                <div class="recent-achievements">
-                    <h2 class="section-title">Nedávno získaná ocenění</h2>
-                    
-                    <div class="achievements-list" id="recent-achievements">
-                        <div class="achievement-item" style="animation-delay: 0.1s;">
-                            <div class="achievement-item-icon streak-icon">
-                                <i class="fas fa-fire"></i>
-                            </div>
-                            <div class="achievement-item-content">
-                                <h3 class="achievement-item-title">Týdenní série</h3>
-                                <p class="achievement-item-desc">Učení 7 dní v řadě bez přerušení</p>
-                                <div class="achievement-item-time">
-                                    <i class="far fa-clock"></i>
-                                    <span>Dnes, 9:45</span>
-                                </div>
+                    <div class="leaderboard">
+                        <div class="leaderboard-header">
+                            <div class="leaderboard-title">Nejlepší uživatelé</div>
+                            <div class="leaderboard-filter">
+                                <button class="filter-btn active" data-filter="points">Body</button>
+                                <button class="filter-btn" data-filter="badges">Odznaky</button>
+                                <button class="filter-btn" data-filter="streak">Série</button>
                             </div>
                         </div>
                         
-                        <div class="achievement-item" style="animation-delay: 0.2s;">
-                            <div class="achievement-item-icon math-icon">
-                                <i class="fas fa-shapes"></i>
-                            </div>
-                            <div class="achievement-item-content">
-                                <h3 class="achievement-item-title">Geometr</h3>
-                                <p class="achievement-item-desc">Dokončení 15 geometrických úloh</p>
-                                <div class="achievement-item-time">
-                                    <i class="far fa-clock"></i>
-                                    <span>15. února 2025, 15:30</span>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="achievement-item" style="animation-delay: 0.3s;">
-                            <div class="achievement-item-icon lang-icon">
-                                <i class="fas fa-spell-check"></i>
-                            </div>
-                            <div class="achievement-item-content">
-                                <h3 class="achievement-item-title">Gramatický expert</h3>
-                                <p class="achievement-item-desc">10 gramatických cvičení bez chyby</p>
-                                <div class="achievement-item-time">
-                                    <i class="far fa-clock"></i>
-                                    <span>10. února 2025, 11:20</span>
-                                </div>
-                            </div>
-                        </div>
+                        <table class="leaderboard-table">
+                            <thead>
+                                <tr>
+                                    <th>Pořadí</th>
+                                    <th>Uživatel</th>
+                                    <th id="score-header">Body</th>
+                                    <th>Odznaky</th>
+                                </tr>
+                            </thead>
+                            <tbody id="leaderboard-body">
+                                <!-- Zde budou dynamicky načtení uživatelé z leaderboardu -->
+                            </tbody>
+                        </table>
                     </div>
-                </div>
+                </section>
             </section>
         </div>
         
         <footer class="dashboard-footer">
-            <p>&copy; 2025 Justax.space | Všechna práva vyhrazena</p>
+            <p>&copy; 2025 Justax. Všechna práva vyhrazena.</p>
         </footer>
     </main>
     
     <script>
-        // Инициализация Supabase клиента
+        // Konfigurace Supabase
         const SUPABASE_URL = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10';
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         
-        document.addEventListener('DOMContentLoaded', async function() {
-            // Проверка авторизации - необходимо добавить в начало каждого скрипта дашборда
-            async function checkAuth() {
-                try {
-                    // Получаем текущую сессию
-                    const { data: { session }, error } = await supabase.auth.getSession();
-                    
-                    // Если ошибка или нет сессии, перенаправляем на страницу входа
-                    if (error || !session) {
-                        console.log("Нет активной сессии, перенаправление на страницу входа");
-                        window.location.href = "/auth/index.html";
-                        return false;
-                    }
-                    
-                    // Дополнительная проверка на истекший токен
-                    if (session.expires_at && (new Date(session.expires_at * 1000) < new Date())) {
-                        console.log("Сессия устарела, попытка обновления");
-                        const { data: { session: refreshedSession }, error: refreshError } = await supabase.auth.refreshSession();
-                        
-                        if (refreshError || !refreshedSession) {
-                            console.log("Не удалось обновить сессию, перенаправление на страницу входа");
-                            window.location.href = "/auth/index.html";
-                            return false;
-                        }
-                    }
-                    
-                    console.log("Пользователь авторизован");
-                    return true;
-                } catch (error) {
-                    console.error("Ошибка при проверке авторизации:", error);
-                    window.location.href = "/auth/index.html";
-                    return false;
-                }
+        // Inicializace Supabase klienta - SPRÁVNĚ!
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        
+        // Globální proměnné
+        let currentUser = null;
+        let userProfile = null;
+        let userBadges = [];
+        let allBadges = [];
+        let leaderboardData = {
+            points: [],
+            badges: [],
+            streak: []
+        };
+        let currentLeaderboardFilter = 'points';
+        
+        // Pomocné funkce
+        function showError(message) {
+            const errorContainer = document.getElementById('global-error');
+            const errorMessage = document.getElementById('global-error-message');
+            errorMessage.textContent = message;
+            errorContainer.style.display = 'block';
+        }
+        
+        function hideError() {
+            const errorContainer = document.getElementById('global-error');
+            errorContainer.style.display = 'none';
+        }
+        
+        function showLoading() {
+            document.getElementById('achievements-loading').style.display = 'flex';
+            document.getElementById('achievements-content').style.display = 'none';
+        }
+        
+        function hideLoading() {
+            document.getElementById('achievements-loading').style.display = 'none';
+            document.getElementById('achievements-content').style.display = 'block';
+        }
+        
+        function getInitials(firstName, lastName) {
+            if (!firstName && !lastName) return '?';
+            
+            let initials = '';
+            if (firstName) initials += firstName.charAt(0).toUpperCase();
+            if (lastName) initials += lastName.charAt(0).toUpperCase();
+            
+            return initials;
+        }
+        
+        function formatDate(dateString) {
+            if (!dateString) return '';
+            
+            const date = new Date(dateString);
+            const day = date.getDate().toString().padStart(2, '0');
+            const month = (date.getMonth() + 1).toString().padStart(2, '0');
+            const year = date.getFullYear();
+            
+            return `${day}.${month}.${year}`;
+        }
+        
+        function getIconClass(type) {
+            switch (type) {
+                case 'math': return 'fas fa-square-root-alt';
+                case 'language': return 'fas fa-language';
+                case 'streak': return 'fas fa-fire';
+                case 'special': return 'fas fa-star';
+                default: return 'fas fa-medal';
             }
-            
-            // Выполняем проверку при загрузке страницы
-            const isAuthenticated = await checkAuth();
-            
-            // Если пользователь не авторизован, скрипт остановится здесь из-за перенаправления
-            if (!isAuthenticated) return;
-            
-            // Остальной код скрипта выполняется только для авторизованных пользователей
-            
-            // Анимация появления элементов достижений
-            const animateElements = () => {
-                const achievementItems = document.querySelectorAll('.achievement-item');
-                achievementItems.forEach((item, index) => {
-                    setTimeout(() => {
-                        item.style.opacity = '1';
-                        item.style.transform = 'translateY(0)';
-                    }, 100 + (index * 100));
-                });
-            };
-            
-            // Запуск анимации
-            setTimeout(animateElements, 300);
-            
-            // Мобильное меню
-            const addMobileMenuToggle = () => {
-                if (window.innerWidth <= 576 && !document.querySelector('.mobile-menu-toggle')) {
-                    const menuToggle = document.createElement('button');
-                    menuToggle.className = 'mobile-menu-toggle';
-                    menuToggle.innerHTML = '<i class="fas fa-bars"></i>';
-                    
-                    menuToggle.addEventListener('click', function() {
-                        const sidebar = document.querySelector('.sidebar');
-                        const main = document.querySelector('main');
-                        
-                        if (sidebar.style.transform === 'translateX(0px)') {
-                            sidebar.style.transform = 'translateX(-100%)';
-                            main.style.marginLeft = '0';
-                            this.innerHTML = '<i class="fas fa-bars"></i>';
-                        } else {
-                            sidebar.style.transform = 'translateX(0)';
-                            main.style.marginLeft = 'var(--sidebar-width)';
-                            this.innerHTML = '<i class="fas fa-times"></i>';
-                        }
-                    });
-                    
-                    const header = document.querySelector('.header-content');
-                    header.insertBefore(menuToggle, header.firstChild);
-                }
-            };
-            
-            // Инициализация мобильного меню
-            addMobileMenuToggle();
-            window.addEventListener('resize', addMobileMenuToggle);
-            
-            // Получение данных пользователя
-            async function fetchUserProfile() {
-                try {
-                    const { data: { user } } = await supabase.auth.getUser();
-                    
-                    if (user) {
-                        // Получение профиля из таблицы profiles
-                        const { data, error } = await supabase
-                            .from('profiles')
-                            .select('username, first_name, last_name, avatar_url, badges_count, level, points, streak_days')
-                            .eq('id', user.id)
-                            .single();
-                        
-                        if (error) {
-                            console.error('Error fetching profile:', error);
-                            return;
-                        }
-                        
-                        // Обновляем интерфейс
-                        document.getElementById('sidebar-username').textContent = data.username;
-                        document.getElementById('current-user-name').textContent = data.username;
-                        
-                        // Обновляем статистику
-                        if (data.badges_count) document.getElementById('badges-count').textContent = data.badges_count;
-                                                if (data.level) document.getElementById('user-level').textContent = data.level;
-                        if (data.points) document.getElementById('earned-points').textContent = data.points.toLocaleString();
-                        if (data.streak_days) document.getElementById('streak-days').textContent = data.streak_days;
-                        
-                        // Обновляем аватар, если есть
-                        if (data.avatar_url) {
-                            const avatarImages = `<img src="${data.avatar_url}" alt="${data.username}" />`;
-                            document.getElementById('sidebar-avatar').innerHTML = avatarImages;
-                            document.getElementById('current-user-avatar').innerHTML = avatarImages;
-                        } else {
-                            // Используем инициалы
-                            const initials = data.first_name && data.last_name 
-                                ? `${data.first_name.charAt(0)}${data.last_name.charAt(0)}` 
-                                : data.username.substring(0, 2).toUpperCase();
-                            document.getElementById('sidebar-avatar').textContent = initials;
-                            document.getElementById('current-user-avatar').textContent = initials;
-                        }
-                        
-                        // Загружаем значки пользователя
-                        fetchUserBadges(user.id);
-                    }
-                } catch (error) {
-                    console.error('Error:', error);
-                }
+        }
+        
+        function getBadgeClass(type) {
+            switch (type) {
+                case 'math': return 'math';
+                case 'language': return 'lang';
+                case 'streak': return 'streak';
+                case 'special': return 'special';
+                default: return 'math';
             }
-            
-            // Загрузка значков пользователя
-            async function fetchUserBadges(userId) {
-                try {
-                    const { data, error } = await supabase
-                        .from('badges')
-                        .select('*')
-                        .eq('user_id', userId)
-                        .order('earned_at', { ascending: false });
-                    
-                    if (error) {
-                        console.error('Error fetching badges:', error);
-                        return;
-                    }
-                    
-                    // Если данные есть, обновляем сетку значков
-                    if (data && data.length > 0) {
-                        updateBadgesGrid(data);
-                    }
-                } catch (error) {
-                    console.error('Error:', error);
-                }
-            }
-            
-            // Обновление сетки значков
-            function updateBadgesGrid(badges) {
-                // Оставляем первые 8 значков, если их больше
-                const displayBadges = badges.slice(0, 8);
+        }
+        
+        // Kontrola přihlášení a načtení dat
+        async function checkAuth() {
+            try {
+                const { data: { user }, error } = await supabaseClient.auth.getUser();
                 
-                // Обновляем последние полученные достижения
-                updateRecentAchievements(badges.slice(0, 3));
-            }
-            
-            // Обновление недавно полученных достижений
-            function updateRecentAchievements(recentBadges) {
-                if (!recentBadges || recentBadges.length === 0) return;
+                if (error) throw error;
                 
-                const recentContainer = document.getElementById('recent-achievements');
-                
-                // Очищаем контейнер
-                // recentContainer.innerHTML = '';
-                
-                // В данном случае не будем очищать, так как у нас есть демо-данные
-                // Код для добавления новых данных из базы:
-                /*
-                recentBadges.forEach((badge, index) => {
-                    const badgeType = getBadgeType(badge.type);
-                    const formattedDate = formatDate(badge.earned_at);
-                    
-                    const badgeHtml = `
-                        <div class="achievement-item" style="animation-delay: ${0.1 * index}s;">
-                            <div class="achievement-item-icon ${badgeType}-icon">
-                                <i class="fas ${getBadgeIcon(badge.type)}"></i>
-                            </div>
-                            <div class="achievement-item-content">
-                                <h3 class="achievement-item-title">${badge.title}</h3>
-                                <p class="achievement-item-desc">${badge.description}</p>
-                                <div class="achievement-item-time">
-                                    <i class="far fa-clock"></i>
-                                    <span>${formattedDate}</span>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                    
-                    recentContainer.innerHTML += badgeHtml;
-                });
-                */
-            }
-            
-            // Получение типа значка по типу достижения
-            function getBadgeType(type) {
-                switch (type) {
-                    case 'math': return 'math';
-                    case 'language': return 'lang';
-                    case 'streak': return 'streak';
-                    default: return 'special';
-                }
-            }
-            
-            // Получение иконки для типа достижения
-            function getBadgeIcon(type) {
-                switch (type) {
-                    case 'math': return 'fa-square-root-alt';
-                    case 'language': return 'fa-spell-check';
-                    case 'streak': return 'fa-fire';
-                    default: return 'fa-award';
-                }
-            }
-            
-            // Форматирование даты
-            function formatDate(dateString) {
-                const date = new Date(dateString);
-                const today = new Date();
-                today.setHours(0, 0, 0, 0);
-                
-                const yesterday = new Date(today);
-                yesterday.setDate(yesterday.getDate() - 1);
-                
-                if (date.setHours(0, 0, 0, 0) === today.getTime()) {
-                    return `Dnes, ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
-                } else if (date.setHours(0, 0, 0, 0) === yesterday.getTime()) {
-                    return `Včera, ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+                if (user) {
+                    currentUser = user;
+                    await loadUserProfile();
+                    await loadBadges();
+                    await loadUserBadges();
+                    await loadLeaderboard();
+                    updateUI();
                 } else {
-                    return `${date.getDate()}. ${date.getMonth() + 1}. ${date.getFullYear()}, ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+                    // Uživatel není přihlášen, přesměrovat na přihlášení
+                    window.location.href = '/login.html';
                 }
+            } catch (error) {
+                console.error('Chyba při kontrole přihlášení:', error);
+                showError('Nepodařilo se ověřit přihlášení. Prosím, zkuste to znovu.');
+                hideLoading();
+            }
+        }
+        
+        // Načtení profilu uživatele
+        async function loadUserProfile() {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', currentUser.id)
+                    .single();
+                
+                if (error) throw error;
+                
+                if (data) {
+                    userProfile = data;
+                    updateProfileData();
+                } else {
+                    throw new Error('Profil nenalezen');
+                }
+            } catch (error) {
+                console.error('Chyba při načítání profilu:', error);
+                showError('Nepodařilo se načíst uživatelský profil. Prosím, zkuste to znovu.');
+            }
+        }
+        
+        // Načtení všech odznaků
+        async function loadBadges() {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('badges')
+                    .select('*')
+                    .order('id', { ascending: true });
+                
+                if (error) throw error;
+                
+                if (data) {
+                    allBadges = data;
+                } else {
+                    allBadges = [];
+                }
+            } catch (error) {
+                console.error('Chyba při načítání odznaků:', error);
+                showError('Nepodařilo se načíst seznam odznaků. Prosím, zkuste to znovu.');
+            }
+        }
+        
+        // Načtení odznaků uživatele
+        async function loadUserBadges() {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('user_badges')
+                    .select('*, badge:badge_id(*)')
+                    .eq('user_id', currentUser.id)
+                    .order('earned_at', { ascending: false });
+                
+                if (error) throw error;
+                
+                if (data) {
+                    userBadges = data;
+                } else {
+                    userBadges = [];
+                }
+            } catch (error) {
+                console.error('Chyba při načítání odznaků uživatele:', error);
+                showError('Nepodařilo se načíst vaše odznaky. Prosím, zkuste to znovu.');
+            }
+        }
+        
+        // Načtení žebříčku uživatelů
+        async function loadLeaderboard() {
+            try {
+                // Načtení uživatelů seřazených podle bodů
+                const { data: pointsData, error: pointsError } = await supabaseClient
+                    .from('profiles')
+                    .select('id, first_name, last_name, username, avatar_url, level, points, badges_count')
+                    .order('points', { ascending: false })
+                    .limit(10);
+                
+                if (pointsError) throw pointsError;
+                
+                // Načtení uživatelů seřazených podle odznaků
+                const { data: badgesData, error: badgesError } = await supabaseClient
+                    .from('profiles')
+                    .select('id, first_name, last_name, username, avatar_url, level, points, badges_count')
+                    .order('badges_count', { ascending: false })
+                    .limit(10);
+                
+                if (badgesError) throw badgesError;
+                
+                // Načtení uživatelů seřazených podle série dnů
+                const { data: streakData, error: streakError } = await supabaseClient
+                    .from('profiles')
+                    .select('id, first_name, last_name, username, avatar_url, level, points, badges_count, streak_days')
+                    .order('streak_days', { ascending: false })
+                    .limit(10);
+                
+                if (streakError) throw streakError;
+                
+                leaderboardData = {
+                    points: pointsData || [],
+                    badges: badgesData || [],
+                    streak: streakData || []
+                };
+                
+            } catch (error) {
+                console.error('Chyba při načítání žebříčku:', error);
+                showError('Nepodařilo se načíst žebříček uživatelů. Prosím, zkuste to znovu.');
+            }
+        }
+        
+        // Aktualizace dat profilu v UI
+        function updateProfileData() {
+            // Sidebar
+            const initials = getInitials(userProfile.first_name, userProfile.last_name);
+            document.getElementById('sidebar-user-avatar').textContent = initials;
+            document.getElementById('sidebar-user-name').textContent = `${userProfile.first_name || ''} ${userProfile.last_name || ''}`.trim() || 'Uživatel';
+            document.getElementById('sidebar-user-role').textContent = 'Student';
+            
+            // Statistiky
+            document.getElementById('badges-count').textContent = userProfile.badges_count || 0;
+            document.getElementById('points-count').textContent = userProfile.points || 0;
+            document.getElementById('streak-days').textContent = userProfile.streak_days || 0;
+            
+            // Počet oznámení
+            document.getElementById('notification-count').textContent = '0';
+            
+            // Najít pořadí uživatele v žebříčku
+            const userRank = leaderboardData.points.findIndex(user => user.id === currentUser.id) + 1;
+            document.getElementById('rank-value').textContent = userRank > 0 ? userRank : '-';
+            document.getElementById('total-users').textContent = leaderboardData.points.length;
+        }
+        
+        // Zobrazení odznaků uživatele
+        function renderUserBadges() {
+            const badgeGrid = document.getElementById('badge-grid');
+            const emptyBadges = document.getElementById('empty-badges');
+            
+            // Vymazání obsahu
+            badgeGrid.innerHTML = '';
+            
+            if (userBadges.length === 0) {
+                // Zobrazení prázdného stavu
+                emptyBadges.style.display = 'block';
+                badgeGrid.style.display = 'none';
+                return;
             }
             
-            // Фильтр для таблицы лидеров
+            // Skrýt prázdný stav a zobrazit grid
+            emptyBadges.style.display = 'none';
+            badgeGrid.style.display = 'grid';
+            
+            // Vykreslení odznaků
+            userBadges.forEach(userBadge => {
+                const badge = userBadge.badge;
+                const badgeClass = getBadgeClass(badge.type);
+                const iconClass = getIconClass(badge.type);
+                
+                const badgeElement = document.createElement('div');
+                badgeElement.className = 'badge-card';
+                badgeElement.innerHTML = `
+                    <div class="badge-icon ${badgeClass}">
+                        <i class="${iconClass}"></i>
+                    </div>
+                    <h3 class="badge-title">${badge.title}</h3>
+                    <p class="badge-desc">${badge.description}</p>
+                    <div class="badge-date">
+                        <i class="far fa-calendar"></i>
+                        Získáno: ${formatDate(userBadge.earned_at)}
+                    </div>
+                `;
+                
+                badgeGrid.appendChild(badgeElement);
+            });
+        }
+        
+        // Zobrazení dostupných odznaků
+        function renderAvailableBadges() {
+            const availableBadgesGrid = document.getElementById('available-badges-grid');
+            
+            // Vymazání obsahu
+            availableBadgesGrid.innerHTML = '';
+            
+            // Filtrování získaných odznaků
+            const earnedBadgeIds = userBadges.map(userBadge => userBadge.badge_id);
+            
+            // Výběr pouze odznaků, které uživatel ještě nemá
+            const availableBadges = allBadges.filter(badge => !earnedBadgeIds.includes(badge.id));
+            
+            if (availableBadges.length === 0) {
+                const noAvailableBadges = document.createElement('div');
+                noAvailableBadges.className = 'empty-state';
+                noAvailableBadges.innerHTML = `
+                    <div class="empty-state-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <h3 class="empty-state-title">Získali jste všechny dostupné odznaky!</h3>
+                    <p class="empty-state-desc">
+                        Gratulujeme! Získali jste všechny dostupné odznaky v systému.
+                        Pravidelně přidáváme nové odznaky, takže se nezapomeňte vracet.
+                    </p>
+                `;
+                availableBadgesGrid.appendChild(noAvailableBadges);
+                return;
+            }
+            
+            // Vykreslení dostupných odznaků
+            availableBadges.forEach(badge => {
+                const badgeClass = getBadgeClass(badge.type);
+                const iconClass = getIconClass(badge.type);
+                
+                // Vytvoření náhodného progresu pro demonstraci
+                const progress = Math.floor(Math.random() * 80); // 0-80%
+                
+                const badgeElement = document.createElement('div');
+                badgeElement.className = 'achievement-card locked';
+                badgeElement.innerHTML = `
+                    <div class="achievement-icon ${badgeClass}">
+                        <i class="${iconClass}"></i>
+                    </div>
+                    <div class="achievement-content">
+                        <h3 class="achievement-title">${badge.title}</h3>
+                        <p class="achievement-desc">${badge.description}</p>
+                        <div class="progress-bar">
+                            <div class="progress-fill ${badgeClass}" style="width: ${progress}%"></div>
+                        </div>
+                        <div class="progress-stats">${progress}% splněno</div>
+                    </div>
+                `;
+                
+                availableBadgesGrid.appendChild(badgeElement);
+            });
+        }
+        
+        // Zobrazení nedávno získaných odznaků
+        function renderRecentBadges() {
+            const recentBadgesList = document.getElementById('recent-achievements-list');
+            const recentBadgesSection = document.getElementById('recent-achievements-section');
+            
+            // Vymazání obsahu
+            recentBadgesList.innerHTML = '';
+            
+            // Výběr posledních 5 odznaků
+            const recentBadges = userBadges.slice(0, 5);
+            
+            if (recentBadges.length === 0) {
+                // Skrýt sekci, pokud nejsou žádné nedávné odznaky
+                recentBadgesSection.style.display = 'none';
+                return;
+            }
+            
+            // Zobrazit sekci
+            recentBadgesSection.style.display = 'block';
+            
+            // Vykreslení nedávných odznaků
+            recentBadges.forEach((userBadge, index) => {
+                const badge = userBadge.badge;
+                const badgeClass = getBadgeClass(badge.type);
+                const iconClass = getIconClass(badge.type);
+                
+                const badgeElement = document.createElement('div');
+                badgeElement.className = `achievement-item delay-${index + 1}`;
+                badgeElement.innerHTML = `
+                    <div class="achievement-item-icon ${badgeClass}">
+                        <i class="${iconClass}"></i>
+                    </div>
+                    <div class="achievement-item-content">
+                        <h3 class="achievement-item-title">${badge.title}</h3>
+                        <p class="achievement-item-desc">${badge.description}</p>
+                        <div class="achievement-item-time">
+                            <i class="far fa-calendar"></i>
+                            Získáno: ${formatDate(userBadge.earned_at)}
+                        </div>
+                    </div>
+                `;
+                
+                recentBadgesList.appendChild(badgeElement);
+            });
+        }
+        
+        // Zobrazení žebříčku uživatelů
+        function renderLeaderboard() {
+            const leaderboardBody = document.getElementById('leaderboard-body');
+            const scoreHeader = document.getElementById('score-header');
+            
+            // Vymazání obsahu
+            leaderboardBody.innerHTML = '';
+            
+            // Nastavení záhlaví podle filtru
+            switch (currentLeaderboardFilter) {
+                case 'points':
+                    scoreHeader.textContent = 'Body';
+                    break;
+                case 'badges':
+                    scoreHeader.textContent = 'Odznaky';
+                    break;
+                case 'streak':
+                    scoreHeader.textContent = 'Série';
+                    break;
+            }
+            
+            // Získání dat podle filtru
+            const data = leaderboardData[currentLeaderboardFilter];
+            
+            // Vykreslení řádků tabulky
+            data.forEach((user, index) => {
+                                const rank = index + 1;
+                const isCurrentUser = user.id === currentUser.id;
+                const displayName = user.username ? 
+                    `@${user.username}` : 
+                    `${user.first_name || ''} ${user.last_name || ''}`.trim() || 'Uživatel';
+                const initials = getInitials(user.first_name, user.last_name);
+                
+                // Hodnota podle aktuálního filtru
+                let scoreValue;
+                switch (currentLeaderboardFilter) {
+                    case 'points':
+                        scoreValue = user.points || 0;
+                        break;
+                    case 'badges':
+                        scoreValue = user.badges_count || 0;
+                        break;
+                    case 'streak':
+                        scoreValue = user.streak_days || 0;
+                        break;
+                }
+                
+                // Vytvoření řádku tabulky
+                const rowElement = document.createElement('tr');
+                if (isCurrentUser) {
+                    rowElement.className = 'highlight-row';
+                }
+                
+                rowElement.innerHTML = `
+                    <td class="rank-cell">${rank}</td>
+                    <td class="user-cell">
+                        <div class="user-avatar-sm">
+                            ${user.avatar_url ? `<img src="${user.avatar_url}" alt="${displayName}">` : initials}
+                        </div>
+                        <div class="user-info-sm">
+                            <div class="user-name-sm">${displayName}</div>
+                            <div class="user-level">Úroveň ${user.level || 1}</div>
+                        </div>
+                    </td>
+                    <td class="score-cell">${scoreValue}</td>
+                    <td class="badge-count-cell">${user.badges_count || 0}</td>
+                `;
+                
+                leaderboardBody.appendChild(rowElement);
+            });
+        }
+        
+        // Aktualizace kompletního UI
+        function updateUI() {
+            updateProfileData();
+            renderUserBadges();
+            renderAvailableBadges();
+            renderRecentBadges();
+            renderLeaderboard();
+            hideLoading();
+        }
+        
+        // Přepínání filtrů žebříčku
+        function setupLeaderboardFilters() {
             const filterButtons = document.querySelectorAll('.filter-btn');
+            
             filterButtons.forEach(button => {
                 button.addEventListener('click', function() {
+                    // Odstranění aktivní třídy ze všech tlačítek
                     filterButtons.forEach(btn => btn.classList.remove('active'));
+                    
+                    // Přidání aktivní třídy kliknutému tlačítku
                     this.classList.add('active');
                     
-                    const period = this.getAttribute('data-period');
-                    fetchLeaderboard(period);
+                    // Nastavení filtru a překreslení žebříčku
+                    currentLeaderboardFilter = this.getAttribute('data-filter');
+                    renderLeaderboard();
                 });
             });
-            
-            // Загрузка таблицы лидеров
-            async function fetchLeaderboard(period = 'week') {
-                try {
-                    // В реальном приложении здесь был бы запрос к API или базе данных
-                    // Но для демонстрации используем существующие данные из HTML
-                    
-                    /*
-                    const { data, error } = await supabase
-                        .from('leaderboard')
-                        .select('*')
-                        .eq('period', period)
-                        .order('score', { ascending: false })
-                        .limit(10);
-                    
-                    if (error) {
-                        console.error('Error fetching leaderboard:', error);
-                        return;
-                    }
-                    
-                    // Обновить таблицу с полученными данными
-                    updateLeaderboardTable(data);
-                    */
-                    
-                    // В данном случае просто показываем сообщение о выбранном периоде
-                    console.log(`Zobrazuji žebříček za období: ${period === 'week' ? 'tento týden' : period === 'month' ? 'tento měsíc' : 'celkově'}`);
-                } catch (error) {
-                    console.error('Error:', error);
-                }
-            }
-            
-            // Обработка нажатий на уведомления
-            const notifications = document.querySelector('.notifications');
-            if (notifications) {
-                notifications.addEventListener('click', function() {
-                    alert('Máte 2 nová oznámení:\n\n1. Získali jste nový odznak "Týdenní série"!\n2. Postoupili jste v žebříčku o 3 pozice nahoru.');
-                });
-            }
-            
-            // Активные ссылки в сайдбаре
-            const setActiveLink = () => {
-                const currentPage = window.location.pathname;
-                const navLinks = document.querySelectorAll('.sidebar-link');
-                
-                navLinks.forEach(link => {
-                    link.classList.remove('active');
-                    const linkPath = link.getAttribute('href');
-                    if (currentPage.endsWith(linkPath)) {
-                        link.classList.add('active');
-                    }
-                });
-            };
-            
-            // Установка активной ссылки
-            setActiveLink();
-            
-            // Поиск по достижениям
+        }
+        
+        // Globální hledání pomocí search boxu
+        function setupSearch() {
             const searchInput = document.querySelector('.search-box input');
-            if (searchInput) {
-                searchInput.addEventListener('keyup', function(e) {
-                    if (e.key === 'Enter') {
-                        alert('Vyhledávání odznaků bude implementováno v příští aktualizaci!');
-                    }
-                });
-            }
             
-            // Hover-эффекты на карточках достижений
-            const badgeCards = document.querySelectorAll('.badge-card');
-            badgeCards.forEach(card => {
-                card.addEventListener('mouseover', function() {
-                    this.style.transform = 'translateY(-10px)';
+            searchInput.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase().trim();
+                
+                // Pokud je vyhledávací pole prázdné, obnovit původní seznam
+                if (!searchTerm) {
+                    renderUserBadges();
+                    renderAvailableBadges();
+                    return;
+                }
+                
+                // Filtrování odznaků uživatele
+                const filteredUserBadges = userBadges.filter(userBadge => {
+                    const badge = userBadge.badge;
+                    return badge.title.toLowerCase().includes(searchTerm) || 
+                           badge.description.toLowerCase().includes(searchTerm) ||
+                           badge.type.toLowerCase().includes(searchTerm);
                 });
                 
-                card.addEventListener('mouseout', function() {
-                    this.style.transform = 'translateY(-5px)';
+                // Filtrování dostupných odznaků
+                const earnedBadgeIds = userBadges.map(userBadge => userBadge.badge_id);
+                const filteredAvailableBadges = allBadges.filter(badge => {
+                    const isAvailable = !earnedBadgeIds.includes(badge.id);
+                    const matchesSearch = badge.title.toLowerCase().includes(searchTerm) || 
+                                         badge.description.toLowerCase().includes(searchTerm) ||
+                                         badge.type.toLowerCase().includes(searchTerm);
+                    return isAvailable && matchesSearch;
                 });
+                
+                // Dočasná úprava globálních proměnných pro vykreslení
+                const originalUserBadges = [...userBadges];
+                const originalAllBadges = [...allBadges];
+                
+                userBadges = filteredUserBadges;
+                allBadges = filteredAvailableBadges.concat(originalAllBadges.filter(badge => earnedBadgeIds.includes(badge.id)));
+                
+                // Překreslení odznaků
+                renderUserBadges();
+                renderAvailableBadges();
+                
+                // Obnovení původních dat
+                userBadges = originalUserBadges;
+                allBadges = originalAllBadges;
             });
+        }
+        
+        // Handler pro opakovaný pokus při chybě
+        function setupRetryButton() {
+            document.getElementById('global-retry-btn').addEventListener('click', async function() {
+                hideError();
+                showLoading();
+                try {
+                    await loadUserProfile();
+                    await loadBadges();
+                    await loadUserBadges();
+                    await loadLeaderboard();
+                    updateUI();
+                } catch (error) {
+                    console.error('Chyba při opakovaném pokusu:', error);
+                    showError('Nepodařilo se načíst data. Prosím, zkuste to znovu později.');
+                    hideLoading();
+                }
+            });
+        }
+        
+        // Inicializace stránky
+        async function initPage() {
+            showLoading();
+            hideError();
             
-            // Анимация заполнения прогресс-баров
-            const progressBars = document.querySelectorAll('.progress-fill');
-            setTimeout(() => {
-                progressBars.forEach(bar => {
-                    const width = bar.style.width;
-                    bar.style.width = '0';
-                    setTimeout(() => {
-                        bar.style.width = width;
-                    }, 100);
-                });
-            }, 500);
-
-            // Текущая дата для персонализации
-            const currentDate = new Date("2025-03-21");
-            const userName = "Maksys234";
-            
-            // Вызываем функцию для получения данных пользователя
-            fetchUserProfile();
-            
-            // Показать текущее время в недавних достижениях
-            const todaysAchievement = document.querySelector('.achievement-item:first-child .achievement-item-time span');
-            if (todaysAchievement && todaysAchievement.textContent.includes('Dnes')) {
-                const formattedDate = `${currentDate.getDate()}. ${currentDate.getMonth() + 1}. ${currentDate.getFullYear()}, 9:45`;
-                todaysAchievement.textContent = `Dnes, 9:45 (${formattedDate})`;
+            try {
+                await checkAuth();
+                setupLeaderboardFilters();
+                setupSearch();
+                setupRetryButton();
+            } catch (error) {
+                console.error('Chyba při inicializaci stránky:', error);
+                showError('Došlo k neočekávané chybě. Prosím, obnovte stránku.');
+                hideLoading();
             }
-        });
+        }
+        
+        // Spuštění inicializace po načtení stránky
+        document.addEventListener('DOMContentLoaded', initPage);
     </script>
 </body>
 </html>
