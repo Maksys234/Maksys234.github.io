@@ -1037,7 +1037,7 @@
         
         <ul class="sidebar-menu">
             <li class="sidebar-item">
-                <a href="/dashboard/dashboard.html" class="sidebar-link" id="dashboard-link">
+                <a href="/dashboard.html" class="sidebar-link" id="dashboard-link">
                     <i class="fas fa-th-large"></i>
                     <span>Dashboard</span>
                 </a>
@@ -1446,11 +1446,11 @@
     
     <script>
         // Konfigurace Supabase
-        const SUPABASE_URL = 'https://qcimhjjwvsbgjsitmvuh.supabase.co'; // Nahraďte skutečnou URL
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10'; // Nahraďte skutečným veřejným klíčem
+        const SUPABASE_URL = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10';
         
-        // Inicializace Supabase klienta
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        // Inicializace Supabase klienta - SPRÁVNĚ!
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         
         // Globální proměnné
         let currentUser = null;
@@ -1521,7 +1521,7 @@
         // Kontrola přihlášení a načtení profilu
         async function checkAuth() {
             try {
-                const { data: { user }, error } = await supabase.auth.getUser();
+                const { data: { user }, error } = await supabaseClient.auth.getUser();
                 
                 if (error) throw error;
                 
@@ -1544,7 +1544,7 @@
             hideError();
             
             try {
-                const { data, error } = await supabase
+                const { data, error } = await supabaseClient
                     .from('profiles')
                     .select('*')
                     .eq('id', currentUser.id)
@@ -1673,7 +1673,7 @@
                     updated_at: new Date()
                 };
                 
-                const { error } = await supabase
+                const { error } = await supabaseClient
                     .from('profiles')
                     .update(updatedProfile)
                     .eq('id', currentUser.id);
