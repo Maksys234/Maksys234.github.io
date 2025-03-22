@@ -1002,1103 +1002,970 @@
                 </a>
             </li>
             <li class="sidebar-item">
-                <a href="pokrok.html" class="sidebar-link">
+                <a href="testy.html" class="sidebar-link">
+                    <i class="fas fa-tasks"></i>
+                    <span>Testy</span>
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a href="prijimacky.html" class="sidebar-link">
+                    <i class="fas fa-graduation-cap"></i>
+                    <span>Přijímačky</span>
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a href="progress.html" class="sidebar-link">
                     <i class="fas fa-chart-line"></i>
-                    <span>Pokrok</span>
-                </a>
-            </li>
-            <li class="sidebar-item">
-                <a href="oceneni.html" class="sidebar-link">
-                    <i class="fas fa-medal"></i>
-                    <span>Ocenění</span>
-                </a>
-            </li>
-            <li class="sidebar-item">
-                <a href="materialy.html" class="sidebar-link">
-                    <i class="fas fa-file-alt"></i>
-                    <span>Materiály</span>
+                    <span>Můj pokrok</span>
                 </a>
             </li>
             <li class="sidebar-item">
                 <a href="profile.html" class="sidebar-link active">
-                    <i class="fas fa-user-cog"></i>
+                    <i class="fas fa-user"></i>
                     <span>Profil</span>
                 </a>
             </li>
         </ul>
         
-        <div class="user-profile">
-            <div class="user-avatar" id="sidebar-avatar">MS</div>
-            <div class="user-info">
-                <div class="user-name" id="sidebar-username">Maksys234</div>
-                <div class="user-role">Student</div>
-            </div>
+        <div class="user-profile" id="sidebar-user-profile">
+            <!-- This will be populated by JavaScript -->
         </div>
         
         <div class="sidebar-footer">
-            &copy; 2025 Justax
+            <span>© 2025 Justax</span>
         </div>
     </aside>
-    
+
     <main>
-        <header class="dashboard-header">
+        <div class="dashboard-header">
             <div class="header-content">
-                <h1>Váš profil</h1>
+                <h1>Nastavení profilu</h1>
                 <div class="header-actions">
                     <div class="notifications">
                         <i class="fas fa-bell"></i>
-                        <span class="notification-badge">1</span>
+                        <div class="notification-badge" id="notification-count">0</div>
                     </div>
                 </div>
             </div>
-        </header>
-        
-        <div class="profile-section">
+        </div>
+
+        <section class="profile-section">
             <div class="profile-card">
                 <div class="profile-avatar" id="profile-avatar">
-                    <i class="fas fa-user"></i>
-                    <div class="change-avatar" id="change-avatar">Změnit avatar</div>
+                    <!-- Avatar will be populated by JavaScript -->
+                    <div class="change-avatar" id="change-avatar-btn">Změnit avatara</div>
                 </div>
-                
-                <h2 class="profile-name" id="profile-full-name">Maksys Beľénikin</h2>
-                <p class="profile-username" id="profile-username">@Maksys234</p>
-                
+                <h2 class="profile-name" id="profile-name">Načítání...</h2>
+                <p class="profile-username" id="profile-username">@načítání...</p>
                 <div class="profile-stats">
                     <div class="stat-card">
-                        <p class="stat-value" id="completed-exercises">42</p>
-                        <p class="stat-label">Dokončená cvičení</p>
+                        <h3 class="stat-value" id="exercises-count">0</h3>
+                        <p class="stat-label">Vyřešeno cvičení</p>
                     </div>
                     <div class="stat-card">
-                        <p class="stat-value" id="user-level">8</p>
+                        <h3 class="stat-value" id="streak-days">0</h3>
+                        <p class="stat-label">Dní v řadě</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3 class="stat-value" id="level">1</h3>
                         <p class="stat-label">Úroveň</p>
                     </div>
+                    <div class="stat-card">
+                        <h3 class="stat-value" id="badges-count">0</h3>
+                        <p class="stat-label">Získáno odznaků</p>
+                    </div>
                 </div>
-                
-                <p class="profile-bio" id="profile-bio">Student připravující se na přijímací zkoušky. Zajímám se o matematiku a programování.</p>
-                
+                <p class="profile-bio" id="profile-bio">Načítání bio...</p>
                 <div class="profile-action">
-                    <button class="btn btn-outline" id="edit-profile-btn">
-                        <i class="fas fa-edit"></i>
-                        Upravit profil
+                    <button class="btn btn-outline" id="logout-btn">
+                        <i class="fas fa-sign-out-alt"></i>
+                        Odhlásit se
                     </button>
                 </div>
             </div>
-            
+
             <div class="settings-section">
                 <div class="settings-tabs">
-                    <div class="settings-tab active" data-tab="personal">Osobní údaje</div>
-                    <div class="settings-tab" data-tab="password">Heslo</div>
-                    <div class="settings-tab" data-tab="preferences">Preference</div>
+                    <div class="settings-tab active" data-tab="general">Obecné informace</div>
+                    <div class="settings-tab" data-tab="security">Zabezpečení</div>
+                    <div class="settings-tab" data-tab="preferences">Předvolby</div>
                     <div class="settings-tab" data-tab="notifications">Oznámení</div>
-                    <div class="settings-tab" data-tab="account">Účet</div>
                 </div>
-                
-                <div class="settings-content active" id="personal-tab">
-                    <h3 class="settings-title">Osobní údaje</h3>
-                    
-                    <form id="profile-form" class="form-section">
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="first_name" class="form-label">Jméno</label>
-                                <input type="text" id="first_name" class="form-control" placeholder="Vaše jméno">
+
+                <div class="settings-content active" data-content="general">
+                    <h3 class="settings-title">Obecné informace</h3>
+                    <form id="profile-form">
+                        <div class="form-section">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="first-name" class="form-label">Jméno</label>
+                                    <input type="text" id="first-name" class="form-control" placeholder="Vaše jméno">
+                                </div>
+                                <div class="form-group">
+                                    <label for="last-name" class="form-label">Příjmení</label>
+                                    <input type="text" id="last-name" class="form-control" placeholder="Vaše příjmení">
+                                </div>
                             </div>
-                            
-                            <div class="form-group">
-                                <label for="last_name" class="form-label">Příjmení</label>
-                                <input type="text" id="last_name" class="form-control" placeholder="Vaše příjmení">
-                            </div>
-                        </div>
-                        
-                        <div class="form-row">
                             <div class="form-group">
                                 <label for="username" class="form-label">Uživatelské jméno</label>
-                                <input type="text" id="username" class="form-control" placeholder="Uživatelské jméno">
-                                <small class="form-text">Vaše jedinečné uživatelské jméno, viditelné pro ostatní studenty.</small>
+                                <input type="text" id="username" class="form-control" placeholder="@uživatelské_jméno">
+                                <p class="form-text">Toto jméno bude viditelné pro ostatní uživatele.</p>
                             </div>
-                            
                             <div class="form-group">
                                 <label for="email" class="form-label">Email</label>
-                                <input type="email" id="email" class="form-control" placeholder="Váš email" disabled>
-                                <small class="form-text">Váš email nemůže být změněn.</small>
+                                <input type="email" id="email" class="form-control" placeholder="vas@email.cz" readonly>
+                                <p class="form-text">Email nelze změnit. Pro změnu kontaktujte podporu.</p>
                             </div>
-                        </div>
-                        
-                        <div class="form-row">
                             <div class="form-group">
-                                <label for="school" class="form-label">Škola</label>
-                                <input type="text" id="school" class="form-control" placeholder="Název vaší školy">
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="grade" class="form-label">Ročník</label>
-                                <select id="grade" class="form-control">
-                                    <option value="">Vyberte ročník</option>
-                                    <option value="6">6. třída ZŠ</option>
-                                    <option value="7">7. třída ZŠ</option>
-                                    <option value="8">8. třída ZŠ</option>
-                                    <option value="9">9. třída ZŠ</option>
-                                    <option value="1g">1. ročník gymnázia</option>
-                                    <option value="2g">2. ročník gymnázia</option>
-                                    <option value="3g">3. ročník gymnázia</option>
-                                    <option value="4g">4. ročník gymnázia</option>
-                                    <option value="other">Jiné</option>
-                                </select>
+                                <label for="bio" class="form-label">Bio</label>
+                                <textarea id="bio" class="form-control" rows="4" placeholder="Napište něco o sobě..."></textarea>
                             </div>
                         </div>
-                        
-                        <div class="form-group">
-                            <label for="bio" class="form-label">O mně</label>
-                            <textarea id="bio" class="form-control" rows="4" placeholder="Krátký popis o vás"></textarea>
-                            <small class="form-text">Maximálně 200 znaků</small>
+
+                        <div class="form-section">
+                            <h3 class="settings-title">Dodatečné informace</h3>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="school" class="form-label">Škola</label>
+                                    <input type="text" id="school" class="form-control" placeholder="Název vaší školy">
+                                </div>
+                                <div class="form-group">
+                                    <label for="grade" class="form-label">Třída</label>
+                                    <input type="text" id="grade" class="form-control" placeholder="Např. '9. ročník'">
+                                </div>
+                            </div>
                         </div>
-                        
+
                         <div class="form-actions">
-                            <button type="button" class="btn btn-outline" id="cancel-profile">Zrušit</button>
-                            <button type="submit" class="btn btn-primary" id="save-profile">
-                                <span id="save-profile-text">Uložit změny</span>
-                                <span id="save-profile-loading" style="display: none;">
-                                    <span class="loading-spinner"></span>
-                                    Ukládání...
-                                </span>
+                            <button type="button" class="btn btn-primary" id="save-profile-btn">
+                                <i class="fas fa-save"></i>
+                                Uložit změny
                             </button>
                         </div>
                     </form>
                 </div>
-                
-                <div class="settings-content" id="password-tab">
-                    <h3 class="settings-title">Změna hesla</h3>
-                    
-                    <form id="password-form" class="form-section">
-                        <div class="form-group">
-                            <label for="current_password" class="form-label">Současné heslo</label>
-                            <input type="password" id="current_password" class="form-control" placeholder="Zadejte současné heslo">
+
+                <div class="settings-content" data-content="security">
+                    <h3 class="settings-title">Zabezpečení účtu</h3>
+                    <form id="security-form">
+                        <div class="form-section">
+                            <div class="form-group">
+                                <label for="current-password" class="form-label">Současné heslo</label>
+                                <input type="password" id="current-password" class="form-control" placeholder="Vaše současné heslo">
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="new-password" class="form-label">Nové heslo</label>
+                                    <input type="password" id="new-password" class="form-control" placeholder="Zadejte nové heslo">
+                                </div>
+                                <div class="form-group">
+                                    <label for="confirm-password" class="form-label">Potvrzení hesla</label>
+                                    <input type="password" id="confirm-password" class="form-control" placeholder="Potvrďte nové heslo">
+                                </div>
+                            </div>
+                            <p class="form-text">Heslo musí obsahovat alespoň 8 znaků, včetně čísla a speciálního znaku.</p>
                         </div>
                         
-                        <div class="form-group">
-                            <label for="new_password" class="form-label">Nové heslo</label>
-                            <input type="password" id="new_password" class="form-control" placeholder="Zadejte nové heslo">
-                            <small class="form-text">Heslo musí obsahovat alespoň 6 znaků.</small>
-                        </div>
+                        <div class="divider"></div>
                         
-                        <div class="form-group">
-                            <label for="confirm_password" class="form-label">Potvrzení hesla</label>
-                            <input type="password" id="confirm_password" class="form-control" placeholder="Potvrďte nové heslo">
+                        <div class="form-section">
+                            <h3 class="settings-title">Správa účtu</h3>
+                            <div class="form-group">
+                                <button type="button" class="btn btn-danger" id="delete-account-btn">
+                                    <i class="fas fa-trash-alt"></i>
+                                    Smazat účet
+                                </button>
+                                <p class="form-text">Pozor! Tato akce je nevratná a smaže všechna vaše data.</p>
+                            </div>
                         </div>
-                        
+
                         <div class="form-actions">
-                            <button type="button" class="btn btn-outline" id="cancel-password">Zrušit</button>
-                            <button type="submit" class="btn btn-primary" id="save-password">
-                                <span id="save-password-text">Změnit heslo</span>
-                                <span id="save-password-loading" style="display: none;">
-                                    <span class="loading-spinner"></span>
-                                    Ukládání...
-                                </span>
+                            <button type="button" class="btn btn-primary" id="save-security-btn">
+                                <i class="fas fa-shield-alt"></i>
+                                Aktualizovat heslo
                             </button>
                         </div>
                     </form>
                 </div>
-                
-                <div class="settings-content" id="preferences-tab">
-                    <h3 class="settings-title">Preference</h3>
+
+                <div class="settings-content" data-content="preferences">
+                    <h3 class="settings-title">Předvolby aplikace</h3>
+                    <div class="preference-group">
+                        <h4 class="preference-title">Vzhled</h4>
+                        <div class="preference-option">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="dark-mode">
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <span class="preference-label">Tmavý režim</span>
+                        </div>
+                        <div class="preference-option">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="animations">
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <span class="preference-label">Animace</span>
+                        </div>
+                    </div>
                     
-                    <form id="preferences-form" class="form-section">
-                        <div class="preference-group">
-                            <h4 class="preference-title">Vzhled a rozhraní</h4>
-                            
-                            <div class="preference-option">
-                                <label class="toggle-switch">
-                                    <input type="checkbox" id="dark_mode">
-                                    <span class="toggle-slider"></span>
-                                </label>
-                                <span class="preference-label">Tmavý režim</span>
-                            </div>
-                            
-                            <div class="preference-option">
-                                <label class="toggle-switch">
-                                    <input type="checkbox" id="sound_effects" checked>
-                                    <span class="toggle-slider"></span>
-                                </label>
-                                <span class="preference-label">Zvukové efekty</span>
-                            </div>
+                    <div class="preference-group">
+                        <h4 class="preference-title">Zvuk</h4>
+                        <div class="preference-option">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="sound-effects">
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <span class="preference-label">Zvukové efekty</span>
                         </div>
-                        
-                        <div class="divider"></div>
-                        
-                        <div class="preference-group">
-                            <h4 class="preference-title">Soukromí</h4>
-                            
-                            <div class="preference-option">
-                                <label class="toggle-switch">
-                                    <input type="checkbox" id="show_progress" checked>
-                                    <span class="toggle-slider"></span>
-                                </label>
-                                <span class="preference-label">Zobrazovat můj pokrok ostatním</span>
-                            </div>
+                    </div>
+                    
+                    <div class="preference-group">
+                        <h4 class="preference-title">Přizpůsobení učení</h4>
+                        <div class="preference-option">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="show-explanations">
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <span class="preference-label">Zobrazovat vysvětlení po odpovědi</span>
                         </div>
-                        
-                        <div class="divider"></div>
-                        
-                        <div class="preference-group">
-                            <h4 class="preference-title">Jazyk</h4>
-                            
-                            <div class="form-group">
-                                <select id="language" class="form-control">
-                                    <option value="cs">Čeština</option>
-                                    <option value="en">English</option>
-                                    <option value="sk">Slovenčina</option>
-                                </select>
-                            </div>
+                        <div class="preference-option">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="show-hints">
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <span class="preference-label">Povolit nápovědy</span>
                         </div>
-                        
-                        <div class="form-actions">
-                            <button type="button" class="btn btn-outline" id="reset-preferences">Obnovit výchozí</button>
-                            <button type="submit" class="btn btn-primary">Uložit preference</button>
-                        </div>
-                    </form>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-primary" id="save-preferences-btn">
+                            <i class="fas fa-cog"></i>
+                            Uložit předvolby
+                        </button>
+                    </div>
                 </div>
-                
-                <div class="settings-content" id="notifications-tab">
+
+                <div class="settings-content" data-content="notifications">
                     <h3 class="settings-title">Nastavení oznámení</h3>
+                    <div class="preference-group">
+                        <h4 class="preference-title">Email</h4>
+                        <div class="preference-option">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="email-achievements">
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <span class="preference-label">Nové odznaky a úspěchy</span>
+                        </div>
+                        <div class="preference-option">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="email-reminders">
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <span class="preference-label">Denní připomenutí</span>
+                        </div>
+                        <div class="preference-option">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="email-updates">
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <span class="preference-label">Novinky a aktualizace</span>
+                        </div>
+                    </div>
                     
-                    <form id="notifications-form" class="form-section">
-                        <div class="preference-group">
-                            <h4 class="preference-title">Emailová oznámení</h4>
-                            
-                            <div class="preference-option">
-                                <label class="toggle-switch">
-                                    <input type="checkbox" id="email_notifications" checked>
-                                    <span class="toggle-slider"></span>
-                                </label>
-                                <span class="preference-label">Povolit emailová oznámení</span>
-                            </div>
+                    <div class="preference-group">
+                        <h4 class="preference-title">Web</h4>
+                        <div class="preference-option">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="web-achievements">
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <span class="preference-label">Nové odznaky a úspěchy</span>
                         </div>
-                        
-                        <div class="divider"></div>
-                        
-                        <div class="preference-group">
-                            <h4 class="preference-title">Typy oznámení</h4>
-                            
-                            <div class="preference-option">
-                                <label class="toggle-switch">
-                                    <input type="checkbox" id="study_tips" checked>
-                                    <span class="toggle-slider"></span>
-                                </label>
-                                <span class="preference-label">Studijní tipy a doporučení</span>
-                            </div>
-                            
-                            <div class="preference-option">
-                                <label class="toggle-switch">
-                                    <input type="checkbox" id="practice_reminders" checked>
-                                    <span class="toggle-slider"></span>
-                                </label>
-                                <span class="preference-label">Připomenutí procvičování</span>
-                            </div>
-                            
-                            <div class="preference-option">
-                                <label class="toggle-switch">
-                                    <input type="checkbox" id="content_updates" checked>
-                                    <span class="toggle-slider"></span>
-                                </label>
-                                <span class="preference-label">Aktualizace obsahu a nové funkce</span>
-                            </div>
+                        <div class="preference-option">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="web-reminders">
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <span class="preference-label">Denní připomenutí</span>
                         </div>
-                        
-                        <div class="form-actions">
-                            <button type="button" class="btn btn-outline" id="disable-all">Vypnout vše</button>
-                            <button type="submit" class="btn btn-primary">Uložit nastavení</button>
-                        </div>
-                    </form>
-                </div>
-                
-                <div class="settings-content" id="account-tab">
-                    <h3 class="settings-title">Nastavení účtu</h3>
-                    
-                    <div class="form-section">
-                        <p style="margin-bottom: 1.5rem; color: var(--text-secondary);">Zde můžete spravovat nastavení svého účtu a provádět akce související s vaším účtem.</p>
-                        
-                        <div class="divider"></div>
-                        
-                        <h4 class="preference-title">Nebezpečná zóna</h4>
-                        <p style="margin-bottom: 1.5rem; color: var(--text-secondary);">Tyto akce jsou permanentní a nemohou být vráceny.</p>
-                        
-                        <button class="btn btn-danger" id="delete-account">
-                            <i class="fas fa-trash-alt"></i>
-                            Odstranit účet
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-primary" id="save-notifications-btn">
+                            <i class="fas fa-bell"></i>
+                            Uložit nastavení
                         </button>
                     </div>
                 </div>
             </div>
-        </div>
-        
-        <footer class="dashboard-footer">
-            <p>&copy; 2025 Justax.space | Všechna práva vyhrazena</p>
-        </footer>
+        </section>
     </main>
-    
+
     <!-- Модальное окно для загрузки аватара -->
     <div class="modal" id="avatar-modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2 class="modal-title">Změnit profilovou fotku</h2>
-                <button class="modal-close">&times;</button>
+                <h3 class="modal-title">Nahrát nový avatar</h3>
+                <button class="modal-close" id="avatar-modal-close">&times;</button>
             </div>
             <div class="modal-body">
                 <div class="avatar-upload" id="avatar-upload">
-                    <i class="fas fa-cloud-upload-alt"></i>
-                    <p>Přetáhněte sem obrázek nebo klikněte pro výběr</p>
-                    <span>Podporované formáty: JPG, PNG, GIF. Max velikost: 2MB</span>
-                    <input type="file" id="avatar-file" accept="image/*">
+                    <i class="fas fa-upload"></i>
+                    <p>Klikněte pro výběr souboru nebo přetáhněte obrázek sem</p>
+                    <span>Podporované formáty: JPEG, PNG, GIF. Max 2MB.</span>
+                    <input type="file" id="avatar-input" accept="image/*">
                 </div>
-                
                 <div id="avatar-preview">
-                    <img id="avatar-preview-img" src="#" alt="Náhled avataru">
+                    <img src="" alt="Náhled avataru" id="avatar-preview-img">
                 </div>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-outline" id="cancel-avatar">Zrušit</button>
-                <button class="btn btn-primary" id="save-avatar">
-                    <span id="save-avatar-text">Uložit avatar</span>
-                    <span id="save-avatar-loading" style="display: none;">
-                        <span class="loading-spinner"></span>
-                        Ukládání...
-                    </span>
+                <button class="btn btn-primary" id="upload-avatar-btn">
+                    <span>Nahrát avatar</span>
                 </button>
             </div>
         </div>
     </div>
-    
+
     <!-- Всплывающее уведомление -->
     <div class="alert" id="alert"></div>
-    
+
     <script>
-        // Инициализация Supabase клиента
+        // Supabase configuration
         const SUPABASE_URL = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10';
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        
-        document.addEventListener('DOMContentLoaded', async function() {
-            // Проверка авторизации - необходимо добавить в начало каждого скрипта дашборда
-            async function checkAuth() {
-                try {
-                    // Получаем текущую сессию
-                    const { data: { session }, error } = await supabase.auth.getSession();
-                    
-                    // Если ошибка или нет сессии, перенаправляем на страницу входа
-                    if (error || !session) {
-                        console.log("Нет активной сессии, перенаправление на страницу входа");
-                        window.location.href = "/auth/index.html";
-                        return false;
-                    }
-                    
-                    // Дополнительная проверка на истекший токен
-                    if (session.expires_at && (new Date(session.expires_at * 1000) < new Date())) {
-                        console.log("Сессия устарела, попытка обновления");
-                        const { data: { session: refreshedSession }, error: refreshError } = await supabase.auth.refreshSession();
-                        
-                        if (refreshError || !refreshedSession) {
-                            console.log("Не удалось обновить сессию, перенаправление на страницу входа");
-                            window.location.href = "/auth/index.html";
-                            return false;
-                        }
-                    }
-                    
-                    console.log("Пользователь авторизован");
-                    return true;
-                } catch (error) {
-                    console.error("Ошибка при проверке авторизации:", error);
-                    window.location.href = "/auth/index.html";
-                    return false;
-                }
-            }
-            
-            // Выполняем проверку при загрузке страницы
-            const isAuthenticated = await checkAuth();
-            
-            // Если пользователь не авторизован, скрипт остановится здесь из-за перенаправления
-            if (!isAuthenticated) return;
-            
-            // Продолжаем выполнение кода только если пользователь авторизован
-            
-            // Текущий пользователь
-            let currentUser;
-            // Данные профиля пользователя
-            let userProfile = {};
-            
-            // Мобильное меню
-            function addMobileMenuToggle() {
-                if (window.innerWidth <= 576 && !document.querySelector('.mobile-menu-toggle')) {
-                    const menuToggle = document.createElement('button');
-                    menuToggle.className = 'mobile-menu-toggle';
-                    menuToggle.innerHTML = '<i class="fas fa-bars"></i>';
-                    
-                    menuToggle.addEventListener('click', function() {
-                        const sidebar = document.querySelector('.sidebar');
-                        const main = document.querySelector('main');
-                        
-                        if (sidebar.style.transform === 'translateX(0px)') {
-                            sidebar.style.transform = 'translateX(-100%)';
-                            main.style.marginLeft = '0';
-                            this.innerHTML = '<i class="fas fa-bars"></i>';
-                        } else {
-                            sidebar.style.transform = 'translateX(0)';
-                            main.style.marginLeft = 'var(--sidebar-width)';
-                            this.innerHTML = '<i class="fas fa-times"></i>';
-                        }
-                    });
-                    
-                    const header = document.querySelector('.header-content');
-                    header.insertBefore(menuToggle, header.firstChild);
-                }
-            }
-            
-            // Инициализация мобильного меню
-            addMobileMenuToggle();
-            window.addEventListener('resize', addMobileMenuToggle);
-            
-            // Функция для отображения уведомлений
-            function showAlert(message, type) {
-                const alert = document.getElementById('alert');
-                alert.textContent = message;
-                alert.className = `alert ${type}`;
-                alert.classList.add('show');
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // Global variables
+        let currentUser = null;
+        let userProfile = null;
+        let avatarFile = null;
+
+        // DOM Elements
+        const profileAvatarEl = document.getElementById('profile-avatar');
+        const profileNameEl = document.getElementById('profile-name');
+        const profileUsernameEl = document.getElementById('profile-username');
+        const profileBioEl = document.getElementById('profile-bio');
+        const exercisesCountEl = document.getElementById('exercises-count');
+        const streakDaysEl = document.getElementById('streak-days');
+        const levelEl = document.getElementById('level');
+        const badgesCountEl = document.getElementById('badges-count');
+        const sidebarUserProfileEl = document.getElementById('sidebar-user-profile');
+        const notificationCountEl = document.getElementById('notification-count');
+
+        // Form elements
+        const firstNameInput = document.getElementById('first-name');
+        const lastNameInput = document.getElementById('last-name');
+        const usernameInput = document.getElementById('username');
+        const emailInput = document.getElementById('email');
+        const bioInput = document.getElementById('bio');
+        const schoolInput = document.getElementById('school');
+        const gradeInput = document.getElementById('grade');
+
+        // Preference inputs
+        const darkModeToggle = document.getElementById('dark-mode');
+        const animationsToggle = document.getElementById('animations');
+        const soundEffectsToggle = document.getElementById('sound-effects');
+        const showExplanationsToggle = document.getElementById('show-explanations');
+        const showHintsToggle = document.getElementById('show-hints');
+
+        // Notification inputs
+        const emailAchievementsToggle = document.getElementById('email-achievements');
+        const emailRemindersToggle = document.getElementById('email-reminders');
+        const emailUpdatesToggle = document.getElementById('email-updates');
+        const webAchievementsToggle = document.getElementById('web-achievements');
+        const webRemindersToggle = document.getElementById('web-reminders');
+
+        // Buttons
+        const logoutBtn = document.getElementById('logout-btn');
+        const saveProfileBtn = document.getElementById('save-profile-btn');
+        const saveSecurityBtn = document.getElementById('save-security-btn');
+        const savePreferencesBtn = document.getElementById('save-preferences-btn');
+        const saveNotificationsBtn = document.getElementById('save-notifications-btn');
+        const deleteAccountBtn = document.getElementById('delete-account-btn');
+        const changeAvatarBtn = document.getElementById('change-avatar-btn');
+        const uploadAvatarBtn = document.getElementById('upload-avatar-btn');
+
+        // Modal elements
+        const avatarModal = document.getElementById('avatar-modal');
+        const avatarModalClose = document.getElementById('avatar-modal-close');
+        const avatarUpload = document.getElementById('avatar-upload');
+        const avatarInput = document.getElementById('avatar-input');
+        const avatarPreview = document.getElementById('avatar-preview');
+        const avatarPreviewImg = document.getElementById('avatar-preview-img');
+        const alertEl = document.getElementById('alert');
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', initApp);
+
+        async function initApp() {
+            try {
+                // Check if user is logged in
+                const { data: { user }, error } = await supabase.auth.getUser();
                 
-                setTimeout(() => {
-                    alert.classList.remove('show');
-                }, 4000);
-            }
-            
-            // Функция для получения текущего пользователя
-            async function getCurrentUser() {
-                try {
-                    const { data: { user }, error } = await supabase.auth.getUser();
-                    
-                    if (error) throw error;
-                    
-                    if (user) {
-                        currentUser = user;
-                        return user;
-                    } else {
-                        window.location.href = "/auth/index.html";
-                        return null;
-                    }
-                } catch (error) {
-                    console.error('Error getting current user:', error);
-                    return null;
-                }
-            }
-            
-            // Функция для получения данных профиля
-            async function fetchUserProfile(userId) {
-                try {
-                    // Получение профиля из таблицы profiles
-                    const { data, error } = await supabase
-                        .from('profiles')
-                        .select('*')
-                        .eq('id', userId)
-                        .single();
-                    
-                    if (error) {
-                        throw error;
-                    }
-                    
-                    if (data) {
-                        userProfile = data;
-                        return data;
-                    } else {
-                        return null;
-                    }
-                } catch (error) {
-                    console.error('Error fetching profile:', error);
-                    return null;
-                }
-            }
-            
-            // Функция для загрузки данных пользователя
-            async function loadUserData() {
-                try {
-                    const user = await getCurrentUser();
-                    
-                    if (user) {
-                        const profile = await fetchUserProfile(user.id);
-                        
-                        if (profile) {
-                            // Обновляем данные профиля на странице
-                            populateProfileData(profile);
-                            
-                            // Заполняем форму редактирования профиля
-                            populateProfileForm(profile);
-                            
-                            // Заполняем настройки пользователя
-                            populatePreferences(profile);
-                            
-                            // Заполняем настройки уведомлений
-                            populateNotifications(profile);
-                        }
-                    }
-                } catch (error) {
-                    console.error('Error loading user data:', error);
-                }
-            }
-            
-            // Функция для обновления данных профиля на странице
-            function populateProfileData(profile) {
-                // Имя пользователя
-                document.getElementById('sidebar-username').textContent = profile.username || currentUser.email;
-                document.getElementById('profile-username').textContent = '@' + (profile.username || currentUser.email);
-                
-                // Полное имя
-                const fullName = profile.first_name && profile.last_name 
-                    ? `${profile.first_name} ${profile.last_name}`
-                    : profile.first_name || profile.username || currentUser.email;
-                document.getElementById('profile-full-name').textContent = fullName;
-                
-                // Биография
-                document.getElementById('profile-bio').textContent = profile.bio || 'Informace o uživateli nejsou k dispozici.';
-                
-                // Аватар
-                if (profile.avatar_url) {
-                    document.getElementById('sidebar-avatar').innerHTML = `<img src="${profile.avatar_url}" alt="${profile.username}" />`;
-                    document.getElementById('profile-avatar').innerHTML = `<img src="${profile.avatar_url}" alt="${profile.username}" /><div class="change-avatar" id="change-avatar">Změnit avatar</div>`;
-                } else {
-                    // Используем инициалы
-                    const initials = profile.first_name && profile.last_name 
-                        ? `${profile.first_name.charAt(0)}${profile.last_name.charAt(0)}`
-                        : profile.username ? profile.username.substring(0, 2).toUpperCase() : 'JU';
-                    document.getElementById('sidebar-avatar').textContent = initials;
-                    document.getElementById('profile-avatar').innerHTML = `${initials}<div class="change-avatar" id="change-avatar">Změnit avatar</div>`;
-                }
-                
-                // Статистика
-                if (profile.completed_exercises) {
-                    document.getElementById('completed-exercises').textContent = profile.completed_exercises;
-                }
-                
-                if (profile.level) {
-                    document.getElementById('user-level').textContent = profile.level;
-                }
-            }
-            
-            // Функция для заполнения формы профиля
-            function populateProfileForm(profile) {
-                // Заполнение полей формы профиля
-                document.getElementById("first_name").value = profile.first_name || "";
-                document.getElementById("last_name").value = profile.last_name || "";
-                document.getElementById("username").value = profile.username || "";
-                document.getElementById("email").value = profile.email || currentUser.email || "";
-                document.getElementById("school").value = profile.school || "";
-                document.getElementById("grade").value = profile.grade || "";
-                document.getElementById("bio").value = profile.bio || "";
-            }
-            
-            function populatePreferences(profile) {
-                // Заполнение настроек пользователя на основе данных из базы
-                const preferences = profile.preferences || {};
-                
-                // Темный режим
-                document.getElementById("dark_mode").checked = preferences.dark_mode || false;
-                
-                // Звуковые эффекты
-                document.getElementById("sound_effects").checked = preferences.sound_effects !== false; // По умолчанию включено
-                
-                // Показывать ли прогресс другим
-                document.getElementById("show_progress").checked = preferences.show_progress !== false; // По умолчанию включено
-                
-                // Язык
-                document.getElementById("language").value = preferences.language || "cs";
-                
-                // Применить темную тему, если она активирована
-                if (preferences.dark_mode) {
-                    document.body.classList.add('dark-mode');
-                }
-            }
-            
-            function populateNotifications(profile) {
-                // Заполнение настроек уведомлений
-                const notifications = profile.notifications || {};
-                
-                document.getElementById("email_notifications").checked = notifications.email !== false; // По умолчанию включено
-                document.getElementById("study_tips").checked = notifications.study_tips !== false; // По умолчанию включено
-                document.getElementById("practice_reminders").checked = notifications.practice_reminders !== false; // По умолчанию включено
-                document.getElementById("content_updates").checked = notifications.content_updates !== false; // По умолчанию включено
-            }
-            
-            // Переключение вкладок в настройках
-            const tabButtons = document.querySelectorAll('.settings-tab');
-            const tabContents = document.querySelectorAll('.settings-content');
-            
-            tabButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    // Удаляем активный класс у всех вкладок
-                    tabButtons.forEach(tab => tab.classList.remove('active'));
-                    tabContents.forEach(content => content.classList.remove('active'));
-                    
-                    // Добавляем активный класс выбранной вкладке
-                    this.classList.add('active');
-                    const tabId = this.getAttribute('data-tab');
-                    document.getElementById(`${tabId}-tab`).classList.add('active');
-                });
-            });
-            
-            // Обработка нажатия на "Редактировать профиль"
-            document.getElementById("edit-profile-btn").addEventListener('click', function() {
-                // Переключаем на вкладку с личными данными
-                tabButtons.forEach(tab => tab.classList.remove('active'));
-                tabContents.forEach(content => content.classList.remove('active'));
-                
-                document.querySelector('[data-tab="personal"]').classList.add('active');
-                document.getElementById('personal-tab').classList.add('active');
-                
-                // Прокрутка к форме
-                document.querySelector('.form-section').scrollIntoView({ behavior: 'smooth' });
-            });
-            
-            // Отправка формы профиля
-            document.getElementById("profile-form").addEventListener('submit', async function(e) {
-                e.preventDefault();
-                
-                // Показать индикатор загрузки
-                document.getElementById("save-profile-text").style.display = "none";
-                document.getElementById("save-profile-loading").style.display = "inline-block";
-                document.getElementById("save-profile").disabled = true;
-                
-                try {
-                    // Получение данных из формы
-                    const updatedProfile = {
-                        first_name: document.getElementById("first_name").value.trim(),
-                        last_name: document.getElementById("last_name").value.trim(),
-                        school: document.getElementById("school").value.trim(),
-                        grade: document.getElementById("grade").value,
-                        bio: document.getElementById("bio").value.trim(),
-                        updated_at: new Date().toISOString()
-                    };
-                    
-                    // Обновление данных в базе
-                    const { error } = await supabase
-                        .from('profiles')
-                        .update(updatedProfile)
-                        .eq('id', currentUser.id);
-                    
-                    if (error) throw error;
-                    
-                    // Обновляем локальные данные
-                    userProfile = { ...userProfile, ...updatedProfile };
-                    
-                    // Обновляем отображение
-                    populateProfileData(userProfile);
-                    
-                    showAlert("Váš profil byl úspěšně aktualizován!", "success");
-                } catch (error) {
-                    console.error("Chyba při aktualizaci profilu:", error);
-                    showAlert("Chyba při ukládání změn. Zkuste to prosím znovu.", "danger");
-                } finally {
-                    // Скрыть индикатор загрузки
-                    document.getElementById("save-profile-text").style.display = "inline-block";
-                    document.getElementById("save-profile-loading").style.display = "none";
-                    document.getElementById("save-profile").disabled = false;
-                }
-            });
-                }
-            });
-            
-            // Отмена формы профиля
-            document.getElementById("cancel-profile").addEventListener('click', function() {
-                // Возвращаем исходные значения в форму
-                populateProfileForm(userProfile);
-                showAlert("Změny byly zrušeny", "warning");
-            });
-            
-            // Отправка формы для изменения пароля
-            document.getElementById("password-form").addEventListener('submit', async function(e) {
-                e.preventDefault();
-                
-                const currentPassword = document.getElementById("current_password").value;
-                const newPassword = document.getElementById("new_password").value;
-                const confirmPassword = document.getElementById("confirm_password").value;
-                
-                // Валидация
-                if (!currentPassword || !newPassword || !confirmPassword) {
-                    showAlert("Vyplňte prosím všechna pole", "danger");
+                if (error || !user) {
+                    window.location.href = '/login.html';
                     return;
                 }
                 
-                if (newPassword.length < 6) {
-                    showAlert("Nové heslo musí obsahovat alespoň 6 znaků", "danger");
-                    return;
-                }
+                currentUser = user;
+                await fetchUserProfile();
+                setupEventListeners();
+                initTabs();
                 
-                if (newPassword !== confirmPassword) {
-                    showAlert("Hesla se neshodují", "danger");
-                    return;
-                }
+                // Apply user preferences
+                applyUserPreferences();
                 
-                // Показать индикатор загрузки
-                document.getElementById("save-password-text").style.display = "none";
-                document.getElementById("save-password-loading").style.display = "inline-block";
-                document.getElementById("save-password").disabled = true;
+            } catch (error) {
+                console.error('Error initializing app:', error);
+                showAlert('Chyba při načítání dat. Zkuste to prosím znovu.', 'danger');
+            }
+        }
+
+        async function fetchUserProfile() {
+            try {
+                const { data, error } = await supabase
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', currentUser.id)
+                    .single();
                 
-                try {
-                    // Сначала проверим текущий пароль, авторизовавшись с ним
-                    const { error: signInError } = await supabase.auth.signInWithPassword({
-                        email: currentUser.email,
-                        password: currentPassword
-                    });
-                    
-                    if (signInError) {
-                        throw new Error("Současné heslo není správné");
-                    }
-                    
-                    // Если успешно, меняем пароль
-                    const { error } = await supabase.auth.updateUser({
-                        password: newPassword
-                    });
-                    
-                    if (error) throw error;
-                    
-                    // Очищаем форму
-                    document.getElementById("current_password").value = "";
-                    document.getElementById("new_password").value = "";
-                    document.getElementById("confirm_password").value = "";
-                    
-                    showAlert("Vaše heslo bylo úspěšně změněno!", "success");
-                } catch (error) {
-                    console.error("Chyba při změně hesla:", error);
-                    showAlert(error.message || "Chyba při změně hesla. Zkuste to prosím znovu.", "danger");
-                } finally {
-                    // Скрыть индикатор загрузки
-                    document.getElementById("save-password-text").style.display = "inline-block";
-                    document.getElementById("save-password-loading").style.display = "none";
-                    document.getElementById("save-password").disabled = false;
-                }
-            });
+                if (error) throw error;
+                
+                userProfile = data;
+                updateUIWithProfileData();
+                populateFormWithProfileData();
+                
+            } catch (error) {
+                console.error('Error fetching user profile:', error);
+                showAlert('Chyba při načítání profilu. Zkuste to prosím znovu.', 'danger');
+            }
+        }
+
+        function updateUIWithProfileData() {
+            // Update profile card
+            const fullName = `${userProfile.first_name || ''} ${userProfile.last_name || ''}`.trim() || 'Uživatel';
+            const username = userProfile.username ? `@${userProfile.username}` : '';
             
-            // Отмена формы изменения пароля
-            document.getElementById("cancel-password").addEventListener('click', function() {
-                document.getElementById("current_password").value = "";
-                document.getElementById("new_password").value = "";
-                document.getElementById("confirm_password").value = "";
-                showAlert("Změna hesla byla zrušena", "warning");
-            });
+            profileNameEl.textContent = fullName;
+            profileUsernameEl.textContent = username;
+            profileBioEl.textContent = userProfile.bio || 'Bio není vyplněno';
             
-            // Сохранение настроек
-            document.getElementById("preferences-form").addEventListener('submit', async function(e) {
-                e.preventDefault();
-                
-                try {
-                    // Получаем значения настроек
-                    const preferences = {
-                        dark_mode: document.getElementById("dark_mode").checked,
-                        sound_effects: document.getElementById("sound_effects").checked,
-                        show_progress: document.getElementById("show_progress").checked,
-                        language: document.getElementById("language").value
-                    };
-                    
-                    // Обновляем настройки в базе данных
-                    const { error } = await supabase
-                        .from('profiles')
-                        .update({
-                            preferences: preferences,
-                            updated_at: new Date().toISOString()
-                        })
-                        .eq('id', currentUser.id);
-                    
-                    if (error) throw error;
-                    
-                    // Применяем темную тему, если включена
-                    if (preferences.dark_mode) {
-                        document.body.classList.add('dark-mode');
-                    } else {
-                        document.body.classList.remove('dark-mode');
-                    }
-                    
-                    // Обновляем данные пользователя
-                    userProfile.preferences = preferences;
-                    
-                    showAlert("Vaše preference byly úspěšně uloženy!", "success");
-                } catch (error) {
-                    console.error("Chyba při ukládání preferencí:", error);
-                    showAlert("Chyba při ukládání preferencí. Zkuste to prosím znovu.", "danger");
-                }
-            });
+            // Update stats
+            exercisesCountEl.textContent = userProfile.completed_exercises || 0;
+            streakDaysEl.textContent = userProfile.streak_days || 0;
+            levelEl.textContent = userProfile.level || 1;
+            badgesCountEl.textContent = userProfile.badges_count || 0;
             
-            // Сброс настроек
-            document.getElementById("reset-preferences").addEventListener('click', function() {
-                // Устанавливаем настройки по умолчанию
-                document.getElementById("dark_mode").checked = false;
-                document.getElementById("sound_effects").checked = true;
-                document.getElementById("show_progress").checked = true;
-                document.getElementById("language").value = "cs";
-                
-                // Удаляем темный режим
+            // Update sidebar user profile
+            updateSidebarUserProfile(fullName, username);
+            
+            // Update avatar
+            updateUserAvatar(userProfile.avatar_url);
+            
+            // Update notification count (for demonstration)
+            notificationCountEl.textContent = Math.floor(Math.random() * 5);
+        }
+
+        function updateSidebarUserProfile(fullName, username) {
+            sidebarUserProfileEl.innerHTML = `
+                <div class="user-avatar">
+                    ${userProfile.avatar_url ? 
+                        `<img src="${userProfile.avatar_url}" alt="Avatar">` : 
+                        getInitials(fullName)}
+                </div>
+                <div class="user-info">
+                    <div class="user-name">${fullName}</div>
+                    <div class="user-role">${username}</div>
+                </div>
+            `;
+        }
+
+        function updateUserAvatar(avatarUrl) {
+            if (avatarUrl) {
+                profileAvatarEl.innerHTML = `
+                    <img src="${avatarUrl}" alt="Avatar">
+                    <div class="change-avatar" id="change-avatar-btn">Změnit avatara</div>
+                `;
+            } else {
+                const fullName = `${userProfile.first_name || ''} ${userProfile.last_name || ''}`.trim() || 'Uživatel';
+                profileAvatarEl.innerHTML = `
+                    ${getInitials(fullName)}
+                    <div class="change-avatar" id="change-avatar-btn">Změnit avatara</div>
+                `;
+            }
+            // Re-add event listener because we replaced the element
+            document.getElementById('change-avatar-btn').addEventListener('click', openAvatarModal);
+        }
+
+        function getInitials(name) {
+            const names = name.split(' ');
+            if (names.length === 1) return names[0].charAt(0).toUpperCase();
+            return (names[0].charAt(0) + names[names.length - 1].charAt(0)).toUpperCase();
+        }
+
+        function populateFormWithProfileData() {
+            // Populate general info form
+            firstNameInput.value = userProfile.first_name || '';
+            lastNameInput.value = userProfile.last_name || '';
+            usernameInput.value = userProfile.username || '';
+            emailInput.value = currentUser.email || '';
+            bioInput.value = userProfile.bio || '';
+            schoolInput.value = userProfile.school || '';
+            gradeInput.value = userProfile.grade || '';
+            
+            // Populate preference toggles
+            const preferences = userProfile.preferences || {};
+            darkModeToggle.checked = preferences.dark_mode || false;
+            animationsToggle.checked = preferences.animations !== false; // Default to true
+            soundEffectsToggle.checked = preferences.sound_effects !== false; // Default to true
+            showExplanationsToggle.checked = preferences.show_explanations !== false; // Default to true
+            showHintsToggle.checked = preferences.show_hints !== false; // Default to true
+            
+            // Populate notification toggles
+            const notifications = userProfile.notifications || {};
+            emailAchievementsToggle.checked = notifications.email_achievements !== false; // Default to true
+            emailRemindersToggle.checked = notifications.email_reminders || false;
+            emailUpdatesToggle.checked = notifications.email_updates !== false; // Default to true
+            webAchievementsToggle.checked = notifications.web_achievements !== false; // Default to true
+            webRemindersToggle.checked = notifications.web_reminders || false;
+        }
+
+        function applyUserPreferences() {
+            const preferences = userProfile.preferences || {};
+            
+            // Apply dark mode
+            if (preferences.dark_mode) {
+                document.body.classList.add('dark-mode');
+            } else {
                 document.body.classList.remove('dark-mode');
-                
-                showAlert("Preference byly obnoveny na výchozí hodnoty", "warning");
-            });
-            
-            // Сохранение настроек уведомлений
-            document.getElementById("notifications-form").addEventListener('submit', async function(e) {
-                e.preventDefault();
-                
-                try {
-                    // Получаем значения настроек уведомлений
-                    const notifications = {
-                        email: document.getElementById("email_notifications").checked,
-                        study_tips: document.getElementById("study_tips").checked,
-                        practice_reminders: document.getElementById("practice_reminders").checked,
-                        content_updates: document.getElementById("content_updates").checked
-                    };
-                    
-                    // Обновляем настройки в базе данных
-                    const { error } = await supabase
-                        .from('profiles')
-                        .update({
-                            notifications: notifications,
-                            updated_at: new Date().toISOString()
-                        })
-                        .eq('id', currentUser.id);
-                    
-                    if (error) throw error;
-                    
-                    // Обновляем данные пользователя
-                    userProfile.notifications = notifications;
-                    
-                    showAlert("Vaše nastavení oznámení byla úspěšně uložena!", "success");
-                } catch (error) {
-                    console.error("Chyba při ukládání nastavení oznámení:", error);
-                    showAlert("Chyba při ukládání nastavení. Zkuste to prosím znovu.", "danger");
-                }
-            });
-            
-            // Отключение всех уведомлений
-            document.getElementById("disable-all").addEventListener('click', function() {
-                document.getElementById("email_notifications").checked = false;
-                document.getElementById("study_tips").checked = false;
-                document.getElementById("practice_reminders").checked = false;
-                document.getElementById("content_updates").checked = false;
-                
-                showAlert("Všechna oznámení byla vypnuta", "warning");
-            });
-            
-            // Удаление аккаунта
-            document.getElementById("delete-account").addEventListener('click', function() {
-                if (confirm("Opravdu chcete odstranit svůj účet? Tato akce je nevratná a všechna vaše data budou ztracena.")) {
-                    deleteAccount();
-                }
-            });
-            
-            async function deleteAccount() {
-                try {
-                    // Удаляем профиль пользователя
-                    const { error: profileError } = await supabase
-                        .from('profiles')
-                        .delete()
-                        .eq('id', currentUser.id);
-                    
-                    if (profileError) throw profileError;
-                    
-                    // Удаляем пользователя
-                    const { error } = await supabase.auth.admin.deleteUser(currentUser.id);
-                    
-                    if (error) throw error;
-                    
-                    // Выходим из аккаунта
-                    await supabase.auth.signOut();
-                    
-                    // Перенаправляем на страницу входа
-                    window.location.href = "/auth/index.html?deleted=true";
-                } catch (error) {
-                    console.error("Chyba při odstraňování účtu:", error);
-                    showAlert("Chyba při odstraňování účtu. Zkuste to prosím znovu později.", "danger");
-                }
             }
             
-            // Модальное окно загрузки аватара
-            const avatarModal = document.querySelector("#avatar-modal");
-            const avatarUpload = document.querySelector("#avatar-upload");
-            const avatarFile = document.querySelector("#avatar-file");
-            const avatarPreview = document.querySelector("#avatar-preview");
-            const avatarPreviewImg = document.querySelector("#avatar-preview-img");
-            
-            // Открытие модального окна
-            document.getElementById("change-avatar").addEventListener('click', function() {
-                avatarModal.classList.add("active");
-                avatarPreview.style.display = "none";
-            });
-            
-            // Закрытие модального окна
-            document.querySelector(".modal-close").addEventListener('click', function() {
-                avatarModal.classList.remove("active");
-            });
-            
-            document.getElementById("cancel-avatar").addEventListener('click', function() {
-                avatarModal.classList.remove("active");
-            });
-            
-            // Закрытие модального окна при клике вне его
-            avatarModal.addEventListener('click', function(e) {
-                if (e.target === avatarModal) {
-                    avatarModal.classList.remove("active");
-                }
-            });
-            
-            // Обработка клика на области загрузки
-            avatarUpload.addEventListener('click', function() {
-                avatarFile.click();
-            });
-            
-            // Обработка перетаскивания файлов
-            avatarUpload.addEventListener('dragover', function(e) {
-                e.preventDefault();
-                this.classList.add('dragover');
-            });
-            
-            avatarUpload.addEventListener('dragleave', function() {
-                this.classList.remove('dragover');
-            });
-            
-            avatarUpload.addEventListener('drop', function(e) {
-                e.preventDefault();
-                this.classList.remove('dragover');
-                
-                if (e.dataTransfer.files.length) {
-                    avatarFile.files = e.dataTransfer.files;
-                    displayPreview(e.dataTransfer.files[0]);
-                }
-            });
-            
-            // Обработка выбора файла
-            avatarFile.addEventListener('change', function() {
-                if (this.files.length) {
-                    displayPreview(this.files[0]);
-                }
-            });
-            
-            // Отображение превью выбранного файла
-            function displayPreview(file) {
-                // Проверка типа файла
-                const validTypes = ['image/jpeg', 'image/png', 'image/gif'];
-                if (!validTypes.includes(file.type)) {
-                    showAlert("Podporovány jsou pouze formáty JPG, PNG a GIF.", "danger");
-                    return;
-                }
-                
-                // Проверка размера файла (максимум 2MB)
-                if (file.size > 2 * 1024 * 1024) {
-                    showAlert("Velikost souboru nesmí přesáhnout 2MB.", "danger");
-                    return;
-                }
-                
-                // Создаем URL для предпросмотра
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    avatarPreviewImg.src = e.target.result;
-                    avatarPreview.style.display = "block";
-                }
-                reader.readAsDataURL(file);
-            }
-            
-            // Загрузка аватара
-            document.getElementById("save-avatar").addEventListener('click', async function() {
-                if (!avatarFile.files.length) {
-                    showAlert("Nejprve vyberte obrázek.", "danger");
-                    return;
-                }
-                
-                const file = avatarFile.files[0];
-                
-                // Показать индикатор загрузки
-                document.getElementById("save-avatar-text").style.display = "none";
-                document.getElementById("save-avatar-loading").style.display = "inline-block";
-                document.getElementById("save-avatar").disabled = true;
-                
-                try {
-                    // Загружаем файл в хранилище
-                    const fileName = `avatar-${currentUser.id}-${Date.now()}`;
-                    const fileExt = file.name.split('.').pop();
-                    const filePath = `avatars/${fileName}.${fileExt}`;
-                    
-                    const { error: uploadError } = await supabase.storage
-                        .from('user-content')
-                        .upload(filePath, file);
-                    
-                    if (uploadError) throw uploadError;
-                    
-                    // Получаем публичную ссылку на файл
-                    const { data } = supabase.storage
-                        .from('user-content')
-                        .getPublicUrl(filePath);
-                    
-                    const avatarUrl = data.publicUrl;
-                    
-                    // Обновляем профиль пользователя
-                    const { error: updateError } = await supabase
-                        .from('profiles')
-                        .update({
-                            avatar_url: avatarUrl,
-                            updated_at: new Date().toISOString()
-                        })
-                        .eq('id', currentUser.id);
-                    
-                    if (updateError) throw updateError;
-                    
-                    // Обновляем локальные данные и интерфейс
-                    userProfile.avatar_url = avatarUrl;
-                    document.getElementById('sidebar-avatar').innerHTML = `<img src="${avatarUrl}" alt="${userProfile.username}" />`;
-                    document.getElementById('profile-avatar').innerHTML = `<img src="${avatarUrl}" alt="${userProfile.username}" /><div class="change-avatar" id="change-avatar">Změnit avatar</div>`;
-                    
-                    // Добавляем обработчик к новому элементу
-                    document.getElementById("change-avatar").addEventListener('click', function() {
-                        avatarModal.classList.add("active");
-                        avatarPreview.style.display = "none";
-                    });
-                    
-                    // Закрываем модальное окно
-                    avatarModal.classList.remove("active");
-                    showAlert("Avatar byl úspěšně aktualizován!", "success");
-                } catch (error) {
-                    console.error("Chyba při nahrávání avataru:", error);
-                    showAlert("Chyba při nahrávání avataru. Zkuste to prosím znovu.", "danger");
-                } finally {
-                    // Скрыть индикатор загрузки
-                    document.getElementById("save-avatar-text").style.display = "inline-block";
-                    document.getElementById("save-avatar-loading").style.display = "none";
-                    document.getElementById("save-avatar").disabled = false;
-                }
-            });
-            
-            // Обработка нажатий на уведомления
-            document.querySelector('.notifications').addEventListener('click', function() {
-                alert('Máte 1 nové oznámení:\n\nGratulujeme! Získali jste ocenění "7 dní v řadě" za každodenní učení.');
-            });
-            
-            // Активные ссылки в сайдбаре
-            const setActiveLink = () => {
-                const currentPage = window.location.pathname;
-                const navLinks = document.querySelectorAll('.sidebar-link');
-                
-                navLinks.forEach(link => {
-                    link.classList.remove('active');
-                    const linkPath = link.getAttribute('href');
-                    if (currentPage.endsWith(linkPath)) {
-                        link.classList.add('active');
-                    }
+            // Other preferences can be applied here
+        }
+
+        function setupEventListeners() {
+            // Tab switching
+            document.querySelectorAll('.settings-tab').forEach(tab => {
+                tab.addEventListener('click', (e) => {
+                    const tabId = e.target.dataset.tab;
+                    switchTab(tabId);
                 });
-            };
+            });
             
-            // Установка активной ссылки
-            setActiveLink();
+            // Form submissions
+            saveProfileBtn.addEventListener('click', updateProfile);
+            saveSecurityBtn.addEventListener('click', updatePassword);
+            savePreferencesBtn.addEventListener('click', updatePreferences);
+            saveNotificationsBtn.addEventListener('click', updateNotifications);
+            deleteAccountBtn.addEventListener('click', confirmDeleteAccount);
+            logoutBtn.addEventListener('click', logout);
             
-            // Переключатель темной темы
-            document.getElementById("dark_mode").addEventListener('change', function() {
-                if (this.checked) {
+            // Avatar handling
+            changeAvatarBtn.addEventListener('click', openAvatarModal);
+            avatarModalClose.addEventListener('click', closeAvatarModal);
+            avatarUpload.addEventListener('click', () => avatarInput.click());
+            avatarInput.addEventListener('change', handleAvatarSelection);
+            uploadAvatarBtn.addEventListener('click', uploadAvatar);
+            
+            // Dark mode toggle direct effect
+            darkModeToggle.addEventListener('change', (e) => {
+                if (e.target.checked) {
                     document.body.classList.add('dark-mode');
                 } else {
                     document.body.classList.remove('dark-mode');
                 }
             });
             
-            // Загружаем данные пользователя
-            loadUserData();
-        });
+            // Drag and drop for avatar upload
+            avatarUpload.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                avatarUpload.classList.add('dragover');
+            });
+            
+            avatarUpload.addEventListener('dragleave', () => {
+                avatarUpload.classList.remove('dragover');
+            });
+            
+            avatarUpload.addEventListener('drop', (e) => {
+                e.preventDefault();
+                avatarUpload.classList.remove('dragover');
+                
+                if (e.dataTransfer.files.length) {
+                    handleAvatarFile(e.dataTransfer.files[0]);
+                }
+            });
+        }
+
+        function initTabs() {
+            document.querySelectorAll('.settings-tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const tabName = tab.getAttribute('data-tab');
+                    switchTab(tabName);
+                });
+            });
+        }
+
+        function switchTab(tabName) {
+            // Remove active class from all tabs and content
+            document.querySelectorAll('.settings-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            document.querySelectorAll('.settings-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Add active class to selected tab and content
+            document.querySelector(`.settings-tab[data-tab="${tabName}"]`).classList.add('active');
+            document.querySelector(`.settings-content[data-content="${tabName}"]`).classList.add('active');
+        }
+
+        async function updateProfile() {
+            try {
+                saveProfileBtn.innerHTML = '<div class="loading-spinner"></div> Ukládám...';
+                saveProfileBtn.disabled = true;
+                
+                const updatedProfile = {
+                    first_name: firstNameInput.value.trim(),
+                    last_name: lastNameInput.value.trim(),
+                    username: usernameInput.value.trim(),
+                    bio: bioInput.value.trim(),
+                    school: schoolInput.value.trim(),
+                    grade: gradeInput.value.trim(),
+                    updated_at: new Date()
+                };
+                
+                const { error } = await supabase
+                    .from('profiles')
+                    .update(updatedProfile)
+                    .eq('id', currentUser.id);
+                
+                if (error) throw error;
+                
+                // Update local user profile
+                userProfile = { ...userProfile, ...updatedProfile };
+                updateUIWithProfileData();
+                
+                showAlert('Profil byl úspěšně aktualizován', 'success');
+                
+            } catch (error) {
+                console.error('Error updating profile:', error);
+                showAlert('Chyba při aktualizaci profilu. Zkuste to prosím znovu.', 'danger');
+            } finally {
+                saveProfileBtn.innerHTML = '<i class="fas fa-save"></i> Uložit změny';
+                saveProfileBtn.disabled = false;
+            }
+        }
+
+        async function updatePassword() {
+            try {
+                const currentPassword = document.getElementById('current-password').value;
+                const newPassword = document.getElementById('new-password').value;
+                const confirmPassword = document.getElementById('confirm-password').value;
+                
+                if (!currentPassword || !newPassword || !confirmPassword) {
+                    showAlert('Vyplňte prosím všechna pole', 'warning');
+                    return;
+                }
+                
+                if (newPassword !== confirmPassword) {
+                    showAlert('Nová hesla se neshodují', 'warning');
+                    return;
+                }
+                
+                if (newPassword.length < 8) {
+                    showAlert('Heslo musí mít alespoň 8 znaků', 'warning');
+                    return;
+                }
+                
+                saveSecurityBtn.innerHTML = '<div class="loading-spinner"></div> Aktualizuji...';
+                saveSecurityBtn.disabled = true;
+                
+                // First verify the current password by signing in
+                const { error: signInError } = await supabase.auth.signInWithPassword({
+                    email: currentUser.email,
+                    password: currentPassword
+                });
+                
+                if (signInError) {
+                    showAlert('Nesprávné současné heslo', 'danger');
+                    saveSecurityBtn.innerHTML = '<i class="fas fa-shield-alt"></i> Aktualizovat heslo';
+                    saveSecurityBtn.disabled = false;
+                    return;
+                }
+                
+                // Update the password
+                const { error } = await supabase.auth.updateUser({
+                    password: newPassword
+                });
+                
+                if (error) throw error;
+                
+                // Clear password fields
+                document.getElementById('current-password').value = '';
+                document.getElementById('new-password').value = '';
+                document.getElementById('confirm-password').value = '';
+                
+                showAlert('Heslo bylo úspěšně změněno', 'success');
+                
+            } catch (error) {
+                console.error('Error updating password:', error);
+                showAlert('Chyba při změně hesla. Zkuste to prosím znovu.', 'danger');
+            } finally {
+                saveSecurityBtn.innerHTML = '<i class="fas fa-shield-alt"></i> Aktualizovat heslo';
+                saveSecurityBtn.disabled = false;
+            }
+        }
+
+        async function updatePreferences() {
+            try {
+                savePreferencesBtn.innerHTML = '<div class="loading-spinner"></div> Ukládám...';
+                savePreferencesBtn.disabled = true;
+                
+                const preferences = {
+                    dark_mode: darkModeToggle.checked,
+                    animations: animationsToggle.checked,
+                    sound_effects: soundEffectsToggle.checked,
+                    show_explanations: showExplanationsToggle.checked,
+                    show_hints: showHintsToggle.checked
+                };
+                
+                const { error } = await supabase
+                    .from('profiles')
+                    .update({ 
+                        preferences,
+                        updated_at: new Date()
+                    })
+                    .eq('id', currentUser.id);
+                
+                if (error) throw error;
+                
+                // Update local user profile
+                userProfile.preferences = preferences;
+                
+                                showAlert('Předvolby byly úspěšně aktualizovány', 'success');
+                
+            } catch (error) {
+                console.error('Error updating preferences:', error);
+                showAlert('Chyba při aktualizaci předvoleb. Zkuste to prosím znovu.', 'danger');
+            } finally {
+                savePreferencesBtn.innerHTML = '<i class="fas fa-cog"></i> Uložit předvolby';
+                savePreferencesBtn.disabled = false;
+            }
+        }
+
+        async function updateNotifications() {
+            try {
+                saveNotificationsBtn.innerHTML = '<div class="loading-spinner"></div> Ukládám...';
+                saveNotificationsBtn.disabled = true;
+                
+                const notifications = {
+                    email_achievements: emailAchievementsToggle.checked,
+                    email_reminders: emailRemindersToggle.checked,
+                    email_updates: emailUpdatesToggle.checked,
+                    web_achievements: webAchievementsToggle.checked,
+                    web_reminders: webRemindersToggle.checked
+                };
+                
+                const { error } = await supabase
+                    .from('profiles')
+                    .update({ 
+                        notifications,
+                        updated_at: new Date()
+                    })
+                    .eq('id', currentUser.id);
+                
+                if (error) throw error;
+                
+                // Update local user profile
+                userProfile.notifications = notifications;
+                
+                showAlert('Nastavení oznámení bylo úspěšně aktualizováno', 'success');
+                
+            } catch (error) {
+                console.error('Error updating notifications:', error);
+                showAlert('Chyba při aktualizaci nastavení oznámení. Zkuste to prosím znovu.', 'danger');
+            } finally {
+                saveNotificationsBtn.innerHTML = '<i class="fas fa-bell"></i> Uložit nastavení';
+                saveNotificationsBtn.disabled = false;
+            }
+        }
+
+        function confirmDeleteAccount() {
+            if (confirm('Opravdu chcete smazat svůj účet? Tato akce je nevratná a všechna vaše data budou ztracena.')) {
+                deleteAccount();
+            }
+        }
+
+        async function deleteAccount() {
+            try {
+                deleteAccountBtn.innerHTML = '<div class="loading-spinner"></div> Mažu účet...';
+                deleteAccountBtn.disabled = true;
+                
+                // First delete the profile
+                const { error: profileError } = await supabase
+                    .from('profiles')
+                    .delete()
+                    .eq('id', currentUser.id);
+                
+                if (profileError) throw profileError;
+                
+                // Then delete the user from auth
+                const { error: authError } = await supabase.auth.admin.deleteUser(
+                    currentUser.id
+                );
+                
+                if (authError) throw authError;
+                
+                // Sign out and redirect to login
+                await supabase.auth.signOut();
+                window.location.href = '/login.html?deleted=true';
+                
+            } catch (error) {
+                console.error('Error deleting account:', error);
+                showAlert('Chyba při mazání účtu. Zkuste to prosím znovu nebo kontaktujte podporu.', 'danger');
+                deleteAccountBtn.innerHTML = '<i class="fas fa-trash-alt"></i> Smazat účet';
+                deleteAccountBtn.disabled = false;
+            }
+        }
+
+        async function logout() {
+            try {
+                logoutBtn.innerHTML = '<div class="loading-spinner"></div> Odhlašuji...';
+                logoutBtn.disabled = true;
+                
+                const { error } = await supabase.auth.signOut();
+                
+                if (error) throw error;
+                
+                window.location.href = '/login.html';
+                
+            } catch (error) {
+                console.error('Error signing out:', error);
+                showAlert('Chyba při odhlašování. Zkuste to prosím znovu.', 'danger');
+                logoutBtn.innerHTML = '<i class="fas fa-sign-out-alt"></i> Odhlásit se';
+                logoutBtn.disabled = false;
+            }
+        }
+
+        function openAvatarModal() {
+            avatarModal.classList.add('active');
+            avatarPreview.style.display = 'none';
+            avatarFile = null;
+        }
+
+        function closeAvatarModal() {
+            avatarModal.classList.remove('active');
+            avatarPreviewImg.src = '';
+        }
+
+        function handleAvatarSelection(e) {
+            if (e.target.files.length) {
+                handleAvatarFile(e.target.files[0]);
+            }
+        }
+
+        function handleAvatarFile(file) {
+            // Validate file type
+            const validTypes = ['image/jpeg', 'image/png', 'image/gif'];
+            if (!validTypes.includes(file.type)) {
+                showAlert('Neplatný formát souboru. Povolené formáty jsou JPEG, PNG a GIF.', 'warning');
+                return;
+            }
+            
+            // Validate file size (max 2MB)
+            if (file.size > 2 * 1024 * 1024) {
+                showAlert('Soubor je příliš velký. Maximální velikost je 2MB.', 'warning');
+                return;
+            }
+            
+            // Store file for later upload
+            avatarFile = file;
+            
+            // Show preview
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                avatarPreviewImg.src = e.target.result;
+                avatarPreview.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        }
+
+        async function uploadAvatar() {
+            if (!avatarFile) {
+                showAlert('Nejprve prosím vyberte soubor', 'warning');
+                return;
+            }
+            
+            try {
+                uploadAvatarBtn.innerHTML = '<div class="loading-spinner"></div> Nahrávám...';
+                uploadAvatarBtn.disabled = true;
+                
+                // Create a unique file name
+                const fileExt = avatarFile.name.split('.').pop();
+                const fileName = `${currentUser.id}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+                const filePath = `avatars/${fileName}`;
+                
+                // Upload file to Supabase Storage
+                const { error: uploadError } = await supabase.storage
+                    .from('user-content')
+                    .upload(filePath, avatarFile);
+                
+                if (uploadError) throw uploadError;
+                
+                // Get public URL for the uploaded file
+                const { data } = supabase.storage
+                    .from('user-content')
+                    .getPublicUrl(filePath);
+                
+                const avatarUrl = data.publicUrl;
+                
+                // Update user profile with new avatar URL
+                const { error: updateError } = await supabase
+                    .from('profiles')
+                    .update({ 
+                        avatar_url: avatarUrl,
+                        updated_at: new Date()
+                    })
+                    .eq('id', currentUser.id);
+                
+                if (updateError) throw updateError;
+                
+                // Update local user profile and UI
+                userProfile.avatar_url = avatarUrl;
+                updateUserAvatar(avatarUrl);
+                
+                showAlert('Avatar byl úspěšně aktualizován', 'success');
+                closeAvatarModal();
+                
+            } catch (error) {
+                console.error('Error uploading avatar:', error);
+                showAlert('Chyba při nahrávání avataru. Zkuste to prosím znovu.', 'danger');
+            } finally {
+                uploadAvatarBtn.innerHTML = '<span>Nahrát avatar</span>';
+                uploadAvatarBtn.disabled = false;
+            }
+        }
+
+        function showAlert(message, type) {
+            // Clear any existing timeout
+            if (window.alertTimeout) {
+                clearTimeout(window.alertTimeout);
+            }
+            
+            // Set alert content
+            alertEl.textContent = message;
+            alertEl.className = `alert ${type}`;
+            
+            // Show alert
+            alertEl.classList.add('show');
+            
+            // Auto hide after 5 seconds
+            window.alertTimeout = setTimeout(() => {
+                alertEl.classList.remove('show');
+            }, 5000);
+        }
     </script>
 </body>
 </html>
