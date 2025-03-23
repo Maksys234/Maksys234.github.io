@@ -802,338 +802,39 @@
             font-size: 0.95rem;
         }
 
-        /* Медиа-запросы для адаптивности */
-        @media (max-width: 992px) {
-            :root {
-                --sidebar-width: 80px;
-            }
-            
-            .sidebar-logo span, .sidebar-link span, .user-info, .sidebar-footer {
-                display: none;
-            }
-            
-            .sidebar-link i {
-                margin-right: 0;
-                font-size: 1.5rem;
-            }
-            
-            .sidebar-logo i {
-                margin-right: 0;
-            }
-            
-            .sidebar-header, .sidebar-link {
-                justify-content: center;
-            }
-            
-            .user-profile {
-                justify-content: center;
-                padding: 0.75rem;
-            }
-            
-            .user-avatar {
-                margin-right: 0;
-            }
-            
-            .search-box input {
-                width: 200px;
-            }
-            
-            .filter-options {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        @media (max-width: 768px) {
-            main {
-                padding: 1rem;
-            }
-            
-            .header-content {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 1rem;
-            }
-            
-            .header-actions {
-                width: 100%;
-                justify-content: space-between;
-            }
-            
-            .search-box input {
-                width: 100%;
-            }
-            
-            .exercise-meta {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 0.5rem;
-            }
-            
-            .exercise-footer {
-                flex-direction: column;
-                gap: 0.75rem;
-                align-items: flex-start;
-            }
-            
-            .btn {
-                width: 100%;
-                justify-content: center;
-            }
-            
-            .modal-footer {
-                flex-direction: column;
-            }
-            
-            .modal-footer .btn {
-                width: 100%;
-            }
-        }
-
-        @media (max-width: 576px) {
-            :root {
-                --sidebar-width: 0;
-            }
-            
-            .sidebar {
-                transform: translateX(-100%);
-            }
-            
-            main {
-                margin-left: 0;
-                width: 100%;
-            }
-            
-            .search-box {
-                display: none;
-            }
-            
-            .mobile-menu-toggle {
-                display: block;
-            }
-            
-            .categories-container {
-                grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-            }
-        }
-
-        /* Мобильное меню */
-        .mobile-menu-toggle {
-            display: none;
-            background: none;
-            border: none;
-            cursor: pointer;
-            color: var(--dark);
-            font-size: 1.5rem;
-            margin-right: 1rem;
-        }
-
-        /* Анимации */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .animated {
-            animation: fadeIn 0.5s ease forwards;
-        }
-
-        .delay-1 {
-            animation-delay: 0.1s;
-        }
-
-        .delay-2 {
-            animation-delay: 0.2s;
-        }
-
-        .delay-3 {
-            animation-delay: 0.3s;
-        }
-
-        /* Темный режим */
-        @media (prefers-color-scheme: dark) {
-            :root {
-                --white: #1a202c;
-                --light: #2d3748;
-                --dark: #e2e8f0;
-                --gray-light: #4a5568;
-                --text-primary: #e2e8f0;
-                --text-secondary: #cbd5e0;
-                --text-muted: #a0aec0;
-            }
-            
-            body {
-                background-color: #171923;
-            }
-            
-            .search-box input {
-                background-color: #2d3748;
-                color: var(--text-primary);
-                border-color: #4a5568;
-            }
-            
-            .search-box i {
-                color: #a0aec0;
-            }
-            
-            .category-card {
-                background-color: #1a202c;
-            }
-            
-            .difficulty-dot {
-                background-color: #4a5568;
-            }
-            
-            .filter-tag {
-                background-color: #2d3748;
-                border-color: #4a5568;
-            }
-            
-            .sort-dropdown {
-                background-color: #2d3748;
-                border-color: #4a5568;
-                color: var(--text-primary);
-            }
-            
-            .btn-secondary {
-                background-color: #2d3748;
-                border-color: #4a5568;
-                color: var(--text-primary);
-            }
-        }
-
-        /* Новые стили для экзаменационной системы */
-        .exam-section {
+        /* Тестовый контент */
+        .test-section {
             background-color: var(--white);
             border-radius: var(--card-radius);
             box-shadow: var(--shadow-md);
             padding: 2rem;
             margin-bottom: 2rem;
-            transition: all 0.3s ease;
         }
 
-        .exam-welcome {
+        .test-header {
             text-align: center;
-            max-width: 700px;
-            margin: 0 auto 2rem;
-        }
-
-        .exam-welcome h2 {
-            font-size: 1.75rem;
-            font-weight: 700;
-            margin-bottom: 1rem;
-            color: var(--dark);
-        }
-
-        .exam-welcome p {
-            font-size: 1rem;
-            color: var(--text-secondary);
-            line-height: 1.6;
-            margin-bottom: 1.5rem;
-        }
-
-        .exam-buttons {
-            display: flex;
-            justify-content: center;
-            gap: 1rem;
-            margin-top: 1.5rem;
-        }
-
-        .exam-selection {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 1.5rem;
             margin-bottom: 2rem;
         }
 
-        .exam-card {
-            background-color: var(--white);
-            border: 1px solid var(--gray-light);
-            border-radius: var(--card-radius);
-            padding: 1.5rem;
-            transition: all 0.3s ease;
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .exam-card:hover {
-            border-color: var(--primary);
-            transform: translateY(-5px);
-            box-shadow: var(--shadow-md);
-        }
-
-        .exam-card.selected {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 2px var(--primary-light);
-        }
-
-        .exam-card.selected::after {
-            content: '\f00c';
-            font-family: 'Font Awesome 6 Free';
-            font-weight: 900;
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            background-color: var(--primary);
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.8rem;
-        }
-
-        .exam-icon {
-            width: 50px;
-            height: 50px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 1rem;
-            color: white;
-            font-size: 1.5rem;
-        }
-
-        .exam-icon.math {
-            background: var(--gradient-2);
-        }
-
-        .exam-icon.language {
-            background: var(--gradient-3);
-        }
-
-        .exam-icon.mixed {
-            background: var(--gradient-4);
-        }
-
-        .exam-title {
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
+        .test-title {
+            font-size: 1.75rem;
+            font-weight: 700;
             color: var(--dark);
-        }
-
-        .exam-info {
-            font-size: 0.85rem;
-            color: var(--text-secondary);
             margin-bottom: 0.5rem;
         }
 
-        .exam-time {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
+        .test-description {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            max-width: 700px;
+            margin: 0 auto 1.5rem;
+            line-height: 1.6;
         }
 
         .question-container {
             background-color: var(--white);
             border-radius: var(--card-radius);
-            box-shadow: var(--shadow-md);
+            box-shadow: var(--shadow-sm);
             padding: 2rem;
             margin-bottom: 1.5rem;
             transition: all 0.3s ease;
@@ -1148,28 +849,10 @@
             border-bottom: 1px solid var(--gray-light);
         }
 
-        .question-progress {
-            display: flex;
-            align-items: center;
-            font-size: 0.9rem;
-        }
-
         .question-number {
+            font-size: 1.1rem;
             font-weight: 600;
             color: var(--primary);
-            margin-right: 0.5rem;
-        }
-
-        .question-timer {
-            display: flex;
-            align-items: center;
-            font-size: 0.9rem;
-            color: var(--text-secondary);
-        }
-
-        .question-timer i {
-            margin-right: 0.5rem;
-            color: var(--warning);
         }
 
         .question-content {
@@ -1234,6 +917,11 @@
             color: white;
         }
 
+        .option-text {
+            font-size: 1rem;
+            color: var(--text-primary);
+        }
+
         .numeric-input {
             display: flex;
             gap: 1rem;
@@ -1285,6 +973,10 @@
         .construction-solution p {
             margin-bottom: 1rem;
             color: var(--text-secondary);
+        }
+
+        .construction-solution input {
+            margin-bottom: 1rem;
         }
 
         .nav-buttons {
@@ -1509,76 +1201,230 @@
             text-align: center;
         }
 
-        .progress-chart {
-            width: 100%;
-            height: 250px;
-            margin-bottom: 2rem;
+        /* Медиа-запросы для адаптивности */
+        @media (max-width: 992px) {
+            :root {
+                --sidebar-width: 80px;
+            }
+            
+            .sidebar-logo span, .sidebar-link span, .user-info, .sidebar-footer {
+                display: none;
+            }
+            
+            .sidebar-link i {
+                margin-right: 0;
+                font-size: 1.5rem;
+            }
+            
+            .sidebar-logo i {
+                margin-right: 0;
+            }
+            
+            .sidebar-header, .sidebar-link {
+                justify-content: center;
+            }
+            
+            .user-profile {
+                justify-content: center;
+                padding: 0.75rem;
+            }
+            
+            .user-avatar {
+                margin-right: 0;
+            }
+            
+            .search-box input {
+                width: 200px;
+            }
+            
+            .filter-options {
+                grid-template-columns: 1fr;
+            }
         }
 
-        /* Progress step indicator */
-        .progress-steps {
+        @media (max-width: 768px) {
+            main {
+                padding: 1rem;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+            
+            .header-actions {
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            .search-box input {
+                width: 100%;
+            }
+            
+            .exercise-meta {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+            
+            .exercise-footer {
+                flex-direction: column;
+                gap: 0.75rem;
+                align-items: flex-start;
+            }
+            
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .modal-footer {
+                flex-direction: column;
+            }
+            
+            .modal-footer .btn {
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 576px) {
+            :root {
+                --sidebar-width: 0;
+            }
+            
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            
+            main {
+                margin-left: 0;
+                width: 100%;
+            }
+            
+            .search-box {
+                display: none;
+            }
+            
+            .mobile-menu-toggle {
+                display: block;
+            }
+            
+            .categories-container {
+                grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            }
+        }
+
+        /* Мобильное меню */
+        .mobile-menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--dark);
+            font-size: 1.5rem;
+            margin-right: 1rem;
+        }
+
+        /* Анимации */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animated {
+            animation: fadeIn 0.5s ease forwards;
+        }
+
+        .delay-1 {
+            animation-delay: 0.1s;
+        }
+
+        .delay-2 {
+            animation-delay: 0.2s;
+        }
+
+        .delay-3 {
+            animation-delay: 0.3s;
+        }
+
+        /* Загрузка */
+        .loading {
             display: flex;
-            justify-content: space-between;
-            margin-bottom: 2rem;
-            position: relative;
-        }
-
-        .progress-steps::before {
-            content: '';
-            position: absolute;
-            top: 15px;
-            left: 0;
-            width: 100%;
-            height: 2px;
-            background-color: var(--gray-light);
-            z-index: 1;
-        }
-
-        .step {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            position: relative;
-            z-index: 2;
-        }
-
-        .step-indicator {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            background-color: var(--white);
-            border: 2px solid var(--gray-light);
-            display: flex;
-            align-items: center;
             justify-content: center;
-            font-weight: 600;
-            color: var(--text-secondary);
-            margin-bottom: 0.5rem;
-            transition: all 0.3s ease;
+            align-items: center;
+            padding: 2rem;
+            font-size: 1rem;
+            color: var(--text-muted);
         }
 
-        .step.active .step-indicator {
-            background-color: var(--primary);
-            border-color: var(--primary);
-            color: white;
+        .loading::after {
+            content: "";
+            width: 20px;
+            height: 20px;
+            margin-left: 15px;
+            border: 2px solid var(--primary);
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: loading-spinner 0.8s linear infinite;
         }
 
-        .step.completed .step-indicator {
-            background-color: var(--success);
-            border-color: var(--success);
-            color: white;
+        @keyframes loading-spinner {
+            to {
+                transform: rotate(360deg);
+            }
         }
 
-        .step-label {
-            font-size: 0.8rem;
-            color: var(--text-secondary);
-            text-align: center;
-            transition: all 0.3s ease;
-        }
-
-        .step.active .step-label {
-            color: var(--primary);
-            font-weight: 500;
+        /* Темный режим */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --white: #1a202c;
+                --light: #2d3748;
+                --dark: #e2e8f0;
+                --gray-light: #4a5568;
+                --text-primary: #e2e8f0;
+                --text-secondary: #cbd5e0;
+                --text-muted: #a0aec0;
+            }
+            
+            body {
+                background-color: #171923;
+            }
+            
+            .search-box input {
+                background-color: #2d3748;
+                color: var(--text-primary);
+                border-color: #4a5568;
+            }
+            
+            .search-box i {
+                color: #a0aec0;
+            }
+            
+            .category-card {
+                background-color: #1a202c;
+            }
+            
+            .difficulty-dot {
+                background-color: #4a5568;
+            }
+            
+            .filter-tag {
+                background-color: #2d3748;
+                border-color: #4a5568;
+            }
+            
+            .sort-dropdown {
+                background-color: #2d3748;
+                border-color: #4a5568;
+                color: var(--text-primary);
+            }
+            
+            .btn-secondary {
+                background-color: #2d3748;
+                border-color: #4a5568;
+                color: var(--text-primary);
+            }
         }
     </style>
 </head>
@@ -1586,7 +1432,7 @@
     <!-- Сайдбар -->
     <aside class="sidebar">
         <div class="sidebar-header">
-            <a href="#" class="sidebar-logo">
+            <a href="/" class="sidebar-logo">
                 <i class="fas fa-brain"></i>
                 <span>Justax</span>
             </a>
@@ -1594,50 +1440,50 @@
         
         <ul class="sidebar-menu">
             <li class="sidebar-item">
-                <a href="#" class="sidebar-link">
-                    <i class="fas fa-home"></i>
+                <a href="/dashboard.html" class="sidebar-link">
+                    <i class="fas fa-th-large"></i>
                     <span>Dashboard</span>
                 </a>
             </li>
             <li class="sidebar-item">
-                <a href="#" class="sidebar-link active">
+                <a href="/dashboard/procvicovani.html" class="sidebar-link active">
                     <i class="fas fa-dumbbell"></i>
                     <span>Procvičování</span>
                 </a>
             </li>
             <li class="sidebar-item">
-                <a href="#" class="sidebar-link">
-                    <i class="fas fa-book"></i>
-                    <span>Kurzy</span>
-                </a>
-            </li>
-            <li class="sidebar-item">
-                <a href="#" class="sidebar-link">
-                    <i class="fas fa-graduation-cap"></i>
-                    <span>Studijní plán</span>
-                </a>
-            </li>
-            <li class="sidebar-item">
-                <a href="#" class="sidebar-link">
+                <a href="/dashboard/pokrok.html" class="sidebar-link">
                     <i class="fas fa-chart-line"></i>
-                    <span>Statistiky</span>
+                    <span>Pokrok</span>
                 </a>
             </li>
             <li class="sidebar-item">
-                <a href="#" class="sidebar-link">
-                    <i class="fas fa-cog"></i>
-                    <span>Nastavení</span>
+                <a href="/dashboard/oceneni.html" class="sidebar-link">
+                    <i class="fas fa-medal"></i>
+                    <span>Ocenění</span>
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a href="/dashboard/materialy.html" class="sidebar-link">
+                    <i class="fas fa-file-alt"></i>
+                    <span>Materiály</span>
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a href="/dashboard/profile.html" class="sidebar-link">
+                    <i class="fas fa-user-cog"></i>
+                    <span>Profil</span>
                 </a>
             </li>
         </ul>
         
         <div class="user-profile">
-            <div class="user-avatar">
-                <img src="../assets/user-avatar.png" alt="User Avatar">
+            <div class="user-avatar" id="user-avatar">
+                <img src="../assets/user-avatar.png" alt="Profilový obrázek" id="profile-image">
             </div>
             <div class="user-info">
-                <div class="user-name">Jan Novák</div>
-                <div class="user-role">Student</div>
+                <div class="user-name" id="user-name">Jan Novák</div>
+                <div class="user-role" id="user-role">Student</div>
             </div>
         </div>
         
@@ -1665,157 +1511,61 @@
         </div>
         
         <div class="main-content">
-            <!-- Новая секция экзамена -->
-            <div id="exam-section" class="exam-section">
-                <div class="progress-steps">
-                    <div class="step active" id="step-select">
-                        <div class="step-indicator">1</div>
-                        <div class="step-label">Výběr testu</div>
-                    </div>
-                    <div class="step" id="step-test">
-                        <div class="step-indicator">2</div>
-                        <div class="step-label">Zkouška</div>
-                    </div>
-                    <div class="step" id="step-results">
-                        <div class="step-indicator">3</div>
-                        <div class="step-label">Výsledky</div>
-                    </div>
-                    <div class="step" id="step-practice">
-                        <div class="step-indicator">4</div>
-                        <div class="step-label">Procvičování</div>
-                    </div>
+            <!-- Тестовая секция -->
+            <div id="test-section" class="test-section">
+                <div class="test-header">
+                    <h2 class="test-title">Diagnostický test z matematiky</h2>
+                    <p class="test-description">Tento test vám pomůže zjistit vaši úroveň znalostí z matematiky a identifikovat oblasti, které potřebujete zlepšit. Test obsahuje otázky z různých oblastí matematiky, včetně algebry a geometrie.</p>
+                    <button id="start-test-btn" class="btn btn-primary btn-lg">
+                        <i class="fas fa-play"></i> Začít test
+                    </button>
                 </div>
                 
-                <!-- Приветственный экран -->
-                <div id="exam-welcome">
-                    <div class="exam-welcome">
-                        <h2>Pojďme otestovat vaše znalosti</h2>
-                        <p>Než začnete s procvičováním, provedeme krátký diagnostický test, abychom mohli přizpůsobit vaše procvičování na míru. Test obsahuje otázky z různých oblastí matematiky.</p>
-                        <p>Výsledky testu vám pomohou identifikovat vaše silné a slabé stránky, abyste mohli efektivně zaměřit své studium.</p>
-                    </div>
-                    
-                    <div class="exam-selection">
-                        <div class="exam-card" data-exam="math-basic" onclick="selectExam(this)">
-                            <div class="exam-icon math">
-                                <i class="fas fa-square-root-alt"></i>
-                            </div>
-                            <h3 class="exam-title">Matematika: Základní test</h3>
-                            <p class="exam-info">20 otázek, různé oblasti matematiky</p>
-                            <div class="exam-time">
-                                <i class="far fa-clock"></i> 30 minut
-                            </div>
-                        </div>
-                        
-                        <div class="exam-card" data-exam="math-advanced" onclick="selectExam(this)">
-                            <div class="exam-icon math">
-                                <i class="fas fa-calculator"></i>
-                            </div>
-                            <h3 class="exam-title">Matematika: Pokročilý test</h3>
-                            <p class="exam-info">25 otázek, algebra, geometrie, analýza</p>
-                            <div class="exam-time">
-                                <i class="far fa-clock"></i> 45 minut
-                            </div>
-                        </div>
-                        
-                        <div class="exam-card" data-exam="math-prijimacky" onclick="selectExam(this)">
-                            <div class="exam-icon math">
-                                <i class="fas fa-graduation-cap"></i>
-                            </div>
-                            <h3 class="exam-title">Přijímačky: Matematika</h3>
-                            <p class="exam-info">15 otázek jako u přijímaček</p>
-                            <div class="exam-time">
-                                <i class="far fa-clock"></i> 40 minut
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="exam-buttons">
-                        <button class="btn btn-primary btn-lg" onclick="startExam()">
-                            <i class="fas fa-play"></i> Začít test
-                        </button>
-                    </div>
+                <div id="test-container" style="display: none;">
+                    <!-- Здесь будут отображаться вопросы теста -->
                 </div>
                 
-                <!-- Контейнер для вопросов экзамена -->
-                <div id="exam-questions" style="display: none;">
-                    <!-- Здесь будут отображаться вопросы -->
-                </div>
-                
-                <!-- Контейнер для результатов экзамена -->
-                <div id="exam-results" style="display: none;">
-                    <!-- Здесь будут отображаться результаты -->
+                <div id="results-container" style="display: none;">
+                    <!-- Здесь будут отображаться результаты теста -->
                 </div>
             </div>
             
-            <!-- Скрытый контент страницы с упражнениями - будет показан после прохождения теста -->
+            <!-- Контент с упражнениями (будет показан после теста) -->
             <div id="practice-content" style="display: none;">
                 <!-- Категории упражнений -->
                 <section class="categories-section">
                     <h2 class="section-title">Kategorie cvičení</h2>
                     <div class="categories-container">
-                        <div class="category-card math animated delay-1">
+                        <div class="category-card math animated delay-1" onclick="filterExercisesByTopic('Algebra')">
                             <div class="category-icon math">
                                 <i class="fas fa-square-root-alt"></i>
                             </div>
-                            <h3 class="category-title">Matematika</h3>
-                            <p class="category-desc">Algebra, geometrie, numerické otázky</p>
+                            <h3 class="category-title">Algebra</h3>
+                            <p class="category-desc">Rovnice, výrazy, zlomky</p>
                             <div class="category-stats">
-                                <span>42 cvičení</span> · <span>168 otázek</span>
+                                <span id="algebra-count">Načítání...</span>
                             </div>
                         </div>
                         
-                        <div class="category-card language animated delay-2">
-                            <div class="category-icon language">
-                                <i class="fas fa-font"></i>
+                        <div class="category-card math animated delay-2" onclick="filterExercisesByTopic('Geometrie')">
+                            <div class="category-icon math">
+                                <i class="fas fa-shapes"></i>
                             </div>
-                            <h3 class="category-title">Český jazyk</h3>
-                            <p class="category-desc">Pravopis, gramatika, literatura</p>
+                            <h3 class="category-title">Geometrie</h3>
+                            <p class="category-desc">Rovinné útvary, tělesa, měření</p>
                             <div class="category-stats">
-                                <span>35 cvičení</span> · <span>140 otázek</span>
+                                <span id="geometrie-count">Načítání...</span>
                             </div>
                         </div>
                         
-                        <div class="category-card mixed animated delay-3">
+                        <div class="category-card mixed animated delay-3" onclick="filterExercisesByTopic('Logické úlohy')">
                             <div class="category-icon mixed">
                                 <i class="fas fa-brain"></i>
                             </div>
-                            <h3 class="category-title">Všeobecný přehled</h3>
-                            <p class="category-desc">Historie, zeměpis, přírodopis</p>
+                            <h3 class="category-title">Logické úlohy</h3>
+                            <p class="category-desc">Slovní úlohy, procenta, finance</p>
                             <div class="category-stats">
-                                <span>28 cvičení</span> · <span>112 otázek</span>
-                            </div>
-                        </div>
-                        
-                        <div class="category-card math animated delay-1">
-                            <div class="category-icon math">
-                                <i class="fas fa-atom"></i>
-                            </div>
-                            <h3 class="category-title">Fyzika</h3>
-                            <p class="category-desc">Mechanika, elektřina, optika</p>
-                            <div class="category-stats">
-                                <span>20 cvičení</span> · <span>80 otázek</span>
-                            </div>
-                        </div>
-                        
-                        <div class="category-card language animated delay-2">
-                            <div class="category-icon language">
-                                <i class="fas fa-globe-europe"></i>
-                            </div>
-                            <h3 class="category-title">Angličtina</h3>
-                            <p class="category-desc">Gramatika, slovní zásoba, konverzace</p>
-                            <div class="category-stats">
-                                <span>30 cvičení</span> · <span>120 otázek</span>
-                            </div>
-                        </div>
-                        
-                        <div class="category-card mixed animated delay-3">
-                            <div class="category-icon mixed">
-                                <i class="fas fa-flask"></i>
-                            </div>
-                            <h3 class="category-title">Chemie</h3>
-                            <p class="category-desc">Anorganická, organická, biochemie</p>
-                            <div class="category-stats">
-                                <span>15 cvičení</span> · <span>60 otázek</span>
+                                <span id="logicke-count">Načítání...</span>
                             </div>
                         </div>
                     </div>
@@ -1824,103 +1574,17 @@
                 <!-- Рекомендуемые упражнения -->
                 <section class="recommended-section animated delay-1">
                     <h2 class="section-title">Doporučená cvičení</h2>
-                    <div class="recommended-grid">
-                        <div class="exercise-card">
-                            <div class="exercise-header">
-                                <img src="../assets/math-exercise.jpg" alt="Matematika">
-                                <div class="exercise-badge math">Matematika</div>
-                            </div>
-                            <div class="exercise-body">
-                                <h3 class="exercise-title">Lineární rovnice a nerovnice</h3>
-                                <p class="exercise-desc">Procvičte si řešení lineárních rovnic a nerovnic s jednou neznámou.</p>
-                                <div class="exercise-meta">
-                                    <div class="exercise-difficulty">
-                                        Obtížnost:
-                                        <div class="difficulty-indicator">
-                                            <span class="difficulty-dot active"></span>
-                                            <span class="difficulty-dot active"></span>
-                                            <span class="difficulty-dot"></span>
-                                        </div>
-                                    </div>
-                                    <div class="exercise-time">
-                                        <i class="far fa-clock"></i> 15 min
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="exercise-footer">
-                                <div class="progress-info">
-                                    <span>0/10 dokončeno</span>
-                                </div>
-                                <button class="btn btn-primary">Začít</button>
-                            </div>
-                        </div>
-                        
-                        <div class="exercise-card">
-                            <div class="exercise-header">
-                                <img src="../assets/math-exercise2.jpg" alt="Matematika">
-                                <div class="exercise-badge math">Matematika</div>
-                            </div>
-                            <div class="exercise-body">
-                                <h3 class="exercise-title">Planimetrie - obsahy a obvody</h3>
-                                <p class="exercise-desc">Naučte se počítat obsahy a obvody základních rovinných útvarů.</p>
-                                <div class="exercise-meta">
-                                    <div class="exercise-difficulty">
-                                        Obtížnost:
-                                        <div class="difficulty-indicator">
-                                            <span class="difficulty-dot active"></span>
-                                            <span class="difficulty-dot active"></span>
-                                            <span class="difficulty-dot active"></span>
-                                        </div>
-                                    </div>
-                                    <div class="exercise-time">
-                                        <i class="far fa-clock"></i> 20 min
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="exercise-footer">
-                                <div class="progress-info">
-                                    <span>0/12 dokončeno</span>
-                                </div>
-                                <button class="btn btn-primary">Začít</button>
-                            </div>
-                        </div>
-                        
-                        <div class="exercise-card">
-                            <div class="exercise-header">
-                                <img src="../assets/language-exercise.jpg" alt="Český jazyk">
-                                <div class="exercise-badge language">Český jazyk</div>
-                            </div>
-                            <div class="exercise-body">
-                                <h3 class="exercise-title">Pravopis - vyjmenovaná slova</h3>
-                                <p class="exercise-desc">Procvičte si pravopis vyjmenovaných slov a slov příbuzných.</p>
-                                <div class="exercise-meta">
-                                    <div class="exercise-difficulty">
-                                        Obtížnost:
-                                        <div class="difficulty-indicator">
-                                            <span class="difficulty-dot active"></span>
-                                            <span class="difficulty-dot"></span>
-                                            <span class="difficulty-dot"></span>
-                                        </div>
-                                    </div>
-                                    <div class="exercise-time">
-                                        <i class="far fa-clock"></i> 10 min
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="exercise-footer">
-                                <div class="progress-info">
-                                    <span>0/8 dokončeno</span>
-                                </div>
-                                <button class="btn btn-primary">Začít</button>
-                            </div>
-                        </div>
+                    <div id="recommended-exercises" class="recommended-grid">
+                        <div class="loading">Načítání doporučených cvičení...</div>
                     </div>
                 </section>
                 
-                <!-- Недавно изученные упражнения -->
+                <!-- Недавние упражнения -->
                 <section class="recent-section animated delay-2">
-                    <h2 class="section-title">Naposledy dokončená cvičení</h2>
-                    <p>Zde se zobrazí váš nedávný pokrok po absolvování cvičení.</p>
+                    <h2 class="section-title">Poslední cvičení</h2>
+                    <div id="recent-exercises" class="recent-exercises">
+                        <div class="loading">Načítání posledních cvičení...</div>
+                    </div>
                 </section>
             </div>
         </div>
@@ -1929,88 +1593,129 @@
             <p>&copy; 2024 Justax. Všechna práva vyhrazena.</p>
         </footer>
     </main>
-    <!-- Инициализация Supabase -->
+
+    <!-- Скрипт для интеграции с Supabase -->
     <script>
-        // Инициализация Supabase клиента
+        // Инициализация клиента Supabase
         const supabaseUrl = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTEyMDc1MTQsImV4cCI6MjAyNjc4MzUxNH0.SQBGQuXJbXV_V3m-j26Z70Y3wOxGBDcBKqtYoXcMzgE';
         const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-        // Переменные экзамена
-        let selectedExam = null;
-        let currentQuestions = [];
-        let currentQuestionIndex = 0;
-        let userAnswers = [];
-        let examStartTime = null;
-        let examTimer = null;
-        let examTimeLeft = 0;
-        
-        // Текущий пользователь
-        const currentUser = {
-            id: 'user-1', // Заменить на фактический ID пользователя
+        // Переменные для теста
+        let currentUser = {
+            id: 'user-1',  // Позже можно загрузить из auth
             name: 'Jan Novák'
         };
+        let testQuestions = [];
+        let userAnswers = [];
+        let currentQuestionIndex = 0;
+        let testStarted = false;
 
-        // Выбор экзамена
-        function selectExam(element) {
-            // Удаляем класс selected со всех карточек
-            document.querySelectorAll('.exam-card').forEach(card => {
-                card.classList.remove('selected');
-            });
+        // При загрузке страницы
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Загружаем информацию о пользователе
+            await loadUserProfile();
             
-            // Добавляем класс selected выбранной карточке
-            element.classList.add('selected');
+            // Привязываем обработчики событий
+            document.getElementById('start-test-btn').addEventListener('click', startTest);
             
-            // Сохраняем ID выбранного экзамена
-            selectedExam = element.getAttribute('data-exam');
-            
-            // Устанавливаем время в зависимости от экзамена
-            switch(selectedExam) {
-                case 'math-basic':
-                    examTimeLeft = 30 * 60; // 30 минут в секундах
-                    break;
-                case 'math-advanced':
-                    examTimeLeft = 45 * 60; // 45 минут в секундах
-                    break;
-                case 'math-prijimacky':
-                    examTimeLeft = 40 * 60; // 40 минут в секундах
-                    break;
-                default:
-                    examTimeLeft = 30 * 60; // По умолчанию 30 минут
+            // Проверяем статус теста пользователя
+            checkTestStatus();
+        });
+
+        // Загрузка профиля пользователя
+        async function loadUserProfile() {
+            try {
+                // В реальном приложении здесь должна быть проверка авторизации
+                const { data: profiles, error } = await supabase
+                    .from('profiles')
+                    .select('*')
+                    .limit(1);
+                
+                if (error) {
+                    console.error('Ошибка при загрузке профиля:', error);
+                    return;
+                }
+                
+                if (profiles && profiles.length > 0) {
+                    const profile = profiles[0];
+                    currentUser.id = profile.id;
+                    currentUser.name = profile.first_name + ' ' + profile.last_name;
+                    
+                    // Обновляем отображение информации о пользователе
+                    document.getElementById('user-name').textContent = currentUser.name;
+                    
+                    // Если у пользователя есть аватар
+                    if (profile.avatar_url) {
+                        document.getElementById('profile-image').src = profile.avatar_url;
+                    } else {
+                        // Инициалы пользователя
+                        const initials = (profile.first_name.charAt(0) + profile.last_name.charAt(0)).toUpperCase();
+                        document.getElementById('user-avatar').textContent = initials;
+                    }
+                }
+            } catch (error) {
+                console.error('Ошибка:', error);
             }
         }
 
-        // Начало экзамена
-        async function startExam() {
-            if (!selectedExam) {
-                alert('Vyberte prosím test, který chcete absolvovat.');
-                return;
+        // Проверка статуса прохождения теста
+        async function checkTestStatus() {
+            try {
+                // Проверяем, проходил ли пользователь тест ранее
+                const { data: attempts, error } = await supabase
+                    .from('user_test_attempts')
+                    .select('*')
+                    .eq('user_id', currentUser.id)
+                    .order('created_at', { ascending: false })
+                    .limit(1);
+                
+                if (error) {
+                    console.error('Ошибка при проверке статуса теста:', error);
+                    return;
+                }
+                
+                if (attempts && attempts.length > 0) {
+                    // Пользователь уже проходил тест
+                    // Показываем контент для практики
+                    document.getElementById('practice-content').style.display = 'block';
+                    
+                    // Загружаем данные для практики
+                    loadCategoryCounts();
+                    loadRecommendedExercises();
+                    loadRecentExercises();
+                    
+                    // Обновляем текст кнопки
+                    document.getElementById('start-test-btn').innerHTML = '<i class="fas fa-sync-alt"></i> Пройти тест снова';
+                }
+            } catch (error) {
+                console.error('Ошибка:', error);
             }
+        }
+
+        // Начать тест
+        async function startTest() {
+            testStarted = true;
             
-            // Обновляем шаги прогресса
-            updateProgressSteps('step-test');
+            // Скрываем кнопку начала теста, отображаем контейнер с вопросами
+            document.getElementById('start-test-btn').style.display = 'none';
+            document.getElementById('test-container').style.display = 'block';
             
-            // Скрываем экран приветствия и показываем контейнер вопросов
-            document.getElementById('exam-welcome').style.display = 'none';
-            document.getElementById('exam-questions').style.display = 'block';
-            
-            // Загружаем вопросы для выбранного экзамена
-            await loadQuestions();
-            
-            // Устанавливаем время начала экзамена
-            examStartTime = new Date();
-            
-            // Запускаем таймер
-            startTimer();
+            // Загружаем вопросы для теста
+            await loadTestQuestions();
             
             // Отображаем первый вопрос
-            displayQuestion(0);
+            showQuestion(0);
         }
 
-        // Загрузка вопросов для экзамена
-        async function loadQuestions() {
+        // Загрузка вопросов для теста
+        async function loadTestQuestions() {
             try {
-                let query = supabase
+                // Показываем индикатор загрузки
+                document.getElementById('test-container').innerHTML = '<div class="loading">Načítání otázek...</div>';
+                
+                // Загружаем вопросы из базы данных
+                const { data, error } = await supabase
                     .from('exam_questions')
                     .select(`
                         id, 
@@ -2027,188 +1732,194 @@
                         exam_subtopics (name)
                     `)
                     .eq('source_year', 2024)
-                    .eq('source_exam_type', 'prijimacky');
-                
-                // Фильтруем вопросы в зависимости от выбранного экзамена
-                if (selectedExam === 'math-basic') {
-                    query = query.lte('difficulty', 3).limit(20);
-                } else if (selectedExam === 'math-advanced') {
-                    query = query.gte('difficulty', 3).limit(25);
-                } else if (selectedExam === 'math-prijimacky') {
-                    query = query.limit(15);
-                }
-                
-                const { data, error } = await query.order('id');
+                    .eq('source_exam_type', 'prijimacky')
+                    .order('id');
                 
                 if (error) {
-                    console.error('Chyba při načítání otázek:', error);
+                    console.error('Ошибка при загрузке вопросов:', error);
+                    document.getElementById('test-container').innerHTML = `
+                        <div class="error-message">
+                            <i class="fas fa-exclamation-circle"></i>
+                            <div>
+                                <div>Nepodařilo se načíst otázky. Zkuste to prosím znovu.</div>
+                                <button class="retry-button" onclick="startTest()">Zkusit znovu</button>
+                            </div>
+                        </div>`;
                     return;
                 }
                 
-                // Случайно перемешиваем вопросы
-                currentQuestions = shuffleArray(data);
+                // Сохраняем загруженные вопросы
+                testQuestions = data || [];
                 
                 // Инициализируем массив ответов пользователя
-                userAnswers = Array(currentQuestions.length).fill(null);
+                userAnswers = Array(testQuestions.length).fill(null);
                 
-                console.log('Načteno otázek:', currentQuestions.length);
+                console.log(`Загружено ${testQuestions.length} вопросов для теста`);
             } catch (error) {
-                console.error('Chyba:', error);
+                console.error('Ошибка:', error);
+                document.getElementById('test-container').innerHTML = `
+                    <div class="error-message">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <div>
+                            <div>Došlo k neočekávané chybě. Zkuste to prosím znovu.</div>
+                            <button class="retry-button" onclick="startTest()">Zkusit znovu</button>
+                        </div>
+                    </div>`;
             }
         }
 
-        // Отображение вопроса
-        function displayQuestion(index) {
-            if (index < 0 || index >= currentQuestions.length) {
-                console.error('Neplatný index otázky:', index);
+        // Отображение текущего вопроса
+        function showQuestion(index) {
+            // Проверяем, есть ли вопросы и находится ли индекс в допустимом диапазоне
+            if (!testQuestions.length || index < 0 || index >= testQuestions.length) {
+                console.error('Недопустимый индекс вопроса или нет вопросов');
                 return;
             }
             
-            // Обновляем текущий индекс вопроса
+            const question = testQuestions[index];
             currentQuestionIndex = index;
             
-            const question = currentQuestions[index];
-            const questionContainer = document.getElementById('exam-questions');
-            
-            // Создаем HTML для вопроса в зависимости от его типа
+            // Создаем HTML для вопроса
             let questionHTML = `
                 <div class="question-container">
                     <div class="question-header">
-                        <div class="question-progress">
-                            <span class="question-number">Otázka ${index + 1}/${currentQuestions.length}</span>
-                        </div>
-                        <div class="question-timer">
-                            <i class="far fa-clock"></i>
-                            <span id="timer-display">--:--</span>
-                        </div>
+                        <div class="question-number">Otázka ${index + 1} z ${testQuestions.length}</div>
                     </div>
                     <div class="question-content">
                         <div class="question-text">${question.question_text}</div>
                         ${question.image_url ? `<img src="${question.image_url}" alt="Obrázek k otázce" class="question-image">` : ''}
+                        <div class="options-container">
             `;
             
-            // Добавляем опции в зависимости от типа вопроса
+            // Добавляем варианты ответов в зависимости от типа вопроса
             switch (question.question_type) {
                 case 'multiple_choice':
-                    const options = typeof question.options === 'string' ? JSON.parse(question.options) : question.options;
-                    questionHTML += `<div class="options-container">`;
-                    options.forEach((option, idx) => {
+                    // Обрабатываем варианты с множественным выбором
+                    const options = Array.isArray(question.options) ? question.options : JSON.parse(question.options);
+                    options.forEach((option, optionIndex) => {
+                        const isSelected = userAnswers[index] === option;
                         questionHTML += `
-                            <div class="option-item ${userAnswers[index] === option ? 'selected' : ''}" onclick="selectOption(${index}, '${option}')">
-                                <div class="option-label">${String.fromCharCode(65 + idx)}</div>
+                            <div class="option-item ${isSelected ? 'selected' : ''}" 
+                                 onclick="selectAnswer(${index}, '${option.replace(/'/g, "\\'")}')">
+                                <div class="option-label">${String.fromCharCode(65 + optionIndex)}</div>
                                 <div class="option-text">${option}</div>
                             </div>
                         `;
                     });
-                    questionHTML += `</div>`;
                     break;
-                    
+                
                 case 'numeric':
+                    // Числовой ввод
                     questionHTML += `
                         <div class="numeric-input">
-                            <input type="number" placeholder="Zadejte číselnou odpověď" 
-                                value="${userAnswers[index] || ''}" 
-                                onchange="saveNumericAnswer(${index}, this.value)">
+                            <input type="number" 
+                                   placeholder="Zadejte číselnou odpověď" 
+                                   value="${userAnswers[index] || ''}" 
+                                   onchange="updateAnswer(${index}, this.value)">
                         </div>
                     `;
                     break;
-                    
+                
                 case 'text':
+                    // Текстовый ввод
                     questionHTML += `
                         <div class="text-input">
-                            <input type="text" placeholder="Zadejte textovou odpověď" 
-                                value="${userAnswers[index] || ''}" 
-                                onchange="saveTextAnswer(${index}, this.value)">
+                            <input type="text" 
+                                   placeholder="Zadejte textovou odpověď" 
+                                   value="${userAnswers[index] || ''}" 
+                                   onchange="updateAnswer(${index}, this.value)">
                         </div>
                     `;
                     break;
-                    
+                
                 case 'construction':
+                    // Задачи на построение
                     questionHTML += `
                         <div class="construction-solution">
                             <p>Pro tuto úlohu je potřeba narýsovat řešení.</p>
                             <input type="file" accept="image/*" id="construction-file">
-                            <button class="btn btn-primary" onclick="saveConstructionAnswer(${index})">
+                            <button class="btn btn-primary" onclick="uploadConstructionSolution(${index})">
                                 <i class="fas fa-upload"></i> Nahrát řešení
                             </button>
                         </div>
                     `;
                     break;
+                
+                default:
+                    questionHTML += `<p>Nepodporovaný typ otázky: ${question.question_type}</p>`;
             }
             
-            // Добавляем кнопки навигации
+            // Добавляем кнопки для навигации
             questionHTML += `
                     </div>
-                    <div class="nav-buttons">
-                        <button class="btn btn-secondary" ${index === 0 ? 'disabled' : ''} onclick="navigateQuestion(-1)">
-                            <i class="fas fa-arrow-left"></i> Předchozí
-                        </button>
-                        <button class="btn btn-primary" onclick="navigateQuestion(1)">
-                            ${index === currentQuestions.length - 1 ? 'Dokončit test' : 'Další <i class="fas fa-arrow-right"></i>'}
-                        </button>
-                    </div>
+                </div>
+                <div class="nav-buttons">
+                    <button class="btn btn-secondary" ${index === 0 ? 'disabled' : ''} onclick="navigateQuestion(-1)">
+                        <i class="fas fa-arrow-left"></i> Předchozí
+                    </button>
+                    <button class="btn btn-primary" onclick="navigateQuestion(1)">
+                        ${index === testQuestions.length - 1 ? 'Dokončit test' : 'Další <i class="fas fa-arrow-right"></i>'}
+                    </button>
                 </div>
             `;
             
-            // Устанавливаем HTML в контейнер вопросов
-            questionContainer.innerHTML = questionHTML;
-            
-            // Обновляем отображение таймера
-            updateTimerDisplay();
+            // Обновляем контейнер с вопросом
+            document.getElementById('test-container').innerHTML = questionHTML;
         }
 
-        // Выбор варианта ответа для вопроса с множественным выбором
-        function selectOption(questionIndex, option) {
+        // Выбор ответа для вопросов с вариантами
+        function selectAnswer(questionIndex, option) {
             userAnswers[questionIndex] = option;
             
-            // Обновляем стили выбранного варианта
-            document.querySelectorAll('.option-item').forEach(item => {
-                item.classList.remove('selected');
-            });
+            // Обновляем стиль выбранного варианта
+            const optionItems = document.querySelectorAll('.option-item');
+            optionItems.forEach(item => item.classList.remove('selected'));
             
+            // Находим элемент, соответствующий выбранному варианту
             event.currentTarget.classList.add('selected');
         }
 
-        // Сохранение числового ответа
-        function saveNumericAnswer(questionIndex, value) {
+        // Обновление ответа для числовых и текстовых вопросов
+        function updateAnswer(questionIndex, value) {
             userAnswers[questionIndex] = value;
         }
 
-        // Сохранение текстового ответа
-        function saveTextAnswer(questionIndex, value) {
-            userAnswers[questionIndex] = value;
-        }
-
-        // Сохранение ответа с конструкцией (загрузка изображения)
-        async function saveConstructionAnswer(questionIndex) {
+        // Загрузка решения для задач на построение
+                // Загрузка решения для задач на построение
+        async function uploadConstructionSolution(questionIndex) {
             const fileInput = document.getElementById('construction-file');
             
-            if (fileInput.files.length === 0) {
+            if (!fileInput.files || fileInput.files.length === 0) {
                 alert('Vyberte prosím soubor s vaším řešením.');
                 return;
             }
             
-            const file = fileInput.files[0];
-            
             try {
-                // Загрузка файла в хранилище Supabase
+                const file = fileInput.files[0];
+                const filePath = `construction-solutions/${currentUser.id}/${testQuestions[questionIndex].id}.jpg`;
+                
+                // Загружаем файл в хранилище
                 const { data, error } = await supabase.storage
                     .from('user-content')
-                    .upload(`solutions/${currentUser.id}/${currentQuestions[questionIndex].id}.jpg`, file);
-                    
+                    .upload(filePath, file);
+                
                 if (error) {
                     console.error('Chyba při nahrávání souboru:', error);
-                    alert('Nepodařilo se nahrát vaše řešení. Zkuste to prosím znovu.');
+                    alert('Nepodařilo se nahrát soubor. Zkuste to prosím znovu.');
                     return;
                 }
                 
-                // Сохраняем ссылку на загруженный файл
-                userAnswers[questionIndex] = data.path;
+                // Получаем публичную ссылку на файл
+                const { data: publicURL } = supabase.storage
+                    .from('user-content')
+                    .getPublicUrl(filePath);
                 
+                // Сохраняем ссылку как ответ пользователя
+                userAnswers[questionIndex] = publicURL.publicURL;
                 alert('Vaše řešení bylo úspěšně nahráno.');
             } catch (error) {
                 console.error('Chyba:', error);
-                alert('Nastala chyba při nahrávání. Zkuste to prosím znovu.');
+                alert('Došlo k chybě při nahrávání. Zkuste to prosím znovu.');
             }
         }
 
@@ -2216,47 +1927,55 @@
         function navigateQuestion(step) {
             const newIndex = currentQuestionIndex + step;
             
-            // Проверяем, находится ли новый индекс в пределах массива вопросов
-            if (newIndex >= 0 && newIndex < currentQuestions.length) {
-                displayQuestion(newIndex);
-            } else if (newIndex >= currentQuestions.length) {
-                // Если пытаемся перейти после последнего вопроса, завершаем тест
-                finishExam();
+            // Проверяем, находится ли новый индекс в допустимом диапазоне
+            if (newIndex >= 0 && newIndex < testQuestions.length) {
+                showQuestion(newIndex);
+            } else if (newIndex >= testQuestions.length) {
+                // Если пользователь нажал "Далее" на последнем вопросе, завершаем тест
+                finishTest();
             }
         }
 
-        // Завершение экзамена
-        function finishExam() {
-            // Останавливаем таймер
-            clearInterval(examTimer);
+        // Завершение теста
+        function finishTest() {
+            // Проверяем, ответил ли пользователь на все вопросы
+            const unansweredCount = userAnswers.filter(answer => answer === null).length;
             
-            // Подсчитываем результаты
+            if (unansweredCount > 0) {
+                // Спрашиваем пользователя, хочет ли он завершить тест с неотвеченными вопросами
+                if (!confirm(`Máte neodpovězených ${unansweredCount} otázek. Chcete opravdu test dokončit?`)) {
+                    return;
+                }
+            }
+            
+            // Вычисляем результаты теста
             calculateResults();
-            
-            // Скрываем вопросы и показываем результаты
-            document.getElementById('exam-questions').style.display = 'none';
-            document.getElementById('exam-results').style.display = 'block';
-            
-            // Обновляем шаги прогресса
-            updateProgressSteps('step-results');
         }
 
-        // Подсчет результатов экзамена
+        // Вычисление результатов теста
         function calculateResults() {
-            let correctAnswers = 0;
+            // Скрываем контейнер с вопросами и показываем контейнер с результатами
+            document.getElementById('test-container').style.display = 'none';
+            document.getElementById('results-container').style.display = 'block';
+            
+            // Показываем индикатор загрузки в контейнере результатов
+            document.getElementById('results-container').innerHTML = '<div class="loading">Vyhodnocování výsledků...</div>';
+            
+            // Подсчитываем количество правильных ответов и результаты по темам
+            let correctCount = 0;
             let topicStats = {};
             
-            // Подсчитываем количество правильных ответов и статистику по темам
-            currentQuestions.forEach((question, index) => {
+            testQuestions.forEach((question, index) => {
                 const userAnswer = userAnswers[index];
                 const isCorrect = isAnswerCorrect(question, userAnswer);
                 
                 if (isCorrect) {
-                    correctAnswers++;
+                    correctCount++;
                 }
                 
-                // Собираем статистику по темам
-                const topicName = question.exam_topics?.name || 'Neznámá';
+                // Группируем результаты по темам
+                const topicName = question.exam_topics?.name || 'Jiné';
+                
                 if (!topicStats[topicName]) {
                     topicStats[topicName] = {
                         total: 0,
@@ -2270,29 +1989,40 @@
                 }
             });
             
-            const totalQuestions = currentQuestions.length;
-            const score = Math.round((correctAnswers / totalQuestions) * 100);
+            // Вычисляем процент правильных ответов
+            const totalQuestions = testQuestions.length;
+            const successRate = (correctCount / totalQuestions) * 100;
+            
+            // Находим темы с наихудшими результатами
+            const problemAreas = Object.entries(topicStats)
+                .filter(([_, stats]) => stats.total >= 2) // Только темы с хотя бы 2 вопросами
+                .map(([topic, stats]) => ({
+                    topic,
+                    score: (stats.correct / stats.total) * 100,
+                    correct: stats.correct,
+                    total: stats.total
+                }))
+                .sort((a, b) => a.score - b.score); // Сортировка по возрастанию процента правильных ответов
+            
+            // Сохраняем результаты в базу данных
+            saveTestResults(correctCount, totalQuestions, successRate, topicStats);
             
             // Генерируем HTML с результатами
             let resultsHTML = `
                 <div class="results-container">
                     <div class="results-header">
                         <h2 class="results-title">Výsledky testu</h2>
-                        <p class="results-subtitle">Dokončili jste ${selectedExam === 'math-basic' ? 'základní' : selectedExam === 'math-advanced' ? 'pokročilý' : 'přijímačkový'} test z matematiky</p>
+                        <p class="results-subtitle">Dokončili jste diagnostický test z matematiky</p>
                     </div>
                     
                     <div class="results-summary">
                         <div class="summary-card">
-                            <div class="summary-value">${score}%</div>
-                            <div class="summary-label">Celkové skóre</div>
+                            <div class="summary-value">${Math.round(successRate)}%</div>
+                            <div class="summary-label">Celková úspěšnost</div>
                         </div>
                         <div class="summary-card">
-                            <div class="summary-value">${correctAnswers}/${totalQuestions}</div>
+                            <div class="summary-value">${correctCount}/${totalQuestions}</div>
                             <div class="summary-label">Správné odpovědi</div>
-                        </div>
-                        <div class="summary-card">
-                            <div class="summary-value">${formatTime(Math.floor((new Date() - examStartTime) / 1000))}</div>
-                            <div class="summary-label">Čas testu</div>
                         </div>
                     </div>
                     
@@ -2301,15 +2031,15 @@
             `;
             
             // Добавляем результаты по темам
-            Object.keys(topicStats).forEach(topic => {
-                const stats = topicStats[topic];
-                const topicScore = Math.round((stats.correct / stats.total) * 100);
+            Object.entries(topicStats).forEach(([topic, stats]) => {
+                const topicScore = (stats.correct / stats.total) * 100;
+                const topicIcon = getTopicIcon(topic);
                 
                 resultsHTML += `
                     <div class="topic-card">
                         <div class="topic-info">
-                            <div class="topic-icon" style="background: var(--gradient-2);">
-                                <i class="fas ${topic.includes('Algebra') ? 'fa-calculator' : topic.includes('Geometrie') ? 'fa-shapes' : 'fa-brain'}"></i>
+                            <div class="topic-icon" style="background: ${getTopicGradient(topic)}">
+                                <i class="fas ${topicIcon}"></i>
                             </div>
                             <div class="topic-name">${topic}</div>
                         </div>
@@ -2317,255 +2047,527 @@
                             <div class="progress-bar">
                                 <div class="progress-value" style="width: ${topicScore}%;"></div>
                             </div>
-                            <div class="progress-text">${stats.correct}/${stats.total} (${topicScore}%)</div>
+                            <div class="progress-text">${stats.correct}/${stats.total} (${Math.round(topicScore)}%)</div>
                         </div>
                     </div>
                 `;
             });
             
-            // Добавляем разбор ответов и кнопки для дальнейших действий
+            // Добавляем рекомендации по проблемным областям
             resultsHTML += `
-                    </div>
-                    
-                    <div class="answer-review">
-                        <h3 class="review-title">Přehled odpovědí</h3>
+                </div>
+                
+                <div class="topic-results">
+                    <h3 class="topic-title">Doporučení pro zlepšení</h3>
             `;
             
-            // Добавляем разбор каждого вопроса
-            currentQuestions.forEach((question, index) => {
-                const userAnswer = userAnswers[index];
-                const isCorrect = isAnswerCorrect(question, userAnswer);
-                
+            if (problemAreas.length > 0) {
+                // Отображаем до 3 проблемных областей
+                problemAreas.slice(0, 3).forEach(area => {
+                    resultsHTML += `
+                        <div class="review-item">
+                            <div class="review-question">
+                                <div>
+                                    <b>${area.topic}</b> - úspěšnost pouze ${Math.round(area.score)}%
+                                </div>
+                            </div>
+                            <div class="review-explanation">
+                                <div class="explanation-text">
+                                    Doporučujeme zaměřit se na téma ${area.topic}. V testu jste správně odpověděli pouze na ${area.correct} z ${area.total} otázek z této oblasti.
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+            } else {
                 resultsHTML += `
                     <div class="review-item">
-                        <div class="review-question">
-                            <div>Otázka ${index + 1}: ${question.question_text.length > 100 ? question.question_text.substring(0, 100) + '...' : question.question_text}</div>
-                            <div class="question-status ${isCorrect ? 'status-correct' : 'status-incorrect'}">
-                                <i class="fas ${isCorrect ? 'fa-check-circle' : 'fa-times-circle'}"></i>
-                                ${isCorrect ? 'Správně' : 'Nesprávně'}
-                            </div>
-                        </div>
-                        
-                        <div class="review-answers">
-                            <div class="review-answer">
-                                <div class="answer-label">Vaše odpověď:</div>
-                                <div class="answer-value ${!isCorrect ? 'your-answer' : ''}">${formatAnswer(userAnswer)}</div>
-                            </div>
-                            <div class="review-answer">
-                                <div class="answer-label">Správná odpověď:</div>
-                                <div class="answer-value">${formatAnswer(question.correct_answer)}</div>
-                            </div>
-                        </div>
-                        
                         <div class="review-explanation">
-                            <div class="explanation-title">Vysvětlení:</div>
-                            <div class="explanation-text">${question.solution_explanation || 'Žádné vysvětlení není k dispozici.'}</div>
+                            <div class="explanation-text">
+                                Nemáte žádné výrazné problémové oblasti. Pokračujte v pravidelném procvičování všech témat.
+                            </div>
                         </div>
                     </div>
                 `;
-            });
+            }
             
-            // Добавляем кнопки для дальнейших действий
+            // Добавляем кнопку для перехода к практике
             resultsHTML += `
-                    </div>
-                    
-                    <div class="next-steps">
-                        <button class="btn btn-primary btn-lg" onclick="showPracticeContent()">
-                            <i class="fas fa-dumbbell"></i> Přejít na procvičování
-                        </button>
-                    </div>
                 </div>
+                
+                <div class="next-steps">
+                    <button class="btn btn-primary btn-lg" onclick="showPracticeContent()">
+                        <i class="fas fa-dumbbell"></i> Přejít na procvičování
+                    </button>
+                </div>
+            </div>
             `;
             
-            // Устанавливаем HTML в контейнер результатов
-            document.getElementById('exam-results').innerHTML = resultsHTML;
-            
-            // Сохраняем результаты в Supabase
-            saveExamResults(score, correctAnswers, totalQuestions, topicStats);
+            // Обновляем контейнер с результатами
+            document.getElementById('results-container').innerHTML = resultsHTML;
         }
 
         // Проверка правильности ответа
         function isAnswerCorrect(question, userAnswer) {
-            if (!userAnswer) return false;
-            
-            if (question.question_type === 'multiple_choice') {
-                return userAnswer === question.correct_answer;
-            } else if (question.question_type === 'numeric') {
-                return parseFloat(userAnswer) === parseFloat(question.correct_answer);
-            } else if (question.question_type === 'text') {
-                return userAnswer.toLowerCase().trim() === question.correct_answer.toLowerCase().trim();
-            } else if (question.question_type === 'construction') {
-                // Для конструкционных задач всегда возвращаем true, так как
-                // эти задачи нужно проверять вручную
-                return true;
+            // Если пользователь не ответил на вопрос
+            if (userAnswer === null || userAnswer === undefined || userAnswer === '') {
+                return false;
             }
             
-            return false;
-        }
-
-        // Форматирование ответа для отображения
-        function formatAnswer(answer) {
-            if (!answer) return 'Bez odpovědi';
-            
-            if (typeof answer === 'string' && answer.startsWith('solutions/')) {
-                return `<a href="${supabaseUrl}/storage/v1/object/public/user-content/${answer}" target="_blank">Zobrazit řešení</a>`;
+            switch (question.question_type) {
+                case 'multiple_choice':
+                    return userAnswer === question.correct_answer;
+                
+                case 'numeric':
+                    return parseFloat(userAnswer) === parseFloat(question.correct_answer);
+                
+                case 'text':
+                    // Для текстовых ответов игнорируем регистр и пробелы в начале и конце
+                    return userAnswer.toLowerCase().trim() === question.correct_answer.toLowerCase().trim();
+                
+                case 'construction':
+                    // Для задач на построение считаем, что если пользователь загрузил файл, то ответ правильный
+                    // (в реальном приложении здесь должна быть проверка правильности построения)
+                    return userAnswer !== null;
+                
+                default:
+                    return false;
             }
-            
-            return answer;
         }
 
-        // Сохранение результатов экзамена в Supabase
-        async function saveExamResults(score, correctAnswers, totalQuestions, topicStats) {
+        // Сохранение результатов теста в базу данных
+        async function saveTestResults(correctCount, totalQuestions, successRate, topicStats) {
             try {
-                // Создаем новую попытку тестирования
-                const { data: attemptData, error: attemptError } = await supabase
+                // Создаем новую запись о попытке прохождения теста
+                const { data, error } = await supabase
                     .from('user_test_attempts')
-                    .insert([
-                        {
-                            user_id: currentUser.id,
-                            test_id: selectedExam === 'math-basic' ? 1 : selectedExam === 'math-advanced' ? 2 : 3,
-                            total_questions: totalQuestions,
-                            correct_answers: correctAnswers,
-                            time_spent_seconds: Math.floor((new Date() - examStartTime) / 1000),
-                            score: score,
-                            topic_results: topicStats
-                        }
-                    ])
-                    .select();
-                    
-                if (attemptError) {
-                    console.error('Chyba při ukládání výsledků testu:', attemptError);
-                    return;
+                    .insert([{
+                        user_id: currentUser.id,
+                        test_id: 1, // ID теста (в данном случае - диагностический тест по математике)
+                        started_at: new Date().toISOString(),
+                        completed_at: new Date().toISOString(),
+                        total_questions: totalQuestions,
+                        correct_answers: correctCount,
+                        score: Math.round(successRate),
+                        topic_results: topicStats
+                    }]);
+                
+                if (error) {
+                    console.error('Chyba při ukládání výsledků:', error);
                 }
                 
-                const attemptId = attemptData[0].id;
+                // Создаем записи об ответах на каждый вопрос
+                const questionResponses = testQuestions.map((question, index) => ({
+                    attempt_id: data?.[0]?.id || null,
+                    question_id: question.id,
+                    user_answer: userAnswers[index],
+                    is_correct: isAnswerCorrect(question, userAnswers[index]),
+                    time_spent_seconds: 0 // В этой реализации мы не отслеживаем время на каждый вопрос
+                }));
                 
-                // Сохраняем ответы на каждый вопрос
-                const questionResponses = currentQuestions.map((question, index) => {
-                    return {
-                        attempt_id: attemptId,
-                        question_id: question.id,
-                        user_answer: userAnswers[index],
-                        is_correct: isAnswerCorrect(question, userAnswers[index]),
-                        time_spent_seconds: 0 // В данной реализации мы не отслеживаем время на каждый вопрос
-                    };
-                });
-                
-                const { error: responsesError } = await supabase
-                    .from('user_question_responses')
-                    .insert(questionResponses);
+                // Если успешно создали запись о попытке, сохраняем ответы на вопросы
+                if (data && data.length > 0) {
+                    const { error: responsesError } = await supabase
+                        .from('user_question_responses')
+                        .insert(questionResponses);
                     
-                if (responsesError) {
-                    console.error('Chyba při ukládání odpovědí:', responsesError);
+                    if (responsesError) {
+                        console.error('Chyba při ukládání odpovědí:', responsesError);
+                    }
                 }
-                
-                console.log('Výsledky testu byly úspěšně uloženy.');
             } catch (error) {
-                console.error('Chyba:', error);
+                console.error('Chyba při ukládání výsledků:', error);
             }
         }
 
         // Показать контент для практики
         function showPracticeContent() {
-            // Обновляем шаги прогресса
-            updateProgressSteps('step-practice');
-            
-            // Скрываем результаты экзамена и показываем контент для практики
-            document.getElementById('exam-section').style.display = 'none';
+            // Скрываем секцию с тестом и показываем секцию с упражнениями
+            document.getElementById('test-section').style.display = 'none';
             document.getElementById('practice-content').style.display = 'block';
             
-            // Прокручиваем страницу вверх
-            window.scrollTo(0, 0);
+            // Загружаем данные для практики
+            loadCategoryCounts();
+            loadRecommendedExercises();
+            loadRecentExercises();
         }
 
-        // Запуск таймера экзамена
-        function startTimer() {
-            examTimer = setInterval(() => {
-                examTimeLeft--;
+        // Загрузка количества вопросов по категориям
+        async function loadCategoryCounts() {
+            try {
+                // Загружаем количество вопросов для каждой темы
+                const { data, error } = await supabase
+                    .from('exam_questions')
+                    .select('topic_id, exam_topics (name)')
+                    .eq('source_year', 2024);
                 
-                // Обновляем отображение таймера
-                updateTimerDisplay();
-                
-                // Если время вышло, завершаем экзамен
-                if (examTimeLeft <= 0) {
-                    clearInterval(examTimer);
-                    alert('Čas vypršel! Váš test bude nyní ukončen.');
-                    finishExam();
-                }
-            }, 1000);
-        }
-
-        // Обновление отображения таймера
-        function updateTimerDisplay() {
-            const timerDisplay = document.getElementById('timer-display');
-            if (timerDisplay) {
-                timerDisplay.textContent = formatTime(examTimeLeft);
-            }
-        }
-
-        // Форматирование времени в формат MM:SS
-        function formatTime(seconds) {
-            const minutes = Math.floor(seconds / 60);
-            const remainingSeconds = seconds % 60;
-            return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
-        }
-
-        // Обновление шагов прогресса
-        function updateProgressSteps(activeStepId) {
-            document.querySelectorAll('.step').forEach(step => {
-                step.classList.remove('active');
-                step.classList.remove('completed');
-            });
-            
-            // Установка активного шага
-            const activeStep = document.getElementById(activeStepId);
-            activeStep.classList.add('active');
-            
-            // Установка завершенных шагов
-            let foundActive = false;
-            document.querySelectorAll('.step').forEach(step => {
-                if (step.id === activeStepId) {
-                    foundActive = true;
+                if (error) {
+                    console.error('Chyba při načítání počtu otázek:', error);
                     return;
                 }
                 
-                if (!foundActive) {
-                    step.classList.add('completed');
-                }
-            });
+                // Группируем вопросы по темам
+                const topicCounts = {};
+                data.forEach(question => {
+                    const topicName = question.exam_topics?.name;
+                    if (topicName) {
+                        topicCounts[topicName] = (topicCounts[topicName] || 0) + 1;
+                    }
+                });
+                
+                // Обновляем отображение количества вопросов
+                document.getElementById('algebra-count').textContent = `${topicCounts['Algebra'] || 0} otázek`;
+                document.getElementById('geometrie-count').textContent = `${topicCounts['Geometrie'] || 0} otázek`;
+                document.getElementById('logicke-count').textContent = `${topicCounts['Logické úlohy'] || 0} otázek`;
+            } catch (error) {
+                console.error('Chyba:', error);
+            }
         }
 
-        // Перемешивание массива (алгоритм Фишера-Йейтса)
-        function shuffleArray(array) {
-            let currentIndex = array.length;
-            let temporaryValue, randomIndex;
-            
-            // Пока остаются элементы для перемешивания
-            while (currentIndex !== 0) {
-                // Выбираем оставшийся элемент
-                randomIndex = Math.floor(Math.random() * currentIndex);
-                currentIndex -= 1;
+        // Загрузка рекомендуемых упражнений
+        async function loadRecommendedExercises() {
+            try {
+                // Загружаем последнюю попытку прохождения теста и анализируем результаты
+                const { data: attempts, error } = await supabase
+                    .from('user_test_attempts')
+                    .select('*')
+                    .eq('user_id', currentUser.id)
+                    .order('created_at', { ascending: false })
+                    .limit(1);
                 
-                // Меняем местами с текущим элементом
-                temporaryValue = array[currentIndex];
-                array[currentIndex] = array[randomIndex];
-                array[randomIndex] = temporaryValue;
+                if (error) {
+                    console.error('Chyba při načítání výsledků testu:', error);
+                    document.getElementById('recommended-exercises').innerHTML = '<p>Nepodařilo se načíst doporučená cvičení.</p>';
+                    return;
+                }
+                
+                // Если пользователь не проходил тест, показываем общие рекомендации
+                if (!attempts || attempts.length === 0) {
+                    showDefaultRecommendations();
+                    return;
+                }
+                
+                // Анализируем результаты теста и находим проблемные темы
+                const lastAttempt = attempts[0];
+                const topicResults = lastAttempt.topic_results || {};
+                
+                // Находим темы с наименьшим процентом успеха
+                const problemTopics = Object.entries(topicResults)
+                    .map(([topic, stats]) => ({
+                        topic,
+                        score: (stats.correct / stats.total) * 100
+                    }))
+                    .sort((a, b) => a.score - b.score)
+                    .slice(0, 2); // Берем до 2 проблемных тем
+                
+                // Загружаем упражнения по проблемным темам
+                let exercisesHTML = '';
+                
+                for (const { topic } of problemTopics) {
+                    // Загружаем вопросы по теме
+                    const { data: questions, error: questionsError } = await supabase
+                        .from('exam_questions')
+                        .select('*, exam_topics (name), exam_subtopics (name)')
+                        .eq('exam_topics.name', topic)
+                        .eq('source_year', 2024)
+                        .limit(3);
+                    
+                    if (questionsError) {
+                        console.error(`Chyba při načítání otázek pro téma ${topic}:`, questionsError);
+                        continue;
+                    }
+                    
+                    // Создаем карточки для упражнений
+                    questions.forEach(question => {
+                        exercisesHTML += createExerciseCard(question, topic);
+                    });
+                }
+                
+                // Если нет рекомендаций, показываем общие рекомендации
+                if (!exercisesHTML) {
+                    showDefaultRecommendations();
+                    return;
+                }
+                
+                // Обновляем контейнер с рекомендуемыми упражнениями
+                document.getElementById('recommended-exercises').innerHTML = exercisesHTML;
+            } catch (error) {
+                console.error('Chyba:', error);
+                document.getElementById('recommended-exercises').innerHTML = '<p>Nepodařilo se načíst doporučená cvičení.</p>';
             }
-            
-            return array;
         }
-        
-        // Инициализация при загрузке страницы
-        document.addEventListener('DOMContentLoaded', () => {
-            // Инициализация: показываем только экзаменационную секцию
-            document.getElementById('practice-content').style.display = 'none';
-            document.getElementById('exam-questions').style.display = 'none';
-            document.getElementById('exam-results').style.display = 'none';
-            document.getElementById('exam-welcome').style.display = 'block';
+
+        // Показать общие рекомендации (если нет результатов теста)
+        function showDefaultRecommendations() {
+            const exercisesHTML = `
+                <div class="exercise-card">
+                    <div class="exercise-header">
+                        <img src="../assets/math-algebra.jpg" alt="Algebra">
+                        <div class="exercise-badge math">Matematika</div>
+                    </div>
+                    <div class="exercise-body">
+                        <h3 class="exercise-title">Základy algebry</h3>
+                        <p class="exercise-desc">Procvičte si základní algebraické operace, rovnice a výrazy.</p>
+                        <div class="exercise-meta">
+                            <div class="exercise-difficulty">
+                                Obtížnost:
+                                <div class="difficulty-indicator">
+                                    <span class="difficulty-dot active"></span>
+                                    <span class="difficulty-dot active"></span>
+                                    <span class="difficulty-dot"></span>
+                                </div>
+                            </div>
+                            <div class="exercise-time">
+                                <i class="far fa-clock"></i> 15 min
+                            </div>
+                        </div>
+                    </div>
+                    <div class="exercise-footer">
+                        <div class="progress-info">
+                            <span>0/10 dokončeno</span>
+                        </div>
+                        <button class="btn btn-primary" onclick="filterExercisesByTopic('Algebra')">Začít</button>
+                    </div>
+                </div>
+
+                <div class="exercise-card">
+                    <div class="exercise-header">
+                        <img src="../assets/math-geometry.jpg" alt="Geometrie">
+                        <div class="exercise-badge math">Matematika</div>
+                    </div>
+                    <div class="exercise-body">
+                        <h3 class="exercise-title">Planimetrické úlohy</h3>
+                        <p class="exercise-desc">Procvičte si výpočty obsahů a obvodů rovinných útvarů.</p>
+                        <div class="exercise-meta">
+                            <div class="exercise-difficulty">
+                                Obtížnost:
+                                <div class="difficulty-indicator">
+                                    <span class="difficulty-dot active"></span>
+                                    <span class="difficulty-dot active"></span>
+                                    <span class="difficulty-dot active"></span>
+                                </div>
+                            </div>
+                            <div class="exercise-time">
+                                <i class="far fa-clock"></i> 20 min
+                            </div>
+                        </div>
+                    </div>
+                    <div class="exercise-footer">
+                        <div class="progress-info">
+                            <span>0/8 dokončeno</span>
+                        </div>
+                        <button class="btn btn-primary" onclick="filterExercisesByTopic('Geometrie')">Začít</button>
+                    </div>
+                </div>
+
+                <div class="exercise-card">
+                    <div class="exercise-header">
+                        <img src="../assets/math-logic.jpg" alt="Logika">
+                        <div class="exercise-badge math">Matematika</div>
+                    </div>
+                    <div class="exercise-body">
+                        <h3 class="exercise-title">Logické úlohy</h3>
+                        <p class="exercise-desc">Procvičte si řešení slovních úloh a logických problémů.</p>
+                        <div class="exercise-meta">
+                            <div class="exercise-difficulty">
+                                Obtížnost:
+                                <div class="difficulty-indicator">
+                                    <span class="difficulty-dot active"></span>
+                                    <span class="difficulty-dot active"></span>
+                                    <span class="difficulty-dot"></span>
+                                </div>
+                            </div>
+                            <div class="exercise-time">
+                                <i class="far fa-clock"></i> 25 min
+                            </div>
+                        </div>
+                    </div>
+                    <div class="exercise-footer">
+                        <div class="progress-info">
+                            <span>0/12 dokončeno</span>
+                        </div>
+                        <button class="btn btn-primary" onclick="filterExercisesByTopic('Logické úlohy')">Začít</button>
+                    </div>
+                </div>
+            `;
             
-            // Устанавливаем активный шаг прогресса
-            updateProgressSteps('step-select');
-        });
+            document.getElementById('recommended-exercises').innerHTML = exercisesHTML;
+        }
+
+        // Создание карточки для упражнения
+        function createExerciseCard(question, topic) {
+            const subtopicName = question.exam_subtopics?.name || '';
+            const difficulty = question.difficulty || 2;
+            
+            return `
+                <div class="exercise-card">
+                    <div class="exercise-header">
+                        <img src="../assets/${getTopicImage(topic)}" alt="${topic}">
+                        <div class="exercise-badge math">Matematika</div>
+                    </div>
+                    <div class="exercise-body">
+                        <h3 class="exercise-title">${subtopicName}</h3>
+                        <p class="exercise-desc">${question.question_text.substring(0, 100)}${question.question_text.length > 100 ? '...' : ''}</p>
+                        <div class="exercise-meta">
+                            <div class="exercise-difficulty">
+                                Obtížnost:
+                                <div class="difficulty-indicator">
+                                    <span class="difficulty-dot ${difficulty >= 1 ? 'active' : ''}"></span>
+                                    <span class="difficulty-dot ${difficulty >= 2 ? 'active' : ''}"></span>
+                                    <span class="difficulty-dot ${difficulty >= 3 ? 'active' : ''}"></span>
+                                </div>
+                            </div>
+                            <div class="exercise-time">
+                                <i class="far fa-clock"></i> 10 min
+                            </div>
+                        </div>
+                    </div>
+                    <div class="exercise-footer">
+                        <div class="progress-info">
+                            <span>Nové cvičení</span>
+                        </div>
+                        <button class="btn btn-primary" onclick="startExercise(${question.id})">Začít</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Загрузка недавних упражнений
+        async function loadRecentExercises() {
+            try {
+                // Загружаем последние ответы пользователя
+                const { data, error } = await supabase
+                    .from('user_question_responses')
+                    .select(`
+                        *,
+                        user_test_attempts (created_at),
+                        exam_questions (
+                            id, 
+                            question_text,
+                            difficulty, 
+                            exam_topics (name),
+                            exam_subtopics (name)
+                        )
+                    `)
+                    .eq('user_id', currentUser.id)
+                    .order('created_at', { ascending: false })
+                    .limit(6);
+                
+                if (error) {
+                    console.error('Chyba při načítání nedávných cvičení:', error);
+                    document.getElementById('recent-exercises').innerHTML = '<p>Nemáte žádná nedávná cvičení.</p>';
+                    return;
+                }
+                
+                // Если нет недавних упражнений
+                if (!data || data.length === 0) {
+                    document.getElementById('recent-exercises').innerHTML = '<p>Nemáte žádná nedávná cvičení. Začněte procvičovat!</p>';
+                    return;
+                }
+                
+                // Группируем ответы по темам
+                const recentByTopic = {};
+                data.forEach(response => {
+                    const topic = response.exam_questions?.exam_topics?.name;
+                    if (topic && !recentByTopic[topic]) {
+                        recentByTopic[topic] = response;
+                    }
+                });
+                
+                // Создаем карточки для недавних упражнений
+                let recentHTML = '';
+                Object.values(recentByTopic).slice(0, 3).forEach(response => {
+                    const question = response.exam_questions;
+                    const topic = question?.exam_topics?.name || '';
+                    const subtopic = question?.exam_subtopics?.name || '';
+                    const difficulty = question?.difficulty || 2;
+                    const isCorrect = response.is_correct;
+                    
+                    recentHTML += `
+                        <div class="exercise-card">
+                            <div class="exercise-header">
+                                <img src="../assets/${getTopicImage(topic)}" alt="${topic}">
+                                <div class="exercise-badge math">Matematika</div>
+                            </div>
+                            <div class="exercise-body">
+                                <h3 class="exercise-title">${subtopic}</h3>
+                                <p class="exercise-desc">${question.question_text.substring(0, 100)}${question.question_text.length > 100 ? '...' : ''}</p>
+                                <div class="exercise-meta">
+                                    <div class="exercise-difficulty">
+                                        Obtížnost:
+                                        <div class="difficulty-indicator">
+                                            <span class="difficulty-dot ${difficulty >= 1 ? 'active' : ''}"></span>
+                                            <span class="difficulty-dot ${difficulty >= 2 ? 'active' : ''}"></span>
+                                            <span class="difficulty-dot ${difficulty >= 3 ? 'active' : ''}"></span>
+                                        </div>
+                                    </div>
+                                    <div class="exercise-time">
+                                        <i class="far fa-${isCorrect ? 'check-circle' : 'times-circle'}" style="color: ${isCorrect ? 'var(--success)' : 'var(--danger)'}"></i>
+                                        ${isCorrect ? 'Správně' : 'Nesprávně'}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="exercise-footer">
+                                <div class="progress-info">
+                                    <span>Dokončeno</span>
+                                </div>
+                                <button class="btn btn-primary" onclick="startExercise(${question.id})">Znovu procvičit</button>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                // Если нет недавних упражнений
+                if (!recentHTML) {
+                    document.getElementById('recent-exercises').innerHTML = '<p>Nemáte žádná nedávná cvičení. Začněte procvičovat!</p>';
+                    return;
+                }
+                
+                // Обновляем контейнер с недавними упражнениями
+                document.getElementById('recent-exercises').innerHTML = recentHTML;
+            } catch (error) {
+                console.error('Chyba:', error);
+                document.getElementById('recent-exercises').innerHTML = '<p>Nepodařilo se načíst nedávná cvičení.</p>';
+            }
+        }
+
+        // Фильтрация упражнений по теме
+        function filterExercisesByTopic(topic) {
+            alert(`Filtrování cvičení podle tématu: ${topic}\nTato funkce bude implementována v budoucí verzi.`);
+        }
+
+        // Начать упражнение
+        function startExercise(questionId) {
+            alert(`Spuštění cvičení s ID: ${questionId}\nTato funkce bude implementována v budoucí verzi.`);
+        }
+
+        // Вспомогательные функции
+        function getTopicIcon(topic) {
+            switch (topic) {
+                case 'Algebra': return 'fa-calculator';
+                case 'Geometrie': return 'fa-shapes';
+                case 'Logické úlohy': return 'fa-brain';
+                default: return 'fa-book';
+            }
+        }
+
+        function getTopicGradient(topic) {
+            switch (topic) {
+                case 'Algebra': return 'var(--gradient-2)';
+                case 'Geometrie': return 'var(--gradient-3)';
+                case 'Logické úlohy': return 'var(--gradient-4)';
+                default: return 'var(--gradient-1)';
+            }
+        }
+
+        function getTopicImage(topic) {
+            switch (topic) {
+                case 'Algebra': return 'math-algebra.jpg';
+                case 'Geometrie': return 'math-geometry.jpg';
+                case 'Logické úlohy': return 'math-logic.jpg';
+                default: return 'math-exercise.jpg';
+            }
+        }
     </script>
 </body>
 </html>
