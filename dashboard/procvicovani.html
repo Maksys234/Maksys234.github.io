@@ -344,6 +344,14 @@
             line-height: 1.5;
         }
 
+        .question-image {
+            max-width: 100%;
+            height: auto;
+            margin: 1rem 0;
+            border-radius: 8px;
+            box-shadow: var(--shadow-sm);
+        }
+
         .answer-input {
             width: 100%;
             padding: 1rem;
@@ -360,6 +368,44 @@
             border-color: var(--primary-light);
             box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
             outline: none;
+        }
+
+        /* Styly pro možnosti odpovědí */
+        .options-container {
+            margin-top: 1.5rem;
+        }
+
+        .option-item {
+            padding: 1rem;
+            border: 1px solid var(--gray-light);
+            border-radius: 8px;
+            margin-bottom: 0.75rem;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+        }
+
+        .option-item:hover {
+            background-color: rgba(67, 97, 238, 0.05);
+            border-color: var(--primary-light);
+        }
+
+        .option-item.selected {
+            background-color: rgba(67, 97, 238, 0.1);
+            border-color: var(--primary);
+        }
+
+        .option-radio {
+            margin-right: 1rem;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .option-text {
+            font-size: 1rem;
+            color: var(--text-primary);
         }
 
         /* Styly výsledků */
@@ -876,7 +922,7 @@
         async function loadQuestions() {
             const { data, error } = await supabaseClient
                 .from('exam_questions')
-                .select('id, question_text, correct_answer, difficulty, topic_id')
+                .select('id, question_text, correct_answer, difficulty, topic_id, image_url, question_type, options')
                 .order('id', { ascending: true });
                 
             if (error) throw error;
@@ -896,16 +942,77 @@
                 const questionElement = document.createElement('div');
                 questionElement.className = 'question-container';
                 questionElement.dataset.id = question.id;
-                questionElement.innerHTML = `
+                
+                // Základní struktura otázky s hlavičkou a textem
+                let questionHtml = `
                     <div class="question-header">
                         <div class="question-number">Otázka ${index + 1}</div>
                         <div class="question-difficulty" data-difficulty="${question.difficulty}">${difficultyLabel}</div>
                     </div>
                     <div class="question-text">${question.question_text}</div>
-                    <textarea class="answer-input" placeholder="Zadejte svou odpověď zde..." data-question-id="${question.id}"></textarea>
                 `;
                 
+                // Přidání obrázku, pokud existuje
+                if (question.image_url) {
+                    questionHtml += `
+                        <div class="question-image-container">
+                            <img src="${question.image_url}" alt="Obrázek k otázce ${index + 1}" class="question-image">
+                        </div>
+                    `;
+                }
+                
+                // Přidání vstupního pole nebo možností podle typu otázky
+                if (question.question_type === 'multiple_choice' && question.options) {
+                    // Pokud je to otázka s výběrem možností
+                    let options;
+                    try {
+                        // Pokus o parsování JSON, pokud už není pole
+                        options = typeof question.options === 'string' ? 
+                            JSON.parse(question.options) : question.options;
+                    } catch (e) {
+                        console.error('Chyba při parsování možností:', e);
+                        options = [];
+                    }
+                    
+                    questionHtml += '<div class="options-container">';
+                    
+                    options.forEach((option, optionIndex) => {
+                        questionHtml += `
+                            <div class="option-item" data-option-index="${optionIndex}">
+                                <input type="radio" name="question-${question.id}" id="option-${question.id}-${optionIndex}" 
+                                    class="option-radio" data-question-id="${question.id}" data-option-value="${option}">
+                                <label for="option-${question.id}-${optionIndex}" class="option-text">${option}</label>
+                            </div>
+                        `;
+                    });
+                    
+                    questionHtml += '</div>';
+                } else {
+                    // Běžná otázka s textovým vstupem
+                    questionHtml += `
+                        <textarea class="answer-input" placeholder="Zadejte svou odpověď zde..." data-question-id="${question.id}"></textarea>
+                    `;
+                }
+                
+                questionElement.innerHTML = questionHtml;
                 questionsContainer.appendChild(questionElement);
+            });
+            
+            // Přidání interaktivity pro možnosti otázek
+            document.querySelectorAll('.option-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    const radio = this.querySelector('input[type="radio"]');
+                    radio.checked = true;
+                    
+                    // Odstranění třídy "selected" ze všech možností ve stejné skupině
+                    const questionId = radio.dataset.questionId;
+                    document.querySelectorAll(`input[name="question-${questionId}"]`).forEach(input => {
+                        input.closest('.option-item').classList.remove('selected');
+                    });
+                    
+                    // Přidání třídy "selected" k vybrané možnosti
+                    this.classList.add('selected');
+                });
             });
         }
         
@@ -915,15 +1022,30 @@
             endTime = new Date();
             
             // Shromáždění všech odpovědí uživatele
-            const answerInputs = document.querySelectorAll('.answer-input');
-            userResponses = Array.from(answerInputs).map(input => ({
-                questionId: parseInt(input.dataset.questionId),
-                userAnswer: input.value.trim(),
-                correctAnswer: testQuestions.find(q => q.id === parseInt(input.dataset.questionId)).correct_answer,
-                difficulty: testQuestions.find(q => q.id === parseInt(input.dataset.questionId)).difficulty,
-                topicId: testQuestions.find(q => q.id === parseInt(input.dataset.questionId)).topic_id,
-                topic: topicMap[testQuestions.find(q => q.id === parseInt(input.dataset.questionId)).topic_id]
-            }));
+            userResponses = [];
+            
+            testQuestions.forEach(question => {
+                let userAnswer = '';
+                
+                if (question.question_type === 'multiple_choice') {
+                    // Pro otázky s výběrem možností získáme hodnotu vybraného radiobuttonu
+                    const selectedOption = document.querySelector(`input[name="question-${question.id}"]:checked`);
+                    userAnswer = selectedOption ? selectedOption.dataset.optionValue : '';
+                } else {
+                    // Pro standardní otázky získáme hodnotu z textového pole
+                    const textInput = document.querySelector(`.answer-input[data-question-id="${question.id}"]`);
+                    userAnswer = textInput ? textInput.value.trim() : '';
+                }
+                
+                userResponses.push({
+                    questionId: question.id,
+                    userAnswer: userAnswer,
+                    correctAnswer: question.correct_answer,
+                    difficulty: question.difficulty,
+                    topicId: question.topic_id,
+                    topic: topicMap[question.topic_id]
+                });
+            });
             
             // Vyhodnocení odpovědí
             evaluateAnswers();
