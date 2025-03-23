@@ -161,6 +161,12 @@
             overflow: hidden;
         }
 
+        .user-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
         .user-info {
             flex-grow: 1;
         }
@@ -702,7 +708,7 @@
         
         <ul class="sidebar-menu">
             <li class="sidebar-item">
-                <a href="/dashboard.html" class="sidebar-link" id="dashboard-link">
+                <a href="/dashboard/dashboard.html" class="sidebar-link" id="dashboard-link">
                     <i class="fas fa-th-large"></i>
                     <span>Dashboard</span>
                 </a>
@@ -740,7 +746,9 @@
         </ul>
         
         <div class="user-profile">
-            <div class="user-avatar" id="user-avatar">MS</div>
+            <div class="user-avatar" id="user-avatar">
+                <!-- Аватарка будет загружена через JS или будут отображены инициалы -->
+            </div>
             <div class="user-info">
                 <div class="user-name" id="user-name">Načítání...</div>
                 <div class="user-role" id="user-role">Student</div>
@@ -889,22 +897,37 @@
                     // Zkusit získat více informací o uživateli z profilu
                     const { data: profile, error } = await supabaseClient
                         .from('profiles')
-                        .select('full_name')
+                        .select('full_name, username, avatar_url')
                         .eq('id', user.id)
                         .single();
                     
-                    if (profile && profile.full_name) {
-                        userName.textContent = profile.full_name;
-                        // Nastavení iniciál do avataru
-                        const initials = profile.full_name.split(' ')
-                            .map(n => n[0])
-                            .join('')
-                            .substr(0, 2)
-                            .toUpperCase();
-                        userAvatar.textContent = initials;
+                    // Prioritizujeme username nad emailem
+                    if (profile) {
+                        // Nastavení jména - priorita username > full_name > email
+                        if (profile.username) {
+                            userName.textContent = profile.username;
+                        } else if (profile.full_name) {
+                            userName.textContent = profile.full_name;
+                        } else {
+                            userName.textContent = user.email.split('@')[0]; // Zobrazit uživatelskou část e-mailu
+                        }
+                        
+                        // Nastavení avataru
+                        if (profile.avatar_url) {
+                            userAvatar.innerHTML = `<img src="${profile.avatar_url}" alt="Avatar">`;
+                        } else {
+                            // Fallback na iniciály
+                            const displayName = profile.username || profile.full_name || user.email.split('@')[0];
+                            const initials = displayName.split(' ')
+                                .map(n => n[0])
+                                .join('')
+                                .substr(0, 2)
+                                .toUpperCase();
+                            userAvatar.textContent = initials;
+                        }
                     } else {
-                        // Fallback na email, pokud jméno není k dispozici
-                        userName.textContent = user.email;
+                        // Použít základní informace z uživatelského účtu
+                        userName.textContent = user.email.split('@')[0]; // Pouze uživatelské jméno z e-mailu
                         userAvatar.textContent = user.email.substr(0, 2).toUpperCase();
                     }
                 } else {
