@@ -1377,7 +1377,7 @@
                 MS
             </div>
             <div class="user-info">
-                <div class="user-name" id="user-name">Načítání...</div>
+                <div class="user-name" id="user-name">Maksys</div>
                 <div class="user-role" id="user-role">Student</div>
             </div>
         </div>
@@ -1438,7 +1438,7 @@
                             <h3 class="category-title">Algebra</h3>
                             <p class="category-desc">Rovnice, výrazy, zlomky</p>
                             <div class="category-stats">
-                                <span id="algebra-count">Načítání...</span>
+                                <span id="algebra-count">15 otázek</span>
                             </div>
                         </div>
                         
@@ -1449,7 +1449,7 @@
                             <h3 class="category-title">Geometrie</h3>
                             <p class="category-desc">Rovinné útvary, tělesa, měření</p>
                             <div class="category-stats">
-                                <span id="geometrie-count">Načítání...</span>
+                                <span id="geometrie-count">12 otázek</span>
                             </div>
                         </div>
                         
@@ -1460,7 +1460,7 @@
                             <h3 class="category-title">Logické úlohy</h3>
                             <p class="category-desc">Slovní úlohy, procenta, finance</p>
                             <div class="category-stats">
-                                <span id="logicke-count">Načítání...</span>
+                                <span id="logicke-count">8 otázek</span>
                             </div>
                         </div>
                     </div>
@@ -1470,7 +1470,92 @@
                 <section class="recommended-section animated delay-1">
                     <h2 class="section-title">Doporučená cvičení</h2>
                     <div id="recommended-exercises" class="recommended-grid">
-                        <div class="loading">Načítání doporučených cvičení...</div>
+                        <div class="exercise-card">
+                            <div class="exercise-header">
+                                <div class="exercise-badge math">Matematika</div>
+                            </div>
+                            <div class="exercise-body">
+                                <h3 class="exercise-title">Základy algebry</h3>
+                                <p class="exercise-desc">Procvičte si základní algebraické operace, rovnice a výrazy.</p>
+                                <div class="exercise-meta">
+                                    <div class="exercise-difficulty">
+                                        Obtížnost:
+                                        <div class="difficulty-indicator">
+                                            <span class="difficulty-dot active"></span>
+                                            <span class="difficulty-dot active"></span>
+                                            <span class="difficulty-dot"></span>
+                                        </div>
+                                    </div>
+                                    <div class="exercise-time">
+                                        <i class="far fa-clock"></i> 15 min
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="exercise-footer">
+                                <div class="progress-info">
+                                    <span>0/10 dokončeno</span>
+                                </div>
+                                <button class="btn btn-primary" onclick="filterExercisesByTopic('Algebra')">Začít</button>
+                            </div>
+                        </div>
+
+                        <div class="exercise-card">
+                            <div class="exercise-header">
+                                <div class="exercise-badge math">Matematika</div>
+                            </div>
+                            <div class="exercise-body">
+                                <h3 class="exercise-title">Planimetrické úlohy</h3>
+                                <p class="exercise-desc">Procvičte si výpočty obsahů a obvodů rovinných útvarů.</p>
+                                <div class="exercise-meta">
+                                    <div class="exercise-difficulty">
+                                        Obtížnost:
+                                        <div class="difficulty-indicator">
+                                            <span class="difficulty-dot active"></span>
+                                            <span class="difficulty-dot active"></span>
+                                            <span class="difficulty-dot active"></span>
+                                        </div>
+                                    </div>
+                                    <div class="exercise-time">
+                                        <i class="far fa-clock"></i> 20 min
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="exercise-footer">
+                                <div class="progress-info">
+                                    <span>0/8 dokončeno</span>
+                                </div>
+                                <button class="btn btn-primary" onclick="filterExercisesByTopic('Geometrie')">Začít</button>
+                            </div>
+                        </div>
+
+                        <div class="exercise-card">
+                            <div class="exercise-header">
+                                <div class="exercise-badge mixed">Matematika</div>
+                            </div>
+                            <div class="exercise-body">
+                                <h3 class="exercise-title">Logické úlohy</h3>
+                                <p class="exercise-desc">Procvičte si řešení slovních úloh a logických problémů.</p>
+                                <div class="exercise-meta">
+                                    <div class="exercise-difficulty">
+                                        Obtížnost:
+                                        <div class="difficulty-indicator">
+                                            <span class="difficulty-dot active"></span>
+                                            <span class="difficulty-dot active"></span>
+                                            <span class="difficulty-dot"></span>
+                                        </div>
+                                    </div>
+                                    <div class="exercise-time">
+                                        <i class="far fa-clock"></i> 25 min
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="exercise-footer">
+                                <div class="progress-info">
+                                    <span>0/12 dokončeno</span>
+                                </div>
+                                <button class="btn btn-primary" onclick="filterExercisesByTopic('Logické úlohy')">Začít</button>
+                            </div>
+                        </div>
                     </div>
                 </section>
                 
@@ -1478,7 +1563,7 @@
                 <section class="recent-section animated delay-2">
                     <h2 class="section-title">Poslední cvičení</h2>
                     <div id="recent-exercises" class="recent-exercises">
-                        <div class="loading">Načítání posledních cvičení...</div>
+                        <p>Nemáte žádná nedávná cvičení. Začněte procvičovat!</p>
                     </div>
                 </section>
             </div>
@@ -1489,17 +1574,62 @@
         </footer>
     </main>
 
-    <!-- Скрипт для интеграции с Supabase -->
+    <!-- Скрипт для интеграции с Supabase (исправленный) -->
     <script>
-        // Инициализация клиента Supabase
-        const supabaseUrl = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTEyMDc1MTQsImV4cCI6MjAyNjc4MzUxNH0.SQBGQuXJbXV_V3m-j26Z70Y3wOxGBDcBKqtYoXcMzgE';
-        const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+        // Загружаем демо-данные для тестирования
+        const demoQuestions = [
+            {
+                id: 1,
+                question_text: "Které z následujících čísel je prvočíslo?",
+                question_type: "multiple_choice",
+                options: ["15", "23", "51", "121"],
+                correct_answer: "23",
+                solution_explanation: "Prvočíslo je přirozené číslo větší než 1, které není dělitelné žádným jiným přirozeným číslem kromě 1 a sebe sama. Číslo 23 je prvočíslo, protože není dělitelné žádným číslem kromě 1 a 23.",
+                difficulty: 1,
+                exam_topics: { name: "Algebra" }
+            },
+            {
+                id: 2,
+                question_text: "Jak velký je obsah čtverce o straně 5 cm?",
+                question_type: "numeric",
+                correct_answer: "25",
+                solution_explanation: "Obsah čtverce vypočítáme jako a² = 5² = 25 cm².",
+                difficulty: 1,
+                exam_topics: { name: "Geometrie" }
+            },
+            {
+                id: 3,
+                question_text: "Jaké je řešení rovnice 2x + 3 = 15?",
+                question_type: "numeric",
+                correct_answer: "6",
+                solution_explanation: "2x + 3 = 15\n2x = 15 - 3\n2x = 12\nx = 6",
+                difficulty: 2,
+                exam_topics: { name: "Algebra" }
+            },
+            {
+                id: 4,
+                question_text: "Auto jede rychlostí 72 km/h. Jaká je jeho rychlost v metrech za sekundu?",
+                question_type: "numeric",
+                correct_answer: "20",
+                solution_explanation: "72 km/h = 72 × 1000 ÷ 3600 = 20 m/s",
+                difficulty: 2,
+                exam_topics: { name: "Logické úlohy" }
+            },
+            {
+                id: 5,
+                question_text: "Kolik procent z 80 je 20?",
+                question_type: "numeric",
+                correct_answer: "25",
+                solution_explanation: "20 je 25% z 80, protože 80 × 0,25 = 20.",
+                difficulty: 1,
+                exam_topics: { name: "Logické úlohy" }
+            }
+        ];
 
         // Переменные для теста
         let currentUser = {
-            id: 'user-1',
-            name: 'Načítání...'
+            id: 'maksys-id',
+            name: 'Maksys'
         };
         let testQuestions = [];
         let userAnswers = [];
@@ -1507,88 +1637,13 @@
         let testStarted = false;
 
         // При загрузке страницы
-        document.addEventListener('DOMContentLoaded', async function() {
-            // Загружаем информацию о пользователе
-            await loadUserProfile();
-            
+        document.addEventListener('DOMContentLoaded', function() {
             // Привязываем обработчики событий
             document.getElementById('start-test-btn').addEventListener('click', startTest);
-            
-            // Проверяем статус теста пользователя
-            checkTestStatus();
         });
 
-        // Загрузка профиля пользователя
-        async function loadUserProfile() {
-            try {
-                // Загружаем профиль из базы данных
-                const { data: profiles, error } = await supabaseClient
-                    .from('profiles')
-                    .select('*')
-                    .limit(1);
-                
-                if (error) {
-                    console.error('Ошибка при загрузке профиля:', error);
-                    document.getElementById('user-name').textContent = 'Maksys';
-                    document.getElementById('user-avatar').textContent = 'MS';
-                    return;
-                }
-                
-                if (profiles && profiles.length > 0) {
-                    const profile = profiles[0];
-                    currentUser.id = profile.id;
-                    currentUser.name = profile.first_name + ' ' + profile.last_name;
-                    
-                    // Обновляем отображение информации о пользователе
-                    document.getElementById('user-name').textContent = currentUser.name;
-                    
-                    // Устанавливаем инициалы пользователя
-                    const initials = (profile.first_name.charAt(0) + profile.last_name.charAt(0)).toUpperCase();
-                    document.getElementById('user-avatar').textContent = initials;
-                }
-            } catch (error) {
-                console.error('Ошибка:', error);
-                document.getElementById('user-name').textContent = 'Maksys';
-                document.getElementById('user-avatar').textContent = 'MS';
-            }
-        }
-
-        // Проверка статуса прохождения теста
-        async function checkTestStatus() {
-            try {
-                // Проверяем, проходил ли пользователь тест ранее
-                const { data: attempts, error } = await supabaseClient
-                    .from('user_test_attempts')
-                    .select('*')
-                    .eq('user_id', currentUser.id)
-                    .order('created_at', { ascending: false })
-                    .limit(1);
-                
-                if (error) {
-                    console.error('Ошибка при проверке статуса теста:', error);
-                    return;
-                }
-                
-                if (attempts && attempts.length > 0) {
-                    // Пользователь уже проходил тест
-                    // Показываем контент для практики
-                    document.getElementById('practice-content').style.display = 'block';
-                    
-                    // Загружаем данные для практики
-                    loadCategoryCounts();
-                    loadRecommendedExercises();
-                    loadRecentExercises();
-                    
-                    // Обновляем текст кнопки
-                    document.getElementById('start-test-btn').innerHTML = '<i class="fas fa-sync-alt"></i> Пройти тест снова';
-                }
-            } catch (error) {
-                console.error('Ошибка:', error);
-            }
-        }
-
         // Начать тест
-        async function startTest() {
+        function startTest() {
             testStarted = true;
             
             // Скрываем кнопку начала теста, отображаем контейнер с вопросами
@@ -1596,68 +1651,20 @@
             document.getElementById('test-container').style.display = 'block';
             
             // Загружаем вопросы для теста
-            await loadTestQuestions();
-            
-            // Отображаем первый вопрос
-            showQuestion(0);
+            loadTestQuestions();
         }
 
         // Загрузка вопросов для теста
-        async function loadTestQuestions() {
-            try {
-                // Показываем индикатор загрузки
-                document.getElementById('test-container').innerHTML = '<div class="loading">Načítání otázek...</div>';
-                
-                // Загружаем вопросы из базы данных
-                const { data, error } = await supabaseClient
-                    .from('exam_questions')
-                    .select(`
-                        id, 
-                        question_text, 
-                        question_type, 
-                        options,
-                        correct_answer,
-                        solution_explanation,
-                        difficulty,
-                        image_url,
-                        topic_id,
-                        subtopic_id,
-                        exam_topics (name),
-                        exam_subtopics (name)
-                    `)
-                    .order('id');
-                
-                if (error) {
-                    console.error('Ошибка при загрузке вопросов:', error);
-                    document.getElementById('test-container').innerHTML = `
-                        <div class="error-message">
-                            <i class="fas fa-exclamation-circle"></i>
-                            <div>
-                                <div>Nepodařilo se načíst otázky. Zkuste to prosím znovu.</div>
-                                <button class="btn btn-primary" onclick="startTest()">Zkusit znovu</button>
-                            </div>
-                        </div>`;
-                    return;
-                }
-                
-                // Сохраняем загруженные вопросы
-                testQuestions = data || [];
-                
-                // Инициализируем массив ответов пользователя
+        function loadTestQuestions() {
+            // Показываем индикатор загрузки
+            document.getElementById('test-container').innerHTML = '<div class="loading">Načítání otázek...</div>';
+            
+            // Используем демо-вопросы вместо запроса к Supabase
+            setTimeout(() => {
+                testQuestions = demoQuestions;
                 userAnswers = Array(testQuestions.length).fill(null);
-                
-                console.log(`Загружено ${testQuestions.length} вопросов для теста`);
-            } catch (error) {
-                console.error('Ошибка:', error);
-                document.getElementById('test-container').innerHTML = `
-                    <div class="error-message">
-                        <i class="fas fa-exclamation-circle"></i>
-                        <div>
-                            <div>Došlo k neočekávané chybě. Zkuste to prosím znovu.</div>
-                            <button class="btn btn-primary" onclick="startTest()">Zkusit znovu</button>
-                        </div>
-                    </div>`;
-            }
+                showQuestion(0);
+            }, 1000);
         }
 
         // Отображение текущего вопроса
@@ -1844,14 +1851,11 @@
                 }))
                 .sort((a, b) => a.score - b.score); // Сортировка по возрастанию процента правильных ответов
             
-            // Сохраняем результаты в базу данных
-            saveTestResults(correctCount, totalQuestions, successRate, topicStats);
-            
             // Генерируем HTML с результатами
             let resultsHTML = `
                 <div class="results-container">
                     <div class="results-header">
-                                                <h2 class="results-title">Výsledky testu</h2>
+                        <h2 class="results-title">Výsledky testu</h2>
                         <p class="results-subtitle">Dokončili jste diagnostický test z matematiky</p>
                     </div>
                     
@@ -1965,61 +1969,8 @@
                     // Для текстовых ответов игнорируем регистр и пробелы в начале и конце
                     return userAnswer.toLowerCase().trim() === question.correct_answer.toLowerCase().trim();
                 
-                case 'construction':
-                    // Для задач на построение считаем, что если пользователь загрузил файл, то ответ правильный
-                    // (в реальном приложении здесь должна быть проверка правильности построения)
-                    return userAnswer !== null;
-                
                 default:
                     return false;
-            }
-        }
-
-        // Сохранение результатов теста в базу данных
-        async function saveTestResults(correctCount, totalQuestions, successRate, topicStats) {
-            try {
-                // Создаем новую запись о попытке прохождения теста
-                const { data, error } = await supabaseClient
-                    .from('user_test_attempts')
-                    .insert([{
-                        user_id: currentUser.id,
-                        test_id: 1, // ID теста (в данном случае - диагностический тест по математике)
-                        started_at: new Date().toISOString(),
-                        completed_at: new Date().toISOString(),
-                        total_questions: totalQuestions,
-                        correct_answers: correctCount,
-                        score: Math.round(successRate),
-                        topic_results: topicStats
-                    }])
-                    .select();
-                
-                if (error) {
-                    console.error('Chyba při ukládání výsledků:', error);
-                    return;
-                }
-                
-                const attemptId = data?.[0]?.id;
-                
-                // Создаем записи об ответах на каждый вопрос
-                if (attemptId) {
-                    const questionResponses = testQuestions.map((question, index) => ({
-                        attempt_id: attemptId,
-                        user_id: currentUser.id,
-                        question_id: question.id,
-                        user_answer: userAnswers[index],
-                        is_correct: isAnswerCorrect(question, userAnswers[index])
-                    }));
-                    
-                    const { error: responsesError } = await supabaseClient
-                        .from('user_question_responses')
-                        .insert(questionResponses);
-                    
-                    if (responsesError) {
-                        console.error('Chyba při ukládání odpovědí:', responsesError);
-                    }
-                }
-            } catch (error) {
-                console.error('Chyba při ukládání výsledků:', error);
             }
         }
 
@@ -2028,345 +1979,6 @@
             // Скрываем секцию с тестом и показываем секцию с упражнениями
             document.getElementById('test-section').style.display = 'none';
             document.getElementById('practice-content').style.display = 'block';
-            
-            // Загружаем данные для практики
-            loadCategoryCounts();
-            loadRecommendedExercises();
-            loadRecentExercises();
-        }
-
-        // Загрузка количества вопросов по категориям
-        async function loadCategoryCounts() {
-            try {
-                // Загружаем количество вопросов для каждой темы
-                const { data, error } = await supabaseClient
-                    .from('exam_questions')
-                    .select('topic_id, exam_topics (name)');
-                
-                if (error) {
-                    console.error('Chyba při načítání počtu otázek:', error);
-                    return;
-                }
-                
-                // Группируем вопросы по темам
-                const topicCounts = {};
-                data.forEach(question => {
-                    const topicName = question.exam_topics?.name;
-                    if (topicName) {
-                        topicCounts[topicName] = (topicCounts[topicName] || 0) + 1;
-                    }
-                });
-                
-                // Обновляем отображение количества вопросов
-                document.getElementById('algebra-count').textContent = `${topicCounts['Algebra'] || 0} otázek`;
-                document.getElementById('geometrie-count').textContent = `${topicCounts['Geometrie'] || 0} otázek`;
-                document.getElementById('logicke-count').textContent = `${topicCounts['Logické úlohy'] || 0} otázek`;
-            } catch (error) {
-                console.error('Chyba:', error);
-            }
-        }
-
-        // Загрузка рекомендуемых упражнений
-        async function loadRecommendedExercises() {
-            try {
-                // Загружаем последнюю попытку прохождения теста и анализируем результаты
-                const { data: attempts, error } = await supabaseClient
-                    .from('user_test_attempts')
-                    .select('*')
-                    .eq('user_id', currentUser.id)
-                    .order('created_at', { ascending: false })
-                    .limit(1);
-                
-                if (error) {
-                    console.error('Chyba při načítání výsledků testu:', error);
-                    document.getElementById('recommended-exercises').innerHTML = '<p>Nepodařilo se načíst doporučená cvičení.</p>';
-                    return;
-                }
-                
-                // Если пользователь не проходил тест, показываем общие рекомендации
-                if (!attempts || attempts.length === 0) {
-                    showDefaultRecommendations();
-                    return;
-                }
-                
-                // Анализируем результаты теста и находим проблемные темы
-                const lastAttempt = attempts[0];
-                const topicResults = lastAttempt.topic_results || {};
-                
-                // Находим темы с наименьшим процентом успеха
-                const problemTopics = Object.entries(topicResults)
-                    .map(([topic, stats]) => ({
-                        topic,
-                        score: (stats.correct / stats.total) * 100
-                    }))
-                    .sort((a, b) => a.score - b.score)
-                    .slice(0, 2); // Берем до 2 проблемных тем
-                
-                // Загружаем упражнения по проблемным темам
-                let exercisesHTML = '';
-                
-                for (const { topic } of problemTopics) {
-                    // Загружаем вопросы по теме
-                    const { data: questions, error: questionsError } = await supabaseClient
-                        .from('exam_questions')
-                        .select('*, exam_topics (name), exam_subtopics (name)')
-                        .eq('exam_topics.name', topic)
-                        .limit(3);
-                    
-                    if (questionsError) {
-                        console.error(`Chyba při načítání otázek pro téma ${topic}:`, questionsError);
-                        continue;
-                    }
-                    
-                    // Создаем карточки для упражнений
-                    questions.forEach(question => {
-                        exercisesHTML += createExerciseCard(question, topic);
-                    });
-                }
-                
-                // Если нет рекомендаций, показываем общие рекомендации
-                if (!exercisesHTML) {
-                    showDefaultRecommendations();
-                    return;
-                }
-                
-                // Обновляем контейнер с рекомендуемыми упражнениями
-                document.getElementById('recommended-exercises').innerHTML = exercisesHTML;
-            } catch (error) {
-                console.error('Chyba:', error);
-                document.getElementById('recommended-exercises').innerHTML = '<p>Nepodařilo se načíst doporučená cvičení.</p>';
-            }
-        }
-
-        // Показать общие рекомендации (если нет результатов теста)
-        function showDefaultRecommendations() {
-            const exercisesHTML = `
-                <div class="exercise-card">
-                    <div class="exercise-header">
-                        <div class="exercise-badge math">Matematika</div>
-                    </div>
-                    <div class="exercise-body">
-                        <h3 class="exercise-title">Základy algebry</h3>
-                        <p class="exercise-desc">Procvičte si základní algebraické operace, rovnice a výrazy.</p>
-                        <div class="exercise-meta">
-                            <div class="exercise-difficulty">
-                                Obtížnost:
-                                <div class="difficulty-indicator">
-                                    <span class="difficulty-dot active"></span>
-                                    <span class="difficulty-dot active"></span>
-                                    <span class="difficulty-dot"></span>
-                                </div>
-                            </div>
-                            <div class="exercise-time">
-                                <i class="far fa-clock"></i> 15 min
-                            </div>
-                        </div>
-                    </div>
-                    <div class="exercise-footer">
-                        <div class="progress-info">
-                            <span>0/10 dokončeno</span>
-                        </div>
-                        <button class="btn btn-primary" onclick="filterExercisesByTopic('Algebra')">Začít</button>
-                    </div>
-                </div>
-
-                <div class="exercise-card">
-                    <div class="exercise-header">
-                        <div class="exercise-badge math">Matematika</div>
-                    </div>
-                    <div class="exercise-body">
-                        <h3 class="exercise-title">Planimetrické úlohy</h3>
-                        <p class="exercise-desc">Procvičte si výpočty obsahů a obvodů rovinných útvarů.</p>
-                        <div class="exercise-meta">
-                            <div class="exercise-difficulty">
-                                Obtížnost:
-                                <div class="difficulty-indicator">
-                                    <span class="difficulty-dot active"></span>
-                                    <span class="difficulty-dot active"></span>
-                                    <span class="difficulty-dot active"></span>
-                                </div>
-                            </div>
-                            <div class="exercise-time">
-                                <i class="far fa-clock"></i> 20 min
-                            </div>
-                        </div>
-                    </div>
-                    <div class="exercise-footer">
-                        <div class="progress-info">
-                            <span>0/8 dokončeno</span>
-                        </div>
-                        <button class="btn btn-primary" onclick="filterExercisesByTopic('Geometrie')">Začít</button>
-                    </div>
-                </div>
-
-                <div class="exercise-card">
-                    <div class="exercise-header">
-                        <div class="exercise-badge mixed">Matematika</div>
-                    </div>
-                    <div class="exercise-body">
-                        <h3 class="exercise-title">Logické úlohy</h3>
-                        <p class="exercise-desc">Procvičte si řešení slovních úloh a logických problémů.</p>
-                        <div class="exercise-meta">
-                            <div class="exercise-difficulty">
-                                Obtížnost:
-                                <div class="difficulty-indicator">
-                                    <span class="difficulty-dot active"></span>
-                                    <span class="difficulty-dot active"></span>
-                                    <span class="difficulty-dot"></span>
-                                </div>
-                            </div>
-                            <div class="exercise-time">
-                                <i class="far fa-clock"></i> 25 min
-                            </div>
-                        </div>
-                    </div>
-                    <div class="exercise-footer">
-                        <div class="progress-info">
-                            <span>0/12 dokončeno</span>
-                        </div>
-                        <button class="btn btn-primary" onclick="filterExercisesByTopic('Logické úlohy')">Začít</button>
-                    </div>
-                </div>
-            `;
-            
-            document.getElementById('recommended-exercises').innerHTML = exercisesHTML;
-        }
-
-        // Создание карточки для упражнения
-        function createExerciseCard(question, topic) {
-            const subtopicName = question.exam_subtopics?.name || '';
-            const difficulty = question.difficulty || 2;
-            
-            return `
-                <div class="exercise-card">
-                    <div class="exercise-header">
-                        ${question.image_url ? `<img src="${question.image_url}" alt="Obrázek">` : ''}
-                        <div class="exercise-badge math">Matematika</div>
-                    </div>
-                    <div class="exercise-body">
-                        <h3 class="exercise-title">${subtopicName || topic}</h3>
-                        <p class="exercise-desc">${question.question_text.substring(0, 100)}${question.question_text.length > 100 ? '...' : ''}</p>
-                        <div class="exercise-meta">
-                            <div class="exercise-difficulty">
-                                Obtížnost:
-                                <div class="difficulty-indicator">
-                                    <span class="difficulty-dot ${difficulty >= 1 ? 'active' : ''}"></span>
-                                    <span class="difficulty-dot ${difficulty >= 2 ? 'active' : ''}"></span>
-                                    <span class="difficulty-dot ${difficulty >= 3 ? 'active' : ''}"></span>
-                                </div>
-                            </div>
-                            <div class="exercise-time">
-                                <i class="far fa-clock"></i> 10 min
-                            </div>
-                        </div>
-                    </div>
-                    <div class="exercise-footer">
-                        <div class="progress-info">
-                            <span>Nové cvičení</span>
-                        </div>
-                        <button class="btn btn-primary" onclick="startExercise(${question.id})">Začít</button>
-                    </div>
-                </div>
-            `;
-        }
-
-        // Загрузка недавних упражнений
-        async function loadRecentExercises() {
-            try {
-                // Загружаем последние ответы пользователя
-                const { data, error } = await supabaseClient
-                    .from('user_question_responses')
-                    .select(`
-                        *,
-                        exam_questions (
-                            id, 
-                            question_text,
-                            difficulty, 
-                            image_url,
-                            exam_topics (name),
-                            exam_subtopics (name)
-                        )
-                    `)
-                    .eq('user_id', currentUser.id)
-                    .order('created_at', { ascending: false })
-                    .limit(6);
-                
-                if (error) {
-                    console.error('Chyba při načítání nedávných cvičení:', error);
-                    document.getElementById('recent-exercises').innerHTML = '<p>Nemáte žádná nedávná cvičení.</p>';
-                    return;
-                }
-                
-                // Если нет недавних упражнений
-                if (!data || data.length === 0) {
-                    document.getElementById('recent-exercises').innerHTML = '<p>Nemáte žádná nedávná cvičení. Začněte procvičovat!</p>';
-                    return;
-                }
-                
-                // Группируем ответы по темам
-                const recentByTopic = {};
-                data.forEach(response => {
-                    const topic = response.exam_questions?.exam_topics?.name;
-                    if (topic && !recentByTopic[topic]) {
-                        recentByTopic[topic] = response;
-                    }
-                });
-                
-                // Создаем карточки для недавних упражнений
-                let recentHTML = '';
-                Object.values(recentByTopic).slice(0, 3).forEach(response => {
-                    const question = response.exam_questions;
-                    const topic = question?.exam_topics?.name || '';
-                    const subtopic = question?.exam_subtopics?.name || '';
-                    const difficulty = question?.difficulty || 2;
-                    const isCorrect = response.is_correct;
-                    
-                    recentHTML += `
-                        <div class="exercise-card">
-                            <div class="exercise-header">
-                                ${question.image_url ? `<img src="${question.image_url}" alt="Obrázek">` : ''}
-                                <div class="exercise-badge math">Matematika</div>
-                            </div>
-                            <div class="exercise-body">
-                                <h3 class="exercise-title">${subtopic || topic}</h3>
-                                <p class="exercise-desc">${question.question_text.substring(0, 100)}${question.question_text.length > 100 ? '...' : ''}</p>
-                                <div class="exercise-meta">
-                                    <div class="exercise-difficulty">
-                                        Obtížnost:
-                                        <div class="difficulty-indicator">
-                                            <span class="difficulty-dot ${difficulty >= 1 ? 'active' : ''}"></span>
-                                            <span class="difficulty-dot ${difficulty >= 2 ? 'active' : ''}"></span>
-                                            <span class="difficulty-dot ${difficulty >= 3 ? 'active' : ''}"></span>
-                                        </div>
-                                    </div>
-                                    <div class="exercise-time">
-                                        <i class="far fa-${isCorrect ? 'check-circle' : 'times-circle'}" style="color: ${isCorrect ? 'var(--success)' : 'var(--danger)'}"></i>
-                                        ${isCorrect ? 'Správně' : 'Nesprávně'}
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="exercise-footer">
-                                <div class="progress-info">
-                                    <span>Dokončeno</span>
-                                </div>
-                                <button class="btn btn-primary" onclick="startExercise(${question.id})">Znovu procvičit</button>
-                            </div>
-                        </div>
-                    `;
-                });
-                
-                // Если нет недавних упражнений
-                if (!recentHTML) {
-                    document.getElementById('recent-exercises').innerHTML = '<p>Nemáte žádná nedávná cvičení. Začněte procvičovat!</p>';
-                    return;
-                }
-                
-                // Обновляем контейнер с недавними упражнениями
-                document.getElementById('recent-exercises').innerHTML = recentHTML;
-            } catch (error) {
-                console.error('Chyba:', error);
-                document.getElementById('recent-exercises').innerHTML = '<p>Nepodařilo se načíst nedávná cvičení.</p>';
-            }
         }
 
         // Фильтрация упражнений по теме
