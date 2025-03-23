@@ -161,12 +161,6 @@
             overflow: hidden;
         }
 
-        .user-avatar img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
         .user-info {
             flex-grow: 1;
         }
@@ -697,62 +691,66 @@
     </style>
 </head>
 <body>
-    <!-- Boční panel -->
-    <div class="sidebar">
+    <!-- Sidebar - Скопировано из dashboard.html -->
+    <aside class="sidebar">
         <div class="sidebar-header">
-            <a href="#" class="sidebar-logo">
-                <i class="fas fa-book-open"></i>
+            <a href="/" class="sidebar-logo">
+                <i class="fas fa-calculator"></i>
                 <span>Justax</span>
             </a>
         </div>
         
         <ul class="sidebar-menu">
             <li class="sidebar-item">
-                <a href="index.html" class="sidebar-link">
-                    <i class="fas fa-home"></i>
+                <a href="/dashboard.html" class="sidebar-link" id="dashboard-link">
+                    <i class="fas fa-th-large"></i>
                     <span>Dashboard</span>
                 </a>
             </li>
             <li class="sidebar-item">
-                <a href="procvicovani.html" class="sidebar-link active">
-                    <i class="fas fa-graduation-cap"></i>
+                <a href="/dashboard/procvicovani.html" class="sidebar-link active">
+                    <i class="fas fa-book-open"></i>
                     <span>Procvičování</span>
                 </a>
             </li>
             <li class="sidebar-item">
-                <a href="materialy.html" class="sidebar-link">
-                    <i class="fas fa-book"></i>
-                    <span>Materiály</span>
-                </a>
-            </li>
-            <li class="sidebar-item">
-                <a href="pokrok.html" class="sidebar-link">
+                <a href="/dashboard/pokrok.html" class="sidebar-link">
                     <i class="fas fa-chart-line"></i>
                     <span>Pokrok</span>
                 </a>
             </li>
             <li class="sidebar-item">
-                <a href="nastaveni.html" class="sidebar-link">
-                    <i class="fas fa-cog"></i>
-                    <span>Nastavení</span>
+                <a href="/dashboard/oceneni.html" class="sidebar-link">
+                    <i class="fas fa-medal"></i>
+                    <span>Ocenění</span>
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a href="/dashboard/materialy.html" class="sidebar-link">
+                    <i class="fas fa-file-alt"></i>
+                    <span>Materiály</span>
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a href="/dashboard/profile.html" class="sidebar-link">
+                    <i class="fas fa-user-cog"></i>
+                    <span>Profil</span>
                 </a>
             </li>
         </ul>
         
         <div class="user-profile">
-            <div class="user-avatar">
-                <div id="userInitials">M</div>
-            </div>
+            <div class="user-avatar" id="user-avatar">MS</div>
             <div class="user-info">
-                <div class="user-name" id="userName">Uživatel</div>
-                <div class="user-role">Student</div>
+                <div class="user-name" id="user-name">Načítání...</div>
+                <div class="user-role" id="user-role">Student</div>
             </div>
         </div>
         
         <div class="sidebar-footer">
-            Justax © 2025
+            &copy; 2025 Justax
         </div>
-    </div>
+    </aside>
 
     <!-- Hlavní obsah -->
     <main>
@@ -872,9 +870,9 @@
         const feedbackText = document.getElementById('feedbackText');
         const topicsGrid = document.getElementById('topicsGrid');
         const continueBtn = document.getElementById('continueBtn');
-        const userName = document.getElementById('userName');
-        const userInitials = document.getElementById('userInitials');
-
+        const userName = document.getElementById('user-name');
+        const userAvatar = document.getElementById('user-avatar');
+        
         // Globální proměnné
         let testQuestions = [];
         let startTime;
@@ -882,14 +880,43 @@
         let userResponses = [];
         
         // Nastavení informací o uživateli
-        function setUserInfo() {
-            const user = {
-                name: 'Maksim',  // Příklad jména, nahraďte skutečnými daty uživatele
-                email: 'user@example.com'
-            };
-            
-            userName.textContent = user.name;
-            userInitials.textContent = user.name.charAt(0);
+        async function setUserInfo() {
+            try {
+                // Získání informací o aktuálním uživateli
+                const { data: { user } } = await supabaseClient.auth.getUser();
+                
+                if (user) {
+                    // Zkusit získat více informací o uživateli z profilu
+                    const { data: profile, error } = await supabaseClient
+                        .from('profiles')
+                        .select('full_name')
+                        .eq('id', user.id)
+                        .single();
+                    
+                    if (profile && profile.full_name) {
+                        userName.textContent = profile.full_name;
+                        // Nastavení iniciál do avataru
+                        const initials = profile.full_name.split(' ')
+                            .map(n => n[0])
+                            .join('')
+                            .substr(0, 2)
+                            .toUpperCase();
+                        userAvatar.textContent = initials;
+                    } else {
+                        // Fallback na email, pokud jméno není k dispozici
+                        userName.textContent = user.email;
+                        userAvatar.textContent = user.email.substr(0, 2).toUpperCase();
+                    }
+                } else {
+                    // Fallback pro nepřihlášené uživatele
+                    userName.textContent = 'Maksim';
+                    userAvatar.textContent = 'MS';
+                }
+            } catch (error) {
+                console.error('Chyba při načítání informací o uživateli:', error);
+                userName.textContent = 'Maksim';
+                userAvatar.textContent = 'MS';
+            }
         }
         
         // Spuštění testu
@@ -1214,7 +1241,7 @@
             submitTestBtn.addEventListener('click', submitTest);
             
             continueBtn.addEventListener('click', function() {
-                window.location.href = 'materialy.html';
+                window.location.href = '/dashboard/materialy.html';
             });
         });
     </script>
