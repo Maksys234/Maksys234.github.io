@@ -159,12 +159,7 @@
             margin-right: 0.75rem;
             font-weight: 500;
             overflow: hidden;
-        }
-
-        .user-avatar img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
+            color: white;
         }
 
         .user-info {
@@ -412,6 +407,7 @@
             position: relative;
             height: 140px;
             overflow: hidden;
+            background-color: var(--primary-light);
         }
 
         .exercise-header img {
@@ -662,144 +658,6 @@
             text-align: center;
             color: var(--text-muted);
             font-size: 0.9rem;
-        }
-
-        /* Модальное окно с информацией об упражнении */
-        .exercise-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s ease;
-        }
-
-        .exercise-modal.active {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        .modal-content {
-            background-color: var(--white);
-            border-radius: var(--card-radius);
-            box-shadow: var(--shadow-lg);
-            width: 90%;
-            max-width: 800px;
-            max-height: 90vh;
-            overflow-y: auto;
-            position: relative;
-            animation: modalFadeIn 0.3s ease forwards;
-        }
-
-        @keyframes modalFadeIn {
-            from { opacity: 0; transform: translateY(-20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .modal-header {
-            padding: 1.5rem;
-            border-bottom: 1px solid var(--gray-light);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .modal-title {
-            font-size: 1.4rem;
-            font-weight: 600;
-            color: var(--dark);
-        }
-
-        .modal-close {
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            color: var(--gray);
-            cursor: pointer;
-            transition: color 0.2s ease;
-        }
-
-        .modal-close:hover {
-            color: var(--danger);
-        }
-
-        .modal-body {
-            padding: 1.5rem;
-        }
-
-        .exercise-details {
-            margin-bottom: 1.5rem;
-        }
-
-        .exercise-info {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .info-item {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .info-label {
-            font-size: 0.9rem;
-            color: var(--text-secondary);
-            margin-bottom: 0.5rem;
-        }
-
-        .info-value {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: var(--dark);
-        }
-
-        .exercise-overview {
-            margin-bottom: 1.5rem;
-        }
-
-        .overview-title {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: var(--dark);
-            margin-bottom: 0.75rem;
-        }
-
-        .overview-text {
-            font-size: 0.95rem;
-            color: var(--text-secondary);
-            line-height: 1.6;
-        }
-
-        .modal-footer {
-            padding: 1rem 1.5rem;
-            border-top: 1px solid var(--gray-light);
-            display: flex;
-            justify-content: flex-end;
-            gap: 1rem;
-        }
-
-        .btn-secondary {
-            background-color: var(--light);
-            color: var(--text-secondary);
-            border: 1px solid var(--gray-light);
-        }
-
-        .btn-secondary:hover {
-            background-color: var(--gray-light);
-        }
-
-        .btn-lg {
-            padding: 0.75rem 1.5rem;
-            font-size: 0.95rem;
         }
 
         /* Тестовый контент */
@@ -1201,6 +1059,48 @@
             text-align: center;
         }
 
+        .btn-secondary {
+            background-color: var(--light);
+            color: var(--text-secondary);
+            border: 1px solid var(--gray-light);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--gray-light);
+        }
+
+        .btn-lg {
+            padding: 0.75rem 1.5rem;
+            font-size: 0.95rem;
+        }
+
+        /* Загрузка */
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            font-size: 1rem;
+            color: var(--text-muted);
+        }
+
+        .loading::after {
+            content: "";
+            width: 20px;
+            height: 20px;
+            margin-left: 15px;
+            border: 2px solid var(--primary);
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: loading-spinner 0.8s linear infinite;
+        }
+
+        @keyframes loading-spinner {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
         /* Медиа-запросы для адаптивности */
         @media (max-width: 992px) {
             :root {
@@ -1348,33 +1248,6 @@
             animation-delay: 0.3s;
         }
 
-        /* Загрузка */
-        .loading {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 2rem;
-            font-size: 1rem;
-            color: var(--text-muted);
-        }
-
-        .loading::after {
-            content: "";
-            width: 20px;
-            height: 20px;
-            margin-left: 15px;
-            border: 2px solid var(--primary);
-            border-radius: 50%;
-            border-top-color: transparent;
-            animation: loading-spinner 0.8s linear infinite;
-        }
-
-        @keyframes loading-spinner {
-            to {
-                transform: rotate(360deg);
-            }
-        }
-
         /* Темный режим */
         @media (prefers-color-scheme: dark) {
             :root {
@@ -1440,7 +1313,7 @@
         
         <ul class="sidebar-menu">
             <li class="sidebar-item">
-                <a href="/dashboard.html" class="sidebar-link">
+                <a href="https://justax.space/dashboard/dashboard.html" class="sidebar-link">
                     <i class="fas fa-th-large"></i>
                     <span>Dashboard</span>
                 </a>
@@ -1479,10 +1352,10 @@
         
         <div class="user-profile">
             <div class="user-avatar" id="user-avatar">
-                <img src="../assets/user-avatar.png" alt="Profilový obrázek" id="profile-image">
+                MS
             </div>
             <div class="user-info">
-                <div class="user-name" id="user-name">Jan Novák</div>
+                <div class="user-name" id="user-name">Načítání...</div>
                 <div class="user-role" id="user-role">Student</div>
             </div>
         </div>
@@ -1599,12 +1472,12 @@
         // Инициализация клиента Supabase
         const supabaseUrl = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTEyMDc1MTQsImV4cCI6MjAyNjc4MzUxNH0.SQBGQuXJbXV_V3m-j26Z70Y3wOxGBDcBKqtYoXcMzgE';
-        const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+        const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
         // Переменные для теста
         let currentUser = {
-            id: 'user-1',  // Позже можно загрузить из auth
-            name: 'Jan Novák'
+            id: 'user-1',  // Позже будет загружено из базы данных
+            name: 'Načítání...'
         };
         let testQuestions = [];
         let userAnswers = [];
@@ -1626,8 +1499,8 @@
         // Загрузка профиля пользователя
         async function loadUserProfile() {
             try {
-                // В реальном приложении здесь должна быть проверка авторизации
-                const { data: profiles, error } = await supabase
+                // Загружаем профиль из базы данных
+                const { data: profiles, error } = await supabaseClient
                     .from('profiles')
                     .select('*')
                     .limit(1);
@@ -1645,14 +1518,9 @@
                     // Обновляем отображение информации о пользователе
                     document.getElementById('user-name').textContent = currentUser.name;
                     
-                    // Если у пользователя есть аватар
-                    if (profile.avatar_url) {
-                        document.getElementById('profile-image').src = profile.avatar_url;
-                    } else {
-                        // Инициалы пользователя
-                        const initials = (profile.first_name.charAt(0) + profile.last_name.charAt(0)).toUpperCase();
-                        document.getElementById('user-avatar').textContent = initials;
-                    }
+                    // Устанавливаем инициалы пользователя
+                    const initials = (profile.first_name.charAt(0) + profile.last_name.charAt(0)).toUpperCase();
+                    document.getElementById('user-avatar').textContent = initials;
                 }
             } catch (error) {
                 console.error('Ошибка:', error);
@@ -1663,7 +1531,7 @@
         async function checkTestStatus() {
             try {
                 // Проверяем, проходил ли пользователь тест ранее
-                const { data: attempts, error } = await supabase
+                const { data: attempts, error } = await supabaseClient
                     .from('user_test_attempts')
                     .select('*')
                     .eq('user_id', currentUser.id)
@@ -1715,7 +1583,7 @@
                 document.getElementById('test-container').innerHTML = '<div class="loading">Načítání otázek...</div>';
                 
                 // Загружаем вопросы из базы данных
-                const { data, error } = await supabase
+                const { data, error } = await supabaseClient
                     .from('exam_questions')
                     .select(`
                         id, 
@@ -1742,7 +1610,7 @@
                             <i class="fas fa-exclamation-circle"></i>
                             <div>
                                 <div>Nepodařilo se načíst otázky. Zkuste to prosím znovu.</div>
-                                <button class="retry-button" onclick="startTest()">Zkusit znovu</button>
+                                <button class="btn btn-primary" onclick="startTest()">Zkusit znovu</button>
                             </div>
                         </div>`;
                     return;
@@ -1762,7 +1630,7 @@
                         <i class="fas fa-exclamation-circle"></i>
                         <div>
                             <div>Došlo k neočekávané chybě. Zkuste to prosím znovu.</div>
-                            <button class="retry-button" onclick="startTest()">Zkusit znovu</button>
+                            <button class="btn btn-primary" onclick="startTest()">Zkusit znovu</button>
                         </div>
                     </div>`;
             }
@@ -1795,7 +1663,7 @@
             switch (question.question_type) {
                 case 'multiple_choice':
                     // Обрабатываем варианты с множественным выбором
-                    const options = Array.isArray(question.options) ? question.options : JSON.parse(question.options);
+                    const options = typeof question.options === 'string' ? JSON.parse(question.options) : question.options;
                     options.forEach((option, optionIndex) => {
                         const isSelected = userAnswers[index] === option;
                         questionHTML += `
@@ -1885,7 +1753,6 @@
         }
 
         // Загрузка решения для задач на построение
-                // Загрузка решения для задач на построение
         async function uploadConstructionSolution(questionIndex) {
             const fileInput = document.getElementById('construction-file');
             
@@ -1899,7 +1766,7 @@
                 const filePath = `construction-solutions/${currentUser.id}/${testQuestions[questionIndex].id}.jpg`;
                 
                 // Загружаем файл в хранилище
-                const { data, error } = await supabase.storage
+                const { data, error } = await supabaseClient.storage
                     .from('user-content')
                     .upload(filePath, file);
                 
@@ -1910,12 +1777,12 @@
                 }
                 
                 // Получаем публичную ссылку на файл
-                const { data: publicURL } = supabase.storage
+                const { data: publicURL } = supabaseClient.storage
                     .from('user-content')
                     .getPublicUrl(filePath);
                 
                 // Сохраняем ссылку как ответ пользователя
-                userAnswers[questionIndex] = publicURL.publicURL;
+                userAnswers[questionIndex] = publicURL.publicUrl;
                 alert('Vaše řešení bylo úspěšně nahráno.');
             } catch (error) {
                 console.error('Chyba:', error);
@@ -2139,7 +2006,7 @@
         async function saveTestResults(correctCount, totalQuestions, successRate, topicStats) {
             try {
                 // Создаем новую запись о попытке прохождения теста
-                const { data, error } = await supabase
+                const { data, error } = await supabaseClient
                     .from('user_test_attempts')
                     .insert([{
                         user_id: currentUser.id,
@@ -2150,24 +2017,26 @@
                         correct_answers: correctCount,
                         score: Math.round(successRate),
                         topic_results: topicStats
-                    }]);
+                    }])
+                    .select();
                 
                 if (error) {
                     console.error('Chyba při ukládání výsledků:', error);
+                    return;
                 }
                 
-                // Создаем записи об ответах на каждый вопрос
-                const questionResponses = testQuestions.map((question, index) => ({
-                    attempt_id: data?.[0]?.id || null,
-                    question_id: question.id,
-                    user_answer: userAnswers[index],
-                    is_correct: isAnswerCorrect(question, userAnswers[index]),
-                    time_spent_seconds: 0 // В этой реализации мы не отслеживаем время на каждый вопрос
-                }));
+                const attemptId = data?.[0]?.id;
                 
-                // Если успешно создали запись о попытке, сохраняем ответы на вопросы
-                if (data && data.length > 0) {
-                    const { error: responsesError } = await supabase
+                // Создаем записи об ответах на каждый вопрос
+                if (attemptId) {
+                    const questionResponses = testQuestions.map((question, index) => ({
+                        attempt_id: attemptId,
+                        question_id: question.id,
+                        user_answer: userAnswers[index],
+                        is_correct: isAnswerCorrect(question, userAnswers[index])
+                    }));
+                    
+                    const { error: responsesError } = await supabaseClient
                         .from('user_question_responses')
                         .insert(questionResponses);
                     
@@ -2196,7 +2065,7 @@
         async function loadCategoryCounts() {
             try {
                 // Загружаем количество вопросов для каждой темы
-                const { data, error } = await supabase
+                const { data, error } = await supabaseClient
                     .from('exam_questions')
                     .select('topic_id, exam_topics (name)')
                     .eq('source_year', 2024);
@@ -2228,7 +2097,7 @@
         async function loadRecommendedExercises() {
             try {
                 // Загружаем последнюю попытку прохождения теста и анализируем результаты
-                const { data: attempts, error } = await supabase
+                const { data: attempts, error } = await supabaseClient
                     .from('user_test_attempts')
                     .select('*')
                     .eq('user_id', currentUser.id)
@@ -2265,7 +2134,7 @@
                 
                 for (const { topic } of problemTopics) {
                     // Загружаем вопросы по теме
-                    const { data: questions, error: questionsError } = await supabase
+                    const { data: questions, error: questionsError } = await supabaseClient
                         .from('exam_questions')
                         .select('*, exam_topics (name), exam_subtopics (name)')
                         .eq('exam_topics.name', topic)
@@ -2302,7 +2171,6 @@
             const exercisesHTML = `
                 <div class="exercise-card">
                     <div class="exercise-header">
-                        <img src="../assets/math-algebra.jpg" alt="Algebra">
                         <div class="exercise-badge math">Matematika</div>
                     </div>
                     <div class="exercise-body">
@@ -2332,7 +2200,6 @@
 
                 <div class="exercise-card">
                     <div class="exercise-header">
-                        <img src="../assets/math-geometry.jpg" alt="Geometrie">
                         <div class="exercise-badge math">Matematika</div>
                     </div>
                     <div class="exercise-body">
@@ -2362,8 +2229,7 @@
 
                 <div class="exercise-card">
                     <div class="exercise-header">
-                        <img src="../assets/math-logic.jpg" alt="Logika">
-                        <div class="exercise-badge math">Matematika</div>
+                        <div class="exercise-badge mixed">Matematika</div>
                     </div>
                     <div class="exercise-body">
                         <h3 class="exercise-title">Logické úlohy</h3>
@@ -2402,7 +2268,6 @@
             return `
                 <div class="exercise-card">
                     <div class="exercise-header">
-                        <img src="../assets/${getTopicImage(topic)}" alt="${topic}">
                         <div class="exercise-badge math">Matematika</div>
                     </div>
                     <div class="exercise-body">
@@ -2436,7 +2301,7 @@
         async function loadRecentExercises() {
             try {
                 // Загружаем последние ответы пользователя
-                const { data, error } = await supabase
+                const { data, error } = await supabaseClient
                     .from('user_question_responses')
                     .select(`
                         *,
@@ -2486,7 +2351,6 @@
                     recentHTML += `
                         <div class="exercise-card">
                             <div class="exercise-header">
-                                <img src="../assets/${getTopicImage(topic)}" alt="${topic}">
                                 <div class="exercise-badge math">Matematika</div>
                             </div>
                             <div class="exercise-body">
@@ -2559,15 +2423,6 @@
                 default: return 'var(--gradient-1)';
             }
         }
-
-        function getTopicImage(topic) {
-            switch (topic) {
-                case 'Algebra': return 'math-algebra.jpg';
-                case 'Geometrie': return 'math-geometry.jpg';
-                case 'Logické úlohy': return 'math-logic.jpg';
-                default: return 'math-exercise.jpg';
-            }
-        }
     </script>
 </body>
-</html>
+</html>    
