@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Justax - Procvičování</title>
-    <!-- Připojení fontů -->
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -12,12 +12,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Supabase JS Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <!-- MathJax для формул -->
-    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     
     <style>
-        /* Базовые стили */
+        /* Base styles */
         * {
             margin: 0;
             padding: 0;
@@ -184,7 +181,7 @@
             opacity: 0.8;
         }
 
-        /* Hlavní obsah */
+        /* Main content */
         main {
             flex: 1;
             margin-left: var(--sidebar-width);
@@ -213,71 +210,19 @@
             color: var(--dark);
         }
 
-        .header-actions {
-            display: flex;
-            align-items: center;
-            gap: 1.5rem;
-        }
-
-        .search-box {
-            position: relative;
-        }
-
-        .search-box input {
-            width: 280px;
-            height: 44px;
-            border-radius: 22px;
-            padding: 0 1rem 0 2.5rem;
-            border: 1px solid var(--gray-light);
-            background-color: var(--light);
-            outline: none;
-            transition: all 0.2s ease;
-            font-size: 0.95rem;
-        }
-
-        .search-box input:focus {
-            border-color: var(--primary-light);
-            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
-        }
-
-        .search-box i {
-            position: absolute;
-            left: 1rem;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--gray);
-        }
-
-        .notifications {
-            position: relative;
-            cursor: pointer;
-        }
-
-        .notifications i {
-            font-size: 1.4rem;
-            color: var(--gray-dark);
-        }
-
-        .notification-badge {
-            position: absolute;
-            top: -5px;
-            right: -5px;
-            width: 20px;
-            height: 20px;
-            background-color: var(--danger);
-            color: white;
-            font-size: 0.7rem;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 600;
-        }
-
-        /* Основное содержание */
+        /* Main content */
         .main-content {
-            display: grid;
+            display: flex;
+            flex-direction: column;
             gap: 1.75rem;
+        }
+
+        .section {
+            background-color: var(--white);
+            border-radius: var(--card-radius);
+            box-shadow: var(--shadow-sm);
+            padding: 1.5rem;
+            animation: fadeIn 0.5s ease forwards;
         }
 
         .section-title {
@@ -287,246 +232,28 @@
             color: var(--dark);
         }
 
-        /* Категории упражнений */
-        .categories-section {
-            margin-bottom: 2rem;
-        }
-
-        .categories-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            gap: 1.5rem;
-        }
-
-        .category-card {
-            background-color: var(--white);
-            border-radius: var(--card-radius);
-            box-shadow: var(--shadow-sm);
-            padding: 1.5rem;
-            text-align: center;
-            transition: all 0.3s ease;
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .category-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 4px;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .category-card.math::before {
-            background: var(--gradient-2);
-        }
-
-        .category-card.language::before {
-            background: var(--gradient-3);
-        }
-
-        .category-card.mixed::before {
-            background: var(--gradient-4);
-        }
-
-        .category-card:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--shadow-md);
-        }
-
-        .category-card:hover::before {
-            opacity: 1;
-        }
-
-        .category-icon {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            margin: 0 auto 1rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--white);
-            font-size: 1.5rem;
-        }
-
-        .category-icon.math {
-            background: var(--gradient-2);
-        }
-
-        .category-icon.language {
-            background: var(--gradient-3);
-        }
-
-        .category-icon.mixed {
-            background: var(--gradient-4);
-        }
-
-        .category-title {
+        .section-subtitle {
             font-size: 1.1rem;
-            font-weight: 600;
-            color: var(--dark);
-            margin-bottom: 0.5rem;
-        }
-
-        .category-desc {
-            font-size: 0.85rem;
-            color: var(--text-secondary);
+            font-weight: 500;
             margin-bottom: 1rem;
-        }
-
-        .category-stats {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-        }
-
-        /* Упражнения */
-        .exercise-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 1.5rem;
-        }
-
-        .exercise-card {
-            background-color: var(--white);
-            border-radius: var(--card-radius);
-            box-shadow: var(--shadow-sm);
-            overflow: hidden;
-            transition: all 0.3s ease;
-            position: relative;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .exercise-card:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--shadow-md);
-        }
-
-        .exercise-header {
-            position: relative;
-            height: 140px;
-            overflow: hidden;
-        }
-
-        .exercise-header img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .exercise-badge {
-            position: absolute;
-            top: 1rem;
-            right: 1rem;
-            padding: 0.5rem 0.75rem;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            color: var(--white);
-            z-index: 1;
-        }
-
-        .exercise-badge.math {
-            background-color: var(--primary);
-        }
-
-        .exercise-badge.language {
-            background-color: var(--danger);
-        }
-
-        .exercise-badge.mixed {
-            background-color: var(--warning);
-        }
-
-        .exercise-body {
-            padding: 1.5rem;
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .exercise-title {
-            font-size: 1.1rem;
-            font-weight: 600;
             color: var(--dark);
-            margin-bottom: 0.75rem;
-            line-height: 1.4;
         }
 
-        .exercise-desc {
-            font-size: 0.9rem;
+        .section-text {
+            font-size: 1rem;
             color: var(--text-secondary);
-            margin-bottom: 1.25rem;
-            flex-grow: 1;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
         }
 
-        .exercise-meta {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: auto;
-        }
-
-        .exercise-difficulty {
-            display: flex;
-            align-items: center;
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-        }
-
-        .difficulty-indicator {
-            display: flex;
-            margin-left: 0.5rem;
-        }
-
-        .difficulty-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background-color: var(--gray-light);
-            margin-right: 3px;
-        }
-
-        .difficulty-dot.active {
-            background-color: var(--primary);
-        }
-
-        .exercise-time {
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-            display: flex;
-            align-items: center;
-        }
-
-        .exercise-time i {
-            margin-right: 0.5rem;
-        }
-
-        .exercise-footer {
-            padding: 1rem 1.5rem;
-            border-top: 1px solid var(--gray-light);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .progress-info {
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-        }
-
+        /* Button styles */
         .btn {
             display: inline-flex;
             align-items: center;
-            padding: 0.5rem 1rem;
+            padding: 0.75rem 1.5rem;
             border-radius: 8px;
             font-weight: 500;
-            font-size: 0.9rem;
+            font-size: 0.95rem;
             text-decoration: none;
             transition: all 0.3s ease;
             cursor: pointer;
@@ -555,324 +282,97 @@
             background-color: var(--gray-light);
         }
 
-        /* Фильтры */
-        .filter-section {
-            margin-bottom: 2rem;
+        .btn-lg {
+            padding: 0.75rem 2rem;
+            font-size: 1rem;
         }
 
-        .filter-card {
+        .btn-center {
+            margin: 0 auto;
+            display: block;
+            width: fit-content;
+        }
+
+        /* Test question styles */
+        .question-container {
+            margin-bottom: 2rem;
+            padding: 1.5rem;
             background-color: var(--white);
             border-radius: var(--card-radius);
             box-shadow: var(--shadow-sm);
-            padding: 1.5rem;
+            animation: fadeIn 0.5s ease forwards;
         }
 
-        .filter-header {
+        .question-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 1.25rem;
-        }
-
-        .filter-title {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: var(--dark);
-        }
-
-        .filter-reset {
-            font-size: 0.9rem;
-            color: var(--primary);
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .filter-reset:hover {
-            text-decoration: underline;
-        }
-
-        .filter-options {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1.5rem;
-        }
-
-        .filter-group {
             margin-bottom: 1rem;
         }
 
-        .filter-group-title {
-            font-size: 0.95rem;
-            font-weight: 500;
-            color: var(--dark);
-            margin-bottom: 0.75rem;
-        }
-
-        .filter-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.75rem;
-        }
-
-        .filter-tag {
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            background-color: var(--light);
-            color: var(--text-secondary);
-            cursor: pointer;
-            transition: all 0.2s ease;
-            border: 1px solid var(--gray-light);
-        }
-
-        .filter-tag:hover {
-            background-color: rgba(67, 97, 238, 0.05);
-            border-color: var(--primary-light);
-        }
-
-        .filter-tag.active {
-            background-color: var(--primary);
-            color: var(--white);
-            border-color: var(--primary);
-        }
-
-        /* Тестовый интерфейс */
-        .test-container {
-            background-color: var(--white);
-            border-radius: var(--card-radius);
-            box-shadow: var(--shadow-md);
-            padding: 2rem;
-            margin-bottom: 2rem;
-            display: none; /* По умолчанию скрыт */
-        }
-
-        .test-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.5rem;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid var(--gray-light);
-        }
-
-        .test-title {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: var(--dark);
-        }
-
-        .test-info {
-            display: flex;
-            gap: 1.5rem;
-        }
-
-        .test-info-item {
-            display: flex;
-            align-items: center;
-            font-size: 0.9rem;
-            color: var(--text-secondary);
-        }
-
-        .test-info-item i {
-            margin-right: 0.5rem;
-            color: var(--primary);
-        }
-
-        .test-progress {
-            height: 8px;
-            background-color: var(--gray-light);
-            border-radius: 4px;
-            margin-bottom: 2rem;
-            overflow: hidden;
-        }
-
-        .test-progress-bar {
-            height: 100%;
-            background: var(--gradient-2);
-            width: 0%;
-            transition: width 0.3s ease;
-        }
-
-        .question-container {
-            margin-bottom: 2rem;
-        }
-
         .question-number {
-            font-size: 0.9rem;
-            font-weight: 500;
+            font-size: 1rem;
+            font-weight: 600;
             color: var(--primary);
-            margin-bottom: 0.5rem;
+            background-color: rgba(67, 97, 238, 0.1);
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+        }
+
+        .question-difficulty {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .question-difficulty[data-difficulty="easy"] {
+            color: var(--success);
+        }
+
+        .question-difficulty[data-difficulty="medium"] {
+            color: var(--warning);
+        }
+
+        .question-difficulty[data-difficulty="hard"] {
+            color: var(--danger);
         }
 
         .question-text {
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             font-weight: 500;
             color: var(--dark);
             margin-bottom: 1.5rem;
             line-height: 1.5;
         }
 
-        .question-image {
-            max-width: 100%;
-            margin-bottom: 1.5rem;
-            border-radius: 8px;
-        }
-
-        .answers-container {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        .answer-option {
-            display: flex;
-            align-items: center;
-            padding: 1rem 1.25rem;
-            border: 1px solid var(--gray-light);
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .answer-option:hover {
-            background-color: rgba(67, 97, 238, 0.05);
-            border-color: var(--primary-light);
-        }
-
-        .answer-option.selected {
-            background-color: rgba(67, 97, 238, 0.1);
-            border-color: var(--primary);
-        }
-
-        .answer-option.correct {
-            background-color: rgba(16, 185, 129, 0.1);
-            border-color: #10b981;
-        }
-
-        .answer-option.incorrect {
-            background-color: rgba(239, 68, 68, 0.1);
-            border-color: #ef4444;
-        }
-
-        .answer-checkbox {
-            width: 20px;
-            height: 20px;
-            border: 2px solid var(--gray);
-            border-radius: 4px;
-            margin-right: 1rem;
-            position: relative;
-        }
-
-        .answer-option.selected .answer-checkbox {
-            background-color: var(--primary);
-            border-color: var(--primary);
-        }
-
-        .answer-option.selected .answer-checkbox::after {
-            content: '';
-            position: absolute;
-            top: 3px;
-            left: 7px;
-            width: 4px;
-            height: 8px;
-            border: solid white;
-            border-width: 0 2px 2px 0;
-            transform: rotate(45deg);
-        }
-
-        .answer-radio {
-            width: 20px;
-            height: 20px;
-            border: 2px solid var(--gray);
-            border-radius: 50%;
-            margin-right: 1rem;
-            position: relative;
-        }
-
-        .answer-option.selected .answer-radio {
-            border-color: var(--primary);
-        }
-
-        .answer-option.selected .answer-radio::after {
-            content: '';
-            position: absolute;
-            top: 4px;
-            left: 4px;
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background-color: var(--primary);
-        }
-
-        .answer-text {
-            font-size: 1rem;
-            color: var(--text-primary);
-        }
-
-        .numeric-input-container {
-            display: flex;
-            margin-top: 1rem;
-        }
-
-        .numeric-input {
-            flex: 1;
-            height: 48px;
-            padding: 0 1rem;
-            border: 1px solid var(--gray-light);
-            border-radius: 8px;
-            font-size: 1rem;
-            outline: none;
-            transition: all 0.2s ease;
-        }
-
-        .numeric-input:focus {
-            border-color: var(--primary-light);
-            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
-        }
-
-        .text-input-container {
-            display: flex;
-            margin-top: 1rem;
-        }
-
-        .text-input {
-            flex: 1;
-            min-height: 100px;
+        .answer-input {
+            width: 100%;
             padding: 1rem;
             border: 1px solid var(--gray-light);
             border-radius: 8px;
             font-size: 1rem;
-            outline: none;
             transition: all 0.2s ease;
+            margin-bottom: 1rem;
             resize: vertical;
+            min-height: 80px;
         }
 
-        .text-input:focus {
+        .answer-input:focus {
             border-color: var(--primary-light);
             box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
+            outline: none;
         }
 
-        .test-navigation {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 2rem;
-            padding-top: 1.5rem;
-            border-top: 1px solid var(--gray-light);
+        /* Results styles */
+        .results-section {
+            display: none;
         }
 
-        .btn-lg {
-            padding: 0.75rem 1.5rem;
-            font-size: 0.95rem;
-        }
-
-        /* Результаты теста */
-        .results-container {
+        .results-card {
             background-color: var(--white);
             border-radius: var(--card-radius);
             box-shadow: var(--shadow-md);
             padding: 2rem;
             margin-bottom: 2rem;
-            display: none; /* По умолчанию скрыт */
         }
 
         .results-header {
@@ -881,7 +381,7 @@
         }
 
         .results-title {
-            font-size: 1.75rem;
+            font-size: 1.5rem;
             font-weight: 600;
             color: var(--dark);
             margin-bottom: 0.5rem;
@@ -890,207 +390,164 @@
         .results-score {
             font-size: 3rem;
             font-weight: 700;
-            margin: 1.5rem 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 1rem;
-        }
-
-        .score-percentage {
-            color: var(--primary);
-        }
-
-        .score-fraction {
-            font-size: 1.5rem;
-            color: var(--text-secondary);
-        }
-
-        .results-message {
-            font-size: 1.1rem;
-            color: var(--text-secondary);
-            margin-bottom: 1.5rem;
-        }
-
-        .results-summary {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .summary-item {
-            text-align: center;
-            padding: 1.5rem;
-            background-color: var(--light);
-            border-radius: 12px;
-        }
-
-        .summary-value {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: var(--dark);
-            margin-bottom: 0.5rem;
-        }
-
-        .summary-label {
-            font-size: 0.9rem;
-            color: var(--text-secondary);
+            background: var(--gradient-1);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin: 1rem 0;
         }
 
         .results-details {
-            margin-bottom: 2rem;
-        }
-
-        .details-title {
-            font-size: 1.2rem;
-            font-weight: 600;
-            color: var(--dark);
-            margin-bottom: 1rem;
-        }
-
-        .questions-review {
-            display: flex;
-            flex-direction: column;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 1.5rem;
+            margin: 2rem 0;
         }
 
-        .review-item {
+        .result-stat {
+            text-align: center;
             padding: 1.5rem;
-            border: 1px solid var(--gray-light);
-            border-radius: 12px;
             background-color: var(--light);
+            border-radius: var(--card-radius);
         }
 
-        .review-item.correct {
-            border-left: 4px solid #10b981;
-        }
-
-        .review-item.incorrect {
-            border-left: 4px solid #ef4444;
-        }
-
-        .review-question {
-            font-size: 1rem;
-            font-weight: 500;
-            color: var(--dark);
-            margin-bottom: 1rem;
-        }
-
-        .review-answers {
-            margin-bottom: 1rem;
-        }
-
-        .review-answer {
-            display: flex;
-            align-items: center;
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 600;
             margin-bottom: 0.5rem;
         }
 
-        .review-answer i {
-            margin-right: 0.75rem;
+        .stat-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .feedback-section {
+            margin: 2rem 0;
+        }
+
+        .feedback-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--dark);
+        }
+
+        .feedback-text {
             font-size: 1rem;
-        }
-
-        .review-answer i.correct {
-            color: #10b981;
-        }
-
-        .review-answer i.incorrect {
-            color: #ef4444;
-        }
-
-        .review-explanation {
-            font-size: 0.9rem;
+            line-height: 1.6;
             color: var(--text-secondary);
-            margin-top: 1rem;
-            padding-top: 1rem;
-            border-top: 1px dashed var(--gray-light);
         }
 
-        .results-actions {
-            display: flex;
-            gap: 1rem;
-            justify-content: center;
-            margin-top: 2rem;
+        .strength {
+            color: var(--success);
         }
 
-        /* Таймер теста */
-        .test-timer {
-            padding: 0.5rem 1rem;
-            background-color: var(--light);
-            border-radius: 8px;
-            font-size: 0.9rem;
-            color: var(--text-secondary);
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .timer-warning {
-            color: var(--warning);
-        }
-
-        .timer-danger {
+        .weakness {
             color: var(--danger);
         }
 
-        /* Загрузка */
-        .loading-container {
+        .topics-section {
+            margin-top: 2rem;
+        }
+
+        .topic-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .topic-card {
+            background-color: var(--light);
+            border-radius: var(--card-radius);
+            padding: 1rem;
             display: flex;
-            justify-content: center;
             align-items: center;
-            min-height: 300px;
-            flex-direction: column;
             gap: 1rem;
         }
 
-        .spinner {
+        .topic-icon {
             width: 40px;
             height: 40px;
-            border: 4px solid rgba(67, 97, 238, 0.1);
-            border-left-color: var(--primary);
             border-radius: 50%;
-            animation: spin 1s linear infinite;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--white);
+        }
+
+        .topic-icon.good {
+            background-color: var(--success);
+        }
+
+        .topic-icon.medium {
+            background-color: var(--warning);
+        }
+
+        .topic-icon.poor {
+            background-color: var(--danger);
+        }
+
+        .topic-info {
+            flex-grow: 1;
+        }
+
+        .topic-name {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .topic-status {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animated {
+            animation: fadeIn 0.5s ease forwards;
+        }
+
+        .delay-1 {
+            animation-delay: 0.1s;
+        }
+
+        .delay-2 {
+            animation-delay: 0.2s;
+        }
+
+        .delay-3 {
+            animation-delay: 0.3s;
+        }
+
+        /* Loader */
+        .loader-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 200px;
+        }
+
+        .loader {
+            width: 50px;
+            height: 50px;
+            border: 5px solid var(--gray-light);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 1s ease-in-out infinite;
         }
 
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
 
-        .loading-text {
-            font-size: 1rem;
-            color: var(--text-secondary);
-        }
-
-        /* Сообщения об ошибках */
-        .error-message {
-            background-color: #fff2f5;
-            border-left: 4px solid var(--danger);
-            color: var(--danger);
-            padding: 1rem;
-            margin: 1rem 0;
-            border-radius: 8px;
-            font-size: 0.9rem;
-            display: flex;
-            align-items: center;
-        }
-
-        .error-message i {
-            margin-right: 0.75rem;
-            font-size: 1.25rem;
-        }
-
-        /* Патичка */
-        .dashboard-footer {
-            margin-top: 2rem;
-            padding: 1.5rem 0;
-            text-align: center;
-            color: var(--text-muted);
-            font-size: 0.9rem;
-        }
-
-        /* Медиа-запросы */
+        /* Media queries */
         @media (max-width: 992px) {
             :root {
                 --sidebar-width: 80px;
@@ -1121,14 +578,6 @@
             .user-avatar {
                 margin-right: 0;
             }
-            
-            .search-box input {
-                width: 200px;
-            }
-            
-            .filter-options {
-                grid-template-columns: 1fr;
-            }
         }
 
         @media (max-width: 768px) {
@@ -1142,43 +591,8 @@
                 gap: 1rem;
             }
             
-            .header-actions {
-                width: 100%;
-                justify-content: space-between;
-            }
-            
-            .search-box input {
-                width: 100%;
-            }
-            
-            .test-header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 1rem;
-            }
-            
-            .test-info {
-                width: 100%;
-                justify-content: space-between;
-            }
-            
-            .test-navigation {
-                flex-direction: column;
-                gap: 1rem;
-            }
-            
-            .test-navigation .btn {
-                width: 100%;
-                justify-content: center;
-            }
-            
-            .results-actions {
-                flex-direction: column;
-            }
-            
-            .results-actions .btn {
-                width: 100%;
-                justify-content: center;
+            .results-details {
+                grid-template-columns: 1fr;
             }
         }
 
@@ -1196,20 +610,12 @@
                 width: 100%;
             }
             
-            .search-box {
-                display: none;
-            }
-            
             .mobile-menu-toggle {
                 display: block;
             }
-            
-            .categories-container {
-                grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-            }
         }
 
-        /* Мобильное меню */
+        /* Mobile menu */
         .mobile-menu-toggle {
             display: none;
             background: none;
@@ -1220,29 +626,7 @@
             margin-right: 1rem;
         }
 
-        /* Анимации */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .animated {
-            animation: fadeIn 0.5s ease forwards;
-        }
-
-        .delay-1 {
-            animation-delay: 0.1s;
-        }
-
-        .delay-2 {
-            animation-delay: 0.2s;
-        }
-
-        .delay-3 {
-            animation-delay: 0.3s;
-        }
-
-        /* Темный режим */
+        /* Dark mode */
         @media (prefers-color-scheme: dark) {
             :root {
                 --white: #1a202c;
@@ -1258,66 +642,9 @@
                 background-color: #171923;
             }
             
-            .search-box input {
+            .answer-input {
                 background-color: #2d3748;
                 color: var(--text-primary);
-                border-color: #4a5568;
-            }
-            
-            .search-box i {
-                color: #a0aec0;
-            }
-            
-            .category-card {
-                background-color: #1a202c;
-            }
-            
-            .difficulty-dot {
-                background-color: #4a5568;
-            }
-            
-            .filter-tag {
-                background-color: #2d3748;
-                border-color: #4a5568;
-            }
-            
-            .sort-dropdown {
-                background-color: #2d3748;
-                border-color: #4a5568;
-                color: var(--text-primary);
-            }
-            
-            .btn-secondary {
-                background-color: #2d3748;
-                border-color: #4a5568;
-                color: var(--text-primary);
-            }
-            
-            .answer-option {
-                background-color: #1a202c;
-                border-color: #4a5568;
-            }
-            
-            .answer-option:hover {
-                background-color: #2d3748;
-            }
-            
-            .numeric-input, .text-input {
-                background-color: #2d3748;
-                color: var(--text-primary);
-                border-color: #4a5568;
-            }
-            
-            .test-timer {
-                background-color: #2d3748;
-            }
-            
-            .summary-item {
-                background-color: #2d3748;
-            }
-            
-            .review-item {
-                background-color: #2d3748;
                 border-color: #4a5568;
             }
         }
@@ -1325,1267 +652,438 @@
 </head>
 <body>
     <!-- Sidebar -->
-    <aside class="sidebar">
+    <div class="sidebar">
         <div class="sidebar-header">
-            <a href="/" class="sidebar-logo">
-                <i class="fas fa-calculator"></i>
+            <a href="#" class="sidebar-logo">
+                <i class="fas fa-book-open"></i>
                 <span>Justax</span>
             </a>
         </div>
         
         <ul class="sidebar-menu">
             <li class="sidebar-item">
-                <a href="/dashboard/dashboard.html" class="sidebar-link">
-                    <i class="fas fa-th-large"></i>
+                <a href="index.html" class="sidebar-link">
+                    <i class="fas fa-home"></i>
                     <span>Dashboard</span>
                 </a>
             </li>
             <li class="sidebar-item">
-                <a href="/dashboard/procvicovani.html" class="sidebar-link active">
-                    <i class="fas fa-book-open"></i>
+                <a href="procvicovani.html" class="sidebar-link active">
+                    <i class="fas fa-graduation-cap"></i>
                     <span>Procvičování</span>
                 </a>
             </li>
             <li class="sidebar-item">
-                <a href="/dashboard/pokrok.html" class="sidebar-link">
+                <a href="materialy.html" class="sidebar-link">
+                    <i class="fas fa-book"></i>
+                    <span>Materiály</span>
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a href="pokrok.html" class="sidebar-link">
                     <i class="fas fa-chart-line"></i>
                     <span>Pokrok</span>
                 </a>
             </li>
             <li class="sidebar-item">
-                <a href="/dashboard/oceneni.html" class="sidebar-link">
-                    <i class="fas fa-medal"></i>
-                    <span>Ocenění</span>
-                </a>
-            </li>
-            <li class="sidebar-item">
-                <a href="/dashboard/materialy.html" class="sidebar-link">
-                    <i class="fas fa-file-alt"></i>
-                    <span>Materiály</span>
-                </a>
-            </li>
-            <li class="sidebar-item">
-                <a href="/dashboard/profile.html" class="sidebar-link">
-                    <i class="fas fa-user-cog"></i>
-                    <span>Profil</span>
+                <a href="nastaveni.html" class="sidebar-link">
+                    <i class="fas fa-cog"></i>
+                    <span>Nastavení</span>
                 </a>
             </li>
         </ul>
         
         <div class="user-profile">
-            <div class="user-avatar" id="user-avatar">MS</div>
+            <div class="user-avatar">
+                <div id="userInitials">M</div>
+            </div>
             <div class="user-info">
-                <div class="user-name" id="user-name">Načítání...</div>
-                <div class="user-role" id="user-role">Student</div>
+                <div class="user-name" id="userName">Uživatel</div>
+                <div class="user-role">Student</div>
             </div>
         </div>
         
         <div class="sidebar-footer">
-            &copy; 2025 Justax
+            Justax © 2025
         </div>
-    </aside>
-    
+    </div>
+
+    <!-- Main Content -->
     <main>
-        <!-- Ошибки загрузки -->
-        <div class="error-container" id="global-error" style="display: none;">
-            <div class="error-message">
-                <i class="fas fa-exclamation-circle"></i>
-                <div>
-                    <div id="global-error-message">Došlo k chybě při načítání dat.</div>
-                    <button class="retry-button" id="global-retry-btn">Zkusit znovu</button>
-                </div>
-            </div>
-        </div>
-
-        <header class="dashboard-header">
+        <div class="dashboard-header">
             <div class="header-content">
-                <h1>Procvičování</h1>
-                <div class="header-actions">
-                    <div class="search-box">
-                        <i class="fas fa-search"></i>
-                        <input type="text" placeholder="Hledat...">
-                    </div>
-                    <div class="notifications">
-                        <i class="fas fa-bell"></i>
-                        <span class="notification-badge" id="notification-count">0</span>
-                    </div>
-                </div>
+                <h1>Příprava na přijímačky</h1>
+                <button class="mobile-menu-toggle">
+                    <i class="fas fa-bars"></i>
+                </button>
             </div>
-        </header>
-        
+        </div>
+
         <div class="main-content">
-            <!-- Секция с категориями -->
-            <section class="categories-section">
-                <h2 class="section-title">Kategorie</h2>
-                <div class="categories-container">
-                    <div class="category-card math" data-category="math">
-                        <div class="category-icon math">
-                            <i class="fas fa-square-root-alt"></i>
-                        </div>
-                        <h3 class="category-title">Matematika</h3>
-                        <p class="category-desc">Algebra, geometrie, funkce a další témata</p>
-                        <div class="category-stats">15 cvičení</div>
+            <!-- Introduction Section - Visible initially -->
+            <div class="section intro-section" id="introSection">
+                <h2 class="section-title">Pробный тест</h2>
+                <p class="section-text">Перед подготовкой к приймачкам сначало вы должны пройти пробный тест. Этот тест поможет определить ваши сильные и слабые стороны, чтобы вы могли сосредоточиться на областях, которые нуждаются в улучшении.</p>
+                <p class="section-text">В тесте представлены различные типы вопросов разной сложности. После завершения теста вы получите подробный анализ ваших результатов и рекомендации по дальнейшему обучению.</p>
+                <button class="btn btn-primary btn-lg btn-center" id="startTestBtn">
+                    <i class="fas fa-play"></i>
+                    Начать тест
+                </button>
+            </div>
+
+            <!-- Test Section - Initially hidden -->
+            <div class="section test-section" id="testSection" style="display: none;">
+                <h2 class="section-title">Пробный тест</h2>
+                <div class="loader-container" id="testLoader">
+                    <div class="loader"></div>
+                </div>
+                <div id="questionsContainer" style="display: none;">
+                    <!-- Questions will be loaded here -->
+                </div>
+                <div class="test-footer" style="display: none;" id="testFooter">
+                    <button class="btn btn-primary btn-lg" id="submitTestBtn">
+                        <i class="fas fa-check"></i>
+                        Завершить тест
+                    </button>
+                </div>
+            </div>
+
+            <!-- Results Section - Initially hidden -->
+            <div class="results-section" id="resultsSection">
+                <div class="results-card">
+                    <div class="results-header">
+                        <h2 class="results-title">Результаты теста</h2>
+                        <div class="results-score" id="scoreDisplay">0/50</div>
                     </div>
                     
-                    <div class="category-card language" data-category="czech">
-                        <div class="category-icon language">
-                            <i class="fas fa-spell-check"></i>
+                    <div class="results-details">
+                        <div class="result-stat">
+                            <div class="stat-value" id="correctAnswers">0</div>
+                            <div class="stat-label">Правильные ответы</div>
                         </div>
-                        <h3 class="category-title">Český jazyk</h3>
-                        <p class="category-desc">Gramatika, literatura, sloh a stylistika</p>
-                        <div class="category-stats">12 cvičení</div>
+                        <div class="result-stat">
+                            <div class="stat-value" id="wrongAnswers">0</div>
+                            <div class="stat-label">Неправильные ответы</div>
+                        </div>
+                        <div class="result-stat">
+                            <div class="stat-value" id="completionTime">0:00</div>
+                            <div class="stat-label">Время выполнения</div>
+                        </div>
                     </div>
                     
-                    <div class="category-card mixed" data-category="mixed">
-                        <div class="category-icon mixed">
-                            <i class="fas fa-tasks"></i>
-                        </div>
-                        <h3 class="category-title">Kombinované</h3>
-                        <p class="category-desc">Komplexní cvičení z více oblastí</p>
-                        <div class="category-stats">8 cvičení</div>
+                    <div class="feedback-section">
+                        <h3 class="feedback-title">Анализ результатов</h3>
+                        <p class="feedback-text" id="feedbackText">
+                            Обработка результатов теста...
+                        </p>
                     </div>
-                </div>
-            </section>
-            
-            <!-- Фильтры для упражнений -->
-            <section class="filter-section">
-                <div class="filter-card">
-                    <div class="filter-header">
-                        <h3 class="filter-title">Filtry</h3>
-                        <div class="filter-reset" id="reset-filters">Resetovat filtry</div>
-                    </div>
-                    <div class="filter-options">
-                        <div class="filter-group">
-                            <h4 class="filter-group-title">Obtížnost</h4>
-                            <div class="filter-list" id="difficulty-filters">
-                                <div class="filter-tag" data-difficulty="1">Lehká</div>
-                                <div class="filter-tag" data-difficulty="2">Střední</div>
-                                <div class="filter-tag" data-difficulty="3">Vysoká</div>
-                            </div>
-                        </div>
-                        <div class="filter-group">
-                            <h4 class="filter-group-title">Čas</h4>
-                            <div class="filter-list" id="time-filters">
-                                <div class="filter-tag" data-time="5">Do 5 minut</div>
-                                <div class="filter-tag" data-time="10">5-10 minut</div>
-                                <div class="filter-tag" data-time="15">10-15 minut</div>
-                                <div class="filter-tag" data-time="30">Nad 15 minut</div>
-                            </div>
-                        </div>
-                        <div class="filter-group">
-                            <h4 class="filter-group-title">Řazení</h4>
-                            <select class="sort-dropdown" id="sort-dropdown">
-                                <option value="recommended">Doporučené</option>
-                                <option value="newest">Nejnovější</option>
-                                <option value="difficulty-asc">Od nejlehčích</option>
-                                <option value="difficulty-desc">Od nejtěžších</option>
-                                <option value="popularity">Nejpopulárnější</option>
-                            </select>
+                    
+                    <div class="topics-section">
+                        <h3 class="feedback-title">Тематические области</h3>
+                        <div class="topic-grid" id="topicsGrid">
+                            <!-- Topics will be inserted here -->
                         </div>
                     </div>
-                </div>
-            </section>
-            
-            <!-- Упражнения -->
-            <section class="exercises-section">
-                <h2 class="section-title">Dostupná cvičení</h2>
-                <div class="exercise-grid" id="exercises-container">
-                    <!-- Загрузка упражнений -->
-                    <div class="loading-container" id="exercises-loading">
-                        <div class="spinner"></div>
-                        <div class="loading-text">Načítání cvičení...</div>
-                    </div>
-                </div>
-            </section>
-            
-            <!-- Тестовый контейнер (появляется при запуске упражнения) -->
-            <section class="test-container" id="test-container">
-                <div class="test-header">
-                    <h2 class="test-title" id="test-title">Název cvičení</h2>
-                    <div class="test-info">
-                        <div class="test-info-item">
-                            <i class="fas fa-clock"></i>
-                            <span id="test-time">10 minut</span>
-                        </div>
-                        <div class="test-info-item">
-                            <i class="fas fa-chart-bar"></i>
-                            <span id="test-difficulty">Střední obtížnost</span>
-                        </div>
-                        <div class="test-timer" id="test-timer">
-                            <i class="far fa-clock"></i>
-                            <span id="timer-display">10:00</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="test-progress">
-                    <div class="test-progress-bar" id="test-progress-bar"></div>
-                </div>
-                
-                <div class="question-container" id="question-container">
-                    <!-- Вопросы будут загружены через JavaScript -->
-                </div>
-                
-                <div class="test-navigation">
-                    <button class="btn btn-secondary btn-lg" id="prev-question">
-                        <i class="fas fa-arrow-left"></i> Předchozí otázka
-                    </button>
-                    <button class="btn btn-primary btn-lg" id="next-question">
-                        Další otázka <i class="fas fa-arrow-right"></i>
+                    
+                    <button class="btn btn-primary btn-lg btn-center" id="continueBtn">
+                        <i class="fas fa-arrow-right"></i>
+                        Перейти к обучению
                     </button>
                 </div>
-            </section>
-            
-            <!-- Результаты теста (появляются после завершения) -->
-            <section class="results-container" id="results-container">
-                <div class="results-header">
-                    <h2 class="results-title">Výsledky cvičení</h2>
-                    <div class="results-score">
-                        <span class="score-percentage" id="score-percentage">85%</span>
-                        <span class="score-fraction" id="score-fraction">(17/20)</span>
-                    </div>
-                    <p class="results-message" id="results-message">Výborně! Zvládl(a) jste to velmi dobře.</p>
-                </div>
-                
-                <div class="results-summary">
-                    <div class="summary-item">
-                        <div class="summary-value" id="summary-correct">17</div>
-                        <div class="summary-label">Správných odpovědí</div>
-                    </div>
-                    <div class="summary-item">
-                        <div class="summary-value" id="summary-incorrect">3</div>
-                        <div class="summary-label">Chybných odpovědí</div>
-                    </div>
-                    <div class="summary-item">
-                        <div class="summary-value" id="summary-time">8:25</div>
-                        <div class="summary-label">Celkový čas</div>
-                    </div>
-                </div>
-                
-                <div class="results-details">
-                    <h3 class="details-title">Přehled otázek</h3>
-                    <div class="questions-review" id="questions-review">
-                        <!-- Обзор вопросов будет загружен через JavaScript -->
-                    </div>
-                </div>
-                
-                <div class="results-actions">
-                    <button class="btn btn-secondary btn-lg" id="retry-test">
-                        <i class="fas fa-redo"></i> Zkusit znovu
-                    </button>
-                    <button class="btn btn-primary btn-lg" id="back-to-exercises">
-                        <i class="fas fa-th-large"></i> Zpět na cvičení
-                    </button>
-                </div>
-            </section>
+            </div>
         </div>
-        
-        <footer class="dashboard-footer">
-            &copy; 2025 Justax | Všechna práva vyhrazena
-        </footer>
     </main>
-    
+
     <script>
-        // Конфигурация Supabase
-        const SUPABASE_URL = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10';
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // Initialize Supabase client
+        const supabaseUrl = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10';
+        const supabase = supabase.createClient(supabaseUrl, supabaseKey);
         
-        // Глобальные переменные
-        let currentUser = null;
-        let exercises = [];
-        let filteredExercises = [];
-        let activeFilters = {
-            category: null,
-            difficulty: [],
-            time: []
-        };
-        let sortBy = 'recommended';
+        // DOM elements
+        const startTestBtn = document.getElementById('startTestBtn');
+        const introSection = document.getElementById('introSection');
+        const testSection = document.getElementById('testSection');
+        const testLoader = document.getElementById('testLoader');
+        const questionsContainer = document.getElementById('questionsContainer');
+        const testFooter = document.getElementById('testFooter');
+        const submitTestBtn = document.getElementById('submitTestBtn');
+        const resultsSection = document.getElementById('resultsSection');
+        const scoreDisplay = document.getElementById('scoreDisplay');
+        const correctAnswers = document.getElementById('correctAnswers');
+        const wrongAnswers = document.getElementById('wrongAnswers');
+        const completionTime = document.getElementById('completionTime');
+        const feedbackText = document.getElementById('feedbackText');
+        const topicsGrid = document.getElementById('topicsGrid');
+        const continueBtn = document.getElementById('continueBtn');
+        const userName = document.getElementById('userName');
+        const userInitials = document.getElementById('userInitials');
+
+        // Global variables
+        let testQuestions = [];
+        let startTime;
+        let endTime;
+        let userResponses = [];
         
-        // Переменные для теста
-        let currentTest = null;
-        let currentQuestionIndex = 0;
-        let userAnswers = [];
-        let testStartTime = null;
-        let timerInterval = null;
-        let testTimeLeft = 0;
-
-        // Инициализация страницы
-        document.addEventListener('DOMContentLoaded', async () => {
-            // Проверка авторизации
-            await checkAuth();
+        // Set user information
+        function setUserInfo() {
+            const user = {
+                name: 'Максим',  // Example name, replace with actual user data
+                email: 'user@example.com'
+            };
             
-            // Загрузка упражнений
-            await loadExercises();
+            userName.textContent = user.name;
+            userInitials.textContent = user.name.charAt(0);
+        }
+        
+        // Start the test
+        async function startTest() {
+            introSection.style.display = 'none';
+            testSection.style.display = 'block';
             
-            // Обработчики событий для фильтров
-            initializeFilters();
-            
-            // Обработчики событий для тестового интерфейса
-            initializeTestHandlers();
-        });
-
-        // Проверка авторизации
-        async function checkAuth() {
             try {
-                const { data: { user }, error } = await supabase.auth.getUser();
+                await loadQuestions();
+                testLoader.style.display = 'none';
+                questionsContainer.style.display = 'block';
+                testFooter.style.display = 'block';
                 
-                if (error || !user) {
-                    window.location.href = '/login.html?redirect=' + encodeURIComponent(window.location.pathname);
-                    return;
-                }
-                
-                // Получение профиля пользователя
-                const { data: profile, error: profileError } = await supabase
-                    .from('profiles')
-                    .select('*')
-                    .eq('id', user.id)
-                    .single();
-                
-                if (profileError) {
-                    showError('Nepodařilo se načíst profil uživatele.');
-                    return;
-                }
-                
-                currentUser = {
-                    ...user,
-                    profile: profile
-                };
-                
-                // Обновление информации о пользователе в UI
-                updateUserInfo();
-                
+                // Record start time
+                startTime = new Date();
             } catch (error) {
-                console.error('Authentication error:', error);
-                showError('Nastala chyba při ověřování přihlášení.');
-            }
-        }
-
-        // Обновление информации о пользователе в UI
-        function updateUserInfo() {
-            if (!currentUser || !currentUser.profile) return;
-            
-            const avatarElement = document.getElementById('user-avatar');
-            const nameElement = document.getElementById('user-name');
-            
-            if (currentUser.profile.avatar_url) {
-                avatarElement.innerHTML = `<img src="${currentUser.profile.avatar_url}" alt="Avatar">`;
-            } else {
-                // Инициалы пользователя
-                const initials = `${currentUser.profile.first_name ? currentUser.profile.first_name[0] : ''}${currentUser.profile.last_name ? currentUser.profile.last_name[0] : ''}`;
-                avatarElement.textContent = initials || 'U';
-            }
-            
-            nameElement.textContent = `${currentUser.profile.first_name || ''} ${currentUser.profile.last_name || ''}`.trim() || 'Uživatel';
-            
-            // Обновление счетчика уведомлений (для демонстрации)
-            document.getElementById('notification-count').textContent = '2';
-        }
-
-        // Загрузка упражнений из Supabase
-        async function loadExercises() {
-            try {
-                document.getElementById('exercises-loading').style.display = 'flex';
-                
-                // Получение всех упражнений
-                const { data, error } = await supabase
-                    .from('exercises')
-                    .select('*')
-                    .eq('is_published', true)
-                    .order('created_at', { ascending: false });
-                
-                if (error) {
-                    throw error;
-                }
-                
-                exercises = data || [];
-                
-                // Получение прогресса пользователя
-                if (currentUser) {
-                    const { data: userExercises, error: userExError } = await supabase
-                        .from('user_exercises')
-                        .select('*')
-                        .eq('user_id', currentUser.id);
-                    
-                    if (!userExError && userExercises) {
-                        // Объединение данных упражнений с прогрессом пользователя
-                        exercises = exercises.map(exercise => {
-                            const userProgress = userExercises.find(ue => ue.exercise_id === exercise.id);
-                            return {
-                                ...exercise,
-                                userProgress: userProgress || null
-                            };
-                        });
-                    }
-                }
-                
-                // Применение фильтров и отображение
-                applyFiltersAndRender();
-                
-            } catch (error) {
-                console.error('Error loading exercises:', error);
-                showError('Nepodařilo se načíst cvičení.');
-            } finally {
-                document.getElementById('exercises-loading').style.display = 'none';
-            }
-        }
-
-        // Инициализация фильтров
-        function initializeFilters() {
-            // Обработчики для категорий
-            document.querySelectorAll('.category-card').forEach(card => {
-                card.addEventListener('click', () => {
-                    const category = card.dataset.category;
-                    
-                    // Переключение активной категории
-                    if (activeFilters.category === category) {
-                        activeFilters.category = null;
-                        document.querySelectorAll('.category-card').forEach(c => c.classList.remove('active'));
-                    } else {
-                        activeFilters.category = category;
-                        document.querySelectorAll('.category-card').forEach(c => {
-                            c.classList.toggle('active', c.dataset.category === category);
-                        });
-                    }
-                    
-                    applyFiltersAndRender();
-                });
-            });
-            
-            // Обработчики для сложности
-            document.querySelectorAll('#difficulty-filters .filter-tag').forEach(tag => {
-                tag.addEventListener('click', () => {
-                    const difficulty = parseInt(tag.dataset.difficulty);
-                    
-                    // Переключение активного фильтра сложности
-                    if (activeFilters.difficulty.includes(difficulty)) {
-                        activeFilters.difficulty = activeFilters.difficulty.filter(d => d !== difficulty);
-                        tag.classList.remove('active');
-                    } else {
-                        activeFilters.difficulty.push(difficulty);
-                        tag.classList.add('active');
-                    }
-                    
-                    applyFiltersAndRender();
-                });
-            });
-            
-            // Обработчики для времени
-            document.querySelectorAll('#time-filters .filter-tag').forEach(tag => {
-                tag.addEventListener('click', () => {
-                    const time = parseInt(tag.dataset.time);
-                    
-                    // Переключение активного фильтра времени
-                    if (activeFilters.time.includes(time)) {
-                        activeFilters.time = activeFilters.time.filter(t => t !== time);
-                        tag.classList.remove('active');
-                    } else {
-                        activeFilters.time.push(time);
-                        tag.classList.add('active');
-                    }
-                    
-                    applyFiltersAndRender();
-                });
-            });
-            
-            // Обработчик для сортировки
-            document.getElementById('sort-dropdown').addEventListener('change', (e) => {
-                sortBy = e.target.value;
-                applyFiltersAndRender();
-            });
-            
-            // Обработчик для сброса фильтров
-            document.getElementById('reset-filters').addEventListener('click', () => {
-                activeFilters = {
-                    category: null,
-                    difficulty: [],
-                    time: []
-                };
-                sortBy = 'recommended';
-                
-                // Сброс UI
-                document.querySelectorAll('.category-card').forEach(c => c.classList.remove('active'));
-                document.querySelectorAll('#difficulty-filters .filter-tag, #time-filters .filter-tag').forEach(tag => tag.classList.remove('active'));
-                document.getElementById('sort-dropdown').value = 'recommended';
-                
-                applyFiltersAndRender();
-            });
-        }
-
-        // Применение фильтров и отображение упражнений
-        function applyFiltersAndRender() {
-            filteredExercises = [...exercises];
-            
-            // Фильтрация по категории
-            if (activeFilters.category) {
-                filteredExercises = filteredExercises.filter(ex => ex.subject === activeFilters.category);
-            }
-            
-            // Фильтрация по сложности
-            if (activeFilters.difficulty.length > 0) {
-                filteredExercises = filteredExercises.filter(ex => activeFilters.difficulty.includes(ex.difficulty));
-            }
-            
-            // Фильтрация по времени
-            if (activeFilters.time.length > 0) {
-                filteredExercises = filteredExercises.filter(ex => {
-                    const time = ex.time_minutes;
-                    if (activeFilters.time.includes(5) && time <= 5) return true;
-                    if (activeFilters.time.includes(10) && time > 5 && time <= 10) return true;
-                    if (activeFilters.time.includes(15) && time > 10 && time <= 15) return true;
-                    if (activeFilters.time.includes(30) && time > 15) return true;
-                    return false;
-                });
-            }
-            
-            // Сортировка
-            switch (sortBy) {
-                case 'newest':
-                    filteredExercises.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-                    break;
-                case 'difficulty-asc':
-                    filteredExercises.sort((a, b) => a.difficulty - b.difficulty);
-                    break;
-                case 'difficulty-desc':
-                    filteredExercises.sort((a, b) => b.difficulty - a.difficulty);
-                    break;
-                case 'popularity':
-                    // Здесь можно добавить логику сортировки по популярности, если у вас есть такие данные
-                    break;
-                case 'recommended':
-default:
-    // Рекомендуемая сортировка (можно настроить под ваши потребности)
-    filteredExercises.sort((a, b) => {
-        // Сначала сортируем по незавершенным и рекомендуемым
-        if (a.userProgress && a.userProgress.status === 'in_progress' && (!b.userProgress || b.userProgress.status !== 'in_progress')) {
-            return -1;
-        }
-        if (b.userProgress && b.userProgress.status === 'in_progress' && (!a.userProgress || a.userProgress.status !== 'in_progress')) {
-            return 1;
-        }
-        
-        // Затем по уровню сложности (подходящему для пользователя)
-        const userLevel = currentUser?.profile?.level || 1;
-        const aLevelDiff = Math.abs(a.difficulty - userLevel);
-        const bLevelDiff = Math.abs(b.difficulty - userLevel);
-        
-        if (aLevelDiff !== bLevelDiff) {
-            return aLevelDiff - bLevelDiff;
-        }
-        
-        // Наконец, по популярности или релевантности
-        return (b.is_featured ? 1 : 0) - (a.is_featured ? 1 : 0);
-    });
-    break;
-}
-
-// Отображение упражнений
-renderExercises();
-}
-
-// Отображение упражнений в интерфейсе
-function renderExercises() {
-const container = document.getElementById('exercises-container');
-container.innerHTML = '';
-
-if (filteredExercises.length === 0) {
-    container.innerHTML = `
-        <div class="no-results">
-            <i class="fas fa-search" style="font-size: 3rem; color: var(--gray-light); margin-bottom: 1rem;"></i>
-            <h3>Žádná cvičení nebyla nalezena</h3>
-            <p>Zkuste změnit filtry nebo vybrat jinou kategorii.</p>
-        </div>
-    `;
-    return;
-}
-
-filteredExercises.forEach(exercise => {
-    const card = document.createElement('div');
-    card.className = 'exercise-card animated';
-    
-    // Определение статуса упражнения
-    let statusText = '';
-    let progressWidth = 0;
-    
-    if (exercise.userProgress) {
-        if (exercise.userProgress.status === 'completed') {
-            statusText = 'Dokončeno';
-            progressWidth = 100;
-        } else if (exercise.userProgress.status === 'in_progress') {
-            statusText = `${exercise.userProgress.progress}% hotovo`;
-            progressWidth = exercise.userProgress.progress;
-        }
-    }
-    
-    // Генерация HTML карточки упражнения
-    card.innerHTML = `
-        <div class="exercise-header">
-            <img src="${exercise.image_url || 'https://via.placeholder.com/300x150?text=Cvičení'}" alt="${exercise.title}">
-            <div class="exercise-badge ${exercise.subject}">${
-                exercise.subject === 'math' ? 'Matematika' : 
-                exercise.subject === 'czech' ? 'Čeština' : 'Kombinované'
-            }</div>
-        </div>
-        <div class="exercise-body">
-            <h3 class="exercise-title">${exercise.title}</h3>
-            <p class="exercise-desc">${exercise.description || 'Bez popisu'}</p>
-            <div class="exercise-meta">
-                <div class="exercise-difficulty">
-                    Obtížnost:
-                    <div class="difficulty-indicator">
-                        <div class="difficulty-dot ${exercise.difficulty >= 1 ? 'active' : ''}"></div>
-                        <div class="difficulty-dot ${exercise.difficulty >= 2 ? 'active' : ''}"></div>
-                        <div class="difficulty-dot ${exercise.difficulty >= 3 ? 'active' : ''}"></div>
+                console.error('Error loading questions:', error);
+                questionsContainer.innerHTML = `
+                    <div class="error-message">
+                        <p>Произошла ошибка при загрузке вопросов. Пожалуйста, попробуйте позже.</p>
+                        <button class="btn btn-secondary" onclick="location.reload()">Обновить страницу</button>
                     </div>
-                </div>
-                <div class="exercise-time">
-                    <i class="far fa-clock"></i> ${exercise.time_minutes} min
-                </div>
-            </div>
-        </div>
-        <div class="exercise-footer">
-            <div class="progress-info">${statusText}</div>
-            <button class="btn btn-primary start-exercise" data-id="${exercise.id}">
-                <i class="fas fa-play"></i> Spustit
-            </button>
-        </div>
-        ${progressWidth > 0 ? `
-            <div style="height: 4px; background: var(--gray-light); width: 100%;">
-                <div style="height: 100%; width: ${progressWidth}%; background: var(--primary);"></div>
-            </div>
-        ` : ''}
-    `;
-    
-    // Добавление события клика на кнопку запуска упражнения
-    card.querySelector('.start-exercise').addEventListener('click', () => {
-        startExercise(exercise.id);
-    });
-    
-    container.appendChild(card);
-});
-}
-
-// Запуск выбранного упражнения
-async function startExercise(exerciseId) {
-try {
-    // Получение данных упражнения
-    const { data: exercise, error } = await supabase
-        .from('exercises')
-        .select('*')
-        .eq('id', exerciseId)
-        .single();
-    
-    if (error) throw error;
-    
-    // Получение контента упражнения (вопросы и ответы)
-    if (!exercise.content || !Array.isArray(exercise.content.questions) || exercise.content.questions.length === 0) {
-        showError('Toto cvičení nemá žádné otázky.');
-        return;
-    }
-    
-    // Настройка текущего теста
-    currentTest = {
-        ...exercise,
-        questions: exercise.content.questions,
-        totalQuestions: exercise.content.questions.length
-    };
-    
-    // Инициализация пользовательских ответов
-    userAnswers = new Array(currentTest.totalQuestions).fill(null);
-    
-    // Настройка интерфейса теста
-    document.getElementById('test-title').textContent = currentTest.title;
-    document.getElementById('test-time').textContent = `${currentTest.time_minutes} minut`;
-    
-    let difficultyText = '';
-    switch (currentTest.difficulty) {
-        case 1:
-            difficultyText = 'Lehká obtížnost';
-            break;
-        case 2:
-            difficultyText = 'Střední obtížnost';
-            break;
-        case 3:
-            difficultyText = 'Vysoká obtížnost';
-            break;
-        default:
-            difficultyText = 'Neznámá obtížnost';
-    }
-    
-    document.getElementById('test-difficulty').textContent = difficultyText;
-    
-    // Настройка таймера
-    testTimeLeft = currentTest.time_minutes * 60; // В секундах
-    updateTimerDisplay();
-    
-    // Запуск таймера
-    testStartTime = new Date();
-    if (timerInterval) clearInterval(timerInterval);
-    timerInterval = setInterval(updateTimer, 1000);
-    
-    // Отображение первого вопроса
-    currentQuestionIndex = 0;
-    showCurrentQuestion();
-    
-    // Скрытие списка упражнений и отображение интерфейса теста
-    document.querySelector('.exercises-section').style.display = 'none';
-    document.querySelector('.filter-section').style.display = 'none';
-    document.querySelector('.categories-section').style.display = 'none';
-    document.getElementById('test-container').style.display = 'block';
-    
-    // Обновление прогресса пользователя в БД
-    if (currentUser) {
-        // Проверка существующего прогресса
-        const { data: existingProgress } = await supabase
-            .from('user_exercises')
-            .select('*')
-            .eq('user_id', currentUser.id)
-            .eq('exercise_id', exerciseId)
-            .single();
-        
-        if (!existingProgress) {
-            // Создание новой записи прогресса
-            await supabase
-                .from('user_exercises')
-                .insert([
-                    {
-                        user_id: currentUser.id,
-                        exercise_id: exerciseId,
-                        status: 'in_progress',
-                        progress: 0,
-                        attempts: 1,
-                        last_attempt: new Date().toISOString()
-                    }
-                ]);
-        } else if (existingProgress.status !== 'completed') {
-            // Обновление существующей записи
-            await supabase
-                .from('user_exercises')
-                .update({
-                    status: 'in_progress',
-                    attempts: existingProgress.attempts + 1,
-                    last_attempt: new Date().toISOString()
-                })
-                .eq('id', existingProgress.id);
+                `;
+                testLoader.style.display = 'none';
+                questionsContainer.style.display = 'block';
+            }
         }
-    }
-    
-} catch (error) {
-    console.error('Error starting exercise:', error);
-    showError('Nepodařilo se spustit cvičení.');
-}
-}
-
-// Отображение текущего вопроса
-function showCurrentQuestion() {
-if (!currentTest || !currentTest.questions || currentQuestionIndex >= currentTest.questions.length) {
-    return;
-}
-
-const question = currentTest.questions[currentQuestionIndex];
-const questionContainer = document.getElementById('question-container');
-const progressBar = document.getElementById('test-progress-bar');
-
-// Обновление прогресс-бара
-const progressPercent = ((currentQuestionIndex + 1) / currentTest.totalQuestions) * 100;
-progressBar.style.width = `${progressPercent}%`;
-
-// Генерация HTML для текущего вопроса
-let questionHTML = `
-    <div class="question-number">Otázka ${currentQuestionIndex + 1} z ${currentTest.totalQuestions}</div>
-    <div class="question-text">${question.text}</div>
-`;
-
-// Добавление изображения вопроса, если есть
-if (question.image_url) {
-    questionHTML += `<img src="${question.image_url}" alt="Question image" class="question-image">`;
-}
-
-// Генерация вариантов ответа в зависимости от типа вопроса
-questionHTML += `<div class="answers-container">`;
-
-switch (question.type) {
-    case 'multiple_choice':
-        // Вопрос с одним правильным ответом
-        question.options.forEach((option, index) => {
-            const isSelected = userAnswers[currentQuestionIndex] === index;
-            questionHTML += `
-                <div class="answer-option ${isSelected ? 'selected' : ''}" data-index="${index}">
-                    <div class="answer-radio"></div>
-                    <div class="answer-text">${option}</div>
-                </div>
-            `;
-        });
-        break;
         
-    case 'checkbox':
-        // Вопрос с множественным выбором
-        question.options.forEach((option, index) => {
-            const isSelected = userAnswers[currentQuestionIndex] && 
-                               Array.isArray(userAnswers[currentQuestionIndex]) && 
-                               userAnswers[currentQuestionIndex].includes(index);
-            questionHTML += `
-                <div class="answer-option ${isSelected ? 'selected' : ''}" data-index="${index}">
-                    <div class="answer-checkbox"></div>
-                    <div class="answer-text">${option}</div>
-                </div>
-            `;
-        });
-        break;
-        
-    case 'numeric':
-        // Вопрос с числовым ответом
-        questionHTML += `
-            <div class="numeric-input-container">
-                <input type="number" class="numeric-input" placeholder="Zadejte číselnou odpověď" 
-                       value="${userAnswers[currentQuestionIndex] || ''}" step="any">
-            </div>
-        `;
-        break;
-        
-    case 'text':
-        // Вопрос с текстовым ответом
-        questionHTML += `
-            <div class="text-input-container">
-                <textarea class="text-input" placeholder="Zadejte svou odpověď">${userAnswers[currentQuestionIndex] || ''}</textarea>
-            </div>
-        `;
-        break;
-        
-    default:
-        questionHTML += `<div class="error-message">Neznámý typ otázky</div>`;
-}
-
-questionHTML += `</div>`;
-
-// Обновление контейнера вопроса
-questionContainer.innerHTML = questionHTML;
-
-// Добавление обработчиков событий для вариантов ответа
-if (question.type === 'multiple_choice') {
-    questionContainer.querySelectorAll('.answer-option').forEach(option => {
-        option.addEventListener('click', () => {
-            // Выбор только одного варианта
-            questionContainer.querySelectorAll('.answer-option').forEach(o => o.classList.remove('selected'));
-            option.classList.add('selected');
-            
-            // Сохранение ответа пользователя
-            userAnswers[currentQuestionIndex] = parseInt(option.dataset.index);
-        });
-    });
-} else if (question.type === 'checkbox') {
-    questionContainer.querySelectorAll('.answer-option').forEach(option => {
-        option.addEventListener('click', () => {
-            // Переключение состояния выбора
-            option.classList.toggle('selected');
-            
-            // Сохранение ответов пользователя
-            const selectedIndices = Array.from(questionContainer.querySelectorAll('.answer-option.selected'))
-                                      .map(el => parseInt(el.dataset.index));
-            userAnswers[currentQuestionIndex] = selectedIndices.length > 0 ? selectedIndices : null;
-        });
-    });
-} else if (question.type === 'numeric') {
-    const numericInput = questionContainer.querySelector('.numeric-input');
-    numericInput.addEventListener('input', () => {
-        userAnswers[currentQuestionIndex] = numericInput.value === '' ? null : parseFloat(numericInput.value);
-    });
-} else if (question.type === 'text') {
-    const textInput = questionContainer.querySelector('.text-input');
-    textInput.addEventListener('input', () => {
-        userAnswers[currentQuestionIndex] = textInput.value.trim() === '' ? null : textInput.value.trim();
-    });
-}
-
-// Обновление кнопок навигации
-updateNavigationButtons();
-
-// Обновление MathJax (если формулы есть)
-if (window.MathJax && question.text.includes('$')) {
-    MathJax.typeset();
-}
-}
-
-// Обновление кнопок навигации
-function updateNavigationButtons() {
-const prevButton = document.getElementById('prev-question');
-const nextButton = document.getElementById('next-question');
-
-// Настройка кнопки "Предыдущий вопрос"
-prevButton.disabled = currentQuestionIndex === 0;
-prevButton.style.visibility = currentQuestionIndex === 0 ? 'hidden' : 'visible';
-
-// Настройка кнопки "Следующий вопрос" или "Завершить"
-if (currentQuestionIndex === currentTest.totalQuestions - 1) {
-    nextButton.innerHTML = '<i class="fas fa-flag-checkered"></i> Dokončit test';
-    nextButton.classList.add('btn-success');
-} else {
-    nextButton.innerHTML = 'Další otázka <i class="fas fa-arrow-right"></i>';
-    nextButton.classList.remove('btn-success');
-}
-}
-
-// Инициализация обработчиков событий для теста
-function initializeTestHandlers() {
-// Кнопка "Предыдущий вопрос"
-document.getElementById('prev-question').addEventListener('click', () => {
-    if (currentQuestionIndex > 0) {
-        currentQuestionIndex--;
-        showCurrentQuestion();
-    }
-});
-
-// Кнопка "Следующий вопрос" / "Завершить"
-document.getElementById('next-question').addEventListener('click', () => {
-    if (currentQuestionIndex < currentTest.totalQuestions - 1) {
-        currentQuestionIndex++;
-        showCurrentQuestion();
-    } else {
-        finishTest();
-    }
-});
-
-// Кнопки в результатах теста
-document.getElementById('retry-test').addEventListener('click', () => {
-    // Перезапуск того же теста
-    startExercise(currentTest.id);
-});
-
-document.getElementById('back-to-exercises').addEventListener('click', () => {
-    // Возврат к списку упражнений
-    document.querySelector('.exercises-section').style.display = 'block';
-    document.querySelector('.filter-section').style.display = 'block';
-    document.querySelector('.categories-section').style.display = 'block';
-    document.getElementById('test-container').style.display = 'none';
-    document.getElementById('results-container').style.display = 'none';
-    
-    // Остановка таймера
-    if (timerInterval) {
-        clearInterval(timerInterval);
-        timerInterval = null;
-    }
-});
-}
-
-// Обновление таймера
-function updateTimer() {
-if (testTimeLeft <= 0) {
-    // Время истекло - автоматическое завершение теста
-    clearInterval(timerInterval);
-    finishTest(true);
-    return;
-}
-
-testTimeLeft--;
-updateTimerDisplay();
-
-// Изменение цвета таймера, когда осталось мало времени
-const timerDisplay = document.getElementById('timer-display');
-const timerIcon = document.querySelector('#test-timer i');
-
-if (testTimeLeft <= 60) { // Последняя минута
-    timerDisplay.classList.add('timer-danger');
-    timerIcon.className = 'fas fa-exclamation-circle';
-} else if (testTimeLeft <= 180) { // Последние 3 минуты
-    timerDisplay.classList.add('timer-warning');
-    timerDisplay.classList.remove('timer-danger');
-    timerIcon.className = 'fas fa-exclamation';
-}
-}
-
-// Обновление отображения таймера
-function updateTimerDisplay() {
-const minutes = Math.floor(testTimeLeft / 60);
-const seconds = testTimeLeft % 60;
-document.getElementById('timer-display').textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-}
-
-// Завершение теста
-async function finishTest(timeExpired = false) {
-// Остановка таймера
-if (timerInterval) {
-    clearInterval(timerInterval);
-    timerInterval = null;
-}
-
-// Расчет результатов
-let correctAnswers = 0;
-const testEndTime = new Date();
-const testDuration = Math.floor((testEndTime - testStartTime) / 1000); // В секундах
-
-const results = currentTest.questions.map((question, index) => {
-    const userAnswer = userAnswers[index];
-    let isCorrect = false;
-    
-    // Проверка правильности ответа в зависимости от типа вопроса
-    switch (question.type) {
-        case 'multiple_choice':
-            isCorrect = userAnswer === question.correct_answer;
-            break;
-            
-        case 'checkbox':
-            if (Array.isArray(userAnswer) && Array.isArray(question.correct_answer)) {
-                isCorrect = userAnswer.length === question.correct_answer.length &&
-                           userAnswer.every(a => question.correct_answer.includes(a));
-            }
-            break;
-            
-        case 'numeric':
-            const userNum = parseFloat(userAnswer);
-            const correctNum = parseFloat(question.correct_answer);
-            const tolerance = question.tolerance || 0;
-            isCorrect = !isNaN(userNum) && Math.abs(userNum - correctNum) <= tolerance;
-            break;
-            
-        case 'text':
-            if (Array.isArray(question.correct_answer)) {
-                // Можно принимать несколько вариантов ответа
-                isCorrect = question.correct_answer.some(
-                    a => userAnswer && userAnswer.toLowerCase() === a.toLowerCase()
-                );
-            } else {
-                isCorrect = userAnswer && userAnswer.toLowerCase() === question.correct_answer.toLowerCase();
-            }
-            break;
-    }
-    
-    if (isCorrect) correctAnswers++;
-    
-    return {
-        question: question.text,
-        userAnswer,
-        correctAnswer: question.correct_answer,
-        isCorrect,
-        explanation: question.solution_explanation || ''
-    };
-});
-
-const score = Math.round((correctAnswers / currentTest.totalQuestions) * 100);
-
-// Сохранение результатов в базу данных
-if (currentUser) {
-    try {
-        // Создание записи о попытке
-        const { data: attempt, error: attemptError } = await supabase
-            .from('user_test_attempts')
-            .insert([
-                {
-                    user_id: currentUser.id,
-                    test_id: currentTest.id,
-                    started_at: testStartTime.toISOString(),
-                    completed_at: testEndTime.toISOString(),
-                    total_questions: currentTest.totalQuestions,
-                    correct_answers: correctAnswers,
-                    time_spent_seconds: testDuration,
-                    score: score
-                }
-            ])
-            .select();
-        
-        if (attemptError) throw attemptError;
-        
-        // Сохранение ответов пользователя на вопросы
-        const userResponses = results.map((result, idx) => ({
-            attempt_id: attempt[0].id,
-            question_id: currentTest.questions[idx].id || idx,
-            user_answer: JSON.stringify(result.userAnswer),
-            is_correct: result.isCorrect,
-            time_spent_seconds: Math.floor(testDuration / currentTest.totalQuestions) // Примерное время на вопрос
-        }));
-        
-        await supabase
-            .from('user_question_responses')
-            .insert(userResponses);
-        
-        // Обновление прогресса пользователя в упражнении
-        const { data: existingProgress } = await supabase
-            .from('user_exercises')
-            .select('*')
-            .eq('user_id', currentUser.id)
-            .eq('exercise_id', currentTest.id)
-            .single();
-        
-        if (existingProgress) {
-            // Обновление прогресса
-            const updatedStatus = score >= 80 ? 'completed' : 'in_progress';
-            const updatedProgress = Math.max(existingProgress.progress || 0, score);
-            
-            await supabase
-                .from('user_exercises')
-                .update({
-                    status: updatedStatus,
-                    progress: updatedProgress,
-                    score: score > (existingProgress.score || 0) ? score : existingProgress.score,
-                    completed_at: updatedStatus === 'completed' ? testEndTime.toISOString() : null
-                })
-                .eq('id', existingProgress.id);
-            
-            // Обновление очков пользователя
-            if (score > (existingProgress.score || 0)) {
-                const pointsGained = Math.floor((score - (existingProgress.score || 0)) / 10);
+        // Load questions from Supabase
+        async function loadQuestions() {
+            const { data, error } = await supabase
+                .from('exam_questions')
+                .select('id, question_text, correct_answer, difficulty, topic')
+                .order('id', { ascending: true });
                 
-                if (pointsGained > 0) {
-                    await supabase
-                        .from('profiles')
-                        .update({ 
-                            points: currentUser.profile.points + pointsGained,
-                            completed_exercises: currentUser.profile.completed_exercises + (updatedStatus === 'completed' ? 1 : 0)
-                        })
-                        .eq('id', currentUser.id);
+            if (error) throw error;
+            
+            testQuestions = data;
+            renderQuestions(testQuestions);
+        }
+        
+        // Render questions in the container
+        function renderQuestions(questions) {
+            questionsContainer.innerHTML = '';
+            
+            questions.forEach((question, index) => {
+                const difficultyLabel = question.difficulty === 'easy' ? 'Легкий' :
+                                       question.difficulty === 'medium' ? 'Средний' : 'Сложный';
+                
+                const questionElement = document.createElement('div');
+                questionElement.className = 'question-container';
+                questionElement.dataset.id = question.id;
+                questionElement.innerHTML = `
+                    <div class="question-header">
+                        <div class="question-number">Вопрос ${index + 1}</div>
+                        <div class="question-difficulty" data-difficulty="${question.difficulty}">${difficultyLabel}</div>
+                    </div>
+                    <div class="question-text">${question.question_text}</div>
+                    <textarea class="answer-input" placeholder="Введите ваш ответ здесь..." data-question-id="${question.id}"></textarea>
+                `;
+                
+                questionsContainer.appendChild(questionElement);
+            });
+        }
+        
+        // Submit the test
+        function submitTest() {
+            // Record end time
+            endTime = new Date();
+            
+            // Collect all user answers
+            const answerInputs = document.querySelectorAll('.answer-input');
+            userResponses = Array.from(answerInputs).map(input => ({
+                questionId: parseInt(input.dataset.questionId),
+                userAnswer: input.value.trim(),
+                correctAnswer: testQuestions.find(q => q.id === parseInt(input.dataset.questionId)).correct_answer,
+                difficulty: testQuestions.find(q => q.id === parseInt(input.dataset.questionId)).difficulty,
+                topic: testQuestions.find(q => q.id === parseInt(input.dataset.questionId)).topic
+            }));
+            
+            // Evaluate answers
+            evaluateAnswers();
+            
+            // Show results section
+            testSection.style.display = 'none';
+            resultsSection.style.display = 'block';
+        }
+        
+        // Evaluate user answers
+        function evaluateAnswers() {
+            // Count correct and wrong answers
+            const correct = userResponses.filter(response => 
+                response.userAnswer.toLowerCase() === response.correctAnswer.toLowerCase()
+            ).length;
+            
+            const wrong = userResponses.length - correct;
+            
+            // Calculate score based on difficulty
+            let totalScore = 0;
+            
+            userResponses.forEach(response => {
+                if (response.userAnswer.toLowerCase() === response.correctAnswer.toLowerCase()) {
+                    switch(response.difficulty) {
+                        case 'easy':
+                            totalScore += 1;
+                            break;
+                        case 'medium':
+                            totalScore += 2;
+                            break;
+                        case 'hard':
+                            totalScore += 3;
+                            break;
+                        default:
+                            totalScore += 1;
+                    }
                 }
-            }
-        }
-    } catch (error) {
-        console.error('Error saving test results:', error);
-    }
-}
-
-// Отображение результатов
-showTestResults(score, correctAnswers, testDuration, results, timeExpired);
-}
-
-// Отображение результатов теста
-function showTestResults(score, correctAnswers, duration, results, timeExpired) {
-// Скрытие интерфейса теста и отображение результатов
-document.getElementById('test-container').style.display = 'none';
-document.getElementById('results-container').style.display = 'block';
-
-// Заголовок результатов
-if (timeExpired) {
-    document.getElementById('results-title').textContent = 'Čas vypršel - Výsledky cvičení';
-} else {
-    document.getElementById('results-title').textContent = 'Výsledky cvičení';
-}
-
-// Процент правильных ответов
-document.getElementById('score-percentage').textContent = `${score}%`;
-document.getElementById('score-fraction').textContent = `(${correctAnswers}/${currentTest.totalQuestions})`;
-
-// Сообщение о результате
-let resultMessage = '';
-if (score >= 90) {
-    resultMessage = 'Vynikající! Perfektně jste zvládli toto cvičení.';
-} else if (score >= 80) {
-    resultMessage = 'Výborně! Zvládli jste to velmi dobře.';
-} else if (score >= 60) {
-    resultMessage = 'Dobře! Zvládli jste toto cvičení, ale je prostor pro zlepšení.';
-} else if (score >= 40) {
-    resultMessage = 'Zvládli jste to, ale doporučujeme další procvičování.';
-} else {
-    resultMessage = 'Toto cvičení bylo náročné. Zkuste to znovu po dalším procvičování.';
-}
-document.getElementById('results-message').textContent = resultMessage;
-
-// Обновление сводки
-document.getElementById('summary-correct').textContent = correctAnswers;
-document.getElementById('summary-incorrect').textContent = currentTest.totalQuestions - correctAnswers;
-
-// Форматирование времени
-const minutes = Math.floor(duration / 60);
-const seconds = duration % 60;
-document.getElementById('summary-time').textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-
-// Генерация обзора вопросов
-const reviewContainer = document.getElementById('questions-review');
-reviewContainer.innerHTML = '';
-
-results.forEach((result, index) => {
-    const reviewItem = document.createElement('div');
-    reviewItem.className = `review-item ${result.isCorrect ? 'correct' : 'incorrect'}`;
-    
-    let reviewHTML = `
-        <div class="review-question">Otázka ${index + 1}: ${result.question}</div>
-        <div class="review-answers">
-    `;
-    
-    // Отображение ответа пользователя
-    reviewHTML += `<div class="review-answer">
-        <i class="${result.isCorrect ? 'fas fa-check correct' : 'fas fa-times incorrect'}"></i>
-        <span>Vaše odpověď: ${formatAnswer(result.userAnswer, currentTest.questions[index].type)}</span>
-    </div>`;
-    
-    // Отображение правильного ответа, если пользователь ошибся
-    if (!result.isCorrect) {
-        reviewHTML += `<div class="review-answer">
-            <i class="fas fa-check correct"></i>
-            <span>Správná odpověď: ${formatAnswer(result.correctAnswer, currentTest.questions[index].type)}</span>
-        </div>`;
-    }
-    
-    reviewHTML += `</div>`;
-    
-    // Объяснение (если есть)
-    if (result.explanation) {
-        reviewHTML += `<div class="review-explanation">
-            <strong>Vysvětlení:</strong> ${result.explanation}
-        </div>`;
-    }
-    
-    reviewItem.innerHTML = reviewHTML;
-    reviewContainer.appendChild(reviewItem);
-});
-}
-
-// Форматирование ответа для отображения
-function formatAnswer(answer, questionType) {
-if (answer === null || answer === undefined) {
-    return 'Bez odpovědi';
-}
-
-switch (questionType) {
-    case 'multiple_choice':
-        // Для вопросов с одним выбором показываем текст выбранного варианта
-        if (currentTest && currentTest.questions) {
-            const question = currentTest.questions.find(q => q.type === 'multiple_choice');
-            if (question && question.options && question.options[answer]) {
-                return question.options[answer];
-            }
-        }
-        return `Možnost ${answer + 1}`;
-        
-    case 'checkbox':
-        // Для вопросов с множественным выбором показываем список выбранных вариантов
-        if (Array.isArray(answer) && answer.length > 0) {
-            if (currentTest && currentTest.questions) {
-                const question = currentTest.questions.find(q => q.type === 'checkbox');
-                if (question && question.options) {
-                    return answer.map(idx => question.options[idx] || `Možnost ${idx + 1}`).join(', ');
+            });
+            
+            // Calculate total possible score
+            const maxScore = testQuestions.reduce((total, question) => {
+                switch(question.difficulty) {
+                    case 'easy': return total + 1;
+                    case 'medium': return total + 2;
+                    case 'hard': return total + 3;
+                    default: return total + 1;
                 }
-            }
-            return answer.map(idx => `Možnost ${idx + 1}`).join(', ');
+            }, 0);
+            
+            // Calculate completion time
+            const timeDiff = endTime - startTime;
+            const minutes = Math.floor(timeDiff / 60000);
+            const seconds = Math.floor((timeDiff % 60000) / 1000);
+            
+            // Update results UI
+            scoreDisplay.textContent = `${totalScore}/${maxScore}`;
+            correctAnswers.textContent = correct;
+            wrongAnswers.textContent = wrong;
+            completionTime.textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+            
+            // Generate feedback
+            generateFeedback(userResponses, totalScore, maxScore);
         }
-        return 'Žádné vybrané možnosti';
         
-    case 'numeric':
-        // Для числовых вопросов форматируем число
-        return answer.toString();
+        // Generate feedback based on results
+        function generateFeedback(responses, score, maxScore) {
+            // Analyze by topics
+            const topicPerformance = {};
+            
+            responses.forEach(response => {
+                if (!topicPerformance[response.topic]) {
+                    topicPerformance[response.topic] = {
+                        total: 0,
+                        correct: 0
+                    };
+                }
+                
+                topicPerformance[response.topic].total++;
+                if (response.userAnswer.toLowerCase() === response.correctAnswer.toLowerCase()) {
+                    topicPerformance[response.topic].correct++;
+                }
+            });
+            
+            // Calculate percentage for each topic
+            Object.keys(topicPerformance).forEach(topic => {
+                const perf = topicPerformance[topic];
+                perf.percentage = Math.round((perf.correct / perf.total) * 100);
+                
+                if (perf.percentage >= 80) {
+                    perf.status = 'good';
+                    perf.statusText = 'Отлично';
+                } else if (perf.percentage >= 50) {
+                    perf.status = 'medium';
+                    perf.statusText = 'Средне';
+                } else {
+                    perf.status = 'poor';
+                    perf.statusText = 'Требуется улучшение';
+                }
+            });
+            
+            // Sort topics by performance
+            const sortedTopics = Object.entries(topicPerformance)
+                .sort((a, b) => b[1].percentage - a[1].percentage)
+                .map(([topic, data]) => ({ topic, ...data }));
+            
+            // Identify strengths and weaknesses
+            const strengths = sortedTopics.filter(t => t.percentage >= 70);
+            const weaknesses = sortedTopics.filter(t => t.percentage < 50);
+            
+            // Generate feedback text
+            let feedback = '';
+            
+            if (score / maxScore >= 0.8) {
+                feedback += '<p>Поздравляем! Вы показали отличный результат в тесте. У вас хорошая базовая подготовка, которую можно еще улучшить.</p>';
+            } else if (score / maxScore >= 0.5) {
+                feedback += '<p>Хороший результат! У вас есть базовые знания, но есть темы, которые требуют дополнительного внимания.</p>';
+            } else {
+                feedback += '<p>У вас есть потенциал для роста. Тест показал, что вам необходимо уделить больше внимания нескольким ключевым темам.</p>';
+            }
+            
+            if (strengths.length > 0) {
+                feedback += '<p class="strength"><strong>Ваши сильные стороны:</strong> ';
+                feedback += strengths.map(s => s.topic).join(', ');
+                feedback += '</p>';
+            }
+            
+            if (weaknesses.length > 0) {
+                feedback += '<p class="weakness"><strong>Темы, требующие внимания:</strong> ';
+                feedback += weaknesses.map(w => w.topic).join(', ');
+                feedback += '</p>';
+            }
+            
+            // Update feedback text
+            feedbackText.innerHTML = feedback;
+            
+            // Render topic performance
+            renderTopicPerformance(sortedTopics);
+        }
         
-    case 'text':
-        // Для текстовых вопросов показываем текст
-        return answer;
+        // Render topic performance cards
+        function renderTopicPerformance(topics) {
+            topicsGrid.innerHTML = '';
+            
+            topics.forEach(topic => {
+                const topicElement = document.createElement('div');
+                topicElement.className = 'topic-card';
+                topicElement.innerHTML = `
+                    <div class="topic-icon ${topic.status}">
+                        <i class="fas ${topic.status === 'good' ? 'fa-check' : topic.status === 'medium' ? 'fa-exclamation' : 'fa-times'}"></i>
+                    </div>
+                    <div class="topic-info">
+                        <div class="topic-name">${topic.topic}</div>
+                        <div class="topic-status">${topic.statusText} (${topic.percentage}%)</div>
+                    </div>
+                `;
+                
+                topicsGrid.appendChild(topicElement);
+            });
+        }
         
-    default:
-        return JSON.stringify(answer);
-}
-}
-
-// Отображение ошибок
-function showError(message) {
-const errorContainer = document.getElementById('global-error');
-const errorMessage = document.getElementById('global-error-message');
-
-errorMessage.textContent = message;
-errorContainer.style.display = 'block';
-
-// Автоматическое скрытие ошибки через 5 секунд
-setTimeout(() => {
-    errorContainer.style.display = 'none';
-}, 5000);
-}
-
-// Обработчик повторной попытки при ошибке
-document.getElementById('global-retry-btn').addEventListener('click', async () => {
-document.getElementById('global-error').style.display = 'none';
-await loadExercises();
-});
-</script>
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            setUserInfo();
+            
+            startTestBtn.addEventListener('click', startTest);
+            submitTestBtn.addEventListener('click', submitTest);
+            
+            continueBtn.addEventListener('click', function() {
+                window.location.href = 'materialy.html';
+            });
+        });
+    </script>
+</body>
+</html>
