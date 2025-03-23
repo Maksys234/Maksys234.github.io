@@ -1566,12 +1566,117 @@
 
     <!-- Script pro integraci s Supabase -->
     <script>
-        // Inicializace Supabase
-        const supabaseUrl = 'https://qcimhjjwvsbgjsitmvuh.supabase.co'; // Nahraďte svým URL
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10'; // Nahraďte svým veřejným klíčem
-        const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+        // Демонстрационные данные для тестирования
+        const demoQuestions = [
+            {
+                id: 1,
+                question_text: "Které z následujících čísel je prvočíslo?",
+                question_type: "multiple_choice",
+                options: ["15", "23", "51", "121"],
+                correct_answer: "23",
+                solution_explanation: "Prvočíslo je přirozené číslo větší než 1, které není dělitelné žádným jiným přirozeným číslem kromě 1 a sebe sama. Číslo 23 je prvočíslo, protože není dělitelné žádným číslem kromě 1 a 23.",
+                difficulty: 1,
+                exam_topics: { name: "Algebra" }
+            },
+            {
+                id: 2,
+                question_text: "Jak velký je obsah čtverce o straně 5 cm?",
+                question_type: "numeric",
+                correct_answer: "25",
+                solution_explanation: "Obsah čtverce vypočítáme jako a² = 5² = 25 cm².",
+                difficulty: 1,
+                exam_topics: { name: "Geometrie" }
+            },
+            {
+                id: 3,
+                question_text: "Jaké je řešení rovnice 2x + 3 = 15?",
+                question_type: "numeric",
+                correct_answer: "6",
+                solution_explanation: "2x + 3 = 15\n2x = 15 - 3\n2x = 12\nx = 6",
+                difficulty: 2,
+                exam_topics: { name: "Algebra" }
+            },
+            {
+                id: 4,
+                question_text: "Auto jede rychlostí 72 km/h. Jaká je jeho rychlost v metrech za sekundu?",
+                question_type: "numeric",
+                correct_answer: "20",
+                solution_explanation: "72 km/h = 72 × 1000 ÷ 3600 = 20 m/s",
+                difficulty: 2,
+                exam_topics: { name: "Logické úlohy" }
+            },
+            {
+                id: 5,
+                question_text: "Kolik procent z 80 je 20?",
+                question_type: "numeric",
+                correct_answer: "25",
+                solution_explanation: "20 je 25% z 80, protože 80 × 0,25 = 20.",
+                difficulty: 1,
+                exam_topics: { name: "Logické úlohy" }
+            }
+        ];
 
-        // Proměnné pro test
+        // Инициализация Supabase с исправленной ошибкой
+        const supabaseUrl = 'https://your-supabase-url.supabase.co'; // Замените на ваш URL
+        const supabaseKey = 'your-supabase-anon-key'; // Замените на ваш публичный ключ
+        
+        // Правильная инициализация Supabase
+        let supabase;
+        try {
+            // Проверяем, существует ли глобальный объект supabase
+            if (window.supabase) {
+                supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+            } else {
+                console.warn("Supabase client not loaded, using demo mode");
+                // Создаем заглушку для Supabase
+                supabase = {
+                    auth: {
+                        getSession: () => Promise.resolve({ data: { session: null }, error: null }),
+                        signOut: () => Promise.resolve({ error: null })
+                    },
+                    from: (table) => ({
+                        select: (columns) => ({
+                            eq: (column, value) => ({
+                                single: () => Promise.resolve({ data: null, error: null }),
+                                order: (column, options) => Promise.resolve({ data: [], error: null }),
+                                limit: (limit) => Promise.resolve({ data: demoQuestions, error: null })
+                            }),
+                            limit: (limit) => ({
+                                order: (column, options) => Promise.resolve({ data: demoQuestions, error: null })
+                            })
+                        }),
+                        insert: (data) => ({
+                            select: () => ({
+                                single: () => Promise.resolve({ data: { id: 1 }, error: null })
+                            })
+                        }),
+                        update: (data) => ({
+                            eq: (column, value) => Promise.resolve({ data: null, error: null })
+                        })
+                    })
+                };
+            }
+        } catch (e) {
+            console.error("Error initializing Supabase:", e);
+            // В случае ошибки создаем заглушку
+            supabase = {
+                auth: {
+                    getSession: () => Promise.resolve({ data: { session: null }, error: null }),
+                    signOut: () => Promise.resolve({ error: null })
+                },
+                from: (table) => ({
+                    select: () => ({
+                        eq: () => ({
+                            single: () => Promise.resolve({ data: null, error: null }),
+                            order: () => Promise.resolve({ data: [], error: null })
+                        }),
+                        limit: () => Promise.resolve({ data: demoQuestions, error: null })
+                    })
+                })
+            };
+        }
+
+        // Переменные для теста
         let currentUser = null;
         let testQuestions = [];
         let userAnswers = [];
@@ -1580,15 +1685,15 @@
         let testResults = null;
         let userTopics = {};
 
-        // Po načtení stránky
+        // При загрузке страницы
         document.addEventListener('DOMContentLoaded', async function() {
-            // Získáme informace o aktuálním uživateli
+            // Получаем информацию о текущем пользователе
             await getCurrentUser();
             
-            // Aktualizujeme informace o uživateli v rozhraní
+            // Обновляем информацию о пользователе в интерфейсе
             updateUserInterface();
             
-            // Připojíme event listenery
+            // Привязываем обработчики событий
             document.getElementById('start-test-btn').addEventListener('click', startTest);
             document.getElementById('global-retry-btn').addEventListener('click', () => {
                 document.getElementById('global-error').style.display = 'none';
@@ -1596,10 +1701,10 @@
             });
         });
 
-        // Získání informací o aktuálním uživateli
+        // Получение информации о текущем пользователе
         async function getCurrentUser() {
             try {
-                // Získáme aktuální session
+                // Получаем текущую сессию
                 const { data: { session }, error } = await supabase.auth.getSession();
                 
                 if (error) {
@@ -1610,7 +1715,7 @@
                 
                 if (!session) {
                     console.log('Uživatel není autorizován');
-                    // Pro testování použijeme testovacího uživatele
+                    // Для тестирования используем тестового пользователя
                     currentUser = {
                         id: 'test-user-id',
                         name: 'Maksys',
@@ -1621,7 +1726,7 @@
                     return;
                 }
                 
-                // Získáme informace o uživateli z tabulky profiles
+                // Получаем информацию о пользователе из таблицы profiles
                 const { data: profile, error: profileError } = await supabase
                     .from('profiles')
                     .select('*')
@@ -1634,7 +1739,7 @@
                     return;
                 }
                 
-                // Uložíme informace o uživateli
+                // Сохраняем информацию о пользователе
                 currentUser = {
                     id: session.user.id,
                     name: profile.full_name || profile.username || 'Uživatel',
@@ -1643,14 +1748,14 @@
                     email: session.user.email
                 };
                 
-                // Získáme statistiku uživatele
+                // Получаем статистику пользователя
                 await getUserStatistics();
                 
             } catch (error) {
                 console.error('Došlo k chybě:', error.message);
                 showError('Došlo k chybě při komunikaci se serverem.');
                 
-                // Pro testování použijeme testovacího uživatele
+                // Для тестирования используем тестового пользователя
                 currentUser = {
                     id: 'test-user-id',
                     name: 'Maksys',
@@ -1661,12 +1766,12 @@
             }
         }
 
-        // Získání statistiky uživatele
+        // Получение статистики пользователя
         async function getUserStatistics() {
             if (!currentUser) return;
             
             try {
-                // Získáme informace o dokončených testech
+                // Получаем информацию о пройденных тестах
                 const { data: completedTests, error: testsError } = await supabase
                     .from('test_results')
                     .select('*')
@@ -1679,7 +1784,7 @@
                     return;
                 }
                 
-                // Získáme statistiku podle témat
+                // Получаем статистику по темам
                 const { data: topicStats, error: topicsError } = await supabase
                     .from('user_topic_stats')
                     .select('*')
@@ -1691,7 +1796,7 @@
                     return;
                 }
                 
-                // Uložíme statistiku podle témat
+                // Сохраняем статистику по темам
                 userTopics = {};
                 if (topicStats) {
                     topicStats.forEach(stat => {
@@ -1703,10 +1808,10 @@
                     });
                 }
                 
-                // Aktualizujeme počty v kategoriích
+                // Обновляем счетчики в категориях
                 updateCategoryCounts();
                 
-                // Zobrazíme nedávná cvičení
+                // Отображаем недавние упражнения
                 updateRecentExercises(completedTests);
                 
             } catch (error) {
@@ -1715,13 +1820,13 @@
             }
         }
 
-        // Aktualizace počtů v kategoriích
+        // Обновление счетчиков в категориях
         function updateCategoryCounts() {
             const algebraCount = document.getElementById('algebra-count');
             const geometrieCount = document.getElementById('geometrie-count');
             const logickeCount = document.getElementById('logicke-count');
             
-            // Kontrolujeme, zda existuje statistika podle témat
+            // Проверяем, есть ли статистика по темам
             if (Object.keys(userTopics).length > 0) {
                 if (userTopics['Algebra']) {
                     algebraCount.textContent = `${userTopics['Algebra'].total} otázek`;
@@ -1735,968 +1840,957 @@
                     logickeCount.textContent = `${userTopics['Logické úlohy'].total} otázek`;
                 }
             } else {
-                // Pokud statistika neexistuje, zobrazíme standardní hodnoty
+                // Если статистики нет, показываем стандартные значения
                 algebraCount.textContent = '15 otázek';
                 geometrieCount.textContent = '12 otázek';
                 logickeCount.textContent = '8 otázek';
             }
         }
 
-        // Aktualizace nedávných cvičení
-        function updateRecentExercises(completedTests) {
-            const recentExercisesContainer = document.getElementById('recent-exercises');
+        // Обновление недавних упражнений
+        // Обновление недавних упражнений
+function updateRecentExercises(completedTests) {
+    const recentExercisesContainer = document.getElementById('recent-exercises');
+    
+    if (!completedTests || completedTests.length === 0) {
+        recentExercisesContainer.innerHTML = '<p>Nemáte žádná nedávná cvičení. Začněte procvičovat!</p>';
+        return;
+    }
+    
+    // Отображаем до 3 последних упражнений
+    let recentHTML = '';
+    
+    completedTests.slice(0, 3).forEach(test => {
+        const score = Math.round((test.correct_answers / test.total_questions) * 100);
+        const date = new Date(test.created_at).toLocaleDateString('cs-CZ');
+        
+        recentHTML += `
+            <div class="exercise-card">
+                <div class="exercise-header">
+                    <div class="exercise-badge ${getTopicClass(test.test_topic)}">
+                        ${test.test_topic || 'Matematika'}
+                    </div>
+                </div>
+                <div class="exercise-body">
+                    <h3 class="exercise-title">${test.test_name || 'Test z matematiky'}</h3>
+                    <p class="exercise-desc">
+                        Dokončeno: ${date}<br>
+                        Úspěšnost: ${score}% (${test.correct_answers}/${test.total_questions})
+                    </p>
+                    <div class="exercise-meta">
+                        <div class="exercise-difficulty">
+                            Obtížnost:
+                            <div class="difficulty-indicator">
+                                ${getDifficultyDots(test.difficulty || 2)}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="exercise-footer">
+                    <div class="progress-info">
+                        <span>${test.correct_answers}/${test.total_questions} správně</span>
+                    </div>
+                    <button class="btn btn-primary" onclick="startExerciseByTopic('${test.test_topic}')">
+                        Procvičit znovu
+                    </button>
+                </div>
+            </div>
+        `;
+    });
+    
+    recentExercisesContainer.innerHTML = recentHTML;
+}
+
+// Получение класса для темы
+function getTopicClass(topic) {
+    switch (topic) {
+        case 'Algebra': return 'math';
+        case 'Geometrie': return 'math';
+        case 'Logické úlohy': return 'mixed';
+        default: return 'math';
+    }
+}
+
+// Получение точек сложности
+function getDifficultyDots(difficulty) {
+    let dots = '';
+    
+    for (let i = 1; i <= 3; i++) {
+        dots += `<span class="difficulty-dot ${i <= difficulty ? 'active' : ''}"></span>`;
+    }
+    
+    return dots;
+}
+
+// Обновление информации о пользователе в интерфейсе
+function updateUserInterface() {
+    if (!currentUser) return;
+    
+    // Обновляем имя пользователя
+    const userNameElement = document.getElementById('user-name');
+    if (userNameElement) {
+        userNameElement.textContent = currentUser.name;
+    }
+    
+    // Обновляем роль пользователя
+    const userRoleElement = document.getElementById('user-role');
+    if (userRoleElement) {
+        userRoleElement.textContent = currentUser.role;
+    }
+    
+    // Обновляем аватар пользователя
+    const userAvatarElement = document.getElementById('user-avatar');
+    if (userAvatarElement) {
+        if (currentUser.avatar) {
+            userAvatarElement.innerHTML = `<img src="${currentUser.avatar}" alt="${currentUser.name}" />`;
+        } else {
+            // Если аватара нет, используем инициалы
+            const initials = currentUser.name
+                .split(' ')
+                .map(name => name.charAt(0))
+                .join('')
+                .toUpperCase();
             
-            if (!completedTests || completedTests.length === 0) {
-                recentExercisesContainer.innerHTML = '<p>Nemáte žádná nedávná cvičení. Začněte procvičovat!</p>';
+            userAvatarElement.textContent = initials;
+        }
+    }
+}
+
+// Начать тест
+async function startTest() {
+    testStarted = true;
+    
+    // Скрываем кнопку начала теста, отображаем контейнер с вопросами
+    document.getElementById('start-test-btn').style.display = 'none';
+    document.getElementById('test-container').style.display = 'block';
+    
+    // Загружаем вопросы для теста
+    await loadTestQuestions();
+}
+
+// Загрузка вопросов для теста из базы данных или демо-данных
+async function loadTestQuestions() {
+    // Показываем индикатор загрузки
+    document.getElementById('test-container').innerHTML = '<div class="loading">Načítání otázek...</div>';
+    
+    try {
+        // Получаем вопросы из базы данных или используем демо-данные
+        const { data: questions, error } = await supabase
+            .from('questions')
+            .select(`
+                id,
+                question_text,
+                question_type,
+                options,
+                correct_answer,
+                solution_explanation,
+                difficulty,
+                image_url,
+                exam_topics (name)
+            `)
+            .limit(10);
+        
+        if (error) {
+            console.error('Chyba při získávání otázek:', error.message);
+            document.getElementById('test-container').innerHTML = `
+                <div class="error-message">
+                    <i class="fas fa-exclamation-circle"></i>
+                    Nepodařilo se načíst otázky z databáze. Zkuste to prosím znovu později.
+                </div>
+                <div class="nav-buttons">
+                    <button class="btn btn-primary" onclick="location.reload()">
+                        <i class="fas fa-redo"></i> Zkusit znovu
+                    </button>
+                </div>
+            `;
+            return;
+        }
+        
+        // Если данные из Supabase пусты, используем демо-данные
+        if (!questions || questions.length === 0) {
+            console.log('Používám demo otázky');
+            testQuestions = demoQuestions;
+        } else {
+            testQuestions = questions;
+        }
+        
+        userAnswers = Array(testQuestions.length).fill(null);
+        
+        // Отображаем первый вопрос
+        showQuestion(0);
+        
+    } catch (error) {
+        console.error('Došlo k chybě při načítání otázek:', error.message);
+        
+        // В случае ошибки используем демо-данные
+        console.log('Používám demo otázky po chybě');
+        testQuestions = demoQuestions;
+        userAnswers = Array(testQuestions.length).fill(null);
+        
+        // Отображаем первый вопрос
+        showQuestion(0);
+    }
+}
+
+// Отображение текущего вопроса
+function showQuestion(index) {
+    // Проверяем, есть ли вопросы и находится ли индекс в допустимом диапазоне
+    if (!testQuestions.length || index < 0 || index >= testQuestions.length) {
+        console.error('Neplatný index otázky nebo žádné otázky');
+        return;
+    }
+    
+    const question = testQuestions[index];
+    currentQuestionIndex = index;
+    
+    // Создаем HTML для вопроса
+    let questionHTML = `
+        <div class="question-container">
+            <div class="question-header">
+                <div class="question-number">Otázka ${index + 1} z ${testQuestions.length}</div>
+                <div class="question-topic">${question.exam_topics?.name || 'Matematika'}</div>
+            </div>
+            <div class="question-content">
+                <div class="question-text">${question.question_text}</div>
+                ${question.image_url ? `<img src="${question.image_url}" alt="Obrázek k otázce" class="question-image">` : ''}
+                <div class="options-container">
+    `;
+    
+    // Добавляем варианты ответов в зависимости от типа вопроса
+    switch (question.question_type) {
+        case 'multiple_choice':
+            // Обрабатываем варианты с множественным выбором
+            const options = typeof question.options === 'string' ? JSON.parse(question.options) : question.options;
+            options.forEach((option, optionIndex) => {
+                const isSelected = userAnswers[index] === option;
+                questionHTML += `
+                    <div class="option-item ${isSelected ? 'selected' : ''}" 
+                         onclick="selectAnswer(${index}, '${option.replace(/'/g, "\\'")}')">
+                        <div class="option-label">${String.fromCharCode(65 + optionIndex)}</div>
+                        <div class="option-text">${option}</div>
+                    </div>
+                `;
+            });
+            break;
+        
+        case 'numeric':
+            // Числовой ввод
+            questionHTML += `
+                <div class="numeric-input">
+                    <input type="number" 
+                           placeholder="Zadejte číselnou odpověď" 
+                           value="${userAnswers[index] || ''}" 
+                           onchange="updateAnswer(${index}, this.value)">
+                    <div class="input-hint">Zadejte číselnou hodnotu</div>
+                </div>
+            `;
+            break;
+        
+        case 'text':
+            // Текстовый ввод
+            questionHTML += `
+                <div class="text-input">
+                    <input type="text" 
+                           placeholder="Zadejte textovou odpověď" 
+                           value="${userAnswers[index] || ''}" 
+                           onchange="updateAnswer(${index}, this.value)">
+                    <div class="input-hint">Odpověď napište jako text</div>
+                </div>
+            `;
+            break;
+        
+        default:
+            questionHTML += `<p>Nepodporovaný typ otázky: ${question.question_type}</p>`;
+    }
+    
+    // Добавляем кнопки для навигации
+    questionHTML += `
+            </div>
+        </div>
+        <div class="nav-buttons">
+            <button class="btn btn-secondary" ${index === 0 ? 'disabled' : ''} onclick="navigateQuestion(-1)">
+                <i class="fas fa-arrow-left"></i> Předchozí
+            </button>
+            <button class="btn btn-primary" onclick="navigateQuestion(1)">
+                ${index === testQuestions.length - 1 ? 'Dokončit test' : 'Další <i class="fas fa-arrow-right"></i>'}
+            </button>
+        </div>
+    `;
+    
+    // Обновляем контейнер с вопросом
+    document.getElementById('test-container').innerHTML = questionHTML;
+    
+    // Фокусируем поле ввода, если это числовой или текстовый вопрос
+    if (question.question_type === 'numeric' || question.question_type === 'text') {
+        setTimeout(() => {
+            const inputField = document.querySelector('.numeric-input input, .text-input input');
+            if (inputField) {
+                inputField.focus();
+            }
+        }, 100);
+    }
+}
+
+// Выбор ответа для вопросов с вариантами
+function selectAnswer(questionIndex, option) {
+    userAnswers[questionIndex] = option;
+    
+    // Обновляем стиль выбранного варианта
+    const optionItems = document.querySelectorAll('.option-item');
+    optionItems.forEach(item => item.classList.remove('selected'));
+    
+    // Находим элемент, соответствующий выбранному варианту
+    event.currentTarget.classList.add('selected');
+}
+
+// Обновление ответа для числовых и текстовых вопросов
+function updateAnswer(questionIndex, value) {
+    userAnswers[questionIndex] = value;
+}
+
+// Навигация между вопросами
+function navigateQuestion(step) {
+    const newIndex = currentQuestionIndex + step;
+    
+    // Проверяем, находится ли новый индекс в допустимом диапазоне
+    if (newIndex >= 0 && newIndex < testQuestions.length) {
+        showQuestion(newIndex);
+    } else if (newIndex >= testQuestions.length) {
+        // Если пользователь нажал "Далее" на последнем вопросе, завершаем тест
+        finishTest();
+    }
+}
+
+// Завершение теста
+function finishTest() {
+    // Проверяем, ответил ли пользователь на все вопросы
+    const unansweredCount = userAnswers.filter(answer => answer === null || answer === '').length;
+    
+    if (unansweredCount > 0) {
+        // Спрашиваем пользователя, хочет ли он завершить тест с неотвеченными вопросами
+        if (!confirm(`Máte neodpovězených ${unansweredCount} otázek. Chcete opravdu test dokončit?`)) {
+            return;
+        }
+    }
+    
+    // Вычисляем результаты теста
+    calculateResults();
+}
+
+// Вычисление результатов теста
+async function calculateResults() {
+    // Скрываем контейнер с вопросами и показываем контейнер с результатами
+    document.getElementById('test-container').style.display = 'none';
+    document.getElementById('results-container').style.display = 'block';
+    
+    // Показываем индикатор загрузки в контейнере результатов
+    document.getElementById('results-container').innerHTML = '<div class="loading">Vyhodnocování výsledků...</div>';
+    
+    // Подсчитываем количество правильных ответов и результаты по темам
+    let correctCount = 0;
+    let topicStats = {};
+    let detailedResults = [];
+    
+    testQuestions.forEach((question, index) => {
+        const userAnswer = userAnswers[index];
+        const isCorrect = isAnswerCorrect(question, userAnswer);
+        
+        // Сохраняем детальные результаты для каждого вопроса
+        detailedResults.push({
+            questionId: question.id,
+            questionText: question.question_text,
+            userAnswer: userAnswer,
+            correctAnswer: question.correct_answer,
+            isCorrect: isCorrect,
+            topic: question.exam_topics?.name || 'Jiné'
+        });
+        
+        if (isCorrect) {
+            correctCount++;
+        }
+        
+        // Группируем результаты по темам
+        const topicName = question.exam_topics?.name || 'Jiné';
+        
+        if (!topicStats[topicName]) {
+            topicStats[topicName] = {
+                total: 0,
+                correct: 0
+            };
+        }
+        
+        topicStats[topicName].total++;
+        if (isCorrect) {
+            topicStats[topicName].correct++;
+        }
+    });
+    
+    // Вычисляем процент правильных ответов
+    const totalQuestions = testQuestions.length;
+    const successRate = (correctCount / totalQuestions) * 100;
+    
+    // Сохраняем результаты теста
+    testResults = {
+        userId: currentUser?.id || 'anonymous',
+        testName: 'Diagnostický test z matematiky',
+        totalQuestions: totalQuestions,
+        correctAnswers: correctCount,
+        successRate: successRate,
+        completedAt: new Date(),
+        topicStats: topicStats,
+        detailedResults: detailedResults
+    };
+    
+    // Сохраняем результаты в базу данных, если пользователь авторизован
+    if (currentUser && currentUser.id !== 'test-user-id') {
+        try {
+            // Создаем запись о результате теста
+            const { data: testResult, error: testError } = await supabase
+                .from('test_results')
+                .insert([{
+                    user_id: currentUser.id,
+                    test_name: 'Diagnostický test z matematiky',
+                    test_type: 'diagnostic',
+                    total_questions: totalQuestions,
+                    correct_answers: correctCount,
+                    score: successRate,
+                    test_date: new Date().toISOString()
+                }])
+                .select()
+                .single();
+            
+            if (testError) {
+                console.error('Chyba při ukládání výsledků testu:', testError.message);
+                showToast('error', 'Nepodařilo se uložit výsledky testu.');
+            }
+            
+            // Обновляем статистику по темам
+            for (const [topic, stats] of Object.entries(topicStats)) {
+                // Проверяем, есть ли уже запись для данной темы
+                const { data: existingStat, error: fetchError } = await supabase
+                    .from('user_topic_stats')
+                    .select('*')
+                    .eq('user_id', currentUser.id)
+                    .eq('topic_name', topic)
+                    .single();
+                
+                if (fetchError && fetchError.code !== 'PGRST116') { // PGRST116 - запись не найдена
+                    console.error(`Chyba při získávání statistiky pro téma ${topic}:`, fetchError.message);
+                    continue;
+                }
+                
+                if (existingStat) {
+                    // Обновляем существующую запись
+                    const { error: updateError } = await supabase
+                        .from('user_topic_stats')
+                        .update({
+                            total_questions: existingStat.total_questions + stats.total,
+                            correct_answers: existingStat.correct_answers + stats.correct,
+                            score: ((existingStat.correct_answers + stats.correct) / 
+                                    (existingStat.total_questions + stats.total)) * 100,
+                            updated_at: new Date().toISOString()
+                        })
+                        .eq('id', existingStat.id);
+                    
+                    if (updateError) {
+                        console.error(`Chyba při aktualizaci statistiky pro téma ${topic}:`, updateError.message);
+                        showToast('error', 'Nepodařilo se aktualizovat statistiku témat.');
+                    }
+                } else {
+                    // Создаем новую запись
+                    const { error: insertError } = await supabase
+                        .from('user_topic_stats')
+                        .insert([{
+                            user_id: currentUser.id,
+                            topic_name: topic,
+                            total_questions: stats.total,
+                            correct_answers: stats.correct,
+                            score: (stats.correct / stats.total) * 100
+                        }]);
+                    
+                    if (insertError) {
+                        console.error(`Chyba při vytváření statistiky pro téma ${topic}:`, insertError.message);
+                        showToast('error', 'Nepodařilo se vytvořit statistiku témat.');
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Došlo k chybě při ukládání výsledků:', error.message);
+            showToast('error', 'Nepodařilo se uložit výsledky testu.');
+        }
+    }
+    
+    // Находим темы с наихудшими результатами
+    const problemAreas = Object.entries(topicStats)
+        .filter(([_, stats]) => stats.total >= 2) // Только темы с хотя бы 2 вопросами
+        .map(([topic, stats]) => ({
+            topic,
+            score: (stats.correct / stats.total) * 100,
+            correct: stats.correct,
+            total: stats.total
+        }))
+        .sort((a, b) => a.score - b.score); // Сортировка по возрастанию процента правильных ответов
+    
+    // Отображаем результаты
+    displayTestResults(successRate, correctCount, totalQuestions, topicStats, problemAreas, detailedResults);
+}
+
+// Отображение результатов теста
+function displayTestResults(successRate, correctCount, totalQuestions, topicStats, problemAreas, detailedResults) {
+    // Оценка производительности
+    let performanceLevel = '';
+    if (successRate < 50) {
+        performanceLevel = 'Nedostatečná';
+    } else if (successRate < 70) {
+        performanceLevel = 'Uspokojivá';
+    } else if (successRate < 85) {
+        performanceLevel = 'Dobrá';
+    } else if (successRate < 95) {
+        performanceLevel = 'Velmi dobrá';
+    } else {
+        performanceLevel = 'Výborná';
+    }
+    
+    // Генерируем HTML с результатами
+    let resultsHTML = `
+        <div class="results-container">
+            <div class="results-header">
+                <h2 class="results-title">Výsledky testu</h2>
+                <p class="results-subtitle">Dokončili jste diagnostický test z matematiky</p>
+            </div>
+            
+            <div class="results-summary">
+                <div class="summary-card">
+                    <div class="summary-value">${Math.round(successRate)}%</div>
+                    <div class="summary-label">Celková úspěšnost</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-value">${correctCount}/${totalQuestions}</div>
+                    <div class="summary-label">Správné odpovědi</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-value">${performanceLevel}</div>
+                    <div class="summary-label">Hodnocení</div>
+                </div>
+            </div>
+            
+            <div class="topic-results">
+                <h3 class="topic-title">Výsledky podle témat</h3>
+    `;
+    
+    // Добавляем результаты по темам
+    Object.entries(topicStats).forEach(([topic, stats]) => {
+        const topicScore = (stats.correct / stats.total) * 100;
+        const topicIcon = getTopicIcon(topic);
+        
+        resultsHTML += `
+            <div class="topic-card">
+                <div class="topic-info">
+                    <div class="topic-icon" style="background: ${getTopicGradient(topic)}">
+                        <i class="fas ${topicIcon}"></i>
+                    </div>
+                    <div class="topic-name">${topic}</div>
+                </div>
+                <div class="topic-progress">
+                    <div class="progress-bar">
+                        <div class="progress-value" style="width: ${topicScore}%;"></div>
+                    </div>
+                    <div class="progress-text">${stats.correct}/${stats.total} (${Math.round(topicScore)}%)</div>
+                </div>
+            </div>
+        `;
+    });
+    
+    // Добавляем рекомендации по проблемным областям
+    resultsHTML += `
+        </div>
+        
+        <div class="topic-results">
+            <h3 class="topic-title">Doporučení pro zlepšení</h3>
+    `;
+    
+    if (problemAreas.length > 0) {
+        // Отображаем до 3 проблемных областей
+        problemAreas.slice(0, 3).forEach(area => {
+            resultsHTML += `
+                <div class="review-item">
+                    <div class="review-question">
+                        <div>
+                            <b>${area.topic}</b> - úspěšnost pouze ${Math.round(area.score)}%
+                        </div>
+                    </div>
+                    <div class="review-explanation">
+                        <div class="explanation-text">
+                            Doporučujeme zaměřit se na téma ${area.topic}. V testu jste správně odpověděli pouze na ${area.correct} z ${area.total} otázek z této oblasti.
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+    } else {
+        resultsHTML += `
+            <div class="review-item">
+                <div class="review-explanation">
+                    <div class="explanation-text">
+                        Nemáte žádné výrazné problémové oblasti. Pokračujte v pravidelném procvičování všech témat.
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    // Добавляем обзор ответов на вопросы
+    resultsHTML += `
+        </div>
+        
+        <div class="answer-review">
+            <h3 class="review-title">Přehled odpovědí</h3>
+    `;
+    
+    // Отображаем до 5 неправильных ответов
+    const incorrectAnswers = detailedResults.filter(result => !result.isCorrect);
+    
+    if (incorrectAnswers.length > 0) {
+        incorrectAnswers.slice(0, 5).forEach((result, index) => {
+            const question = testQuestions.find(q => q.id === result.questionId);
+            
+            resultsHTML += `
+                <div class="review-item">
+                    <div class="review-question">
+                        <div>
+                            ${index + 1}. ${result.questionText}
+                        </div>
+                        <div class="question-status status-incorrect">
+                            <i class="fas fa-times-circle"></i> Nesprávně
+                        </div>
+                    </div>
+                    <div class="review-answers">
+                        <div class="review-answer">
+                            <div class="answer-label">Vaše odpověď:</div>
+                            <div class="answer-value your-answer">${result.userAnswer || 'Bez odpovědi'}</div>
+                        </div>
+                        <div class="review-answer">
+                            <div class="answer-label">Správná odpověď:</div>
+                            <div class="answer-value">${question.correct_answer}</div>
+                        </div>
+                    </div>
+                    <div class="review-explanation">
+                        <div class="explanation-title">Vysvětlení:</div>
+                        <div class="explanation-text">${question.solution_explanation || 'Bez vysvětlení'}</div>
+                    </div>
+                </div>
+            `;
+        });
+    } else {
+        resultsHTML += `
+            <div class="review-item">
+                <div class="review-explanation">
+                    <div class="explanation-text">
+                        Gratulujeme! Všechny vaše odpovědi byly správné.
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    // Добавляем кнопку для перехода к практике
+    resultsHTML += `
+        </div>
+        
+        <div class="next-steps">
+            <button class="btn btn-primary btn-lg" onclick="showPracticeContent()">
+                <i class="fas fa-dumbbell"></i> Přejít na procvičování
+            </button>
+        </div>
+    </div>
+    `;
+    
+    // Обновляем контейнер с результатами
+    document.getElementById('results-container').innerHTML = resultsHTML;
+}
+
+// Проверка правильности ответа
+function isAnswerCorrect(question, userAnswer) {
+    // Если пользователь не ответил на вопрос
+    if (userAnswer === null || userAnswer === undefined || userAnswer === '') {
+        return false;
+    }
+    
+    switch (question.question_type) {
+        case 'multiple_choice':
+            return userAnswer === question.correct_answer;
+        
+        case 'numeric':
+            // Для числовых вопросов проверяем, совпадают ли числа с учетом погрешности
+            const userNumber = parseFloat(userAnswer);
+            const correctNumber = parseFloat(question.correct_answer);
+            
+            if (isNaN(userNumber) || isNaN(correctNumber)) {
+                return false;
+            }
+            
+            // Проверяем с учетом небольшой погрешности для чисел с плавающей точкой
+            const epsilon = 0.0001;
+            return Math.abs(userNumber - correctNumber) < epsilon;
+        
+        case 'text':
+            // Для текстовых ответов игнорируем регистр, пробелы в начале и конце, и т.д.
+            return userAnswer.toLowerCase().trim() === question.correct_answer.toLowerCase().trim();
+        
+        default:
+            return false;
+    }
+}
+
+// Показать контент для практики
+function showPracticeContent() {
+    // Скрываем секцию с тестом и показываем секцию с упражнениями
+    document.getElementById('test-section').style.display = 'none';
+    document.getElementById('practice-content').style.display = 'block';
+    
+    // Обновляем статистику пользователя, если были получены новые результаты
+    if (testResults) {
+        getUserStatistics();
+    }
+}
+
+// Фильтрация упражнений по теме
+async function filterExercisesByTopic(topic) {
+    try {
+        // Отображаем индикатор загрузки
+        const recommendedSection = document.getElementById('recommended-exercises');
+        recommendedSection.innerHTML = '<div class="loading">Načítání cvičení...</div>';
+        
+        // В демо-режиме просто задерживаем выполнение для имитации загрузки
+        setTimeout(() => {
+            // Простые демо-данные для каждой темы
+            const demoExercises = {
+                'Algebra': [
+                    {
+                        id: 1,
+                        title: 'Lineární rovnice',
+                        description: 'Naučte se řešit lineární rovnice s jednou neznámou.',
+                        topic: 'Algebra',
+                        difficulty: 1,
+                        estimated_time: 15,
+                        total_questions: 10
+                    },
+                    {
+                        id: 2,
+                        title: 'Kvadratické rovnice',
+                        description: 'Procvičte si řešení kvadratických rovnic a práci s diskriminantem.',
+                        topic: 'Algebra',
+                        difficulty: 2,
+                        estimated_time: 20,
+                        total_questions: 8
+                    },
+                    {
+                        id: 3,
+                        title: 'Úpravy algebraických výrazů',
+                        description: 'Naučte se rozložit výrazy na součin a pracovat s mocninami.',
+                        topic: 'Algebra',
+                        difficulty: 2,
+                        estimated_time: 25,
+                        total_questions: 12
+                    }
+                ],
+                'Geometrie': [
+                    {
+                        id: 4,
+                        title: 'Výpočty obsahů a obvodů',
+                        description: 'Procvičte si výpočty obsahů a obvodů základních rovinných útvarů.',
+                        topic: 'Geometrie',
+                        difficulty: 1,
+                        estimated_time: 15,
+                        total_questions: 10
+                    },
+                    {
+                        id: 5,
+                        title: 'Tělesa a jejich objemy',
+                        description: 'Naučte se počítat objemy a povrchy základních těles.',
+                        topic: 'Geometrie',
+                        difficulty: 2,
+                        estimated_time: 20,
+                        total_questions: 8
+                    },
+                    {
+                        id: 6,
+                        title: 'Analytická geometrie',
+                        description: 'Procvičte si práci s vektory a analytickou geometrii v rovině.',
+                        topic: 'Geometrie',
+                        difficulty: 3,
+                        estimated_time: 30,
+                        total_questions: 10
+                    }
+                ],
+                'Logické úlohy': [
+                    {
+                        id: 7,
+                        title: 'Slovní úlohy',
+                        description: 'Naučte se řešit základní typy slovních úloh.',
+                        topic: 'Logické úlohy',
+                        difficulty: 2,
+                        estimated_time: 20,
+                        total_questions: 8
+                    },
+                    {
+                        id: 8,
+                        title: 'Procenta a finance',
+                        description: 'Procvičte si práci s procenty a řešení finančních úloh.',
+                        topic: 'Logické úlohy',
+                        difficulty: 2,
+                        estimated_time: 25,
+                        total_questions: 10
+                    },
+                    {
+                        id: 9,
+                        title: 'Kombinatorika a pravděpodobnost',
+                        description: 'Naučte se řešit úlohy z kombinatoriky a pravděpodobnosti.',
+                        topic: 'Logické úlohy',
+                        difficulty: 3,
+                        estimated_time: 30,
+                        total_questions: 12
+                    }
+                ]
+            };
+            
+            // Получаем упражнения для выбранной темы
+            const exercises = demoExercises[topic] || [];
+            
+            if (exercises.length === 0) {
+                recommendedSection.innerHTML = `
+                    <div class="error-message">
+                        <i class="fas fa-exclamation-circle"></i>
+                        Pro téma "${topic}" nejsou k dispozici žádná cvičení.
+                    </div>
+                `;
                 return;
             }
             
-            // Zobrazíme až 3 poslední cvičení
-            let recentHTML = '';
+            // Отображаем упражнения
+            let exercisesHTML = '';
             
-            completedTests.slice(0, 3).forEach(test => {
-                const score = Math.round((test.correct_answers / test.total_questions) * 100);
-                const date = new Date(test.created_at).toLocaleDateString('cs-CZ');
+            exercises.forEach(exercise => {
+                const badgeClass = getTopicClass(exercise.topic);
                 
-                recentHTML += `
+                exercisesHTML += `
                     <div class="exercise-card">
                         <div class="exercise-header">
-                            <div class="exercise-badge ${getTopicClass(test.test_topic)}">
-                                ${test.test_topic || 'Matematika'}
-                            </div>
+                            <div class="exercise-badge ${badgeClass}">${exercise.topic}</div>
                         </div>
                         <div class="exercise-body">
-                            <h3 class="exercise-title">${test.test_name || 'Test z matematiky'}</h3>
-                            <p class="exercise-desc">
-                                Dokončeno: ${date}<br>
-                                Úspěšnost: ${score}% (${test.correct_answers}/${test.total_questions})
-                            </p>
+                            <h3 class="exercise-title">${exercise.title}</h3>
+                            <p class="exercise-desc">${exercise.description}</p>
                             <div class="exercise-meta">
                                 <div class="exercise-difficulty">
                                     Obtížnost:
                                     <div class="difficulty-indicator">
-                                        ${getDifficultyDots(test.difficulty || 2)}
+                                        ${getDifficultyDots(exercise.difficulty)}
                                     </div>
+                                </div>
+                                <div class="exercise-time">
+                                    <i class="far fa-clock"></i> ${exercise.estimated_time} min
                                 </div>
                             </div>
                         </div>
                         <div class="exercise-footer">
                             <div class="progress-info">
-                                <span>${test.correct_answers}/${test.total_questions} správně</span>
+                                <span>0/${exercise.total_questions} dokončeno</span>
                             </div>
-                            <button class="btn btn-primary" onclick="startExerciseByTopic('${test.test_topic}')">
-                                Procvičit znovu
-                            </button>
+                            <button class="btn btn-primary" onclick="startExercise(${exercise.id})">Začít</button>
                         </div>
                     </div>
                 `;
             });
             
-            recentExercisesContainer.innerHTML = recentHTML;
-        }
-
-        // Získání třídy pro téma
-        function getTopicClass(topic) {
-            switch (topic) {
-                case 'Algebra': return 'math';
-                case 'Geometrie': return 'math';
-                case 'Logické úlohy': return 'mixed';
-                default: return 'math';
-            }
-        }
-
-        // Získání teček obtížnosti
-        function getDifficultyDots(difficulty) {
-            let dots = '';
-            
-            for (let i = 1; i <= 3; i++) {
-                dots += `<span class="difficulty-dot ${i <= difficulty ? 'active' : ''}"></span>`;
-            }
-            
-            return dots;
-        }
-
-        // Aktualizace informací o uživateli v rozhraní
-        function updateUserInterface() {
-            if (!currentUser) return;
-            
-            // Aktualizujeme jméno uživatele
-            const userNameElement = document.getElementById('user-name');
-            if (userNameElement) {
-                userNameElement.textContent = currentUser.name;
-            }
-            
-            // Aktualizujeme roli uživatele
-            const userRoleElement = document.getElementById('user-role');
-            if (userRoleElement) {
-                userRoleElement.textContent = currentUser.role;
-            }
-            
-            // Aktualizujeme avatar uživatele
-            const userAvatarElement = document.getElementById('user-avatar');
-            if (userAvatarElement) {
-                if (currentUser.avatar) {
-                    userAvatarElement.innerHTML = `<img src="${currentUser.avatar}" alt="${currentUser.name}" />`;
-                } else {
-                    // Pokud avatar neexistuje, použijeme iniciály
-                    const initials = currentUser.name
-                        .split(' ')
-                        .map(name => name.charAt(0))
-                        .join('')
-                        .toUpperCase();
-                    
-                    userAvatarElement.textContent = initials;
-                }
-            }
-        }
-
-        // Zahájení testu
-        async function startTest() {
-            testStarted = true;
-            
-            // Skryjeme tlačítko zahájení testu a zobrazíme kontejner s otázkami
-            document.getElementById('start-test-btn').style.display = 'none';
-            document.getElementById('test-container').style.display = 'block';
-            
-            // Načteme otázky pro test
-            await loadTestQuestions();
-        }
-
-        // Načtení otázek pro test z Supabase
-        async function loadTestQuestions() {
-            // Zobrazíme indikátor načítání
-            document.getElementById('test-container').innerHTML = '<div class="loading">Načítání otázek...</div>';
-            
-            try {
-                // Získáme otázky z databáze
-                const { data: questions, error } = await supabase
-                    .from('questions')
-                    .select(`
-                        id,
-                        question_text,
-                        question_type,
-                        options,
-                        correct_answer,
-                        solution_explanation,
-                        difficulty,
-                        image_url,
-                        exam_topics (name)
-                    `)
-                    .limit(10) // Omezíme počet otázek pro test
-                    .order('id'); // Seřadíme podle ID pro reprodukovatelnost
-                
-                if (error) {
-                    console.error('Chyba při získávání otázek:', error.message);
-                    document.getElementById('test-container').innerHTML = `
-                        <div class="error-message">
-                            <i class="fas fa-exclamation-circle"></i>
-                                                        Nepodařilo se načíst otázky z databáze. Zkuste to prosím znovu později.
-                        </div>
-                        <div class="nav-buttons">
-                            <button class="btn btn-primary" onclick="location.reload()">
-                                <i class="fas fa-redo"></i> Zkusit znovu
-                            </button>
-                        </div>
-                    `;
-                    return;
-                }
-                
-                if (!questions || questions.length === 0) {
-                    document.getElementById('test-container').innerHTML = `
-                        <div class="error-message">
-                            <i class="fas fa-exclamation-circle"></i>
-                            V databázi nejsou žádné otázky pro test.
-                        </div>
-                        <div class="nav-buttons">
-                            <button class="btn btn-primary" onclick="location.reload()">
-                                <i class="fas fa-redo"></i> Zkusit znovu
-                            </button>
-                        </div>
-                    `;
-                    return;
-                }
-                
-                // Uložíme otázky a inicializujeme pole odpovědí
-                testQuestions = questions;
-                userAnswers = Array(testQuestions.length).fill(null);
-                
-                // Zobrazíme první otázku
-                showQuestion(0);
-                
-            } catch (error) {
-                console.error('Došlo k chybě při načítání otázek:', error.message);
-                document.getElementById('test-container').innerHTML = `
-                    <div class="error-message">
-                        <i class="fas fa-exclamation-circle"></i>
-                        Došlo k chybě při načítání otázek. Zkuste to prosím znovu později.
-                    </div>
-                    <div class="nav-buttons">
-                        <button class="btn btn-primary" onclick="location.reload()">
-                            <i class="fas fa-redo"></i> Zkusit znovu
-                        </button>
-                    </div>
-                `;
-            }
-        }
-
-        // Zobrazení aktuální otázky
-        function showQuestion(index) {
-            // Kontrolujeme, zda existují otázky a zda je index v platném rozsahu
-            if (!testQuestions.length || index < 0 || index >= testQuestions.length) {
-                console.error('Neplatný index otázky nebo žádné otázky');
-                return;
-            }
-            
-            const question = testQuestions[index];
-            currentQuestionIndex = index;
-            
-            // Vytvoříme HTML pro otázku
-            let questionHTML = `
-                <div class="question-container">
-                    <div class="question-header">
-                        <div class="question-number">Otázka ${index + 1} z ${testQuestions.length}</div>
-                        <div class="question-topic">${question.exam_topics?.name || 'Matematika'}</div>
-                    </div>
-                    <div class="question-content">
-                        <div class="question-text">${question.question_text}</div>
-                        ${question.image_url ? `<img src="${question.image_url}" alt="Obrázek k otázce" class="question-image">` : ''}
-                        <div class="options-container">
-            `;
-            
-            // Přidáme možnosti odpovědí podle typu otázky
-            switch (question.question_type) {
-                case 'multiple_choice':
-                    // Zpracujeme možnosti s více volbami
-                    const options = typeof question.options === 'string' ? JSON.parse(question.options) : question.options;
-                    options.forEach((option, optionIndex) => {
-                        const isSelected = userAnswers[index] === option;
-                        questionHTML += `
-                            <div class="option-item ${isSelected ? 'selected' : ''}" 
-                                 onclick="selectAnswer(${index}, '${option.replace(/'/g, "\\'")}')">
-                                <div class="option-label">${String.fromCharCode(65 + optionIndex)}</div>
-                                <div class="option-text">${option}</div>
-                            </div>
-                        `;
-                    });
-                    break;
-                
-                case 'numeric':
-                    // Číselný vstup
-                    questionHTML += `
-                        <div class="numeric-input">
-                            <input type="number" 
-                                   placeholder="Zadejte číselnou odpověď" 
-                                   value="${userAnswers[index] || ''}" 
-                                   onchange="updateAnswer(${index}, this.value)">
-                            <div class="input-hint">Zadejte číselnou hodnotu</div>
-                        </div>
-                    `;
-                    break;
-                
-                case 'text':
-                    // Textový vstup
-                    questionHTML += `
-                        <div class="text-input">
-                            <input type="text" 
-                                   placeholder="Zadejte textovou odpověď" 
-                                   value="${userAnswers[index] || ''}" 
-                                   onchange="updateAnswer(${index}, this.value)">
-                            <div class="input-hint">Odpověď napište jako text</div>
-                        </div>
-                    `;
-                    break;
-                
-                default:
-                    questionHTML += `<p>Nepodporovaný typ otázky: ${question.question_type}</p>`;
-            }
-            
-            // Přidáme tlačítka pro navigaci
-            questionHTML += `
-                    </div>
-                </div>
-                <div class="nav-buttons">
-                    <button class="btn btn-secondary" ${index === 0 ? 'disabled' : ''} onclick="navigateQuestion(-1)">
-                        <i class="fas fa-arrow-left"></i> Předchozí
-                    </button>
-                    <button class="btn btn-primary" onclick="navigateQuestion(1)">
-                        ${index === testQuestions.length - 1 ? 'Dokončit test' : 'Další <i class="fas fa-arrow-right"></i>'}
-                    </button>
-                </div>
-            `;
-            
-            // Aktualizujeme kontejner s otázkou
-            document.getElementById('test-container').innerHTML = questionHTML;
-            
-            // Zaměříme vstupní pole, pokud je to číselná nebo textová otázka
-            if (question.question_type === 'numeric' || question.question_type === 'text') {
-                setTimeout(() => {
-                    const inputField = document.querySelector('.numeric-input input, .text-input input');
-                    if (inputField) {
-                        inputField.focus();
-                    }
-                }, 100);
-            }
-        }
-
-        // Výběr odpovědi pro otázky s možnostmi
-        function selectAnswer(questionIndex, option) {
-            userAnswers[questionIndex] = option;
-            
-            // Aktualizujeme styl vybrané možnosti
-            const optionItems = document.querySelectorAll('.option-item');
-            optionItems.forEach(item => item.classList.remove('selected'));
-            
-            // Najdeme prvek odpovídající vybrané možnosti
-            event.currentTarget.classList.add('selected');
-        }
-
-        // Aktualizace odpovědi pro číselné a textové otázky
-        function updateAnswer(questionIndex, value) {
-            userAnswers[questionIndex] = value;
-        }
-
-        // Navigace mezi otázkami
-        function navigateQuestion(step) {
-            const newIndex = currentQuestionIndex + step;
-            
-            // Kontrolujeme, zda je nový index v platném rozsahu
-            if (newIndex >= 0 && newIndex < testQuestions.length) {
-                showQuestion(newIndex);
-            } else if (newIndex >= testQuestions.length) {
-                // Pokud uživatel kliknul na "Další" na poslední otázce, dokončíme test
-                finishTest();
-            }
-        }
-
-        // Dokončení testu
-        function finishTest() {
-            // Kontrolujeme, zda uživatel odpověděl na všechny otázky
-            const unansweredCount = userAnswers.filter(answer => answer === null || answer === '').length;
-            
-            if (unansweredCount > 0) {
-                // Zeptáme se uživatele, zda chce dokončit test s nezodpovězenými otázkami
-                if (!confirm(`Máte neodpovězených ${unansweredCount} otázek. Chcete opravdu test dokončit?`)) {
-                    return;
-                }
-            }
-            
-            // Vypočítáme výsledky testu
-            calculateResults();
-        }
-
-        // Výpočet výsledků testu
-        async function calculateResults() {
-            // Skryjeme kontejner s otázkami a zobrazíme kontejner s výsledky
-            document.getElementById('test-container').style.display = 'none';
-            document.getElementById('results-container').style.display = 'block';
-            
-            // Zobrazíme indikátor načítání v kontejneru výsledků
-            document.getElementById('results-container').innerHTML = '<div class="loading">Vyhodnocování výsledků...</div>';
-            
-            // Spočítáme počet správných odpovědí a výsledky podle témat
-            let correctCount = 0;
-            let topicStats = {};
-            let detailedResults = [];
-            
-            testQuestions.forEach((question, index) => {
-                const userAnswer = userAnswers[index];
-                const isCorrect = isAnswerCorrect(question, userAnswer);
-                
-                // Uložíme podrobné výsledky pro každou otázku
-                detailedResults.push({
-                    questionId: question.id,
-                    questionText: question.question_text,
-                    userAnswer: userAnswer,
-                    correctAnswer: question.correct_answer,
-                    isCorrect: isCorrect,
-                    topic: question.exam_topics?.name || 'Jiné'
-                });
-                
-                if (isCorrect) {
-                    correctCount++;
-                }
-                
-                // Seskupíme výsledky podle témat
-                const topicName = question.exam_topics?.name || 'Jiné';
-                
-                if (!topicStats[topicName]) {
-                    topicStats[topicName] = {
-                        total: 0,
-                        correct: 0
-                    };
-                }
-                
-                topicStats[topicName].total++;
-                if (isCorrect) {
-                    topicStats[topicName].correct++;
-                }
-            });
-            
-            // Vypočítáme procento správných odpovědí
-            const totalQuestions = testQuestions.length;
-            const successRate = (correctCount / totalQuestions) * 100;
-            
-            // Uložíme výsledky testu
-            testResults = {
-                userId: currentUser?.id || 'anonymous',
-                testName: 'Diagnostický test z matematiky',
-                totalQuestions: totalQuestions,
-                correctAnswers: correctCount,
-                successRate: successRate,
-                completedAt: new Date(),
-                topicStats: topicStats,
-                detailedResults: detailedResults
-            };
-            
-            // Uložíme výsledky do databáze, pokud je uživatel přihlášen
-            if (currentUser) {
-                try {
-                    // Vytvoříme záznam o výsledku testu
-                    const { data: testResult, error: testError } = await supabase
-                        .from('test_results')
-                        .insert([{
-                            user_id: currentUser.id,
-                            test_name: 'Diagnostický test z matematiky',
-                            test_type: 'diagnostic',
-                            total_questions: totalQuestions,
-                            correct_answers: correctCount,
-                            score: successRate,
-                            test_date: new Date().toISOString()
-                        }])
-                        .select()
-                        .single();
-                    
-                    if (testError) {
-                        console.error('Chyba při ukládání výsledků testu:', testError.message);
-                        showToast('error', 'Nepodařilo se uložit výsledky testu.');
-                    }
-                    
-                    // Aktualizujeme statistiku podle témat
-                    for (const [topic, stats] of Object.entries(topicStats)) {
-                        // Kontrolujeme, zda již existuje záznam pro dané téma
-                        const { data: existingStat, error: fetchError } = await supabase
-                            .from('user_topic_stats')
-                            .select('*')
-                            .eq('user_id', currentUser.id)
-                            .eq('topic_name', topic)
-                            .single();
-                        
-                        if (fetchError && fetchError.code !== 'PGRST116') { // PGRST116 - záznam nebyl nalezen
-                            console.error(`Chyba při získávání statistiky pro téma ${topic}:`, fetchError.message);
-                            continue;
-                        }
-                        
-                        if (existingStat) {
-                            // Aktualizujeme existující záznam
-                            const { error: updateError } = await supabase
-                                .from('user_topic_stats')
-                                .update({
-                                    total_questions: existingStat.total_questions + stats.total,
-                                    correct_answers: existingStat.correct_answers + stats.correct,
-                                    score: ((existingStat.correct_answers + stats.correct) / 
-                                            (existingStat.total_questions + stats.total)) * 100,
-                                    updated_at: new Date().toISOString()
-                                })
-                                .eq('id', existingStat.id);
-                            
-                            if (updateError) {
-                                console.error(`Chyba při aktualizaci statistiky pro téma ${topic}:`, updateError.message);
-                                showToast('error', 'Nepodařilo se aktualizovat statistiku témat.');
-                            }
-                        } else {
-                            // Vytvoříme nový záznam
-                            const { error: insertError } = await supabase
-                                .from('user_topic_stats')
-                                .insert([{
-                                    user_id: currentUser.id,
-                                    topic_name: topic,
-                                    total_questions: stats.total,
-                                    correct_answers: stats.correct,
-                                    score: (stats.correct / stats.total) * 100
-                                }]);
-                            
-                            if (insertError) {
-                                console.error(`Chyba při vytváření statistiky pro téma ${topic}:`, insertError.message);
-                                showToast('error', 'Nepodařilo se vytvořit statistiku témat.');
-                            }
-                        }
-                    }
-                    
-                    // Uložíme podrobné výsledky pro každou otázku
-                    if (testResult && testResult.id) {
-                        const answersToInsert = detailedResults.map(result => ({
-                            test_result_id: testResult.id,
-                            question_id: result.questionId,
-                            user_answer: result.userAnswer,
-                            is_correct: result.isCorrect
-                        }));
-                        
-                        const { error: answersError } = await supabase
-                            .from('test_answers')
-                            .insert(answersToInsert);
-                        
-                        if (answersError) {
-                            console.error('Chyba při ukládání odpovědí:', answersError.message);
-                            showToast('error', 'Nepodařilo se uložit odpovědi.');
-                        }
-                    }
-                    
-                } catch (error) {
-                    console.error('Došlo k chybě při ukládání výsledků:', error.message);
-                    showToast('error', 'Nepodařilo se uložit výsledky testu.');
-                }
-            }
-            
-            // Najdeme témata s nejhoršími výsledky
-            const problemAreas = Object.entries(topicStats)
-                .filter(([_, stats]) => stats.total >= 2) // Pouze témata s alespoň 2 otázkami
-                .map(([topic, stats]) => ({
-                    topic,
-                    score: (stats.correct / stats.total) * 100,
-                    correct: stats.correct,
-                    total: stats.total
-                }))
-                .sort((a, b) => a.score - b.score); // Seřadíme podle rostoucího procenta správných odpovědí
-            
-            // Zobrazíme výsledky
-            displayTestResults(successRate, correctCount, totalQuestions, topicStats, problemAreas, detailedResults);
-        }
-
-        // Zobrazení výsledků testu
-        function displayTestResults(successRate, correctCount, totalQuestions, topicStats, problemAreas, detailedResults) {
-            // Hodnocení výkonu
-            let performanceLevel = '';
-            if (successRate < 50) {
-                performanceLevel = 'Nedostatečná';
-            } else if (successRate < 70) {
-                performanceLevel = 'Uspokojivá';
-            } else if (successRate < 85) {
-                performanceLevel = 'Dobrá';
-            } else if (successRate < 95) {
-                performanceLevel = 'Velmi dobrá';
-            } else {
-                performanceLevel = 'Výborná';
-            }
-            
-            // Vygenerujeme HTML s výsledky
-            let resultsHTML = `
-                <div class="results-container">
-                    <div class="results-header">
-                        <h2 class="results-title">Výsledky testu</h2>
-                        <p class="results-subtitle">Dokončili jste diagnostický test z matematiky</p>
-                    </div>
-                    
-                    <div class="results-summary">
-                        <div class="summary-card">
-                            <div class="summary-value">${Math.round(successRate)}%</div>
-                            <div class="summary-label">Celková úspěšnost</div>
-                        </div>
-                        <div class="summary-card">
-                            <div class="summary-value">${correctCount}/${totalQuestions}</div>
-                            <div class="summary-label">Správné odpovědi</div>
-                        </div>
-                        <div class="summary-card">
-                            <div class="summary-value">${performanceLevel}</div>
-                            <div class="summary-label">Hodnocení</div>
-                        </div>
-                    </div>
-                    
-                    <div class="topic-results">
-                        <h3 class="topic-title">Výsledky podle témat</h3>
-            `;
-            
-            // Přidáme výsledky podle témat
-            Object.entries(topicStats).forEach(([topic, stats]) => {
-                const topicScore = (stats.correct / stats.total) * 100;
-                const topicIcon = getTopicIcon(topic);
-                
-                resultsHTML += `
-                    <div class="topic-card">
-                        <div class="topic-info">
-                            <div class="topic-icon" style="background: ${getTopicGradient(topic)}">
-                                <i class="fas ${topicIcon}"></i>
-                            </div>
-                            <div class="topic-name">${topic}</div>
-                        </div>
-                        <div class="topic-progress">
-                            <div class="progress-bar">
-                                <div class="progress-value" style="width: ${topicScore}%;"></div>
-                            </div>
-                            <div class="progress-text">${stats.correct}/${stats.total} (${Math.round(topicScore)}%)</div>
-                        </div>
-                    </div>
-                `;
-            });
-            
-            // Přidáme doporučení k problémovým oblastem
-            resultsHTML += `
-                </div>
-                
-                <div class="topic-results">
-                    <h3 class="topic-title">Doporučení pro zlepšení</h3>
-            `;
-            
-            if (problemAreas.length > 0) {
-                // Zobrazíme až 3 problémové oblasti
-                problemAreas.slice(0, 3).forEach(area => {
-                    resultsHTML += `
-                        <div class="review-item">
-                            <div class="review-question">
-                                <div>
-                                    <b>${area.topic}</b> - úspěšnost pouze ${Math.round(area.score)}%
-                                </div>
-                            </div>
-                            <div class="review-explanation">
-                                <div class="explanation-text">
-                                    Doporučujeme zaměřit se na téma ${area.topic}. V testu jste správně odpověděli pouze na ${area.correct} z ${area.total} otázek z této oblasti.
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                });
-            } else {
-                resultsHTML += `
-                    <div class="review-item">
-                        <div class="review-explanation">
-                            <div class="explanation-text">
-                                Nemáte žádné výrazné problémové oblasti. Pokračujte v pravidelném procvičování všech témat.
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }
-            
-            // Přidáme přehled odpovědí na otázky
-            resultsHTML += `
-                </div>
-                
-                <div class="answer-review">
-                    <h3 class="review-title">Přehled odpovědí</h3>
-            `;
-            
-            // Zobrazíme až 5 nesprávných odpovědí
-            const incorrectAnswers = detailedResults.filter(result => !result.isCorrect);
-            
-            if (incorrectAnswers.length > 0) {
-                incorrectAnswers.slice(0, 5).forEach((result, index) => {
-                    const question = testQuestions.find(q => q.id === result.questionId);
-                    
-                    resultsHTML += `
-                        <div class="review-item">
-                            <div class="review-question">
-                                <div>
-                                    ${index + 1}. ${result.questionText}
-                                </div>
-                                <div class="question-status status-incorrect">
-                                    <i class="fas fa-times-circle"></i> Nesprávně
-                                </div>
-                            </div>
-                            <div class="review-answers">
-                                <div class="review-answer">
-                                    <div class="answer-label">Vaše odpověď:</div>
-                                    <div class="answer-value your-answer">${result.userAnswer || 'Bez odpovědi'}</div>
-                                </div>
-                                <div class="review-answer">
-                                    <div class="answer-label">Správná odpověď:</div>
-                                    <div class="answer-value">${question.correct_answer}</div>
-                                </div>
-                            </div>
-                            <div class="review-explanation">
-                                <div class="explanation-title">Vysvětlení:</div>
-                                <div class="explanation-text">${question.solution_explanation || 'Bez vysvětlení'}</div>
-                            </div>
-                        </div>
-                    `;
-                });
-            } else {
-                resultsHTML += `
-                    <div class="review-item">
-                        <div class="review-explanation">
-                            <div class="explanation-text">
-                                Gratulujeme! Všechny vaše odpovědi byly správné.
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }
-            
-            // Přidáme tlačítko pro přechod k procvičování
-            resultsHTML += `
-                </div>
-                
-                <div class="next-steps">
-                    <button class="btn btn-primary btn-lg" onclick="showPracticeContent()">
-                        <i class="fas fa-dumbbell"></i> Přejít na procvičování
-                    </button>
-                </div>
+            recommendedSection.innerHTML = exercisesHTML;
+        }, 1000);
+        
+    } catch (error) {
+        console.error('Došlo k chybě při filtrování cvičení:', error.message);
+        document.getElementById('recommended-exercises').innerHTML = `
+            <div class="error-message">
+                <i class="fas fa-exclamation-circle"></i>
+                Došlo k chybě při načítání cvičení. Zkuste to prosím znovu později.
             </div>
-            `;
-            
-            // Aktualizujeme kontejner s výsledky
-            document.getElementById('results-container').innerHTML = resultsHTML;
-        }
+        `;
+    }
+}
 
-        // Kontrola správnosti odpovědi
-        function isAnswerCorrect(question, userAnswer) {
-            // Pokud uživatel neodpověděl na otázku
-            if (userAnswer === null || userAnswer === undefined || userAnswer === '') {
-                return false;
-            }
-            
-            switch (question.question_type) {
-                case 'multiple_choice':
-                    return userAnswer === question.correct_answer;
-                
-                case 'numeric':
-                    // Pro číselné otázky kontrolujeme, zda se čísla shodují s ohledem na chybu
-                    const userNumber = parseFloat(userAnswer);
-                    const correctNumber = parseFloat(question.correct_answer);
-                    
-                    if (isNaN(userNumber) || isNaN(correctNumber)) {
-                        return false;
-                    }
-                    
-                    // Kontrolujeme s ohledem na malou chybu pro čísla s plovoucí čárkou
-                    const epsilon = 0.0001;
-                    return Math.abs(userNumber - correctNumber) < epsilon;
-                
-                case 'text':
-                    // Pro textové odpovědi ignorujeme velikost písmen, mezery na začátku a konci atd.
-                    return userAnswer.toLowerCase().trim() === question.correct_answer.toLowerCase().trim();
-                
-                default:
-                    return false;
-            }
-        }
+// Начать упражнение по теме
+function startExerciseByTopic(topic) {
+    filterExercisesByTopic(topic);
+}
 
-        // Zobrazení obsahu pro procvičování
-        function showPracticeContent() {
-            // Skryjeme sekci s testem a zobrazíme sekci s cvičeními
-            document.getElementById('test-section').style.display = 'none';
-            document.getElementById('practice-content').style.display = 'block';
-            
-            // Aktualizujeme statistiku uživatele, pokud byly získány nové výsledky
-            if (testResults) {
-                getUserStatistics();
-            }
-        }
+// Начать упражнение
+function startExercise(exerciseId) {
+    // Это демо-функция, которая просто показывает диалог
+    alert(`Spuštění cvičení s ID: ${exerciseId}\nTato funkce bude implementována v budoucí verzi.`);
+}
 
-        // Filtrování cvičení podle tématu
-        async function filterExercisesByTopic(topic) {
-            try {
-                // Zobrazíme indikátor načítání
-                const recommendedSection = document.getElementById('recommended-exercises');
-                recommendedSection.innerHTML = '<div class="loading">Načítání cvičení...</div>';
-                
-                // Získáme cvičení podle tématu z databáze
-                const { data: exercises, error } = await supabase
-                    .from('exercises')
-                    .select(`
-                        id,
-                        title,
-                        description,
-                        topic,
-                        difficulty,
-                        estimated_time,
-                        total_questions,
-                        completed_count
-                    `)
-                    .eq('topic', topic)
-                    .limit(6);
-                
-                if (error) {
-                    console.error('Chyba při získávání cvičení:', error.message);
-                    recommendedSection.innerHTML = `
-                        <div class="error-message">
-                            <i class="fas fa-exclamation-circle"></i>
-                            Nepodařilo se načíst cvičení. Zkuste to prosím znovu později.
-                        </div>
-                    `;
-                    return;
-                }
-                
-                if (!exercises || exercises.length === 0) {
-                    recommendedSection.innerHTML = `
-                        <div class="error-message">
-                            <i class="fas fa-exclamation-circle"></i>
-                            Pro téma "${topic}" nejsou k dispozici žádná cvičení.
-                        </div>
-                    `;
-                    return;
-                }
-                
-                // Zobrazíme cvičení
-                let exercisesHTML = '';
-                
-                exercises.forEach(exercise => {
-                    const badgeClass = getTopicClass(exercise.topic);
-                    
-                    exercisesHTML += `
-                        <div class="exercise-card">
-                            <div class="exercise-header">
-                                <div class="exercise-badge ${badgeClass}">${exercise.topic}</div>
-                            </div>
-                            <div class="exercise-body">
-                                <h3 class="exercise-title">${exercise.title}</h3>
-                                <p class="exercise-desc">${exercise.description}</p>
-                                <div class="exercise-meta">
-                                    <div class="exercise-difficulty">
-                                        Obtížnost:
-                                        <div class="difficulty-indicator">
-                                            ${getDifficultyDots(exercise.difficulty)}
-                                        </div>
-                                    </div>
-                                    <div class="exercise-time">
-                                        <i class="far fa-clock"></i> ${exercise.estimated_time} min
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="exercise-footer">
-                                <div class="progress-info">
-                                    <span>0/${exercise.total_questions} dokončeno</span>
-                                </div>
-                                <button class="btn btn-primary" onclick="startExercise(${exercise.id})">Začít</button>
-                            </div>
-                        </div>
-                    `;
-                });
-                
-                recommendedSection.innerHTML = exercisesHTML;
-                
-            } catch (error) {
-                console.error('Došlo k chybě při filtrování cvičení:', error.message);
-                document.getElementById('recommended-exercises').innerHTML = `
-                    <div class="error-message">
-                        <i class="fas fa-exclamation-circle"></i>
-                        Došlo k chybě při načítání cvičení. Zkuste to prosím znovu později.
-                    </div>
-                `;
-            }
-        }
+// Получение иконки для темы
+function getTopicIcon(topic) {
+    switch (topic) {
+        case 'Algebra': return 'fa-calculator';
+        case 'Geometrie': return 'fa-shapes';
+        case 'Logické úlohy': return 'fa-brain';
+        default: return 'fa-book';
+    }
+}
 
-        // Zahájení cvičení podle tématu
-        function startExerciseByTopic(topic) {
-            filterExercisesByTopic(topic);
-        }
+// Получение градиента для темы
+function getTopicGradient(topic) {
+    switch (topic) {
+        case 'Algebra': return 'var(--gradient-2)';
+        case 'Geometrie': return 'var(--gradient-3)';
+        case 'Logické úlohy': return 'var(--gradient-4)';
+        default: return 'var(--gradient-1)';
+    }
+}
 
-        // Zahájení cvičení
-        async function startExercise(exerciseId) {
-            try {
-                // Zde bude kód pro zahájení konkrétního cvičení
-                // Získáme informace o cvičení
-                const { data: exercise, error: exerciseError } = await supabase
-                    .from('exercises')
-                    .select('*')
-                    .eq('id', exerciseId)
-                    .single();
-                
-                if (exerciseError) {
-                    console.error('Chyba při získávání informací o cvičení:', exerciseError.message);
-                    showToast('error', 'Nepodařilo se načíst cvičení.');
-                    return;
-                }
-                
-                // Získáme otázky pro cvičení
-                const { data: questions, error: questionsError } = await supabase
-                    .from('exercise_questions')
-                    .select(`
-                        questions (
-                            id,
-                            question_text,
-                            question_type,
-                            options,
-                            correct_answer,
-                            solution_explanation,
-                            difficulty,
-                            image_url,
-                            exam_topics (name)
-                        )
-                    `)
-                    .eq('exercise_id', exerciseId);
-                
-                if (questionsError) {
-                    console.error('Chyba při získávání otázek pro cvičení:', questionsError.message);
-                    showToast('error', 'Nepodařilo se načíst otázky pro cvičení.');
-                    return;
-                }
-                
-                // Extrahujeme otázky z výsledku
-                const exerciseQuestions = questions.map(q => q.questions);
-                
-                // Zahájíme cvičení (bude implementováno v budoucí verzi)
-                alert(`Spuštění cvičení: ${exercise.title}\nPočet otázek: ${exerciseQuestions.length}\nTato funkce bude implementována v budoucí verzi.`);
-                
-            } catch (error) {
-                console.error('Došlo k chybě při zahájení cvičení:', error.message);
-                showToast('error', 'Došlo k chybě při načítání cvičení.');
-            }
-        }
+// Отображение ошибки
+function showError(message) {
+    const errorContainer = document.getElementById('global-error');
+    const errorMessage = document.getElementById('global-error-message');
+    
+    errorMessage.textContent = message;
+    errorContainer.style.display = 'block';
+}
 
-        // Pomocné funkce
-        function getTopicIcon(topic) {
-            switch (topic) {
-                case 'Algebra': return 'fa-calculator';
-                case 'Geometrie': return 'fa-shapes';
-                case 'Logické úlohy': return 'fa-brain';
-                default: return 'fa-book';
-            }
-        }
-
-        function getTopicGradient(topic) {
-            switch (topic) {
-                case 'Algebra': return 'var(--gradient-2)';
-                case 'Geometrie': return 'var(--gradient-3)';
-                case 'Logické úlohy': return 'var(--gradient-4)';
-                default: return 'var(--gradient-1)';
-            }
-        }
-
-        // Zobrazení chybové zprávy
-        function showError(message) {
-            const errorContainer = document.getElementById('global-error');
-            const errorMessage = document.getElementById('global-error-message');
-            
-            errorMessage.textContent = message;
-            errorContainer.style.display = 'block';
-        }
-
-        // Zobrazení toast notification
-        function showToast(type, message) {
-            const toast = document.getElementById('toast');
-            const toastMessage = document.getElementById('toast-message');
-            let icon = '';
-            
-            // Nastavíme typ a ikonu
-            toast.className = 'toast';
-            switch (type) {
-                case 'success':
-                    toast.classList.add('success');
-                    icon = '<i class="fas fa-check-circle"></i>';
-                    break;
-                case 'error':
-                    toast.classList.add('error');
-                    icon = '<i class="fas fa-times-circle"></i>';
-                    break;
-                case 'warning':
-                    toast.classList.add('warning');
-                    icon = '<i class="fas fa-exclamation-circle"></i>';
-                    break;
-                default:
-                    icon = '<i class="fas fa-info-circle"></i>';
-            }
-            
-            // Nastavíme zprávu
-            toastMessage.innerHTML = message;
-            toast.innerHTML = icon + toastMessage.outerHTML;
-            
-            // Zobrazíme toast
-            toast.classList.add('show');
-            
-            // Automaticky skryjeme toast po 3 sekundách
-            setTimeout(() => {
-                toast.classList.remove('show');
-            }, 3000);
-        }
-    </script>
-</body>
-</html>
+// Отображение toast-уведомления
+function showToast(type, message) {
+    const toast = document.getElementById('toast');
+    const toastMessage = document.getElementById('toast-message');
+    let icon = '';
+    
+    // Устанавливаем тип и иконку
+    toast.className = 'toast';
+    switch (type) {
+        case 'success':
+            toast.classList.add('success');
+            icon = '<i class="fas fa-check-circle"></i>';
+            break;
+        case 'error':
+            toast.classList.add('error');
+            icon = '<i class="fas fa-times-circle"></i>';
+            break;
+        case 'warning':
+            toast.classList.add('warning');
+            icon = '<i class="fas fa-exclamation-circle"></i>';
+            break;
+        default:
+            icon = '<i class="fas fa-info-circle"></i>';
+    }
+    
+    // Устанавливаем сообщение
+    toastMessage.innerHTML = message;
+    toast.innerHTML = icon + toastMessage.outerHTML;
+    
+    // Показываем toast
+    toast.classList.add('show');
+    
+    // Автоматически скрываем toast через 3 секунды
+    setTimeout(() => {
+        toast.classList.remove('show');
+    }, 3000);
+}
