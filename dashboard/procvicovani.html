@@ -12,6 +12,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Supabase JS Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Marked для рендеринга Markdown -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     
     <style>
         /* Základní styly */
@@ -485,6 +487,116 @@
             color: var(--text-secondary);
         }
 
+        /* Стили для отображения анализа от Gemini */
+        .ai-analysis {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background-color: #f9f9ff;
+            border-radius: var(--card-radius);
+            border-left: 4px solid var(--primary);
+        }
+
+        .ai-analysis h1 {
+            color: var(--primary);
+            margin-bottom: 1.2rem;
+            font-size: 1.5rem;
+        }
+
+        .ai-analysis h2 {
+            color: var(--primary);
+            margin-top: 1.8rem;
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+
+        .ai-analysis h3 {
+            color: var(--dark);
+            margin-top: 1.5rem;
+            margin-bottom: 0.8rem;
+            font-size: 1.2rem;
+        }
+
+        .ai-analysis p {
+            margin-bottom: 1rem;
+            line-height: 1.6;
+        }
+
+        .ai-analysis ul, .ai-analysis ol {
+            margin-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .ai-analysis li {
+            margin-bottom: 0.5rem;
+        }
+
+        .ai-analysis strong {
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .ai-analysis code {
+            background-color: rgba(67, 97, 238, 0.1);
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        .ai-analysis blockquote {
+            border-left: 3px solid var(--primary-light);
+            padding-left: 1rem;
+            margin-left: 0;
+            margin-right: 0;
+            margin-bottom: 1rem;
+            color: var(--text-secondary);
+        }
+
+        .ai-loading {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin: 2rem 0;
+            font-style: italic;
+            color: var(--text-muted);
+        }
+
+        .ai-loading-spinner {
+            width: 24px;
+            height: 24px;
+            border: 3px solid rgba(67, 97, 238, 0.2);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        .learning-plan {
+            margin-top: 2rem;
+            background-color: var(--white);
+            border-radius: var(--card-radius);
+            box-shadow: var(--shadow-md);
+            padding: 1.5rem;
+        }
+
+        .learning-plan-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 1.25rem;
+            color: var(--dark);
+            border-bottom: 2px solid var(--primary-light);
+            padding-bottom: 0.5rem;
+        }
+
+        .plan-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .plan-section-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 0.75rem;
+        }
+
         .strength {
             color: var(--success);
         }
@@ -693,11 +805,15 @@
                 color: var(--text-primary);
                 border-color: #4a5568;
             }
+
+            .ai-analysis {
+                background-color: #1e2533;
+            }
         }
     </style>
 </head>
 <body>
-    <!-- Sidebar - Скопировано из dashboard.html -->
+    <!-- Sidebar -->
     <aside class="sidebar">
         <div class="sidebar-header">
             <a href="/" class="sidebar-logo">
@@ -776,7 +892,7 @@
             <div class="section intro-section" id="introSection">
                 <h2 class="section-title">Zkušební test</h2>
                 <p class="section-text">Před přípravou na přijímačky musíte nejprve absolvovat zkušební test. Tento test vám pomůže určit vaše silné a slabé stránky, abyste se mohli zaměřit na oblasti, které potřebují zlepšení.</p>
-                <p class="section-text">Test obsahuje různé typy otázek s různou obtížností. Po dokončení testu obdržíte podrobnou analýzu vašich výsledků a doporučení pro další studium.</p>
+                <p class="section-text">Test obsahuje různé typy otázek s různou obtížností. Po dokončení testu obdržíte podrobnou analýzu vašich výsledků a rady pro další studium optimalizované pomocí umělé inteligence.</p>
                 <button class="btn btn-primary btn-lg btn-center" id="startTestBtn">
                     <i class="fas fa-play"></i>
                     Začít test
@@ -823,21 +939,25 @@
                         </div>
                     </div>
                     
-                    <div class="feedback-section">
-                        <h3 class="feedback-title">Analýza výsledků</h3>
-                        <p class="feedback-text" id="feedbackText">
-                            Zpracování výsledků testu...
-                        </p>
-                    </div>
-                    
-                    <div class="topics-section">
-                        <h3 class="feedback-title">Tematické oblasti</h3>
-                        <div class="topic-grid" id="topicsGrid">
-                            <!-- Témata budou vložena zde -->
+                    <!-- Sekce pro zobrazení generovaného AI výsledku -->
+                    <div id="ai-analysis-container">
+                        <div class="ai-loading" id="ai-loading">
+                            <div class="ai-loading-spinner"></div>
+                            <div>Získávání personalizované analýzy pomocí umělé inteligence...</div>
+                        </div>
+                        <div class="ai-analysis" id="ai-analysis" style="display: none;">
+                            <!-- Zde se zobrazí analýza -->
                         </div>
                     </div>
                     
-                    <button class="btn btn-primary btn-lg btn-center" id="continueBtn">
+                    <div class="learning-plan" id="learning-plan" style="display: none;">
+                        <h3 class="learning-plan-title">Váš osobní studijní plán</h3>
+                        <div id="plan-content">
+                            <!-- Zde se zobrazí studijní plán -->
+                        </div>
+                    </div>
+                    
+                    <button class="btn btn-primary btn-lg btn-center" id="continueBtn" style="margin-top: 2rem;">
                         <i class="fas fa-arrow-right"></i>
                         Přejít k výuce
                     </button>
@@ -854,6 +974,10 @@
         // Správná inicializace Supabase
         const { createClient } = supabase;
         const supabaseClient = createClient(supabaseUrl, supabaseKey);
+        
+        // Gemini API klíč
+        const GEMINI_API_KEY = 'AIzaSyDQboM6qtC_O2sqqpaKZZffNf2zk6HrhEs';
+        const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent';
         
         // Mapování ID témat na jejich názvy
         const topicMap = {
@@ -875,8 +999,10 @@
         const correctAnswers = document.getElementById('correctAnswers');
         const wrongAnswers = document.getElementById('wrongAnswers');
         const completionTime = document.getElementById('completionTime');
-        const feedbackText = document.getElementById('feedbackText');
-        const topicsGrid = document.getElementById('topicsGrid');
+        const aiLoading = document.getElementById('ai-loading');
+        const aiAnalysis = document.getElementById('ai-analysis');
+        const learningPlan = document.getElementById('learning-plan');
+        const planContent = document.getElementById('plan-content');
         const continueBtn = document.getElementById('continueBtn');
         const userName = document.getElementById('user-name');
         const userAvatar = document.getElementById('user-avatar');
@@ -1089,11 +1215,13 @@
                 
                 userResponses.push({
                     questionId: question.id,
+                    question: question.question_text,
                     userAnswer: userAnswer,
                     correctAnswer: question.correct_answer,
                     difficulty: question.difficulty,
                     topicId: question.topic_id,
-                    topic: topicMap[question.topic_id]
+                    topic: topicMap[question.topic_id] || `Téma ${question.topic_id}`,
+                    isCorrect: userAnswer.toLowerCase() === question.correct_answer.toLowerCase()
                 });
             });
             
@@ -1103,34 +1231,27 @@
             // Zobrazení sekce výsledků
             testSection.style.display = 'none';
             resultsSection.style.display = 'block';
+            
+            // Požádáme Gemini o analýzu výsledků
+            analyzeResultsWithGemini();
         }
         
         // Vyhodnocení odpovědí uživatele
         function evaluateAnswers() {
             // Počet správných a špatných odpovědí
-            const correct = userResponses.filter(response => 
-                response.userAnswer.toLowerCase() === response.correctAnswer.toLowerCase()
-            ).length;
-            
+            const correct = userResponses.filter(response => response.isCorrect).length;
             const wrong = userResponses.length - correct;
             
             // Výpočet skóre na základě obtížnosti
             let totalScore = 0;
             
             userResponses.forEach(response => {
-                if (response.userAnswer.toLowerCase() === response.correctAnswer.toLowerCase()) {
+                if (response.isCorrect) {
                     switch(response.difficulty) {
-                        case 'easy':
-                            totalScore += 1;
-                            break;
-                        case 'medium':
-                            totalScore += 2;
-                            break;
-                        case 'hard':
-                            totalScore += 3;
-                            break;
-                        default:
-                            totalScore += 1;
+                        case 'easy': totalScore += 1; break;
+                        case 'medium': totalScore += 2; break;
+                        case 'hard': totalScore += 3; break;
+                        default: totalScore += 1;
                     }
                 }
             });
@@ -1155,105 +1276,158 @@
             correctAnswers.textContent = correct;
             wrongAnswers.textContent = wrong;
             completionTime.textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
-            
-            // Generování zpětné vazby
-            generateFeedback(userResponses, totalScore, maxScore);
         }
         
-        // Generování zpětné vazby na základě výsledků
-        function generateFeedback(responses, score, maxScore) {
-            // Analýza podle témat
-            const topicPerformance = {};
-            
-            responses.forEach(response => {
-                if (!topicPerformance[response.topic]) {
-                    topicPerformance[response.topic] = {
-                        total: 0,
-                        correct: 0
+        // Analýza výsledků pomocí Gemini API
+        async function analyzeResultsWithGemini() {
+            try {
+                // Strukturujeme data pro Gemini
+                const topicPerformance = {};
+                
+                userResponses.forEach(response => {
+                    if (!topicPerformance[response.topic]) {
+                        topicPerformance[response.topic] = {
+                            total: 0,
+                            correct: 0,
+                            questions: []
+                        };
+                    }
+                    
+                    topicPerformance[response.topic].total++;
+                    if (response.isCorrect) {
+                        topicPerformance[response.topic].correct++;
+                    }
+                    
+                    // Přidáme otázku k danému tématu pro podrobnější analýzu
+                    topicPerformance[response.topic].questions.push({
+                        question: response.question,
+                        userAnswer: response.userAnswer,
+                        correctAnswer: response.correctAnswer,
+                        isCorrect: response.isCorrect,
+                        difficulty: response.difficulty
+                    });
+                });
+                
+                // Vytvoříme strukturovaný vstup pro Gemini
+                const topicSummary = Object.entries(topicPerformance).map(([topic, data]) => {
+                    const percentage = Math.round((data.correct / data.total) * 100);
+                    
+                    return {
+                        topic,
+                        percentage,
+                        correct: data.correct,
+                        total: data.total,
+                        questions: data.questions
                     };
+                });
+
+                // Připravíme data pro odeslání do Gemini API
+                const prompt = `
+                Jsi vzdělávací AI asistent, který analyzuje výsledky matematického testu pro žáka připravujícího se na přijímací zkoušky.
+                
+                Informace o testu:
+                - Celkový počet otázek: ${userResponses.length}
+                - Správných odpovědí: ${userResponses.filter(r => r.isCorrect).length}
+                - Nesprávných odpovědí: ${userResponses.filter(r => !r.isCorrect).length}
+                
+                Výkon podle témat:
+                ${topicSummary.map(topic => 
+                    `- ${topic.topic}: ${topic.correct}/${topic.total} správně (${topic.percentage}%)`
+                ).join('\n')}
+                
+                Podrobný rozbor odpovědí:
+                ${userResponses.map((response, index) => 
+                    `Otázka ${index + 1} (${response.topic}, obtížnost: ${response.difficulty}): 
+                     "${response.question}"
+                     Správná odpověď: "${response.correctAnswer}"
+                     Odpověď studenta: "${response.userAnswer}"
+                     Výsledek: ${response.isCorrect ? 'Správně' : 'Nesprávně'}`
+                ).join('\n\n')}
+                
+                Proveď podrobnou analýzu výsledků a vytvoř:
+                
+                1. Stručné shrnutí celkového výkonu (2-3 věty)
+                2. Analýzu silných stránek studenta (témata, ve kterých se mu dařilo)
+                3. Identifikaci slabých míst a problémových oblastí
+                4. Analýzu typů chyb (např. chyby v postupu, nepozornost, nedostatečná znalost vzorců, atd.)
+                5. Konkrétní návrhy pro zlepšení ve slabých oblastech
+                6. Personalizovaný studijní plán na příští 2 týdny, seřazený podle priorit
+                
+                Odpověď strukturuj do formátu Markdown s nadpisy, odrážkami a dalšími prvky pro lepší čitelnost.
+                Buď konkrétní ve svých doporučeních. Nesnaž se být přehnaně pozitivní - buď upřímný ohledně slabých míst, ale zároveň motivující.
+                
+                Nakonec vytvoř sérii 3-5 konkrétních typů úloh, které by měl student procvičovat nejvíce, na základě identifikovaných problémů.
+                `;
+
+                // Připravíme data pro požadavek na Gemini API
+                const requestData = {
+                    contents: [{
+                        parts: [{
+                            text: prompt
+                        }]
+                    }],
+                    generationConfig: {
+                        temperature: 0.2,
+                        topK: 40,
+                        topP: 0.95,
+                        maxOutputTokens: 8192,
+                    }
+                };
+
+                // Odešleme požadavek na Gemini API
+                const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestData)
+                });
+
+                // Zpracujeme odpověď
+                const data = await response.json();
+                if (!response.ok) {
+                    throw new Error(data.error?.message || 'Chyba při komunikaci s Gemini API');
+                }
+
+                // Extrahujeme textovou odpověď z výsledku API
+                const geminiResponse = data.candidates[0]?.content?.parts[0]?.text;
+                
+                if (!geminiResponse) {
+                    throw new Error('Prázdná odpověď od Gemini API');
                 }
                 
-                topicPerformance[response.topic].total++;
-                if (response.userAnswer.toLowerCase() === response.correctAnswer.toLowerCase()) {
-                    topicPerformance[response.topic].correct++;
-                }
-            });
-            
-            // Výpočet procenta pro každé téma
-            Object.keys(topicPerformance).forEach(topic => {
-                const perf = topicPerformance[topic];
-                perf.percentage = Math.round((perf.correct / perf.total) * 100);
+                // Zobrazíme výsledek analýzy
+                displayGeminiAnalysis(geminiResponse);
                 
-                if (perf.percentage >= 80) {
-                    perf.status = 'good';
-                    perf.statusText = 'Výborně';
-                } else if (perf.percentage >= 50) {
-                    perf.status = 'medium';
-                    perf.statusText = 'Průměrně';
-                } else {
-                    perf.status = 'poor';
-                    perf.statusText = 'Potřebuje zlepšení';
-                }
-            });
-            
-            // Seřazení témat podle výkonu
-            const sortedTopics = Object.entries(topicPerformance)
-                .sort((a, b) => b[1].percentage - a[1].percentage)
-                .map(([topic, data]) => ({ topic, ...data }));
-            
-            // Identifikace silných a slabých stránek
-            const strengths = sortedTopics.filter(t => t.percentage >= 70);
-            const weaknesses = sortedTopics.filter(t => t.percentage < 50);
-            
-            // Generování textu zpětné vazby
-            let feedback = '';
-            
-            if (score / maxScore >= 0.8) {
-                feedback += '<p>Blahopřejeme! Dosáhli jste vynikajícího výsledku v testu. Máte dobrou základní přípravu, kterou lze ještě vylepšit.</p>';
-            } else if (score / maxScore >= 0.5) {
-                feedback += '<p>Dobrý výsledek! Máte základní znalosti, ale existují témata, která vyžadují další pozornost.</p>';
-            } else {
-                feedback += '<p>Máte potenciál k růstu. Test ukázal, že potřebujete věnovat více pozornosti několika klíčovým tématům.</p>';
+            } catch (error) {
+                console.error('Chyba při analýze výsledků:', error);
+                aiLoading.style.display = 'none';
+                aiAnalysis.style.display = 'block';
+                aiAnalysis.innerHTML = `
+                    <h3>Analýza výsledků</h3>
+                    <p>Omlouváme se, ale došlo k chybě při analýze vašich výsledků. Nicméně můžete si prohlédnout základní statistiky výše.</p>
+                    <p>Doporučujeme zaměřit se na témata s nejnižším skóre.</p>
+                `;
             }
-            
-            if (strengths.length > 0) {
-                feedback += '<p class="strength"><strong>Vaše silné stránky:</strong> ';
-                feedback += strengths.map(s => s.topic).join(', ');
-                feedback += '</p>';
-            }
-            
-            if (weaknesses.length > 0) {
-                feedback += '<p class="weakness"><strong>Témata vyžadující pozornost:</strong> ';
-                feedback += weaknesses.map(w => w.topic).join(', ');
-                feedback += '</p>';
-            }
-            
-            // Aktualizace textu zpětné vazby
-            feedbackText.innerHTML = feedback;
-            
-            // Vykreslení výkonu podle témat
-            renderTopicPerformance(sortedTopics);
         }
         
-        // Vykreslení karet výkonu podle témat
-        function renderTopicPerformance(topics) {
-            topicsGrid.innerHTML = '';
+        // Zobrazení výsledků analýzy Gemini
+        function displayGeminiAnalysis(analysisText) {
+            aiLoading.style.display = 'none';
+            aiAnalysis.style.display = 'block';
             
-            topics.forEach(topic => {
-                const topicElement = document.createElement('div');
-                topicElement.className = 'topic-card';
-                topicElement.innerHTML = `
-                    <div class="topic-icon ${topic.status}">
-                        <i class="fas ${topic.status === 'good' ? 'fa-check' : topic.status === 'medium' ? 'fa-exclamation' : 'fa-times'}"></i>
-                    </div>
-                    <div class="topic-info">
-                        <div class="topic-name">${topic.topic}</div>
-                        <div class="topic-status">${topic.statusText} (${topic.percentage}%)</div>
-                    </div>
-                `;
-                
-                topicsGrid.appendChild(topicElement);
-            });
+            // Použití marked.js pro převod Markdown na HTML
+            aiAnalysis.innerHTML = marked.parse(analysisText);
+            
+            // Vytvoření plánu studia
+            const planStart = analysisText.indexOf('## Personalizovaný studijní plán');
+            const planEnd = analysisText.indexOf('## Doporučené typy úloh');
+            
+            if (planStart !== -1 && planEnd !== -1) {
+                const planText = analysisText.substring(planStart, planEnd);
+                learningPlan.style.display = 'block';
+                planContent.innerHTML = marked.parse(planText);
+            }
         }
         
         // Event listenery
