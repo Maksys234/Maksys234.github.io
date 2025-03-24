@@ -1358,8 +1358,9 @@
                     currentUser = user;
                 }
                 
-                // Připravíme data pro uložení do databáze podle schématu user_diagnostics
+                // Připravíme data pro uložení do databáze podle schématu users_diagnostics
                 const topicResults = calculateTopicResults();
+                const currentTime = new Date().toISOString();
                 
                 const diagnosticData = {
                     user_id: currentUser.id,
@@ -1371,18 +1372,25 @@
                         summary: analysisText,
                         correct_answers: testResults.correctAnswers,
                         wrong_answers: testResults.wrongAnswers,
-                        date: new Date().toISOString()
-                    }
+                        test_date: currentTime
+                    },
+                    // Přidáváme časová pole
+                    created_at: currentTime,
+                    updated_at: currentTime,
+                    completed_at: currentTime
                 };
                 
-                // Ukládáme data do tabulky user_diagnostics
+                // Ukládáme data do tabulky users_diagnostics
                 const { data, error } = await supabaseClient
-                    .from('user_diagnostics')
+                    .from('users_diagnostics')
                     .insert(diagnosticData)
                     .select('id')
                     .single();
                 
-                if (error) throw error;
+                if (error) {
+                    console.error('Podrobná chyba při ukládání:', error);
+                    throw error;
+                }
                 
                 // Uložíme ID diagnostiky pro pozdější použití
                 diagnosticId = data.id;
