@@ -1,0 +1,1212 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Justax - Profil studenta</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Marked для рендеринга Markdown -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    
+    <style>
+        /* Základní styly */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        :root {
+            --primary: #4361ee;
+            --primary-light: #4895ef;
+            --secondary: #3f37c9;
+            --success: #4cc9f0;
+            --danger: #f72585;
+            --warning: #f8961e;
+            --info: #4895ef;
+            --dark: #1e2a3a;
+            --light: #f8f9fa;
+            --gray: #6c757d;
+            --gray-light: #dee2e6;
+            --gray-dark: #343a40;
+            --gradient-1: linear-gradient(135deg, #4361ee, #3a0ca3);
+            --gradient-2: linear-gradient(135deg, #4cc9f0, #4361ee);
+            --gradient-3: linear-gradient(135deg, #f72585, #7209b7);
+            --gradient-4: linear-gradient(135deg, #f8961e, #f3722c);
+            --white: #ffffff;
+            --sidebar-width: 260px;
+            --transition-speed: 0.3s;
+            --card-radius: 16px;
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 5px 15px rgba(0, 0, 0, 0.07);
+            --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.1);
+            --text-primary: #2d3748;
+            --text-secondary: #4a5568;
+            --text-muted: #718096;
+        }
+
+        body {
+            background-color: #f6f8ff;
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            overflow-x: hidden;
+        }
+
+        /* Boční panel */
+        .sidebar {
+            width: var(--sidebar-width);
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background: var(--gradient-1);
+            color: var(--white);
+            padding: 1.5rem 1rem;
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+            box-shadow: var(--shadow-lg);
+            transition: all var(--transition-speed) ease;
+        }
+
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding: 0 0.75rem;
+        }
+
+        .sidebar-logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--white);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .sidebar-logo i {
+            font-size: 1.75rem;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            flex-grow: 1;
+        }
+
+        .sidebar-item {
+            margin-bottom: 0.5rem;
+        }
+
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            color: rgba(255, 255, 255, 0.85);
+            text-decoration: none;
+            border-radius: 12px;
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+
+        .sidebar-link i {
+            margin-right: 0.75rem;
+            font-size: 1.2rem;
+            width: 24px;
+            text-align: center;
+        }
+
+        .sidebar-link.active, .sidebar-link:hover {
+            background-color: rgba(255, 255, 255, 0.15);
+            color: var(--white);
+        }
+
+        .sidebar-footer {
+            margin-top: auto;
+            padding: 1rem;
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.7);
+            text-align: center;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            margin-top: 1rem;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--primary-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 0.75rem;
+            font-weight: 500;
+            overflow: hidden;
+        }
+
+        .user-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .user-info {
+            flex-grow: 1;
+        }
+
+        .user-name {
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .user-role {
+            font-size: 0.8rem;
+            opacity: 0.8;
+        }
+
+        /* Hlavní obsah */
+        main {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            padding: 1.5rem 2rem;
+            transition: margin var(--transition-speed) ease;
+            width: calc(100% - var(--sidebar-width));
+        }
+
+        .dashboard-header {
+            margin-bottom: 2rem;
+            background-color: var(--white);
+            border-radius: var(--card-radius);
+            padding: 1.25rem 1.5rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-content h1 {
+            font-size: 1.75rem;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        /* Hlavní obsah */
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            gap: 1.75rem;
+        }
+
+        .section {
+            background-color: var(--white);
+            border-radius: var(--card-radius);
+            box-shadow: var(--shadow-sm);
+            padding: 1.5rem;
+            animation: fadeIn 0.5s ease forwards;
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 1.25rem;
+            color: var(--dark);
+        }
+
+        .section-subtitle {
+            font-size: 1.1rem;
+            font-weight: 500;
+            margin-bottom: 1rem;
+            color: var(--dark);
+        }
+
+        .section-text {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Styly tlačítek */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 0.95rem;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: none;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: var(--gradient-1);
+            color: white;
+            box-shadow: 0 4px 10px rgba(67, 97, 238, 0.2);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(67, 97, 238, 0.25);
+        }
+
+        .btn-secondary {
+            background-color: var(--light);
+            color: var(--text-secondary);
+            border: 1px solid var(--gray-light);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--gray-light);
+        }
+
+        .btn-lg {
+            padding: 0.75rem 2rem;
+            font-size: 1rem;
+        }
+
+        .btn-center {
+            margin: 0 auto;
+            display: block;
+            width: fit-content;
+        }
+
+        /* Styly pro kartu testu */
+        .test-card {
+            background-color: var(--white);
+            border-radius: var(--card-radius);
+            box-shadow: var(--shadow-sm);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border-left: 4px solid var(--primary);
+            transition: all 0.3s ease;
+        }
+
+        .test-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .test-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .test-date {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .test-score {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--primary);
+            background-color: rgba(67, 97, 238, 0.1);
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+        }
+
+        .test-details {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 1.5rem;
+        }
+
+        .test-stat {
+            text-align: center;
+        }
+
+        .test-stat-value {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .test-stat-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .test-actions {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 1.5rem;
+            gap: 1rem;
+        }
+
+        /* Topic cards */
+        .topic-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .topic-card {
+            background-color: var(--white);
+            border-radius: var(--card-radius);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.3s ease;
+            border-left: 4px solid var(--primary);
+        }
+
+        .topic-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .topic-card.strength {
+            border-left: 4px solid var(--success);
+        }
+
+        .topic-card.weakness {
+            border-left: 4px solid var(--danger);
+        }
+
+        .topic-card.neutral {
+            border-left: 4px solid var(--warning);
+        }
+
+        .topic-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+            gap: 0.75rem;
+        }
+
+        .topic-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--white);
+            background: var(--primary);
+            font-size: 1.2rem;
+        }
+
+        .topic-card.strength .topic-icon {
+            background: var(--success);
+        }
+
+        .topic-card.weakness .topic-icon {
+            background: var(--danger);
+        }
+
+        .topic-card.neutral .topic-icon {
+            background: var(--warning);
+        }
+
+        .topic-title {
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: var(--dark);
+        }
+
+        .topic-stats {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+            justify-content: space-between;
+        }
+
+        .topic-stat {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .progress-container {
+            width: 100%;
+            height: 8px;
+            background-color: var(--gray-light);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 1rem;
+        }
+
+        .progress-bar {
+            height: 100%;
+            border-radius: 4px;
+            background: var(--gradient-1);
+            transition: width 0.5s ease;
+        }
+
+        /* Plan section */
+        .plan-content {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background-color: #f9f9ff;
+            border-radius: var(--card-radius);
+            border-left: 4px solid var(--primary);
+        }
+
+        .plan-content h1 {
+            color: var(--primary);
+            margin-bottom: 1.2rem;
+            font-size: 1.5rem;
+        }
+
+        .plan-content h2 {
+            color: var(--primary);
+            margin-top: 1.8rem;
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+
+        .plan-content h3 {
+            color: var(--dark);
+            margin-top: 1.5rem;
+            margin-bottom: 0.8rem;
+            font-size: 1.2rem;
+        }
+
+        .plan-content p {
+            margin-bottom: 1rem;
+            line-height: 1.6;
+        }
+
+        .plan-content ul, .plan-content ol {
+            margin-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .plan-content li {
+            margin-bottom: 0.5rem;
+        }
+
+        .plan-content strong {
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .plan-content code {
+            background-color: rgba(67, 97, 238, 0.1);
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        .plan-content blockquote {
+            border-left: 3px solid var(--primary-light);
+            padding-left: 1rem;
+            margin-left: 0;
+            margin-right: 0;
+            margin-bottom: 1rem;
+            color: var(--text-secondary);
+        }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--text-secondary);
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            color: var(--gray-light);
+            margin-bottom: 1rem;
+        }
+
+        .empty-state h3 {
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            color: var(--text-secondary);
+        }
+
+        .empty-state p {
+            margin-bottom: 1.5rem;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* Loader */
+        .loader-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 200px;
+        }
+
+        .loader {
+            width: 50px;
+            height: 50px;
+            border: 5px solid var(--gray-light);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Animace */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animated {
+            animation: fadeIn 0.5s ease forwards;
+        }
+
+        /* Media queries */
+        @media (max-width: 992px) {
+            :root {
+                --sidebar-width: 80px;
+            }
+            
+            .sidebar-logo span, .sidebar-link span, .user-info, .sidebar-footer {
+                display: none;
+            }
+            
+            .sidebar-link i {
+                margin-right: 0;
+                font-size: 1.5rem;
+            }
+            
+            .sidebar-logo i {
+                margin-right: 0;
+            }
+            
+            .sidebar-header, .sidebar-link {
+                justify-content: center;
+            }
+            
+            .user-profile {
+                justify-content: center;
+                padding: 0.75rem;
+            }
+            
+            .user-avatar {
+                margin-right: 0;
+            }
+
+            .topic-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            main {
+                padding: 1rem;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+            
+            .test-card-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+            
+            .test-details {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .test-stat {
+                width: 100%;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                text-align: left;
+            }
+        }
+
+        @media (max-width: 576px) {
+            :root {
+                --sidebar-width: 0;
+            }
+            
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            
+            main {
+                margin-left: 0;
+                width: 100%;
+            }
+            
+            .mobile-menu-toggle {
+                display: block;
+            }
+        }
+
+        /* Mobilní menu */
+        .mobile-menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--dark);
+            font-size: 1.5rem;
+            margin-right: 1rem;
+        }
+
+        /* Tmavý režim */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --white: #1a202c;
+                --light: #2d3748;
+                --dark: #e2e8f0;
+                --gray-light: #4a5568;
+                --text-primary: #e2e8f0;
+                --text-secondary: #cbd5e0;
+                --text-muted: #a0aec0;
+            }
+            
+            body {
+                background-color: #171923;
+            }
+
+            .plan-content {
+                background-color: #1e2533;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <a href="/" class="sidebar-logo">
+                <i class="fas fa-calculator"></i>
+                <span>Justax</span>
+            </a>
+        </div>
+        
+        <ul class="sidebar-menu">
+            <li class="sidebar-item">
+                <a href="/dashboard/dashboard.html" class="sidebar-link">
+                    <i class="fas fa-th-large"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a href="/dashboard/procvicovani.html" class="sidebar-link active">
+                    <i class="fas fa-book-open"></i>
+                    <span>Procvičování</span>
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a href="/dashboard/pokrok.html" class="sidebar-link">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Pokrok</span>
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a href="/dashboard/oceneni.html" class="sidebar-link">
+                    <i class="fas fa-medal"></i>
+                    <span>Ocenění</span>
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a href="/dashboard/materialy.html" class="sidebar-link">
+                    <i class="fas fa-file-alt"></i>
+                    <span>Materiály</span>
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a href="/dashboard/profile.html" class="sidebar-link">
+                    <i class="fas fa-user-cog"></i>
+                    <span>Profil</span>
+                </a>
+            </li>
+        </ul>
+        
+        <div class="user-profile">
+            <div class="user-avatar" id="user-avatar">
+                <!-- Аватарка будет загружена через JS или будут отображены инициалы -->
+            </div>
+            <div class="user-info">
+                <div class="user-name" id="user-name">Načítání...</div>
+                <div class="user-role" id="user-role">Student</div>
+            </div>
+        </div>
+        
+        <div class="sidebar-footer">
+            &copy; 2025 Justax
+        </div>
+    </aside>
+
+    <!-- Hlavní obsah -->
+    <main>
+        <div class="dashboard-header">
+            <div class="header-content">
+                <h1>Profil studenta</h1>
+                <button class="mobile-menu-toggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <!-- Sekce s diagnostickými testy -->
+            <div class="section" id="diagnosticSection">
+                <h2 class="section-title">
+                    <i class="fas fa-clipboard-check"></i>
+                    Diagnostické testy
+                </h2>
+                
+                <div class="loader-container" id="testsLoader">
+                    <div class="loader"></div>
+                </div>
+                
+                <div id="testsContainer">
+                    <!-- Zde budou načteny testy z databáze -->
+                </div>
+                
+                <div class="empty-state" id="noTestsMessage" style="display: none;">
+                    <i class="fas fa-file-alt"></i>
+                    <h3>Zatím nemáte žádné testy</h3>
+                    <p>Absolvujte diagnostický test, abyste zjistili své silné a slabé stránky a získali personalizovaný studijní plán.</p>
+                    <a href="/dashboard/procvicovani/test1.html" class="btn btn-primary">
+                        <i class="fas fa-play"></i>
+                        Absolvovat test
+                    </a>
+                </div>
+            </div>
+
+            <!-- Sekce s aktuálním studijním plánem -->
+            <div class="section" id="planSection">
+                <h2 class="section-title">
+                    <i class="fas fa-graduation-cap"></i>
+                    Váš studijní plán
+                </h2>
+                
+                <div class="loader-container" id="planLoader">
+                    <div class="loader"></div>
+                </div>
+                
+                <div id="planContainer">
+                    <!-- Zde bude načten studijní plán -->
+                </div>
+                
+                <div class="empty-state" id="noPlanMessage" style="display: none;">
+                    <i class="fas fa-clipboard-list"></i>
+                    <h3>Zatím nemáte žádný studijní plán</h3>
+                    <p>Po absolvování diagnostického testu vám vytvoříme personalizovaný studijní plán přímo na míru.</p>
+                    <a href="/dashboard/procvicovani/test1.html" class="btn btn-primary">
+                        <i class="fas fa-play"></i>
+                        Absolvovat test
+                    </a>
+                </div>
+            </div>
+
+            <!-- Sekce s výsledky podle témat -->
+            <div class="section" id="topicsSection">
+                <h2 class="section-title">
+                    <i class="fas fa-chart-pie"></i>
+                    Výsledky podle témat
+                </h2>
+                
+                <div class="loader-container" id="topicsLoader">
+                    <div class="loader"></div>
+                </div>
+                
+                <div id="topicsContainer" class="topic-grid">
+                    <!-- Zde budou načteny výsledky podle témat -->
+                </div>
+                
+                <div class="empty-state" id="noTopicsMessage" style="display: none;">
+                    <i class="fas fa-book"></i>
+                    <h3>Zatím nemáte výsledky podle témat</h3>
+                    <p>Po absolvování diagnostického testu uvidíte své silné a slabé stránky podle témat.</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Inicializace Supabase klienta
+        const supabaseUrl = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10';
+        
+        // Správná inicializace Supabase
+        const { createClient } = supabase;
+        const supabaseClient = createClient(supabaseUrl, supabaseKey);
+        
+        // Ikony pro témata
+        const topicIcons = {
+            "Algebra": "fa-square-root-alt",
+            "Aritmetika": "fa-calculator",
+            "Geometrie": "fa-draw-polygon",
+            "Logické úlohy": "fa-brain",
+            "default": "fa-book"
+        };
+        
+        // DOM elementy
+        const userName = document.getElementById('user-name');
+        const userAvatar = document.getElementById('user-avatar');
+        const testsLoader = document.getElementById('testsLoader');
+        const testsContainer = document.getElementById('testsContainer');
+        const noTestsMessage = document.getElementById('noTestsMessage');
+        const planLoader = document.getElementById('planLoader');
+        const planContainer = document.getElementById('planContainer');
+        const noPlanMessage = document.getElementById('noPlanMessage');
+        const topicsLoader = document.getElementById('topicsLoader');
+        const topicsContainer = document.getElementById('topicsContainer');
+        const noTopicsMessage = document.getElementById('noTopicsMessage');
+        
+        // Globální proměnné
+        let currentUser = null;
+        let userTests = [];
+        let latestTest = null;
+        
+        // Inicializace stránky
+        async function initPage() {
+            await setUserInfo();
+            
+            if (currentUser) {
+                await loadUserTests();
+                
+                if (userTests.length > 0) {
+                    // Máme testy, zobrazíme je a načteme plán
+                    latestTest = userTests[0]; // Nejnovější test
+                    displayUserTests();
+                    displayTopicResults();
+                    await loadUserPlan();
+                } else {
+                    // Nemáme testy, zobrazíme prázdné stavy
+                    showNoTestsState();
+                    showNoTopicsState();
+                    showNoPlanState();
+                }
+            } else {
+                // Uživatel není přihlášen
+                showNoTestsState();
+                showNoTopicsState();
+                showNoPlanState();
+            }
+        }
+        
+        // Nastavení informací o uživateli
+        async function setUserInfo() {
+            try {
+                // Získání informací o aktuálním uživateli
+                const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
+                
+                if (userError) throw userError;
+                
+                if (user) {
+                    currentUser = user;
+                    
+                    // Zkusit získat více informací o uživateli z profilu
+                    const { data: profile, error } = await supabaseClient
+                        .from('profiles')
+                        .select('full_name, username, avatar_url')
+                        .eq('id', user.id)
+                        .single();
+                    
+                    // Prioritizujeme username nad emailem
+                    if (profile) {
+                        // Nastavení jména - priorita username > full_name > email
+                        if (profile.username) {
+                            userName.textContent = profile.username;
+                        } else if (profile.full_name) {
+                            userName.textContent = profile.full_name;
+                        } else {
+                            userName.textContent = user.email.split('@')[0]; // Zobrazit uživatelskou část e-mailu
+                        }
+                        
+                        // Nastavení avataru
+                        if (profile.avatar_url) {
+                            userAvatar.innerHTML = `<img src="${profile.avatar_url}" alt="Avatar">`;
+                        } else {
+                            // Fallback na iniciály
+                            const displayName = profile.username || profile.full_name || user.email.split('@')[0];
+                            const initials = displayName.split(' ')
+                                .map(n => n[0])
+                                .join('')
+                                .substr(0, 2)
+                                .toUpperCase();
+                            userAvatar.textContent = initials;
+                        }
+                    } else {
+                        // Použít základní informace z uživatelského účtu
+                        userName.textContent = user.email.split('@')[0]; // Pouze uživatelské jméno z e-mailu
+                        userAvatar.textContent = user.email.substr(0, 2).toUpperCase();
+                    }
+                } else {
+                    // Fallback pro nepřihlášené uživatele
+                    userName.textContent = 'Host';
+                    userAvatar.textContent = 'HO';
+                }
+            } catch (error) {
+                console.error('Chyba při načítání informací o uživateli:', error);
+                userName.textContent = 'Host';
+                userAvatar.textContent = 'HO';
+            }
+        }
+        
+        // Načtení testů uživatele
+        async function loadUserTests() {
+            try {
+                testsLoader.style.display = 'flex';
+                
+                const { data, error } = await supabaseClient
+                    .from('user_diagnostics')
+                    .select('*')
+                    .eq('user_id', currentUser.id)
+                    .order('created_at', { ascending: false });
+                
+                if (error) throw error;
+                
+                userTests = data || [];
+                
+                testsLoader.style.display = 'none';
+                
+                return userTests;
+            } catch (error) {
+                console.error('Chyba při načítání testů:', error);
+                testsLoader.style.display = 'none';
+                showNoTestsState();
+                return [];
+            }
+        }
+        
+        // Zobrazení testů uživatele
+        function displayUserTests() {
+            if (userTests.length === 0) {
+                showNoTestsState();
+                return;
+            }
+            
+            testsContainer.innerHTML = '';
+            noTestsMessage.style.display = 'none';
+            
+            userTests.forEach(test => {
+                // Formátování data
+                const testDate = new Date(test.created_at);
+                const formattedDate = testDate.toLocaleDateString('cs-CZ', {
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                
+                // Získání dat z výsledků testu
+                const totalScore = test.total_score || 0;
+                const totalQuestions = test.total_questions || 0;
+                const correctAnswers = test.analysis?.correct_answers || 0;
+                const wrongAnswers = test.analysis?.wrong_answers || 0;
+                
+                // Vytvoření karty testu
+                const testCard = document.createElement('div');
+                testCard.className = 'test-card';
+                testCard.innerHTML = `
+                    <div class="test-card-header">
+                        <div class="test-date">${formattedDate}</div>
+                        <div class="test-score">${totalScore}/${totalQuestions * 5} bodů</div>
+                    </div>
+                    
+                    <div class="test-details">
+                        <div class="test-stat">
+                            <div class="test-stat-label">Celkem otázek</div>
+                            <div class="test-stat-value">${totalQuestions}</div>
+                        </div>
+                        <div class="test-stat">
+                            <div class="test-stat-label">Správné odpovědi</div>
+                            <div class="test-stat-value">${correctAnswers}</div>
+                        </div>
+                        <div class="test-stat">
+                            <div class="test-stat-label">Nesprávné odpovědi</div>
+                            <div class="test-stat-value">${wrongAnswers}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="test-actions">
+                        <button class="btn btn-secondary view-details-btn" data-test-id="${test.id}">
+                            <i class="fas fa-eye"></i>
+                            Zobrazit detaily
+                        </button>
+                        <a href="/dashboard/procvicovani/plan.html?diagnostic=${test.id}" class="btn btn-primary">
+                            <i class="fas fa-clipboard-list"></i>
+                            Zobrazit plán
+                        </a>
+                    </div>
+                `;
+                
+                testsContainer.appendChild(testCard);
+            });
+            
+            // Přidání interaktivity pro tlačítka zobrazení detailů
+            document.querySelectorAll('.view-details-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const testId = this.dataset.testId;
+                    window.location.href = `/dashboard/procvicovani/test-detail.html?id=${testId}`;
+                });
+            });
+        }
+        
+        // Zobrazení výsledků podle témat
+        function displayTopicResults() {
+            if (!latestTest || !latestTest.topic_results) {
+                showNoTopicsState();
+                return;
+            }
+            
+            topicsLoader.style.display = 'none';
+            noTopicsMessage.style.display = 'none';
+            topicsContainer.innerHTML = '';
+            
+            const topicResults = latestTest.topic_results;
+            
+            Object.entries(topicResults).forEach(([topicId, topicData]) => {
+                const topicName = topicData.topic_name || `Téma ${topicId}`;
+                const correctAnswers = topicData.correct || 0;
+                const totalQuestions = topicData.questions || 0;
+                const percentageCorrect = totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0;
+                
+                // Určení kategorie podle procentuální úspěšnosti
+                let categoryClass = 'neutral';
+                if (percentageCorrect >= 75) {
+                    categoryClass = 'strength';
+                } else if (percentageCorrect <= 40) {
+                    categoryClass = 'weakness';
+                }
+                
+                // Určení ikony
+                const iconClass = topicIcons[topicName] || topicIcons.default;
+                
+                const topicCard = document.createElement('div');
+                topicCard.className = `topic-card ${categoryClass}`;
+                topicCard.innerHTML = `
+                    <div class="topic-header">
+                        <div class="topic-icon">
+                            <i class="fas ${iconClass}"></i>
+                        </div>
+                        <div class="topic-title">${topicName}</div>
+                    </div>
+                    <div class="topic-stats">
+                        <div class="topic-stat">Správně: ${correctAnswers}/${totalQuestions}</div>
+                        <div class="topic-stat">${percentageCorrect}%</div>
+                    </div>
+                    <div class="progress-container">
+                        <div class="progress-bar" style="width: ${percentageCorrect}%"></div>
+                    </div>
+                `;
+                
+                topicsContainer.appendChild(topicCard);
+            });
+        }
+        
+        // Načtení studijního plánu
+        async function loadUserPlan() {
+            try {
+                if (!latestTest) {
+                    showNoPlanState();
+                    return;
+                }
+                
+                planLoader.style.display = 'flex';
+                
+                // Načtení plánu z diagnostiky
+                const diagnosticId = latestTest.id;
+                
+                // Zobrazení analytické části jako plánu
+                if (latestTest.analysis && latestTest.analysis.summary) {
+                    planLoader.style.display = 'none';
+                    noPlanMessage.style.display = 'none';
+                    
+                    // Použití marked.js pro převod Markdown na HTML
+                    const analysisHtml = marked.parse(latestTest.analysis.summary);
+                    
+                    planContainer.innerHTML = `
+                        <div class="plan-content">
+                            ${analysisHtml}
+                        </div>
+                        
+                        <div style="text-align: center; margin-top: 2rem;">
+                            <a href="/dashboard/procvicovani/plan.html?diagnostic=${diagnosticId}" class="btn btn-primary btn-lg">
+                                <i class="fas fa-clipboard-list"></i>
+                                Podrobný studijní plán
+                            </a>
+                        </div>
+                    `;
+                } else {
+                    showNoPlanState();
+                }
+            } catch (error) {
+                console.error('Chyba při načítání studijního plánu:', error);
+                planLoader.style.display = 'none';
+                showNoPlanState();
+            }
+        }
+        
+        // Zobrazení prázdného stavu pro testy
+        function showNoTestsState() {
+            testsLoader.style.display = 'none';
+            testsContainer.innerHTML = '';
+            noTestsMessage.style.display = 'block';
+        }
+        
+        // Zobrazení prázdného stavu pro studijní plán
+        function showNoPlanState() {
+            planLoader.style.display = 'none';
+            planContainer.innerHTML = '';
+            noPlanMessage.style.display = 'block';
+        }
+        
+        // Zobrazení prázdného stavu pro výsledky podle témat
+        function showNoTopicsState() {
+            topicsLoader.style.display = 'none';
+            topicsContainer.innerHTML = '';
+            noTopicsMessage.style.display = 'block';
+        }
+        
+        // Formátování data a času
+        function formatDateTime(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('cs-CZ', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+        
+        // Inicializace stránky při načtení
+        document.addEventListener('DOMContentLoaded', function() {
+            initPage();
+        });
+    </script>
+</body>
+</html>
