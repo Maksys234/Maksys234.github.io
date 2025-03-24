@@ -962,13 +962,22 @@
         const userName = document.getElementById('user-name');
         const userAvatar = document.getElementById('user-avatar');
         
+        // Globální proměnné
+        let currentUser = null;
+        let testData = null;
+        let diagnosticId = null;
+        
         // Nastavení informací o uživateli
         async function setUserInfo() {
             try {
                 // Získání informací o aktuálním uživateli
-                const { data: { user } } = await supabaseClient.auth.getUser();
+                const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
+                
+                if (userError) throw userError;
                 
                 if (user) {
+                    currentUser = user;
+                    
                     // Zkusit získat více informací o uživateli z profilu
                     const { data: profile, error } = await supabaseClient
                         .from('profiles')
@@ -1007,200 +1016,247 @@
                     }
                 } else {
                     // Fallback pro nepřihlášené uživatele
-                    userName.textContent = 'Maksim';
-                    userAvatar.textContent = 'MS';
+                    userName.textContent = 'Host';
+                    userAvatar.textContent = 'HO';
                 }
             } catch (error) {
                 console.error('Chyba při načítání informací o uživateli:', error);
-                userName.textContent = 'Maksim';
-                userAvatar.textContent = 'MS';
+                userName.textContent = 'Host';
+                userAvatar.textContent = 'HO';
             }
         }
         
         // Inicializace stránky
         async function initPage() {
-            // Nastavíme info o uživateli
             await setUserInfo();
             
-            // Načteme výsledky testu z localStorage
-            const testResultsJson = localStorage.getItem('justax_test_results');
+            // Zkontrolujeme, zda máme v URL diagnosticId
+            const urlParams = new URLSearchParams(window.location.search);
+            const diagnosticParam = urlParams.get('diagnostic');
             
-            if (!testResultsJson) {
-                // Pokud nemáme výsledky testu, zobrazíme sekci, která doporučí udělat test
-                testSummarySection.style.display = 'none';
-                planSection.style.display = 'none';
-                scheduleSection.style.display = 'none';
-                notestSection.style.display = 'block';
-                return;
+            if (diagnosticParam) {
+                diagnosticId = diagnosticParam;
+                await loadDiagnosticData(diagnosticId);
+            } else {
+                // Pokud není diagnostika v URL, zkusíme najít poslední diagnostiku pro uživatele
+                await loadLatestDiagnosticData();
             }
             
-            const testResults = JSON.parse(testResultsJson);
-            
-            // Zobrazíme souhrn výsledků testu
-            displayTestSummary(testResults);
-            
-            // Vytvoříme personalizovaný studijní plán
-            await createStudyPlan(testResults);
+            // Pokud stále nemáme diagnostická data, zobrazíme upozornění
+            if (!testData) {
+                showNoTestSection();
+            } else {
+                // Zobrazíme výsledky testu a vygenerujeme plán
+                displayTestResults();
+                generateStudyPlan();
+            }
         }
         
-        // Zobrazení souhrnu výsledků testu
-        function displayTestSummary(testResults) {
-            // Základní statistiky testu
-            const correct = testResults.score.correct;
-            const total = testResults.score.total;
-            const percentage = Math.round((correct / total) * 100);
-            
-            // Zobrazení základních statistik
-            testStats.innerHTML = `
-                <div class="progress-container">
-                    <div class="progress-bar" style="width: ${percentage}%"></div>
-                </div>
-                <p class="section-text">
-                    Celkové skóre: <strong>${correct}/${total} (${percentage}%)</strong><br>
-                    Datum testu: <strong>${new Date(testResults.date).toLocaleString('cs-CZ')}</strong>
-                </p>
-            `;
-            
-            // Vyčistíme kontejner s tématy
-            topicStats.innerHTML = '';
-            
-            // Zobrazení výsledků podle témat
-            Object.entries(testResults.topics).forEach(([topic, data]) => {
-                const topicPercentage = Math.round((data.correct / data.total) * 100);
+        // Načtení diagnostických dat z ID
+        async function loadDiagnosticData(diagnosticId) {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('user_diagnostics')
+                    .select('*')
+                    .eq('id', diagnosticId)
+                    .single();
                 
-                // Určení statusu tématu (silná stránka, slabá stránka, neutrální)
-                let status = 'neutral';
-                if (topicPercentage >= 70) {
-                    status = 'strength';
-                } else if (topicPercentage <= 40) {
-                    status = 'weakness';
+                if (error) throw error;
+                
+                if (data) {
+                    console.log('Načtena diagnostická data z ID:', data);
+                    testData = data;
+                }
+            } catch (error) {
+                console.error('Chyba při načítání diagnostických dat:', error);
+            }
+        }
+        
+        // Načtení nejnovějších diagnostických dat pro uživatele
+        async function loadLatestDiagnosticData() {
+            try {
+                if (!currentUser) {
+                    throw new Error('Uživatel není přihlášen');
                 }
                 
-                // Získání ikony pro dané téma
-                const iconClass = topicIcons[topic] || topicIcons.default;
+                const { data, error } = await supabaseClient
+                    .from('user_diagnostics')
+                    .select('*')
+                    .eq('user_id', currentUser.id)
+                    .order('created_at', { ascending: false })
+                    .limit(1)
+                    .single();
                 
-                // Vytvoření karty pro téma
-                const topicCard = document.createElement('div');
-                topicCard.className = `topic-card ${status}`;
-                topicCard.innerHTML = `
-                    <div class="topic-header">
-                        <div class="topic-icon">
-                            <i class="fas ${iconClass}"></i>
-                        </div>
-                        <div class="topic-title">${topic}</div>
-                    </div>
-                    <div class="topic-stats">
-                        <div class="topic-stat">
-                            <strong>${data.correct}/${data.total}</strong> správně
-                        </div>
-                        <div class="topic-stat">
-                            <strong>${topicPercentage}%</strong>
-                        </div>
-                    </div>
-                    <div class="progress-container">
-                        <div class="progress-bar" style="width: ${topicPercentage}%"></div>
-                    </div>
-                `;
+                if (error) {
+                    if (error.code === 'PGRST116') {
+                        // Žádné záznamy nalezeny
+                        console.log('Nebyly nalezeny žádné diagnostické testy pro uživatele');
+                        return;
+                    }
+                    throw error;
+                }
                 
-                topicStats.appendChild(topicCard);
-            });
+                if (data) {
+                    console.log('Načtena nejnovější diagnostická data:', data);
+                    testData = data;
+                    diagnosticId = data.id;
+                }
+            } catch (error) {
+                console.error('Chyba při načítání nejnovějších diagnostických dat:', error);
+            }
         }
         
-        // Vytvoření personalizovaného studijního plánu pomocí Gemini
-        async function createStudyPlan(testResults) {
+        // Zobrazení sekce "Nejprve absolvujte test"
+        function showNoTestSection() {
+            testSummarySection.style.display = 'none';
+            planSection.style.display = 'none';
+            scheduleSection.style.display = 'none';
+            notestSection.style.display = 'block';
+        }
+        
+        // Zobrazení výsledků testu
+        function displayTestResults() {
+            testSummarySection.style.display = 'block';
+            
+            // Zobrazení základních statistik testu
+            const total_score = testData.total_score || 0;
+            const total_questions = testData.total_questions || 0;
+            
+            // Zjištění počtu správných a nesprávných odpovědí z analýzy
+            let correctCount = 0;
+            let wrongCount = 0;
+            
+            if (testData.analysis && typeof testData.analysis === 'object') {
+                correctCount = testData.analysis.correct_answers || 0;
+                wrongCount = testData.analysis.wrong_answers || 0;
+            }
+            
+            // Zobrazení statistik
+            testStats.innerHTML = `
+                <div class="results-details">
+                    <div class="result-stat">
+                        <div class="stat-value">${total_score}/${total_questions * 5}</div>
+                        <div class="stat-label">Celkové bodové hodnocení</div>
+                    </div>
+                    <div class="result-stat">
+                        <div class="stat-value">${correctCount}</div>
+                        <div class="stat-label">Správné odpovědi</div>
+                    </div>
+                    <div class="result-stat">
+                        <div class="stat-value">${wrongCount}</div>
+                        <div class="stat-label">Nesprávné odpovědi</div>
+                    </div>
+                </div>
+            `;
+            
+            // Zobrazení výsledků podle témat
+            topicStats.innerHTML = '';
+            
+            if (testData.topic_results && typeof testData.topic_results === 'object') {
+                Object.entries(testData.topic_results).forEach(([topicId, topicData]) => {
+                    const topicName = topicData.topic_name || `Téma ${topicId}`;
+                    const correctAnswers = topicData.correct || 0;
+                    const totalQuestions = topicData.questions || 0;
+                    const percentageCorrect = totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0;
+                    
+                    // Určení kategorie podle procentuální úspěšnosti
+                    let categoryClass = 'neutral';
+                    if (percentageCorrect >= 75) {
+                        categoryClass = 'strength';
+                    } else if (percentageCorrect <= 40) {
+                        categoryClass = 'weakness';
+                    }
+                    
+                    // Určení ikony
+                    const iconClass = topicIcons[topicName] || topicIcons.default;
+                    
+                    const topicCard = document.createElement('div');
+                    topicCard.className = `topic-card ${categoryClass}`;
+                    topicCard.innerHTML = `
+                        <div class="topic-header">
+                            <div class="topic-icon">
+                                <i class="fas ${iconClass}"></i>
+                            </div>
+                            <div class="topic-title">${topicName}</div>
+                        </div>
+                        <div class="topic-stats">
+                            <div class="topic-stat">Správně: ${correctAnswers}/${totalQuestions}</div>
+                            <div class="topic-stat">${percentageCorrect}%</div>
+                        </div>
+                        <div class="progress-container">
+                            <div class="progress-bar" style="width: ${percentageCorrect}%"></div>
+                        </div>
+                    `;
+                    
+                    topicStats.appendChild(topicCard);
+                });
+            } else {
+                topicStats.innerHTML = '<p>Nejsou k dispozici žádné údaje o výsledcích podle témat.</p>';
+            }
+        }
+        
+        // Generování studijního plánu pomocí Gemini API
+        async function generateStudyPlan() {
             try {
-                // Zobrazíme načítání
+                // Zobrazit načítání
                 planLoading.style.display = 'flex';
                 planContent.style.display = 'none';
                 
-                // Vytvoříme přehled výsledků podle témat pro Gemini
-                const topicSummary = Object.entries(testResults.topics).map(([topic, data]) => {
-                    const percentage = Math.round((data.correct / data.total) * 100);
+                // Příprava dat pro Gemini
+                const diagnosticSummary = {
+                    total_score: testData.total_score,
+                    total_questions: testData.total_questions,
+                    topic_results: testData.topic_results || {}
+                };
+                
+                // Výběr slabých témat pro zaměření
+                const weakTopics = [];
+                Object.entries(diagnosticSummary.topic_results).forEach(([topicId, topicData]) => {
+                    const correctAnswers = topicData.correct || 0;
+                    const totalQuestions = topicData.questions || 0;
+                    const percentageCorrect = totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0;
                     
-                    return {
-                        topic,
-                        percentage,
-                        correct: data.correct,
-                        total: data.total
-                    };
+                    if (percentageCorrect <= 60) {
+                        weakTopics.push({
+                            topic: topicData.topic_name,
+                            correctPercentage: percentageCorrect
+                        });
+                    }
                 });
                 
-                // Připravíme jednotlivé odpovědi na otázky pro detailnější analýzu
-                const responseDetails = testResults.responses.map((response, index) => {
-                    return `Otázka ${index + 1} (${response.topic}): 
-                     "${response.question}"
-                     Správná odpověď: "${response.correctAnswer}"
-                     Odpověď studenta: "${response.userAnswer}"
-                     Výsledek: ${response.isCorrect ? 'Správně' : 'Nesprávně'}`;
-                }).join('\n\n');
-                
-                // Připravíme template pro tématické oblasti, které se vyskytují na přijímačkách
-                const examTopics = `
-                Aritmetika:
-                - Početní operace s přirozenými, celými a racionálními čísly
-                - Zlomky, desetinná čísla, procenta
-                - Poměr, přímá a nepřímá úměrnost
-                - Zaokrouhlování, odhady, práce s jednotkami (délka, obsah, objem, čas)
-                - Slovní úlohy na denní situace (nákupy, směsi, pohyb atd.)
-
-                Algebra:
-                - Lineární rovnice a nerovnice (včetně slovních úloh)
-                - Soustavy lineárních rovnic
-                - Výrazy a jejich úpravy (lomené výrazy, vzorce)
-                - Mocniny a odmocniny (základní operace)
-                - Funkce: lineární, kvadratická (vlastnosti, grafy)
-
-                Geometrie:
-                - Základní planimetrické pojmy (úsečka, úhel, trojúhelník, kružnice)
-                - Výpočty obvodů, obsahů, povrchů a objemů
-                - Pythagorova věta, Euklidovy věty
-                - Konstrukční úlohy (trojúhelníky, rovnoběžníky, kružnice)
-                - Shodnost a podobnost geometrických útvarů
-
-                Logika a práce s daty:
-                - Čtení z grafů, tabulek a diagramů
-                - Průměry, jednoduchá statistika
-                - Základy kombinatoriky (permutace, kombinace)
-                - Logické úlohy (pravdivostní tabulky, analýza textu)
-                `;
-
-                // Připravíme prompt pro Gemini s požadavkem na vytvoření plánu - VYLEPŠENÝ PROMPT
+                // Prompt pro Gemini
                 const prompt = `
-                Vytvoř personalizovaný studijní plán pro žáka připravujícího se na přijímací zkoušky z matematiky.
+                Jsi vzdělávací AI asistent, který vytváří personalizovaný studijní plán pro studenta připravujícího se na přijímací zkoušky z matematiky.
                 
-                Informace o výsledcích diagnostického testu studenta:
-                - Celkový počet otázek: ${testResults.score.total}
-                - Správných odpovědí: ${testResults.score.correct}
-                - Úspěšnost: ${Math.round((testResults.score.correct / testResults.score.total) * 100)}%
+                # Výsledky diagnostického testu studenta:
+                - Celkové skóre: ${diagnosticSummary.total_score} z ${diagnosticSummary.total_questions * 5} možných bodů
+                - Počet otázek: ${diagnosticSummary.total_questions}
                 
-                Výkon podle témat:
-                ${topicSummary.map(topic => 
-                    `- ${topic.topic}: ${topic.correct}/${topic.total} správně (${topic.percentage}%)`
-                ).join('\n')}
+                # Výsledky podle témat:
+                ${Object.entries(diagnosticSummary.topic_results).map(([topicId, topicData]) => {
+                    const correctAnswers = topicData.correct || 0;
+                    const totalQuestions = topicData.questions || 0;
+                    const percentageCorrect = totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0;
+                    return `- ${topicData.topic_name}: ${correctAnswers}/${totalQuestions} správně (${percentageCorrect}%)`;
+                }).join('\n')}
                 
-                Podrobný rozbor odpovědí:
-                ${responseDetails}
+                # Slabé oblasti:
+                ${weakTopics.length > 0 ? 
+                    weakTopics.map(topic => `- ${topic.topic}: ${topic.correctPercentage}%`).join('\n') : 
+                    '- Žádné výrazné slabé oblasti nebyly identifikovány'}
                 
-                Oblasti, které se vyskytují v přijímacích zkouškách:
-                ${examTopics}
+                # Úkol:
+                Vytvoř personalizovaný studijní plán pro zlepšení v matematice, zaměřený zejména na slabé oblasti. Plán by měl obsahovat:
                 
-                Požadavky na obsah a formát:
-
-                1. Začni PŘÍMO studijním plánem, bez úvodních slov jako "Na základě vašich výsledků..." nebo "Tento plán je vytvořen...". První nadpis bude "Studijní plán".
+                1. Stručné shrnutí silných a slabých stránek studenta
+                2. Seznam prioritních témat a podtémat k procvičení
+                3. Doporučené studijní zdroje a metody
+                4. Časový harmonogram na 2-3 týdny
                 
-                2. Vytvoř sekce podle hlavních oblastí matematiky (Aritmetika, Algebra, Geometrie, Logika). Pro každou oblast uveď konkrétní témata k procvičování a typy úloh.
-                
-                3. Vytvoř část "Doporučený harmonogram studia" s rozpisem na 14 dní (2 týdny), strukturovaný podle dnů v týdnu.
-                   - Pro každý den uveď jen téma, čas a konkrétní aktivity
-                   - NEPOUŽÍVEJ tabulky s pomlčkami nebo jinými oddělovači - formátuj to jako seznam
-                   - Formát: "Den: Téma (čas) - konkrétní aktivita"
-
-                4. V závěru NEVKLÁDEJ žádné věty typu "Tento plán je pouze návrh" nebo "Hodně štěstí s přípravou".
-                
-                5. Používej Markdown pro formátování textu (nadpisy, seznamy, tučné písmo), ale drž se jednoduchého stylu.
+                Formátuj svou odpověď v Markdown, rozděl ji do sekcí a buď konkrétní v doporučeních.
                 `;
-
-                // Připravíme požadavek pro Gemini API
+                
+                // Odeslání požadavku na Gemini API
                 const requestData = {
                     contents: [{
                         parts: [{
@@ -1214,8 +1270,7 @@
                         maxOutputTokens: 8192,
                     }
                 };
-
-                // Odešleme požadavek
+                
                 const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
                     method: 'POST',
                     headers: {
@@ -1223,14 +1278,13 @@
                     },
                     body: JSON.stringify(requestData)
                 });
-
+                
                 // Zpracujeme odpověď
                 const data = await response.json();
-                
                 if (!response.ok) {
                     throw new Error(data.error?.message || 'Chyba při komunikaci s Gemini API');
                 }
-
+                
                 // Extrahujeme textovou odpověď
                 const geminiResponse = data.candidates[0]?.content?.parts[0]?.text;
                 
@@ -1241,262 +1295,133 @@
                 // Zobrazíme plán
                 displayStudyPlan(geminiResponse);
                 
-                // Vyextrahujeme a zobrazíme denní harmonogram
-                extractAndDisplaySchedule(geminiResponse);
+                // Zobrazíme sekci s rozvrhem
+                scheduleSection.style.display = 'block';
                 
+                // Generujeme týdenní rozvrh
+                generateWeeklySchedule(weakTopics);
             } catch (error) {
-                console.error('Chyba při vytváření studijního plánu:', error);
-                
-                // Zobrazíme chybovou zprávu
+                console.error('Chyba při generování studijního plánu:', error);
                 planLoading.style.display = 'none';
                 planContent.style.display = 'block';
                 planContent.innerHTML = `
-                    <h2>Nastala chyba při vytváření plánu</h2>
-                    <p>Omlouváme se, ale došlo k chybě při vytváření vašeho personalizovaného studijního plánu. Zkuste to prosím znovu později.</p>
-                    <button class="btn btn-primary" onclick="window.location.reload()">
-                        <i class="fas fa-sync-alt"></i>
-                        Zkusit znovu
-                    </button>
+                    <h3>Nepodařilo se vytvořit studijní plán</h3>
+                    <p>Omlouváme se, ale došlo k chybě při generování vašeho studijního plánu. Zkuste to prosím později znovu.</p>
+                    <p>Chyba: ${error.message}</p>
                 `;
             }
         }
         
         // Zobrazení studijního plánu
         function displayStudyPlan(planText) {
-            // Skryjeme načítání
             planLoading.style.display = 'none';
-            
-            // Zobrazíme obsah plánu
             planContent.style.display = 'block';
             
-            // Odstraníme poslední část textu, pokud obsahuje závěrečné poznámky
-            let cleanPlanText = planText;
-            const unwantedPhrases = [
-                "Tento plán je pouze návrh",
-                "Hodně štěstí s přípravou",
-                "Přizpůsobte plán svým",
-                "Nezapomeňte, že",
-                "Pamatujte, že"
-            ];
-            
-            // Najdeme poslední odstavec a zkontrolujeme, zda neobsahuje nežádoucí fráze
-            const paragraphs = cleanPlanText.split('\n\n');
-            const lastParagraph = paragraphs[paragraphs.length - 1];
-            
-            if (unwantedPhrases.some(phrase => lastParagraph.includes(phrase))) {
-                paragraphs.pop();
-                cleanPlanText = paragraphs.join('\n\n');
-            }
-            
-            // Použijeme marked.js pro převod Markdown na HTML
-            planContent.innerHTML = marked.parse(cleanPlanText);
-            
-            // Zobrazíme sekci s harmonogramem
-            scheduleSection.style.display = 'block';
+            // Použití marked.js pro převod Markdown na HTML
+            planContent.innerHTML = marked.parse(planText);
         }
         
-        // Extrakce a zobrazení rozvrhu z textu plánu
-        function extractAndDisplaySchedule(planText) {
-            // Najdeme sekci s harmonogramem
-            let scheduleStart = planText.indexOf('## Doporučený harmonogram studia');
+        // Generování týdenního rozvrhu
+        function generateWeeklySchedule(weakTopics) {
+            const days = ['Pondělí', 'Úterý', 'Středa', 'Čtvrtek', 'Pátek', 'Sobota', 'Neděle'];
+            const topicsForFocus = weakTopics.length > 0 ? 
+                weakTopics.map(t => t.topic) : 
+                Object.values(testData.topic_results || {}).map(t => t.topic_name);
             
-            if (scheduleStart === -1) {
-                scheduleStart = planText.indexOf('## Týdenní harmonogram');
-            }
+            dailySchedule.innerHTML = '';
             
-            if (scheduleStart === -1) {
-                scheduleStart = planText.indexOf('## Harmonogram');
-            }
+            // Přiřadíme témata k dnům v týdnu (Po-Pá)
+            const workDays = days.slice(0, 5);
             
-            if (scheduleStart !== -1) {
-                // Najdeme konec sekce s harmonogramem (následující nadpis nebo konec textu)
-                let scheduleEnd = planText.indexOf('##', scheduleStart + 2);
-                if (scheduleEnd === -1) {
-                    scheduleEnd = planText.length;
-                }
+            workDays.forEach((day, index) => {
+                // Rotace témat - každý den jiné téma
+                const focusTopic = topicsForFocus[index % topicsForFocus.length];
                 
-                const scheduleText = planText.substring(scheduleStart, scheduleEnd);
+                const dayElement = document.createElement('div');
+                dayElement.className = 'schedule-day';
                 
-                // Extrahujeme informace o dnech
-                const daysOfWeek = ['Pondělí', 'Úterý', 'Středa', 'Čtvrtek', 'Pátek', 'Sobota', 'Neděle'];
-                let scheduleHTML = '';
+                const iconClass = dayIcons[day] || 'fa-calendar-day';
                 
-                // Projdeme všechny dny v týdnu a zkusíme je najít v textu
-                daysOfWeek.forEach(day => {
-                    // Zkusíme najít den v různých formátech
-                    const dayFormats = [
-                        `### ${day}`,
-                        `**${day}**`,
-                        `${day}:`
-                    ];
-                    
-                    let dayIndex = -1;
-                    let matchedFormat = '';
-                    
-                    for (const format of dayFormats) {
-                        const index = scheduleText.indexOf(format);
-                        if (index !== -1) {
-                            dayIndex = index;
-                            matchedFormat = format;
-                            break;
-                        }
-                    }
-                    
-                    if (dayIndex !== -1) {
-                        // Najdeme konec sekce pro tento den
-                        let nextDayIndex = -1;
-                        
-                        for (const nextDay of daysOfWeek) {
-                            for (const format of dayFormats) {
-                                const index = scheduleText.indexOf(format, dayIndex + matchedFormat.length);
-                                if (index !== -1 && (nextDayIndex === -1 || index < nextDayIndex)) {
-                                    nextDayIndex = index;
-                                }
-                            }
-                        }
-                        
-                        // Pokud jsme nenašli další den, použijeme konec celé sekce
-                        if (nextDayIndex === -1) {
-                            nextDayIndex = scheduleText.length;
-                        }
-                        
-                        // Získáme obsah pro tento den
-                        const dayContent = scheduleText.substring(dayIndex + matchedFormat.length, nextDayIndex).trim();
-                        
-                        // Najdeme hlavní téma dne (pokud existuje)
-                        let dayFocus = "";
-                        const focusMatch = dayContent.match(/[Tt]éma:?\s*([^,.\n]+)/);
-                        if (focusMatch) {
-                            dayFocus = focusMatch[1].trim();
-                        }
-                        
-                        // Vytvoříme HTML pro tento den
-                        scheduleHTML += `
-                            <div class="schedule-day">
-                                <div class="day-name">
-                                    <span><i class="fas ${dayIcons[day] || 'fa-calendar-day'}"></i> ${day}</span>
-                                    ${dayFocus ? `<span class="day-focus">${dayFocus}</span>` : ''}
-                                </div>
-                                <div class="activities">
-                                    ${formatDayActivities(dayContent)}
-                                </div>
+                dayElement.innerHTML = `
+                    <div class="day-name">
+                        <span><i class="fas ${iconClass}"></i> ${day}</span>
+                        <span class="day-focus">Zaměření: ${focusTopic}</span>
+                    </div>
+                    <div class="activities">
+                        <div class="activity">
+                            <div class="activity-time">16:00</div>
+                            <div class="activity-content">
+                                <div class="activity-title">Studium teorie</div>
+                                <div class="activity-desc">Prostudovat teorii k tématu ${focusTopic}</div>
                             </div>
-                        `;
-                    }
-                });
-                
-                // Zobrazíme vytvořený harmonogram
-                dailySchedule.innerHTML = scheduleHTML || '<p>Harmonogram nebyl nalezen v plánu studia.</p>';
-            } else {
-                // Pokud jsme nenašli sekci s harmonogramem, zobrazíme zprávu
-                dailySchedule.innerHTML = '<p>Harmonogram nebyl nalezen v plánu studia.</p>';
-            }
-        }
-        
-        // Formátování aktivit pro daný den
-        function formatDayActivities(dayContent) {
-            // Rozdělíme obsah dne na řádky
-            const lines = dayContent.split('\n').filter(line => line.trim() !== '');
-            
-            // Pokud máme málo řádků, možná je den popsán v jednom odstavci
-            if (lines.length <= 2) {
-                // Zkusíme rozdělit podle pomlček nebo odrážek
-                const activities = [];
-                const parts = dayContent.split(/[-•*]/);
-                
-                parts.forEach(part => {
-                    const trimmed = part.trim();
-                    if (trimmed && !trimmed.match(/^(téma|čas|zaměření)/i)) {
-                        activities.push(trimmed);
-                    }
-                });
-                
-                if (activities.length > 0) {
-                    let html = '';
-                    activities.forEach(activity => {
-                        html += `
-                            <div class="activity">
-                                <div class="activity-content">
-                                    <div class="activity-title">${activity}</div>
-                                </div>
+                        </div>
+                        <div class="activity">
+                            <div class="activity-time">17:30</div>
+                            <div class="activity-content">
+                                <div class="activity-title">Procvičování</div>
+                                <div class="activity-desc">Řešení praktických úloh z aplikace Justax</div>
                             </div>
-                        `;
-                    });
-                    return html;
-                }
-            }
-            
-            // Formátování jednotlivých aktivit
-            let html = '';
-            let skipFirstLine = false;
-            
-            // Zkontrolujeme, zda první řádek není jen název dne nebo téma
-            if (lines.length > 0 && (
-                lines[0].match(/^téma/i) || 
-                lines[0].match(/^zaměření/i) || 
-                lines[0].match(/^(pondělí|úterý|středa|čtvrtek|pátek|sobota|neděle)/i)
-            )) {
-                skipFirstLine = true;
-            }
-            
-            // Projdeme všechny řádky a vytvoříme aktivity
-            lines.forEach((line, index) => {
-                if (skipFirstLine && index === 0) {
-                    return;
-                }
-                
-                // Odstraníme odrážky a pomlčky ze začátku
-                let cleanLine = line.trim().replace(/^[-•*]\s*/, '');
-                
-                // Zkusíme najít čas v závorkách
-                const timeMatch = cleanLine.match(/\((\d+)[\s-]*min\)/i);
-                let time = '';
-                
-                if (timeMatch) {
-                    time = `${timeMatch[1]} min`;
-                    cleanLine = cleanLine.replace(timeMatch[0], '');
-                }
-                
-                // Zkusíme rozdělit na název a popis
-                let title = cleanLine;
-                let description = '';
-                
-                const colonSplit = cleanLine.split(':');
-                if (colonSplit.length > 1) {
-                    title = colonSplit[0].trim();
-                    description = colonSplit.slice(1).join(':').trim();
-                } else {
-                    const dashSplit = cleanLine.split(' - ');
-                    if (dashSplit.length > 1) {
-                        title = dashSplit[0].trim();
-                        description = dashSplit.slice(1).join(' - ').trim();
-                    }
-                }
-                
-                // Vytvoříme HTML pro tuto aktivitu
-                html += `
-                    <div class="activity">
-                        ${time ? `<div class="activity-time">${time}</div>` : ''}
-                        <div class="activity-content">
-                            <div class="activity-title">${title}</div>
-                            ${description ? `<div class="activity-desc">${description}</div>` : ''}
+                        </div>
+                        <div class="activity">
+                            <div class="activity-time">19:00</div>
+                            <div class="activity-content">
+                                <div class="activity-title">Opakování</div>
+                                <div class="activity-desc">Rekapitulace naučených konceptů</div>
+                            </div>
                         </div>
                     </div>
                 `;
+                
+                dailySchedule.appendChild(dayElement);
             });
             
-            return html;
+            // Víkend - souhrn a opakování
+            const weekendDays = days.slice(5);
+            
+            weekendDays.forEach(day => {
+                const dayElement = document.createElement('div');
+                dayElement.className = 'schedule-day';
+                
+                const iconClass = dayIcons[day] || 'fa-calendar-day';
+                
+                dayElement.innerHTML = `
+                    <div class="day-name">
+                        <span><i class="fas ${iconClass}"></i> ${day}</span>
+                        <span class="day-focus">Souhrnné opakování</span>
+                    </div>
+                    <div class="activities">
+                        <div class="activity">
+                            <div class="activity-time">10:00</div>
+                            <div class="activity-content">
+                                <div class="activity-title">Souhrnný test</div>
+                                <div class="activity-desc">Testování znalostí ze všech témat tohoto týdne</div>
+                            </div>
+                        </div>
+                        <div class="activity">
+                            <div class="activity-time">14:00</div>
+                            <div class="activity-content">
+                                <div class="activity-title">Opakování problémových oblastí</div>
+                                <div class="activity-desc">Zaměření na témata, která v testu činila potíže</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                dailySchedule.appendChild(dayElement);
+            });
         }
         
-        // Event listeners
-        document.addEventListener('DOMContentLoaded', initPage);
-        
-        goToTestBtn.addEventListener('click', function() {
-            window.location.href = '/dashboard/procvicovani/test.html';
-        });
-        
-        saveScheduleBtn.addEventListener('click', function() {
-            alert('Funkce pro stažení plánu bude dostupná v další verzi.');
+        // Event listenery
+        document.addEventListener('DOMContentLoaded', function() {
+            initPage();
+            
+            goToTestBtn.addEventListener('click', function() {
+                window.location.href = '/dashboard/procvicovani/test1.html';
+            });
+            
+            saveScheduleBtn.addEventListener('click', function() {
+                alert('Funkce pro stažení plánu bude dostupná v budoucích aktualizacích.');
+            });
         });
     </script>
 </body>
