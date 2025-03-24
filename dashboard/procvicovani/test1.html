@@ -910,6 +910,7 @@
         let startTime;
         let endTime;
         let userResponses = [];
+        let testResults = {}; // Для хранения результатов оценки от Gemini
         
         // Nastavení informací o uživateli
         async function setUserInfo() {
@@ -1090,7 +1091,7 @@
             });
         }
         
-        // Odeslání testu
+        // Odeslání testu - UPRAVENO
         function submitTest() {
             // Záznam času ukončení
             endTime = new Date();
@@ -1098,7 +1099,7 @@
             // Shromáždění všech odpovědí uživatele
             userResponses = [];
             
-            testQuestions.forEach(question => {
+            testQuestions.forEach((question, index) => {
                 let userAnswer = '';
                 
                 if (question.question_type === 'multiple_choice') {
@@ -1113,182 +1114,101 @@
                 
                 userResponses.push({
                     questionId: question.id,
+                    questionIndex: index + 1, // Добавляем номер вопроса
                     question: question.question_text,
                     userAnswer: userAnswer,
                     correctAnswer: question.correct_answer,
                     difficulty: question.difficulty,
                     topicId: question.topic_id,
                     topic: topicMap[question.topic_id] || `Téma ${question.topic_id}`,
-                    isCorrect: userAnswer.toLowerCase() === question.correct_answer.toLowerCase()
+                    // ZMĚNA: isCorrect nyní není předem definováno - bude určeno AI
+                    isCorrect: null // Bude nastaveno podle odpovědi Gemini
                 });
             });
             
-            // Vyhodnocení odpovědí
-            evaluateAnswers();
-            
-            // Zobrazení sekce výsledků
+            // Zobrazíme sekci výsledků s načítáním
             testSection.style.display = 'none';
             resultsSection.style.display = 'block';
             
-            // Požádáme Gemini o analýzu výsledků
-            analyzeResultsWithGemini();
-            
-            // Uložení výsledků testu do localStorage pro použití na stránce s plánem
-            saveTestResults();
-        }
-        
-        // Uložení výsledků testu pro použití v plánu obučení
-        function saveTestResults() {
-            // Připravíme data k uložení
-            const testResults = {
-                date: new Date().toISOString(),
-                score: {
-                    correct: userResponses.filter(r => r.isCorrect).length,
-                    total: userResponses.length
-                },
-                topics: {},
-                responses: userResponses
-            };
-            
-            // Agregace výsledků podle témat
-            userResponses.forEach(response => {
-                if (!testResults.topics[response.topic]) {
-                    testResults.topics[response.topic] = {
-                        correct: 0,
-                        total: 0
-                    };
-                }
-                
-                testResults.topics[response.topic].total++;
-                if (response.isCorrect) {
-                    testResults.topics[response.topic].correct++;
-                }
-            });
-            
-            // Uložení do localStorage
-            localStorage.setItem('justax_test_results', JSON.stringify(testResults));
-        }
-        
-        // Vyhodnocení odpovědí uživatele
-        function evaluateAnswers() {
-            // Počet správných a špatných odpovědí
-            const correct = userResponses.filter(response => response.isCorrect).length;
-            const wrong = userResponses.length - correct;
-            
-            // Výpočet skóre na základě obtížnosti
-            let totalScore = 0;
-            
-            userResponses.forEach(response => {
-                if (response.isCorrect) {
-                    switch(response.difficulty) {
-                        case 'easy': totalScore += 1; break;
-                        case 'medium': totalScore += 2; break;
-                        case 'hard': totalScore += 3; break;
-                        default: totalScore += 1;
-                    }
-                }
-            });
-            
-            // Výpočet celkového možného skóre
-            const maxScore = testQuestions.reduce((total, question) => {
-                switch(question.difficulty) {
-                    case 'easy': return total + 1;
-                    case 'medium': return total + 2;
-                    case 'hard': return total + 3;
-                    default: return total + 1;
-                }
-            }, 0);
-            
-            // Výpočet času dokončení
+            // Zobrazit čas dokončení
             const timeDiff = endTime - startTime;
             const minutes = Math.floor(timeDiff / 60000);
             const seconds = Math.floor((timeDiff % 60000) / 1000);
-            
-            // Aktualizace UI výsledků
-            scoreDisplay.textContent = `${totalScore}/${maxScore}`;
-            correctAnswers.textContent = correct;
-            wrongAnswers.textContent = wrong;
             completionTime.textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+            
+            // Dočasně zobrazit "Hodnotí se..." 
+            scoreDisplay.textContent = 'Hodnotí se...';
+            correctAnswers.textContent = '-';
+            wrongAnswers.textContent = '-';
+            
+            // Požádáme Gemini o analýzu a hodnocení výsledků
+            analyzeResultsWithGemini();
         }
         
-        // Analýza výsledků pomocí Gemini API
+        // NOVÁ FUNKCE: Analýza výsledků pomocí Gemini API včetně hodnocení
         async function analyzeResultsWithGemini() {
             try {
-                // Strukturujeme data pro Gemini
-                const topicPerformance = {};
-                
-                userResponses.forEach(response => {
-                    if (!topicPerformance[response.topic]) {
-                        topicPerformance[response.topic] = {
-                            total: 0,
-                            correct: 0,
-                            questions: []
-                        };
-                    }
-                    
-                    topicPerformance[response.topic].total++;
-                    if (response.isCorrect) {
-                        topicPerformance[response.topic].correct++;
-                    }
-                    
-                    // Přidáme otázku k danému tématu pro podrobnější analýzu
-                    topicPerformance[response.topic].questions.push({
-                        question: response.question,
-                        userAnswer: response.userAnswer,
-                        correctAnswer: response.correctAnswer,
-                        isCorrect: response.isCorrect,
-                        difficulty: response.difficulty
-                    });
-                });
-                
                 // Vytvoříme strukturovaný vstup pro Gemini
-                const topicSummary = Object.entries(topicPerformance).map(([topic, data]) => {
-                    const percentage = Math.round((data.correct / data.total) * 100);
-                    
+                const questionsData = userResponses.map(response => {
                     return {
-                        topic,
-                        percentage,
-                        correct: data.correct,
-                        total: data.total,
-                        questions: data.questions
+                        index: response.questionIndex,
+                        question: response.question,
+                        userAnswer: response.userAnswer || "(bez odpovědi)",
+                        correctAnswer: response.correctAnswer,
+                        difficulty: response.difficulty,
+                        topic: response.topic
                     };
                 });
 
-                // Připravíme data pro odeslání do Gemini API - БЕЗ пунктов 5 и 6
+                // Připravíme data pro odeslání do Gemini API
                 const prompt = `
-                Jsi vzdělávací AI asistent, který analyzuje výsledky matematického testu pro žáka připravujícího se na přijímací zkoušky.
+                Jsi vzdělávací AI asistent, který hodnotí matematický test pro žáka připravujícího se na přijímací zkoušky.
                 
-                Informace o testu:
-                - Celkový počet otázek: ${userResponses.length}
-                - Správných odpovědí: ${userResponses.filter(r => r.isCorrect).length}
-                - Nesprávných odpovědí: ${userResponses.filter(r => !r.isCorrect).length}
+                # Tvoje úkoly:
+                1. Ohodnoť každou odpověď žáka jako správnou nebo nesprávnou
+                2. Přiděl celkové skóre v rozsahu 0-50 bodů
+                3. Proveď analýzu výsledků
                 
-                Výkon podle témat:
-                ${topicSummary.map(topic => 
-                    `- ${topic.topic}: ${topic.correct}/${topic.total} správně (${topic.percentage}%)`
-                ).join('\n')}
-                
-                Podrobný rozbor odpovědí:
-                ${userResponses.map((response, index) => 
-                    `Otázka ${index + 1} (${response.topic}, obtížnost: ${response.difficulty}): 
-                     "${response.question}"
-                     Správná odpověď: "${response.correctAnswer}"
-                     Odpověď studenta: "${response.userAnswer}"
-                     Výsledek: ${response.isCorrect ? 'Správně' : 'Nesprávně'}`
+                # Otázky a odpovědi:
+                ${questionsData.map(q => 
+                    `## Otázka ${q.index} (${q.topic}, obtížnost: ${q.difficulty})
+                    Zadání: "${q.question}"
+                    Správná odpověď: "${q.correctAnswer}"
+                    Odpověď žáka: "${q.userAnswer}"`
                 ).join('\n\n')}
                 
-                Proveď podrobnou analýzu výsledků a vytvoř:
+                # Formát odpovědi:
+                Tvoje odpověď musí mít 2 části:
+                
+                ## Část 1: Hodnocení (JSON)
+                Nejprve vrať JSON objekt s hodnocením každé otázky a celkovým skóre.
+                
+                \`\`\`json
+                {
+                  "totalScore": 35,
+                  "totalOutOf": 50,
+                  "correctAnswers": 6,
+                  "wrongAnswers": 4,
+                  "questions": [
+                    {"questionIndex": 1, "isCorrect": true, "points": 3, "explanation": "stručné vysvětlení hodnocení"},
+                    {"questionIndex": 2, "isCorrect": false, "points": 0, "explanation": "stručné vysvětlení hodnocení"},
+                    ...
+                  ]
+                }
+                \`\`\`
+                
+                ## Část 2: Analýza
+                Poté poskytni podrobnou analýzu výsledků:
                 
                 1. Stručné shrnutí celkového výkonu (2-3 věty)
-                2. Analýzu silných stránek studenta (témata, ve kterých se mu dařilo)
-                3. Identifikaci slabých míst a problémových oblastí
-                4. Analýzu typů chyb (např. chyby v postupu, nepozornost, nedostatečná znalost vzorců, atd.)
+                2. Silné stránky žáka (ve kterých tématech se mu dařilo)
+                3. Slabá místa a problémové oblasti
+                4. Analýza typů chyb (např. chyby v postupu, nepozornost, nedostatečná znalost vzorců)
                 
-                Odpověď strukturuj do formátu Markdown s nadpisy, odrážkami a dalšími prvky pro lepší čitelnost.
-                Buď konkrétní ve své analýze. Nesnaž se být přehnaně pozitivní - buď upřímný ohledně slabých míst, ale zároveň motivující.
+                Buď upřímný, ale motivující. Strukturuj analýzu v Markdown formátu.
                 `;
 
-                // Připravíme data pro požadavek na Gemini API
+                // Odešleme požadavek na Gemini API
                 const requestData = {
                     contents: [{
                         parts: [{
@@ -1303,7 +1223,6 @@
                     }
                 };
 
-                // Odešleme požadavek na Gemini API
                 const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
                     method: 'POST',
                     headers: {
@@ -1318,15 +1237,15 @@
                     throw new Error(data.error?.message || 'Chyba při komunikaci s Gemini API');
                 }
 
-                // Extrahujeme textovou odpověď z výsledku API
+                // Extrahujeme textovou odpověď
                 const geminiResponse = data.candidates[0]?.content?.parts[0]?.text;
                 
                 if (!geminiResponse) {
                     throw new Error('Prázdná odpověď od Gemini API');
                 }
                 
-                // Zobrazíme výsledek analýzy
-                displayGeminiAnalysis(geminiResponse);
+                // Zpracujeme odpověď - rozdělíme na JSON hodnocení a textovou analýzu
+                processGeminiResponse(geminiResponse);
                 
             } catch (error) {
                 console.error('Chyba při analýze výsledků:', error);
@@ -1334,19 +1253,125 @@
                 aiAnalysis.style.display = 'block';
                 aiAnalysis.innerHTML = `
                     <h3>Analýza výsledků</h3>
-                    <p>Omlouváme se, ale došlo k chybě při analýze vašich výsledků. Nicméně můžete si prohlédnout základní statistiky výše.</p>
-                    <p>Doporučujeme zaměřit se na témata s nejnižším skóre.</p>
+                    <p>Omlouváme se, ale došlo k chybě při hodnocení vašich odpovědí.</p>
+                    <p>Zkuste prosím znovu odeslat test nebo kontaktujte podporu.</p>
                 `;
+                
+                // Základní zobrazení, i když došlo k chybě
+                scoreDisplay.textContent = '0/50';
+                correctAnswers.textContent = '0';
+                wrongAnswers.textContent = userResponses.length;
             }
         }
         
-        // Zobrazení výsledků analýzy Gemini
-        function displayGeminiAnalysis(analysisText) {
+        // NOVÁ FUNKCE: Zpracování odpovědi z Gemini
+        function processGeminiResponse(response) {
+            try {
+                // Extrahujeme JSON část z odpovědi
+                const jsonMatch = response.match(/```json\s*([\s\S]*?)\s*```/);
+                
+                if (!jsonMatch || !jsonMatch[1]) {
+                    throw new Error('Nepodařilo se najít JSON hodnocení v odpovědi');
+                }
+                
+                // Parsujeme JSON s výsledky
+                testResults = JSON.parse(jsonMatch[1]);
+                
+                // Aktualizujeme UI s výsledky
+                updateResultsUI(testResults);
+                
+                // Aktualizujeme userResponses na základě hodnocení AI
+                updateUserResponses(testResults);
+                
+                // Extrahujeme část s textovou analýzou - vše za JSON částí
+                const analysisText = response.substring(response.indexOf('```', response.indexOf('```json') + 7) + 3).trim();
+                
+                // Zobrazíme analýzu
+                displayAnalysis(analysisText);
+                
+                // Uložíme výsledky pro pozdější použití
+                saveTestResults();
+                
+            } catch (error) {
+                console.error('Chyba při zpracování odpovědi Gemini:', error);
+                // Fallback zobrazení
+                aiLoading.style.display = 'none';
+                aiAnalysis.style.display = 'block';
+                aiAnalysis.innerHTML = `
+                    <h3>Analýza výsledků</h3>
+                    <p>Omlouváme se, ale došlo k chybě při zpracování hodnocení.</p>
+                    <p>Dokončili jste test, ale detailní analýza není k dispozici.</p>
+                `;
+                
+                // Základní zobrazení skóre
+                scoreDisplay.textContent = '0/50';
+                correctAnswers.textContent = '0';
+                wrongAnswers.textContent = userResponses.length;
+            }
+        }
+        
+        // NOVÁ FUNKCE: Aktualizace UI s výsledky
+        function updateResultsUI(results) {
+            scoreDisplay.textContent = `${results.totalScore}/${results.totalOutOf}`;
+            correctAnswers.textContent = results.correctAnswers;
+            wrongAnswers.textContent = results.wrongAnswers;
+        }
+        
+        // NOVÁ FUNKCE: Aktualizace userResponses na základě hodnocení AI
+        function updateUserResponses(results) {
+            if (results.questions && Array.isArray(results.questions)) {
+                results.questions.forEach(evaluation => {
+                    const index = evaluation.questionIndex - 1;
+                    if (index >= 0 && index < userResponses.length) {
+                        userResponses[index].isCorrect = evaluation.isCorrect;
+                        userResponses[index].points = evaluation.points;
+                        userResponses[index].explanation = evaluation.explanation;
+                    }
+                });
+            }
+        }
+        
+        // Zobrazení analýzy
+        function displayAnalysis(analysisText) {
             aiLoading.style.display = 'none';
             aiAnalysis.style.display = 'block';
             
             // Použití marked.js pro převod Markdown na HTML
             aiAnalysis.innerHTML = marked.parse(analysisText);
+        }
+        
+        // Uložení výsledků testu pro použití v plánu obučení
+        function saveTestResults() {
+            // Připravíme data k uložení
+            const resultsToSave = {
+                date: new Date().toISOString(),
+                score: {
+                    points: testResults.totalScore || 0,
+                    total: testResults.totalOutOf || 50,
+                    correct: testResults.correctAnswers || 0,
+                    wrong: testResults.wrongAnswers || 0
+                },
+                topics: {},
+                responses: userResponses
+            };
+            
+            // Agregace výsledků podle témat
+            userResponses.forEach(response => {
+                if (!resultsToSave.topics[response.topic]) {
+                    resultsToSave.topics[response.topic] = {
+                        correct: 0,
+                        total: 0
+                    };
+                }
+                
+                resultsToSave.topics[response.topic].total++;
+                if (response.isCorrect) {
+                    resultsToSave.topics[response.topic].correct++;
+                }
+            });
+            
+            // Uložení do localStorage
+            localStorage.setItem('justax_test_results', JSON.stringify(resultsToSave));
         }
         
         // Event listenery
