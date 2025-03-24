@@ -509,81 +509,152 @@
             color: var(--danger);
         }
 
-        /* Schedule */
-        .weekly-schedule {
+        /* Focus areas */
+        .focus-areas {
             margin-top: 2rem;
+        }
+
+        .focus-area {
             background-color: var(--white);
             border-radius: var(--card-radius);
             padding: 1.5rem;
+            margin-bottom: 1.5rem;
             box-shadow: var(--shadow-sm);
         }
 
-        .schedule-title {
+        .focus-area h3 {
             font-size: 1.2rem;
             font-weight: 600;
-            margin-bottom: 1.5rem;
-            color: var(--dark);
-            border-bottom: 2px solid var(--primary-light);
-            padding-bottom: 0.5rem;
-        }
-
-        .day-container {
-            margin-bottom: 1.5rem;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid var(--gray-light);
-        }
-
-        .day-header {
+            margin-bottom: 1rem;
+            color: var(--primary);
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            margin-bottom: 0.75rem;
+            gap: 0.75rem;
         }
 
-        .day-title {
+        .focus-area h3 i {
+            font-size: 1.3rem;
+        }
+
+        .area-description {
+            margin-bottom: 1rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .study-tips {
+            background-color: rgba(67, 97, 238, 0.05);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+
+        .study-tips h4 {
+            font-size: 1rem;
             font-weight: 600;
+            margin-bottom: 0.75rem;
             color: var(--dark);
-            font-size: 1.05rem;
+        }
+
+        .study-tips ul {
+            margin-left: 1.25rem;
+        }
+
+        .study-tips li {
+            margin-bottom: 0.5rem;
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+        }
+
+        /* Daily schedule */
+        .daily-schedule {
+            margin-top: 2rem;
+        }
+
+        .schedule-day {
+            background-color: var(--white);
+            border-radius: var(--card-radius);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: var(--shadow-sm);
+            border-left: 4px solid var(--primary);
+        }
+
+        .day-name {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
 
         .day-focus {
             font-size: 0.9rem;
+            font-weight: 500;
             color: var(--primary);
             background-color: rgba(67, 97, 238, 0.1);
             padding: 0.25rem 0.75rem;
             border-radius: 20px;
         }
 
-        .day-tasks {
-            padding-left: 1rem;
+        .activities {
+            margin-top: 1rem;
         }
 
-        .task-item {
+        .activity {
             display: flex;
-            align-items: flex-start;
             margin-bottom: 0.75rem;
-            gap: 0.75rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px dashed var(--gray-light);
         }
 
-        .task-bullet {
+        .activity:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .activity-time {
+            min-width: 70px;
+            font-weight: 600;
             color: var(--primary);
-            margin-top: 0.2rem;
         }
 
-        .task-content {
+        .activity-content {
             flex: 1;
         }
 
-        .task-title {
+        .activity-title {
             font-weight: 500;
             color: var(--dark);
-            font-size: 0.95rem;
             margin-bottom: 0.25rem;
         }
 
-        .task-desc {
-            font-size: 0.85rem;
+        .activity-desc {
+            font-size: 0.9rem;
             color: var(--text-secondary);
+        }
+
+        /* Přidané styly pro notest sekci */
+        .notest-message {
+            background-color: rgba(255, 214, 102, 0.2);
+            border-left: 4px solid var(--warning);
+            padding: 1.5rem;
+            margin: 2rem 0;
+            border-radius: var(--card-radius);
+        }
+
+        .notest-message h3 {
+            color: var(--warning);
+            margin-bottom: 0.75rem;
+            font-size: 1.2rem;
+        }
+
+        .notest-message p {
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+            line-height: 1.5;
         }
 
         /* Animace */
@@ -699,27 +770,6 @@
                 background-color: #1e2533;
             }
         }
-
-        /* Přidané styly pro notest sekci */
-        .notest-message {
-            background-color: rgba(255, 214, 102, 0.2);
-            border-left: 4px solid var(--warning);
-            padding: 1.5rem;
-            margin: 2rem 0;
-            border-radius: var(--card-radius);
-        }
-
-        .notest-message h3 {
-            color: var(--warning);
-            margin-bottom: 0.75rem;
-            font-size: 1.2rem;
-        }
-
-        .notest-message p {
-            color: var(--text-secondary);
-            margin-bottom: 1rem;
-            line-height: 1.5;
-        }
     </style>
 </head>
 <body>
@@ -826,13 +876,13 @@
             <!-- Sekce s týdenním rozvrhem -->
             <div class="section schedule-section" id="scheduleSection" style="display: none;">
                 <h2 class="section-title">Týdenní harmonogram</h2>
-                <div class="weekly-schedule" id="weeklySchedule">
-                    <!-- Zde se zobrazí týdenní rozvrh -->
+                <div class="daily-schedule" id="dailySchedule">
+                    <!-- Zde se zobrazí denní rozvrh -->
                 </div>
                 
                 <button class="btn btn-primary btn-lg btn-center" id="saveScheduleBtn" style="margin-top: 2rem;">
-                    <i class="fas fa-save"></i>
-                    Uložit plán do PDF
+                    <i class="fas fa-download"></i>
+                    Stáhnout plán
                 </button>
             </div>
 
@@ -872,12 +922,29 @@
             "default": "fa-book"
         };
 
-        // Mapování názvů témat do skupin
-        const topicCategories = {
-            "Algebra": ["Lineární rovnice", "Soustavy lineárních rovnic", "Výrazy", "Mocniny", "Funkce"],
-            "Aritmetika": ["Početní operace", "Zlomky", "Poměr", "Zaokrouhlování", "Slovní úlohy"],
-            "Geometrie": ["Základní planimetrické pojmy", "Výpočty obvodů", "Pythagorova věta", "Konstrukční úlohy", "Shodnost"],
-            "Logika": ["Čtení z grafů", "Průměry", "Kombinatorika", "Logické úlohy"]
+        // Ikony pro dny v týdnu
+        const dayIcons = {
+            "Pondělí": "fa-calendar-day",
+            "Úterý": "fa-calendar-day",
+            "Středa": "fa-calendar-day",
+            "Čtvrtek": "fa-calendar-day",
+            "Pátek": "fa-calendar-day",
+            "Sobota": "fa-calendar-day",
+            "Neděle": "fa-calendar-day"
+        };
+
+        // Ikony pro témata v detailnějším členění
+        const subTopicIcons = {
+            "Lineární rovnice": "fa-equals",
+            "Soustavy rovnic": "fa-stream",
+            "Výrazy": "fa-superscript",
+            "Zlomky": "fa-divide",
+            "Procenta": "fa-percentage",
+            "Geometrie": "fa-shapes",
+            "Trojúhelníky": "fa-ruler-combined",
+            "Kombinatorika": "fa-dice",
+            "Statistika": "fa-chart-bar",
+            "default": "fa-book"
         };
 
         // DOM elementy
@@ -889,7 +956,7 @@
         const topicStats = document.getElementById('topicStats');
         const planLoading = document.getElementById('planLoading');
         const planContent = document.getElementById('planContent');
-        const weeklySchedule = document.getElementById('weeklySchedule');
+        const dailySchedule = document.getElementById('dailySchedule');
         const goToTestBtn = document.getElementById('goToTestBtn');
         const saveScheduleBtn = document.getElementById('saveScheduleBtn');
         const userName = document.getElementById('user-name');
@@ -1073,33 +1140,33 @@
                 - Početní operace s přirozenými, celými a racionálními čísly
                 - Zlomky, desetinná čísla, procenta
                 - Poměr, přímá a nepřímá úměrnost
-                - Zaokrouhlování, odhady, práce s jednotkami
-                - Slovní úlohy na denní situace
+                - Zaokrouhlování, odhady, práce s jednotkami (délka, obsah, objem, čas)
+                - Slovní úlohy na denní situace (nákupy, směsi, pohyb atd.)
 
                 Algebra:
-                - Lineární rovnice a nerovnice
+                - Lineární rovnice a nerovnice (včetně slovních úloh)
                 - Soustavy lineárních rovnic
-                - Výrazy a jejich úpravy
-                - Mocniny a odmocniny
-                - Funkce: lineární, kvadratická
+                - Výrazy a jejich úpravy (lomené výrazy, vzorce)
+                - Mocniny a odmocniny (základní operace)
+                - Funkce: lineární, kvadratická (vlastnosti, grafy)
 
                 Geometrie:
-                - Základní planimetrické pojmy
+                - Základní planimetrické pojmy (úsečka, úhel, trojúhelník, kružnice)
                 - Výpočty obvodů, obsahů, povrchů a objemů
                 - Pythagorova věta, Euklidovy věty
-                - Konstrukční úlohy
+                - Konstrukční úlohy (trojúhelníky, rovnoběžníky, kružnice)
                 - Shodnost a podobnost geometrických útvarů
 
                 Logika a práce s daty:
                 - Čtení z grafů, tabulek a diagramů
                 - Průměry, jednoduchá statistika
-                - Základy kombinatoriky
-                - Logické úlohy
+                - Základy kombinatoriky (permutace, kombinace)
+                - Logické úlohy (pravdivostní tabulky, analýza textu)
                 `;
 
-                // Připravíme prompt pro Gemini s požadavkem na vytvoření plánu
+                // Připravíme prompt pro Gemini s požadavkem na vytvoření plánu - VYLEPŠENÝ PROMPT
                 const prompt = `
-                Jsi vzdělávací AI asistent, který vytváří personalizované studijní plány pro žáky připravující se na přijímací zkoušky z matematiky.
+                Vytvoř personalizovaný studijní plán pro žáka připravujícího se na přijímací zkoušky z matematiky.
                 
                 Informace o výsledcích diagnostického testu studenta:
                 - Celkový počet otázek: ${testResults.score.total}
@@ -1117,15 +1184,20 @@
                 Oblasti, které se vyskytují v přijímacích zkouškách:
                 ${examTopics}
                 
-                Na základě těchto informací vytvoř:
+                Požadavky na obsah a formát:
+
+                1. Začni PŘÍMO studijním plánem, bez úvodních slov jako "Na základě vašich výsledků..." nebo "Tento plán je vytvořen...". První nadpis bude "Studijní plán".
                 
-                1. Personalizovaný studijní plán na příští 2 týdny, který se zaměří na slabá místa studenta, ale pokryje i ostatní důležité oblasti. Plán by měl být rozdělen do logických celků.
+                2. Vytvoř sekce podle hlavních oblastí matematiky (Aritmetika, Algebra, Geometrie, Logika). Pro každou oblast uveď konkrétní témata k procvičování a typy úloh.
                 
-                2. Týdenní harmonogram s konkrétními doporučeními pro každý den v týdnu, kolik času věnovat různým tématům a jaké typy úloh procvičovat.
+                3. Vytvoř část "Doporučený harmonogram studia" s rozpisem na 14 dní (2 týdny), strukturovaný podle dnů v týdnu.
+                   - Pro každý den uveď jen téma, čas a konkrétní aktivity
+                   - NEPOUŽÍVEJ tabulky s pomlčkami nebo jinými oddělovači - formátuj to jako seznam
+                   - Formát: "Den: Téma (čas) - konkrétní aktivita"
+
+                4. V závěru NEVKLÁDEJ žádné věty typu "Tento plán je pouze návrh" nebo "Hodně štěstí s přípravou".
                 
-                3. Pro každou oblast (Aritmetika, Algebra, Geometrie, Logika) vyber 3-5 konkrétních témat, která by měl student procvičovat, a uveď příklady typů úloh.
-                
-                Odpověď strukturuj pomocí Markdown. Buď konkrétní ve svých doporučeních a zaměř se na praktičnost plánu. Plán by měl být vyvážený - zaměřit se na slabá místa, ale nevynechat ani další oblasti. Přizpůsob náročnost plánu věku studenta (žák ZŠ, který se připravuje na střední školu).
+                5. Používej Markdown pro formátování textu (nadpisy, seznamy, tučné písmo), ale drž se jednoduchého stylu.
                 `;
 
                 // Připravíme požadavek pro Gemini API
@@ -1169,6 +1241,9 @@
                 // Zobrazíme plán
                 displayStudyPlan(geminiResponse);
                 
+                // Vyextrahujeme a zobrazíme denní harmonogram
+                extractAndDisplaySchedule(geminiResponse);
+                
             } catch (error) {
                 console.error('Chyba při vytváření studijního plánu:', error);
                 
@@ -1193,54 +1268,117 @@
             
             // Zobrazíme obsah plánu
             planContent.style.display = 'block';
-            planContent.innerHTML = marked.parse(planText);
             
-            // Zobrazíme sekci s týdenním rozvrhem
+            // Odstraníme poslední část textu, pokud obsahuje závěrečné poznámky
+            let cleanPlanText = planText;
+            const unwantedPhrases = [
+                "Tento plán je pouze návrh",
+                "Hodně štěstí s přípravou",
+                "Přizpůsobte plán svým",
+                "Nezapomeňte, že",
+                "Pamatujte, že"
+            ];
+            
+            // Najdeme poslední odstavec a zkontrolujeme, zda neobsahuje nežádoucí fráze
+            const paragraphs = cleanPlanText.split('\n\n');
+            const lastParagraph = paragraphs[paragraphs.length - 1];
+            
+            if (unwantedPhrases.some(phrase => lastParagraph.includes(phrase))) {
+                paragraphs.pop();
+                cleanPlanText = paragraphs.join('\n\n');
+            }
+            
+            // Použijeme marked.js pro převod Markdown na HTML
+            planContent.innerHTML = marked.parse(cleanPlanText);
+            
+            // Zobrazíme sekci s harmonogramem
             scheduleSection.style.display = 'block';
-            
-            // Extrahujeme harmonogram z odpovědi
-            extractAndDisplaySchedule(planText);
         }
         
-        // Extrakce a zobrazení týdenního harmonogramu
+        // Extrakce a zobrazení rozvrhu z textu plánu
         function extractAndDisplaySchedule(planText) {
-            // Najdeme sekci s týdenním harmonogramem
-            const scheduleStart = planText.indexOf('## Týdenní harmonogram');
-            const nextSectionStart = planText.indexOf('##', scheduleStart + 2);
+            // Najdeme sekci s harmonogramem
+            let scheduleStart = planText.indexOf('## Doporučený harmonogram studia');
+            
+            if (scheduleStart === -1) {
+                scheduleStart = planText.indexOf('## Týdenní harmonogram');
+            }
+            
+            if (scheduleStart === -1) {
+                scheduleStart = planText.indexOf('## Harmonogram');
+            }
             
             if (scheduleStart !== -1) {
-                let scheduleText = '';
-                
-                if (nextSectionStart !== -1) {
-                    scheduleText = planText.substring(scheduleStart, nextSectionStart);
-                } else {
-                    scheduleText = planText.substring(scheduleStart);
+                // Najdeme konec sekce s harmonogramem (následující nadpis nebo konec textu)
+                let scheduleEnd = planText.indexOf('##', scheduleStart + 2);
+                if (scheduleEnd === -1) {
+                    scheduleEnd = planText.length;
                 }
                 
-                // Vytvoříme HTML strukturu pro harmonogram
+                const scheduleText = planText.substring(scheduleStart, scheduleEnd);
+                
+                // Extrahujeme informace o dnech
                 const daysOfWeek = ['Pondělí', 'Úterý', 'Středa', 'Čtvrtek', 'Pátek', 'Sobota', 'Neděle'];
                 let scheduleHTML = '';
                 
+                // Projdeme všechny dny v týdnu a zkusíme je najít v textu
                 daysOfWeek.forEach(day => {
-                    // Hledáme část pro daný den
-                    const dayIndex = scheduleText.indexOf(`### ${day}`);
+                    // Zkusíme najít den v různých formátech
+                    const dayFormats = [
+                        `### ${day}`,
+                        `**${day}**`,
+                        `${day}:`
+                    ];
+                    
+                    let dayIndex = -1;
+                    let matchedFormat = '';
+                    
+                    for (const format of dayFormats) {
+                        const index = scheduleText.indexOf(format);
+                        if (index !== -1) {
+                            dayIndex = index;
+                            matchedFormat = format;
+                            break;
+                        }
+                    }
                     
                     if (dayIndex !== -1) {
-                        // Najdeme konec sekce pro daný den
-                        const nextDayIndex = scheduleText.indexOf('### ', dayIndex + 1);
-                        const dayContent = nextDayIndex !== -1 
-                            ? scheduleText.substring(dayIndex, nextDayIndex)
-                            : scheduleText.substring(dayIndex);
+                        // Najdeme konec sekce pro tento den
+                        let nextDayIndex = -1;
                         
-                        // Vytvoříme strukturu pro daný den
+                        for (const nextDay of daysOfWeek) {
+                            for (const format of dayFormats) {
+                                const index = scheduleText.indexOf(format, dayIndex + matchedFormat.length);
+                                if (index !== -1 && (nextDayIndex === -1 || index < nextDayIndex)) {
+                                    nextDayIndex = index;
+                                }
+                            }
+                        }
+                        
+                        // Pokud jsme nenašli další den, použijeme konec celé sekce
+                        if (nextDayIndex === -1) {
+                            nextDayIndex = scheduleText.length;
+                        }
+                        
+                        // Získáme obsah pro tento den
+                        const dayContent = scheduleText.substring(dayIndex + matchedFormat.length, nextDayIndex).trim();
+                        
+                        // Najdeme hlavní téma dne (pokud existuje)
+                        let dayFocus = "";
+                        const focusMatch = dayContent.match(/[Tt]éma:?\s*([^,.\n]+)/);
+                        if (focusMatch) {
+                            dayFocus = focusMatch[1].trim();
+                        }
+                        
+                        // Vytvoříme HTML pro tento den
                         scheduleHTML += `
-                            <div class="day-container">
-                                <div class="day-header">
-                                    <div class="day-title">${day}</div>
-                                    <!-- Pokud chceme přidat focus, můžeme to udělat zde -->
+                            <div class="schedule-day">
+                                <div class="day-name">
+                                    <span><i class="fas ${dayIcons[day] || 'fa-calendar-day'}"></i> ${day}</span>
+                                    ${dayFocus ? `<span class="day-focus">${dayFocus}</span>` : ''}
                                 </div>
-                                <div class="day-tasks">
-                                    ${formatDayTasks(dayContent)}
+                                <div class="activities">
+                                    ${formatDayActivities(dayContent)}
                                 </div>
                             </div>
                         `;
@@ -1248,37 +1386,106 @@
                 });
                 
                 // Zobrazíme vytvořený harmonogram
-                weeklySchedule.innerHTML = scheduleHTML;
+                dailySchedule.innerHTML = scheduleHTML || '<p>Harmonogram nebyl nalezen v plánu studia.</p>';
+            } else {
+                // Pokud jsme nenašli sekci s harmonogramem, zobrazíme zprávu
+                dailySchedule.innerHTML = '<p>Harmonogram nebyl nalezen v plánu studia.</p>';
             }
         }
         
-        // Formátování úkolů pro daný den
-        function formatDayTasks(dayContent) {
-            // Odstraníme hlavičku dne
-            const contentWithoutHeader = dayContent.substring(dayContent.indexOf('\n') + 1).trim();
+        // Formátování aktivit pro daný den
+        function formatDayActivities(dayContent) {
+            // Rozdělíme obsah dne na řádky
+            const lines = dayContent.split('\n').filter(line => line.trim() !== '');
             
-            // Rozdělíme text podle odrážek
-            const lines = contentWithoutHeader.split('\n').filter(line => line.trim() !== '');
-            
-            let taskHtml = '';
-            
-            lines.forEach(line => {
-                // Odstranění počátečních odrážek, pokud existují
-                const cleanLine = line.replace(/^[-*•]+\s*/, '').trim();
+            // Pokud máme málo řádků, možná je den popsán v jednom odstavci
+            if (lines.length <= 2) {
+                // Zkusíme rozdělit podle pomlček nebo odrážek
+                const activities = [];
+                const parts = dayContent.split(/[-•*]/);
                 
-                if (cleanLine) {
-                    taskHtml += `
-                        <div class="task-item">
-                            <div class="task-bullet"><i class="fas fa-circle-notch"></i></div>
-                            <div class="task-content">
-                                <div class="task-title">${cleanLine}</div>
+                parts.forEach(part => {
+                    const trimmed = part.trim();
+                    if (trimmed && !trimmed.match(/^(téma|čas|zaměření)/i)) {
+                        activities.push(trimmed);
+                    }
+                });
+                
+                if (activities.length > 0) {
+                    let html = '';
+                    activities.forEach(activity => {
+                        html += `
+                            <div class="activity">
+                                <div class="activity-content">
+                                    <div class="activity-title">${activity}</div>
+                                </div>
                             </div>
-                        </div>
-                    `;
+                        `;
+                    });
+                    return html;
                 }
+            }
+            
+            // Formátování jednotlivých aktivit
+            let html = '';
+            let skipFirstLine = false;
+            
+            // Zkontrolujeme, zda první řádek není jen název dne nebo téma
+            if (lines.length > 0 && (
+                lines[0].match(/^téma/i) || 
+                lines[0].match(/^zaměření/i) || 
+                lines[0].match(/^(pondělí|úterý|středa|čtvrtek|pátek|sobota|neděle)/i)
+            )) {
+                skipFirstLine = true;
+            }
+            
+            // Projdeme všechny řádky a vytvoříme aktivity
+            lines.forEach((line, index) => {
+                if (skipFirstLine && index === 0) {
+                    return;
+                }
+                
+                // Odstraníme odrážky a pomlčky ze začátku
+                let cleanLine = line.trim().replace(/^[-•*]\s*/, '');
+                
+                // Zkusíme najít čas v závorkách
+                const timeMatch = cleanLine.match(/\((\d+)[\s-]*min\)/i);
+                let time = '';
+                
+                if (timeMatch) {
+                    time = `${timeMatch[1]} min`;
+                    cleanLine = cleanLine.replace(timeMatch[0], '');
+                }
+                
+                // Zkusíme rozdělit na název a popis
+                let title = cleanLine;
+                let description = '';
+                
+                const colonSplit = cleanLine.split(':');
+                if (colonSplit.length > 1) {
+                    title = colonSplit[0].trim();
+                    description = colonSplit.slice(1).join(':').trim();
+                } else {
+                    const dashSplit = cleanLine.split(' - ');
+                    if (dashSplit.length > 1) {
+                        title = dashSplit[0].trim();
+                        description = dashSplit.slice(1).join(' - ').trim();
+                    }
+                }
+                
+                // Vytvoříme HTML pro tuto aktivitu
+                html += `
+                    <div class="activity">
+                        ${time ? `<div class="activity-time">${time}</div>` : ''}
+                        <div class="activity-content">
+                            <div class="activity-title">${title}</div>
+                            ${description ? `<div class="activity-desc">${description}</div>` : ''}
+                        </div>
+                    </div>
+                `;
             });
             
-            return taskHtml;
+            return html;
         }
         
         // Event listeners
@@ -1289,7 +1496,7 @@
         });
         
         saveScheduleBtn.addEventListener('click', function() {
-            alert('Funkce pro export do PDF bude dostupná v další verzi.');
+            alert('Funkce pro stažení plánu bude dostupná v další verzi.');
         });
     </script>
 </body>
