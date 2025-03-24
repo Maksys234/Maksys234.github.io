@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Justax - Procvičování</title>
+    <title>Justax - Zkušební test</title>
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -569,99 +569,6 @@
             animation: spin 1s ease-in-out infinite;
         }
 
-        .learning-plan {
-            margin-top: 2rem;
-            background-color: var(--white);
-            border-radius: var(--card-radius);
-            box-shadow: var(--shadow-md);
-            padding: 1.5rem;
-        }
-
-        .learning-plan-title {
-            font-size: 1.3rem;
-            font-weight: 600;
-            margin-bottom: 1.25rem;
-            color: var(--dark);
-            border-bottom: 2px solid var(--primary-light);
-            padding-bottom: 0.5rem;
-        }
-
-        .plan-section {
-            margin-bottom: 1.5rem;
-        }
-
-        .plan-section-title {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: var(--primary);
-            margin-bottom: 0.75rem;
-        }
-
-        .strength {
-            color: var(--success);
-        }
-
-        .weakness {
-            color: var(--danger);
-        }
-
-        .topics-section {
-            margin-top: 2rem;
-        }
-
-        .topic-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 1rem;
-            margin-top: 1rem;
-        }
-
-        .topic-card {
-            background-color: var(--light);
-            border-radius: var(--card-radius);
-            padding: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .topic-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--white);
-        }
-
-        .topic-icon.good {
-            background-color: var(--success);
-        }
-
-        .topic-icon.medium {
-            background-color: var(--warning);
-        }
-
-        .topic-icon.poor {
-            background-color: var(--danger);
-        }
-
-        .topic-info {
-            flex-grow: 1;
-        }
-
-        .topic-name {
-            font-size: 0.95rem;
-            font-weight: 600;
-            color: var(--dark);
-        }
-
-        .topic-status {
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-        }
-
         /* Animace */
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
@@ -950,9 +857,9 @@
                         </div>
                     </div>
                     
-                    <button class="btn btn-primary btn-lg btn-center" id="continueBtn" style="margin-top: 2rem;">
-                        <i class="fas fa-arrow-right"></i>
-                        Přejít k výuce
+                    <button class="btn btn-primary btn-lg btn-center" id="createPlanBtn" style="margin-top: 2rem;">
+                        <i class="fas fa-clipboard-list"></i>
+                        Vytvořit studijní plán
                     </button>
                 </div>
             </div>
@@ -994,7 +901,7 @@
         const completionTime = document.getElementById('completionTime');
         const aiLoading = document.getElementById('ai-loading');
         const aiAnalysis = document.getElementById('ai-analysis');
-        const continueBtn = document.getElementById('continueBtn');
+        const createPlanBtn = document.getElementById('createPlanBtn');
         const userName = document.getElementById('user-name');
         const userAvatar = document.getElementById('user-avatar');
         
@@ -1225,6 +1132,41 @@
             
             // Požádáme Gemini o analýzu výsledků
             analyzeResultsWithGemini();
+            
+            // Uložení výsledků testu do localStorage pro použití na stránce s plánem
+            saveTestResults();
+        }
+        
+        // Uložení výsledků testu pro použití v plánu obučení
+        function saveTestResults() {
+            // Připravíme data k uložení
+            const testResults = {
+                date: new Date().toISOString(),
+                score: {
+                    correct: userResponses.filter(r => r.isCorrect).length,
+                    total: userResponses.length
+                },
+                topics: {},
+                responses: userResponses
+            };
+            
+            // Agregace výsledků podle témat
+            userResponses.forEach(response => {
+                if (!testResults.topics[response.topic]) {
+                    testResults.topics[response.topic] = {
+                        correct: 0,
+                        total: 0
+                    };
+                }
+                
+                testResults.topics[response.topic].total++;
+                if (response.isCorrect) {
+                    testResults.topics[response.topic].correct++;
+                }
+            });
+            
+            // Uložení do localStorage
+            localStorage.setItem('justax_test_results', JSON.stringify(testResults));
         }
         
         // Vyhodnocení odpovědí uživatele
@@ -1312,8 +1254,7 @@
                     };
                 });
 
-                // Připravíme data pro odeslání do Gemini API
-                // ИЗМЕНЕНО: Убран пункт 6 из запроса к Gemini и не запрашиваем типы задач
+                // Připravíme data pro odeslání do Gemini API - БЕЗ пунктов 5 и 6
                 const prompt = `
                 Jsi vzdělávací AI asistent, který analyzuje výsledky matematického testu pro žáka připravujícího se na přijímací zkoušky.
                 
@@ -1342,10 +1283,9 @@
                 2. Analýzu silných stránek studenta (témata, ve kterých se mu dařilo)
                 3. Identifikaci slabých míst a problémových oblastí
                 4. Analýzu typů chyb (např. chyby v postupu, nepozornost, nedostatečná znalost vzorců, atd.)
-                5. Konkrétní návrhy pro zlepšení ve slabých oblastech
                 
                 Odpověď strukturuj do formátu Markdown s nadpisy, odrážkami a dalšími prvky pro lepší čitelnost.
-                Buď konkrétní ve svých doporučeních. Nesnaž se být přehnaně pozitivní - buď upřímný ohledně slabých míst, ale zároveň motivující.
+                Buď konkrétní ve své analýze. Nesnaž se být přehnaně pozitivní - buď upřímný ohledně slabých míst, ale zároveň motivující.
                 `;
 
                 // Připravíme data pro požadavek na Gemini API
@@ -1407,8 +1347,6 @@
             
             // Použití marked.js pro převod Markdown na HTML
             aiAnalysis.innerHTML = marked.parse(analysisText);
-            
-            // Убран код вывода плана, так как мы больше не запрашиваем и не показываем план
         }
         
         // Event listenery
@@ -1418,8 +1356,9 @@
             startTestBtn.addEventListener('click', startTest);
             submitTestBtn.addEventListener('click', submitTest);
             
-            continueBtn.addEventListener('click', function() {
-                window.location.href = '/dashboard/materialy.html';
+            createPlanBtn.addEventListener('click', function() {
+                // Přesměrování na stránku vytvoření plánu
+                window.location.href = '/dashboard/procvicovani/plan.html';
             });
         });
     </script>

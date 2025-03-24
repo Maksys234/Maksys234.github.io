@@ -1,0 +1,1296 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Justax - Studijní plán</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Marked для рендеринга Markdown -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    
+    <style>
+        /* Základní styly */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        :root {
+            --primary: #4361ee;
+            --primary-light: #4895ef;
+            --secondary: #3f37c9;
+            --success: #4cc9f0;
+            --danger: #f72585;
+            --warning: #f8961e;
+            --info: #4895ef;
+            --dark: #1e2a3a;
+            --light: #f8f9fa;
+            --gray: #6c757d;
+            --gray-light: #dee2e6;
+            --gray-dark: #343a40;
+            --gradient-1: linear-gradient(135deg, #4361ee, #3a0ca3);
+            --gradient-2: linear-gradient(135deg, #4cc9f0, #4361ee);
+            --gradient-3: linear-gradient(135deg, #f72585, #7209b7);
+            --gradient-4: linear-gradient(135deg, #f8961e, #f3722c);
+            --white: #ffffff;
+            --sidebar-width: 260px;
+            --transition-speed: 0.3s;
+            --card-radius: 16px;
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 5px 15px rgba(0, 0, 0, 0.07);
+            --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.1);
+            --text-primary: #2d3748;
+            --text-secondary: #4a5568;
+            --text-muted: #718096;
+        }
+
+        body {
+            background-color: #f6f8ff;
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            overflow-x: hidden;
+        }
+
+        /* Boční panel */
+        .sidebar {
+            width: var(--sidebar-width);
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background: var(--gradient-1);
+            color: var(--white);
+            padding: 1.5rem 1rem;
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+            box-shadow: var(--shadow-lg);
+            transition: all var(--transition-speed) ease;
+        }
+
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding: 0 0.75rem;
+        }
+
+        .sidebar-logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--white);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .sidebar-logo i {
+            font-size: 1.75rem;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            flex-grow: 1;
+        }
+
+        .sidebar-item {
+            margin-bottom: 0.5rem;
+        }
+
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            color: rgba(255, 255, 255, 0.85);
+            text-decoration: none;
+            border-radius: 12px;
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+
+        .sidebar-link i {
+            margin-right: 0.75rem;
+            font-size: 1.2rem;
+            width: 24px;
+            text-align: center;
+        }
+
+        .sidebar-link.active, .sidebar-link:hover {
+            background-color: rgba(255, 255, 255, 0.15);
+            color: var(--white);
+        }
+
+        .sidebar-footer {
+            margin-top: auto;
+            padding: 1rem;
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.7);
+            text-align: center;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            margin-top: 1rem;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--primary-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 0.75rem;
+            font-weight: 500;
+            overflow: hidden;
+        }
+
+        .user-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .user-info {
+            flex-grow: 1;
+        }
+
+        .user-name {
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .user-role {
+            font-size: 0.8rem;
+            opacity: 0.8;
+        }
+
+        /* Hlavní obsah */
+        main {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            padding: 1.5rem 2rem;
+            transition: margin var(--transition-speed) ease;
+            width: calc(100% - var(--sidebar-width));
+        }
+
+        .dashboard-header {
+            margin-bottom: 2rem;
+            background-color: var(--white);
+            border-radius: var(--card-radius);
+            padding: 1.25rem 1.5rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-content h1 {
+            font-size: 1.75rem;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        /* Hlavní obsah */
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            gap: 1.75rem;
+        }
+
+        .section {
+            background-color: var(--white);
+            border-radius: var(--card-radius);
+            box-shadow: var(--shadow-sm);
+            padding: 1.5rem;
+            animation: fadeIn 0.5s ease forwards;
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 1.25rem;
+            color: var(--dark);
+        }
+
+        .section-subtitle {
+            font-size: 1.1rem;
+            font-weight: 500;
+            margin-bottom: 1rem;
+            color: var(--dark);
+        }
+
+        .section-text {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Styly tlačítek */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 0.95rem;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: none;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: var(--gradient-1);
+            color: white;
+            box-shadow: 0 4px 10px rgba(67, 97, 238, 0.2);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(67, 97, 238, 0.25);
+        }
+
+        .btn-secondary {
+            background-color: var(--light);
+            color: var(--text-secondary);
+            border: 1px solid var(--gray-light);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--gray-light);
+        }
+
+        .btn-lg {
+            padding: 0.75rem 2rem;
+            font-size: 1rem;
+        }
+
+        .btn-center {
+            margin: 0 auto;
+            display: block;
+            width: fit-content;
+        }
+
+        /* Styly analýzy a plánu */
+        .ai-loading {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin: 2rem 0;
+            font-style: italic;
+            color: var(--text-muted);
+        }
+
+        .ai-loading-spinner {
+            width: 24px;
+            height: 24px;
+            border: 3px solid rgba(67, 97, 238, 0.2);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        .plan-content {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background-color: #f9f9ff;
+            border-radius: var(--card-radius);
+            border-left: 4px solid var(--primary);
+        }
+
+        .plan-content h1 {
+            color: var(--primary);
+            margin-bottom: 1.2rem;
+            font-size: 1.5rem;
+        }
+
+        .plan-content h2 {
+            color: var(--primary);
+            margin-top: 1.8rem;
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+
+        .plan-content h3 {
+            color: var(--dark);
+            margin-top: 1.5rem;
+            margin-bottom: 0.8rem;
+            font-size: 1.2rem;
+        }
+
+        .plan-content p {
+            margin-bottom: 1rem;
+            line-height: 1.6;
+        }
+
+        .plan-content ul, .plan-content ol {
+            margin-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .plan-content li {
+            margin-bottom: 0.5rem;
+        }
+
+        .plan-content strong {
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .plan-content code {
+            background-color: rgba(67, 97, 238, 0.1);
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        .plan-content blockquote {
+            border-left: 3px solid var(--primary-light);
+            padding-left: 1rem;
+            margin-left: 0;
+            margin-right: 0;
+            margin-bottom: 1rem;
+            color: var(--text-secondary);
+        }
+
+        /* Progresss bar */
+        .progress-container {
+            width: 100%;
+            height: 8px;
+            background-color: var(--gray-light);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 1rem;
+        }
+
+        .progress-bar {
+            height: 100%;
+            border-radius: 4px;
+            background: var(--gradient-1);
+            transition: width 0.5s ease;
+        }
+
+        /* Topic cards */
+        .topic-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .topic-card {
+            background-color: var(--white);
+            border-radius: var(--card-radius);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.3s ease;
+            border-left: 4px solid var(--primary);
+        }
+
+        .topic-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .topic-card.strength {
+            border-left: 4px solid var(--success);
+        }
+
+        .topic-card.weakness {
+            border-left: 4px solid var(--danger);
+        }
+
+        .topic-card.neutral {
+            border-left: 4px solid var(--warning);
+        }
+
+        .topic-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+            gap: 0.75rem;
+        }
+
+        .topic-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--white);
+            background: var(--primary);
+            font-size: 1.2rem;
+        }
+
+        .topic-card.strength .topic-icon {
+            background: var(--success);
+        }
+
+        .topic-card.weakness .topic-icon {
+            background: var(--danger);
+        }
+
+        .topic-card.neutral .topic-icon {
+            background: var(--warning);
+        }
+
+        .topic-title {
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: var(--dark);
+        }
+
+        .topic-stats {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+            justify-content: space-between;
+        }
+
+        .topic-stat {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .topic-content {
+            margin-top: 1rem;
+        }
+
+        .topic-content ul {
+            margin-left: 1rem;
+            list-style-type: none;
+        }
+
+        .topic-content li {
+            margin-bottom: 0.5rem;
+            position: relative;
+            padding-left: 1.5rem;
+            font-size: 0.95rem;
+        }
+
+        .topic-content li:before {
+            content: '•';
+            position: absolute;
+            left: 0;
+            color: var(--primary);
+            font-weight: bold;
+        }
+
+        .topic-card.strength li:before {
+            color: var(--success);
+        }
+
+        .topic-card.weakness li:before {
+            color: var(--danger);
+        }
+
+        /* Schedule */
+        .weekly-schedule {
+            margin-top: 2rem;
+            background-color: var(--white);
+            border-radius: var(--card-radius);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .schedule-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            color: var(--dark);
+            border-bottom: 2px solid var(--primary-light);
+            padding-bottom: 0.5rem;
+        }
+
+        .day-container {
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--gray-light);
+        }
+
+        .day-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .day-title {
+            font-weight: 600;
+            color: var(--dark);
+            font-size: 1.05rem;
+        }
+
+        .day-focus {
+            font-size: 0.9rem;
+            color: var(--primary);
+            background-color: rgba(67, 97, 238, 0.1);
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+        }
+
+        .day-tasks {
+            padding-left: 1rem;
+        }
+
+        .task-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 0.75rem;
+            gap: 0.75rem;
+        }
+
+        .task-bullet {
+            color: var(--primary);
+            margin-top: 0.2rem;
+        }
+
+        .task-content {
+            flex: 1;
+        }
+
+        .task-title {
+            font-weight: 500;
+            color: var(--dark);
+            font-size: 0.95rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .task-desc {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        /* Animace */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animated {
+            animation: fadeIn 0.5s ease forwards;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Media queries */
+        @media (max-width: 992px) {
+            :root {
+                --sidebar-width: 80px;
+            }
+            
+            .sidebar-logo span, .sidebar-link span, .user-info, .sidebar-footer {
+                display: none;
+            }
+            
+            .sidebar-link i {
+                margin-right: 0;
+                font-size: 1.5rem;
+            }
+            
+            .sidebar-logo i {
+                margin-right: 0;
+            }
+            
+            .sidebar-header, .sidebar-link {
+                justify-content: center;
+            }
+            
+            .user-profile {
+                justify-content: center;
+                padding: 0.75rem;
+            }
+            
+            .user-avatar {
+                margin-right: 0;
+            }
+
+            .topic-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            main {
+                padding: 1rem;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            :root {
+                --sidebar-width: 0;
+            }
+            
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            
+            main {
+                margin-left: 0;
+                width: 100%;
+            }
+            
+            .mobile-menu-toggle {
+                display: block;
+            }
+        }
+
+        /* Mobilní menu */
+        .mobile-menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--dark);
+            font-size: 1.5rem;
+            margin-right: 1rem;
+        }
+
+        /* Tmavý režim */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --white: #1a202c;
+                --light: #2d3748;
+                --dark: #e2e8f0;
+                --gray-light: #4a5568;
+                --text-primary: #e2e8f0;
+                --text-secondary: #cbd5e0;
+                --text-muted: #a0aec0;
+            }
+            
+            body {
+                background-color: #171923;
+            }
+
+            .plan-content {
+                background-color: #1e2533;
+            }
+        }
+
+        /* Přidané styly pro notest sekci */
+        .notest-message {
+            background-color: rgba(255, 214, 102, 0.2);
+            border-left: 4px solid var(--warning);
+            padding: 1.5rem;
+            margin: 2rem 0;
+            border-radius: var(--card-radius);
+        }
+
+        .notest-message h3 {
+            color: var(--warning);
+            margin-bottom: 0.75rem;
+            font-size: 1.2rem;
+        }
+
+        .notest-message p {
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <a href="/" class="sidebar-logo">
+                <i class="fas fa-calculator"></i>
+                <span>Justax</span>
+            </a>
+        </div>
+        
+        <ul class="sidebar-menu">
+            <li class="sidebar-item">
+                <a href="/dashboard/dashboard.html" class="sidebar-link">
+                    <i class="fas fa-th-large"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a href="/dashboard/procvicovani.html" class="sidebar-link active">
+                    <i class="fas fa-book-open"></i>
+                    <span>Procvičování</span>
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a href="/dashboard/pokrok.html" class="sidebar-link">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Pokrok</span>
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a href="/dashboard/oceneni.html" class="sidebar-link">
+                    <i class="fas fa-medal"></i>
+                    <span>Ocenění</span>
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a href="/dashboard/materialy.html" class="sidebar-link">
+                    <i class="fas fa-file-alt"></i>
+                    <span>Materiály</span>
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a href="/dashboard/profile.html" class="sidebar-link">
+                    <i class="fas fa-user-cog"></i>
+                    <span>Profil</span>
+                </a>
+            </li>
+        </ul>
+        
+        <div class="user-profile">
+            <div class="user-avatar" id="user-avatar">
+                <!-- Аватарка будет загружена через JS или будут отображены инициалы -->
+            </div>
+            <div class="user-info">
+                <div class="user-name" id="user-name">Načítání...</div>
+                <div class="user-role" id="user-role">Student</div>
+            </div>
+        </div>
+        
+        <div class="sidebar-footer">
+            &copy; 2025 Justax
+        </div>
+    </aside>
+
+    <!-- Hlavní obsah -->
+    <main>
+        <div class="dashboard-header">
+            <div class="header-content">
+                <h1>Personalizovaný studijní plán</h1>
+                <button class="mobile-menu-toggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <!-- Sekce informací o testu -->
+            <div class="section test-summary" id="testSummarySection">
+                <h2 class="section-title">Výsledky diagnostického testu</h2>
+                <div id="testStats">
+                    <!-- Zde se zobrazí statistiky testu -->
+                </div>
+                <div id="topicStats" class="topic-grid">
+                    <!-- Zde se zobrazí výsledky podle témat -->
+                </div>
+            </div>
+
+            <!-- Sekce s plánem studia -->
+            <div class="section plan-section" id="planSection">
+                <h2 class="section-title">Váš personalizovaný studijní plán</h2>
+                
+                <div class="ai-loading" id="planLoading">
+                    <div class="ai-loading-spinner"></div>
+                    <div>Vytvářím personalizovaný studijní plán...</div>
+                </div>
+                
+                <div class="plan-content" id="planContent" style="display: none;">
+                    <!-- Zde se zobrazí plán studia -->
+                </div>
+            </div>
+
+            <!-- Sekce s týdenním rozvrhem -->
+            <div class="section schedule-section" id="scheduleSection" style="display: none;">
+                <h2 class="section-title">Týdenní harmonogram</h2>
+                <div class="weekly-schedule" id="weeklySchedule">
+                    <!-- Zde se zobrazí týdenní rozvrh -->
+                </div>
+                
+                <button class="btn btn-primary btn-lg btn-center" id="saveScheduleBtn" style="margin-top: 2rem;">
+                    <i class="fas fa-save"></i>
+                    Uložit plán do PDF
+                </button>
+            </div>
+
+            <!-- Sekce, když nemáme výsledky testu -->
+            <div class="section notest-section" id="notestSection" style="display: none;">
+                <div class="notest-message">
+                    <h3><i class="fas fa-exclamation-circle"></i> Nejprve absolvujte diagnostický test</h3>
+                    <p>Pro vytvoření personalizovaného studijního plánu je nejprve potřeba dokončit diagnostický test, který nám pomůže identifikovat vaše silné a slabé stránky.</p>
+                    <button class="btn btn-primary" id="goToTestBtn">
+                        <i class="fas fa-play"></i>
+                        Přejít k testu
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Inicializace Supabase klienta
+        const supabaseUrl = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10';
+        
+        // Správná inicializace Supabase
+        const { createClient } = supabase;
+        const supabaseClient = createClient(supabaseUrl, supabaseKey);
+        
+        // Gemini API klíč
+        const GEMINI_API_KEY = 'AIzaSyDQboM6qtC_O2sqqpaKZZffNf2zk6HrhEs';
+        const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+        
+        // Ikony pro témata
+        const topicIcons = {
+            "Algebra": "fa-square-root-alt",
+            "Aritmetika": "fa-calculator",
+            "Geometrie": "fa-draw-polygon",
+            "Logika": "fa-brain",
+            "default": "fa-book"
+        };
+
+        // Mapování názvů témat do skupin
+        const topicCategories = {
+            "Algebra": ["Lineární rovnice", "Soustavy lineárních rovnic", "Výrazy", "Mocniny", "Funkce"],
+            "Aritmetika": ["Početní operace", "Zlomky", "Poměr", "Zaokrouhlování", "Slovní úlohy"],
+            "Geometrie": ["Základní planimetrické pojmy", "Výpočty obvodů", "Pythagorova věta", "Konstrukční úlohy", "Shodnost"],
+            "Logika": ["Čtení z grafů", "Průměry", "Kombinatorika", "Logické úlohy"]
+        };
+
+        // DOM elementy
+        const testSummarySection = document.getElementById('testSummarySection');
+        const planSection = document.getElementById('planSection');
+        const scheduleSection = document.getElementById('scheduleSection');
+        const notestSection = document.getElementById('notestSection');
+        const testStats = document.getElementById('testStats');
+        const topicStats = document.getElementById('topicStats');
+        const planLoading = document.getElementById('planLoading');
+        const planContent = document.getElementById('planContent');
+        const weeklySchedule = document.getElementById('weeklySchedule');
+        const goToTestBtn = document.getElementById('goToTestBtn');
+        const saveScheduleBtn = document.getElementById('saveScheduleBtn');
+        const userName = document.getElementById('user-name');
+        const userAvatar = document.getElementById('user-avatar');
+        
+        // Nastavení informací o uživateli
+        async function setUserInfo() {
+            try {
+                // Získání informací o aktuálním uživateli
+                const { data: { user } } = await supabaseClient.auth.getUser();
+                
+                if (user) {
+                    // Zkusit získat více informací o uživateli z profilu
+                    const { data: profile, error } = await supabaseClient
+                        .from('profiles')
+                        .select('full_name, username, avatar_url')
+                        .eq('id', user.id)
+                        .single();
+                    
+                    // Prioritizujeme username nad emailem
+                    if (profile) {
+                        // Nastavení jména - priorita username > full_name > email
+                        if (profile.username) {
+                            userName.textContent = profile.username;
+                        } else if (profile.full_name) {
+                            userName.textContent = profile.full_name;
+                        } else {
+                            userName.textContent = user.email.split('@')[0]; // Zobrazit uživatelskou část e-mailu
+                        }
+                        
+                        // Nastavení avataru
+                        if (profile.avatar_url) {
+                            userAvatar.innerHTML = `<img src="${profile.avatar_url}" alt="Avatar">`;
+                        } else {
+                            // Fallback na iniciály
+                            const displayName = profile.username || profile.full_name || user.email.split('@')[0];
+                            const initials = displayName.split(' ')
+                                .map(n => n[0])
+                                .join('')
+                                .substr(0, 2)
+                                .toUpperCase();
+                            userAvatar.textContent = initials;
+                        }
+                    } else {
+                        // Použít základní informace z uživatelského účtu
+                        userName.textContent = user.email.split('@')[0]; // Pouze uživatelské jméno z e-mailu
+                        userAvatar.textContent = user.email.substr(0, 2).toUpperCase();
+                    }
+                } else {
+                    // Fallback pro nepřihlášené uživatele
+                    userName.textContent = 'Maksim';
+                    userAvatar.textContent = 'MS';
+                }
+            } catch (error) {
+                console.error('Chyba při načítání informací o uživateli:', error);
+                userName.textContent = 'Maksim';
+                userAvatar.textContent = 'MS';
+            }
+        }
+        
+        // Inicializace stránky
+        async function initPage() {
+            // Nastavíme info o uživateli
+            await setUserInfo();
+            
+            // Načteme výsledky testu z localStorage
+            const testResultsJson = localStorage.getItem('justax_test_results');
+            
+            if (!testResultsJson) {
+                // Pokud nemáme výsledky testu, zobrazíme sekci, která doporučí udělat test
+                testSummarySection.style.display = 'none';
+                planSection.style.display = 'none';
+                scheduleSection.style.display = 'none';
+                notestSection.style.display = 'block';
+                return;
+            }
+            
+            const testResults = JSON.parse(testResultsJson);
+            
+            // Zobrazíme souhrn výsledků testu
+            displayTestSummary(testResults);
+            
+            // Vytvoříme personalizovaný studijní plán
+            await createStudyPlan(testResults);
+        }
+        
+        // Zobrazení souhrnu výsledků testu
+        function displayTestSummary(testResults) {
+            // Základní statistiky testu
+            const correct = testResults.score.correct;
+            const total = testResults.score.total;
+            const percentage = Math.round((correct / total) * 100);
+            
+            // Zobrazení základních statistik
+            testStats.innerHTML = `
+                <div class="progress-container">
+                    <div class="progress-bar" style="width: ${percentage}%"></div>
+                </div>
+                <p class="section-text">
+                    Celkové skóre: <strong>${correct}/${total} (${percentage}%)</strong><br>
+                    Datum testu: <strong>${new Date(testResults.date).toLocaleString('cs-CZ')}</strong>
+                </p>
+            `;
+            
+            // Vyčistíme kontejner s tématy
+            topicStats.innerHTML = '';
+            
+            // Zobrazení výsledků podle témat
+            Object.entries(testResults.topics).forEach(([topic, data]) => {
+                const topicPercentage = Math.round((data.correct / data.total) * 100);
+                
+                // Určení statusu tématu (silná stránka, slabá stránka, neutrální)
+                let status = 'neutral';
+                if (topicPercentage >= 70) {
+                    status = 'strength';
+                } else if (topicPercentage <= 40) {
+                    status = 'weakness';
+                }
+                
+                // Získání ikony pro dané téma
+                const iconClass = topicIcons[topic] || topicIcons.default;
+                
+                // Vytvoření karty pro téma
+                const topicCard = document.createElement('div');
+                topicCard.className = `topic-card ${status}`;
+                topicCard.innerHTML = `
+                    <div class="topic-header">
+                        <div class="topic-icon">
+                            <i class="fas ${iconClass}"></i>
+                        </div>
+                        <div class="topic-title">${topic}</div>
+                    </div>
+                    <div class="topic-stats">
+                        <div class="topic-stat">
+                            <strong>${data.correct}/${data.total}</strong> správně
+                        </div>
+                        <div class="topic-stat">
+                            <strong>${topicPercentage}%</strong>
+                        </div>
+                    </div>
+                    <div class="progress-container">
+                        <div class="progress-bar" style="width: ${topicPercentage}%"></div>
+                    </div>
+                `;
+                
+                topicStats.appendChild(topicCard);
+            });
+        }
+        
+        // Vytvoření personalizovaného studijního plánu pomocí Gemini
+        async function createStudyPlan(testResults) {
+            try {
+                // Zobrazíme načítání
+                planLoading.style.display = 'flex';
+                planContent.style.display = 'none';
+                
+                // Vytvoříme přehled výsledků podle témat pro Gemini
+                const topicSummary = Object.entries(testResults.topics).map(([topic, data]) => {
+                    const percentage = Math.round((data.correct / data.total) * 100);
+                    
+                    return {
+                        topic,
+                        percentage,
+                        correct: data.correct,
+                        total: data.total
+                    };
+                });
+                
+                // Připravíme jednotlivé odpovědi na otázky pro detailnější analýzu
+                const responseDetails = testResults.responses.map((response, index) => {
+                    return `Otázka ${index + 1} (${response.topic}): 
+                     "${response.question}"
+                     Správná odpověď: "${response.correctAnswer}"
+                     Odpověď studenta: "${response.userAnswer}"
+                     Výsledek: ${response.isCorrect ? 'Správně' : 'Nesprávně'}`;
+                }).join('\n\n');
+                
+                // Připravíme template pro tématické oblasti, které se vyskytují na přijímačkách
+                const examTopics = `
+                Aritmetika:
+                - Početní operace s přirozenými, celými a racionálními čísly
+                - Zlomky, desetinná čísla, procenta
+                - Poměr, přímá a nepřímá úměrnost
+                - Zaokrouhlování, odhady, práce s jednotkami
+                - Slovní úlohy na denní situace
+
+                Algebra:
+                - Lineární rovnice a nerovnice
+                - Soustavy lineárních rovnic
+                - Výrazy a jejich úpravy
+                - Mocniny a odmocniny
+                - Funkce: lineární, kvadratická
+
+                Geometrie:
+                - Základní planimetrické pojmy
+                - Výpočty obvodů, obsahů, povrchů a objemů
+                - Pythagorova věta, Euklidovy věty
+                - Konstrukční úlohy
+                - Shodnost a podobnost geometrických útvarů
+
+                Logika a práce s daty:
+                - Čtení z grafů, tabulek a diagramů
+                - Průměry, jednoduchá statistika
+                - Základy kombinatoriky
+                - Logické úlohy
+                `;
+
+                // Připravíme prompt pro Gemini s požadavkem na vytvoření plánu
+                const prompt = `
+                Jsi vzdělávací AI asistent, který vytváří personalizované studijní plány pro žáky připravující se na přijímací zkoušky z matematiky.
+                
+                Informace o výsledcích diagnostického testu studenta:
+                - Celkový počet otázek: ${testResults.score.total}
+                - Správných odpovědí: ${testResults.score.correct}
+                - Úspěšnost: ${Math.round((testResults.score.correct / testResults.score.total) * 100)}%
+                
+                Výkon podle témat:
+                ${topicSummary.map(topic => 
+                    `- ${topic.topic}: ${topic.correct}/${topic.total} správně (${topic.percentage}%)`
+                ).join('\n')}
+                
+                Podrobný rozbor odpovědí:
+                ${responseDetails}
+                
+                Oblasti, které se vyskytují v přijímacích zkouškách:
+                ${examTopics}
+                
+                Na základě těchto informací vytvoř:
+                
+                1. Personalizovaný studijní plán na příští 2 týdny, který se zaměří na slabá místa studenta, ale pokryje i ostatní důležité oblasti. Plán by měl být rozdělen do logických celků.
+                
+                2. Týdenní harmonogram s konkrétními doporučeními pro každý den v týdnu, kolik času věnovat různým tématům a jaké typy úloh procvičovat.
+                
+                3. Pro každou oblast (Aritmetika, Algebra, Geometrie, Logika) vyber 3-5 konkrétních témat, která by měl student procvičovat, a uveď příklady typů úloh.
+                
+                Odpověď strukturuj pomocí Markdown. Buď konkrétní ve svých doporučeních a zaměř se na praktičnost plánu. Plán by měl být vyvážený - zaměřit se na slabá místa, ale nevynechat ani další oblasti. Přizpůsob náročnost plánu věku studenta (žák ZŠ, který se připravuje na střední školu).
+                `;
+
+                // Připravíme požadavek pro Gemini API
+                const requestData = {
+                    contents: [{
+                        parts: [{
+                            text: prompt
+                        }]
+                    }],
+                    generationConfig: {
+                        temperature: 0.2,
+                        topK: 40,
+                        topP: 0.95,
+                        maxOutputTokens: 8192,
+                    }
+                };
+
+                // Odešleme požadavek
+                const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestData)
+                });
+
+                // Zpracujeme odpověď
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.error?.message || 'Chyba při komunikaci s Gemini API');
+                }
+
+                // Extrahujeme textovou odpověď
+                const geminiResponse = data.candidates[0]?.content?.parts[0]?.text;
+                
+                if (!geminiResponse) {
+                    throw new Error('Prázdná odpověď od Gemini API');
+                }
+                
+                // Zobrazíme plán
+                displayStudyPlan(geminiResponse);
+                
+            } catch (error) {
+                console.error('Chyba při vytváření studijního plánu:', error);
+                
+                // Zobrazíme chybovou zprávu
+                planLoading.style.display = 'none';
+                planContent.style.display = 'block';
+                planContent.innerHTML = `
+                    <h2>Nastala chyba při vytváření plánu</h2>
+                    <p>Omlouváme se, ale došlo k chybě při vytváření vašeho personalizovaného studijního plánu. Zkuste to prosím znovu později.</p>
+                    <button class="btn btn-primary" onclick="window.location.reload()">
+                        <i class="fas fa-sync-alt"></i>
+                        Zkusit znovu
+                    </button>
+                `;
+            }
+        }
+        
+        // Zobrazení studijního plánu
+        function displayStudyPlan(planText) {
+            // Skryjeme načítání
+            planLoading.style.display = 'none';
+            
+            // Zobrazíme obsah plánu
+            planContent.style.display = 'block';
+            planContent.innerHTML = marked.parse(planText);
+            
+            // Zobrazíme sekci s týdenním rozvrhem
+            scheduleSection.style.display = 'block';
+            
+            // Extrahujeme harmonogram z odpovědi
+            extractAndDisplaySchedule(planText);
+        }
+        
+        // Extrakce a zobrazení týdenního harmonogramu
+        function extractAndDisplaySchedule(planText) {
+            // Najdeme sekci s týdenním harmonogramem
+            const scheduleStart = planText.indexOf('## Týdenní harmonogram');
+            const nextSectionStart = planText.indexOf('##', scheduleStart + 2);
+            
+            if (scheduleStart !== -1) {
+                let scheduleText = '';
+                
+                if (nextSectionStart !== -1) {
+                    scheduleText = planText.substring(scheduleStart, nextSectionStart);
+                } else {
+                    scheduleText = planText.substring(scheduleStart);
+                }
+                
+                // Vytvoříme HTML strukturu pro harmonogram
+                const daysOfWeek = ['Pondělí', 'Úterý', 'Středa', 'Čtvrtek', 'Pátek', 'Sobota', 'Neděle'];
+                let scheduleHTML = '';
+                
+                daysOfWeek.forEach(day => {
+                    // Hledáme část pro daný den
+                    const dayIndex = scheduleText.indexOf(`### ${day}`);
+                    
+                    if (dayIndex !== -1) {
+                        // Najdeme konec sekce pro daný den
+                        const nextDayIndex = scheduleText.indexOf('### ', dayIndex + 1);
+                        const dayContent = nextDayIndex !== -1 
+                            ? scheduleText.substring(dayIndex, nextDayIndex)
+                            : scheduleText.substring(dayIndex);
+                        
+                        // Vytvoříme strukturu pro daný den
+                        scheduleHTML += `
+                            <div class="day-container">
+                                <div class="day-header">
+                                    <div class="day-title">${day}</div>
+                                    <!-- Pokud chceme přidat focus, můžeme to udělat zde -->
+                                </div>
+                                <div class="day-tasks">
+                                    ${formatDayTasks(dayContent)}
+                                </div>
+                            </div>
+                        `;
+                    }
+                });
+                
+                // Zobrazíme vytvořený harmonogram
+                weeklySchedule.innerHTML = scheduleHTML;
+            }
+        }
+        
+        // Formátování úkolů pro daný den
+        function formatDayTasks(dayContent) {
+            // Odstraníme hlavičku dne
+            const contentWithoutHeader = dayContent.substring(dayContent.indexOf('\n') + 1).trim();
+            
+            // Rozdělíme text podle odrážek
+            const lines = contentWithoutHeader.split('\n').filter(line => line.trim() !== '');
+            
+            let taskHtml = '';
+            
+            lines.forEach(line => {
+                // Odstranění počátečních odrážek, pokud existují
+                const cleanLine = line.replace(/^[-*•]+\s*/, '').trim();
+                
+                if (cleanLine) {
+                    taskHtml += `
+                        <div class="task-item">
+                            <div class="task-bullet"><i class="fas fa-circle-notch"></i></div>
+                            <div class="task-content">
+                                <div class="task-title">${cleanLine}</div>
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+            
+            return taskHtml;
+        }
+        
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', initPage);
+        
+        goToTestBtn.addEventListener('click', function() {
+            window.location.href = '/dashboard/procvicovani/test.html';
+        });
+        
+        saveScheduleBtn.addEventListener('click', function() {
+            alert('Funkce pro export do PDF bude dostupná v další verzi.');
+        });
+    </script>
+</body>
+</html>
