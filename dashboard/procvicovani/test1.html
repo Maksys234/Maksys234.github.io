@@ -910,15 +910,21 @@
         let startTime;
         let endTime;
         let userResponses = [];
-        let testResults = {}; // Для хранения результатов оценки от Gemini
+        let testResults = {}; // Pro uložení výsledků od Gemini
+        let currentUser = null; // Pro uložení aktuálního uživatele
+        let diagnosticId = null; // ID testu v databázi
         
         // Nastavení informací o uživateli
         async function setUserInfo() {
             try {
                 // Získání informací o aktuálním uživateli
-                const { data: { user } } = await supabaseClient.auth.getUser();
+                const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
+                
+                if (userError) throw userError;
                 
                 if (user) {
+                    currentUser = user;
+                    
                     // Zkusit získat více informací o uživateli z profilu
                     const { data: profile, error } = await supabaseClient
                         .from('profiles')
@@ -1114,14 +1120,13 @@
                 
                 userResponses.push({
                     questionId: question.id,
-                    questionIndex: index + 1, // Добавляем номер вопроса
+                    questionIndex: index + 1,
                     question: question.question_text,
                     userAnswer: userAnswer,
                     correctAnswer: question.correct_answer,
                     difficulty: question.difficulty,
                     topicId: question.topic_id,
                     topic: topicMap[question.topic_id] || `Téma ${question.topic_id}`,
-                    // ZMĚNA: isCorrect nyní není předem definováno - bude určeno AI
                     isCorrect: null // Bude nastaveno podle odpovědi Gemini
                 });
             });
@@ -1145,7 +1150,7 @@
             analyzeResultsWithGemini();
         }
         
-        // NOVÁ FUNKCE: Analýza výsledků pomocí Gemini API včetně hodnocení
+        // Analýza výsledků pomocí Gemini API včetně hodnocení
         async function analyzeResultsWithGemini() {
             try {
                 // Vytvoříme strukturovaný vstup pro Gemini
@@ -1264,7 +1269,7 @@
             }
         }
         
-        // NOVÁ FUNKCE: Zpracování odpovědi z Gemini
+        // Zpracování odpovědi z Gemini
         function processGeminiResponse(response) {
             try {
                 // Extrahujeme JSON část z odpovědi
@@ -1289,8 +1294,8 @@
                 // Zobrazíme analýzu
                 displayAnalysis(analysisText);
                 
-                // Uložíme výsledky pro pozdější použití
-                saveTestResults();
+                // Uložíme výsledky v databázi
+                saveTestResultsToDatabase(analysisText);
                 
             } catch (error) {
                 console.error('Chyba při zpracování odpovědi Gemini:', error);
@@ -1310,14 +1315,14 @@
             }
         }
         
-        // NOVÁ FUNKCE: Aktualizace UI s výsledky
+        // Aktualizace UI s výsledky
         function updateResultsUI(results) {
             scoreDisplay.textContent = `${results.totalScore}/${results.totalOutOf}`;
             correctAnswers.textContent = results.correctAnswers;
             wrongAnswers.textContent = results.wrongAnswers;
         }
         
-        // NOVÁ FUNKCE: Aktualizace userResponses na základě hodnocení AI
+        // Aktualizace userResponses na základě hodnocení AI
         function updateUserResponses(results) {
             if (results.questions && Array.isArray(results.questions)) {
                 results.questions.forEach(evaluation => {
@@ -1340,8 +1345,56 @@
             aiAnalysis.innerHTML = marked.parse(analysisText);
         }
         
-        // Uložení výsledků testu pro použití v plánu obučení
-        function saveTestResults() {
+        // NOVÁ FUNKCE: Uložení výsledků testu do databáze
+        async function saveTestResultsToDatabase(analysisText) {
+            if (!currentUser) {
+                console.warn('Uživatel není přihlášen, výsledky budou uloženy pouze lokálně');
+                saveTestResultsToLocalStorage();
+                return;
+            }
+            
+            try {
+                // Připravíme data pro uložení do databáze
+                const testData = {
+                    user_id: currentUser.id,
+                    test_type: 'diagnostic',
+                    test_date: new Date().toISOString(),
+                    score: testResults.totalScore,
+                    max_score: testResults.totalOutOf,
+                    correct_answers: testResults.correctAnswers,
+                    wrong_answers: testResults.wrongAnswers,
+                    answers: userResponses,
+                    topics_data: calculateTopicsData(),
+                    analysis: analysisText,
+                    test_duration: endTime - startTime // v milisekundách
+                };
+                
+                // Vytvoříme záznam v tabulce user_diagnostics
+                const { data, error } = await supabaseClient
+                    .from('user_diagnostics')
+                    .insert(testData)
+                    .select('id')
+                    .single();
+                
+                if (error) throw error;
+                
+                // Uložíme ID diagnostiky pro pozdější použití
+                diagnosticId = data.id;
+                
+                console.log('Test výsledky byly úspěšně uloženy do databáze s ID:', diagnosticId);
+                
+                // Vytvoříme automaticky studijní plán
+                await createAutomaticStudyPlan();
+                
+            } catch (error) {
+                console.error('Chyba při ukládání výsledků do databáze:', error);
+                // Záložní řešení - uložíme do localStorage
+                saveTestResultsToLocalStorage();
+            }
+        }
+        
+        // Záložní funkce pro uložení do localStorage
+        function saveTestResultsToLocalStorage() {
             // Připravíme data k uložení
             const resultsToSave = {
                 date: new Date().toISOString(),
@@ -1351,27 +1404,99 @@
                     correct: testResults.correctAnswers || 0,
                     wrong: testResults.wrongAnswers || 0
                 },
-                topics: {},
+                topics: calculateTopicsData(),
                 responses: userResponses
             };
             
-            // Agregace výsledků podle témat
+            // Uložení do localStorage
+            localStorage.setItem('justax_test_results', JSON.stringify(resultsToSave));
+        }
+        
+        // Výpočet dat podle témat
+        function calculateTopicsData() {
+            const topicsData = {};
+            
             userResponses.forEach(response => {
-                if (!resultsToSave.topics[response.topic]) {
-                    resultsToSave.topics[response.topic] = {
+                if (!topicsData[response.topic]) {
+                    topicsData[response.topic] = {
                         correct: 0,
-                        total: 0
+                        total: 0,
+                        score: 0,
+                        topicId: response.topicId
                     };
                 }
                 
-                resultsToSave.topics[response.topic].total++;
+                topicsData[response.topic].total++;
                 if (response.isCorrect) {
-                    resultsToSave.topics[response.topic].correct++;
+                    topicsData[response.topic].correct++;
+                    topicsData[response.topic].score += response.points || 0;
                 }
             });
             
-            // Uložení do localStorage
-            localStorage.setItem('justax_test_results', JSON.stringify(resultsToSave));
+            return topicsData;
+        }
+        
+        // Vytvoření automatického studijního plánu na základě výsledků testu
+        async function createAutomaticStudyPlan() {
+            if (!diagnosticId || !currentUser) {
+                console.warn('Nelze vytvořit automatický studijní plán bez diagnostiky nebo uživatele');
+                return;
+            }
+            
+            try {
+                // Identifikujeme témata s nejnižším skóre
+                const topicsData = calculateTopicsData();
+                const priorityTopics = Object.entries(topicsData)
+                    .map(([topic, data]) => ({
+                        topic,
+                        topicId: data.topicId,
+                        correct: data.correct,
+                        total: data.total,
+                        score: data.score,
+                        percentage: data.total > 0 ? (data.correct / data.total) * 100 : 0
+                    }))
+                    .sort((a, b) => a.percentage - b.percentage)
+                    .slice(0, 3); // Vezmeme 3 nejslabší témata
+                
+                // Nastavení data dokončení (za 30 dní)
+                const estimatedCompletionDate = new Date();
+                estimatedCompletionDate.setDate(estimatedCompletionDate.getDate() + 30);
+                
+                // Vytvoříme záznam v tabulce study_plans
+                const planData = {
+                    user_id: currentUser.id,
+                    title: 'Automatický studijní plán',
+                    subject: 'Matematika',
+                    status: 'active',
+                    diagnostic_id: diagnosticId,
+                    priority_topics: priorityTopics,
+                    estimated_completion_date: estimatedCompletionDate.toISOString().split('T')[0],
+                    progress: 0,
+                    is_auto_adjusted: true
+                };
+                
+                const { data, error } = await supabaseClient
+                    .from('study_plans')
+                    .insert(planData)
+                    .select('id')
+                    .single();
+                
+                if (error) throw error;
+                
+                console.log('Automatický studijní plán byl úspěšně vytvořen s ID:', data.id);
+                
+            } catch (error) {
+                console.error('Chyba při vytváření automatického studijního plánu:', error);
+            }
+        }
+        
+        // Přesměrování na stránku s plánem
+        function goToStudyPlan() {
+            if (diagnosticId) {
+                window.location.href = `/dashboard/procvicovani/plan.html?diagnostic=${diagnosticId}`;
+            } else {
+                window.location.href = '/dashboard/procvicovani/plan.html';
+            }
         }
         
         // Event listenery
@@ -1381,10 +1506,7 @@
             startTestBtn.addEventListener('click', startTest);
             submitTestBtn.addEventListener('click', submitTest);
             
-            createPlanBtn.addEventListener('click', function() {
-                // Přesměrování na stránku vytvoření plánu
-                window.location.href = '/dashboard/procvicovani/plan.html';
-            });
+            createPlanBtn.addEventListener('click', goToStudyPlan);
         });
     </script>
 </body>
