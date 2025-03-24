@@ -950,13 +950,6 @@
                         </div>
                     </div>
                     
-                    <div class="learning-plan" id="learning-plan" style="display: none;">
-                        <h3 class="learning-plan-title">Váš osobní studijní plán</h3>
-                        <div id="plan-content">
-                            <!-- Zde se zobrazí studijní plán -->
-                        </div>
-                    </div>
-                    
                     <button class="btn btn-primary btn-lg btn-center" id="continueBtn" style="margin-top: 2rem;">
                         <i class="fas fa-arrow-right"></i>
                         Přejít k výuce
@@ -975,7 +968,7 @@
         const { createClient } = supabase;
         const supabaseClient = createClient(supabaseUrl, supabaseKey);
         
-        // Gemini API klíč - OPRAVENO: Odstraněn klíč z URL
+        // Gemini API klíč
         const GEMINI_API_KEY = 'AIzaSyDQboM6qtC_O2sqqpaKZZffNf2zk6HrhEs';
         const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
         
@@ -1001,8 +994,6 @@
         const completionTime = document.getElementById('completionTime');
         const aiLoading = document.getElementById('ai-loading');
         const aiAnalysis = document.getElementById('ai-analysis');
-        const learningPlan = document.getElementById('learning-plan');
-        const planContent = document.getElementById('plan-content');
         const continueBtn = document.getElementById('continueBtn');
         const userName = document.getElementById('user-name');
         const userAvatar = document.getElementById('user-avatar');
@@ -1322,6 +1313,7 @@
                 });
 
                 // Připravíme data pro odeslání do Gemini API
+                // ИЗМЕНЕНО: Убран пункт 6 из запроса к Gemini и не запрашиваем типы задач
                 const prompt = `
                 Jsi vzdělávací AI asistent, který analyzuje výsledky matematického testu pro žáka připravujícího se na přijímací zkoušky.
                 
@@ -1351,12 +1343,9 @@
                 3. Identifikaci slabých míst a problémových oblastí
                 4. Analýzu typů chyb (např. chyby v postupu, nepozornost, nedostatečná znalost vzorců, atd.)
                 5. Konkrétní návrhy pro zlepšení ve slabých oblastech
-                6. Personalizovaný studijní plán na příští 2 týdny, seřazený podle priorit
                 
                 Odpověď strukturuj do formátu Markdown s nadpisy, odrážkami a dalšími prvky pro lepší čitelnost.
                 Buď konkrétní ve svých doporučeních. Nesnaž se být přehnaně pozitivní - buď upřímný ohledně slabých míst, ale zároveň motivující.
-                
-                Nakonec vytvoř sérii 3-5 konkrétních typů úloh, které by měl student procvičovat nejvíce, na základě identifikovaných problémů.
                 `;
 
                 // Připravíme data pro požadavek na Gemini API
@@ -1374,7 +1363,7 @@
                     }
                 };
 
-                // OPRAVENO: Správná konstrukce URL s API klíčem
+                // Odešleme požadavek na Gemini API
                 const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
                     method: 'POST',
                     headers: {
@@ -1419,15 +1408,7 @@
             // Použití marked.js pro převod Markdown na HTML
             aiAnalysis.innerHTML = marked.parse(analysisText);
             
-            // Vytvoření plánu studia
-            const planStart = analysisText.indexOf('## Personalizovaný studijní plán');
-            const planEnd = analysisText.indexOf('## Doporučené typy úloh');
-            
-            if (planStart !== -1 && planEnd !== -1) {
-                const planText = analysisText.substring(planStart, planEnd);
-                learningPlan.style.display = 'block';
-                planContent.innerHTML = marked.parse(planText);
-            }
+            // Убран код вывода плана, так как мы больше не запрашиваем и не показываем план
         }
         
         // Event listenery
