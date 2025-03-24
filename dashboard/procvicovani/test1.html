@@ -717,6 +717,36 @@
                 background-color: #1e2533;
             }
         }
+
+        /* Styly pro zprávu o chybě */
+        .error-section {
+            display: none;
+            background-color: rgba(247, 37, 133, 0.1);
+            border-left: 4px solid var(--danger);
+            padding: 1.5rem;
+            margin: 2rem 0;
+            border-radius: var(--card-radius);
+            text-align: center;
+        }
+
+        .error-section h3 {
+            color: var(--danger);
+            margin-bottom: 0.75rem;
+            font-size: 1.3rem;
+        }
+
+        .error-section p {
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+            line-height: 1.5;
+        }
+
+        .redirect-timer {
+            font-weight: bold;
+            color: var(--danger);
+            margin: 1rem 0;
+            font-size: 1.2rem;
+        }
     </style>
 </head>
 <body>
@@ -806,6 +836,18 @@
                 </button>
             </div>
 
+            <!-- Chybová sekce - Pro případ, že uživatel již test absolvoval -->
+            <div class="section error-section" id="errorSection">
+                <h3><i class="fas fa-exclamation-circle"></i> Test již byl absolvován</h3>
+                <p>Tento diagnostický test jste již jednou absolvovali. Každý uživatel může absolvovat tento test pouze jednou.</p>
+                <p>Své výsledky testu můžete vidět ve svém profilu.</p>
+                <div class="redirect-timer" id="redirectTimer">Přesměrování za 10 sekund...</div>
+                <a href="/dashboard/procvicovani/profile.html" class="btn btn-primary">
+                    <i class="fas fa-user"></i>
+                    Přejít na profil
+                </a>
+            </div>
+
             <!-- Sekce testu - Zpočátku skrytá -->
             <div class="section test-section" id="testSection" style="display: none;">
                 <h2 class="section-title">Zkušební test</h2>
@@ -889,6 +931,8 @@
         // DOM elementy
         const startTestBtn = document.getElementById('startTestBtn');
         const introSection = document.getElementById('introSection');
+        const errorSection = document.getElementById('errorSection');
+        const redirectTimer = document.getElementById('redirectTimer');
         const testSection = document.getElementById('testSection');
         const testLoader = document.getElementById('testLoader');
         const questionsContainer = document.getElementById('questionsContainer');
@@ -913,6 +957,61 @@
         let testResults = {}; // Pro uložení výsledků od Gemini
         let currentUser = null; // Pro uložení aktuálního uživatele
         let diagnosticId = null; // ID testu v databázi
+        let redirectTimerId = null; // ID časovače pro přesměrování
+        
+        // Inicializace stránky
+        async function initPage() {
+            await setUserInfo();
+            
+            // Pokud je uživatel přihlášen, zkontrolujeme, zda už test neabsolvoval
+            if (currentUser) {
+                const hasCompletedTest = await checkIfUserCompletedTest();
+                if (hasCompletedTest) {
+                    showErrorSection();
+                }
+            }
+        }
+        
+        // Kontrola, zda uživatel již absolvoval test
+        async function checkIfUserCompletedTest() {
+            try {
+                if (!currentUser) return false;
+                
+                const { data, error } = await supabaseClient
+                    .from('user_diagnostics')
+                    .select('id')
+                    .eq('user_id', currentUser.id)
+                    .limit(1);
+                
+                if (error) throw error;
+                
+                return data && data.length > 0;
+            } catch (error) {
+                console.error('Chyba při kontrole předchozích testů:', error);
+                return false;
+            }
+        }
+        
+        // Zobrazení chybové sekce s odpočtem do přesměrování
+        function showErrorSection() {
+            introSection.style.display = 'none';
+            errorSection.style.display = 'block';
+            
+            // Nastavení odpočtu
+            let secondsLeft = 10;
+            
+            redirectTimer.textContent = `Přesměrování za ${secondsLeft} sekund...`;
+            
+            redirectTimerId = setInterval(() => {
+                secondsLeft--;
+                redirectTimer.textContent = `Přesměrování za ${secondsLeft} sekund...`;
+                
+                if (secondsLeft <= 0) {
+                    clearInterval(redirectTimerId);
+                    window.location.href = '/dashboard/procvicovani/profile.html';
+                }
+            }, 1000);
+        }
         
         // Nastavení informací o uživateli
         async function setUserInfo() {
@@ -975,6 +1074,15 @@
         
         // Spuštění testu
         async function startTest() {
+            // Nejprve zkontrolujeme, zda uživatel již test neabsolvoval
+            if (currentUser) {
+                const hasCompletedTest = await checkIfUserCompletedTest();
+                if (hasCompletedTest) {
+                    showErrorSection();
+                    return;
+                }
+            }
+            
             introSection.style.display = 'none';
             testSection.style.display = 'block';
             
@@ -1210,6 +1318,8 @@
                 3. Slabá místa a problémové oblasti
                 4. Analýza typů chyb (např. chyby v postupu, nepozornost, nedostatečná znalost vzorců)
                 
+                DŮLEŽITÉ: V analýze NIKDY nezačínej textem "Část 2: Analýza" ani podobným označením. Začni přímo analýzou.
+                
                 Buď upřímný, ale motivující. Strukturuj analýzu v Markdown formátu.
                 `;
 
@@ -1289,7 +1399,10 @@
                 updateUserResponses(testResults);
                 
                 // Extrahujeme část s textovou analýzou - vše za JSON částí
-                const analysisText = response.substring(response.indexOf('```', response.indexOf('```json') + 7) + 3).trim();
+                let analysisText = response.substring(response.indexOf('```', response.indexOf('```json') + 7) + 3).trim();
+                
+                // Odstraňujeme z analýzy "Část 2: Analýza" nebo podobné označení
+                analysisText = analysisText.replace(/^#+\s*(?:Část|Čast|Cast|Part)\s*2\s*:\s*(?:Analýza|Analyza|Analysis)[\s\n]*/, '');
                 
                 // Zobrazíme analýzu
                 displayAnalysis(analysisText);
@@ -1446,12 +1559,12 @@
             };
             
             localStorage.setItem('justax_test_results', JSON.stringify(resultsData));
-            console.log('Výsledky testu byly uloženy do lokálního úložiště jako záloha.');
+            console.log('Výsledky testu byly uloženy do lokálního úložiště jako zálohu.');
         }
         
         // Event listenery
         document.addEventListener('DOMContentLoaded', function() {
-            setUserInfo();
+            initPage();
             
             startTestBtn.addEventListener('click', startTest);
             submitTestBtn.addEventListener('click', submitTest);
