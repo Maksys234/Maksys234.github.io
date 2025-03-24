@@ -1358,7 +1358,7 @@
                     currentUser = user;
                 }
                 
-                // Připravíme data pro uložení do databáze podle schématu users_diagnostics
+                // Připravíme data pro uložení do databáze podle schématu user_diagnostics
                 const topicResults = calculateTopicResults();
                 const currentTime = new Date().toISOString();
                 
@@ -1380,9 +1380,9 @@
                     completed_at: currentTime
                 };
                 
-                // Ukládáme data do tabulky users_diagnostics
+                // Ukládáme data do tabulky user_diagnostics
                 const { data, error } = await supabaseClient
-                    .from('users_diagnostics')
+                    .from('user_diagnostics')
                     .insert(diagnosticData)
                     .select('id')
                     .single();
