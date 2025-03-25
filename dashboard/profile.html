@@ -1086,49 +1086,53 @@
         
         <ul class="sidebar-menu">
             <li class="sidebar-item">
-                <a href="dashboard.html" class="sidebar-link">
+                <a href="/dashboard.html" class="sidebar-link" id="dashboard-link">
                     <i class="fas fa-th-large"></i>
                     <span>Dashboard</span>
                 </a>
             </li>
             <li class="sidebar-item">
-                <a href="procvicovani/profile" class="sidebar-link">
+                <a href="/dashboard/procvicovani.html" class="sidebar-link">
                     <i class="fas fa-book-open"></i>
                     <span>Procvičování</span>
                 </a>
             </li>
             <li class="sidebar-item">
-                <a href="testy.html" class="sidebar-link">
-                    <i class="fas fa-tasks"></i>
-                    <span>Testy</span>
-                </a>
-            </li>
-            <li class="sidebar-item">
-                <a href="prijimacky.html" class="sidebar-link">
-                    <i class="fas fa-graduation-cap"></i>
-                    <span>Přijímačky</span>
-                </a>
-            </li>
-            <li class="sidebar-item">
-                <a href="progress.html" class="sidebar-link">
+                <a href="/dashboard/pokrok.html" class="sidebar-link">
                     <i class="fas fa-chart-line"></i>
-                    <span>Můj pokrok</span>
+                    <span>Pokrok</span>
                 </a>
             </li>
             <li class="sidebar-item">
-                <a href="profile.html" class="sidebar-link active">
-                    <i class="fas fa-user"></i>
+                <a href="/dashboard/oceneni.html" class="sidebar-link">
+                    <i class="fas fa-medal"></i>
+                    <span>Ocenění</span>
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a href="/dashboard/materialy.html" class="sidebar-link">
+                    <i class="fas fa-file-alt"></i>
+                    <span>Materiály</span>
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a href="/dashboard/profile.html" class="sidebar-link active">
+                    <i class="fas fa-user-cog"></i>
                     <span>Profil</span>
                 </a>
             </li>
         </ul>
         
         <div class="user-profile" id="sidebar-user-profile">
-            <!-- Bude naplněno pomocí JavaScriptu -->
+            <div class="user-avatar" id="user-avatar">MS</div>
+            <div class="user-info">
+                <div class="user-name" id="user-name">Načítání...</div>
+                <div class="user-role" id="user-role">Student</div>
+            </div>
         </div>
         
         <div class="sidebar-footer">
-            <span>© 2025 Justax</span>
+            &copy; 2025 Justax
         </div>
     </aside>
 
@@ -1427,10 +1431,9 @@
     <div class="alert" id="alert"></div>
 
     <script>
-        // Konfigurace Supabase - исправлено, чтобы избежать ошибки инициализации
-        const SUPABASE_URL = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10';
-        // Используем глобальный объект supabase вместо создания переменной с тем же именем
+        // Konfigurace Supabase
+        const SUPABASE_URL = 'https://your-project-url.supabase.co';
+        const SUPABASE_KEY = 'your-anon-key';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         // Globální proměnné
@@ -1565,17 +1568,17 @@
         }
 
         function updateSidebarUserProfile(fullName, username) {
-            sidebarUserProfileEl.innerHTML = `
-                <div class="user-avatar">
-                    ${userProfile.avatar_url ? 
-                        `<img src="${userProfile.avatar_url}" alt="Avatar">` : 
-                        getInitials(fullName)}
-                </div>
-                <div class="user-info">
-                    <div class="user-name">${fullName}</div>
-                    <div class="user-role">${username}</div>
-                </div>
-            `;
+            // Обновляем информацию пользователя в боковой панели
+            document.getElementById('user-name').textContent = fullName;
+            document.getElementById('user-role').textContent = "Student";
+            
+            // Обновляем аватар в боковой панели
+            const userAvatarEl = document.getElementById('user-avatar');
+            if (userProfile.avatar_url) {
+                userAvatarEl.innerHTML = `<img src="${userProfile.avatar_url}" alt="Avatar">`;
+            } else {
+                userAvatarEl.textContent = getInitials(fullName);
+            }
         }
 
         function updateUserAvatar(avatarUrl) {
@@ -1652,91 +1655,92 @@
             
             // Odesílání formulářů
             saveProfileBtn.addEventListener('click', updateProfile);
-            saveSecurityBtn.addEventListener('click', updatePassword);
-            savePreferencesBtn.addEventListener('click', updatePreferences);
-            saveNotificationsBtn.addEventListener('click', updateNotifications);
-            deleteAccountBtn.addEventListener('click', confirmDeleteAccount);
-            logoutBtn.addEventListener('click', logout);
+                    saveProfileBtn.addEventListener('click', updateProfile);
+        saveSecurityBtn.addEventListener('click', updatePassword);
+        savePreferencesBtn.addEventListener('click', updatePreferences);
+        saveNotificationsBtn.addEventListener('click', updateNotifications);
+        deleteAccountBtn.addEventListener('click', confirmDeleteAccount);
+        logoutBtn.addEventListener('click', logout);
+        
+        // Manipulace s avatarem
+        changeAvatarBtn.addEventListener('click', openAvatarModal);
+        avatarModalClose.addEventListener('click', closeAvatarModal);
+        avatarUpload.addEventListener('click', () => avatarInput.click());
+        avatarInput.addEventListener('change', handleAvatarSelection);
+        uploadAvatarBtn.addEventListener('click', uploadAvatar);
+        
+        // Přímý efekt přepínače tmavého režimu
+        darkModeToggle.addEventListener('change', (e) => {
+            if (e.target.checked) {
+                document.body.classList.add('dark-mode');
+            } else {
+                document.body.classList.remove('dark-mode');
+            }
+        });
+        
+        // Drag and drop pro nahrání avataru
+        avatarUpload.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            avatarUpload.classList.add('dragover');
+        });
+        
+        avatarUpload.addEventListener('dragleave', () => {
+            avatarUpload.classList.remove('dragover');
+        });
+        
+        avatarUpload.addEventListener('drop', (e) => {
+            e.preventDefault();
+            avatarUpload.classList.remove('dragover');
             
-            // Manipulace s avatarem
-            changeAvatarBtn.addEventListener('click', openAvatarModal);
-            avatarModalClose.addEventListener('click', closeAvatarModal);
-            avatarUpload.addEventListener('click', () => avatarInput.click());
-            avatarInput.addEventListener('change', handleAvatarSelection);
-            uploadAvatarBtn.addEventListener('click', uploadAvatar);
-            
-            // Přímý efekt přepínače tmavého režimu
-            darkModeToggle.addEventListener('change', (e) => {
-                if (e.target.checked) {
-                    document.body.classList.add('dark-mode');
-                } else {
-                    document.body.classList.remove('dark-mode');
-                }
-            });
-            
-            // Drag and drop pro nahrání avataru
-            avatarUpload.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                avatarUpload.classList.add('dragover');
-            });
-            
-            avatarUpload.addEventListener('dragleave', () => {
-                avatarUpload.classList.remove('dragover');
-            });
-            
-            avatarUpload.addEventListener('drop', (e) => {
-                e.preventDefault();
-                avatarUpload.classList.remove('dragover');
-                
-                if (e.dataTransfer.files.length) {
-                    handleAvatarFile(e.dataTransfer.files[0]);
-                }
-            });
-        }
+            if (e.dataTransfer.files.length) {
+                handleAvatarFile(e.dataTransfer.files[0]);
+            }
+        });
+    }
 
-        function initTabs() {
-            document.querySelectorAll('.settings-tab').forEach(tab => {
-                tab.addEventListener('click', () => {
-                    const tabName = tab.getAttribute('data-tab');
-                    switchTab(tabName);
-                });
+    function initTabs() {
+        document.querySelectorAll('.settings-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                const tabName = tab.getAttribute('data-tab');
+                switchTab(tabName);
             });
-        }
+        });
+    }
 
-        function switchTab(tabName) {
-            // Odebrání aktivní třídy ze všech záložek a obsahů
-            document.querySelectorAll('.settings-tab').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            
-            document.querySelectorAll('.settings-content').forEach(content => {
-                content.classList.remove('active');
-            });
-            
-            // Přidání aktivní třídy k vybrané záložce a obsahu
-            document.querySelector(`.settings-tab[data-tab="${tabName}"]`).classList.add('active');
-            document.querySelector(`.settings-content[data-content="${tabName}"]`).classList.add('active');
-        }
+    function switchTab(tabName) {
+        // Odebrání aktivní třídy ze všech záložek a obsahů
+        document.querySelectorAll('.settings-tab').forEach(tab => {
+            tab.classList.remove('active');
+        });
+        
+        document.querySelectorAll('.settings-content').forEach(content => {
+            content.classList.remove('active');
+        });
+        
+        // Přidání aktivní třídy k vybrané záložce a obsahu
+        document.querySelector(`.settings-tab[data-tab="${tabName}"]`).classList.add('active');
+        document.querySelector(`.settings-content[data-content="${tabName}"]`).classList.add('active');
+    }
 
-        async function updateProfile() {
-            try {
-                saveProfileBtn.innerHTML = '<div class="loading-spinner"></div> Ukládám...';
-                saveProfileBtn.disabled = true;
-                
-                const updatedProfile = {
-                    first_name: firstNameInput.value.trim(),
-                    last_name: lastNameInput.value.trim(),
-                    username: usernameInput.value.trim(),
-                    bio: bioInput.value.trim(),
-                    school: schoolInput.value.trim(),
-                    grade: gradeInput.value.trim(),
-                    updated_at: new Date()
-                };
-                
-                const { error } = await supabaseClient
-                    .from('profiles')
-                    .update(updatedProfile)
-                                    .eq('id', currentUser.id);
+    async function updateProfile() {
+        try {
+            saveProfileBtn.innerHTML = '<div class="loading-spinner"></div> Ukládám...';
+            saveProfileBtn.disabled = true;
+            
+            const updatedProfile = {
+                first_name: firstNameInput.value.trim(),
+                last_name: lastNameInput.value.trim(),
+                username: usernameInput.value.trim(),
+                bio: bioInput.value.trim(),
+                school: schoolInput.value.trim(),
+                grade: gradeInput.value.trim(),
+                updated_at: new Date()
+            };
+            
+            const { error } = await supabaseClient
+                .from('profiles')
+                .update(updatedProfile)
+                .eq('id', currentUser.id);
             
             if (error) throw error;
             
@@ -2064,4 +2068,6 @@
             alertEl.classList.remove('show');
         }, 5000);
     }
-</script>
+   </script>
+</body>
+</html>
