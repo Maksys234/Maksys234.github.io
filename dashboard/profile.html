@@ -1427,10 +1427,11 @@
     <div class="alert" id="alert"></div>
 
     <script>
-        // Konfigurace Supabase
-        const SUPABASE_URL = 'https://your-project-url.supabase.co';
-        const SUPABASE_KEY = 'your-anon-key';
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        // Konfigurace Supabase - исправлено, чтобы избежать ошибки инициализации
+        const SUPABASE_URL = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10';
+        // Используем глобальный объект supabase вместо создания переменной с тем же именем
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         // Globální proměnné
         let currentUser = null;
@@ -1497,7 +1498,7 @@
         async function initApp() {
             try {
                 // Kontrola, zda je uživatel přihlášen
-                const { data: { user }, error } = await supabase.auth.getUser();
+                const { data: { user }, error } = await supabaseClient.auth.getUser();
                 
                 if (error || !user) {
                     window.location.href = '/auth/index.html';
@@ -1520,7 +1521,7 @@
 
         async function fetchUserProfile() {
             try {
-                const { data, error } = await supabase
+                const { data, error } = await supabaseClient
                     .from('profiles')
                     .select('*')
                     .eq('id', currentUser.id)
@@ -1732,24 +1733,24 @@
                     updated_at: new Date()
                 };
                 
-                const { error } = await supabase
+                const { error } = await supabaseClient
                     .from('profiles')
                     .update(updatedProfile)
-                    .eq('id', currentUser.id);
-                
-                if (error) throw error;
-                
-                // Aktualizace lokálního profilu uživatele
-                userProfile = { ...userProfile, ...updatedProfile };
-                updateUIWithProfileData();
-                
-                showAlert('Profil byl úspěšně aktualizován', 'success');
-                
-            } catch (error) {
-                console.error('Chyba při aktualizaci profilu:', error);
-                showAlert('Chyba při aktualizaci profilu. Zkuste to prosím znovu.', 'danger');
-            } finally {
-                            saveProfileBtn.innerHTML = '<i class="fas fa-save"></i> Uložit změny';
+                                    .eq('id', currentUser.id);
+            
+            if (error) throw error;
+            
+            // Aktualizace lokálního profilu uživatele
+            userProfile = { ...userProfile, ...updatedProfile };
+            updateUIWithProfileData();
+            
+            showAlert('Profil byl úspěšně aktualizován', 'success');
+            
+        } catch (error) {
+            console.error('Chyba při aktualizaci profilu:', error);
+            showAlert('Chyba při aktualizaci profilu. Zkuste to prosím znovu.', 'danger');
+        } finally {
+            saveProfileBtn.innerHTML = '<i class="fas fa-save"></i> Uložit změny';
             saveProfileBtn.disabled = false;
         }
     }
@@ -1779,7 +1780,7 @@
             saveSecurityBtn.disabled = true;
             
             // First verify the current password by signing in
-            const { error: signInError } = await supabase.auth.signInWithPassword({
+            const { error: signInError } = await supabaseClient.auth.signInWithPassword({
                 email: currentUser.email,
                 password: currentPassword
             });
@@ -1792,7 +1793,7 @@
             }
             
             // Update the password
-            const { error } = await supabase.auth.updateUser({
+            const { error } = await supabaseClient.auth.updateUser({
                 password: newPassword
             });
             
@@ -1827,7 +1828,7 @@
                 show_hints: showHintsToggle.checked
             };
             
-            const { error } = await supabase
+            const { error } = await supabaseClient
                 .from('profiles')
                 .update({ 
                     preferences,
@@ -1864,7 +1865,7 @@
                 web_reminders: webRemindersToggle.checked
             };
             
-            const { error } = await supabase
+            const { error } = await supabaseClient
                 .from('profiles')
                 .update({ 
                     notifications,
@@ -1900,7 +1901,7 @@
             deleteAccountBtn.disabled = true;
             
             // First delete the profile
-            const { error: profileError } = await supabase
+            const { error: profileError } = await supabaseClient
                 .from('profiles')
                 .delete()
                 .eq('id', currentUser.id);
@@ -1908,14 +1909,14 @@
             if (profileError) throw profileError;
             
             // Then delete the user from auth
-            const { error: authError } = await supabase.auth.admin.deleteUser(
+            const { error: authError } = await supabaseClient.auth.admin.deleteUser(
                 currentUser.id
             );
             
             if (authError) throw authError;
             
             // Sign out and redirect to login
-            await supabase.auth.signOut();
+            await supabaseClient.auth.signOut();
             window.location.href = '/auth/index.html?deleted=true';
             
         } catch (error) {
@@ -1931,11 +1932,11 @@
             logoutBtn.innerHTML = '<div class="loading-spinner"></div> Odhlašuji...';
             logoutBtn.disabled = true;
             
-            const { error } = await supabase.auth.signOut();
+            const { error } = await supabaseClient.auth.signOut();
             
             if (error) throw error;
             
-            // После выхода перенаправляем на auth/index.html
+            // Přesměrování na /auth/index.html po úspěšném odhlášení
             window.location.href = '/auth/index.html';
             
         } catch (error) {
@@ -2005,21 +2006,21 @@
             const filePath = `avatars/${fileName}`;
             
             // Upload file to Supabase Storage
-            const { error: uploadError } = await supabase.storage
+            const { error: uploadError } = await supabaseClient.storage
                 .from('user-content')
                 .upload(filePath, avatarFile);
             
             if (uploadError) throw uploadError;
             
             // Get public URL for the uploaded file
-            const { data } = supabase.storage
+            const { data } = supabaseClient.storage
                 .from('user-content')
                 .getPublicUrl(filePath);
             
             const avatarUrl = data.publicUrl;
             
             // Update user profile with new avatar URL
-            const { error: updateError } = await supabase
+            const { error: updateError } = await supabaseClient
                 .from('profiles')
                 .update({ 
                     avatar_url: avatarUrl,
