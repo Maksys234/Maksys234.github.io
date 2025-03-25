@@ -1832,24 +1832,19 @@
         }
         
         // Odhlášení
-        function logout() {
-    try {
-        supabase.auth.signOut()
-            .then(() => {
-                showAlert('Úspěšně odhlášeno', 'success');
-                setTimeout(() => {
-                    window.location.href = '../index.html';
-                }, 1500);
-            })
-            .catch(error => {
+        async function logout() {
+            try {
+                const { error } = await supabase.auth.signOut();
+                
+                if (error) throw error;
+                
+                // Přesměrování na přihlašovací stránku
+                window.location.href = '/login.html';
+            } catch (error) {
                 console.error('Chyba při odhlašování:', error);
-                showAlert('Něco se pokazilo při odhlašování', 'danger');
-            });
-    } catch (error) {
-        console.error('Chyba při odhlašování:', error);
-        showAlert('Něco se pokazilo při odhlašování', 'danger');
-    }
-}
+                showAlert('Nepodařilo se odhlásit. Prosím, zkuste to znovu.', 'danger');
+            }
+        }
         
         // Smazání účtu
         async function deleteAccount() {
