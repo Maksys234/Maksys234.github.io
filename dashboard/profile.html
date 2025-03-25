@@ -998,30 +998,6 @@
                 color: var(--text-primary);
                 border-color: #4a5568;
             }
-            
-            .form-control:focus {
-                background-color: #2d3748;
-            }
-            
-            .toggle-slider {
-                background-color: #4a5568;
-            }
-            
-            .stat-card {
-                background-color: #2d3748;
-            }
-            
-            .btn-outline {
-                box-shadow: 0 0 0 1px var(--primary) inset;
-            }
-            
-            .avatar-upload {
-                border-color: #4a5568;
-            }
-            
-            .avatar-upload:hover {
-                background-color: rgba(67, 97, 238, 0.1);
-            }
         }
     </style>
 </head>
@@ -1029,77 +1005,72 @@
     <!-- Sidebar -->
     <aside class="sidebar">
         <div class="sidebar-header">
-            <a href="/" class="sidebar-logo">
-                <i class="fas fa-calculator"></i>
+            <a href="index.html" class="sidebar-logo">
+                <i class="fas fa-bolt"></i>
                 <span>Justax</span>
             </a>
         </div>
         
         <ul class="sidebar-menu">
             <li class="sidebar-item">
-                <a href="/dashboard/dashboard.html" class="sidebar-link" id="dashboard-link">
-                    <i class="fas fa-th-large"></i>
+                <a href="index.html" class="sidebar-link">
+                    <i class="fas fa-home"></i>
                     <span>Dashboard</span>
                 </a>
             </li>
             <li class="sidebar-item">
-                <a href="/dashboard/procvicovani.html" class="sidebar-link">
-                    <i class="fas fa-book-open"></i>
-                    <span>Procvičování</span>
+                <a href="chatbot.html" class="sidebar-link">
+                    <i class="fas fa-robot"></i>
+                    <span>Chatbot</span>
                 </a>
             </li>
             <li class="sidebar-item">
-                <a href="/dashboard/pokrok.html" class="sidebar-link">
-                    <i class="fas fa-chart-line"></i>
-                    <span>Pokrok</span>
-                </a>
-            </li>
-            <li class="sidebar-item">
-                <a href="/dashboard/oceneni.html" class="sidebar-link">
-                    <i class="fas fa-medal"></i>
-                    <span>Ocenění</span>
-                </a>
-            </li>
-            <li class="sidebar-item">
-                <a href="/dashboard/materialy.html" class="sidebar-link">
+                <a href="documents.html" class="sidebar-link">
                     <i class="fas fa-file-alt"></i>
-                    <span>Materiály</span>
+                    <span>Dokumenty</span>
                 </a>
             </li>
             <li class="sidebar-item">
-                <a href="/dashboard/profile.html" class="sidebar-link active">
-                    <i class="fas fa-user-cog"></i>
+                <a href="calculator.html" class="sidebar-link">
+                    <i class="fas fa-calculator"></i>
+                    <span>Kalkulačka daní</span>
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a href="calendar.html" class="sidebar-link">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span>Kalendář</span>
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a href="profile.html" class="sidebar-link active">
+                    <i class="fas fa-user"></i>
                     <span>Profil</span>
                 </a>
             </li>
         </ul>
         
         <div class="user-profile">
-            <div class="user-avatar" id="sidebar-user-avatar">MS</div>
+            <div class="user-avatar" id="sidebar-user-avatar">
+                JS
+            </div>
             <div class="user-info">
-                <div class="user-name" id="sidebar-user-name">Načítání...</div>
-                <div class="user-role" id="sidebar-user-role">Student</div>
+                <div class="user-name" id="sidebar-user-name">Jan Svoboda</div>
+                <div class="user-role">Podnikatel</div>
             </div>
         </div>
         
         <div class="sidebar-footer">
-            &copy; 2025 Justax
+            <button id="logout-btn" class="btn btn-outline" onclick="logout()">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Odhlásit se</span>
+            </button>
         </div>
     </aside>
-    
-    <main>
-        <!-- Globální chybový kontejner -->
-        <div class="error-container" id="global-error">
-            <div class="error-message">
-                <i class="fas fa-exclamation-circle"></i>
-                <div>
-                    <div id="global-error-message">Došlo k chybě při načítání dat.</div>
-                    <button class="retry-button" id="global-retry-btn">Zkusit znovu</button>
-                </div>
-            </div>
-        </div>
 
-        <header class="dashboard-header">
+    <!-- Hlavní obsah -->
+    <main>
+        <div class="dashboard-header">
             <div class="header-content">
                 <h1>Profil uživatele</h1>
                 <div class="header-actions">
@@ -1109,1002 +1080,786 @@
                     </div>
                     <div class="notifications">
                         <i class="fas fa-bell"></i>
-                        <span class="notification-badge" id="notification-count">0</span>
+                        <span class="notification-badge">3</span>
                     </div>
                 </div>
             </div>
-        </header>
-        
-        <!-- Načítací indikátor -->
-        <div id="profile-loading" class="loading">Načítání profilu</div>
-        
-        <!-- Hlavní obsah profilu -->
-        <div id="profile-content" style="display: none;">
-            <section class="profile-section">
-                <div class="profile-card">
-                    <div class="profile-avatar" id="profile-avatar">
-                        <div id="avatar-initials">MS</div>
-                        <img id="avatar-image" src="" alt="Avatar" style="display: none;">
-                        <div class="change-avatar" id="change-avatar-btn">Změnit avatar</div>
+        </div>
+
+        <div class="profile-section">
+            <div class="profile-card">
+                <div class="profile-avatar" id="main-user-avatar">
+                    <div id="avatar-text">JS</div>
+                    <img id="avatar-image" src="" alt="" style="display: none;">
+                    <div class="change-avatar" id="change-avatar-btn">Změnit avatar</div>
+                </div>
+                <h2 class="profile-name" id="profile-name">Jan Svoboda</h2>
+                <div class="profile-username" id="profile-email">jan.svoboda@example.com</div>
+                <div class="profile-stats">
+                    <div class="stat-card">
+                        <div class="stat-value">7</div>
+                        <div class="stat-label">Dokumentů</div>
                     </div>
-                    <h2 class="profile-name" id="profile-name">Načítání...</h2>
-                    <p class="profile-username" id="profile-username">@username</p>
-                    
-                    <div class="profile-stats">
-                        <div class="stat-card">
-                            <div class="stat-value" id="exercises-count">0</div>
-                            <div class="stat-label">Cvičení</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-value" id="points-count">0</div>
-                            <div class="stat-label">Bodů</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-value" id="streak-days">0</div>
-                            <div class="stat-label">Dnů v řadě</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-value" id="badges-count">0</div>
-                            <div class="stat-label">Odznaků</div>
-                        </div>
-                    </div>
-                    
-                    <p class="profile-bio" id="profile-bio">Načítání biografie...</p>
-                    
-                    <div class="profile-action">
-                        <button class="btn btn-outline" id="logout-btn">
-                            <i class="fas fa-sign-out-alt"></i>
-                            Odhlásit se
-                        </button>
+                    <div class="stat-card">
+                        <div class="stat-value">15</div>
+                        <div class="stat-label">Konzultací</div>
                     </div>
                 </div>
+                <p class="profile-bio">
+                    Podnikatel v oblasti IT technologií se zaměřením na vývoj webových aplikací.
+                </p>
+                <div class="profile-action">
+                    <button class="btn btn-outline">
+                        <i class="fas fa-edit"></i>
+                        Upravit profil
+                    </button>
+                </div>
+            </div>
+            
+            <div class="settings-section">
+                <div class="settings-tabs">
+                    <div class="settings-tab active" data-tab="personal">Osobní údaje</div>
+                    <div class="settings-tab" data-tab="security">Zabezpečení účtu</div>
+                    <div class="settings-tab" data-tab="notifications">Oznámení</div>
+                    <div class="settings-tab" data-tab="preferences">Preference</div>
+                    <div class="settings-tab" data-tab="billing">Fakturační údaje</div>
+                </div>
                 
-                <div class="settings-section">
-                    <div class="settings-tabs">
-                        <div class="settings-tab active" data-tab="personal-info">Osobní údaje</div>
-                        <div class="settings-tab" data-tab="account">Účet</div>
-                        <div class="settings-tab" data-tab="preferences">Předvolby</div>
-                        <div class="settings-tab" data-tab="notifications">Oznámení</div>
+                <div id="personal" class="settings-content active">
+                    <h3 class="settings-title">Osobní údaje</h3>
+                    <div id="personal-error-container" class="error-container">
+                        <div class="error-message">
+                            <i class="fas fa-exclamation-circle"></i>
+                            <span id="personal-error-message"></span>
+                        </div>
                     </div>
-                    
-                    <!-- Osobní údaje -->
-                    <div class="settings-content active" id="personal-info-content">
-                        <h3 class="settings-title">Osobní údaje</h3>
+                    <form id="personal-form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="firstName" class="form-label">Jméno</label>
+                                <input type="text" id="firstName" class="form-control" value="Jan">
+                            </div>
+                            <div class="form-group">
+                                <label for="lastName" class="form-label">Příjmení</label>
+                                <input type="text" id="lastName" class="form-control" value="Svoboda">
+                            </div>
+                        </div>
                         
-                        <form id="personal-info-form">
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label for="first-name" class="form-label">Jméno</label>
-                                    <input type="text" id="first-name" class="form-control" placeholder="Vaše jméno">
-                                </div>
-                                <div class="form-group">
-                                    <label for="last-name" class="form-label">Příjmení</label>
-                                    <input type="text" id="last-name" class="form-control" placeholder="Vaše příjmení">
-                                </div>
+                        <div class="form-group">
+                            <label for="email" class="form-label">E-mailová adresa</label>
+                            <input type="email" id="email" class="form-control" value="jan.svoboda@example.com" disabled>
+                            <small class="form-text">Pro změnu e-mailu kontaktujte podporu.</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="phone" class="form-label">Telefonní číslo</label>
+                            <input type="tel" id="phone" class="form-control" value="+420 777 888 999">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="bio" class="form-label">O mně</label>
+                            <textarea id="bio" class="form-control" rows="4">Podnikatel v oblasti IT technologií se zaměřením na vývoj webových aplikací.</textarea>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="birthdate" class="form-label">Datum narození</label>
+                                <input type="date" id="birthdate" class="form-control" value="1990-05-15">
+                            </div>
+                            <div class="form-group">
+                                <label for="occupation" class="form-label">Zaměstnání</label>
+                                <input type="text" id="occupation" class="form-control" value="Podnikatel">
+                            </div>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-outline">Zrušit změny</button>
+                            <button type="submit" class="btn btn-primary">
+                                <span>Uložit údaje</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                
+                <div id="security" class="settings-content">
+                    <h3 class="settings-title">Zabezpečení účtu</h3>
+                    <div id="security-error-container" class="error-container">
+                        <div class="error-message">
+                            <i class="fas fa-exclamation-circle"></i>
+                            <span id="security-error-message"></span>
+                        </div>
+                    </div>
+                    <form id="security-form">
+                        <div class="form-section">
+                            <h4 class="settings-subtitle">Změna hesla</h4>
+                            <div class="form-group">
+                                <label for="currentPassword" class="form-label">Současné heslo</label>
+                                <input type="password" id="currentPassword" class="form-control">
                             </div>
                             
                             <div class="form-group">
-                                <label for="username" class="form-label">Uživatelské jméno</label>
-                                <input type="text" id="username" class="form-control" placeholder="@username">
-                                <div class="form-text">Toto jméno bude viditelné pro ostatní uživatele.</div>
+                                <label for="newPassword" class="form-label">Nové heslo</label>
+                                <input type="password" id="newPassword" class="form-control">
+                                <small class="form-text">Heslo musí mít nejméně 8 znaků a obsahovat číslici, malé a velké písmeno.</small>
                             </div>
                             
                             <div class="form-group">
-                                <label for="email" class="form-label">Email</label>
-                                <input type="email" id="email" class="form-control" placeholder="vas@email.cz" disabled>
-                                <div class="form-text">Pro změnu emailu přejděte do sekce Účet.</div>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="bio" class="form-label">O mně</label>
-                                <textarea id="bio" class="form-control" rows="4" placeholder="Napište něco o sobě..."></textarea>
-                            </div>
-                            
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label for="school" class="form-label">Škola</label>
-                                    <input type="text" id="school" class="form-control" placeholder="Název školy">
-                                </div>
-                                <div class="form-group">
-                                    <label for="grade" class="form-label">Třída</label>
-                                    <input type="text" id="grade" class="form-control" placeholder="Např. 9.A">
-                                </div>
+                                <label for="confirmPassword" class="form-label">Potvrzení nového hesla</label>
+                                <input type="password" id="confirmPassword" class="form-control">
                             </div>
                             
                             <div class="form-actions">
-                                <button type="button" class="btn btn-outline" id="cancel-personal-info-btn">Zrušit</button>
-                                <button type="submit" class="btn btn-primary" id="save-personal-info-btn">
-                                    <span id="save-personal-info-text">Uložit změny</span>
-                                    <span id="save-personal-info-spinner" class="loading-spinner" style="display: none;"></span>
-                                </button>
+                                <button type="submit" class="btn btn-primary">Změnit heslo</button>
                             </div>
-                        </form>
+                        </div>
+                    </form>
+                    
+                    <div class="divider"></div>
+                    
+                    <div class="form-section">
+                        <h4 class="settings-subtitle">Dvoufaktorové ověření</h4>
+                        <p class="form-text" style="margin-bottom: 1rem;">
+                            Dvoufaktorové ověření přidává další vrstvu ochrany vašemu účtu tím, že kromě hesla vyžaduje také kód z mobilního zařízení.
+                        </p>
+                        <button id="enable-2fa" class="btn btn-primary">Aktivovat dvoufaktorové ověření</button>
                     </div>
                     
-                    <!-- Účet -->
-                    <div class="settings-content" id="account-content">
-                        <h3 class="settings-title">Nastavení účtu</h3>
-                        
-                        <div class="form-section">
-                            <h4 class="preference-title">Změna emailu</h4>
-                            <form id="email-form">
-                                <div class="form-group">
-                                    <label for="new-email" class="form-label">Nový email</label>
-                                    <input type="email" id="new-email" class="form-control" placeholder="novy@email.cz">
+                    <div class="divider"></div>
+                    
+                    <div class="form-section">
+                        <h4 class="settings-subtitle">Historie přihlášení</h4>
+                        <div class="login-history">
+                            <div class="login-item">
+                                <div class="login-device">
+                                    <i class="fas fa-laptop"></i>
+                                    <div>
+                                        <div>Chrome na Windows</div>
+                                        <small>Praha, Česká republika</small>
+                                    </div>
                                 </div>
-                                <div class="form-group">
-                                    <label for="current-password-email" class="form-label">Aktuální heslo</label>
-                                    <input type="password" id="current-password-email" class="form-control" placeholder="Zadejte současné heslo">
+                                <div class="login-time">Dnes, 14:25</div>
+                            </div>
+                            <div class="login-item">
+                                <div class="login-device">
+                                    <i class="fas fa-mobile-alt"></i>
+                                    <div>
+                                        <div>Safari na iOS</div>
+                                        <small>Praha, Česká republika</small>
+                                    </div>
                                 </div>
-                                <div class="form-actions">
-                                    <button type="submit" class="btn btn-primary" id="save-email-btn">Změnit email</button>
-                                </div>
-                            </form>
-                        </div>
-                        
-                        <div class="divider"></div>
-                        
-                        <div class="form-section">
-                            <h4 class="preference-title">Změna hesla</h4>
-                            <form id="password-form">
-                                <div class="form-group">
-                                    <label for="current-password" class="form-label">Současné heslo</label>
-                                    <input type="password" id="current-password" class="form-control" placeholder="Zadejte současné heslo">
-                                </div>
-                                <div class="form-group">
-                                    <label for="new-password" class="form-label">Nové heslo</label>
-                                    <input type="password" id="new-password" class="form-control" placeholder="Zadejte nové heslo">
-                                </div>
-                                <div class="form-group">
-                                    <label for="confirm-password" class="form-label">Potvrzení hesla</label>
-                                    <input type="password" id="confirm-password" class="form-control" placeholder="Potvrďte nové heslo">
-                                </div>
-                                <div class="form-actions">
-                                    <button type="submit" class="btn btn-primary" id="save-password-btn">Změnit heslo</button>
-                                </div>
-                            </form>
-                        </div>
-                        
-                        <div class="divider"></div>
-                        
-                        <div class="form-section">
-                            <h4 class="preference-title">Smazání účtu</h4>
-                            <p class="form-text" style="margin-bottom: 1rem;">
-                                Smazání účtu je nevratná akce. Všechna vaše data, včetně výsledků, odznaků a historie, budou trvale odstraněna.
-                            </p>
-                            <button type="button" class="btn btn-danger" id="delete-account-btn">Smazat účet</button>
+                                <div class="login-time">Včera, 20:10</div>
+                            </div>
                         </div>
                     </div>
                     
-                    <!-- Předvolby -->
-                    <div class="settings-content" id="preferences-content">
-                        <h3 class="settings-title">Předvolby aplikace</h3>
-                        
-                        <div class="preference-group">
-                            <h4 class="preference-title">Vzhled</h4>
-                            <div class="preference-option">
-                                <label class="toggle-switch">
-                                    <input type="checkbox" id="dark-mode-toggle">
-                                    <span class="toggle-slider"></span>
-                                </label>
-                                <div class="preference-label">Tmavý režim</div>
-                            </div>
-                            <div class="preference-option">
-                                <label class="toggle-switch">
-                                    <input type="checkbox" id="large-text-toggle">
-                                    <span class="toggle-slider"></span>
-                                </label>
-                                <div class="preference-label">Větší text</div>
-                            </div>
-                        </div>
-                        
-                        <div class="divider"></div>
-                        
-                        <div class="preference-group">
-                            <h4 class="preference-title">Zvuk</h4>
-                            <div class="preference-option">
-                                <label class="toggle-switch">
-                                    <input type="checkbox" id="sound-effects-toggle" checked>
-                                    <span class="toggle-slider"></span>
-                                </label>
-                                <div class="preference-label">Zvukové efekty</div>
-                            </div>
-                            <div class="preference-option">
-                                <label class="toggle-switch">
-                                    <input type="checkbox" id="notification-sound-toggle" checked>
-                                    <span class="toggle-slider"></span>
-                                </label>
-                                <div class="preference-label">Zvuk oznámení</div>
-                            </div>
-                        </div>
-                        
-                        <div class="divider"></div>
-                        
-                        <div class="preference-group">
-                            <h4 class="preference-title">Procvičování</h4>
-                            <div class="preference-option">
-                                <label class="toggle-switch">
-                                    <input type="checkbox" id="auto-check-toggle" checked>
-                                    <span class="toggle-slider"></span>
-                                </label>
-                                <div class="preference-label">Automaticky kontrolovat odpovědi</div>
-                            </div>
-                            <div class="preference-option">
-                                <label class="toggle-switch">
-                                    <input type="checkbox" id="show-hints-toggle" checked>
-                                    <span class="toggle-slider"></span>
-                                </label>
-                                <div class="preference-label">Zobrazovat nápovědy</div>
-                            </div>
-                        </div>
-                        
+                    <div class="divider"></div>
+                    
+                    <div class="form-section">
+                        <h4 class="settings-subtitle danger">Nebezpečná zóna</h4>
+                        <p class="form-text" style="margin-bottom: 1rem;">
+                            Následující akce jsou nevratné a mohou vést ke ztrátě dat.
+                        </p>
                         <div class="form-actions">
-                            <button type="button" class="btn btn-primary" id="save-preferences-btn">Uložit předvolby</button>
-                        </div>
-                    </div>
-                    
-                    <!-- Oznámení -->
-                    <div class="settings-content" id="notifications-content">
-                        <h3 class="settings-title">Nastavení oznámení</h3>
-                        
-                        <div class="preference-group">
-                            <h4 class="preference-title">Emailová oznámení</h4>
-                            <div class="preference-option">
-                                <label class="toggle-switch">
-                                    <input type="checkbox" id="email-news-toggle" checked>
-                                    <span class="toggle-slider"></span>
-                                </label>
-                                <div class="preference-label">Novinky a aktualizace</div>
-                            </div>
-                            <div class="preference-option">
-                                <label class="toggle-switch">
-                                    <input type="checkbox" id="email-reminders-toggle" checked>
-                                    <span class="toggle-slider"></span>
-                                </label>
-                                <div class="preference-label">Připomenutí procvičování</div>
-                            </div>
-                            <div class="preference-option">
-                                <label class="toggle-switch">
-                                    <input type="checkbox" id="email-achievements-toggle" checked>
-                                    <span class="toggle-slider"></span>
-                                </label>
-                                <div class="preference-label">Nové odznaky a ocenění</div>
-                            </div>
-                        </div>
-                        
-                        <div class="divider"></div>
-                        
-                        <div class="preference-group">
-                            <h4 class="preference-title">Push oznámení</h4>
-                            <div class="preference-option">
-                                <label class="toggle-switch">
-                                    <input type="checkbox" id="push-streak-toggle" checked>
-                                    <span class="toggle-slider"></span>
-                                </label>
-                                <div class="preference-label">Připomenutí série</div>
-                            </div>
-                            <div class="preference-option">
-                                <label class="toggle-switch">
-                                    <input type="checkbox" id="push-updates-toggle" checked>
-                                    <span class="toggle-slider"></span>
-                                </label>
-                                <div class="preference-label">Nový obsah a aktualizace</div>
-                            </div>
-                            <div class="preference-option">
-                                <label class="toggle-switch">
-                                    <input type="checkbox" id="push-achievements-toggle" checked>
-                                    <span class="toggle-slider"></span>
-                                </label>
-                                <div class="preference-label">Nové odznaky a ocenění</div>
-                            </div>
-                        </div>
-                        
-                        <div class="form-actions">
-                            <button type="button" class="btn btn-primary" id="save-notifications-btn">Uložit nastavení</button>
+                            <button type="button" class="btn btn-outline">Exportovat data</button>
+                            <button type="button" class="btn btn-danger">Smazat účet</button>
                         </div>
                     </div>
                 </div>
-            </section>
+                
+                <div id="notifications" class="settings-content">
+                    <h3 class="settings-title">Oznámení</h3>
+                    
+                    <div class="preference-group">
+                        <h4 class="preference-title">E-mailová oznámení</h4>
+                        
+                        <div class="preference-option">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="email-updates" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <div class="preference-label">Důležité aktualizace a informace o účtu</div>
+                        </div>
+                        
+                        <div class="preference-option">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="email-marketing" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <div class="preference-label">Marketingové e-maily a novinky</div>
+                        </div>
+                        
+                        <div class="preference-option">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="email-reminders" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <div class="preference-label">Připomenutí termínů a důležitých dat</div>
+                        </div>
+                    </div>
+                    
+                    <div class="preference-group">
+                        <h4 class="preference-title">Push notifikace v prohlížeči</h4>
+                        
+                        <div class="preference-option">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="push-chat" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <div class="preference-label">Nové zprávy a chat notifikace</div>
+                        </div>
+                        
+                        <div class="preference-option">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="push-updates" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <div class="preference-label">Aktualizace dokumentů a aplikace</div>
+                        </div>
+                        
+                        <div class="preference-option">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="push-reminders" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <div class="preference-label">Připomenutí termínů a úkolů</div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button class="btn btn-primary">Uložit nastavení oznámení</button>
+                    </div>
+                </div>
+                
+                <div id="preferences" class="settings-content">
+                    <h3 class="settings-title">Preference</h3>
+                    
+                    <div class="preference-group">
+                        <h4 class="preference-title">Zobrazení</h4>
+                        
+                        <div class="preference-option">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="dark-mode">
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <div class="preference-label">Tmavý režim</div>
+                        </div>
+                        
+                        <div class="preference-option">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="compact-mode">
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <div class="preference-label">Kompaktní zobrazení</div>
+                        </div>
+                    </div>
+                    
+                    <div class="preference-group">
+                        <h4 class="preference-title">Jazyk a formát</h4>
+                        
+                        <div class="form-group">
+                            <label for="language" class="form-label">Jazyk aplikace</label>
+                            <select id="language" class="form-control">
+                                <option value="cs" selected>Čeština</option>
+                                <option value="en">English</option>
+                                <option value="de">Deutsch</option>
+                                <option value="sk">Slovenčina</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="date-format" class="form-label">Formát data</label>
+                            <select id="date-format" class="form-control">
+                                <option value="dd.mm.yyyy" selected>DD.MM.YYYY</option>
+                                <option value="mm/dd/yyyy">MM/DD/YYYY</option>
+                                <option value="yyyy-mm-dd">YYYY-MM-DD</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="preference-group">
+                        <h4 class="preference-title">Nastavení soukromí</h4>
+                        
+                        <div class="preference-option">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="analytics" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <div class="preference-label">Povolit analytiku používání aplikace</div>
+                        </div>
+                        
+                        <div class="preference-option">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="cookies" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <div class="preference-label">Přijímat cookies pro lepší uživatelský zážitek</div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button class="btn btn-primary">Uložit preference</button>
+                    </div>
+                </div>
+                
+                <div id="billing" class="settings-content">
+                    <h3 class="settings-title">Fakturační údaje</h3>
+                    
+                    <div class="form-section">
+                        <h4 class="settings-subtitle">Firemní údaje</h4>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="company-name" class="form-label">Název firmy</label>
+                                <input type="text" id="company-name" class="form-control" value="JS Development s.r.o.">
+                            </div>
+                            <div class="form-group">
+                                <label for="ico" class="form-label">IČO</label>
+                                <input type="text" id="ico" class="form-control" value="12345678">
+                            </div>
+                            <div class="form-group">
+                                <label for="dic" class="form-label">DIČ</label>
+                                <input type="text" id="dic" class="form-control" value="CZ12345678">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-section">
+                        <h4 class="settings-subtitle">Fakturační adresa</h4>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="street" class="form-label">Ulice a č.p.</label>
+                                <input type="text" id="street" class="form-control" value="Dlouhá 123">
+                            </div>
+                            <div class="form-group">
+                                <label for="city" class="form-label">Město</label>
+                                <input type="text" id="city" class="form-control" value="Praha">
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="zip" class="form-label">PSČ</label>
+                                <input type="text" id="zip" class="form-control" value="11000">
+                            </div>
+                            <div class="form-group">
+                                <label for="country" class="form-label">Země</label>
+                                <select id="country" class="form-control">
+                                    <option value="cz" selected>Česká republika</option>
+                                    <option value="sk">Slovensko</option>
+                                    <option value="de">Německo</option>
+                                    <option value="at">Rakousko</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-section">
+                        <h4 class="settings-subtitle">Platební metoda</h4>
+                        <div class="payment-methods">
+                            <div class="payment-method active">
+                                <div class="payment-method-icon">
+                                    <i class="far fa-credit-card"></i>
+                                </div>
+                                <div class="payment-method-details">
+                                    <div>VISA •••• 4321</div>
+                                    <small>Vyprší 05/2026</small>
+                                </div>
+                                <div class="payment-method-actions">
+                                    <button class="btn btn-sm btn-outline">Upravit</button>
+                                </div>
+                            </div>
+                            
+                            <button class="btn btn-outline" style="margin-top: 1rem;">
+                                <i class="fas fa-plus"></i>
+                                Přidat platební metodu
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button class="btn btn-primary">Uložit fakturační údaje</button>
+                    </div>
+                </div>
+            </div>
         </div>
-        
-        <!-- Footer -->
-        <footer class="dashboard-footer">
-            <p>&copy; 2025 Justax. Všechna práva vyhrazena.</p>
-        </footer>
     </main>
-    
+
     <!-- Modální okno pro nahrání avataru -->
     <div class="modal" id="avatar-modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h4 class="modal-title">Změnit profilový obrázek</h4>
-                <button class="modal-close" id="close-avatar-modal">&times;</button>
+                <h3 class="modal-title">Změnit profilový obrázek</h3>
+                <button class="modal-close" id="modal-close">×</button>
             </div>
             <div class="modal-body">
-                <div class="avatar-upload" id="avatar-upload-area">
+                <div class="avatar-upload" id="avatar-dropzone">
                     <i class="fas fa-cloud-upload-alt"></i>
-                    <p>Přetáhněte obrázek sem nebo klikněte pro výběr</p>
+                    <p>Přetáhněte soubor sem nebo klikněte pro výběr</p>
                     <span>JPG, PNG nebo GIF, max. 5MB</span>
-                    <input type="file" id="avatar-input" accept="image/*">
                 </div>
+                <input type="file" id="avatar-input" accept="image/*">
                 <div id="avatar-preview">
-                    <img src="" id="avatar-preview-img" alt="Náhled avataru">
+                    <img id="avatar-preview-img" src="" alt="Náhled avataru">
                 </div>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-outline" id="cancel-avatar-btn">Zrušit</button>
-                <button class="btn btn-primary" id="save-avatar-btn">
-                    <span id="save-avatar-text">Uložit avatar</span>
-                    <span id="save-avatar-spinner" class="loading-spinner" style="display: none;"></span>
+                <button class="btn btn-outline" id="cancel-avatar">Zrušit</button>
+                <button class="btn btn-primary" id="save-avatar">
+                    <span>Uložit avatar</span>
                 </button>
             </div>
         </div>
     </div>
-    
-    <!-- Alert pro zprávy -->
-    <div class="alert" id="alert">Toto je zpráva</div>
-    
+
+    <!-- Vyskakovací upozornění -->
+    <div class="alert" id="alert"></div>
+
     <script>
-        // Konfigurace Supabase
-        const SUPABASE_URL = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10';
-        
-        // Inicializace Supabase klienta - SPRÁVNĚ!
-        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        
-        // Globální proměnné
-        let currentUser = null;
-        let userProfile = null;
-        let selectedAvatar = null;
-        
-        // Pomocné funkce
-        function showError(message) {
-            const errorContainer = document.getElementById('global-error');
-            const errorMessage = document.getElementById('global-error-message');
-            errorMessage.textContent = message;
-            errorContainer.style.display = 'block';
-        }
-        
-        function hideError() {
-            const errorContainer = document.getElementById('global-error');
-            errorContainer.style.display = 'none';
-        }
-        
-        function showLoading() {
-            document.getElementById('profile-loading').style.display = 'flex';
-            document.getElementById('profile-content').style.display = 'none';
-        }
-        
-        function hideLoading() {
-            document.getElementById('profile-loading').style.display = 'none';
-            document.getElementById('profile-content').style.display = 'block';
-        }
-        
+        // Inicializace Supabase klienta (nahraďte URL a klíčem vaší Supabase instance)
+        const supabaseUrl = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10';
+        const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+        // Přepínání záložek
+        document.querySelectorAll('.settings-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                const tabId = tab.getAttribute('data-tab');
+                
+                // Deaktivace všech záložek a obsahů
+                document.querySelectorAll('.settings-tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.settings-content').forEach(c => c.classList.remove('active'));
+                
+                // Aktivace vybrané záložky a obsahu
+                tab.classList.add('active');
+                document.getElementById(tabId).classList.add('active');
+            });
+        });
+
+        // Funkce pro zobrazení upozornění
         function showAlert(message, type = 'success') {
             const alert = document.getElementById('alert');
             alert.textContent = message;
-            alert.className = `alert ${type}`;
-            alert.classList.add('show');
+            alert.className = `alert ${type} show`;
             
+            // Automatické skrytí upozornění po 3 sekundách
             setTimeout(() => {
                 alert.classList.remove('show');
             }, 3000);
         }
+
+        // Modální okno pro nahrání avataru
+        const avatarModal = document.getElementById('avatar-modal');
+        const changeAvatarBtn = document.getElementById('change-avatar-btn');
+        const closeModalBtn = document.getElementById('modal-close');
+        const cancelAvatarBtn = document.getElementById('cancel-avatar');
+        const avatarDropzone = document.getElementById('avatar-dropzone');
+        const avatarInput = document.getElementById('avatar-input');
+        const avatarPreview = document.getElementById('avatar-preview');
+        const avatarPreviewImg = document.getElementById('avatar-preview-img');
         
-        function getInitials(firstName, lastName) {
-            if (!firstName && !lastName) return '?';
-            
-            let initials = '';
-            if (firstName) initials += firstName.charAt(0).toUpperCase();
-            if (lastName) initials += lastName.charAt(0).toUpperCase();
-            
-            return initials;
-        }
-        
-        // Přepínání mezi záložkami nastavení
-        document.querySelectorAll('.settings-tab').forEach(tab => {
-            tab.addEventListener('click', function() {
-                // Odstranění aktivní třídy ze všech záložek
-                document.querySelectorAll('.settings-tab').forEach(t => t.classList.remove('active'));
-                // Přidání aktivní třídy na kliknutou záložku
-                this.classList.add('active');
-                
-                // Skrytí všech obsahů
-                document.querySelectorAll('.settings-content').forEach(content => content.classList.remove('active'));
-                
-                // Zobrazení zvoleného obsahu
-                const tabName = this.getAttribute('data-tab');
-                document.getElementById(`${tabName}-content`).classList.add('active');
-            });
+        // Otevření modálního okna
+        changeAvatarBtn.addEventListener('click', () => {
+            avatarModal.classList.add('active');
         });
         
-        // Kontrola přihlášení a načtení profilu
-        async function checkAuth() {
+        // Zavření modálního okna
+        function closeModal() {
+            avatarModal.classList.remove('active');
+            avatarPreview.style.display = 'none';
+            avatarInput.value = '';
+        }
+        
+        closeModalBtn.addEventListener('click', closeModal);
+        cancelAvatarBtn.addEventListener('click', closeModal);
+        
+        // Kliknutí na dropzone pro výběr souboru
+        avatarDropzone.addEventListener('click', () => {
+            avatarInput.click();
+        });
+        
+        // Drag and drop funkcionalita
+        avatarDropzone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            avatarDropzone.classList.add('dragover');
+        });
+        
+        avatarDropzone.addEventListener('dragleave', () => {
+            avatarDropzone.classList.remove('dragover');
+        });
+        
+        avatarDropzone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            avatarDropzone.classList.remove('dragover');
+            
+            if (e.dataTransfer.files.length) {
+                handleAvatarFile(e.dataTransfer.files[0]);
+            }
+        });
+        
+        // Změna souboru ve vstupním poli
+        avatarInput.addEventListener('change', () => {
+            if (avatarInput.files.length) {
+                handleAvatarFile(avatarInput.files[0]);
+            }
+        });
+        
+        // Zpracování souboru avataru
+        function handleAvatarFile(file) {
+            // Kontrola typu souboru
+            const validTypes = ['image/jpeg', 'image/png', 'image/gif'];
+            if (!validTypes.includes(file.type)) {
+                showAlert('Neplatný formát souboru. Nahrajte prosím JPG, PNG nebo GIF.', 'danger');
+                return;
+            }
+            
+            // Kontrola velikosti souboru (max 5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                showAlert('Soubor je příliš velký. Maximální velikost je 5MB.', 'danger');
+                return;
+            }
+            
+            // Zobrazení náhledu
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                avatarPreviewImg.src = e.target.result;
+                avatarPreview.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        }
+        
+        // Ukládání avataru
+        document.getElementById('save-avatar').addEventListener('click', async () => {
+            if (!avatarInput.files.length) {
+                showAlert('Nejprve vyberte soubor.', 'warning');
+                return;
+            }
+            
+            // Zde by byla logika pro nahrání avataru na server
+            // Pro účely demonstrace pouze simulujeme nahrávání
+            const saveBtn = document.getElementById('save-avatar');
+            const originalText = saveBtn.innerHTML;
+            
+            saveBtn.innerHTML = '<div class="loading-spinner"></div><span>Nahrávání...</span>';
+            saveBtn.disabled = true;
+            
             try {
-                const { data: { user }, error } = await supabaseClient.auth.getUser();
+                // Simulace nahrávání (zde by bylo skutečné API volání)
+                await new Promise(resolve => setTimeout(resolve, 1500));
+                
+                // Aktualizace avataru v UI
+                const avatarImage = document.getElementById('avatar-image');
+                avatarImage.src = avatarPreviewImg.src;
+                avatarImage.style.display = 'block';
+                document.getElementById('avatar-text').style.display = 'none';
+                
+                // Aktualizace avataru v sidebaru
+                const sidebarAvatar = document.getElementById('sidebar-user-avatar');
+                sidebarAvatar.innerHTML = '';
+                const sidebarImg = document.createElement('img');
+                sidebarImg.src = avatarPreviewImg.src;
+                sidebarImg.style.width = '100%';
+                sidebarImg.style.height = '100%';
+                sidebarImg.style.objectFit = 'cover';
+                sidebarAvatar.appendChild(sidebarImg);
+                
+                showAlert('Avatar byl úspěšně změněn!', 'success');
+                closeModal();
+            } catch (error) {
+                showAlert('Chyba při nahrávání avataru. Zkuste to prosím znovu.', 'danger');
+            } finally {
+                saveBtn.innerHTML = originalText;
+                saveBtn.disabled = false;
+            }
+        });
+
+        // Formulář s osobními údaji
+        document.getElementById('personal-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<div class="loading-spinner"></div><span>Ukládání...</span>';
+            submitBtn.disabled = true;
+            
+            try {
+                // Simulace ukládání (zde by bylo skutečné API volání)
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                // Aktualizace jména v UI
+                const firstName = document.getElementById('firstName').value;
+                const lastName = document.getElementById('lastName').value;
+                const fullName = `${firstName} ${lastName}`;
+                
+                document.getElementById('profile-name').textContent = fullName;
+                               document.getElementById('sidebar-user-name').textContent = fullName;
+                
+                // Zobrazení úspěšného uložení
+                showAlert('Osobní údaje byly úspěšně aktualizovány!', 'success');
+            } catch (error) {
+                // Zobrazení chyby
+                const errorContainer = document.getElementById('personal-error-container');
+                const errorMessage = document.getElementById('personal-error-message');
+                errorMessage.textContent = `Chyba při ukládání údajů: ${error.message}`;
+                errorContainer.style.display = 'block';
+            } finally {
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }
+        });
+
+        // Formulář pro změnu hesla
+        document.getElementById('security-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const currentPassword = document.getElementById('currentPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            
+            if (newPassword !== confirmPassword) {
+                const errorContainer = document.getElementById('security-error-container');
+                const errorMessage = document.getElementById('security-error-message');
+                errorMessage.textContent = 'Nové heslo a jeho potvrzení se neshodují.';
+                errorContainer.style.display = 'block';
+                return;
+            }
+            
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerText;
+            submitBtn.innerHTML = '<div class="loading-spinner"></div><span>Ukládání...</span>';
+            submitBtn.disabled = true;
+            
+            try {
+                // Simulace změny hesla (zde by bylo skutečné API volání)
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                // Skrytí případné chybové hlášky
+                document.getElementById('security-error-container').style.display = 'none';
+                
+                // Vyčištění formuláře
+                document.getElementById('currentPassword').value = '';
+                document.getElementById('newPassword').value = '';
+                document.getElementById('confirmPassword').value = '';
+                
+                // Zobrazení úspěchu
+                showAlert('Heslo bylo úspěšně změněno!', 'success');
+            } catch (error) {
+                const errorContainer = document.getElementById('security-error-container');
+                const errorMessage = document.getElementById('security-error-message');
+                errorMessage.textContent = `Chyba při změně hesla: ${error.message}`;
+                errorContainer.style.display = 'block';
+            } finally {
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }
+        });
+
+        // Přepínač pro tmavý režim
+        const darkModeToggle = document.getElementById('dark-mode');
+        darkModeToggle.addEventListener('change', () => {
+            if (darkModeToggle.checked) {
+                document.documentElement.classList.add('dark-mode');
+                localStorage.setItem('darkMode', 'enabled');
+            } else {
+                document.documentElement.classList.remove('dark-mode');
+                localStorage.setItem('darkMode', 'disabled');
+            }
+        });
+        
+        // Kontrola uloženého nastavení tmavého režimu
+        if (localStorage.getItem('darkMode') === 'enabled') {
+            darkModeToggle.checked = true;
+            document.documentElement.classList.add('dark-mode');
+        }
+
+        // Načtení dat uživatele po přihlášení
+        async function loadUserData() {
+            try {
+                // Získání aktuálně přihlášeného uživatele
+                const { data: { user }, error } = await supabase.auth.getUser();
                 
                 if (error) throw error;
                 
                 if (user) {
-                    currentUser = user;
-                    await loadUserProfile();
+                    // Načtení údajů z profilu uživatele
+                    const { data, error: profileError } = await supabase
+                        .from('profiles')
+                        .select('*')
+                        .eq('id', user.id)
+                        .single();
+                    
+                    if (profileError) throw profileError;
+                    
+                    if (data) {
+                        // Nastavení údajů do formuláře
+                        document.getElementById('profile-email').textContent = user.email;
+                        document.getElementById('email').value = user.email;
+                        
+                        if (data.first_name && data.last_name) {
+                            const fullName = `${data.first_name} ${data.last_name}`;
+                            document.getElementById('profile-name').textContent = fullName;
+                            document.getElementById('sidebar-user-name').textContent = fullName;
+                            document.getElementById('firstName').value = data.first_name;
+                            document.getElementById('lastName').value = data.last_name;
+                        }
+                        
+                        if (data.phone) document.getElementById('phone').value = data.phone;
+                        if (data.bio) document.getElementById('bio').value = data.bio;
+                        if (data.birthdate) document.getElementById('birthdate').value = data.birthdate;
+                        if (data.occupation) document.getElementById('occupation').value = data.occupation;
+                        
+                        // Nastavení avataru, pokud existuje
+                        if (data.avatar_url) {
+                            const avatarImage = document.getElementById('avatar-image');
+                            avatarImage.src = data.avatar_url;
+                            avatarImage.style.display = 'block';
+                            document.getElementById('avatar-text').style.display = 'none';
+                            
+                            // Aktualizace avataru v sidebaru
+                            const sidebarAvatar = document.getElementById('sidebar-user-avatar');
+                            sidebarAvatar.innerHTML = '';
+                            const sidebarImg = document.createElement('img');
+                            sidebarImg.src = data.avatar_url;
+                            sidebarImg.style.width = '100%';
+                            sidebarImg.style.height = '100%';
+                            sidebarImg.style.objectFit = 'cover';
+                            sidebarAvatar.appendChild(sidebarImg);
+                        } else {
+                            // Nastavení iniciálů v avataru
+                            const initials = data.first_name && data.last_name ? 
+                                `${data.first_name[0]}${data.last_name[0]}` : 'JS';
+                            document.getElementById('avatar-text').textContent = initials;
+                            document.getElementById('sidebar-user-avatar').textContent = initials;
+                        }
+                    }
                 } else {
-                    // Uživatel není přihlášen, přesměrovat na přihlášení
-                    window.location.href = '/login.html';
+                    // Pokud není uživatel přihlášen, přesměrování na přihlašovací stránku
+                    window.location.href = '../index.html';
                 }
             } catch (error) {
-                console.error('Chyba při kontrole přihlášení:', error);
-                showError('Nepodařilo se ověřit přihlášení. Prosím, zkuste to znovu.');
+                console.error('Chyba při načítání dat uživatele:', error);
             }
         }
-        
-        // Načtení profilu uživatele z Supabase
-        async function loadUserProfile() {
-            showLoading();
-            hideError();
-            
-            try {
-                const { data, error } = await supabaseClient
-                    .from('profiles')
-                    .select('*')
-                    .eq('id', currentUser.id)
-                    .single();
-                
-                if (error) throw error;
-                
-                if (data) {
-                    userProfile = data;
-                    updateProfileUI();
-                    hideLoading();
-                } else {
-                    throw new Error('Profil nenalezen');
-                }
-            } catch (error) {
-                console.error('Chyba při načítání profilu:', error);
-                showError('Nepodařilo se načíst uživatelský profil. Prosím, zkuste to znovu.');
-                hideLoading();
-            }
-        }
-        
-        // Aktualizace UI profilu
-        function updateProfileUI() {
-            // Inicály pro avatar
-            const initials = getInitials(userProfile.first_name, userProfile.last_name);
-            
-            // Sidebar
-            document.getElementById('sidebar-user-avatar').textContent = initials;
-            document.getElementById('sidebar-user-name').textContent = `${userProfile.first_name || ''} ${userProfile.last_name || ''}`.trim() || 'Uživatel';
-            document.getElementById('sidebar-user-role').textContent = 'Student';
-            
-            // Hlavní profil
-            const avatarInitials = document.getElementById('avatar-initials');
-            const avatarImage = document.getElementById('avatar-image');
-            
-            avatarInitials.textContent = initials;
-            
-            if (userProfile.avatar_url) {
-                avatarImage.src = userProfile.avatar_url;
-                avatarImage.style.display = 'block';
-                avatarInitials.style.display = 'none';
-            } else {
-                avatarImage.style.display = 'none';
-                avatarInitials.style.display = 'flex';
-            }
-            
-            document.getElementById('profile-name').textContent = `${userProfile.first_name || ''} ${userProfile.last_name || ''}`.trim() || 'Uživatel';
-            document.getElementById('profile-username').textContent = userProfile.username ? `@${userProfile.username}` : '';
-            document.getElementById('profile-bio').textContent = userProfile.bio || 'Žádný popis nebyl zadán.';
-            
-            // Statistiky
-            document.getElementById('exercises-count').textContent = userProfile.completed_exercises || 0;
-            document.getElementById('points-count').textContent = userProfile.points || 0;
-            document.getElementById('streak-days').textContent = userProfile.streak_days || 0;
-            document.getElementById('badges-count').textContent = userProfile.badges_count || 0;
-            
-            // Formulář osobních údajů
-            document.getElementById('first-name').value = userProfile.first_name || '';
-            document.getElementById('last-name').value = userProfile.last_name || '';
-            document.getElementById('username').value = userProfile.username || '';
-            document.getElementById('email').value = currentUser.email || '';
-            document.getElementById('bio').value = userProfile.bio || '';
-            document.getElementById('school').value = userProfile.school || '';
-            document.getElementById('grade').value = userProfile.grade || '';
-            
-            // Nastavení předvoleb
-            updatePreferencesFromProfile();
-            
-            // Počet oznámení
-            const notificationCount = document.getElementById('notification-count');
-            notificationCount.textContent = '0'; // Zde můžete načíst skutečný počet
-        }
-        
-        // Aktualizace předvoleb podle profilu
-        function updatePreferencesFromProfile() {
-            if (!userProfile.preferences) return;
-            
-            try {
-                const preferences = typeof userProfile.preferences === 'string' 
-                    ? JSON.parse(userProfile.preferences) 
-                    : userProfile.preferences;
-                
-                // Vzhled
-                document.getElementById('dark-mode-toggle').checked = preferences.darkMode || false;
-                document.getElementById('large-text-toggle').checked = preferences.largeText || false;
-                
-                // Zvuk
-                document.getElementById('sound-effects-toggle').checked = preferences.soundEffects !== false;
-                document.getElementById('notification-sound-toggle').checked = preferences.notificationSound !== false;
-                
-                // Procvičování
-                document.getElementById('auto-check-toggle').checked = preferences.autoCheck !== false;
-                document.getElementById('show-hints-toggle').checked = preferences.showHints !== false;
-                
-                // Aplikace tmavého režimu, pokud je aktivní
-                if (preferences.darkMode) {
-                    document.body.classList.add('dark-mode');
-                } else {
-                    document.body.classList.remove('dark-mode');
-                }
-            } catch (e) {
-                console.error('Chyba při načítání předvoleb:', e);
-            }
-        }
-        
-        // Uložení osobních údajů
-        async function savePersonalInfo(e) {
-            e.preventDefault();
-            
-            const saveBtn = document.getElementById('save-personal-info-btn');
-            const saveText = document.getElementById('save-personal-info-text');
-            const saveSpinner = document.getElementById('save-personal-info-spinner');
-            
-            saveBtn.disabled = true;
-            saveText.style.display = 'none';
-            saveSpinner.style.display = 'inline-block';
-            
-            try {
-                const updatedProfile = {
-                    first_name: document.getElementById('first-name').value,
-                    last_name: document.getElementById('last-name').value,
-                    username: document.getElementById('username').value,
-                    bio: document.getElementById('bio').value,
-                    school: document.getElementById('school').value,
-                    grade: document.getElementById('grade').value,
-                    updated_at: new Date()
-                };
-                
-                const { error } = await supabaseClient
-                    .from('profiles')
-                    .update(updatedProfile)
-                    .eq('id', currentUser.id);
-                
-                if (error) throw error;
-                
-                // Aktualizace lokálních dat
-                userProfile = { ...userProfile, ...updatedProfile };
-                updateProfileUI();
-                
-                showAlert('Osobní údaje byly úspěšně aktualizovány.');
-            } catch (error) {
-                console.error('Chyba při ukládání profilu:', error);
-                showAlert('Nepodařilo se uložit osobní údaje. Prosím, zkuste to znovu.', 'danger');
-            } finally {
-                saveBtn.disabled = false;
-                saveText.style.display = 'inline';
-                saveSpinner.style.display = 'none';
-            }
-        }
-        
-        // Uložení předvoleb
-        async function savePreferences() {
-            try {
-                const preferences = {
-                    darkMode: document.getElementById('dark-mode-toggle').checked,
-                    largeText: document.getElementById('large-text-toggle').checked,
-                    soundEffects: document.getElementById('sound-effects-toggle').checked,
-                    notificationSound: document.getElementById('notification-sound-toggle').checked,
-                    autoCheck: document.getElementById('auto-check-toggle').checked,
-                                        showHints: document.getElementById('show-hints-toggle').checked
-                };
-                
-                // Aplikace tmavého režimu ihned
-                if (preferences.darkMode) {
-                    document.body.classList.add('dark-mode');
-                } else {
-                    document.body.classList.remove('dark-mode');
-                }
-                
-                const { error } = await supabase
-                    .from('profiles')
-                    .update({
-                        preferences: preferences,
-                        updated_at: new Date()
-                    })
-                    .eq('id', currentUser.id);
-                
-                if (error) throw error;
-                
-                // Aktualizace lokálních dat
-                userProfile.preferences = preferences;
-                
-                showAlert('Předvolby byly úspěšně uloženy.');
-            } catch (error) {
-                console.error('Chyba při ukládání předvoleb:', error);
-                showAlert('Nepodařilo se uložit předvolby. Prosím, zkuste to znovu.', 'danger');
-            }
-        }
-        
-        // Uložení nastavení oznámení
-        async function saveNotifications() {
-            try {
-                const notifications = {
-                    emailNews: document.getElementById('email-news-toggle').checked,
-                    emailReminders: document.getElementById('email-reminders-toggle').checked,
-                    emailAchievements: document.getElementById('email-achievements-toggle').checked,
-                    pushStreak: document.getElementById('push-streak-toggle').checked,
-                    pushUpdates: document.getElementById('push-updates-toggle').checked,
-                    pushAchievements: document.getElementById('push-achievements-toggle').checked
-                };
-                
-                const { error } = await supabase
-                    .from('profiles')
-                    .update({
-                        notifications: notifications,
-                        updated_at: new Date()
-                    })
-                    .eq('id', currentUser.id);
-                
-                if (error) throw error;
-                
-                // Aktualizace lokálních dat
-                userProfile.notifications = notifications;
-                
-                showAlert('Nastavení oznámení bylo úspěšně uloženo.');
-            } catch (error) {
-                console.error('Chyba při ukládání nastavení oznámení:', error);
-                showAlert('Nepodařilo se uložit nastavení oznámení. Prosím, zkuste to znovu.', 'danger');
-            }
-        }
-        
-        // Změna emailu
-        async function changeEmail(e) {
-            e.preventDefault();
-            
-            const newEmail = document.getElementById('new-email').value;
-            const password = document.getElementById('current-password-email').value;
-            
-            if (!newEmail || !password) {
-                showAlert('Prosím, vyplňte všechna pole.', 'warning');
-                return;
-            }
-            
-            try {
-                const { error } = await supabase.auth.updateUser({
-                    email: newEmail,
-                    password: password
-                });
-                
-                if (error) throw error;
-                
-                showAlert('Na váš nový email byl odeslán potvrzovací odkaz. Zkontrolujte svou emailovou schránku.');
-                
-                // Reset formuláře
-                document.getElementById('email-form').reset();
-            } catch (error) {
-                console.error('Chyba při změně emailu:', error);
-                showAlert('Nepodařilo se změnit email. Ujistěte se, že heslo je správné.', 'danger');
-            }
-        }
-        
-        // Změna hesla
-        async function changePassword(e) {
-            e.preventDefault();
-            
-            const currentPassword = document.getElementById('current-password').value;
-            const newPassword = document.getElementById('new-password').value;
-            const confirmPassword = document.getElementById('confirm-password').value;
-            
-            if (!currentPassword || !newPassword || !confirmPassword) {
-                showAlert('Prosím, vyplňte všechna pole.', 'warning');
-                return;
-            }
-            
-            if (newPassword !== confirmPassword) {
-                showAlert('Nová hesla se neshodují. Zkuste to znovu.', 'warning');
-                return;
-            }
-            
-            try {
-                const { error } = await supabase.auth.updateUser({
-                    password: newPassword
-                });
-                
-                if (error) throw error;
-                
-                showAlert('Heslo bylo úspěšně změněno.');
-                
-                // Reset formuláře
-                document.getElementById('password-form').reset();
-            } catch (error) {
-                console.error('Chyba při změně hesla:', error);
-                showAlert('Nepodařilo se změnit heslo. Zkontrolujte, zda je současné heslo správné.', 'danger');
-            }
-        }
-        
-        // Odhlášení
+
+        // Odhlášení uživatele - OPRAVENO
         async function logout() {
             try {
+                // Použití správně inicializovaného Supabase klienta
                 const { error } = await supabase.auth.signOut();
                 
                 if (error) throw error;
                 
-                // Přesměrování na přihlašovací stránku
-                window.location.href = '/login.html';
+                // Po úspěšném odhlášení přesměrujeme na přihlašovací stránku
+                window.location.href = '../index.html';
             } catch (error) {
                 console.error('Chyba při odhlašování:', error);
-                showAlert('Nepodařilo se odhlásit. Prosím, zkuste to znovu.', 'danger');
+                showAlert(`Chyba při odhlašování: ${error.message}`, 'danger');
             }
         }
-        
-        // Smazání účtu
-        async function deleteAccount() {
-            const confirmed = confirm('Opravdu chcete smazat svůj účet? Tato akce je nevratná.');
-            
-            if (!confirmed) return;
-            
-            try {
-                // Nejprve smazat profil z databáze
-                const { error: profileError } = await supabase
-                    .from('profiles')
-                    .delete()
-                    .eq('id', currentUser.id);
-                
-                if (profileError) throw profileError;
-                
-                // Poté smazat uživatele z autentizace
-                const { error: authError } = await supabase.auth.admin.deleteUser(currentUser.id);
-                
-                if (authError) throw authError;
-                
-                // Odhlásit uživatele
-                await supabase.auth.signOut();
-                
-                // Přesměrování na hlavní stránku
-                window.location.href = '/';
-            } catch (error) {
-                console.error('Chyba při mazání účtu:', error);
-                showAlert('Nepodařilo se smazat účet. Prosím, kontaktujte podporu.', 'danger');
-            }
-        }
-        
-        // Zpracování nahrání avataru
-        function handleAvatarUpload() {
-            const avatarInput = document.getElementById('avatar-input');
-            const avatarUploadArea = document.getElementById('avatar-upload-area');
-            const avatarPreview = document.getElementById('avatar-preview');
-            const avatarPreviewImg = document.getElementById('avatar-preview-img');
-            
-            // Kliknutí na oblast nahrávání
-            avatarUploadArea.addEventListener('click', () => {
-                avatarInput.click();
-            });
-            
-            // Změna souboru
-            avatarInput.addEventListener('change', (e) => {
-                if (e.target.files.length > 0) {
-                    const file = e.target.files[0];
-                    
-                    // Kontrola typu souboru
-                    if (!file.type.match('image.*')) {
-                        showAlert('Prosím, vyberte obrázek (JPEG, PNG, GIF).', 'warning');
-                        return;
-                    }
-                    
-                    // Kontrola velikosti souboru (max 5MB)
-                    if (file.size > 5 * 1024 * 1024) {
-                        showAlert('Velikost souboru nesmí překročit 5MB.', 'warning');
-                        return;
-                    }
-                    
-                    // Uložení vybraného souboru
-                    selectedAvatar = file;
-                    
-                    // Zobrazení náhledu
-                    const reader = new FileReader();
-                    reader.onload = (event) => {
-                        avatarPreviewImg.src = event.target.result;
-                        avatarPreview.style.display = 'block';
-                    };
-                    reader.readAsDataURL(file);
-                }
-            });
-            
-            // Drag & drop
-            avatarUploadArea.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                avatarUploadArea.classList.add('dragover');
-            });
-            
-            avatarUploadArea.addEventListener('dragleave', () => {
-                avatarUploadArea.classList.remove('dragover');
-            });
-            
-            avatarUploadArea.addEventListener('drop', (e) => {
-                e.preventDefault();
-                avatarUploadArea.classList.remove('dragover');
-                
-                if (e.dataTransfer.files.length > 0) {
-                    const file = e.dataTransfer.files[0];
-                    
-                    // Kontrola typu souboru
-                    if (!file.type.match('image.*')) {
-                        showAlert('Prosím, vyberte obrázek (JPEG, PNG, GIF).', 'warning');
-                        return;
-                    }
-                    
-                    // Kontrola velikosti souboru (max 5MB)
-                    if (file.size > 5 * 1024 * 1024) {
-                        showAlert('Velikost souboru nesmí překročit 5MB.', 'warning');
-                        return;
-                    }
-                    
-                    // Simulace výběru souboru v input
-                    const dataTransfer = new DataTransfer();
-                    dataTransfer.items.add(file);
-                    avatarInput.files = dataTransfer.files;
-                    
-                    // Uložení vybraného souboru
-                    selectedAvatar = file;
-                    
-                    // Zobrazení náhledu
-                    const reader = new FileReader();
-                    reader.onload = (event) => {
-                        avatarPreviewImg.src = event.target.result;
-                        avatarPreview.style.display = 'block';
-                    };
-                    reader.readAsDataURL(file);
-                }
-            });
-        }
-        
-        // Nahrání a uložení nového avataru
-        async function saveAvatar() {
-            if (!selectedAvatar) {
-                showAlert('Nejprve vyberte obrázek.', 'warning');
-                return;
-            }
-            
-            const saveBtn = document.getElementById('save-avatar-btn');
-            const saveText = document.getElementById('save-avatar-text');
-            const saveSpinner = document.getElementById('save-avatar-spinner');
-            
-            saveBtn.disabled = true;
-            saveText.style.display = 'none';
-            saveSpinner.style.display = 'inline-block';
-            
-            try {
-                // Nahrání souboru do Storage
-                const fileName = `avatar_${currentUser.id}_${Date.now()}.${selectedAvatar.name.split('.').pop()}`;
-                
-                const { data: uploadData, error: uploadError } = await supabase.storage
-                    .from('user-content')
-                    .upload(`avatars/${fileName}`, selectedAvatar);
-                
-                if (uploadError) throw uploadError;
-                
-                // Získání veřejné URL obrázku
-                const { data: { publicUrl } } = supabase.storage
-                    .from('user-content')
-                    .getPublicUrl(`avatars/${fileName}`);
-                
-                // Aktualizace profilu s novou URL avataru
-                const { error: updateError } = await supabase
-                    .from('profiles')
-                    .update({
-                        avatar_url: publicUrl,
-                        updated_at: new Date()
-                    })
-                    .eq('id', currentUser.id);
-                
-                if (updateError) throw updateError;
-                
-                // Aktualizace lokálních dat
-                userProfile.avatar_url = publicUrl;
-                updateProfileUI();
-                
-                // Zavření modálního okna
-                document.getElementById('avatar-modal').classList.remove('active');
-                
-                // Reset formuláře
-                document.getElementById('avatar-preview').style.display = 'none';
-                document.getElementById('avatar-input').value = '';
-                selectedAvatar = null;
-                
-                showAlert('Profilový obrázek byl úspěšně aktualizován.');
-            } catch (error) {
-                console.error('Chyba při nahrávání avataru:', error);
-                showAlert('Nepodařilo se nahrát profilový obrázek. Prosím, zkuste to znovu.', 'danger');
-            } finally {
-                saveBtn.disabled = false;
-                saveText.style.display = 'inline';
-                saveSpinner.style.display = 'none';
-            }
-        }
-        
-        // Modální okno pro avatar
-        function setupAvatarModal() {
-            const modal = document.getElementById('avatar-modal');
-            const changeAvatarBtn = document.getElementById('change-avatar-btn');
-            const closeModalBtn = document.getElementById('close-avatar-modal');
-            const cancelAvatarBtn = document.getElementById('cancel-avatar-btn');
-            const saveAvatarBtn = document.getElementById('save-avatar-btn');
-            
-            // Otevření modálního okna
-            changeAvatarBtn.addEventListener('click', () => {
-                modal.classList.add('active');
-            });
-            
-            // Zavření modálního okna
-            closeModalBtn.addEventListener('click', () => {
-                modal.classList.remove('active');
-            });
-            
-            cancelAvatarBtn.addEventListener('click', () => {
-                modal.classList.remove('active');
-            });
-            
-            // Kliknutí mimo modální okno
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal) {
-                    modal.classList.remove('active');
-                }
-            });
-            
-            // Uložení avataru
-            saveAvatarBtn.addEventListener('click', saveAvatar);
-        }
-        
-        // Nastavení event listenerů
-        function setupEventListeners() {
-            // Formuláře
-            document.getElementById('personal-info-form').addEventListener('submit', savePersonalInfo);
-            document.getElementById('email-form').addEventListener('submit', changeEmail);
-            document.getElementById('password-form').addEventListener('submit', changePassword);
-            
-            // Tlačítka
-            document.getElementById('save-preferences-btn').addEventListener('click', savePreferences);
-            document.getElementById('save-notifications-btn').addEventListener('click', saveNotifications);
-            document.getElementById('logout-btn').addEventListener('click', logout);
-            document.getElementById('delete-account-btn').addEventListener('click', deleteAccount);
-            
-            // Opakovaný pokus při chybě
-            document.getElementById('global-retry-btn').addEventListener('click', loadUserProfile);
-            
-            // Dark mode toggle
-            document.getElementById('dark-mode-toggle').addEventListener('change', function() {
-                if (this.checked) {
-                    document.body.classList.add('dark-mode');
-                } else {
-                    document.body.classList.remove('dark-mode');
-                }
-            });
-        }
-        
+
         // Inicializace stránky
-        async function initPage() {
-            try {
-                await checkAuth();
-                setupEventListeners();
-                handleAvatarUpload();
-                setupAvatarModal();
-            } catch (error) {
-                console.error('Chyba při inicializaci stránky:', error);
-                showError('Došlo k neočekávané chybě. Prosím, obnovte stránku.');
-            }
-        }
-        
-        // Spuštění inicializace po načtení stránky
-        document.addEventListener('DOMContentLoaded', initPage);
+        document.addEventListener('DOMContentLoaded', () => {
+            // Načtení dat uživatele
+            loadUserData();
+        });
     </script>
 </body>
 </html>
