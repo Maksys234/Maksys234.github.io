@@ -12,8 +12,15 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Supabase JS Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <!-- Marked для рендеринга Markdown -->
+    <!-- Chart.js pro grafy -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Marked pro rendering Markdown -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- html2pdf pro export do PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <!-- Tooltipster pro tooltips -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/css/tooltipster.bundle.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/js/tooltipster.bundle.min.js"></script>
     
     <style>
         /* Základní styly */
@@ -284,6 +291,39 @@
             background-color: var(--gray-light);
         }
 
+        .btn-success {
+            background: linear-gradient(135deg, #4cc9f0, #38b2ac);
+            color: white;
+            box-shadow: 0 4px 10px rgba(76, 201, 240, 0.2);
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(76, 201, 240, 0.25);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #f8961e, #f3722c);
+            color: white;
+            box-shadow: 0 4px 10px rgba(248, 150, 30, 0.2);
+        }
+        
+        .btn-warning:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(248, 150, 30, 0.25);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #f72585, #b5179e);
+            color: white;
+            box-shadow: 0 4px 10px rgba(247, 37, 133, 0.2);
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(247, 37, 133, 0.25);
+        }
+
         .btn-lg {
             padding: 0.75rem 2rem;
             font-size: 1rem;
@@ -293,6 +333,15 @@
             margin: 0 auto;
             display: block;
             width: fit-content;
+        }
+
+        /* Akční tlačítka v řadě */
+        .action-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin: 1.5rem 0;
+            justify-content: center;
         }
 
         /* Styly analýzy a plánu */
@@ -377,7 +426,7 @@
             color: var(--text-secondary);
         }
 
-        /* Progresss bar */
+        /* Progress bar */
         .progress-container {
             width: 100%;
             height: 8px;
@@ -392,6 +441,69 @@
             border-radius: 4px;
             background: var(--gradient-1);
             transition: width 0.5s ease;
+        }
+
+        /* Přehled diagnostického testu */
+        .test-summary-content {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .test-summary-left {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .test-summary-right {
+            flex: 1;
+            min-width: 300px;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        /* Statistiky testu */
+        .test-stats {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .test-stat-card {
+            flex: 1;
+            min-width: 150px;
+            background-color: var(--light);
+            padding: 1.2rem;
+            border-radius: var(--card-radius);
+            text-align: center;
+            animation: fadeIn 0.5s ease forwards;
+        }
+
+        .test-stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--primary);
+            background: var(--gradient-1);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .test-stat-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        /* Chart kontejner */
+        .chart-container {
+            width: 100%;
+            height: 250px;
+            margin: 1.5rem 0;
+            position: relative;
         }
 
         /* Topic cards */
@@ -636,7 +748,55 @@
             color: var(--text-secondary);
         }
 
-        /* Přidané styly pro notest sekci */
+        /* Přidané styly pro krok zpět na hlavní stránku plánu */
+        .step-navigation {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Týdenní report widget */
+        .weekly-report {
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: var(--card-radius);
+            background-color: var(--white);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .weekly-report-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--dark);
+        }
+
+        .report-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px dashed var(--gray-light);
+        }
+
+        .report-item:last-child {
+            border-bottom: none;
+        }
+
+        .report-label {
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .report-value {
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .weekly-chart {
+            margin-top: 1.5rem;
+        }
+
+        /* Přidané styly pro sekci bez testu */
         .notest-message {
             background-color: rgba(255, 214, 102, 0.2);
             border-left: 4px solid var(--warning);
@@ -655,6 +815,282 @@
             color: var(--text-secondary);
             margin-bottom: 1rem;
             line-height: 1.5;
+        }
+
+        /* Přidané styly pro sekci vytvořeného plánu */
+        .plan-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 2rem;
+        }
+
+        .plan-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .plan-date {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .plan-badge {
+            display: inline-block;
+            font-size: 0.8rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            background: var(--gradient-1);
+            color: white;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+
+        .plan-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .plan-progress {
+            margin: 2rem 0;
+            text-align: center;
+        }
+
+        .circular-progress {
+            width: 150px;
+            height: 150px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .progress-value {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .progress-text {
+            margin-top: 1rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        /* Přidané styly pro hotnoty */
+        .plan-stats {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .plan-stat-card {
+            flex: 1;
+            min-width: 180px;
+            background-color: var(--light);
+            border-radius: var(--card-radius);
+            padding: 1rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .plan-stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .plan-stat-icon {
+            font-size: 1.8rem;
+            margin-bottom: 0.75rem;
+            color: var(--primary);
+            background: var(--gradient-1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .plan-stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--dark);
+        }
+
+        .plan-stat-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        /* Styly pro checkboxy v denním harmonogramu */
+        .activity-checkbox {
+            display: flex;
+            gap: 0.75rem;
+            align-items: flex-start;
+        }
+        
+        .activity-checkbox input[type="checkbox"] {
+            min-width: 18px;
+            height: 18px;
+            margin-top: 3px;
+            cursor: pointer;
+        }
+        
+        .activity-checkbox .activity-content {
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+        
+        .activity-checkbox input[type="checkbox"]:checked + .activity-content {
+            text-decoration: line-through;
+            opacity: 0.7;
+        }
+
+        /* Plán historie */
+        .plan-history {
+            margin-top: 2rem;
+        }
+
+        .history-item {
+            background-color: var(--white);
+            border-radius: var(--card-radius);
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s ease;
+        }
+
+        .history-item:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .history-date {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 0.25rem;
+        }
+
+        .history-title {
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .history-status {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .history-status.active {
+            background-color: rgba(76, 201, 240, 0.15);
+            color: var(--success);
+        }
+
+        .history-status.completed {
+            background-color: rgba(67, 97, 238, 0.15);
+            color: var(--primary);
+        }
+
+        .history-status.expired {
+            background-color: rgba(247, 37, 133, 0.15);
+            color: var(--danger);
+        }
+
+        /* Tooltip styly */
+        .tooltip-inner {
+            background-color: var(--dark);
+            color: var(--white);
+            border-radius: 4px;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.9rem;
+            max-width: 250px;
+            box-shadow: var(--shadow-md);
+        }
+
+        /* Notification dot */
+        .notification-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--danger);
+            border-radius: 50%;
+            position: absolute;
+            top: 8px;
+            right: 8px;
+        }
+
+        /* Locked overlay pro plán */
+        .locked-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(26, 32, 44, 0.7);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border-radius: var(--card-radius);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .locked-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.9;
+        }
+
+        .locked-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .locked-message {
+            font-size: 1rem;
+            margin-bottom: 1.5rem;
+            opacity: 0.9;
+            max-width: 500px;
+        }
+
+        .timer-container {
+            margin: 1rem 0 2rem;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        /* Tabs pro výběr typu plánu */
+        .plan-tabs {
+            display: flex;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid var(--gray-light);
+        }
+
+        .plan-tab {
+            padding: 0.75rem 1.5rem;
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--text-secondary);
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .plan-tab:hover {
+            color: var(--primary);
+        }
+
+        .plan-tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
         }
 
         /* Animace */
@@ -706,6 +1142,10 @@
             .topic-grid {
                 grid-template-columns: 1fr;
             }
+
+            .test-summary-content {
+                flex-direction: column;
+            }
         }
 
         @media (max-width: 768px) {
@@ -718,6 +1158,27 @@
                 align-items: flex-start;
                 gap: 1rem;
             }
+
+            .plan-header {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .plan-actions {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .plan-tabs {
+                overflow-x: auto;
+                white-space: nowrap;
+                padding-bottom: 0.5rem;
+            }
+
+            .plan-tab {
+                padding: 0.75rem 1rem;
+                font-size: 0.9rem;
+            }
         }
 
         @media (max-width: 576px) {
@@ -727,6 +1188,7 @@
             
             .sidebar {
                 transform: translateX(-100%);
+                z-index: 1000;
             }
             
             main {
@@ -736,6 +1198,14 @@
             
             .mobile-menu-toggle {
                 display: block;
+            }
+
+            .plan-stat-card {
+                min-width: 100%;
+            }
+
+            .test-stats {
+                flex-direction: column;
             }
         }
 
@@ -748,6 +1218,10 @@
             color: var(--dark);
             font-size: 1.5rem;
             margin-right: 1rem;
+        }
+
+        .mobile-menu-visible .sidebar {
+            transform: translateX(0);
         }
 
         /* Tmavý režim */
@@ -768,6 +1242,18 @@
 
             .plan-content {
                 background-color: #1e2533;
+            }
+
+            .test-stat-card {
+                background-color: #2d3748;
+            }
+
+            .plan-stat-card {
+                background-color: #2d3748;
+            }
+
+            .notest-message {
+                background-color: rgba(255, 214, 102, 0.1);
             }
         }
     </style>
@@ -823,7 +1309,7 @@
         
         <div class="user-profile">
             <div class="user-avatar" id="user-avatar">
-                <!-- Аватарка будет загружена через JS или будут отображены инициалы -->
+                <!-- Avatar bude načten přes JS nebo se zobrazí iniciály -->
             </div>
             <div class="user-info">
                 <div class="user-name" id="user-name">Načítání...</div>
@@ -841,26 +1327,90 @@
         <div class="dashboard-header">
             <div class="header-content">
                 <h1>Personalizovaný studijní plán</h1>
-                <button class="mobile-menu-toggle">
+                <button class="mobile-menu-toggle" id="mobileMenuToggle">
                     <i class="fas fa-bars"></i>
                 </button>
             </div>
         </div>
 
         <div class="main-content">
-            <!-- Sekce informací o testu -->
-            <div class="section test-summary" id="testSummarySection">
-                <h2 class="section-title">Výsledky diagnostického testu</h2>
-                <div id="testStats">
-                    <!-- Zde se zobrazí statistiky testu -->
+            <!-- Záložky pro přepínání mezi různými druhy plánů -->
+            <div class="plan-tabs">
+                <div class="plan-tab active" data-tab="current">Aktuální plán</div>
+                <div class="plan-tab" data-tab="history">Historie plánů</div>
+                <div class="plan-tab" data-tab="create">Vytvořit nový</div>
+            </div>
+
+            <!-- Sekce pro aktuální plán -->
+            <div class="section current-plan-section" id="currentPlanSection">
+                <div class="loader-container" id="currentPlanLoader">
+                    <div class="loader"></div>
                 </div>
+                <div id="currentPlanContent" style="display: none;">
+                    <!-- Zde bude aktuální plán -->
+                </div>
+            </div>
+            
+            <!-- Sekce pro historii plánů -->
+            <div class="section history-plan-section" id="historyPlanSection" style="display: none;">
+                <h2 class="section-title">Historie studijních plánů</h2>
+                <div class="loader-container" id="historyLoader">
+                    <div class="loader"></div>
+                </div>
+                <div id="historyPlanContent" class="plan-history">
+                    <!-- Zde bude historie plánů -->
+                </div>
+            </div>
+
+            <!-- Sekce pro vytvoření nového plánu -->
+            <div class="section create-plan-section" id="createPlanSection" style="display: none;">
+                <!-- Podmíněně zobrazený obsah pro vytváření plánu nebo zobrazení omezení -->
+                <div id="planCreateContent">
+                    <!-- Obsah bude načten dynamicky -->
+                </div>
+            </div>
+
+            <!-- Sekce informací o testu -->
+            <div class="section test-summary" id="testSummarySection" style="display: none;">
+                <h2 class="section-title">Výsledky diagnostického testu</h2>
+                <div class="test-summary-content">
+                    <div class="test-summary-left">
+                        <div id="testStats" class="test-stats">
+                            <!-- Zde se zobrazí statistiky testu -->
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="topicScoreChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="test-summary-right">
+                        <div class="weekly-report">
+                            <h3 class="weekly-report-title">Týdenní report</h3>
+                            <div class="report-item">
+                                <div class="report-label">Datum testu:</div>
+                                <div class="report-value" id="testDate">-</div>
+                            </div>
+                            <div class="report-item">
+                                <div class="report-label">Počet otázek:</div>
+                                <div class="report-value" id="testQuestionCount">-</div>
+                            </div>
+                            <div class="report-item">
+                                <div class="report-label">Celkové skóre:</div>
+                                <div class="report-value" id="testTotalScore">-</div>
+                            </div>
+                            <div class="weekly-chart">
+                                <canvas id="weeklyProgressChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <h3 class="section-subtitle">Výsledky podle témat</h3>
                 <div id="topicStats" class="topic-grid">
                     <!-- Zde se zobrazí výsledky podle témat -->
                 </div>
             </div>
 
-            <!-- Sekce s plánem studia -->
-            <div class="section plan-section" id="planSection">
+            <!-- Sekce s plánem studia - zobrazí se při vytváření -->
+            <div class="section plan-section" id="planSection" style="display: none;">
                 <h2 class="section-title">Váš personalizovaný studijní plán</h2>
                 
                 <div class="ai-loading" id="planLoading">
@@ -871,6 +1421,17 @@
                 <div class="plan-content" id="planContent" style="display: none;">
                     <!-- Zde se zobrazí plán studia -->
                 </div>
+                
+                <div class="action-buttons" id="planActions" style="display: none;">
+                    <button class="btn btn-primary" id="savePlanBtn">
+                        <i class="fas fa-save"></i>
+                        Uložit plán
+                    </button>
+                    <button class="btn btn-success" id="exportPlanBtn">
+                        <i class="fas fa-file-export"></i>
+                        Exportovat do PDF
+                    </button>
+                </div>
             </div>
 
             <!-- Sekce s týdenním rozvrhem -->
@@ -879,11 +1440,6 @@
                 <div class="daily-schedule" id="dailySchedule">
                     <!-- Zde se zobrazí denní rozvrh -->
                 </div>
-                
-                <button class="btn btn-primary btn-lg btn-center" id="saveScheduleBtn" style="margin-top: 2rem;">
-                    <i class="fas fa-download"></i>
-                    Stáhnout plán
-                </button>
             </div>
 
             <!-- Sekce, když nemáme výsledky testu -->
@@ -897,6 +1453,129 @@
                     </button>
                 </div>
             </div>
+
+            <!-- Vzor pro aktuální plán -->
+            <template id="currentPlanTemplate">
+                <div class="plan-header">
+                    <div class="plan-meta">
+                        <span class="plan-badge" id="planBadge">Aktuální plán</span>
+                        <h2 class="section-title" id="planTitle">Personalizovaný studijní plán</h2>
+                        <span class="plan-date" id="planDate">Vytvořeno: 26.3.2025</span>
+                    </div>
+                    <div class="plan-actions">
+                        <button class="btn btn-success btn-tooltip" id="viewDetailBtn" data-tooltip="Zobrazit podrobnosti plánu">
+                            <i class="fas fa-eye"></i>
+                            Detail
+                        </button>
+                        <button class="btn btn-primary btn-tooltip" id="exportCurrentPlanBtn" data-tooltip="Stáhnout plán jako PDF">
+                            <i class="fas fa-file-export"></i>
+                            Export
+                        </button>
+                    </div>
+                </div>
+
+                <div class="plan-progress">
+                    <div class="circular-progress">
+                        <canvas id="progressCircle" width="150" height="150"></canvas>
+                        <div class="progress-value" id="progressValue">0%</div>
+                    </div>
+                    <div class="progress-text">Celkový pokrok v plánu</div>
+                </div>
+
+                <div class="plan-stats">
+                    <div class="plan-stat-card btn-tooltip" data-tooltip="Zbývající dny do ukončení plánu">
+                        <div class="plan-stat-icon">
+                            <i class="fas fa-calendar-alt"></i>
+                        </div>
+                        <div class="plan-stat-value" id="remainingDays">7</div>
+                        <div class="plan-stat-label">Zbývajících dnů</div>
+                    </div>
+                    <div class="plan-stat-card btn-tooltip" data-tooltip="Dokončené aktivity">
+                        <div class="plan-stat-icon">
+                            <i class="fas fa-tasks"></i>
+                        </div>
+                        <div class="plan-stat-value" id="completedActivities">0/15</div>
+                        <div class="plan-stat-label">Dokončeno aktivit</div>
+                    </div>
+                    <div class="plan-stat-card btn-tooltip" data-tooltip="Prioritní téma k procvičení">
+                        <div class="plan-stat-icon">
+                            <i class="fas fa-bullseye"></i>
+                        </div>
+                        <div class="plan-stat-value" id="priorityTopic">Algebra</div>
+                        <div class="plan-stat-label">Prioritní téma</div>
+                    </div>
+                </div>
+
+                <h3 class="section-subtitle">Dnešní aktivity</h3>
+                <div class="schedule-day" id="todaySchedule">
+                    <!-- Dnešní aktivity budou načteny zde -->
+                </div>
+
+                <div class="action-buttons">
+                    <button class="btn btn-primary" id="viewFullScheduleBtn">
+                        <i class="fas fa-calendar-week"></i>
+                        Celý harmonogram
+                    </button>
+                    <button class="btn btn-secondary btn-tooltip" id="updateProgressBtn" data-tooltip="Aktualizovat svůj pokrok">
+                        <i class="fas fa-sync-alt"></i>
+                        Aktualizovat pokrok
+                    </button>
+                </div>
+            </template>
+
+            <!-- Vzor pro uzamčenou sekci vytvoření plánu -->
+            <template id="lockedPlanTemplate">
+                <div style="position: relative; min-height: 300px;">
+                    <div class="locked-overlay">
+                        <div class="locked-icon">
+                            <i class="fas fa-lock"></i>
+                        </div>
+                        <h3 class="locked-title">Vytvoření nového plánu není momentálně dostupné</h3>
+                        <p class="locked-message">Nový studijní plán můžete vytvořit jednou týdně. Váš aktuální plán byl vytvořen nedávno.</p>
+                        <div class="timer-container" id="timerContainer">
+                            Další plán můžete vytvořit za: <span id="nextPlanTimer">6 dní 23 hodin</span>
+                        </div>
+                        <button class="btn btn-primary" id="viewCurrentPlanBtnLocked">
+                            <i class="fas fa-eye"></i>
+                            Zobrazit aktuální plán
+                        </button>
+                    </div>
+                </div>
+            </template>
+
+            <!-- Vzor pro sekci vytvoření plánu -->
+            <template id="createPlanFormTemplate">
+                <h2 class="section-title">Vytvořit nový studijní plán</h2>
+                <p class="section-text">Personalizovaný studijní plán bude vytvořen na základě výsledků vašeho diagnostického testu. Plán bude obsahovat aktivity zaměřené na zlepšení vašich slabých stránek a další rozvoj silných stránek.</p>
+                
+                <div class="test-summary-content">
+                    <div class="test-summary-left">
+                        <div id="createTestStats" class="test-stats">
+                            <!-- Zde se zobrazí statistiky testu -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <button class="btn btn-primary btn-lg" id="generatePlanBtn">
+                        <i class="fas fa-magic"></i>
+                        Vygenerovat studijní plán
+                    </button>
+                </div>
+            </template>
+
+            <!-- Vzor pro historii plánů -->
+            <template id="historyItemTemplate">
+                <div class="history-item" data-plan-id="">
+                    <div class="history-info">
+                        <div class="history-date">Vytvořeno: 19.3.2025</div>
+                        <div class="history-title">Studijní plán - Matematika</div>
+                    </div>
+                    <div class="history-meta">
+                        <span class="history-status active">Aktivní</span>
+                    </div>
+                </div>
+            </template>
         </div>
     </main>
 
@@ -918,36 +1597,21 @@
             "Algebra": "fa-square-root-alt",
             "Aritmetika": "fa-calculator",
             "Geometrie": "fa-draw-polygon",
-            "Logika": "fa-brain",
+            "Logické úlohy": "fa-brain",
             "default": "fa-book"
         };
 
-        // Ikony pro dny v týdnu
-        const dayIcons = {
-            "Pondělí": "fa-calendar-day",
-            "Úterý": "fa-calendar-day",
-            "Středa": "fa-calendar-day",
-            "Čtvrtek": "fa-calendar-day",
-            "Pátek": "fa-calendar-day",
-            "Sobota": "fa-calendar-day",
-            "Neděle": "fa-calendar-day"
-        };
-
-        // Ikony pro témata v detailnějším členění
-        const subTopicIcons = {
-            "Lineární rovnice": "fa-equals",
-            "Soustavy rovnic": "fa-stream",
-            "Výrazy": "fa-superscript",
-            "Zlomky": "fa-divide",
-            "Procenta": "fa-percentage",
-            "Geometrie": "fa-shapes",
-            "Trojúhelníky": "fa-ruler-combined",
-            "Kombinatorika": "fa-dice",
-            "Statistika": "fa-chart-bar",
-            "default": "fa-book"
+        // Mapování ID témat na jejich názvy
+        const topicMap = {
+            1: "Algebra",
+            2: "Geometrie",
+            3: "Logické úlohy"
         };
 
         // DOM elementy
+        const currentPlanSection = document.getElementById('currentPlanSection');
+        const historyPlanSection = document.getElementById('historyPlanSection');
+        const createPlanSection = document.getElementById('createPlanSection');
         const testSummarySection = document.getElementById('testSummarySection');
         const planSection = document.getElementById('planSection');
         const scheduleSection = document.getElementById('scheduleSection');
@@ -957,27 +1621,130 @@
         const planLoading = document.getElementById('planLoading');
         const planContent = document.getElementById('planContent');
         const dailySchedule = document.getElementById('dailySchedule');
+        const planActions = document.getElementById('planActions');
         const goToTestBtn = document.getElementById('goToTestBtn');
-        const saveScheduleBtn = document.getElementById('saveScheduleBtn');
+        const currentPlanLoader = document.getElementById('currentPlanLoader');
+        const currentPlanContent = document.getElementById('currentPlanContent');
+        const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+        const planCreateContent = document.getElementById('planCreateContent');
+        const historyLoader = document.getElementById('historyLoader');
+        const historyPlanContent = document.getElementById('historyPlanContent');
+        const planTabs = document.querySelectorAll('.plan-tab');
         const userName = document.getElementById('user-name');
         const userAvatar = document.getElementById('user-avatar');
+        
+        // Vzory
+        const currentPlanTemplate = document.getElementById('currentPlanTemplate');
+        const lockedPlanTemplate = document.getElementById('lockedPlanTemplate');
+        const createPlanFormTemplate = document.getElementById('createPlanFormTemplate');
+        const historyItemTemplate = document.getElementById('historyItemTemplate');
         
         // Globální proměnné
         let currentUser = null;
         let testData = null;
         let diagnosticId = null;
+        let currentStudyPlan = null;
+        let previousPlans = [];
+        let planCreateAllowed = false;
+        let nextPlanCreateTime = null;
+        let planTimerInterval = null;
+        let weeklyChartInstance = null;
+        let topicScoreChartInstance = null;
+        let progressCircleInstance = null;
         
-        // Nastavení informací o uživateli
-        async function setUserInfo() {
+        // Inicializace stránky
+        async function initPage() {
             try {
-                // Získání informací o aktuálním uživateli
+                await checkUserAuthentication();
+                setupEventListeners();
+                
+                // Kontrola aktuálního plánu
+                await loadCurrentPlan();
+                
+                // Přepnutí na první záložku
+                switchTab('current');
+            } catch (error) {
+                console.error('Chyba při inicializaci stránky:', error);
+            }
+        }
+        
+        // Nastavení event listenerů
+        function setupEventListeners() {
+            // Event listener pro mobilní menu
+            mobileMenuToggle.addEventListener('click', function() {
+                document.body.classList.toggle('mobile-menu-visible');
+            });
+            
+            // Event listenery pro záložky
+            planTabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const tabId = this.dataset.tab;
+                    switchTab(tabId);
+                });
+            });
+            
+            // Event listener pro přechod na test
+            goToTestBtn.addEventListener('click', function() {
+                window.location.href = '/dashboard/procvicovani/test.html';
+            });
+        }
+        
+        // Přepínání mezi záložkami
+        function switchTab(tabId) {
+            // Aktivace záložky
+            planTabs.forEach(tab => {
+                if (tab.dataset.tab === tabId) {
+                    tab.classList.add('active');
+                } else {
+                    tab.classList.remove('active');
+                }
+            });
+            
+            // Skrytí všech sekcí
+            currentPlanSection.style.display = 'none';
+            historyPlanSection.style.display = 'none';
+            createPlanSection.style.display = 'none';
+            
+            // Zobrazení požadované sekce
+            if (tabId === 'current') {
+                currentPlanSection.style.display = 'block';
+            } else if (tabId === 'history') {
+                historyPlanSection.style.display = 'block';
+                loadPlanHistory();
+            } else if (tabId === 'create') {
+                createPlanSection.style.display = 'block';
+                checkPlanCreationAvailability();
+            }
+        }
+        
+        // Kontrola přihlášení uživatele
+        async function checkUserAuthentication() {
+            try {
                 const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
                 
                 if (userError) throw userError;
                 
                 if (user) {
+                    // Uživatel je přihlášen
                     currentUser = user;
-                    
+                    await setUserInfo(user);
+                    return true;
+                } else {
+                    // Uživatel není přihlášen
+                    window.location.href = '/auth/index.html?redirect=' + encodeURIComponent(window.location.pathname);
+                    return false;
+                }
+            } catch (error) {
+                console.error('Chyba při kontrole přihlášení:', error);
+                window.location.href = '/auth/index.html?redirect=' + encodeURIComponent(window.location.pathname);
+                return false;
+            }
+        }
+        
+                // Nastavení informací o uživateli
+        async function setUserInfo(user) {
+            try {
+                if (user) {
                     // Zkusit získat více informací o uživateli z profilu
                     const { data: profile, error } = await supabaseClient
                         .from('profiles')
@@ -987,20 +1754,18 @@
                     
                     // Prioritizujeme username nad emailem
                     if (profile) {
-                        // Nastavení jména - priorita username > full_name > email
                         if (profile.username) {
                             userName.textContent = profile.username;
                         } else if (profile.full_name) {
                             userName.textContent = profile.full_name;
                         } else {
-                            userName.textContent = user.email.split('@')[0]; // Zobrazit uživatelskou část e-mailu
+                            userName.textContent = user.email.split('@')[0];
                         }
                         
                         // Nastavení avataru
                         if (profile.avatar_url) {
                             userAvatar.innerHTML = `<img src="${profile.avatar_url}" alt="Avatar">`;
                         } else {
-                            // Fallback na iniciály
                             const displayName = profile.username || profile.full_name || user.email.split('@')[0];
                             const initials = displayName.split(' ')
                                 .map(n => n[0])
@@ -1010,253 +1775,710 @@
                             userAvatar.textContent = initials;
                         }
                     } else {
-                        // Použít základní informace z uživatelského účtu
-                        userName.textContent = user.email.split('@')[0]; // Pouze uživatelské jméno z e-mailu
+                        userName.textContent = user.email.split('@')[0];
                         userAvatar.textContent = user.email.substr(0, 2).toUpperCase();
                     }
-                } else {
-                    // Fallback pro nepřihlášené uživatele
-                    userName.textContent = 'Host';
-                    userAvatar.textContent = 'HO';
                 }
             } catch (error) {
                 console.error('Chyba při načítání informací o uživateli:', error);
-                userName.textContent = 'Host';
-                userAvatar.textContent = 'HO';
+                userName.textContent = 'Uživatel';
+                userAvatar.textContent = 'U';
             }
         }
         
-        // Inicializace stránky
-        async function initPage() {
-            await setUserInfo();
+        // Načtení aktuálního plánu
+        async function loadCurrentPlan() {
+            currentPlanLoader.style.display = 'flex';
+            currentPlanContent.style.display = 'none';
             
-            // Zkontrolujeme, zda máme v URL diagnosticId
-            const urlParams = new URLSearchParams(window.location.search);
-            const diagnosticParam = urlParams.get('diagnostic');
-            
-            if (diagnosticParam) {
-                diagnosticId = diagnosticParam;
-                await loadDiagnosticData(diagnosticId);
-            } else {
-                // Pokud není diagnostika v URL, zkusíme najít poslední diagnostiku pro uživatele
-                await loadLatestDiagnosticData();
-            }
-            
-            // Pokud stále nemáme diagnostická data, zobrazíme upozornění
-            if (!testData) {
-                showNoTestSection();
-            } else {
-                // Zobrazíme výsledky testu a vygenerujeme plán
-                displayTestResults();
-                generateStudyPlan();
-            }
-        }
-        
-        // Načtení diagnostických dat z ID
-        async function loadDiagnosticData(diagnosticId) {
-            try {
-                const { data, error } = await supabaseClient
-                    .from('user_diagnostics')
-                    .select('*')
-                    .eq('id', diagnosticId)
-                    .single();
-                
-                if (error) throw error;
-                
-                if (data) {
-                    console.log('Načtena diagnostická data z ID:', data);
-                    testData = data;
-                }
-            } catch (error) {
-                console.error('Chyba při načítání diagnostických dat:', error);
-            }
-        }
-        
-        // Načtení nejnovějších diagnostických dat pro uživatele
-        async function loadLatestDiagnosticData() {
             try {
                 if (!currentUser) {
                     throw new Error('Uživatel není přihlášen');
                 }
                 
+                // Načtení nejnovějšího aktivního plánu
+                const { data: plans, error } = await supabaseClient
+                    .from('study_plans')
+                    .select('*')
+                    .eq('user_id', currentUser.id)
+                    .eq('status', 'active')
+                    .order('created_at', { ascending: false })
+                    .limit(1);
+                
+                if (error) throw error;
+                
+                if (plans && plans.length > 0) {
+                    // Máme aktivní plán
+                    currentStudyPlan = plans[0];
+                    renderCurrentPlan(currentStudyPlan);
+                } else {
+                    // Nemáme aktivní plán, zkontrolujeme diagnostiku
+                    await checkDiagnosticTest();
+                }
+            } catch (error) {
+                console.error('Chyba při načítání aktuálního plánu:', error);
+                currentPlanContent.innerHTML = `
+                    <div class="notest-message">
+                        <h3><i class="fas fa-exclamation-circle"></i> Nepodařilo se načíst plán</h3>
+                        <p>Při načítání plánu došlo k chybě. Zkuste to prosím později.</p>
+                    </div>
+                `;
+                currentPlanLoader.style.display = 'none';
+                currentPlanContent.style.display = 'block';
+            }
+        }
+        
+        // Kontrola diagnostického testu
+        async function checkDiagnosticTest() {
+            try {
                 const { data, error } = await supabaseClient
                     .from('user_diagnostics')
                     .select('*')
                     .eq('user_id', currentUser.id)
                     .order('created_at', { ascending: false })
-                    .limit(1)
-                    .single();
+                    .limit(1);
                 
-                if (error) {
-                    if (error.code === 'PGRST116') {
-                        // Žádné záznamy nalezeny
-                        console.log('Nebyly nalezeny žádné diagnostické testy pro uživatele');
-                        return;
-                    }
-                    throw error;
-                }
+                if (error) throw error;
                 
-                if (data) {
-                    console.log('Načtena nejnovější diagnostická data:', data);
-                    testData = data;
-                    diagnosticId = data.id;
-                }
-            } catch (error) {
-                console.error('Chyba při načítání nejnovějších diagnostických dat:', error);
-            }
-        }
-        
-        // Zobrazení sekce "Nejprve absolvujte test"
-        function showNoTestSection() {
-            testSummarySection.style.display = 'none';
-            planSection.style.display = 'none';
-            scheduleSection.style.display = 'none';
-            notestSection.style.display = 'block';
-        }
-        
-        // Zobrazení výsledků testu
-        function displayTestResults() {
-            testSummarySection.style.display = 'block';
-            
-            // Zobrazení základních statistik testu
-            const total_score = testData.total_score || 0;
-            const total_questions = testData.total_questions || 0;
-            
-            // Zjištění počtu správných a nesprávných odpovědí z analýzy
-            let correctCount = 0;
-            let wrongCount = 0;
-            
-            if (testData.analysis && typeof testData.analysis === 'object') {
-                correctCount = testData.analysis.correct_answers || 0;
-                wrongCount = testData.analysis.wrong_answers || 0;
-            }
-            
-            // Zobrazení statistik
-            testStats.innerHTML = `
-                <div class="results-details">
-                    <div class="result-stat">
-                        <div class="stat-value">${total_score}/${total_questions * 5}</div>
-                        <div class="stat-label">Celkové bodové hodnocení</div>
-                    </div>
-                    <div class="result-stat">
-                        <div class="stat-value">${correctCount}</div>
-                        <div class="stat-label">Správné odpovědi</div>
-                    </div>
-                    <div class="result-stat">
-                        <div class="stat-value">${wrongCount}</div>
-                        <div class="stat-label">Nesprávné odpovědi</div>
-                    </div>
-                </div>
-            `;
-            
-            // Zobrazení výsledků podle témat
-            topicStats.innerHTML = '';
-            
-            if (testData.topic_results && typeof testData.topic_results === 'object') {
-                Object.entries(testData.topic_results).forEach(([topicId, topicData]) => {
-                    const topicName = topicData.topic_name || `Téma ${topicId}`;
-                    const correctAnswers = topicData.correct || 0;
-                    const totalQuestions = topicData.questions || 0;
-                    const percentageCorrect = totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0;
+                if (data && data.length > 0) {
+                    // Máme diagnostický test
+                    testData = data[0];
+                    diagnosticId = testData.id;
                     
-                    // Určení kategorie podle procentuální úspěšnosti
-                    let categoryClass = 'neutral';
-                    if (percentageCorrect >= 75) {
-                        categoryClass = 'strength';
-                    } else if (percentageCorrect <= 40) {
-                        categoryClass = 'weakness';
-                    }
-                    
-                    // Určení ikony
-                    const iconClass = topicIcons[topicName] || topicIcons.default;
-                    
-                    const topicCard = document.createElement('div');
-                    topicCard.className = `topic-card ${categoryClass}`;
-                    topicCard.innerHTML = `
-                        <div class="topic-header">
-                            <div class="topic-icon">
-                                <i class="fas ${iconClass}"></i>
-                            </div>
-                            <div class="topic-title">${topicName}</div>
-                        </div>
-                        <div class="topic-stats">
-                            <div class="topic-stat">Správně: ${correctAnswers}/${totalQuestions}</div>
-                            <div class="topic-stat">${percentageCorrect}%</div>
-                        </div>
-                        <div class="progress-container">
-                            <div class="progress-bar" style="width: ${percentageCorrect}%"></div>
+                    // Zobrazíme sekci pro vytvoření plánu
+                    currentPlanContent.innerHTML = `
+                        <div class="notest-message" style="background-color: rgba(76, 201, 240, 0.1); border-left-color: var(--success);">
+                            <h3><i class="fas fa-clipboard-check"></i> Diagnostický test dokončen</h3>
+                            <p>Úspěšně jste dokončili diagnostický test. Nyní můžete vytvořit personalizovaný studijní plán.</p>
+                            <button class="btn btn-primary" id="createNewPlanBtn">
+                                <i class="fas fa-plus-circle"></i>
+                                Vytvořit studijní plán
+                            </button>
                         </div>
                     `;
                     
-                    topicStats.appendChild(topicCard);
-                });
-            } else {
-                topicStats.innerHTML = '<p>Nejsou k dispozici žádné údaje o výsledcích podle témat.</p>';
+                    // Přidání event listeneru pro tlačítko
+                    document.getElementById('createNewPlanBtn').addEventListener('click', function() {
+                        switchTab('create');
+                    });
+                } else {
+                    // Nemáme diagnostický test
+                    currentPlanContent.innerHTML = `
+                        <div class="notest-message">
+                            <h3><i class="fas fa-exclamation-circle"></i> Nejprve absolvujte diagnostický test</h3>
+                            <p>Pro vytvoření personalizovaného studijního plánu je nejprve potřeba dokončit diagnostický test, který nám pomůže identifikovat vaše silné a slabé stránky.</p>
+                            <button class="btn btn-primary" id="goToTestBtnCurrent">
+                                <i class="fas fa-play"></i>
+                                Přejít k testu
+                            </button>
+                        </div>
+                    `;
+                    
+                    // Přidání event listeneru pro tlačítko
+                    document.getElementById('goToTestBtnCurrent').addEventListener('click', function() {
+                        window.location.href = '/dashboard/procvicovani/test.html';
+                    });
+                }
+            } catch (error) {
+                console.error('Chyba při kontrole diagnostického testu:', error);
+                currentPlanContent.innerHTML = `
+                    <div class="notest-message">
+                        <h3><i class="fas fa-exclamation-circle"></i> Nepodařilo se zkontrolovat test</h3>
+                        <p>Při kontrole diagnostického testu došlo k chybě. Zkuste to prosím později.</p>
+                    </div>
+                `;
+            } finally {
+                currentPlanLoader.style.display = 'none';
+                currentPlanContent.style.display = 'block';
             }
         }
         
-        // Generování studijního plánu pomocí Gemini API
-        async function generateStudyPlan() {
-            try {
-                // Zobrazit načítání
-                planLoading.style.display = 'flex';
-                planContent.style.display = 'none';
-                
-                // Příprava dat pro Gemini
-                const diagnosticSummary = {
-                    total_score: testData.total_score,
-                    total_questions: testData.total_questions,
-                    topic_results: testData.topic_results || {}
-                };
-                
-                // Výběr slabých témat pro zaměření
-                const weakTopics = [];
-                Object.entries(diagnosticSummary.topic_results).forEach(([topicId, topicData]) => {
-                    const correctAnswers = topicData.correct || 0;
-                    const totalQuestions = topicData.questions || 0;
-                    const percentageCorrect = totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0;
-                    
-                    if (percentageCorrect <= 60) {
-                        weakTopics.push({
-                            topic: topicData.topic_name,
-                            correctPercentage: percentageCorrect
-                        });
-                    }
-                });
-                
-                // Prompt pro Gemini
-                const prompt = `
-                Jsi vzdělávací AI asistent, který vytváří personalizovaný studijní plán pro studenta připravujícího se na přijímací zkoušky z matematiky.
-                
-                # Výsledky diagnostického testu studenta:
-                - Celkové skóre: ${diagnosticSummary.total_score} z ${diagnosticSummary.total_questions * 5} možných bodů
-                - Počet otázek: ${diagnosticSummary.total_questions}
-                
-                # Výsledky podle témat:
-                ${Object.entries(diagnosticSummary.topic_results).map(([topicId, topicData]) => {
-                    const correctAnswers = topicData.correct || 0;
-                    const totalQuestions = topicData.questions || 0;
-                    const percentageCorrect = totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0;
-                    return `- ${topicData.topic_name}: ${correctAnswers}/${totalQuestions} správně (${percentageCorrect}%)`;
-                }).join('\n')}
-                
-                # Slabé oblasti:
-                ${weakTopics.length > 0 ? 
-                    weakTopics.map(topic => `- ${topic.topic}: ${topic.correctPercentage}%`).join('\n') : 
-                    '- Žádné výrazné slabé oblasti nebyly identifikovány'}
-                
-                # Úkol:
-                Vytvoř personalizovaný studijní plán pro zlepšení v matematice, zaměřený zejména na slabé oblasti. Plán by měl obsahovat:
-                
-                1. Stručné shrnutí silných a slabých stránek studenta
-                2. Seznam prioritních témat a podtémat k procvičení
-                3. Doporučené studijní zdroje a metody
-                4. Časový harmonogram na 2-3 týdny
-                
-                Formátuj svou odpověď v Markdown, rozděl ji do sekcí a buď konkrétní v doporučeních.
+        // Vykreslení aktuálního plánu
+        function renderCurrentPlan(plan) {
+            // Klonování šablony
+            const planFragment = currentPlanTemplate.content.cloneNode(true);
+            
+            // Nastavení hodnot
+            planFragment.getElementById('planTitle').textContent = plan.title || 'Personalizovaný studijní plán';
+            planFragment.getElementById('planDate').textContent = `Vytvořeno: ${formatDate(plan.created_at)}`;
+            
+            // Nastavení hodnot statistik
+            const remainingDaysElement = planFragment.getElementById('remainingDays');
+            const completedActivitiesElement = planFragment.getElementById('completedActivities');
+            const priorityTopicElement = planFragment.getElementById('priorityTopic');
+            
+            // Výpočet zbývajících dnů
+            const today = new Date();
+            const estimatedEndDate = plan.estimated_completion_date ? new Date(plan.estimated_completion_date) : new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
+            const daysLeft = Math.max(0, Math.ceil((estimatedEndDate - today) / (1000 * 60 * 60 * 24)));
+            remainingDaysElement.textContent = daysLeft;
+            
+            // Nastavení dokončených aktivit - bude odvozeno z pokroku plánu
+            const progress = plan.progress || 0;
+            // Předpokládejme, že plán má typicky 15 aktivit
+            const totalActivities = 15;
+            const completedActivities = Math.round((progress / 100) * totalActivities);
+            completedActivitiesElement.textContent = `${completedActivities}/${totalActivities}`;
+            
+            // Nastavení prioritních témat
+            let priorityTopic = 'Algebra';
+            if (plan.priority_topics && typeof plan.priority_topics === 'object') {
+                // Najdeme téma s nejvyšší prioritou
+                const topics = Object.keys(plan.priority_topics);
+                if (topics.length > 0) {
+                    priorityTopic = topics[0];
+                }
+            }
+            priorityTopicElement.textContent = priorityTopic;
+            
+            // Nastavení dnešních aktivit
+            const todayScheduleElement = planFragment.getElementById('todaySchedule');
+            renderTodayActivities(todayScheduleElement, plan);
+            
+            // Přidání event listenerů
+            const viewDetailBtn = planFragment.getElementById('viewDetailBtn');
+            const exportCurrentPlanBtn = planFragment.getElementById('exportCurrentPlanBtn');
+            const viewFullScheduleBtn = planFragment.getElementById('viewFullScheduleBtn');
+            const updateProgressBtn = planFragment.getElementById('updateProgressBtn');
+            
+            // Event listenery pro tlačítka
+            viewDetailBtn.addEventListener('click', () => showPlanDetail(plan));
+            exportCurrentPlanBtn.addEventListener('click', () => exportPlanToPDF(plan));
+            viewFullScheduleBtn.addEventListener('click', () => showFullSchedule(plan));
+            updateProgressBtn.addEventListener('click', () => updatePlanProgress(plan));
+            
+            // Vložení do DOM
+            currentPlanContent.innerHTML = '';
+            currentPlanContent.appendChild(planFragment);
+            
+            // Inicializace progress circle
+            initProgressCircle('progressCircle', plan.progress || 0);
+            
+            // Inicializace tooltipů
+            initTooltips();
+            
+            // Zobrazení obsahu
+            currentPlanLoader.style.display = 'none';
+            currentPlanContent.style.display = 'block';
+        }
+        
+        // Vykreslení dnešních aktivit
+        function renderTodayActivities(container, plan) {
+            const today = new Date();
+            const dayOfWeek = today.getDay(); // 0 = neděle, 1 = pondělí, ...
+            const dayNames = ['Neděle', 'Pondělí', 'Úterý', 'Středa', 'Čtvrtek', 'Pátek', 'Sobota'];
+            const dayName = dayNames[dayOfWeek];
+            
+            // Nastavení nadpisu dne
+            const dayNameElement = document.createElement('div');
+            dayNameElement.className = 'day-name';
+            dayNameElement.innerHTML = `
+                ${dayName}
+                <span class="day-focus">Dnes</span>
+            `;
+            container.appendChild(dayNameElement);
+            
+            // Vytvoření aktivit - použijeme ukázkové aktivity, protože nemáme skutečná data
+            const activities = generateSampleActivities(dayOfWeek, plan);
+            const activitiesContainer = document.createElement('div');
+            activitiesContainer.className = 'activities';
+            
+            activities.forEach(activity => {
+                const activityElement = document.createElement('div');
+                activityElement.className = 'activity';
+                activityElement.innerHTML = `
+                    <div class="activity-checkbox">
+                        <input type="checkbox" id="activity-${activity.id}" ${activity.completed ? 'checked' : ''}>
+                        <div class="activity-content">
+                            <div class="activity-title">${activity.title}</div>
+                            <div class="activity-desc">${activity.description}</div>
+                        </div>
+                    </div>
                 `;
                 
-                // Odeslání požadavku na Gemini API
+                // Přidání event listeneru pro checkbox
+                const checkbox = activityElement.querySelector('input[type="checkbox"]');
+                checkbox.addEventListener('change', function() {
+                    toggleActivityCompletion(activity.id, this.checked, plan.id);
+                });
+                
+                activitiesContainer.appendChild(activityElement);
+            });
+            
+            container.appendChild(activitiesContainer);
+        }
+        
+        // Generování ukázkových aktivit podle dne v týdnu
+        function generateSampleActivities(dayOfWeek, plan) {
+            // Vytvoříme 3-5 aktivit podle dne v týdnu
+            const activityCount = 3 + (dayOfWeek % 3); // 3-5 aktivit
+            const activities = [];
+            
+            // Vytvoříme prioritní témata na základě plánu
+            let priorityTopics = [];
+            if (plan.priority_topics && typeof plan.priority_topics === 'object') {
+                priorityTopics = Object.keys(plan.priority_topics);
+            } else {
+                priorityTopics = ['Algebra', 'Geometrie', 'Logické úlohy'];
+            }
+            
+            // Ukázkové aktivity podle dne v týdnu
+            const baseActivities = {
+                1: [ // Pondělí
+                    { title: 'Opakování základních vzorců', topic: 'Algebra' },
+                    { title: 'Řešení lineárních rovnic', topic: 'Algebra' },
+                    { title: 'Procvičování kvadratických rovnic', topic: 'Algebra' }
+                ],
+                2: [ // Úterý
+                    { title: 'Trojúhelníky a jejich vlastnosti', topic: 'Geometrie' },
+                    { title: 'Pythagorova věta v praxi', topic: 'Geometrie' },
+                    { title: 'Výpočet obsahů a obvodů', topic: 'Geometrie' }
+                ],
+                3: [ // Středa
+                    { title: 'Logické hádanky', topic: 'Logické úlohy' },
+                    { title: 'Kombinatorické problémy', topic: 'Logické úlohy' },
+                    { title: 'Slovní úlohy', topic: 'Logické úlohy' }
+                ],
+                4: [ // Čtvrtek
+                    { title: 'Práce s funkcemi', topic: 'Algebra' },
+                    { title: 'Grafy funkcí', topic: 'Algebra' },
+                    { title: 'Rovnice s parametrem', topic: 'Algebra' }
+                ],
+                5: [ // Pátek
+                    { title: 'Stereometrie základy', topic: 'Geometrie' },
+                    { title: 'Výpočty objemů těles', topic: 'Geometrie' },
+                    { title: 'Řezy těles', topic: 'Geometrie' }
+                ],
+                6: [ // Sobota
+                    { title: 'Komplexní příklady', topic: 'Algebra' },
+                    { title: 'Test z probrané látky', topic: 'Algebra' },
+                    { title: 'Opakování problematických oblastí', topic: 'Algebra' }
+                ],
+                0: [ // Neděle
+                    { title: 'Souhrn týdenního pokroku', topic: 'Všeobecné' },
+                    { title: 'Příprava na další týden', topic: 'Všeobecné' },
+                    { title: 'Opakování všech témat', topic: 'Všeobecné' }
+                ]
+            };
+            
+            // Vybereme aktivity pro daný den
+            const dayActivities = baseActivities[dayOfWeek] || baseActivities[0];
+            
+            // Vytvoříme aktivity s náhodnými ID a stavem dokončení
+            for (let i = 0; i < Math.min(activityCount, dayActivities.length); i++) {
+                const baseActivity = dayActivities[i];
+                activities.push({
+                    id: `act-${Date.now()}-${i}`,
+                    title: baseActivity.title,
+                    description: `Procvičení tématu: ${baseActivity.topic}`,
+                    completed: Math.random() > 0.7, // 30% šance, že je aktivita dokončena
+                    topic: baseActivity.topic
+                });
+            }
+            
+            return activities;
+        }
+        
+        // Přepínání dokončení aktivity
+        function toggleActivityCompletion(activityId, completed, planId) {
+            // Tato funkce by v reálném nasazení aktualizovala data v databázi
+            console.log(`Aktivita ${activityId} byla označena jako ${completed ? 'dokončená' : 'nedokončená'} v plánu ${planId}`);
+            
+            // Aktualizace pokroku plánu - ve skutečné aplikaci by byl pokrok vypočítán podle dokončených aktivit
+            if (currentStudyPlan && currentStudyPlan.id === planId) {
+                // Přepočítáme pokrok podle všech checkboxů
+                const allCheckboxes = document.querySelectorAll('#todaySchedule input[type="checkbox"]');
+                const totalCount = allCheckboxes.length;
+                const checkedCount = Array.from(allCheckboxes).filter(cb => cb.checked).length;
+                
+                const newProgress = totalCount > 0 ? Math.round((checkedCount / totalCount) * 100) : 0;
+                
+                // Aktualizace UI
+                updateProgressUI(newProgress);
+                
+                // Aktualizace v databázi - bude implementováno v reálném nasazení
+                // updatePlanProgressInDatabase(planId, newProgress);
+            }
+        }
+        
+        // Aktualizace UI pokroku
+        function updateProgressUI(progress) {
+            const progressValue = document.getElementById('progressValue');
+            if (progressValue) {
+                progressValue.textContent = `${progress}%`;
+            }
+            
+            // Aktualizace progress circle
+            updateProgressCircle('progressCircle', progress);
+        }
+        
+        // Kontrola dostupnosti vytvoření plánu
+        async function checkPlanCreationAvailability() {
+            planCreateContent.innerHTML = `<div class="loader-container"><div class="loader"></div></div>`;
+            
+            try {
+                if (!currentUser) {
+                    throw new Error('Uživatel není přihlášen');
+                }
+                
+                // Načtení nejnovějšího plánu
+                const { data: plans, error } = await supabaseClient
+                    .from('study_plans')
+                    .select('created_at')
+                    .eq('user_id', currentUser.id)
+                    .order('created_at', { ascending: false })
+                    .limit(1);
+                
+                if (error) throw error;
+                
+                if (plans && plans.length > 0) {
+                    // Máme plán, zkontrolujeme, zda je starší než týden
+                    const lastPlanDate = new Date(plans[0].created_at);
+                    const oneWeekAgo = new Date();
+                    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+                    
+                    if (lastPlanDate > oneWeekAgo) {
+                        // Plán byl vytvořen v posledním týdnu, takže nelze vytvořit nový
+                        planCreateAllowed = false;
+                        
+                        // Výpočet času do příštího plánu
+                        const nextPlanDate = new Date(lastPlanDate);
+                        nextPlanDate.setDate(nextPlanDate.getDate() + 7);
+                        nextPlanCreateTime = nextPlanDate;
+                        
+                        // Zobrazení uzamčené sekce
+                        renderLockedPlanSection();
+                    } else {
+                        // Plán je starší než týden, můžeme vytvořit nový
+                        planCreateAllowed = true;
+                        await renderPlanCreationForm();
+                    }
+                } else {
+                    // Nemáme žádný plán, můžeme vytvořit nový
+                    planCreateAllowed = true;
+                    await renderPlanCreationForm();
+                }
+            } catch (error) {
+                console.error('Chyba při kontrole dostupnosti vytvoření plánu:', error);
+                planCreateContent.innerHTML = `
+                    <div class="notest-message">
+                        <h3><i class="fas fa-exclamation-circle"></i> Nepodařilo se zkontrolovat dostupnost</h3>
+                        <p>Při kontrole dostupnosti vytvoření plánu došlo k chybě. Zkuste to prosím později.</p>
+                    </div>
+                `;
+            }
+        }
+        
+        // Vykreslení uzamčené sekce pro vytvoření plánu
+        function renderLockedPlanSection() {
+            // Klonování šablony
+            const lockedFragment = lockedPlanTemplate.content.cloneNode(true);
+            
+            // Aktualizace času
+            updateNextPlanTimer(lockedFragment.getElementById('nextPlanTimer'));
+            
+            // Přidání event listeneru pro tlačítko
+            const viewCurrentPlanBtn = lockedFragment.getElementById('viewCurrentPlanBtnLocked');
+            viewCurrentPlanBtn.addEventListener('click', function() {
+                switchTab('current');
+            });
+            
+            // Vložení do DOM
+            planCreateContent.innerHTML = '';
+            planCreateContent.appendChild(lockedFragment);
+            
+            // Spuštění časovače
+            startPlanTimer();
+        }
+        
+        // Spuštění časovače pro vytvoření plánu
+        function startPlanTimer() {
+            if (planTimerInterval) {
+                clearInterval(planTimerInterval);
+            }
+            
+            planTimerInterval = setInterval(() => {
+                const timerElement = document.getElementById('nextPlanTimer');
+                if (timerElement) {
+                    updateNextPlanTimer(timerElement);
+                } else {
+                    clearInterval(planTimerInterval);
+                }
+            }, 1000);
+        }
+        
+        // Aktualizace časovače pro vytvoření plánu
+        function updateNextPlanTimer(timerElement) {
+            if (!nextPlanCreateTime) return;
+            
+            const now = new Date();
+            const timeDiff = nextPlanCreateTime - now;
+            
+            if (timeDiff <= 0) {
+                timerElement.textContent = 'Nyní můžete vytvořit nový plán';
+                clearInterval(planTimerInterval);
+                planCreateAllowed = true;
+                // Automatické obnovení obsahu
+                setTimeout(() => {
+                    checkPlanCreationAvailability();
+                }, 1000);
+                return;
+            }
+            
+            // Výpočet dnů, hodin, minut a sekund
+            const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((timeDiff % (1000 * 60)) / 1000);
+            
+            timerElement.textContent = `${days} ${getDeclension(days, 'den', 'dny', 'dní')} ${hours} ${getDeclension(hours, 'hodina', 'hodiny', 'hodin')} ${minutes} ${getDeclension(minutes, 'minuta', 'minuty', 'minut')} ${seconds} ${getDeclension(seconds, 'sekunda', 'sekundy', 'sekund')}`;
+        }
+        
+        // Funkce pro správný tvar slova podle čísla
+        function getDeclension(number, singular, plural1, plural2) {
+            if (number === 1) return singular;
+            if (number >= 2 && number <= 4) return plural1;
+            return plural2;
+        }
+        
+        // Vykreslení formuláře pro vytvoření plánu
+        async function renderPlanCreationForm() {
+            try {
+                // Nejprve zkontrolujeme, zda máme diagnostický test
+                if (!diagnosticId) {
+                    const { data, error } = await supabaseClient
+                        .from('user_diagnostics')
+                        .select('id, total_score, total_questions, topic_results, created_at')
+                        .eq('user_id', currentUser.id)
+                        .order('created_at', { ascending: false })
+                        .limit(1);
+                    
+                    if (error) throw error;
+                    
+                    if (data && data.length > 0) {
+                        testData = data[0];
+                        diagnosticId = data[0].id;
+                    } else {
+                        // Nemáme diagnostický test
+                        planCreateContent.innerHTML = `
+                            <div class="notest-message">
+                                <h3><i class="fas fa-exclamation-circle"></i> Nejprve absolvujte diagnostický test</h3>
+                                <p>Pro vytvoření personalizovaného studijního plánu je nejprve potřeba dokončit diagnostický test, který nám pomůže identifikovat vaše silné a slabé stránky.</p>
+                                <button class="btn btn-primary" id="goToTestBtnCreate">
+                                    <i class="fas fa-play"></i>
+                                    Přejít k testu
+                                </button>
+                            </div>
+                        `;
+                        
+                        // Přidání event listeneru pro tlačítko
+                        document.getElementById('goToTestBtnCreate').addEventListener('click', function() {
+                            window.location.href = '/dashboard/procvicovani/test.html';
+                        });
+                        return;
+                    }
+                }
+                
+                // Máme diagnostický test, můžeme vykreslit formulář
+                const formFragment = createPlanFormTemplate.content.cloneNode(true);
+                
+                // Nastavení statistik testu
+                const testStatsElement = formFragment.getElementById('createTestStats');
+                renderTestStatistics(testStatsElement, testData);
+                
+                // Přidání event listeneru pro tlačítko
+                const generatePlanBtn = formFragment.getElementById('generatePlanBtn');
+                generatePlanBtn.addEventListener('click', function() {
+                    this.disabled = true;
+                    this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generuji plán...';
+                    generateStudyPlan();
+                });
+                
+                // Vložení do DOM
+                planCreateContent.innerHTML = '';
+                planCreateContent.appendChild(formFragment);
+                
+            } catch (error) {
+                console.error('Chyba při vykreslování formuláře pro vytvoření plánu:', error);
+                planCreateContent.innerHTML = `
+                    <div class="notest-message">
+                        <h3><i class="fas fa-exclamation-circle"></i> Nepodařilo se připravit formulář</h3>
+                        <p>Při přípravě formuláře pro vytvoření plánu došlo k chybě. Zkuste to prosím později.</p>
+                    </div>
+                `;
+            }
+        }
+        
+        // Vykreslení statistik testu
+        function renderTestStatistics(container, testData) {
+            if (!testData) return;
+            
+            const totalScore = testData.total_score || 0;
+            const totalQuestions = testData.total_questions || 10;
+            const percentage = Math.round((totalScore / 50) * 100); // Předpokládáme maximum 50 bodů
+            
+            container.innerHTML = `
+                <div class="test-stat-card">
+                    <div class="test-stat-value">${totalScore}/50</div>
+                    <div class="test-stat-label">Celkové skóre</div>
+                </div>
+                <div class="test-stat-card">
+                    <div class="test-stat-value">${percentage}%</div>
+                    <div class="test-stat-label">Úspěšnost</div>
+                </div>
+                <div class="test-stat-card">
+                    <div class="test-stat-value">${formatDate(testData.created_at)}</div>
+                    <div class="test-stat-label">Datum testu</div>
+                </div>
+            `;
+        }
+        
+        // Generování studijního plánu
+        async function generateStudyPlan() {
+            if (!testData || !diagnosticId || !currentUser) {
+                alert('Nelze vygenerovat plán. Chybí některé potřebné údaje.');
+                return;
+            }
+            
+            // Zobrazení sekce s plánem a načítáním
+            createPlanSection.style.display = 'none';
+            planSection.style.display = 'block';
+            planLoading.style.display = 'flex';
+            planContent.style.display = 'none';
+            planActions.style.display = 'none';
+            
+            try {
+                // Připravíme data pro Gemini API
+                const topicResults = testData.topic_results || {};
+                
+                // Vytvoříme seznam témat s výsledky
+                const topicsData = Object.entries(topicResults).map(([topicId, data]) => {
+                    return {
+                        id: topicId,
+                        name: data.topic_name || topicMap[topicId] || `Téma ${topicId}`,
+                        questions: data.questions || 0,
+                        correct: data.correct || 0,
+                        score: data.score || 0,
+                        percentage: data.questions > 0 ? Math.round((data.correct / data.questions) * 100) : 0
+                    };
+                });
+                
+                // Seřazení témat podle úspěšnosti (vzestupně) - nejslabší témata první
+                topicsData.sort((a, b) => a.percentage - b.percentage);
+                
+                // Vytvoření prioritního seznamu témat
+                const priorityTopics = {};
+                topicsData.forEach((topic, index) => {
+                    priorityTopics[topic.name] = {
+                        priority: index + 1,
+                        performance: topic.percentage,
+                        focus_level: topic.percentage < 50 ? 'high' : topic.percentage < 75 ? 'medium' : 'low'
+                    };
+                });
+                
+                // Generování obsahu plánu pomocí Gemini API
+                const planContent = await generatePlanContentWithGemini(testData, topicsData);
+                
+                // Formátování dnešního data pro výpočet předpokládaného data dokončení
+                const today = new Date();
+                const completionDate = new Date(today);
+                completionDate.setDate(completionDate.getDate() + 7); // Jedna týden od dneška
+                
+                // Vytvoření nového plánu v databázi
+                const newPlan = {
+                    user_id: currentUser.id,
+                    title: "Matematický studijní plán",
+                    subject: "Matematika",
+                    status: "active",
+                    diagnostic_id: diagnosticId,
+                    priority_topics: priorityTopics,
+                    estimated_completion_date: completionDate.toISOString().split('T')[0],
+                    progress: 0,
+                    is_auto_adjusted: true,
+                    created_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString(),
+                    plan_content: planContent
+                };
+                
+                // Uložení plánu do databáze
+                const { data, error } = await supabaseClient
+                    .from('study_plans')
+                    .insert(newPlan)
+                    .select()
+                    .single();
+                
+                if (error) throw error;
+                
+                // Uložení nově vytvořeného plánu do globální proměnné
+                currentStudyPlan = data;
+                
+                // Zobrazení vygenerovaného plánu
+                displayPlanContent(planContent);
+                
+                // Zobrazení tlačítek pro akce s plánem
+                planActions.style.display = 'flex';
+                
+                // Přidání event listenerů pro tlačítka
+                document.getElementById('savePlanBtn').addEventListener('click', function() {
+                    switchTab('current');
+                    loadCurrentPlan();
+                });
+                
+                document.getElementById('exportPlanBtn').addEventListener('click', function() {
+                    exportPlanToPDF(currentStudyPlan);
+                });
+                
+            } catch (error) {
+                console.error('Chyba při generování studijního plánu:', error);
+                planContent.innerHTML = `
+                    <div class="notest-message">
+                        <h3><i class="fas fa-exclamation-circle"></i> Nepodařilo se vygenerovat plán</h3>
+                        <p>Při generování studijního plánu došlo k chybě. Zkuste to prosím později.</p>
+                    </div>
+                `;
+                planContent.style.display = 'block';
+                planLoading.style.display = 'none';
+            }
+        }
+        
+        // Generování obsahu plánu pomocí Gemini API
+        async function generatePlanContentWithGemini(testData, topicsData) {
+            try {
+                const totalScore = testData.total_score || 0;
+                const totalQuestions = testData.total_questions || 10;
+                
+                // Vytvoříme prompt pro Gemini
+                const prompt = `
+                Jsi vzdělávací AI asistent, který vytváří týdenní studijní plány pro žáky připravující se na přijímací zkoušky z matematiky.
+
+                # Diagnostické výsledky žáka:
+                - Celkové skóre: ${totalScore}/50 bodů
+                - Počet otázek: ${totalQuestions}
+                
+                # Výsledky podle témat:
+                ${topicsData.map(topic => `
+                - ${topic.name}: ${topic.correct}/${topic.questions} správných odpovědí (${topic.percentage}%)
+                `).join('')}
+                
+                # Pokyny:
+                Vytvoř detailní týdenní studijní plán v češtině, který:
+                1. Je zaměřený na zlepšení slabších oblastí (témata s nižším procentem úspěšnosti)
+                2. Udržuje a rozvíjí silné stránky
+                3. Obsahuje konkrétní aktivity a cvičení pro každý den v týdnu
+                4. Zahrnuje tipy pro efektivní studium
+                5. Má jasně definované cíle pro každé téma
+                
+                # Formát studijního plánu:
+                1. Začni názvem a krátkým úvodem, který shrne silné a slabé stránky žáka
+                2. Poté uveď hlavní studijní cíle pro týden
+                3. Následně vytvoř denní harmonogram pro každý den v týdnu (pondělí až neděle)
+                4. Pro každý den napiš 3-4 konkrétní aktivity/cvičení, jejich stručný popis a odhadovanou délku (15-30 minut na aktivitu)
+                5. Na závěr přidej sekci s tipy pro efektivní studium a doporučeními pro další postup
+                
+                Celý plán musí být napsaný v Markdown formátu, přehledně strukturovaný pomocí nadpisů, odrážek a zvýrazněného textu.
+                `;
+
+                // Odešleme požadavek na Gemini API
                 const requestData = {
                     contents: [{
                         parts: [{
@@ -1264,13 +2486,13 @@
                         }]
                     }],
                     generationConfig: {
-                        temperature: 0.2,
+                        temperature: 0.7,
                         topK: 40,
                         topP: 0.95,
                         maxOutputTokens: 8192,
                     }
                 };
-                
+
                 const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
                     method: 'POST',
                     headers: {
@@ -1278,13 +2500,13 @@
                     },
                     body: JSON.stringify(requestData)
                 });
-                
+
                 // Zpracujeme odpověď
                 const data = await response.json();
                 if (!response.ok) {
                     throw new Error(data.error?.message || 'Chyba při komunikaci s Gemini API');
                 }
-                
+
                 // Extrahujeme textovou odpověď
                 const geminiResponse = data.candidates[0]?.content?.parts[0]?.text;
                 
@@ -1292,136 +2514,861 @@
                     throw new Error('Prázdná odpověď od Gemini API');
                 }
                 
-                // Zobrazíme plán
-                displayStudyPlan(geminiResponse);
+                return geminiResponse;
                 
-                // Zobrazíme sekci s rozvrhem
-                scheduleSection.style.display = 'block';
-                
-                // Generujeme týdenní rozvrh
-                generateWeeklySchedule(weakTopics);
             } catch (error) {
-                console.error('Chyba při generování studijního plánu:', error);
-                planLoading.style.display = 'none';
-                planContent.style.display = 'block';
-                planContent.innerHTML = `
-                    <h3>Nepodařilo se vytvořit studijní plán</h3>
-                    <p>Omlouváme se, ale došlo k chybě při generování vašeho studijního plánu. Zkuste to prosím později znovu.</p>
-                    <p>Chyba: ${error.message}</p>
-                `;
+                console.error('Chyba při generování obsahu plánu:', error);
+                return '# Nepodařilo se vygenerovat studijní plán\n\nPři generování studijního plánu došlo k chybě. Zkuste to prosím později.';
             }
         }
         
-        // Zobrazení studijního plánu
-        function displayStudyPlan(planText) {
-            planLoading.style.display = 'none';
+        // Zobrazení obsahu plánu
+        function displayPlanContent(content) {
+            // Převedení Markdown na HTML
+            const htmlContent = marked.parse(content);
+            
+            // Vložení do DOM
+            planContent.innerHTML = htmlContent;
+            
+            // Zobrazení obsahu
             planContent.style.display = 'block';
-            
-            // Použití marked.js pro převod Markdown na HTML
-            planContent.innerHTML = marked.parse(planText);
+            planLoading.style.display = 'none';
         }
         
-        // Generování týdenního rozvrhu
-        function generateWeeklySchedule(weakTopics) {
+        // Export plánu do PDF
+        function exportPlanToPDF(plan) {
+            if (!plan) return;
+            
+            // Vytvoříme element pro export
+            const exportContainer = document.createElement('div');
+            exportContainer.className = 'plan-export-content';
+            
+            // Vytvoříme hlavičku plánu
+            exportContainer.innerHTML = `
+                <h1 style="text-align: center; color: #4361ee; margin-bottom: 1.5rem;">Personalizovaný studijní plán</h1>
+                <p style="text-align: center; margin-bottom: 2rem;">Vytvořeno: ${formatDate(plan.created_at)}</p>
+            `;
+            
+            // Přidáme obsah plánu
+            const contentDiv = document.createElement('div');
+            contentDiv.innerHTML = plan.plan_content ? marked.parse(plan.plan_content) : planContent.innerHTML;
+            exportContainer.appendChild(contentDiv);
+            
+            // Přidáme zápatí
+            exportContainer.innerHTML += `
+                <div style="margin-top: 2rem; text-align: center; font-size: 0.9rem; color: #6c757d;">
+                    <p>© Justax - Personalizované studijní plány</p>
+                </div>
+            `;
+            
+            // Nastavení možností pro PDF
+            const options = {
+                margin: 10,
+                filename: 'studijni-plan.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+            
+            // Export do PDF
+            html2pdf().from(exportContainer).set(options).save();
+        }
+        
+        // Načtení historie plánů
+        async function loadPlanHistory() {
+            historyLoader.style.display = 'flex';
+            historyPlanContent.innerHTML = '';
+            
+            try {
+                if (!currentUser) {
+                    throw new Error('Uživatel není přihlášen');
+                }
+                
+                // Načtení plánů z databáze
+                const { data: plans, error } = await supabaseClient
+                    .from('study_plans')
+                    .select('id, title, created_at, status, progress')
+                    .eq('user_id', currentUser.id)
+                    .order('created_at', { ascending: false });
+                
+                if (error) throw error;
+                
+                if (plans && plans.length > 0) {
+                    // Uložení historie plánů
+                    previousPlans = plans;
+                    
+                    // Vykreslení historie plánů
+                    renderPlanHistory(plans);
+                } else {
+                    // Nemáme žádné plány
+                    historyPlanContent.innerHTML = `
+                        <div class="notest-message">
+                            <h3><i class="fas fa-info-circle"></i> Zatím nemáte žádné studijní plány</h3>
+                            <p>Ještě jste nevytvořili žádný studijní plán. Vytvořte svůj první plán nyní!</p>
+                            <button class="btn btn-primary" id="createFirstPlanBtn">
+                                <i class="fas fa-plus-circle"></i>
+                                Vytvořit první plán
+                            </button>
+                        </div>
+                    `;
+                    
+                    // Přidání event listeneru pro tlačítko
+                    document.getElementById('createFirstPlanBtn').addEventListener('click', function() {
+                        switchTab('create');
+                    });
+                }
+            } catch (error) {
+                console.error('Chyba při načítání historie plánů:', error);
+                historyPlanContent.innerHTML = `
+                    <div class="notest-message">
+                        <h3><i class="fas fa-exclamation-circle"></i> Nepodařilo se načíst historii</h3>
+                        <p>Při načítání historie plánů došlo k chybě. Zkuste to prosím později.</p>
+                    </div>
+                `;
+            } finally {
+                historyLoader.style.display = 'none';
+            }
+        }
+        
+        // Vykreslení historie plánů
+        function renderPlanHistory(plans) {
+            historyPlanContent.innerHTML = '';
+            
+            plans.forEach(plan => {
+                // Klonování šablony
+                const historyFragment = historyItemTemplate.content.cloneNode(true);
+                
+                // Nastavení hodnot
+                const historyItem = historyFragment.querySelector('.history-item');
+                historyItem.dataset.planId = plan.id;
+                
+                historyFragment.querySelector('.history-date').textContent = `Vytvořeno: ${formatDate(plan.created_at)}`;
+                historyFragment.querySelector('.history-title').textContent = plan.title || "Studijní plán";
+                
+                // Nastavení statusu
+                const statusElement = historyFragment.querySelector('.history-status');
+                statusElement.textContent = plan.status === 'active' ? 'Aktivní' : 
+                                         plan.status === 'completed' ? 'Dokončený' : 'Neaktivní';
+                statusElement.className = `history-status ${plan.status}`;
+                
+                // Přidání event listeneru pro kliknutí na položku
+                historyItem.addEventListener('click', function() {
+                    showPlanDetail(plan);
+                });
+                
+                // Vložení do DOM
+                historyPlanContent.appendChild(historyFragment);
+            });
+        }
+        
+        // Zobrazení detailu plánu
+        function showPlanDetail(plan) {
+            // TODO: Implementace zobrazení detailu plánu
+            alert(`Detail plánu ${plan.title || 'Studijní plán'}`);
+            
+            // V reálné implementaci by zde bylo přesměrování na detail plánu nebo otevření modálního okna
+        }
+        
+        // Zobrazení celého harmonogramu
+        function showFullSchedule(plan) {
+            // TODO: Implementace zobrazení celého harmonogramu
+            alert('Zobrazení celého harmonogramu');
+            
+            // V reálné implementaci by zde bylo přepnutí na záložku s kompletním harmonogramem
+            scheduleSection.style.display = 'block';
+            renderWeeklySchedule(plan);
+        }
+        
+        // Vykreslení týdenního harmonogramu
+        function renderWeeklySchedule(plan) {
+            // TODO: Implementace vykreslení týdenního harmonogramu
+            dailySchedule.innerHTML = '<div class="loader-container"><div class="loader"></div></div>';
+        }
+        
+        // Aktualizace pokroku plánu
+        function updatePlanProgress(plan) {
+            // TODO: Implementace aktualizace pokroku plánu
+            alert(`Aktualizace pokroku plánu ${plan.title || 'Studijní plán'}`);
+        }
+        
+        // Inicializace progress circle
+        function initProgressCircle(canvasId, progressValue) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return;
+            
+            const ctx = canvas.getContext('2d');
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const radius = 65;
+            
+            // Vymazání předchozího obsahu
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Kruh pozadí
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+            ctx.lineWidth = 10;
+            ctx.strokeStyle = '#dee2e6';
+            ctx.stroke();
+            
+            // Výpočet úhlu pro aktuální hodnotu
+            const angle = (progressValue / 100) * 2 * Math.PI;
+            
+            // Vykreslení progressu
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, -Math.PI / 2, -Math.PI / 2 + angle);
+            ctx.lineWidth = 10;
+            
+            // Gradient pro progress
+            const gradient = ctx.createLinearGradient(0, 0, canvas.width, 0);
+            gradient.addColorStop(0, '#4361ee');
+            gradient.addColorStop(1, '#3a0ca3');
+            ctx.strokeStyle = gradient;
+            ctx.stroke();
+            
+            // Uložení instance grafu
+            progressCircleInstance = {
+                canvas,
+                ctx,
+                centerX,
+                centerY,
+                radius,
+                value: progressValue
+            };
+        }
+        
+        // Aktualizace progress circle
+        function updateProgressCircle(canvasId, progressValue) {
+            if (!progressCircleInstance) {
+                initProgressCircle(canvasId, progressValue);
+                return;
+            }
+            
+            const { ctx, centerX, centerY, radius } = progressCircleInstance;
+            
+            // Vymazání předchozího obsahu
+            ctx.clearRect(0, 0, progressCircleInstance.canvas.width, progressCircleInstance.canvas.height);
+            
+            // Kruh pozadí
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+            ctx.lineWidth = 10;
+            ctx.strokeStyle = '#dee2e6';
+            ctx.stroke();
+            
+            // Výpočet úhlu pro aktuální hodnotu
+            const angle = (progressValue / 100) * 2 * Math.PI;
+            
+            // Vykreslení progressu
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, -Math.PI / 2, -Math.PI / 2 + angle);
+            ctx.lineWidth = 10;
+            
+            // Gradient pro progress
+            const gradient = ctx.createLinearGradient(0, 0, progressCircleInstance.canvas.width, 0);
+            gradient.addColorStop(0, '#4361ee');
+            gradient.addColorStop(1, '#3a0ca3');
+            ctx.strokeStyle = gradient;
+            ctx.stroke();
+            
+            // Aktualizace hodnoty
+            progressCircleInstance.value = progressValue;
+        }
+        
+        // Inicializace tooltipů
+        function initTooltips() {
+            $('.btn-tooltip').tooltipster({
+                theme: 'tooltipster-shadow',
+                animation: 'fade',
+                delay: 100,
+                side: 'top'
+            });
+        }
+        
+                // Formátování data
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('cs-CZ', { day: '2-digit', month: '2-digit', year: 'numeric' });
+        }
+        
+        // Přepínání mobilního menu
+        function toggleMobileMenu() {
+            document.body.classList.toggle('mobile-menu-visible');
+        }
+        
+        // Sledování změny velikosti okna pro správné zobrazení sidebaru
+        window.addEventListener('resize', function() {
+            const width = window.innerWidth;
+            if (width > 576) {
+                document.body.classList.remove('mobile-menu-visible');
+            }
+        });
+        
+        // Generování harmonogramu pro celý týden
+        function generateWeeklySchedule(plan) {
             const days = ['Pondělí', 'Úterý', 'Středa', 'Čtvrtek', 'Pátek', 'Sobota', 'Neděle'];
-            const topicsForFocus = weakTopics.length > 0 ? 
-                weakTopics.map(t => t.topic) : 
-                Object.values(testData.topic_results || {}).map(t => t.topic_name);
+            let scheduleHTML = '';
             
-            dailySchedule.innerHTML = '';
-            
-            // Přiřadíme témata k dnům v týdnu (Po-Pá)
-            const workDays = days.slice(0, 5);
-            
-            workDays.forEach((day, index) => {
-                // Rotace témat - každý den jiné téma
-                const focusTopic = topicsForFocus[index % topicsForFocus.length];
+            days.forEach((day, index) => {
+                const isDayToday = new Date().getDay() === (index + 1) % 7;
+                const dayClass = isDayToday ? 'today' : '';
                 
-                const dayElement = document.createElement('div');
-                dayElement.className = 'schedule-day';
+                scheduleHTML += `
+                    <div class="schedule-day ${dayClass}">
+                        <div class="day-name">
+                            ${day}
+                            ${isDayToday ? '<span class="day-focus">Dnes</span>' : ''}
+                        </div>
+                        <div class="activities">
+                `;
                 
-                const iconClass = dayIcons[day] || 'fa-calendar-day';
+                // Generování aktivit pro daný den
+                const activities = generateSampleActivities(index + 1, plan);
                 
-                dayElement.innerHTML = `
-                    <div class="day-name">
-                        <span><i class="fas ${iconClass}"></i> ${day}</span>
-                        <span class="day-focus">Zaměření: ${focusTopic}</span>
-                    </div>
-                    <div class="activities">
+                activities.forEach(activity => {
+                    scheduleHTML += `
                         <div class="activity">
-                            <div class="activity-time">16:00</div>
-                            <div class="activity-content">
-                                <div class="activity-title">Studium teorie</div>
-                                <div class="activity-desc">Prostudovat teorii k tématu ${focusTopic}</div>
+                            <div class="activity-checkbox">
+                                <input type="checkbox" id="activity-${activity.id}" ${activity.completed ? 'checked' : ''}>
+                                <div class="activity-content">
+                                    <div class="activity-title">${activity.title}</div>
+                                    <div class="activity-desc">${activity.description}</div>
+                                </div>
                             </div>
                         </div>
-                        <div class="activity">
-                            <div class="activity-time">17:30</div>
-                            <div class="activity-content">
-                                <div class="activity-title">Procvičování</div>
-                                <div class="activity-desc">Řešení praktických úloh z aplikace Justax</div>
-                            </div>
-                        </div>
-                        <div class="activity">
-                            <div class="activity-time">19:00</div>
-                            <div class="activity-content">
-                                <div class="activity-title">Opakování</div>
-                                <div class="activity-desc">Rekapitulace naučených konceptů</div>
-                            </div>
+                    `;
+                });
+                
+                scheduleHTML += `
                         </div>
                     </div>
                 `;
-                
-                dailySchedule.appendChild(dayElement);
             });
             
-            // Víkend - souhrn a opakování
-            const weekendDays = days.slice(5);
+            return scheduleHTML;
+        }
+        
+        // Aktualizace všech UI prvků po změně dat
+        function refreshPlanUI() {
+            if (currentTab === 'current') {
+                loadCurrentPlan();
+            } else if (currentTab === 'history') {
+                loadPlanHistory();
+            } else if (currentTab === 'create') {
+                checkPlanCreationAvailability();
+            }
+        }
+        
+        // Funkce pro kontrolu stavu plánu a jeho automatickou aktualizaci
+        async function checkPlanStatus() {
+            if (!currentUser) return;
             
-            weekendDays.forEach(day => {
-                const dayElement = document.createElement('div');
-                dayElement.className = 'schedule-day';
+            try {
+                const now = new Date();
                 
-                const iconClass = dayIcons[day] || 'fa-calendar-day';
+                // Kontrola aktivních plánů, jejichž datum dokončení již uplynulo
+                const { data, error } = await supabaseClient
+                    .from('study_plans')
+                    .select('id, estimated_completion_date')
+                    .eq('user_id', currentUser.id)
+                    .eq('status', 'active')
+                    .lt('estimated_completion_date', now.toISOString().split('T')[0]);
                 
-                dayElement.innerHTML = `
-                    <div class="day-name">
-                        <span><i class="fas ${iconClass}"></i> ${day}</span>
-                        <span class="day-focus">Souhrnné opakování</span>
-                    </div>
-                    <div class="activities">
-                        <div class="activity">
-                            <div class="activity-time">10:00</div>
-                            <div class="activity-content">
-                                <div class="activity-title">Souhrnný test</div>
-                                <div class="activity-desc">Testování znalostí ze všech témat tohoto týdne</div>
-                            </div>
-                        </div>
-                        <div class="activity">
-                            <div class="activity-time">14:00</div>
-                            <div class="activity-content">
-                                <div class="activity-title">Opakování problémových oblastí</div>
-                                <div class="activity-desc">Zaměření na témata, která v testu činila potíže</div>
-                            </div>
-                        </div>
-                    </div>
-                `;
+                if (error) throw error;
                 
-                dailySchedule.appendChild(dayElement);
+                // Pokud máme nějaké plány, které by měly být označeny jako ukončené
+                if (data && data.length > 0) {
+                    // Aktualizace stavu plánů v databázi
+                    const planIds = data.map(plan => plan.id);
+                    
+                    const { updateError } = await supabaseClient
+                        .from('study_plans')
+                        .update({ status: 'completed', updated_at: now.toISOString() })
+                        .in('id', planIds);
+                    
+                    if (updateError) throw updateError;
+                    
+                    // Aktualizace UI
+                    refreshPlanUI();
+                }
+            } catch (error) {
+                console.error('Chyba při kontrole stavu plánů:', error);
+            }
+        }
+        
+        // Automatická kontrola stavu plánů při načtení stránky
+        setTimeout(checkPlanStatus, 2000);
+        
+        // Funkce pro asynchronní ukládání pokroku plánu
+        async function updatePlanProgressInDatabase(planId, progress) {
+            if (!planId) return;
+            
+            try {
+                const { error } = await supabaseClient
+                    .from('study_plans')
+                    .update({ 
+                        progress: progress, 
+                        updated_at: new Date().toISOString() 
+                    })
+                    .eq('id', planId);
+                
+                if (error) throw error;
+                
+                console.log(`Pokrok plánu ${planId} byl aktualizován na ${progress}%`);
+                
+                // Aktualizace lokálních dat
+                if (currentStudyPlan && currentStudyPlan.id === planId) {
+                    currentStudyPlan.progress = progress;
+                }
+            } catch (error) {
+                console.error('Chyba při aktualizaci pokroku plánu:', error);
+            }
+        }
+        
+        // Debounce funkce pro omezení počtu volání API
+        function debounce(func, wait) {
+            let timeout;
+            return function(...args) {
+                const context = this;
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(context, args), wait);
+            };
+        }
+        
+        // Debounced verze funkce pro aktualizaci pokroku
+        const debouncedUpdateProgress = debounce(updatePlanProgressInDatabase, 500);
+        
+        // Implementace sledování pokroku (checkboxy)
+        function setupProgressTracking() {
+            document.addEventListener('change', function(event) {
+                if (event.target && event.target.type === 'checkbox' && currentStudyPlan) {
+                    // Výpočet nového pokroku na základě zaškrtnutých checkboxů
+                    const allCheckboxes = document.querySelectorAll('#dailySchedule input[type="checkbox"], #todaySchedule input[type="checkbox"]');
+                    const totalCount = allCheckboxes.length;
+                    const checkedCount = Array.from(allCheckboxes).filter(cb => cb.checked).length;
+                    
+                    if (totalCount > 0) {
+                        const newProgress = Math.round((checkedCount / totalCount) * 100);
+                        
+                        // Aktualizace UI
+                        updateProgressUI(newProgress);
+                        
+                        // Aktualizace v databázi
+                        debouncedUpdateProgress(currentStudyPlan.id, newProgress);
+                    }
+                }
             });
         }
         
-        // Event listenery
+        // Optimalizace načítání - lazy loading pro historii plánů
+        function setupLazyLoading() {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting && entry.target.classList.contains('history-plan-section')) {
+                        loadPlanHistory();
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.1 });
+            
+            // Sledování sekce historie plánů
+            const historySection = document.getElementById('historyPlanSection');
+            if (historySection) {
+                observer.observe(historySection);
+            }
+        }
+        
+        // Implementace exportu dat do PDF s vlastním stylem
+        function exportPlanToPDFWithStyle(plan) {
+            if (!plan) return;
+            
+            // Vytvoření kontejneru pro export
+            const exportContainer = document.createElement('div');
+            exportContainer.className = 'plan-export-content';
+            exportContainer.style.padding = '20px';
+            exportContainer.style.fontFamily = 'Arial, sans-serif';
+            
+            // Přidání loga a hlavičky
+            exportContainer.innerHTML = `
+                <div style="text-align: center; margin-bottom: 30px;">
+                    <h1 style="color: #4361ee; font-size: 24px; margin-bottom: 10px;">Justax - Personalizovaný studijní plán</h1>
+                    <p style="color: #6c757d; font-size: 14px;">Vytvořeno: ${formatDate(plan.created_at)}</p>
+                </div>
+            `;
+            
+            // Přidání informací o studentovi
+            if (currentUser && userName.textContent) {
+                exportContainer.innerHTML += `
+                    <div style="margin-bottom: 20px; background-color: #f8f9fa; padding: 15px; border-radius: 10px;">
+                        <h2 style="color: #4361ee; font-size: 18px; margin-bottom: 10px;">Informace o studentovi</h2>
+                        <p><strong>Student:</strong> ${userName.textContent}</p>
+                        <p><strong>Datum vytvoření:</strong> ${formatDate(plan.created_at)}</p>
+                        <p><strong>Předpokládané dokončení:</strong> ${formatDate(plan.estimated_completion_date)}</p>
+                    </div>
+                `;
+            }
+            
+            // Přidání obsahu plánu s upraveným stylem
+            const contentElement = document.createElement('div');
+            contentElement.innerHTML = plan.plan_content ? marked.parse(plan.plan_content) : planContent.innerHTML;
+            
+            // Aplikace stylů pro PDF
+            contentElement.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach(heading => {
+                heading.style.color = '#4361ee';
+                heading.style.marginTop = '20px';
+                heading.style.marginBottom = '10px';
+            });
+            
+            contentElement.querySelectorAll('ul, ol').forEach(list => {
+                list.style.marginLeft = '20px';
+                list.style.marginBottom = '15px';
+            });
+            
+            contentElement.querySelectorAll('p').forEach(paragraph => {
+                paragraph.style.lineHeight = '1.6';
+                paragraph.style.marginBottom = '10px';
+            });
+            
+            exportContainer.appendChild(contentElement);
+            
+            // Přidání zápatí
+            exportContainer.innerHTML += `
+                <div style="margin-top: 30px; border-top: 1px solid #dee2e6; padding-top: 15px; text-align: center;">
+                    <p style="font-size: 12px; color: #6c757d;">
+                        &copy; ${new Date().getFullYear()} Justax - Personalizované studijní plány<br>
+                        www.justax.cz
+                    </p>
+                </div>
+            `;
+            
+            // Nastavení možností pro PDF
+            const options = {
+                margin: 15,
+                filename: `studijni-plan-${formatDate(plan.created_at).replace(/\./g, '-')}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+            
+            // Export do PDF s notifikací pro uživatele
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            notification.style.position = 'fixed';
+            notification.style.top = '20px';
+            notification.style.right = '20px';
+            notification.style.background = '#4cc9f0';
+            notification.style.padding = '15px 20px';
+            notification.style.borderRadius = '8px';
+            notification.style.color = 'white';
+            notification.style.boxShadow = '0 4px 10px rgba(0,0,0,0.1)';
+            notification.style.zIndex = '9999';
+            notification.style.transition = 'all 0.3s ease';
+            notification.style.opacity = '0';
+            notification.innerHTML = '<i class="fas fa-file-download"></i> Připravuji PDF ke stažení...';
+            
+            document.body.appendChild(notification);
+            
+            // Zobrazení notifikace
+            setTimeout(() => {
+                notification.style.opacity = '1';
+            }, 100);
+            
+            html2pdf().set(options).from(exportContainer).save().then(() => {
+                // Změna notifikace na úspěšné stažení
+                notification.style.background = '#38b2ac';
+                notification.innerHTML = '<i class="fas fa-check-circle"></i> PDF bylo úspěšně vygenerováno!';
+                
+                // Skrytí notifikace po 3 sekundách
+                setTimeout(() => {
+                    notification.style.opacity = '0';
+                    setTimeout(() => {
+                        notification.remove();
+                    }, 300);
+                }, 3000);
+            });
+        }
+        
+        // Globální proměnná pro sledování aktuální záložky
+        let currentTab = 'current';
+        
+        // Vylepšená funkce pro zobrazení detailu plánu
+        function showPlanDetail(plan) {
+            // Skrytí všech sekcí
+            currentPlanSection.style.display = 'none';
+            historyPlanSection.style.display = 'none';
+            createPlanSection.style.display = 'none';
+            
+            // Zobrazení sekce s plánem
+            planSection.style.display = 'block';
+            planLoading.style.display = 'flex';
+            planContent.style.display = 'none';
+            planActions.style.display = 'none';
+            
+            // Vykreslení obsahu plánu
+            setTimeout(() => {
+                displayPlanContent(plan.plan_content || '# Studijní plán\n\nObsah plánu není k dispozici.');
+                
+                // Přidání tlačítek pro akce s plánem
+                planActions.innerHTML = `
+                    <button class="btn btn-secondary" id="backToPlanListBtn">
+                        <i class="fas fa-arrow-left"></i>
+                        Zpět
+                    </button>
+                    <button class="btn btn-primary" id="viewScheduleBtn">
+                        <i class="fas fa-calendar-alt"></i>
+                        Rozvrh
+                    </button>
+                    <button class="btn btn-success" id="exportDetailPlanBtn">
+                        <i class="fas fa-file-export"></i>
+                        Export PDF
+                    </button>
+                `;
+                
+                // Přidání event listenerů pro tlačítka
+                document.getElementById('backToPlanListBtn').addEventListener('click', function() {
+                    planSection.style.display = 'none';
+                    
+                    // Návrat na původní záložku
+                    for (const tab of planTabs) {
+                        if (tab.classList.contains('active')) {
+                            const tabId = tab.dataset.tab;
+                            switchTab(tabId);
+                            break;
+                        }
+                    }
+                });
+                
+                document.getElementById('viewScheduleBtn').addEventListener('click', function() {
+                    showFullSchedule(plan);
+                });
+                
+                document.getElementById('exportDetailPlanBtn').addEventListener('click', function() {
+                    exportPlanToPDFWithStyle(plan);
+                });
+                
+                planActions.style.display = 'flex';
+            }, 500);
+        }
+        
+        // Upravená funkce pro přepínání mezi záložkami
+        function switchTab(tabId) {
+            // Aktualizace globální proměnné
+            currentTab = tabId;
+            
+            // Aktivace záložky
+            planTabs.forEach(tab => {
+                if (tab.dataset.tab === tabId) {
+                    tab.classList.add('active');
+                } else {
+                    tab.classList.remove('active');
+                }
+            });
+            
+            // Skrytí všech sekcí
+            currentPlanSection.style.display = 'none';
+            historyPlanSection.style.display = 'none';
+            createPlanSection.style.display = 'none';
+            planSection.style.display = 'none';
+            scheduleSection.style.display = 'none';
+            
+            // Zobrazení požadované sekce
+            if (tabId === 'current') {
+                currentPlanSection.style.display = 'block';
+            } else if (tabId === 'history') {
+                historyPlanSection.style.display = 'block';
+                loadPlanHistory();
+            } else if (tabId === 'create') {
+                createPlanSection.style.display = 'block';
+                checkPlanCreationAvailability();
+            }
+        }
+        
+        // Vykreslení týdenního harmonogramu
+        function renderWeeklySchedule(plan) {
+            dailySchedule.innerHTML = '<div class="loader-container"><div class="loader"></div></div>';
+            
+            setTimeout(() => {
+                // Generování týdenního harmonogramu
+                const scheduleHTML = generateWeeklySchedule(plan);
+                dailySchedule.innerHTML = scheduleHTML;
+                
+                // Přidání event listenerů pro checkboxy
+                const checkboxes = dailySchedule.querySelectorAll('input[type="checkbox"]');
+                checkboxes.forEach(checkbox => {
+                    checkbox.addEventListener('change', function() {
+                        const activityId = this.id.replace('activity-', '');
+                        toggleActivityCompletion(activityId, this.checked, plan.id);
+                    });
+                });
+                
+                // Zobrazení sekce s harmonogramem
+                scheduleSection.style.display = 'block';
+                
+                // Scrollování na sekci s harmonogramem
+                scheduleSection.scrollIntoView({ behavior: 'smooth' });
+            }, 500);
+        }
+        
+        // Funkce pro aktualizaci pokroku plánu
+        function updatePlanProgress(plan) {
+            if (!plan || !plan.id) return;
+            
+            // Zobrazení dialogu pro aktualizaci pokroku
+            const progressDialog = document.createElement('div');
+            progressDialog.className = 'progress-dialog';
+            progressDialog.style.position = 'fixed';
+            progressDialog.style.top = '0';
+            progressDialog.style.left = '0';
+            progressDialog.style.width = '100%';
+            progressDialog.style.height = '100%';
+            progressDialog.style.backgroundColor = 'rgba(0,0,0,0.5)';
+            progressDialog.style.display = 'flex';
+            progressDialog.style.alignItems = 'center';
+            progressDialog.style.justifyContent = 'center';
+            progressDialog.style.zIndex = '9999';
+            
+            const dialogContent = document.createElement('div');
+            dialogContent.style.backgroundColor = 'var(--white)';
+            dialogContent.style.padding = '30px';
+            dialogContent.style.borderRadius = 'var(--card-radius)';
+            dialogContent.style.maxWidth = '500px';
+            dialogContent.style.width = '90%';
+            dialogContent.style.boxShadow = 'var(--shadow-lg)';
+            
+            dialogContent.innerHTML = `
+                <h2 style="margin-top: 0; margin-bottom: 20px; color: var(--primary)">Aktualizace pokroku</h2>
+                <p>Manuálně nastavte váš pokrok ve studijním plánu:</p>
+                <div style="margin: 30px 0;">
+                    <input type="range" id="progressSlider" min="0" max="100" value="${plan.progress || 0}" style="width: 100%;">
+                    <div style="display: flex; justify-content: space-between; margin-top: 10px;">
+                        <span>0%</span>
+                        <span id="progressValue">${plan.progress || 0}%</span>
+                        <span>100%</span>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                    <button class="btn btn-secondary" id="cancelProgressBtn">Zrušit</button>
+                    <button class="btn btn-primary" id="saveProgressBtn">Uložit</button>
+                </div>
+            `;
+            
+            progressDialog.appendChild(dialogContent);
+            document.body.appendChild(progressDialog);
+            
+            // Event listenery pro dialog
+            const progressSlider = document.getElementById('progressSlider');
+            const progressValue = document.getElementById('progressValue');
+            const cancelProgressBtn = document.getElementById('cancelProgressBtn');
+            const saveProgressBtn = document.getElementById('saveProgressBtn');
+            
+            progressSlider.addEventListener('input', function() {
+                progressValue.textContent = this.value + '%';
+            });
+            
+            cancelProgressBtn.addEventListener('click', function() {
+                document.body.removeChild(progressDialog);
+            });
+            
+            saveProgressBtn.addEventListener('click', function() {
+                const newProgress = parseInt(progressSlider.value);
+                
+                // Aktualizace progress circle v UI
+                updateProgressUI(newProgress);
+                
+                // Aktualizace v databázi
+                updatePlanProgressInDatabase(plan.id, newProgress);
+                
+                // Zavření dialogu
+                document.body.removeChild(progressDialog);
+                
+                // Zobrazení notifikace
+                const notification = document.createElement('div');
+                notification.className = 'notification';
+                notification.style.position = 'fixed';
+                notification.style.top = '20px';
+                notification.style.right = '20px';
+                notification.style.background = '#4cc9f0';
+                notification.style.padding = '15px 20px';
+                notification.style.borderRadius = '8px';
+                notification.style.color = 'white';
+                notification.style.boxShadow = '0 4px 10px rgba(0,0,0,0.1)';
+                notification.style.zIndex = '9999';
+                notification.style.transition = 'all 0.3s ease';
+                notification.style.opacity = '0';
+                notification.innerHTML = '<i class="fas fa-check-circle"></i> Pokrok byl úspěšně aktualizován!';
+                
+                document.body.appendChild(notification);
+                
+                // Zobrazení notifikace
+                setTimeout(() => {
+                    notification.style.opacity = '1';
+                    
+                    // Skrytí notifikace po 3 sekundách
+                    setTimeout(() => {
+                        notification.style.opacity = '0';
+                        setTimeout(() => {
+                            notification.remove();
+                        }, 300);
+                    }, 3000);
+                }, 100);
+            });
+        }
+        
+        // Inicializace prvků při načtení stránky
+        function initializePageElements() {
+            // Nastavení event listeneru pro mobilní menu
+            document.getElementById('mobileMenuToggle').addEventListener('click', toggleMobileMenu);
+            
+            // Nastavení sledování pokroku
+            setupProgressTracking();
+            
+            // Nastavení lazy loading
+            setupLazyLoading();
+            
+            // Inicializace tooltipů po načtení stránky
+            if (typeof $.tooltipster !== 'undefined') {
+                $('.btn-tooltip').tooltipster({
+                    theme: 'tooltipster-shadow',
+                    animation: 'fade',
+                    delay: 100,
+                    side: 'top'
+                });
+            }
+            
+            // Optimalizace obrázků pro lazy loading
+            document.querySelectorAll('img').forEach(img => {
+                img.loading = 'lazy';
+            });
+            
+            // Detekce prohlížeče pro optimalizaci
+            const isFirefox = navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
+            const isChrome = navigator.userAgent.toLowerCase().indexOf('chrome') > -1;
+            const isSafari = navigator.userAgent.toLowerCase().indexOf('safari') > -1 && !isChrome;
+            
+            if (isFirefox) {
+                document.body.classList.add('firefox');
+            } else if (isChrome) {
+                document.body.classList.add('chrome');
+            } else if (isSafari) {
+                document.body.classList.add('safari');
+            }
+            
+            // Testování dostupnosti připojení
+            window.addEventListener('online', function() {
+                console.log('Připojení k internetu obnoveno.');
+            });
+            window.addEventListener('offline', function() {
+                console.log('Připojení k internetu ztraceno.');
+                alert('Varování: Připojení k internetu bylo ztraceno. Některé funkce mohou být nedostupné.');
+            });
+        }
+        
+        // Spuštění inicializace stránky při načtení dokumentu
         document.addEventListener('DOMContentLoaded', function() {
             initPage();
+            initializePageElements();
             
-            goToTestBtn.addEventListener('click', function() {
-                window.location.href = '/dashboard/procvicovani/test1.html';
-            });
-            
-            saveScheduleBtn.addEventListener('click', function() {
-                alert('Funkce pro stažení plánu bude dostupná v budoucích aktualizacích.');
-            });
+            console.log('Justax - Personalizovaný studijní plán - načteno ' + new Date().toLocaleString('cs-CZ'));
         });
     </script>
 </body>
