@@ -209,7 +209,7 @@
         .header-content h1 {
             font-size: 1.75rem;
             font-weight: 600;
-            color: var(--dark);
+            color: var (--dark);
         }
 
         /* Hlavní obsah */
@@ -335,7 +335,7 @@
         }
 
         .question-difficulty[data-difficulty="hard"] {
-            color: var(--danger);
+            color: var (--danger);
         }
 
         .question-text {
@@ -390,12 +390,12 @@
 
         .option-item:hover {
             background-color: rgba(67, 97, 238, 0.05);
-            border-color: var(--primary-light);
+            border-color: var (--primary-light);
         }
 
         .option-item.selected {
             background-color: rgba(67, 97, 238, 0.1);
-            border-color: var(--primary);
+            border-color: var (--primary);
         }
 
         .option-radio {
@@ -618,7 +618,7 @@
                 --sidebar-width: 80px;
             }
             
-            .sidebar-logo span, .sidebar-link span, .user-info, .sidebar-footer {
+                        .sidebar-logo span, .sidebar-link span, .user-info, .sidebar-footer {
                 display: none;
             }
             
@@ -747,6 +747,91 @@
             margin: 1rem 0;
             font-size: 1.2rem;
         }
+        
+        /* Стили для просмотра ответов */
+        .answers-section {
+            display: none;
+            margin-top: 2rem;
+        }
+        
+        .answer-review-card {
+            background-color: var(--white);
+            border-radius: var(--card-radius);
+            margin-bottom: 1.5rem;
+            box-shadow: var(--shadow-sm);
+            padding: 1.5rem;
+            border-left: 4px solid var(--primary);
+        }
+        
+        .answer-review-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--gray-light);
+        }
+        
+        .answer-result {
+            font-weight: 600;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+        
+        .answer-result.correct {
+            background-color: rgba(76, 201, 240, 0.1);
+            color: var(--success);
+        }
+        
+        .answer-result.incorrect {
+            background-color: rgba(247, 37, 133, 0.1);
+            color: var(--danger);
+        }
+        
+        .answer-review-content {
+            margin-top: 1rem;
+        }
+        
+        .answer-review-group {
+            margin-bottom: 1.25rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px dashed var(--gray-light);
+        }
+        
+        .answer-review-group:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+        
+        .answer-review-label {
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .answer-review-text {
+            padding: 1rem;
+            background-color: var(--light);
+            border-radius: 8px;
+            color: var(--text-primary);
+            line-height: 1.5;
+        }
+        
+        .user-answer {
+            border-left: 3px solid var(--primary);
+        }
+        
+        .correct-answer {
+            border-left: 3px solid var(--success);
+        }
+        
+        .ai-explanation {
+            border-left: 3px solid var(--secondary);
+            background-color: rgba(63, 55, 201, 0.05);
+        }
     </style>
 </head>
 <body>
@@ -828,8 +913,8 @@
             <!-- Úvodní sekce - Viditelná zpočátku -->
             <div class="section intro-section" id="introSection">
                 <h2 class="section-title">Zkušební test</h2>
-                <p class="section-text">Před přípravou na přijímačky musíte nejprve absolvovat zkušební test. Tento test vám pomůže určit vaše silné a slabé stránky, abyste se mohli zaměřit na oblasti, které potřebují zlepšení.</p>
-                <p class="section-text">Test obsahuje různé typy otázek s různou obtížností. Po dokončení testu obdržíte podrobnou analýzu vašich výsledků a rady pro další studium optimalizované pomocí umělé inteligence.</p>
+                <p class="section-text">Před přípravou na přijímačky musíte nejprve absolvovat zkušební test. Tento test vám pomůže určit vaše silné a slabé stránky, abyste se mohli z[...]
+                <p class="section-text">Test obsahuje různé typy otázek s různou obtížností. Po dokončení testu obdržíte podrobnou analýzu vašich výsledků a rady pro další studium opt[...]
                 <button class="btn btn-primary btn-lg btn-center" id="startTestBtn">
                     <i class="fas fa-play"></i>
                     Začít test
@@ -899,9 +984,36 @@
                         </div>
                     </div>
                     
-                    <button class="btn btn-primary btn-lg btn-center" id="createPlanBtn" style="margin-top: 2rem;">
-                        <i class="fas fa-clipboard-list"></i>
-                        Vytvořit studijní plán
+                    <div class="test-actions" style="margin-top: 2rem; display: flex; justify-content: center; gap: 1rem;">
+                        <button class="btn btn-primary btn-lg" id="showAnswersBtn">
+                            <i class="fas fa-search"></i>
+                            Просмотреть ответы
+                        </button>
+                        
+                        <button class="btn btn-primary btn-lg" id="createPlanBtn">
+                            <i class="fas fa-clipboard-list"></i>
+                            Vytvořit studijní plán
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Sekce pro přehled odpovědí - Zpočátku skrytá -->
+            <div class="answers-section" id="answersSection">
+                <div class="section">
+                    <h2 class="section-title">
+                        <i class="fas fa-clipboard-check"></i>
+                        Přehled odpovědí
+                    </h2>
+                    <p class="section-text">Níže najdete přehled všech vašich odpovědí, správných odpovědí a vysvětlení od umělé inteligence.</p>
+                    
+                    <div id="answersContainer">
+                        <!-- Zde budou zobrazeny odpovědi -->
+                    </div>
+                    
+                    <button class="btn btn-secondary btn-lg btn-center" id="backToResultsBtn" style="margin-top: 2rem;">
+                        <i class="fas fa-arrow-left"></i>
+                        Zpět na výsledky
                     </button>
                 </div>
             </div>
@@ -911,7 +1023,7 @@
     <script>
         // Inicializace Supabase klienta
         const supabaseUrl = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRt[...]
         
         // Správná inicializace Supabase
         const { createClient } = supabase;
@@ -946,6 +1058,10 @@
         const aiLoading = document.getElementById('ai-loading');
         const aiAnalysis = document.getElementById('ai-analysis');
         const createPlanBtn = document.getElementById('createPlanBtn');
+        const showAnswersBtn = document.getElementById('showAnswersBtn');
+        const answersSection = document.getElementById('answersSection');
+        const answersContainer = document.getElementById('answersContainer');
+        const backToResultsBtn = document.getElementById('backToResultsBtn');
         const userName = document.getElementById('user-name');
         const userAvatar = document.getElementById('user-avatar');
         
@@ -958,6 +1074,7 @@
         let currentUser = null; // Pro uložení aktuálního uživatele
         let diagnosticId = null; // ID testu v databázi
         let redirectTimerId = null; // ID časovače pro přesměrování
+        let aiExplanations = []; // Pro uložení vysvětlení od Gemini pro každou otázku
         
         // Inicializace stránky
         async function initPage() {
@@ -998,15 +1115,14 @@
             errorSection.style.display = 'block';
             
             // Nastavení odpočtu
-            let secondsLeft = 10;
-            
-            redirectTimer.textContent = `Přesměrování za ${secondsLeft} sekund...`;
+            let seconds = 10;
+            redirectTimer.textContent = `Přesměrování za ${seconds} sekund...`;
             
             redirectTimerId = setInterval(() => {
-                secondsLeft--;
-                redirectTimer.textContent = `Přesměrování za ${secondsLeft} sekund...`;
+                seconds--;
+                redirectTimer.textContent = `Přesměrování za ${seconds} sekund...`;
                 
-                if (secondsLeft <= 0) {
+                if (seconds <= 0) {
                     clearInterval(redirectTimerId);
                     window.location.href = '/dashboard/procvicovani/profile.html';
                 }
@@ -1062,518 +1178,567 @@
                     }
                 } else {
                     // Fallback pro nepřihlášené uživatele
-                    userName.textContent = 'Maksim';
-                    userAvatar.textContent = 'MS';
+                    userName.textContent = 'Host';
+                    userAvatar.textContent = 'HO';
                 }
             } catch (error) {
                 console.error('Chyba při načítání informací o uživateli:', error);
-                userName.textContent = 'Maksim';
-                userAvatar.textContent = 'MS';
+                userName.textContent = 'Host';
+                userAvatar.textContent = 'HO';
             }
         }
         
-        // Spuštění testu
-        async function startTest() {
-            // Nejprve zkontrolujeme, zda uživatel již test neabsolvoval
-            if (currentUser) {
-                const hasCompletedTest = await checkIfUserCompletedTest();
-                if (hasCompletedTest) {
-                    showErrorSection();
-                    return;
-                }
-            }
-            
+        // Zahájení testu
+        startTestBtn.addEventListener('click', async () => {
             introSection.style.display = 'none';
             testSection.style.display = 'block';
             
+            startTime = new Date();
+            
+            // Načtení otázek z databáze
+            await loadTestQuestions();
+        });
+        
+        // Načtení otázek testu
+        async function loadTestQuestions() {
             try {
-                await loadQuestions();
+                // Zobrazení načítání
+                testLoader.style.display = 'flex';
+                questionsContainer.style.display = 'none';
+                testFooter.style.display = 'none';
+                
+                // Získání otázek z databáze
+                const { data: questions, error } = await supabaseClient
+                    .from('test_questions')
+                    .select('*')
+                    .order('topic_id')
+                    .order('difficulty');
+                
+                if (error) throw error;
+                
+                if (!questions || questions.length === 0) {
+                    throw new Error('Nepodařilo se načíst otázky testu.');
+                }
+                
+                testQuestions = questions;
+                
+                // Vygenerování HTML pro otázky
+                renderTestQuestions();
+                
+                // Skrytí načítání
                 testLoader.style.display = 'none';
                 questionsContainer.style.display = 'block';
-                testFooter.style.display = 'block';
-                
-                // Záznam času zahájení
-                startTime = new Date();
+                testFooter.style.display = 'flex';
             } catch (error) {
                 console.error('Chyba při načítání otázek:', error);
+                testLoader.style.display = 'none';
                 questionsContainer.innerHTML = `
                     <div class="error-message">
-                        <p>Došlo k chybě při načítání otázek. Zkuste to prosím později.</p>
-                        <button class="btn btn-secondary" onclick="location.reload()">Obnovit stránku</button>
+                        <p>Nastala chyba při načítání otázek. Prosím, zkuste to znovu později.</p>
+                        <p>${error.message}</p>
                     </div>
                 `;
-                testLoader.style.display = 'none';
                 questionsContainer.style.display = 'block';
             }
         }
         
-        // Načtení otázek ze Supabase
-        async function loadQuestions() {
-            const { data, error } = await supabaseClient
-                .from('exam_questions')
-                .select('id, question_text, correct_answer, difficulty, topic_id, image_url, question_type, options')
-                .order('id', { ascending: true });
-                
-            if (error) throw error;
-            
-            testQuestions = data;
-            renderQuestions(testQuestions);
-        }
-        
-        // Vykreslení otázek v kontejneru
-        function renderQuestions(questions) {
+        // Vykreslení otázek testu
+        function renderTestQuestions() {
             questionsContainer.innerHTML = '';
             
-            questions.forEach((question, index) => {
-                const difficultyLabel = question.difficulty === 'easy' ? 'Lehká' :
-                                       question.difficulty === 'medium' ? 'Střední' : 'Těžká';
-                
+            testQuestions.forEach((question, index) => {
                 const questionElement = document.createElement('div');
                 questionElement.className = 'question-container';
                 questionElement.dataset.id = question.id;
+                questionElement.dataset.topicId = question.topic_id;
                 
-                // Základní struktura otázky s hlavičkou a textem
-                let questionHtml = `
+                const difficultyLabel = getDifficultyLabel(question.difficulty);
+                
+                // Vytvoření struktury otázky
+                questionElement.innerHTML = `
                     <div class="question-header">
                         <div class="question-number">Otázka ${index + 1}</div>
                         <div class="question-difficulty" data-difficulty="${question.difficulty}">${difficultyLabel}</div>
                     </div>
                     <div class="question-text">${question.question_text}</div>
+                    ${question.question_image ? `<img src="${question.question_image}" alt="Obrázek k otázce" class="question-image">` : ''}
                 `;
                 
-                // Přidání obrázku, pokud existuje
-                if (question.image_url) {
-                    questionHtml += `
-                        <div class="question-image-container">
-                            <img src="${question.image_url}" alt="Obrázek k otázce ${index + 1}" class="question-image">
-                        </div>
-                    `;
-                }
-                
-                // Přidání vstupního pole nebo možností podle typu otázky
-                if (question.question_type === 'multiple_choice' && question.options) {
-                    // Pokud je to otázka s výběrem možností
-                    let options;
-                    try {
-                        // Pokus o parsování JSON, pokud už není pole
-                        options = typeof question.options === 'string' ? 
-                            JSON.parse(question.options) : question.options;
-                    } catch (e) {
-                        console.error('Chyba při parsování možností:', e);
-                        options = [];
-                    }
+                // Přidání odpovídajícího typu odpovědi
+                if (question.question_type === 'text') {
+                    // Textová odpověď
+                    const answerInput = document.createElement('textarea');
+                    answerInput.className = 'answer-input';
+                    answerInput.placeholder = 'Zadejte vaši odpověď zde...';
+                    answerInput.dataset.questionId = question.id;
+                    questionElement.appendChild(answerInput);
+                } else if (question.question_type === 'options') {
+                    // Výběr z možností
+                    const options = JSON.parse(question.options);
                     
-                    questionHtml += '<div class="options-container">';
+                    const optionsContainer = document.createElement('div');
+                    optionsContainer.className = 'options-container';
                     
-                    options.forEach((option, optionIndex) => {
-                        questionHtml += `
-                            <div class="option-item" data-option-index="${optionIndex}">
-                                <input type="radio" name="question-${question.id}" id="option-${question.id}-${optionIndex}" 
-                                    class="option-radio" data-question-id="${question.id}" data-option-value="${option}">
-                                <label for="option-${question.id}-${optionIndex}" class="option-text">${option}</label>
-                            </div>
+                    options.forEach((option, i) => {
+                        const optionItem = document.createElement('div');
+                        optionItem.className = 'option-item';
+                        optionItem.dataset.value = option;
+                        
+                        optionItem.innerHTML = `
+                            <input type="radio" name="question_${question.id}" id="option_${question.id}_${i}" class="option-radio" value="${option}">
+                            <label for="option_${question.id}_${i}" class="option-text">${option}</label>
                         `;
+                        
+                        optionItem.addEventListener('click', function() {
+                            // Odznačení všech možností
+                            optionsContainer.querySelectorAll('.option-item').forEach(item => {
+                                item.classList.remove('selected');
+                            });
+                            
+                            // Označení vybrané možnosti
+                            optionItem.classList.add('selected');
+                            
+                            // Výběr radio buttonu
+                            const radio = optionItem.querySelector('input[type="radio"]');
+                            radio.checked = true;
+                        });
+                        
+                        optionsContainer.appendChild(optionItem);
                     });
                     
-                    questionHtml += '</div>';
-                } else {
-                    // Běžná otázka s textovým vstupem
-                    questionHtml += `
-                        <textarea class="answer-input" placeholder="Zadejte svou odpověď zde..." data-question-id="${question.id}"></textarea>
-                    `;
+                    questionElement.appendChild(optionsContainer);
                 }
                 
-                questionElement.innerHTML = questionHtml;
                 questionsContainer.appendChild(questionElement);
             });
-            
-            // Přidání interaktivity pro možnosti otázek
-            document.querySelectorAll('.option-item').forEach(item => {
-                item.addEventListener('click', function() {
-                    const radio = this.querySelector('input[type="radio"]');
-                    radio.checked = true;
-                    
-                    // Odstranění třídy "selected" ze všech možností ve stejné skupině
-                    const questionId = radio.dataset.questionId;
-                    document.querySelectorAll(`input[name="question-${questionId}"]`).forEach(input => {
-                        input.closest('.option-item').classList.remove('selected');
-                    });
-                    
-                    // Přidání třídy "selected" k vybrané možnosti
-                    this.classList.add('selected');
-                });
-            });
+        }
+        
+        // Získání textového označení obtížnosti
+        function getDifficultyLabel(difficulty) {
+            switch (difficulty) {
+                case 'easy': return 'Lehká';
+                case 'medium': return 'Střední';
+                case 'hard': return 'Těžká';
+                default: return 'Neznámá obtížnost';
+            }
         }
         
         // Odeslání testu
-        function submitTest() {
-            // Záznam času ukončení
-            endTime = new Date();
+        submitTestBtn.addEventListener('click', async () => {
+            // Zobrazení potvrzovacího dialogu
+            const confirmation = confirm('Opravdu chcete dokončit test? Po odeslání již nebudete moci změnit své odpovědi.');
             
-            // Shromáždění všech odpovědí uživatele
-            userResponses = [];
-            
-            testQuestions.forEach((question, index) => {
-                let userAnswer = '';
+            if (confirmation) {
+                endTime = new Date();
+                const duration = Math.floor((endTime - startTime) / 1000); // Doba v sekundách
                 
-                if (question.question_type === 'multiple_choice') {
-                    // Pro otázky s výběrem možností získáme hodnotu vybraného radiobuttonu
-                    const selectedOption = document.querySelector(`input[name="question-${question.id}"]:checked`);
-                    userAnswer = selectedOption ? selectedOption.dataset.optionValue : '';
-                } else {
-                    // Pro standardní otázky získáme hodnotu z textového pole
-                    const textInput = document.querySelector(`.answer-input[data-question-id="${question.id}"]`);
-                    userAnswer = textInput ? textInput.value.trim() : '';
+                // Shromáždění odpovědí uživatele
+                userResponses = collectUserResponses();
+                
+                // Výpočet výsledků
+                const results = calculateResults(userResponses);
+                
+                // Zobrazení výsledků
+                displayResults(results);
+                
+                // Uložení výsledků do databáze (pokud je uživatel přihlášen)
+                if (currentUser) {
+                    await saveResultsToDatabase(results, duration);
                 }
                 
-                userResponses.push({
-                    questionId: question.id,
-                    questionIndex: index + 1,
-                    question: question.question_text,
-                    userAnswer: userAnswer,
-                    correctAnswer: question.correct_answer,
+                // Získání analýzy od Gemini API
+                getGeminiAnalysis(results);
+                
+                // Generování vysvětlení pro každou otázku
+                generateAnswerExplanations(userResponses);
+            }
+        });
+        
+        // Shromáždění odpovědí uživatele
+        function collectUserResponses() {
+            const responses = [];
+            
+            testQuestions.forEach(question => {
+                let userAnswer = '';
+                
+                if (question.question_type === 'text') {
+                    const textInput = document.querySelector(`.answer-input[data-question-id="${question.id}"]`);
+                    if (textInput) {
+                        userAnswer = textInput.value.trim();
+                    }
+                } else if (question.question_type === 'options') {
+                    const selectedOption = document.querySelector(`input[name="question_${question.id}"]:checked`);
+                    if (selectedOption) {
+                        userAnswer = selectedOption.value;
+                    }
+                }
+                
+                responses.push({
+                    question_id: question.id,
+                    question_text: question.question_text,
+                    topic_id: question.topic_id,
                     difficulty: question.difficulty,
-                    topicId: question.topic_id,
-                    topic: topicMap[question.topic_id] || `Téma ${question.topic_id}`,
-                    isCorrect: null // Bude nastaveno podle odpovědi Gemini
+                    correct_answer: question.correct_answer,
+                    user_answer: userAnswer,
+                    is_correct: userAnswer.toLowerCase() === question.correct_answer.toLowerCase()
                 });
             });
             
-            // Zobrazíme sekci výsledků s načítáním
+            return responses;
+        }
+        
+        // Výpočet výsledků testu
+        function calculateResults(responses) {
+            const totalQuestions = responses.length;
+            const correctCount = responses.filter(r => r.is_correct).length;
+            const wrongCount = totalQuestions - correctCount;
+            const score = Math.round((correctCount / totalQuestions) * 100);
+            
+            // Výsledky podle témat
+            const topicResults = {};
+            responses.forEach(response => {
+                if (!topicResults[response.topic_id]) {
+                    topicResults[response.topic_id] = {
+                        total: 0,
+                        correct: 0,
+                        topic_name: topicMap[response.topic_id] || `Téma ${response.topic_id}`
+                    };
+                }
+                
+                topicResults[response.topic_id].total++;
+                if (response.is_correct) {
+                    topicResults[response.topic_id].correct++;
+                }
+            });
+            
+            // Výpočet procenta pro každé téma
+            Object.keys(topicResults).forEach(topicId => {
+                const topic = topicResults[topicId];
+                topic.percentage = Math.round((topic.correct / topic.total) * 100);
+            });
+            
+            return {
+                totalQuestions,
+                correctCount,
+                wrongCount,
+                score,
+                topicResults
+            };
+        }
+        
+        // Zobrazení výsledků testu
+        function displayResults(results) {
             testSection.style.display = 'none';
             resultsSection.style.display = 'block';
             
-            // Zobrazit čas dokončení
-            const timeDiff = endTime - startTime;
-            const minutes = Math.floor(timeDiff / 60000);
-            const seconds = Math.floor((timeDiff % 60000) / 1000);
+            // Nastavení statistik
+            scoreDisplay.textContent = `${results.score}%`;
+            correctAnswers.textContent = results.correctCount;
+            wrongAnswers.textContent = results.wrongCount;
+            
+            // Čas dokončení
+            const durationSeconds = Math.floor((endTime - startTime) / 1000);
+            const minutes = Math.floor(durationSeconds / 60);
+            const seconds = durationSeconds % 60;
             completionTime.textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
-            
-            // Dočasně zobrazit "Hodnotí se..."
-            scoreDisplay.textContent = 'Hodnotí se...';
-            correctAnswers.textContent = '-';
-            wrongAnswers.textContent = '-';
-            
-            // Požádáme Gemini o analýzu a hodnocení výsledků
-            analyzeResultsWithGemini();
         }
         
-        // Analýza výsledků pomocí Gemini API včetně hodnocení
-        async function analyzeResultsWithGemini() {
+        // Uložení výsledků do databáze
+        async function saveResultsToDatabase(results, duration) {
             try {
-                // Vytvoříme strukturovaný vstup pro Gemini
-                const questionsData = userResponses.map(response => {
-                    return {
-                        index: response.questionIndex,
-                        question: response.question,
-                        userAnswer: response.userAnswer || "(bez odpovědi)",
-                        correctAnswer: response.correctAnswer,
-                        difficulty: response.difficulty,
-                        topic: response.topic
-                    };
-                });
-
-                // Připravíme data pro odeslání do Gemini API
-                const prompt = `
-                Jsi vzdělávací AI asistent, který hodnotí matematický test pro žáka připravujícího se na přijímací zkoušky.
+                // Vytvoření záznamu v tabulce user_diagnostics
+                const { data: diagnosticData, error: diagnosticError } = await supabaseClient
+                    .from('user_diagnostics')
+                    .insert({
+                        user_id: currentUser.id,
+                        score: results.score,
+                        total_questions: results.totalQuestions,
+                        correct_answers: results.correctCount,
+                        wrong_answers: results.wrongCount,
+                        duration_seconds: duration,
+                        test_date: new Date().toISOString()
+                    })
+                    .select('id')
+                    .single();
                 
-                # Tvoje úkoly:
-                1. Ohodnoť každou odpověď žáka jako správnou nebo nesprávnou
-                2. Přiděl celkové skóre v rozsahu 0-50 bodů
-                3. Proveď analýzu výsledků
+                if (diagnosticError) throw diagnosticError;
                 
-                # Otázky a odpovědi:
-                ${questionsData.map(q => 
-                    `## Otázka ${q.index} (${q.topic}, obtížnost: ${q.difficulty})
-                    Zadání: "${q.question}"
-                    Správná odpověď: "${q.correctAnswer}"
-                    Odpověď žáka: "${q.userAnswer}"`
-                ).join('\n\n')}
+                diagnosticId = diagnosticData.id;
                 
-                # Formát odpovědi:
-                Tvoje odpověď musí mít 2 části:
+                // Uložení výsledků podle témat
+                const topicResultsData = Object.keys(results.topicResults).map(topicId => ({
+                    diagnostic_id: diagnosticId,
+                    topic_id: parseInt(topicId),
+                    topic_name: results.topicResults[topicId].topic_name,
+                    correct_count: results.topicResults[topicId].correct,
+                    total_count: results.topicResults[topicId].total,
+                    percentage: results.topicResults[topicId].percentage
+                }));
                 
-                ## Část 1: Hodnocení (JSON)
-                Nejprve vrať JSON objekt s hodnocením každé otázky a celkovým skóre.
+                const { error: topicResultsError } = await supabaseClient
+                    .from('topic_results')
+                    .insert(topicResultsData);
                 
-                \`\`\`json
-                {
-                  "totalScore": 35,
-                  "totalOutOf": 50,
-                  "correctAnswers": 6,
-                  "wrongAnswers": 4,
-                  "questions": [
-                    {"questionIndex": 1, "isCorrect": true, "points": 3, "explanation": "stručné vysvětlení hodnocení"},
-                    {"questionIndex": 2, "isCorrect": false, "points": 0, "explanation": "stručné vysvětlení hodnocení"},
-                    ...
-                  ]
-                }
-                \`\`\`
+                if (topicResultsError) throw topicResultsError;
                 
-                ## Část 2: Analýza
-                Poté poskytni podrobnou analýzu výsledků:
+                // Uložení odpovědí na jednotlivé otázky
+                const userAnswersData = userResponses.map(response => ({
+                    diagnostic_id: diagnosticId,
+                    question_id: response.question_id,
+                    user_answer: response.user_answer,
+                    is_correct: response.is_correct,
+                    topic_id: response.topic_id,
+                    difficulty: response.difficulty
+                }));
                 
-                1. Stručné shrnutí celkového výkonu (2-3 věty)
-                2. Silné stránky žáka (ve kterých tématech se mu dařilo)
-                3. Slabá místa a problémové oblasti
-                4. Analýza typů chyb (např. chyby v postupu, nepozornost, nedostatečná znalost vzorců)
+                const { error: userAnswersError } = await supabaseClient
+                    .from('user_answers')
+                    .insert(userAnswersData);
                 
-                DŮLEŽITÉ: V analýze NIKDY nezačínej textem "Část 2: Analýza" ani podobným označením. Začni přímo analýzou.
+                if (userAnswersError) throw userAnswersError;
                 
-                Buď upřímný, ale motivující. Strukturuj analýzu v Markdown formátu.
-                `;
-
-                // Odešleme požadavek na Gemini API
-                const requestData = {
-                    contents: [{
-                        parts: [{
-                            text: prompt
-                        }]
-                    }],
-                    generationConfig: {
-                        temperature: 0.2,
-                        topK: 40,
-                        topP: 0.95,
-                        maxOutputTokens: 8192,
-                    }
+                console.log('Výsledky byly úspěšně uloženy do databáze');
+            } catch (error) {
+                console.error('Chyba při ukládání výsledků:', error);
+            }
+        }
+        
+        // Získání analýzy od Gemini API
+        async function getGeminiAnalysis(results) {
+            try {
+                aiLoading.style.display = 'flex';
+                aiAnalysis.style.display = 'none';
+                
+                // Příprava dat pro Gemini API
+                const promptData = {
+                    overall: {
+                        score: results.score,
+                        correctCount: results.correctCount,
+                        totalQuestions: results.totalQuestions
+                    },
+                    topics: Object.values(results.topicResults).map(topic => ({
+                        name: topic.topic_name,
+                        correct: topic.correct,
+                        total: topic.total,
+                        percentage: topic.percentage
+                    })),
+                    questions: userResponses.map(response => ({
+                        question: response.question_text,
+                        correctAnswer: response.correct_answer,
+                        userAnswer: response.user_answer,
+                        isCorrect: response.is_correct,
+                        topic: topicMap[response.topic_id] || `Téma ${response.topic_id}`,
+                        difficulty: response.difficulty
+                    }))
                 };
-
+                
+                // Vytvoření promtu pro Gemini API
+                const prompt = `
+                    Jsi pomocník pro matematický test. Analyzuj výsledky testu a poskytni studentovi zpětnou vazbu.
+                    
+                    Výsledky testu:
+                    - Celkové skóre: ${promptData.overall.score}%
+                    - Správné odpovědi: ${promptData.overall.correctCount} z ${promptData.overall.totalQuestions}
+                    
+                    Výsledky podle témat:
+                    ${promptData.topics.map(t => `- ${t.name}: ${t.correct} z ${t.total} (${t.percentage}%)`).join('\n')}
+                    
+                    Poskytni studentovi:
+                    1. Celkové zhodnocení výsledku testu (jak si vedl)
+                    2. Identifikuj silné stránky (témata s nejlepšími výsledky)
+                    3. Identifikuj slabé stránky (témata s nejhoršími výsledky)
+                    4. Doporučení pro další studium, zaměřené na zlepšení slabých stránek
+                    5. Konkrétní tipy na zlepšení v problémových oblastech
+                    
+                    Piš v češtině a formátuj pomocí markdown. Tvoje odpověď bude zobrazena v aplikaci pro učení matematiky.
+                `;
+                
+                // Volání Gemini API
                 const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify(requestData)
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [{
+                                text: prompt
+                            }]
+                        }]
+                    })
                 });
-
-                // Zpracujeme odpověď
+                
                 const data = await response.json();
-                if (!response.ok) {
-                    throw new Error(data.error?.message || 'Chyba při komunikaci s Gemini API');
-                }
-
-                // Extrahujeme textovou odpověď
-                const geminiResponse = data.candidates[0]?.content?.parts[0]?.text;
                 
-                if (!geminiResponse) {
-                    throw new Error('Prázdná odpověď od Gemini API');
+                if (!response.ok || !data.candidates || data.candidates.length === 0) {
+                    throw new Error('Nepodařilo se získat odpověď od Gemini API');
                 }
                 
-                // Zpracujeme odpověď - rozdělíme na JSON hodnocení a textovou analýzu
-                processGeminiResponse(geminiResponse);
+                // Zobrazení analýzy
+                const analysisText = data.candidates[0].content.parts[0].text;
+                aiAnalysis.innerHTML = marked.parse(analysisText);
                 
-            } catch (error) {
-                console.error('Chyba při analýze výsledků:', error);
+                // Uložení výsledků pro pozdější použití
+                testResults.analysis = analysisText;
+                
+                // Skrytí načítání a zobrazení analýzy
                 aiLoading.style.display = 'none';
                 aiAnalysis.style.display = 'block';
-                aiAnalysis.innerHTML = `
-                    <h3>Analýza výsledků</h3>
-                    <p>Omlouváme se, ale došlo k chybě při hodnocení vašich odpovědí.</p>
-                    <p>Zkuste prosím znovu odeslat test nebo kontaktujte podporu.</p>
-                `;
                 
-                // Základní zobrazení, i když došlo k chybě
-                scoreDisplay.textContent = '0/50';
-                correctAnswers.textContent = '0';
-                wrongAnswers.textContent = userResponses.length;
-            }
-        }
-        
-        // Zpracování odpovědi z Gemini
-        function processGeminiResponse(response) {
-            try {
-                // Extrahujeme JSON část z odpovědi
-                const jsonMatch = response.match(/```json\s*([\s\S]*?)\s*```/);
-                
-                if (!jsonMatch || !jsonMatch[1]) {
-                    throw new Error('Nepodařilo se najít JSON hodnocení v odpovědi');
+                // Pokud jsme přihlášeni, uložíme analýzu do databáze
+                if (currentUser && diagnosticId) {
+                    await saveAnalysisToDatabase(analysisText);
                 }
-                
-                // Parsujeme JSON s výsledky
-                testResults = JSON.parse(jsonMatch[1]);
-                
-                // Aktualizujeme UI s výsledky
-                updateResultsUI(testResults);
-                
-                // Aktualizujeme userResponses na základě hodnocení AI
-                updateUserResponses(testResults);
-                
-                // Extrahujeme část s textovou analýzou - vše za JSON částí
-                let analysisText = response.substring(response.indexOf('```', response.indexOf('```json') + 7) + 3).trim();
-                
-                // Odstraňujeme z analýzy "Část 2: Analýza" nebo podobné označení
-                analysisText = analysisText.replace(/^#+\s*(?:Část|Čast|Cast|Part)\s*2\s*:\s*(?:Analýza|Analyza|Analysis)[\s\n]*/, '');
-                
-                // Zobrazíme analýzu
-                displayAnalysis(analysisText);
-                
-                // Uložíme výsledky do databáze Supabase
-                saveTestResultsToDatabase(analysisText);
-                
             } catch (error) {
-                console.error('Chyba při zpracování odpovědi Gemini:', error);
-                
-                // Fallback zobrazení
+                console.error('Chyba při získávání analýzy:', error);
                 aiLoading.style.display = 'none';
-                aiAnalysis.style.display = 'block';
                 aiAnalysis.innerHTML = `
-                    <h3>Analýza výsledků</h3>
-                    <p>Omlouváme se, ale došlo k chybě při zpracování hodnocení.</p>
-                    <p>Dokončili jste test, ale detailní analýza není k dispozici.</p>
+                    <h2>Analýza nebyla vygenerována</h2>
+                    <p>Omlouváme se, ale nepodařilo se vygenerovat analýzu vašich výsledků. Můžete to zkusit později nebo kontaktovat podporu.</p>
                 `;
-                
-                // Základní zobrazení skóre
-                scoreDisplay.textContent = '0/50';
-                correctAnswers.textContent = '0';
-                wrongAnswers.textContent = userResponses.length;
+                aiAnalysis.style.display = 'block';
             }
         }
         
-        // Aktualizace UI s výsledky
-        function updateResultsUI(results) {
-            scoreDisplay.textContent = `${results.totalScore}/${results.totalOutOf}`;
-            correctAnswers.textContent = results.correctAnswers;
-            wrongAnswers.textContent = results.wrongAnswers;
-        }
-        
-        // Aktualizace userResponses na základě hodnocení AI
-        function updateUserResponses(results) {
-            if (results.questions && Array.isArray(results.questions)) {
-                results.questions.forEach(evaluation => {
-                    const index = evaluation.questionIndex - 1;
-                    if (index >= 0 && index < userResponses.length) {
-                        userResponses[index].isCorrect = evaluation.isCorrect;
-                        userResponses[index].points = evaluation.points;
-                        userResponses[index].explanation = evaluation.explanation;
-                    }
-                });
-            }
-        }
-        
-        // Zobrazení analýzy
-        function displayAnalysis(analysisText) {
-            aiLoading.style.display = 'none';
-            aiAnalysis.style.display = 'block';
-            
-            // Použití marked.js pro převod Markdown na HTML
-            aiAnalysis.innerHTML = marked.parse(analysisText);
-        }
-        
-        // Uložení výsledků testu do databáze Supabase
-        async function saveTestResultsToDatabase(analysisText) {
+        // Uložení analýzy do databáze
+        async function saveAnalysisToDatabase(analysisText) {
             try {
-                if (!currentUser) {
-                    // Pokud uživatel není přihlášen, pokusíme se ho získat
-                    const { data: { user } } = await supabaseClient.auth.getUser();
-                    if (!user) {
-                        throw new Error('Uživatel není přihlášen.');
-                    }
-                    currentUser = user;
-                }
-                
-                // Připravíme data pro uložení do databáze podle schématu user_diagnostics
-                const topicResults = calculateTopicResults();
-                const currentTime = new Date().toISOString();
-                
-                const diagnosticData = {
-                    user_id: currentUser.id,
-                    total_score: testResults.totalScore,
-                    total_questions: userResponses.length,
-                    answers: userResponses,
-                    topic_results: topicResults,
-                    analysis: {
-                        summary: analysisText,
-                        correct_answers: testResults.correctAnswers,
-                        wrong_answers: testResults.wrongAnswers,
-                        test_date: currentTime
-                    },
-                    // Přidáváme časová pole
-                    created_at: currentTime,
-                    updated_at: currentTime,
-                    completed_at: currentTime
-                };
-                
-                // Ukládáme data do tabulky user_diagnostics
-                const { data, error } = await supabaseClient
+                const { error } = await supabaseClient
                     .from('user_diagnostics')
-                    .insert(diagnosticData)
-                    .select('id')
-                    .single();
+                    .update({
+                        ai_analysis: analysisText
+                    })
+                    .eq('id', diagnosticId);
                 
-                if (error) {
-                    console.error('Podrobná chyba při ukládání:', error);
-                    throw error;
-                }
+                if (error) throw error;
                 
-                // Uložíme ID diagnostiky pro pozdější použití
-                diagnosticId = data.id;
-                
-                console.log('Výsledky testu byly úspěšně uloženy do databáze s ID:', diagnosticId);
-                
+                console.log('Analýza byla úspěšně uložena do databáze');
             } catch (error) {
-                console.error('Chyba při ukládání výsledků do databáze:', error);
-                // Při chybě použijeme lokální uložiště jako zálohu
-                saveToLocalStorage();
+                console.error('Chyba při ukládání analýzy:', error);
             }
         }
         
-        // Výpočet výsledků podle témat pro ukládání do databáze
-        function calculateTopicResults() {
-            const topicResults = {};
-            
-            // Nejprve seskupíme odpovědi podle témat
-            userResponses.forEach(response => {
-                const topicId = response.topicId;
-                const topic = response.topic;
-                
-                if (!topicResults[topicId]) {
-                    topicResults[topicId] = {
-                        topic_name: topic,
-                        questions: 0,
-                        correct: 0,
-                        score: 0
-                    };
-                }
-                
-                topicResults[topicId].questions++;
-                
-                if (response.isCorrect) {
-                    topicResults[topicId].correct++;
-                    topicResults[topicId].score += response.points || 0;
-                }
-            });
-            
-            return topicResults;
-        }
-        
-        // Záložní řešení - uložení do localStorage
-        function saveToLocalStorage() {
-            const resultsData = {
-                date: new Date().toISOString(),
-                totalScore: testResults.totalScore,
-                totalQuestions: userResponses.length,
-                correctAnswers: testResults.correctAnswers,
-                wrongAnswers: testResults.wrongAnswers,
-                responses: userResponses,
-                topicResults: calculateTopicResults()
-            };
-            
-            localStorage.setItem('justax_test_results', JSON.stringify(resultsData));
-            console.log('Výsledky testu byly uloženy do lokálního úložiště jako zálohu.');
-        }
-        
-        // Event listenery
-        document.addEventListener('DOMContentLoaded', function() {
-            initPage();
-            
-            startTestBtn.addEventListener('click', startTest);
-            submitTestBtn.addEventListener('click', submitTest);
-            
-            createPlanBtn.addEventListener('click', function() {
-                // Přesměrování na stránku vytvoření plánu
-                window.location.href = '/dashboard/procvicovani/plan.html';
-            });
+        // Přechod na vytvoření studijního plánu
+        createPlanBtn.addEventListener('click', () => {
+            window.location.href = '/dashboard/procvicovani/plan.html';
         });
+        
+        // Generování vysvětlení pro každou otázku
+        async function generateAnswerExplanations(responses) {
+            try {
+                // Příprava pro postupné generování vysvětlení pro každou otázku
+                aiExplanations = new Array(responses.length).fill(null);
+                
+                // Pro každou otázku vygenerujeme vysvětlení
+                for (let i = 0; i < responses.length; i++) {
+                    const response = responses[i];
+                    const isCorrect = response.is_correct;
+                    
+                    // Vytvoření promtu pro Gemini API
+                    const prompt = `
+                        Jsi pomocník pro matematický test. Vysvětli řešení následující matematické úlohy.
+                        
+                        Otázka: ${response.question_text}
+                        Správná odpověď: ${response.correct_answer}
+                        Odpověď studenta: ${response.user_answer}
+                        ${isCorrect ? 'Student odpověděl správně.' : 'Student odpověděl špatně.'}
+                        
+                        Poskytni krátké a jasné vysvětlení, jak se měla úloha správně vyřešit. Pokud je odpověď studenta nesprávná, vysvětli, kde udělal chybu.
+                        Piš v češtině a buď stručný, ale srozumitelný. Tvoje odpověď bude zobrazena v aplikaci pro učení matematiky.
+                    `;
+                    
+                    // Volání Gemini API
+                    const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            contents: [{
+                                parts: [{
+                                    text: prompt
+                                }]
+                            }]
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (!response.ok || !data.candidates || data.candidates.length === 0) {
+                        throw new Error('Nepodařilo se získat odpověď od Gemini API');
+                    }
+                    
+                    // Uložení vysvětlení
+                    aiExplanations[i] = data.candidates[0].content.parts[0].text;
+                }
+            } catch (error) {
+                console.error('Chyba při generování vysvětlení:', error);
+            }
+        }
+        
+        // Zobrazení přehledu odpovědí
+        showAnswersBtn.addEventListener('click', () => {
+            resultsSection.style.display = 'none';
+            answersSection.style.display = 'block';
+            
+            // Vykreslení přehledu odpovědí
+            renderAnswersOverview();
+        });
+        
+        // Návrat k výsledkům
+        backToResultsBtn.addEventListener('click', () => {
+            answersSection.style.display = 'none';
+            resultsSection.style.display = 'block';
+        });
+        
+        // Vykreslení přehledu odpovědí
+        function renderAnswersOverview() {
+            answersContainer.innerHTML = '';
+            
+            userResponses.forEach((response, index) => {
+                const answerCard = document.createElement('div');
+                answerCard.className = 'answer-review-card';
+                
+                const isCorrect = response.is_correct;
+                const questionNumber = index + 1;
+                const topicName = topicMap[response.topic_id] || `Téma ${response.topic_id}`;
+                const difficultyLabel = getDifficultyLabel(response.difficulty);
+                const explanation = aiExplanations[index] || 'Vysvětlení není k dispozici.';
+                
+                answerCard.innerHTML = `
+                    <div class="answer-review-header">
+                        <div class="question-number">Otázka ${questionNumber} (${topicName}, ${difficultyLabel})</div>
+                        <div class="answer-result ${isCorrect ? 'correct' : 'incorrect'}">${isCorrect ? 'Správně' : 'Nesprávně'}</div>
+                    </div>
+                    <div class="question-text">${response.question_text}</div>
+                    <div class="answer-review-content">
+                        <div class="answer-review-group">
+                            <div class="answer-review-label">
+                                <i class="fas fa-user"></i> Vaše odpověď:
+                            </div>
+                            <div class="answer-review-text user-answer">${response.user_answer || '<i>Bez odpovědi</i>'}</div>
+                        </div>
+                        <div class="answer-review-group">
+                            <div class="answer-review-label">
+                                <i class="fas fa-check-circle"></i> Správná odpověď:
+                            </div>
+                            <div class="answer-review-text correct-answer">${response.correct_answer}</div>
+                        </div>
+                        <div class="answer-review-group">
+                            <div class="answer-review-label">
+                                <i class="fas fa-robot"></i> Vysvětlení:
+                            </div>
+                            <div class="answer-review-text ai-explanation">${explanation}</div>
+                        </div>
+                    </div>
+                `;
+                
+                answersContainer.appendChild(answerCard);
+            });
+        }
+        
+        // Inicializace stránky při načtení
+        document.addEventListener('DOMContentLoaded', initPage);
     </script>
 </body>
 </html>
