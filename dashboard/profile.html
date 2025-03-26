@@ -1072,9 +1072,29 @@
         body.dark-mode .error-message {
             background-color: rgba(247, 37, 133, 0.1);
         }
+
+        /* Debug panel */
+        #debug-panel {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            z-index: 9999;
+            font-size: 12px;
+            max-width: 300px;
+            max-height: 200px;
+            overflow: auto;
+            display: none;
+        }
     </style>
 </head>
 <body>
+    <!-- Debug panel для отслеживания ошибок -->
+    <div id="debug-panel"></div>
+
     <!-- Sidebar -->
     <aside class="sidebar">
         <div class="sidebar-header">
@@ -1086,37 +1106,37 @@
         
         <ul class="sidebar-menu">
             <li class="sidebar-item">
-                <a href="/dashboard.html" class="sidebar-link" id="dashboard-link">
+                <a href="dashboard.html" class="sidebar-link" id="dashboard-link">
                     <i class="fas fa-th-large"></i>
                     <span>Dashboard</span>
                 </a>
             </li>
             <li class="sidebar-item">
-                <a href="/dashboard/procvicovani.html" class="sidebar-link">
+                <a href="procvicovani.html" class="sidebar-link">
                     <i class="fas fa-book-open"></i>
                     <span>Procvičování</span>
                 </a>
             </li>
             <li class="sidebar-item">
-                <a href="/dashboard/pokrok.html" class="sidebar-link">
+                <a href="pokrok.html" class="sidebar-link">
                     <i class="fas fa-chart-line"></i>
                     <span>Pokrok</span>
                 </a>
             </li>
             <li class="sidebar-item">
-                <a href="/dashboard/oceneni.html" class="sidebar-link">
+                <a href="oceneni.html" class="sidebar-link">
                     <i class="fas fa-medal"></i>
                     <span>Ocenění</span>
                 </a>
             </li>
             <li class="sidebar-item">
-                <a href="/dashboard/materialy.html" class="sidebar-link">
+                <a href="materialy.html" class="sidebar-link">
                     <i class="fas fa-file-alt"></i>
                     <span>Materiály</span>
                 </a>
             </li>
             <li class="sidebar-item">
-                <a href="/dashboard/profile.html" class="sidebar-link active">
+                <a href="profile.html" class="sidebar-link active">
                     <i class="fas fa-user-cog"></i>
                     <span>Profil</span>
                 </a>
@@ -1431,9 +1451,83 @@
     <div class="alert" id="alert"></div>
 
     <script>
-        // Konfigurace Supabase - Важно: замените на ваши реальные значения!
-        const SUPABASE_URL = 'https://qcimhjjwvsbgjsitmvuh.supabase.co'; // Вставьте сюда ваш URL
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTQ0NjI2MzcsImV4cCI6MjAzMDAzODYzN30.4YIol2Uy40gafO_OaPN0o1ZlKIlxVIC6sRiLDXVtI9M'; // Вставьте сюда ваш ключ
+        // Включаем панель отладки для отслеживания проблем
+        const debugMode = true; // Установите в false для продакшн
+        const debugPanel = document.getElementById('debug-panel');
+        
+        if (debugMode) {
+            debugPanel.style.display = 'block';
+        }
+        
+        function debugLog(message, object = null) {
+            if (!debugMode) return;
+            
+            const timestamp = new Date().toISOString().substr(11, 8);
+            let logMessage = `[${timestamp}] ${message}`;
+            
+            console.log(logMessage, object || '');
+            
+            const logElement = document.createElement('div');
+            logElement.textContent = logMessage;
+            if (object) {
+                try {
+                    logElement.textContent += ` ${JSON.stringify(object)}`;
+                } catch (e) {
+                    logElement.textContent += ' [Object cannot be stringified]';
+                }
+            }
+            
+            debugPanel.appendChild(logElement);
+            
+            // Автоскролл до последнего сообщения
+            debugPanel.scrollTop = debugPanel.scrollHeight;
+        }
+
+        // Перехват перенаправлений
+        const originalWindowLocation = window.location;
+        Object.defineProperty(window, 'location', {
+            get: function() {
+                return originalWindowLocation;
+            },
+            set: function(value) {
+                debugLog(`REDIRECT ATTEMPT: ${value}`);
+                
+                // Если перенаправление на дашборд, блокируем его в режиме отладки
+                if (value.includes('dashboard.html') && debugMode) {
+                    debugLog('Blocking redirect to dashboard.html');
+                    showAlert('Redirect to dashboard.html blocked for debugging', 'warning');
+                    return; // Блокируем перенаправление
+                }
+                
+                // В противном случае разрешаем перенаправление
+                originalWindowLocation.href = value;
+            }
+        });
+
+        // Суперсет для обработки функции fetch с логированием
+        const originalFetch = window.fetch;
+        window.fetch = function(url, options) {
+            debugLog(`Fetch request to: ${url}`, options);
+            return originalFetch.apply(this, arguments)
+                .then(response => {
+                    debugLog(`Fetch response from: ${url}`, {
+                        status: response.status,
+                        ok: response.ok,
+                        statusText: response.statusText
+                    });
+                    return response;
+                })
+                .catch(error => {
+                    debugLog(`Fetch error: ${error.message}`);
+                    throw error;
+                });
+        };
+
+        // Конфигурация Supabase
+        const SUPABASE_URL = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTQ0NjI2MzcsImV4cCI6MjAzMDAzODYzN30.4YIol2Uy40gafO_OaPN0o1ZlKIlxVIC6sRiLDXVtI9M';
+        
+        debugLog('Initializing Supabase client', { url: SUPABASE_URL });
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         // Глобальные переменные
@@ -1500,56 +1594,145 @@
 
         async function initApp() {
             try {
-                console.log("Инициализация приложения...");
+                debugLog("Инициализация приложения...");
                 
                 // Проверка авторизации пользователя
-                const { data: { user }, error } = await supabaseClient.auth.getUser();
+                debugLog("Проверка авторизации пользователя...");
+                const { data: authData, error: authError } = await supabaseClient.auth.getUser();
                 
-                if (error) {
-                    console.error("Ошибка аутентификации:", error);
-                    window.location.href = '/auth/index.html';
+                if (authError) {
+                    debugLog("Ошибка аутентификации:", authError);
+                    showAlert('Chyba při ověření identity. Zkuste se přihlásit znovu.', 'danger');
+                    
+                    // НЕ перенаправляем, а показываем ошибку
+                    setTimeout(() => {
+                        if (confirm('Nebyla zjištěna žádná aktivní relace. Chcete se přihlásit?')) {
+                            window.location.href = '/auth/index.html';
+                        }
+                    }, 1000);
                     return;
                 }
                 
-                if (!user) {
-                    console.log("Пользователь не аутентифицирован");
-                    window.location.href = '/auth/index.html';
+                if (!authData.user) {
+                    debugLog("Пользователь не аутентифицирован");
+                    showAlert('Pro zobrazení profilu se nejprve přihlaste.', 'warning');
+                    
+                    // НЕ перенаправляем, а показываем ошибку
+                    setTimeout(() => {
+                        if (confirm('Nebyla zjištěna žádná aktivní relace. Chcete se přihlásit?')) {
+                            window.location.href = '/auth/index.html';
+                        }
+                    }, 1000);
                     return;
                 }
                 
-                console.log("Пользователь аутентифицирован:", user);
-                currentUser = user;
+                debugLog("Пользователь аутентифицирован:", authData.user);
+                currentUser = authData.user;
                 
-                await fetchUserProfile();
+                // Устанавливаем обработчики событий ДО получения профиля
                 setupEventListeners();
                 initTabs();
                 
+                await fetchUserProfile();
+                
                 // Применяем пользовательские предпочтения
-                applyUserPreferences();
+                if (userProfile && userProfile.preferences) {
+                    applyUserPreferences();
+                }
                 
             } catch (error) {
-                console.error('Ошибка при инициализации приложения:', error);
+                debugLog('Ошибка при инициализации приложения:', error);
                 showAlert('Chyba při načítání dat. Zkuste to prosím znovu.', 'danger');
             }
         }
 
         async function fetchUserProfile() {
             try {
+                debugLog("Начинаем загрузку профиля для ID:", currentUser.id);
+                
+                // Проверяем, существует ли таблица profiles
+                try {
+                    const { count, error: checkError } = await supabaseClient
+                        .from('profiles')
+                        .select('id', { count: 'exact', head: true });
+                    
+                    if (checkError) {
+                        debugLog("Ошибка при проверке таблицы profiles:", checkError);
+                        
+                        // Если таблица не существует, показываем сообщение
+                        if (checkError.code === '42P01') { // Код ошибки для несуществующей таблицы
+                            showAlert('Таблица profiles не существует. Пожалуйста, создайте её.', 'danger');
+                            return;
+                        }
+                    }
+                    
+                    debugLog("Таблица profiles существует, найдено записей:", count);
+                } catch (e) {
+                    debugLog("Ошибка при проверке таблицы profiles:", e);
+                }
+                
                 const { data, error } = await supabaseClient
                     .from('profiles')
                     .select('*')
                     .eq('id', currentUser.id)
                     .single();
                 
-                if (error) throw error;
+                debugLog("Ответ от Supabase:", { data, error });
                 
-                userProfile = data;
+                if (error) {
+                    if (error.code === 'PGRST116') {
+                        debugLog("Профиль не найден, создаем новый");
+                        
+                        // Создаем новый профиль, так как запись не найдена
+                        const newProfile = {
+                            id: currentUser.id,
+                            email: currentUser.email,
+                            username: currentUser.email.split('@')[0],
+                            first_name: '',
+                            last_name: '',
+                            avatar_url: null,
+                            bio: '',
+                            created_at: new Date(),
+                            updated_at: new Date()
+                        };
+                        
+                        const { data: insertData, error: insertError } = await supabaseClient
+                            .from('profiles')
+                            .insert([newProfile])
+                            .select('*')
+                            .single();
+                        
+                        if (insertError) {
+                            debugLog("Ошибка создания профиля:", insertError);
+                            throw insertError;
+                        }
+                        
+                        debugLog("Новый профиль создан:", insertData);
+                        userProfile = insertData;
+                    } else {
+                        debugLog("Ошибка получения профиля:", error);
+                        throw error;
+                    }
+                } else {
+                    userProfile = data;
+                    debugLog("Профиль загружен:", userProfile);
+                }
+                
                 updateUIWithProfileData();
                 populateFormWithProfileData();
                 
             } catch (error) {
-                console.error('Ошибка при загрузке профиля:', error);
-                showAlert('Chyba při načítání profilu. Zkuste to prosím znovu.', 'danger');
+                debugLog('Ошибка при загрузке профиля:', error);
+                
+                // Показываем ошибку пользователю и предлагаем попробовать снова
+                const errorMessage = `Chyba při načítání profilu: ${error.message || 'Неизвестная ошибка'}`;
+                showAlert(errorMessage, 'danger');
+                
+                                setTimeout(() => {
+                    if (confirm('Nepodařilo se načíst profil. Chcete to zkusit znovu?')) {
+                        fetchUserProfile();
+                    }
+                }, 2000);
             }
         }
 
@@ -1582,44 +1765,55 @@
             // Обновляем информацию пользователя в боковой панели
             document.getElementById('user-name').textContent = fullName;
             document.getElementById('user-role').textContent = "Student";
-            
-            // Обновляем аватар в боковой панели (будет вызвано из updateUserAvatar)
         }
 
         function updateUserAvatar(avatarUrl) {
-            console.log("Обновляем аватар с URL:", avatarUrl);
+            debugLog("Обновляем аватар с URL:", avatarUrl);
             
             // Получаем полное имя для инициалов
             const fullName = `${userProfile.first_name || ''} ${userProfile.last_name || ''}`.trim() || 'Uživatel';
             const initials = getInitials(fullName);
             
-            // ИСПРАВЛЕНО: Используем обычную конкатенацию строк вместо шаблонных строк для избежания ошибки
-            if (avatarUrl) {
-                profileAvatarEl.innerHTML = 
-                    '<img src="' + avatarUrl + '" alt="Avatar">' +
-                    '<div class="change-avatar" id="change-avatar-btn">Změnit avatara</div>';
-                    
-                // Обновляем аватар в боковой панели
-                const userAvatarEl = document.getElementById('user-avatar');
-                if (userAvatarEl) {
-                    userAvatarEl.innerHTML = '<img src="' + avatarUrl + '" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover;">';
+            try {
+                // ИСПРАВЛЕНО: Используем обычную конкатенацию строк вместо шаблонных строк
+                if (avatarUrl) {
+                    profileAvatarEl.innerHTML = 
+                        '<img src="' + avatarUrl + '" alt="Avatar" onerror="this.style.display=\'none\'; this.parentNode.textContent=\'' + initials + '\'">' +
+                        '<div class="change-avatar" id="change-avatar-btn">Změnit avatara</div>';
+                        
+                    // Обновляем аватар в боковой панели
+                    const userAvatarEl = document.getElementById('user-avatar');
+                    if (userAvatarEl) {
+                        userAvatarEl.innerHTML = '<img src="' + avatarUrl + '" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.style.display=\'none\'; this.parentNode.textContent=\'' + initials + '\'">';
+                    }
+                } else {
+                    profileAvatarEl.textContent = initials;
+                    profileAvatarEl.innerHTML = 
+                        initials +
+                        '<div class="change-avatar" id="change-avatar-btn">Změnit avatara</div>';
+                        
+                    // Обновляем инициалы в боковой панели
+                    const userAvatarEl = document.getElementById('user-avatar');
+                    if (userAvatarEl) {
+                        userAvatarEl.textContent = initials;
+                    }
                 }
-            } else {
-                profileAvatarEl.innerHTML = 
-                    initials +
-                    '<div class="change-avatar" id="change-avatar-btn">Změnit avatara</div>';
-                    
-                // Обновляем инициалы в боковой панели
+                
+                // Добавляем обработчик для кнопки смены аватара с небольшой задержкой
+                setTimeout(() => {
+                    const changeAvatarBtnEl = document.getElementById('change-avatar-btn');
+                    if (changeAvatarBtnEl) {
+                        changeAvatarBtnEl.addEventListener('click', openAvatarModal);
+                    }
+                }, 100);
+            } catch (err) {
+                debugLog("Ошибка обновления аватара:", err);
+                // Резервный вариант в случае ошибки
+                profileAvatarEl.textContent = initials;
                 const userAvatarEl = document.getElementById('user-avatar');
                 if (userAvatarEl) {
                     userAvatarEl.textContent = initials;
                 }
-            }
-            
-            // Добавляем обработчик для кнопки смены аватара
-            const changeAvatarBtnEl = document.getElementById('change-avatar-btn');
-            if (changeAvatarBtnEl) {
-                changeAvatarBtnEl.addEventListener('click', openAvatarModal);
             }
         }
 
@@ -1676,7 +1870,7 @@
                 });
             });
             
-                        // Отправка форм
+            // Отправка форм
             saveProfileBtn.addEventListener('click', updateProfile);
             saveSecurityBtn.addEventListener('click', updatePassword);
             savePreferencesBtn.addEventListener('click', updatePreferences);
@@ -1685,7 +1879,9 @@
             logoutBtn.addEventListener('click', logout);
             
             // Работа с аватаром
-            changeAvatarBtn.addEventListener('click', openAvatarModal);
+            if (changeAvatarBtn) {
+                changeAvatarBtn.addEventListener('click', openAvatarModal);
+            }
             avatarModalClose.addEventListener('click', closeAvatarModal);
             avatarUpload.addEventListener('click', () => avatarInput.click());
             avatarInput.addEventListener('change', handleAvatarSelection);
@@ -1773,7 +1969,7 @@
                 showAlert('Profil byl úspěšně aktualizován', 'success');
                 
             } catch (error) {
-                console.error('Chyba při aktualizaci profilu:', error);
+                debugLog('Chyba při aktualizaci profilu:', error);
                 showAlert('Chyba při aktualizaci profilu. Zkuste to prosím znovu.', 'danger');
             } finally {
                 saveProfileBtn.innerHTML = '<i class="fas fa-save"></i> Uložit změny';
@@ -1805,7 +2001,7 @@
                 saveSecurityBtn.innerHTML = '<div class="loading-spinner"></div> Aktualizuji...';
                 saveSecurityBtn.disabled = true;
                 
-                // Сначала проверяем текущий пароль путем входа
+                // Проверка текущего пароля путем входа в систему
                 const { error: signInError } = await supabaseClient.auth.signInWithPassword({
                     email: currentUser.email,
                     password: currentPassword
@@ -1833,7 +2029,7 @@
                 showAlert('Heslo bylo úspěšně změněno', 'success');
                 
             } catch (error) {
-                console.error('Error updating password:', error);
+                debugLog('Error updating password:', error);
                 showAlert('Chyba při změně hesla. Zkuste to prosím znovu.', 'danger');
             } finally {
                 saveSecurityBtn.innerHTML = '<i class="fas fa-shield-alt"></i> Aktualizovat heslo';
@@ -1870,7 +2066,7 @@
                 showAlert('Předvolby byly úspěšně aktualizovány', 'success');
                 
             } catch (error) {
-                console.error('Error updating preferences:', error);
+                debugLog('Error updating preferences:', error);
                 showAlert('Chyba při aktualizaci předvoleb. Zkuste to prosím znovu.', 'danger');
             } finally {
                 savePreferencesBtn.innerHTML = '<i class="fas fa-cog"></i> Uložit předvolby';
@@ -1907,7 +2103,7 @@
                 showAlert('Nastavení oznámení bylo úspěšně aktualizováno', 'success');
                 
             } catch (error) {
-                console.error('Error updating notifications:', error);
+                debugLog('Error updating notifications:', error);
                 showAlert('Chyba při aktualizaci nastavení oznámení. Zkuste to prosím znovu.', 'danger');
             } finally {
                 saveNotificationsBtn.innerHTML = '<i class="fas fa-bell"></i> Uložit nastavení';
@@ -1926,7 +2122,7 @@
                 deleteAccountBtn.innerHTML = '<div class="loading-spinner"></div> Mažu účet...';
                 deleteAccountBtn.disabled = true;
                 
-                // Сначала удаляем профиль
+                // Удаляем профиль
                 const { error: profileError } = await supabaseClient
                     .from('profiles')
                     .delete()
@@ -1934,26 +2130,12 @@
                 
                 if (profileError) throw profileError;
                 
-                // Затем удаляем пользователя из auth
-                // Примечание: эта операция может требовать дополнительных прав
-                const { error: authError } = await supabaseClient.auth.admin.deleteUser(
-                    currentUser.id
-                );
-                
-                if (authError) {
-                    console.error("Невозможно удалить пользователя из auth:", authError);
-                    // В случае ошибки пытаемся выйти из системы
-                    await supabaseClient.auth.signOut();
-                    window.location.href = '/auth/index.html?deleted=partial';
-                    return;
-                }
-                
                 // Выходим и перенаправляем на страницу входа
                 await supabaseClient.auth.signOut();
                 window.location.href = '/auth/index.html?deleted=true';
                 
             } catch (error) {
-                console.error('Error deleting account:', error);
+                debugLog('Error deleting account:', error);
                 showAlert('Chyba při mazání účtu. Zkuste to prosím znovu nebo kontaktujte podporu.', 'danger');
                 deleteAccountBtn.innerHTML = '<i class="fas fa-trash-alt"></i> Smazat účet';
                 deleteAccountBtn.disabled = false;
@@ -1973,7 +2155,7 @@
                 window.location.href = '/auth/index.html';
                 
             } catch (error) {
-                console.error('Error signing out:', error);
+                debugLog('Error signing out:', error);
                 showAlert('Chyba při odhlašování. Zkuste to prosím znovu.', 'danger');
                 logoutBtn.innerHTML = '<i class="fas fa-sign-out-alt"></i> Odhlásit se';
                 logoutBtn.disabled = false;
@@ -2033,13 +2215,13 @@
                 uploadAvatarBtn.innerHTML = '<div class="loading-spinner"></div> Nahrávám...';
                 uploadAvatarBtn.disabled = true;
                 
-                // Создаем уникальное имя файла в формате, который соответствует политикам безопасности
+                // Создаем уникальное имя файла
                 const fileExt = avatarFile.name.split('.').pop();
                 const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
                 const userId = currentUser.id;
                 const filePath = `avatars/${userId}/${fileName}`;
                 
-                console.log("Загрузка файла по пути:", filePath);
+                debugLog("Загрузка файла по пути:", filePath);
                 
                 // Загружаем файл в Supabase Storage
                 const { data, error: uploadError } = await supabaseClient.storage
@@ -2050,11 +2232,11 @@
                     });
                 
                 if (uploadError) {
-                    console.error("Ошибка загрузки:", uploadError);
+                    debugLog("Ошибка загрузки:", uploadError);
                     throw uploadError;
                 }
                 
-                console.log("Файл успешно загружен:", data);
+                debugLog("Файл успешно загружен:", data);
                 
                 // Получаем публичную ссылку на загруженный файл
                 const { data: urlData } = supabaseClient.storage
@@ -2062,7 +2244,7 @@
                     .getPublicUrl(filePath);
                 
                 const avatarUrl = urlData.publicUrl;
-                console.log("Получен URL аватара:", avatarUrl);
+                debugLog("Получен URL аватара:", avatarUrl);
                 
                 // Обновляем профиль пользователя с новым URL аватара
                 const { error: updateError } = await supabaseClient
@@ -2074,7 +2256,7 @@
                     .eq('id', currentUser.id);
                 
                 if (updateError) {
-                    console.error("Ошибка обновления профиля:", updateError);
+                    debugLog("Ошибка обновления профиля:", updateError);
                     throw updateError;
                 }
                 
@@ -2086,7 +2268,7 @@
                 closeAvatarModal();
                 
             } catch (error) {
-                console.error('Error uploading avatar:', error);
+                debugLog('Error uploading avatar:', error);
                 showAlert('Chyba při nahrávání avataru: ' + (error.message || 'Неизвестная ошибка'), 'danger');
             } finally {
                 uploadAvatarBtn.innerHTML = '<span>Nahrát avatar</span>';
@@ -2112,6 +2294,6 @@
                 alertEl.classList.remove('show');
             }, 5000);
         }
-   </script>
+    </script>
 </body>
 </html>
