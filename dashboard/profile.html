@@ -1584,39 +1584,25 @@
         function updateUserAvatar(avatarUrl) {
     console.log("Обновляем аватар с URL:", avatarUrl);
     
-    // Сохраняем полное имя для инициалов
-    const fullName = `${userProfile.first_name || ''} ${userProfile.last_name || ''}`.trim() || 'Uživatel';
-    const initials = getInitials(fullName);
-    
     if (avatarUrl) {
-        // Создаем структуру с обработкой ошибки загрузки изображения
-        profileAvatarEl.innerHTML = `
-            <img 
-                src="${avatarUrl}" 
-                alt="Avatar" 
-                onerror="this.style.display='none'; this.parentNode.innerHTML = '${initials}<div class=\'change-avatar\' id=\'change-avatar-btn\'>Změnit avatara</div>';"
-            >
-            <div class="change-avatar" id="change-avatar-btn">Změnit avatara</div>
-        `;
+        // Проблема в строке ниже - экранирование символов в шаблонной строке
+        profileAvatarEl.innerHTML = 
+            '<img src="' + avatarUrl + '" alt="Avatar">' +
+            '<div class="change-avatar" id="change-avatar-btn">Změnit avatara</div>';
     } else {
-        profileAvatarEl.innerHTML = `
-            ${initials}
-            <div class="change-avatar" id="change-avatar-btn">Změnit avatara</div>
-        `;
+        const fullName = `${userProfile.first_name || ''} ${userProfile.last_name || ''}`.trim() || 'Uživatel';
+        profileAvatarEl.innerHTML = 
+            getInitials(fullName) +
+            '<div class="change-avatar" id="change-avatar-btn">Změnit avatara</div>';
     }
     
-    // Всегда добавляем обработчик события для кнопки смены аватара
-    setTimeout(() => {
-        const changeAvatarBtn = document.getElementById('change-avatar-btn');
-        if (changeAvatarBtn) {
-            changeAvatarBtn.addEventListener('click', openAvatarModal);
-            
-            // Добавляем подсказку, что кнопка доступна при наведении
-            profileAvatarEl.setAttribute('title', 'Наведите курсор для смены аватара');
-        } else {
-            console.error('Кнопка смены аватара не найдена в DOM!');
-        }
-    }, 100);
+    // Переименовываем переменную, чтобы избежать конфликта с глобальной
+    const avatarChangeBtn = document.getElementById('change-avatar-btn');
+    if (avatarChangeBtn) {
+        avatarChangeBtn.addEventListener('click', openAvatarModal);
+    } else {
+        console.error("Кнопка смены аватара не найдена!");
+    }
 }
 
 async function uploadAvatar() {
