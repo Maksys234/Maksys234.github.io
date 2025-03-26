@@ -1995,60 +1995,77 @@
     }
 
     async function uploadAvatar() {
-        if (!avatarFile) {
-            showAlert('Nejprve prosím vyberte soubor', 'warning');
-            return;
+    if (!avatarFile) {
+        showAlert('Nejprve prosím vyberte soubor', 'warning');
+        return;
+    }
+    
+    try {
+        uploadAvatarBtn.innerHTML = '<div class="loading-spinner"></div> Nahrávám...';
+        uploadAvatarBtn.disabled = true;
+        
+        // Create a unique file name with the correct path structure
+        const fileExt = avatarFile.name.split('.').pop();
+        const uniqueFileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+        
+        // Важно: Путь должен соответствовать формату avatars/{user_id}/filename
+        // чтобы соответствовать политикам безопасности
+        const filePath = `avatars/${currentUser.id}/${uniqueFileName}`;
+        
+        console.log("Загрузка файла по пути:", filePath);
+        
+        // Upload file to Supabase Storage
+        const { data, error: uploadError } = await supabaseClient.storage
+            .from('user-content')
+            .upload(filePath, avatarFile, {
+                cacheControl: '3600',
+                upsert: true
+            });
+        
+        if (uploadError) {
+            console.error("Ошибка загрузки:", uploadError);
+            throw uploadError;
         }
         
-        try {
-            uploadAvatarBtn.innerHTML = '<div class="loading-spinner"></div> Nahrávám...';
-            uploadAvatarBtn.disabled = true;
-            
-            // Create a unique file name
-            const fileExt = avatarFile.name.split('.').pop();
-            const fileName = `${currentUser.id}-${Math.random().toString(36).substring(2)}.${fileExt}`;
-            const filePath = `avatars/${fileName}`;
-            
-            // Upload file to Supabase Storage
-            const { error: uploadError } = await supabaseClient.storage
-                .from('user-content')
-                .upload(filePath, avatarFile);
-            
-            if (uploadError) throw uploadError;
-            
-            // Get public URL for the uploaded file
-            const { data } = supabaseClient.storage
-                .from('user-content')
-                .getPublicUrl(filePath);
-            
-            const avatarUrl = data.publicUrl;
-            
-            // Update user profile with new avatar URL
-            const { error: updateError } = await supabaseClient
-                .from('profiles')
-                .update({ 
-                    avatar_url: avatarUrl,
-                    updated_at: new Date()
-                })
-                .eq('id', currentUser.id);
-            
-            if (updateError) throw updateError;
-            
-            // Update local user profile and UI
-            userProfile.avatar_url = avatarUrl;
-            updateUserAvatar(avatarUrl);
-            
-            showAlert('Avatar byl úspěšně aktualizován', 'success');
-            closeAvatarModal();
-            
-        } catch (error) {
-            console.error('Error uploading avatar:', error);
-            showAlert('Chyba při nahrávání avataru. Zkuste to prosím znovu.', 'danger');
-        } finally {
-            uploadAvatarBtn.innerHTML = '<span>Nahrát avatar</span>';
-            uploadAvatarBtn.disabled = false;
+        console.log("Файл успешно загружен:", data);
+        
+        // Get public URL for the uploaded file
+        const { data: urlData } = supabaseClient.storage
+            .from('user-content')
+            .getPublicUrl(filePath);
+        
+        const avatarUrl = urlData.publicUrl;
+        console.log("Получен URL аватара:", avatarUrl);
+        
+        // Update user profile with new avatar URL
+        const { error: updateError } = await supabaseClient
+            .from('profiles')
+            .update({ 
+                avatar_url: avatarUrl,
+                updated_at: new Date()
+            })
+            .eq('id', currentUser.id);
+        
+        if (updateError) {
+            console.error("Ошибка обновления профиля:", updateError);
+            throw updateError;
         }
+        
+        // Update local user profile and UI
+        userProfile.avatar_url = avatarUrl;
+        updateUserAvatar(avatarUrl);
+        
+        showAlert('Avatar byl úspěšně aktualizován', 'success');
+        closeAvatarModal();
+        
+    } catch (error) {
+        console.error('Error uploading avatar:', error);
+        showAlert(`Chyba při nahrávání avataru: ${error.message || JSON.stringify(error)}`, 'danger');
+    } finally {
+        uploadAvatarBtn.innerHTML = '<span>Nahrát avatar</span>';
+        uploadAvatarBtn.disabled = false;
     }
+ }
 
     function showAlert(message, type) {
         // Clear any existing timeout
