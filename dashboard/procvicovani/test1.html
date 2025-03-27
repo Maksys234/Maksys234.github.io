@@ -3,22 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Justax - Studijní plán</title>
+    <title>Justax - Testování znalostí</title>
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- Font Awesome CDN -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- jQuery - přidáno -->
+    <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <!-- Tooltipster po jQuery -->
+    <!-- Tooltipster -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/css/tooltipster.bundle.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/js/tooltipster.bundle.min.js"></script>
     <!-- Supabase JS Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <!-- Marked pro renderování Markdown -->
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- MathJax pro matematické vzorce -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     
     <style>
         /* Základní styly */
@@ -203,6 +204,7 @@
             border-radius: var(--card-radius);
             padding: 1.25rem 1.5rem;
             box-shadow: var(--shadow-sm);
+            position: relative;
         }
 
         .header-content {
@@ -215,6 +217,21 @@
             font-size: 1.75rem;
             font-weight: 600;
             color: var(--dark);
+        }
+
+        .header-meta {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 0.5rem;
+        }
+
+        .header-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
         }
 
         /* Hlavní obsah */
@@ -237,6 +254,9 @@
             font-weight: 600;
             margin-bottom: 1.25rem;
             color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
         }
 
         .section-subtitle {
@@ -246,11 +266,180 @@
             color: var(--dark);
         }
 
-        .section-text {
-            font-size: 1rem;
+        /* Test container */
+        .test-container {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .test-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--gray-light);
+        }
+
+        .test-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .test-meta {
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
             color: var(--text-secondary);
-            line-height: 1.6;
+        }
+
+        .test-progress-container {
+            position: relative;
+            width: 100%;
+            height: 8px;
+            background-color: var(--gray-light);
+            border-radius: 4px;
+            margin: 1rem 0;
+        }
+
+        .test-progress-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            background: var(--gradient-2);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        /* Question container */
+        .question-container {
+            padding: 1.5rem;
+            border-radius: var(--card-radius);
+            border: 1px solid var(--gray-light);
             margin-bottom: 1.5rem;
+        }
+
+        .question-number {
+            display: inline-block;
+            width: 36px;
+            height: 36px;
+            line-height: 36px;
+            text-align: center;
+            background: var(--gradient-1);
+            color: white;
+            font-weight: 600;
+            border-radius: 50%;
+            margin-right: 1rem;
+        }
+
+        .question-text {
+            font-size: 1.15rem;
+            font-weight: 500;
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+
+        .question-text p {
+            margin-bottom: 0.75rem;
+        }
+
+        .question-image {
+            max-width: 100%;
+            margin: 1rem 0;
+            border-radius: 8px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        /* Answer options */
+        .answer-options {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .answer-option {
+            display: flex;
+            align-items: flex-start;
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid var(--gray-light);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .answer-option:hover {
+            background-color: rgba(67, 97, 238, 0.05);
+            border-color: var(--primary-light);
+        }
+
+        .answer-option.selected {
+            background-color: rgba(67, 97, 238, 0.1);
+            border-color: var(--primary);
+        }
+
+        .answer-option input[type="radio"] {
+            margin-right: 1rem;
+            margin-top: 0.25rem;
+            transform: scale(1.2);
+            cursor: pointer;
+        }
+
+        .answer-text {
+            flex: 1;
+        }
+
+        /* Question navigation */
+        .question-navigation {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 2rem;
+        }
+
+        /* Question pagination */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .page-item {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background-color: var(--light);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+
+        .page-item:hover {
+            background-color: var(--gray-light);
+            color: var(--dark);
+        }
+
+        .page-item.active {
+            background: var(--gradient-1);
+            color: white;
+        }
+
+        .page-item.answered {
+            background-color: var(--success);
+            color: white;
         }
 
         /* Styly tlačítek */
@@ -287,6 +476,18 @@
 
         .btn-secondary:hover {
             background-color: var(--gray-light);
+            color: var(--dark);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #4cc9f0, #38b2ac);
+            color: white;
+            box-shadow: 0 4px 10px rgba(76, 201, 240, 0.2);
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(76, 201, 240, 0.25);
         }
 
         .btn-lg {
@@ -294,113 +495,143 @@
             font-size: 1rem;
         }
 
-        .btn-center {
-            margin: 0 auto;
-            display: block;
-            width: fit-content;
+        .btn-sm {
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
         }
 
-        /* Styly analýzy a plánu */
-        .ai-loading {
+        .btn-block {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        /* Timer */
+        .test-timer {
+            position: absolute;
+            top: 1.25rem;
+            right: 1.5rem;
             display: flex;
             align-items: center;
-            gap: 1rem;
-            margin: 2rem 0;
-            font-style: italic;
-            color: var(--text-muted);
+            gap: 0.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--primary);
+            background-color: rgba(67, 97, 238, 0.1);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
         }
 
-        .ai-loading-spinner {
-            width: 24px;
-            height: 24px;
-            border: 3px solid rgba(67, 97, 238, 0.2);
+        .timer-warning {
+            color: var(--warning);
+        }
+
+        .timer-danger {
+            color: var(--danger);
+            animation: pulse 1s ease-in-out infinite;
+        }
+
+        /* Test loader */
+        .test-loader {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem 1rem;
+            text-align: center;
+        }
+
+        .loader-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(67, 97, 238, 0.1);
             border-radius: 50%;
             border-top-color: var(--primary);
-            animation: spin 1s ease-in-out infinite;
+            animation: spin 1s linear infinite;
+            margin-bottom: 1.5rem;
         }
 
-        .plan-content {
-            margin-top: 2rem;
-            padding: 1.5rem;
-            background-color: #f9f9ff;
-            border-radius: var(--card-radius);
-            border-left: 4px solid var(--primary);
-        }
-
-        .plan-content h1 {
-            color: var(--primary);
-            margin-bottom: 1.2rem;
-            font-size: 1.5rem;
-        }
-
-        .plan-content h2 {
-            color: var(--primary);
-            margin-top: 1.8rem;
-            margin-bottom: 1rem;
-            font-size: 1.3rem;
-        }
-
-        .plan-content h3 {
-            color: var(--dark);
-            margin-top: 1.5rem;
-            margin-bottom: 0.8rem;
-            font-size: 1.2rem;
-        }
-
-        .plan-content p {
-            margin-bottom: 1rem;
-            line-height: 1.6;
-        }
-
-        .plan-content ul, .plan-content ol {
-            margin-left: 1.5rem;
-            margin-bottom: 1rem;
-        }
-
-        .plan-content li {
+        .loader-text {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
             margin-bottom: 0.5rem;
         }
 
-        .plan-content strong {
-            color: var(--primary);
-            font-weight: 600;
-        }
-
-        .plan-content code {
-            background-color: rgba(67, 97, 238, 0.1);
-            padding: 0.2rem 0.4rem;
-            border-radius: 4px;
+        .loader-subtext {
             font-size: 0.9rem;
+            color: var(--text-muted);
         }
 
-        .plan-content blockquote {
-            border-left: 3px solid var(--primary-light);
-            padding-left: 1rem;
-            margin-left: 0;
-            margin-right: 0;
-            margin-bottom: 1rem;
+        /* Results section */
+        .results-container {
+            margin-top: 1.5rem;
+        }
+
+        .result-summary {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #f9f9ff;
+            border-radius: var(--card-radius);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border-left: 4px solid var(--primary);
+        }
+
+        .result-score {
+            text-align: center;
+        }
+
+        .score-value {
+            font-size: 3rem;
+            font-weight: 700;
+            background: var(--gradient-1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            line-height: 1;
+        }
+
+        .score-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-top: 0.5rem;
+        }
+
+        .result-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
             color: var(--text-secondary);
         }
 
-        /* Progresss bar */
-        .progress-container {
-            width: 100%;
-            height: 8px;
-            background-color: var(--gray-light);
-            border-radius: 4px;
-            overflow: hidden;
-            margin-bottom: 1rem;
+        .result-actions {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 2rem;
         }
 
-        .progress-bar {
-            height: 100%;
-            border-radius: 4px;
-            background: var(--gradient-1);
-            transition: width 0.5s ease;
-        }
-
-        /* Topic cards */
-        .topic-grid {
+        /* Topic results */
+        .topic-results {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
             gap: 1.5rem;
@@ -471,195 +702,49 @@
         }
 
         .topic-stats {
-            display: flex;
-            align-items: center;
-            margin-bottom: 1rem;
-            justify-content: space-between;
-        }
-
-        .topic-stat {
-            font-size: 0.9rem;
-            color: var(--text-secondary);
-        }
-
-        .topic-content {
             margin-top: 1rem;
         }
 
-        .topic-content ul {
-            margin-left: 1rem;
-            list-style-type: none;
-        }
-
-        .topic-content li {
-            margin-bottom: 0.5rem;
-            position: relative;
-            padding-left: 1.5rem;
-            font-size: 0.95rem;
-        }
-
-        .topic-content li:before {
-            content: '•';
-            position: absolute;
-            left: 0;
-            color: var(--primary);
-            font-weight: bold;
-        }
-
-        .topic-card.strength li:before {
-            color: var(--success);
-        }
-
-        .topic-card.weakness li:before {
-            color: var(--danger);
-        }
-
-        /* Focus areas */
-        .focus-areas {
-            margin-top: 2rem;
-        }
-
-        .focus-area {
-            background-color: var(--white);
-            border-radius: var(--card-radius);
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-            box-shadow: var(--shadow-sm);
-        }
-
-        .focus-area h3 {
-            font-size: 1.2rem;
-            font-weight: 600;
-            margin-bottom: 1rem;
-            color: var(--primary);
+        .topic-progress {
             display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-
-        .focus-area h3 i {
-            font-size: 1.3rem;
-        }
-
-        .area-description {
-            margin-bottom: 1rem;
-            color: var(--text-secondary);
-            line-height: 1.5;
-        }
-
-        .study-tips {
-            background-color: rgba(67, 97, 238, 0.05);
-            border-radius: 8px;
-            padding: 1rem;
-            margin-top: 1rem;
-        }
-
-        .study-tips h4 {
-            font-size: 1rem;
-            font-weight: 600;
-            margin-bottom: 0.75rem;
-            color: var(--dark);
-        }
-
-        .study-tips ul {
-            margin-left: 1.25rem;
-        }
-
-        .study-tips li {
-            margin-bottom: 0.5rem;
-            font-size: 0.95rem;
-            color: var(--text-secondary);
-        }
-
-        /* Daily schedule */
-        .daily-schedule {
-            margin-top: 2rem;
-        }
-
-        .schedule-day {
-            background-color: var(--white);
-            border-radius: var(--card-radius);
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-            box-shadow: var(--shadow-sm);
-            border-left: 4px solid var(--primary);
-        }
-
-        .day-name {
-            font-size: 1.2rem;
-            font-weight: 600;
-            margin-bottom: 1rem;
-            color: var(--dark);
-            display: flex;
-            align-items: center;
             justify-content: space-between;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
         }
 
-        .day-focus {
-            font-size: 0.9rem;
+        .topic-progress-label {
+            color: var(--text-secondary);
+        }
+
+        .topic-progress-value {
             font-weight: 500;
             color: var(--primary);
-            background-color: rgba(67, 97, 238, 0.1);
-            padding: 0.25rem 0.75rem;
-            border-radius: 20px;
         }
 
-        .activities {
-            margin-top: 1rem;
+        .topic-progress-bar {
+            width: 100%;
+            height: 6px;
+            background-color: var(--gray-light);
+            border-radius: 3px;
+            overflow: hidden;
         }
 
-        .activity {
-            display: flex;
-            margin-bottom: 0.75rem;
-            padding-bottom: 0.75rem;
-            border-bottom: 1px dashed var(--gray-light);
+        .topic-progress-fill {
+            height: 100%;
+            background: var(--gradient-1);
+            border-radius: 3px;
         }
 
-        .activity:last-child {
-            border-bottom: none;
-            padding-bottom: 0;
+        .topic-card.strength .topic-progress-fill {
+            background: linear-gradient(135deg, #4cc9f0, #38b2ac);
         }
 
-        .activity-time {
-            min-width: 70px;
-            font-weight: 600;
-            color: var(--primary);
+        .topic-card.weakness .topic-progress-fill {
+            background: linear-gradient(135deg, #f72585, #b5179e);
         }
 
-        .activity-content {
-            flex: 1;
-        }
-
-        .activity-title {
-            font-weight: 500;
-            color: var(--dark);
-            margin-bottom: 0.25rem;
-        }
-
-        .activity-desc {
-            font-size: 0.9rem;
-            color: var(--text-secondary);
-        }
-
-        /* Přidané styly pro notest sekci */
-        .notest-message {
-            background-color: rgba(255, 214, 102, 0.2);
-            border-left: 4px solid var(--warning);
-            padding: 1.5rem;
-            margin: 2rem 0;
-            border-radius: var(--card-radius);
-        }
-
-        .notest-message h3 {
-            color: var(--warning);
-            margin-bottom: 0.75rem;
-            font-size: 1.2rem;
-        }
-
-        .notest-message p {
-            color: var(--text-secondary);
-            margin-bottom: 1rem;
-            line-height: 1.5;
+        .topic-card.neutral .topic-progress-fill {
+            background: linear-gradient(135deg, #f8961e, #f3722c);
         }
 
         /* Animace */
@@ -668,12 +753,18 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        .animated {
-            animation: fadeIn 0.5s ease forwards;
-        }
-
         @keyframes spin {
             to { transform: rotate(360deg); }
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.6; }
+            100% { opacity: 1; }
+        }
+
+        .animated {
+            animation: fadeIn 0.5s ease forwards;
         }
 
         /* Media queries */
@@ -707,10 +798,6 @@
             .user-avatar {
                 margin-right: 0;
             }
-
-            .topic-grid {
-                grid-template-columns: 1fr;
-            }
         }
 
         @media (max-width: 768px) {
@@ -723,6 +810,40 @@
                 align-items: flex-start;
                 gap: 1rem;
             }
+
+            .test-info {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+
+            .test-meta {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .result-summary {
+                flex-direction: column;
+                gap: 1.5rem;
+                text-align: center;
+            }
+
+            .result-stats {
+                width: 100%;
+            }
+
+            .result-actions {
+                flex-direction: column;
+            }
+
+            .question-navigation {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .question-navigation button {
+                width: 100%;
+            }
         }
 
         @media (max-width: 576px) {
@@ -732,6 +853,11 @@
             
             .sidebar {
                 transform: translateX(-100%);
+                z-index: 1000;
+            }
+            
+            .sidebar.active {
+                transform: translateX(0);
             }
             
             main {
@@ -741,6 +867,16 @@
             
             .mobile-menu-toggle {
                 display: block;
+            }
+
+            .pagination {
+                gap: 0.35rem;
+            }
+
+            .page-item {
+                width: 32px;
+                height: 32px;
+                font-size: 0.8rem;
             }
         }
 
@@ -752,7 +888,24 @@
             cursor: pointer;
             color: var(--dark);
             font-size: 1.5rem;
-            margin-right: 1rem;
+        }
+
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 99;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .sidebar-overlay.active {
+            display: block;
+            opacity: 1;
         }
 
         /* Tmavý režim */
@@ -771,15 +924,30 @@
                 background-color: #171923;
             }
 
-            .plan-content {
-                background-color: #1e2533;
+            .answer-option {
+                background-color: #21232f;
+            }
+            
+            .answer-option:hover {
+                background-color: #2d3748;
+            }
+            
+            .answer-option.selected {
+                background-color: rgba(67, 97, 238, 0.2);
+            }
+
+            .result-summary {
+                background-color: #21232f;
             }
         }
     </style>
 </head>
 <body>
+    <!-- Mobile menu overlay -->
+    <div id="sidebar-overlay" class="sidebar-overlay"></div>
+
     <!-- Sidebar -->
-    <aside class="sidebar">
+    <aside id="sidebar" class="sidebar">
         <div class="sidebar-header">
             <a href="/" class="sidebar-logo">
                 <i class="fas fa-calculator"></i>
@@ -789,13 +957,13 @@
         
         <ul class="sidebar-menu">
             <li class="sidebar-item">
-                <a href="/dashboard/dashboard.html" class="sidebar-link">
+                <a href="/dashboard.html" class="sidebar-link">
                     <i class="fas fa-th-large"></i>
                     <span>Dashboard</span>
                 </a>
             </li>
             <li class="sidebar-item">
-                <a href="/dashboard/procvicovani.html" class="sidebar-link active">
+                <a href="/dashboard/procvicovani/main.html" class="sidebar-link active">
                     <i class="fas fa-book-open"></i>
                     <span>Procvičování</span>
                 </a>
@@ -828,7 +996,7 @@
         
         <div class="user-profile">
             <div class="user-avatar" id="user-avatar">
-                <!-- Аватарка будет загружена через JS или будут отображены инициалы -->
+                <!-- Avatar nebo iniciály -->
             </div>
             <div class="user-info">
                 <div class="user-name" id="user-name">Načítání...</div>
@@ -845,61 +1013,124 @@
     <main>
         <div class="dashboard-header">
             <div class="header-content">
-                <h1>Personalizovaný studijní plán</h1>
-                <button class="mobile-menu-toggle">
-                    <i class="fas fa-bars"></i>
-                </button>
+                <div>
+                    <button id="mobile-menu-toggle" class="mobile-menu-toggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <h1>Testování znalostí</h1>
+                    <div class="header-meta">
+                        <div class="header-meta-item">
+                            <i class="fas fa-graduation-cap"></i>
+                            <span id="test-subject">Matematika</span>
+                        </div>
+                        <div class="header-meta-item">
+                            <i class="fas fa-layer-group"></i>
+                            <span id="test-level">Diagnostický test</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="test-timer" class="test-timer">
+                <i class="fas fa-clock"></i>
+                <span id="timer-value">00:00</span>
             </div>
         </div>
 
         <div class="main-content">
-            <!-- Sekce informací o testu -->
-            <div class="section test-summary" id="testSummarySection">
-                <h2 class="section-title">Výsledky diagnostického testu</h2>
-                <div id="testStats">
-                    <!-- Zde se zobrazí statistiky testu -->
-                </div>
-                <div id="topicStats" class="topic-grid">
-                    <!-- Zde se zobrazí výsledky podle témat -->
+            <!-- Načítání testu -->
+            <div id="test-loader" class="section">
+                <div class="test-loader">
+                    <div class="loader-spinner"></div>
+                    <div class="loader-text">Načítání testu...</div>
+                    <div class="loader-subtext">Připravujeme pro vás náhodný test z naší databáze</div>
                 </div>
             </div>
 
-            <!-- Sekce s plánem studia -->
-            <div class="section plan-section" id="planSection">
-                <h2 class="section-title">Váš personalizovaný studijní plán</h2>
-                
-                <div class="ai-loading" id="planLoading">
-                    <div class="ai-loading-spinner"></div>
-                    <div>Vytvářím personalizovaný studijní plán...</div>
-                </div>
-                
-                <div class="plan-content" id="planContent" style="display: none;">
-                    <!-- Zde se zobrazí plán studia -->
-                </div>
-            </div>
+            <!-- Testový formulář -->
+            <div id="test-container" class="section" style="display: none;">
+                <div class="test-container">
+                    <div class="test-info">
+                        <div class="test-title" id="current-test-title">Diagnostický test znalostí</div>
+                        <div class="test-meta">
+                            <div class="meta-item">
+                                <i class="fas fa-question-circle"></i>
+                                <span id="question-count">0 / 0</span> otázek
+                            </div>
+                            <div class="meta-item">
+                                <i class="fas fa-check-circle"></i>
+                                <span id="answered-count">0</span> zodpovězeno
+                            </div>
+                        </div>
+                    </div>
 
-            <!-- Sekce s týdenním rozvrhem -->
-            <div class="section schedule-section" id="scheduleSection" style="display: none;">
-                <h2 class="section-title">Týdenní harmonogram</h2>
-                <div class="daily-schedule" id="dailySchedule">
-                    <!-- Zde se zobrazí denní rozvrh -->
-                </div>
-                
-                <button class="btn btn-primary btn-lg btn-center" id="saveScheduleBtn" style="margin-top: 2rem;">
-                    <i class="fas fa-download"></i>
-                    Stáhnout plán
-                </button>
-            </div>
+                    <div class="test-progress-container">
+                        <div class="test-progress-bar" id="progress-bar" style="width: 0%;"></div>
+                    </div>
 
-            <!-- Sekce, když nemáme výsledky testu -->
-            <div class="section notest-section" id="notestSection" style="display: none;">
-                <div class="notest-message">
-                    <h3><i class="fas fa-exclamation-circle"></i> Nejprve absolvujte diagnostický test</h3>
-                    <p>Pro vytvoření personalizovaného studijního plánu je nejprve potřeba dokončit diagnostický test, který nám pomůže identifikovat vaše silné a slabé stránky.</p>
-                    <button class="btn btn-primary" id="goToTestBtn">
-                        <i class="fas fa-play"></i>
-                        Přejít k testu
+                    <div id="question-container" class="question-container">
+                        <!-- Otázka se načte dynamicky -->
+                    </div>
+
+                    <div class="question-navigation">
+                        <button id="prev-btn" class="btn btn-secondary" disabled>
+                            <i class="fas fa-arrow-left"></i> Předchozí otázka
+                        </button>
+                        <button id="next-btn" class="btn btn-primary">
+                            Další otázka <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+
+                    <div id="pagination" class="pagination">
+                        <!-- Navigační číslování otázek -->
+                    </div>
+
+                    <button id="finish-btn" class="btn btn-success btn-lg btn-block" style="display: none;">
+                        <i class="fas fa-check-circle"></i> Dokončit test
                     </button>
+                </div>
+            </div>
+
+            <!-- Výsledky testu -->
+            <div id="results-container" class="section" style="display: none;">
+                <h2 class="section-title">
+                    <i class="fas fa-award"></i> Výsledky testu
+                </h2>
+                
+                <div class="results-container">
+                    <div class="result-summary">
+                        <div class="result-score">
+                            <div class="score-value" id="result-percentage">0%</div>
+                            <div class="score-label">Celkové skóre</div>
+                        </div>
+                        <div class="result-stats">
+                            <div class="stat-item">
+                                <div class="stat-value" id="result-correct">0</div>
+                                <div class="stat-label">Správné odpovědi</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value" id="result-incorrect">0</div>
+                                <div class="stat-label">Chybné odpovědi</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value" id="result-time">00:00</div>
+                                <div class="stat-label">Čas</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h3 class="section-subtitle">Výsledky podle témat</h3>
+                    <div id="topic-results" class="topic-results">
+                        <!-- Výsledky podle témat se načtou dynamicky -->
+                    </div>
+
+                    <div class="result-actions">
+                        <button id="retry-btn" class="btn btn-primary btn-lg">
+                            <i class="fas fa-redo"></i> Zkusit jiný test
+                        </button>
+                        <button id="continue-btn" class="btn btn-success btn-lg">
+                            <i class="fas fa-tasks"></i> Přejít na studijní plán
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -908,14 +1139,65 @@
     <script>
         // Inicializace Supabase klienta
         const supabaseUrl = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRt[...]';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10';
+        const supabase = supabase.createClient(supabaseUrl, supabaseKey);
         
-        // Správná inicializace Supabase
-        const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+        // DOM elementy
+        const userAvatar = document.getElementById('user-avatar');
+        const userName = document.getElementById('user-name');
+        const userRole = document.getElementById('user-role');
+        const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+        const sidebar = document.getElementById('sidebar');
+        const sidebarOverlay = document.getElementById('sidebar-overlay');
         
-        // Gemini API klíč
-        const GEMINI_API_KEY = 'AIzaSyDQboM6qtC_O2sqqpaKZZffNf2zk6HrhEs';
-        const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+        const testLoader = document.getElementById('test-loader');
+        const testContainer = document.getElementById('test-container');
+        const resultsContainer = document.getElementById('results-container');
+        
+        const testSubject = document.getElementById('test-subject');
+        const testLevel = document.getElementById('test-level');
+        const testTimer = document.getElementById('test-timer');
+        const timerValue = document.getElementById('timer-value');
+        
+        const currentTestTitle = document.getElementById('current-test-title');
+        const questionCount = document.getElementById('question-count');
+        const answeredCount = document.getElementById('answered-count');
+        const progressBar = document.getElementById('progress-bar');
+        
+        const questionContainer = document.getElementById('question-container');
+        const pagination = document.getElementById('pagination');
+        
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const finishBtn = document.getElementById('finish-btn');
+        
+        const resultPercentage = document.getElementById('result-percentage');
+        const resultCorrect = document.getElementById('result-correct');
+        const resultIncorrect = document.getElementById('result-incorrect');
+        const resultTime = document.getElementById('result-time');
+        const topicResults = document.getElementById('topic-results');
+        
+        const retryBtn = document.getElementById('retry-btn');
+        const continueBtn = document.getElementById('continue-btn');
+        
+        // Globální proměnné
+        let currentUser = null;
+        let currentTest = null;
+        let questions = [];
+        let currentQuestionIndex = 0;
+        let userAnswers = [];
+        let timer = null;
+        let testTime = 0;
+        let testStartTime = null;
+        let testEndTime = null;
+        let testResults = {
+            totalQuestions: 0,
+            correctAnswers: 0,
+            incorrectAnswers: 0,
+            score: 0,
+            timeSpent: 0,
+            topicResults: {}
+        };
         
         // Ikony pro témata
         const topicIcons = {
@@ -923,516 +1205,831 @@
             "Aritmetika": "fa-calculator",
             "Geometrie": "fa-draw-polygon",
             "Logika": "fa-brain",
-            "default": "fa-book"
-        };
-
-        // Ikony pro dny v týdnu
-        const dayIcons = {
-            "Pondělí": "fa-calendar-day",
-            "Úterý": "fa-calendar-day",
-            "Středa": "fa-calendar-day",
-            "Čtvrtek": "fa-calendar-day",
-            "Pátek": "fa-calendar-day",
-            "Sobota": "fa-calendar-day",
-            "Neděle": "fa-calendar-day"
-        };
-
-        // Ikony pro témata v detailnějším členění
-        const subTopicIcons = {
-            "Lineární rovnice": "fa-equals",
-            "Soustavy rovnic": "fa-stream",
-            "Výrazy": "fa-superscript",
-            "Zlomky": "fa-divide",
-            "Procenta": "fa-percentage",
-            "Geometrie": "fa-shapes",
-            "Trojúhelníky": "fa-ruler-combined",
-            "Kombinatorika": "fa-dice",
             "Statistika": "fa-chart-bar",
+            "Trigonometrie": "fa-ruler-combined",
             "default": "fa-book"
         };
-
-        // DOM elementy
-        const testSummarySection = document.getElementById('testSummarySection');
-        const planSection = document.getElementById('planSection');
-        const scheduleSection = document.getElementById('scheduleSection');
-        const notestSection = document.getElementById('notestSection');
-        const testStats = document.getElementById('testStats');
-        const topicStats = document.getElementById('topicStats');
-        const planLoading = document.getElementById('planLoading');
-        const planContent = document.getElementById('planContent');
-        const dailySchedule = document.getElementById('dailySchedule');
-        const goToTestBtn = document.getElementById('goToTestBtn');
-        const saveScheduleBtn = document.getElementById('saveScheduleBtn');
-        const userName = document.getElementById('user-name');
-        const userAvatar = document.getElementById('user-avatar');
         
-        // Globální proměnné
-        let currentUser = null;
-        let testData = null;
-        let diagnosticId = null;
-        
-        // Nastavení informací o uživateli
-        async function setUserInfo() {
+        // Inicializace stránky
+        async function initPage() {
             try {
-                // Získání informací o aktuálním uživateli
-                const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
+                // Načtení informací o přihlášeném uživateli
+                await loadUserProfile();
+                
+                // Načtení náhodného testu
+                await loadRandomTest();
+                
+                // Inicializace ovládacích prvků
+                setupEventListeners();
+                
+            } catch (error) {
+                console.error('Chyba při inicializaci stránky:', error);
+                alert('Došlo k chybě při inicializaci stránky. Prosím, zkuste to znovu později.');
+            }
+        }
+        
+        // Načtení informací o přihlášeném uživateli
+        async function loadUserProfile() {
+            try {
+                // Získání aktuálního uživatele
+                const { data: { user }, error: userError } = await supabase.auth.getUser();
                 
                 if (userError) throw userError;
                 
                 if (user) {
                     currentUser = user;
                     
-                    // Zkusit získat více informací o uživateli z profilu
-                    const { data: profile, error } = await supabaseClient
+                    // Získání profilu uživatele
+                    const { data: profile, error } = await supabase
                         .from('profiles')
-                        .select('first_name, last_name, username, avatar_url')
+                        .select('*')
                         .eq('id', user.id)
                         .single();
+                        
+                    if (error) throw error;
                     
+                    // Aktualizace UI s informacemi o uživateli
                     if (profile) {
-                        // Nastavení jména - priorita: username > first_name + last_name > email
-                        if (profile.username) {
-                            userName.textContent = profile.username;
-                        } else if (profile.first_name && profile.last_name) {
-                            userName.textContent = `${profile.first_name} ${profile.last_name}`;
-                        } else if (profile.first_name) {
-                            userName.textContent = profile.first_name;
-                        } else {
-                            userName.textContent = user.email.split('@')[0]; // Zobrazit uživatelskou část e-mailu
-                        }
+                        // Nastavení jména uživatele
+                        userName.textContent = profile.username || profile.first_name || user.email;
                         
                         // Nastavení avataru
                         if (profile.avatar_url) {
-                            userAvatar.innerHTML = `<img src="${profile.avatar_url}" alt="Avatar" />`;
+                            userAvatar.innerHTML = `<img src="${profile.avatar_url}" alt="${profile.username || profile.first_name}" />`;
                         } else {
                             // Nastavení iniciálů jako avatar
-                            const initials = userName.textContent.substring(0, 2).toUpperCase();
+                            let initials = '';
+                            if (profile.first_name && profile.first_name.length > 0) {
+                                initials += profile.first_name[0].toUpperCase();
+                            }
+                            if (profile.last_name && profile.last_name.length > 0) {
+                                initials += profile.last_name[0].toUpperCase();
+                            }
+                            if (!initials && profile.username && profile.username.length > 0) {
+                                initials = profile.username[0].toUpperCase();
+                            }
+                            if (!initials && user.email && user.email.length > 0) {
+                                initials = user.email[0].toUpperCase();
+                            }
+                            if (!initials) {
+                                initials = 'U';
+                            }
                             userAvatar.textContent = initials;
                         }
                     } else {
-                        // Fallback na základní hodnoty
-                        userName.textContent = user.email.split('@')[0];
-                        const initials = userName.textContent.substring(0, 2).toUpperCase();
-                        userAvatar.textContent = initials;
+                        userName.textContent = user.email || 'Neznámý uživatel';
+                        userAvatar.textContent = 'U';
                     }
                 } else {
-                    // Pokud uživatel není přihlášen, přesměrujeme na přihlašovací stránku
-                    window.location.href = '/auth/login.html';
+                    // Uživatel není přihlášen, přesměrování na přihlášení
+                    window.location.href = '/login.html';
                 }
             } catch (error) {
-                console.error('Chyba při získávání informací o uživateli:', error);
-                userName.textContent = 'Chyba načítání';
+                console.error('Chyba při načítání profilu uživatele:', error);
+                userName.textContent = 'Neznámý uživatel';
+                userAvatar.textContent = 'U';
             }
         }
         
-        // Získání výsledků diagnostického testu
-        async function fetchDiagnosticResults() {
+        // Načtení náhodného testu
+        async function loadRandomTest() {
             try {
-                if (!currentUser) return null;
+                // Zobrazení načítání
+                testLoader.style.display = 'block';
+                testContainer.style.display = 'none';
+                resultsContainer.style.display = 'none';
                 
-                // Získání nejnovějšího diagnostického testu
-                const { data: diagnostics, error } = await supabaseClient
-                    .from('user_diagnostics')
+                // Načtení všech dostupných diagnostických testů
+                const { data: tests, error } = await supabase
+                    .from('tests')
                     .select('*')
-                    .eq('user_id', currentUser.id)
-                    .order('completed_at', { ascending: false })
-                    .limit(1);
+                    .eq('type', 'diagnostic')
+                    .eq('is_active', true);
                 
                 if (error) throw error;
                 
-                if (diagnostics && diagnostics.length > 0) {
-                    const diagnostic = diagnostics[0];
-                    diagnosticId = diagnostic.id;
-                    return diagnostic;
-                } else {
-                    return null;
+                if (!tests || tests.length === 0) {
+                    throw new Error('Žádné diagnostické testy nejsou k dispozici');
                 }
+                
+                // Výběr náhodného testu ze seznamu dostupných testů
+                const randomIndex = Math.floor(Math.random() * tests.length);
+                currentTest = tests[randomIndex];
+                
+                // Aktualizace informací o testu v UI
+                testSubject.textContent = currentTest.subject || 'Neurčený předmět';
+                testLevel.textContent = currentTest.difficulty 
+                    ? `Obtížnost: ${currentTest.difficulty}/5` 
+                    : 'Diagnostický test';
+                currentTestTitle.textContent = currentTest.title || 'Test znalostí';
+                
+                // Načtení otázek pro test
+                await loadTestQuestions(currentTest.id);
+                
+                // Inicializace testu
+                initializeTest();
+                
             } catch (error) {
-                console.error('Chyba při získávání výsledků testu:', error);
-                return null;
-            }
-        }
-        
-        // Zobrazení výsledků testu
-        function displayTestResults(diagnostic) {
-            if (!diagnostic || !diagnostic.total_questions) {
-                // Skrytí sekce testu a zobrazení notestSection
-                testSummarySection.style.display = 'none';
-                planSection.style.display = 'none';
-                notestSection.style.display = 'block';
-                return;
-            }
-            
-            // Vytvoření HTML pro statistiky testu
-            const scorePercent = ((diagnostic.total_score / diagnostic.total_questions) * 100).toFixed(1);
-            const statsHTML = `
-                <div class="progress-container" title="Celkové skóre ${scorePercent}%">
-                    <div class="progress-bar" style="width: ${scorePercent}%"></div>
-                </div>
-                <div class="topic-stats">
-                    <div class="topic-stat">
-                        <strong>Celkové skóre:</strong> ${diagnostic.total_score} z ${diagnostic.total_questions} (${scorePercent}%)
-                    </div>
-                    <div class="topic-stat">
-                        <strong>Datum testu:</strong> ${new Date(diagnostic.completed_at).toLocaleDateString('cs-CZ')}
-                    </div>
-                </div>
-            `;
-            
-            testStats.innerHTML = statsHTML;
-            
-            // Zpracování výsledků podle témat
-            if (diagnostic.topic_results) {
-                const topicResultsHTML = processTopicResults(diagnostic.topic_results);
-                topicStats.innerHTML = topicResultsHTML;
-            } else {
-                topicStats.innerHTML = '<p>Podrobné výsledky podle témat nejsou k dispozici.</p>';
-            }
-        }
-        
-        // Zpracování výsledků podle témat
-        function processTopicResults(topicResults) {
-            if (!topicResults || Object.keys(topicResults).length === 0) {
-                return '<p>Podrobné výsledky podle témat nejsou k dispozici.</p>';
-            }
-            
-            let topicsHTML = '';
-            
-            for (const topic in topicResults) {
-                const result = topicResults[topic];
-                const score = result.correct || 0;
-                const total = result.total || 1; // Vyhnout se dělení nulou
-                const percent = ((score / total) * 100).toFixed(1);
-                
-                // Určení kategorie podle výsledku
-                let category = 'neutral';
-                if (percent >= 75) category = 'strength';
-                else if (percent < 50) category = 'weakness';
-                
-                // Získání ikony pro téma
-                const icon = topicIcons[topic] || topicIcons.default;
-                
-                topicsHTML += `
-                    <div class="topic-card ${category}">
-                        <div class="topic-header">
-                            <div class="topic-icon">
-                                <i class="fas ${icon}"></i>
-                            </div>
-                            <h3 class="topic-title">${topic}</h3>
-                        </div>
-                        <div class="progress-container" title="${percent}%">
-                            <div class="progress-bar" style="width: ${percent}%"></div>
-                        </div>
-                        <div class="topic-stats">
-                            <div class="topic-stat">
-                                <strong>Skóre:</strong> ${score} z ${total}
-                            </div>
-                            <div class="topic-stat">
-                                <strong>Úspěšnost:</strong> ${percent}%
-                            </div>
-                        </div>
+                console.error('Chyba při načítání testu:', error);
+                testLoader.innerHTML = `
+                    <div class="test-loader">
+                        <i class="fas fa-exclamation-circle" style="font-size: 50px; color: var(--danger); margin-bottom: 1.5rem;"></i>
+                        <div class="loader-text">Nepodařilo se načíst test</div>
+                        <div class="loader-subtext">${error.message || 'Zkuste to prosím později'}</div>
+                        <button class="btn btn-primary" style="margin-top: 1.5rem;" onclick="location.reload()">
+                            <i class="fas fa-redo"></i> Zkusit znovu
+                        </button>
                     </div>
                 `;
             }
-            
-            return topicsHTML;
         }
         
-        // Generování studijního plánu pomocí Gemini API
-        async function generateStudyPlan(diagnostic) {
-            try {
-                if (!diagnostic) return null;
+        // Načtení otázek pro test
+        async function loadTestQuestions(testId) {
+            // Načtení otázek z exam_questions tabulky pro daný test
+            // Výběr náhodných otázek podle počtu uvedeného v testu
+            const { data: allQuestions, error: questionsError } = await supabase
+                .from('exam_questions')
+                .select('*')
+                .order('id');
                 
-                // Kontrola, zda už existuje plán pro tento diagnostický test
-                const { data: existingPlans, error: planError } = await supabaseClient
-                    .from('study_plans')
-                    .select('*')
-                    .eq('user_id', currentUser.id)
-                    .eq('diagnostic_id', diagnostic.id)
-                    .limit(1);
-                
-                if (planError) throw planError;
-                
-                // Pokud plán již existuje, vrátíme ho
-                if (existingPlans && existingPlans.length > 0) {
-                    return existingPlans[0];
+            if (questionsError) throw questionsError;
+            
+            if (!allQuestions || allQuestions.length === 0) {
+                throw new Error('Databáze neobsahuje žádné otázky');
+            }
+            
+            // Náhodný výběr otázek z databáze podle počtu v testu
+            const shuffledQuestions = shuffleArray(allQuestions);
+            const selectedQuestions = shuffledQuestions.slice(0, currentTest.questions_count || 10);
+            
+            // Pro každou otázku zpracovat options z JSONB formátu
+            questions = selectedQuestions.map(question => {
+                let parsedOptions = [];
+                try {
+                    // Pokud jsou možnosti uloženy jako JSONB, převeď je na objekt
+                    if (question.options) {
+                        if (typeof question.options === 'string') {
+                            parsedOptions = JSON.parse(question.options);
+                        } else {
+                            parsedOptions = question.options;
+                        }
+                    }
+                } catch (e) {
+                    console.error('Chyba při parsování možností:', e);
+                    parsedOptions = [];
                 }
                 
-                // Příprava dat pro API požadavek
-                let topicSummary = [];
-                if (diagnostic.topic_results) {
-                    for (const topic in diagnostic.topic_results) {
-                        const result = diagnostic.topic_results[topic];
-                        const score = result.correct || 0;
-                        const total = result.total || 1;
-                        const percent = ((score / total) * 100).toFixed(1);
-                        
-                        let strength = 'neutral';
-                        if (percent >= 75) strength = 'strong';
-                        else if (percent < 50) strength = 'weak';
-                        
-                        topicSummary.push({
-                            name: topic,
-                            score: score,
-                            total: total,
-                            percentage: parseFloat(percent),
-                            strength: strength
+                // Formát každé možnosti by měl obsahovat text a informaci o správnosti
+                const formattedOptions = parsedOptions.map((option, index) => ({
+                    id: `${question.id}_${index}`,
+                    text: option.text || option,
+                    is_correct: option.is_correct || (option === question.correct_answer)
+                }));
+                
+                // Pokud nejsou žádné možnosti, vytvořit základní
+                if (formattedOptions.length === 0 && question.correct_answer) {
+                    // Vytvoření základních možností včetně správné odpovědi
+                    formattedOptions.push({
+                        id: `${question.id}_correct`,
+                        text: question.correct_answer,
+                        is_correct: true
+                    });
+                    
+                    // Přidání několika falešných možností
+                    for (let i = 1; i <= 3; i++) {
+                        formattedOptions.push({
+                            id: `${question.id}_${i}`,
+                            text: `Nesprávná odpověď ${i}`,
+                            is_correct: false
                         });
                     }
                 }
                 
-                // Vytvoření promptu pro Gemini
-                const prompt = `
-                Vytvoř personalizovaný studijní plán matematiky pro studenta na základě výsledků diagnostického testu.
-                
-                Výsledky testu:
-                - Celkové skóre: ${diagnostic.total_score} z ${diagnostic.total_questions} (${((diagnostic.total_score / diagnostic.total_questions) * 100).toFixed(1)}%)
-                
-                Výsledky podle témat:
-                ${topicSummary.map(topic => 
-                    `- ${topic.name}: ${topic.score} z ${topic.total} (${topic.percentage}%) - ${topic.strength === 'strong' ? 'Silná stránka' : topic.strength === 'weak' ? 'Slabá stránka' : 'Neutrální'}`
-                ).join('\n')}
-                
-                Prosím, vytvoř:
-                1. Stručné shrnutí výsledků a celkové úrovně studenta
-                2. Seznam 3-5 prioritních témat, na které by se student měl zaměřit (začni slabými stránkami)
-                3. Pro každé prioritní téma vytvoř:
-                   - Stručný popis tématu a proč je důležité
-                   - 3-5 bodů s konkrétními tipy pro zlepšení
-                   - Doporučené materiály nebo typy cvičení
-                4. Vytvoř týdenní plán studia (pondělí až neděle) s konkrétními aktivitami na každý den
-                
-                Používej motivující, pozitivní tón a formátuj výstup pomocí Markdown.
-                `;
-                
-                // Volání Gemini API
-                const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        contents: [
-                            {
-                                role: 'user',
-                                parts: [{ text: prompt }]
-                            }
-                        ],
-                        generationConfig: {
-                            temperature: 0.7,
-                            topK: 40,
-                            topP: 0.95,
-                            maxOutputTokens: 8000
-                        }
-                    })
-                });
-                
-                if (!response.ok) {
-                    throw new Error(`API odpověděla statusem: ${response.status}`);
-                }
-                
-                const data = await response.json();
-                const generatedPlan = data.candidates[0].content.parts[0].text;
-                
-                // Vytvoření prioritních témat na základě výsledků testu
-                const weakTopics = topicSummary
-                    .filter(t => t.strength === 'weak')
-                    .map(t => t.name);
-                
-                const neutralTopics = topicSummary
-                    .filter(t => t.strength === 'neutral')
-                    .map(t => t.name);
-                    
-                // Kombinace slabých a neutrálních témat pro priority
-                const priorityTopics = [...weakTopics, ...neutralTopics].slice(0, 5);
-                
-                // Uložení plánu do databáze
-                const { data: savedPlan, error } = await supabaseClient
-                    .from('study_plans')
-                    .insert({
-                        user_id: currentUser.id,
-                        title: 'Personalizovaný studijní plán',
-                        subject: 'Matematika',
-                        diagnostic_id: diagnostic.id,
-                        priority_topics: priorityTopics,
-                        content: generatedPlan,
-                        status: 'active',
-                        progress: 0,
-                        is_auto_adjusted: true,
-                        estimated_completion_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] // 30 dní od teď
-                    })
-                    .select()
-                    .single();
-                
-                if (error) throw error;
-                
-                return savedPlan;
-            } catch (error) {
-                console.error('Chyba při generování studijního plánu:', error);
-                planContent.innerHTML = `<p class="error-message">Došlo k chybě při generování plánu. Zkuste to prosím znovu později.</p>`;
-                planLoading.style.display = 'none';
-                planContent.style.display = 'block';
-                return null;
-            }
+                return {
+                    ...question,
+                    options: formattedOptions
+                };
+            });
+            
+            // Inicializace pole odpovědí uživatele
+            userAnswers = Array(questions.length).fill(null);
+            
+            // Aktualizace počtu otázek v UI
+            questionCount.textContent = `1 / ${questions.length}`;
+            answeredCount.textContent = '0';
         }
         
-        // Zobrazení studijního plánu
-        function displayStudyPlan(plan) {
-            if (!plan || !plan.content) {
-                planContent.innerHTML = `
-                    <p class="error-message">Nepodařilo se načíst studijní plán. Zkuste to prosím znovu později.</p>
-                    <button class="btn btn-primary" onclick="location.reload()">Zkusit znovu</button>
-                `;
-                planLoading.style.display = 'none';
-                planContent.style.display = 'block';
-                return;
-            }
+        // Inicializace testu
+        function initializeTest() {
+            // Skrytí loaderu a zobrazení testu
+            testLoader.style.display = 'none';
+            testContainer.style.display = 'block';
             
-            // Převod Markdown na HTML
-            const planHtml = marked.parse(plan.content);
-            planContent.innerHTML = planHtml;
+            // Zobrazení první otázky
+            showQuestion(0);
             
-            // Zobrazení sekce s plánem
-            planLoading.style.display = 'none';
-            planContent.style.display = 'block';
+            // Generování navigace otázkami
+            generatePagination();
             
-            // Zpracování týdenního rozvrhu
-            const weeklySchedule = extractWeeklySchedule(planHtml);
-            if (weeklySchedule) {
-                displayWeeklySchedule(weeklySchedule);
-                scheduleSection.style.display = 'block';
-            }
-            
-            // Inicializace tooltips u odkazů a pojmů
-            initializePageElements();
+            // Spuštění časovače
+            startTimer();
         }
         
-        // Extrakce týdenního rozvrhu z HTML
-        function extractWeeklySchedule(planHtml) {
-            // Zde bychom mohli implementovat extrakci rozvrhu z vygenerovaného plánu,
-            // ale pro jednoduchost budeme předpokládat, že rozvrh je již součástí plánu
-            // a zobrazíme ho v sekci "Týdenní harmonogram"
-            return true; // Předstíráme, že jsme našli rozvrh
-        }
-        
-        // Zobrazení týdenního rozvrhu
-        function displayWeeklySchedule(schedule) {
-            // Zde bychom mohli zpracovat a zobrazit konkrétní rozvrh,
-            // ale pro ukázku vytvoříme šablonu rozvrhu
-            const daysOfWeek = ['Pondělí', 'Úterý', 'Středa', 'Čtvrtek', 'Pátek', 'Sobota', 'Neděle'];
-            const topics = ['Algebra', 'Geometrie', 'Aritmetika', 'Logika'];
+        // Zobrazení konkrétní otázky
+        function showQuestion(index) {
+            if (index < 0 || index >= questions.length) return;
             
-            let scheduleHTML = '';
+            const question = questions[index];
+            currentQuestionIndex = index;
             
-            daysOfWeek.forEach((day, index) => {
-                // Vybere téma pro daný den
-                const dayTopic = topics[index % topics.length];
-                const icon = dayIcons[day] || 'fa-calendar-day';
-                
-                scheduleHTML += `
-                    <div class="schedule-day">
-                        <div class="day-name">
-                            <div>
-                                <i class="fas ${icon}"></i>
-                                ${day}
-                            </div>
-                            <span class="day-focus">${dayTopic}</span>
-                        </div>
-                        <div class="activities">
+            // Aktualizace počítadla otázek
+            questionCount.textContent = `${index + 1} / ${questions.length}`;
+            
+            // Aktualizace progress baru
+            updateProgressBar();
+            
+            // Aktivace/deaktivace navigačních tlačítek
+            prevBtn.disabled = index === 0;
+            nextBtn.disabled = index === questions.length - 1;
+            
+            // Zobrazení tlačítka Dokončit na poslední otázce
+            finishBtn.style.display = index === questions.length - 1 ? 'flex' : 'none';
+            
+            // Generování HTML pro otázku
+            let questionHTML = `
+                <div class="question-header">
+                    <span class="question-number">${index + 1}</span>
+                    <div class="question-text">
+                        ${question.question_text}
+                    </div>
+                </div>
+            `;
+            
+            // Přidání obrázku, pokud existuje
+            if (question.image_url) {
+                questionHTML += `
+                    <div class="question-image-container">
+                        <img class="question-image" src="${question.image_url}" alt="Obrázek k otázce">
+                    </div>
                 `;
+            }
+            
+            // Přidání možností odpovědí
+            questionHTML += `<div class="answer-options">`;
+            
+            // Promíchání možností pro test
+            const options = shuffleArray([...question.options]);
+            
+            options.forEach((option, optionIndex) => {
+                const userAnswer = userAnswers[index];
+                const isSelected = userAnswer !== null && userAnswer.option_id === option.id;
                 
-                // Vytvoří 2-3 aktivity pro daný den
-                const activitiesCount = 2 + Math.floor(Math.random() * 2);
-                const times = ['15:00', '16:30', '18:00'];
-                
-                for (let i = 0; i < activitiesCount; i++) {
-                    const activityTitle = `Procvičování - ${dayTopic}`;
-                    const activityDesc = `Zaměření na klíčové koncepty v tématu ${dayTopic.toLowerCase()}.`;
-                    
-                    scheduleHTML += `
-                        <div class="activity">
-                            <div class="activity-time">${times[i]}</div>
-                            <div class="activity-content">
-                                <div class="activity-title">${activityTitle}</div>
-                                <div class="activity-desc">${activityDesc}</div>
-                            </div>
-                        </div>
-                    `;
-                }
-                
-                scheduleHTML += `
+                questionHTML += `
+                    <div class="answer-option ${isSelected ? 'selected' : ''}" data-option-id="${option.id}">
+                        <input type="radio" name="question_${question.id}" id="option_${option.id}" ${isSelected ? 'checked' : ''}>
+                        <div class="answer-text">
+                            ${option.text}
                         </div>
                     </div>
                 `;
             });
             
-            dailySchedule.innerHTML = scheduleHTML;
-        }
-        
-        // Inicializace prvků na stránce
-        function initializePageElements() {
-            // Inicializace tooltips u odkazů
-            try {
-                $('.tooltip').tooltipster({
-                    theme: 'tooltipster-shadow',
-                    animation: 'fade',
-                    delay: 100,
-                    side: 'right'
+            questionHTML += `</div>`;
+            
+            // Aktualizace HTML kontejneru otázky
+            questionContainer.innerHTML = questionHTML;
+            
+            // Přidání event listenerů na možnosti odpovědí
+            document.querySelectorAll('.answer-option').forEach(option => {
+                option.addEventListener('click', (e) => {
+                    // Odstranění třídy selected ze všech možností
+                    document.querySelectorAll('.answer-option').forEach(opt => {
+                        opt.classList.remove('selected');
+                    });
+                    
+                    // Přidání třídy selected na vybranou možnost
+                    option.classList.add('selected');
+                    
+                    // Zaškrtnutí radio buttonu
+                    const radio = option.querySelector('input[type="radio"]');
+                    if (radio) radio.checked = true;
+                    
+                    // Uložení odpovědi uživatele
+                    const optionId = option.dataset.optionId;
+                    saveAnswer(index, optionId);
                 });
-            } catch (error) {
-                console.log('Tooltipster není k dispozici nebo došlo k chybě:', error);
+            });
+            
+            // Renderování matematických vzorců, pokud jsou v otázce
+            if (window.MathJax) {
+                MathJax.typeset();
             }
-            
-            // Navigace na test
-            goToTestBtn.addEventListener('click', () => {
-                window.location.href = '/dashboard/procvicovani/test.html';
-            });
-            
-            // Stažení plánu
-            saveScheduleBtn.addEventListener('click', () => {
-                alert('Funkce pro stažení plánu bude brzy k dispozici!');
-            });
         }
         
-        // Hlavní funkce pro inicializaci stránky
-        async function initPage() {
-            try {
-                // Nastavení informací o uživateli
-                await setUserInfo();
+        // Uložení odpovědi uživatele
+        function saveAnswer(questionIndex, optionId) {
+            // Najít otázku a vybranou možnost
+            const question = questions[questionIndex];
+            const selectedOption = question.options.find(option => option.id === optionId);
+            
+            if (!selectedOption) return;
+            
+            // Pokud uživatel ještě neodpověděl na tuto otázku, aktualizujeme počet zodpovězených otázek
+            const wasAnsweredBefore = userAnswers[questionIndex] !== null;
+            
+            // Uložení odpovědi
+            userAnswers[questionIndex] = {
+                question_id: question.id,
+                option_id: selectedOption.id,
+                is_correct: selectedOption.is_correct,
+                topic_id: question.topic_id
+            };
+            
+            // Aktualizace UI
+            if (!wasAnsweredBefore) {
+                const answeredQuestionsCount = userAnswers.filter(answer => answer !== null).length;
+                answeredCount.textContent = answeredQuestionsCount;
                 
-                // Získání výsledků diagnostického testu
-                const diagnostic = await fetchDiagnosticResults();
+                // Aktualizace pagination
+                updatePagination();
                 
-                if (diagnostic) {
-                    // Zobrazení výsledků testu
-                    displayTestResults(diagnostic);
-                    
-                    // Generování studijního plánu
-                    const plan = await generateStudyPlan(diagnostic);
-                    
-                    // Zobrazení studijního plánu
-                    displayStudyPlan(plan);
-                } else {
-                    // Zobrazení sekce pro absenci testu
-                    testSummarySection.style.display = 'none';
-                    planSection.style.display = 'none';
-                    notestSection.style.display = 'block';
-                }
-            } catch (error) {
-                console.error('Chyba při inicializaci stránky:', error);
-                testSummarySection.style.display = 'none';
-                planSection.innerHTML = `
-                    <h2 class="section-title">Chyba při načítání</h2>
-                    <p>Došlo k chybě při načítání dat. Zkuste to prosím znovu později.</p>
-                    <button class="btn btn-primary" onclick="location.reload()">Obnovit stránku</button>
+                // Aktualizace progress baru
+                updateProgressBar();
+            }
+        }
+        
+        // Generování navigace otázkami
+        function generatePagination() {
+            let paginationHTML = '';
+            
+            for (let i = 0; i < questions.length; i++) {
+                const isActive = i === currentQuestionIndex;
+                const isAnswered = userAnswers[i] !== null;
+                
+                let classes = '';
+                if (isActive) classes += 'active';
+                if (isAnswered) classes += ' answered';
+                
+                paginationHTML += `
+                    <div class="page-item ${classes}" data-question="${i}">
+                        ${i + 1}
+                    </div>
                 `;
             }
+            
+            // Aktualizace HTML pagination
+            pagination.innerHTML = paginationHTML;
+            
+            // Přidání event listenerů na položky pagination
+            document.querySelectorAll('.page-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    const questionIndex = parseInt(item.dataset.question);
+                    showQuestion(questionIndex);
+                });
+            });
         }
         
-        // Spuštění hlavní funkce po načtení stránky
-        $(document).ready(function() {
-            initPage();
-        });
+        // Aktualizace navigace otázkami
+        function updatePagination() {
+            document.querySelectorAll('.page-item').forEach((item, index) => {
+                const isActive = index === currentQuestionIndex;
+                const isAnswered = userAnswers[index] !== null;
+                
+                // Odstranění všech tříd
+                item.classList.remove('active', 'answered');
+                
+                // Přidání příslušných tříd
+                if (isActive) item.classList.add('active');
+                if (isAnswered) item.classList.add('answered');
+            });
+        }
+        
+        // Aktualizace progress baru
+        function updateProgressBar() {
+            const answeredQuestionsCount = userAnswers.filter(answer => answer !== null).length;
+            const progressPercentage = (answeredQuestionsCount / questions.length) * 100;
+            
+            progressBar.style.width = `${progressPercentage}%`;
+        }
+        
+        // Spuštění časovače
+        function startTimer() {
+            // Uložení času zahájení testu
+            testStartTime = new Date();
+            
+            timer = setInterval(() => {
+                testTime++;
+                
+                // Formátování času
+                const minutes = Math.floor(testTime / 60);
+                const seconds = testTime % 60;
+                timerValue.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                
+                // Změna barvy časovače podle uplynulého času
+                if (testTime > 1800) { // Více než 30 minut
+                    timerValue.classList.add('timer-danger');
+                    timerValue.classList.remove('timer-warning');
+                } else if (testTime > 1200) { // Více než 20 minut
+                    timerValue.classList.add('timer-warning');
+                    timerValue.classList.remove('timer-danger');
+                }
+            }, 1000);
+        }
+        
+        // Zastavení časovače
+        function stopTimer() {
+            clearInterval(timer);
+            timer = null;
+            
+            // Uložení času ukončení testu
+            testEndTime = new Date();
+        }
+        
+        // Dokončení testu a vyhodnocení výsledků
+        function finishTest() {
+            // Zastavení časovače
+            stopTimer();
+            
+            // Výpočet výsledků
+            calculateResults();
+            
+            // Zobrazení výsledků
+            showResults();
+            
+            // Uložení výsledků do databáze
+            saveTestResults();
+        }
+        
+        // Výpočet výsledků
+        function calculateResults() {
+            // Základní statistiky
+            testResults.totalQuestions = questions.length;
+            testResults.correctAnswers = userAnswers.filter(answer => answer && answer.is_correct).length;
+            testResults.incorrectAnswers = userAnswers.filter(answer => answer && !answer.is_correct).length;
+            testResults.score = Math.round((testResults.correctAnswers / testResults.totalQuestions) * 100);
+            testResults.timeSpent = testTime;
+            
+            // Výsledky podle témat
+            const topicResults = {};
+            
+            userAnswers.forEach((answer, index) => {
+                if (!answer) return;
+                
+                const question = questions[index];
+                const topicId = question.topic_id;
+                
+                if (!topicId) return;
+                
+                // Inicializace objektu výsledku tématu, pokud neexistuje
+                if (!topicResults[topicId]) {
+                    topicResults[topicId] = {
+                        topic_id: topicId,
+                        topic_name: '',
+                        total_questions: 0,
+                        correct_answers: 0,
+                        score: 0,
+                        strength: 'neutral'
+                    };
+                }
+                
+                // Přidání informací o otázce
+                topicResults[topicId].total_questions++;
+                if (answer.is_correct) {
+                    topicResults[topicId].correct_answers++;
+                }
+            });
+            
+            // Načtení názvů témat a výpočet skóre
+            const topicPromises = Object.values(topicResults).map(async (topic) => {
+                // Načtení informací o tématu
+                const { data: topicData, error } = await supabase
+                    .from('exam_topics')
+                    .select('name')
+                    .eq('id', topic.topic_id)
+                    .single();
+                
+                if (!error && topicData) {
+                    topic.topic_name = topicData.name;
+                }
+                
+                // Výpočet skóre
+                topic.score = Math.round((topic.correct_answers / topic.total_questions) * 100);
+                
+                // Určení síly/slabosti
+                if (topic.score >= 80) {
+                    topic.strength = 'strength';
+                } else if (topic.score <= 50) {
+                    topic.strength = 'weakness';
+                } else {
+                    topic.strength = 'neutral';
+                }
+                
+                return topic;
+            });
+            
+            // Uložení výsledků témat
+            Promise.all(topicPromises).then(topics => {
+                testResults.topicResults = topics;
+                
+                // Aktualizace UI se všemi výsledky
+                updateResultsUI();
+            });
+        }
+        
+        // Zobrazení výsledků
+        function showResults() {
+            // Skrytí testu a zobrazení výsledků
+            testContainer.style.display = 'none';
+            resultsContainer.style.display = 'block';
+            
+            // Aktualizace UI s základními výsledky
+            resultPercentage.textContent = `${testResults.score}%`;
+            resultCorrect.textContent = testResults.correctAnswers;
+            resultIncorrect.textContent = testResults.incorrectAnswers;
+            
+            // Formátování celkového času testu
+            const minutes = Math.floor(testResults.timeSpent / 60);
+            const seconds = testResults.timeSpent % 60;
+            resultTime.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+        
+                // Aktualizace UI výsledků po načtení informací o tématech
+        function updateResultsUI() {
+            // Zobrazení výsledků podle témat
+            let topicResultsHTML = '';
+            
+            Object.values(testResults.topicResults).forEach(topic => {
+                // Určení ikony podle názvu tématu
+                let iconClass = 'fa-book';
+                if (topic.topic_name) {
+                    const topicKey = Object.keys(topicIcons).find(key => 
+                        topic.topic_name.toLowerCase().includes(key.toLowerCase())
+                    );
+                    if (topicKey) {
+                        iconClass = topicIcons[topicKey];
+                    }
+                }
+                
+                topicResultsHTML += `
+                    <div class="topic-card ${topic.strength}">
+                        <div class="topic-header">
+                            <div class="topic-icon">
+                                <i class="fas ${iconClass}"></i>
+                            </div>
+                            <h3 class="topic-title">${topic.topic_name || 'Neznámé téma'}</h3>
+                        </div>
+                        <div class="topic-stats">
+                            <div class="topic-progress">
+                                <span class="topic-progress-label">Úspěšnost</span>
+                                <span class="topic-progress-value">${topic.score}%</span>
+                            </div>
+                            <div class="topic-progress-bar">
+                                <div class="topic-progress-fill" style="width: ${topic.score}%;"></div>
+                            </div>
+                            <div class="topic-progress" style="margin-top: 0.5rem;">
+                                <span class="topic-progress-label">Správné odpovědi</span>
+                                <span class="topic-progress-value">${topic.correct_answers} / ${topic.total_questions}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            // Aktualizace HTML výsledků témat
+            topicResults.innerHTML = topicResultsHTML;
+        }
+        
+        // Uložení výsledků testu do databáze
+        async function saveTestResults() {
+            if (!currentUser || !currentTest) return;
+            
+            try {
+                // Příprava dat o výsledcích témat pro uložení jako JSONB
+                const topicResultsData = Object.values(testResults.topicResults).map(topic => ({
+                    topic_id: topic.topic_id,
+                    topic_name: topic.topic_name || '',
+                    correct_answers: topic.correct_answers,
+                    total_questions: topic.total_questions,
+                    score: topic.score,
+                    strength: topic.strength
+                }));
+                
+                // Vytvoření záznamu o výsledku testu
+                const testResultData = {
+                    user_id: currentUser.id,
+                    test_id: currentTest.id,
+                    score: testResults.score,
+                    time_spent: testResults.timeSpent,
+                    correct_answers: testResults.correctAnswers,
+                    total_questions: testResults.totalQuestions,
+                    topic_results: topicResultsData,
+                    created_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString()
+                };
+                
+                // Uložení výsledku testu do databáze
+                const { data: resultData, error: resultError } = await supabase
+                    .from('test_results')
+                    .insert(testResultData);
+                
+                if (resultError) throw resultError;
+                
+                // Aktualizace pokroku v tématech
+                await updateTopicProgress();
+                
+                // Aktualizace statistik uživatele
+                await updateUserProfile();
+                
+                console.log('Výsledky testu byly úspěšně uloženy');
+                
+            } catch (error) {
+                console.error('Chyba při ukládání výsledků testu:', error);
+            }
+        }
+        
+        // Aktualizace pokroku v jednotlivých tématech
+        async function updateTopicProgress() {
+            try {
+                // Pro každé téma v testu aktualizujeme pokrok
+                for (const topic of Object.values(testResults.topicResults)) {
+                    // Nejprve zkontrolujeme, zda již existuje záznam o pokroku v tomto tématu
+                    const { data: existingProgress, error: fetchError } = await supabase
+                        .from('user_topic_progress')
+                        .select('*')
+                        .eq('user_id', currentUser.id)
+                        .eq('topic_id', topic.topic_id)
+                        .single();
+                    
+                    if (fetchError && fetchError.code !== 'PGRST116') { // PGRST116 = Žádný záznam nebyl nalezen
+                        throw fetchError;
+                    }
+                    
+                    if (existingProgress) {
+                        // Aktualizace existujícího záznamu
+                        const totalQuestions = existingProgress.questions_attempted + topic.total_questions;
+                        const correctAnswers = existingProgress.questions_correct + topic.correct_answers;
+                        const overallScore = Math.round((correctAnswers / totalQuestions) * 100);
+                        
+                        // Určení síly tématu na základě průměrného skóre
+                        let strength = 'neutral';
+                        if (overallScore >= 80) {
+                            strength = 'strength';
+                        } else if (overallScore <= 50) {
+                            strength = 'weakness';
+                        }
+                        
+                        const { error: updateError } = await supabase
+                            .from('user_topic_progress')
+                            .update({
+                                questions_attempted: totalQuestions,
+                                questions_correct: correctAnswers,
+                                progress: overallScore,
+                                strength: strength,
+                                last_activity: new Date().toISOString(),
+                                updated_at: new Date().toISOString()
+                            })
+                            .eq('id', existingProgress.id);
+                        
+                        if (updateError) throw updateError;
+                    } else {
+                        // Vytvoření nového záznamu
+                        let strength = 'neutral';
+                        if (topic.score >= 80) {
+                            strength = 'strength';
+                        } else if (topic.score <= 50) {
+                            strength = 'weakness';
+                        }
+                        
+                        const { error: insertError } = await supabase
+                            .from('user_topic_progress')
+                            .insert({
+                                user_id: currentUser.id,
+                                topic_id: topic.topic_id,
+                                questions_attempted: topic.total_questions,
+                                questions_correct: topic.correct_answers,
+                                progress: topic.score,
+                                strength: strength,
+                                last_activity: new Date().toISOString(),
+                                created_at: new Date().toISOString(),
+                                updated_at: new Date().toISOString()
+                            });
+                        
+                        if (insertError) throw insertError;
+                    }
+                }
+            } catch (error) {
+                console.error('Chyba při aktualizaci pokroku v tématech:', error);
+            }
+        }
+        
+        // Aktualizace statistik uživatele v profilu
+        async function updateUserProfile() {
+            try {
+                // Načtení profilu uživatele
+                const { data: profile, error: profileError } = await supabase
+                    .from('profiles')
+                    .select('completed_exercises, points')
+                    .eq('id', currentUser.id)
+                    .single();
+                
+                if (profileError) throw profileError;
+                
+                // Výpočet nových statistik
+                const newCompletedExercises = (profile.completed_exercises || 0) + 1;
+                
+                // Výpočet bodů za test (10 bodů za správnou odpověď)
+                const testPoints = testResults.correctAnswers * 10;
+                const newPoints = (profile.points || 0) + testPoints;
+                
+                // Aktualizace profilu uživatele
+                const { error: updateError } = await supabase
+                    .from('profiles')
+                    .update({
+                        completed_exercises: newCompletedExercises,
+                        points: newPoints,
+                        last_login: new Date().toISOString(),
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('id', currentUser.id);
+                
+                if (updateError) throw updateError;
+                
+                console.log('Statistiky uživatele byly úspěšně aktualizovány');
+                
+            } catch (error) {
+                console.error('Chyba při aktualizaci statistik uživatele:', error);
+            }
+        }
+        
+        // Nastavení event listenerů
+        function setupEventListeners() {
+            // Mobilní menu
+            mobileMenuToggle.addEventListener('click', () => {
+                sidebar.classList.toggle('active');
+                sidebarOverlay.classList.toggle('active');
+            });
+            
+            sidebarOverlay.addEventListener('click', () => {
+                sidebar.classList.remove('active');
+                sidebarOverlay.classList.remove('active');
+            });
+            
+            // Navigace v testu
+            prevBtn.addEventListener('click', () => {
+                showQuestion(currentQuestionIndex - 1);
+            });
+            
+            nextBtn.addEventListener('click', () => {
+                showQuestion(currentQuestionIndex + 1);
+            });
+            
+            finishBtn.addEventListener('click', () => {
+                // Kontrola, zda jsou zodpovězeny všechny otázky
+                const unansweredCount = userAnswers.filter(answer => answer === null).length;
+                
+                if (unansweredCount > 0) {
+                    if (confirm(`Nezodpověděli jste ${unansweredCount} otázek. Chcete opravdu test dokončit?`)) {
+                        finishTest();
+                    }
+                } else {
+                    finishTest();
+                }
+            });
+            
+            // Tlačítka výsledků
+            retryBtn.addEventListener('click', () => {
+                // Reload stránky pro načtení nového testu
+                window.location.reload();
+            });
+            
+            continueBtn.addEventListener('click', () => {
+                // Přesměrování na stránku studijního plánu
+                window.location.href = '/dashboard/procvicovani/test1.html';
+            });
+        }
+        
+        // Pomocné funkce
+        
+        // Promíchání pole
+        function shuffleArray(array) {
+            const newArray = [...array];
+            for (let i = newArray.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+            }
+            return newArray;
+        }
+        
+        // Formátování času
+        function formatTime(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = seconds % 60;
+            return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+        }
+        
+        // Inicializace stránky při načtení
+        document.addEventListener('DOMContentLoaded', initPage);
     </script>
 </body>
 </html>
