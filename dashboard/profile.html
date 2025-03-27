@@ -1,18 +1,20 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="cs">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Justax - Profil</title>
-    <!-- Fonts -->
+    <!-- Připojení fontů -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Font Awesome Icons -->
+    <!-- Font Awesome CDN -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Supabase JS client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <style>
-        /* Base styles */
+        /* Bazové styly */
         * {
             margin: 0;
             padding: 0;
@@ -36,6 +38,7 @@
             --gradient-1: linear-gradient(135deg, #4361ee, #3a0ca3);
             --gradient-2: linear-gradient(135deg, #4cc9f0, #4361ee);
             --gradient-3: linear-gradient(135deg, #f72585, #7209b7);
+            --gradient-4: linear-gradient(135deg, #f8961e, #f3722c);
             --white: #ffffff;
             --sidebar-width: 260px;
             --transition-speed: 0.3s;
@@ -123,8 +126,7 @@
             text-align: center;
         }
 
-        .sidebar-link.active, 
-        .sidebar-link:hover {
+        .sidebar-link.active, .sidebar-link:hover {
             background-color: rgba(255, 255, 255, 0.15);
             color: var(--white);
         }
@@ -179,7 +181,7 @@
             opacity: 0.8;
         }
 
-        /* Main layout */
+        /* Hlavní obsah */
         main {
             flex: 1;
             margin-left: var(--sidebar-width);
@@ -269,6 +271,7 @@
             font-weight: 600;
         }
 
+        /* Hlavní obsah */
         .main-content {
             display: grid;
             gap: 1.75rem;
@@ -282,17 +285,11 @@
             animation: fadeIn 0.5s ease forwards;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .dashboard-footer {
-            margin-top: 2rem;
-            padding: 1.5rem 0;
-            text-align: center;
-            color: var(--text-muted);
-            font-size: 0.9rem;
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 1.25rem;
+            color: var(--dark);
         }
 
         /* Profile specific styles */
@@ -381,6 +378,7 @@
             display: flex;
             border-bottom: 1px solid var(--gray-light);
             margin-bottom: 1.5rem;
+            overflow-x: auto;
         }
         
         .profile-tab {
@@ -390,6 +388,7 @@
             cursor: pointer;
             transition: all 0.3s ease;
             border-bottom: 3px solid transparent;
+            white-space: nowrap;
         }
         
         .profile-tab.active {
@@ -424,6 +423,7 @@
             border-radius: 12px;
             font-size: 1rem;
             transition: all 0.3s ease;
+            background-color: var(--light);
         }
         
         .form-control:focus {
@@ -754,6 +754,12 @@
             overflow: hidden;
             margin-bottom: 1rem;
             border: 3px solid var(--primary-light);
+            background-color: var(--primary-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 3rem;
         }
         
         .avatar-preview img {
@@ -865,6 +871,25 @@
             left: 0;
             right: 0;
             z-index: 1000;
+        }
+        
+        /* Animation */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .animated {
+            animation: fadeIn 0.5s ease forwards;
+        }
+        
+        /* Footer */
+        .dashboard-footer {
+            margin-top: 2rem;
+            padding: 1.5rem 0;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.9rem;
         }
         
         /* Responsive styles */
@@ -994,6 +1019,12 @@
             .avatar-preview {
                 border-color: var(--primary);
             }
+            
+            .form-control {
+                background-color: #2d3748;
+                color: var(--text-primary);
+                border-color: #4a5568;
+            }
         }
     </style>
 </head>
@@ -1044,7 +1075,7 @@
                 </a>
             </li>
             <li class="sidebar-item">
-                <a href="/profile.html" class="sidebar-link active">
+                <a href="/dashboard/profile.html" class="sidebar-link active">
                     <i class="fas fa-user-cog"></i>
                     <span>Profil</span>
                 </a>
@@ -1322,8 +1353,8 @@
             </div>
             <div class="modal-body">
                 <div class="avatar-upload">
-                    <div class="avatar-preview">
-                        <img id="avatar-preview-image" src="/images/default-avatar.png" alt="Náhled avataru">
+                    <div class="avatar-preview" id="avatar-preview">
+                        <span>MS</span>
                     </div>
                     <div class="file-upload">
                         <button type="button" class="upload-btn">Vybrat soubor</button>
@@ -1367,694 +1398,696 @@
         <div id="toast-message">Operace byla úspěšně dokončena.</div>
     </div>
     
-    <!-- Supabase JS client -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
     <script>
-        // Initialize Supabase
-        const supabaseUrl = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10';
-        const supabase = supabase.createClient(supabaseUrl, supabaseKey);
-        
-        // DOM Elements
-        const profileContent = document.getElementById('profile-content');
-        const profileLoading = document.getElementById('profile-loading');
-        const profileName = document.getElementById('profile-name');
-        const profileEmail = document.getElementById('profile-email');
-        const profileAvatar = document.getElementById('profile-avatar');
-        const sidebarAvatar = document.getElementById('sidebar-avatar');
-        const sidebarName = document.getElementById('sidebar-name');
-        const profileLevel = document.getElementById('profile-level');
-        const profilePoints = document.getElementById('profile-points');
-        const profileBadges = document.getElementById('profile-badges');
-        const profileStreak = document.getElementById('profile-streak');
-        const editAvatarBtn = document.getElementById('edit-avatar-btn');
-        const avatarModal = document.getElementById('avatar-modal');
-        const avatarPreviewImage = document.getElementById('avatar-preview-image');
-        const avatarUpload = document.getElementById('avatar-upload');
-        const saveAvatarBtn = document.getElementById('save-avatar-btn');
-        const profileForm = document.getElementById('profile-form');
-        const passwordForm = document.getElementById('password-form');
-        const savePreferencesBtn = document.getElementById('save-preferences-btn');
-        const deleteAccountBtn = document.getElementById('delete-account-btn');
-        const deleteAccountModal = document.getElementById('delete-account-modal');
-        const confirmDeleteAccountBtn = document.getElementById('confirm-delete-account-btn');
-        const offlineBanner = document.getElementById('offline-banner');
-        const notificationCount = document.getElementById('notification-count');
-        const globalError = document.getElementById('global-error');
-        
-        let currentUser = null;
-        let currentProfile = null;
-        
-        // Form validation functions
-        const validators = {
-            required: (value, fieldName, message = 'Toto pole je povinné') => {
-                if (!value || value.trim() === '') {
-                    showFieldError(fieldName, message);
-                    return false;
-                }
-                return true;
-            },
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize Supabase client - Added before any other code to avoid the initialization error
+            const supabaseUrl = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
+            const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10';
+            const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
             
-            minLength: (value, fieldName, length, message = `Minimální délka je ${length} znaků`) => {
-                if (value && value.length < length) {
-                    showFieldError(fieldName, message);
-                    return false;
-                }
-                return true;
-            },
+            // DOM Elements
+            const profileContent = document.getElementById('profile-content');
+            const profileLoading = document.getElementById('profile-loading');
+            const profileName = document.getElementById('profile-name');
+            const profileEmail = document.getElementById('profile-email');
+            const profileAvatar = document.getElementById('profile-avatar');
+            const sidebarAvatar = document.getElementById('sidebar-avatar');
+            const sidebarName = document.getElementById('sidebar-name');
+            const profileLevel = document.getElementById('profile-level');
+            const profilePoints = document.getElementById('profile-points');
+            const profileBadges = document.getElementById('profile-badges');
+            const profileStreak = document.getElementById('profile-streak');
+            const editAvatarBtn = document.getElementById('edit-avatar-btn');
+            const avatarPreview = document.getElementById('avatar-preview');
+            const avatarUpload = document.getElementById('avatar-upload');
+            const saveAvatarBtn = document.getElementById('save-avatar-btn');
+            const profileForm = document.getElementById('profile-form');
+            const passwordForm = document.getElementById('password-form');
+            const savePreferencesBtn = document.getElementById('save-preferences-btn');
+            const deleteAccountBtn = document.getElementById('delete-account-btn');
+            const confirmDeleteAccountBtn = document.getElementById('confirm-delete-account-btn');
+            const offlineBanner = document.getElementById('offline-banner');
+            const notificationCount = document.getElementById('notification-count');
+            const globalError = document.getElementById('global-error');
             
-            email: (value, fieldName, message = 'Zadejte platnou e-mailovou adresu') => {
-                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                if (value && !emailRegex.test(value)) {
-                    showFieldError(fieldName, message);
-                    return false;
-                }
-                return true;
-            },
+            let currentUser = null;
+            let currentProfile = null;
             
-            match: (value, fieldName, matchValue, message = 'Hodnoty se neshodují') => {
-                if (value !== matchValue) {
-                    showFieldError(fieldName, message);
-                    return false;
+            // Form validation functions
+            const validators = {
+                required: (value, fieldName, message = 'Toto pole je povinné') => {
+                    if (!value || value.trim() === '') {
+                        showFieldError(fieldName, message);
+                        return false;
+                    }
+                    return true;
+                },
+                
+                minLength: (value, fieldName, length, message = `Minimální délka je ${length} znaků`) => {
+                    if (value && value.length < length) {
+                        showFieldError(fieldName, message);
+                        return false;
+                    }
+                    return true;
+                },
+                
+                email: (value, fieldName, message = 'Zadejte platnou e-mailovou adresu') => {
+                    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                    if (value && !emailRegex.test(value)) {
+                        showFieldError(fieldName, message);
+                        return false;
+                    }
+                    return true;
+                },
+                
+                match: (value, fieldName, matchValue, message = 'Hodnoty se neshodují') => {
+                    if (value !== matchValue) {
+                        showFieldError(fieldName, message);
+                        return false;
+                    }
+                    return true;
                 }
-                return true;
+            };
+            
+            function showFieldError(fieldName, message) {
+                const field = document.getElementById(fieldName);
+                const errorContainer = document.getElementById(`${fieldName}-error`);
+                
+                if (field && errorContainer) {
+                    field.classList.add('is-invalid');
+                    errorContainer.textContent = message;
+                    errorContainer.style.display = 'block';
+                }
             }
-        };
-        
-        function showFieldError(fieldName, message) {
-            const field = document.getElementById(fieldName);
-            const errorContainer = document.getElementById(`${fieldName}-error`);
             
-            if (field && errorContainer) {
-                field.classList.add('is-invalid');
-                errorContainer.textContent = message;
+            function clearFieldError(fieldName) {
+                const field = document.getElementById(fieldName);
+                const errorContainer = document.getElementById(`${fieldName}-error`);
+                
+                if (field && errorContainer) {
+                    field.classList.remove('is-invalid');
+                    errorContainer.textContent = '';
+                    errorContainer.style.display = 'none';
+                }
+            }
+            
+            function clearAllErrors() {
+                document.querySelectorAll('.field-error').forEach(errorEl => {
+                    errorEl.textContent = '';
+                    errorEl.style.display = 'none';
+                });
+                
+                document.querySelectorAll('.is-invalid').forEach(field => {
+                    field.classList.remove('is-invalid');
+                });
+            }
+            
+            // Toast notification function
+            function showToast(message, type = 'success') {
+                const toast = document.getElementById('toast');
+                const toastMessage = document.getElementById('toast-message');
+                toastMessage.textContent = message;
+                
+                // Update icon based on type
+                const icon = toast.querySelector('i');
+                icon.className = type === 'success' ? 'fas fa-check-circle' : 
+                                type === 'error' ? 'fas fa-exclamation-circle' : 
+                                'fas fa-exclamation-triangle';
+                
+                toast.className = 'toast ' + type;
+                toast.classList.add('show');
+                
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                }, 5000);
+            }
+            
+            // Show/hide global error
+            function showError(message) {
+                const errorContainer = document.getElementById('global-error');
+                errorContainer.innerHTML = `
+                    <div class="error-message">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <div>
+                            <div>${message}</div>
+                            <button class="retry-button" id="retry-btn">Zkusit znovu</button>
+                        </div>
+                    </div>
+                `;
+                
                 errorContainer.style.display = 'block';
+                
+                const retryBtn = document.getElementById('retry-btn');
+                if (retryBtn) {
+                    retryBtn.addEventListener('click', () => {
+                        errorContainer.style.display = 'none';
+                        loadUserProfile();
+                    });
+                }
             }
-        }
-        
-        function clearFieldError(fieldName) {
-            const field = document.getElementById(fieldName);
-            const errorContainer = document.getElementById(`${fieldName}-error`);
             
-            if (field && errorContainer) {
-                field.classList.remove('is-invalid');
-                errorContainer.textContent = '';
+            function hideError() {
+                const errorContainer = document.getElementById('global-error');
                 errorContainer.style.display = 'none';
             }
-        }
-        
-        function clearAllErrors() {
-            document.querySelectorAll('.field-error').forEach(errorEl => {
-                errorEl.textContent = '';
-                errorEl.style.display = 'none';
-            });
             
-            document.querySelectorAll('.is-invalid').forEach(field => {
-                field.classList.remove('is-invalid');
-            });
-        }
-        
-        // Toast notification function
-        function showToast(message, type = 'success') {
-            const toast = document.getElementById('toast');
-            const toastMessage = document.getElementById('toast-message');
-            toastMessage.textContent = message;
-            
-            // Update icon based on type
-            const icon = toast.querySelector('i');
-            icon.className = type === 'success' ? 'fas fa-check-circle' : 
-                            type === 'error' ? 'fas fa-exclamation-circle' : 
-                            'fas fa-exclamation-triangle';
-            
-            toast.className = 'toast ' + type;
-            toast.classList.add('show');
-            
-            setTimeout(() => {
-                toast.classList.remove('show');
-            }, 5000);
-        }
-        
-        // Show/hide global error
-        function showError(message) {
-            const errorContainer = document.getElementById('global-error');
-            errorContainer.innerHTML = `
-                <div class="error-message">
-                    <i class="fas fa-exclamation-circle"></i>
-                    <div>
-                        <div>${message}</div>
-                        <button class="retry-button" id="retry-btn">Zkusit znovu</button>
-                    </div>
-                </div>
-            `;
-            
-            errorContainer.style.display = 'block';
-            
-            const retryBtn = document.getElementById('retry-btn');
-            if (retryBtn) {
-                retryBtn.addEventListener('click', () => {
-                    errorContainer.style.display = 'none';
-                    loadUserProfile();
-                });
-            }
-        }
-        
-        function hideError() {
-            const errorContainer = document.getElementById('global-error');
-            errorContainer.style.display = 'none';
-        }
-        
-        // Modal functions
-        function showModal(modalId) {
-            const modal = document.getElementById(modalId);
-            if (modal) {
-                modal.classList.add('active');
-            }
-        }
-        
-        function hideModal(modalId) {
-            const modal = document.getElementById(modalId);
-            if (modal) {
-                modal.classList.remove('active');
-            }
-        }
-        
-        // Tab switching
-        document.querySelectorAll('.profile-tab').forEach(tab => {
-            tab.addEventListener('click', () => {
-                // Remove active class from all tabs
-                document.querySelectorAll('.profile-tab').forEach(t => t.classList.remove('active'));
-                
-                // Add active class to clicked tab
-                tab.classList.add('active');
-                
-                // Hide all tab content
-                document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-                
-                // Show the clicked tab content
-                const tabId = tab.dataset.tab;
-                document.getElementById(tabId).classList.add('active');
-            });
-        });
-        
-        // Handle online/offline status
-        function updateOnlineStatus() {
-            if (navigator.onLine) {
-                offlineBanner.style.display = 'none';
-            } else {
-                offlineBanner.style.display = 'block';
-                showToast('Jste offline. Některé funkce nemusí být dostupné.', 'warning');
-            }
-        }
-        
-        window.addEventListener('online', updateOnlineStatus);
-        window.addEventListener('offline', updateOnlineStatus);
-        
-        // Get current user
-        async function getCurrentUser() {
-            const { data: { user } } = await supabase.auth.getUser();
-            return user;
-        }
-        
-        // Load user profile
-        async function loadUserProfile() {
-            try {
-                profileLoading.style.display = 'flex';
-                profileContent.style.display = 'none';
-                hideError();
-                
-                currentUser = await getCurrentUser();
-                
-                if (!currentUser) {
-                    window.location.href = '/login.html';
-                    return;
+            // Modal functions
+            function showModal(modalId) {
+                const modal = document.getElementById(modalId);
+                if (modal) {
+                    modal.classList.add('active');
                 }
-
-                const { data: profile, error } = await supabase
-                    .from('profiles')
-                    .select('*')
-                    .eq('id', currentUser.id)
-                    .single();
-
-                if (error) throw error;
-
-                if (!profile) {
-                    // Create default profile if not exists
-                    const defaultProfile = {
-                        id: currentUser.id,
-                        email: currentUser.email,
-                        username: currentUser.email.split('@')[0],
-                        level: 1,
-                        points: 0,
-                        badges_count: 0,
-                        streak_days: 0,
-                        created_at: new Date().toISOString(),
-                        updated_at: new Date().toISOString(),
-                        preferences: {
-                            dark_mode: false,
-                            show_progress: true,
-                            sound_effects: true,
-                            language: 'cs'
-                        },
-                        notifications: {
-                            email: true,
-                            study_tips: true,
-                            content_updates: true,
-                            practice_reminders: true
-                        }
-                    };
-
-                    const { data: newProfile, error: createError } = await supabase
+            }
+            
+            function hideModal(modalId) {
+                const modal = document.getElementById(modalId);
+                if (modal) {
+                    modal.classList.remove('active');
+                }
+            }
+            
+            // Tab switching
+            document.querySelectorAll('.profile-tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    // Remove active class from all tabs
+                    document.querySelectorAll('.profile-tab').forEach(t => t.classList.remove('active'));
+                    
+                    // Add active class to clicked tab
+                    tab.classList.add('active');
+                    
+                    // Hide all tab content
+                    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+                    
+                    // Show the clicked tab content
+                    const tabId = tab.dataset.tab;
+                    document.getElementById(tabId).classList.add('active');
+                });
+            });
+            
+            // Handle online/offline status
+            function updateOnlineStatus() {
+                if (navigator.onLine) {
+                    offlineBanner.style.display = 'none';
+                } else {
+                    offlineBanner.style.display = 'block';
+                    showToast('Jste offline. Některé funkce nemusí být dostupné.', 'warning');
+                }
+            }
+            
+            window.addEventListener('online', updateOnlineStatus);
+            window.addEventListener('offline', updateOnlineStatus);
+            updateOnlineStatus();
+            
+            // Get current user
+            async function getCurrentUser() {
+                const { data: { user } } = await supabase.auth.getUser();
+                return user;
+            }
+            
+            // Load user profile
+            async function loadUserProfile() {
+                try {
+                    profileLoading.style.display = 'flex';
+                    profileContent.style.display = 'none';
+                    hideError();
+                    
+                    currentUser = await getCurrentUser();
+                    
+                    if (!currentUser) {
+                        window.location.href = '/login.html';
+                        return;
+                    }
+    
+                    const { data: profile, error } = await supabase
                         .from('profiles')
-                        .insert([defaultProfile])
+                        .select('*')
+                        .eq('id', currentUser.id)
+                        .single();
+    
+                    if (error) throw error;
+    
+                    if (!profile) {
+                        // Create default profile if not exists
+                        const defaultProfile = {
+                            id: currentUser.id,
+                            email: currentUser.email,
+                            username: currentUser.email.split('@')[0],
+                            level: 1,
+                            points: 0,
+                            badges_count: 0,
+                            streak_days: 0,
+                            created_at: new Date().toISOString(),
+                            updated_at: new Date().toISOString(),
+                            preferences: {
+                                dark_mode: false,
+                                show_progress: true,
+                                sound_effects: true,
+                                language: 'cs'
+                            },
+                            notifications: {
+                                email: true,
+                                study_tips: true,
+                                content_updates: true,
+                                practice_reminders: true
+                            }
+                        };
+    
+                        const { data: newProfile, error: createError } = await supabase
+                            .from('profiles')
+                            .insert([defaultProfile])
+                            .select()
+                            .single();
+    
+                        if (createError) throw createError;
+                        currentProfile = newProfile;
+                    } else {
+                        currentProfile = profile;
+                    }
+    
+                    // Update profile display
+                    updateProfileDisplay(currentProfile);
+                    
+                    profileLoading.style.display = 'none';
+                    profileContent.style.display = 'block';
+                    
+                } catch (error) {
+                    console.error('Error loading profile:', error);
+                    showError('Nepodařilo se načíst profil. Zkuste to prosím později.');
+                    profileLoading.style.display = 'none';
+                }
+            }
+            
+            // Update profile display
+            function updateProfileDisplay(userData) {
+                if (!userData) return;
+                
+                // Update name and email
+                const displayName = `${userData.first_name || ''} ${userData.last_name || ''}`.trim() || userData.username || 'Uživatel';
+                profileName.textContent = displayName;
+                profileEmail.textContent = userData.email;
+                sidebarName.textContent = displayName;
+                
+                // Update avatars
+                const initials = getInitials(userData);
+                
+                if (userData.avatar_url) {
+                    profileAvatar.innerHTML = `<img src="${userData.avatar_url}" alt="${userData.username}" />
+                        <div class="edit-avatar" id="edit-avatar-btn">
+                            <i class="fas fa-camera"></i> Změnit
+                        </div>`;
+                    sidebarAvatar.innerHTML = `<img src="${userData.avatar_url}" alt="${userData.username}" />`;
+                    
+                    // Update avatar preview in modal
+                    avatarPreview.innerHTML = `<img src="${userData.avatar_url}" alt="${userData.username}" />`;
+                } else {
+                    profileAvatar.innerHTML = `<span>${initials}</span>
+                        <div class="edit-avatar" id="edit-avatar-btn">
+                            <i class="fas fa-camera"></i> Změnit
+                        </div>`;
+                    sidebarAvatar.textContent = initials;
+                    
+                    // Update avatar preview in modal
+                    avatarPreview.innerHTML = `<span>${initials}</span>`;
+                }
+                
+                // Re-attach event listener for edit avatar button
+                document.getElementById('edit-avatar-btn').addEventListener('click', () => {
+                    openAvatarModal();
+                });
+                
+                // Update stats
+                profileLevel.textContent = userData.level || 1;
+                profilePoints.textContent = userData.points || 0;
+                profileBadges.textContent = userData.badges_count || 0;
+                profileStreak.textContent = userData.streak_days || 0;
+                
+                // Fill form fields
+                document.getElementById('first_name').value = userData.first_name || '';
+                document.getElementById('last_name').value = userData.last_name || '';
+                document.getElementById('username').value = userData.username || '';
+                document.getElementById('email').value = userData.email || '';
+                document.getElementById('school').value = userData.school || '';
+                document.getElementById('grade').value = userData.grade || '';
+                document.getElementById('bio').value = userData.bio || '';
+                
+                // Set preferences
+                if (userData.preferences) {
+                    document.getElementById('dark_mode').checked = userData.preferences.dark_mode || false;
+                    document.getElementById('language').value = userData.preferences.language || 'cs';
+                }
+                
+                                // Set notification settings
+                if (userData.notifications) {
+                    document.getElementById('email_notifications').checked = userData.notifications.email || false;
+                    document.getElementById('study_tips').checked = userData.notifications.study_tips || false;
+                    document.getElementById('content_updates').checked = userData.notifications.content_updates || false;
+                    document.getElementById('practice_reminders').checked = userData.notifications.practice_reminders || false;
+                }
+                
+                // Show notification count (placeholder)
+                notificationCount.textContent = '3';
+            }
+            
+            // Get initials from profile
+            function getInitials(userData) {
+                const first = userData.first_name ? userData.first_name[0] : '';
+                const last = userData.last_name ? userData.last_name[0] : '';
+                return (first + last).toUpperCase() || userData.username ? userData.username[0].toUpperCase() : 'U';
+            }
+            
+            // Update profile
+            async function updateProfile(data) {
+                try {
+                    if (!currentUser) {
+                        showToast('Pro aktualizaci profilu se musíte přihlásit', 'error');
+                        return false;
+                    }
+                    
+                    const { data: profile, error } = await supabase
+                        .from('profiles')
+                        .update({
+                            first_name: data.first_name,
+                            last_name: data.last_name,
+                            username: data.username,
+                            school: data.school,
+                            grade: data.grade,
+                            bio: data.bio,
+                            updated_at: new Date().toISOString()
+                        })
+                        .eq('id', currentUser.id)
                         .select()
                         .single();
-
-                    if (createError) throw createError;
-                    currentProfile = newProfile;
-                } else {
+    
+                    if (error) throw error;
+                    
+                    // Update current profile and display
                     currentProfile = profile;
+                    updateProfileDisplay(profile);
+                    showToast('Profil byl úspěšně aktualizován', 'success');
+                    return true;
+                    
+                } catch (error) {
+                    console.error('Error updating profile:', error);
+                    showToast('Nepodařilo se aktualizovat profil', 'error');
+                    return false;
                 }
-
-                // Update profile display
-                updateProfileDisplay(currentProfile);
-                
-                profileLoading.style.display = 'none';
-                profileContent.style.display = 'block';
-                
-            } catch (error) {
-                console.error('Error loading profile:', error);
-                showError('Nepodařilo se načíst profil. Zkuste to prosím později.');
-                profileLoading.style.display = 'none';
-            }
-        }
-        
-        // Update profile display
-        function updateProfileDisplay(userData) {
-            if (!userData) return;
-            
-            // Update name and email
-            const displayName = `${userData.first_name || ''} ${userData.last_name || ''}`.trim() || userData.username || 'Uživatel';
-            profileName.textContent = displayName;
-            profileEmail.textContent = userData.email;
-            sidebarName.textContent = displayName;
-            
-            // Update avatars
-            if (userData.avatar_url) {
-                profileAvatar.innerHTML = `<img src="${userData.avatar_url}" alt="${userData.username}" />
-                    <div class="edit-avatar" id="edit-avatar-btn">
-                        <i class="fas fa-camera"></i> Změnit
-                    </div>`;
-                sidebarAvatar.innerHTML = `<img src="${userData.avatar_url}" alt="${userData.username}" />`;
-            } else {
-                const initials = getInitials(userData);
-                profileAvatar.innerHTML = `<span>${initials}</span>
-                    <div class="edit-avatar" id="edit-avatar-btn">
-                        <i class="fas fa-camera"></i> Změnit
-                    </div>`;
-                sidebarAvatar.textContent = initials;
             }
             
-            // Re-attach event listener for edit avatar button
-            document.getElementById('edit-avatar-btn').addEventListener('click', () => {
-                openAvatarModal();
+            // Update password
+            async function updatePassword(data) {
+                try {
+                    if (!validators.required(data.current_password, 'current_password') ||
+                        !validators.required(data.new_password, 'new_password', 'Zadejte nové heslo') ||
+                        !validators.minLength(data.new_password, 'new_password', 8, 'Heslo musí mít alespoň 8 znaků') ||
+                        !validators.required(data.confirm_password, 'confirm_password', 'Potvrďte nové heslo') ||
+                        !validators.match(data.confirm_password, 'confirm_password', data.new_password, 'Hesla se neshodují')) {
+                        return false;
+                    }
+                    
+                    const { error } = await supabase.auth.updateUser({
+                        password: data.new_password
+                    });
+                    
+                    if (error) throw error;
+                    
+                    // Clear password form
+                    passwordForm.reset();
+                    clearAllErrors();
+                    
+                    showToast('Heslo bylo úspěšně změněno', 'success');
+                    return true;
+                    
+                } catch (error) {
+                    console.error('Error updating password:', error);
+                    showToast('Nepodařilo se změnit heslo', 'error');
+                    return false;
+                }
+            }
+            
+            // Update preferences
+            async function updatePreferences() {
+                try {
+                    const preferences = {
+                        dark_mode: document.getElementById('dark_mode').checked,
+                        language: document.getElementById('language').value,
+                        show_progress: true,
+                        sound_effects: true
+                    };
+                    
+                    const notifications = {
+                        email: document.getElementById('email_notifications').checked,
+                        study_tips: document.getElementById('study_tips').checked,
+                        content_updates: document.getElementById('content_updates').checked,
+                        practice_reminders: document.getElementById('practice_reminders').checked
+                    };
+                    
+                    const { data, error } = await supabase
+                        .from('profiles')
+                        .update({
+                            preferences: preferences,
+                            notifications: notifications,
+                            updated_at: new Date().toISOString()
+                        })
+                        .eq('id', currentUser.id)
+                        .select()
+                        .single();
+                    
+                    if (error) throw error;
+                    
+                    currentProfile = data;
+                    showToast('Nastavení byla úspěšně uložena', 'success');
+                    return true;
+                    
+                } catch (error) {
+                    console.error('Error updating preferences:', error);
+                    showToast('Nepodařilo se uložit nastavení', 'error');
+                    return false;
+                }
+            }
+            
+            // Avatar handling
+            function openAvatarModal() {
+                showModal('avatar-modal');
+                
+                // Reset preview image
+                if (currentProfile && currentProfile.avatar_url) {
+                    avatarPreview.innerHTML = `<img src="${currentProfile.avatar_url}" alt="${currentProfile.username || 'Avatar'}" />`;
+                } else {
+                    avatarPreview.innerHTML = `<span>${getInitials(currentProfile)}</span>`;
+                }
+            }
+            
+            // Update avatar preview when file is selected
+            avatarUpload.addEventListener('change', function() {
+                if (this.files && this.files[0]) {
+                    const reader = new FileReader();
+                    
+                    reader.onload = function(e) {
+                        avatarPreview.innerHTML = `<img src="${e.target.result}" alt="Avatar preview" />`;
+                    };
+                    
+                    reader.readAsDataURL(this.files[0]);
+                }
             });
             
-            // Update stats
-            profileLevel.textContent = userData.level || 1;
-            profilePoints.textContent = userData.points || 0;
-            profileBadges.textContent = userData.badges_count || 0;
-            profileStreak.textContent = userData.streak_days || 0;
-            
-            // Fill form fields
-            document.getElementById('first_name').value = userData.first_name || '';
-            document.getElementById('last_name').value = userData.last_name || '';
-            document.getElementById('username').value = userData.username || '';
-            document.getElementById('email').value = userData.email || '';
-            document.getElementById('school').value = userData.school || '';
-            document.getElementById('grade').value = userData.grade || '';
-            document.getElementById('bio').value = userData.bio || '';
-            
-            // Set preferences
-            if (userData.preferences) {
-                document.getElementById('dark_mode').checked = userData.preferences.dark_mode || false;
-                document.getElementById('language').value = userData.preferences.language || 'cs';
-            }
-            
-            // Set notification settings
-            if (userData.notifications) {
-                document.getElementById('email_notifications').checked = userData.notifications.email || false;
-                document.getElementById('study_tips').checked = userData.notifications.study_tips || false;
-                document.getElementById('content_updates').checked = userData.notifications.content_updates || false;
-                document.getElementById('practice_reminders').checked = userData.notifications.practice_reminders || false;
-            }
-            
-            // Show notification count (placeholder)
-            notificationCount.textContent = '3';
-        }
-        
-        // Get initials from profile
-        function getInitials(userData) {
-            const first = userData.first_name ? userData.first_name[0] : '';
-            const last = userData.last_name ? userData.last_name[0] : '';
-            return (first + last).toUpperCase() || userData.username ? userData.username[0].toUpperCase() : 'U';
-        }
-        
-        // Update profile
-        async function updateProfile(data) {
-            try {
-                if (!currentUser) {
-                    showToast('Pro aktualizaci profilu se musíte přihlásit', 'error');
+            // Update avatar
+            async function updateAvatar(file) {
+                try {
+                    if (!currentUser) {
+                        showToast('Pro aktualizaci avataru se musíte přihlásit', 'error');
+                        return false;
+                    }
+                    
+                    if (!file) {
+                        showToast('Nejprve vyberte obrázek', 'warning');
+                        return false;
+                    }
+                    
+                    // Check file size (2MB limit)
+                    if (file.size > 2 * 1024 * 1024) {
+                        showToast('Soubor je příliš velký. Maximální velikost je 2MB', 'error');
+                        return false;
+                    }
+                    
+                    // Check file type
+                    if (!['image/jpeg', 'image/png', 'image/gif'].includes(file.type)) {
+                        showToast('Nepodporovaný formát souboru', 'error');
+                        return false;
+                    }
+                    
+                    const fileExt = file.name.split('.').pop();
+                    const fileName = `${currentUser.id}-${Date.now()}.${fileExt}`;
+                    
+                    // Upload file to storage
+                    const { data: uploadData, error: uploadError } = await supabase
+                        .storage
+                        .from('avatars')
+                        .upload(fileName, file);
+                        
+                    if (uploadError) throw uploadError;
+                    
+                    // Get public URL
+                    const { data: { publicUrl } } = supabase
+                        .storage
+                        .from('avatars')
+                        .getPublicUrl(fileName);
+                    
+                    // Update profile with avatar URL
+                    const { data: profile, error: updateError } = await supabase
+                        .from('profiles')
+                        .update({
+                            avatar_url: publicUrl,
+                            updated_at: new Date().toISOString()
+                        })
+                        .eq('id', currentUser.id)
+                        .select()
+                        .single();
+                        
+                    if (updateError) throw updateError;
+                    
+                    currentProfile = profile;
+                    updateProfileDisplay(profile);
+                    hideModal('avatar-modal');
+                    showToast('Profilový obrázek byl úspěšně aktualizován', 'success');
+                    return true;
+                    
+                } catch (error) {
+                    console.error('Error updating avatar:', error);
+                    showToast('Nepodařilo se aktualizovat avatar', 'error');
                     return false;
                 }
-                
-                const { data: profile, error } = await supabase
-                    .from('profiles')
-                    .update({
-                        first_name: data.first_name,
-                        last_name: data.last_name,
-                        username: data.username,
-                        school: data.school,
-                        grade: data.grade,
-                        bio: data.bio,
-                        updated_at: new Date().toISOString()
-                    })
-                    .eq('id', currentUser.id)
-                    .select()
-                    .single();
-
-                if (error) throw error;
-                
-                // Update current profile and display
-                currentProfile = profile;
-                updateProfileDisplay(profile);
-                showToast('Profil byl úspěšně aktualizován', 'success');
-                return true;
-                
-            } catch (error) {
-                console.error('Error updating profile:', error);
-                showToast('Nepodařilo se aktualizovat profil', 'error');
-                return false;
             }
-        }
-        
-        // Update password
-        async function updatePassword(data) {
-            try {
-                if (!validators.required(data.current_password, 'current_password') ||
-                    !validators.required(data.new_password, 'new_password', 'Zadejte nové heslo') ||
-                    !validators.minLength(data.new_password, 'new_password', 8, 'Heslo musí mít alespoň 8 znaků') ||
-                    !validators.required(data.confirm_password, 'confirm_password', 'Potvrďte nové heslo') ||
-                    !validators.match(data.confirm_password, 'confirm_password', data.new_password, 'Hesla se neshodují')) {
+            
+            // Delete account
+            async function deleteAccount(password) {
+                try {
+                    if (!currentUser) {
+                        showToast('Pro smazání účtu se musíte přihlásit', 'error');
+                        return false;
+                    }
+                    
+                    if (!password) {
+                        showFieldError('confirm-delete-password', 'Zadejte své heslo pro potvrzení');
+                        return false;
+                    }
+                    
+                    // First delete profile data
+                    const { error: profileError } = await supabase
+                        .from('profiles')
+                        .delete()
+                        .eq('id', currentUser.id);
+                    
+                    if (profileError) throw profileError;
+                    
+                    // Then sign out and redirect
+                    await supabase.auth.signOut();
+                    
+                    showToast('Váš účet byl úspěšně smazán', 'success');
+                    
+                    // Redirect to homepage after short delay
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 2000);
+                    
+                    return true;
+                    
+                } catch (error) {
+                    console.error('Error deleting account:', error);
+                    showToast('Nepodařilo se smazat účet', 'error');
                     return false;
                 }
-                
-                const { error } = await supabase.auth.updateUser({
-                    password: data.new_password
-                });
-                
-                if (error) throw error;
-                
-                // Clear password form
-                passwordForm.reset();
+            }
+            
+            // Validate profile form
+            function validateProfileForm() {
                 clearAllErrors();
                 
-                showToast('Heslo bylo úspěšně změněno', 'success');
-                return true;
+                const first_name = document.getElementById('first_name').value;
+                const last_name = document.getElementById('last_name').value;
+                const username = document.getElementById('username').value;
+                const school = document.getElementById('school').value;
                 
-            } catch (error) {
-                console.error('Error updating password:', error);
-                showToast('Nepodařilo se změnit heslo', 'error');
-                return false;
+                let isValid = true;
+                
+                // Username is required
+                if (!validators.required(username, 'username')) {
+                    isValid = false;
+                }
+                
+                // Username min length
+                if (username && !validators.minLength(username, 'username', 3, 'Uživatelské jméno musí mít alespoň 3 znaky')) {
+                    isValid = false;
+                }
+                
+                return isValid;
             }
-        }
-        
-        // Update preferences
-        async function updatePreferences() {
-            try {
-                const preferences = {
-                    dark_mode: document.getElementById('dark_mode').checked,
-                    language: document.getElementById('language').value,
-                    show_progress: true,
-                    sound_effects: true
+            
+            // Event listeners
+            profileForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                if (!validateProfileForm()) {
+                    return;
+                }
+                
+                const formData = {
+                    first_name: document.getElementById('first_name').value,
+                    last_name: document.getElementById('last_name').value,
+                    username: document.getElementById('username').value,
+                    school: document.getElementById('school').value,
+                    grade: document.getElementById('grade').value,
+                    bio: document.getElementById('bio').value
                 };
                 
-                const notifications = {
-                    email: document.getElementById('email_notifications').checked,
-                    study_tips: document.getElementById('study_tips').checked,
-                    content_updates: document.getElementById('content_updates').checked,
-                    practice_reminders: document.getElementById('practice_reminders').checked
-                };
-                
-                const { data, error } = await supabase
-                    .from('profiles')
-                    .update({
-                        preferences: preferences,
-                        notifications: notifications,
-                        updated_at: new Date().toISOString()
-                    })
-                    .eq('id', currentUser.id)
-                    .select()
-                    .single();
-                
-                if (error) throw error;
-                
-                currentProfile = data;
-                showToast('Nastavení byla úspěšně uložena', 'success');
-                return true;
-                
-            } catch (error) {
-                console.error('Error updating preferences:', error);
-                showToast('Nepodařilo se uložit nastavení', 'error');
-                return false;
-            }
-        }
-        
-        // Avatar handling
-        function openAvatarModal() {
-            showModal('avatar-modal');
-            
-            // Reset preview image
-            if (currentProfile && currentProfile.avatar_url) {
-                avatarPreviewImage.src = currentProfile.avatar_url;
-            } else {
-                avatarPreviewImage.src = '/images/default-avatar.png';
-            }
-        }
-        
-        // Update avatar preview when file is selected
-        avatarUpload.addEventListener('change', function() {
-            if (this.files && this.files[0]) {
-                const reader = new FileReader();
-                
-                reader.onload = function(e) {
-                    avatarPreviewImage.src = e.target.result;
-                };
-                
-                reader.readAsDataURL(this.files[0]);
-            }
-        });
-        
-        // Update avatar
-        async function updateAvatar(file) {
-            try {
-                if (!currentUser) {
-                    showToast('Pro aktualizaci avataru se musíte přihlásit', 'error');
-                    return false;
-                }
-                
-                if (!file) {
-                    showToast('Nejprve vyberte obrázek', 'warning');
-                    return false;
-                }
-                
-                // Check file size (2MB limit)
-                if (file.size > 2 * 1024 * 1024) {
-                    showToast('Soubor je příliš velký. Maximální velikost je 2MB', 'error');
-                    return false;
-                }
-                
-                // Check file type
-                if (!['image/jpeg', 'image/png', 'image/gif'].includes(file.type)) {
-                    showToast('Nepodporovaný formát souboru', 'error');
-                    return false;
-                }
-                
-                const fileExt = file.name.split('.').pop();
-                const fileName = `${currentUser.id}-${Date.now()}.${fileExt}`;
-                
-                // Upload file to storage
-                const { data: uploadData, error: uploadError } = await supabase
-                    .storage
-                    .from('avatars')
-                    .upload(fileName, file);
-                    
-                if (uploadError) throw uploadError;
-                
-                // Get public URL
-                const { data: { publicUrl } } = supabase
-                    .storage
-                    .from('avatars')
-                    .getPublicUrl(fileName);
-                
-                // Update profile with avatar URL
-                const { data: profile, error: updateError } = await supabase
-                    .from('profiles')
-                    .update({
-                        avatar_url: publicUrl,
-                        updated_at: new Date().toISOString()
-                    })
-                    .eq('id', currentUser.id)
-                    .select()
-                    .single();
-                    
-                if (updateError) throw updateError;
-                
-                currentProfile = profile;
-                updateProfileDisplay(profile);
-                hideModal('avatar-modal');
-                showToast('Profilový obrázek byl úspěšně aktualizován', 'success');
-                return true;
-                
-            } catch (error) {
-                console.error('Error updating avatar:', error);
-                showToast('Nepodařilo se aktualizovat avatar', 'error');
-                return false;
-            }
-        }
-        
-        // Delete account
-        async function deleteAccount(password) {
-            try {
-                if (!currentUser) {
-                    showToast('Pro smazání účtu se musíte přihlásit', 'error');
-                    return false;
-                }
-                
-                if (!password) {
-                    showFieldError('confirm-delete-password', 'Zadejte své heslo pro potvrzení');
-                    return false;
-                }
-                
-                // First delete profile data
-                const { error: profileError } = await supabase
-                    .from('profiles')
-                    .delete()
-                    .eq('id', currentUser.id);
-                
-                if (profileError) throw profileError;
-                
-                // Then sign out and redirect
-                await supabase.auth.signOut();
-                
-                showToast('Váš účet byl úspěšně smazán', 'success');
-                
-                // Redirect to homepage after short delay
-                setTimeout(() => {
-                    window.location.href = '/';
-                }, 2000);
-                
-                return true;
-                
-            } catch (error) {
-                console.error('Error deleting account:', error);
-                showToast('Nepodařilo se smazat účet', 'error');
-                return false;
-            }
-        }
-        
-        // Validate profile form
-        function validateProfileForm() {
-            clearAllErrors();
-            
-            const first_name = document.getElementById('first_name').value;
-            const last_name = document.getElementById('last_name').value;
-            const username = document.getElementById('username').value;
-            const school = document.getElementById('school').value;
-            
-            let isValid = true;
-            
-            // Username is required
-            if (!validators.required(username, 'username')) {
-                isValid = false;
-            }
-            
-            // Username min length
-            if (username && !validators.minLength(username, 'username', 3, 'Uživatelské jméno musí mít alespoň 3 znaky')) {
-                isValid = false;
-            }
-            
-            return isValid;
-        }
-        
-        // Event listeners
-        profileForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            if (!validateProfileForm()) {
-                return;
-            }
-            
-            const formData = {
-                first_name: document.getElementById('first_name').value,
-                last_name: document.getElementById('last_name').value,
-                username: document.getElementById('username').value,
-                school: document.getElementById('school').value,
-                grade: document.getElementById('grade').value,
-                bio: document.getElementById('bio').value
-            };
-            
-            await updateProfile(formData);
-        });
-        
-        passwordForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const formData = {
-                current_password: document.getElementById('current_password').value,
-                new_password: document.getElementById('new_password').value,
-                confirm_password: document.getElementById('confirm_password').value
-            };
-            
-            await updatePassword(formData);
-        });
-        
-        savePreferencesBtn.addEventListener('click', async function() {
-            await updatePreferences();
-        });
-        
-        saveAvatarBtn.addEventListener('click', async function() {
-            const file = avatarUpload.files[0];
-            await updateAvatar(file);
-        });
-        
-        deleteAccountBtn.addEventListener('click', function() {
-            showModal('delete-account-modal');
-        });
-        
-        confirmDeleteAccountBtn.addEventListener('click', async function() {
-            const password = document.getElementById('confirm-delete-password').value;
-            await deleteAccount(password);
-        });
-        
-        // Modal close buttons
-        document.querySelectorAll('.modal-close, [data-dismiss="modal"]').forEach(button => {
-            button.addEventListener('click', function() {
-                const modalId = this.closest('.modal').id;
-                hideModal(modalId);
+                await updateProfile(formData);
             });
-        });
-        
-        // Field input events for clearing errors
-        document.querySelectorAll('input, textarea, select').forEach(field => {
-            field.addEventListener('input', function() {
-                clearFieldError(this.id);
+            
+            passwordForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const formData = {
+                    current_password: document.getElementById('current_password').value,
+                    new_password: document.getElementById('new_password').value,
+                    confirm_password: document.getElementById('confirm_password').value
+                };
+                
+                await updatePassword(formData);
             });
-        });
-        
-        // Initialize
-        document.addEventListener('DOMContentLoaded', function() {
-            updateOnlineStatus();
+            
+            savePreferencesBtn.addEventListener('click', async function() {
+                await updatePreferences();
+            });
+            
+            saveAvatarBtn.addEventListener('click', async function() {
+                const file = avatarUpload.files[0];
+                await updateAvatar(file);
+            });
+            
+            deleteAccountBtn.addEventListener('click', function() {
+                showModal('delete-account-modal');
+            });
+            
+            confirmDeleteAccountBtn.addEventListener('click', async function() {
+                const password = document.getElementById('confirm-delete-password').value;
+                await deleteAccount(password);
+            });
+            
+            // Modal close buttons
+            document.querySelectorAll('.modal-close, [data-dismiss="modal"]').forEach(button => {
+                button.addEventListener('click', function() {
+                    const modalId = this.closest('.modal').id;
+                    hideModal(modalId);
+                });
+            });
+            
+            // Field input events for clearing errors
+            document.querySelectorAll('input, textarea, select').forEach(field => {
+                field.addEventListener('input', function() {
+                    clearFieldError(this.id);
+                });
+            });
+            
+            // Initialize
             loadUserProfile();
         });
     </script>
