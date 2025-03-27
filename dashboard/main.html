@@ -4,38 +4,901 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Justax Dashboard</title>
-    
-    <!-- Performance optimizations -->
-    <link rel="dns-prefetch" href="https://fonts.googleapis.com">
-    <link rel="dns-prefetch" href="https://fonts.gstatic.com">
-    <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
-    <link rel="preconnect" href="https://qcimhjjwvsbgjsitmvuh.supabase.co">
-    
-    <!-- Meta tags for SEO and sharing -->
-    <meta name="description" content="Justax Dashboard - Modern tax management system">
-    <meta name="theme-color" content="#4361ee">
-    
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
-    <!-- Icons -->
+    <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Supabase JS client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
-    <!-- Core CSS -->
-    <link rel="stylesheet" href="/styles/common.css">
-    <link rel="stylesheet" href="/styles/layout.css">
-    <link rel="stylesheet" href="/styles/sidebar.css">
-    <link rel="stylesheet" href="/styles/dashboard.css">
-    <link rel="stylesheet" href="/styles/components.css">
-    <link rel="stylesheet" href="/styles/animations.css">
+    <style>
+        /* Base styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        :root {
+            --primary: #4361ee;
+            --primary-light: #4895ef;
+            --secondary: #3f37c9;
+            --success: #4cc9f0;
+            --danger: #f72585;
+            --warning: #f8961e;
+            --info: #4895ef;
+            --dark: #1e2a3a;
+            --light: #f8f9fa;
+            --gray: #6c757d;
+            --gray-light: #dee2e6;
+            --gray-dark: #343a40;
+            --gradient-1: linear-gradient(135deg, #4361ee, #3a0ca3);
+            --gradient-2: linear-gradient(135deg, #4cc9f0, #4361ee);
+            --gradient-3: linear-gradient(135deg, #f72585, #7209b7);
+            --white: #ffffff;
+            --sidebar-width: 260px;
+            --transition-speed: 0.3s;
+            --card-radius: 16px;
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 5px 15px rgba(0, 0, 0, 0.07);
+            --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.1);
+            --text-primary: #2d3748;
+            --text-secondary: #4a5568;
+            --text-muted: #718096;
+        }
+
+        body {
+            background-color: #f6f8ff;
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            overflow-x: hidden;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: var(--sidebar-width);
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background: var(--gradient-1);
+            color: var(--white);
+            padding: 1.5rem 1rem;
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+            box-shadow: var(--shadow-lg);
+            transition: all var(--transition-speed) ease;
+        }
+
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding: 0 0.75rem;
+        }
+
+        .sidebar-logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--white);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .sidebar-logo i {
+            font-size: 1.75rem;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            flex-grow: 1;
+        }
+
+        .sidebar-item {
+            margin-bottom: 0.5rem;
+        }
+
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            color: rgba(255, 255, 255, 0.85);
+            text-decoration: none;
+            border-radius: 12px;
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+
+        .sidebar-link i {
+            margin-right: 0.75rem;
+            font-size: 1.2rem;
+            width: 24px;
+            text-align: center;
+        }
+
+        .sidebar-link.active, .sidebar-link:hover {
+            background-color: rgba(255, 255, 255, 0.15);
+            color: var(--white);
+        }
+
+        .sidebar-footer {
+            margin-top: auto;
+            padding: 1rem;
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.7);
+            text-align: center;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            margin-top: 1rem;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--primary-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 0.75rem;
+            font-weight: 500;
+        }
+
+        .user-info {
+            flex-grow: 1;
+        }
+
+        .user-name {
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .user-role {
+            font-size: 0.8rem;
+            opacity: 0.8;
+        }
+
+        /* Main content */
+        main {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            padding: 1.5rem 2rem;
+            transition: margin var(--transition-speed) ease;
+            width: calc(100% - var(--sidebar-width));
+        }
+
+        .dashboard-header {
+            margin-bottom: 2rem;
+            background-color: var(--white);
+            border-radius: var(--card-radius);
+            padding: 1.25rem 1.5rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-content h1 {
+            font-size: 1.75rem;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .search-box {
+            position: relative;
+        }
+
+        .search-box input {
+            width: 280px;
+            height: 44px;
+            border-radius: 22px;
+            padding: 0 1rem 0 2.5rem;
+            border: 1px solid var(--gray-light);
+            background-color: var(--light);
+            outline: none;
+            transition: all 0.2s ease;
+            font-size: 0.95rem;
+        }
+
+        .search-box input:focus {
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray);
+        }
+
+        .notifications {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .notifications i {
+            font-size: 1.4rem;
+            color: var(--gray-dark);
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            width: 20px;
+            height: 20px;
+            background-color: var(--danger);
+            color: white;
+            font-size: 0.7rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+
+        /* Main content */
+        .main-content {
+            display: grid;
+            gap: 1.75rem;
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 1.25rem;
+            color: var(--dark);
+        }
+
+        /* Welcome banner */
+        .welcome-banner {
+            background: var(--gradient-2);
+            border-radius: var(--card-radius);
+            box-shadow: var(--shadow-md);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .welcome-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 2.5rem 3rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .welcome-text-content {
+            max-width: 60%;
+            color: var(--white);
+        }
+
+        .welcome-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .welcome-text {
+            font-size: 1rem;
+            margin-bottom: 1.5rem;
+            opacity: 0.9;
+            line-height: 1.6;
+        }
+
+        .welcome-button {
+            background-color: var(--white);
+            color: var(--primary);
+            border: none;
+            border-radius: 12px;
+            padding: 0.75rem 1.5rem;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .welcome-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+        }
+
+        .welcome-image {
+            width: 300px;
+            height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .welcome-image img {
+            max-width: 100%;
+            max-height: 100%;
+        }
+
+        /* Stats cards */
+        .stat-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .stat-card {
+            background-color: var(--white);
+            border-radius: var(--card-radius);
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .stat-card-content {
+            display: flex;
+            padding: 1.5rem;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .stat-card-info {
+            flex-grow: 1;
+        }
+
+        .stat-card-title {
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 0.75rem;
+        }
+
+        .stat-card-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-card-change {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .stat-card-change.positive {
+            color: #10b981;
+        }
+
+        .stat-card-change.negative {
+            color: var(--danger);
+        }
+
+        .stat-card-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: var(--white);
+        }
+
+        .progress-icon {
+            background: linear-gradient(135deg, #4cc9f0, #4361ee);
+        }
+
+        .points-icon {
+            background: linear-gradient(135deg, #f8961e, #f3722c);
+        }
+
+        .streak-icon {
+            background: linear-gradient(135deg, #f72585, #b5179e);
+        }
+
+        .badges-icon {
+            background: linear-gradient(135deg, #8338ec, #3a86ff);
+        }
+
+        .stat-card-footer {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid var(--gray-light);
+        }
+
+        .stat-card-footer a {
+            display: block;
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+
+        .stat-card-footer a i {
+            margin-left: 0.5rem;
+            transition: transform 0.2s ease;
+        }
+
+        .stat-card-footer a:hover i {
+            transform: translateX(3px);
+        }
+
+        /* Shortcuts */
+        .shortcut-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .shortcut-card {
+            background-color: var(--white);
+            border-radius: var(--card-radius);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-sm);
+            text-decoration: none;
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            border: 1px solid transparent;
+        }
+
+        .shortcut-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-md);
+            border-color: var(--primary-light);
+        }
+
+        .shortcut-icon {
+            width: 70px;
+            height: 70px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.75rem;
+            margin-bottom: 1rem;
+            background-color: #f0f5ff;
+            color: var(--primary);
+            transition: all 0.3s ease;
+        }
+
+        .shortcut-card:hover .shortcut-icon {
+            background-color: var(--primary);
+            color: var(--white);
+        }
+
+        .shortcut-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--dark);
+        }
+
+        .shortcut-desc {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        /* Recent activities */
+        .activity-list {
+            background-color: var(--white);
+            border-radius: var(--card-radius);
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
+        }
+
+        .activity-item {
+            display: flex;
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--gray-light);
+            transition: background-color 0.2s ease;
+        }
+
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+
+        .activity-item:hover {
+            background-color: #f8faff;
+        }
+
+        .activity-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-right: 1rem;
+            color: white;
+        }
+
+        .activity-icon.completed {
+            background: linear-gradient(135deg, #10b981, #059669);
+        }
+
+        .activity-icon.badge {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+        }
+
+        .activity-icon.streak {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+        }
+
+        .activity-content {
+            flex-grow: 1;
+        }
+
+        .activity-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+            color: var(--dark);
+        }
+
+        .activity-desc {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.25rem;
+        }
+
+        .activity-time {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .view-all-link {
+            display: block;
+            text-align: center;
+            padding: 1rem;
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+            background-color: var(--white);
+            border-radius: 0 0 var(--card-radius) var(--card-radius);
+            box-shadow: var(--shadow-sm);
+            margin-top: 1rem;
+            transition: all 0.2s ease;
+        }
+
+        .view-all-link i {
+            margin-left: 0.5rem;
+            transition: transform 0.2s ease;
+        }
+
+        .view-all-link:hover i {
+            transform: translateX(3px);
+        }
+
+        /* Footer */
+        .dashboard-footer {
+            margin-top: 2rem;
+            padding: 1.5rem 0;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        /* Loading indicator */
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            font-size: 1rem;
+            color: var(--text-muted);
+        }
+
+        .loading::after {
+            content: "";
+            width: 20px;
+            height: 20px;
+            margin-left: 15px;
+            border: 2px solid var(--primary);
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: loading-spinner 0.8s linear infinite;
+        }
+
+        @keyframes loading-spinner {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Error styling */
+        .error-message {
+            background-color: #fff2f5;
+            border-left: 4px solid var(--danger);
+            color: var(--danger);
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .error-message i {
+            margin-right: 0.75rem;
+            font-size: 1.25rem;
+        }
+
+        .error-container {
+            display: none;
+            margin-bottom: 1.5rem;
+        }
+
+        .retry-button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+            cursor: pointer;
+            margin-top: 0.5rem;
+            transition: all 0.2s ease;
+        }
+
+        .retry-button:hover {
+            background-color: var(--secondary);
+        }
+
+        .offline-banner {
+            display: none;
+            background-color: var(--warning);
+            color: white;
+            padding: 0.75rem;
+            text-align: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+        }
+
+        /* Toast notification */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: var(--white);
+            color: var(--text-primary);
+            border-radius: 8px;
+            padding: 1rem;
+            box-shadow: var(--shadow-lg);
+            max-width: 300px;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .toast.success {
+            border-left: 4px solid #10b981;
+        }
+
+        .toast.error {
+            border-left: 4px solid var(--danger);
+        }
+
+        .toast.warning {
+            border-left: 4px solid var(--warning);
+        }
+
+        .toast i {
+            margin-right: 0.75rem;
+            font-size: 1.25rem;
+        }
+
+        .toast.success i {
+            color: #10b981;
+        }
+
+        .toast.error i {
+            color: var(--danger);
+        }
+
+        .toast.warning i {
+            color: var(--warning);
+        }
+
+        /* Responsive media queries */
+        @media (max-width: 1200px) {
+            .welcome-content {
+                padding: 2rem;
+            }
+            
+            .welcome-text-content {
+                max-width: 100%;
+            }
+            
+            .welcome-image {
+                display: none;
+            }
+        }
+
+        @media (max-width: 992px) {
+            :root {
+                --sidebar-width: 80px;
+            }
+            
+            .sidebar-logo span, .sidebar-link span, .user-info, .sidebar-footer {
+                display: none;
+            }
+            
+            .sidebar-link i {
+                margin-right: 0;
+                font-size: 1.5rem;
+            }
+            
+            .sidebar-logo i {
+                margin-right: 0;
+            }
+            
+            .sidebar-header, .sidebar-link {
+                justify-content: center;
+            }
+            
+            .user-profile {
+                justify-content: center;
+                padding: 0.75rem;
+            }
+            
+            .user-avatar {
+                margin-right: 0;
+            }
+            
+            .search-box input {
+                width: 200px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            main {
+                padding: 1rem;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+            
+            .header-actions {
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            .search-box input {
+                width: 100%;
+            }
+            
+            .stat-cards, .shortcut-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .welcome-button {
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 576px) {
+            :root {
+                --sidebar-width: 0;
+            }
+            
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            
+            .search-box {
+                display: none;
+            }
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .main-content > section {
+            animation: fadeIn 0.6s ease forwards;
+        }
+
+        .stat-cards, .shortcut-grid, .activity-list {
+            opacity: 0;
+            animation: fadeIn 0.6s ease forwards;
+            animation-delay: 0.2s;
+        }
+
+        /* Dark mode */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --white: #1a202c;
+                --light: #2d3748;
+                --dark: #e2e8f0;
+                --gray-light: #4a5568;
+                --text-primary: #e2e8f0;
+                --text-secondary: #cbd5e0;
+                --text-muted: #a0aec0;
+            }
+            
+            body {
+                background-color: #171923;
+            }
+            
+            .search-box input {
+                background-color: #2d3748;
+                color: var(--text-primary);
+                border-color: #4a5568;
+            }
+            
+            .search-box i {
+                color: #a0aec0;
+            }
+            
+            .welcome-button {
+                background-color: #2d3748;
+                color: #4cc9f0;
+            }
+            
+            .shortcut-icon {
+                background-color: #2d3748;
+            }
+            
+            .activity-item:hover {
+                background-color: #1e2533;
+            }
+        }
+    </style>
 </head>
 <body>
-    <!-- Offline indicator -->
+    <!-- Offline banner -->
     <div class="offline-banner" id="offline-banner">
-        <i class="fas fa-wifi"></i> 
-        <span>You are currently offline. Some features may be unavailable.</span>
+        <i class="fas fa-wifi"></i> Momentálně jste offline. Některé funkce nemusí fungovat správně.
     </div>
 
     <!-- Sidebar -->
@@ -49,245 +912,455 @@
         
         <ul class="sidebar-menu">
             <li class="sidebar-item">
-                <a href="/dashboard" class="sidebar-link active">
+                <a href="/dashboard.html" class="sidebar-link active" id="dashboard-link">
                     <i class="fas fa-th-large"></i>
                     <span>Dashboard</span>
                 </a>
             </li>
             <li class="sidebar-item">
-                <a href="/dashboard/transactions" class="sidebar-link">
-                    <i class="fas fa-exchange-alt"></i>
-                    <span>Transactions</span>
+                <a href="/dashboard/procvicovani.html" class="sidebar-link">
+                    <i class="fas fa-book-open"></i>
+                    <span>Procvičování</span>
                 </a>
             </li>
             <li class="sidebar-item">
-                <a href="/dashboard/reports" class="sidebar-link">
-                    <i class="fas fa-chart-bar"></i>
-                    <span>Reports</span>
+                <a href="/dashboard/pokrok.html" class="sidebar-link">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Pokrok</span>
                 </a>
             </li>
             <li class="sidebar-item">
-                <a href="/dashboard/documents" class="sidebar-link">
+                <a href="/dashboard/oceneni.html" class="sidebar-link">
+                    <i class="fas fa-medal"></i>
+                    <span>Ocenění</span>
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a href="/dashboard/materialy.html" class="sidebar-link">
                     <i class="fas fa-file-alt"></i>
-                    <span>Documents</span>
+                    <span>Materiály</span>
                 </a>
             </li>
             <li class="sidebar-item">
-                <a href="/dashboard/calendar" class="sidebar-link">
-                    <i class="fas fa-calendar-alt"></i>
-                    <span>Calendar</span>
-                </a>
-            </li>
-            <li class="sidebar-item">
-                <a href="/dashboard/settings" class="sidebar-link">
-                    <i class="fas fa-cog"></i>
-                    <span>Settings</span>
+                <a href="/dashboard/profile.html" class="sidebar-link">
+                    <i class="fas fa-user-cog"></i>
+                    <span>Profil</span>
                 </a>
             </li>
         </ul>
-
+        
         <div class="user-profile">
-            <div class="user-avatar" id="user-avatar"></div>
+            <div class="user-avatar" id="user-avatar">MS</div>
             <div class="user-info">
-                <div class="user-name" id="user-name"></div>
-                <div class="user-role" id="user-role"></div>
+                <div class="user-name" id="user-name">Načítání...</div>
+                <div class="user-role" id="user-role">Student</div>
             </div>
         </div>
+        
+        <div class="sidebar-footer">
+            &copy; 2025 Justax
+        </div>
     </aside>
+    
+    <main>
+        <!-- Global error container -->
+        <div class="error-container" id="global-error">
+            <div class="error-message">
+                <i class="fas fa-exclamation-circle"></i>
+                <div>
+                    <div id="global-error-message">Došlo k chybě při načítání dat.</div>
+                    <button class="retry-button" id="global-retry-btn">Zkusit znovu</button>
+                </div>
+            </div>
+        </div>
 
-    <main class="main-content">
-        <!-- Error container -->
-        <div id="error-container" class="error-container"></div>
-
-        <!-- Header -->
         <header class="dashboard-header">
             <div class="header-content">
-                <div class="header-left">
-                    <h1>Dashboard</h1>
-                    <span class="header-subtitle">Welcome back, <span id="user-greeting"></span></span>
-                </div>
+                <h1>Dashboard</h1>
                 <div class="header-actions">
                     <div class="search-box">
                         <i class="fas fa-search"></i>
-                        <input type="search" placeholder="Search..." id="global-search">
+                        <input type="text" placeholder="Hledat...">
                     </div>
-                    <button class="btn btn-primary" id="new-transaction-btn">
-                        <i class="fas fa-plus"></i>
-                        <span>New Transaction</span>
-                    </button>
-                    <div class="notifications" id="notifications-toggle">
+                    <div class="notifications">
                         <i class="fas fa-bell"></i>
-                        <span class="notification-badge" id="notifications-count">0</span>
+                        <span class="notification-badge" id="notification-count">0</span>
                     </div>
                 </div>
             </div>
         </header>
-
-        <!-- Main Grid -->
-        <div class="dashboard-grid">
-            <!-- Overview Section -->
-            <section class="section overview-section animate-fade-in">
-                <h2 class="section-title">
-                    <i class="fas fa-chart-line"></i>
-                    Overview
-                </h2>
-                <div class="overview-cards">
-                    <div class="overview-card" id="total-balance"></div>
-                    <div class="overview-card" id="monthly-income"></div>
-                    <div class="overview-card" id="monthly-expenses"></div>
-                    <div class="overview-card" id="pending-tasks"></div>
+        
+        <div class="main-content">
+            <section class="welcome-banner">
+                <div class="welcome-content">
+                    <div class="welcome-text-content">
+                        <h2 class="welcome-title">Vítejte ve vašem Dashboardu</h2>
+                        <p class="welcome-text">Zde můžete spravovat nastavení profilu, sledovat svůj pokrok a procvičovat své dovednosti.</p>
+                        <button class="welcome-button" id="start-practice-btn">Začít procvičovat</button>
+                    </div>
+                    <div class="welcome-image">
+                        <svg width="300" height="200" viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="400" cy="300" r="200" fill="#ffffff" opacity="0.1" />
+                            <circle cx="400" cy="300" r="150" fill="#ffffff" opacity="0.15" />
+                            <circle cx="400" cy="300" r="100" fill="#ffffff" opacity="0.2" />
+                            <path d="M460 210L400 300L340 210" stroke="#ffffff" stroke-width="10" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M400 200V300" stroke="#ffffff" stroke-width="10" fill="none" stroke-linecap="round" />
+                            <path d="M340 390L400 300L460 390" stroke="#ffffff" stroke-width="10" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M400 400V300" stroke="#ffffff" stroke-width="10" fill="none" stroke-linecap="round" />
+                        </svg>
+                    </div>
                 </div>
             </section>
-
-            <!-- Recent Transactions -->
-            <section class="section transactions-section animate-fade-in delay-1">
-                <h2 class="section-title">
-                    <i class="fas fa-history"></i>
-                    Recent Transactions
-                </h2>
-                <div class="transactions-list" id="recent-transactions"></div>
+            
+            <section>
+                <h2 class="section-title">Statistiky</h2>
+                <div class="stat-cards">
+                    <div class="stat-card" id="completed-exercises-card">
+                        <div class="stat-card-content">
+                            <div class="stat-card-info">
+                                <div class="stat-card-title">Dokončená cvičení</div>
+                                <div class="stat-card-value" id="completed-exercises">0</div>
+                                <div class="stat-card-change positive">
+                                    <i class="fas fa-arrow-up"></i> Od minulého týdne
+                                </div>
+                            </div>
+                            <div class="stat-card-icon progress-icon">
+                                <i class="fas fa-tasks"></i>
+                            </div>
+                        </div>
+                        <div class="stat-card-footer">
+                            <a href="/dashboard/pokrok.html">Zobrazit pokrok <i class="fas fa-arrow-right"></i></a>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card" id="points-card">
+                        <div class="stat-card-content">
+                            <div class="stat-card-info">
+                                <div class="stat-card-title">Body</div>
+                                <div class="stat-card-value" id="points">0</div>
+                                <div class="stat-card-change positive">
+                                    <i class="fas fa-arrow-up"></i> Od minulého týdne
+                                </div>
+                            </div>
+                            <div class="stat-card-icon points-icon">
+                                <i class="fas fa-star"></i>
+                            </div>
+                        </div>
+                        <div class="stat-card-footer">
+                            <a href="/dashboard/pokrok.html">Zobrazit detaily <i class="fas fa-arrow-right"></i></a>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card" id="streak-card">
+                        <div class="stat-card-content">
+                            <div class="stat-card-info">
+                                <div class="stat-card-title">Řada dnů</div>
+                                <div class="stat-card-value" id="streak-days">0</div>
+                                <div class="stat-card-change">
+                                    <i class="fas fa-fire-alt"></i> Pokračujte v práci!
+                                </div>
+                            </div>
+                            <div class="stat-card-icon streak-icon">
+                                <i class="fas fa-fire-alt"></i>
+                            </div>
+                        </div>
+                        <div class="stat-card-footer">
+                            <a href="/dashboard/pokrok.html">Zobrazit historii <i class="fas fa-arrow-right"></i></a>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card" id="badges-card">
+                        <div class="stat-card-content">
+                            <div class="stat-card-info">
+                                <div class="stat-card-title">Získaná ocenění</div>
+                                <div class="stat-card-value" id="badges-count">0</div>
+                                <div class="stat-card-change">
+                                    <i class="fas fa-medal"></i> Z celkových 25
+                                </div>
+                            </div>
+                            <div class="stat-card-icon badges-icon">
+                                <i class="fas fa-award"></i>
+                            </div>
+                        </div>
+                        <div class="stat-card-footer">
+                            <a href="/dashboard/oceneni.html">Zobrazit ocenění <i class="fas fa-arrow-right"></i></a>
+                        </div>
+                    </div>
+                </div>
             </section>
-
-            <!-- Quick Actions -->
-            <section class="section actions-section animate-fade-in delay-2">
-                <h2 class="section-title">
-                    <i class="fas fa-bolt"></i>
-                    Quick Actions
-                </h2>
-                <div class="actions-grid" id="quick-actions"></div>
+            
+            <section>
+                <h2 class="section-title">Rychlý přístup</h2>
+                <div class="shortcut-grid">
+                    <a href="/dashboard/procvicovani.html" class="shortcut-card">
+                        <div class="shortcut-icon">
+                            <i class="fas fa-book-open"></i>
+                        </div>
+                        <h3 class="shortcut-title">Procvičování</h3>
+                        <p class="shortcut-desc">Procvičujte příklady z různých oblastí matematiky</p>
+                    </a>
+                    
+                    <a href="/dashboard/testy.html" class="shortcut-card">
+                        <div class="shortcut-icon">
+                            <i class="fas fa-clipboard-check"></i>
+                        </div>
+                        <h3 class="shortcut-title">Diagnostické testy</h3>
+                        <p class="shortcut-desc">Otestujte své znalosti v uceleném testu</p>
+                    </a>
+                    
+                    <a href="/dashboard/materialy.html" class="shortcut-card">
+                        <div class="shortcut-icon">
+                            <i class="fas fa-file-alt"></i>
+                        </div>
+                        <h3 class="shortcut-title">Studijní materiály</h3>
+                        <p class="shortcut-desc">Prohlédněte si studijní materiály a návody</p>
+                    </a>
+                    
+                    <a href="/dashboard/profile.html" class="shortcut-card">
+                        <div class="shortcut-icon">
+                            <i class="fas fa-user-cog"></i>
+                        </div>
+                        <h3 class="shortcut-title">Profil</h3>
+                        <p class="shortcut-desc">Upravte své osobní údaje a nastavení</p>
+                    </a>
+                </div>
+            </section>
+            
+            <section>
+                <h2 class="section-title">Nedávné aktivity</h2>
+                <div class="activity-list" id="activity-list">
+                    <div class="loading">Načítání aktivit</div>
+                </div>
+                <a href="/dashboard/aktivity.html" class="view-all-link">Zobrazit všechny aktivity <i class="fas fa-arrow-right"></i></a>
             </section>
         </div>
+        
+        <footer class="dashboard-footer">
+            <p>&copy; 2025 Justax. Všechna práva vyhrazena.</p>
+        </footer>
     </main>
-
-    <!-- Modals -->
-    <div class="modal" id="transaction-modal"></div>
-    <div class="modal" id="notifications-modal"></div>
-
-    <!-- Core JavaScript -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
-    <script type="module">
-        import auth from '/js/auth.js';
-        import ui from '/js/ui.js';
-        import profile from '/js/profile.js';
-
-        // Supabase Configuration
-        const SUPABASE_URL = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10';
-
-        // Initialize
-        auth.init(SUPABASE_URL, SUPABASE_KEY);
-        profile.init(auth.supabase);
-
-        // Setup UI handlers
-        document.addEventListener('DOMContentLoaded', async () => {
+    <!-- Toast notification -->
+    <div class="toast" id="toast">
+        <i class="fas fa-check-circle"></i>
+        <div id="toast-message">Operace byla úspěšně dokončena.</div>
+    </div>
+    
+    <script>
+        // Supabase initialization
+        const supabaseUrl = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10';
+        const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+        
+        // DOM Elements
+        const userAvatar = document.getElementById('user-avatar');
+        const userName = document.getElementById('user-name');
+        const userRole = document.getElementById('user-role');
+        const completedExercises = document.getElementById('completed-exercises');
+        const points = document.getElementById('points');
+        const streakDays = document.getElementById('streak-days');
+        const badgesCount = document.getElementById('badges-count');
+        const notificationCount = document.getElementById('notification-count');
+        const activityList = document.getElementById('activity-list');
+        const startPracticeBtn = document.getElementById('start-practice-btn');
+        const globalError = document.getElementById('global-error');
+        const globalErrorMessage = document.getElementById('global-error-message');
+        const globalRetryBtn = document.getElementById('global-retry-btn');
+        const offlineBanner = document.getElementById('offline-banner');
+        const toast = document.getElementById('toast');
+        
+        // Check if user is online
+        function updateOnlineStatus() {
+            if (navigator.onLine) {
+                offlineBanner.style.display = 'none';
+            } else {
+                offlineBanner.style.display = 'block';
+                showToast('Jste offline. Některé funkce nemusí být dostupné.', 'warning');
+            }
+        }
+        
+        window.addEventListener('online', updateOnlineStatus);
+        window.addEventListener('offline', updateOnlineStatus);
+        updateOnlineStatus();
+        
+        // Toast notification function
+        function showToast(message, type = 'success') {
+            const toastMessage = document.getElementById('toast-message');
+            toastMessage.textContent = message;
+            
+            toast.className = 'toast ' + type;
+            toast.classList.add('show');
+            
+            // Update icon based on type
+            const icon = toast.querySelector('i');
+            icon.className = type === 'success' ? 'fas fa-check-circle' : 
+                            type === 'error' ? 'fas fa-exclamation-circle' : 
+                            'fas fa-exclamation-triangle';
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 5000);
+        }
+        
+        // Get user profile data
+        async function getUserProfile() {
             try {
-                // Initialize UI components
-                ui.initializeOfflineHandling();
+                const { data: { user } } = await supabase.auth.getUser();
                 
-                // Load user profile
-                const userProfile = await profile.loadUserProfile();
-                if (userProfile) {
-                    document.getElementById('user-greeting').textContent = userProfile.username || userProfile.email;
+                if (!user) {
+                    window.location.href = '/login.html';
+                    return;
                 }
-
-                // Setup event listeners
-                setupEventListeners();
                 
-                // Load initial data
-                await loadDashboardData();
-
-            } catch (error) {
-                ui.showError(error.message);
-            }
-        });
-
-        function setupEventListeners() {
-            // Global search
-            const searchInput = document.getElementById('global-search');
-            searchInput.addEventListener('input', debounce(handleSearch, 300));
-
-            // New transaction button
-            document.getElementById('new-transaction-btn').addEventListener('click', () => {
-                ui.showModal('transaction-modal');
-            });
-
-            // Notifications toggle
-            document.getElementById('notifications-toggle').addEventListener('click', () => {
-                ui.showModal('notifications-modal');
-            });
-        }
-
-        async function loadDashboardData() {
-            ui.showLoading();
-            try {
-                // Load data from Supabase
-                const { data: dashboardData, error } = await auth.supabase
-                    .from('dashboard_data')
+                const { data, error } = await supabase
+                    .from('profiles')
                     .select('*')
+                    .eq('id', user.id)
                     .single();
-
+                
                 if (error) throw error;
-
-                // Update UI with real data
-                updateDashboardUI(dashboardData);
-
+                
+                // Update user info
+                if (data) {
+                    const displayName = data.first_name || data.username || user.email;
+                    userName.textContent = displayName;
+                    
+                    // Set avatar initials
+                    if (data.first_name) {
+                        const initials = data.first_name.charAt(0) + (data.last_name ? data.last_name.charAt(0) : '');
+                        userAvatar.textContent = initials.toUpperCase();
+                    } else if (data.username) {
+                        userAvatar.textContent = data.username.charAt(0).toUpperCase();
+                    } else {
+                        userAvatar.textContent = user.email.charAt(0).toUpperCase();
+                    }
+                    
+                    // Set user stats
+                    completedExercises.textContent = data.completed_exercises || 0;
+                    points.textContent = data.points || 0;
+                    streakDays.textContent = data.streak_days || 0;
+                    badgesCount.textContent = data.badges_count || 0;
+                }
+                
             } catch (error) {
-                ui.showError('Failed to load dashboard data');
-            } finally {
-                ui.hideLoading();
+                console.error('Error fetching profile:', error);
+                showError('Nepodařilo se načíst uživatelský profil.');
             }
         }
-
-        function debounce(func, wait) {
-            let timeout;
-            return function executedFunction(...args) {
-                const later = () => {
-                    clearTimeout(timeout);
-                    func(...args);
-                };
-                clearTimeout(timeout);
-                timeout = setTimeout(later, wait);
-            };
-        }
-
-        async function handleSearch(e) {
-            const searchTerm = e.target.value.trim();
-            if (searchTerm.length < 2) return;
-
+        
+        // Get recent activities
+        async function getRecentActivities() {
             try {
-                ui.showLoading('search-results');
-                // Implement search logic
+                const { data: { user } } = await supabase.auth.getUser();
+                
+                if (!user) return;
+                
+                // Replace with your activity tracking table
+                // This is a placeholder - you would need to create this table
+                const { data, error } = await supabase
+                    .from('user_activities')
+                    .select('*')
+                    .eq('user_id', user.id)
+                    .order('created_at', { ascending: false })
+                    .limit(5);
+                
+                if (error) throw error;
+                
+                // Clear loading indicator
+                activityList.innerHTML = '';
+                
+                if (data && data.length > 0) {
+                    // Display activities
+                    data.forEach(activity => {
+                        const activityItem = document.createElement('div');
+                        activityItem.className = 'activity-item';
+                        
+                        // Determine icon type
+                        let iconClass = 'completed';
+                        let iconType = 'fas fa-check-circle';
+                        
+                        if (activity.type === 'badge') {
+                            iconClass = 'badge';
+                            iconType = 'fas fa-medal';
+                        } else if (activity.type === 'streak') {
+                            iconClass = 'streak';
+                            iconType = 'fas fa-fire-alt';
+                        }
+                        
+                        // Format date
+                        const date = new Date(activity.created_at);
+                        const formattedDate = `${date.getDate().toString().padStart(2, '0')}.${(date.getMonth() + 1).toString().padStart(2, '0')}.${date.getFullYear()} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+                        
+                        activityItem.innerHTML = `
+                            <div class="activity-icon ${iconClass}">
+                                <i class="${iconType}"></i>
+                            </div>
+                            <div class="activity-content">
+                                <div class="activity-title">${activity.title}</div>
+                                <div class="activity-desc">${activity.description}</div>
+                                <div class="activity-time">${formattedDate}</div>
+                            </div>
+                        `;
+                        
+                        activityList.appendChild(activityItem);
+                    });
+                } else {
+                    // No activities
+                    activityList.innerHTML = `
+                        <div style="padding: 2rem; text-align: center; color: var(--text-muted);">
+                            <i class="fas fa-info-circle" style="font-size: 2rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+                            <p>Zatím nemáte žádné aktivity.</p>
+                        </div>
+                    `;
+                }
+                
             } catch (error) {
-                ui.showError('Search failed. Please try again.');
-            } finally {
-                ui.hideLoading('search-results');
+                console.error('Error fetching activities:', error);
+                
+                // Show placeholder message
+                activityList.innerHTML = `
+                    <div style="padding: 2rem; text-align: center; color: var(--text-muted);">
+                        <i class="fas fa-exclamation-circle" style="font-size: 2rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+                        <p>Nepodařilo se načíst aktivity.</p>
+                        <button class="retry-button" onclick="getRecentActivities()">Zkusit znovu</button>
+                    </div>
+                `;
             }
         }
-
-        function updateDashboardUI(data) {
-            // Update overview cards
-            updateOverviewCards(data);
-            
-            // Update recent transactions
-            updateTransactionsList(data.recent_transactions);
-            
-            // Update quick actions
-            updateQuickActions();
+        
+        // Show error message
+        function showError(message) {
+            globalErrorMessage.textContent = message;
+            globalError.style.display = 'block';
         }
-
-        // Dashboard UI update functions
-        function updateOverviewCards(data) {
-            // Implementation
+        
+        // Event listeners
+        startPracticeBtn.addEventListener('click', () => {
+            window.location.href = '/dashboard/procvicovani.html';
+        });
+        
+        globalRetryBtn.addEventListener('click', () => {
+            globalError.style.display = 'none';
+            init();
+        });
+        
+        // Initialize dashboard
+        async function init() {
+            try {
+                await getUserProfile();
+                await getRecentActivities();
+                
+                // Placeholder - update notification count
+                notificationCount.textContent = '3';
+                
+            } catch (error) {
+                console.error('Error initializing dashboard:', error);
+                showError('Nepodařilo se načíst dashboard. Zkuste to prosím později.');
+            }
         }
-
-        function updateTransactionsList(transactions) {
-            // Implementation
-        }
-
-        function updateQuickActions() {
-            // Implementation
-        }
+        
+        // Start the app
+        document.addEventListener('DOMContentLoaded', init);
     </script>
 </body>
 </html>
