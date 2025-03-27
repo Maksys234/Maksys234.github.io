@@ -1140,7 +1140,7 @@
         // Inicializace Supabase klienta
         const supabaseUrl = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10';
-        const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+        const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
         
         // DOM elementy
         const userAvatar = document.getElementById('user-avatar');
@@ -1232,7 +1232,7 @@
         async function loadUserProfile() {
             try {
                 // Získání aktuálního uživatele
-                const { data: { user }, error: userError } = await supabase.auth.getUser();
+                const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
                 
                 if (userError) throw userError;
                 
@@ -1240,7 +1240,7 @@
                     currentUser = user;
                     
                     // Získání profilu uživatele
-                    const { data: profile, error } = await supabase
+                    const { data: profile, error } = await supabaseClient
                         .from('profiles')
                         .select('*')
                         .eq('id', user.id)
@@ -1300,7 +1300,7 @@
                 resultsContainer.style.display = 'none';
                 
                 // Načtení všech dostupných diagnostických testů
-                const { data: tests, error } = await supabase
+                const { data: tests, error } = await supabaseClient
                     .from('tests')
                     .select('*')
                     .eq('type', 'diagnostic')
@@ -1348,7 +1348,7 @@
         async function loadTestQuestions(testId) {
             // Načtení otázek z exam_questions tabulky pro daný test
             // Výběr náhodných otázek podle počtu uvedeného v testu
-            const { data: allQuestions, error: questionsError } = await supabase
+            const { data: allQuestions, error: questionsError } = await supabaseClient
                 .from('exam_questions')
                 .select('*')
                 .order('id');
@@ -1681,7 +1681,7 @@
                 
                 if (!topicId) return;
                 
-                // Inicializace objektu výsledku tématu, pokud neexistuje
+                                // Inicializace objektu výsledku tématu, pokud neexistuje
                 if (!topicResults[topicId]) {
                     topicResults[topicId] = {
                         topic_id: topicId,
@@ -1703,7 +1703,7 @@
             // Načtení názvů témat a výpočet skóre
             const topicPromises = Object.values(topicResults).map(async (topic) => {
                 // Načtení informací o tématu
-                const { data: topicData, error } = await supabase
+                const { data: topicData, error } = await supabaseClient
                     .from('exam_topics')
                     .select('name')
                     .eq('id', topic.topic_id)
@@ -1754,7 +1754,7 @@
             resultTime.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
         }
         
-                // Aktualizace UI výsledků po načtení informací o tématech
+        // Aktualizace UI výsledků po načtení informací o tématech
         function updateResultsUI() {
             // Zobrazení výsledků podle témat
             let topicResultsHTML = '';
@@ -1829,7 +1829,7 @@
                 };
                 
                 // Uložení výsledku testu do databáze
-                const { data: resultData, error: resultError } = await supabase
+                const { data: resultData, error: resultError } = await supabaseClient
                     .from('test_results')
                     .insert(testResultData);
                 
@@ -1854,7 +1854,7 @@
                 // Pro každé téma v testu aktualizujeme pokrok
                 for (const topic of Object.values(testResults.topicResults)) {
                     // Nejprve zkontrolujeme, zda již existuje záznam o pokroku v tomto tématu
-                    const { data: existingProgress, error: fetchError } = await supabase
+                    const { data: existingProgress, error: fetchError } = await supabaseClient
                         .from('user_topic_progress')
                         .select('*')
                         .eq('user_id', currentUser.id)
@@ -1879,7 +1879,7 @@
                             strength = 'weakness';
                         }
                         
-                        const { error: updateError } = await supabase
+                        const { error: updateError } = await supabaseClient
                             .from('user_topic_progress')
                             .update({
                                 questions_attempted: totalQuestions,
@@ -1901,7 +1901,7 @@
                             strength = 'weakness';
                         }
                         
-                        const { error: insertError } = await supabase
+                        const { error: insertError } = await supabaseClient
                             .from('user_topic_progress')
                             .insert({
                                 user_id: currentUser.id,
@@ -1927,7 +1927,7 @@
         async function updateUserProfile() {
             try {
                 // Načtení profilu uživatele
-                const { data: profile, error: profileError } = await supabase
+                const { data: profile, error: profileError } = await supabaseClient
                     .from('profiles')
                     .select('completed_exercises, points')
                     .eq('id', currentUser.id)
@@ -1943,7 +1943,7 @@
                 const newPoints = (profile.points || 0) + testPoints;
                 
                 // Aktualizace profilu uživatele
-                const { error: updateError } = await supabase
+                const { error: updateError } = await supabaseClient
                     .from('profiles')
                     .update({
                         completed_exercises: newCompletedExercises,
