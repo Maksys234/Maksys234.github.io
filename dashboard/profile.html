@@ -10,13 +10,291 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- CSS -->
-    <link rel="stylesheet" href="/styles/common.css">
-    <link rel="stylesheet" href="/styles/layout.css">
-    <link rel="stylesheet" href="/styles/sidebar.css">
-    <link rel="stylesheet" href="/styles/forms.css">
     
     <style>
+        /* Base styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        :root {
+            --primary: #4361ee;
+            --primary-light: #4895ef;
+            --secondary: #3f37c9;
+            --success: #4cc9f0;
+            --danger: #f72585;
+            --warning: #f8961e;
+            --info: #4895ef;
+            --dark: #1e2a3a;
+            --light: #f8f9fa;
+            --gray: #6c757d;
+            --gray-light: #dee2e6;
+            --gray-dark: #343a40;
+            --gradient-1: linear-gradient(135deg, #4361ee, #3a0ca3);
+            --gradient-2: linear-gradient(135deg, #4cc9f0, #4361ee);
+            --gradient-3: linear-gradient(135deg, #f72585, #7209b7);
+            --white: #ffffff;
+            --sidebar-width: 260px;
+            --transition-speed: 0.3s;
+            --card-radius: 16px;
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 5px 15px rgba(0, 0, 0, 0.07);
+            --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.1);
+            --text-primary: #2d3748;
+            --text-secondary: #4a5568;
+            --text-muted: #718096;
+        }
+
+        body {
+            background-color: #f6f8ff;
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            overflow-x: hidden;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: var(--sidebar-width);
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background: var(--gradient-1);
+            color: var(--white);
+            padding: 1.5rem 1rem;
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+            box-shadow: var(--shadow-lg);
+            transition: all var(--transition-speed) ease;
+        }
+
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding: 0 0.75rem;
+        }
+
+        .sidebar-logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--white);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .sidebar-logo i {
+            font-size: 1.75rem;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            flex-grow: 1;
+        }
+
+        .sidebar-item {
+            margin-bottom: 0.5rem;
+        }
+
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            color: rgba(255, 255, 255, 0.85);
+            text-decoration: none;
+            border-radius: 12px;
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+
+        .sidebar-link i {
+            margin-right: 0.75rem;
+            font-size: 1.2rem;
+            width: 24px;
+            text-align: center;
+        }
+
+        .sidebar-link.active, 
+        .sidebar-link:hover {
+            background-color: rgba(255, 255, 255, 0.15);
+            color: var(--white);
+        }
+
+        .sidebar-footer {
+            margin-top: auto;
+            padding: 1rem;
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.7);
+            text-align: center;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            margin-top: 1rem;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--primary-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 0.75rem;
+            font-weight: 500;
+            overflow: hidden;
+        }
+
+        .user-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .user-info {
+            flex-grow: 1;
+        }
+
+        .user-name {
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .user-role {
+            font-size: 0.8rem;
+            opacity: 0.8;
+        }
+
+        /* Main layout */
+        main {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            padding: 1.5rem 2rem;
+            transition: margin var(--transition-speed) ease;
+            width: calc(100% - var(--sidebar-width));
+        }
+
+        .dashboard-header {
+            margin-bottom: 2rem;
+            background-color: var(--white);
+            border-radius: var(--card-radius);
+            padding: 1.25rem 1.5rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-content h1 {
+            font-size: 1.75rem;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .search-box {
+            position: relative;
+        }
+
+        .search-box input {
+            width: 280px;
+            height: 44px;
+            border-radius: 22px;
+            padding: 0 1rem 0 2.5rem;
+            border: 1px solid var(--gray-light);
+            background-color: var(--light);
+            outline: none;
+            transition: all 0.2s ease;
+            font-size: 0.95rem;
+        }
+
+        .search-box input:focus {
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray);
+        }
+
+        .notifications {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .notifications i {
+            font-size: 1.4rem;
+            color: var(--gray-dark);
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            width: 20px;
+            height: 20px;
+            background-color: var(--danger);
+            color: white;
+            font-size: 0.7rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+
+        .main-content {
+            display: grid;
+            gap: 1.75rem;
+        }
+
+        .section {
+            background-color: var(--white);
+            border-radius: var(--card-radius);
+            box-shadow: var(--shadow-sm);
+            padding: 1.5rem;
+            animation: fadeIn 0.5s ease forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .dashboard-footer {
+            margin-top: 2rem;
+            padding: 1.5rem 0;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
         /* Profile specific styles */
         .profile-header {
             display: flex;
@@ -160,6 +438,41 @@
             gap: 1rem;
         }
         
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            font-weight: 500;
+            font-size: 0.95rem;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: none;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: var(--gradient-1);
+            color: white;
+            box-shadow: 0 4px 10px rgba(67, 97, 238, 0.2);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 16px rgba(67, 97, 238, 0.25);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--primary);
+            box-shadow: 0 0 0 1px var(--primary) inset;
+        }
+
+        .btn-outline:hover {
+            background-color: rgba(67, 97, 238, 0.05);
+        }
+        
         .settings-group {
             margin-bottom: 2rem;
         }
@@ -244,6 +557,7 @@
             border: 1px solid rgba(247, 37, 133, 0.2);
             border-radius: var(--card-radius);
             padding: 1.5rem;
+            margin-top: 2rem;
         }
         
         .danger-zone-title {
@@ -268,34 +582,15 @@
             font-weight: 500;
             cursor: pointer;
             transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
         }
         
         .btn-danger:hover {
             background: #e01f71;
             transform: translateY(-2px);
             box-shadow: 0 4px 10px rgba(247, 37, 133, 0.2);
-        }
-        
-        .badge {
-            display: inline-block;
-            padding: 0.35em 0.65em;
-            font-size: 0.75em;
-            font-weight: 600;
-            line-height: 1;
-            text-align: center;
-            white-space: nowrap;
-            vertical-align: baseline;
-            border-radius: 0.375rem;
-        }
-        
-        .badge-primary {
-            background-color: var(--primary);
-            color: white;
-        }
-        
-        .badge-warning {
-            background-color: var(--warning);
-            color: white;
         }
         
         .field-error {
@@ -306,13 +601,78 @@
         }
         
         .is-invalid {
-            border-color: var(--danger);
+            border-color: var(--danger) !important;
         }
         
         .is-invalid:focus {
-            box-shadow: 0 0 0 3px rgba(247, 37, 133, 0.15);
+            box-shadow: 0 0 0 3px rgba(247, 37, 133, 0.15) !important;
         }
         
+        /* Loading */
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            font-size: 1rem;
+            color: var(--text-muted);
+        }
+
+        .loading::after {
+            content: "";
+            width: 20px;
+            height: 20px;
+            margin-left: 15px;
+            border: 2px solid var(--primary);
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: loading-spinner 0.8s linear infinite;
+        }
+
+        @keyframes loading-spinner {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Error container */
+        .error-container {
+            display: none;
+            margin-bottom: 1.5rem;
+        }
+
+        .error-message {
+            background-color: #fff2f5;
+            border-left: 4px solid var(--danger);
+            color: var(--danger);
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .error-message i {
+            margin-right: 0.75rem;
+            font-size: 1.25rem;
+        }
+
+        .retry-button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+            cursor: pointer;
+            margin-top: 0.5rem;
+            transition: all 0.2s ease;
+        }
+
+        .retry-button:hover {
+            background-color: var(--secondary);
+        }
+        
+        /* Modal */
         .modal {
             display: none;
             position: fixed;
@@ -440,7 +800,134 @@
             color: white;
         }
         
+        /* Toast notification */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: var(--white);
+            color: var(--text-primary);
+            border-radius: 8px;
+            padding: 1rem;
+            box-shadow: var(--shadow-lg);
+            max-width: 300px;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .toast.success {
+            border-left: 4px solid #10b981;
+        }
+
+        .toast.error {
+            border-left: 4px solid var(--danger);
+        }
+
+        .toast.warning {
+            border-left: 4px solid var(--warning);
+        }
+
+        .toast i {
+            margin-right: 0.75rem;
+            font-size: 1.25rem;
+        }
+
+        .toast.success i {
+            color: #10b981;
+        }
+
+        .toast.error i {
+            color: var(--danger);
+        }
+
+        .toast.warning i {
+            color: var(--warning);
+        }
+        
+        /* Offline banner */
+        .offline-banner {
+            display: none;
+            background-color: var(--warning);
+            color: white;
+            padding: 0.75rem;
+            text-align: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+        }
+        
+        /* Responsive styles */
+        @media (max-width: 992px) {
+            :root {
+                --sidebar-width: 80px;
+            }
+            
+            .sidebar-logo span, 
+            .sidebar-link span, 
+            .user-info, 
+            .sidebar-footer {
+                display: none;
+            }
+            
+            .sidebar-link i {
+                margin-right: 0;
+                font-size: 1.5rem;
+            }
+            
+            .sidebar-logo i {
+                margin-right: 0;
+            }
+            
+            .sidebar-header, 
+            .sidebar-link {
+                justify-content: center;
+            }
+            
+            .user-profile {
+                justify-content: center;
+                padding: 0.75rem;
+            }
+            
+            .user-avatar {
+                margin-right: 0;
+            }
+            
+            .search-box input {
+                width: 200px;
+            }
+        }
+
         @media (max-width: 768px) {
+            main {
+                padding: 1rem;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+            
+            .header-actions {
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            .search-box input {
+                width: 100%;
+            }
+            
             .form-row {
                 grid-template-columns: 1fr;
             }
@@ -453,6 +940,59 @@
             .profile-tab {
                 padding: 0.75rem 1rem;
                 font-size: 0.9rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            :root {
+                --sidebar-width: 0;
+            }
+            
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            
+            .sidebar.active {
+                transform: translateX(0);
+            }
+            
+            .search-box {
+                display: none;
+            }
+        }
+
+        /* Dark mode */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --white: #1a202c;
+                --light: #2d3748;
+                --dark: #e2e8f0;
+                --gray-light: #4a5568;
+                --text-primary: #e2e8f0;
+                --text-secondary: #cbd5e0;
+                --text-muted: #a0aec0;
+            }
+            
+            body {
+                background-color: #171923;
+            }
+            
+            .search-box input {
+                background-color: #2d3748;
+                color: var(--text-primary);
+                border-color: #4a5568;
+            }
+            
+            .search-box i {
+                color: #a0aec0;
+            }
+            
+            .user-profile {
+                background-color: rgba(255, 255, 255, 0.05);
+            }
+            
+            .avatar-preview {
+                border-color: var(--primary);
             }
         }
     </style>
@@ -504,7 +1044,7 @@
                 </a>
             </li>
             <li class="sidebar-item">
-                <a href="/dashboard/profile.html" class="sidebar-link active">
+                <a href="/profile.html" class="sidebar-link active">
                     <i class="fas fa-user-cog"></i>
                     <span>Profil</span>
                 </a>
@@ -512,10 +1052,10 @@
         </ul>
         
         <div class="user-profile">
-            <div class="user-avatar" id="user-avatar">MS</div>
+            <div class="user-avatar" id="sidebar-avatar">MS</div>
             <div class="user-info">
-                <div class="user-name" id="user-name">Načítání...</div>
-                <div class="user-role" id="user-role">Student</div>
+                <div class="user-name" id="sidebar-name">Načítání...</div>
+                <div class="user-role">Student</div>
             </div>
         </div>
         
@@ -597,16 +1137,19 @@
                                 <div class="form-group">
                                     <label class="form-label" for="first_name">Jméno</label>
                                     <input type="text" class="form-control" id="first_name" name="first_name" placeholder="Zadejte své jméno">
+                                    <div class="field-error" id="first_name-error"></div>
                                 </div>
                                 <div class="form-group">
                                     <label class="form-label" for="last_name">Příjmení</label>
                                     <input type="text" class="form-control" id="last_name" name="last_name" placeholder="Zadejte své příjmení">
+                                    <div class="field-error" id="last_name-error"></div>
                                 </div>
                             </div>
                             
                             <div class="form-group">
                                 <label class="form-label" for="username">Uživatelské jméno</label>
                                 <input type="text" class="form-control" id="username" name="username" placeholder="Zadejte uživatelské jméno">
+                                <div class="field-error" id="username-error"></div>
                             </div>
                             
                             <div class="form-group">
@@ -617,6 +1160,7 @@
                             <div class="form-group">
                                 <label class="form-label" for="school">Škola</label>
                                 <input type="text" class="form-control" id="school" name="school" placeholder="Zadejte svou školu">
+                                <div class="field-error" id="school-error"></div>
                             </div>
                             
                             <div class="form-group">
@@ -632,11 +1176,13 @@
                                     <option value="3_ss">3. ročník SŠ</option>
                                     <option value="4_ss">4. ročník SŠ</option>
                                 </select>
+                                <div class="field-error" id="grade-error"></div>
                             </div>
                             
                             <div class="form-group">
                                 <label class="form-label" for="bio">O mně</label>
                                 <textarea class="form-control" id="bio" name="bio" rows="4" placeholder="Napište něco o sobě"></textarea>
+                                <div class="field-error" id="bio-error"></div>
                             </div>
                             
                             <button type="submit" class="btn btn-primary" id="save-profile-btn">
@@ -651,16 +1197,19 @@
                             <div class="form-group">
                                 <label class="form-label" for="current_password">Současné heslo</label>
                                 <input type="password" class="form-control" id="current_password" name="current_password" placeholder="Zadejte současné heslo">
+                                <div class="field-error" id="current_password-error"></div>
                             </div>
                             
                             <div class="form-group">
                                 <label class="form-label" for="new_password">Nové heslo</label>
                                 <input type="password" class="form-control" id="new_password" name="new_password" placeholder="Zadejte nové heslo">
+                                <div class="field-error" id="new_password-error"></div>
                             </div>
                             
                             <div class="form-group">
                                 <label class="form-label" for="confirm_password">Potvrzení hesla</label>
                                 <input type="password" class="form-control" id="confirm_password" name="confirm_password" placeholder="Zadejte nové heslo znovu">
+                                <div class="field-error" id="confirm_password-error"></div>
                             </div>
                             
                             <button type="submit" class="btn btn-primary" id="save-password-btn">
@@ -747,7 +1296,7 @@
                             <i class="fas fa-save"></i> Uložit nastavení
                         </button>
                         
-                        <div class="danger-zone mt-5">
+                        <div class="danger-zone">
                             <h3 class="danger-zone-title">Nebezpečná zóna</h3>
                             <p class="danger-zone-desc">Tato akce je nevratná. Smazáním účtu přijdete o všechna data a pokrok.</p>
                             <button type="button" class="btn-danger" id="delete-account-btn">
@@ -780,7 +1329,7 @@
                         <button type="button" class="upload-btn">Vybrat soubor</button>
                         <input type="file" id="avatar-upload" accept="image/*">
                     </div>
-                    <p class="mt-2 mb-0" style="color: var(--text-muted); font-size: 0.85rem;">Podporované formáty: JPG, PNG, GIF. Max. velikost: 2MB</p>
+                    <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0.5rem;">Podporované formáty: JPG, PNG, GIF. Max. velikost: 2MB</p>
                 </div>
             </div>
             <div class="modal-footer">
@@ -802,6 +1351,7 @@
                 <p>Pro potvrzení zadejte své heslo:</p>
                 <div class="form-group">
                     <input type="password" class="form-control" id="confirm-delete-password" placeholder="Heslo">
+                    <div class="field-error" id="confirm-delete-password-error"></div>
                 </div>
             </div>
             <div class="modal-footer">
@@ -817,21 +1367,14 @@
         <div id="toast-message">Operace byla úspěšně dokončena.</div>
     </div>
     
-    <!-- Scripts -->
+    <!-- Supabase JS client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script type="module">
-        import ui from '/js/ui.js';
-        import forms from '/js/forms.js';
-        import { validators } from '/js/forms.js';
-        import profile from '/js/profile.js';
-        
+    
+    <script>
         // Initialize Supabase
         const supabaseUrl = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10';
-        const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
-        
-        // Initialize profile
-        profile.init(supabaseClient);
+        const supabase = supabase.createClient(supabaseUrl, supabaseKey);
         
         // DOM Elements
         const profileContent = document.getElementById('profile-content');
@@ -839,12 +1382,12 @@
         const profileName = document.getElementById('profile-name');
         const profileEmail = document.getElementById('profile-email');
         const profileAvatar = document.getElementById('profile-avatar');
+        const sidebarAvatar = document.getElementById('sidebar-avatar');
+        const sidebarName = document.getElementById('sidebar-name');
         const profileLevel = document.getElementById('profile-level');
         const profilePoints = document.getElementById('profile-points');
         const profileBadges = document.getElementById('profile-badges');
         const profileStreak = document.getElementById('profile-streak');
-        const tabs = document.querySelectorAll('.profile-tab');
-        const tabContents = document.querySelectorAll('.tab-content');
         const editAvatarBtn = document.getElementById('edit-avatar-btn');
         const avatarModal = document.getElementById('avatar-modal');
         const avatarPreviewImage = document.getElementById('avatar-preview-image');
@@ -856,18 +1399,157 @@
         const deleteAccountBtn = document.getElementById('delete-account-btn');
         const deleteAccountModal = document.getElementById('delete-account-modal');
         const confirmDeleteAccountBtn = document.getElementById('confirm-delete-account-btn');
+        const offlineBanner = document.getElementById('offline-banner');
+        const notificationCount = document.getElementById('notification-count');
+        const globalError = document.getElementById('global-error');
         
-        // Handle Tab Switching
-        tabs.forEach(tab => {
+        let currentUser = null;
+        let currentProfile = null;
+        
+        // Form validation functions
+        const validators = {
+            required: (value, fieldName, message = 'Toto pole je povinné') => {
+                if (!value || value.trim() === '') {
+                    showFieldError(fieldName, message);
+                    return false;
+                }
+                return true;
+            },
+            
+            minLength: (value, fieldName, length, message = `Minimální délka je ${length} znaků`) => {
+                if (value && value.length < length) {
+                    showFieldError(fieldName, message);
+                    return false;
+                }
+                return true;
+            },
+            
+            email: (value, fieldName, message = 'Zadejte platnou e-mailovou adresu') => {
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (value && !emailRegex.test(value)) {
+                    showFieldError(fieldName, message);
+                    return false;
+                }
+                return true;
+            },
+            
+            match: (value, fieldName, matchValue, message = 'Hodnoty se neshodují') => {
+                if (value !== matchValue) {
+                    showFieldError(fieldName, message);
+                    return false;
+                }
+                return true;
+            }
+        };
+        
+        function showFieldError(fieldName, message) {
+            const field = document.getElementById(fieldName);
+            const errorContainer = document.getElementById(`${fieldName}-error`);
+            
+            if (field && errorContainer) {
+                field.classList.add('is-invalid');
+                errorContainer.textContent = message;
+                errorContainer.style.display = 'block';
+            }
+        }
+        
+        function clearFieldError(fieldName) {
+            const field = document.getElementById(fieldName);
+            const errorContainer = document.getElementById(`${fieldName}-error`);
+            
+            if (field && errorContainer) {
+                field.classList.remove('is-invalid');
+                errorContainer.textContent = '';
+                errorContainer.style.display = 'none';
+            }
+        }
+        
+        function clearAllErrors() {
+            document.querySelectorAll('.field-error').forEach(errorEl => {
+                errorEl.textContent = '';
+                errorEl.style.display = 'none';
+            });
+            
+            document.querySelectorAll('.is-invalid').forEach(field => {
+                field.classList.remove('is-invalid');
+            });
+        }
+        
+        // Toast notification function
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toast-message');
+            toastMessage.textContent = message;
+            
+            // Update icon based on type
+            const icon = toast.querySelector('i');
+            icon.className = type === 'success' ? 'fas fa-check-circle' : 
+                            type === 'error' ? 'fas fa-exclamation-circle' : 
+                            'fas fa-exclamation-triangle';
+            
+            toast.className = 'toast ' + type;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 5000);
+        }
+        
+        // Show/hide global error
+        function showError(message) {
+            const errorContainer = document.getElementById('global-error');
+            errorContainer.innerHTML = `
+                <div class="error-message">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <div>
+                        <div>${message}</div>
+                        <button class="retry-button" id="retry-btn">Zkusit znovu</button>
+                    </div>
+                </div>
+            `;
+            
+            errorContainer.style.display = 'block';
+            
+            const retryBtn = document.getElementById('retry-btn');
+            if (retryBtn) {
+                retryBtn.addEventListener('click', () => {
+                    errorContainer.style.display = 'none';
+                    loadUserProfile();
+                });
+            }
+        }
+        
+        function hideError() {
+            const errorContainer = document.getElementById('global-error');
+            errorContainer.style.display = 'none';
+        }
+        
+        // Modal functions
+        function showModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.classList.add('active');
+            }
+        }
+        
+        function hideModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.classList.remove('active');
+            }
+        }
+        
+        // Tab switching
+        document.querySelectorAll('.profile-tab').forEach(tab => {
             tab.addEventListener('click', () => {
                 // Remove active class from all tabs
-                tabs.forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.profile-tab').forEach(t => t.classList.remove('active'));
                 
                 // Add active class to clicked tab
                 tab.classList.add('active');
                 
                 // Hide all tab content
-                tabContents.forEach(content => content.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
                 
                 // Show the clicked tab content
                 const tabId = tab.dataset.tab;
@@ -875,164 +1557,284 @@
             });
         });
         
-        // Initialize form validation
-        forms.initialize('profile-form', {
-            submitHandler: updateProfileInfo
-        });
+        // Handle online/offline status
+        function updateOnlineStatus() {
+            if (navigator.onLine) {
+                offlineBanner.style.display = 'none';
+            } else {
+                offlineBanner.style.display = 'block';
+                showToast('Jste offline. Některé funkce nemusí být dostupné.', 'warning');
+            }
+        }
         
-        forms.initialize('password-form', {
-            submitHandler: updatePassword
-        });
+        window.addEventListener('online', updateOnlineStatus);
+        window.addEventListener('offline', updateOnlineStatus);
         
-        // Add validators
-        forms.addValidator('profile-form', 'username', validators.required('Uživatelské jméno je povinné'));
-        forms.addValidator('profile-form', 'username', validators.minLength(3, 'Uživatelské jméno musí mít alespoň 3 znaky'));
-        
-        forms.addValidator('password-form', 'current_password', validators.required('Současné heslo je povinné'));
-        forms.addValidator('password-form', 'new_password', validators.required('Nové heslo je povinné'));
-        forms.addValidator('password-form', 'new_password', validators.minLength(8, 'Heslo musí mít alespoň 8 znaků'));
-        forms.addValidator('password-form', 'confirm_password', validators.required('Potvrďte nové heslo'));
-        forms.addValidator('password-form', 'confirm_password', validators.match('new_password', 'Hesla se neshodují'));
+        // Get current user
+        async function getCurrentUser() {
+            const { data: { user } } = await supabase.auth.getUser();
+            return user;
+        }
         
         // Load user profile
         async function loadUserProfile() {
             try {
                 profileLoading.style.display = 'flex';
                 profileContent.style.display = 'none';
+                hideError();
                 
-                const userData = await profile.loadUserProfile();
+                currentUser = await getCurrentUser();
                 
-                if (userData) {
-                    // Update profile display
-                    profileName.textContent = `${userData.first_name || ''} ${userData.last_name || ''}`.trim() || userData.username || 'Uživatel';
-                    profileEmail.textContent = userData.email;
-                    
-                    // Update avatar
-                    if (userData.avatar_url) {
-                        profileAvatar.innerHTML = `<img src="${userData.avatar_url}" alt="${userData.username}" />`;
-                    } else {
-                        const initials = getInitials(userData);
-                        profileAvatar.innerHTML = `<span>${initials}</span>
-                            <div class="edit-avatar" id="edit-avatar-btn">
-                                <i class="fas fa-camera"></i> Změnit
-                            </div>`;
-                    }
-                    
-                    // Update stats
-                    profileLevel.textContent = userData.level || 1;
-                    profilePoints.textContent = userData.points || 0;
-                    profileBadges.textContent = userData.badges_count || 0;
-                    profileStreak.textContent = userData.streak_days || 0;
-                    
-                    // Fill form fields
-                    document.getElementById('first_name').value = userData.first_name || '';
-                    document.getElementById('last_name').value = userData.last_name || '';
-                    document.getElementById('username').value = userData.username || '';
-                    document.getElementById('email').value = userData.email || '';
-                    document.getElementById('school').value = userData.school || '';
-                    document.getElementById('grade').value = userData.grade || '';
-                    document.getElementById('bio').value = userData.bio || '';
-                    
-                    // Set preferences
-                    if (userData.preferences) {
-                        document.getElementById('dark_mode').checked = userData.preferences.dark_mode || false;
-                        document.getElementById('language').value = userData.preferences.language || 'cs';
-                    }
-                    
-                    // Set notification settings
-                    if (userData.notifications) {
-                        document.getElementById('email_notifications').checked = userData.notifications.email || false;
-                        document.getElementById('study_tips').checked = userData.notifications.study_tips || false;
-                        document.getElementById('content_updates').checked = userData.notifications.content_updates || false;
-                        document.getElementById('practice_reminders').checked = userData.notifications.practice_reminders || false;
-                    }
-                    
-                    // Make edit avatar button work again after DOM update
-                    document.getElementById('edit-avatar-btn').addEventListener('click', openAvatarModal);
+                if (!currentUser) {
+                    window.location.href = '/login.html';
+                    return;
                 }
+
+                const { data: profile, error } = await supabase
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', currentUser.id)
+                    .single();
+
+                if (error) throw error;
+
+                if (!profile) {
+                    // Create default profile if not exists
+                    const defaultProfile = {
+                        id: currentUser.id,
+                        email: currentUser.email,
+                        username: currentUser.email.split('@')[0],
+                        level: 1,
+                        points: 0,
+                        badges_count: 0,
+                        streak_days: 0,
+                        created_at: new Date().toISOString(),
+                        updated_at: new Date().toISOString(),
+                        preferences: {
+                            dark_mode: false,
+                            show_progress: true,
+                            sound_effects: true,
+                            language: 'cs'
+                        },
+                        notifications: {
+                            email: true,
+                            study_tips: true,
+                            content_updates: true,
+                            practice_reminders: true
+                        }
+                    };
+
+                    const { data: newProfile, error: createError } = await supabase
+                        .from('profiles')
+                        .insert([defaultProfile])
+                        .select()
+                        .single();
+
+                    if (createError) throw createError;
+                    currentProfile = newProfile;
+                } else {
+                    currentProfile = profile;
+                }
+
+                // Update profile display
+                updateProfileDisplay(currentProfile);
                 
                 profileLoading.style.display = 'none';
                 profileContent.style.display = 'block';
                 
             } catch (error) {
                 console.error('Error loading profile:', error);
-                ui.showError('Nepodařilo se načíst profil. Zkuste to prosím později.');
+                showError('Nepodařilo se načíst profil. Zkuste to prosím později.');
                 profileLoading.style.display = 'none';
             }
         }
         
-        // Update profile info
-        async function updateProfileInfo(data) {
+        // Update profile display
+        function updateProfileDisplay(userData) {
+            if (!userData) return;
+            
+            // Update name and email
+            const displayName = `${userData.first_name || ''} ${userData.last_name || ''}`.trim() || userData.username || 'Uživatel';
+            profileName.textContent = displayName;
+            profileEmail.textContent = userData.email;
+            sidebarName.textContent = displayName;
+            
+            // Update avatars
+            if (userData.avatar_url) {
+                profileAvatar.innerHTML = `<img src="${userData.avatar_url}" alt="${userData.username}" />
+                    <div class="edit-avatar" id="edit-avatar-btn">
+                        <i class="fas fa-camera"></i> Změnit
+                    </div>`;
+                sidebarAvatar.innerHTML = `<img src="${userData.avatar_url}" alt="${userData.username}" />`;
+            } else {
+                const initials = getInitials(userData);
+                profileAvatar.innerHTML = `<span>${initials}</span>
+                    <div class="edit-avatar" id="edit-avatar-btn">
+                        <i class="fas fa-camera"></i> Změnit
+                    </div>`;
+                sidebarAvatar.textContent = initials;
+            }
+            
+            // Re-attach event listener for edit avatar button
+            document.getElementById('edit-avatar-btn').addEventListener('click', () => {
+                openAvatarModal();
+            });
+            
+            // Update stats
+            profileLevel.textContent = userData.level || 1;
+            profilePoints.textContent = userData.points || 0;
+            profileBadges.textContent = userData.badges_count || 0;
+            profileStreak.textContent = userData.streak_days || 0;
+            
+            // Fill form fields
+            document.getElementById('first_name').value = userData.first_name || '';
+            document.getElementById('last_name').value = userData.last_name || '';
+            document.getElementById('username').value = userData.username || '';
+            document.getElementById('email').value = userData.email || '';
+            document.getElementById('school').value = userData.school || '';
+            document.getElementById('grade').value = userData.grade || '';
+            document.getElementById('bio').value = userData.bio || '';
+            
+            // Set preferences
+            if (userData.preferences) {
+                document.getElementById('dark_mode').checked = userData.preferences.dark_mode || false;
+                document.getElementById('language').value = userData.preferences.language || 'cs';
+            }
+            
+            // Set notification settings
+            if (userData.notifications) {
+                document.getElementById('email_notifications').checked = userData.notifications.email || false;
+                document.getElementById('study_tips').checked = userData.notifications.study_tips || false;
+                document.getElementById('content_updates').checked = userData.notifications.content_updates || false;
+                document.getElementById('practice_reminders').checked = userData.notifications.practice_reminders || false;
+            }
+            
+            // Show notification count (placeholder)
+            notificationCount.textContent = '3';
+        }
+        
+        // Get initials from profile
+        function getInitials(userData) {
+            const first = userData.first_name ? userData.first_name[0] : '';
+            const last = userData.last_name ? userData.last_name[0] : '';
+            return (first + last).toUpperCase() || userData.username ? userData.username[0].toUpperCase() : 'U';
+        }
+        
+        // Update profile
+        async function updateProfile(data) {
             try {
-                await profile.updateProfile({
-                    first_name: data.first_name,
-                    last_name: data.last_name,
-                    username: data.username,
-                    school: data.school,
-                    grade: data.grade,
-                    bio: data.bio
-                });
+                if (!currentUser) {
+                    showToast('Pro aktualizaci profilu se musíte přihlásit', 'error');
+                    return false;
+                }
                 
-                // Update display
-                profileName.textContent = `${data.first_name || ''} ${data.last_name || ''}`.trim() || data.username || 'Uživatel';
+                const { data: profile, error } = await supabase
+                    .from('profiles')
+                    .update({
+                        first_name: data.first_name,
+                        last_name: data.last_name,
+                        username: data.username,
+                        school: data.school,
+                        grade: data.grade,
+                        bio: data.bio,
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('id', currentUser.id)
+                    .select()
+                    .single();
+
+                if (error) throw error;
                 
+                // Update current profile and display
+                currentProfile = profile;
+                updateProfileDisplay(profile);
                 showToast('Profil byl úspěšně aktualizován', 'success');
+                return true;
                 
             } catch (error) {
                 console.error('Error updating profile:', error);
                 showToast('Nepodařilo se aktualizovat profil', 'error');
+                return false;
             }
         }
         
         // Update password
         async function updatePassword(data) {
             try {
-                const { error } = await supabaseClient.auth.updateUser({
+                if (!validators.required(data.current_password, 'current_password') ||
+                    !validators.required(data.new_password, 'new_password', 'Zadejte nové heslo') ||
+                    !validators.minLength(data.new_password, 'new_password', 8, 'Heslo musí mít alespoň 8 znaků') ||
+                    !validators.required(data.confirm_password, 'confirm_password', 'Potvrďte nové heslo') ||
+                    !validators.match(data.confirm_password, 'confirm_password', data.new_password, 'Hesla se neshodují')) {
+                    return false;
+                }
+                
+                const { error } = await supabase.auth.updateUser({
                     password: data.new_password
                 });
                 
                 if (error) throw error;
                 
                 // Clear password form
-                document.getElementById('password-form').reset();
+                passwordForm.reset();
+                clearAllErrors();
                 
                 showToast('Heslo bylo úspěšně změněno', 'success');
+                return true;
                 
             } catch (error) {
                 console.error('Error updating password:', error);
                 showToast('Nepodařilo se změnit heslo', 'error');
+                return false;
             }
         }
         
         // Update preferences
         async function updatePreferences() {
             try {
-                await profile.updatePreferences({
+                const preferences = {
                     dark_mode: document.getElementById('dark_mode').checked,
-                    language: document.getElementById('language').value
-                });
+                    language: document.getElementById('language').value,
+                    show_progress: true,
+                    sound_effects: true
+                };
                 
-                await profile.updateNotificationSettings({
+                const notifications = {
                     email: document.getElementById('email_notifications').checked,
                     study_tips: document.getElementById('study_tips').checked,
                     content_updates: document.getElementById('content_updates').checked,
                     practice_reminders: document.getElementById('practice_reminders').checked
-                });
+                };
                 
+                const { data, error } = await supabase
+                    .from('profiles')
+                    .update({
+                        preferences: preferences,
+                        notifications: notifications,
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('id', currentUser.id)
+                    .select()
+                    .single();
+                
+                if (error) throw error;
+                
+                currentProfile = data;
                 showToast('Nastavení byla úspěšně uložena', 'success');
+                return true;
                 
             } catch (error) {
                 console.error('Error updating preferences:', error);
                 showToast('Nepodařilo se uložit nastavení', 'error');
+                return false;
             }
         }
         
-        // Avatar upload handling
+        // Avatar handling
         function openAvatarModal() {
-            ui.showModal('avatar-modal');
+            showModal('avatar-modal');
             
             // Reset preview image
-            const currentProfile = profile.getCurrentProfile();
             if (currentProfile && currentProfile.avatar_url) {
                 avatarPreviewImage.src = currentProfile.avatar_url;
             } else {
@@ -1040,6 +1842,7 @@
             }
         }
         
+        // Update avatar preview when file is selected
         avatarUpload.addEventListener('change', function() {
             if (this.files && this.files[0]) {
                 const reader = new FileReader();
@@ -1052,114 +1855,207 @@
             }
         });
         
-        // Save avatar
-        saveAvatarBtn.addEventListener('click', async function() {
+        // Update avatar
+        async function updateAvatar(file) {
             try {
-                if (!avatarUpload.files || !avatarUpload.files[0]) {
-                    showToast('Nejprve vyberte obrázek', 'warning');
-                    return;
+                if (!currentUser) {
+                    showToast('Pro aktualizaci avataru se musíte přihlásit', 'error');
+                    return false;
                 }
                 
-                const file = avatarUpload.files[0];
+                if (!file) {
+                    showToast('Nejprve vyberte obrázek', 'warning');
+                    return false;
+                }
                 
                 // Check file size (2MB limit)
                 if (file.size > 2 * 1024 * 1024) {
                     showToast('Soubor je příliš velký. Maximální velikost je 2MB', 'error');
-                    return;
+                    return false;
                 }
                 
                 // Check file type
                 if (!['image/jpeg', 'image/png', 'image/gif'].includes(file.type)) {
                     showToast('Nepodporovaný formát souboru', 'error');
-                    return;
+                    return false;
                 }
                 
-                await profile.updateAvatar(file);
-                ui.hideModal('avatar-modal');
+                const fileExt = file.name.split('.').pop();
+                const fileName = `${currentUser.id}-${Date.now()}.${fileExt}`;
                 
-                // Reload profile to show new avatar
-                await loadUserProfile();
+                // Upload file to storage
+                const { data: uploadData, error: uploadError } = await supabase
+                    .storage
+                    .from('avatars')
+                    .upload(fileName, file);
+                    
+                if (uploadError) throw uploadError;
                 
+                // Get public URL
+                const { data: { publicUrl } } = supabase
+                    .storage
+                    .from('avatars')
+                    .getPublicUrl(fileName);
+                
+                // Update profile with avatar URL
+                const { data: profile, error: updateError } = await supabase
+                    .from('profiles')
+                    .update({
+                        avatar_url: publicUrl,
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('id', currentUser.id)
+                    .select()
+                    .single();
+                    
+                if (updateError) throw updateError;
+                
+                currentProfile = profile;
+                updateProfileDisplay(profile);
+                hideModal('avatar-modal');
                 showToast('Profilový obrázek byl úspěšně aktualizován', 'success');
+                return true;
                 
             } catch (error) {
                 console.error('Error updating avatar:', error);
-                showToast('Nepodařilo se aktualizovat profilový obrázek', 'error');
+                showToast('Nepodařilo se aktualizovat avatar', 'error');
+                return false;
             }
-        });
+        }
         
         // Delete account
-        deleteAccountBtn.addEventListener('click', function() {
-            ui.showModal('delete-account-modal');
-        });
-        
-        confirmDeleteAccountBtn.addEventListener('click', async function() {
+        async function deleteAccount(password) {
             try {
-                const password = document.getElementById('confirm-delete-password').value;
-                
-                if (!password) {
-                    showToast('Zadejte své heslo pro potvrzení', 'warning');
-                    return;
+                if (!currentUser) {
+                    showToast('Pro smazání účtu se musíte přihlásit', 'error');
+                    return false;
                 }
                 
-                // Here you would normally verify password before deleting
-                await profile.deleteAccount();
+                if (!password) {
+                    showFieldError('confirm-delete-password', 'Zadejte své heslo pro potvrzení');
+                    return false;
+                }
                 
-                showToast('Váš účet byl smazán', 'success');
+                // First delete profile data
+                const { error: profileError } = await supabase
+                    .from('profiles')
+                    .delete()
+                    .eq('id', currentUser.id);
+                
+                if (profileError) throw profileError;
+                
+                // Then sign out and redirect
+                await supabase.auth.signOut();
+                
+                showToast('Váš účet byl úspěšně smazán', 'success');
+                
+                // Redirect to homepage after short delay
                 setTimeout(() => {
                     window.location.href = '/';
                 }, 2000);
                 
+                return true;
+                
             } catch (error) {
                 console.error('Error deleting account:', error);
                 showToast('Nepodařilo se smazat účet', 'error');
+                return false;
             }
+        }
+        
+        // Validate profile form
+        function validateProfileForm() {
+            clearAllErrors();
+            
+            const first_name = document.getElementById('first_name').value;
+            const last_name = document.getElementById('last_name').value;
+            const username = document.getElementById('username').value;
+            const school = document.getElementById('school').value;
+            
+            let isValid = true;
+            
+            // Username is required
+            if (!validators.required(username, 'username')) {
+                isValid = false;
+            }
+            
+            // Username min length
+            if (username && !validators.minLength(username, 'username', 3, 'Uživatelské jméno musí mít alespoň 3 znaky')) {
+                isValid = false;
+            }
+            
+            return isValid;
+        }
+        
+        // Event listeners
+        profileForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            if (!validateProfileForm()) {
+                return;
+            }
+            
+            const formData = {
+                first_name: document.getElementById('first_name').value,
+                last_name: document.getElementById('last_name').value,
+                username: document.getElementById('username').value,
+                school: document.getElementById('school').value,
+                grade: document.getElementById('grade').value,
+                bio: document.getElementById('bio').value
+            };
+            
+            await updateProfile(formData);
         });
         
-        // Save preferences
-        savePreferencesBtn.addEventListener('click', updatePreferences);
+        passwordForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = {
+                current_password: document.getElementById('current_password').value,
+                new_password: document.getElementById('new_password').value,
+                confirm_password: document.getElementById('confirm_password').value
+            };
+            
+            await updatePassword(formData);
+        });
         
-        // Helper functions
-        function getInitials(userData) {
-            const first = userData.first_name ? userData.first_name[0] : '';
-            const last = userData.last_name ? userData.last_name[0] : '';
-            return (first + last).toUpperCase() || userData.username ? userData.username[0].toUpperCase() : 'U';
-        }
+        savePreferencesBtn.addEventListener('click', async function() {
+            await updatePreferences();
+        });
         
-        function showToast(message, type = 'success') {
-            const toast = document.getElementById('toast');
-            const toastMessage = document.getElementById('toast-message');
-            toastMessage.textContent = message;
-            
-            // Update icon based on type
-            const icon = toast.querySelector('i');
-            icon.className = type === 'success' ? 'fas fa-check-circle' : 
-                           type === 'error' ? 'fas fa-exclamation-circle' : 
-                           'fas fa-exclamation-triangle';
-            
-            toast.className = 'toast ' + type;
-            toast.classList.add('show');
-            
-            setTimeout(() => {
-                toast.classList.remove('show');
-            }, 5000);
-        }
+        saveAvatarBtn.addEventListener('click', async function() {
+            const file = avatarUpload.files[0];
+            await updateAvatar(file);
+        });
+        
+        deleteAccountBtn.addEventListener('click', function() {
+            showModal('delete-account-modal');
+        });
+        
+        confirmDeleteAccountBtn.addEventListener('click', async function() {
+            const password = document.getElementById('confirm-delete-password').value;
+            await deleteAccount(password);
+        });
+        
+        // Modal close buttons
+        document.querySelectorAll('.modal-close, [data-dismiss="modal"]').forEach(button => {
+            button.addEventListener('click', function() {
+                const modalId = this.closest('.modal').id;
+                hideModal(modalId);
+            });
+        });
+        
+        // Field input events for clearing errors
+        document.querySelectorAll('input, textarea, select').forEach(field => {
+            field.addEventListener('input', function() {
+                clearFieldError(this.id);
+            });
+        });
         
         // Initialize
-        document.addEventListener('DOMContentLoaded', () => {
-            ui.initializeOfflineHandling();
-            ui.setActiveNavItem('/dashboard/profile.html');
+        document.addEventListener('DOMContentLoaded', function() {
+            updateOnlineStatus();
             loadUserProfile();
-            
-            // Modal close buttons
-            document.querySelectorAll('.modal-close, [data-dismiss="modal"]').forEach(button => {
-                button.addEventListener('click', function() {
-                    const modalId = this.closest('.modal').id;
-                    ui.hideModal(modalId);
-                });
-            });
-            
-            editAvatarBtn.addEventListener('click', openAvatarModal);
         });
     </script>
 </body>
