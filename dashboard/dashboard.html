@@ -1,20 +1,20 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="cs">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Justax Dashboard</title>
-    <!-- Fonts -->
+    <!-- Připojení fontů -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Font Awesome Icons -->
+    <!-- Font Awesome CDN -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Supabase JS client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <style>
-        /* Base styles */
+        /* Bazové styly */
         * {
             margin: 0;
             padding: 0;
@@ -157,6 +157,13 @@
             justify-content: center;
             margin-right: 0.75rem;
             font-weight: 500;
+            overflow: hidden;
+        }
+
+        .user-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
 
         .user-info {
@@ -173,7 +180,7 @@
             opacity: 0.8;
         }
 
-        /* Main content */
+        /* Hlavní obsah */
         main {
             flex: 1;
             margin-left: var(--sidebar-width);
@@ -263,7 +270,7 @@
             font-weight: 600;
         }
 
-        /* Main content */
+        /* Hlavní obsah */
         .main-content {
             display: grid;
             gap: 1.75rem;
@@ -276,7 +283,7 @@
             color: var(--dark);
         }
 
-        /* Welcome banner */
+        /* Uvítací banner */
         .welcome-banner {
             background: var(--gradient-2);
             border-radius: var(--card-radius);
@@ -343,11 +350,14 @@
             max-height: 100%;
         }
 
-        /* Stats cards */
+        /* Statistické karty */
         .stat-cards {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 1.5rem;
+            opacity: 0;
+            animation: fadeIn 0.6s ease forwards;
+            animation-delay: 0.2s;
         }
 
         .stat-card {
@@ -424,10 +434,6 @@
             background: linear-gradient(135deg, #f72585, #b5179e);
         }
 
-        .badges-icon {
-            background: linear-gradient(135deg, #8338ec, #3a86ff);
-        }
-
         .stat-card-footer {
             padding: 1rem 1.5rem;
             border-top: 1px solid var(--gray-light);
@@ -451,11 +457,14 @@
             transform: translateX(3px);
         }
 
-        /* Shortcuts */
+        /* Zkratky */
         .shortcut-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 1.5rem;
+            opacity: 0;
+            animation: fadeIn 0.6s ease forwards;
+            animation-delay: 0.3s;
         }
 
         .shortcut-card {
@@ -511,12 +520,15 @@
             line-height: 1.5;
         }
 
-        /* Recent activities */
+        /* Nedávné aktivity */
         .activity-list {
             background-color: var(--white);
             border-radius: var(--card-radius);
             box-shadow: var(--shadow-sm);
             overflow: hidden;
+            opacity: 0;
+            animation: fadeIn 0.6s ease forwards;
+            animation-delay: 0.4s;
         }
 
         .activity-item {
@@ -603,7 +615,7 @@
             transform: translateX(3px);
         }
 
-        /* Footer */
+        /* Patička */
         .dashboard-footer {
             margin-top: 2rem;
             padding: 1.5rem 0;
@@ -612,7 +624,7 @@
             font-size: 0.9rem;
         }
 
-        /* Loading indicator */
+        /* Nahrávací indikátor */
         .loading {
             display: flex;
             justify-content: center;
@@ -744,7 +756,17 @@
             color: var(--warning);
         }
 
-        /* Responsive media queries */
+        /* Animace a efekty */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .main-content > section {
+            animation: fadeIn 0.6s ease forwards;
+        }
+
+        /* Media queries pro responzivní design */
         @media (max-width: 1200px) {
             .welcome-content {
                 padding: 2rem;
@@ -833,28 +855,16 @@
                 transform: translateX(-100%);
             }
             
+            .sidebar.active {
+                transform: translateX(0);
+            }
+            
             .search-box {
                 display: none;
             }
         }
 
-        /* Animations */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .main-content > section {
-            animation: fadeIn 0.6s ease forwards;
-        }
-
-        .stat-cards, .shortcut-grid, .activity-list {
-            opacity: 0;
-            animation: fadeIn 0.6s ease forwards;
-            animation-delay: 0.2s;
-        }
-
-        /* Dark mode */
+        /* Tmavý režim */
         @media (prefers-color-scheme: dark) {
             :root {
                 --white: #1a202c;
@@ -912,7 +922,7 @@
         
         <ul class="sidebar-menu">
             <li class="sidebar-item">
-                <a href="/dashboard.html" class="sidebar-link active" id="dashboard-link">
+                <a href="/dashboard.html" class="sidebar-link active">
                     <i class="fas fa-th-large"></i>
                     <span>Dashboard</span>
                 </a>
@@ -950,10 +960,10 @@
         </ul>
         
         <div class="user-profile">
-            <div class="user-avatar" id="user-avatar">MS</div>
+            <div class="user-avatar" id="sidebar-avatar">MS</div>
             <div class="user-info">
-                <div class="user-name" id="user-name">Načítání...</div>
-                <div class="user-role" id="user-role">Student</div>
+                <div class="user-name" id="sidebar-name">Načítání...</div>
+                <div class="user-role">Student</div>
             </div>
         </div>
         
@@ -964,15 +974,7 @@
     
     <main>
         <!-- Global error container -->
-        <div class="error-container" id="global-error">
-            <div class="error-message">
-                <i class="fas fa-exclamation-circle"></i>
-                <div>
-                    <div id="global-error-message">Došlo k chybě při načítání dat.</div>
-                    <button class="retry-button" id="global-retry-btn">Zkusit znovu</button>
-                </div>
-            </div>
-        </div>
+        <div class="error-container" id="global-error"></div>
 
         <header class="dashboard-header">
             <div class="header-content">
@@ -991,6 +993,7 @@
         </header>
         
         <div class="main-content">
+            <!-- Welcome banner -->
             <section class="welcome-banner">
                 <div class="welcome-content">
                     <div class="welcome-text-content">
@@ -1000,120 +1003,94 @@
                     </div>
                     <div class="welcome-image">
                         <svg width="300" height="200" viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
-                            <circle cx="400" cy="300" r="200" fill="#ffffff" opacity="0.1" />
-                            <circle cx="400" cy="300" r="150" fill="#ffffff" opacity="0.15" />
-                            <circle cx="400" cy="300" r="100" fill="#ffffff" opacity="0.2" />
-                            <path d="M460 210L400 300L340 210" stroke="#ffffff" stroke-width="10" fill="none" stroke-linecap="round" stroke-linejoin="round" />
-                            <path d="M400 200V300" stroke="#ffffff" stroke-width="10" fill="none" stroke-linecap="round" />
-                            <path d="M340 390L400 300L460 390" stroke="#ffffff" stroke-width="10" fill="none" stroke-linecap="round" stroke-linejoin="round" />
-                            <path d="M400 400V300" stroke="#ffffff" stroke-width="10" fill="none" stroke-linecap="round" />
+                            <rect x="400" y="300" width="300" height="200" rx="20" fill="#ffffff" opacity="0.1"/>
+                            <circle cx="400" cy="300" r="100" fill="#ffffff" opacity="0.1"/>
+                            <circle cx="400" cy="300" r="50" fill="#ffffff" opacity="0.2"/>
                         </svg>
                     </div>
                 </div>
             </section>
             
-            <section>
-                <h2 class="section-title">Statistiky</h2>
+            <!-- Stats -->
+            <section class="stats-section">
+                <h2 class="section-title">Váš pokrok</h2>
                 <div class="stat-cards">
-                    <div class="stat-card" id="completed-exercises-card">
+                    <div class="stat-card" id="progress-card">
                         <div class="stat-card-content">
                             <div class="stat-card-info">
-                                <div class="stat-card-title">Dokončená cvičení</div>
-                                <div class="stat-card-value" id="completed-exercises">0</div>
-                                <div class="stat-card-change positive">
-                                    <i class="fas fa-arrow-up"></i> Od minulého týdne
-                                </div>
+                                <div class="stat-card-title">Celkový pokrok</div>
+                                <div class="stat-card-value">0%</div>
+                                <div class="stat-card-change positive">+0% tento týden</div>
                             </div>
                             <div class="stat-card-icon progress-icon">
-                                <i class="fas fa-tasks"></i>
+                                <i class="fas fa-chart-line"></i>
                             </div>
                         </div>
                         <div class="stat-card-footer">
-                            <a href="/dashboard/pokrok.html">Zobrazit pokrok <i class="fas fa-arrow-right"></i></a>
+                            <a href="/dashboard/pokrok.html">Zobrazit podrobnosti <i class="fas fa-chevron-right"></i></a>
                         </div>
                     </div>
-                    
+
                     <div class="stat-card" id="points-card">
                         <div class="stat-card-content">
                             <div class="stat-card-info">
                                 <div class="stat-card-title">Body</div>
-                                <div class="stat-card-value" id="points">0</div>
-                                <div class="stat-card-change positive">
-                                    <i class="fas fa-arrow-up"></i> Od minulého týdne
-                                </div>
+                                <div class="stat-card-value">0</div>
+                                <div class="stat-card-change positive">+0 tento týden</div>
                             </div>
                             <div class="stat-card-icon points-icon">
                                 <i class="fas fa-star"></i>
                             </div>
                         </div>
                         <div class="stat-card-footer">
-                            <a href="/dashboard/pokrok.html">Zobrazit detaily <i class="fas fa-arrow-right"></i></a>
+                            <a href="/dashboard/oceneni.html">Zobrazit odměny <i class="fas fa-chevron-right"></i></a>
                         </div>
                     </div>
-                    
+
                     <div class="stat-card" id="streak-card">
                         <div class="stat-card-content">
                             <div class="stat-card-info">
-                                <div class="stat-card-title">Řada dnů</div>
-                                <div class="stat-card-value" id="streak-days">0</div>
-                                <div class="stat-card-change">
-                                    <i class="fas fa-fire-alt"></i> Pokračujte v práci!
-                                </div>
+                                <div class="stat-card-title">Dnů v řadě</div>
+                                <div class="stat-card-value">0</div>
+                                <div class="stat-card-change">Nejdelší: 0 dnů</div>
                             </div>
                             <div class="stat-card-icon streak-icon">
-                                <i class="fas fa-fire-alt"></i>
+                                <i class="fas fa-fire"></i>
                             </div>
                         </div>
                         <div class="stat-card-footer">
-                            <a href="/dashboard/pokrok.html">Zobrazit historii <i class="fas fa-arrow-right"></i></a>
-                        </div>
-                    </div>
-                    
-                    <div class="stat-card" id="badges-card">
-                        <div class="stat-card-content">
-                            <div class="stat-card-info">
-                                <div class="stat-card-title">Získaná ocenění</div>
-                                <div class="stat-card-value" id="badges-count">0</div>
-                                <div class="stat-card-change">
-                                    <i class="fas fa-medal"></i> Z celkových 25
-                                </div>
-                            </div>
-                            <div class="stat-card-icon badges-icon">
-                                <i class="fas fa-award"></i>
-                            </div>
-                        </div>
-                        <div class="stat-card-footer">
-                            <a href="/dashboard/oceneni.html">Zobrazit ocenění <i class="fas fa-arrow-right"></i></a>
+                            <a href="/dashboard/procvicovani.html">Procvičovat <i class="fas fa-chevron-right"></i></a>
                         </div>
                     </div>
                 </div>
             </section>
             
-            <section>
-                <h2 class="section-title">Rychlý přístup</h2>
+            <!-- Shortcuts -->
+            <section class="shortcuts-section">
+                <h2 class="section-title">Rychlé odkazy</h2>
                 <div class="shortcut-grid">
                     <a href="/dashboard/procvicovani.html" class="shortcut-card">
                         <div class="shortcut-icon">
                             <i class="fas fa-book-open"></i>
                         </div>
                         <h3 class="shortcut-title">Procvičování</h3>
-                        <p class="shortcut-desc">Procvičujte příklady z různých oblastí matematiky</p>
+                        <p class="shortcut-desc">Procvičte si své znalosti a dovednosti v různých tématech.</p>
                     </a>
                     
-                    <a href="/dashboard/testy.html" class="shortcut-card">
+                    <a href="/dashboard/pokrok.html" class="shortcut-card">
                         <div class="shortcut-icon">
-                            <i class="fas fa-clipboard-check"></i>
+                            <i class="fas fa-chart-line"></i>
                         </div>
-                        <h3 class="shortcut-title">Diagnostické testy</h3>
-                        <p class="shortcut-desc">Otestujte své znalosti v uceleném testu</p>
+                        <h3 class="shortcut-title">Pokrok</h3>
+                        <p class="shortcut-desc">Sledujte svůj pokrok a úspěchy v jednotlivých oblastech.</p>
                     </a>
                     
                     <a href="/dashboard/materialy.html" class="shortcut-card">
                         <div class="shortcut-icon">
                             <i class="fas fa-file-alt"></i>
                         </div>
-                        <h3 class="shortcut-title">Studijní materiály</h3>
-                        <p class="shortcut-desc">Prohlédněte si studijní materiály a návody</p>
+                        <h3 class="shortcut-title">Materiály</h3>
+                        <p class="shortcut-desc">Prohlédněte si výukové materiály a studijní zdroje.</p>
                     </a>
                     
                     <a href="/dashboard/profile.html" class="shortcut-card">
@@ -1121,17 +1098,18 @@
                             <i class="fas fa-user-cog"></i>
                         </div>
                         <h3 class="shortcut-title">Profil</h3>
-                        <p class="shortcut-desc">Upravte své osobní údaje a nastavení</p>
+                        <p class="shortcut-desc">Upravte své osobní údaje a nastavení profilu.</p>
                     </a>
                 </div>
             </section>
             
-            <section>
+            <!-- Recent Activity -->
+            <section class="activity-section">
                 <h2 class="section-title">Nedávné aktivity</h2>
                 <div class="activity-list" id="activity-list">
-                    <div class="loading">Načítání aktivit</div>
+                    <div class="loading">Načítání aktivit...</div>
                 </div>
-                <a href="/dashboard/aktivity.html" class="view-all-link">Zobrazit všechny aktivity <i class="fas fa-arrow-right"></i></a>
+                <a href="/dashboard/pokrok.html" class="view-all-link">Zobrazit všechny aktivity <i class="fas fa-chevron-right"></i></a>
             </section>
         </div>
         
@@ -1147,220 +1125,391 @@
     </div>
     
     <script>
-        // Supabase initialization
-        const supabaseUrl = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10';
-        const supabase = supabase.createClient(supabaseUrl, supabaseKey);
-        
-        // DOM Elements
-        const userAvatar = document.getElementById('user-avatar');
-        const userName = document.getElementById('user-name');
-        const userRole = document.getElementById('user-role');
-        const completedExercises = document.getElementById('completed-exercises');
-        const points = document.getElementById('points');
-        const streakDays = document.getElementById('streak-days');
-        const badgesCount = document.getElementById('badges-count');
-        const notificationCount = document.getElementById('notification-count');
-        const activityList = document.getElementById('activity-list');
-        const startPracticeBtn = document.getElementById('start-practice-btn');
-        const globalError = document.getElementById('global-error');
-        const globalErrorMessage = document.getElementById('global-error-message');
-        const globalRetryBtn = document.getElementById('global-retry-btn');
-        const offlineBanner = document.getElementById('offline-banner');
-        const toast = document.getElementById('toast');
-        
-        // Check if user is online
-        function updateOnlineStatus() {
-            if (navigator.onLine) {
-                offlineBanner.style.display = 'none';
-            } else {
-                offlineBanner.style.display = 'block';
-                showToast('Jste offline. Některé funkce nemusí být dostupné.', 'warning');
-            }
-        }
-        
-        window.addEventListener('online', updateOnlineStatus);
-        window.addEventListener('offline', updateOnlineStatus);
-        updateOnlineStatus();
-        
-        // Toast notification function
-        function showToast(message, type = 'success') {
-            const toastMessage = document.getElementById('toast-message');
-            toastMessage.textContent = message;
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize Supabase client - Added before any other code to avoid the initialization error
+            const supabaseUrl = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
+            const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10';
+            const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
             
-            toast.className = 'toast ' + type;
-            toast.classList.add('show');
+            // DOM Elements
+            const sidebarAvatar = document.getElementById('sidebar-avatar');
+            const sidebarName = document.getElementById('sidebar-name');
+            const notificationCount = document.getElementById('notification-count');
+            const offlineBanner = document.getElementById('offline-banner');
+            const globalError = document.getElementById('global-error');
+            const activityList = document.getElementById('activity-list');
+            const progressCard = document.getElementById('progress-card');
+            const pointsCard = document.getElementById('points-card');
+            const streakCard = document.getElementById('streak-card');
+            const startPracticeBtn = document.getElementById('start-practice-btn');
             
-            // Update icon based on type
-            const icon = toast.querySelector('i');
-            icon.className = type === 'success' ? 'fas fa-check-circle' : 
-                            type === 'error' ? 'fas fa-exclamation-circle' : 
-                            'fas fa-exclamation-triangle';
+            let currentUser = null;
+            let currentProfile = null;
             
-            setTimeout(() => {
-                toast.classList.remove('show');
-            }, 5000);
-        }
-        
-        // Get user profile data
-        async function getUserProfile() {
-            try {
-                const { data: { user } } = await supabase.auth.getUser();
+            // Toast notification function
+            function showToast(message, type = 'success') {
+                const toast = document.getElementById('toast');
+                const toastMessage = document.getElementById('toast-message');
+                toastMessage.textContent = message;
                 
-                if (!user) {
-                    window.location.href = '/login.html';
+                // Update icon based on type
+                const icon = toast.querySelector('i');
+                icon.className = type === 'success' ? 'fas fa-check-circle' : 
+                                type === 'error' ? 'fas fa-exclamation-circle' : 
+                                'fas fa-exclamation-triangle';
+                
+                toast.className = 'toast ' + type;
+                toast.classList.add('show');
+                
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                }, 5000);
+            }
+            
+            // Show/hide global error
+            function showError(message) {
+                const errorContainer = document.getElementById('global-error');
+                errorContainer.innerHTML = `
+                    <div class="error-message">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <div>
+                            <div>${message}</div>
+                            <button class="retry-button" id="retry-btn">Zkusit znovu</button>
+                        </div>
+                    </div>
+                `;
+                
+                errorContainer.style.display = 'block';
+                
+                document.getElementById('retry-btn').addEventListener('click', () => {
+                    errorContainer.style.display = 'none';
+                    loadDashboardData();
+                });
+            }
+            
+            function hideError() {
+                const errorContainer = document.getElementById('global-error');
+                errorContainer.style.display = 'none';
+            }
+            
+            // Handle online/offline status
+            function updateOnlineStatus() {
+                if (navigator.onLine) {
+                    offlineBanner.style.display = 'none';
+                } else {
+                    offlineBanner.style.display = 'block';
+                    showToast('Jste offline. Některé funkce nemusí být dostupné.', 'warning');
+                }
+            }
+            
+            window.addEventListener('online', updateOnlineStatus);
+            window.addEventListener('offline', updateOnlineStatus);
+            updateOnlineStatus();
+            
+            // Get current user
+            async function getCurrentUser() {
+                const { data: { user } } = await supabase.auth.getUser();
+                return user;
+            }
+            
+            // Get initials from profile
+            function getInitials(userData) {
+                const first = userData.first_name ? userData.first_name[0] : '';
+                const last = userData.last_name ? userData.last_name[0] : '';
+                return (first + last).toUpperCase() || userData.username ? userData.username[0].toUpperCase() : 'U';
+            }
+            
+            // Load user profile
+            async function loadUserProfile() {
+                try {
+                    currentUser = await getCurrentUser();
+                    
+                    if (!currentUser) {
+                        window.location.href = '/login.html';
+                        return null;
+                    }
+    
+                    const { data: profile, error } = await supabase
+                        .from('profiles')
+                        .select('*')
+                        .eq('id', currentUser.id)
+                        .single();
+    
+                    if (error) throw error;
+    
+                    if (!profile) {
+                        // Create default profile if not exists
+                        const defaultProfile = {
+                            id: currentUser.id,
+                            email: currentUser.email,
+                            username: currentUser.email.split('@')[0],
+                            level: 1,
+                            points: 0,
+                            badges_count: 0,
+                            streak_days: 0,
+                            created_at: new Date().toISOString(),
+                            updated_at: new Date().toISOString(),
+                            preferences: {
+                                dark_mode: false,
+                                show_progress: true,
+                                sound_effects: true,
+                                language: 'cs'
+                            },
+                            notifications: {
+                                email: true,
+                                study_tips: true,
+                                content_updates: true,
+                                practice_reminders: true
+                            }
+                        };
+    
+                        const { data: newProfile, error: createError } = await supabase
+                            .from('profiles')
+                            .insert([defaultProfile])
+                            .select()
+                            .single();
+    
+                        if (createError) throw createError;
+                        return newProfile;
+                    }
+                    
+                    return profile;
+                } catch (error) {
+                    console.error('Error loading profile:', error);
+                    showError('Nepodařilo se načíst profil: ' + error.message);
+                    return null;
+                }
+            }
+            
+            // Update profile display in sidebar
+            function updateSidebarProfile(userData) {
+                if (!userData) return;
+                
+                // Update username
+                const displayName = `${userData.first_name || ''} ${userData.last_name || ''}`.trim() || userData.username || 'Uživatel';
+                sidebarName.textContent = displayName;
+                
+                // Update avatar
+                if (userData.avatar_url) {
+                    sidebarAvatar.innerHTML = `<img src="${userData.avatar_url}" alt="${userData.username}" />`;
+                } else {
+                    const initials = getInitials(userData);
+                    sidebarAvatar.textContent = initials;
+                }
+                
+                // Update notification count (placeholder)
+                notificationCount.textContent = '3';
+            }
+            
+            // Load user statistics
+            async function loadUserStats(userId) {
+                try {
+                    // In a real app, this would fetch from the database
+                    // Here we'll simulate some example stats
+                    const { data: stats, error } = await supabase
+                        .from('user_stats')
+                        .select('*')
+                        .eq('user_id', userId)
+                        .single();
+                    
+                    if (error && error.code !== 'PGRST116') { // PGRST116 means no rows returned
+                        throw error;
+                    }
+                    
+                    // Use stats from DB or fallback to defaults
+                    return stats || {
+                        progress: 0,
+                        progress_weekly: 0,
+                        points: 0,
+                        points_weekly: 0,
+                        streak_current: 0,
+                        streak_longest: 0
+                    };
+                    
+                } catch (error) {
+                    console.error('Error loading user stats:', error);
+                    showToast('Nepodařilo se načíst statistiky', 'error');
+                    return {
+                        progress: 0,
+                        progress_weekly: 0,
+                        points: 0,
+                        points_weekly: 0,
+                        streak_current: 0,
+                        streak_longest: 0
+                    };
+                }
+            }
+            
+            // Update stats cards
+            function updateStatsCards(stats) {
+                if (!stats) return;
+                
+                // Progress card
+                const progressValue = document.querySelector('#progress-card .stat-card-value');
+                const progressChange = document.querySelector('#progress-card .stat-card-change');
+                progressValue.textContent = `${stats.progress}%`;
+                
+                if (stats.progress_weekly > 0) {
+                    progressChange.textContent = `+${stats.progress_weekly}% tento týden`;
+                    progressChange.classList.add('positive');
+                    progressChange.classList.remove('negative');
+                } else if (stats.progress_weekly < 0) {
+                    progressChange.textContent = `${stats.progress_weekly}% tento týden`;
+                    progressChange.classList.add('negative');
+                    progressChange.classList.remove('positive');
+                } else {
+                    progressChange.textContent = `Beze změny tento týden`;
+                    progressChange.classList.remove('positive', 'negative');
+                }
+                
+                // Points card
+                const pointsValue = document.querySelector('#points-card .stat-card-value');
+                const pointsChange = document.querySelector('#points-card .stat-card-change');
+                pointsValue.textContent = stats.points;
+                
+                if (stats.points_weekly > 0) {
+                    pointsChange.textContent = `+${stats.points_weekly} tento týden`;
+                    pointsChange.classList.add('positive');
+                    pointsChange.classList.remove('negative');
+                } else if (stats.points_weekly < 0) {
+                    pointsChange.textContent = `${stats.points_weekly} tento týden`;
+                    pointsChange.classList.add('negative');
+                    pointsChange.classList.remove('positive');
+                } else {
+                    pointsChange.textContent = `Beze změny tento týden`;
+                    pointsChange.classList.remove('positive', 'negative');
+                }
+                
+                // Streak card
+                const streakValue = document.querySelector('#streak-card .stat-card-value');
+                const streakLongest = document.querySelector('#streak-card .stat-card-change');
+                streakValue.textContent = stats.streak_current;
+                streakLongest.textContent = `Nejdelší: ${stats.streak_longest} dnů`;
+            }
+            
+            // Load user activities
+            async function loadUserActivities(userId) {
+                try {
+                    // In a real app, this would fetch from the database
+                    // Here we'll simulate some example activities
+                    const { data: activities, error } = await supabase
+                        .from('activities')
+                        .select('*')
+                        .eq('user_id', userId)
+                        .order('created_at', { ascending: false })
+                        .limit(5);
+                    
+                    if (error) throw error;
+                    
+                    return activities || [];
+                    
+                } catch (error) {
+                    console.error('Error loading activities:', error);
+                    showToast('Nepodařilo se načíst aktivity', 'warning');
+                    return [];
+                }
+            }
+            
+            // Format relative time for activities
+            function formatRelativeTime(timestamp) {
+                const now = new Date();
+                const date = new Date(timestamp);
+                const diffMs = now - date;
+                const diffSec = Math.round(diffMs / 1000);
+                const diffMin = Math.round(diffSec / 60);
+                const diffHour = Math.round(diffMin / 60);
+                const diffDay = Math.round(diffHour / 24);
+                
+                if (diffSec < 60) {
+                    return 'Právě teď';
+                } else if (diffMin < 60) {
+                    return `Před ${diffMin} min`;
+                } else if (diffHour < 24) {
+                    return `Před ${diffHour} h`;
+                } else if (diffDay < 7) {
+                    return `Před ${diffDay} dny`;
+                } else {
+                    return date.toLocaleDateString('cs-CZ');
+                }
+            }
+            
+            // Render activities
+            function renderActivities(activities) {
+                if (!activities || activities.length === 0) {
+                    activityList.innerHTML = `
+                        <div style="padding: 2rem; text-align: center; color: var(--text-secondary);">
+                            <i class="fas fa-info-circle" style="font-size: 2rem; margin-bottom: 1rem; color: var(--info);"></i>
+                            <p>Zatím nemáte žádné aktivity</p>
+                            <p style="font-size: 0.9rem; margin-top: 0.5rem;">Začněte procvičovat a vaše aktivity se zobrazí zde.</p>
+                        </div>
+                    `;
                     return;
                 }
                 
-                const { data, error } = await supabase
-                    .from('profiles')
-                    .select('*')
-                    .eq('id', user.id)
-                    .single();
-                
-                if (error) throw error;
-                
-                // Update user info
-                if (data) {
-                    const displayName = data.first_name || data.username || user.email;
-                    userName.textContent = displayName;
+                const activityHTML = activities.map(activity => {
+                    let iconClass = 'completed';
+                    let iconName = 'check-circle';
                     
-                    // Set avatar initials
-                    if (data.first_name) {
-                        const initials = data.first_name.charAt(0) + (data.last_name ? data.last_name.charAt(0) : '');
-                        userAvatar.textContent = initials.toUpperCase();
-                    } else if (data.username) {
-                        userAvatar.textContent = data.username.charAt(0).toUpperCase();
-                    } else {
-                        userAvatar.textContent = user.email.charAt(0).toUpperCase();
+                    if (activity.type === 'badge') {
+                        iconClass = 'badge';
+                        iconName = 'medal';
+                    } else if (activity.type === 'streak') {
+                        iconClass = 'streak';
+                        iconName = 'fire';
                     }
                     
-                    // Set user stats
-                    completedExercises.textContent = data.completed_exercises || 0;
-                    points.textContent = data.points || 0;
-                    streakDays.textContent = data.streak_days || 0;
-                    badgesCount.textContent = data.badges_count || 0;
-                }
-                
-            } catch (error) {
-                console.error('Error fetching profile:', error);
-                showError('Nepodařilo se načíst uživatelský profil.');
-            }
-        }
-        
-        // Get recent activities
-        async function getRecentActivities() {
-            try {
-                const { data: { user } } = await supabase.auth.getUser();
-                
-                if (!user) return;
-                
-                // Replace with your activity tracking table
-                // This is a placeholder - you would need to create this table
-                const { data, error } = await supabase
-                    .from('user_activities')
-                    .select('*')
-                    .eq('user_id', user.id)
-                    .order('created_at', { ascending: false })
-                    .limit(5);
-                
-                if (error) throw error;
-                
-                // Clear loading indicator
-                activityList.innerHTML = '';
-                
-                if (data && data.length > 0) {
-                    // Display activities
-                    data.forEach(activity => {
-                        const activityItem = document.createElement('div');
-                        activityItem.className = 'activity-item';
-                        
-                        // Determine icon type
-                        let iconClass = 'completed';
-                        let iconType = 'fas fa-check-circle';
-                        
-                        if (activity.type === 'badge') {
-                            iconClass = 'badge';
-                            iconType = 'fas fa-medal';
-                        } else if (activity.type === 'streak') {
-                            iconClass = 'streak';
-                            iconType = 'fas fa-fire-alt';
-                        }
-                        
-                        // Format date
-                        const date = new Date(activity.created_at);
-                        const formattedDate = `${date.getDate().toString().padStart(2, '0')}.${(date.getMonth() + 1).toString().padStart(2, '0')}.${date.getFullYear()} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
-                        
-                        activityItem.innerHTML = `
+                    return `
+                        <div class="activity-item">
                             <div class="activity-icon ${iconClass}">
-                                <i class="${iconType}"></i>
+                                <i class="fas fa-${iconName}"></i>
                             </div>
                             <div class="activity-content">
                                 <div class="activity-title">${activity.title}</div>
                                 <div class="activity-desc">${activity.description}</div>
-                                <div class="activity-time">${formattedDate}</div>
+                                <div class="activity-time">${formatRelativeTime(activity.created_at)}</div>
                             </div>
-                        `;
-                        
-                        activityList.appendChild(activityItem);
-                    });
-                } else {
-                    // No activities
-                    activityList.innerHTML = `
-                        <div style="padding: 2rem; text-align: center; color: var(--text-muted);">
-                            <i class="fas fa-info-circle" style="font-size: 2rem; margin-bottom: 1rem; opacity: 0.5;"></i>
-                            <p>Zatím nemáte žádné aktivity.</p>
                         </div>
                     `;
+                }).join('');
+                
+                activityList.innerHTML = activityHTML;
+            }
+            
+            // Load all dashboard data
+            async function loadDashboardData() {
+                try {
+                    hideError();
+                    activityList.innerHTML = '<div class="loading">Načítání aktivit...</div>';
+                    
+                    // Load user profile
+                    currentProfile = await loadUserProfile();
+                    if (!currentProfile) return;
+                    
+                    // Update sidebar profile
+                    updateSidebarProfile(currentProfile);
+                    
+                    // Load user stats
+                    const userStats = await loadUserStats(currentProfile.id);
+                    updateStatsCards(userStats);
+                    
+                    // Load user activities
+                    const activities = await loadUserActivities(currentProfile.id);
+                    renderActivities(activities);
+                    
+                } catch (error) {
+                    console.error('Error loading dashboard data:', error);
+                    showError('Nepodařilo se načíst data: ' + error.message);
                 }
-                
-            } catch (error) {
-                console.error('Error fetching activities:', error);
-                
-                // Show placeholder message
-                activityList.innerHTML = `
-                    <div style="padding: 2rem; text-align: center; color: var(--text-muted);">
-                        <i class="fas fa-exclamation-circle" style="font-size: 2rem; margin-bottom: 1rem; opacity: 0.5;"></i>
-                        <p>Nepodařilo se načíst aktivity.</p>
-                        <button class="retry-button" onclick="getRecentActivities()">Zkusit znovu</button>
-                    </div>
-                `;
             }
-        }
-        
-        // Show error message
-        function showError(message) {
-            globalErrorMessage.textContent = message;
-            globalError.style.display = 'block';
-        }
-        
-        // Event listeners
-        startPracticeBtn.addEventListener('click', () => {
-            window.location.href = '/dashboard/procvicovani.html';
+            
+            // Event listeners
+            startPracticeBtn.addEventListener('click', () => {
+                window.location.href = '/dashboard/procvicovani.html';
+            });
+            
+            // Initialize
+            loadDashboardData();
         });
-        
-        globalRetryBtn.addEventListener('click', () => {
-            globalError.style.display = 'none';
-            init();
-        });
-        
-        // Initialize dashboard
-        async function init() {
-            try {
-                await getUserProfile();
-                await getRecentActivities();
-                
-                // Placeholder - update notification count
-                notificationCount.textContent = '3';
-                
-            } catch (error) {
-                console.error('Error initializing dashboard:', error);
-                showError('Nepodařilo se načíst dashboard. Zkuste to prosím později.');
-            }
-        }
-        
-        // Start the app
-        document.addEventListener('DOMContentLoaded', init);
     </script>
 </body>
 </html>
