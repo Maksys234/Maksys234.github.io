@@ -1259,6 +1259,7 @@
             let userProgress = {};
             let topicsData = [];
             let analyticsData = null;
+            let allTests = []; // Pro uložení všech testů
             
             // Mobile menu toggle
             mobileMenuToggle.addEventListener('click', () => {
@@ -1302,6 +1303,9 @@
                     // Načtení dat o přihlášeném uživateli
                     await loadUserProfile();
                     
+                    // Načtení všech testů (pro pozdější spojení s výsledky)
+                    await loadAllTests();
+                    
                     // Načtení dat o pokroku
                     await loadUserProgress();
                     
@@ -1316,6 +1320,24 @@
                     
                 } catch (error) {
                     console.error('Chyba při inicializaci:', error);
+                }
+            }
+            
+            // Načtení všech testů
+            async function loadAllTests() {
+                try {
+                    // Načtení všech testů z databáze
+                    const { data: tests, error } = await supabase
+                        .from('tests')
+                        .select('*');
+                        
+                    if (error) throw error;
+                    
+                    if (tests) {
+                        allTests = tests;
+                    }
+                } catch (error) {
+                    console.error('Chyba při načítání testů:', error);
                 }
             }
             
@@ -1421,19 +1443,23 @@
                     // Uložení pokroku do globální proměnné
                     userProgress = stats;
                     
-                    // Načtení výsledků testů podle předmětů
+                    // Načtení výsledků testů
                     const { data: testResults, error: testError } = await supabase
                         .from('test_results')
-                        .select('*, tests(subject)')
+                        .select('*')
                         .eq('user_id', currentUser.id);
                         
                     if (testError) throw testError;
                     
                     // Výpočet pokroku podle předmětů
                     const subjectProgress = {};
+                    
                     if (testResults && testResults.length > 0) {
                         testResults.forEach(result => {
-                            const subject = result.tests?.subject || 'Obecné';
+                            // Najdeme test podle test_id
+                            const testInfo = allTests.find(t => t.id === result.test_id);
+                            const subject = testInfo ? testInfo.subject : 'Obecné';
+                            
                             if (!subjectProgress[subject]) {
                                 subjectProgress[subject] = {
                                     total: 0,
@@ -1759,7 +1785,7 @@
                     <div class="stat-item">
                         <div class="stat-label">Dokončené testy</div>
                         <div class="stat-value">
-                            ${userProgress.completed_tests || 0}
+                                                        ${userProgress.completed_tests || 0}
                             <span class="stat-trend trend-up">+${userProgress.completed_tests - (userProgress.completed_tests_prev || 0) || 0} od posledního týdne</span>
                         </div>
                     </div>
@@ -1773,7 +1799,7 @@
                     <div class="stat-item">
                         <div class="stat-label">Dnů v řadě</div>
                         <div class="stat-value">
-                                                        ${userProgress.streak_current || 0}
+                            ${userProgress.streak_current || 0}
                             <span class="stat-trend ${userProgress.streak_current >= userProgress.streak_longest ? 'trend-up' : 'trend-neutral'}">
                                 ${userProgress.streak_current >= userProgress.streak_longest ? 'Nejdelší série' : `Nejdelší: ${userProgress.streak_longest || 0}`}
                             </span>
@@ -1913,27 +1939,23 @@
                 let startDate;
                 let dateFormat;
                 
-                // Určení rozsahu dat podle období
+                // Načtení statistik testů podle datumu
+                // Zde by ideálně bylo volání na server pro získání historických dat
+                // Pro každý časový interval bychom měli skutečná data o progrese a aktivitě
+                
                 if (period === 'week') {
-                    startDate = new Date(currentDate);
-                    startDate.setDate(startDate.getDate() - 7);
-                    dateFormat = { weekday: 'short' }; // Po, Út, St, ...
-                    
-                    // Generování dat pro posledních 7 dní
+                    // Data za poslední týden
                     for (let i = 6; i >= 0; i--) {
                         const date = new Date(currentDate);
                         date.setDate(date.getDate() - i);
-                        labels.push(date.toLocaleDateString('cs-CZ', dateFormat));
+                        labels.push(date.toLocaleDateString('cs-CZ', { weekday: 'short' }));
                         
-                        // Simulace dat pro graf (zde by normálně byla skutečná data z databáze)
-                        progress.push(calculateProgressForDate(date));
-                        activity.push(calculateActivityForDate(date));
+                        const testData = getTestDataByDate(date);
+                        progress.push(testData.progress);
+                        activity.push(testData.activity);
                     }
                 } else if (period === 'month') {
-                    startDate = new Date(currentDate);
-                    startDate.setDate(startDate.getDate() - 30);
-                    
-                    // Generování dat po týdnech
+                    // Data za poslední měsíc po týdnech
                     for (let i = 4; i >= 0; i--) {
                         const weekStart = new Date(currentDate);
                         weekStart.setDate(weekStart.getDate() - (i * 7));
@@ -1943,12 +1965,12 @@
                         const weekLabel = `${weekStart.getDate()}.${weekStart.getMonth()+1} - ${weekEnd.getDate()}.${weekEnd.getMonth()+1}`;
                         labels.push(weekLabel);
                         
-                        // Simulace dat pro graf (zde by normálně byla skutečná data z databáze)
-                        progress.push(calculateProgressForWeek(weekStart));
-                        activity.push(calculateActivityForWeek(weekStart));
+                        const weekData = getTestDataByWeek(weekStart);
+                        progress.push(weekData.progress);
+                        activity.push(weekData.activity);
                     }
                 } else if (period === 'year') {
-                    // Generování dat po měsících
+                    // Data za poslední rok po měsících
                     const monthNames = ['Led', 'Úno', 'Bře', 'Dub', 'Kvě', 'Čer', 'Čvc', 'Srp', 'Zář', 'Říj', 'Lis', 'Pro'];
                     
                     for (let i = 11; i >= 0; i--) {
@@ -1956,62 +1978,68 @@
                         date.setMonth(date.getMonth() - i);
                         labels.push(monthNames[date.getMonth()]);
                         
-                        // Simulace dat pro graf (zde by normálně byla skutečná data z databáze)
-                        progress.push(calculateProgressForMonth(date));
-                        activity.push(calculateActivityForMonth(date));
+                        const monthData = getTestDataByMonth(date);
+                        progress.push(monthData.progress);
+                        activity.push(monthData.activity);
                     }
                 }
                 
                 return { labels, progress, activity };
             }
             
-            // Funkce pro simulaci dat podle datumu
-            function calculateProgressForDate(date) {
-                // Zde by byly načteny skutečné hodnoty z analytických dat
-                // Pro demonstraci použijeme simulované hodnoty, které se postupně zvyšují
-                const base = userProgress.progress || 50;
-                const dayOffset = date.getDay(); // 0-6
-                // Přidáme malý posun podle dne v týdnu
-                return Math.min(100, Math.max(0, base - 10 + dayOffset * 3 + getRandom(-5, 5)));
-            }
-            
-            function calculateActivityForDate(date) {
-                // Simulované hodnoty pro aktivitu
-                const base = 50; // základní aktivita
-                const dayOffset = date.getDay(); // 0-6
+            // Funkce pro získání dat testů podle data
+            function getTestDataByDate(date) {
+                // Zde by ideálně bylo filtrování skutečných dat testů podle data
+                // Pro ukázku vracíme simulovaná data založená na aktuálním celkovém pokroku
                 
-                // Víkendy mají typicky nižší aktivitu
-                const weekendPenalty = (dayOffset === 0 || dayOffset === 6) ? -15 : 0;
+                const baseProgress = userProgress.progress || 50;
+                const dayOfWeek = date.getDay(); // 0 = neděle, 1 = pondělí, ...
                 
-                return Math.min(100, Math.max(0, base + weekendPenalty + getRandom(-10, 10)));
+                // Simulace fluktuace v datech
+                const progressValue = Math.min(100, Math.max(0, baseProgress - 10 + (dayOfWeek * 2) + (Math.random() * 10 - 5)));
+                
+                // Aktivita je typicky nižší o víkendech
+                let activityValue = 50;
+                if (dayOfWeek === 0 || dayOfWeek === 6) { // víkend
+                    activityValue = 30 + (Math.random() * 20);
+                } else {
+                    activityValue = 50 + (Math.random() * 30);
+                }
+                
+                return {
+                    progress: progressValue,
+                    activity: activityValue
+                };
             }
             
-            function calculateProgressForWeek(startDate) {
-                // Zde by byly načteny skutečné hodnoty z analytických dat
-                const weekNumber = Math.floor((startDate - new Date(startDate.getFullYear(), 0, 1)) / (7 * 24 * 60 * 60 * 1000));
-                const base = userProgress.progress || 50;
-                return Math.min(100, Math.max(0, base - 15 + weekNumber + getRandom(-3, 7)));
+            // Funkce pro získání dat testů podle týdne
+            function getTestDataByWeek(weekStart) {
+                const baseProgress = userProgress.progress || 50;
+                const weekNumber = Math.floor((weekStart - new Date(weekStart.getFullYear(), 0, 1)) / (7 * 24 * 60 * 60 * 1000)) + 1;
+                
+                // Simulace postupného zlepšování po týdnech
+                const progressValue = Math.min(100, Math.max(0, baseProgress - 15 + (weekNumber % 52) / 3 + (Math.random() * 6 - 3)));
+                const activityValue = Math.min(100, Math.max(0, 40 + (weekNumber % 52) / 2 + (Math.random() * 15 - 7.5)));
+                
+                return {
+                    progress: progressValue,
+                    activity: activityValue
+                };
             }
             
-            function calculateActivityForWeek(startDate) {
-                const weekNumber = Math.floor((startDate - new Date(startDate.getFullYear(), 0, 1)) / (7 * 24 * 60 * 60 * 1000));
-                return Math.min(100, Math.max(0, 40 + weekNumber * 2 + getRandom(-10, 10)));
-            }
-            
-            function calculateProgressForMonth(date) {
-                // Zde by byly načteny skutečné hodnoty z analytických dat
+            // Funkce pro získání dat testů podle měsíce
+            function getTestDataByMonth(date) {
+                const baseProgress = userProgress.progress || 50;
                 const monthOffset = date.getMonth();
-                const base = userProgress.progress || 50;
-                return Math.min(100, Math.max(0, base - 20 + monthOffset * 2 + getRandom(-5, 5)));
-            }
-            
-            function calculateActivityForMonth(date) {
-                const monthOffset = date.getMonth();
-                return Math.min(100, Math.max(0, 30 + monthOffset * 3 + getRandom(-5, 10)));
-            }
-            
-            function getRandom(min, max) {
-                return Math.floor(Math.random() * (max - min + 1)) + min;
+                
+                // Simulace měsíčních trendů
+                const progressValue = Math.min(100, Math.max(0, baseProgress - 20 + (monthOffset * 2) + (Math.random() * 6 - 3)));
+                const activityValue = Math.min(100, Math.max(0, 30 + (monthOffset * 3) + (Math.random() * 10 - 5)));
+                
+                return {
+                    progress: progressValue,
+                    activity: activityValue
+                };
             }
             
             // Zobrazení tabulky témat
