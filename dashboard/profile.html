@@ -1,43 +1,21 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="cs">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Justax Dashboard</title>
-    
-    <!-- Performance optimizations -->
-    <link rel="dns-prefetch" href="https://fonts.googleapis.com">
-    <link rel="dns-prefetch" href="https://fonts.gstatic.com">
-    <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
-    <link rel="preconnect" href="https://qcimhjjwvsbgjsitmvuh.supabase.co">
-    
-    <!-- Meta tags for SEO and sharing -->
-    <meta name="description" content="Justax Dashboard - Modern tax management system">
-    <meta name="theme-color" content="#4361ee">
-    
-    <!-- Fonts -->
+    <title>Justax - Profil</title>
+    <!-- Připojení fontů -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
-    <!-- Icons -->
+    <!-- Font Awesome CDN -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- Core CSS -->
-    <link rel="stylesheet" href="/styles/common.css">
-    <link rel="stylesheet" href="/styles/layout.css">
-    <link rel="stylesheet" href="/styles/sidebar.css">
-    <link rel="stylesheet" href="/styles/dashboard.css">
-    <link rel="stylesheet" href="/styles/components.css">
-    <link rel="stylesheet" href="/styles/animations.css">
+    <!-- Supabase JS client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="profile/profile.css">
 </head>
 <body>
-    <!-- Offline indicator -->
-    <div class="offline-banner" id="offline-banner">
-        <i class="fas fa-wifi"></i> 
-        <span>You are currently offline. Some features may be unavailable.</span>
-    </div>
-
     <!-- Sidebar -->
     <aside class="sidebar">
         <div class="sidebar-header">
@@ -49,245 +27,470 @@
         
         <ul class="sidebar-menu">
             <li class="sidebar-item">
-                <a href="/dashboard" class="sidebar-link active">
+                <a href="/dashboard.html" class="sidebar-link" id="dashboard-link">
                     <i class="fas fa-th-large"></i>
                     <span>Dashboard</span>
                 </a>
             </li>
             <li class="sidebar-item">
-                <a href="/dashboard/transactions" class="sidebar-link">
-                    <i class="fas fa-exchange-alt"></i>
-                    <span>Transactions</span>
+                <a href="/dashboard/procvicovani/profile" class="sidebar-link">
+                    <i class="fas fa-book-open"></i>
+                    <span>Procvičování</span>
                 </a>
             </li>
             <li class="sidebar-item">
-                <a href="/dashboard/reports" class="sidebar-link">
-                    <i class="fas fa-chart-bar"></i>
-                    <span>Reports</span>
+                <a href="/dashboard/pokrok.html" class="sidebar-link">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Pokrok</span>
                 </a>
             </li>
             <li class="sidebar-item">
-                <a href="/dashboard/documents" class="sidebar-link">
+                <a href="/dashboard/oceneni.html" class="sidebar-link">
+                    <i class="fas fa-medal"></i>
+                    <span>Ocenění</span>
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a href="/dashboard/materialy.html" class="sidebar-link">
                     <i class="fas fa-file-alt"></i>
-                    <span>Documents</span>
+                    <span>Materiály</span>
                 </a>
             </li>
             <li class="sidebar-item">
-                <a href="/dashboard/calendar" class="sidebar-link">
-                    <i class="fas fa-calendar-alt"></i>
-                    <span>Calendar</span>
-                </a>
-            </li>
-            <li class="sidebar-item">
-                <a href="/dashboard/settings" class="sidebar-link">
-                    <i class="fas fa-cog"></i>
-                    <span>Settings</span>
+                <a href="/dashboard/profile.html" class="sidebar-link active">
+                    <i class="fas fa-user-cog"></i>
+                    <span>Profil</span>
                 </a>
             </li>
         </ul>
-
+        
         <div class="user-profile">
-            <div class="user-avatar" id="user-avatar"></div>
+            <div class="user-avatar" id="user-avatar">MS</div>
             <div class="user-info">
-                <div class="user-name" id="user-name"></div>
-                <div class="user-role" id="user-role"></div>
+                <div class="user-name" id="user-name">Načítání...</div>
+                <div class="user-role" id="user-role">Student</div>
             </div>
+        </div>
+        
+        <div class="sidebar-footer">
+            &copy; 2025 Justax
+            <a href="#" class="sidebar-link" id="logout-link">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Odhlásit se</span>
+            </a>
         </div>
     </aside>
 
-    <main class="main-content">
-        <!-- Error container -->
-        <div id="error-container" class="error-container"></div>
-
-        <!-- Header -->
-        <header class="dashboard-header">
+    <!-- Hlavní obsah -->
+    <main>
+        <div class="dashboard-header">
             <div class="header-content">
-                <div class="header-left">
-                    <h1>Dashboard</h1>
-                    <span class="header-subtitle">Welcome back, <span id="user-greeting"></span></span>
-                </div>
+                <h1>Můj profil</h1>
                 <div class="header-actions">
                     <div class="search-box">
                         <i class="fas fa-search"></i>
-                        <input type="search" placeholder="Search..." id="global-search">
+                        <input type="text" placeholder="Hledat...">
                     </div>
-                    <button class="btn btn-primary" id="new-transaction-btn">
-                        <i class="fas fa-plus"></i>
-                        <span>New Transaction</span>
-                    </button>
-                    <div class="notifications" id="notifications-toggle">
-                        <i class="fas fa-bell"></i>
-                        <span class="notification-badge" id="notifications-count">0</span>
+                    <div class="notifications">
+                        <i class="far fa-bell"></i>
+                        <div class="notification-badge">3</div>
                     </div>
                 </div>
             </div>
-        </header>
+        </div>
 
-        <!-- Main Grid -->
-        <div class="dashboard-grid">
-            <!-- Overview Section -->
-            <section class="section overview-section animate-fade-in">
-                <h2 class="section-title">
-                    <i class="fas fa-chart-line"></i>
-                    Overview
-                </h2>
-                <div class="overview-cards">
-                    <div class="overview-card" id="total-balance"></div>
-                    <div class="overview-card" id="monthly-income"></div>
-                    <div class="overview-card" id="monthly-expenses"></div>
-                    <div class="overview-card" id="pending-tasks"></div>
+        <div class="profile-section">
+            <!-- Profil karta -->
+            <div class="profile-card">
+                <div class="profile-avatar">
+                    <!-- Bude naplněno JavaScriptem -->
                 </div>
-            </section>
-
-            <!-- Recent Transactions -->
-            <section class="section transactions-section animate-fade-in delay-1">
-                <h2 class="section-title">
-                    <i class="fas fa-history"></i>
-                    Recent Transactions
-                </h2>
-                <div class="transactions-list" id="recent-transactions"></div>
-            </section>
-
-            <!-- Quick Actions -->
-            <section class="section actions-section animate-fade-in delay-2">
-                <h2 class="section-title">
-                    <i class="fas fa-bolt"></i>
-                    Quick Actions
-                </h2>
-                <div class="actions-grid" id="quick-actions"></div>
-            </section>
+                <h2 class="profile-name">...</h2>
+                <p class="profile-username">...</p>
+                
+                <div class="profile-stats">
+                    <div class="stat-card">
+                        <div class="stat-value">0</div>
+                        <div class="stat-label">Dokončených cvičení</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">0</div>
+                        <div class="stat-label">Dnů v řadě</div>
+                    </div>
+                </div>
+                
+                <p class="profile-bio">...</p>
+                
+                <div class="profile-action">
+                    <button class="btn btn-outline" id="edit-profile-btn">
+                        <i class="fas fa-pencil-alt"></i>
+                        Upravit profil
+                    </button>
+                </div>
+                
+                <!-- Místo pro indikátor načítání nebo chybové zprávy -->
+                <div class="error-container"></div>
+            </div>
+            
+            <!-- Nastavení profilu -->
+            <div class="settings-section">
+                <div class="settings-tabs">
+                    <div class="settings-tab active" data-tab="personal-info">Osobní informace</div>
+                    <div class="settings-tab" data-tab="account">Účet</div>
+                    <div class="settings-tab" data-tab="preferences">Preference</div>
+                    <div class="settings-tab" data-tab="notifications">Oznámení</div>
+                </div>
+                
+                <div class="settings-content active" id="personal-info">
+                    <h3 class="settings-title">Osobní informace</h3>
+                    <form id="profile-form">
+                        <div class="form-section">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label" for="username">Uživatelské jméno</label>
+                                    <input type="text" class="form-control" id="username" name="username">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" for="email">E-mail</label>
+                                    <input type="email" class="form-control" id="email" name="email" readonly>
+                                    <small class="form-text">Pro změnu e-mailu kontaktujte podporu.</small>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label" for="first_name">Jméno</label>
+                                    <input type="text" class="form-control" id="first_name" name="first_name">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" for="last_name">Příjmení</label>
+                                    <input type="text" class="form-control" id="last_name" name="last_name">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="bio">O mně</label>
+                                <textarea class="form-control" id="bio" name="bio" rows="4"></textarea>
+                            </div>
+                        </div>
+                        
+                        <div class="form-section">
+                            <h4 class="settings-title">Školní informace</h4>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label" for="school">Škola</label>
+                                    <input type="text" class="form-control" id="school" name="school">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" for="grade">Třída/Ročník</label>
+                                    <input type="text" class="form-control" id="grade" name="grade">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-outline" id="cancel-changes">Zrušit</button>
+                            <button type="submit" class="btn btn-primary">
+                                <span class="btn-text">Uložit změny</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                
+                <div class="settings-content" id="account">
+                    <h3 class="settings-title">Nastavení účtu</h3>
+                    <div class="form-section">
+                        <div class="form-group">
+                            <label class="form-label">Změna hesla</label>
+                            <button class="btn btn-outline" id="change-password-btn">
+                                <i class="fas fa-lock"></i>
+                                Změnit heslo
+                            </button>
+                        </div>
+                        
+                        <div class="divider"></div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Smazání účtu</label>
+                            <p class="form-text">Tato akce je nevratná. Všechna vaše data budou trvale smazána.</p>
+                            <button class="btn btn-danger" id="delete-account-btn">
+                                <i class="fas fa-trash-alt"></i>
+                                Smazat účet
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="settings-content" id="preferences">
+                    <h3 class="settings-title">Nastavení preferencí</h3>
+                    
+                    <div class="preference-group">
+                        <h4 class="preference-title">Zobrazení</h4>
+                        <div class="preference-option">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="dark_mode">
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <span class="preference-label">Tmavý režim</span>
+                        </div>
+                        <div class="preference-option">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="show_progress">
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <span class="preference-label">Zobrazit progres na dashboardu</span>
+                        </div>
+                    </div>
+                    
+                    <div class="preference-group">
+                        <h4 class="preference-title">Jazyk a lokalizace</h4>
+                        <div class="form-group">
+                            <label class="form-label" for="language">Jazyk aplikace</label>
+                            <select class="form-control" id="language" name="language">
+                                <option value="cs">Čeština</option>
+                                <option value="en">English</option>
+                                <option value="sk">Slovenština</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="preference-group">
+                        <h4 class="preference-title">Zvuk</h4>
+                        <div class="preference-option">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="sound_effects">
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <span class="preference-label">Zvukové efekty</span>
+                        </div>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-outline" id="reset-preferences">Výchozí nastavení</button>
+                        <button type="button" class="btn btn-primary" id="save-preferences">Uložit nastavení</button>
+                    </div>
+                </div>
+                
+                <div class="settings-content" id="notifications">
+                    <h3 class="settings-title">Nastavení oznámení</h3>
+                    
+                    <div class="preference-group">
+                        <div class="preference-option">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="email_notifications">
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <span class="preference-label">E-mailová oznámení</span>
+                        </div>
+                        <div class="preference-option">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="study_tips">
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <span class="preference-label">Tipy ke studiu</span>
+                        </div>
+                        <div class="preference-option">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="content_updates">
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <span class="preference-label">Aktualizace obsahu</span>
+                        </div>
+                        <div class="preference-option">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="practice_reminders">
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <span class="preference-label">Připomínky cvičení</span>
+                        </div>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-outline" id="reset-notifications">Výchozí nastavení</button>
+                        <button type="button" class="btn btn-primary" id="save-notifications">Uložit nastavení</button>
+                    </div>
+                </div>
+            </div>
         </div>
     </main>
 
-    <!-- Modals -->
-    <div class="modal" id="transaction-modal"></div>
-    <div class="modal" id="notifications-modal"></div>
+    <!-- Modal pro nahrání avataru -->
+    <div class="modal" id="avatar-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Změnit profilový obrázek</h3>
+                <button class="modal-close" id="close-avatar-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="avatar-upload" id="avatar-upload">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <p>Přetáhněte sem obrázek nebo klikněte pro výběr</p>
+                    <span>Podporované formáty: JPG, PNG, GIF (max. 5MB)</span>
+                    <input type="file" id="avatar-input" accept="image/*">
+                </div>
+                <div id="avatar-preview">
+                    <img src="" id="avatar-preview-img" alt="Náhled avataru">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" id="cancel-avatar">Zrušit</button>
+                <button class="btn btn-primary" id="save-avatar">
+                    <span class="btn-text">Uložit</span>
+                </button>
+            </div>
+        </div>
+    </div>
 
-    <!-- Core JavaScript -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
-    <script type="module">
-        import auth from '/js/auth.js';
-        import ui from '/js/ui.js';
-        import profile from '/js/profile.js';
+    <!-- Modal pro změnu hesla -->
+    <div class="modal" id="password-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Změnit heslo</h3>
+                <button class="modal-close" id="close-password-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="password-form">
+                    <div class="form-group">
+                        <label class="form-label" for="current-password">Současné heslo</label>
+                        <input type="password" class="form-control" id="current-password" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="new-password">Nové heslo</label>
+                        <input type="password" class="form-control" id="new-password" required>
+                        <small class="form-text">Heslo musí být alespoň 8 znaků dlouhé a obsahovat písmena a číslice.</small>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="confirm-password">Potvrzení nového hesla</label>
+                        <input type="password" class="form-control" id="confirm-password" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" id="cancel-password">Zrušit</button>
+                <button class="btn btn-primary" id="save-password">
+                    <span class="btn-text">Změnit heslo</span>
+                </button>
+            </div>
+        </div>
+    </div>
 
-        // Supabase Configuration
-        const SUPABASE_URL = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10';
+    <!-- Modal pro potvrzení smazání účtu -->
+    <div class="modal" id="delete-account-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Opravdu chcete smazat účet?</h3>
+                <button class="modal-close" id="close-delete-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Touto akcí trvale smažete svůj účet a všechna data s ním spojená. Tato akce je nevratná.</p>
+                <div class="form-group">
+                    <label class="form-label" for="delete-confirm">Pro potvrzení napište "SMAZAT"</label>
+                    <input type="text" class="form-control" id="delete-confirm">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" id="cancel-delete">Zrušit</button>
+                <button class="btn btn-danger" id="confirm-delete" disabled>
+                    <span class="btn-text">Smazat účet</span>
+                </button>
+            </div>
+        </div>
+    </div>
 
-        // Initialize
-        auth.init(SUPABASE_URL, SUPABASE_KEY);
-        profile.init(auth.supabase);
-
-        // Setup UI handlers
-        document.addEventListener('DOMContentLoaded', async () => {
-            try {
-                // Initialize UI components
-                ui.initializeOfflineHandling();
+    <!-- Custom JS -->
+    <script src="profile/profile.js"></script>
+    <script>
+        // Přepínání záložek v nastavení
+        const tabs = document.querySelectorAll('.settings-tab');
+        const tabContents = document.querySelectorAll('.settings-content');
+        
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const tabId = tab.getAttribute('data-tab');
                 
-                // Load user profile
-                const userProfile = await profile.loadUserProfile();
-                if (userProfile) {
-                    document.getElementById('user-greeting').textContent = userProfile.username || userProfile.email;
-                }
-
-                // Setup event listeners
-                setupEventListeners();
+                tabs.forEach(t => t.classList.remove('active'));
+                tabContents.forEach(c => c.classList.remove('active'));
                 
-                // Load initial data
-                await loadDashboardData();
-
-            } catch (error) {
-                ui.showError(error.message);
+                tab.classList.add('active');
+                document.getElementById(tabId).classList.add('active');
+            });
+        });
+        
+        // Otevírání modálního okna pro avatar
+        document.querySelector('.profile-avatar').addEventListener('click', () => {
+            document.getElementById('avatar-modal').classList.add('active');
+        });
+        
+        // Zavírání modálních oken
+        document.querySelectorAll('.modal-close, #cancel-avatar, #cancel-password, #cancel-delete').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.modal').forEach(modal => {
+                    modal.classList.remove('active');
+                });
+            });
+        });
+        
+        // Otevírání modálního okna pro změnu hesla
+        document.getElementById('change-password-btn').addEventListener('click', () => {
+            document.getElementById('password-modal').classList.add('active');
+        });
+        
+        // Otevírání modálního okna pro smazání účtu
+        document.getElementById('delete-account-btn').addEventListener('click', () => {
+            document.getElementById('delete-account-modal').classList.add('active');
+        });
+        
+        // Kontrola vstupu pro smazání účtu
+        document.getElementById('delete-confirm').addEventListener('input', (e) => {
+            const confirmBtn = document.getElementById('confirm-delete');
+            if (e.target.value === 'SMAZAT') {
+                confirmBtn.removeAttribute('disabled');
+            } else {
+                confirmBtn.setAttribute('disabled', true);
             }
         });
-
-        function setupEventListeners() {
-            // Global search
-            const searchInput = document.getElementById('global-search');
-            searchInput.addEventListener('input', debounce(handleSearch, 300));
-
-            // New transaction button
-            document.getElementById('new-transaction-btn').addEventListener('click', () => {
-                ui.showModal('transaction-modal');
-            });
-
-            // Notifications toggle
-            document.getElementById('notifications-toggle').addEventListener('click', () => {
-                ui.showModal('notifications-modal');
-            });
-        }
-
-        async function loadDashboardData() {
-            ui.showLoading();
-            try {
-                // Load data from Supabase
-                const { data: dashboardData, error } = await auth.supabase
-                    .from('dashboard_data')
-                    .select('*')
-                    .single();
-
-                if (error) throw error;
-
-                // Update UI with real data
-                updateDashboardUI(dashboardData);
-
-            } catch (error) {
-                ui.showError('Failed to load dashboard data');
-            } finally {
-                ui.hideLoading();
-            }
-        }
-
-        function debounce(func, wait) {
-            let timeout;
-            return function executedFunction(...args) {
-                const later = () => {
-                    clearTimeout(timeout);
-                    func(...args);
+        
+        // Nahrání avataru
+        const avatarUpload = document.getElementById('avatar-upload');
+        const avatarInput = document.getElementById('avatar-input');
+        const avatarPreview = document.getElementById('avatar-preview');
+        const avatarPreviewImg = document.getElementById('avatar-preview-img');
+        
+        avatarUpload.addEventListener('click', () => {
+            avatarInput.click();
+        });
+        
+        avatarInput.addEventListener('change', handleAvatarChange);
+        
+        function handleAvatarChange(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    avatarPreviewImg.src = e.target.result;
+                    avatarPreview.style.display = 'block';
                 };
-                clearTimeout(timeout);
-                timeout = setTimeout(later, wait);
-            };
-        }
-
-        async function handleSearch(e) {
-            const searchTerm = e.target.value.trim();
-            if (searchTerm.length < 2) return;
-
-            try {
-                ui.showLoading('search-results');
-                // Implement search logic
-            } catch (error) {
-                ui.showError('Search failed. Please try again.');
-            } finally {
-                ui.hideLoading('search-results');
+                reader.readAsDataURL(file);
             }
         }
-
-        function updateDashboardUI(data) {
-            // Update overview cards
-            updateOverviewCards(data);
-            
-            // Update recent transactions
-            updateTransactionsList(data.recent_transactions);
-            
-            // Update quick actions
-            updateQuickActions();
-        }
-
-        // Dashboard UI update functions
-        function updateOverviewCards(data) {
-            // Implementation
-        }
-
-        function updateTransactionsList(transactions) {
-            // Implementation
-        }
-
-        function updateQuickActions() {
-            // Implementation
-        }
+        
+        // Drag and drop pro avatar
+        avatarUpload.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            avatarUpload.classList.add('dragover');
+        });
+        
+        avatarUpload.addEventListener('dragleave', () => {
+            avatarUpload.classList.remove('dragover');
+        });
+        
+        avatarUpload.addEventListener('drop', (e) => {
+            e.preventDefault();
+            avatarUpload.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            if (file) {
+                avatarInput.files = e.dataTransfer.files;
+                handleAvatarChange({target: {files: [file]}});
+            }
+        });
     </script>
 </body>
 </html>
