@@ -10,8 +10,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- Font Awesome CDN -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Supabase JS client -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Supabase JS client - конкретная версия -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2.38.4/dist/umd/supabase.js"></script>
     <!-- Custom CSS -->
     <link rel="stylesheet" href="profile/profile.css">
 </head>
@@ -130,6 +130,9 @@
                 
                 <!-- Místo pro indikátor načítání nebo chybové zprávy -->
                 <div class="error-container"></div>
+                
+                <!-- Кнопка очистки данных авторизации, скрытая по умолчанию -->
+                <button id="clear-auth-data" style="margin-top: 20px; display: none;">Очистить данные авторизации</button>
             </div>
             
             <!-- Nastavení profilu -->
@@ -398,7 +401,7 @@
     <!-- Custom JS -->
     <script src="profile/profile.js"></script>
     <script>
-        // Přepínání záložek v nastavení
+        // Przepínání záložek v nastavení
         const tabs = document.querySelectorAll('.settings-tab');
         const tabContents = document.querySelectorAll('.settings-content');
         
@@ -491,6 +494,25 @@
                 handleAvatarChange({target: {files: [file]}});
             }
         });
+        
+        // Кнопка очистки данных авторизации
+        document.getElementById('clear-auth-data').addEventListener('click', function() {
+            localStorage.clear();
+            sessionStorage.clear();
+            
+            // Очистка всех кук
+            document.cookie.split(";").forEach(function(c) {
+                document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+            });
+            
+            alert('Данные авторизации очищены. Страница будет перезагружена.');
+            window.location.reload();
+        });
+        
+        // Отображаем кнопку в режиме отладки
+        if (window.location.search.includes('debug=true')) {
+            document.getElementById('clear-auth-data').style.display = 'block';
+        }
     </script>
 </body>
 </html>

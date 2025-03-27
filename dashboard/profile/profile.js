@@ -1,9 +1,26 @@
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize the Supabase client
-    const supabaseUrl = 'https://qcimhjjwvsbgjsitmvuh.supabase.co'; // Replace with your actual Supabase URL
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10';
-    // Fixed initialization - use the global supabase object from CDN
-    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+    const supabaseUrl = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10'; // Замените на ваш полный ключ
+    
+    // Создаем клиент Supabase напрямую
+    const supabase = supabaseJs.createClient(supabaseUrl, supabaseKey);
+    
+    console.log('Supabase client initialized with URL:', supabaseUrl);
+    console.log('API key format check:', supabaseKey.length > 20 ? 'Key looks valid (length ok)' : 'Key too short');
+    
+    // Проверяем текущую сессию
+    supabase.auth.getSession().then(response => {
+        if (response.error) {
+            console.error('Session error:', response.error);
+        } else if (response.data.session) {
+            console.log('Session found:', response.data.session.user.email);
+        } else {
+            console.log('No active session');
+        }
+    }).catch(error => {
+        console.error('Error checking session:', error);
+    });
     
     // Elements for displaying loading state and errors
     const loadingEl = document.createElement('div');
@@ -32,6 +49,52 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 3000);
     }
     
+    // Проверка аутентификации перед загрузкой профиля
+    async function checkAuthAndLoadProfile() {
+        try {
+            // Показать индикатор загрузки
+            document.querySelector('.profile-card').appendChild(loadingEl);
+            
+            // Проверяем сессию пользователя
+            const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+            
+            if (sessionError) {
+                console.error('Session error:', sessionError);
+                throw sessionError;
+            }
+            
+            if (!sessionData.session) {
+                console.log('No active session found, redirecting to login');
+                window.location.href = '/login.html';
+                return;
+            }
+            
+            console.log('User is authenticated, loading profile...');
+            loadUserProfile();
+            
+        } catch (error) {
+            loadingEl.remove();
+            console.error('Authentication check failed:', error);
+            
+            errorContainer.innerHTML = `
+                <div class="error-message">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <div>
+                        <p>Ошибка аутентификации: ${error.message || error}</p>
+                        <button class="retry-button" id="retry-auth-btn">Попробовать снова</button>
+                    </div>
+                </div>
+            `;
+            document.querySelector('.profile-card').prepend(errorContainer);
+            errorContainer.style.display = 'block';
+            
+            errorContainer.querySelector('.retry-button').addEventListener('click', function() {
+                errorContainer.style.display = 'none';
+                checkAuthAndLoadProfile();
+            });
+        }
+    }
+    
     // Function to load user profile
     async function loadUserProfile() {
         try {
@@ -44,9 +107,11 @@ document.addEventListener('DOMContentLoaded', function() {
             if (authError) throw authError;
             
             if (!user) {
-                window.location.href = 'auth/index.html'; // Redirect to login if no user
+                window.location.href = '/login.html'; // Redirect to login if no user
                 return;
             }
+            
+            console.log('User found:', user.email);
             
             // Fetch profile data
             const { data: profile, error: profileError } = await supabase
@@ -55,7 +120,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 .eq('id', user.id)
                 .single();
             
-            if (profileError) throw profileError;
+            console.log('Profile query executed');
+            
+            if (profileError) {
+                console.error('Profile error:', profileError);
+                throw profileError;
+            }
+            
+            console.log('Profile data:', profile ? 'Profile found' : 'No profile found');
             
             // Remove loading indicator
             loadingEl.remove();
@@ -552,7 +624,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const { error } = await supabase.auth.signOut();
                 if (error) throw error;
                 
-                window.location.href = 'auth/index.html';
+                window.location.href = '/login.html';
             } catch (error) {
                 showAlert(`Chyba při odhlášení: ${error.message || error}`, 'danger');
                 console.error('Logout error:', error);
@@ -582,5 +654,5 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Initialize the profile loading
-    loadUserProfile();
+    checkAuthAndLoadProfile();
 });
