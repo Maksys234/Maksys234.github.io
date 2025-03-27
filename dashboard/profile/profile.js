@@ -1,8 +1,9 @@
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize the Supabase client
     const supabaseUrl = 'https://qcimhjjwvsbgjsitmvuh.supabase.co'; // Replace with your actual Supabase URL
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10'; // Replace with your actual anon key
-    const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuI[...]';
+    // Fixed initialization - use the global supabase object from CDN
+    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
     
     // Elements for displaying loading state and errors
     const loadingEl = document.createElement('div');
@@ -77,7 +78,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <i class="fas fa-exclamation-circle"></i>
                     <div>
                         <p>Chyba při načítání profilu: ${error.message || error}</p>
-                        <button class="retry-button">Zkusit znovu</button>
+                        <button class="retry-button" id="global-retry-btn">Zkusit znovu</button>
                     </div>
                 </div>
             `;
@@ -105,7 +106,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         // Also update the sidebar avatar if it exists
-        const sidebarAvatar = document.getElementById('sidebar-user-avatar');
+        const sidebarAvatar = document.getElementById('user-avatar');
         if (sidebarAvatar) {
             if (profile.avatar_url) {
                 sidebarAvatar.innerHTML = `<img src="${profile.avatar_url}" alt="${profile.username || 'User'}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />`;
@@ -116,7 +117,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         // Update sidebar username if it exists
-        const sidebarUsername = document.getElementById('sidebar-user-name');
+        const sidebarUsername = document.getElementById('user-name');
         if (sidebarUsername) {
             sidebarUsername.textContent = `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || profile.username || 'Uživatel';
         }
@@ -551,7 +552,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const { error } = await supabase.auth.signOut();
                 if (error) throw error;
                 
-                window.location.href = '/login.html';
+                window.location.href = 'auth/index.html';
             } catch (error) {
                 showAlert(`Chyba při odhlášení: ${error.message || error}`, 'danger');
                 console.error('Logout error:', error);
