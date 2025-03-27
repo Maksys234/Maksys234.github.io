@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize the Supabase client
     const supabaseUrl = 'https://qcimhjjwvsbgjsitmvuh.supabase.co'; // Replace with your actual Supabase URL
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuI[...]';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10';
     // Fixed initialization - use the global supabase object from CDN
     const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
     
@@ -44,7 +44,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (authError) throw authError;
             
             if (!user) {
-                window.location.href = '/login.html'; // Redirect to login if no user
+                window.location.href = 'auth/index.html'; // Redirect to login if no user
                 return;
             }
             
