@@ -4,28 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Justax - Procvičování</title>
-    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Font Awesome CDN -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Supabase JS Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <!-- Chart.js pro grafy -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- jQuery - přidáno pro některé interakce -->
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
-    
-    <style>
-        /* Základní styly */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Poppins', sans-serif;
-        }
 
+    <style>
         :root {
             --primary: #4361ee;
             --primary-light: #4895ef;
@@ -53,6 +39,13 @@
             --text-primary: #2d3748;
             --text-secondary: #4a5568;
             --text-muted: #718096;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
         }
 
         body {
@@ -257,13 +250,6 @@
             color: var(--dark);
         }
 
-        .section-text {
-            font-size: 1rem;
-            color: var(--text-secondary);
-            line-height: 1.6;
-            margin-bottom: 1.5rem;
-        }
-
         /* Grid pro dashboard */
         .dashboard-grid {
             display: grid;
@@ -453,298 +439,53 @@
             color: var(--text-secondary);
         }
 
-        /* Topic cards */
-        .topic-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 1.5rem;
-            margin-top: 1.5rem;
-        }
-
-        .topic-card {
-            background-color: var(--white);
-            border-radius: var(--card-radius);
-            padding: 1.5rem;
-            box-shadow: var(--shadow-sm);
-            transition: all 0.3s ease;
-            border-left: 4px solid var(--primary);
-        }
-
-        .topic-card:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--shadow-md);
-        }
-
-        .topic-card.strength {
-            border-left: 4px solid var(--success);
-        }
-
-        .topic-card.weakness {
-            border-left: 4px solid var(--danger);
-        }
-
-        .topic-card.neutral {
-            border-left: 4px solid var(--warning);
-        }
-
-        .topic-header {
+        /* Tabs */
+        .content-tabs {
             display: flex;
-            align-items: center;
-            margin-bottom: 1rem;
-            gap: 0.75rem;
-        }
-
-        .topic-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--white);
-            background: var(--primary);
-            font-size: 1.2rem;
-        }
-
-        .topic-card.strength .topic-icon {
-            background: var(--success);
-        }
-
-        .topic-card.weakness .topic-icon {
-            background: var(--danger);
-        }
-
-        .topic-card.neutral .topic-icon {
-            background: var(--warning);
-        }
-
-        .topic-title {
-            font-weight: 600;
-            font-size: 1.1rem;
-            color: var(--dark);
-        }
-
-        .topic-stats {
-            display: flex;
-            align-items: center;
-            margin-bottom: 1rem;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-        }
-
-        .topic-stat {
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-            display: flex;
-            align-items: center;
-            gap: 0.25rem;
-        }
-
-        .topic-content {
-            margin-top: 1rem;
-        }
-
-        .topic-content ul {
-            margin-left: 1rem;
-            list-style-type: none;
-        }
-
-        .topic-content li {
-            margin-bottom: 0.5rem;
-            position: relative;
-            padding-left: 1.5rem;
-            font-size: 0.95rem;
-        }
-
-        .topic-content li:before {
-            content: '•';
-            position: absolute;
-            left: 0;
-            color: var(--primary);
-            font-weight: bold;
-        }
-
-        .topic-card.strength li:before {
-            color: var(--success);
-        }
-
-        .topic-card.weakness li:before {
-            color: var(--danger);
-        }
-
-        /* Study plan */
-        .plan-container {
-            margin-top: 1.5rem;
-            padding: 1.5rem;
-            background-color: #f9f9ff;
-            border-radius: var(--card-radius);
-            border-left: 4px solid var(--primary);
-        }
-
-        .plan-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
+            border-bottom: 1px solid var(--gray-light);
             margin-bottom: 1.5rem;
+            overflow-x: auto;
+            scrollbar-width: none;
         }
 
-        .plan-info h3 {
-            font-size: 1.2rem;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-            color: var(--primary);
+        .content-tabs::-webkit-scrollbar {
+            display: none;
         }
 
-        .plan-date {
-            font-size: 0.9rem;
-            color: var(--text-muted);
-        }
-
-        .plan-actions {
-            display: flex;
-            gap: 0.75rem;
-        }
-
-        .plan-progress {
-            display: flex;
-            flex-direction: column;
-            margin-bottom: 1.5rem;
-        }
-
-        .plan-progress-text {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 0.5rem;
-            font-size: 0.95rem;
-        }
-
-        .plan-progress-label {
-            font-weight: 500;
-            color: var(--dark);
-        }
-
-        .plan-progress-value {
-            font-weight: 600;
-            color: var(--primary);
-        }
-
-        .plan-content {
-            margin-top: 1.5rem;
-        }
-
-        .plan-content h4 {
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin-bottom: 1rem;
-            color: var(--dark);
-            margin-top: 1.5rem;
-        }
-
-        .plan-content p {
-            margin-bottom: 1rem;
-            line-height: 1.6;
-            color: var(--text-secondary);
-        }
-
-        .plan-content ul {
-            margin-left: 1.5rem;
-            margin-bottom: 1rem;
-        }
-
-        .plan-content li {
-            margin-bottom: 0.5rem;
-            color: var(--text-secondary);
-        }
-
-        /* Schedule */
-        .weekly-schedule {
-            margin-top: 1.5rem;
-        }
-
-        .day-card {
-            background-color: var(--white);
-            border-radius: var(--card-radius);
-            margin-bottom: 1rem;
-            box-shadow: var(--shadow-sm);
-            overflow: hidden;
-            transition: all 0.3s ease;
-        }
-
-        .day-card:hover {
-            transform: translateY(-3px);
-            box-shadow: var(--shadow-md);
-        }
-
-        .day-header {
+        .content-tab {
             padding: 1rem 1.5rem;
-            background: var(--gradient-1);
-            color: white;
-            font-weight: 600;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .day-focus {
-            font-size: 0.85rem;
-            background-color: rgba(255, 255, 255, 0.2);
-            padding: 0.25rem 0.75rem;
-            border-radius: 30px;
-        }
-
-        .day-content {
-            padding: 1rem 1.5rem;
-        }
-
-        .activity-item {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 0.75rem;
-            padding-bottom: 0.75rem;
-            border-bottom: 1px dashed var(--gray-light);
-        }
-
-        .activity-item:last-child {
-            margin-bottom: 0;
-            padding-bottom: 0;
-            border-bottom: none;
-        }
-
-        .activity-time {
-            min-width: 80px;
-            color: var(--primary);
-            font-weight: 600;
-        }
-
-        .activity-info {
-            flex: 1;
-        }
-
-        .activity-title {
             font-weight: 500;
-            color: var(--dark);
-            margin-bottom: 0.25rem;
-        }
-
-        .activity-description {
-            font-size: 0.9rem;
             color: var(--text-secondary);
-        }
-
-        .activity-status {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .activity-status input[type="checkbox"] {
-            width: 18px;
-            height: 18px;
             cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            position: relative;
         }
 
-        /* Statistiky testu */
+        .content-tab.active {
+            color: var(--primary);
+        }
+
+        .content-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background-color: var(--primary);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.5s ease forwards;
+        }
+
+        /* Test stats */
         .test-stats {
             display: flex;
             flex-wrap: wrap;
@@ -822,14 +563,14 @@
             color: var(--text-secondary);
         }
 
-        /* Chart area */
+        /* Chart container */
         .chart-container {
             height: 300px;
             position: relative;
             margin-bottom: 2rem;
         }
 
-        /* Latest test result */
+        /* Test results */
         .test-result-header {
             display: flex;
             justify-content: space-between;
@@ -927,6 +668,150 @@
             color: var(--primary);
         }
 
+        /* Study plan */
+        .plan-container {
+            margin-top: 1.5rem;
+            padding: 1.5rem;
+            background-color: #f9f9ff;
+            border-radius: var(--card-radius);
+            border-left: 4px solid var(--primary);
+        }
+
+        .plan-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1.5rem;
+        }
+
+        .plan-info h3 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--primary);
+        }
+
+        .plan-date {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .plan-actions {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .plan-progress {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 1.5rem;
+        }
+
+        .plan-progress-text {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            font-size: 0.95rem;
+        }
+
+        .plan-progress-label {
+            font-weight: 500;
+            color: var(--dark);
+        }
+
+        .plan-progress-value {
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        /* Topic cards */
+        .topic-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .topic-card {
+            background-color: var(--white);
+            border-radius: var(--card-radius);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.3s ease;
+            border-left: 4px solid var(--primary);
+        }
+
+        .topic-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .topic-card.strength {
+            border-left: 4px solid var(--success);
+        }
+
+        .topic-card.weakness {
+            border-left: 4px solid var(--danger);
+        }
+
+        .topic-card.neutral {
+            border-left: 4px solid var(--warning);
+        }
+
+        .topic-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+            gap: 0.75rem;
+        }
+
+        .topic-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--white);
+            background: var(--primary);
+            font-size: 1.2rem;
+        }
+
+        .topic-card.strength .topic-icon {
+            background: var(--success);
+        }
+
+        .topic-card.weakness .topic-icon {
+            background: var(--danger);
+        }
+
+        .topic-card.neutral .topic-icon {
+            background: var(--warning);
+        }
+
+        .topic-title {
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: var(--dark);
+        }
+
+        .topic-stats {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .topic-stat {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
         /* Loading */
         .loading {
             display: flex;
@@ -979,59 +864,57 @@
             margin-right: auto;
         }
 
-        /* Tabs */
-        .content-tabs {
+        /* Error message */
+        .error-message {
             display: flex;
-            border-bottom: 1px solid var(--gray-light);
-            margin-bottom: 1.5rem;
-            overflow-x: auto;
-            scrollbar-width: none;
+            align-items: center;
+            background-color: rgba(247, 37, 133, 0.1);
+            color: var(--danger);
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
         }
 
-        .content-tabs::-webkit-scrollbar {
+        .error-message i {
+            font-size: 1.25rem;
+            margin-right: 0.75rem;
+        }
+
+        /* Mobile menu */
+        .mobile-menu-toggle {
             display: none;
-        }
-
-        .content-tab {
-            padding: 1rem 1.5rem;
-            font-weight: 500;
-            color: var(--text-secondary);
+            background: none;
+            border: none;
             cursor: pointer;
-            transition: all 0.3s ease;
-            white-space: nowrap;
-            position: relative;
+            font-size: 1.5rem;
+            color: var(--dark);
         }
 
-        .content-tab.active {
-            color: var(--primary);
-        }
-
-        .content-tab.active::after {
-            content: '';
-            position: absolute;
-            bottom: -1px;
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
             left: 0;
             width: 100%;
-            height: 2px;
-            background-color: var(--primary);
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 99;
+            opacity: 0;
+            transition: opacity 0.3s ease;
         }
 
-        .tab-content {
-            display: none;
-        }
-
-        .tab-content.active {
+        .sidebar-overlay.active {
             display: block;
-            animation: fadeIn 0.5s ease forwards;
+            opacity: 1;
         }
 
-        /* Animace */
+        /* Animations */
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Responsivní design */
+        /* Responsive design */
         @media (max-width: 992px) {
             :root {
                 --sidebar-width: 80px;
@@ -1122,6 +1005,7 @@
             
             .sidebar {
                 transform: translateX(-100%);
+                z-index: 1000;
             }
 
             .sidebar.active {
@@ -1142,35 +1026,6 @@
                 align-items: flex-start;
                 gap: 0.5rem;
             }
-        }
-
-        /* Mobile menu toggle */
-        .mobile-menu-toggle {
-            display: none;
-            background: none;
-            border: none;
-            cursor: pointer;
-            font-size: 1.5rem;
-            color: var(--dark);
-        }
-
-        /* Overlay for mobile */
-        .sidebar-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            z-index: 99;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .sidebar-overlay.active {
-            display: block;
-            opacity: 1;
         }
 
         /* Dark mode */
@@ -1405,10 +1260,22 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Inicializace Supabase klienta
+            // Inicializace Supabase klienta s vlastními hlavičkami
             const supabaseUrl = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
             const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10';
-            const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+            
+            // Konfigurujeme Supabase s explicitními hlavičkami pro řešení problémů s HTTP 406
+            const supabaseOptions = {
+                global: {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json, text/plain, */*',
+                        'X-Client-Info': 'supabase-js/2.0.0'
+                    }
+                }
+            };
+            
+            const supabase = window.supabase.createClient(supabaseUrl, supabaseKey, supabaseOptions);
             
             // DOM elementy
             const userAvatar = document.getElementById('user-avatar');
@@ -1475,14 +1342,11 @@
             // Event listener pro přepínání záložek
             contentTabs.forEach(tab => {
                 tab.addEventListener('click', () => {
-                    // Odstranění aktivní třídy ze všech záložek
                     contentTabs.forEach(t => t.classList.remove('active'));
                     tabContents.forEach(c => c.classList.remove('active'));
                     
-                    // Přidání aktivní třídy na kliknutou záložku
                     tab.classList.add('active');
                     
-                    // Aktivace odpovídajícího obsahu
                     const tabId = tab.getAttribute('data-tab');
                     document.getElementById(tabId).classList.add('active');
                 });
@@ -1534,6 +1398,7 @@
                         .select('*');
                     
                     if (error) {
+                        console.error('Error loading tests:', error);
                         throw error;
                     }
                     
@@ -1612,7 +1477,7 @@
                 }
             }
             
-            // Načtení statistik uživatele - upraven přístup, aby se vyhnul chybám
+            // Načtení statistik uživatele - vyhneme se použití user_stats tabulky
             async function loadUserStats() {
                 if (!currentUser) return;
                 
@@ -1636,7 +1501,7 @@
                     // Načtení výsledků testů pro výpočet počtu dokončených testů
                     const { data: results, error: resultsError } = await supabase
                         .from('test_results')
-                        .select('*')
+                        .select('created_at')
                         .eq('user_id', currentUser.id);
                     
                     if (!resultsError && results) {
@@ -1761,12 +1626,12 @@
                 }
             }
             
-            // Načtení výsledků testů - upaven přístup, aby se vyhnul chybám se spojováním tabulek
+            // Načtení výsledků testů - bez pokusu o join s tabulkou tests
             async function loadTestResults() {
                 if (!currentUser) return;
                 
                 try {
-                    // Načtení výsledků testů samostatně, bez pokusu o join s tabulkou tests
+                    // Načtení výsledků testů samostatně
                     const { data, error } = await supabase
                         .from('test_results')
                         .select('*')
@@ -1774,9 +1639,12 @@
                         .order('created_at', { ascending: false })
                         .limit(10);
                     
-                    if (error) throw error;
+                    if (error) {
+                        console.error('Error loading test results:', error);
+                        throw error;
+                    }
                     
-                                        // Pokud nemáme výsledky
+                    // Pokud nemáme výsledky
                     if (!data || data.length === 0) {
                         // Zobrazení prázdného stavu
                         testResultsContent.style.display = 'none';
@@ -1841,7 +1709,7 @@
                 const avgTime = testResults.reduce((acc, test) => acc + test.time_spent, 0) / testResults.length;
                 const correctAnswersRate = testResults.reduce((acc, test) => acc + (test.correct_answers / test.total_questions * 100), 0) / testResults.length;
                 
-                // Formátování času ve formátu MM:SS
+                                // Formátování času ve formátu MM:SS
                 const formatTime = (seconds) => {
                     const minutes = Math.floor(seconds / 60);
                     const secs = seconds % 60;
@@ -2587,7 +2455,16 @@
             // Získání instance Supabase z window objektu
             const supabase = window.supabase.createClient(
                 'https://qcimhjjwvsbgjsitmvuh.supabase.co',
-                'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10'
+                'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10',
+                {
+                    global: {
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json, text/plain, */*',
+                            'X-Client-Info': 'supabase-js/2.0.0'
+                        }
+                    }
+                }
             );
             
             // Aktualizace stavu aktivity
@@ -2603,6 +2480,12 @@
                     
                     if (error) {
                         console.error('Chyba při aktualizaci stavu aktivity:', error);
+                    } else {
+                        // Aktualizace UI - musíme manuálně aktualizovat progress při globální funkci
+                        setTimeout(() => {
+                            const progressEvent = new CustomEvent('plan-activity-updated');
+                            document.dispatchEvent(progressEvent);
+                        }, 100);
                     }
                 } catch (err) {
                     console.error('Chyba při aktualizaci stavu aktivity:', err);
@@ -2612,3 +2495,4 @@
     </script>
 </body>
 </html>
+                    
