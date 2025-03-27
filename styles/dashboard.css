@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Justax - Profil</title>
+    <title>Justax Dashboard</title>
     <!-- Připojení fontů -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -38,7 +38,6 @@
             --gradient-1: linear-gradient(135deg, #4361ee, #3a0ca3);
             --gradient-2: linear-gradient(135deg, #4cc9f0, #4361ee);
             --gradient-3: linear-gradient(135deg, #f72585, #7209b7);
-            --gradient-4: linear-gradient(135deg, #f8961e, #f3722c);
             --white: #ffffff;
             --sidebar-width: 260px;
             --transition-speed: 0.3s;
@@ -277,14 +276,6 @@
             gap: 1.75rem;
         }
 
-        .section {
-            background-color: var(--white);
-            border-radius: var(--card-radius);
-            box-shadow: var(--shadow-sm);
-            padding: 1.5rem;
-            animation: fadeIn 0.5s ease forwards;
-        }
-
         .section-title {
             font-size: 1.3rem;
             font-weight: 600;
@@ -292,323 +283,348 @@
             color: var(--dark);
         }
 
-        /* Profile specific styles */
-        .profile-header {
+        /* Uvítací banner */
+        .welcome-banner {
+            background: var(--gradient-2);
+            border-radius: var(--card-radius);
+            box-shadow: var(--shadow-md);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .welcome-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 2.5rem 3rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .welcome-text-content {
+            max-width: 60%;
+            color: var(--white);
+        }
+
+        .welcome-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .welcome-text {
+            font-size: 1rem;
+            margin-bottom: 1.5rem;
+            opacity: 0.9;
+            line-height: 1.6;
+        }
+
+        .welcome-button {
+            background-color: var(--white);
+            color: var(--primary);
+            border: none;
+            border-radius: 12px;
+            padding: 0.75rem 1.5rem;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .welcome-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+        }
+
+        .welcome-image {
+            width: 300px;
+            height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .welcome-image img {
+            max-width: 100%;
+            max-height: 100%;
+        }
+
+        /* Statistické karty */
+        .stat-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            opacity: 0;
+            animation: fadeIn 0.6s ease forwards;
+            animation-delay: 0.2s;
+        }
+
+        .stat-card {
+            background-color: var(--white);
+            border-radius: var(--card-radius);
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .stat-card-content {
+            display: flex;
+            padding: 1.5rem;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .stat-card-info {
+            flex-grow: 1;
+        }
+
+        .stat-card-title {
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 0.75rem;
+        }
+
+        .stat-card-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-card-change {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .stat-card-change.positive {
+            color: #10b981;
+        }
+
+        .stat-card-change.negative {
+            color: var(--danger);
+        }
+
+        .stat-card-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: var(--white);
+        }
+
+        .progress-icon {
+            background: linear-gradient(135deg, #4cc9f0, #4361ee);
+        }
+
+        .points-icon {
+            background: linear-gradient(135deg, #f8961e, #f3722c);
+        }
+
+        .streak-icon {
+            background: linear-gradient(135deg, #f72585, #b5179e);
+        }
+
+        .stat-card-footer {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid var(--gray-light);
+        }
+
+        .stat-card-footer a {
+            display: block;
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+
+        .stat-card-footer a i {
+            margin-left: 0.5rem;
+            transition: transform 0.2s ease;
+        }
+
+        .stat-card-footer a:hover i {
+            transform: translateX(3px);
+        }
+
+        /* Zkratky */
+        .shortcut-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            opacity: 0;
+            animation: fadeIn 0.6s ease forwards;
+            animation-delay: 0.3s;
+        }
+
+        .shortcut-card {
+            background-color: var(--white);
+            border-radius: var(--card-radius);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-sm);
+            text-decoration: none;
+            color: var(--text-primary);
+            transition: all 0.3s ease;
             display: flex;
             flex-direction: column;
             align-items: center;
             text-align: center;
-            margin-bottom: 2rem;
+            border: 1px solid transparent;
         }
-        
-        .profile-avatar {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            background: var(--gradient-2);
+
+        .shortcut-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-md);
+            border-color: var(--primary-light);
+        }
+
+        .shortcut-icon {
+            width: 70px;
+            height: 70px;
+            border-radius: 20px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 2.5rem;
-            color: white;
+            font-size: 1.75rem;
             margin-bottom: 1rem;
-            position: relative;
-            overflow: hidden;
-            box-shadow: var(--shadow-md);
-        }
-        
-        .profile-avatar img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        
-        .profile-avatar .edit-avatar {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: rgba(0, 0, 0, 0.5);
-            color: white;
-            padding: 0.5rem;
-            font-size: 0.8rem;
-            opacity: 0;
+            background-color: #f0f5ff;
+            color: var(--primary);
             transition: all 0.3s ease;
-            cursor: pointer;
         }
-        
-        .profile-avatar:hover .edit-avatar {
-            opacity: 1;
+
+        .shortcut-card:hover .shortcut-icon {
+            background-color: var(--primary);
+            color: var(--white);
         }
-        
-        .profile-name {
-            font-size: 1.5rem;
+
+        .shortcut-title {
+            font-size: 1.1rem;
             font-weight: 600;
-            margin-bottom: 0.25rem;
+            margin-bottom: 0.5rem;
+            color: var(--dark);
         }
-        
-        .profile-email {
+
+        .shortcut-desc {
             font-size: 0.9rem;
             color: var(--text-muted);
-            margin-bottom: 1rem;
-        }
-        
-        .profile-stats {
-            display: flex;
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-        
-        .stat-item {
-            text-align: center;
-        }
-        
-        .stat-value {
-            font-size: 1.75rem;
-            font-weight: 700;
-            color: var(--primary);
-        }
-        
-        .stat-label {
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-        }
-        
-        .profile-tabs {
-            display: flex;
-            border-bottom: 1px solid var(--gray-light);
-            margin-bottom: 1.5rem;
-            overflow-x: auto;
-        }
-        
-        .profile-tab {
-            padding: 1rem 1.5rem;
-            font-weight: 500;
-            color: var(--text-secondary);
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border-bottom: 3px solid transparent;
-            white-space: nowrap;
-        }
-        
-        .profile-tab.active {
-            color: var(--primary);
-            border-bottom-color: var(--primary);
-        }
-        
-        .tab-content {
-            display: none;
-        }
-        
-        .tab-content.active {
-            display: block;
-            animation: fadeIn 0.5s ease forwards;
-        }
-        
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-        
-        .form-label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 500;
-            color: var(--text-primary);
-        }
-        
-        .form-control {
-            width: 100%;
-            padding: 0.75rem 1rem;
-            border: 1px solid var(--gray-light);
-            border-radius: 12px;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-            background-color: var(--light);
-        }
-        
-        .form-control:focus {
-            border-color: var(--primary-light);
-            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
-            outline: none;
-        }
-        
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1rem;
-        }
-        
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            padding: 0.75rem 1.5rem;
-            border-radius: 12px;
-            font-weight: 500;
-            font-size: 0.95rem;
-            text-decoration: none;
-            transition: all 0.3s ease;
-            cursor: pointer;
-            border: none;
-            gap: 0.5rem;
+            line-height: 1.5;
         }
 
-        .btn-primary {
-            background: var(--gradient-1);
-            color: white;
-            box-shadow: 0 4px 10px rgba(67, 97, 238, 0.2);
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 16px rgba(67, 97, 238, 0.25);
-        }
-
-        .btn-outline {
-            background: transparent;
-            color: var(--primary);
-            box-shadow: 0 0 0 1px var(--primary) inset;
-        }
-
-        .btn-outline:hover {
-            background-color: rgba(67, 97, 238, 0.05);
-        }
-        
-        .settings-group {
-            margin-bottom: 2rem;
-        }
-        
-        .settings-title {
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin-bottom: 1rem;
-            color: var(--dark);
-            border-bottom: 1px solid var(--gray-light);
-            padding-bottom: 0.5rem;
-        }
-        
-        .toggle-switch {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-        }
-        
-        .toggle-label {
-            font-weight: 500;
-        }
-        
-        .toggle-desc {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            margin-top: 0.25rem;
-        }
-        
-        .switch {
-            position: relative;
-            display: inline-block;
-            width: 50px;
-            height: 26px;
-        }
-        
-        .switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-        
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: var(--gray-light);
-            transition: .4s;
-            border-radius: 34px;
-        }
-        
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 20px;
-            width: 20px;
-            left: 3px;
-            bottom: 3px;
-            background-color: white;
-            transition: .4s;
-            border-radius: 50%;
-        }
-        
-        input:checked + .slider {
-            background-color: var(--primary);
-        }
-        
-        input:focus + .slider {
-            box-shadow: 0 0 1px var(--primary);
-        }
-        
-        input:checked + .slider:before {
-            transform: translateX(24px);
-        }
-        
-        .danger-zone {
-            background-color: rgba(247, 37, 133, 0.05);
-            border: 1px solid rgba(247, 37, 133, 0.2);
+        /* Nedávné aktivity */
+        .activity-list {
+            background-color: var(--white);
             border-radius: var(--card-radius);
-            padding: 1.5rem;
-            margin-top: 2rem;
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
+            opacity: 0;
+            animation: fadeIn 0.6s ease forwards;
+            animation-delay: 0.4s;
         }
-        
-        .danger-zone-title {
-            color: var(--danger);
-            font-weight: 600;
-            font-size: 1.1rem;
-            margin-bottom: 1rem;
+
+        .activity-item {
+            display: flex;
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--gray-light);
+            transition: background-color 0.2s ease;
         }
-        
-        .danger-zone-desc {
-            color: var(--text-secondary);
-            margin-bottom: 1.5rem;
-            font-size: 0.95rem;
+
+        .activity-item:last-child {
+            border-bottom: none;
         }
-        
-        .btn-danger {
-            background: var(--danger);
-            color: white;
-            padding: 0.75rem 1.5rem;
-            border-radius: 12px;
-            border: none;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: inline-flex;
+
+        .activity-item:hover {
+            background-color: #f8faff;
+        }
+
+        .activity-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 15px;
+            display: flex;
             align-items: center;
-            gap: 0.5rem;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-right: 1rem;
+            color: white;
         }
-        
-        .btn-danger:hover {
-            background: #e01f71;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 10px rgba(247, 37, 133, 0.2);
+
+        .activity-icon.completed {
+            background: linear-gradient(135deg, #10b981, #059669);
         }
-        
-        .field-error {
-            color: var(--danger);
-            font-size: 0.85rem;
-            margin-top: 0.5rem;
-            display: none;
+
+        .activity-icon.badge {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
         }
-        
-        .is-invalid {
-            border-color: var(--danger) !important;
+
+        .activity-icon.streak {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
         }
-        
-        .is-invalid:focus {
-            box-shadow: 0 0 0 3px rgba(247, 37, 133, 0.15) !important;
+
+        .activity-content {
+            flex-grow: 1;
         }
-        
-        /* Loading */
+
+        .activity-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+            color: var(--dark);
+        }
+
+        .activity-desc {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.25rem;
+        }
+
+        .activity-time {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .view-all-link {
+            display: block;
+            text-align: center;
+            padding: 1rem;
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+            background-color: var(--white);
+            border-radius: 0 0 var(--card-radius) var(--card-radius);
+            box-shadow: var(--shadow-sm);
+            margin-top: 1rem;
+            transition: all 0.2s ease;
+        }
+
+        .view-all-link i {
+            margin-left: 0.5rem;
+            transition: transform 0.2s ease;
+        }
+
+        .view-all-link:hover i {
+            transform: translateX(3px);
+        }
+
+        /* Patička */
+        .dashboard-footer {
+            margin-top: 2rem;
+            padding: 1.5rem 0;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        /* Nahrávací indikátor */
         .loading {
             display: flex;
             justify-content: center;
@@ -630,15 +646,12 @@
         }
 
         @keyframes loading-spinner {
-            to { transform: rotate(360deg); }
-        }
-        
-        /* Error container */
-        .error-container {
-            display: none;
-            margin-bottom: 1.5rem;
+            to {
+                transform: rotate(360deg);
+            }
         }
 
+        /* Error styling */
         .error-message {
             background-color: #fff2f5;
             border-left: 4px solid var(--danger);
@@ -656,6 +669,11 @@
             font-size: 1.25rem;
         }
 
+        .error-container {
+            display: none;
+            margin-bottom: 1.5rem;
+        }
+
         .retry-button {
             background-color: var(--primary);
             color: white;
@@ -671,141 +689,20 @@
         .retry-button:hover {
             background-color: var(--secondary);
         }
-        
-        /* Modal */
-        .modal {
+
+        .offline-banner {
             display: none;
+            background-color: var(--warning);
+            color: white;
+            padding: 0.75rem;
+            text-align: center;
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
-            bottom: 0;
-            background-color: rgba(0, 0, 0, 0.5);
             z-index: 1000;
-            align-items: center;
-            justify-content: center;
-            opacity: 0;
-            transition: all 0.3s ease;
         }
-        
-        .modal.active {
-            display: flex;
-            opacity: 1;
-        }
-        
-        .modal-content {
-            background-color: var(--white);
-            border-radius: var(--card-radius);
-            width: 90%;
-            max-width: 500px;
-            box-shadow: var(--shadow-lg);
-            transform: translateY(-20px);
-            transition: all 0.3s ease;
-        }
-        
-        .modal.active .modal-content {
-            transform: translateY(0);
-        }
-        
-        .modal-header {
-            padding: 1.5rem;
-            border-bottom: 1px solid var(--gray-light);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .modal-title {
-            font-size: 1.25rem;
-            font-weight: 600;
-            color: var(--dark);
-        }
-        
-        .modal-close {
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            cursor: pointer;
-            color: var(--text-muted);
-        }
-        
-        .modal-body {
-            padding: 1.5rem;
-        }
-        
-        .modal-footer {
-            padding: 1.5rem;
-            border-top: 1px solid var(--gray-light);
-            display: flex;
-            justify-content: flex-end;
-            gap: 1rem;
-        }
-        
-        .avatar-upload {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        
-        .avatar-preview {
-            width: 150px;
-            height: 150px;
-            border-radius: 50%;
-            overflow: hidden;
-            margin-bottom: 1rem;
-            border: 3px solid var(--primary-light);
-            background-color: var(--primary-light);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 3rem;
-        }
-        
-        .avatar-preview img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        
-        .file-upload {
-            position: relative;
-            overflow: hidden;
-            margin: 10px 0;
-            text-align: center;
-        }
-        
-        .file-upload input[type=file] {
-            position: absolute;
-            top: 0;
-            right: 0;
-            min-width: 100%;
-            min-height: 100%;
-            font-size: 100px;
-            text-align: right;
-            filter: alpha(opacity=0);
-            opacity: 0;
-            outline: none;
-            cursor: pointer;
-            display: block;
-        }
-        
-        .upload-btn {
-            border: 1px solid var(--primary);
-            color: var(--primary);
-            background-color: transparent;
-            padding: 8px 20px;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 500;
-            cursor: pointer;
-        }
-        
-        .upload-btn:hover {
-            background-color: var(--primary);
-            color: white;
-        }
-        
+
         /* Toast notification */
         .toast {
             position: fixed;
@@ -858,50 +755,38 @@
         .toast.warning i {
             color: var(--warning);
         }
-        
-        /* Offline banner */
-        .offline-banner {
-            display: none;
-            background-color: var(--warning);
-            color: white;
-            padding: 0.75rem;
-            text-align: center;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 1000;
-        }
-        
-        /* Animation */
+
+        /* Animace a efekty */
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        
-        .animated {
-            animation: fadeIn 0.5s ease forwards;
+
+        .main-content > section {
+            animation: fadeIn 0.6s ease forwards;
         }
-        
-        /* Footer */
-        .dashboard-footer {
-            margin-top: 2rem;
-            padding: 1.5rem 0;
-            text-align: center;
-            color: var(--text-muted);
-            font-size: 0.9rem;
+
+        /* Media queries pro responzivní design */
+        @media (max-width: 1200px) {
+            .welcome-content {
+                padding: 2rem;
+            }
+            
+            .welcome-text-content {
+                max-width: 100%;
+            }
+            
+            .welcome-image {
+                display: none;
+            }
         }
-        
-        /* Responsive styles */
+
         @media (max-width: 992px) {
             :root {
                 --sidebar-width: 80px;
             }
             
-            .sidebar-logo span, 
-            .sidebar-link span, 
-            .user-info, 
-            .sidebar-footer {
+            .sidebar-logo span, .sidebar-link span, .user-info, .sidebar-footer {
                 display: none;
             }
             
@@ -914,8 +799,7 @@
                 margin-right: 0;
             }
             
-            .sidebar-header, 
-            .sidebar-link {
+            .sidebar-header, .sidebar-link {
                 justify-content: center;
             }
             
@@ -953,18 +837,12 @@
                 width: 100%;
             }
             
-            .form-row {
+            .stat-cards, .shortcut-grid {
                 grid-template-columns: 1fr;
             }
             
-            .profile-stats {
-                flex-wrap: wrap;
-                justify-content: center;
-            }
-            
-            .profile-tab {
-                padding: 0.75rem 1rem;
-                font-size: 0.9rem;
+            .welcome-button {
+                width: 100%;
             }
         }
 
@@ -986,7 +864,7 @@
             }
         }
 
-        /* Dark mode */
+        /* Tmavý režim */
         @media (prefers-color-scheme: dark) {
             :root {
                 --white: #1a202c;
@@ -1012,18 +890,17 @@
                 color: #a0aec0;
             }
             
-            .user-profile {
-                background-color: rgba(255, 255, 255, 0.05);
-            }
-            
-            .avatar-preview {
-                border-color: var(--primary);
-            }
-            
-            .form-control {
+            .welcome-button {
                 background-color: #2d3748;
-                color: var(--text-primary);
-                border-color: #4a5568;
+                color: #4cc9f0;
+            }
+            
+            .shortcut-icon {
+                background-color: #2d3748;
+            }
+            
+            .activity-item:hover {
+                background-color: #1e2533;
             }
         }
     </style>
@@ -1045,7 +922,7 @@
         
         <ul class="sidebar-menu">
             <li class="sidebar-item">
-                <a href="/dashboard.html" class="sidebar-link" id="dashboard-link">
+                <a href="/dashboard.html" class="sidebar-link active">
                     <i class="fas fa-th-large"></i>
                     <span>Dashboard</span>
                 </a>
@@ -1075,7 +952,7 @@
                 </a>
             </li>
             <li class="sidebar-item">
-                <a href="/dashboard/profile.html" class="sidebar-link active">
+                <a href="/dashboard/profile.html" class="sidebar-link">
                     <i class="fas fa-user-cog"></i>
                     <span>Profil</span>
                 </a>
@@ -1101,7 +978,7 @@
 
         <header class="dashboard-header">
             <div class="header-content">
-                <h1>Profil</h1>
+                <h1>Dashboard</h1>
                 <div class="header-actions">
                     <div class="search-box">
                         <i class="fas fa-search"></i>
@@ -1116,226 +993,123 @@
         </header>
         
         <div class="main-content">
-            <section class="section profile-section">
-                <div id="profile-loading" class="loading">Načítání profilu...</div>
-                
-                <div id="profile-content" style="display:none;">
-                    <div class="profile-header">
-                        <div class="profile-avatar" id="profile-avatar">
-                            <span>MS</span>
-                            <div class="edit-avatar" id="edit-avatar-btn">
-                                <i class="fas fa-camera"></i> Změnit
+            <!-- Welcome banner -->
+            <section class="welcome-banner">
+                <div class="welcome-content">
+                    <div class="welcome-text-content">
+                        <h2 class="welcome-title">Vítejte ve vašem Dashboardu</h2>
+                        <p class="welcome-text">Zde můžete spravovat nastavení profilu, sledovat svůj pokrok a procvičovat své dovednosti.</p>
+                        <button class="welcome-button" id="start-practice-btn">Začít procvičovat</button>
+                    </div>
+                    <div class="welcome-image">
+                        <svg width="300" height="200" viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
+                            <rect x="400" y="300" width="300" height="200" rx="20" fill="#ffffff" opacity="0.1"/>
+                            <circle cx="400" cy="300" r="100" fill="#ffffff" opacity="0.1"/>
+                            <circle cx="400" cy="300" r="50" fill="#ffffff" opacity="0.2"/>
+                        </svg>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Stats -->
+            <section class="stats-section">
+                <h2 class="section-title">Váš pokrok</h2>
+                <div class="stat-cards">
+                    <div class="stat-card" id="progress-card">
+                        <div class="stat-card-content">
+                            <div class="stat-card-info">
+                                <div class="stat-card-title">Celkový pokrok</div>
+                                <div class="stat-card-value">0%</div>
+                                <div class="stat-card-change positive">+0% tento týden</div>
+                            </div>
+                            <div class="stat-card-icon progress-icon">
+                                <i class="fas fa-chart-line"></i>
                             </div>
                         </div>
-                        <h2 class="profile-name" id="profile-name">Načítání...</h2>
-                        <p class="profile-email" id="profile-email">Načítání...</p>
-                        <div class="profile-stats">
-                            <div class="stat-item">
-                                <div class="stat-value" id="profile-level">1</div>
-                                <div class="stat-label">Úroveň</div>
-                            </div>
-                            <div class="stat-item">
-                                <div class="stat-value" id="profile-points">0</div>
-                                <div class="stat-label">Bodů</div>
-                            </div>
-                            <div class="stat-item">
-                                <div class="stat-value" id="profile-badges">0</div>
-                                <div class="stat-label">Odznaků</div>
-                            </div>
-                            <div class="stat-item">
-                                <div class="stat-value" id="profile-streak">0</div>
-                                <div class="stat-label">Dnů v řadě</div>
-                            </div>
+                        <div class="stat-card-footer">
+                            <a href="/dashboard/pokrok.html">Zobrazit podrobnosti <i class="fas fa-chevron-right"></i></a>
                         </div>
                     </div>
-                    
-                    <div class="profile-tabs">
-                        <div class="profile-tab active" data-tab="personal-info">
-                            <i class="fas fa-user-edit"></i> Osobní údaje
+
+                    <div class="stat-card" id="points-card">
+                        <div class="stat-card-content">
+                            <div class="stat-card-info">
+                                <div class="stat-card-title">Body</div>
+                                <div class="stat-card-value">0</div>
+                                <div class="stat-card-change positive">+0 tento týden</div>
+                            </div>
+                            <div class="stat-card-icon points-icon">
+                                <i class="fas fa-star"></i>
+                            </div>
                         </div>
-                        <div class="profile-tab" data-tab="password">
-                            <i class="fas fa-lock"></i> Heslo
-                        </div>
-                        <div class="profile-tab" data-tab="preferences">
-                            <i class="fas fa-cog"></i> Nastavení
+                        <div class="stat-card-footer">
+                            <a href="/dashboard/oceneni.html">Zobrazit odměny <i class="fas fa-chevron-right"></i></a>
                         </div>
                     </div>
-                    
-                    <!-- Personal Info Tab -->
-                    <div class="tab-content active" id="personal-info">
-                        <form id="profile-form">
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label class="form-label" for="first_name">Jméno</label>
-                                    <input type="text" class="form-control" id="first_name" name="first_name" placeholder="Zadejte své jméno">
-                                    <div class="field-error" id="first_name-error"></div>
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label" for="last_name">Příjmení</label>
-                                    <input type="text" class="form-control" id="last_name" name="last_name" placeholder="Zadejte své příjmení">
-                                    <div class="field-error" id="last_name-error"></div>
-                                </div>
+
+                    <div class="stat-card" id="streak-card">
+                        <div class="stat-card-content">
+                            <div class="stat-card-info">
+                                <div class="stat-card-title">Dnů v řadě</div>
+                                <div class="stat-card-value">0</div>
+                                <div class="stat-card-change">Nejdelší: 0 dnů</div>
                             </div>
-                            
-                            <div class="form-group">
-                                <label class="form-label" for="username">Uživatelské jméno</label>
-                                <input type="text" class="form-control" id="username" name="username" placeholder="Zadejte uživatelské jméno">
-                                <div class="field-error" id="username-error"></div>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label class="form-label" for="email">E-mail</label>
-                                <input type="email" class="form-control" id="email" name="email" placeholder="Zadejte e-mail" disabled>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label class="form-label" for="school">Škola</label>
-                                <input type="text" class="form-control" id="school" name="school" placeholder="Zadejte svou školu">
-                                <div class="field-error" id="school-error"></div>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label class="form-label" for="grade">Třída</label>
-                                <select class="form-control" id="grade" name="grade">
-                                    <option value="">Vyberte třídu</option>
-                                    <option value="6">6. třída</option>
-                                    <option value="7">7. třída</option>
-                                    <option value="8">8. třída</option>
-                                    <option value="9">9. třída</option>
-                                    <option value="1_ss">1. ročník SŠ</option>
-                                    <option value="2_ss">2. ročník SŠ</option>
-                                    <option value="3_ss">3. ročník SŠ</option>
-                                    <option value="4_ss">4. ročník SŠ</option>
-                                </select>
-                                <div class="field-error" id="grade-error"></div>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label class="form-label" for="bio">O mně</label>
-                                <textarea class="form-control" id="bio" name="bio" rows="4" placeholder="Napište něco o sobě"></textarea>
-                                <div class="field-error" id="bio-error"></div>
-                            </div>
-                            
-                            <button type="submit" class="btn btn-primary" id="save-profile-btn">
-                                <i class="fas fa-save"></i> Uložit změny
-                            </button>
-                        </form>
-                    </div>
-                    
-                    <!-- Password Tab -->
-                    <div class="tab-content" id="password">
-                        <form id="password-form">
-                            <div class="form-group">
-                                <label class="form-label" for="current_password">Současné heslo</label>
-                                <input type="password" class="form-control" id="current_password" name="current_password" placeholder="Zadejte současné heslo">
-                                <div class="field-error" id="current_password-error"></div>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label class="form-label" for="new_password">Nové heslo</label>
-                                <input type="password" class="form-control" id="new_password" name="new_password" placeholder="Zadejte nové heslo">
-                                <div class="field-error" id="new_password-error"></div>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label class="form-label" for="confirm_password">Potvrzení hesla</label>
-                                <input type="password" class="form-control" id="confirm_password" name="confirm_password" placeholder="Zadejte nové heslo znovu">
-                                <div class="field-error" id="confirm_password-error"></div>
-                            </div>
-                            
-                            <button type="submit" class="btn btn-primary" id="save-password-btn">
-                                <i class="fas fa-lock"></i> Změnit heslo
-                            </button>
-                        </form>
-                    </div>
-                    
-                    <!-- Preferences Tab -->
-                    <div class="tab-content" id="preferences">
-                        <div class="settings-group">
-                            <h3 class="settings-title">Vzhled a jazyk</h3>
-                            
-                            <div class="toggle-switch">
-                                <div>
-                                    <div class="toggle-label">Tmavý režim</div>
-                                    <div class="toggle-desc">Přepnout na tmavé barevné schéma</div>
-                                </div>
-                                <label class="switch">
-                                    <input type="checkbox" id="dark_mode">
-                                    <span class="slider"></span>
-                                </label>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label class="form-label" for="language">Jazyk</label>
-                                <select class="form-control" id="language" name="language">
-                                    <option value="cs">Čeština</option>
-                                    <option value="en">English</option>
-                                    <option value="sk">Slovenčina</option>
-                                </select>
+                            <div class="stat-card-icon streak-icon">
+                                <i class="fas fa-fire"></i>
                             </div>
                         </div>
-                        
-                        <div class="settings-group">
-                            <h3 class="settings-title">Oznámení</h3>
-                            
-                            <div class="toggle-switch">
-                                <div>
-                                    <div class="toggle-label">E-mailová oznámení</div>
-                                    <div class="toggle-desc">Zasílat důležité informace e-mailem</div>
-                                </div>
-                                <label class="switch">
-                                    <input type="checkbox" id="email_notifications">
-                                    <span class="slider"></span>
-                                </label>
-                            </div>
-                            
-                            <div class="toggle-switch">
-                                <div>
-                                    <div class="toggle-label">Studijní tipy</div>
-                                    <div class="toggle-desc">Zasílat tipy pro efektivní studium</div>
-                                </div>
-                                <label class="switch">
-                                    <input type="checkbox" id="study_tips">
-                                    <span class="slider"></span>
-                                </label>
-                            </div>
-                            
-                            <div class="toggle-switch">
-                                <div>
-                                    <div class="toggle-label">Aktualizace obsahu</div>
-                                    <div class="toggle-desc">Oznámení o novém obsahu na platformě</div>
-                                </div>
-                                <label class="switch">
-                                    <input type="checkbox" id="content_updates">
-                                    <span class="slider"></span>
-                                </label>
-                            </div>
-                            
-                            <div class="toggle-switch">
-                                <div>
-                                    <div class="toggle-label">Připomenutí cvičení</div>
-                                    <div class="toggle-desc">Připomínat pravidelné procvičování</div>
-                                </div>
-                                <label class="switch">
-                                    <input type="checkbox" id="practice_reminders">
-                                    <span class="slider"></span>
-                                </label>
-                            </div>
-                        </div>
-                        
-                        <button type="button" class="btn btn-primary" id="save-preferences-btn">
-                            <i class="fas fa-save"></i> Uložit nastavení
-                        </button>
-                        
-                        <div class="danger-zone">
-                            <h3 class="danger-zone-title">Nebezpečná zóna</h3>
-                            <p class="danger-zone-desc">Tato akce je nevratná. Smazáním účtu přijdete o všechna data a pokrok.</p>
-                            <button type="button" class="btn-danger" id="delete-account-btn">
-                                <i class="fas fa-trash-alt"></i> Smazat účet
-                            </button>
+                        <div class="stat-card-footer">
+                            <a href="/dashboard/procvicovani.html">Procvičovat <i class="fas fa-chevron-right"></i></a>
                         </div>
                     </div>
                 </div>
+            </section>
+            
+            <!-- Shortcuts -->
+            <section class="shortcuts-section">
+                <h2 class="section-title">Rychlé odkazy</h2>
+                <div class="shortcut-grid">
+                    <a href="/dashboard/procvicovani.html" class="shortcut-card">
+                        <div class="shortcut-icon">
+                            <i class="fas fa-book-open"></i>
+                        </div>
+                        <h3 class="shortcut-title">Procvičování</h3>
+                        <p class="shortcut-desc">Procvičte si své znalosti a dovednosti v různých tématech.</p>
+                    </a>
+                    
+                    <a href="/dashboard/pokrok.html" class="shortcut-card">
+                        <div class="shortcut-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <h3 class="shortcut-title">Pokrok</h3>
+                        <p class="shortcut-desc">Sledujte svůj pokrok a úspěchy v jednotlivých oblastech.</p>
+                    </a>
+                    
+                    <a href="/dashboard/materialy.html" class="shortcut-card">
+                        <div class="shortcut-icon">
+                            <i class="fas fa-file-alt"></i>
+                        </div>
+                        <h3 class="shortcut-title">Materiály</h3>
+                        <p class="shortcut-desc">Prohlédněte si výukové materiály a studijní zdroje.</p>
+                    </a>
+                    
+                    <a href="/dashboard/profile.html" class="shortcut-card">
+                        <div class="shortcut-icon">
+                            <i class="fas fa-user-cog"></i>
+                        </div>
+                        <h3 class="shortcut-title">Profil</h3>
+                        <p class="shortcut-desc">Upravte své osobní údaje a nastavení profilu.</p>
+                    </a>
+                </div>
+            </section>
+            
+            <!-- Recent Activity -->
+            <section class="activity-section">
+                <h2 class="section-title">Nedávné aktivity</h2>
+                <div class="activity-list" id="activity-list">
+                    <div class="loading">Načítání aktivit...</div>
+                </div>
+                <a href="/dashboard/pokrok.html" class="view-all-link">Zobrazit všechny aktivity <i class="fas fa-chevron-right"></i></a>
             </section>
         </div>
         
@@ -1343,54 +1117,6 @@
             <p>&copy; 2025 Justax. Všechna práva vyhrazena.</p>
         </footer>
     </main>
-    
-    <!-- Avatar Modal -->
-    <div class="modal" id="avatar-modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 class="modal-title">Změnit profilový obrázek</h2>
-                <button type="button" class="modal-close">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="avatar-upload">
-                    <div class="avatar-preview" id="avatar-preview">
-                        <span>MS</span>
-                    </div>
-                    <div class="file-upload">
-                        <button type="button" class="upload-btn">Vybrat soubor</button>
-                        <input type="file" id="avatar-upload" accept="image/*">
-                    </div>
-                    <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0.5rem;">Podporované formáty: JPG, PNG, GIF. Max. velikost: 2MB</p>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline" data-dismiss="modal">Zrušit</button>
-                <button type="button" class="btn btn-primary" id="save-avatar-btn">Uložit</button>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Delete Account Confirmation Modal -->
-    <div class="modal" id="delete-account-modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 class="modal-title">Smazat účet</h2>
-                <button type="button" class="modal-close">&times;</button>
-            </div>
-            <div class="modal-body">
-                <p>Opravdu chcete smazat svůj účet? Tato akce je <strong>nevratná</strong> a všechna vaše data budou ztracena.</p>
-                <p>Pro potvrzení zadejte své heslo:</p>
-                <div class="form-group">
-                    <input type="password" class="form-control" id="confirm-delete-password" placeholder="Heslo">
-                    <div class="field-error" id="confirm-delete-password-error"></div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline" data-dismiss="modal">Zrušit</button>
-                <button type="button" class="btn-danger" id="confirm-delete-account-btn">Smazat účet</button>
-            </div>
-        </div>
-    </div>
     
     <!-- Toast notification -->
     <div class="toast" id="toast">
@@ -1406,101 +1132,19 @@
             const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
             
             // DOM Elements
-            const profileContent = document.getElementById('profile-content');
-            const profileLoading = document.getElementById('profile-loading');
-            const profileName = document.getElementById('profile-name');
-            const profileEmail = document.getElementById('profile-email');
-            const profileAvatar = document.getElementById('profile-avatar');
             const sidebarAvatar = document.getElementById('sidebar-avatar');
             const sidebarName = document.getElementById('sidebar-name');
-            const profileLevel = document.getElementById('profile-level');
-            const profilePoints = document.getElementById('profile-points');
-            const profileBadges = document.getElementById('profile-badges');
-            const profileStreak = document.getElementById('profile-streak');
-            const editAvatarBtn = document.getElementById('edit-avatar-btn');
-            const avatarPreview = document.getElementById('avatar-preview');
-            const avatarUpload = document.getElementById('avatar-upload');
-            const saveAvatarBtn = document.getElementById('save-avatar-btn');
-            const profileForm = document.getElementById('profile-form');
-            const passwordForm = document.getElementById('password-form');
-            const savePreferencesBtn = document.getElementById('save-preferences-btn');
-            const deleteAccountBtn = document.getElementById('delete-account-btn');
-            const confirmDeleteAccountBtn = document.getElementById('confirm-delete-account-btn');
-            const offlineBanner = document.getElementById('offline-banner');
             const notificationCount = document.getElementById('notification-count');
+            const offlineBanner = document.getElementById('offline-banner');
             const globalError = document.getElementById('global-error');
+            const activityList = document.getElementById('activity-list');
+            const progressCard = document.getElementById('progress-card');
+            const pointsCard = document.getElementById('points-card');
+            const streakCard = document.getElementById('streak-card');
+            const startPracticeBtn = document.getElementById('start-practice-btn');
             
             let currentUser = null;
             let currentProfile = null;
-            
-            // Form validation functions
-            const validators = {
-                required: (value, fieldName, message = 'Toto pole je povinné') => {
-                    if (!value || value.trim() === '') {
-                        showFieldError(fieldName, message);
-                        return false;
-                    }
-                    return true;
-                },
-                
-                minLength: (value, fieldName, length, message = `Minimální délka je ${length} znaků`) => {
-                    if (value && value.length < length) {
-                        showFieldError(fieldName, message);
-                        return false;
-                    }
-                    return true;
-                },
-                
-                email: (value, fieldName, message = 'Zadejte platnou e-mailovou adresu') => {
-                    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                    if (value && !emailRegex.test(value)) {
-                        showFieldError(fieldName, message);
-                        return false;
-                    }
-                    return true;
-                },
-                
-                match: (value, fieldName, matchValue, message = 'Hodnoty se neshodují') => {
-                    if (value !== matchValue) {
-                        showFieldError(fieldName, message);
-                        return false;
-                    }
-                    return true;
-                }
-            };
-            
-            function showFieldError(fieldName, message) {
-                const field = document.getElementById(fieldName);
-                const errorContainer = document.getElementById(`${fieldName}-error`);
-                
-                if (field && errorContainer) {
-                    field.classList.add('is-invalid');
-                    errorContainer.textContent = message;
-                    errorContainer.style.display = 'block';
-                }
-            }
-            
-                        function clearFieldError(fieldName) {
-                const field = document.getElementById(fieldName);
-                const errorContainer = document.getElementById(`${fieldName}-error`);
-                
-                if (field && errorContainer) {
-                    field.classList.remove('is-invalid');
-                    errorContainer.textContent = '';
-                    errorContainer.style.display = 'none';
-                }
-            }
-            
-            function clearAllErrors() {
-                document.querySelectorAll('.field-error').forEach(errorEl => {
-                    errorEl.textContent = '';
-                    errorEl.style.display = 'none';
-                });
-                
-                document.querySelectorAll('.is-invalid').forEach(field => {
-                    field.classList.remove('is-invalid');
-                });
-            }
             
             // Toast notification function
             function showToast(message, type = 'success') {
@@ -1537,52 +1181,16 @@
                 
                 errorContainer.style.display = 'block';
                 
-                const retryBtn = document.getElementById('retry-btn');
-                if (retryBtn) {
-                    retryBtn.addEventListener('click', () => {
-                        errorContainer.style.display = 'none';
-                        loadUserProfile();
-                    });
-                }
+                document.getElementById('retry-btn').addEventListener('click', () => {
+                    errorContainer.style.display = 'none';
+                    loadDashboardData();
+                });
             }
             
             function hideError() {
                 const errorContainer = document.getElementById('global-error');
                 errorContainer.style.display = 'none';
             }
-            
-            // Modal functions
-            function showModal(modalId) {
-                const modal = document.getElementById(modalId);
-                if (modal) {
-                    modal.classList.add('active');
-                }
-            }
-            
-            function hideModal(modalId) {
-                const modal = document.getElementById(modalId);
-                if (modal) {
-                    modal.classList.remove('active');
-                }
-            }
-            
-            // Tab switching
-            document.querySelectorAll('.profile-tab').forEach(tab => {
-                tab.addEventListener('click', () => {
-                    // Remove active class from all tabs
-                    document.querySelectorAll('.profile-tab').forEach(t => t.classList.remove('active'));
-                    
-                    // Add active class to clicked tab
-                    tab.classList.add('active');
-                    
-                    // Hide all tab content
-                    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-                    
-                    // Show the clicked tab content
-                    const tabId = tab.dataset.tab;
-                    document.getElementById(tabId).classList.add('active');
-                });
-            });
             
             // Handle online/offline status
             function updateOnlineStatus() {
@@ -1604,18 +1212,21 @@
                 return user;
             }
             
+            // Get initials from profile
+            function getInitials(userData) {
+                const first = userData.first_name ? userData.first_name[0] : '';
+                const last = userData.last_name ? userData.last_name[0] : '';
+                return (first + last).toUpperCase() || userData.username ? userData.username[0].toUpperCase() : 'U';
+            }
+            
             // Load user profile
             async function loadUserProfile() {
                 try {
-                    profileLoading.style.display = 'flex';
-                    profileContent.style.display = 'none';
-                    hideError();
-                    
                     currentUser = await getCurrentUser();
                     
                     if (!currentUser) {
                         window.location.href = '/login.html';
-                        return;
+                        return null;
                     }
     
                     const { data: profile, error } = await supabase
@@ -1659,435 +1270,246 @@
                             .single();
     
                         if (createError) throw createError;
-                        currentProfile = newProfile;
-                    } else {
-                        currentProfile = profile;
+                        return newProfile;
                     }
-    
-                    // Update profile display
-                    updateProfileDisplay(currentProfile);
                     
-                    profileLoading.style.display = 'none';
-                    profileContent.style.display = 'block';
-                    
+                    return profile;
                 } catch (error) {
                     console.error('Error loading profile:', error);
-                    showError('Nepodařilo se načíst profil. Zkuste to prosím později.');
-                    profileLoading.style.display = 'none';
+                    showError('Nepodařilo se načíst profil: ' + error.message);
+                    return null;
                 }
             }
             
-            // Update profile display
-            function updateProfileDisplay(userData) {
+            // Update profile display in sidebar
+            function updateSidebarProfile(userData) {
                 if (!userData) return;
                 
-                // Update name and email
+                // Update username
                 const displayName = `${userData.first_name || ''} ${userData.last_name || ''}`.trim() || userData.username || 'Uživatel';
-                profileName.textContent = displayName;
-                profileEmail.textContent = userData.email;
                 sidebarName.textContent = displayName;
                 
-                // Update avatars
-                const initials = getInitials(userData);
-                
+                // Update avatar
                 if (userData.avatar_url) {
-                    profileAvatar.innerHTML = `<img src="${userData.avatar_url}" alt="${userData.username}" />
-                        <div class="edit-avatar" id="edit-avatar-btn">
-                            <i class="fas fa-camera"></i> Změnit
-                        </div>`;
                     sidebarAvatar.innerHTML = `<img src="${userData.avatar_url}" alt="${userData.username}" />`;
-                    
-                    // Update avatar preview in modal
-                    avatarPreview.innerHTML = `<img src="${userData.avatar_url}" alt="${userData.username}" />`;
                 } else {
-                    profileAvatar.innerHTML = `<span>${initials}</span>
-                        <div class="edit-avatar" id="edit-avatar-btn">
-                            <i class="fas fa-camera"></i> Změnit
-                        </div>`;
+                    const initials = getInitials(userData);
                     sidebarAvatar.textContent = initials;
-                    
-                    // Update avatar preview in modal
-                    avatarPreview.innerHTML = `<span>${initials}</span>`;
                 }
                 
-                // Re-attach event listener for edit avatar button
-                document.getElementById('edit-avatar-btn').addEventListener('click', () => {
-                    openAvatarModal();
-                });
-                
-                // Update stats
-                profileLevel.textContent = userData.level || 1;
-                profilePoints.textContent = userData.points || 0;
-                profileBadges.textContent = userData.badges_count || 0;
-                profileStreak.textContent = userData.streak_days || 0;
-                
-                // Fill form fields
-                document.getElementById('first_name').value = userData.first_name || '';
-                document.getElementById('last_name').value = userData.last_name || '';
-                document.getElementById('username').value = userData.username || '';
-                document.getElementById('email').value = userData.email || '';
-                document.getElementById('school').value = userData.school || '';
-                document.getElementById('grade').value = userData.grade || '';
-                document.getElementById('bio').value = userData.bio || '';
-                
-                // Set preferences
-                if (userData.preferences) {
-                    document.getElementById('dark_mode').checked = userData.preferences.dark_mode || false;
-                    document.getElementById('language').value = userData.preferences.language || 'cs';
-                }
-                
-                // Set notification settings
-                if (userData.notifications) {
-                    document.getElementById('email_notifications').checked = userData.notifications.email || false;
-                    document.getElementById('study_tips').checked = userData.notifications.study_tips || false;
-                    document.getElementById('content_updates').checked = userData.notifications.content_updates || false;
-                    document.getElementById('practice_reminders').checked = userData.notifications.practice_reminders || false;
-                }
-                
-                // Show notification count (placeholder)
+                // Update notification count (placeholder)
                 notificationCount.textContent = '3';
             }
             
-            // Get initials from profile
-            function getInitials(userData) {
-                const first = userData.first_name ? userData.first_name[0] : '';
-                const last = userData.last_name ? userData.last_name[0] : '';
-                return (first + last).toUpperCase() || userData.username ? userData.username[0].toUpperCase() : 'U';
-            }
-            
-            // Update profile
-            async function updateProfile(data) {
+            // Load user statistics
+            async function loadUserStats(userId) {
                 try {
-                    if (!currentUser) {
-                        showToast('Pro aktualizaci profilu se musíte přihlásit', 'error');
-                        return false;
-                    }
-                    
-                    const { data: profile, error } = await supabase
-                        .from('profiles')
-                        .update({
-                            first_name: data.first_name,
-                            last_name: data.last_name,
-                            username: data.username,
-                            school: data.school,
-                            grade: data.grade,
-                            bio: data.bio,
-                            updated_at: new Date().toISOString()
-                        })
-                        .eq('id', currentUser.id)
-                        .select()
-                        .single();
-    
-                    if (error) throw error;
-                    
-                    // Update current profile and display
-                    currentProfile = profile;
-                    updateProfileDisplay(profile);
-                    showToast('Profil byl úspěšně aktualizován', 'success');
-                    return true;
-                    
-                } catch (error) {
-                    console.error('Error updating profile:', error);
-                    showToast('Nepodařilo se aktualizovat profil', 'error');
-                    return false;
-                }
-            }
-            
-            // Update password
-            async function updatePassword(data) {
-                try {
-                    if (!validators.required(data.current_password, 'current_password') ||
-                        !validators.required(data.new_password, 'new_password', 'Zadejte nové heslo') ||
-                        !validators.minLength(data.new_password, 'new_password', 8, 'Heslo musí mít alespoň 8 znaků') ||
-                        !validators.required(data.confirm_password, 'confirm_password', 'Potvrďte nové heslo') ||
-                        !validators.match(data.confirm_password, 'confirm_password', data.new_password, 'Hesla se neshodují')) {
-                        return false;
-                    }
-                    
-                    const { error } = await supabase.auth.updateUser({
-                        password: data.new_password
-                    });
-                    
-                    if (error) throw error;
-                    
-                    // Clear password form
-                    passwordForm.reset();
-                    clearAllErrors();
-                    
-                    showToast('Heslo bylo úspěšně změněno', 'success');
-                    return true;
-                    
-                } catch (error) {
-                    console.error('Error updating password:', error);
-                    showToast('Nepodařilo se změnit heslo', 'error');
-                    return false;
-                }
-            }
-            
-            // Update preferences
-            async function updatePreferences() {
-                try {
-                    const preferences = {
-                        dark_mode: document.getElementById('dark_mode').checked,
-                        language: document.getElementById('language').value,
-                        show_progress: true,
-                        sound_effects: true
-                    };
-                    
-                    const notifications = {
-                        email: document.getElementById('email_notifications').checked,
-                        study_tips: document.getElementById('study_tips').checked,
-                        content_updates: document.getElementById('content_updates').checked,
-                        practice_reminders: document.getElementById('practice_reminders').checked
-                    };
-                    
-                    const { data, error } = await supabase
-                        .from('profiles')
-                        .update({
-                            preferences: preferences,
-                            notifications: notifications,
-                            updated_at: new Date().toISOString()
-                        })
-                        .eq('id', currentUser.id)
-                        .select()
+                    // In a real app, this would fetch from the database
+                    // Here we'll simulate some example stats
+                    const { data: stats, error } = await supabase
+                        .from('user_stats')
+                        .select('*')
+                        .eq('user_id', userId)
                         .single();
                     
-                    if (error) throw error;
+                    if (error && error.code !== 'PGRST116') { // PGRST116 means no rows returned
+                        throw error;
+                    }
                     
-                    currentProfile = data;
-                    showToast('Nastavení byla úspěšně uložena', 'success');
-                    return true;
+                    // Use stats from DB or fallback to defaults
+                    return stats || {
+                        progress: 0,
+                        progress_weekly: 0,
+                        points: 0,
+                        points_weekly: 0,
+                        streak_current: 0,
+                        streak_longest: 0
+                    };
                     
                 } catch (error) {
-                    console.error('Error updating preferences:', error);
-                    showToast('Nepodařilo se uložit nastavení', 'error');
-                    return false;
+                    console.error('Error loading user stats:', error);
+                    showToast('Nepodařilo se načíst statistiky', 'error');
+                    return {
+                        progress: 0,
+                        progress_weekly: 0,
+                        points: 0,
+                        points_weekly: 0,
+                        streak_current: 0,
+                        streak_longest: 0
+                    };
                 }
             }
             
-            // Avatar handling
-            function openAvatarModal() {
-                showModal('avatar-modal');
+            // Update stats cards
+            function updateStatsCards(stats) {
+                if (!stats) return;
                 
-                // Reset preview image
-                if (currentProfile && currentProfile.avatar_url) {
-                    avatarPreview.innerHTML = `<img src="${currentProfile.avatar_url}" alt="${currentProfile.username || 'Avatar'}" />`;
+                // Progress card
+                const progressValue = document.querySelector('#progress-card .stat-card-value');
+                const progressChange = document.querySelector('#progress-card .stat-card-change');
+                progressValue.textContent = `${stats.progress}%`;
+                
+                if (stats.progress_weekly > 0) {
+                    progressChange.textContent = `+${stats.progress_weekly}% tento týden`;
+                    progressChange.classList.add('positive');
+                    progressChange.classList.remove('negative');
+                } else if (stats.progress_weekly < 0) {
+                    progressChange.textContent = `${stats.progress_weekly}% tento týden`;
+                    progressChange.classList.add('negative');
+                    progressChange.classList.remove('positive');
                 } else {
-                    avatarPreview.innerHTML = `<span>${getInitials(currentProfile)}</span>`;
+                    progressChange.textContent = `Beze změny tento týden`;
+                    progressChange.classList.remove('positive', 'negative');
                 }
+                
+                // Points card
+                const pointsValue = document.querySelector('#points-card .stat-card-value');
+                const pointsChange = document.querySelector('#points-card .stat-card-change');
+                pointsValue.textContent = stats.points;
+                
+                if (stats.points_weekly > 0) {
+                    pointsChange.textContent = `+${stats.points_weekly} tento týden`;
+                    pointsChange.classList.add('positive');
+                    pointsChange.classList.remove('negative');
+                } else if (stats.points_weekly < 0) {
+                    pointsChange.textContent = `${stats.points_weekly} tento týden`;
+                    pointsChange.classList.add('negative');
+                    pointsChange.classList.remove('positive');
+                } else {
+                    pointsChange.textContent = `Beze změny tento týden`;
+                    pointsChange.classList.remove('positive', 'negative');
+                }
+                
+                // Streak card
+                const streakValue = document.querySelector('#streak-card .stat-card-value');
+                const streakLongest = document.querySelector('#streak-card .stat-card-change');
+                streakValue.textContent = stats.streak_current;
+                streakLongest.textContent = `Nejdelší: ${stats.streak_longest} dnů`;
             }
             
-            // Update avatar preview when file is selected
-            avatarUpload.addEventListener('change', function() {
-                if (this.files && this.files[0]) {
-                    const reader = new FileReader();
-                    
-                    reader.onload = function(e) {
-                        avatarPreview.innerHTML = `<img src="${e.target.result}" alt="Avatar preview" />`;
-                    };
-                    
-                    reader.readAsDataURL(this.files[0]);
-                }
-            });
-            
-            // Update avatar
-            async function updateAvatar(file) {
+            // Load user activities
+            async function loadUserActivities(userId) {
                 try {
-                    if (!currentUser) {
-                        showToast('Pro aktualizaci avataru se musíte přihlásit', 'error');
-                        return false;
-                    }
+                    // In a real app, this would fetch from the database
+                    // Here we'll simulate some example activities
+                    const { data: activities, error } = await supabase
+                        .from('activities')
+                        .select('*')
+                        .eq('user_id', userId)
+                        .order('created_at', { ascending: false })
+                        .limit(5);
                     
-                    if (!file) {
-                        showToast('Nejprve vyberte obrázek', 'warning');
-                        return false;
-                    }
+                    if (error) throw error;
                     
-                    // Check file size (2MB limit)
-                    if (file.size > 2 * 1024 * 1024) {
-                        showToast('Soubor je příliš velký. Maximální velikost je 2MB', 'error');
-                        return false;
-                    }
-                    
-                    // Check file type
-                    if (!['image/jpeg', 'image/png', 'image/gif'].includes(file.type)) {
-                        showToast('Nepodporovaný formát souboru', 'error');
-                        return false;
-                    }
-                    
-                    const fileExt = file.name.split('.').pop();
-                    const fileName = `${currentUser.id}-${Date.now()}.${fileExt}`;
-                    
-                    // Upload file to storage
-                    const { data: uploadData, error: uploadError } = await supabase
-                        .storage
-                        .from('avatars')
-                        .upload(fileName, file);
-                        
-                    if (uploadError) throw uploadError;
-                    
-                    // Get public URL
-                    const { data: { publicUrl } } = supabase
-                        .storage
-                        .from('avatars')
-                        .getPublicUrl(fileName);
-                    
-                    // Update profile with avatar URL
-                    const { data: profile, error: updateError } = await supabase
-                        .from('profiles')
-                        .update({
-                            avatar_url: publicUrl,
-                            updated_at: new Date().toISOString()
-                        })
-                        .eq('id', currentUser.id)
-                        .select()
-                        .single();
-                        
-                    if (updateError) throw updateError;
-                    
-                    currentProfile = profile;
-                    updateProfileDisplay(profile);
-                    hideModal('avatar-modal');
-                    showToast('Profilový obrázek byl úspěšně aktualizován', 'success');
-                    return true;
+                    return activities || [];
                     
                 } catch (error) {
-                    console.error('Error updating avatar:', error);
-                    showToast('Nepodařilo se aktualizovat avatar', 'error');
-                    return false;
+                    console.error('Error loading activities:', error);
+                    showToast('Nepodařilo se načíst aktivity', 'warning');
+                    return [];
                 }
             }
             
-            // Delete account
-            async function deleteAccount(password) {
-                try {
-                    if (!currentUser) {
-                        showToast('Pro smazání účtu se musíte přihlásit', 'error');
-                        return false;
-                    }
-                    
-                    if (!password) {
-                        showFieldError('confirm-delete-password', 'Zadejte své heslo pro potvrzení');
-                        return false;
-                    }
-                    
-                    // First delete profile data
-                    const { error: profileError } = await supabase
-                        .from('profiles')
-                        .delete()
-                        .eq('id', currentUser.id);
-                    
-                    if (profileError) throw profileError;
-                    
-                    // Then sign out and redirect
-                    await supabase.auth.signOut();
-                    
-                    showToast('Váš účet byl úspěšně smazán', 'success');
-                    
-                    // Redirect to homepage after short delay
-                    setTimeout(() => {
-                        window.location.href = '/';
-                    }, 2000);
-                    
-                    return true;
-                    
-                } catch (error) {
-                    console.error('Error deleting account:', error);
-                    showToast('Nepodařilo se smazat účet', 'error');
-                    return false;
+            // Format relative time for activities
+            function formatRelativeTime(timestamp) {
+                const now = new Date();
+                const date = new Date(timestamp);
+                const diffMs = now - date;
+                const diffSec = Math.round(diffMs / 1000);
+                const diffMin = Math.round(diffSec / 60);
+                const diffHour = Math.round(diffMin / 60);
+                const diffDay = Math.round(diffHour / 24);
+                
+                if (diffSec < 60) {
+                    return 'Právě teď';
+                } else if (diffMin < 60) {
+                    return `Před ${diffMin} min`;
+                } else if (diffHour < 24) {
+                    return `Před ${diffHour} h`;
+                } else if (diffDay < 7) {
+                    return `Před ${diffDay} dny`;
+                } else {
+                    return date.toLocaleDateString('cs-CZ');
                 }
             }
             
-            // Validate profile form
-            function validateProfileForm() {
-                clearAllErrors();
-                
-                const first_name = document.getElementById('first_name').value;
-                const last_name = document.getElementById('last_name').value;
-                const username = document.getElementById('username').value;
-                const school = document.getElementById('school').value;
-                
-                let isValid = true;
-                
-                // Username is required
-                if (!validators.required(username, 'username')) {
-                    isValid = false;
-                }
-                
-                // Username min length
-                if (username && !validators.minLength(username, 'username', 3, 'Uživatelské jméno musí mít alespoň 3 znaky')) {
-                    isValid = false;
-                }
-                
-                return isValid;
-            }
-            
-            // Event listeners
-            profileForm.addEventListener('submit', async function(e) {
-                e.preventDefault();
-                
-                if (!validateProfileForm()) {
+            // Render activities
+            function renderActivities(activities) {
+                if (!activities || activities.length === 0) {
+                    activityList.innerHTML = `
+                        <div style="padding: 2rem; text-align: center; color: var(--text-secondary);">
+                            <i class="fas fa-info-circle" style="font-size: 2rem; margin-bottom: 1rem; color: var(--info);"></i>
+                            <p>Zatím nemáte žádné aktivity</p>
+                            <p style="font-size: 0.9rem; margin-top: 0.5rem;">Začněte procvičovat a vaše aktivity se zobrazí zde.</p>
+                        </div>
+                    `;
                     return;
                 }
                 
-                const formData = {
-                    first_name: document.getElementById('first_name').value,
-                    last_name: document.getElementById('last_name').value,
-                    username: document.getElementById('username').value,
-                    school: document.getElementById('school').value,
-                    grade: document.getElementById('grade').value,
-                    bio: document.getElementById('bio').value
-                };
+                const activityHTML = activities.map(activity => {
+                    let iconClass = 'completed';
+                    let iconName = 'check-circle';
+                    
+                    if (activity.type === 'badge') {
+                        iconClass = 'badge';
+                        iconName = 'medal';
+                    } else if (activity.type === 'streak') {
+                        iconClass = 'streak';
+                        iconName = 'fire';
+                    }
+                    
+                    return `
+                        <div class="activity-item">
+                            <div class="activity-icon ${iconClass}">
+                                <i class="fas fa-${iconName}"></i>
+                            </div>
+                            <div class="activity-content">
+                                <div class="activity-title">${activity.title}</div>
+                                <div class="activity-desc">${activity.description}</div>
+                                <div class="activity-time">${formatRelativeTime(activity.created_at)}</div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
                 
-                await updateProfile(formData);
-            });
+                activityList.innerHTML = activityHTML;
+            }
             
-            passwordForm.addEventListener('submit', async function(e) {
-                e.preventDefault();
-                
-                const formData = {
-                    current_password: document.getElementById('current_password').value,
-                    new_password: document.getElementById('new_password').value,
-                    confirm_password: document.getElementById('confirm_password').value
-                };
-                
-                await updatePassword(formData);
-            });
+            // Load all dashboard data
+            async function loadDashboardData() {
+                try {
+                    hideError();
+                    activityList.innerHTML = '<div class="loading">Načítání aktivit...</div>';
+                    
+                    // Load user profile
+                    currentProfile = await loadUserProfile();
+                    if (!currentProfile) return;
+                    
+                    // Update sidebar profile
+                    updateSidebarProfile(currentProfile);
+                    
+                    // Load user stats
+                    const userStats = await loadUserStats(currentProfile.id);
+                    updateStatsCards(userStats);
+                    
+                    // Load user activities
+                    const activities = await loadUserActivities(currentProfile.id);
+                    renderActivities(activities);
+                    
+                } catch (error) {
+                    console.error('Error loading dashboard data:', error);
+                    showError('Nepodařilo se načíst data: ' + error.message);
+                }
+            }
             
-            savePreferencesBtn.addEventListener('click', async function() {
-                await updatePreferences();
-            });
-            
-            saveAvatarBtn.addEventListener('click', async function() {
-                const file = avatarUpload.files[0];
-                await updateAvatar(file);
-            });
-            
-            deleteAccountBtn.addEventListener('click', function() {
-                showModal('delete-account-modal');
-            });
-            
-            confirmDeleteAccountBtn.addEventListener('click', async function() {
-                const password = document.getElementById('confirm-delete-password').value;
-                await deleteAccount(password);
-            });
-            
-            // Modal close buttons
-            document.querySelectorAll('.modal-close, [data-dismiss="modal"]').forEach(button => {
-                button.addEventListener('click', function() {
-                    const modalId = this.closest('.modal').id;
-                    hideModal(modalId);
-                });
-            });
-            
-            // Field input events for clearing errors
-            document.querySelectorAll('input, textarea, select').forEach(field => {
-                field.addEventListener('input', function() {
-                    clearFieldError(this.id);
-                });
+            // Event listeners
+            startPracticeBtn.addEventListener('click', () => {
+                window.location.href = '/dashboard/procvicovani.html';
             });
             
             // Initialize
-            loadUserProfile();
+            loadDashboardData();
         });
     </script>
+</body>
+</html>
