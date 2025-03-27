@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Justax Dashboard</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/styles/common.css">
+    <link rel="stylesheet" href="/styles/layout.css">
+    <link rel="stylesheet" href="/styles/sidebar.css">
+</head>
+<body>
+    <!-- Offline banner -->
+    <div class="offline-banner" id="offline-banner">
+        <i class="fas fa-wifi"></i> Momentálně jste offline. Některé funkce nemusí fungovat správně.
+    </div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <a href="/" class="sidebar-logo">
+                <i class="fas fa-calculator"></i>
+                <span>Justax</span>
+            </a>
+        </div>
+        
+        <ul class="sidebar-menu">
+            <li class="sidebar-item">
+                <a href="/dashboard.html" class="sidebar-link active" id="dashboard-link">
+                    <i class="fas fa-th-large"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a href="/dashboard/procvicovani/profile" class="sidebar-link">
+                    <i class="fas fa-book-open"></i>
+                    <span>Procvičování</span>
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a href="/dashboard/pokrok.html" class="sidebar-link">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Pokrok</span>
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a href="/dashboard/oceneni.html" class="sidebar-link">
+                    <i class="fas fa-medal"></i>
+                    <span>Ocenění</span>
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a href="/dashboard/materialy.html" class="sidebar-link">
+                    <i class="fas fa-file-alt"></i>
+                    <span>Materiály</span>
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a href="/dashboard/profile.html" class="sidebar-link">
+                    <i class="fas fa-user-cog"></i>
+                    <span>Profil</span>
+                </a>
+            </li>
+        </ul>
+        
+        <div class="user-profile">
+            <div class="user-avatar" id="user-avatar">MS</div>
+            <div class="user-info">
+                <div class="user-name" id="user-name">Načítání...</div>
+                <div class="user-role" id="user-role">Student</div>
+            </div>
+        </div>
+        
+        <div class="sidebar-footer">
+            &copy; 2025 Justax
+        </div>
+    </aside>
+    
+    <main>
+        <!-- Global error container -->
+        <div class="error-container" id="global-error">
+            <div class="error-message">
+                <i class="fas fa-exclamation-circle"></i>
+                <div>
+                    <div id="global-error-message">Došlo k chybě při načítání dat.</div>
+                    <button class="retry-button" id="global-retry-btn">Zkusit znovu</button>
+                </div>
+            </div>
+        </div>
+
+        <header class="dashboard-header">
+            <div class="header-content">
+                <h1>Dashboard</h1>
+                <div class="header-actions">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" placeholder="Hledat...">
+                    </div>
+                    <div class="notifications">
+                        <i class="fas fa-bell"></i>
+                        <span class="notification-badge" id="notification-count">0</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+        
+        <div class="main-content">
+            <!-- Welcome Banner -->
+            <section class="welcome-banner">
+                <div class="welcome-content">
+                    <div class="welcome-text-content">
+                        <h2 class="welcome-title">Vítejte ve vašem Dashboardu</h2>
+                        <p class="welcome-text">Zde můžete spravovat nastavení profilu, sledovat svůj pokrok a procvičovat své dovednosti.</p>
+                        <button class="welcome-button" id="start-practice-btn">Začít procvičovat</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Stats Section -->
+            <section>
+                <h2 class="section-title">Vaše statistiky</h2>
+                <div class="stat-cards">
+                    <div class="stat-card">
+                        <div class="stat-card-content">
+                            <div class="stat-card-info">
+                                <div class="stat-card-title">Celkový pokrok</div>
+                                <div class="stat-card-value">75%</div>
+                                <div class="stat-card-change positive">+5% tento týden</div>
+                            </div>
+                            <div class="stat-card-icon progress-icon">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                        </div>
+                        <div class="stat-card-footer">
+                            <a href="/dashboard/pokrok.html">Zobrazit detaily <i class="fas fa-arrow-right"></i></a>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-card-content">
+                            <div class="stat-card-info">
+                                <div class="stat-card-title">Body</div>
+                                <div class="stat-card-value">1,250</div>
+                                <div class="stat-card-change positive">+150 tento týden</div>
+                            </div>
+                            <div class="stat-card-icon points-icon">
+                                <i class="fas fa-star"></i>
+                            </div>
+                        </div>
+                        <div class="stat-card-footer">
+                            <a href="/dashboard/body.html">Zobrazit detaily <i class="fas fa-arrow-right"></i></a>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-card-content">
+                            <div class="stat-card-info">
+                                <div class="stat-card-title">Série dnů</div>
+                                <div class="stat-card-value">7</div>
+                                <div class="stat-card-change">Nejdelší: 14 dní</div>
+                            </div>
+                            <div class="stat-card-icon streak-icon">
+                                <i class="fas fa-fire"></i>
+                            </div>
+                        </div>
+                        <div class="stat-card-footer">
+                            <a href="/dashboard/serie.html">Zobrazit detaily <i class="fas fa-arrow-right"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Shortcuts Section -->
+            <section>
+                <h2 class="section-title">Rychlý přístup</h2>
+                <div class="shortcut-grid">
+                    <a href="/dashboard/procvicovani.html" class="shortcut-card">
+                        <div class="shortcut-icon">
+                            <i class="fas fa-pencil-alt"></i>
+                        </div>
+                        <h3 class="shortcut-title">Procvičování</h3>
+                        <p class="shortcut-desc">Začněte s cvičením a zlepšete své dovednosti</p>
+                    </a>
+
+                    <a href="/dashboard/materialy.html" class="shortcut-card">
+                        <div class="shortcut-icon">
+                            <i class="fas fa-book"></i>
+                        </div>
+                        <h3 class="shortcut-title">Studijní materiály</h3>
+                        <p class="shortcut-desc">Prohlédněte si naše výukové materiály</p>
+                    </a>
+
+                    <a href="/dashboard/testy.html" class="shortcut-card">
+                        <div class="shortcut-icon">
+                            <i class="fas fa-tasks"></i>
+                        </div>
+                        <h3 class="shortcut-title">Testy</h3>
+                        <p class="shortcut-desc">Otestujte své znalosti</p>
+                    </a>
+                </div>
+            </section>
+
+            <!-- Recent Activity Section -->
+            <section>
+                <h2 class="section-title">Nedávné aktivity</h2>
+                <div class="activity-list">
+                    <div class="activity-item">
+                        <div class="activity-icon completed">
+                            <i class="fas fa-check"></i>
+                        </div>
+                        <div class="activity-content">
+                            <h3 class="activity-title">Dokončeno cvičení</h3>
+                            <p class="activity-desc">Úspěšně jste dokončili cvičení z algebry</p>
+                            <span class="activity-time">Před 2 hodinami</span>
+                        </div>
+                    </div>
+
+                    <div class="activity-item">
+                        <div class="activity-icon badge">
+                            <i class="fas fa-medal"></i>
+                        </div>
+                        <div class="activity-content">
+                            <h3 class="activity-title">Nový odznak</h3>
+                            <p class="activity-desc">Získali jste odznak za sérii 7 dní</p>
+                            <span class="activity-time">Před 1 dnem</span>
+                        </div>
+                    </div>
+
+                    <div class="activity-item">
+                        <div class="activity-icon streak">
+                            <i class="fas fa-fire"></i>
+                        </div>
+                        <div class="activity-content">
+                            <h3 class="activity-title">Pokračující série</h3>
+                            <p class="activity-desc">Vaše série pokračuje již 7 dní</p>
+                            <span class="activity-time">Dnes</span>
+                        </div>
+                    </div>
+                </div>
+                <a href="/dashboard/aktivity.html" class="view-all-link">
+                    Zobrazit všechny aktivity <i class="fas fa-arrow-right"></i>
+                </a>
+            </section>
+        </div>
+    </main>
+
+    <!-- Initialize application -->
+    <script type="module">
+        import auth from '/js/auth.js';
+        import ui from '/js/ui.js';
+        import profile from '/js/profile.js';
+
+        // Конфигурация Supabase
+        const SUPABASE_URL = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10';
+
+        // Инициализация
+        auth.init(SUPABASE_URL, SUPABASE_KEY);
+        profile.init(auth.supabase);
+
+        // Обработка офлайн режима
+        ui.initializeOfflineHandling();
+
+        // Загрузка профиля
+        profile.loadUserProfile().catch(error => {
+            ui.showError(error.message);
+        });
+
+        // Обработчики событий
+        document.getElementById('start-practice-btn').addEventListener('click', () => {
+            window.location.href = '/dashboard/procvicovani.html';
+        });
+    </script>
+</body>
+</html>
