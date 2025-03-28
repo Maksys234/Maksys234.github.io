@@ -805,7 +805,7 @@
                     <i class="fas fa-bars"></i>
                 </button>
                 <h1>Statistiky uživatele</h1>
-                <div class="header-time" id="current-time">Načítání...</div>
+                <div class="header-time" id="current-time">28. března 2025, 15:57</div>
             </div>
             <div class="header-actions">
                 <button class="btn btn-primary" id="refresh-btn">
@@ -817,6 +817,7 @@
 
         <!-- Statistické karty -->
         <div class="stats-grid" id="stats-grid">
+            <!-- Skeleton loader bude nahrazen skutečnými daty -->
             <div class="stats-card transform-gpu">
                 <div class="skeleton" style="height: 20px; width: 60%; margin-bottom: 1rem;"></div>
                 <div class="skeleton" style="height: 40px; width: 80%; margin-bottom: 1rem;"></div>
@@ -902,7 +903,7 @@
             const supabaseUrl = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
             const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10';
             
-            // Konfigurujeme Supabase s explicitními hlavičkami pro řešení problémů s HTTP 406
+            // Konfigurujeme Supabase s explicitními hlavičkami pro optimalizaci výkonu
             const supabaseOptions = {
                 global: {
                     headers: {
@@ -975,14 +976,12 @@
                 currentTimeElement.textContent = now.toLocaleDateString('cs-CZ', options);
             }
             
-            updateCurrentTime();
-            
             // Získání uživatelského jména z Supabase - profiles table
             async function loadUserProfile() {
                 try {
                     const { data, error } = await supabase
                         .from('profiles')
-                        .select('username, avatar_url')
+                        .select('username, avatar_url, first_name, last_name')
                         .eq('id', USER_ID)
                         .single();
                     
@@ -993,11 +992,16 @@
                         if (data.username) {
                             userNameElement.textContent = data.username;
                             
-                            // Vytvoření iniciálů pro avatar
-                            const initials = data.username
+                            // Vytvoření iniciálů pro avatar z username
+                            let initials = data.username
                                 .split(' ')
                                 .map(name => name.charAt(0).toUpperCase())
                                 .join('');
+                            
+                            // Pokud máme k dispozici first_name a last_name, použijeme iniciály z nich
+                            if (data.first_name && data.last_name) {
+                                initials = data.first_name.charAt(0).toUpperCase() + data.last_name.charAt(0).toUpperCase();
+                            }
                             
                             userAvatarElement.textContent = initials;
                         }
@@ -1160,49 +1164,96 @@
                 }, 300);
             }
             
+            // Funkce pro generování dat grafu z JSON historie
+            function generateProgressHistoryData(history, period) {
+                const now = new Date();
+                const result = { labels: [], values: [] };
+                
+                if (!history || !Array.isArray(history)) {
+                    return result;
+                }
+                
+                // Sort by date ascending
+                history.sort((a, b) => new Date(a.date) - new Date(b.date));
+                
+                // Filtrovat podle zvoleného období
+                let daysToShow;
+                if (period === 'week') daysToShow = 7;
+                else if (period === 'month') daysToShow = 30;
+                else daysToShow = 365;
+                
+                const cutoffDate = new Date(now);
+                cutoffDate.setDate(cutoffDate.getDate() - daysToShow);
+                
+                const filteredHistory = history.filter(item => 
+                    new Date(item.date) >= cutoffDate
+                );
+                
+                // Vytvoření dat pro graf
+                filteredHistory.forEach(item => {
+                    const date = new Date(item.date);
+                    const formattedDate = period === 'year' 
+                        ? `${date.getDate()}/${date.getMonth() + 1}` 
+                        : date.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'short' });
+                    
+                    result.labels.push(formattedDate);
+                    result.values.push(item.progress);
+                });
+                
+                return result;
+            }
+            
             // Funkce pro načtení dat grafu ze Supabase
             async function loadChartData(period = 'month') {
                 try {
                     chartLoading.style.display = 'flex';
                     progressChart.style.display = 'none';
                     
-                    // Simulace načítání dat z DB - v reálné aplikaci by se zde prováděl dotaz na Supabase
-                    const { data, error } = await supabase
-                        .from('user_progress')
-                        .select('date, progress_percentage')
+                    // Získáme data z user_stats tabulky pro zobrazení pokroku
+                    const { data: statsData, error: statsError } = await supabase
+                        .from('user_stats')
+                        .select('progress_history')
                         .eq('user_id', USER_ID)
-                        .order('date', { ascending: true });
+                        .single();
                     
-                    if (error) throw error;
+                    if (statsError) throw statsError;
                     
-                    // Zpracování dat pro graf
-                    let labels = [];
-                    let values = [];
+                    // Extrahujeme historii pokroku z JSON pole pokud existuje
+                    let progressHistory = [];
+                    if (statsData && statsData.progress_history) {
+                        progressHistory = statsData.progress_history;
+                    }
                     
-                    if (data && data.length > 0) {
-                        // Zde by bylo zpracování dat podle období (týden, měsíc, rok)
-                        // Pro ukázku použijeme simulovaná data
+                    // Pokud nemáme žádná data, můžeme vytvořit simulovaná data pro ukázku grafu
+                    if (!progressHistory || progressHistory.length === 0) {
+                        // Simulovaná data pro ukázkové účely
                         const now = new Date();
                         const daysToShow = period === 'week' ? 7 : period === 'month' ? 30 : 365;
                         
-                        for (let i = 0; i < daysToShow; i++) {
+                        for (let i = daysToShow - 1; i >= 0; i--) {
                             const date = new Date(now);
-                            date.setDate(date.getDate() - (daysToShow - i - 1));
+                            date.setDate(date.getDate() - i);
                             
-                            const formattedDate = period === 'year' 
-                                ? `${date.getDate()}/${date.getMonth() + 1}` 
-                                : date.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'short' });
+                            // Generujeme progresivně rostoucí hodnoty pro reálnější simulaci
+                            const baseProgress = 25; // Základní hodnota
+                            const randomVariation = Math.floor(Math.random() * 10) - 5; // Náhodná variace +/- 5
+                            const dayEffect = Math.floor((daysToShow - i) / 5); // Efekt postupného zlepšování
                             
-                            labels.push(formattedDate);
+                            let progress = baseProgress + dayEffect + randomVariation;
+                            progress = Math.max(0, Math.min(100, progress)); // Omezení na 0-100
                             
-                            // Simulace dat - v reálné aplikaci by se použila skutečná data
-                            const progress = Math.floor(20 + Math.random() * 60);
-                            values.push(progress);
+                            progressHistory.push({
+                                date: date.toISOString().split('T')[0], // YYYY-MM-DD
+                                progress: progress
+                            });
                         }
                     }
                     
+                    // Zpracování dat pro graf podle zvoleného období
+                    const chartData = generateProgressHistoryData(progressHistory, period);
+                    
                     // Aktualizace grafu
-                    initChart({ labels, values });
+                    initChart(chartData);
                     
                     chartLoading.style.display = 'none';
                     progressChart.style.display = 'block';
@@ -1213,19 +1264,19 @@
                 }
             }
             
-            // Funkce pro načtení aktivit ze Supabase
+            // Funkce pro načtení diagnostických dat uživatele pro zobrazení aktivit
             async function loadActivities() {
                 try {
                     tableLoading.style.display = 'flex';
                     activitiesTable.style.display = 'none';
                     noActivities.style.display = 'none';
                     
-                    // Simulace načítání dat z DB - v reálné aplikaci by se zde prováděl dotaz na Supabase
+                    // Načítáme data z user_diagnostics tabulky
                     const { data, error } = await supabase
-                        .from('user_activities')
+                        .from('user_diagnostics')
                         .select('*')
                         .eq('user_id', USER_ID)
-                        .order('created_at', { ascending: false })
+                        .order('completed_at', { ascending: false })
                         .limit(10);
                     
                     if (error) throw error;
@@ -1234,27 +1285,34 @@
                     activitiesBody.innerHTML = '';
                     
                     if (data && data.length > 0) {
-                        // Simulovaná data pro ukázku - v reálné aplikaci by se použila skutečná data
-                        const activities = [
-                            { name: 'Lineární rovnice - závěrečný test', date: '2025-03-28', points: 85, status: 'Dokončeno' },
-                            { name: 'Procenta - základní úkoly', date: '2025-03-25', points: 92, status: 'Dokončeno' },
-                            { name: 'Geometrie prostoru - cvičení', date: '2025-03-22', points: 78, status: 'Dokončeno' },
-                            { name: 'Slovní úlohy - pokročilé', date: '2025-03-18', points: 65, status: 'Dokončeno' },
-                            { name: 'Derivace - úvod', date: '2025-03-15', points: 90, status: 'Dokončeno' }
-                        ];
-                        
-                        // Vyplnění tabulky daty
-                        activities.forEach(activity => {
+                        // Zobrazení dat z diagnostických testů v tabulce
+                        data.forEach(diagnostic => {
                             const row = document.createElement('tr');
                             
-                            const formattedDate = new Date(activity.date).toLocaleDateString('cs-CZ');
-                            const statusClass = activity.status === 'Dokončeno' ? 'success' : 'warning';
+                            // Vytvoření názvu aktivity z diagnostických dat
+                            const topic = diagnostic.topic_results ? 
+                                Object.keys(diagnostic.topic_results)[0] || 'Diagnostický test' : 
+                                'Diagnostický test';
+                            
+                            const formattedDate = new Date(diagnostic.completed_at).toLocaleDateString('cs-CZ');
+                            const score = diagnostic.total_score;
+                            const totalQuestions = diagnostic.total_questions;
+                            const percentage = Math.round((score / totalQuestions) * 100);
+                            
+                            // Určení stavu podle výsledku testu
+                            let status = 'Dokončeno';
+                            let statusClass = 'success';
+                            
+                            if (percentage < 60) {
+                                status = 'Potřeba zlepšení';
+                                statusClass = 'warning';
+                            }
                             
                             row.innerHTML = `
-                                <td>${activity.name}</td>
+                                <td>${topic}</td>
                                 <td>${formattedDate}</td>
-                                <td>${activity.points} / 100</td>
-                                <td><span class="stats-card-badge ${statusClass}">${activity.status}</span></td>
+                                <td>${score} / ${totalQuestions} (${percentage}%)</td>
+                                <td><span class="stats-card-badge ${statusClass}">${status}</span></td>
                             `;
                             
                             activitiesBody.appendChild(row);
@@ -1273,10 +1331,52 @@
                 }
             }
             
-            // Funkce pro načtení statistik
+            // Funkce pro načtení statistik z tabulky user_stats
             async function loadStatistics() {
                 try {
-                    // Simulace načítání dat ze Supabase
+                    // Načítáme data statistik z user_stats tabulky
+                    const { data: statsData, error: statsError } = await supabase
+                        .from('user_stats')
+                        .select('*')
+                        .eq('user_id', USER_ID)
+                        .single();
+                    
+                    if (statsError) throw statsError;
+                    
+                    // Získáme také data z profilu uživatele pro doplňující informace
+                    const { data: profileData, error: profileError } = await supabase
+                        .from('profiles')
+                        .select('points, streak_days, completed_exercises, level')
+                        .eq('id', USER_ID)
+                        .single();
+                    
+                    if (profileError) throw profileError;
+                    
+                    let progress = 0;
+                    let progressWeekly = 0;
+                    let points = 0;
+                    let pointsWeekly = 0;
+                    let streak = 0;
+                    let longestStreak = 0;
+                    let completedExercises = 0;
+                    
+                    if (statsData) {
+                        progress = statsData.progress || 0;
+                        progressWeekly = statsData.progress_weekly || 0;
+                        points = statsData.points || 0;
+                        pointsWeekly = statsData.points_weekly || 0;
+                        streak = statsData.streak_current || 0;
+                        longestStreak = statsData.streak_longest || 0;
+                    }
+                    
+                    // Použijeme data z profilu, pokud jsou dostupná
+                    if (profileData) {
+                        points = profileData.points || points;
+                        streak = profileData.streak_days || streak;
+                        completedExercises = profileData.completed_exercises || 0;
+                    }
+                    
+                    // Aktualizace statistických karet
                     statsGrid.innerHTML = `
                         <div class="stats-card transform-gpu">
                             <div class="stats-card-header">
@@ -1287,15 +1387,15 @@
                                 <span class="stats-card-badge">Poslední měsíc</span>
                             </div>
                             <div class="stats-card-content">
-                                <div class="stats-card-value">68%</div>
+                                <div class="stats-card-value">${progress}%</div>
                                 <div class="stats-card-description">Průběžné hodnocení vašeho postupu v učení</div>
                                 <div class="progress-container">
-                                    <div class="progress-bar" style="width: 68%"></div>
+                                    <div class="progress-bar" style="width: ${progress}%"></div>
                                 </div>
                             </div>
-                            <div class="stats-card-footer positive">
-                                <i class="fas fa-arrow-up"></i>
-                                <span>Nárůst o 12% oproti minulému měsíci</span>
+                            <div class="stats-card-footer ${progressWeekly >= 0 ? 'positive' : 'negative'}">
+                                <i class="fas ${progressWeekly >= 0 ? 'fa-arrow-up' : 'fa-arrow-down'}"></i>
+                                <span>${progressWeekly >= 0 ? 'Nárůst' : 'Pokles'} o ${Math.abs(progressWeekly)}% oproti minulému týdnu</span>
                             </div>
                         </div>
                         
@@ -1308,12 +1408,12 @@
                                 <span class="stats-card-badge">Celkem</span>
                             </div>
                             <div class="stats-card-content">
-                                <div class="stats-card-value">2,450</div>
+                                <div class="stats-card-value">${points.toLocaleString('cs-CZ')}</div>
                                 <div class="stats-card-description">Body za splněné úkoly a cvičení</div>
                             </div>
-                            <div class="stats-card-footer positive">
-                                <i class="fas fa-arrow-up"></i>
-                                <span>+350 bodů tento týden</span>
+                            <div class="stats-card-footer ${pointsWeekly >= 0 ? 'positive' : 'negative'}">
+                                <i class="fas ${pointsWeekly >= 0 ? 'fa-arrow-up' : 'fa-arrow-down'}"></i>
+                                <span>${pointsWeekly >= 0 ? '+' : '-'}${Math.abs(pointsWeekly)} bodů tento týden</span>
                             </div>
                         </div>
                         
@@ -1326,18 +1426,78 @@
                                 <span class="stats-card-badge">Aktivita</span>
                             </div>
                             <div class="stats-card-content">
-                                <div class="stats-card-value">14</div>
+                                <div class="stats-card-value">${streak}</div>
                                 <div class="stats-card-description">Dny za sebou, kdy jste se učili</div>
                             </div>
                             <div class="stats-card-footer positive">
                                 <i class="fas fa-calendar-check"></i>
-                                <span>Nejdelší série: 21 dnů</span>
+                                <span>Nejdelší série: ${longestStreak} dnů</span>
                             </div>
                         </div>
                     `;
                 } catch (err) {
                     console.error('Chyba při načítání statistik:', err);
                     showToast('Chyba načítání dat', 'Nepodařilo se načíst statistiky', 'error');
+                    
+                    // Zobrazit záložní statistiky, pokud selže načítání z databáze
+                    statsGrid.innerHTML = `
+                        <div class="stats-card transform-gpu">
+                            <div class="stats-card-header">
+                                <div class="stats-card-title">
+                                    <i class="fas fa-chart-line"></i>
+                                    Celkový pokrok
+                                </div>
+                                <span class="stats-card-badge">Poslední měsíc</span>
+                            </div>
+                            <div class="stats-card-content">
+                                <div class="stats-card-value">0%</div>
+                                <div class="stats-card-description">Průběžné hodnocení vašeho postupu v učení</div>
+                                <div class="progress-container">
+                                    <div class="progress-bar" style="width: 0%"></div>
+                                </div>
+                            </div>
+                            <div class="stats-card-footer">
+                                <i class="fas fa-info-circle"></i>
+                                <span>Data nejsou dostupná</span>
+                            </div>
+                        </div>
+                        
+                        <div class="stats-card transform-gpu">
+                            <div class="stats-card-header">
+                                <div class="stats-card-title">
+                                    <i class="fas fa-trophy"></i>
+                                    Získané body
+                                </div>
+                                <span class="stats-card-badge">Celkem</span>
+                            </div>
+                            <div class="stats-card-content">
+                                <div class="stats-card-value">0</div>
+                                <div class="stats-card-description">Body za splněné úkoly a cvičení</div>
+                            </div>
+                            <div class="stats-card-footer">
+                                <i class="fas fa-info-circle"></i>
+                                <span>Data nejsou dostupná</span>
+                            </div>
+                        </div>
+                        
+                        <div class="stats-card transform-gpu">
+                            <div class="stats-card-header">
+                                <div class="stats-card-title">
+                                    <i class="fas fa-fire"></i>
+                                    Série dnů
+                                </div>
+                                <span class="stats-card-badge">Aktivita</span>
+                            </div>
+                            <div class="stats-card-content">
+                                <div class="stats-card-value">0</div>
+                                <div class="stats-card-description">Dny za sebou, kdy jste se učili</div>
+                            </div>
+                            <div class="stats-card-footer">
+                                <i class="fas fa-info-circle"></i>
+                                <span>Data nejsou dostupná</span>
+                            </div>
+                        </div>
+                    `;
                 }
             }
             
