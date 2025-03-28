@@ -7,7 +7,7 @@
     <title>Justax - Statistiky uživatele</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -45,7 +45,7 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Inter', sans-serif;
+            font-family: 'Poppins', sans-serif;
         }
 
         body {
@@ -757,13 +757,13 @@
                 </a>
             </li>
             <li class="sidebar-item">
-                <a href="/dashboard/procvicovani.html" class="sidebar-link active">
+                <a href="/dashboard/procvicovani.html" class="sidebar-link">
                     <i class="fas fa-book-open"></i>
                     <span>Procvičování</span>
                 </a>
             </li>
             <li class="sidebar-item">
-                <a href="/dashboard/pokrok.html" class="sidebar-link">
+                <a href="/dashboard/pokrok.html" class="sidebar-link active">
                     <i class="fas fa-chart-line"></i>
                     <span>Pokrok</span>
                 </a>
@@ -791,7 +791,7 @@
         <div class="user-profile">
             <div class="user-avatar" id="user-avatar">MS</div>
             <div class="user-info">
-                <div class="user-name" id="user-name">Maksys234</div>
+                <div class="user-name" id="user-name">Načítání...</div>
                 <div class="user-role">Student</div>
             </div>
         </div>
@@ -805,7 +805,7 @@
                     <i class="fas fa-bars"></i>
                 </button>
                 <h1>Statistiky uživatele</h1>
-                <div class="header-time">27. března 2025, 20:59</div>
+                <div class="header-time" id="current-time">Načítání...</div>
             </div>
             <div class="header-actions">
                 <button class="btn btn-primary" id="refresh-btn">
@@ -958,6 +958,65 @@
             const refreshBtn = document.getElementById('refresh-btn');
             const exportBtn = document.getElementById('export-btn');
             const toastContainer = document.getElementById('toast-container');
+            const userNameElement = document.getElementById('user-name');
+            const userAvatarElement = document.getElementById('user-avatar');
+            const currentTimeElement = document.getElementById('current-time');
+            
+            // Aktualizace času
+            function updateCurrentTime() {
+                const now = new Date();
+                const options = {
+                    day: 'numeric', 
+                    month: 'long', 
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                };
+                currentTimeElement.textContent = now.toLocaleDateString('cs-CZ', options);
+            }
+            
+            updateCurrentTime();
+            
+            // Získání uživatelského jména z Supabase - profiles table
+            async function loadUserProfile() {
+                try {
+                    const { data, error } = await supabase
+                        .from('profiles')
+                        .select('username, avatar_url')
+                        .eq('id', USER_ID)
+                        .single();
+                    
+                    if (error) throw error;
+                    
+                    if (data) {
+                        // Aktualizace jména
+                        if (data.username) {
+                            userNameElement.textContent = data.username;
+                            
+                            // Vytvoření iniciálů pro avatar
+                            const initials = data.username
+                                .split(' ')
+                                .map(name => name.charAt(0).toUpperCase())
+                                .join('');
+                            
+                            userAvatarElement.textContent = initials;
+                        }
+                        
+                        // Přidání avataru, pokud je k dispozici
+                        if (data.avatar_url) {
+                            const avatarImg = document.createElement('img');
+                            avatarImg.src = data.avatar_url;
+                            avatarImg.alt = 'User avatar';
+                            userAvatarElement.innerHTML = '';
+                            userAvatarElement.appendChild(avatarImg);
+                        }
+                    }
+                } catch (err) {
+                    console.error('Chyba při načítání profilu:', err);
+                    // Zobrazení chybového toastu
+                    showToast('Chyba při načítání profilu', 'Nepodařilo se načíst uživatelské údaje', 'error');
+                }
+            }
             
             // Graf pro vizualizaci pokroku
             let chart = null;
@@ -1000,64 +1059,69 @@
                                 display: false
                             },
                             tooltip: {
-                                mode: 'index',
-                                intersect: false,
-                                backgroundColor: '#1e2a3a',
-                                titleColor: '#ffffff',
-                                bodyColor: '#ffffff',
-                                borderColor: CHART_COLORS.primary,
+                                backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                                titleColor: CHART_COLORS.text,
+                                bodyColor: CHART_COLORS.text,
+                                borderColor: 'rgba(113, 128, 150, 0.2)',
                                 borderWidth: 1,
-                                padding: 10,
-                                displayColors: false,
+                                padding: 12,
+                                boxPadding: 6,
+                                usePointStyle: true,
+                                titleFont: {
+                                    size: 14,
+                                    weight: '600'
+                                },
+                                bodyFont: {
+                                    size: 13
+                                },
                                 callbacks: {
                                     label: function(context) {
-                                        return `Pokrok: ${context.parsed.y}%`;
+                                        return `Pokrok: ${context.raw}%`;
                                     }
                                 }
                             }
                         },
                         scales: {
+                            x: {
+                                grid: {
+                                    display: false
+                                },
+                                ticks: {
+                                    color: CHART_COLORS.text,
+                                    font: {
+                                        size: 12
+                                    },
+                                    maxRotation: 45,
+                                    minRotation: 45
+                                }
+                            },
                             y: {
                                 beginAtZero: true,
                                 max: 100,
-                                ticks: {
-                                    stepSize: 20,
-                                    color: CHART_COLORS.text
-                                },
                                 grid: {
                                     color: CHART_COLORS.grid
-                                }
-                            },
-                            x: {
+                                },
                                 ticks: {
                                     color: CHART_COLORS.text,
-                                    maxTicksLimit: 10
-                                },
-                                grid: {
-                                    display: false
+                                    font: {
+                                        size: 12
+                                    },
+                                    callback: function(value) {
+                                        return `${value}%`;
+                                    }
                                 }
                             }
                         }
                     }
                 });
-                
-                // Skrytí loadingu
-                chartLoading.style.display = 'none';
             }
-            
-            // Funkce pro zobrazení toastu (notifikace)
-            function showToast(type, title, message, duration = 5000) {
+
+            // Funkce pro zobrazení toastu
+            function showToast(title, message, type = 'info') {
                 const toast = document.createElement('div');
                 toast.className = `toast ${type}`;
-                
-                let iconClass = 'fa-info-circle';
-                if (type === 'success') iconClass = 'fa-check-circle';
-                if (type === 'error') iconClass = 'fa-exclamation-circle';
-                
                 toast.innerHTML = `
-                    <div class="toast-icon">
-                        <i class="fas ${iconClass}"></i>
-                    </div>
+                    <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'} toast-icon"></i>
                     <div class="toast-content">
                         <div class="toast-title">${title}</div>
                         <div class="toast-message">${message}</div>
@@ -1067,154 +1131,97 @@
                     </button>
                 `;
                 
+                // Přidání toastu do kontejneru
                 toastContainer.appendChild(toast);
                 
-                // Přidání event listeneru pro zavření toastu
+                // Animace zobrazení
+                setTimeout(() => {
+                    toast.classList.add('show');
+                }, 10);
+                
+                // Automatické skrytí toastu
+                const hideTimeout = setTimeout(() => {
+                    hideToast(toast);
+                }, 5000);
+                
+                // Přidání posluchače událostí na zavírací tlačítko
                 const closeBtn = toast.querySelector('.toast-close');
                 closeBtn.addEventListener('click', () => {
-                    toast.style.opacity = '0';
-                    setTimeout(() => {
-                        toast.remove();
-                    }, 300);
+                    clearTimeout(hideTimeout);
+                    hideToast(toast);
                 });
-                
-                // Automatické odstranění toastu po určitém čase
-                setTimeout(() => {
-                    toast.style.opacity = '0';
-                    setTimeout(() => {
-                        toast.remove();
-                    }, 300);
-                }, duration);
             }
             
-            // Funkce pro načtení a zobrazení statistik
-            async function loadStats() {
+            // Funkce pro skrytí toastu
+            function hideToast(toast) {
+                toast.classList.remove('show');
+                setTimeout(() => {
+                    toast.remove();
+                }, 300);
+            }
+            
+            // Funkce pro načtení dat grafu ze Supabase
+            async function loadChartData(period = 'month') {
                 try {
-                    // Simulujeme načtení statistik z profilu uživatele
-                    const { data: profile, error: profileError } = await supabase
-                        .from('profiles')
-                        .select('*')
-                        .eq('id', USER_ID)
-                        .single();
+                    chartLoading.style.display = 'flex';
+                    progressChart.style.display = 'none';
                     
-                    if (profileError) throw profileError;
+                    // Simulace načítání dat z DB - v reálné aplikaci by se zde prováděl dotaz na Supabase
+                    const { data, error } = await supabase
+                        .from('user_progress')
+                        .select('date, progress_percentage')
+                        .eq('user_id', USER_ID)
+                        .order('date', { ascending: true });
                     
-                    if (!profile) {
-                        throw new Error('Profil uživatele nebyl nalezen');
+                    if (error) throw error;
+                    
+                    // Zpracování dat pro graf
+                    let labels = [];
+                    let values = [];
+                    
+                    if (data && data.length > 0) {
+                        // Zde by bylo zpracování dat podle období (týden, měsíc, rok)
+                        // Pro ukázku použijeme simulovaná data
+                        const now = new Date();
+                        const daysToShow = period === 'week' ? 7 : period === 'month' ? 30 : 365;
+                        
+                        for (let i = 0; i < daysToShow; i++) {
+                            const date = new Date(now);
+                            date.setDate(date.getDate() - (daysToShow - i - 1));
+                            
+                            const formattedDate = period === 'year' 
+                                ? `${date.getDate()}/${date.getMonth() + 1}` 
+                                : date.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'short' });
+                            
+                            labels.push(formattedDate);
+                            
+                            // Simulace dat - v reálné aplikaci by se použila skutečná data
+                            const progress = Math.floor(20 + Math.random() * 60);
+                            values.push(progress);
+                        }
                     }
                     
-                    // Načtení výsledků testů pro výpočet počtu dokončených testů
-                    const { data: results, error: resultsError } = await supabase
-                        .from('test_results')
-                        .select('created_at, score')
-                        .eq('user_id', USER_ID);
+                    // Aktualizace grafu
+                    initChart({ labels, values });
                     
-                    if (resultsError) throw resultsError;
-                    
-                    // Výpočet statistik
-                    const completedTests = results ? results.length : 0;
-                    const avgScore = results && results.length > 0
-                        ? results.reduce((acc, test) => acc + test.score, 0) / results.length
-                        : 0;
-                    const lastTestDate = results && results.length > 0
-                        ? new Date(results.sort((a, b) => new Date(b.created_at) - new Date(a.created_at))[0].created_at)
-                        : null;
-                    
-                    // Načtení celkového počtu testů
-                    const { count: totalTests, error: testsCountError } = await supabase
-                        .from('tests')
-                        .select('*', { count: 'exact', head: true });
-                    
-                    if (testsCountError) throw testsCountError;
-                    
-                    // Vytvoření karet statistik
-                    const statsHtml = `
-                        <div class="stats-card transform-gpu">
-                            <div class="stats-card-header">
-                                <h3 class="stats-card-title">
-                                    <i class="fas fa-chart-line"></i>
-                                    Celkový pokrok
-                                </h3>
-                                <span class="stats-card-badge">Tento měsíc</span>
-                            </div>
-                            <div class="stats-card-content">
-                                <div class="stats-card-value">${profile.progress || 0}%</div>
-                                <div class="progress-container">
-                                    <div class="progress-bar" style="width: ${profile.progress || 0}%;"></div>
-                                </div>
-                                <div class="stats-card-description">Průběžný pokrok ve všech oblastech</div>
-                            </div>
-                            <div class="stats-card-footer ${profile.progress_weekly > 0 ? 'positive' : profile.progress_weekly < 0 ? 'negative' : ''}">
-                                <i class="fas ${profile.progress_weekly > 0 ? 'fa-arrow-up' : profile.progress_weekly < 0 ? 'fa-arrow-down' : 'fa-minus'}"></i>
-                                <span>${profile.progress_weekly > 0 ? '+' : ''}${profile.progress_weekly || 0}% od minulého týdne</span>
-                            </div>
-                        </div>
-                        
-                        <div class="stats-card transform-gpu">
-                            <div class="stats-card-header">
-                                <h3 class="stats-card-title">
-                                    <i class="fas fa-tasks"></i>
-                                    Vyplněné testy
-                                </h3>
-                                <span class="stats-card-badge">Celkem</span>
-                            </div>
-                            <div class="stats-card-content">
-                                <div class="stats-card-value">${completedTests}</div>
-                                <div class="stats-card-description">z celkem ${totalTests || 0} dostupných testů</div>
-                            </div>
-                            <div class="stats-card-footer">
-                                <i class="fas fa-calendar-alt"></i>
-                                <span>Poslední test: ${formatLastTestDate(lastTestDate)}</span>
-                            </div>
-                        </div>
-                        
-                        <div class="stats-card transform-gpu">
-                            <div class="stats-card-header">
-                                <h3 class="stats-card-title">
-                                    <i class="fas fa-fire"></i>
-                                    Studijní body
-                                </h3>
-                                <span class="stats-card-badge success">Aktivní</span>
-                            </div>
-                            <div class="stats-card-content">
-                                <div class="stats-card-value">${profile.points || 0}</div>
-                                <div class="stats-card-description">Dnů v řadě: ${profile.streak_days || 0}</div>
-                            </div>
-                            <div class="stats-card-footer positive">
-                                <i class="fas fa-trophy"></i>
-                                <span>Nejdelší série: ${profile.streak_longest || 0} dní</span>
-                            </div>
-                        </div>
-                    `;
-                    
-                    statsGrid.innerHTML = statsHtml;
-                    
-                    // Generování dat pro graf - poslední týden
-                    const chartData = generateProgressChartData('month');
-                    initChart(chartData);
-                    
-                } catch (error) {
-                    console.error('Chyba při načítání statistik:', error);
-                    statsGrid.innerHTML = `
-                        <div class="error-message" style="grid-column: 1 / -1;">
-                            <i class="fas fa-exclamation-circle"></i>
-                            <span>Nepodařilo se načíst statistiky. Zkuste to prosím později. Chyba: ${error.message || error}</span>
-                        </div>
-                    `;
-                    
-                    showToast('error', 'Chyba načítání', 'Nepodařilo se načíst statistiky uživatele.');
+                    chartLoading.style.display = 'none';
+                    progressChart.style.display = 'block';
+                } catch (err) {
+                    console.error('Chyba při načítání dat grafu:', err);
+                    chartLoading.style.display = 'none';
+                    showToast('Chyba načítání dat', 'Nepodařilo se načíst data grafu', 'error');
                 }
             }
             
-            // Funkce pro načtení aktivit
+            // Funkce pro načtení aktivit ze Supabase
             async function loadActivities() {
                 try {
                     tableLoading.style.display = 'flex';
                     activitiesTable.style.display = 'none';
                     noActivities.style.display = 'none';
                     
-                    // Načtení aktivit uživatele
-                    const { data: activities, error } = await supabase
+                    // Simulace načítání dat z DB - v reálné aplikaci by se zde prováděl dotaz na Supabase
+                    const { data, error } = await supabase
                         .from('user_activities')
                         .select('*')
                         .eq('user_id', USER_ID)
@@ -1223,735 +1230,204 @@
                     
                     if (error) throw error;
                     
-                    // Zobrazení či skrytí tabulky podle dostupnosti dat
-                    if (!activities || activities.length === 0) {
-                        tableLoading.style.display = 'none';
-                        noActivities.style.display = 'flex';
-                        return;
-                    }
+                    // Vyčištění tabulky
+                    activitiesBody.innerHTML = '';
                     
-                    // Generování řádků tabulky
-                    let tableRows = '';
-                    
-                    activities.forEach(activity => {
-                        const date = new Date(activity.created_at);
-                        const formattedDate = date.toLocaleDateString('cs-CZ', {
-                            day: '2-digit',
-                            month: '2-digit',
-                            year: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                        });
+                    if (data && data.length > 0) {
+                        // Simulovaná data pro ukázku - v reálné aplikaci by se použila skutečná data
+                        const activities = [
+                            { name: 'Lineární rovnice - závěrečný test', date: '2025-03-28', points: 85, status: 'Dokončeno' },
+                            { name: 'Procenta - základní úkoly', date: '2025-03-25', points: 92, status: 'Dokončeno' },
+                            { name: 'Geometrie prostoru - cvičení', date: '2025-03-22', points: 78, status: 'Dokončeno' },
+                            { name: 'Slovní úlohy - pokročilé', date: '2025-03-18', points: 65, status: 'Dokončeno' },
+                            { name: 'Derivace - úvod', date: '2025-03-15', points: 90, status: 'Dokončeno' }
+                        ];
                         
-                        let statusClass = '';
-                        let statusText = 'Neznámý';
-                        
-                        switch(activity.status) {
-                            case 'completed':
-                                statusClass = 'success';
-                                statusText = 'Dokončeno';
-                                break;
-                            case 'in_progress':
-                                statusClass = 'warning';
-                                statusText = 'Probíhá';
-                                break;
-                            case 'failed':
-                                statusClass = 'danger';
-                                statusText = 'Neúspěšné';
-                                break;
-                            default:
-                                statusClass = 'info';
-                                statusText = 'Neznámý';
-                        }
-                        
-                        tableRows += `
-                            <tr>
-                                <td>${activity.description || 'Neznámá aktivita'}</td>
+                        // Vyplnění tabulky daty
+                        activities.forEach(activity => {
+                            const row = document.createElement('tr');
+                            
+                            const formattedDate = new Date(activity.date).toLocaleDateString('cs-CZ');
+                            const statusClass = activity.status === 'Dokončeno' ? 'success' : 'warning';
+                            
+                            row.innerHTML = `
+                                <td>${activity.name}</td>
                                 <td>${formattedDate}</td>
-                                <td>${activity.points || 0}</td>
-                                <td><span class="badge ${statusClass}">${statusText}</span></td>
-                            </tr>
-                        `;
-                    });
-                    
-                    activitiesBody.innerHTML = tableRows;
-                    tableLoading.style.display = 'none';
-                    activitiesTable.style.display = 'table';
-                    
-                } catch (error) {
-                    console.error('Chyba při načítání aktivit:', error);
-                    tableLoading.style.display = 'none';
-                    activitiesBody.innerHTML = `
-                        <tr>
-                            <td colspan="4">
-                                <div class="error-message">
-                                    <i class="fas fa-exclamation-circle"></i>
-                                    <span>Nepodařilo se načíst aktivity. Zkuste to prosím později.</span>
-                                </div>
-                            </td>
-                        </tr>
-                    `;
-                    activitiesTable.style.display = 'table';
-                    
-                    showToast('error', 'Chyba načítání', 'Nepodařilo se načíst aktivity uživatele.');
-                }
-            }
-            
-            // Optimalizovaná funkce pro formátování data posledního testu
-            function formatLastTestDate(date) {
-                if (!date) return 'Žádný test';
-                
-                const now = new Date();
-                const diffTime = Math.abs(now - date);
-                const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-                
-                if (diffDays === 0) {
-                    return 'Dnes';
-                } else if (diffDays === 1) {
-                    return 'Včera';
-                } else if (diffDays < 7) {
-                    return `Před ${diffDays} dny`;
-                } else {
-                    return date.toLocaleDateString('cs-CZ');
-                }
-            }
-            
-            // Generování dat pro graf pokroku
-            function generateProgressChartData(period) {
-                const labels = [];
-                const values = [];
-                const now = new Date();
-                
-                let dataPoints = 30; // výchozí pro měsíc
-                let format = { day: 'numeric', month: 'numeric' };
-                let increment = 24 * 60 * 60 * 1000; // den v ms
-                
-                if (period === 'week') {
-                    dataPoints = 7;
-                    format = { weekday: 'short' };
-                } else if (period === 'year') {
-                    dataPoints = 12;
-                    format = { month: 'short' };
-                    increment = 30 * 24 * 60 * 60 * 1000; // přibližně měsíc v ms
-                }
-                
-                // Simulace dat pokroku
-                for (let i = dataPoints - 1; i >= 0; i--) {
-                    const date = new Date(now - (i * increment));
-                    labels.push(date.toLocaleDateString('cs-CZ', format));
-                    
-                    // Simulace postupného nárustu pokroku
-                    const baseProgress = 30; // základní pokrok
-                    const randomProgress = Math.random() * 10; // náhodná složka
-                    const timeProgress = (dataPoints - i) * (60 / dataPoints); // časová složka (max 60%)
-                    
-                    values.push(Math.min(Math.round(baseProgress + randomProgress + timeProgress), 100));
-                }
-                
-                return { labels, values };
-            }
-            
-            // Generování dat pro aktivitu
-            function generateActivityData(days = 30) {
-                const now = new Date();
-                const data = [];
-                
-                // Předmety a jejich barvy
-                const subjects = [
-                    { name: 'Matematika', color: '#4361ee' },
-                    { name: 'Fyzika', color: '#3a0ca3' },
-                    { name: 'Čeština', color: '#7209b7' },
-                    { name: 'Angličtina', color: '#f72585' },
-                    { name: 'Historie', color: '#4cc9f0' }
-                ];
-                
-                // Generování dat pro každý den
-                for (let i = days - 1; i >= 0; i--) {
-                    const date = new Date(now - (i * 24 * 60 * 60 * 1000));
-                    const dateString = date.toISOString().split('T')[0];
-                    
-                    // Generování aktivit pro tento den
-                    const dailyActivity = {
-                        date: dateString,
-                        total: 0,
-                        subjects: []
-                    };
-                    
-                    // Určení počtu aktivit za den (1-5)
-                    const activityCount = Math.floor(Math.random() * 5) + 1;
-                    
-                    // Náhodný výběr předmětů
-                    const selectedSubjects = [...subjects]
-                        .sort(() => 0.5 - Math.random())
-                        .slice(0, activityCount);
-                    
-                    // Přidání aktivit pro vybrané předměty
-                    selectedSubjects.forEach(subject => {
-                        const minutes = Math.floor(Math.random() * 120) + 30; // 30-150 minut
-                        dailyActivity.total += minutes;
-                        
-                        dailyActivity.subjects.push({
-                            name: subject.name,
-                            color: subject.color,
-                            minutes: minutes,
-                            percentage: 0 // Bude vypočteno níže
+                                <td>${activity.points} / 100</td>
+                                <td><span class="stats-card-badge ${statusClass}">${activity.status}</span></td>
+                            `;
+                            
+                            activitiesBody.appendChild(row);
                         });
-                    });
-                    
-                    // Výpočet procentuálního zastoupení každého předmětu
-                    dailyActivity.subjects.forEach(subject => {
-                        subject.percentage = Math.round((subject.minutes / dailyActivity.total) * 100);
-                    });
-                    
-                    data.push(dailyActivity);
-                }
-                
-                return data;
-            }
-            
-            // Generování dat pro testové výsledky
-            function generateTestResults(count = 10) {
-                const results = [];
-                const now = new Date();
-                
-                // Předměty a jejich ikony
-                const subjects = [
-                    { name: 'Matematika', icon: 'fa-square-root-alt' },
-                    { name: 'Fyzika', icon: 'fa-atom' },
-                    { name: 'Čeština', icon: 'fa-language' },
-                    { name: 'Angličtina', icon: 'fa-language' },
-                    { name: 'Historie', icon: 'fa-landmark' }
-                ];
-                
-                // Typy testů
-                const testTypes = ['Diagnostický', 'Procvičování', 'Závěrečný', 'Tematický'];
-                
-                for (let i = 0; i < count; i++) {
-                    const date = new Date(now - (i * Math.floor(Math.random() * 3 + 1) * 24 * 60 * 60 * 1000));
-                    
-                    // Výběr předmětu
-                    const subject = subjects[Math.floor(Math.random() * subjects.length)];
-                    
-                    // Výběr typu testu
-                    const testType = testTypes[Math.floor(Math.random() * testTypes.length)];
-                    
-                    // Generování skóre - vyšší pravděpodobnost dobrých výsledků
-                    let score;
-                    const roll = Math.random();
-                    
-                    if (roll > 0.9) {
-                        // 10% šance na velmi nízké skóre (30-50%)
-                        score = Math.floor(Math.random() * 20) + 30;
-                    } else if (roll > 0.7) {
-                        // 20% šance na průměrné skóre (50-70%)
-                        score = Math.floor(Math.random() * 20) + 50;
+                        
+                        activitiesTable.style.display = 'table';
                     } else {
-                        // 70% šance na dobré skóre (70-100%)
-                        score = Math.floor(Math.random() * 30) + 70;
+                        noActivities.style.display = 'flex';
                     }
                     
-                    // Generování počtu otázek a správných odpovědí
-                    const totalQuestions = Math.floor(Math.random() * 15) + 10; // 10-25 otázek
-                    const correctAnswers = Math.floor(totalQuestions * (score / 100));
-                    
-                    // Generování času stráveného v testu (5-30 minut)
-                    const timeSpent = Math.floor(Math.random() * 25 * 60) + (5 * 60);
-                    
-                    results.push({
-                        id: `test-${i + 1}`,
-                        test_title: `${subject.name}: ${testType} test`,
-                        test_subject: subject.name,
-                        test_type: testType.toLowerCase(),
-                        icon: subject.icon,
-                        score: score,
-                        correct_answers: correctAnswers,
-                        total_questions: totalQuestions,
-                        time_spent: timeSpent,
-                        created_at: date.toISOString()
-                    });
+                    tableLoading.style.display = 'none';
+                } catch (err) {
+                    console.error('Chyba při načítání aktivit:', err);
+                    tableLoading.style.display = 'none';
+                    showToast('Chyba načítání dat', 'Nepodařilo se načíst aktivity', 'error');
                 }
-                
-                // Seřazení výsledků podle data (nejnovější první)
-                results.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-                
-                return results;
             }
             
-            // Generování dat pro statistiky
-            function generateSubjectStats() {
-                const subjects = [
-                    { 
-                        name: 'Matematika',
-                        icon: 'fa-square-root-alt',
-                        totalTime: Math.floor(Math.random() * 40) + 10,
-                        avgScore: Math.floor(Math.random() * 30) + 70,
-                        testCount: Math.floor(Math.random() * 10) + 5
-                    },
-                    { 
-                        name: 'Fyzika',
-                        icon: 'fa-atom',
-                        totalTime: Math.floor(Math.random() * 30) + 5,
-                        avgScore: Math.floor(Math.random() * 30) + 65,
-                        testCount: Math.floor(Math.random() * 8) + 3
-                    },
-                    { 
-                        name: 'Čeština',
-                        icon: 'fa-language',
-                        totalTime: Math.floor(Math.random() * 25) + 8,
-                        avgScore: Math.floor(Math.random() * 25) + 70,
-                        testCount: Math.floor(Math.random() * 7) + 2
-                    },
-                    { 
-                        name: 'Angličtina',
-                        icon: 'fa-language',
-                        totalTime: Math.floor(Math.random() * 35) + 15,
-                        avgScore: Math.floor(Math.random() * 20) + 75,
-                        testCount: Math.floor(Math.random() * 6) + 4
-                    },
-                    { 
-                        name: 'Historie',
-                        icon: 'fa-landmark',
-                        totalTime: Math.floor(Math.random() * 20) + 5,
-                        avgScore: Math.floor(Math.random() * 35) + 60,
-                        testCount: Math.floor(Math.random() * 5) + 1
-                    }
-                ];
-                
-                // Seřazení podle průměrného skóre (nejlepší první)
-                subjects.sort((a, b) => b.avgScore - a.avgScore);
-                
-                return subjects;
-            }
-            
-            // Generování dat pro plán studia
-            function generateStudyPlan() {
-                const startDate = new Date();
-                const endDate = new Date(startDate);
-                endDate.setDate(endDate.getDate() + 30); // Plán na 30 dní
-                
-                const plan = {
-                    title: 'Personalizovaný studijní plán',
-                    created_at: startDate.toISOString(),
-                    estimated_completion_date: endDate.toISOString(),
-                    progress: Math.floor(Math.random() * 35),
-                    status: 'active',
-                    priority_topics: [
-                        {
-                            name: 'Algebra',
-                            description: 'Lineární rovnice a nerovnice'
-                        },
-                        {
-                            name: 'Geometrie',
-                            description: 'Planimetrie a trigonometrie'
-                        },
-                        {
-                            name: 'Statistika',
-                            description: 'Základy statistiky a pravděpodobnost'
-                        }
-                    ]
-                };
-                
-                return plan;
-            }
-            
-            // Generování rozvrhu aktivit pro plán
-            function generatePlanActivities() {
-                const activities = [];
-                const dayNames = ['Neděle', 'Pondělí', 'Úterý', 'Středa', 'Čtvrtek', 'Pátek', 'Sobota'];
-                const today = new Date().getDay();
-                
-                // Předměty a témata
-                const topics = [
-                    { name: 'Algebra', subject: 'Matematika' },
-                    { name: 'Geometrie', subject: 'Matematika' },
-                    { name: 'Trigonometrie', subject: 'Matematika' },
-                    { name: 'Mechanika', subject: 'Fyzika' },
-                    { name: 'Elektřina', subject: 'Fyzika' },
-                    { name: 'Pravopis', subject: 'Čeština' },
-                    { name: 'Literatura', subject: 'Čeština' },
-                    { name: 'Gramatika', subject: 'Angličtina' },
-                    { name: 'Konverzace', subject: 'Angličtina' },
-                    { name: 'Starověk', subject: 'Historie' },
-                    { name: 'Středověk', subject: 'Historie' }
-                ];
-                
-                // Časové sloty
-                const timeSlots = ['8:00', '9:30', '11:00', '13:30', '15:00', '16:30', '18:00', '19:30'];
-                
-                // Generování aktivit pro každý den v týdnu
-                for (let day = 0; day < 7; day++) {
-                    // Počet aktivit pro tento den (1-3)
-                    const activityCount = Math.floor(Math.random() * 3) + 1;
-                    
-                    // Náhodný výběr témat
-                    const selectedTopics = [...topics]
-                        .sort(() => 0.5 - Math.random())
-                        .slice(0, activityCount);
-                    
-                    // Náhodný výběr časových slotů
-                    const selectedTimeSlots = [...timeSlots]
-                        .sort(() => 0.5 - Math.random())
-                        .slice(0, activityCount);
-                    
-                    // Vytvoření aktivit
-                    for (let i = 0; i < activityCount; i++) {
-                        const topic = selectedTopics[i];
-                        
-                        activities.push({
-                            id: `activity-${day}-${i}`,
-                            title: `${topic.name} - ${topic.subject}`,
-                            description: `Procvičování základů: ${topic.name}`,
-                            day_of_week: day,
-                            time_slot: selectedTimeSlots[i],
-                            completed: day < today || (day === today && Math.random() > 0.5),
-                            topic_name: topic.name
-                        });
-                    }
-                }
-                
-                return activities;
-            }
-            
-            // Generování dat pro témata
-            function generateTopicData() {
-                const topics = [
-                    {
-                        topic_name: 'Algebra',
-                        subject: 'Matematika',
-                        strength: 'strength',
-                        questions_attempted: 120,
-                        questions_correct: 105,
-                        progress: 87
-                    },
-                    {
-                        topic_name: 'Geometrie',
-                        subject: 'Matematika',
-                        strength: 'weakness',
-                        questions_attempted: 85,
-                        questions_correct: 52,
-                        progress: 61
-                    },
-                    {
-                        topic_name: 'Trigonometrie',
-                        subject: 'Matematika',
-                        strength: 'neutral',
-                        questions_attempted: 65,
-                        questions_correct: 48,
-                        progress: 74
-                    },
-                    {
-                        topic_name: 'Mechanika',
-                        subject: 'Fyzika',
-                        strength: 'weakness',
-                        questions_attempted: 50,
-                        questions_correct: 29,
-                        progress: 58
-                    },
-                    {
-                        topic_name: 'Statistika',
-                        subject: 'Matematika',
-                        strength: 'neutral',
-                        questions_attempted: 70,
-                        questions_correct: 51,
-                        progress: 73
-                    }
-                ];
-                
-                return topics;
-            }
-            
-            // Event listeners pro tlačítka
-            if(startTestBtn) {
-                startTestBtn.addEventListener('click', function() {
-                    window.location.href = '/dashboard/procvicovani/test1.html';
-                });
-            }
-            
-            if(newTestBtn) {
-                newTestBtn.addEventListener('click', function() {
-                    window.location.href = '/dashboard/procvicovani/test1.html';
-                });
-            }
-            
-            if(createPlanBtn) {
-                createPlanBtn.addEventListener('click', function() {
-                    window.location.href = '/dashboard/procvicovani/diagnostic.html';
-                });
-            }
-            
-            if(startPracticeBtn) {
-                startPracticeBtn.addEventListener('click', function() {
-                    window.location.href = '/dashboard/procvicovani/test1.html';
-                });
-            }
-            
-            if(updatePlanBtn) {
-                updatePlanBtn.addEventListener('click', async function() {
-                    this.disabled = true;
-                    this.innerHTML = `<span class="loading-spinner"></span> Aktualizuji...`;
-                    
-                    try {
-                        await loadStudyPlan();
-                    } finally {
-                        this.disabled = false;
-                        this.innerHTML = `<i class="fas fa-sync-alt"></i> Aktualizovat`;
-                    }
-                });
-            }
-            
-            if(downloadPlanBtn) {
-                downloadPlanBtn.addEventListener('click', function() {
-                    alert('Funkce exportu plánu bude dostupná v příští verzi.');
-                });
-            }
-            
-            // Event listener pro změnu velikosti okna
-            window.addEventListener('resize', function() {
-                if (window.innerWidth > 576) {
-                    sidebar.classList.remove('active');
-                    sidebarOverlay.classList.remove('active');
-                }
-            });
-            
-            // Event listener pro aktualizaci postupu při změně aktivity z globální funkce
-            document.addEventListener('plan-activity-updated', async function() {
-                if (currentUser) {
-                    await updatePlanProgress();
-                }
-            });
-            
-            // Inicializace stránky přes demo data
-            async function initDemoData() {
+            // Funkce pro načtení statistik
+            async function loadStatistics() {
                 try {
-                    // Nastavení uživatele
-                    currentUser = {
-                        id: '6cdccfaa-f136-4a2f-a4b3-205938ffd0f0',
-                        profile: {
-                            first_name: 'Maksym',
-                            last_name: 'Student',
-                            username: 'Maksys234',
-                            avatar_url: null,
-                            progress: 65,
-                            points: 1250,
-                            streak_days: 12,
-                            streak_longest: 15
-                        }
-                    };
-                    
-                    // Nastavení jména uživatele a avataru
-                    userName.textContent = `${currentUser.profile.first_name} ${currentUser.profile.last_name}`;
-                    userAvatar.textContent = `${currentUser.profile.first_name[0]}${currentUser.profile.last_name[0]}`;
-                    
-                    // Generování statistik
-                    userStats = {
-                        user_id: currentUser.id,
-                        progress: currentUser.profile.progress,
-                        progress_weekly: 5,
-                        points: currentUser.profile.points,
-                        points_weekly: 250,
-                        completed_tests: 15,
-                        total_tests: 25,
-                        streak_current: currentUser.profile.streak_days,
-                        streak_longest: currentUser.profile.streak_longest,
-                        last_test_date: new Date().toISOString(),
-                        created_at: new Date().toISOString(),
-                        updated_at: new Date().toISOString()
-                    };
-                    
-                    // Zobrazení karet se statistikami
-                    renderStatsCards(userStats);
-                    statsLoading.style.display = 'none';
-                    
-                    // Generování výsledků testů
-                    testResults = generateTestResults(15);
-                    
-                    // Zobrazení výsledků testů
-                    testResultsContent.style.display = 'block';
-                    testResultsEmpty.style.display = 'none';
-                    testResultsLoading.style.display = 'none';
-                    
-                    // Zobrazení statistik testů
-                    renderTestStats();
-                    
-                    // Zobrazení grafu výsledků testů
-                    renderTestChart(testResults);
-                    
-                    // Zobrazení posledního výsledku testu
-                    if (testResults.length > 0) {
-                        renderLastTestResult(testResults[0]);
-                    }
-                    
-                    // Zobrazení historie testů
-                    renderTestHistory(testResults);
-                    
-                    // Studijní plán
-                    const studyPlan = generateStudyPlan();
-                    planTitle.textContent = studyPlan.title;
-                    
-                    // Formátování data vytvoření
-                    const planCreatedDate = new Date(studyPlan.created_at);
-                    planDate.textContent = `Vytvořeno ${planCreatedDate.toLocaleDateString('cs-CZ', { 
-                        day: 'numeric', 
-                        month: 'long', 
-                        year: 'numeric'
-                    })}`;
-                    
-                    // Nastavení progress baru
-                    planProgressValue.textContent = `${studyPlan.progress}%`;
-                    planProgressBar.style.width = `${studyPlan.progress}%`;
-                    
-                    // Popis plánu
-                    let planDescriptionText = `
-                        <p>Tento studijní plán je připraven na základě vaší úrovně znalostí identifikované v diagnostickém testu. 
-                        Zaměřuje se především na oblasti, kde je potřeba zlepšení, ale zahrnuje také opakování témat, která již dobře znáte.</p>
+                    // Simulace načítání dat ze Supabase
+                    statsGrid.innerHTML = `
+                        <div class="stats-card transform-gpu">
+                            <div class="stats-card-header">
+                                <div class="stats-card-title">
+                                    <i class="fas fa-chart-line"></i>
+                                    Celkový pokrok
+                                </div>
+                                <span class="stats-card-badge">Poslední měsíc</span>
+                            </div>
+                            <div class="stats-card-content">
+                                <div class="stats-card-value">68%</div>
+                                <div class="stats-card-description">Průběžné hodnocení vašeho postupu v učení</div>
+                                <div class="progress-container">
+                                    <div class="progress-bar" style="width: 68%"></div>
+                                </div>
+                            </div>
+                            <div class="stats-card-footer positive">
+                                <i class="fas fa-arrow-up"></i>
+                                <span>Nárůst o 12% oproti minulému měsíci</span>
+                            </div>
+                        </div>
                         
-                        <h4>Hlavní oblasti zaměření</h4>
-                        <ul>
-                    `;
-                    
-                    studyPlan.priority_topics.forEach(topic => {
-                        planDescriptionText += `<li><strong>${topic.name}</strong> - ${topic.description}</li>`;
-                    });
-                    
-                    planDescriptionText += `</ul>`;
-                    
-                    // Přidání termínu dokončení
-                    const completionDate = new Date(studyPlan.estimated_completion_date);
-                    const today = new Date();
-                    const daysLeft = Math.ceil((completionDate - today) / (1000 * 60 * 60 * 24));
-                    
-                    planDescriptionText += `<p><strong>Odhadované dokončení:</strong> ${completionDate.toLocaleDateString('cs-CZ')} (zbývá ${daysLeft} dní)</p>`;
-                    
-                    planDescription.innerHTML = planDescriptionText;
-                    
-                    // Generování a zobrazení rozvrhu aktivit
-                    const activities = generatePlanActivities();
-                    renderPlanActivities(activities);
-                    
-                    // Zobrazení obsahu plánu
-                    studyPlanContent.style.display = 'block';
-                    studyPlanEmpty.style.display = 'none';
-                    studyPlanLoading.style.display = 'none';
-                    
-                    // Analýza témat
-                    const topics = generateTopicData();
-                    renderTopicCards(topics);
-                    topicAnalysisContent.style.display = 'block';
-                    topicAnalysisEmpty.style.display = 'none';
-                    topicAnalysisLoading.style.display = 'none';
-                    
-                } catch (error) {
-                    console.error('Chyba při inicializaci demo dat:', error);
-                }
-            }
-            
-            // Funkce pro vykreslení aktivit plánu
-            function renderPlanActivities(activities) {
-                // Seskupení aktivit podle dnů
-                const dayNames = ['Neděle', 'Pondělí', 'Úterý', 'Středa', 'Čtvrtek', 'Pátek', 'Sobota'];
-                const activitiesByDay = {};
-                
-                // Inicializace pole pro každý den v týdnu
-                for (let i = 0; i < 7; i++) {
-                    activitiesByDay[i] = [];
-                }
-                
-                // Seskupení aktivit podle dnů
-                activities.forEach(activity => {
-                    const dayOfWeek = activity.day_of_week;
-                    if (dayOfWeek >= 0 && dayOfWeek <= 6) {
-                        activitiesByDay[dayOfWeek].push(activity);
-                    }
-                });
-                
-                // Generování HTML pro každý den s aktivitami
-                let scheduleHTML = '';
-                
-                // Získání dnešního dne pro zvýraznění
-                const today = new Date().getDay(); // 0 = neděle, 1 = pondělí, ...
-                
-                // Generování HTML pro dny s aktivitami
-                for (let i = 0; i < 7; i++) {
-                    const dayActivities = activitiesByDay[i];
-                    
-                    // Přeskočení dnů bez aktivit
-                    if (dayActivities.length === 0) continue;
-                    
-                    // Zjištění hlavního tématu dne pro zobrazení v záhlaví
-                    let dayFocus = '';
-                    const topicNames = new Set();
-                    dayActivities.forEach(activity => {
-                        if (activity.topic_name) {
-                            topicNames.add(activity.topic_name);
-                        }
-                    });
-                    
-                    if (topicNames.size > 0) {
-                        dayFocus = Array.from(topicNames).join(', ');
-                    }
-                    
-                    // Stylování pro dnešní den
-                    const isDayToday = i === today;
-                    const dayHeaderStyle = isDayToday ? 'background: var(--gradient-3);' : '';
-                    
-                    scheduleHTML += `
-                        <div class="day-card">
-                            <div class="day-header" style="${dayHeaderStyle}">
-                                <div>${dayNames[i]}${isDayToday ? ' (Dnes)' : ''}</div>
-                                ${dayFocus ? `<div class="day-focus">${dayFocus}</div>` : ''}
-                            </div>
-                            <div class="day-content">
-                    `;
-                    
-                    // Seřazení aktivit podle času
-                    dayActivities.sort((a, b) => {
-                        if (!a.time_slot) return 1;
-                        if (!b.time_slot) return -1;
-                        return a.time_slot.localeCompare(b.time_slot);
-                    });
-                    
-                    // Přidání aktivit pro tento den
-                    dayActivities.forEach(activity => {
-                        scheduleHTML += `
-                            <div class="activity-item">
-                                <div class="activity-time">${activity.time_slot || ''}</div>
-                                <div class="activity-info">
-                                    <div class="activity-title">${activity.title}</div>
-                                    <div class="activity-description">${activity.description || ''}</div>
+                        <div class="stats-card transform-gpu">
+                            <div class="stats-card-header">
+                                <div class="stats-card-title">
+                                    <i class="fas fa-trophy"></i>
+                                    Získané body
                                 </div>
-                                <div class="activity-status">
-                                    <input type="checkbox" id="activity-${activity.id}" ${activity.completed ? 'checked' : ''} 
-                                        onchange="updateActivityStatus('${activity.id}', this.checked)">
-                                </div>
+                                <span class="stats-card-badge">Celkem</span>
                             </div>
-                        `;
-                    });
-                    
-                    scheduleHTML += `
+                            <div class="stats-card-content">
+                                <div class="stats-card-value">2,450</div>
+                                <div class="stats-card-description">Body za splněné úkoly a cvičení</div>
+                            </div>
+                            <div class="stats-card-footer positive">
+                                <i class="fas fa-arrow-up"></i>
+                                <span>+350 bodů tento týden</span>
+                            </div>
+                        </div>
+                        
+                        <div class="stats-card transform-gpu">
+                            <div class="stats-card-header">
+                                <div class="stats-card-title">
+                                    <i class="fas fa-fire"></i>
+                                    Série dnů
+                                </div>
+                                <span class="stats-card-badge">Aktivita</span>
+                            </div>
+                            <div class="stats-card-content">
+                                <div class="stats-card-value">14</div>
+                                <div class="stats-card-description">Dny za sebou, kdy jste se učili</div>
+                            </div>
+                            <div class="stats-card-footer positive">
+                                <i class="fas fa-calendar-check"></i>
+                                <span>Nejdelší série: 21 dnů</span>
                             </div>
                         </div>
                     `;
+                } catch (err) {
+                    console.error('Chyba při načítání statistik:', err);
+                    showToast('Chyba načítání dat', 'Nepodařilo se načíst statistiky', 'error');
                 }
-                
-                // Zobrazení rozvrhu
-                planSchedule.innerHTML = scheduleHTML || `<p class="text-muted">Žádné naplánované aktivity</p>`;
             }
             
-            // Demo inicializace stránky místo API volání
-            initDemoData();
-        });
-        
-        // Globální funkce pro aktualizaci stavu aktivity
-        // Musí být v globálním scope, aby byla dostupná z HTML
-        function updateActivityStatus(activityId, completed) {
-            console.log(`Aktivita ${activityId} označena jako ${completed ? 'dokončená' : 'nedokončená'}`);
+            // Funkce pro export dat do CSV
+            function exportToCSV() {
+                try {
+                    // Získání dat z tabulky
+                    const rows = Array.from(activitiesBody.querySelectorAll('tr'));
+                    
+                    if (rows.length === 0) {
+                        showToast('Export selhal', 'Žádná data k exportování', 'error');
+                        return;
+                    }
+                    
+                    // Vytvoření CSV obsahu
+                    let csvContent = 'Aktivita,Datum,Body,Stav\n';
+                    
+                    rows.forEach(row => {
+                        const cells = Array.from(row.querySelectorAll('td'));
+                        const rowData = cells.map(cell => {
+                            // Odstranění HTML tagů a uvozovek
+                            let text = cell.textContent.trim();
+                            return `"${text.replace(/"/g, '""')}"`;
+                        });
+                        csvContent += rowData.join(',') + '\n';
+                    });
+                    
+                    // Vytvoření a stažení souboru
+                    const encodedUri = encodeURI('data:text/csv;charset=utf-8,' + csvContent);
+                    const link = document.createElement('a');
+                    link.setAttribute('href', encodedUri);
+                    link.setAttribute('download', `aktivity_${new Date().toISOString().split('T')[0]}.csv`);
+                    document.body.appendChild(link);
+                    
+                    // Simulace kliknutí pro stažení
+                    link.click();
+                    document.body.removeChild(link);
+                    
+                    showToast('Export dokončen', 'Data byla úspěšně exportována', 'success');
+                } catch (err) {
+                    console.error('Chyba při exportu dat:', err);
+                    showToast('Export selhal', 'Nepodařilo se exportovat data', 'error');
+                }
+            }
             
-            // Aktualizace postupu
-            setTimeout(() => {
-                const progressEvent = new CustomEvent('plan-activity-updated');
-                document.dispatchEvent(progressEvent);
-            }, 100);
-        }
+            // Funkce pro obnovení všech dat
+            function refreshData() {
+                loadUserProfile();
+                loadStatistics();
+                loadChartData(chartPeriod.value);
+                loadActivities();
+                updateCurrentTime();
+                
+                showToast('Data aktualizována', 'Všechny údaje byly úspěšně aktualizovány', 'success');
+            }
+            
+            // Event listenery
+            mobileMenuToggle.addEventListener('click', function() {
+                sidebar.classList.toggle('active');
+                sidebarOverlay.classList.toggle('active');
+            });
+            
+            sidebarOverlay.addEventListener('click', function() {
+                sidebar.classList.remove('active');
+                sidebarOverlay.classList.remove('active');
+            });
+            
+            chartPeriod.addEventListener('change', function() {
+                loadChartData(this.value);
+            });
+            
+            refreshBtn.addEventListener('click', function() {
+                refreshData();
+            });
+            
+            exportBtn.addEventListener('click', function() {
+                exportToCSV();
+            });
+            
+            // Inicializace aplikace
+            function init() {
+                loadUserProfile();
+                loadStatistics();
+                loadChartData('month');
+                loadActivities();
+            }
+            
+            // Spuštění inicializace
+            init();
+        });
     </script>
 </body>
 </html>
