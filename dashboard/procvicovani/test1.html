@@ -1626,7 +1626,15 @@
             "Trigonometrie": "fa-ruler-combined",
             "default": "fa-book"
         };
-        
+    // Shuffle array function (Fisher-Yates algorithm)
+function shuffleArray(array) {
+    const newArray = [...array];
+    for (let i = newArray.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+    }
+    return newArray;
+}    
         // Upravte funkci initPage
 async function initPage() {
     try {
@@ -1755,280 +1763,121 @@ function createDefaultTest(testType) {
     };
 }
         
-        // Načtení otázek pro test
-        async function loadTestQuestions(testId) {
-            try {
-                // Definujeme počet otázek k načtení
-                const questionsToLoad = testTypeConfig[testType]?.questionsCount || 20;
-                
-                // Načítání otázek z databáze exam_questions
-                console.log(`Načítání otázek z databáze exam_questions pro ${testType} test`);
-                const { data: examQuestions, error } = await supabaseClient
-                .from('exam_questions')
-                    .select('*')
-                    .order('id', { ascending: false }) // Načítáme nejnovější otázky
-                    .limit(Math.max(50, questionsToLoad * 2)); // Načteme více otázek a pak vybereme náhodné
-                
-                if (error) {
-                    console.error('Chyba při získávání dat z exam_questions:', error);
-                    throw error;
-            }
-                
-                if (!examQuestions || examQuestions.length === 0) {
-                    console.log("Žádné otázky v databázi, používám výchozí otázky");
-                    questions = createDefaultQuestions();
-                } else {
-                    console.log(`Načteno ${examQuestions.length} otázek z databáze`);
-                    
-                    // Náhodný výběr otázek z databáze
-                    const shuffledQuestions = shuffleArray(examQuestions);
-                    const selectedQuestions = shuffledQuestions.slice(0, questionsToLoad);
-                    
-                    // Zpracování otázek do potřebného formátu
-                    questions = selectedQuestions.map(question => {
-                        // Zpracování options z JSONB pole
-                        let parsedOptions = [];
-                        
-                        try {
-                            // Pokud jsou options v JSON formátu
-                            if (question.options) {
-                                if (typeof question.options === 'string') {
-                                    parsedOptions = JSON.parse(question.options);
-                                } else {
-                                    // Pokud jsou již jako objekt (Supabase automaticky převádí JSONB na objekt)
-                                    parsedOptions = question.options;
-                                }
-                            }
-                        } catch (e) {
-                            console.error('Chyba při parsování options:', e, question.options);
-                            parsedOptions = [];
-                        }
-                        
-                        // Vytvoření formátovaných možností
-                        let formattedOptions = [];
-                        
-                        // Pokud máme parsované možnosti jako pole objektů
-                        if (Array.isArray(parsedOptions)) {
-                            formattedOptions = parsedOptions.map((option, index) => {
-                                // Možnosti mohou být buď objekty s text a is_correct, nebo prostě textové řetězce
-                                if (typeof option === 'object' && option !== null) {
-                                    return {
-                                        id: `${question.id}_${index}`,
-                                        text: option.text || option.value || "Chybějící text",
-                                        is_correct: option.is_correct === true
-                                    };
-                                } else {
-                                    // Pokud je option prostě string
-                                    return {
-                                        id: `${question.id}_${index}`,
-                                        text: String(option),
-                                        // Porovnáme se správnou odpovědí
-                                        is_correct: String(option) === question.correct_answer
-                                    };
-                                }
-                            });
-                        }
-                        // Pokud jsou options objekt s klíči (není pole)
-                        else if (typeof parsedOptions === 'object' && parsedOptions !== null) {
-                            formattedOptions = Object.entries(parsedOptions).map(([key, value], index) => {
-                                return {
-                                    id: `${question.id}_${index}`,
-                                    text: typeof value === 'object' ? (value.text || String(key)) : String(value),
-                                    is_correct: key === question.correct_answer || 
-                                              (typeof value === 'object' && value.is_correct === true)
-                                };
-                            });
-                        }
-                        
-                        // Pokud nemáme žádné možnosti, vytvoříme základní včetně správné odpovědi
-                        if (formattedOptions.length === 0 && question.correct_answer) {
-                            // Správná odpověď
-                            formattedOptions.push({
-                                id: `${question.id}_correct`,
-                                text: question.correct_answer,
-                                is_correct: true
-                            });
-                            
-                            // Přidání falešných odpovědí
-                            for (let i = 1; i <= 3; i++) {
-                                formattedOptions.push({
-                                    id: `${question.id}_${i}`,
-                                    text: `Nesprávná odpověď ${i}`,
-                                    is_correct: false
-                                });
-                            }
-                        }
-                        
-                        // Kontrola, že máme alespoň jednu správnou odpověď
-                        const hasCorrectAnswer = formattedOptions.some(opt => opt.is_correct);
-                        if (!hasCorrectAnswer && formattedOptions.length > 0) {
-                            // Označíme první možnost jako správnou, pokud žádná není označená
-                            formattedOptions[0].is_correct = true;
-                            console.warn(`Pro otázku ID ${question.id} nebyla nalezena správná odpověď, nastavena první možnost`);
-                        }
-                        
-                        return {
-                            id: question.id,
-                            question_text: question.question_text,
-                            options: formattedOptions,
-                            topic_id: question.topic_id,
-                            difficulty: question.difficulty,
-                            image_url: question.image_url,
-                            solution_explanation: question.solution_explanation
-                        };
-                    });
-                    
-                    console.log(`Zpracováno ${questions.length} otázek pro test`);
-                }
-                
-                // Inicializace pole odpovědí uživatele
-                userAnswers = Array(questions.length).fill(null);
-                
-                // Aktualizace počtu otázek v UI
-                questionCount.textContent = `1 / ${questions.length}`;
-                answeredCount.textContent = '0';
-                
-            } catch (error) {
-                console.error('Chyba při načítání otázek z databáze:', error);
-                // Fallback na výchozí otázky v případě chyby
-                questions = createDefaultQuestions();
-                userAnswers = Array(questions.length).fill(null);
-                questionCount.textContent = `1 / ${questions.length}`;
-                answeredCount.textContent = '0';
-            }
+        
+async function loadTestQuestions(testId, testType) {
+    try {
+        // Show loading state
+        testLoader.style.display = 'block';
+        testContainer.style.display = 'none';
+        
+        // Define questions count based on test type
+        const questionCount = testTypeConfig[testType]?.questionsCount || 20;
+        
+        // Query exam questions from Supabase
+        const { data: examQuestions, error } = await supabaseClient
+            .from('exam_questions')
+            .select('*, topic:topic_id(name), subtopic:subtopic_id(name)')
+            .order('difficulty', { ascending: true })
+            .limit(questionCount);
+            
+        if (error) throw error;
+        
+        if (!examQuestions || examQuestions.length === 0) {
+            // Fallback to default questions if no questions found in database
+            questions = generateDefaultQuestions(testType);
+        } else {
+            // Transform database questions into our question format
+            questions = examQuestions.map((eq, index) => {
+                return {
+                    id: eq.id,
+                    question_number: index + 1,
+                    question_text: eq.question_text,
+                    question_type: eq.question_type,
+                    options: eq.options || [],
+                    correct_answer: eq.correct_answer,
+                    explanation: eq.solution_explanation || "No explanation provided",
+                    topic: eq.topic ? eq.topic.name : "General",
+                    subtopic: eq.subtopic ? eq.subtopic.name : "",
+                    difficulty: eq.difficulty,
+                    image_url: eq.image_url
+                };
+            });
+            
+            // Shuffle the questions to randomize order
+            questions = shuffleArray(questions);
+            
+            // Limit to the required question count
+            questions = questions.slice(0, questionCount);
         }
         
-        // Vytvoření výchozích otázek
-        function createDefaultQuestions() {
-            return [
-                {
-                    id: 'q1',
-                    question_text: 'Kolik je 2 + 2?',
-                    topic_id: 1,
-                    options: [
-                        { id: 'q1_1', text: '3', is_correct: false },
-                        { id: 'q1_2', text: '4', is_correct: true },
-                        { id: 'q1_3', text: '5', is_correct: false },
-                        { id: 'q1_4', text: '22', is_correct: false }
-                    ]
-                },
-                {
-                    id: 'q2',
-                    question_text: 'Vypočítejte: 8 × 7',
-                    topic_id: 1,
-                    options: [
-                        { id: 'q2_1', text: '56', is_correct: true },
-                        { id: 'q2_2', text: '54', is_correct: false },
-                        { id: 'q2_3', text: '48', is_correct: false },
-                        { id: 'q2_4', text: '63', is_correct: false }
-                    ]
-                },
-                {
-                    id: 'q3',
-                    question_text: 'Co je průměr z čísel: 5, 10, 15, 20, 25?',
-                    topic_id: 5,
-                    options: [
-                        { id: 'q3_1', text: '10', is_correct: false },
-                        { id: 'q3_2', text: '15', is_correct: true },
-                        { id: 'q3_3', text: '20', is_correct: false },
-                        { id: 'q3_4', text: '12.5', is_correct: false }
-                    ]
-                },
-                {
-                    id: 'q4',
-                    question_text: 'Jaká je plocha čtverce o straně 6 cm?',
-                    topic_id: 2,
-                    options: [
-                        { id: 'q4_1', text: '24 cm²', is_correct: false },
-                        { id: 'q4_2', text: '36 cm²', is_correct: true },
-                        { id: 'q4_3', text: '12 cm²', is_correct: false },
-                        { id: 'q4_4', text: '30 cm²', is_correct: false }
-                    ]
-                },
-                {
-                    id: 'q5',
-                    question_text: 'Řešte rovnici: 3x - 7 = 8',
-                    topic_id: 3,
-                    options: [
-                        { id: 'q5_1', text: 'x = 3', is_correct: false },
-                        { id: 'q5_2', text: 'x = 5', is_correct: true },
-                        { id: 'q5_3', text: 'x = 4', is_correct: false },
-                        { id: 'q5_4', text: 'x = 6', is_correct: false }
-                    ]
-                },
-                {
-                    id: 'q6',
-                    question_text: 'Jaká je hodnota výrazu: 2³?',
-                    topic_id: 1,
-                    options: [
-                        { id: 'q6_1', text: '6', is_correct: false },
-                        { id: 'q6_2', text: '8', is_correct: true },
-                        { id: 'q6_3', text: '9', is_correct: false },
-                        { id: 'q6_4', text: '12', is_correct: false }
-                    ]
-                },
-                {
-                    id: 'q7',
-                    question_text: 'Jaký je obvod obdélníku s délkou 8 cm a šířkou 5 cm?',
-                    topic_id: 2,
-                    options: [
-                        { id: 'q7_1', text: '26 cm', is_correct: true },
-                        { id: 'q7_2', text: '13 cm', is_correct: false },
-                        { id: 'q7_3', text: '40 cm', is_correct: false },
-                        { id: 'q7_4', text: '20 cm', is_correct: false }
-                    ]
-                },
-                {
-                    id: 'q8',
-                    question_text: 'Řešte nerovnici: 2x + 3 > 7',
-                    topic_id: 3,
-                    options: [
-                        { id: 'q8_1', text: 'x > 2', is_correct: true },
-                        { id: 'q8_2', text: 'x < 2', is_correct: false },
-                        { id: 'q8_3', text: 'x > 4', is_correct: false },
-                        { id: 'q8_4', text: 'x < 5', is_correct: false }
-                    ]
-                },
-                {
-                    id: 'q9',
-                    question_text: 'Zjednodušte výraz: 3(x + 2) - 4(x - 1)',
-                    topic_id: 3,
-                    options: [
-                        { id: 'q9_1', text: '-x + 10', is_correct: true },
-                        { id: 'q9_2', text: '-x + 2', is_correct: false },
-                        { id: 'q9_3', text: 'x + 2', is_correct: false },
-                        { id: 'q9_4', text: '7x + 2', is_correct: false }
-                    ]
-                },
-                {
-                    id: 'q10',
-                    question_text: 'Jaká je hodnota sin(30°)?',
-                    topic_id: 6,
-                    options: [
-                        { id: 'q10_1', text: '0.5', is_correct: true },
-                        { id: 'q10_2', text: '0', is_correct: false },
-                        { id: 'q10_3', text: '1', is_correct: false },
-                        { id: 'q10_4', text: '√3/2', is_correct: false }
-                    ]
-                }
-            ];
-        }
+        // Initialize the test
+        initializeTest();
         
-        // Inicializace testu
-        function initializeTest() {
-            // Skrytí loaderu a zobrazení testu
-            testLoader.style.display = 'none';
-            testContainer.style.display = 'block';
-            
-            // Zobrazení první otázky
-            showQuestion(0);
-            
-            // Generování navigace otázkami
-            generatePagination();
-            
-            // Spuštění časovače
-            startTimer();
-        }
+    } catch (error) {
+        console.error('Error loading questions:', error);
+        // Fallback to default questions
+        questions = generateDefaultQuestions(testType);
+        initializeTest();
+    }
+}
+        
+        // Generate default questions if database fails
+function generateDefaultQuestions(testType) {
+    const questionCount = testTypeConfig[testType]?.questionsCount || 20;
+    const defaultQuestions = [];
+    
+    // Define some topics to simulate diverse question set
+    const topics = ['Algebra', 'Geometrie', 'Aritmetika', 'Logické úlohy'];
+    
+    for (let i = 1; i <= questionCount; i++) {
+        const topic = topics[i % topics.length];
+        const difficulty = Math.floor(i / (questionCount / 5)) + 1; // 1-5 difficulty
+        
+        defaultQuestions.push({
+            id: `default-${i}`,
+            question_number: i,
+            question_text: `Otázka ${i}: Toto je ukázková ${topic.toLowerCase()} otázka obtížnosti ${difficulty}/5.`,
+            question_type: 'multiple_choice',
+            options: [
+                { id: 'A', text: 'Odpověď A' },
+                { id: 'B', text: 'Odpověď B' },
+                { id: 'C', text: 'Odpověď C' },
+                { id: 'D', text: 'Odpověď D' }
+            ],
+            correct_answer: 'A', // Default correct answer
+            explanation: `Vysvětlení pro otázku ${i}.`,
+            topic: topic,
+            subtopic: `${topic} - Podtéma ${i % 3 + 1}`,
+            difficulty: difficulty,
+            image_url: null
+        });
+    }
+    
+    return defaultQuestions;
+}
+        
+        // Complete the function to initialize the test
+function initializeTest() {
+    // Hide loader and show test
+    testLoader.style.display = 'none';
+    testContainer.style.display = 'block';
+    
+    // Initialize variables
+    currentQuestionIndex = 0;
+    userAnswers = new Array(questions.length).fill(null);
+    
+    // Create pagination
+    createPagination();
+    
+    // Start the timer
+    startTimer();
+    
+    // Show the first question
+    showQuestion(0);
+    
+    // Update progress bar
+    updateProgressBar();
+}
         
         // Zobrazení konkrétní otázky
         function showQuestion(index) {
@@ -2392,54 +2241,116 @@ function createDefaultTest(testType) {
             topicResults.innerHTML = topicResultsHTML;
         }
         
-        // Uložení výsledků testu do databáze
         async function saveTestResults() {
-            if (!currentUser || !currentTest) return;
-            
-            try {
-                // Příprava dat o výsledcích témat pro uložení jako JSONB
-                const topicResultsData = testResults.topicResults.map(topic => ({
-                    topic_id: topic.topic_id,
-                    topic_name: topic.topic_name || '',
-                    correct_answers: topic.correct_answers,
-                    total_questions: topic.total_questions,
-                    score: topic.score,
-                    strength: topic.strength
-                }));
-                
-                // Vytvoření záznamu o výsledku testu
-                const testResultData = {
-                    user_id: currentUser.id,
-                    test_id: currentTest.id,
-                    score: testResults.score,
-                    time_spent: testResults.timeSpent,
-                    correct_answers: testResults.correctAnswers,
-                    total_questions: testResults.totalQuestions,
-                    topic_results: topicResultsData,
-                    created_at: new Date().toISOString(),
-                    updated_at: new Date().toISOString()
-                };
-                
-                // Uložení výsledku testu do databáze
-                const { data: resultData, error: resultError } = await supabaseClient
-                    .from('test_results')
-                    .insert(testResultData);
-                
-                if (resultError) throw resultError;
-                
-                // Aktualizace pokroku v tématech
-                await updateTopicProgress();
-                
-                // Aktualizace statistik uživatele
-                await updateUserProfile();
-                
-                console.log('Výsledky testu byly úspěšně uloženy');
-                
-            } catch (error) {
-                console.error('Chyba při ukládání výsledků testu:', error);
-            }
-        }
+    if (!currentUser) return;
+    
+    try {
+        // Prepare topic results for database
+        const topicResultsArray = Object.entries(testResults.topicResults).map(([topic, stats]) => ({
+            topic_name: topic,
+            total_questions: stats.total,
+            correct_answers: stats.correct,
+            score: stats.score
+        }));
         
+        // Save test results to Supabase
+        const { data, error } = await supabaseClient
+            .from('test_results')
+            .insert({
+                user_id: currentUser.id,
+                test_type: selectedTestType,
+                total_questions: testResults.totalQuestions,
+                correct_answers: testResults.correctAnswers,
+                score: testResults.score,
+                time_spent: testResults.timeSpent,
+                topic_results: topicResultsArray,
+                answers: userAnswers
+            })
+            .select()
+        
+        if (error) throw error;
+        
+        diagnosticId = data[0].id;
+        
+    } catch (error) {
+        console.error('Error saving test results:', error);
+    }
+}
+function displayResults() {
+    // Create HTML for result summary
+    const resultSummaryHTML = `
+        <div class="result-score">
+            <div class="score-value">${testResults.score}/50</div>
+            <div class="score-label">bodů</div>
+        </div>
+        <div class="result-stats">
+            <div class="stat-item">
+                <div class="stat-value">${testResults.correctAnswers}</div>
+                <div class="stat-label">Správné odpovědi</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">${testResults.incorrectAnswers}</div>
+                <div class="stat-label">Chybné odpovědi</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">${formatTime(testResults.timeSpent)}</div>
+                <div class="stat-label">Celkový čas</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">${Math.round((testResults.correctAnswers / testResults.totalQuestions) * 100)}%</div>
+                <div class="stat-label">Úspěšnost</div>
+            </div>
+        </div>
+    `;
+    
+    document.querySelector('.result-summary').innerHTML = resultSummaryHTML;
+    
+    // Create HTML for topic results
+    let topicResultsHTML = '';
+    
+    Object.entries(testResults.topicResults).forEach(([topic, stats]) => {
+        const topicIcon = topicIcons[topic] || topicIcons.default;
+        let strengthClass = 'neutral';
+        if (stats.score >= 75) strengthClass = 'strength';
+        else if (stats.score <= 40) strengthClass = 'weakness';
+        
+        topicResultsHTML += `
+            <div class="topic-card ${strengthClass}">
+                <div class="topic-header">
+                    <div class="topic-icon">
+                        <i class="fas ${topicIcon}"></i>
+                    </div>
+                    <div class="topic-title">${topic}</div>
+                </div>
+                <div class="topic-stats">
+                    <div class="topic-progress-label">Úspěšnost</div>
+                    <div class="topic-progress-value">${stats.score}%</div>
+                </div>
+                <div class="topic-progress-bar">
+                    <div class="topic-progress-fill" style="width: ${stats.score}%"></div>
+                </div>
+                <div class="topic-stats">
+                    <div class="topic-stat">Správně: <b>${stats.correct}</b>/${stats.total}</div>
+                </div>
+            </div>
+        `;
+    });
+    
+    document.getElementById('topic-results').innerHTML = topicResultsHTML;
+    
+    // Set action buttons
+    document.getElementById('retry-btn').innerHTML = `<i class="fas fa-redo"></i> Zkusit znovu`;
+    document.getElementById('continue-btn').innerHTML = `<i class="fas fa-graduation-cap"></i> Vytvořit studijní plán`;
+    
+    // Add event listeners to buttons
+    document.getElementById('retry-btn').addEventListener('click', () => {
+        window.location.reload();
+    });
+    
+    document.getElementById('continue-btn').addEventListener('click', () => {
+        window.location.href = `plan.html?diagnostic_id=${diagnosticId}`;
+    });
+}
         // Aktualizace pokroku v jednotlivých tématech
         async function updateTopicProgress() {
             try {
@@ -2600,25 +2511,203 @@ function createDefaultTest(testType) {
                 window.location.href = '/dashboard/procvicovani/test1.html';
             });
         }
+        async function finishTest() {
+    // Stop the timer
+    clearInterval(timer);
+    testEndTime = new Date();
+    
+    // Calculate test results
+    calculateResults();
+    
+    // Hide test container and show results
+    testContainer.style.display = 'none';
+    resultsContainer.style.display = 'block';
+    
+    // Display results
+    displayResults();
+    
+    // Save results to database
+    await saveTestResults();
+    
+    // Generate study plan using Gemini
+    generateStudyPlan();
+}
+function calculateResults() {
+    let correctCount = 0;
+    let incorrectCount = 0;
+    let unansweredCount = 0;
+    let topicResults = {};
+    
+    // Calculate correct/incorrect counts
+    questions.forEach((question, index) => {
+        // Initialize topic if not exists
+        if (!topicResults[question.topic]) {
+            topicResults[question.topic] = {
+                total: 0,
+                correct: 0,
+                incorrect: 0,
+                unanswered: 0,
+                score: 0
+            };
+        }
         
+        topicResults[question.topic].total++;
+        
+        if (userAnswers[index] === null) {
+            unansweredCount++;
+            topicResults[question.topic].unanswered++;
+        } else if (userAnswers[index] === question.correct_answer) {
+            correctCount++;
+            topicResults[question.topic].correct++;
+        } else {
+            incorrectCount++;
+            topicResults[question.topic].incorrect++;
+        }
+    });
+    
+    // Calculate topic scores
+    Object.keys(topicResults).forEach(topic => {
+        const tr = topicResults[topic];
+        tr.score = tr.total > 0 ? Math.round((tr.correct / tr.total) * 100) : 0;
+    });
+    
+    // Calculate total score (out of 50)
+    const rawScore = (correctCount / questions.length) * 50;
+    const totalScore = Math.round(rawScore);
+    
+    // Calculate time spent
+    testResults = {
+        totalQuestions: questions.length,
+        correctAnswers: correctCount,
+        incorrectAnswers: incorrectCount,
+        unansweredCount: unansweredCount,
+        score: totalScore,
+        rawScore: rawScore,
+        timeSpent: Math.floor((testEndTime - testStartTime) / 1000), // in seconds
+        topicResults: topicResults
+    };
+}
         // Pomocné funkce
+        async function initPage() {
+    try {
+        // Show test selection instead of loading
+        document.getElementById('test-selector').style.display = 'block';
+        document.getElementById('test-loader').style.display = 'none';
+        document.getElementById('test-container').style.display = 'none';
         
-        // Promíchání pole
-        function shuffleArray(array) {
-            const newArray = [...array];
-            for (let i = newArray.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+        // Add event listeners to test selection buttons
+        document.querySelectorAll('.test-type-card').forEach(card => {
+            card.addEventListener('click', function() {
+                // Remove selected class from all cards
+                document.querySelectorAll('.test-type-card').forEach(c => {
+                    c.classList.remove('selected');
+                });
+                
+                // Add selected class to clicked card
+                this.classList.add('selected');
+                
+                // Get test type from data attribute
+                const testType = this.getAttribute('data-test-type');
+                
+                // Enable start button
+                document.querySelectorAll('.select-test-btn').forEach(btn => {
+                    btn.disabled = false;
+                });
+            });
+        });
+        
+        // Add event listeners to start test buttons
+        document.querySelectorAll('.select-test-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const testType = this.closest('.test-type-card').getAttribute('data-test-type');
+                selectTestType(testType);
+            });
+        });
+        
+        // Add event listeners for test navigation
+        setupEventListeners();
+        
+        // Add history state for back button
+        history.pushState(null, document.title, window.location.href);
+        
+        // Listen for back button
+        window.addEventListener('popstate', function() {
+            if (document.getElementById('test-selector').style.display === 'none' && 
+                document.getElementById('test-container').style.display === 'block' && 
+                !confirm('Opravdu chcete opustit test? Váš postup nebude uložen.')) {
+                    history.pushState(null, document.title, window.location.href);
             }
-            return newArray;
+        });
+    } catch (error) {
+        console.error('Error initializing page:', error);
+        showErrorMessage('Došlo k chybě při inicializaci stránky. Zkuste to prosím znovu.');
+    }
+}
+
+function selectTestType(testType) {
+    selectedTestType = testType;
+    
+    // Get configuration for selected test type
+    const config = testTypeConfig[testType];
+    if (!config) return;
+    
+    // Update UI and test name
+    currentTestTitle.textContent = config.title;
+    document.getElementById('test-level').textContent = config.description;
+    
+    // Hide test selection and show loading
+    document.getElementById('test-selector').style.display = 'none';
+    document.getElementById('test-loader').style.display = 'block';
+    
+    // Load test with selected configuration
+    loadRandomTest(testType);
+}
+
+// Setup event listeners for test navigation
+function setupEventListeners() {
+    // Previous question button
+    prevBtn.addEventListener('click', () => {
+        if (currentQuestionIndex > 0) {
+            showQuestion(currentQuestionIndex - 1);
         }
-        
-        // Formátování času
-        function formatTime(seconds) {
-            const minutes = Math.floor(seconds / 60);
-            const remainingSeconds = seconds % 60;
-            return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+    });
+    
+    // Next question button
+    nextBtn.addEventListener('click', () => {
+        if (currentQuestionIndex < questions.length - 1) {
+            showQuestion(currentQuestionIndex + 1);
+        } else {
+            // Show finish button when on last question
+            finishBtn.style.display = 'block';
         }
+    });
+    
+    // Finish button
+    finishBtn.addEventListener('click', () => {
+        // Confirm before finishing
+        if (confirm('Opravdu chcete dokončit test? Nebudete se moci vrátit k úpravě odpovědí.')) {
+            finishTest();
+        }
+    });
+    
+    // Mobile menu toggle
+    mobileMenuToggle.addEventListener('click', () => {
+        sidebar.classList.toggle('active');
+        sidebarOverlay.classList.toggle('active');
+    });
+    
+    // Close sidebar overlay
+    sidebarOverlay.addEventListener('click', () => {
+        sidebar.classList.remove('active');
+        sidebarOverlay.classList.remove('active');
+    });
+}    
+        // Format time function
+function formatTime(seconds) {
+    const minutes = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+}
         
         // Inicializace stránky při načtení
         document.addEventListener('DOMContentLoaded', initPage);
