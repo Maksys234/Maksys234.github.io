@@ -1453,54 +1453,98 @@
         // Načtení otázek pro test
         async function loadTestQuestions(testId) {
             try {
-                // Nejprve zkusíme načíst otázky z Supabase
+                // Definujeme počet otázek k načtení
+                const questionsToLoad = currentTest.questions_count || 10;
+                
+                // Načítání otázek z databáze exam_questions
+                console.log("Načítání otázek z databáze exam_questions");
                 const { data: examQuestions, error } = await supabaseClient
                     .from('exam_questions')
                     .select('*')
-                    .limit(currentTest.questions_count || 10);
+                    .order('id', { ascending: false }) // Načítáme nejnovější otázky
+                    .limit(50); // Načteme více otázek a pak vybereme náhodné
                 
-                // Pokud jsou otázky dostupné v databázi, použijeme je
-                if (examQuestions && examQuestions.length > 0 && !error) {
-                    console.log("Načítání otázek z databáze");
+                if (error) {
+                    console.error('Chyba při získávání dat z exam_questions:', error);
+                    throw error;
+                }
+                
+                if (!examQuestions || examQuestions.length === 0) {
+                    console.log("Žádné otázky v databázi, používám výchozí otázky");
+                    questions = createDefaultQuestions();
+                } else {
+                    console.log(`Načteno ${examQuestions.length} otázek z databáze`);
                     
-                    // Náhodný výběr otázek z databáze podle počtu v testu
+                    // Náhodný výběr otázek z databáze
                     const shuffledQuestions = shuffleArray(examQuestions);
-                    const selectedQuestions = shuffledQuestions.slice(0, currentTest.questions_count || 10);
+                    const selectedQuestions = shuffledQuestions.slice(0, questionsToLoad);
                     
-                    // Pro každou otázku zpracovat options z JSONB formátu
+                    // Zpracování otázek do potřebného formátu
                     questions = selectedQuestions.map(question => {
+                        // Zpracování options z JSONB pole
                         let parsedOptions = [];
+                        
                         try {
-                            // Pokud jsou možnosti uloženy jako JSONB, převeď je na objekt
+                            // Pokud jsou options v JSON formátu
                             if (question.options) {
                                 if (typeof question.options === 'string') {
                                     parsedOptions = JSON.parse(question.options);
                                 } else {
+                                    // Pokud jsou již jako objekt (Supabase automaticky převádí JSONB na objekt)
                                     parsedOptions = question.options;
                                 }
                             }
                         } catch (e) {
-                            console.error('Chyba při parsování možností:', e);
+                            console.error('Chyba při parsování options:', e, question.options);
                             parsedOptions = [];
                         }
                         
-                        // Formát každé možnosti by měl obsahovat text a informaci o správnosti
-                        const formattedOptions = parsedOptions.map((option, index) => ({
-                            id: `${question.id}_${index}`,
-                            text: option.text || option,
-                            is_correct: option.is_correct || (option === question.correct_answer)
-                        }));
+                        // Vytvoření formátovaných možností
+                        let formattedOptions = [];
                         
-                        // Pokud nejsou žádné možnosti, vytvořit základní
+                        // Pokud máme parsované možnosti jako pole objektů
+                        if (Array.isArray(parsedOptions)) {
+                            formattedOptions = parsedOptions.map((option, index) => {
+                                // Možnosti mohou být buď objekty s text a is_correct, nebo prostě textové řetězce
+                                if (typeof option === 'object' && option !== null) {
+                                    return {
+                                        id: `${question.id}_${index}`,
+                                        text: option.text || option.value || "Chybějící text",
+                                        is_correct: option.is_correct === true
+                                    };
+                                } else {
+                                    // Pokud je option prostě string
+                                    return {
+                                        id: `${question.id}_${index}`,
+                                        text: String(option),
+                                        // Porovnáme se správnou odpovědí
+                                        is_correct: String(option) === question.correct_answer
+                                    };
+                                }
+                            });
+                        }
+                        // Pokud jsou options objekt s klíči (není pole)
+                        else if (typeof parsedOptions === 'object' && parsedOptions !== null) {
+                            formattedOptions = Object.entries(parsedOptions).map(([key, value], index) => {
+                                return {
+                                    id: `${question.id}_${index}`,
+                                    text: typeof value === 'object' ? (value.text || String(key)) : String(value),
+                                    is_correct: key === question.correct_answer || 
+                                              (typeof value === 'object' && value.is_correct === true)
+                                };
+                            });
+                        }
+                        
+                        // Pokud nemáme žádné možnosti, vytvoříme základní včetně správné odpovědi
                         if (formattedOptions.length === 0 && question.correct_answer) {
-                            // Vytvoření základních možností včetně správné odpovědi
+                            // Správná odpověď
                             formattedOptions.push({
                                 id: `${question.id}_correct`,
                                 text: question.correct_answer,
                                 is_correct: true
                             });
                             
-                            // Přidání několika falešných možností
+                            // Přidání falešných odpovědí
                             for (let i = 1; i <= 3; i++) {
                                 formattedOptions.push({
                                     id: `${question.id}_${i}`,
@@ -1510,17 +1554,26 @@
                             }
                         }
                         
+                        // Kontrola, že máme alespoň jednu správnou odpověď
+                        const hasCorrectAnswer = formattedOptions.some(opt => opt.is_correct);
+                        if (!hasCorrectAnswer && formattedOptions.length > 0) {
+                            // Označíme první možnost jako správnou, pokud žádná není označená
+                            formattedOptions[0].is_correct = true;
+                            console.warn(`Pro otázku ID ${question.id} nebyla nalezena správná odpověď, nastavena první možnost`);
+                        }
+                        
                         return {
-                            ...question,
+                            id: question.id,
+                            question_text: question.question_text,
                             options: formattedOptions,
-                            question_text: question.question_text || 'Otázka bez textu'
+                            topic_id: question.topic_id,
+                            difficulty: question.difficulty,
+                            image_url: question.image_url,
+                            solution_explanation: question.solution_explanation
                         };
                     });
-                } else {
-                    console.log("Používám předem definované otázky, protože otázky nejsou dostupné v databázi");
                     
-                    // Pokud nejsou otázky dostupné, použijeme předem definované otázky
-                    questions = createDefaultQuestions();
+                    console.log(`Zpracováno ${questions.length} otázek pro test`);
                 }
                 
                 // Inicializace pole odpovědí uživatele
@@ -1531,7 +1584,8 @@
                 answeredCount.textContent = '0';
                 
             } catch (error) {
-                console.error('Chyba při načítání otázek:', error);
+                console.error('Chyba při načítání otázek z databáze:', error);
+                // Fallback na výchozí otázky v případě chyby
                 questions = createDefaultQuestions();
                 userAnswers = Array(questions.length).fill(null);
                 questionCount.textContent = `1 / ${questions.length}`;
