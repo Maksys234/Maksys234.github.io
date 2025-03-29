@@ -63,7 +63,192 @@
             margin: 0;
             padding: 0;
         }
+        /* Стили для выбора типа теста */
+        .test-selection-container {
+            display: flex;
+            flex-direction: column;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
 
+        .test-selection-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            color: var(--dark);
+            text-align: center;
+        }
+
+        .test-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            justify-content: center;
+        }
+
+        .test-option-card {
+            background-color: var(--white);
+            border-radius: var(--card-radius);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-sm);
+            width: 300px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .test-option-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .test-option-card.selected {
+            border-color: var(--primary);
+            background-color: rgba(67, 97, 238, 0.05);
+        }
+
+        .test-option-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--gradient-1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem auto;
+            color: white;
+            font-size: 1.5rem;
+        }
+
+        .test-option-card:nth-child(2) .test-option-icon {
+            background: var(--gradient-2);
+        }
+
+        .test-option-card:nth-child(3) .test-option-icon {
+            background: var(--gradient-3);
+        }
+
+        .test-option-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            text-align: center;
+            color: var(--dark);
+        }
+
+        .test-option-desc {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+
+        .test-option-details {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            text-align: center;
+        }
+
+        .test-option-details span {
+            color: var(--primary);
+            font-weight: 500;
+        }
+
+        .test-selection-actions {
+            display: flex;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+        .test-types-container {
+        display: flex;
+        gap: 1.5rem;
+        flex-wrap: wrap;
+        margin-top: 1.5rem;
+    }
+    
+    .test-type-card {
+        background-color: var(--white);
+        border-radius: var(--card-radius);
+        box-shadow: var(--shadow-sm);
+        padding: 1.5rem;
+        flex: 1;
+        min-width: 280px;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+    }
+    
+    .test-type-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-md);
+        border-color: var(--primary-light);
+    }
+    
+    .test-type-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1rem;
+        position: relative;
+    }
+    
+    .test-type-header i {
+        font-size: 2rem;
+        color: var(--primary);
+    }
+    
+    .test-type-header h3 {
+        font-size: 1.4rem;
+        font-weight: 600;
+        margin: 0;
+    }
+    
+    .recommended-badge {
+        position: absolute;
+        top: -10px;
+        right: -10px;
+        background: var(--gradient-2);
+        color: white;
+        font-size: 0.8rem;
+        padding: 0.3rem 0.8rem;
+        border-radius: 20px;
+        font-weight: 500;
+    }
+    
+    .test-type-description {
+        color: var(--text-secondary);
+        margin-bottom: 1.5rem;
+        min-height: 60px;
+    }
+    
+    .test-type-features {
+        margin-bottom: 1.5rem;
+    }
+    
+    .feature {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.5rem;
+        color: var(--text-secondary);
+    }
+    
+    .feature i {
+        color: var(--success);
+    }
+    
+    .select-test-btn {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    @media (max-width: 992px) {
+        .test-types-container {
+            flex-direction: column;
+        }
+    }
         /* Boční panel */
         .sidebar {
             width: var(--sidebar-width);
@@ -1173,6 +1358,68 @@
 
         <div class="main-content">
             <!-- Načítání testu -->
+            <div id="test-selector" class="section">
+                <h2 class="section-title">
+                    <i class="fas fa-tasks"></i> Vyberte typ testu
+                </h2>
+                
+                <div class="test-types-container">
+                    <div class="test-type-card" data-test-type="quick">
+                        <div class="test-type-header">
+                            <i class="fas fa-bolt"></i>
+                            <h3>Rychlý test</h3>
+                        </div>
+                        <div class="test-type-description">
+                            <p>Základní diagnostika znalostí z klíčových témat. 10 otázek, přibližná doba: 10-15 minut.</p>
+                        </div>
+                        <div class="test-type-features">
+                            <div class="feature"><i class="fas fa-check"></i> Základní hodnocení</div>
+                            <div class="feature"><i class="fas fa-check"></i> Identifikace slabých míst</div>
+                            <div class="feature"><i class="fas fa-check"></i> Rychlý přehled dovedností</div>
+                        </div>
+                        <button class="btn btn-primary select-test-btn">
+                            <i class="fas fa-play"></i> Spustit rychlý test
+                        </button>
+                    </div>
+                    
+                    <div class="test-type-card" data-test-type="full">
+                        <div class="test-type-header">
+                            <i class="fas fa-graduation-cap"></i>
+                            <h3>Kompletní test</h3>
+                            <div class="recommended-badge">Doporučeno</div>
+                        </div>
+                        <div class="test-type-description">
+                            <p>Podrobné hodnocení všech oblastí. 20 otázek, přibližná doba: 25-30 minut.</p>
+                        </div>
+                        <div class="test-type-features">
+                            <div class="feature"><i class="fas fa-check"></i> Komplexní analýza znalostí</div>
+                            <div class="feature"><i class="fas fa-check"></i> Detailní zpětná vazba</div>
+                            <div class="feature"><i class="fas fa-check"></i> Optimální studijní plán</div>
+                        </div>
+                        <button class="btn btn-primary select-test-btn">
+                            <i class="fas fa-play"></i> Spustit kompletní test
+                        </button>
+                    </div>
+                    
+                    <div class="test-type-card" data-test-type="absolute">
+                        <div class="test-type-header">
+                            <i class="fas fa-brain"></i>
+                            <h3>Absolutní test</h3>
+                        </div>
+                        <div class="test-type-description">
+                            <p>Důkladné testování všech témat včetně pokročilých. 30 otázek, přibližná doba: 40-50 minut.</p>
+                        </div>
+                        <div class="test-type-features">
+                            <div class="feature"><i class="fas fa-check"></i> Maximální pokrytí témat</div>
+                            <div class="feature"><i class="fas fa-check"></i> Detekce pokročilých znalostí</div>
+                            <div class="feature"><i class="fas fa-check"></i> Nejdetailnější studijní plán</div>
+                        </div>
+                        <button class="btn btn-primary select-test-btn">
+                            <i class="fas fa-play"></i> Spustit absolutní test
+                        </button>
+                    </div>
+                </div>
+            </div>
             <div id="test-loader" class="section">
                 <div class="test-loader">
                     <div class="loader-spinner"></div>
@@ -1351,7 +1598,24 @@
             timeSpent: 0,
             topicResults: {}
         };
-        
+        let selectedTestType = null;
+        const testTypeConfig = {
+            quick: {
+                questionsCount: 10,
+                title: 'Rychlý diagnostický test',
+                description: 'Základní diagnostika znalostí'
+        },
+        full: {
+            questionsCount: 20,
+            title: 'Kompletní diagnostický test',
+            description: 'Podrobné hodnocení všech oblastí'
+        },
+        absolute: {
+            questionsCount: 30,
+            title: 'Absolutní test znalostí',
+            description: 'Důkladné testování všech témat'
+        }
+    };    
         // Ikony pro témata
         const topicIcons = {
             "Algebra": "fa-square-root-alt",
@@ -1363,21 +1627,59 @@
             "default": "fa-book"
         };
         
-        // Inicializace stránky
-        async function initPage() {
-            try {
-                // Načtení náhodného testu
-                await loadRandomTest();
-                
-                // Inicializace ovládacích prvků
-                setupEventListeners();
-                
-            } catch (error) {
-                console.error('Chyba při inicializaci stránky:', error);
-                showErrorMessage('Došlo k chybě při inicializaci stránky. Zkuste to prosím znovu.');
-            }
-        }
+        // Upravte funkci initPage
+async function initPage() {
+    try {
+        // Zobrazíme výběr testu místo načítání
+        document.getElementById('test-selector').style.display = 'block';
+        document.getElementById('test-loader').style.display = 'none';
+        document.getElementById('test-container').style.display = 'none';
         
+        // Přidání event listenerů na tlačítka výběru testu
+        document.querySelectorAll('.select-test-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const testType = this.closest('.test-type-card').getAttribute('data-test-type');
+                selectTestType(testType);
+            });
+        });
+        
+        // Event listener pro omylem kliknuté tlačítko zpět
+        window.addEventListener('popstate', function() {
+            if(document.getElementById('test-selector').style.display === 'none' && 
+               document.getElementById('test-container').style.display === 'block' && 
+               !confirm('Opravdu chcete opustit test? Váš postup nebude uložen.')) {
+                history.pushState(null, document.title, window.location.href);
+            }
+        });
+        
+        // Vložení historie pro tlačítko zpět
+        history.pushState(null, document.title, window.location.href);
+        
+        // Inicializace ovládacích prvků
+        setupEventListeners();
+    } catch (error) {
+        console.error('Chyba při inicializaci stránky:', error);
+        showErrorMessage('Došlo k chybě při inicializaci stránky. Zkuste to prosím znovu.');
+    }
+}
+function selectTestType(testType) {
+    selectedTestType = testType;
+    
+    // Nastavení konfigurace podle vybraného typu testu
+    const config = testTypeConfig[testType];
+    if (!config) return;
+    
+    // Aktualizace UI a názvu testu
+    currentTestTitle.textContent = config.title;
+    document.getElementById('test-level').textContent = config.description;
+    
+    // Skryj výběr testu a zobraz načítání
+    document.getElementById('test-selector').style.display = 'none';
+    document.getElementById('test-loader').style.display = 'block';
+    
+    // Načtení testu s vybranou konfigurací
+    loadRandomTest(testType);
+}
         // Zobrazení chybové zprávy
         function showErrorMessage(message) {
             testLoader.innerHTML = `
@@ -1392,82 +1694,85 @@
             `;
         }
         
-        // Načtení náhodného testu
-        async function loadRandomTest() {
-            try {
-                // Zobrazení načítání
-                testLoader.style.display = 'block';
-                testContainer.style.display = 'none';
-                resultsContainer.style.display = 'none';
-                
-                // Načtení všech dostupných diagnostických testů ze Supabase
-                const { data: tests, error } = await supabaseClient
-                    .from('tests')
-                    .select('*')
-                    .eq('type', 'diagnostic')
-                    .eq('is_active', true);
-                
-                // Pokud nejsou dostupné žádné testy v databázi nebo dojde k chybě, použijeme předem definovaný test
-                if (!tests || tests.length === 0 || error) {
-                    console.log("Používám předem definovaný test, protože testy nejsou dostupné v databázi");
-                    currentTest = createDefaultTest();
-                } else {
-                    // Výběr náhodného testu ze seznamu dostupných testů
-                    const randomIndex = Math.floor(Math.random() * tests.length);
-                    currentTest = tests[randomIndex];
-                }
-                
-                // Aktualizace informací o testu v UI
-                testSubject.textContent = currentTest.subject || 'Matematika';
-                testLevel.textContent = currentTest.difficulty 
-                    ? `Obtížnost: ${currentTest.difficulty}/5` 
-                    : 'Diagnostický test';
-                currentTestTitle.textContent = currentTest.title || 'Test znalostí';
-                
-                // Načtení nebo vytvoření otázek pro test
-                await loadTestQuestions(currentTest.id);
-                
-                // Inicializace testu
-                initializeTest();
-                
-            } catch (error) {
-                console.error('Chyba při načítání testu:', error);
-                showErrorMessage('Nepodařilo se načíst test. Zkuste to prosím později nebo kontaktujte správce systému.');
-            }
+        async function loadRandomTest(testType = 'full') {
+    try {
+        // Zobrazení načítání
+        testLoader.style.display = 'block';
+        testContainer.style.display = 'none';
+        resultsContainer.style.display = 'none';
+        
+        // Načtení všech dostupných diagnostických testů ze Supabase
+        const { data: tests, error } = await supabaseClient
+            .from('tests')
+            .select('*')
+            .eq('type', 'diagnostic')
+            .eq('is_active', true);
+        
+        // Pokud nejsou dostupné žádné testy v databázi nebo dojde k chybě, použijeme předem definovaný test
+        if (!tests || tests.length === 0 || error) {
+            console.log("Používám předem definovaný test, protože testy nejsou dostupné v databázi");
+            currentTest = createDefaultTest(testType);
+        } else {
+            // Výběr náhodného testu ze seznamu dostupných testů
+            const randomIndex = Math.floor(Math.random() * tests.length);
+            currentTest = tests[randomIndex];
+            
+            // Úprava počtu otázek podle typu testu
+            currentTest.questions_count = testTypeConfig[testType]?.questionsCount || 20;
+            currentTest.title = testTypeConfig[testType]?.title || currentTest.title;
         }
         
-        // Vytvoření výchozího testu, pokud žádné testy nejsou k dispozici
-        function createDefaultTest() {
-            return {
-                id: 'default-test-1',
-                title: 'Diagnostický test matematiky',
-                description: 'Základní diagnostický test pro ověření znalostí matematiky.',
-                subject: 'Matematika',
-                type: 'diagnostic',
-                difficulty: 3,
-                questions_count: 10,
-                is_active: true
-            };
-        }
+        // Aktualizace informací o testu v UI
+        testSubject.textContent = currentTest.subject || 'Matematika';
+        testLevel.textContent = currentTest.difficulty 
+            ? `Obtížnost: ${currentTest.difficulty}/5` 
+            : testTypeConfig[testType]?.description || 'Diagnostický test';
+        currentTestTitle.textContent = currentTest.title || testTypeConfig[testType]?.title || 'Test znalostí';
+        
+        // Načtení nebo vytvoření otázek pro test
+        await loadTestQuestions(currentTest.id, testType);
+        
+        // Inicializace testu
+        initializeTest();
+        
+    } catch (error) {
+        console.error('Chyba při načítání testu:', error);
+        showErrorMessage('Nepodařilo se načíst test. Zkuste to prosím později nebo kontaktujte správce systému.');
+    }
+}
+        
+        // Upravte funkci createDefaultTest pro podporu různých typů testů
+function createDefaultTest(testType) {
+    return {
+        id: `default-test-${testType}`,
+        title: testTypeConfig[testType]?.title || 'Diagnostický test matematiky',
+        description: testTypeConfig[testType]?.description || 'Diagnostický test pro ověření znalostí matematiky.',
+        subject: 'Matematika',
+        type: 'diagnostic',
+        difficulty: 3,
+        questions_count: testTypeConfig[testType]?.questionsCount || 20,
+        is_active: true
+    };
+}
         
         // Načtení otázek pro test
         async function loadTestQuestions(testId) {
             try {
                 // Definujeme počet otázek k načtení
-                const questionsToLoad = currentTest.questions_count || 10;
+                const questionsToLoad = testTypeConfig[testType]?.questionsCount || 20;
                 
                 // Načítání otázek z databáze exam_questions
-                console.log("Načítání otázek z databáze exam_questions");
+                console.log(`Načítání otázek z databáze exam_questions pro ${testType} test`);
                 const { data: examQuestions, error } = await supabaseClient
-                    .from('exam_questions')
+                .from('exam_questions')
                     .select('*')
                     .order('id', { ascending: false }) // Načítáme nejnovější otázky
-                    .limit(50); // Načteme více otázek a pak vybereme náhodné
+                    .limit(Math.max(50, questionsToLoad * 2)); // Načteme více otázek a pak vybereme náhodné
                 
                 if (error) {
                     console.error('Chyba při získávání dat z exam_questions:', error);
                     throw error;
-                }
+            }
                 
                 if (!examQuestions || examQuestions.length === 0) {
                     console.log("Žádné otázky v databázi, používám výchozí otázky");
