@@ -514,7 +514,7 @@
 
             // Проверка №1: Получен ли вообще массив активностей?
             if (!activities || activities.length === 0) {
-                 console.warn("renderWeeklySchedule получила пустой массив activities.");
+                 console.warn("renderWeeklySchedule получила пустой массив activities."); // <<< ВАШ ЛОГ ЗДЕСЬ
                  dailySchedule.innerHTML = '<p><i>Žádné naplánované aktivity pro tento týden.</i></p>';
                  return;
             }
@@ -673,14 +673,24 @@
              } finally { hideLoader(planLoading); }
          }
 
-        // **UPDATED PROMPT with JSON block request** (Prompt остается тем же)
+        // --- UPDATED PROMPT ---
         async function generatePlanContentWithGemini(testData, topicsData) {
-             if (!GEMINI_API_KEY || GEMINI_API_KEY === 'YOUR_GEMINI_API_KEY') { console.error("Chyba: Gemini API klíč není nastaven."); return `## Chyba konfigurace\n\nNebyl nalezen platný Gemini API klíč.`; }
+             if (!GEMINI_API_KEY || GEMINI_API_KEY === 'YOUR_GEMINI_API_KEY') { // Проверка ключа остается
+                 console.error("Chyba: Gemini API klíč není nastaven.");
+                 return `## Chyba konfigurace\n\nNebyl nalezen platný Gemini API klíč.`;
+             }
              try {
-                 const totalScore = testData.total_score || 0; const totalQuestions = testData.total_questions || 1; const analysis = testData.analysis || {};
-                 const overallAssessment = analysis.summary?.overall_assessment || 'N/A'; const strengths = analysis.strengths?.map(s => `${s.topic} (${s.score}%)`).join(', ') || 'Nebyly identifikovány'; const weaknesses = analysis.weaknesses?.map(w => `${w.topic} (${w.score}%)`).join(', ') || 'Nebyly identifikovány'; const recommendations = analysis.recommendations?.join('\n- ') || 'Žádná specifická.';
+                 const totalScore = testData.total_score || 0;
+                 const totalQuestions = testData.total_questions || 1;
+                 const analysis = testData.analysis || {};
+                 const overallAssessment = analysis.summary?.overall_assessment || 'N/A';
+                 const strengths = analysis.strengths?.map(s => `${s.topic} (${s.score}%)`).join(', ') || 'Nebyly identifikovány';
+                 const weaknesses = analysis.weaknesses?.map(w => `${w.topic} (${w.score}%)`).join(', ') || 'Nebyly identifikovány';
+                 const recommendations = analysis.recommendations?.join('\n- ') || 'Žádná specifická.';
+
+                 // --- НАЧАЛО ОБНОВЛЕННОГО ПРОМПТА ---
                  const prompt = `
-                 Jsi expertní AI tutor specializující se na přípravu na přijímací zkoušky z matematiky pro české studenty (9. třída). Tvým úkolem je vytvořit VELMI DETAILNÍ a PERSONALIZOVANÝ týdenní studijní plán v ČEŠTINĚ ve formátu Markdown A ZÁROVEŇ vygenerovat JSON pole aktivit pro tento plán.
+                 Jsi expertní AI tutor specializující se na přípravu na PŘIJÍMACÍ ZKOUŠKY z matematiky pro 9. třídu ZŠ v Česku. Tvým úkolem je vytvořit NÁROČNÝ, DETAILNÍ a KOMPLEXNÍ týdenní studijní plán v ČEŠTINĚ ve formátu Markdown, zaměřený na dosažení co nejlepšího výsledku u zkoušek. Na konci MUSÍŠ vygenerovat JSON pole aktivit pro tento plán.
 
                  # Kontext: Student právě dokončil diagnostický test.
                  # Výsledky diagnostického testu:
@@ -694,58 +704,82 @@
                  - Identifikované slabé stránky: ${weaknesses}
                  - Doporučení na základě testu: - ${recommendations}
 
-                 # Seznam VŠECH klíčových témat pro přijímací zkoušky:
-                 1. **Čísla a aritmetické operace:** Přirozená čísla, nula, operace (+,-,*,/), zlomky (porovnání, sčítání/odčítání se stejným jm.), desetinná čísla, číselná osa.
-                 2. **Algebra:** Mocniny, odmocniny, lineární rovnice (i soustavy 2 neznámých), mnohočleny (operace, rozklad), proměnné.
-                 3. **Geometrie:** Základní rovinné útvary (čtverec, obdélník, trojúhelník, kruh - vlastnosti), kreslení, náčrty, kolmost, rovnoběžnost, obvod/obsah/povrch/objem 3D útvarů (krychle, kvádr, válec, kužel, koule).
-                 4. **Práce s daty:** Tabulky, diagramy (tvorba, čtení), průměr, modus, medián, grafy závislostí.
-                 5. **Problémové úlohy:** Slovní úlohy, matematické modelování, aplikace aritmetiky/algebry v praxi, strategie řešení.
-                 6. **Proporce a procenta:** Pojmy, výpočty procent, části, základu, trojčlenka, poměry.
-                 7. **Logické úlohy:** Vztahy, závěry, posloupnosti, zákonitosti.
+                 # Oficiální Témata Zkoušky (CERMAT - detailně):
+                 1.  **Čísla a aritmetické operace:** Přirozená čísla (do milionu), nula. Sčítání, odčítání, násobení, dělení (vlastnosti, algoritmy). Zlomky (porovnávání, sčítání/odčítání se stejným jm.). Desetinná čísla, číselná osa.
+                 2.  **Algebra:** Mocniny, odmocniny (základní operace). Lineární rovnice (jedna neznámá, úpravy). Soustavy 2 lineárních rovnic (dosazovací, sčítací metoda). Mnohočleny (sčítání, odčítání, násobení, vytýkání, vzorce (a±b)², a²-b²). Výrazy s proměnnými (dosazování, úpravy).
+                 3.  **Geometrie:** Základní rovinné útvary (čtverec, obdélník, trojúhelník - typy, vlastnosti, věty; kruh/kružnice - části, vlastnosti). Kreslení, náčrty. Kolmost, rovnoběžnost. Obvod, obsah rovinných útvarů. Povrch a objem těles (krychle, kvádr, válec; základy kužele, koule). Pythagorova věta. Základní konstrukční úlohy.
+                 4.  **Práce s daty:** Tabulky, diagramy (čtení, interpretace, jednoduchá tvorba). Aritmetický průměr, modus, medián. Grafy závislostí (čtení, interpretace).
+                 5.  **Problémové úlohy:** Slovní úlohy (převod na matematický model, řešení). Úlohy na poměr, přímá a nepřímá úměrnost, měřítko mapy. Úlohy na pohyb, společnou práci (základní typy). Aplikace matematiky. Strategie řešení.
+                 6.  **Proporce a procenta:** Procento, promile. Procentová část, základ, počet procent. Jednoduché úrokování. Trojčlenka. Poměr (základní úpravy, rozdělení).
+                 7.  **Logické úlohy:** Logické vztahy, jednoduché výroky, číselné řady, vzory, závislosti.
 
-                 # TVŮJ ÚKOL:
-                 1.  Vytvoř DETAILNÍ týdenní studijní plán (Pondělí - Neděle) ve formátu Markdown podle níže uvedené struktury.
-                 2.  Plán musí být: Personalizovaný (zaměřený na ${weaknesses}), Detailní (konkrétní typy a počty úloh), Specifický (úlohy dle úrovně), Strukturovaný, Časově orientovaný (cca 60-90 min/den), Srozumitelný.
-                 3.  **NA KONEC celého Markdown textu PŘIDEJ samostatný JSON blok**, který začíná \`\`\`json a končí \`\`\` a obsahuje pole objektů reprezentujících VŠECHNY aktivity z týdenního plánu. Každý objekt v poli musí mít klíče: "day_of_week" (číslo 0-6, Neděle=0), "title" (string, název aktivity/bloku), "description" (string, stručný popis úkolu), "time_slot" (string, odhadovaný čas, např. "30 min").
+                 # TVŮJ ÚKOL (Vytvoř NÁROČNÝ a DETAILNÍ plán):
+                 1.  Vytvoř DETAILNÍ týdenní studijní plán (Pondělí - Neděle) ve formátu Markdown. Plán musí být strukturovaný, srozumitelný a zaměřený na VÝRAZNÉ zlepšení.
+                 2.  Plán musí pokrývat klíčové oblasti z výše uvedeného seznamu OFICIÁLNÍCH TÉMAT, přičemž musí klást ZVÝŠENÝ DŮRAZ na slabé stránky studenta (${weaknesses}), ale zároveň ZAHRNOVAT OPAKOVÁNÍ i silnějších stránek pro udržení úrovně.
+                 3.  Navrhni RŮZNORODÉ a KONKRÉTNÍ aktivity:
+                     * Řešení KONKRÉTNÍCH typů příkladů s uvedením POČTU (např. "Vyřeš 8 složitějších lineárních rovnic se zlomky a závorkami").
+                     * Procvičování SLOVNÍCH ÚLOH zaměřených na dané téma (např. "Vyřeš 5 slovních úloh na procenta - změna základu").
+                     * Krátké OPAKOVÁNÍ definic, vzorců a vět (např. "Zopakuj si vzorce pro objem a povrch válce a kužele").
+                     * Analýzu VYSVĚTLENÝCH příkladů (např. "Projdi si řešené příklady na soustavy rovnic v učebnici XYZ, kap. 3.2").
+                     * Doporučení k ANALÝZE minulých chyb z testu.
+                     * Zařazení NÁROČNĚJŠÍCH úloh ("bonusové", "pro pokročilé") u silnějších témat.
+                 4.  Buď co nejvíce SPECIFICKÝ. Místo 'Procvičuj geometrii' napiš 'Vypočítej obvod a obsah 3 složených útvarů kombinujících obdélníky a kruhové výseče'.
+                 5.  Rozděl denní studium (cca 75-100 minut) do 2-3 INTENZIVNÍCH bloků zaměřených na konkrétní dovednosti nebo témata. Uveď odhadovaný čas pro každý blok.
+                 6.  Přidej krátké motivační tipy nebo strategie pro každý den.
+                 7.  **NA KONEC celého Markdown textu PŘIDEJ samostatný JSON blok**, který začíná \`\`\`json a končí \`\`\` a obsahuje pole objektů reprezentujících VŠECHNY aktivity z týdenního plánu. Každý objekt v poli MUSÍ mít klíče: "day_of_week" (číslo 0-6, Neděle=0), "title" (string, název aktivity/bloku, např. "Algebra: Složitější rovnice"), "description" (string, KONKRÉTNÍ popis úkolu, např. "Vyřeš 8 rovnic typu 2(x/3 - 1) = 5 - (x+1)/2"), "time_slot" (string, odhadovaný čas, např. "40 min"). Ujisti se, že JSON je validní.
 
                  # Požadovaný formát výstupu (Markdown + JSON na konci):
-
-                 ## Týdenní studijní plán (Personalizovaný)
-                 **Shrnutí diagnostiky:**
-                 * ...
+                 ## Náročný týdenní studijní plán (Personalizovaný)
+                 **Analýza diagnostiky:**
+                 * Zaměření na: ${weaknesses}
+                 * Udržování: ${strengths}
                  **Hlavní cíle pro tento týden:**
-                 * ...
+                 * Výrazně zlepšit [Nejslabší téma].
+                 * Upevnit znalosti v [Druhé nejslabší téma].
+                 * Zopakovat a procvičit [Silnější téma].
                  ---
                  ### Pondělí
-                 * **Fokus dne:** ...
-                 * **Blok 1 (XX min):** ...
-                 * **Blok 2 (YY min):** ...
-                 * *Tip dne:* ...
+                 * **Fokus dne:** [Např. Lineární rovnice a procenta]
+                 * **Blok 1 (cca 45 min): Algebra - Rovnice:** Vyřeš 10 lineárních rovnic se zlomky a závorkami (různé typy obtížnosti). Zkontroluj řešení.
+                 * **Blok 2 (cca 35 min): Procenta - Základní úlohy:** Zopakuj si výpočet části, základu a počtu procent. Vyřeš 6 slovních úloh na tyto výpočty.
+                 * *Tip dne:* Při řešení rovnic si pečlivě kontroluj každý krok úpravy!
                  ### Úterý
-                 * ... (atd. pro všechny dny) ...
+                 * **Fokus dne:** [Např. Geometrie - Obsahy a Obvody]
+                 * **Blok 1 (cca 40 min): Geometrie - Složené útvary:** Vypočítej obvod a obsah 3 složených útvarů (kombinace obdélníků, trojúhelníků, kruhových výsečí). Udělej si náčrtek.
+                 * **Blok 2 (cca 30 min): Opakování - Mnohočleny:** Zopakuj vzorce (a±b)², a²-b². Rozlož pomocí nich 8 mnohočlenů na součin.
+                 * **Blok 3 (cca 15 min): Analýza chyb:** Projdi si 2 chybně vyřešené úlohy z minulého týdne a napiš si, v čem byla chyba.
+                 * *Tip dne:* U geometrie si vždy dělej přehledný náčrtek!
+                 * ... (atd. pro všechny dny s konkrétními, náročnými úkoly a různými typy aktivit) ...
                  ---
-                 **Obecné tipy pro studium:**
-                 * ...
+                 **Obecné tipy pro maximální efektivitu:**
+                 * Pravidelně analyzuj své chyby.
+                 * Nevynechávej opakování silnějších témat.
+                 * Pokud něčemu nerozumíš, aktivně hledej vysvětlení (učebnice, online zdroje).
 
                  \`\`\`json
                  [
-                   { "day_of_week": 1, "title": "Blok 1: Opakování pravidel rovnic", "description": "Přečti si poznámky/video. Vyřeš 5 jednoduchých rovnic typu 2x + 3 = 9.", "time_slot": "30 min" },
-                   { "day_of_week": 1, "title": "Blok 2: Rovnice se závorkami", "description": "Vyřeš 5 příkladů typu 3(x - 2) = 12.", "time_slot": "25 min" },
-                   { "day_of_week": 1, "title": "Blok 3: Rychlé opakování zlomků", "description": "Porovnávání zlomků (3 příklady).", "time_slot": "10 min" },
-                   { "day_of_week": 2, "title": "Blok 1: Výpočet procentové části", "description": "Prostuduj metodu a vyřeš 6 slovních úloh.", "time_slot": "30 min" },
-                   { "day_of_week": 2, "title": "Blok 2: Čtení z diagramu", "description": "Odpověz na 5 otázek k danému sloupcovému diagramu.", "time_slot": "20 min" }
+                   { "day_of_week": 1, "title": "Algebra: Rovnice se zlomky/závorkami", "description": "Vyřeš 10 lineárních rovnic se zlomky a závorkami (různé typy obtížnosti). Zkontroluj řešení.", "time_slot": "45 min" },
+                   { "day_of_week": 1, "title": "Procenta: Základní úlohy", "description": "Zopakuj si výpočet části, základu, počtu procent. Vyřeš 6 slovních úloh.", "time_slot": "35 min" },
+                   { "day_of_week": 2, "title": "Geometrie: Obvod/obsah složených útvarů", "description": "Vypočítej obvod a obsah 3 složených útvarů (kombinace obdélníků, trojúhelníků, kruhových výsečí). Udělej si náčrtek.", "time_slot": "40 min" },
+                   { "day_of_week": 2, "title": "Opakování: Mnohočleny - vzorce", "description": "Zopakuj vzorce (a±b)², a²-b². Rozlož pomocí nich 8 mnohočlenů.", "time_slot": "30 min" },
+                   { "day_of_week": 2, "title": "Analýza chyb", "description": "Projdi si 2 chybně vyřešené úlohy z minulého týdne a napiš si, v čem byla chyba.", "time_slot": "15 min" }
                    // ... (další aktivity pro všechny dny) ...
                  ]
                  \`\`\`
                  `;
-                const requestData = { contents: [{ parts: [{ text: prompt }] }], generationConfig: { temperature: 0.6, topK: 40, topP: 0.95, maxOutputTokens: 8192 /* Increased tokens slightly */ } };
+                 // --- КОНЕЦ ОБНОВЛЕННОГО ПРОМПТА ---
+
+                 const requestData = { contents: [{ parts: [{ text: prompt }] }], generationConfig: { temperature: 0.6, topK: 40, topP: 0.95, maxOutputTokens: 8192 } };
                  const response = await fetch(GEMINI_API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(requestData) });
                  const data = await response.json(); if (!response.ok) { console.error("Chyba Gemini API:", data); throw new Error(data.error?.message || `Chyba při komunikaci s Gemini API (${response.status})`); }
                  const geminiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text; if (!geminiResponse) { throw new Error('Prázdná odpověď od Gemini API'); }
-                 // console.log("Vygenerovaný plán od Gemini (včetně JSON):\n", geminiResponse); // Already logged earlier
-                 return geminiResponse;
-             } catch (error) { console.error('Chyba při generování obsahu plánu:', error); return `## Chyba při generování plánu\n\nBohužel se nepodařilo vygenerovat váš personalizovaný studijní plán.\n\n**Důvod:** ${error.message}\n\nZkuste to prosím později, nebo kontaktujte podporu. Ujistěte se, že máte platný Gemini API klíč.`; }
+                 return geminiResponse; // Возвращаем полный ответ как и раньше
+             } catch (error) {
+                 console.error('Chyba při generování obsahu plánu:', error);
+                 return `## Chyba při generování plánu\n\nBohužel se nepodařilo vygenerovat váš personalizovaný studijní plán.\n\n**Důvod:** ${error.message}\n\nZkuste to prosím později, nebo kontaktujte podporu. Ujistěte se, že máte platný Gemini API klíč.`;
+             }
         }
+
 
          // **UPDATED**: Displays confirmation, not the full plan
          function displayPlanGenerationConfirmation() {
