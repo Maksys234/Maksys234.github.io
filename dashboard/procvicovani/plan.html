@@ -320,30 +320,27 @@
         function toggleMobileMenu() { const sidebar = document.querySelector('.sidebar'); sidebar?.classList.toggle('active'); const overlay = document.querySelector('.sidebar-overlay'); overlay?.classList.toggle('active'); }
         function showToast(message, type = 'success', duration = 4000) { const toast = document.getElementById('toast'); const toastMessage = document.getElementById('toast-message'); if (!toast || !toastMessage) return; toastMessage.textContent = message; const icon = toast.querySelector('i'); icon.className = type === 'success' ? 'fas fa-check-circle' : type === 'error' ? 'fas fa-exclamation-circle' : type === 'warning' ? 'fas fa-exclamation-triangle' : 'fas fa-info-circle'; toast.className = 'toast ' + type; toast.classList.add('show'); setTimeout(() => { toast.classList.remove('show'); }, duration); }
 
-        // Инициализация Tooltipster
+        // --- ИСПРАВЛЕНИЕ: Инициализация Tooltipster ---
         function initTooltips() {
             try {
-                // Добавляем проверку, существует ли jQuery и его плагин tooltipster
-                // Используем window.$ для явного указания на jQuery
                 if (typeof window.$ !== 'undefined' && window.$.fn.tooltipster) {
-                    // Сначала удаляем старые инстансы, чтобы избежать дублирования
-                    window.$('.btn-tooltip').tooltipster('destroy');
-                    // Инициализируем новые
-                    window.$('.btn-tooltip').tooltipster({
-                         theme: 'tooltipster-shadow', // Или другая ваша тема
+                    // Инициализировать только на новых элементах, у которых еще нет класса tooltipstered
+                    window.$('.btn-tooltip:not(.tooltipstered)').tooltipster({
+                         theme: 'tooltipster-shadow',
                          animation: 'fade',
                          delay: 100,
-                         side: 'top' // Или 'bottom', 'left', 'right'
+                         side: 'top'
                      });
-                    console.log("Tooltips initialized/re-initialized.");
+                    console.log("Tooltips initialized on new elements.");
                 } else {
-                    // Эта строка может появляться, если initTooltips вызывается ДО того, как jQuery/Tooltipster загрузились
                     console.warn("Tooltipster nebo jQuery nejsou dostupné pro inicializaci.");
                 }
             } catch (e) {
+                // Логируем ошибку, но не прерываем выполнение, если возможно
                 console.error("Chyba inicializace Tooltipster:", e);
             }
         }
+        // --- КОНЕЦ ИСПРАВЛЕНИЯ ---
         window.addEventListener('resize', () => { if (window.innerWidth > 992) { document.querySelector('.sidebar')?.classList.remove('active'); document.querySelector('.sidebar-overlay')?.classList.remove('active'); } });
 
         // ==============================================
@@ -578,7 +575,7 @@
                  // Generate the FULL detailed plan markdown (including the JSON block request)
                  const fullMarkdownResponse = await generatePlanContentWithGemini(latestDiagnosticData, topicsData);
 
-                 // --- ДОБАВИТЬ ЛОГИРОВАНИЕ ЗДЕСЬ ---
+                 // --- ДОБАВЛЕНО ЛОГИРОВАНИЕ ЗДЕСЬ ---
                  console.log("Полный ответ Gemini (перед извлечением JSON):\n", fullMarkdownResponse);
                  // --- КОНЕЦ ЛОГИРОВАНИЯ ---
 
