@@ -263,8 +263,7 @@
         // ==============================================
         const supabaseUrl = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10';
-        // --- ИСПРАВЛЕНИЕ: Переменная supabaseClient будет инициализирована позже ---
-        let supabaseClient = null;
+        let supabaseClient = null; // Initialize later
         // !!! DŮLEŽITÉ: Nahraďte tento klíč vaším vlastním platným API klíčem !!!
         const GEMINI_API_KEY = 'AIzaSyDQboM6qtC_O2sqqpaKZZffNf2zk6HrhEs'; // <--- ZDE VLOŽTE VÁŠ KLÍČ
         const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`; // Key only once here
@@ -325,11 +324,12 @@
         function initTooltips() {
             try {
                 // Добавляем проверку, существует ли jQuery и его плагин tooltipster
-                if (typeof $ !== 'undefined' && $.fn.tooltipster) {
+                // Используем window.$ для явного указания на jQuery
+                if (typeof window.$ !== 'undefined' && window.$.fn.tooltipster) {
                     // Сначала удаляем старые инстансы, чтобы избежать дублирования
-                    $('.btn-tooltip').tooltipster('destroy');
+                    window.$('.btn-tooltip').tooltipster('destroy');
                     // Инициализируем новые
-                    $('.btn-tooltip').tooltipster({
+                    window.$('.btn-tooltip').tooltipster({
                          theme: 'tooltipster-shadow', // Или другая ваша тема
                          animation: 'fade',
                          delay: 100,
@@ -351,7 +351,7 @@
         // ==============================================
         async function initializeApp() {
             try {
-                // --- ИСПРАВЛЕНИЕ: Инициализация supabaseClient здесь ---
+                // --- Инициализация supabaseClient ---
                 if (typeof supabase !== 'undefined' && typeof supabase.createClient === 'function') {
                      const { createClient } = supabase;
                      supabaseClient = createClient(supabaseUrl, supabaseKey);
@@ -359,7 +359,7 @@
                 } else {
                      throw new Error("Supabase library not loaded correctly.");
                 }
-                // --- Конец исправления ---
+                // --- Конец инициализации ---
 
                 showLoader(currentPlanSection, currentPlanLoader);
                 currentUser = await getCurrentSupabaseUser();
@@ -422,24 +422,17 @@
             planFragment.getElementById('viewDetailBtn').addEventListener('click', () => showPlanDetail(plan));
             planFragment.getElementById('exportCurrentPlanBtn').addEventListener('click', () => exportPlanToPDFWithStyle(plan));
             planFragment.getElementById('viewFullScheduleBtn').addEventListener('click', () => showFullSchedule(plan));
-            // Функция ручного обновления закомментирована
-            // planFragment.getElementById('updateProgressBtn').addEventListener('click', () => updatePlanProgressManually(plan));
+
             currentPlanContent.innerHTML = '';
             currentPlanContent.appendChild(planFragment);
             initProgressCircle('progressCircle', plan.progress || 0);
 
-            // Повторный вызов initTooltips после рендеринга
             initTooltips();
         }
         async function loadAndRenderActivities(planId, completedElement, todayScheduleElement) { if (!supabaseClient) return; try { const { data: activities, error } = await supabaseClient.from('plan_activities').select('*').eq('plan_id', planId); if (error) throw error; const totalActivities = activities?.length || 0; const completedCount = activities?.filter(a => a.completed).length || 0; if(completedElement) completedElement.textContent = `${completedCount}/${totalActivities}`; const today = new Date(); const dayOfWeek = today.getDay(); const todayActivities = activities?.filter(a => a.day_of_week === dayOfWeek) || []; renderDayActivities(todayActivities, todayScheduleElement, planId); } catch (error) { console.error("Chyba načítání aktivit plánu:", error); if(completedElement) completedElement.textContent = 'Chyba'; if(todayScheduleElement) todayScheduleElement.innerHTML = '<p>Chyba načítání dnešních aktivit.</p>'; } }
         function renderDayActivities(activities, container, planId) { if (!container) return; if (!activities || activities.length === 0) { container.innerHTML = '<p>Žádné aktivity pro dnešek.</p>'; return; } container.innerHTML = ''; const activitiesContainer = document.createElement('div'); activitiesContainer.className = 'activities'; activities.sort((a, b) => (a.time_slot || '').localeCompare(b.time_slot || '')); activities.forEach(activity => { const activityElement = document.createElement('div'); activityElement.className = 'activity'; activityElement.innerHTML = `<div class="activity-checkbox"><input type="checkbox" id="activity-${activity.id}" ${activity.completed ? 'checked' : ''}><div class="activity-content"><div class="activity-title">${sanitizeHTML(activity.title || '')} ${activity.time_slot ? `(${activity.time_slot})` : ''}</div><div class="activity-desc">${sanitizeHTML(activity.description || '')}</div></div></div>`; const checkbox = activityElement.querySelector('input[type="checkbox"]'); checkbox.addEventListener('change', function() { handleActivityCompletionToggle(activity.id, this.checked, planId); }); activitiesContainer.appendChild(activityElement); }); container.appendChild(activitiesContainer); }
         async function handleActivityCompletionToggle(activityId, isCompleted, planId) { if (!supabaseClient) return; try { const { error: updateError } = await supabaseClient.from('plan_activities').update({ completed: isCompleted, updated_at: new Date().toISOString() }).eq('id', activityId); if (updateError) throw updateError; console.log(`Aktivita ${activityId} označena jako ${isCompleted ? 'dokončená' : 'nedokončená'}`); await updatePlanProgress(planId); } catch (error) { console.error(`Chyba aktualizace stavu aktivity ${activityId}:`, error); showToast('Nepodařilo se aktualizovat stav aktivity', 'error'); const checkbox = document.getElementById(`activity-${activityId}`); if (checkbox) checkbox.checked = !isCompleted; /* Revert checkbox on error */ const checkboxSchedule = document.getElementById(`schedule-activity-${activityId}`); if(checkboxSchedule) checkboxSchedule.checked = !isCompleted; } }
         async function updatePlanProgress(planId) { if (!planId || !supabaseClient) return; try { const { data: activities, error: activitiesError } = await supabaseClient.from('plan_activities').select('completed').eq('plan_id', planId); if (activitiesError) throw activitiesError; if (!activities || activities.length === 0) return; const completedCount = activities.filter(a => a.completed).length; const progress = Math.round((completedCount / activities.length) * 100); const { error: planUpdateError } = await supabaseClient.from('study_plans').update({ progress: progress, updated_at: new Date().toISOString() }).eq('id', planId); if (planUpdateError) throw planUpdateError; console.log(`Pokrok plánu ${planId} aktualizován na ${progress}%`); if (currentStudyPlan && currentStudyPlan.id === planId) { currentStudyPlan.progress = progress; } const progressValueElement = document.getElementById('progressValue'); const completedActivitiesElement = document.getElementById('completedActivities'); if (progressValueElement) progressValueElement.textContent = `${progress}%`; if (completedActivitiesElement) completedActivitiesElement.textContent = `${completedCount}/${activities.length}`; updateProgressCircle('progressCircle', progress); } catch (error) { console.error(`Chyba při aktualizaci pokroku plánu ${planId}:`, error); } }
-
-        // Функция ручного обновления закомментирована
-        /*
-        function updatePlanProgressManually(plan) { ... }
-        */
 
          // Show Plan Details - Fetches FULL markdown content
          async function showPlanDetail(plan) {
@@ -772,7 +765,6 @@
              exportContainer.style.fontFamily = 'Arial, sans-serif';
              exportContainer.innerHTML = `<div style="text-align: center; margin-bottom: 30px;"><h1 style="color: #4361ee; font-size: 24px; margin-bottom: 10px;">${sanitizeHTML(plan.title || 'Studijní plán')}</h1><p style="color: #6c757d; font-size: 14px;">Vytvořeno: ${formatDate(plan.created_at)}</p></div>`;
 
-             // --- НАЧАЛО ИСПРАВЛЕНИЯ ---
              if (currentUser && userName.textContent) {
                  exportContainer.innerHTML += `
                      <div style="margin-bottom: 20px; background-color: #f8f9fa; padding: 15px; border-radius: 10px;">
@@ -782,7 +774,6 @@
                          ${plan.estimated_completion_date ? `<p><strong>Předpokládané dokončení:</strong> ${formatDate(plan.estimated_completion_date)}</p>` : ''}
                      </div>`;
              }
-             // --- КОНЕЦ ИСПРАВЛЕНИЯ ---
 
              const contentElement = document.createElement('div');
              contentElement.innerHTML = plan.plan_content_markdown ? marked.parse(plan.plan_content_markdown) : '<p>Obsah plánu není k dispozici.</p>';
@@ -802,13 +793,12 @@
         // ==============================================
         //          Spuštění Aplikace
         // ==============================================
-        // Используется $(document).ready() вместо DOMContentLoaded
-        $(document).ready(function() {
-            console.log("jQuery DOM ready, starting application initialization...");
+        // --- ИСПРАВЛЕНИЕ: Использование стандартного DOMContentLoaded ---
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log("DOM fully loaded and parsed, starting application initialization...");
             initializeApp();
-            // Можно попробовать вызвать initTooltips еще раз здесь, но он должен вызываться из initializeApp и renderCurrentPlan
-            // initTooltips();
         });
+        // --- Конец исправления ---
 
     </script>
 </body>
