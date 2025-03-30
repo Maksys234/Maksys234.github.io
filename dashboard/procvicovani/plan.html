@@ -451,9 +451,38 @@
              } finally { hideLoader(planLoading); }
          }
 
-        async function showFullSchedule(plan) { if (!plan || !supabaseClient) return; planSection.style.display = 'none'; scheduleSection.style.display = 'block'; dailySchedule.innerHTML = '<div class="loader-container"><div class="loader"></div></div>'; try { const { data: activities, error } = await supabaseClient.from('plan_activities').select('*').eq('plan_id', plan.id).order('day_of_week').order('time_slot'); if (error) throw error; renderWeeklySchedule(activities || [], plan.id); scheduleSection.scrollIntoView({ behavior: 'smooth' }); } catch (error) { console.error("Chyba načítání celého rozvrhu:", error); dailySchedule.innerHTML = '<p>Nepodařilo se načíst rozvrh.</p>'; } }
+        // --- UPDATED with Logging ---
+        async function showFullSchedule(plan) {
+             if (!plan || !supabaseClient) return;
+             // --- ДОБАВЛЕНО ЛОГИРОВАНИЕ ---
+             console.log(`Показываю полный гармонограмм для плана ID: ${plan.id}`);
+             // --- КОНЕЦ ЛОГИРОВАНИЯ ---
+             planSection.style.display = 'none';
+             scheduleSection.style.display = 'block';
+             dailySchedule.innerHTML = '<div class="loader-container"><div class="loader"></div></div>';
+             try {
+                 const { data: activities, error } = await supabaseClient
+                     .from('plan_activities')
+                     .select('*')
+                     .eq('plan_id', plan.id) // Используем plan.id
+                     .order('day_of_week')
+                     .order('time_slot');
 
-        // Функция renderWeeklySchedule исправлена
+                 if (error) throw error;
+
+                 // --- ДОБАВЛЕНО ЛОГИРОВАНИЕ ---
+                 console.log("Активности, полученные из Supabase:", activities);
+                 // --- КОНЕЦ ЛОГИРОВАНИЯ ---
+
+                 renderWeeklySchedule(activities || [], plan.id);
+                 scheduleSection.scrollIntoView({ behavior: 'smooth' });
+             } catch (error) {
+                 console.error("Chyba načítání celého rozvrhu:", error);
+                 dailySchedule.innerHTML = '<p>Nepodařilo se načíst rozvrh.</p>';
+             }
+         }
+
+        // --- UPDATED with Logging ---
         function renderWeeklySchedule(activities, planId) {
             const days = ['Neděle', 'Pondělí', 'Úterý', 'Středa', 'Čtvrtek', 'Pátek', 'Sobota'];
             dailySchedule.innerHTML = ''; // Очистка предыдущего содержимого
@@ -463,14 +492,20 @@
                  return;
             }
 
+            console.log("Начинаю рендеринг гармонограмма с активностями:", activities); // Лог перед циклом
+
             for (let i = 0; i < 7; i++) {
                 const dayIndex = i;
-                const dayActivities = activities.filter(a => a.day_of_week === dayIndex);
-                const isToday = new Date().getDay() === dayIndex;
+                // Убедимся, что сравниваем числа
+                const dayActivities = activities.filter(a => Number(a.day_of_week) === dayIndex);
+
+                // --- ДОБАВЛЕНО ЛОГИРОВАНИЕ ---
+                console.log(`День ${days[dayIndex]} (index ${dayIndex}), найденные активности:`, dayActivities);
+                // --- КОНЕЦ ЛОГИРОВАНИЯ ---
 
                 const dayElement = document.createElement('div');
-                dayElement.className = `schedule-day ${isToday ? 'today' : ''}`;
-                dayElement.innerHTML = `<div class="day-name">${days[dayIndex]} ${isToday ? '(Dnes)' : ''}</div>`;
+                dayElement.className = `schedule-day ${new Date().getDay() === dayIndex ? 'today' : ''}`;
+                dayElement.innerHTML = `<div class="day-name">${days[dayIndex]} ${new Date().getDay() === dayIndex ? '(Dnes)' : ''}</div>`;
 
                 const activitiesContainer = document.createElement('div');
                 activitiesContainer.className = 'activities';
@@ -478,9 +513,7 @@
                 if (dayActivities.length === 0) {
                     activitiesContainer.innerHTML = '<p><i>Žádné aktivity pro tento den.</i></p>';
                 } else {
-                     // Сортировка активностей дня по time_slot, если доступно
                     dayActivities.sort((a, b) => (a.time_slot || '').localeCompare(b.time_slot || ''));
-
                     dayActivities.forEach(activity => {
                         const activityElement = document.createElement('div');
                         activityElement.className = 'activity';
@@ -497,7 +530,6 @@
                                 </div>
                             </div>`;
                         const checkbox = activityElement.querySelector('input[type="checkbox"]');
-                        // Добавляем обработчик события ПОСЛЕ создания элемента
                         checkbox.addEventListener('change', function() {
                             handleActivityCompletionToggle(activity.id, this.checked, planId);
                         });
@@ -546,6 +578,10 @@
                  // Generate the FULL detailed plan markdown (including the JSON block request)
                  const fullMarkdownResponse = await generatePlanContentWithGemini(latestDiagnosticData, topicsData);
 
+                 // --- ДОБАВИТЬ ЛОГИРОВАНИЕ ЗДЕСЬ ---
+                 console.log("Полный ответ Gemini (перед извлечением JSON):\n", fullMarkdownResponse);
+                 // --- КОНЕЦ ЛОГИРОВАНИЯ ---
+
                  // Attempt to extract JSON block from the response
                   const jsonRegex = /```json\s*([\s\S]*?)\s*```/;
                   const jsonMatch = fullMarkdownResponse.match(jsonRegex);
@@ -553,20 +589,15 @@
                   let planMarkdownForStorage = fullMarkdownResponse; // Default to full response
 
                   if (jsonMatch && jsonMatch[1]) {
-                      // Очистка JSON строки от неразрывных пробелов (U+00A0) и других потенциально проблемных символов в начале/конце строк JSON
-                      const cleanedJsonString = jsonMatch[1]
-                          .replace(/\u00A0/g, ' ') // Заменяем неразрывные пробелы на обычные
-                          .trim(); // Удаляем пробелы в начале и конце всего блока
+                      const cleanedJsonString = jsonMatch[1].replace(/\u00A0/g, ' ').trim();
                       try {
                            activitiesArray = JSON.parse(cleanedJsonString);
-                           // Remove the JSON block from the markdown we save
                            planMarkdownForStorage = fullMarkdownResponse.replace(jsonRegex, '').trim();
                            lastGeneratedActivitiesJson = activitiesArray; // Store extracted JSON
-                           console.log("Extrahované a očištěné aktivity (JSON):", activitiesArray);
+                           console.log("Extrahované и очищенные активности (JSON):", activitiesArray);
                       } catch (parseError) {
                            console.error("Chyba parsování OČIŠTĚNÉHO JSON z odpovědi Gemini:", parseError, "Původní extrahovaný string:", jsonMatch[1], "Očištěný string:", cleanedJsonString);
                            showToast("Varování: Nepodařilo se správně zpracovat aktivity z plánu pro harmonogram.", "warning");
-                           // Keep full markdown, activities will be null
                            lastGeneratedActivitiesJson = null;
                       }
                   } else {
@@ -658,7 +689,8 @@
                  const response = await fetch(GEMINI_API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(requestData) });
                  const data = await response.json(); if (!response.ok) { console.error("Chyba Gemini API:", data); throw new Error(data.error?.message || `Chyba při komunikaci s Gemini API (${response.status})`); }
                  const geminiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text; if (!geminiResponse) { throw new Error('Prázdná odpověď od Gemini API'); }
-                 console.log("Vygenerovaný plán od Gemini (včetně JSON):\n", geminiResponse); return geminiResponse;
+                 // console.log("Vygenerovaný plán od Gemini (včetně JSON):\n", geminiResponse); // Already logged earlier
+                 return geminiResponse;
              } catch (error) { console.error('Chyba při generování obsahu plánu:', error); return `## Chyba při generování plánu\n\nBohužel se nepodařilo vygenerovat váš personalizovaný studijní plán.\n\n**Důvod:** ${error.message}\n\nZkuste to prosím později, nebo kontaktujte podporu. Ujistěte se, že máte platný Gemini API klíč.`; }
         }
 
@@ -673,13 +705,13 @@
               hideLoader(planLoading);
          }
 
-         // **UPDATED**: Saves markdown AND inserts activities from JSON
-         async function saveGeneratedPlan(markdownContent, activitiesArray, topicsData) {
+        // --- UPDATED with Logging ---
+        async function saveGeneratedPlan(markdownContent, activitiesArray, topicsData) {
              if (!currentUser || !latestDiagnosticData || !markdownContent || !supabaseClient) { alert('Chyba: Chybí data uživatele, diagnostiky, plánu nebo Supabase client pro uložení.'); return; }
              const saveButton = document.getElementById('saveGeneratedPlanBtn'); if(saveButton) saveButton.disabled = true; saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ukládám...';
              const priorityTopics = {}; topicsData.forEach((topic, index) => { priorityTopics[topic.name] = { priority: index + 1, performance: topic.percentage, focus_level: topic.percentage < 50 ? 'high' : topic.percentage < 75 ? 'medium' : 'low' }; });
 
-             let savedPlanId = null; // Store the new plan ID
+             let savedPlanId = null;
 
              try {
                  // 1. Deactivate old plans
@@ -688,44 +720,60 @@
                  // 2. Insert new plan
                  const today = new Date(); const completionDate = new Date(today); completionDate.setDate(completionDate.getDate() + 7);
                  const newPlanData = { user_id: currentUser.id, title: `Studijní plán (${formatDate(today)})`, subject: "Matematika", status: "active", diagnostic_id: latestDiagnosticData.id,
-                     plan_content_markdown: markdownContent, // Store the markdown part
+                     plan_content_markdown: markdownContent,
                      priority_topics: priorityTopics, estimated_completion_date: completionDate.toISOString().split('T')[0], progress: 0, is_auto_adjusted: true };
                  const { data: savedPlan, error: insertPlanError } = await supabaseClient.from('study_plans').insert(newPlanData).select('id').single(); if (insertPlanError) throw insertPlanError;
 
-                 savedPlanId = savedPlan.id; // Get the ID of the newly inserted plan
-                 console.log("Nový plán uložen, ID:", savedPlanId);
+                 savedPlanId = savedPlan.id;
+                 console.log("Nový plán uložen, ID:", savedPlanId); // Лог ID плана
 
                  // 3. Insert activities if JSON was extracted successfully
+                 // --- ДОБАВЛЕНО ЛОГИРОВАНИЕ ---
+                 console.log("Проверяем activitiesArray перед вставкой:", activitiesArray);
+                 // --- КОНЕЦ ЛОГИРОВАНИЯ ---
+
                  if (activitiesArray && Array.isArray(activitiesArray) && activitiesArray.length > 0) {
                      console.log(`Pokouším se vložit ${activitiesArray.length} aktivit...`);
                      const activitiesToInsert = activitiesArray.map(act => ({
                          plan_id: savedPlanId,
-                         day_of_week: act.day_of_week,
+                         day_of_week: typeof act.day_of_week === 'number' ? act.day_of_week : parseInt(act.day_of_week, 10), // Ensure it's a number
                          time_slot: act.time_slot || null,
                          title: act.title,
                          description: act.description || null,
-                         completed: false, // Default to not completed
-                     }));
+                         completed: false,
+                     })).filter(act => !isNaN(act.day_of_week)); // Filter out entries where day_of_week is NaN after parsing
 
-                     console.log("Aktivity k vložení:", activitiesToInsert); // Добавлено для отладки
+                     // --- ДОБАВЛЕНО ЛОГИРОВАНИЕ ---
+                     console.log("Данные для вставки в plan_activities (после маппинга и фильтрации):", activitiesToInsert);
+                     // --- КОНЕЦ ЛОГИРОВАНИЯ ---
 
-                     const { error: insertActivitiesError } = await supabaseClient
-                         .from('plan_activities')
-                         .insert(activitiesToInsert);
+                     if (activitiesToInsert.length > 0) {
+                         const { error: insertActivitiesError } = await supabaseClient
+                             .from('plan_activities')
+                             .insert(activitiesToInsert);
 
-                     if (insertActivitiesError) {
-                         console.error("Chyba při vkládání aktivit:", insertActivitiesError);
-                         showToast('Plán uložen, ale nepodařilo se uložit aktivity pro harmonogram.', 'warning');
+                         if (insertActivitiesError) {
+                             // --- ДОБАВЛЕНО ЛОГИРОВАНИЕ ---
+                             console.error("!!! Ошибка при вставке активностей в Supabase:", insertActivitiesError);
+                             // --- КОНЕЦ ЛОГИРОВАНИЯ ---
+                             showToast('Plán uložen, ale nepodařilo se uložit aktivity pro harmonogram.', 'warning');
+                         } else {
+                             console.log("Aktivity úspěšně vloženy do DB.");
+                             showToast('Studijní plán a aktivity byly úspěšně uloženy!', 'success');
+                         }
                      } else {
-                         console.log("Aktivity úspěšně vloženy do DB.");
-                         showToast('Studijní plán a aktivity byly úspěšně uloženy!', 'success');
+                         console.warn("Po фильтрации не осталось активностей для вставки.");
+                         showToast('Plán uložen, ale nebyly nalezeny platné aktivity pro harmonogram.', 'warning');
                      }
                  } else {
+                      // --- ДОБАВЛЕНО ЛОГИРОВАНИЕ ---
+                     console.warn("activitiesArray пустой или не является массивом, активности не будут вставлены.");
+                      // --- КОНЕЦ ЛОГИРОВАНИЯ ---
                      showToast('Studijní plán uložen (bez detailních aktivit v harmonogramu).', 'info');
                  }
 
-                 currentStudyPlan = { ...newPlanData, id: savedPlanId }; // Update global variable
-                 switchTab('current'); // Switch to show the newly saved plan overview
+                 currentStudyPlan = { ...newPlanData, id: savedPlanId };
+                 switchTab('current');
 
              } catch (error) {
                  console.error("Chyba při ukládání plánu nebo aktivit:", error);
@@ -786,19 +834,23 @@
 
              const options = { margin: 15, filename: `studijni-plan-${formatDate(plan.created_at).replace(/\./g, '-')}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } };
 
-             html2pdf().set(options).from(exportContainer).save().then(() => { showToast('PDF bylo úspěšně vygenerováno!', 'success'); }).catch(err => { console.error("Chyba exportu PDF:", err); showToast('Nepodařilo se exportovat PDF.', 'error'); });
+             // Check if html2pdf is loaded before calling
+             if (typeof html2pdf === 'function') {
+                html2pdf().set(options).from(exportContainer).save().then(() => { showToast('PDF bylo úspěšně vygenerováno!', 'success'); }).catch(err => { console.error("Chyba exportu PDF:", err); showToast('Nepodařilo se exportovat PDF.', 'error'); });
+             } else {
+                console.error("html2pdf library is not loaded.");
+                showToast('Chyba: Knihovna pro export PDF není načtena.', 'error');
+             }
          }
 
 
         // ==============================================
         //          Spuštění Aplikace
         // ==============================================
-        // --- ИСПРАВЛЕНИЕ: Использование стандартного DOMContentLoaded ---
         document.addEventListener('DOMContentLoaded', function() {
             console.log("DOM fully loaded and parsed, starting application initialization...");
             initializeApp();
         });
-        // --- Конец исправления ---
 
     </script>
 </body>
