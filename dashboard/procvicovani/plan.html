@@ -426,7 +426,7 @@
 
             initTooltips();
         }
-        async function loadAndRenderActivities(planId, completedElement, todayScheduleElement) { if (!supabaseClient) return; try { const { data: activities, error } = await supabaseClient.from('plan_activities').select('*').eq('plan_id', planId); if (error) throw error; const totalActivities = activities?.length || 0; const completedCount = activities?.filter(a => a.completed).length || 0; if(completedElement) completedElement.textContent = `${completedCount}/${totalActivities}`; const today = new Date(); const dayOfWeek = today.getDay(); const todayActivities = activities?.filter(a => a.day_of_week === dayOfWeek) || []; renderDayActivities(todayActivities, todayScheduleElement, planId); } catch (error) { console.error("Chyba načítání aktivit plánu:", error); if(completedElement) completedElement.textContent = 'Chyba'; if(todayScheduleElement) todayScheduleElement.innerHTML = '<p>Chyba načítání dnešních aktivit.</p>'; } }
+        async function loadAndRenderActivities(planId, completedElement, todayScheduleElement) { if (!supabaseClient) return; try { const { data: activities, error } = await supabaseClient.from('plan_activities').select('*').eq('plan_id', planId); if (error) throw error; const totalActivities = activities?.length || 0; const completedCount = activities?.filter(a => a.completed).length || 0; if(completedElement) completedElement.textContent = `${completedCount}/${totalActivities}`; const today = new Date(); const dayOfWeek = today.getDay(); const todayActivities = activities?.filter(a => Number(a.day_of_week) === dayOfWeek) || []; renderDayActivities(todayActivities, todayScheduleElement, planId); } catch (error) { console.error("Chyba načítání aktivit plánu:", error); if(completedElement) completedElement.textContent = 'Chyba'; if(todayScheduleElement) todayScheduleElement.innerHTML = '<p>Chyba načítání dnešních aktivit.</p>'; } }
         function renderDayActivities(activities, container, planId) { if (!container) return; if (!activities || activities.length === 0) { container.innerHTML = '<p>Žádné aktivity pro dnešek.</p>'; return; } container.innerHTML = ''; const activitiesContainer = document.createElement('div'); activitiesContainer.className = 'activities'; activities.sort((a, b) => (a.time_slot || '').localeCompare(b.time_slot || '')); activities.forEach(activity => { const activityElement = document.createElement('div'); activityElement.className = 'activity'; activityElement.innerHTML = `<div class="activity-checkbox"><input type="checkbox" id="activity-${activity.id}" ${activity.completed ? 'checked' : ''}><div class="activity-content"><div class="activity-title">${sanitizeHTML(activity.title || '')} ${activity.time_slot ? `(${activity.time_slot})` : ''}</div><div class="activity-desc">${sanitizeHTML(activity.description || '')}</div></div></div>`; const checkbox = activityElement.querySelector('input[type="checkbox"]'); checkbox.addEventListener('change', function() { handleActivityCompletionToggle(activity.id, this.checked, planId); }); activitiesContainer.appendChild(activityElement); }); container.appendChild(activitiesContainer); }
         async function handleActivityCompletionToggle(activityId, isCompleted, planId) { if (!supabaseClient) return; try { const { error: updateError } = await supabaseClient.from('plan_activities').update({ completed: isCompleted, updated_at: new Date().toISOString() }).eq('id', activityId); if (updateError) throw updateError; console.log(`Aktivita ${activityId} označena jako ${isCompleted ? 'dokončená' : 'nedokončená'}`); await updatePlanProgress(planId); } catch (error) { console.error(`Chyba aktualizace stavu aktivity ${activityId}:`, error); showToast('Nepodařilo se aktualizovat stav aktivity', 'error'); const checkbox = document.getElementById(`activity-${activityId}`); if (checkbox) checkbox.checked = !isCompleted; /* Revert checkbox on error */ const checkboxSchedule = document.getElementById(`schedule-activity-${activityId}`); if(checkboxSchedule) checkboxSchedule.checked = !isCompleted; } }
         async function updatePlanProgress(planId) { if (!planId || !supabaseClient) return; try { const { data: activities, error: activitiesError } = await supabaseClient.from('plan_activities').select('completed').eq('plan_id', planId); if (activitiesError) throw activitiesError; if (!activities || activities.length === 0) return; const completedCount = activities.filter(a => a.completed).length; const progress = Math.round((completedCount / activities.length) * 100); const { error: planUpdateError } = await supabaseClient.from('study_plans').update({ progress: progress, updated_at: new Date().toISOString() }).eq('id', planId); if (planUpdateError) throw planUpdateError; console.log(`Pokrok plánu ${planId} aktualizován na ${progress}%`); if (currentStudyPlan && currentStudyPlan.id === planId) { currentStudyPlan.progress = progress; } const progressValueElement = document.getElementById('progressValue'); const completedActivitiesElement = document.getElementById('completedActivities'); if (progressValueElement) progressValueElement.textContent = `${progress}%`; if (completedActivitiesElement) completedActivitiesElement.textContent = `${completedCount}/${activities.length}`; updateProgressCircle('progressCircle', progress); } catch (error) { console.error(`Chyba při aktualizaci pokroku plánu ${planId}:`, error); } }
@@ -479,41 +479,59 @@
              }
          }
 
-        // --- UPDATED with Logging ---
+        // --- UPDATED with Logging and Flag ---
         function renderWeeklySchedule(activities, planId) {
             const days = ['Neděle', 'Pondělí', 'Úterý', 'Středa', 'Čtvrtek', 'Pátek', 'Sobota'];
             dailySchedule.innerHTML = ''; // Очистка предыдущего содержимого
 
+            // Проверка №1: Получен ли вообще массив активностей?
             if (!activities || activities.length === 0) {
+                 console.warn("renderWeeklySchedule получила пустой массив activities.");
                  dailySchedule.innerHTML = '<p><i>Žádné naplánované aktivity pro tento týden.</i></p>';
                  return;
             }
 
-            console.log("Начинаю рендеринг гармонограмма с активностями:", activities); // Лог перед циклом
+            console.log(`Начинаю рендеринг гармонограмма. Получено активностей: ${activities.length}`, activities);
+
+            let foundAnyActivityForAnyDay = false; // Флаг для проверки фильтрации
 
             for (let i = 0; i < 7; i++) {
                 const dayIndex = i;
+                // Проверка №2: Работает ли фильтрация по дню недели?
                 // Убедимся, что сравниваем числа
-                const dayActivities = activities.filter(a => Number(a.day_of_week) === dayIndex);
+                const dayActivities = activities.filter(a => {
+                    const activityDay = Number(a.day_of_week);
+                    // Логируем значение дня недели из активности (можно раскомментировать для детальной отладки)
+                    // console.log(` - Activity ID ${a.id}, day_of_week: ${a.day_of_week} (type: ${typeof a.day_of_week}), Comparing with dayIndex: ${dayIndex}`);
+                    return !isNaN(activityDay) && activityDay === dayIndex;
+                });
 
-                // --- ДОБАВЛЕНО ЛОГИРОВАНИЕ ---
-                console.log(`День ${days[dayIndex]} (index ${dayIndex}), найденные активности:`, dayActivities);
-                // --- КОНЕЦ ЛОГИРОВАНИЯ ---
+                console.log(`День ${days[dayIndex]} (index ${dayIndex}), найденные активности после фильтрации:`, dayActivities);
 
                 const dayElement = document.createElement('div');
-                dayElement.className = `schedule-day ${new Date().getDay() === dayIndex ? 'today' : ''}`;
-                dayElement.innerHTML = `<div class="day-name">${days[dayIndex]} ${new Date().getDay() === dayIndex ? '(Dnes)' : ''}</div>`;
+                const isToday = new Date().getDay() === dayIndex;
+                dayElement.className = `schedule-day ${isToday ? 'today' : ''}`;
+                dayElement.innerHTML = `<div class="day-name">${days[dayIndex]} ${isToday ? '(Dnes)' : ''}</div>`;
 
                 const activitiesContainer = document.createElement('div');
                 activitiesContainer.className = 'activities';
 
+                // Проверка №3: Пуст ли массив ПОСЛЕ фильтрации для ЭТОГО дня?
                 if (dayActivities.length === 0) {
                     activitiesContainer.innerHTML = '<p><i>Žádné aktivity pro tento den.</i></p>';
                 } else {
+                    foundAnyActivityForAnyDay = true; // Фильтрация сработала хотя бы раз
                     dayActivities.sort((a, b) => (a.time_slot || '').localeCompare(b.time_slot || ''));
                     dayActivities.forEach(activity => {
+                        // Проверяем наличие ID у активности
+                        if (!activity.id) {
+                            console.error("Ошибка: Активность не имеет ID!", activity);
+                            return; // Пропускаем рендеринг этой активности
+                        }
+
                         const activityElement = document.createElement('div');
                         activityElement.className = 'activity';
+                        // Используем activity.id для ID чекбокса
                         activityElement.innerHTML = `
                             <div class="activity-checkbox">
                                 <input type="checkbox" id="schedule-activity-${activity.id}" ${activity.completed ? 'checked' : ''}>
@@ -527,6 +545,7 @@
                                 </div>
                             </div>`;
                         const checkbox = activityElement.querySelector('input[type="checkbox"]');
+                        // Убедимся, что ID корректно передается в обработчик
                         checkbox.addEventListener('change', function() {
                             handleActivityCompletionToggle(activity.id, this.checked, planId);
                         });
@@ -536,7 +555,15 @@
                 dayElement.appendChild(activitiesContainer);
                 dailySchedule.appendChild(dayElement);
             }
+
+            // Проверка №4: Если массив активностей был НЕ пустой, но фильтрация НЕ сработала ни для одного дня
+            if (!foundAnyActivityForAnyDay && activities.length > 0) {
+                console.error("Активности были получены, но фильтрация по day_of_week не нашла совпадений ни для одного дня. Проверьте значения day_of_week в базе данных (должны быть числа 0-6) и в коде.");
+                // Отображаем более конкретное сообщение об ошибке пользователю
+                dailySchedule.innerHTML = '<p><i>Chyba při zpracování harmonogramu: Neodpovídající formát dnů v týdnu v datech.</i></p>';
+            }
         }
+        // --- КОНЕЦ ОБНОВЛЕННОЙ ФУНКЦИИ ---
 
         function renderPromptCreatePlan() { currentPlanContent.innerHTML = `<div class="notest-message info"><h3><i class="fas fa-clipboard-check"></i> Diagnostický test dokončen</h3><p>Váš poslední diagnostický test je připraven k analýze. Můžete nyní vygenerovat nový personalizovaný studijní plán.</p><button class="btn btn-primary" id="createNewPlanFromPromptBtn"><i class="fas fa-plus-circle"></i> Vytvořit studijní plán</button></div>`; document.getElementById('createNewPlanFromPromptBtn').addEventListener('click', () => switchTab('create')); }
 
@@ -778,6 +805,7 @@
                  if(saveButton) saveButton.disabled = false; saveButton.innerHTML = '<i class="fas fa-save"></i> Uložit tento plán';
              }
          }
+
 
         // Display saved plan's markdown content
         function displayPlanContent(markdownContent) {
