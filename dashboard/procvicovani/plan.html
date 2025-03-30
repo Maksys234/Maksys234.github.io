@@ -448,36 +448,64 @@
              } finally { hideLoader(planLoading); }
          }
 
-        // --- UPDATED with Logging ---
+        // --- UPDATED with More Logging & RLS Reminder ---
         async function showFullSchedule(plan) {
-             if (!plan || !supabaseClient) return;
-             // --- ДОБАВЛЕНО ЛОГИРОВАНИЕ ---
-             console.log(`Показываю полный гармонограмм для плана ID: ${plan.id}`);
-             // --- КОНЕЦ ЛОГИРОВАНИЯ ---
+             // --- Check 1: Is Supabase Client initialized? ---
+             if (!supabaseClient) {
+                 console.error("showFullSchedule: Supabase client is not initialized.");
+                 dailySchedule.innerHTML = '<p>Chyba: Aplikace není inicializována.</p>';
+                 return;
+             }
+             // --- Check 2: Is the plan object valid and has an ID? ---
+             if (!plan || !plan.id) {
+                 console.error("showFullSchedule: Invalid or missing plan object/ID.", plan);
+                 dailySchedule.innerHTML = '<p>Chyba: Nelze zobrazit harmonogram bez platného ID plánu.</p>';
+                 return;
+             }
+
+             console.log(`showFullSchedule: Pokouším se zobrazit harmonogram pro Plan ID: ${plan.id}`, "Celý objekt plánu:", plan);
+
              planSection.style.display = 'none';
              scheduleSection.style.display = 'block';
-             dailySchedule.innerHTML = '<div class="loader-container"><div class="loader"></div></div>';
+             dailySchedule.innerHTML = '<div class="loader-container"><div class="loader"></div></div>'; // Show loader
+
              try {
-                 const { data: activities, error } = await supabaseClient
+                 // --- Check 3: Fetching data ---
+                 console.log(`showFullSchedule: Dotazuji se na aktivity s plan_id = ${plan.id}`);
+                 const { data: activities, error, status } = await supabaseClient
                      .from('plan_activities')
-                     .select('*')
-                     .eq('plan_id', plan.id) // Используем plan.id
+                     .select('*') // Выбираем все столбцы
+                     .eq('plan_id', plan.id)
                      .order('day_of_week')
                      .order('time_slot');
 
-                 if (error) throw error;
+                 // --- Check 4: Handle fetch errors ---
+                 if (error) {
+                     console.error(`showFullSchedule: Chyba při načítání aktivit z Supabase (Status: ${status}):`, error);
+                     // REMINDER: Check Row Level Security (RLS) policies for 'plan_activities' table SELECT permission!
+                     // Напоминание: Проверьте политики RLS для таблицы 'plan_activities' на разрешение SELECT!
+                     throw new Error(`Nepodařilo se načíst aktivity: ${error.message}. Zkontrolujte také RLS.`);
+                 }
 
-                 // --- ДОБАВЛЕНО ЛОГИРОВАНИЕ ---
-                 console.log("Активности, полученные из Supabase:", activities);
-                 // --- КОНЕЦ ЛОГИРОВАНИЯ ---
+                 // --- Check 5: Log fetched data ---
+                 // Этот лог теперь покажет ПУСТОЙ массив, согласно вашему сообщению
+                 console.log(`showFullSchedule: Aktivity získané ze Supabase (pro plan_id ${plan.id}):`, activities);
 
+                 // --- Check 6: Call rendering ---
+                 // Передаем массив activities (даже если он пустой) в renderWeeklySchedule
+                 // renderWeeklySchedule сама обработает пустой массив и выведет сообщение.
                  renderWeeklySchedule(activities || [], plan.id);
+
                  scheduleSection.scrollIntoView({ behavior: 'smooth' });
-             } catch (error) {
-                 console.error("Chyba načítání celého rozvrhu:", error);
-                 dailySchedule.innerHTML = '<p>Nepodařilo se načíst rozvrh.</p>';
+
+             } catch (error) { // Catch errors from fetch or subsequent rendering call
+                 console.error("showFullSchedule: Celková chyba při zobrazování harmonogramu:", error);
+                 // Показываем ошибку пользователю
+                 dailySchedule.innerHTML = `<p><i>Chyba při načítání nebo zobrazování harmonogramu: ${error.message}</i></p>`;
              }
-         }
+        }
+        // --- КОНЕЦ ОБНОВЛЕННОЙ ФУНКЦИИ ---
+
 
         // --- UPDATED with Logging and Flag ---
         function renderWeeklySchedule(activities, planId) {
@@ -564,6 +592,7 @@
             }
         }
         // --- КОНЕЦ ОБНОВЛЕННОЙ ФУНКЦИИ ---
+
 
         function renderPromptCreatePlan() { currentPlanContent.innerHTML = `<div class="notest-message info"><h3><i class="fas fa-clipboard-check"></i> Diagnostický test dokončen</h3><p>Váš poslední diagnostický test je připraven k analýze. Můžete nyní vygenerovat nový personalizovaný studijní plán.</p><button class="btn btn-primary" id="createNewPlanFromPromptBtn"><i class="fas fa-plus-circle"></i> Vytvořit studijní plán</button></div>`; document.getElementById('createNewPlanFromPromptBtn').addEventListener('click', () => switchTab('create')); }
 
