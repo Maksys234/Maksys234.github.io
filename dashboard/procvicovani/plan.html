@@ -321,7 +321,7 @@
         function toggleMobileMenu() { const sidebar = document.querySelector('.sidebar'); sidebar?.classList.toggle('active'); const overlay = document.querySelector('.sidebar-overlay'); overlay?.classList.toggle('active'); }
         function showToast(message, type = 'success', duration = 4000) { const toast = document.getElementById('toast'); const toastMessage = document.getElementById('toast-message'); if (!toast || !toastMessage) return; toastMessage.textContent = message; const icon = toast.querySelector('i'); icon.className = type === 'success' ? 'fas fa-check-circle' : type === 'error' ? 'fas fa-exclamation-circle' : type === 'warning' ? 'fas fa-exclamation-triangle' : 'fas fa-info-circle'; toast.className = 'toast ' + type; toast.classList.add('show'); setTimeout(() => { toast.classList.remove('show'); }, duration); }
 
-        // ZMĚNA: Исправлена инициализация Tooltipster
+        // Инициализация Tooltipster
         function initTooltips() {
             try {
                 // Добавляем проверку, существует ли jQuery и его плагин tooltipster
@@ -364,7 +364,7 @@
                 setupEventListeners();
                 await switchTab('current'); // Дождитесь загрузки начальной вкладки
 
-                // ZMĚNA: Вызов initTooltips в конце инициализации
+                // Вызов initTooltips в конце инициализации
                 initTooltips(); // Init tooltips after main elements and initial tab are likely ready
 
             } catch (error) {
@@ -408,13 +408,13 @@
             planFragment.getElementById('viewDetailBtn').addEventListener('click', () => showPlanDetail(plan));
             planFragment.getElementById('exportCurrentPlanBtn').addEventListener('click', () => exportPlanToPDFWithStyle(plan));
             planFragment.getElementById('viewFullScheduleBtn').addEventListener('click', () => showFullSchedule(plan));
-            // ZMĚNA: Event listener для ручного обновления закомментирован
+            // Функция ручного обновления закомментирована
             // planFragment.getElementById('updateProgressBtn').addEventListener('click', () => updatePlanProgressManually(plan));
             currentPlanContent.innerHTML = '';
             currentPlanContent.appendChild(planFragment);
             initProgressCircle('progressCircle', plan.progress || 0);
 
-            // ZMĚNA: Повторный вызов initTooltips после рендеринга
+            // Повторный вызов initTooltips после рендеринга
             initTooltips();
         }
         async function loadAndRenderActivities(planId, completedElement, todayScheduleElement) { try { const { data: activities, error } = await supabaseClient.from('plan_activities').select('*').eq('plan_id', planId); if (error) throw error; const totalActivities = activities?.length || 0; const completedCount = activities?.filter(a => a.completed).length || 0; if(completedElement) completedElement.textContent = `<span class="math-inline">\{completedCount\}/</span>{totalActivities}`; const today = new Date(); const dayOfWeek = today.getDay(); const todayActivities = activities?.filter(a => a.day_of_week === dayOfWeek) || []; renderDayActivities(todayActivities, todayScheduleElement, planId); } catch (error) { console.error("Chyba načítání aktivit plánu:", error); if(completedElement) completedElement.textContent = 'Chyba'; if(todayScheduleElement) todayScheduleElement.innerHTML = '<p>Chyba načítání dnešních aktivit.</p>'; } }
@@ -422,30 +422,9 @@
         async function handleActivityCompletionToggle(activityId, isCompleted, planId) { try { const { error: updateError } = await supabaseClient.from('plan_activities').update({ completed: isCompleted, updated_at: new Date().toISOString() }).eq('id', activityId); if (updateError) throw updateError; console.log(`Aktivita ${activityId} označena jako ${isCompleted ? 'dokončená' : 'nedokončená'}`); await updatePlanProgress(planId); } catch (error) { console.error(`Chyba aktualizace stavu aktivity ${activityId}:`, error); showToast('Nepodařilo se aktualizovat stav aktivity', 'error'); const checkbox = document.getElementById(`activity-${activityId}`); if (checkbox) checkbox.checked = !isCompleted; /* Revert checkbox on error */ const checkboxSchedule = document.getElementById(`schedule-activity-${activityId}`); if(checkboxSchedule) checkboxSchedule.checked = !isCompleted; } }
         async function updatePlanProgress(planId) { if (!planId) return; try { const { data: activities, error: activitiesError } = await supabaseClient.from('plan_activities').select('completed').eq('plan_id', planId); if (activitiesError) throw activitiesError; if (!activities || activities.length === 0) return; const completedCount = activities.filter(a => a.completed).length; const progress = Math.round((completedCount / activities.length) * 100); const { error: planUpdateError } = await supabaseClient.from('study_plans').update({ progress: progress, updated_at: new Date().toISOString() }).eq('id', planId); if (planUpdateError) throw planUpdateError; console.log(`Pokrok plánu ${planId} aktualizován na ${progress}%`); if (currentStudyPlan && currentStudyPlan.id === planId) { currentStudyPlan.progress = progress; } const progressValueElement = document.getElementById('progressValue'); const completedActivitiesElement = document.getElementById('completedActivities'); if (progressValueElement) progressValueElement.textContent = `${progress}%`; if (completedActivitiesElement) completedActivitiesElement.textContent = `<span class="math-inline">\{completedCount\}/</span>{activities.length}`; updateProgressCircle('progressCircle', progress); } catch (error) { console.error(`Chyba při aktualizaci pokroku plánu ${planId}:`, error); } }
 
-        // ZMĚNA: Функция для ручного обновления закомментирована
+        // Функция ручного обновления закомментирована
         /*
-        function updatePlanProgressManually(plan) {
-             const currentProgress = plan.progress || 0;
-             const newProgress = prompt(`Aktuální pokrok je ${currentProgress}%. Zadejte novou hodnotu (0-100):`, currentProgress);
-             if (newProgress !== null) {
-                 const progressNum = parseInt(newProgress, 10);
-                 if (!isNaN(progressNum) && progressNum >= 0 && progressNum <= 100) {
-                     (async () => {
-                         try {
-                             const { error } = await supabaseClient.from('study_plans').update({ progress: progressNum, updated_at: new Date().toISOString() }).eq('id', plan.id);
-                             if (error) throw error;
-                             await updatePlanProgress(plan.id); // Recalculate and update UI based on actual activities
-                             showToast('Pokrok byl manuálně aktualizován.', 'success');
-                         } catch (err) {
-                             console.error("Chyba manuální aktualizace pokroku:", err);
-                             showToast('Nepodařilo se aktualizovat pokrok.', 'error');
-                         }
-                     })();
-                 } else {
-                     alert('Zadejte prosím platné číslo mezi 0 a 100.');
-                 }
-             }
-        }
+        function updatePlanProgressManually(plan) { ... }
         */
 
          // Show Plan Details - Fetches FULL markdown content
@@ -467,7 +446,7 @@
 
         async function showFullSchedule(plan) { if (!plan) return; planSection.style.display = 'none'; scheduleSection.style.display = 'block'; dailySchedule.innerHTML = '<div class="loader-container"><div class="loader"></div></div>'; try { const { data: activities, error } = await supabaseClient.from('plan_activities').select('*').eq('plan_id', plan.id).order('day_of_week').order('time_slot'); if (error) throw error; renderWeeklySchedule(activities || [], plan.id); scheduleSection.scrollIntoView({ behavior: 'smooth' }); } catch (error) { console.error("Chyba načítání celého rozvrhu:", error); dailySchedule.innerHTML = '<p>Nepodařilo se načíst rozvrh.</p>'; } }
 
-        // ZMĚНА: Функция renderWeeklySchedule была исправлена
+        // Функция renderWeeklySchedule исправлена
         function renderWeeklySchedule(activities, planId) {
             const days = ['Neděle', 'Pondělí', 'Úterý', 'Středa', 'Čtvrtek', 'Pátek', 'Sobota'];
             dailySchedule.innerHTML = ''; // Очистка предыдущего содержимого
@@ -567,7 +546,7 @@
                   let planMarkdownForStorage = fullMarkdownResponse; // Default to full response
 
                   if (jsonMatch && jsonMatch[1]) {
-                      // ZMĚНА: Очистка JSON строки от неразрывных пробелов (U+00A0) и других потенциально проблемных символов в начале/конце строк JSON
+                      // Очистка JSON строки от неразрывных пробелов (U+00A0) и других потенциально проблемных символов в начале/конце строк JSON
                       const cleanedJsonString = jsonMatch[1]
                           .replace(/\u00A0/g, ' ') // Заменяем неразрывные пробелы на обычные
                           .trim(); // Удаляем пробелы в начале и конце всего блока
@@ -714,7 +693,7 @@
                      console.log(`Pokouším se vložit ${activitiesArray.length} aktivit...`);
                      const activitiesToInsert = activitiesArray.map(act => ({
                          plan_id: savedPlanId,
-                         // ZMĚNA: user_id удален, так как его нет в схеме
+                         // user_id удален, так как его нет в схеме
                          day_of_week: act.day_of_week,
                          time_slot: act.time_slot || null,
                          title: act.title,
@@ -730,7 +709,7 @@
                          .insert(activitiesToInsert);
 
                      if (insertActivitiesError) {
-                         // ZMĚНА: Логируем полную ошибку
+                         // Логируем полную ошибку
                          console.error("Chyba při vkládání aktivit:", insertActivitiesError);
                          showToast('Plán uložen, ale nepodařilo se uložit aktivity pro harmonogram.', 'warning');
                      } else {
@@ -746,7 +725,7 @@
 
              } catch (error) {
                  console.error("Chyba při ukládání plánu nebo aktivit:", error);
-                 // ZMĚНА: Улучшено сообщение об ошибке
+                 // Улучшено сообщение об ошибке
                  showToast(`Nepodařilo se uložit plán. Chyba: ${error.message || 'Neznámá chyba'}`, 'error');
                  if(saveButton) saveButton.disabled = false; saveButton.innerHTML = '<i class="fas fa-save"></i> Uložit tento plán';
                  // Attempt to reactivate previous plan if deactivation succeeded but insertion failed? (complex recovery)
@@ -781,7 +760,7 @@
         // ==============================================
         //          Spuštění Aplikace
         // ==============================================
-        // ZMĚНА: Используется $(document).ready() вместо DOMContentLoaded
+        // Используется $(document).ready() вместо DOMContentLoaded
         $(document).ready(function() {
             console.log("jQuery DOM ready, starting application initialization...");
             initializeApp();
