@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/css/tooltipster.bundle.min.css">
 
     <style>
-        /* --- CSS STYLES (Без изменений) --- */
+        /* --- CSS STYLES (Bez изменений) --- */
         /* Základní styly */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
         :root { --primary: #4361ee; --primary-light: #4895ef; --secondary: #3f37c9; --success: #06d6a0; --danger: #f72585; --warning: #f8961e; --info: #4895ef; --dark: #1e2a3a; --light: #f8f9fa; --gray: #6c757d; --gray-light: #dee2e6; --gray-dark: #343a40; --gradient-1: linear-gradient(135deg, #4361ee, #3a0ca3); --gradient-2: linear-gradient(135deg, #4cc9f0, #4361ee); --gradient-3: linear-gradient(135deg, #f72585, #7209b7); --gradient-4: linear-gradient(135deg, #f8961e, #f3722c); --white: #ffffff; --sidebar-width: 260px; --transition-speed: 0.3s; --card-radius: 16px; --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05); --shadow-md: 0 5px 15px rgba(0, 0, 0, 0.07); --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.1); --text-primary: #2d3748; --text-secondary: #4a5568; --text-muted: #718096; }
@@ -514,12 +514,12 @@
 
             // Проверка №1: Получен ли вообще массив активностей?
             if (!activities || activities.length === 0) {
-                 console.warn("renderWeeklySchedule получила пустой массив activities."); // <<< ВАШ ЛОГ ЗДЕСЬ
+                 console.warn("renderWeeklySchedule obdržela prázdné nebo žádné aktivity.");
                  dailySchedule.innerHTML = '<p><i>Žádné naplánované aktivity pro tento týden.</i></p>';
                  return;
             }
 
-            console.log(`Начинаю рендеринг гармонограмма. Получено активностей: ${activities.length}`, activities);
+            console.log(`Renderuji harmonogram. Přijato aktivit: ${activities.length}`, activities);
 
             let foundAnyActivityForAnyDay = false; // Флаг для проверки фильтрации
 
@@ -529,12 +529,11 @@
                 // Убедимся, что сравниваем числа
                 const dayActivities = activities.filter(a => {
                     const activityDay = Number(a.day_of_week);
-                    // Логируем значение дня недели из активности (можно раскомментировать для детальной отладки)
-                    // console.log(` - Activity ID ${a.id}, day_of_week: ${a.day_of_week} (type: ${typeof a.day_of_week}), Comparing with dayIndex: ${dayIndex}`);
                     return !isNaN(activityDay) && activityDay === dayIndex;
                 });
 
-                console.log(`День ${days[dayIndex]} (index ${dayIndex}), найденные активности после фильтрации:`, dayActivities);
+                 // Console log removed from here to avoid spamming
+                // console.log(`Den ${days[dayIndex]} (index ${dayIndex}), nalezené aktivity po filtraci:`, dayActivities);
 
                 const dayElement = document.createElement('div');
                 const isToday = new Date().getDay() === dayIndex;
@@ -553,7 +552,7 @@
                     dayActivities.forEach(activity => {
                         // Проверяем наличие ID у активности
                         if (!activity.id) {
-                            console.error("Ошибка: Активность не имеет ID!", activity);
+                            console.error("Chyba: Aktivita nemá ID!", activity);
                             return; // Пропускаем рендеринг этой активности
                         }
 
@@ -584,11 +583,12 @@
                 dailySchedule.appendChild(dayElement);
             }
 
-            // Проверка №4: Если массив активностей был НЕ пустой, но фильтрация НЕ сработала ни для одного дня
+            // Проверка №4: Pokud byly aktivity přijaty, ale žádná se nezobrazila
             if (!foundAnyActivityForAnyDay && activities.length > 0) {
-                console.error("Активности были получены, но фильтрация по day_of_week не нашла совпадений ни для одного дня. Проверьте значения day_of_week в базе данных (должны быть числа 0-6) и в коде.");
-                // Отображаем более конкретное сообщение об ошибке пользователю
-                dailySchedule.innerHTML = '<p><i>Chyba při zpracování harmonogramu: Neodpovídající formát dnů v týdnu v datech.</i></p>';
+                console.error("Chyba renderování harmonogramu: Aktivity byly přijaty, ale žádná se nezobrazila. Zkontrolujte hodnoty 'day_of_week' (0-6) a konzistenci dat.");
+                 dailySchedule.innerHTML = '<p><i>Chyba při zpracování harmonogramu. Zkontrolujte data aktivit.</i></p>';
+            } else if (foundAnyActivityForAnyDay) {
+                 console.log("Harmonogram úspěšně vyrenderován.");
             }
         }
         // --- КОНЕЦ ОБНОВЛЕННОЙ ФУНКЦИИ ---
@@ -665,7 +665,7 @@
 
                  planActions.innerHTML = ` <button class="btn btn-primary" id="saveGeneratedPlanBtn"> <i class="fas fa-save"></i> Uložit tento plán </button> <button class="btn btn-success" id="exportGeneratedPlanBtn"> <i class="fas fa-file-export"></i> Exportovat do PDF </button> <button class="btn btn-secondary" id="regeneratePlanBtn"> <i class="fas fa-sync-alt"></i> Vygenerovat znovu </button> `;
                  document.getElementById('saveGeneratedPlanBtn').addEventListener('click', () => saveGeneratedPlan(lastGeneratedMarkdown, lastGeneratedActivitiesJson, topicsData)); // Pass extracted activities
-                 document.getElementById('exportGeneratedPlanBtn').addEventListener('click', () => exportPlanToPDFWithStyle({ created_at: new Date(), plan_content_markdown: lastGeneratedMarkdown, title: "Nový návrh plánu" }));
+                 document.getElementById('exportGeneratedPlanBtn').addEventListener('click', () => exportPlanToPDFWithStyle({ created_at: new Date(), plan_content_markdown: lastGeneratedMarkdown, title: "Nový návrh plánu" })); // Use constant title here
                  document.getElementById('regeneratePlanBtn').addEventListener('click', () => { const btn = document.getElementById('generatePlanBtn'); if(btn){ btn.disabled = false; btn.innerHTML = '<i class="fas fa-magic"></i> Vygenerovat studijní plán'; } generateStudyPlan(); });
                  planActions.style.display = 'flex';
 
@@ -714,7 +714,7 @@
                  7.  **Logické úlohy:** Logické vztahy, jednoduché výroky, číselné řady, vzory, závislosti.
 
                  # TVŮJ ÚKOL (Vytvoř NÁROČNÝ, DETAILNÍ a KONZISTENTNÍ plán):
-                 1.  Vytvoř DETAILNÍ týdenní studijní plán (Pondělí - Neděle) ve formátu Markdown. Musí být strukturovaný, srozumitelný a zaměřený na VÝRAZNÉ zlepšení.
+                 1.  Vytvoř DETAILNÍ týdenní studijní plán (Pondělí - Neděle) ve formátu Markdown. Musí být strukturovaný, srozumitelný a zaměřený na VÝRAZNÉ zlepšení. Dbej na přirozené formátování textu, vyhni se slovům nalepeným na sebe bez mezer.
                  2.  Plán musí pokrývat klíčové oblasti z OFICIÁLNÍCH TÉMAT, klást ZVÝŠENÝ DŮRAZ na slabé stránky (${weaknesses}), ale ZAHRNOVAT i OPAKOVÁNÍ silnějších stránek.
                  3.  Navrhni RŮZNORODÉ a KONKRÉTNÍ aktivity:
                      * Řešení KONKRÉTNÍCH TYPŮ příkladů s uvedením POČTU.
@@ -726,8 +726,8 @@
                  4.  Buď co nejvíce SPECIFICKÝ v popisu úkolů v Markdown i JSON. Místo 'Procvičuj geometrii' uveď 'Výpočet obvodů a obsahů složených rovinných útvarů (3 úlohy)'.
                  5.  Rozděl denní studium (cca 75-100 minut) do 2-3 INTENZIVNÍCH bloků. Uveď odhadovaný čas.
                  6.  **DŮLEŽITÉ:** V poli 'description' v JSON bloku **NEUVÁDĚJ KONKRÉTNÍ ROVNICE NEBO ČÍSELNÉ ZADÁNÍ PŘÍKLADŮ**. Místo toho SLOVNĚ popiš TYP úloh, počet a zaměření (např. 'Řešení 5 lineárních rovnic se zlomky', 'Výpočet procentové části ze základu ve 4 slovních úlohách').
-                 7.  **KONZISTENCE:** Zajisti, aby aktivity v JSON (\`title\` a \`description\`) PŘESNĚ odpovídaly obsahu a zaměření bloků popsaných v Markdown pro KAŽDÝ den.
-                 8.  NA KONEC celého Markdown textu PŘIDEJ validní JSON blok (\`\`\`json ... \`\`\`) obsahující pole objektů pro VŠECHNY aktivity. Klíče: "day_of_week" (číslo 0-6), "title" (string, název bloku), "description" (string, SLOVNÍ popis TYPU úkolů), "time_slot" (string, čas).
+                 7.  **NAPROSTÁ KONZISTENCE JE KLÍČOVÁ:** JSON \`title\` a \`description\` musí být PŘÍMÝM a VĚRNÝM shrnutím aktivity popsané v odpovídajícím bloku v Markdown textu pro ten samý den a časový úsek. Žádné informace nesmí být v JSON přidány ani vynechány oproti Markdown popisu daného bloku.
+                 8.  NA KONEC celého Markdown textu PŘIDEJ validní JSON blok (\`\`\`json ... \`\`\`) obsahující pole objektů pro VŠECHNY aktivity. Klíče: "day_of_week" (číslo 0-6, Neděle=0), "title" (string, název bloku), "description" (string, SLOVNÍ popis TYPU úkolů, KONZISTENTNÍ s Markdown), "time_slot" (string, čas).
 
                  # Požadovaný formát výstupu (Markdown + JSON na konci):
                  ## Náročný týdenní studijní plán (Personalizovaný)
@@ -735,9 +735,9 @@
                  * Zaměření na: ${weaknesses}
                  * Udržování: ${strengths}
                  **Hlavní cíle pro tento týden:**
-                 * Výrazně zlepšit [Nejslabší téma].
-                 * Upevnit znalosti v [Druhé nejslabší téma].
-                 * Zopakovat a procvičit [Silnější téma].
+                 * [Použij odrážky] Výrazně zlepšit [Nejslabší téma].
+                 * [Použij odrážky] Upevnit znalosti v [Druhé nejslabší téma].
+                 * [Použij odrážky] Zopakovat a procvičit [Silnější téma].
                  ---
                  ### Pondělí
                  * **Fokus dne:** [Např. Složitější lineární rovnice a aplikace procent]
@@ -760,7 +760,7 @@
                    { "day_of_week": 1, "title": "Procenta: Slovní úlohy (základ, změna)", "description": "Řešení 5 slovních úloh na výpočet základu a procentové změny (zdražení/sleva).", "time_slot": "40 min" },
                    { "day_of_week": 2, "title": "Geometrie: Objem a povrch válce", "description": "Opakování vzorců. Výpočet objemu a povrchu válce ve 4 úlohách (včetně slovních).", "time_slot": "50 min" },
                    { "day_of_week": 2, "title": "Opakování: Rozklad mnohočlenů", "description": "Opakování vzorců (a±b)², a²-b². Rozklad 10 mnohočlenů na součin pomocí vytýkání a vzorců.", "time_slot": "30 min" }
-                   // ... (další aktivity pro všechny dny) ...
+                   // ... (další aktivity pro všechny dny, KONZISTENTNÍ S MARKDOWNEM) ...
                  ]
                  \`\`\`
                  `;
@@ -878,7 +878,7 @@
                             time_slot: act.time_slot || null,
                             title: act.title || 'Nespecifikováno', // Provide default if title missing
                             description: act.description || null,
-                            completed: false, // <--- ZDE BYLA PŘIDÁNA ČÁRKA
+                            completed: false, // <--- OPRAVENO ZDE
                         };
                         // Explicitly return the object
                         return activityObject;
@@ -959,7 +959,11 @@
              exportContainer.style.lineHeight = '1.6';
              // --- End Style ---
 
-             exportContainer.innerHTML = `<div style="text-align: center; margin-bottom: 30px;"><h1 style="color: #4361ee; font-size: 22pt; margin-bottom: 10px;">${sanitizeHTML(plan.title || 'Studijní plán')}</h1><p style="color: #6c757d; font-size: 11pt;">Vytvořeno: ${formatDate(plan.created_at)}</p></div>`;
+             // === PDF TITLE CHANGE ===
+             // Use only the base title or a generic one if title is missing
+             const pdfTitle = plan.title ? plan.title.replace(/\s*\(\d{2}\.\d{2}\.\d{4}\)$/, '').trim() : 'Studijní plán';
+             exportContainer.innerHTML = `<div style="text-align: center; margin-bottom: 30px;"><h1 style="color: #4361ee; font-size: 22pt; margin-bottom: 10px;">${sanitizeHTML(pdfTitle)}</h1><p style="color: #6c757d; font-size: 11pt;">Vytvořeno: ${formatDate(plan.created_at)}</p></div>`;
+             // === END PDF TITLE CHANGE ===
 
              if (currentUser && userName.textContent) {
                  exportContainer.innerHTML += `
@@ -980,21 +984,28 @@
              }
 
              // --- Apply styles AFTER parsing Markdown ---
-             contentElement.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach((heading, index) => {
+             let dayCounter = 0; // Counter for page breaks
+             const daysCzech = ['Pondělí', 'Úterý', 'Středa', 'Čtvrtek', 'Pátek', 'Sobota', 'Neděle']; // For identifying day headings
+
+             contentElement.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach((heading) => {
                  heading.style.color = '#3f37c9'; // Darker purple for headings
                  heading.style.marginTop = '25px';
                  heading.style.marginBottom = '10px';
                  heading.style.borderBottom = '1px solid #eee';
                  heading.style.paddingBottom = '5px';
-                 // --- Add Page Break Before Daily Headings (assuming H3) ---
-                 if (heading.tagName === 'H3' && index > 0) { // Check if it's H3 and not the first heading overall
-                      // Check if the text content indicates a day of the week (simple check)
-                     const daysCzech = ['Pondělí', 'Úterý', 'Středa', 'Čtvrtek', 'Pátek', 'Sobota', 'Neděle'];
-                     if (daysCzech.some(day => heading.textContent.includes(day))) {
+
+                 // === PDF PAGE BREAK LOGIC ===
+                 // Check if it's H3 and indicates a day of the week
+                 if (heading.tagName === 'H3' && daysCzech.some(day => heading.textContent.includes(day))) {
+                      // Apply page break *before* the 3rd, 5th, 7th day headings
+                      if (dayCounter > 0 && (dayCounter % 2) === 0) { // Break before day 2 (index 1), day 4 (index 3), day 6 (index 5)
                           heading.style.breakBefore = 'page'; // Standard CSS property for page breaks
                           heading.style.pageBreakBefore = 'always'; // Older property for compatibility
-                     }
+                          console.log(`Applying page break before: ${heading.textContent}`);
+                      }
+                      dayCounter++; // Increment counter for each day heading found
                  }
+                 // === END PDF PAGE BREAK LOGIC ===
              });
              contentElement.querySelectorAll('ul, ol').forEach(list => {
                  list.style.marginLeft = '20px';
@@ -1044,7 +1055,7 @@
                      format: 'a4',
                      orientation: 'portrait'
                  },
-                 pagebreak: { mode: ['css', 'avoid-all'] } // Use CSS for breaks, avoid breaking inside elements
+                 pagebreak: { mode: ['css', 'avoid-all'], before: 'h3.pdf-page-break' } // Use CSS for breaks, avoid breaking inside elements
              };
 
              // Check if html2pdf is loaded before calling
