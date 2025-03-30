@@ -414,7 +414,7 @@
             currentPlanContent.appendChild(planFragment);
             initProgressCircle('progressCircle', plan.progress || 0);
 
-            // ZMĚНА: Повторный вызов initTooltips после рендеринга
+            // ZMĚNA: Повторный вызов initTooltips после рендеринга
             initTooltips();
         }
         async function loadAndRenderActivities(planId, completedElement, todayScheduleElement) { try { const { data: activities, error } = await supabaseClient.from('plan_activities').select('*').eq('plan_id', planId); if (error) throw error; const totalActivities = activities?.length || 0; const completedCount = activities?.filter(a => a.completed).length || 0; if(completedElement) completedElement.textContent = `<span class="math-inline">\{completedCount\}/</span>{totalActivities}`; const today = new Date(); const dayOfWeek = today.getDay(); const todayActivities = activities?.filter(a => a.day_of_week === dayOfWeek) || []; renderDayActivities(todayActivities, todayScheduleElement, planId); } catch (error) { console.error("Chyba načítání aktivit plánu:", error); if(completedElement) completedElement.textContent = 'Chyba'; if(todayScheduleElement) todayScheduleElement.innerHTML = '<p>Chyba načítání dnešních aktivit.</p>'; } }
@@ -617,7 +617,7 @@
                  - Celkové skóre: ${totalScore}/50 bodů
                  - Počet otázek: ${totalQuestions}
                  - Výsledky podle témat (Název tématu: Plně správně/Celkem otázek (Úspěšnost %)):
-                 ${topicsData.map(topic => `  - ${topic.name}: ${topic.correct}/${topic.questions} (${topic.percentage}%)`).join('\n')}
+                 ${topicsData.map(topic => `  - ${topic.name}: ${topic.correct}/${topic.questions} (${topic.percentage}%)`).join('\n')}
                  # Analýza výsledků testu (Shrnutí od AI):
                  - Celkové hodnocení: ${overallAssessment}
                  - Identifikované silné stránky: ${strengths}
