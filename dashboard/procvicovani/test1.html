@@ -13,1376 +13,216 @@
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-
     <style>
-        /* --- CSS STYLES (unchanged from previous version) --- */
+        /* --- CSS STYLES (unchanged) --- */
         /* Základní styly */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Poppins', sans-serif;
-        }
-
-        :root {
-            --primary: #4361ee;
-            --primary-light: #4895ef;
-            --secondary: #3f37c9;
-            --success: #06d6a0; /* Jasnější zelená pro úspěch */
-            --danger: #f72585;
-            --warning: #f8961e;
-            --info: #4895ef; /* Added info color */
-            --dark: #1e2a3a;
-            --light: #f8f9fa;
-            --gray: #6c757d;
-            --gray-light: #dee2e6;
-            --gray-dark: #343a40;
-            --gradient-1: linear-gradient(135deg, #4361ee, #3a0ca3);
-            --gradient-2: linear-gradient(135deg, #4cc9f0, #4361ee);
-            --gradient-3: linear-gradient(135deg, #f72585, #7209b7);
-            --gradient-4: linear-gradient(135deg, #f8961e, #f3722c);
-            --white: #ffffff;
-            --sidebar-width: 260px;
-            --transition-speed: 0.3s;
-            --card-radius: 16px;
-            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
-            --shadow-md: 0 5px 15px rgba(0, 0, 0, 0.07);
-            --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.1);
-            --text-primary: #2d3748;
-            --text-secondary: #4a5568;
-            --text-muted: #718096;
-        }
-
-        body {
-            background-color: #f6f8ff;
-            color: var(--text-primary);
-            min-height: 100vh;
-            display: flex;
-            overflow-x: hidden;
-            margin: 0;
-            padding: 0;
-        }
-
-         /* Styly pro výběr typu testu */
-        #test-selector {
-            display: block; /* Start visible */
-        }
-        .test-types-container {
-            display: flex;
-            gap: 1.5rem;
-            flex-wrap: wrap;
-            margin-top: 1.5rem;
-            justify-content: center;
-        }
-        .test-type-card {
-            background-color: var(--white);
-            border-radius: var(--card-radius);
-            box-shadow: var(--shadow-sm);
-            padding: 1.5rem;
-            flex: 1;
-            min-width: 280px;
-            max-width: 320px;
-            transition: all 0.3s ease;
-            border: 2px solid transparent;
-            cursor: pointer;
-            display: flex;
-            flex-direction: column;
-        }
-        .test-type-card:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--shadow-md);
-            border-color: var(--primary-light);
-        }
-         .test-type-card.selected {
-            border-color: var(--primary);
-            background-color: rgba(67, 97, 238, 0.05);
-        }
-        .test-type-header {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            margin-bottom: 1rem;
-            position: relative;
-        }
-        .test-type-header i {
-            font-size: 2rem;
-            width: 40px;
-            height: 40px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            background: rgba(67, 97, 238, 0.1);
-            color: var(--primary);
-        }
-         .test-type-card:nth-child(2) .test-type-header i {
-             background: rgba(76, 201, 240, 0.1);
-             color: var(--primary-light);
-        }
-         .test-type-card:nth-child(3) .test-type-header i {
-             background: rgba(247, 37, 133, 0.1);
-             color: var(--danger);
-        }
-
-        .test-type-header h3 {
-            font-size: 1.4rem;
-            font-weight: 600;
-            margin: 0;
-        }
-        .recommended-badge {
-            position: absolute;
-            top: -25px;
-            right: -15px;
-            background: var(--gradient-2);
-            color: white;
-            font-size: 0.75rem;
-            padding: 0.25rem 0.7rem;
-            border-radius: 20px;
-            font-weight: 500;
-            transform: rotate(15deg);
-        }
-        .test-type-description {
-            color: var(--text-secondary);
-            margin-bottom: 1.5rem;
-            min-height: 60px;
-            flex-grow: 1;
-        }
-        .test-type-features {
-            margin-bottom: 1.5rem;
-            flex-grow: 1;
-        }
-        .feature {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            margin-bottom: 0.5rem;
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-        }
-        .feature i {
-            color: var(--success);
-            font-size: 0.9rem;
-        }
-        .select-test-btn {
-            width: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 0.5rem;
-            margin-top: auto;
-        }
-        @media (max-width: 992px) {
-            .test-types-container {
-                flex-direction: column;
-                align-items: center;
-            }
-            .test-type-card {
-                width: 100%;
-                max-width: 400px;
-            }
-        }
-        /* --- End Test Selection Styles --- */
-
-        /* Boční panel */
-        .sidebar {
-            width: var(--sidebar-width);
-            height: 100vh;
-            position: fixed;
-            top: 0;
-            left: 0;
-            background: var(--gradient-1);
-            color: var(--white);
-            padding: 1.5rem 1rem;
-            display: flex;
-            flex-direction: column;
-            z-index: 100;
-            box-shadow: var(--shadow-lg);
-            transition: transform var(--transition-speed) ease, width var(--transition-speed) ease;
-        }
-
-        .sidebar-header {
-            display: flex;
-            align-items: center;
-            margin-bottom: 2rem;
-            padding: 0 0.75rem;
-        }
-
-        .sidebar-logo {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--white);
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-
-        .sidebar-logo i {
-            font-size: 1.75rem;
-        }
-
-        .sidebar-menu {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-            flex-grow: 1;
-        }
-
-        .sidebar-item {
-            margin-bottom: 0.5rem;
-        }
-
-        .sidebar-link {
-            display: flex;
-            align-items: center;
-            padding: 0.75rem 1rem;
-            color: rgba(255, 255, 255, 0.85);
-            text-decoration: none;
-            border-radius: 12px;
-            transition: all 0.2s ease;
-            font-weight: 500;
-        }
-
-        .sidebar-link i {
-            margin-right: 0.75rem;
-            font-size: 1.2rem;
-            width: 24px;
-            text-align: center;
-        }
-
-        .sidebar-link.active, .sidebar-link:hover {
-            background-color: rgba(255, 255, 255, 0.15);
-            color: var(--white);
-        }
-
-        .sidebar-footer {
-            margin-top: auto;
-            padding: 1rem;
-            font-size: 0.9rem;
-            color: rgba(255, 255, 255, 0.7);
-            text-align: center;
-        }
-
-        .user-profile {
-            display: flex;
-            align-items: center;
-            padding: 1rem;
-            margin-top: 1rem;
-            background-color: rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            backdrop-filter: blur(5px);
-        }
-
-        .user-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background-color: var(--primary-light);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 0.75rem;
-            font-weight: 500;
-            overflow: hidden;
-            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
-        }
-
-        .user-avatar img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .user-info {
-            flex-grow: 1;
-        }
-
-        .user-name {
-            font-weight: 600;
-            font-size: 0.95rem;
-        }
-
-        .user-role {
-            font-size: 0.8rem;
-            opacity: 0.8;
-        }
-
-        /* Hlavní obsah */
-        main {
-            flex: 1;
-            margin-left: var(--sidebar-width);
-            padding: 1.5rem 2rem;
-            transition: margin var(--transition-speed) ease;
-            width: calc(100% - var(--sidebar-width));
-        }
-
-        .dashboard-header {
-            margin-bottom: 2rem;
-            background-color: var(--white);
-            border-radius: var(--card-radius);
-            padding: 1.25rem 1.5rem;
-            box-shadow: var(--shadow-sm);
-            position: relative;
-        }
-
-        .header-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-
-        .header-content h1 {
-            font-size: 1.75rem;
-            font-weight: 600;
-            color: var(--dark);
-            margin-bottom: 0.5rem;
-        }
-
-        .header-meta {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            margin-top: 0.5rem;
-            flex-wrap: wrap;
-        }
-
-        .header-meta-item {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 0.9rem;
-            color: var(--text-secondary);
-        }
-
-        /* Hlavní obsah */
-        .main-content {
-            display: flex;
-            flex-direction: column;
-            gap: 1.75rem;
-        }
-
-        .section {
-            background-color: var(--white);
-            border-radius: var(--card-radius);
-            box-shadow: var(--shadow-sm);
-            padding: 1.5rem;
-            animation: fadeIn 0.5s ease forwards;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .section:hover {
-            box-shadow: var(--shadow-md);
-        }
-
-        .section-title {
-            font-size: 1.3rem;
-            font-weight: 600;
-            margin-bottom: 1.25rem;
-            color: var(--dark);
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-
-        .section-subtitle {
-            font-size: 1.1rem;
-            font-weight: 500;
-            margin-bottom: 1rem;
-            color: var(--dark);
-        }
-
-        /* Test container */
-        .test-container {
-            display: flex;
-            flex-direction: column;
-            gap: 2rem;
-        }
-
-        .test-info {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid var(--gray-light);
-            gap: 1rem;
-        }
-
-        .test-title {
-            font-size: 1.25rem;
-            font-weight: 600;
-            color: var(--primary);
-        }
-
-        .test-meta {
-            display: flex;
-            gap: 1.5rem;
-            flex-wrap: wrap;
-        }
-
-        .meta-item {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 0.9rem;
-            color: var(--text-secondary);
-        }
-
-        .test-progress-container {
-            position: relative;
-            width: 100%;
-            height: 8px;
-            background-color: var(--gray-light);
-            border-radius: 4px;
-            margin: 1rem 0;
-            overflow: hidden;
-        }
-
-        .test-progress-bar {
-            position: absolute;
-            top: 0;
-            left: 0;
-            height: 100%;
-            background: var(--gradient-2);
-            border-radius: 4px;
-            transition: width 0.3s ease;
-        }
-
-        /* Question container */
-        .question-container {
-            padding: 1.5rem;
-            border-radius: var(--card-radius);
-            border: 1px solid var(--gray-light);
-            margin-bottom: 1.5rem;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            background-color: #fff;
-        }
-        .question-header {
-            display: flex;
-            align-items: flex-start;
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .question-number {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            width: 36px;
-            height: 36px;
-            line-height: 36px;
-            text-align: center;
-            background: var(--gradient-1);
-            color: white;
-            font-weight: 600;
-            border-radius: 50%;
-        }
-
-        .question-text {
-            font-size: 1.15rem;
-            font-weight: 500;
-            line-height: 1.6;
-            flex-grow: 1;
-        }
-
-        .question-text p {
-            margin-bottom: 0.75rem;
-        }
-
-         .question-image-container {
-            margin: 1rem 0;
-            text-align: center;
-         }
-
-        .question-image {
-            max-width: 100%;
-            height: auto;
-            border-radius: 8px;
-            box-shadow: var(--shadow-sm);
-            /* Lazy loading added via JS */
-        }
-
-        /* Answer options */
-        .answer-options {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-            margin-top: 1.5rem;
-        }
-
-        .answer-option {
-            display: flex;
-            align-items: flex-start; /* Zarovnání radio buttonu s textem */
-            padding: 1rem;
-            border-radius: 8px;
-            border: 1px solid var(--gray-light);
-            cursor: pointer;
-            transition: all 0.2s ease;
-            position: relative;
-            overflow: hidden;
-            background-color: #fff;
-        }
-
-        .answer-option:hover {
-            background-color: rgba(67, 97, 238, 0.05);
-            border-color: var(--primary-light);
-            transform: translateY(-2px);
-        }
-
-        .answer-option.selected {
-            background-color: rgba(67, 97, 238, 0.1);
-            border-color: var(--primary);
-            box-shadow: 0 4px 10px rgba(67, 97, 238, 0.15);
-        }
-
-        .answer-option::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 0;
-            height: 100%;
-            width: 4px;
-            background: transparent;
-            transition: background 0.3s ease;
-        }
-
-        .answer-option.selected::before {
-            background: var(--primary);
-        }
-
-        .answer-option input[type="radio"] {
-            margin-right: 1rem;
-             margin-top: 0.15em; /* Jemné doladění vertikální pozice */
-            flex-shrink: 0;
-            transform: scale(1.2);
-            cursor: pointer;
-        }
-
-        .answer-text {
-            flex: 1;
-             line-height: 1.5;
-        }
-         /* Specific style for answer letters */
-         .answer-letter {
-             font-weight: 600;
-             margin-right: 0.5em;
-             color: var(--primary);
-         }
-
-        /* Text/Numeric Input Styles */
-        .answer-input-container {
-            margin-top: 1.5rem;
-        }
-        .answer-input-container label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 500;
-            color: var(--text-secondary);
-        }
-        .answer-input {
-            width: 100%;
-            padding: 0.75rem 1rem;
-            border-radius: 8px;
-            border: 1px solid var(--gray-light);
-            font-size: 1rem;
-            transition: border-color 0.2s ease, box-shadow 0.2s ease;
-        }
-        .answer-input:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
-        }
-
-        /* Construction Question Styles */
-        .construction-container {
-            margin-top: 1.5rem;
-        }
-        .solution-explanation {
-            background-color: #f9f9ff;
-            padding: 1rem 1.5rem;
-            border-radius: 8px;
-            border: 1px solid var(--gray-light);
-            margin-bottom: 1.5rem;
-            color: var(--text-secondary);
-        }
-        .solution-explanation h4 {
-             margin-top: 0;
-             margin-bottom: 0.75rem;
-             font-weight: 600;
-             color: var(--dark);
-        }
-        .construction-textarea {
-            width: 100%;
-            min-height: 100px;
-            padding: 0.75rem 1rem;
-            border-radius: 8px;
-            border: 1px solid var(--gray-light);
-            font-size: 1rem;
-            resize: vertical;
-            transition: border-color 0.2s ease, box-shadow 0.2s ease;
-        }
-         .construction-textarea:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
-         }
-
-        /* Question navigation */
-        .question-navigation {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 2rem;
-            gap: 1rem;
-        }
-
-        /* Question pagination */
-        .pagination {
-            display: flex;
-            justify-content: center;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-            margin: 1.5rem 0;
-            padding: 0.5rem;
-            background-color: #fff;
-            border-radius: 12px;
-            box-shadow: var(--shadow-sm);
-        }
-
-        .page-item {
-            width: 36px;
-            height: 36px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            background-color: var(--light);
-            color: var(--text-secondary);
-            cursor: pointer;
-            transition: all 0.2s ease;
-            font-weight: 500;
-            border: 1px solid var(--gray-light);
-        }
-
-        .page-item:hover {
-            background-color: var(--gray-light);
-            color: var(--dark);
-            transform: scale(1.1);
-        }
-
-        .page-item.active {
-            background: var(--gradient-1);
-            color: white;
-            box-shadow: 0 4px 8px rgba(67, 97, 238, 0.2);
-            border-color: transparent;
-        }
-
-        .page-item.answered {
-            background-color: rgba(6, 214, 160, 0.7); /* success color with opacity */
-            color: white;
-            border-color: transparent;
-        }
-         .page-item.answered.active {
-            background: var(--gradient-1);
-            box-shadow: 0 0 0 2px var(--success);
-        }
-
-        /* Styly tlačítek */
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0.75rem 1.5rem;
-            border-radius: 12px;
-            font-weight: 500;
-            font-size: 0.95rem;
-            text-decoration: none;
-            transition: all 0.3s ease;
-            cursor: pointer;
-            border: none;
-            gap: 0.5rem;
-            position: relative;
-            overflow: hidden;
-            z-index: 1;
-            line-height: 1.5;
-        }
-
-        .btn::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 0;
-            background-color: rgba(255, 255, 255, 0.1);
-            transition: height 0.3s ease;
-            z-index: -1;
-        }
-
-        .btn:hover::after {
-            height: 100%;
-        }
-
-        .btn-primary {
-            background: var(--gradient-1);
-            color: white;
-            box-shadow: 0 4px 10px rgba(67, 97, 238, 0.2);
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 15px rgba(67, 97, 238, 0.25);
-        }
-
-        .btn-secondary {
-            background-color: var(--light);
-            color: var(--text-secondary);
-            border: 1px solid var(--gray-light);
-        }
-
-        .btn-secondary:hover {
-            background-color: var(--gray-light);
-            color: var(--dark);
-        }
-
-        .btn-success {
-            background: linear-gradient(135deg, var(--success), #04a77e); /* Adjusted success gradient */
-            color: white;
-            box-shadow: 0 4px 10px rgba(6, 214, 160, 0.2);
-        }
-
-        .btn-success:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 15px rgba(6, 214, 160, 0.25);
-        }
-
-        .btn-info { /* Added info button style */
-            background: linear-gradient(135deg, var(--info), #3b7cde);
-            color: white;
-            box-shadow: 0 4px 10px rgba(72, 149, 239, 0.2);
-        }
-        .btn-info:hover {
-             transform: translateY(-2px);
-             box-shadow: 0 6px 15px rgba(72, 149, 239, 0.25);
-        }
-
-
-        .btn-lg {
-            padding: 0.75rem 2rem;
-            font-size: 1rem;
-        }
-
-        .btn-sm {
-            padding: 0.5rem 1rem;
-            font-size: 0.875rem;
-        }
-
-        .btn-block {
-            width: 100%;
-            justify-content: center;
-        }
-
-        .btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none !important;
-            box-shadow: none !important;
-        }
-         .btn:disabled::after {
-            height: 0;
-         }
-
-        /* Timer */
-        .test-timer {
-            position: absolute;
-            top: 1.25rem;
-            right: 1.5rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 1rem;
-            font-weight: 600;
-            color: var(--primary);
-            background-color: rgba(67, 97, 238, 0.1);
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
-            box-shadow: 0 2px 6px rgba(67, 97, 238, 0.1);
-            backdrop-filter: blur(10px);
-        }
-
-        .timer-warning {
-            color: var(--warning) !important;
-            background-color: rgba(248, 150, 30, 0.1) !important;
-        }
-
-        .timer-danger {
-            color: var(--danger) !important;
-            background-color: rgba(247, 37, 133, 0.1) !important;
-            animation: pulse 1s ease-in-out infinite;
-        }
-
-        /* Test loader */
-        .test-loader {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 3rem 1rem;
-            text-align: center;
-        }
-
-        .loader-spinner {
-            width: 50px;
-            height: 50px;
-            border: 4px solid rgba(67, 97, 238, 0.1);
-            border-radius: 50%;
-            border-top-color: var(--primary);
-            animation: spin 1s linear infinite;
-            margin-bottom: 1.5rem;
-        }
-
-        .loader-text {
-            font-size: 1.1rem;
-            color: var(--text-secondary);
-            margin-bottom: 0.5rem;
-        }
-
-        .loader-subtext {
-            font-size: 0.9rem;
-            color: var(--text-muted);
-        }
-
-        /* Results section */
-        .results-container {
-            margin-top: 1.5rem;
-        }
-
-        .result-summary {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-around;
-            align-items: center;
-            background-color: #f9f9ff;
-            border-radius: var(--card-radius);
-            padding: 1.5rem 2rem;
-            margin-bottom: 2rem;
-            border-left: 4px solid var(--primary);
-            position: relative;
-            overflow: hidden;
-            gap: 1.5rem;
-        }
-
-        .result-summary::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(circle at top right, rgba(67, 97, 238, 0.05), transparent 70%);
-            z-index: 0;
-        }
-
-        .result-score {
-            text-align: center;
-            position: relative;
-            z-index: 1;
-            flex-basis: 150px;
-        }
-
-        .score-value {
-            font-size: 3.5rem;
-            font-weight: 700;
-            background: var(--gradient-1);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            line-height: 1;
-        }
-
-        .score-label {
-            font-size: 0.9rem;
-            color: var(--text-secondary);
-            margin-top: 0.5rem;
-        }
-
-        .result-stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-            gap: 1.5rem;
-            position: relative;
-            z-index: 1;
-            flex-grow: 1;
-            max-width: 600px;
-        }
-
-        .stat-item {
-            text-align: center;
-            padding: 1rem;
-            border-radius: 12px;
-            background-color: rgba(255, 255, 255, 0.5);
-            backdrop-filter: blur(5px);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            border: 1px solid var(--gray-light);
-        }
-
-        .stat-item:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--shadow-md);
-        }
-
-        .stat-value {
-            font-size: 1.75rem;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-            color: var(--primary);
-        }
-
-        .stat-label {
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-        }
-
-        /* Zpráva o nízkém skóre */
-        .low-score-message {
-            background-color: rgba(248, 150, 30, 0.1); /* warning background */
-            border-left: 4px solid var(--warning);
-            padding: 1.5rem;
-            margin-top: 1.5rem;
-            margin-bottom: 1rem; /* Přidán margin dole */
-            border-radius: var(--card-radius);
-            text-align: center;
-            color: var(--text-secondary);
-        }
-        .low-score-message i {
-             font-size: 1.5rem;
-             color: var(--warning);
-             margin-bottom: 0.75rem;
-             display: block;
-        }
-         .low-score-message strong {
-             color: var(--warning);
-         }
-         .low-score-message.info { /* Style for score >= threshold */
-            background-color: rgba(67, 97, 238, 0.1);
-            border-left-color: var(--primary-light);
-         }
-         .low-score-message.info i {
-            color: var(--primary-light);
-         }
-         .low-score-message.info strong {
-             color: var(--primary-light);
-         }
-
-
-        .result-actions {
-            display: flex;
-            justify-content: center;
-            flex-wrap: wrap;
-            gap: 1.5rem;
-            margin-top: 2.5rem;
-        }
-
-        /* Topic results */
-        .topic-results {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 1.5rem;
-            margin-top: 1.5rem;
-        }
-
-        .topic-card {
-            background-color: var(--white);
-            border-radius: var(--card-radius);
-            padding: 1.5rem;
-            box-shadow: var(--shadow-sm);
-            transition: all 0.3s ease;
-            border-left: 4px solid var(--primary);
-            position: relative;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .topic-card:hover {
-            transform: translateY(-8px);
-            box-shadow: var(--shadow-md);
-        }
-
-        .topic-card.strength {
-            border-left-color: var(--success);
-        }
-
-        .topic-card.weakness {
-            border-left-color: var(--danger);
-        }
-
-        .topic-card.neutral {
-            border-left-color: var(--warning);
-        }
-
-        .topic-header {
-            display: flex;
-            align-items: center;
-            margin-bottom: 1.25rem;
-            gap: 0.75rem;
-        }
-
-        .topic-icon {
-            width: 48px;
-            height: 48px;
-            flex-shrink: 0;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--white);
-            background: var(--gradient-1);
-            font-size: 1.4rem;
-            box-shadow: 0 4px 10px rgba(67, 97, 238, 0.15);
-        }
-
-        .topic-card.strength .topic-icon {
-            background: linear-gradient(135deg, var(--success), #04a77e);
-            box-shadow: 0 4px 10px rgba(6, 214, 160, 0.15);
-        }
-
-        .topic-card.weakness .topic-icon {
-            background: linear-gradient(135deg, #f72585, #b5179e);
-            box-shadow: 0 4px 10px rgba(247, 37, 133, 0.15);
-        }
-
-        .topic-card.neutral .topic-icon {
-            background: linear-gradient(135deg, #f8961e, #f3722c);
-            box-shadow: 0 4px 10px rgba(248, 150, 30, 0.15);
-        }
-
-        .topic-title {
-            font-weight: 600;
-            font-size: 1.2rem;
-            color: var(--dark);
-            flex-grow: 1;
-        }
-
-        .topic-stats {
-            margin-top: auto;
-            padding-top: 1rem;
-        }
-
-        .topic-progress {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 0.75rem;
-            font-size: 0.9rem;
-        }
-
-        .topic-progress-label {
-            color: var(--text-secondary);
-        }
-
-        .topic-progress-value {
-            font-weight: 600;
-            color: var(--primary);
-        }
-
-        .topic-card.strength .topic-progress-value {
-            color: var(--success);
-        }
-
-        .topic-card.weakness .topic-progress-value {
-            color: var(--danger);
-        }
-
-        .topic-card.neutral .topic-progress-value {
-            color: var(--warning);
-        }
-
-        .topic-progress-bar {
-            width: 100%;
-            height: 8px;
-            background-color: var(--gray-light);
-            border-radius: 4px;
-            overflow: hidden;
-            position: relative;
-        }
-
-        .topic-progress-fill {
-            height: 100%;
-            background: var(--gradient-1);
-            border-radius: 4px;
-            position: relative;
-            overflow: hidden;
-            transition: width 0.5s ease-out;
-        }
-
-        .topic-progress-fill::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 50%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-            animation: progressShine 2s infinite;
-        }
-
-        .topic-card.strength .topic-progress-fill {
-            background: linear-gradient(135deg, var(--success), #04a77e);
-        }
-
-        .topic-card.weakness .topic-progress-fill {
-            background: linear-gradient(135deg, #f72585, #b5179e);
-        }
-
-        .topic-card.neutral .topic-progress-fill {
-            background: linear-gradient(135deg, #f8961e, #f3722c);
-        }
-
-         /* Error Message Style */
-         .error-message-container {
-             background-color: rgba(247, 37, 133, 0.1);
-             border-left: 4px solid var(--danger);
-             padding: 1.5rem;
-             margin: 1rem 0;
-             border-radius: var(--card-radius);
-             text-align: center;
-         }
-         .error-message-container i {
-             font-size: 2rem;
-             color: var(--danger);
-             margin-bottom: 1rem;
-             display: block;
-         }
-         .error-message-container .loader-text {
-             color: var(--danger);
-             font-weight: 600;
-         }
-         .error-message-container .loader-subtext {
-             color: var(--text-secondary);
-         }
-
-        /* Gemini Loading Indicator */
-        .gemini-checking-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.6);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 1005; /* Nad ostatní obsah */
-            color: white;
-            text-align: center;
-            backdrop-filter: blur(5px); /* Rozmazání pozadí */
-        }
-        .gemini-spinner {
-            width: 60px;
-            height: 60px;
-            border: 5px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            border-top-color: var(--white);
-            animation: spin 1.2s linear infinite;
-            margin-bottom: 1.5rem;
-        }
-        .gemini-checking-text {
-            font-size: 1.2rem;
-            font-weight: 500;
-        }
-
-        /* --- Review Answers Styles --- */
-        .review-container {
-            margin-top: 1.5rem;
-        }
-        .review-navigation {
-            margin-bottom: 1.5rem;
-            display: flex;
-            justify-content: flex-start;
-        }
-        .review-question-item {
-            background-color: var(--white);
-            border-radius: var(--card-radius);
-            box-shadow: var(--shadow-sm);
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-            border-left: 4px solid var(--primary);
-        }
-        .review-question-item.correct {
-            border-left-color: var(--success);
-            background-color: rgba(6, 214, 160, 0.03);
-        }
-        .review-question-item.incorrect {
-            border-left-color: var(--danger);
-            background-color: rgba(247, 37, 133, 0.03);
-        }
-        .review-question-item.partial {
-            border-left-color: var(--warning);
-            background-color: rgba(248, 150, 30, 0.03);
-        }
-         .review-question-item.skipped {
-             border-left-color: var(--gray);
-             background-color: rgba(108, 117, 125, 0.03);
-         }
-        .review-question-header {
-            display: flex;
-            align-items: flex-start;
-            gap: 1rem;
-            margin-bottom: 1rem;
-        }
-        .review-question-number {
-             display: inline-flex;
-             align-items: center;
-             justify-content: center;
-             flex-shrink: 0;
-             width: 36px;
-             height: 36px;
-             line-height: 36px;
-             text-align: center;
-             background: var(--gray-dark);
-             color: white;
-             font-weight: 600;
-             border-radius: 50%;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        :root { --primary: #4361ee; --primary-light: #4895ef; --secondary: #3f37c9; --success: #06d6a0; --danger: #f72585; --warning: #f8961e; --info: #4895ef; --dark: #1e2a3a; --light: #f8f9fa; --gray: #6c757d; --gray-light: #dee2e6; --gray-dark: #343a40; --gradient-1: linear-gradient(135deg, #4361ee, #3a0ca3); --gradient-2: linear-gradient(135deg, #4cc9f0, #4361ee); --gradient-3: linear-gradient(135deg, #f72585, #7209b7); --gradient-4: linear-gradient(135deg, #f8961e, #f3722c); --white: #ffffff; --sidebar-width: 260px; --transition-speed: 0.3s; --card-radius: 16px; --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05); --shadow-md: 0 5px 15px rgba(0, 0, 0, 0.07); --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.1); --text-primary: #2d3748; --text-secondary: #4a5568; --text-muted: #718096; }
+        body { background-color: #f6f8ff; color: var(--text-primary); min-height: 100vh; display: flex; overflow-x: hidden; margin: 0; padding: 0; }
+        #test-selector { display: block; }
+        .test-types-container { display: flex; gap: 1.5rem; flex-wrap: wrap; margin-top: 1.5rem; justify-content: center; }
+        .test-type-card { background-color: var(--white); border-radius: var(--card-radius); box-shadow: var(--shadow-sm); padding: 1.5rem; flex: 1; min-width: 280px; max-width: 320px; transition: all 0.3s ease; border: 2px solid transparent; cursor: pointer; display: flex; flex-direction: column; }
+        .test-type-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-md); border-color: var(--primary-light); }
+        .test-type-card.selected { border-color: var(--primary); background-color: rgba(67, 97, 238, 0.05); }
+        .test-type-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; position: relative; }
+        .test-type-header i { font-size: 2rem; width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; background: rgba(67, 97, 238, 0.1); color: var(--primary); }
+        .test-type-card:nth-child(2) .test-type-header i { background: rgba(76, 201, 240, 0.1); color: var(--primary-light); }
+        .test-type-card:nth-child(3) .test-type-header i { background: rgba(247, 37, 133, 0.1); color: var(--danger); }
+        .test-type-header h3 { font-size: 1.4rem; font-weight: 600; margin: 0; }
+        .recommended-badge { position: absolute; top: -25px; right: -15px; background: var(--gradient-2); color: white; font-size: 0.75rem; padding: 0.25rem 0.7rem; border-radius: 20px; font-weight: 500; transform: rotate(15deg); }
+        .test-type-description { color: var(--text-secondary); margin-bottom: 1.5rem; min-height: 60px; flex-grow: 1; }
+        .test-type-features { margin-bottom: 1.5rem; flex-grow: 1; }
+        .feature { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; color: var(--text-secondary); font-size: 0.9rem; }
+        .feature i { color: var(--success); font-size: 0.9rem; }
+        .select-test-btn { width: 100%; display: flex; justify-content: center; align-items: center; gap: 0.5rem; margin-top: auto; }
+        @media (max-width: 992px) { .test-types-container { flex-direction: column; align-items: center; } .test-type-card { width: 100%; max-width: 400px; } }
+        .sidebar { width: var(--sidebar-width); height: 100vh; position: fixed; top: 0; left: 0; background: var(--gradient-1); color: var(--white); padding: 1.5rem 1rem; display: flex; flex-direction: column; z-index: 100; box-shadow: var(--shadow-lg); transition: transform var(--transition-speed) ease, width var(--transition-speed) ease; }
+        .sidebar-header { display: flex; align-items: center; margin-bottom: 2rem; padding: 0 0.75rem; }
+        .sidebar-logo { font-size: 1.5rem; font-weight: 700; color: var(--white); text-decoration: none; display: flex; align-items: center; gap: 0.75rem; }
+        .sidebar-logo i { font-size: 1.75rem; }
+        .sidebar-menu { list-style: none; padding: 0; margin: 0; flex-grow: 1; }
+        .sidebar-item { margin-bottom: 0.5rem; }
+        .sidebar-link { display: flex; align-items: center; padding: 0.75rem 1rem; color: rgba(255, 255, 255, 0.85); text-decoration: none; border-radius: 12px; transition: all 0.2s ease; font-weight: 500; }
+        .sidebar-link i { margin-right: 0.75rem; font-size: 1.2rem; width: 24px; text-align: center; }
+        .sidebar-link.active, .sidebar-link:hover { background-color: rgba(255, 255, 255, 0.15); color: var(--white); }
+        .sidebar-footer { margin-top: auto; padding: 1rem; font-size: 0.9rem; color: rgba(255, 255, 255, 0.7); text-align: center; }
+        .user-profile { display: flex; align-items: center; padding: 1rem; margin-top: 1rem; background-color: rgba(255, 255, 255, 0.1); border-radius: 12px; backdrop-filter: blur(5px); }
+        .user-avatar { width: 40px; height: 40px; border-radius: 50%; background-color: var(--primary-light); display: flex; align-items: center; justify-content: center; margin-right: 0.75rem; font-weight: 500; overflow: hidden; box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15); }
+        .user-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .user-info { flex-grow: 1; }
+        .user-name { font-weight: 600; font-size: 0.95rem; }
+        .user-role { font-size: 0.8rem; opacity: 0.8; }
+        main { flex: 1; margin-left: var(--sidebar-width); padding: 1.5rem 2rem; transition: margin var(--transition-speed) ease; width: calc(100% - var(--sidebar-width)); }
+        .dashboard-header { margin-bottom: 2rem; background-color: var(--white); border-radius: var(--card-radius); padding: 1.25rem 1.5rem; box-shadow: var(--shadow-sm); position: relative; }
+        .header-content { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+        .header-content h1 { font-size: 1.75rem; font-weight: 600; color: var(--dark); margin-bottom: 0.5rem; }
+        .header-meta { display: flex; align-items: center; gap: 1rem; margin-top: 0.5rem; flex-wrap: wrap; }
+        .header-meta-item { display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; color: var(--text-secondary); }
+        .main-content { display: flex; flex-direction: column; gap: 1.75rem; }
+        .section { background-color: var(--white); border-radius: var(--card-radius); box-shadow: var(--shadow-sm); padding: 1.5rem; animation: fadeIn 0.5s ease forwards; transition: transform 0.3s ease, box-shadow 0.3s ease; }
+        .section:hover { box-shadow: var(--shadow-md); }
+        .section-title { font-size: 1.3rem; font-weight: 600; margin-bottom: 1.25rem; color: var(--dark); display: flex; align-items: center; gap: 0.75rem; }
+        .section-subtitle { font-size: 1.1rem; font-weight: 500; margin-bottom: 1rem; color: var(--dark); }
+        .test-container { display: flex; flex-direction: column; gap: 2rem; }
+        .test-info { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; padding-bottom: 1rem; border-bottom: 1px solid var(--gray-light); gap: 1rem; }
+        .test-title { font-size: 1.25rem; font-weight: 600; color: var(--primary); }
+        .test-meta { display: flex; gap: 1.5rem; flex-wrap: wrap; }
+        .meta-item { display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; color: var(--text-secondary); }
+        .test-progress-container { position: relative; width: 100%; height: 8px; background-color: var(--gray-light); border-radius: 4px; margin: 1rem 0; overflow: hidden; }
+        .test-progress-bar { position: absolute; top: 0; left: 0; height: 100%; background: var(--gradient-2); border-radius: 4px; transition: width 0.3s ease; }
+        .question-container { padding: 1.5rem; border-radius: var(--card-radius); border: 1px solid var(--gray-light); margin-bottom: 1.5rem; transition: transform 0.3s ease, box-shadow 0.3s ease; background-color: #fff; }
+        .question-header { display: flex; align-items: flex-start; gap: 1rem; margin-bottom: 1.5rem; }
+        .question-number { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; width: 36px; height: 36px; line-height: 36px; text-align: center; background: var(--gradient-1); color: white; font-weight: 600; border-radius: 50%; }
+        .question-text { font-size: 1.15rem; font-weight: 500; line-height: 1.6; flex-grow: 1; }
+        .question-text p { margin-bottom: 0.75rem; }
+        .question-image-container { margin: 1rem 0; text-align: center; }
+        .question-image { max-width: 100%; height: auto; border-radius: 8px; box-shadow: var(--shadow-sm); }
+        .answer-options { display: flex; flex-direction: column; gap: 1rem; margin-top: 1.5rem; }
+        .answer-option { display: flex; align-items: flex-start; padding: 1rem; border-radius: 8px; border: 1px solid var(--gray-light); cursor: pointer; transition: all 0.2s ease; position: relative; overflow: hidden; background-color: #fff; }
+        .answer-option:hover { background-color: rgba(67, 97, 238, 0.05); border-color: var(--primary-light); transform: translateY(-2px); }
+        .answer-option.selected { background-color: rgba(67, 97, 238, 0.1); border-color: var(--primary); box-shadow: 0 4px 10px rgba(67, 97, 238, 0.15); }
+        .answer-option::before { content: ''; position: absolute; left: 0; top: 0; height: 100%; width: 4px; background: transparent; transition: background 0.3s ease; }
+        .answer-option.selected::before { background: var(--primary); }
+        .answer-option input[type="radio"] { margin-right: 1rem; margin-top: 0.15em; flex-shrink: 0; transform: scale(1.2); cursor: pointer; }
+        .answer-text { flex: 1; line-height: 1.5; }
+        .answer-letter { font-weight: 600; margin-right: 0.5em; color: var(--primary); }
+        .answer-input-container { margin-top: 1.5rem; }
+        .answer-input-container label { display: block; margin-bottom: 0.5rem; font-weight: 500; color: var(--text-secondary); }
+        .answer-input { width: 100%; padding: 0.75rem 1rem; border-radius: 8px; border: 1px solid var(--gray-light); font-size: 1rem; transition: border-color 0.2s ease, box-shadow 0.2s ease; }
+        .answer-input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15); }
+        .construction-container { margin-top: 1.5rem; }
+        .solution-explanation { background-color: #f9f9ff; padding: 1rem 1.5rem; border-radius: 8px; border: 1px solid var(--gray-light); margin-bottom: 1.5rem; color: var(--text-secondary); }
+        .solution-explanation h4 { margin-top: 0; margin-bottom: 0.75rem; font-weight: 600; color: var(--dark); }
+        .construction-textarea { width: 100%; min-height: 100px; padding: 0.75rem 1rem; border-radius: 8px; border: 1px solid var(--gray-light); font-size: 1rem; resize: vertical; transition: border-color 0.2s ease, box-shadow 0.2s ease; }
+        .construction-textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15); }
+        .question-navigation { display: flex; justify-content: space-between; margin-top: 2rem; gap: 1rem; }
+        .pagination { display: flex; justify-content: center; flex-wrap: wrap; gap: 0.5rem; margin: 1.5rem 0; padding: 0.5rem; background-color: #fff; border-radius: 12px; box-shadow: var(--shadow-sm); }
+        .page-item { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background-color: var(--light); color: var(--text-secondary); cursor: pointer; transition: all 0.2s ease; font-weight: 500; border: 1px solid var(--gray-light); }
+        .page-item:hover { background-color: var(--gray-light); color: var(--dark); transform: scale(1.1); }
+        .page-item.active { background: var(--gradient-1); color: white; box-shadow: 0 4px 8px rgba(67, 97, 238, 0.2); border-color: transparent; }
+        .page-item.answered { background-color: rgba(6, 214, 160, 0.7); color: white; border-color: transparent; }
+        .page-item.answered.active { background: var(--gradient-1); box-shadow: 0 0 0 2px var(--success); }
+        .btn { display: inline-flex; align-items: center; justify-content: center; padding: 0.75rem 1.5rem; border-radius: 12px; font-weight: 500; font-size: 0.95rem; text-decoration: none; transition: all 0.3s ease; cursor: pointer; border: none; gap: 0.5rem; position: relative; overflow: hidden; z-index: 1; line-height: 1.5; }
+        .btn::after { content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 0; background-color: rgba(255, 255, 255, 0.1); transition: height 0.3s ease; z-index: -1; }
+        .btn:hover::after { height: 100%; }
+        .btn-primary { background: var(--gradient-1); color: white; box-shadow: 0 4px 10px rgba(67, 97, 238, 0.2); }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(67, 97, 238, 0.25); }
+        .btn-secondary { background-color: var(--light); color: var(--text-secondary); border: 1px solid var(--gray-light); }
+        .btn-secondary:hover { background-color: var(--gray-light); color: var(--dark); }
+        .btn-success { background: linear-gradient(135deg, var(--success), #04a77e); color: white; box-shadow: 0 4px 10px rgba(6, 214, 160, 0.2); }
+        .btn-success:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(6, 214, 160, 0.25); }
+        .btn-info { background: linear-gradient(135deg, var(--info), #3b7cde); color: white; box-shadow: 0 4px 10px rgba(72, 149, 239, 0.2); }
+        .btn-info:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(72, 149, 239, 0.25); }
+        .btn-lg { padding: 0.75rem 2rem; font-size: 1rem; }
+        .btn-sm { padding: 0.5rem 1rem; font-size: 0.875rem; }
+        .btn-block { width: 100%; justify-content: center; }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
+        .btn:disabled::after { height: 0; }
+        .test-timer { position: absolute; top: 1.25rem; right: 1.5rem; display: flex; align-items: center; gap: 0.5rem; font-size: 1rem; font-weight: 600; color: var(--primary); background-color: rgba(67, 97, 238, 0.1); padding: 0.5rem 1rem; border-radius: 20px; box-shadow: 0 2px 6px rgba(67, 97, 238, 0.1); backdrop-filter: blur(10px); }
+        .timer-warning { color: var(--warning) !important; background-color: rgba(248, 150, 30, 0.1) !important; }
+        .timer-danger { color: var(--danger) !important; background-color: rgba(247, 37, 133, 0.1) !important; animation: pulse 1s ease-in-out infinite; }
+        .test-loader { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 3rem 1rem; text-align: center; }
+        .loader-spinner { width: 50px; height: 50px; border: 4px solid rgba(67, 97, 238, 0.1); border-radius: 50%; border-top-color: var(--primary); animation: spin 1s linear infinite; margin-bottom: 1.5rem; }
+        .loader-text { font-size: 1.1rem; color: var(--text-secondary); margin-bottom: 0.5rem; }
+        .loader-subtext { font-size: 0.9rem; color: var(--text-muted); }
+        .results-container { margin-top: 1.5rem; }
+        .result-summary { display: flex; flex-wrap: wrap; justify-content: space-around; align-items: center; background-color: #f9f9ff; border-radius: var(--card-radius); padding: 1.5rem 2rem; margin-bottom: 2rem; border-left: 4px solid var(--primary); position: relative; overflow: hidden; gap: 1.5rem; }
+        .result-summary::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at top right, rgba(67, 97, 238, 0.05), transparent 70%); z-index: 0; }
+        .result-score { text-align: center; position: relative; z-index: 1; flex-basis: 150px; }
+        .score-value { font-size: 3.5rem; font-weight: 700; background: var(--gradient-1); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; line-height: 1; }
+        .score-label { font-size: 0.9rem; color: var(--text-secondary); margin-top: 0.5rem; }
+        .result-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1.5rem; position: relative; z-index: 1; flex-grow: 1; max-width: 600px; }
+        .stat-item { text-align: center; padding: 1rem; border-radius: 12px; background-color: rgba(255, 255, 255, 0.5); backdrop-filter: blur(5px); transition: transform 0.3s ease, box-shadow 0.3s ease; border: 1px solid var(--gray-light); }
+        .stat-item:hover { transform: translateY(-5px); box-shadow: var(--shadow-md); }
+        .stat-value { font-size: 1.75rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--primary); }
+        .stat-label { font-size: 0.85rem; color: var(--text-secondary); }
+        .low-score-message { background-color: rgba(248, 150, 30, 0.1); border-left: 4px solid var(--warning); padding: 1.5rem; margin-top: 1.5rem; margin-bottom: 1rem; border-radius: var(--card-radius); text-align: center; color: var(--text-secondary); }
+        .low-score-message i { font-size: 1.5rem; color: var(--warning); margin-bottom: 0.75rem; display: block; }
+        .low-score-message strong { color: var(--warning); }
+        .low-score-message.info { background-color: rgba(67, 97, 238, 0.1); border-left-color: var(--primary-light); }
+        .low-score-message.info i { color: var(--primary-light); }
+        .low-score-message.info strong { color: var(--primary-light); }
+        .result-actions { display: flex; justify-content: center; flex-wrap: wrap; gap: 1.5rem; margin-top: 2.5rem; }
+        .topic-results { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; margin-top: 1.5rem; }
+        .topic-card { background-color: var(--white); border-radius: var(--card-radius); padding: 1.5rem; box-shadow: var(--shadow-sm); transition: all 0.3s ease; border-left: 4px solid var(--primary); position: relative; overflow: hidden; display: flex; flex-direction: column; }
+        .topic-card:hover { transform: translateY(-8px); box-shadow: var(--shadow-md); }
+        .topic-card.strength { border-left-color: var(--success); }
+        .topic-card.weakness { border-left-color: var(--danger); }
+        .topic-card.neutral { border-left-color: var(--warning); }
+        .topic-header { display: flex; align-items: center; margin-bottom: 1.25rem; gap: 0.75rem; }
+        .topic-icon { width: 48px; height: 48px; flex-shrink: 0; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--white); background: var(--gradient-1); font-size: 1.4rem; box-shadow: 0 4px 10px rgba(67, 97, 238, 0.15); }
+        .topic-card.strength .topic-icon { background: linear-gradient(135deg, var(--success), #04a77e); box-shadow: 0 4px 10px rgba(6, 214, 160, 0.15); }
+        .topic-card.weakness .topic-icon { background: linear-gradient(135deg, #f72585, #b5179e); box-shadow: 0 4px 10px rgba(247, 37, 133, 0.15); }
+        .topic-card.neutral .topic-icon { background: linear-gradient(135deg, #f8961e, #f3722c); box-shadow: 0 4px 10px rgba(248, 150, 30, 0.15); }
+        .topic-title { font-weight: 600; font-size: 1.2rem; color: var(--dark); flex-grow: 1; }
+        .topic-stats { margin-top: auto; padding-top: 1rem; }
+        .topic-progress { display: flex; justify-content: space-between; margin-bottom: 0.75rem; font-size: 0.9rem; }
+        .topic-progress-label { color: var(--text-secondary); }
+        .topic-progress-value { font-weight: 600; color: var(--primary); }
+        .topic-card.strength .topic-progress-value { color: var(--success); }
+        .topic-card.weakness .topic-progress-value { color: var(--danger); }
+        .topic-card.neutral .topic-progress-value { color: var(--warning); }
+        .topic-progress-bar { width: 100%; height: 8px; background-color: var(--gray-light); border-radius: 4px; overflow: hidden; position: relative; }
+        .topic-progress-fill { height: 100%; background: var(--gradient-1); border-radius: 4px; position: relative; overflow: hidden; transition: width 0.5s ease-out; }
+        .topic-progress-fill::after { content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent); animation: progressShine 2s infinite; }
+        .topic-card.strength .topic-progress-fill { background: linear-gradient(135deg, var(--success), #04a77e); }
+        .topic-card.weakness .topic-progress-fill { background: linear-gradient(135deg, #f72585, #b5179e); }
+        .topic-card.neutral .topic-progress-fill { background: linear-gradient(135deg, #f8961e, #f3722c); }
+        .error-message-container { background-color: rgba(247, 37, 133, 0.1); border-left: 4px solid var(--danger); padding: 1.5rem; margin: 1rem 0; border-radius: var(--card-radius); text-align: center; }
+        .error-message-container i { font-size: 2rem; color: var(--danger); margin-bottom: 1rem; display: block; }
+        .error-message-container .loader-text { color: var(--danger); font-weight: 600; }
+        .error-message-container .loader-subtext { color: var(--text-secondary); }
+        .gemini-checking-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.6); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1005; color: white; text-align: center; backdrop-filter: blur(5px); }
+        .gemini-spinner { width: 60px; height: 60px; border: 5px solid rgba(255, 255, 255, 0.3); border-radius: 50%; border-top-color: var(--white); animation: spin 1.2s linear infinite; margin-bottom: 1.5rem; }
+        .gemini-checking-text { font-size: 1.2rem; font-weight: 500; }
+        .review-container { margin-top: 1.5rem; }
+        .review-navigation { margin-bottom: 1.5rem; display: flex; justify-content: flex-start; }
+        .review-question-item { background-color: var(--white); border-radius: var(--card-radius); box-shadow: var(--shadow-sm); padding: 1.5rem; margin-bottom: 1.5rem; border-left: 4px solid var(--primary); }
+        .review-question-item.correct { border-left-color: var(--success); background-color: rgba(6, 214, 160, 0.03); }
+        .review-question-item.incorrect { border-left-color: var(--danger); background-color: rgba(247, 37, 133, 0.03); }
+        .review-question-item.partial { border-left-color: var(--warning); background-color: rgba(248, 150, 30, 0.03); }
+        .review-question-item.skipped { border-left-color: var(--gray); background-color: rgba(108, 117, 125, 0.03); }
+        .review-question-header { display: flex; align-items: flex-start; gap: 1rem; margin-bottom: 1rem; }
+        .review-question-number { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; width: 36px; height: 36px; line-height: 36px; text-align: center; background: var(--gray-dark); color: white; font-weight: 600; border-radius: 50%; }
         .review-question-item.correct .review-question-number { background: var(--success); }
         .review-question-item.incorrect .review-question-number { background: var(--danger); }
         .review-question-item.partial .review-question-number { background: var(--warning); }
-         .review-question-item.skipped .review-question-number { background: var(--gray); }
-
-        .review-question-text {
-            font-size: 1.1rem;
-            font-weight: 500;
-            line-height: 1.5;
-            flex-grow: 1;
-        }
-        .review-answer-section {
-            margin-top: 1rem;
-            padding-top: 1rem;
-            border-top: 1px dashed var(--gray-light);
-        }
-        .review-answer-section h4 {
-            font-size: 1rem;
-            font-weight: 600;
-            margin-bottom: 0.75rem;
-            color: var(--dark);
-        }
-        .review-user-answer, .review-correct-answer, .review-solution {
-            margin-bottom: 1rem;
-            padding: 0.75rem 1rem;
-            border-radius: 8px;
-            border: 1px solid var(--gray-light);
-            line-height: 1.5;
-        }
-        .review-user-answer strong, .review-correct-answer strong, .review-solution strong {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 600;
-        }
+        .review-question-item.skipped .review-question-number { background: var(--gray); }
+        .review-question-text { font-size: 1.1rem; font-weight: 500; line-height: 1.5; flex-grow: 1; }
+        .review-answer-section { margin-top: 1rem; padding-top: 1rem; border-top: 1px dashed var(--gray-light); }
+        .review-answer-section h4 { font-size: 1rem; font-weight: 600; margin-bottom: 0.75rem; color: var(--dark); }
+        .review-user-answer, .review-correct-answer, .review-solution { margin-bottom: 1rem; padding: 0.75rem 1rem; border-radius: 8px; border: 1px solid var(--gray-light); line-height: 1.5; }
+        .review-user-answer strong, .review-correct-answer strong, .review-solution strong { display: block; margin-bottom: 0.5rem; font-weight: 600; }
         .review-user-answer { background-color: rgba(72, 149, 239, 0.05); border-color: var(--info); }
         .review-user-answer strong { color: var(--info); }
         .review-correct-answer { background-color: rgba(6, 214, 160, 0.05); border-color: var(--success); }
         .review-correct-answer strong { color: var(--success); }
         .review-solution { background-color: #f9f9ff; }
         .review-solution strong { color: var(--text-secondary); }
-        .review-score {
-            font-weight: 600;
-            margin-top: 1rem;
-            text-align: right;
-            font-size: 1.1rem;
-        }
+        .review-score { font-weight: 600; margin-top: 1rem; text-align: right; font-size: 1.1rem; }
         .review-score .correct { color: var(--success); }
         .review-score .incorrect { color: var(--danger); }
         .review-score .partial { color: var(--warning); }
-         .review-score .skipped { color: var(--gray); }
-        /* Specific styling for MC options in review */
-         .review-mc-option {
-             display: block;
-             padding: 0.5rem 0;
-             margin-left: 1rem;
-             position: relative;
-        }
-         .review-mc-option::before {
-             content: attr(data-letter) ". ";
-             font-weight: bold;
-             position: absolute;
-             left: -1rem;
-         }
-        .review-mc-option.user-selected {
-             background-color: rgba(72, 149, 239, 0.1);
-             border-radius: 4px;
-             padding-left: 0.5rem; /* Adjust if needed */
-             margin-left: 0.5rem; /* Adjust if needed */
-        }
-        .review-mc-option.correct-answer {
-             color: var(--success);
-             font-weight: bold;
-        }
-        .review-mc-option.user-selected.correct-answer {
-             background-color: rgba(6, 214, 160, 0.1);
-        }
-        .review-mc-option.user-selected:not(.correct-answer) {
-            color: var(--danger);
-             background-color: rgba(247, 37, 133, 0.1);
-        }
-        /* --- End Review Answers Styles --- */
-
-
-        /* Animace */
+        .review-score .skipped { color: var(--gray); }
+        .review-mc-option { display: block; padding: 0.5rem 0; margin-left: 1rem; position: relative; }
+        .review-mc-option::before { content: attr(data-letter) ". "; font-weight: bold; position: absolute; left: -1rem; }
+        .review-mc-option.user-selected { background-color: rgba(72, 149, 239, 0.1); border-radius: 4px; padding-left: 0.5rem; margin-left: 0.5rem; }
+        .review-mc-option.correct-answer { color: var(--success); font-weight: bold; }
+        .review-mc-option.user-selected.correct-answer { background-color: rgba(6, 214, 160, 0.1); }
+        .review-mc-option.user-selected:not(.correct-answer) { color: var(--danger); background-color: rgba(247, 37, 133, 0.1); }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes pulse { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.7; transform: scale(1.05); } 100% { opacity: 1; transform: scale(1); } }
         @keyframes progressShine { 0% { left: -100%; } 50% { left: 150%; } 100% { left: 150%; } }
         .animated { animation: fadeIn 0.5s ease forwards; }
-
-        /* Media queries */
         @media (max-width: 992px) { :root { --sidebar-width: 80px; } .sidebar { width: 80px; } .sidebar-logo span, .sidebar-link span, .user-info, .sidebar-footer { display: none; } .sidebar-link i { margin-right: 0; font-size: 1.5rem; } .sidebar-logo i { margin-right: 0; } .sidebar-header, .sidebar-link { justify-content: center; } .user-profile { justify-content: center; padding: 0.75rem 0; } .user-avatar { margin-right: 0; } main { margin-left: 80px; width: calc(100% - 80px); } }
         @media (max-width: 768px) { main { padding: 1rem; } .header-content { flex-direction: column; align-items: flex-start; gap: 1rem; } .test-timer { position: static; margin-top: 1rem; align-self: flex-start; } .test-info { flex-direction: column; align-items: flex-start; gap: 1rem; } .test-meta { width: 100%; justify-content: space-between; gap: 1rem; } .result-summary { flex-direction: column; gap: 2rem; text-align: center; padding: 1.5rem; } .result-stats { width: 100%; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 1rem; } .result-actions { flex-direction: column; gap: 1rem; } .question-navigation { flex-direction: column; gap: 1rem; } .question-navigation button { width: 100%; } }
-        @media (max-width: 576px) { :root { --sidebar-width: 0; } .sidebar { transform: translateX(-100%); z-index: 1000; width: 260px; } .sidebar.active { transform: translateX(0); } .sidebar.active .sidebar-logo span, .sidebar.active .sidebar-link span, .sidebar.active .user-info, .sidebar.active .sidebar-footer { display: block; } .sidebar.active .sidebar-link i { margin-right: 0.75rem; } .sidebar.active .sidebar-header, .sidebar.active .sidebar-link { justify-content: flex-start; } .sidebar.active .user-profile { justify-content: flex-start; padding: 1rem; } .sidebar.active .user-avatar { margin-right: 0.75rem; } main { margin-left: 0; width: 100%; } .mobile-menu-toggle { display: block; } .pagination { gap: 0.35rem; } .page-item { width: 32px; height: 32px; font-size: 0.8rem; } .topic-results { grid-template-columns: 1fr; } .header-content h1 { font-size: 1.5rem; } .score-value { font-size: 3rem; } .stat-value { font-size: 1.5rem; } .result-actions { flex-direction: row; } } /* Adjusted result actions for small screens */
-
-        /* Mobilní menu */
+        @media (max-width: 576px) { :root { --sidebar-width: 0; } .sidebar { transform: translateX(-100%); z-index: 1000; width: 260px; } .sidebar.active { transform: translateX(0); } .sidebar.active .sidebar-logo span, .sidebar.active .sidebar-link span, .sidebar.active .user-info, .sidebar.active .sidebar-footer { display: block; } .sidebar.active .sidebar-link i { margin-right: 0.75rem; } .sidebar.active .sidebar-header, .sidebar.active .sidebar-link { justify-content: flex-start; } .sidebar.active .user-profile { justify-content: flex-start; padding: 1rem; } .sidebar.active .user-avatar { margin-right: 0.75rem; } main { margin-left: 0; width: 100%; } .mobile-menu-toggle { display: block; } .pagination { gap: 0.35rem; } .page-item { width: 32px; height: 32px; font-size: 0.8rem; } .topic-results { grid-template-columns: 1fr; } .header-content h1 { font-size: 1.5rem; } .score-value { font-size: 3rem; } .stat-value { font-size: 1.5rem; } .result-actions { flex-direction: row; } }
         .mobile-menu-toggle { display: none; background: none; border: none; cursor: pointer; color: var(--dark); font-size: 1.5rem; margin-right: 1rem; padding: 0.5rem; z-index: 1001; }
         .dashboard-header > .header-content > div:first-child { display: flex; align-items: center; }
         .sidebar-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); z-index: 999; opacity: 0; transition: opacity 0.3s ease; backdrop-filter: blur(5px); }
         .sidebar-overlay.active { display: block; opacity: 1; }
-
-        /* Tmavý režim */
-        @media (prefers-color-scheme: dark) {
-             :root { --white: #1a202c; --light: #2d3748; --dark: #e2e8f0; --gray-light: #4a5568; --text-primary: #e2e8f0; --text-secondary: #cbd5e0; --text-muted: #a0aec0; --dark-bg: #1e2533; }
-             body { background-color: #171923; }
-             .section, .dashboard-header, .question-container, .answer-option, .page-item, .test-type-card { background-color: var(--dark-bg); border-color: var(--gray-light); }
-             .answer-input, .construction-textarea { background-color: #2d3748; color: var(--text-primary); border-color: var(--gray-light); }
-             .solution-explanation { background-color: #2d3748; border-color: var(--gray-light); }
-             .answer-option { background-color: #21232f; border-color: var(--gray-light); }
-             .answer-option:hover { background-color: var(--light); }
-             .answer-option.selected { background-color: rgba(67, 97, 238, 0.2); border-color: var(--primary); }
-             .result-summary { background-color: #21232f; border-left-color: var(--primary); }
-             .stat-item { background-color: rgba(45, 55, 72, 0.5); border-color: var(--gray-light); }
-             .low-score-message { background-color: rgba(248, 150, 30, 0.15); border-left-color: var(--warning); }
-             .low-score-message.info { background-color: rgba(67, 97, 238, 0.15); border-left-color: var(--primary-light); }
-             .page-item { background-color: var(--light); border-color: var(--gray-light); }
-             .page-item:hover { background-color: var(--gray-light); }
-             .page-item.active { background: var(--gradient-1); border-color: transparent; }
-             .page-item.answered { background-color: rgba(6, 214, 160, 0.5); border-color: transparent; }
-             .page-item.answered.active { box-shadow: 0 0 0 2px var(--success); }
-             .mobile-menu-toggle { color: var(--dark); }
-             .test-type-card.selected { background-color: rgba(67, 97, 238, 0.1); }
-             /* Review dark mode */
-             .review-question-item { background-color: var(--dark-bg); border-color: var(--gray-light); }
-             .review-question-item.correct { background-color: rgba(6, 214, 160, 0.05); }
-             .review-question-item.incorrect { background-color: rgba(247, 37, 133, 0.05); }
-             .review-question-item.partial { background-color: rgba(248, 150, 30, 0.05); }
-              .review-question-item.skipped { background-color: rgba(108, 117, 125, 0.05); }
-             .review-user-answer, .review-correct-answer, .review-solution { border-color: var(--gray-light); }
-             .review-user-answer { background-color: rgba(72, 149, 239, 0.1); border-color: var(--info); }
-             .review-correct-answer { background-color: rgba(6, 214, 160, 0.1); border-color: var(--success); }
-             .review-solution { background-color: var(--light); }
-             .review-mc-option.user-selected { background-color: rgba(72, 149, 239, 0.15); }
-             .review-mc-option.correct-answer { color: var(--success); }
-             .review-mc-option.user-selected.correct-answer { background-color: rgba(6, 214, 160, 0.15); }
-             .review-mc-option.user-selected:not(.correct-answer) { color: var(--danger); background-color: rgba(247, 37, 133, 0.15); }
-         }
+        @media (prefers-color-scheme: dark) { :root { --white: #1a202c; --light: #2d3748; --dark: #e2e8f0; --gray-light: #4a5568; --text-primary: #e2e8f0; --text-secondary: #cbd5e0; --text-muted: #a0aec0; --dark-bg: #1e2533; } body { background-color: #171923; } .section, .dashboard-header, .question-container, .answer-option, .page-item, .test-type-card { background-color: var(--dark-bg); border-color: var(--gray-light); } .answer-input, .construction-textarea { background-color: #2d3748; color: var(--text-primary); border-color: var(--gray-light); } .solution-explanation { background-color: #2d3748; border-color: var(--gray-light); } .answer-option { background-color: #21232f; border-color: var(--gray-light); } .answer-option:hover { background-color: var(--light); } .answer-option.selected { background-color: rgba(67, 97, 238, 0.2); border-color: var(--primary); } .result-summary { background-color: #21232f; border-left-color: var(--primary); } .stat-item { background-color: rgba(45, 55, 72, 0.5); border-color: var(--gray-light); } .low-score-message { background-color: rgba(248, 150, 30, 0.15); border-left-color: var(--warning); } .low-score-message.info { background-color: rgba(67, 97, 238, 0.15); border-left-color: var(--primary-light); } .page-item { background-color: var(--light); border-color: var(--gray-light); } .page-item:hover { background-color: var(--gray-light); } .page-item.active { background: var(--gradient-1); border-color: transparent; } .page-item.answered { background-color: rgba(6, 214, 160, 0.5); border-color: transparent; } .page-item.answered.active { box-shadow: 0 0 0 2px var(--success); } .mobile-menu-toggle { color: var(--dark); } .test-type-card.selected { background-color: rgba(67, 97, 238, 0.1); } .review-question-item { background-color: var(--dark-bg); border-color: var(--gray-light); } .review-question-item.correct { background-color: rgba(6, 214, 160, 0.05); } .review-question-item.incorrect { background-color: rgba(247, 37, 133, 0.05); } .review-question-item.partial { background-color: rgba(248, 150, 30, 0.05); } .review-question-item.skipped { background-color: rgba(108, 117, 125, 0.05); } .review-user-answer, .review-correct-answer, .review-solution { border-color: var(--gray-light); } .review-user-answer { background-color: rgba(72, 149, 239, 0.1); border-color: var(--info); } .review-correct-answer { background-color: rgba(6, 214, 160, 0.1); border-color: var(--success); } .review-solution { background-color: var(--light); } .review-mc-option.user-selected { background-color: rgba(72, 149, 239, 0.15); } .review-mc-option.correct-answer { color: var(--success); } .review-mc-option.user-selected.correct-answer { background-color: rgba(6, 214, 160, 0.15); } .review-mc-option.user-selected:not(.correct-answer) { color: var(--danger); background-color: rgba(247, 37, 133, 0.15); } }
     </style>
 </head>
 <body>
@@ -1521,58 +361,42 @@
         //          Globální Proměnné
         // ==============================================
         let currentUser = null;
-        let currentProfile = null; // Store full profile
-        let questions = []; // Holds the original question data
+        let currentProfile = null;
+        let questions = [];
         let currentQuestionIndex = 0;
-        let userAnswers = []; // Holds { question_id, userAnswerValue, topic_id, topic_name, scoreAwarded, maxScore, checked_by }
+        let userAnswers = [];
         let timer = null;
         let testTime = 0;
         let testStartTime = null;
         let testEndTime = null;
         let testResultsData = { totalQuestions: 0, correctAnswers: 0, incorrectAnswers: 0, unanswered: 0, score: 0, totalPointsAchieved: 0, totalMaxPossiblePoints: 0, percentage: 0, timeSpent: 0, topicResults: {} };
-        let diagnosticId = null; // ID of the saved diagnostic record in Supabase
-        let selectedTestType = null; // 'quick', 'full', 'absolute'
+        let diagnosticId = null;
+        let selectedTestType = null;
 
         // ==============================================
         //          Konfigurace
         // ==============================================
         const testTypeConfig = { quick: { questionsCount: 10, title: 'Rychlý diagnostický test', description: 'Základní prověření' }, full: { questionsCount: 20, title: 'Kompletní diagnostický test', description: 'Podrobné hodnocení' }, absolute: { questionsCount: 30, title: 'Absolutní test znalostí', description: 'Důkladná prověrka' } };
         const topicIcons = { "Algebra": "fa-square-root-alt", "Aritmetika": "fa-calculator", "Geometrie": "fa-draw-polygon", "Logika": "fa-brain", "Logické úlohy": "fa-brain", "Statistika": "fa-chart-bar", "default": "fa-book" };
-        const SCORE_THRESHOLD_FOR_SAVING = 5; // Minimum score (out of 50) to save results
+        const SCORE_THRESHOLD_FOR_SAVING = 5;
 
         // ==============================================
         //          Pomocné Funkce
         // ==============================================
         function shuffleArray(array){ let ci=array.length,ri;while(ci!==0){ri=Math.floor(Math.random()*ci);ci--;[array[ci],array[ri]]=[array[ri],array[ci]];}return array; }
         function formatTime(seconds){ const m=Math.floor(seconds/60);const s=seconds%60;return `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`; }
-        function showErrorMessage(message){
-             if (testSelector) testSelector.style.display = 'none';
-             if (testContainer) testContainer.style.display = 'none';
-             if (resultsContainer) resultsContainer.style.display = 'none';
-             if (reviewContainer) reviewContainer.style.display = 'none';
-             if (geminiOverlay) geminiOverlay.style.display = 'none';
-             if (testLoader) {
-                 testLoader.style.display = 'block';
-                 testLoader.innerHTML = `<div class="test-loader error-message-container"><i class="fas fa-exclamation-triangle"></i><div class="loader-text">Chyba!</div><div class="loader-subtext">${sanitizeHTML(message)}</div><button class="btn btn-primary" style="margin-top:1.5rem;" onclick="location.reload()"><i class="fas fa-redo"></i> Zkusit znovu</button></div>`;
-             }
-         }
+        function showErrorMessage(message){ if (testSelector) testSelector.style.display = 'none'; if (testContainer) testContainer.style.display = 'none'; if (resultsContainer) resultsContainer.style.display = 'none'; if (reviewContainer) reviewContainer.style.display = 'none'; if (geminiOverlay) geminiOverlay.style.display = 'none'; if (testLoader) { testLoader.style.display = 'block'; testLoader.innerHTML = `<div class="test-loader error-message-container"><i class="fas fa-exclamation-triangle"></i><div class="loader-text">Chyba!</div><div class="loader-subtext">${sanitizeHTML(message)}</div><button class="btn btn-primary" style="margin-top:1.5rem;" onclick="location.reload()"><i class="fas fa-redo"></i> Zkusit znovu</button></div>`; } }
         function showGeminiOverlay(show){ if(geminiOverlay) geminiOverlay.style.display = show ? 'flex' : 'none'; }
         function indexToLetter(index){ return String.fromCharCode(65 + index); }
-        function sanitizeHTML(str) {
-             if (str === null || str === undefined) return '';
-             const temp = document.createElement('div');
-             temp.textContent = str;
-             return temp.innerHTML;
+        function sanitizeHTML(str) { if (str === null || str === undefined) return ''; const temp = document.createElement('div'); temp.textContent = str; return temp.innerHTML; }
+        function getInitials(profileData) { if (!profileData) return 'U'; const first = profileData.first_name?.[0] || ''; const last = profileData.last_name?.[0] || ''; const usernameInitial = profileData.username?.[0] || ''; const emailInitial = profileData.email?.[0] || ''; return (first + last).toUpperCase() || usernameInitial.toUpperCase() || emailInitial.toUpperCase() || 'U'; }
+        // Helper function for numeric comparison (handles comma/dot)
+        function compareNumeric(val1, val2) {
+            const num1 = parseFloat(String(val1).replace(',', '.').trim());
+            const num2 = parseFloat(String(val2).replace(',', '.').trim());
+            if (isNaN(num1) || isNaN(num2)) return false; // Not comparable as numbers
+            return num1 === num2;
         }
-         // Get initials from profile data
-         function getInitials(profileData) {
-             if (!profileData) return 'U';
-             const first = profileData.first_name?.[0] || '';
-             const last = profileData.last_name?.[0] || '';
-             const usernameInitial = profileData.username?.[0] || '';
-             const emailInitial = profileData.email?.[0] || '';
-             return (first + last).toUpperCase() || usernameInitial.toUpperCase() || emailInitial.toUpperCase() || 'U';
-         }
 
         // ==============================================
         //          Hlavní Logika (Initialization Refactored)
@@ -1581,160 +405,67 @@
         // 1. Get current user (Supabase auth object)
         async function getCurrentSupabaseUser() {
              const { data: { user }, error } = await supabaseClient.auth.getUser();
-             if (error) {
-                 console.error("Error getting Supabase user:", error);
-                 throw new Error("Nepodařilo se získat informace o uživateli.");
-             }
+             if (error) { console.error("Error getting Supabase user:", error); throw new Error("Nepodařilo se získat informace o uživateli."); }
              return user;
          }
-
         // 2. Load user profile from 'profiles' table
          async function fetchUserProfile(userId) {
              if (!userId) return null;
              try {
-                 const { data: profile, error } = await supabaseClient
-                     .from('profiles')
-                     .select('*') // Select all profile fields
-                     .eq('id', userId)
-                     .single();
-
-                 if (error && error.code !== 'PGRST116') { // PGRST116 = no rows found
-                     throw error;
-                 }
-                 return profile; // Returns profile data or null if not found
-             } catch (error) {
-                 console.error("Error fetching profile data:", error);
-                 return null; // Return null on error
-             }
+                 const { data: profile, error } = await supabaseClient.from('profiles').select('*').eq('id', userId).single();
+                 if (error && error.code !== 'PGRST116') { throw error; }
+                 return profile;
+             } catch (error) { console.error("Error fetching profile data:", error); return null; }
          }
-
          // 3. Update UI with user data
          function updateUserInfoUI(profileData, userEmail) {
              const displayName = `${profileData?.first_name || ''} ${profileData?.last_name || ''}`.trim() || profileData?.username || userEmail?.split('@')[0] || 'Student';
              if(userName) userName.textContent = displayName;
-
              if(userAvatar) {
-                 if (profileData?.avatar_url) {
-                     userAvatar.innerHTML = `<img src="${profileData.avatar_url}" alt="Avatar">`;
-                 } else {
-                     const initials = getInitials(profileData || { email: userEmail });
-                     userAvatar.textContent = initials;
-                 }
+                 if (profileData?.avatar_url) { userAvatar.innerHTML = `<img src="${profileData.avatar_url}" alt="Avatar">`; }
+                 else { const initials = getInitials(profileData || { email: userEmail }); userAvatar.textContent = initials; }
              }
          }
-
-
         // 4. Check for existing diagnostic test
          async function checkExistingDiagnostic(userId) {
-             if (!userId || userId === 'PLACEHOLDER_USER_ID') {
-                 console.warn("Kontrola testu přeskočena pro placeholder uživatele.");
-                 return false; // Assume test not completed for placeholder
-             }
+             if (!userId || userId === 'PLACEHOLDER_USER_ID') { console.warn("Kontrola testu přeskočena pro placeholder uživatele."); return false; }
              try {
                   if (loaderSubtext) loaderSubtext.textContent = 'Kontroluji předchozí testy...';
-                  const { data: existingDiagnostic, error } = await supabaseClient
-                      .from('user_diagnostics')
-                      .select('id, completed_at')
-                      .eq('user_id', userId)
-                      .limit(1);
-
-                  if (error) {
-                      console.error("Chyba při kontrole existujícího testu:", error);
-                      alert("Nepodařilo se ověřit, zda jste již test absolvovali. Pokračuji výběrem testu.");
-                      return false; // Proceed as if not completed on error
-                  }
+                  const { data: existingDiagnostic, error } = await supabaseClient.from('user_diagnostics').select('id, completed_at').eq('user_id', userId).limit(1);
+                  if (error) { console.error("Chyba při kontrole existujícího testu:", error); alert("Nepodařilo se ověřit, zda jste již test absolvovali. Pokračuji výběrem testu."); return false; }
                   return existingDiagnostic && existingDiagnostic.length > 0;
-             } catch(err) {
-                  console.error("Neočekávaná chyba při kontrole testu:", err);
-                  alert("Nastala neočekávaná chyba při kontrole. Pokračuji výběrem testu.");
-                  return false;
-             }
+             } catch(err) { console.error("Neočekávaná chyba při kontrole testu:", err); alert("Nastala neočekávaná chyba při kontrole. Pokračuji výběrem testu."); return false; }
          }
 
         // 5. Initialize the entire page
         async function initializeApp() {
             try {
-                 // Show initial loader
                  if(testSelector) testSelector.style.display = 'none';
                  if(testLoader) testLoader.style.display = 'block';
                  if (loaderSubtext) loaderSubtext.textContent = 'Ověřuji uživatele...';
-
-                 // Authenticate user
                  currentUser = await getCurrentSupabaseUser();
                  if (!currentUser) {
-                     // Handle non-authenticated user (e.g., redirect to login)
                      console.warn("Uživatel není přihlášen. Používám placeholder.");
                      currentUser = { id: 'PLACEHOLDER_USER_ID', email: 'student@example.com' };
-                     currentProfile = { username: 'Testovací Student', email: 'student@example.com' }; // Set default profile
+                     currentProfile = { username: 'Testovací Student', email: 'student@example.com' };
                      updateUserInfoUI(currentProfile, currentUser.email);
                  } else {
-                      // Fetch profile data
                       currentProfile = await fetchUserProfile(currentUser.id);
-                      // Update UI even if profile is null (uses email as fallback)
                       updateUserInfoUI(currentProfile, currentUser.email);
                  }
-
-
-                 // Check if test already completed
                  const hasCompletedTest = await checkExistingDiagnostic(currentUser.id);
-
                  if (hasCompletedTest) {
-                     // Test already completed - Show message and exit
-                     if(testSelector) {
-                          testSelector.innerHTML = `<div class="section animated"><h2 class="section-title"><i class="fas fa-check-circle" style="color: var(--success);"></i> Test již dokončen</h2><p>Tento diagnostický test jste již absolvoval/a.</p><p><strong>Tento test nelze opakovat.</strong></p><div style="margin-top:1.5rem; display:flex; gap:1rem; flex-wrap:wrap;"><a href="plan.html" class="btn btn-primary"><i class="fas fa-tasks"></i> Zobrazit plán</a><a href="main.html" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Zpět</a></div></div>`;
-                          testSelector.style.display = 'block';
-                     }
-                     if(testLoader) testLoader.style.display = 'none';
-                     if(testContainer) testContainer.style.display = 'none';
-                     if(resultsContainer) resultsContainer.style.display = 'none';
-                     if(reviewContainer) reviewContainer.style.display = 'none';
-                     if(testTimer) testTimer.style.display = 'none';
-                     if(testLevel) testLevel.textContent = 'Test dokončen';
-                     return; // Stop initialization
+                     if(testSelector) { testSelector.innerHTML = `<div class="section animated"><h2 class="section-title"><i class="fas fa-check-circle" style="color: var(--success);"></i> Test již dokončen</h2><p>Tento diagnostický test jste již absolvoval/a.</p><p><strong>Tento test nelze opakovat.</strong></p><div style="margin-top:1.5rem; display:flex; gap:1rem; flex-wrap:wrap;"><a href="plan.html" class="btn btn-primary"><i class="fas fa-tasks"></i> Zobrazit plán</a><a href="main.html" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Zpět</a></div></div>`; testSelector.style.display = 'block'; }
+                     if(testLoader) testLoader.style.display = 'none'; if(testContainer) testContainer.style.display = 'none'; if(resultsContainer) resultsContainer.style.display = 'none'; if(reviewContainer) reviewContainer.style.display = 'none'; if(testTimer) testTimer.style.display = 'none'; if(testLevel) testLevel.textContent = 'Test dokončen';
+                     return;
                  }
-
-                 // Show test selector if test not completed
-                 if(testSelector) testSelector.style.display = 'block';
-                 if(testLoader) testLoader.style.display = 'none';
-                 if(testContainer) testContainer.style.display = 'none';
-                 if(resultsContainer) resultsContainer.style.display = 'none';
-                 if(reviewContainer) reviewContainer.style.display = 'none';
-                 if(testTimer) testTimer.style.display = 'none';
-                 if(testLevel) testLevel.textContent = 'Výběr testu';
-
-                 // Add listeners for test selection cards
-                 document.querySelectorAll('.test-type-card').forEach(card => {
-                     card.addEventListener('click', function(event) {
-                         const testType = this.getAttribute('data-test-type');
-                         const isButtonClicked = event.target.closest('.select-test-btn');
-                         document.querySelectorAll('.test-type-card').forEach(c => c.classList.remove('selected'));
-                         this.classList.add('selected');
-                         selectedTestType = testType;
-                         if (isButtonClicked) {
-                             event.stopPropagation();
-                             startSelectedTest();
-                         }
-                     });
-                 });
-                 document.querySelectorAll('.select-test-btn').forEach(button => {
-                     button.addEventListener('click', function(event) {
-                         event.stopPropagation();
-                         const testType = this.closest('.test-type-card').getAttribute('data-test-type');
-                         document.querySelectorAll('.test-type-card').forEach(c => c.classList.remove('selected'));
-                         this.closest('.test-type-card').classList.add('selected');
-                         selectedTestType = testType;
-                         startSelectedTest();
-                     });
-                 });
-
+                 if(testSelector) testSelector.style.display = 'block'; if(testLoader) testLoader.style.display = 'none'; if(testContainer) testContainer.style.display = 'none'; if(resultsContainer) resultsContainer.style.display = 'none'; if(reviewContainer) reviewContainer.style.display = 'none'; if(testTimer) testTimer.style.display = 'none'; if(testLevel) testLevel.textContent = 'Výběr testu';
+                 document.querySelectorAll('.test-type-card').forEach(card => { card.addEventListener('click', function(event) { const testType = this.getAttribute('data-test-type'); const isButtonClicked = event.target.closest('.select-test-btn'); document.querySelectorAll('.test-type-card').forEach(c => c.classList.remove('selected')); this.classList.add('selected'); selectedTestType = testType; if (isButtonClicked) { event.stopPropagation(); startSelectedTest(); } }); });
+                 document.querySelectorAll('.select-test-btn').forEach(button => { button.addEventListener('click', function(event) { event.stopPropagation(); const testType = this.closest('.test-type-card').getAttribute('data-test-type'); document.querySelectorAll('.test-type-card').forEach(c => c.classList.remove('selected')); this.closest('.test-type-card').classList.add('selected'); selectedTestType = testType; startSelectedTest(); }); });
                  setupCommonEventListeners();
                  history.pushState({ state: 'testSelection' }, document.title, window.location.href);
                  window.addEventListener('popstate', handleBackButton);
-
-             } catch (error) {
-                 console.error('Chyba při inicializaci aplikace:', error);
-                 showErrorMessage('Nepodařilo se inicializovat aplikaci: ' + error.message);
-             }
+             } catch (error) { console.error('Chyba při inicializaci aplikace:', error); showErrorMessage('Nepodařilo se inicializovat aplikaci: ' + error.message); }
          }
 
 
@@ -1746,32 +477,13 @@
             try {
                 const config = testTypeConfig[testType];
                 const questionCount = config.questionsCount;
-                const { data: allQuestions, error: fetchError } = await supabaseClient
-                    .from('exam_questions')
-                    .select('*, topic:topic_id(name), subtopic:subtopic_id(name)');
-
+                const { data: allQuestions, error: fetchError } = await supabaseClient.from('exam_questions').select('*, topic:topic_id(name), subtopic:subtopic_id(name)');
                 if (fetchError) throw fetchError;
                 if (!allQuestions || allQuestions.length === 0) throw new Error("V databázi nejsou žádné otázky.");
-
                 const shuffledQuestions = shuffleArray(allQuestions);
                 const selectedQuestions = shuffledQuestions.slice(0, questionCount);
-
-                questions = selectedQuestions.map((q, index) => ({
-                     id: q.id,
-                     question_number: index + 1,
-                     question_text: q.question_text,
-                     question_type: q.question_type,
-                     options: q.options,
-                     correct_answer: q.correct_answer,
-                     solution_explanation: q.solution_explanation || "Oficiální postup není k dispozici.",
-                     topic: q.topic ? q.topic.name : "Neznámé téma",
-                     topic_id: q.topic_id,
-                     subtopic: q.subtopic ? q.subtopic.name : "",
-                     difficulty: q.difficulty, // Integer difficulty
-                     image_url: q.image_url
-                }));
+                questions = selectedQuestions.map((q, index) => ({ id: q.id, question_number: index + 1, question_text: q.question_text, question_type: q.question_type, options: q.options, correct_answer: q.correct_answer, solution_explanation: q.solution_explanation || "Oficiální postup není k dispozici.", topic: q.topic ? q.topic.name : "Neznámé téma", topic_id: q.topic_id, subtopic: q.subtopic ? q.subtopic.name : "", difficulty: q.difficulty, image_url: q.image_url }));
                 console.log("Selected questions full data:", questions);
-
                 if (questions.length === 0) throw new Error("Nepodařilo se vybrat žádné otázky.");
                 initializeTest();
             } catch (error) { console.error('Chyba při načítání otázek:', error); showErrorMessage(`Nepodařilo se načíst otázky: ${error.message}`); }
@@ -1780,25 +492,61 @@
         // 4. Inicializace Testu
         function initializeTest() { testLoader.style.display = 'none'; testContainer.style.display = 'block'; resultsContainer.style.display = 'none'; reviewContainer.style.display = 'none'; testTimer.style.display = 'flex'; currentQuestionIndex = 0; userAnswers = new Array(questions.length).fill(null); testTime = 0; timerValue.textContent = formatTime(testTime); answeredCountEl.textContent = '0'; lowScoreMessageContainer.innerHTML = ''; createPagination(); startTimer(); showQuestion(0); updateProgressBar(); updateNavigationButtons(); }
 
-        // 5. Zobrazení Otázky
+        // 5. Zobrazení Otázky - **CORRECTED**: Removed solution for construction, added input listeners
         function showQuestion(index) {
-             if (index < 0 || index >= questions.length) return; const question = questions[index]; console.log(`Showing Q#${index + 1}`, question); currentQuestionIndex = index; questionCountEl.textContent = `${index + 1} / ${questions.length}`;
+             if (index < 0 || index >= questions.length) return;
+             const question = questions[index];
+             console.log(`Showing Q#${index + 1}`, question);
+             currentQuestionIndex = index;
+             questionCountEl.textContent = `${index + 1} / ${questions.length}`;
+
              let questionHTML = `<div class="question-header"><span class="question-number">${question.question_number}</span><div class="question-text">${sanitizeHTML(question.question_text)}</div></div>`;
              if (question.image_url) { questionHTML += `<div class="question-image-container"><img class="question-image" src="${question.image_url}" alt="Obrázek k otázce ${question.question_number}" loading="lazy"></div>`; }
-             const userAnswerData = userAnswers[index]; const savedValue = userAnswerData ? userAnswerData.userAnswerValue : '';
+
+             const userAnswerData = userAnswers[index];
+             const savedValue = userAnswerData ? userAnswerData.userAnswerValue : '';
+
              switch (question.question_type) {
                  case 'multiple_choice':
-                     questionHTML += `<div class="answer-options">`; const optionsData = question.options; console.log(`Rendering MC options for Q#${question.question_number}. Data:`, optionsData);
+                     questionHTML += `<div class="answer-options">`;
+                     const optionsData = question.options;
                      if (!Array.isArray(optionsData)) { console.error("Options nejsou pole pro MC:", question.id, optionsData); questionHTML += `<div style='color:red;font-weight:bold;'>Chyba: Formát možností není pole stringů.</div>`; }
                      else if (optionsData.length === 0) { console.warn("Chybí možnosti pro MC:", question.id); questionHTML += `<div style='color:orange;'>Varování: Chybí možnosti odpovědí.</div>`; }
                      else { optionsData.forEach((optionText, idx) => { const optionLetter = indexToLetter(idx); const isSelected = savedValue === optionLetter; const displayText = (typeof optionText === 'string' || typeof optionText === 'number') ? sanitizeHTML(optionText) : `(neplatný text ${idx+1})`; questionHTML += `<label class="answer-option ${isSelected ? 'selected' : ''}" data-option-id="${optionLetter}"><input type="radio" name="question_${question.id || index}" value="${optionLetter}" ${isSelected ? 'checked' : ''}><div class="answer-text"><span class="answer-letter">${optionLetter}.</span> ${displayText}</div></label>`; }); }
-                     questionHTML += `</div>`; break;
+                     questionHTML += `</div>`;
+                     break;
                  case 'construction':
-                     questionHTML += `<div class="construction-container"><div class="answer-input-container"><label for="construction-answer-${index}">Popište svůj postup:</label><textarea id="construction-answer-${index}" class="construction-textarea" placeholder="Podrobně popište kroky..." oninput="saveConstructionAnswer(${index}, this.value)">${sanitizeHTML(savedValue)}</textarea></div></div>`; break;
-                 default:
-                     questionHTML += `<div class="answer-input-container"><label for="text-answer-${index}">Vaše odpověď:</label><input type="text" id="text-answer-${index}" class="answer-input" placeholder="Zadejte odpověď" value="${sanitizeHTML(savedValue)}" oninput="saveTextInputAnswer(${index}, this.value)"></div>`; break;
+                     // **FIX: Removed solution display during test**
+                     questionHTML += `<div class="construction-container"><div class="answer-input-container"><label for="construction-answer-${index}">Popište svůj postup:</label><textarea id="construction-answer-${index}" class="construction-textarea" placeholder="Podrobně popište kroky...">${sanitizeHTML(savedValue)}</textarea></div></div>`;
+                     break;
+                 default: // text, numeric, etc.
+                     questionHTML += `<div class="answer-input-container"><label for="text-answer-${index}">Vaše odpověď:</label><input type="${question.question_type === 'numeric' ? 'number' : 'text'}" id="text-answer-${index}" class="answer-input" placeholder="Zadejte odpověď" value="${sanitizeHTML(savedValue)}"></div>`;
+                     break;
              }
-             questionContainer.innerHTML = questionHTML; questionContainer.querySelectorAll('.answer-option').forEach(label => { label.addEventListener('click', handleAnswerSelection); const radio = label.querySelector('input[type="radio"]'); if (radio && label.classList.contains('selected')) { radio.checked = true; } });
+             questionContainer.innerHTML = questionHTML;
+
+             // **FIX: Add input listeners AFTER rendering HTML**
+             const textInput = questionContainer.querySelector(`#text-answer-${index}`);
+             const constructionInput = questionContainer.querySelector(`#construction-answer-${index}`);
+
+             if (textInput) {
+                 textInput.addEventListener('input', (event) => {
+                     saveAnswer(index, event.target.value);
+                 });
+             }
+             if (constructionInput) {
+                 constructionInput.addEventListener('input', (event) => {
+                     saveAnswer(index, event.target.value);
+                 });
+             }
+
+             // Add listeners for MC options
+             questionContainer.querySelectorAll('.answer-option').forEach(label => {
+                 label.addEventListener('click', handleAnswerSelection);
+                 const radio = label.querySelector('input[type="radio"]');
+                 if (radio && label.classList.contains('selected')) { radio.checked = true; }
+             });
+
              updatePagination(); updateNavigationButtons();
              if (window.MathJax && typeof window.MathJax.typesetPromise === 'function') { try { setTimeout(() => window.MathJax.typesetPromise([questionContainer]).catch(e=>console.error("MathJax error:", e)),0); } catch(e){console.error("MathJax init error:",e);} }
              const img = questionContainer.querySelector('.question-image'); if (img) { img.loading = 'lazy'; }
@@ -1806,10 +554,6 @@
 
         // 5a. Zpracování MC
         function handleAnswerSelection(event) { const selectedLabel=event.currentTarget;const qIndex=currentQuestionIndex;const optionId=selectedLabel.dataset.optionId;const radio=selectedLabel.querySelector('input[type="radio"]');questionContainer.querySelectorAll('.answer-option').forEach(label=>{label.classList.remove('selected');label.querySelector('input[type="radio"]').checked=false;});selectedLabel.classList.add('selected');if(radio)radio.checked=true;saveAnswer(qIndex,optionId);}
-        // 5b. Zpracování text/numeric/default
-         function saveTextInputAnswer(qIndex, value) { saveAnswer(qIndex, value); }
-        // 5c. Zpracování construction
-         function saveConstructionAnswer(qIndex, value) { saveAnswer(qIndex, value); }
 
         // 6. Uložení Odpovědi
         function saveAnswer(qIndex, userAnswerValue) {
@@ -1819,10 +563,7 @@
              let maxScore = 1;
              const difficultyInt = parseInt(question.difficulty);
              if (question.question_type === 'construction') { maxScore = 2; }
-             else if (!isNaN(difficultyInt)) {
-                 if (difficultyInt >= 4) { maxScore = 3; }
-                 else if (difficultyInt === 3) { maxScore = 2; }
-             }
+             else if (!isNaN(difficultyInt)) { if (difficultyInt >= 4) { maxScore = 3; } else if (difficultyInt === 3) { maxScore = 2; } }
              if (!isEmptyAnswer) { userAnswers[qIndex] = { question_id: question.id, userAnswerValue: userAnswerValue, topic_id: question.topic_id, topic_name: question.topic, scoreAwarded: null, maxScore: maxScore, checked_by: null }; }
              else { userAnswers[qIndex] = null; }
              const isAnsweredNow = userAnswers[qIndex] !== null;
@@ -1849,30 +590,110 @@
         // ==============================================
 
         // 11. Dokončení Testu
-        async function finishTest() { stopTimer(); showGeminiOverlay(true); try { await evaluateAnswersWithGemini(); calculateFinalResults(); showGeminiOverlay(false); await saveTestResults(); displayResults(); history.pushState({ state: 'testFinished' }, document.title, window.location.href); } catch (error) { console.error("Chyba při dokončování:", error); showGeminiOverlay(false); displayResults(); lowScoreMessageContainer.innerHTML = `<div class="error-message-container"><i class="fas fa-exclamation-triangle"></i><div class="loader-text">Chyba!</div><div class="loader-subtext">Chyba vyhodnocení/ukládání: ${error.message}. Výsledky nemusí být kompletní nebo uložené.</div></div>`; continueBtn.disabled = true; continueBtn.setAttribute('data-save-error', 'true'); history.pushState({ state: 'testFinishedWithError' }, document.title, window.location.href); } }
+        async function finishTest() { stopTimer(); showGeminiOverlay(true); try { await evaluateAnswers(); calculateFinalResults(); showGeminiOverlay(false); await saveTestResults(); displayResults(); history.pushState({ state: 'testFinished' }, document.title, window.location.href); } catch (error) { console.error("Chyba při dokončování:", error); showGeminiOverlay(false); displayResults(); lowScoreMessageContainer.innerHTML = `<div class="error-message-container"><i class="fas fa-exclamation-triangle"></i><div class="loader-text">Chyba!</div><div class="loader-subtext">Chyba vyhodnocení/ukládání: ${error.message}. Výsledky nemusí být kompletní nebo uložené.</div></div>`; continueBtn.disabled = true; continueBtn.setAttribute('data-save-error', 'true'); history.pushState({ state: 'testFinishedWithError' }, document.title, window.location.href); } }
 
-        // 11a. Vyhodnocení odpovědí
-        async function evaluateAnswersWithGemini() {
-            console.log("Starting Gemini evaluation (scoring)...");
+        // 11a. Vyhodnocení odpovědí - **CORRECTED** Scoring Logic
+        async function evaluateAnswers() {
+            console.log("Starting answer evaluation...");
             const promises = [];
+
             for (let i = 0; i < questions.length; i++) {
                  const q = questions[i];
-                 const answer = userAnswers[i];
-                 let maxScore = 1;
-                 const difficultyInt = parseInt(q.difficulty);
-                 if (q.question_type === 'construction') { maxScore = 2; }
-                 else if (!isNaN(difficultyInt)) { if (difficultyInt >= 4) { maxScore = 3; } else if (difficultyInt === 3) { maxScore = 2; } }
-                 if (!answer) { userAnswers[i] = { question_id: q.id, userAnswerValue: null, topic_id: q.topic_id, topic_name: q.topic, scoreAwarded: 0, maxScore: maxScore, checked_by: 'skipped' }; promises.push(Promise.resolve()); continue; }
-                 if (userAnswers[i]) { userAnswers[i].maxScore = maxScore; }
-                 const correctOrExplanation = q.question_type === 'construction' ? q.solution_explanation : q.correct_answer;
-                 promises.push( checkAnswerWithGemini( q.question_type, correctOrExplanation, answer.userAnswerValue ).then(result => { userAnswers[i].scoreAwarded = result.score; userAnswers[i].checked_by = q.question_type === 'construction' ? 'gemini_scored' : 'gemini_checked'; console.log(`Q${i+1} (${q.question_type}, Diff: ${q.difficulty}) evaluated: Score ${userAnswers[i].scoreAwarded}/${userAnswers[i].maxScore}`); }).catch(error => { console.error(`Error checking Q${i+1}:`, error); userAnswers[i].scoreAwarded = 0; userAnswers[i].checked_by = 'error'; }) );
-            }
+                 const answer = userAnswers[i]; // This now contains maxScore
+
+                 if (!answer) { // Handle skipped questions
+                     const difficultyInt = parseInt(q.difficulty);
+                     const maxScore = q.question_type === 'construction' ? 2 : (!isNaN(difficultyInt) ? (difficultyInt >= 4 ? 3 : (difficultyInt === 3 ? 2 : 1)) : 1);
+                     userAnswers[i] = { question_id: q.id, userAnswerValue: null, topic_id: q.topic_id, topic_name: q.topic, scoreAwarded: 0, maxScore: maxScore, checked_by: 'skipped' };
+                     promises.push(Promise.resolve()); // Add a resolved promise
+                     continue;
+                 }
+
+                 // *** BUG FIX 3: Separate logic based on type ***
+                 if (q.question_type === 'construction') {
+                     // Use Gemini only for construction
+                     const correctOrExplanation = q.solution_explanation;
+                     promises.push(
+                         checkAnswerWithGemini( q.question_type, correctOrExplanation, answer.userAnswerValue )
+                             .then(result => {
+                                 userAnswers[i].scoreAwarded = result.score; // Score from Gemini (0, 1, or 2)
+                                 userAnswers[i].checked_by = 'gemini_scored';
+                                 console.log(`Q${i+1} (Construction) evaluated by Gemini: Score ${result.score}/${answer.maxScore}`);
+                             }).catch(error => {
+                                 console.error(`Error checking Construction Q${i+1}:`, error);
+                                 userAnswers[i].scoreAwarded = 0;
+                                 userAnswers[i].checked_by = 'error';
+                             })
+                     );
+                 } else {
+                     // Local check for MC, text, numeric
+                     let awardedScore = 0;
+                     const userVal = answer.userAnswerValue;
+                     const correctVal = q.correct_answer;
+                     const maxScore = answer.maxScore; // Get max score calculated earlier
+
+                     try {
+                         if (q.question_type === 'multiple_choice') {
+                             if (String(userVal).trim().toUpperCase() === String(correctVal).trim().toUpperCase()) {
+                                 awardedScore = maxScore;
+                             }
+                         } else if (q.question_type === 'numeric') {
+                             if (compareNumeric(userVal, correctVal)) {
+                                 awardedScore = maxScore;
+                             }
+                         } else { // Default to text comparison (case-insensitive)
+                             if (String(userVal).trim().toLowerCase() === String(correctVal).trim().toLowerCase()) {
+                                 awardedScore = maxScore;
+                             }
+                         }
+                     } catch (compError) {
+                        console.error(`Error comparing answer for Q${i+1}:`, compError);
+                        awardedScore = 0; // Score 0 on comparison error
+                     }
+
+                     userAnswers[i].scoreAwarded = awardedScore;
+                     userAnswers[i].checked_by = 'local_check';
+                     console.log(`Q${i+1} (${q.question_type}) evaluated locally: Score ${awardedScore}/${maxScore}`);
+                     promises.push(Promise.resolve()); // Add a resolved promise
+                 }
+            } // End for loop
+
             await Promise.all(promises);
-            console.log("Gemini evaluation finished:", userAnswers);
+            console.log("Answer evaluation finished:", userAnswers);
         }
 
-        // 11b. Kontrola JEDNÉ odpovědi
-        async function checkAnswerWithGemini(questionType, correctAnswerOrExplanation, userAnswer) { if (!GEMINI_API_KEY || GEMINI_API_KEY.startsWith('YOUR_') || GEMINI_API_KEY.length < 10) { console.warn("Invalid Gemini API Key. Basic check."); let s=0; if(questionType==='multiple_choice'){s=String(userAnswer).trim().toUpperCase()===String(correctAnswerOrExplanation).trim().toUpperCase()?1:0;}else if(questionType==='construction'){s=(userAnswer&&userAnswer.length>10)?1:0;}else{try{const cu=String(userAnswer).replace(',','.').trim(); const cc=String(correctAnswerOrExplanation).replace(',','.').trim(); const un=parseFloat(cu); const cn=parseFloat(cc); if(!isNaN(un)&&!isNaN(cn)){s=(un===cn)?1:0;}else{s=(cu.toLowerCase()===cc.toLowerCase())?1:0;}}catch(e){s=0;}} return { score: s }; } let prompt; let expectedResponseFormat = `{"score": number}`; if (questionType === 'construction') { prompt = `You are AI evaluating user's description of geometric construction against official solution. RULES: 1. Compare content for key steps. 2. Scoring: 2pts=correct/matches key steps; 1pt=main idea ok, minor errors/omissions (<=3 deviations); 0pts=wrong, misses crucial steps, >3 deviations, empty. 3. Evaluate process described. 4. Output ONLY JSON: {"score": number} (0, 1, or 2). Official Solution: """\n${correctAnswerOrExplanation}\n""" User's Description: """\n${userAnswer}\n""" Task: Compare and score. Respond ONLY with JSON output.`; } else { prompt = `You are AI evaluating exam answer. Task: Determine score (0 incorrect, 1 correct). RULES: 1. Focus ONLY on correctness. 2. Ignore justifications. 3. Use rules below. 4. Output ONLY JSON: {"score": number} (0 or 1). Input: * questionType: "${questionType}" * correctAnswer: "${correctAnswerOrExplanation}" * userAnswer: "${userAnswer}" Rules: * numeric: Score 1 if math equivalent (ignore whitespace; ',' '.' decimals). Else 0. * text: Score 1 if matches case-insensitive after trim. Else 0. * multiple_choice: Score 1 if userAnswer (Letter 'A','B') exactly matches correctAnswer. Else 0. Task: Compare. Respond ONLY with JSON output.`; } try { const response = await fetch(GEMINI_API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { temperature: 0.1, response_mime_type: "application/json" } }) }); if (!response.ok) { const errorBody = await response.json().catch(() => ({ error: { message: 'Failed to parse error' } })); console.error("Gemini API Error:", response.status, errorBody); throw new Error(`Gemini API fail: ${errorBody.error?.message || response.status}`); } const data = await response.json(); console.log("Raw Gemini Response:", data); if (data.candidates && data.candidates[0]?.content?.parts[0]?.text) { const jsonText = data.candidates[0].content.parts[0].text; try { const result = JSON.parse(jsonText); if (typeof result.score === 'number' && ((questionType === 'construction' && [0,1,2].includes(result.score)) || (questionType !== 'construction' && [0,1].includes(result.score))) ) { return { score: result.score }; } else { throw new Error(`Invalid 'score' (${result.score}) for type ${questionType}.`); } } catch (e) { console.error("Failed to parse JSON:", e, "Raw:", jsonText); throw new Error(`Failed to parse JSON (${expectedResponseFormat}) from Gemini.`); } } else { console.error("Unexpected Gemini structure:", data); throw new Error("Unexpected Gemini structure."); } } catch (error) { console.error("Error calling/processing Gemini API:", error); return { score: 0 }; } }
+
+        // 11b. Kontrola JEDNÉ odpovědi (Only needed for construction now, but kept for potential future use)
+        async function checkAnswerWithGemini(questionType, correctAnswerOrExplanation, userAnswer) {
+             // Fallback remains the same
+             if (!GEMINI_API_KEY || GEMINI_API_KEY.startsWith('YOUR_') || GEMINI_API_KEY.length < 10) { console.warn("Invalid Gemini API Key. Basic check."); let s=0; if(questionType==='multiple_choice'){s=String(userAnswer).trim().toUpperCase()===String(correctAnswerOrExplanation).trim().toUpperCase()?1:0;}else if(questionType==='construction'){s=(userAnswer&&userAnswer.length>10)?1:0;}else{try{const cu=String(userAnswer).replace(',','.').trim(); const cc=String(correctAnswerOrExplanation).replace(',','.').trim(); const un=parseFloat(cu); const cn=parseFloat(cc); if(!isNaN(un)&&!isNaN(cn)){s=(un===cn)?1:0;}else{s=(cu.toLowerCase()===cc.toLowerCase())?1:0;}}catch(e){s=0;}} return { score: s }; }
+
+             // Only proceed with Gemini call if it's a construction question
+             if (questionType !== 'construction') {
+                 console.warn("checkAnswerWithGemini called for non-construction type - should be handled locally.");
+                 // Return a default score (or handle based on local check if needed here)
+                 return { score: 0 }; // Should not happen with corrected evaluateAnswers logic
+             }
+
+             let prompt = `You are AI evaluating user's description of geometric construction against official solution. RULES: 1. Compare content for key steps. 2. Scoring: 2pts=correct/matches key steps; 1pt=main idea ok, minor errors/omissions (<=3 deviations); 0pts=wrong, misses crucial steps, >3 deviations, empty. 3. Evaluate process described. 4. Output ONLY JSON: {"score": number} (0, 1, or 2). Official Solution: """\n${correctAnswerOrExplanation}\n""" User's Description: """\n${userAnswer}\n""" Task: Compare and score. Respond ONLY with JSON output.`;
+             let expectedResponseFormat = `{"score": number}`;
+
+             try {
+                 const response = await fetch(GEMINI_API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { temperature: 0.1, response_mime_type: "application/json" } }) });
+                 if (!response.ok) { const errorBody = await response.json().catch(() => ({ error: { message: 'Failed to parse error' } })); console.error("Gemini API Error:", response.status, errorBody); throw new Error(`Gemini API fail: ${errorBody.error?.message || response.status}`); }
+                 const data = await response.json();
+                 console.log("Raw Gemini Response (Construction):", data);
+                 if (data.candidates && data.candidates[0]?.content?.parts[0]?.text) {
+                     const jsonText = data.candidates[0].content.parts[0].text;
+                     try {
+                         const result = JSON.parse(jsonText);
+                         if (typeof result.score === 'number' && [0,1,2].includes(result.score)) {
+                             return { score: result.score };
+                         } else { throw new Error(`Invalid 'score' (${result.score}) for construction.`); }
+                     } catch (e) { console.error("Failed to parse JSON:", e, "Raw:", jsonText); throw new Error(`Failed to parse JSON (${expectedResponseFormat}) from Gemini.`); }
+                 } else { console.error("Unexpected Gemini structure:", data); throw new Error("Unexpected Gemini structure."); }
+             } catch (error) { console.error("Error calling/processing Gemini API for construction:", error); return { score: 0 }; } // Return 0 on error
+         }
 
         // 12. Kalkulace FINÁLNÍCH Výsledků
         function calculateFinalResults() {
@@ -1885,19 +706,27 @@
                  const topicName = q.topic || 'Neznámé téma';
                  if (!topicStats[topicKey]) { topicStats[topicKey] = { name: topicName, id: q.topic_id, total: 0, correct: 0, score: 0, strength: 'neutral' }; }
                  topicStats[topicKey].total++;
-                 const difficultyInt = parseInt(q.difficulty);
-                 const maxScore = answer?.maxScore ?? (q.question_type === 'construction' ? 2 : (!isNaN(difficultyInt) ? (difficultyInt >= 4 ? 3 : (difficultyInt === 3 ? 2 : 1)) : 1));
+                 const maxScore = answer?.maxScore ?? 1; // Use maxScore from answer object
                  totalRawMaxPossiblePoints += maxScore;
                  if (answer === null || answer.checked_by === 'skipped') { unansweredCount++; }
                  else {
                      const awardedScore = answer.scoreAwarded ?? 0;
                      totalRawPointsAchieved += awardedScore;
-                     if (awardedScore >= 1) { correctCount++; topicStats[topicKey].correct++; } else { incorrectCount++; }
+                     // 'Correct' for stats means getting at least 1 point, or full points if max is 1
+                     if (awardedScore >= 1) {
+                        correctCount++;
+                        if (awardedScore === maxScore) { // Only count as fully correct for topic score if max points awarded
+                             topicStats[topicKey].correct++;
+                        }
+                     } else {
+                         incorrectCount++;
+                     }
                  }
              });
+             // Calculate topic score based on percentage of fully correct answers within the topic
              Object.values(topicStats).forEach(stats => { stats.score = stats.total > 0 ? Math.round((stats.correct / stats.total) * 100) : 0; stats.strength = stats.score >= 75 ? 'strength' : (stats.score < 50 ? 'weakness' : 'neutral'); });
              const totalEvaluated = correctCount + incorrectCount;
-             const percentageOfEvaluated = totalEvaluated > 0 ? Math.round((correctCount / totalEvaluated) * 100) : 0;
+             const percentageOfEvaluated = totalEvaluated > 0 ? Math.round((correctCount / totalEvaluated) * 100) : 0; // % of answered questions that got >= 1 point
              const finalScoreOutOf50 = totalRawMaxPossiblePoints > 0 ? Math.round((totalRawPointsAchieved / totalRawMaxPossiblePoints) * 50) : 0;
              testResultsData = { totalQuestions: questions.length, correctAnswers: correctCount, incorrectAnswers: incorrectCount, unanswered: unansweredCount, score: finalScoreOutOf50, totalPointsAchieved: totalRawPointsAchieved, totalMaxPossiblePoints: totalRawMaxPossiblePoints, percentage: percentageOfEvaluated, timeSpent: testTime, topicResults: topicStats };
              console.log("Final Results Calculated:", testResultsData);
@@ -1906,6 +735,10 @@
 
         // 13. Zobrazení Výsledků v UI
         function displayResults() {
+             if(!testContainer || !resultsContainer || !reviewContainer || !testTimer || !testLevel || !resultScoreEl || !resultPercentageEl || !resultCorrectEl || !resultIncorrectEl || !resultTimeEl || !lowScoreMessageContainer || !continueBtn || !topicResultsEl || !reviewAnswersBtn || !backToResultsBtn) {
+                 console.error("Chyba: Některé elementy výsledků nebyly nalezeny v DOM.");
+                 return;
+             }
              testContainer.style.display = 'none';
              resultsContainer.style.display = 'block';
              reviewContainer.style.display = 'none';
@@ -1926,23 +759,15 @@
                   console.log("Save error detected, plan button remains disabled.");
                   lowScoreMessageContainer.innerHTML = `<div class="error-message-container" style="text-align:left; margin-bottom: 1rem;"><i class="fas fa-exclamation-triangle"></i><div class="loader-text">Chyba ukládání</div><div class="loader-subtext">Nepodařilo se uložit výsledky testu. Studijní plán nelze vytvořit. Zkuste test absolvovat znovu.</div></div>`;
              } else if (testResultsData.score < SCORE_THRESHOLD_FOR_SAVING) {
-                 lowScoreMessageContainer.innerHTML = `<div class="low-score-message warning">
-                     <i class="fas fa-exclamation-circle"></i>
-                     <strong>Výsledek nebyl uložen.</strong><br>
-                     Vaše skóre (${testResultsData.score}/50) je nižší než ${SCORE_THRESHOLD_FOR_SAVING} bodů. Tyto výsledky nebudou použity pro generování studijního plánu. Doporučujeme další procvičování.
-                 </div>`;
+                 lowScoreMessageContainer.innerHTML = `<div class="low-score-message warning"> <i class="fas fa-exclamation-circle"></i> <strong>Výsledek nebyl uložen.</strong><br> Vaše skóre (${testResultsData.score}/50) je nižší než ${SCORE_THRESHOLD_FOR_SAVING} bodů. Tyto výsledky nebudou použity pro generování studijního plánu. Doporučujeme další procvičování. </div>`;
                  console.log(`Results not saved, score ${testResultsData.score} < ${SCORE_THRESHOLD_FOR_SAVING}`);
              } else {
-                 lowScoreMessageContainer.innerHTML = `<div class="low-score-message info">
-                     <i class="fas fa-info-circle"></i>
-                     <strong>Výsledky byly uloženy.</strong><br>
-                     Vaše skóre (${testResultsData.score}/50) bylo zaznamenáno a může být použito pro vytvoření studijního plánu.
-                 </div>`;
+                 lowScoreMessageContainer.innerHTML = `<div class="low-score-message info"> <i class="fas fa-info-circle"></i> <strong>Výsledky byly uloženy.</strong><br> Vaše skóre (${testResultsData.score}/50) bylo zaznamenáno a může být použito pro vytvoření studijního plánu. </div>`;
                  continueBtn.disabled = false;
                  console.log(`Results saved, score ${testResultsData.score} >= ${SCORE_THRESHOLD_FOR_SAVING}. Plan button enabled.`);
              }
 
-             const sortedTopics = Object.values(testResultsData.topicResults).sort((a, b) => a.score - b.score);
+             const sortedTopics = Object.values(testResultsData.topicResults || {}).sort((a, b) => a.score - b.score);
              topicResultsEl.innerHTML = sortedTopics.map(stats => { const icon = topicIcons[stats.name] || topicIcons.default; return `<div class="topic-card ${stats.strength}"> <div class="topic-header"> <div class="topic-icon"><i class="fas ${icon}"></i></div> <h3 class="topic-title">${stats.name}</h3> </div> <div class="topic-stats"> <div class="topic-progress"> <span class="topic-progress-label">Úspěšnost</span> <span class="topic-progress-value">${stats.score}%</span> </div> <div class="topic-progress-bar"> <div class="topic-progress-fill" style="width: ${stats.score}%;"></div> </div> <div class="topic-progress" style="margin-top: 0.5rem;"> <span class="topic-progress-label">Správně</span> <span class="topic-progress-value">${stats.correct} / ${stats.total}</span> </div> </div> </div>`; }).join('');
 
              if (reviewAnswersBtn) reviewAnswersBtn.onclick = displayReview;
@@ -1952,49 +777,31 @@
 
         // 14. Uložení Výsledků do DB
         async function saveTestResults() {
+             if(!continueBtn) return; // Safety check
              continueBtn.removeAttribute('data-save-error');
              if (!currentUser || currentUser.id === 'PLACEHOLDER_USER_ID') { console.warn("Neukládám: Není uživatel."); continueBtn.disabled = true; return; }
              if (!selectedTestType) { console.warn("Neukládám: Chybí typ testu."); continueBtn.disabled = true; return; }
-
-             if (testResultsData.score < SCORE_THRESHOLD_FOR_SAVING) {
-                 console.log(`Výsledek (${testResultsData.score}/50) je nižší než ${SCORE_THRESHOLD_FOR_SAVING}. Přeskakuji ukládání.`);
-                 continueBtn.disabled = true;
-                 return;
-             }
+             if (testResultsData.score < SCORE_THRESHOLD_FOR_SAVING) { console.log(`Výsledek (${testResultsData.score}/50) je nižší než ${SCORE_THRESHOLD_FOR_SAVING}. Přeskakuji ukládání.`); continueBtn.disabled = true; return; }
 
              console.log(`Pokouším se uložit výsledky (Skóre: ${testResultsData.score}/50 >= ${SCORE_THRESHOLD_FOR_SAVING})...`);
              continueBtn.disabled = true;
-
              try {
                  const detailedAnalysis = generateDetailedAnalysis(testResultsData, userAnswers, questions);
-                 const dataToSave = {
-                     user_id: currentUser.id,
-                     completed_at: new Date().toISOString(),
-                     total_score: testResultsData.score,
-                     total_questions: testResultsData.totalQuestions,
-                     answers: userAnswers,
-                     topic_results: testResultsData.topicResults,
-                     analysis: detailedAnalysis,
-                 };
+                 const dataToSave = { user_id: currentUser.id, completed_at: new Date().toISOString(), total_score: testResultsData.score, total_questions: testResultsData.totalQuestions, answers: userAnswers, topic_results: testResultsData.topicResults, analysis: detailedAnalysis };
                  console.log("Data k uložení do user_diagnostics:", dataToSave);
                  const { data, error } = await supabaseClient.from('user_diagnostics').insert(dataToSave).select('id').single();
                  if (error) { throw error; }
                  diagnosticId = data.id;
                  console.log("Diagnostika uložena, ID:", diagnosticId);
-                 continueBtn.disabled = false; // Enable ONLY if successful AND score was >= threshold
-             } catch (error) {
-                 console.error('Chyba při ukládání:', error);
-                 continueBtn.disabled = true;
-                 continueBtn.setAttribute('data-save-error', 'true');
-                 throw error;
-             }
+                 continueBtn.disabled = false;
+             } catch (error) { console.error('Chyba při ukládání:', error); continueBtn.disabled = true; continueBtn.setAttribute('data-save-error', 'true'); throw error; }
         }
 
 
         // 14a. Generování detailní analýzy
          function generateDetailedAnalysis(results, answers, questionsData) {
             const analysis = { summary: { score: results.score, total_points_achieved: results.totalPointsAchieved, total_max_possible_points: results.totalMaxPossiblePoints, percentage_evaluated: results.percentage, time_spent_seconds: results.timeSpent, total_questions: results.totalQuestions, correct: results.correctAnswers, incorrect: results.incorrectAnswers, unanswered: results.unanswered, }, strengths: [], weaknesses: [], incorrectly_answered_details: [], performance_by_type: {}, performance_by_topic: {}, overall_assessment: "", recommendations: [] };
-            for (const [topicKey, stats] of Object.entries(results.topicResults)) { analysis.performance_by_topic[stats.name] = { correct: stats.correct, total: stats.total, score_percent: stats.score }; if (stats.strength === 'strength') analysis.strengths.push({ topic: stats.name, score: stats.score }); else if (stats.strength === 'weakness') analysis.weaknesses.push({ topic: stats.name, score: stats.score }); } analysis.strengths.sort((a, b) => b.score - a.score); analysis.weaknesses.sort((a, b) => a.score - b.score);
+            for (const [topicKey, stats] of Object.entries(results.topicResults || {})) { analysis.performance_by_topic[stats.name] = { correct: stats.correct, total: stats.total, score_percent: stats.score }; if (stats.strength === 'strength') analysis.strengths.push({ topic: stats.name, score: stats.score }); else if (stats.strength === 'weakness') analysis.weaknesses.push({ topic: stats.name, score: stats.score }); } analysis.strengths.sort((a, b) => b.score - a.score); analysis.weaknesses.sort((a, b) => a.score - b.score);
             questionsData.forEach((q, index) => {
                 const answer = answers[index];
                 const qType = q.question_type;
@@ -2005,9 +812,7 @@
                 analysis.performance_by_type[qType].max_points += maxQScore;
                 if (answer && answer.scoreAwarded !== null && answer.checked_by !== 'skipped') {
                      analysis.performance_by_type[qType].points_achieved += answer.scoreAwarded;
-                    if (answer.scoreAwarded < maxQScore) {
-                         analysis.incorrectly_answered_details.push({ question_number: q.question_number, topic: q.topic, type: q.question_type, user_answer: answer.userAnswerValue, score_awarded: answer.scoreAwarded, max_score: maxQScore, explanation: q.solution_explanation });
-                    }
+                    if (answer.scoreAwarded < maxQScore) { analysis.incorrectly_answered_details.push({ question_number: q.question_number, topic: q.topic, type: q.question_type, user_answer: answer.userAnswerValue, score_awarded: answer.scoreAwarded, max_score: maxQScore, explanation: q.solution_explanation }); }
                 }
             });
             if (results.score >= 43) analysis.overall_assessment = "Vynikající výkon!"; else if (results.score >= 33) analysis.overall_assessment = "Dobrý výkon, solidní základ."; else if (results.score >= 20) analysis.overall_assessment = "Průměrný výkon, zaměřte se na slabiny."; else analysis.overall_assessment = `Výkon ${results.score < 10 ? 'výrazně ' : ''}pod průměrem. Nutné opakování a procvičování.`; if (results.score < SCORE_THRESHOLD_FOR_SAVING) analysis.overall_assessment += " Skóre je příliš nízké pro uložení a generování optimálního plánu.";
@@ -2022,110 +827,45 @@
         // 15. Aktualizace user stats (přeskočeno)
          async function updateUserStats() { console.log("Aktualizace user stats - přeskočeno."); }
 
-        // --- NEW Function: Display Answer Review - **CORRECTED** try/catch block ---
+        // --- Function: Display Answer Review ---
         function displayReview() {
-            if (!resultsContainer || !reviewContainer || !reviewContent) {
-                 console.error("Review elements not found!");
-                 return;
-            }
-            resultsContainer.style.display = 'none';
-            reviewContainer.style.display = 'block';
-            reviewContent.innerHTML = '';
-
-            if (!questions || !userAnswers || questions.length !== userAnswers.length) {
-                 reviewContent.innerHTML = '<p class="error-message-container">Chyba: Data pro přehled odpovědí nejsou kompletní.</p>';
-                 return;
-            }
-
+            if (!resultsContainer || !reviewContainer || !reviewContent) { console.error("Review elements not found!"); return; }
+            resultsContainer.style.display = 'none'; reviewContainer.style.display = 'block'; reviewContent.innerHTML = '';
+            if (!questions || !userAnswers || questions.length !== userAnswers.length) { reviewContent.innerHTML = '<p class="error-message-container">Chyba: Data pro přehled odpovědí nejsou kompletní.</p>'; return; }
 
             questions.forEach((q, index) => {
                 const answer = userAnswers[index];
-                 if (!answer) {
-                     console.warn(`No answer data found for question index ${index}`);
-                     reviewContent.innerHTML += `<div class="review-question-item skipped">
-                         <div class="review-question-header">
-                             <span class="review-question-number">${q.question_number}</span>
-                             <div class="review-question-text">${sanitizeHTML(q.question_text)}</div>
-                         </div>
-                         <div class="review-answer-section"><em>Data pro tuto otázku chybí.</em></div>
-                      </div>`;
-                     return;
-                 }
-
-                let itemClass = 'review-question-item';
-                let scoreStatus = '';
-                 if (answer.checked_by === 'skipped') {
-                     itemClass += ' skipped';
-                     scoreStatus = '<span class="skipped">Přeskočeno</span>';
-                 } else if (answer.scoreAwarded === answer.maxScore) {
-                     itemClass += ' correct';
-                     scoreStatus = '<span class="correct">Správně</span>';
-                 } else if (answer.scoreAwarded > 0) {
-                     itemClass += ' partial';
-                     scoreStatus = '<span class="partial">Částečně</span>';
-                 } else {
-                     itemClass += ' incorrect';
-                     scoreStatus = '<span class="incorrect">Chybně</span>';
-                 }
-
+                 if (!answer) { console.warn(`No answer data found for question index ${index}`); reviewContent.innerHTML += `<div class="review-question-item skipped"><div class="review-question-header"><span class="review-question-number">${q.question_number}</span><div class="review-question-text">${sanitizeHTML(q.question_text)}</div></div><div class="review-answer-section"><em>Data pro tuto otázku chybí.</em></div></div>`; return; }
+                let itemClass = 'review-question-item'; let scoreStatus = '';
+                 if (answer.checked_by === 'skipped') { itemClass += ' skipped'; scoreStatus = '<span class="skipped">Přeskočeno</span>'; }
+                 else if (answer.scoreAwarded === answer.maxScore) { itemClass += ' correct'; scoreStatus = '<span class="correct">Správně</span>'; }
+                 else if (answer.scoreAwarded > 0) { itemClass += ' partial'; scoreStatus = '<span class="partial">Částečně</span>'; }
+                 else { itemClass += ' incorrect'; scoreStatus = '<span class="incorrect">Chybně</span>'; }
                 let reviewHTML = `<div class="${itemClass}">`;
-                reviewHTML += `<div class="review-question-header">
-                                 <span class="review-question-number">${q.question_number}</span>
-                                 <div class="review-question-text">${sanitizeHTML(q.question_text)}</div>
-                               </div>`;
+                reviewHTML += `<div class="review-question-header"><span class="review-question-number">${q.question_number}</span><div class="review-question-text">${sanitizeHTML(q.question_text)}</div></div>`;
                 if (q.image_url) { reviewHTML += `<div class="question-image-container"><img class="question-image" src="${q.image_url}" alt="Obrázek k otázce ${q.question_number}" loading="lazy"></div>`; }
-
                 reviewHTML += `<div class="review-answer-section">`;
                 if (answer.userAnswerValue !== null && answer.checked_by !== 'skipped') {
                      reviewHTML += `<div class="review-user-answer"><strong>Vaše odpověď:</strong> `;
-                     if (q.question_type === 'multiple_choice') {
-                         const selectedLetter = String(answer.userAnswerValue).trim().toUpperCase();
-                         const selectedOptionIndex = selectedLetter.charCodeAt(0) - 65;
-                         const optionText = (Array.isArray(q.options) && q.options[selectedOptionIndex] !== undefined) ? sanitizeHTML(q.options[selectedOptionIndex]) : `(Neplatná volba: ${sanitizeHTML(answer.userAnswerValue)})`;
-                         reviewHTML += `${selectedLetter}. ${optionText}`;
-                     } else {
-                         reviewHTML += sanitizeHTML(answer.userAnswerValue);
-                     }
-                     reviewHTML += `</div>`;
-                 } else {
-                     reviewHTML += `<div class="review-user-answer"><strong>Vaše odpověď:</strong> <em>(Nezodpovězeno)</em></div>`;
-                 }
+                     if (q.question_type === 'multiple_choice') { const selectedLetter = String(answer.userAnswerValue).trim().toUpperCase(); const selectedOptionIndex = selectedLetter.charCodeAt(0) - 65; const optionText = (Array.isArray(q.options) && q.options[selectedOptionIndex] !== undefined) ? sanitizeHTML(q.options[selectedOptionIndex]) : `(Neplatná volba: ${sanitizeHTML(answer.userAnswerValue)})`; reviewHTML += `${selectedLetter}. ${optionText}`; }
+                     else { reviewHTML += sanitizeHTML(answer.userAnswerValue); } reviewHTML += `</div>`;
+                 } else { reviewHTML += `<div class="review-user-answer"><strong>Vaše odpověď:</strong> <em>(Nezodpovězeno)</em></div>`; }
                 if (answer.checked_by !== 'skipped') {
                      reviewHTML += `<div class="review-correct-answer"><strong>Správná odpověď:</strong> `;
-                     if (q.question_type === 'multiple_choice') {
-                         const correctLetter = String(q.correct_answer).trim().toUpperCase();
-                         const correctOptionIndex = correctLetter.charCodeAt(0) - 65;
-                         const correctText = (Array.isArray(q.options) && q.options[correctOptionIndex] !== undefined) ? sanitizeHTML(q.options[correctOptionIndex]) : `(Neplatný text správné odpovědi)`;
-                          reviewHTML += `${correctLetter}. ${correctText}`;
-                     } else if (q.question_type !== 'construction') {
-                         reviewHTML += sanitizeHTML(q.correct_answer);
-                     } else {
-                          reviewHTML += `<em>(Viz řešení níže)</em>`;
-                     }
-                     reviewHTML += `</div>`;
+                     if (q.question_type === 'multiple_choice') { const correctLetter = String(q.correct_answer).trim().toUpperCase(); const correctOptionIndex = correctLetter.charCodeAt(0) - 65; const correctText = (Array.isArray(q.options) && q.options[correctOptionIndex] !== undefined) ? sanitizeHTML(q.options[correctOptionIndex]) : `(Neplatný text správné odpovědi)`; reviewHTML += `${correctLetter}. ${correctText}`; }
+                     else if (q.question_type !== 'construction') { reviewHTML += sanitizeHTML(q.correct_answer); }
+                     else { reviewHTML += `<em>(Viz řešení níže)</em>`; } reviewHTML += `</div>`;
                  }
                  if (q.solution_explanation) {
-                     let solutionHtml;
-                     try { solutionHtml = marked.parse(q.solution_explanation); }
-                     catch(e) { console.error("Marked parsing error:", e); solutionHtml = sanitizeHTML(q.solution_explanation); }
+                     let solutionHtml; try { solutionHtml = marked.parse(q.solution_explanation); } catch(e) { console.error("Marked parsing error:", e); solutionHtml = sanitizeHTML(q.solution_explanation); }
                      reviewHTML += `<div class="review-solution"><strong>Řešení / Postup:</strong> <div>${solutionHtml}</div></div>`;
                  }
                 reviewHTML += `<div class="review-score"><strong>Hodnocení:</strong> ${scoreStatus} (${answer.scoreAwarded ?? 0} / ${answer.maxScore} b.)</div>`;
-                reviewHTML += `</div></div>`;
-                reviewContent.innerHTML += reviewHTML;
+                reviewHTML += `</div></div>`; reviewContent.innerHTML += reviewHTML;
             });
-
-             // Typeset MathJax for the review content
-            if (window.MathJax && typeof window.MathJax.typesetPromise === 'function') {
-                 try {
-                     setTimeout(() => { window.MathJax.typesetPromise([reviewContent]) }, 0); // Removed .catch here as it was incorrect
-                 } catch (e) { // Correctly placed catch
-                     console.error("MathJax Review error:", e);
-                 }
-             }
-
+            if (window.MathJax && typeof window.MathJax.typesetPromise === 'function') { try { setTimeout(() => { window.MathJax.typesetPromise([reviewContent]) }, 0); } catch (e) { console.error("MathJax Review error:", e); } }
              reviewContainer.scrollIntoView({ behavior: 'smooth' });
-        } // Closing brace for displayReview function
+        }
 
 
         // 16. Obecné Event Listenery
@@ -2134,31 +874,9 @@
             if (sidebarOverlay) sidebarOverlay.addEventListener('click', () => { sidebar?.classList.remove('active'); sidebarOverlay?.classList.remove('active'); });
             if (prevBtn) prevBtn.addEventListener('click', () => { if (currentQuestionIndex > 0) showQuestion(currentQuestionIndex - 1); });
             if (nextBtn) nextBtn.addEventListener('click', () => { if (currentQuestionIndex < questions.length - 1) showQuestion(currentQuestionIndex + 1); });
-            if (finishBtn) {
-                 finishBtn.addEventListener('click', async () => {
-                     const unansweredCount = userAnswers.filter(a => a === null || a.checked_by === 'skipped').length;
-                     let confirmFinish = true;
-                     if (unansweredCount > 0) confirmFinish = confirm(`Nezodpověděli jste ${unansweredCount} ${unansweredCount === 1 ? 'otázku' : (unansweredCount < 5 ? 'otázky' : 'otázek')}. Přesto dokončit?`);
-                     else confirmFinish = confirm('Opravdu chcete dokončit test?');
-                     if (confirmFinish) { finishBtn.disabled = true; finishBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Dokončuji...'; await finishTest(); }
-                 });
-            }
-            if (retryBtn) {
-                 retryBtn.addEventListener('click', () => {
-                     if(resultsContainer) resultsContainer.style.display = 'none';
-                     if (reviewContainer) reviewContainer.style.display = 'none';
-                     if(testSelector) testSelector.style.display = 'block';
-                     questions = []; userAnswers = []; testResultsData = { score: 0 }; diagnosticId = null; selectedTestType = null;
-                     document.querySelectorAll('.test-type-card').forEach(c => c.classList.remove('selected'));
-                     if(lowScoreMessageContainer) lowScoreMessageContainer.innerHTML = '';
-                     if (continueBtn) { continueBtn.disabled = true; continueBtn.removeAttribute('data-save-error'); }
-                     if(testLevel) testLevel.textContent = 'Výběr testu';
-                     history.replaceState({ state: 'testSelection' }, document.title, window.location.href);
-                 });
-            }
-            if (continueBtn) {
-                 continueBtn.addEventListener('click', () => { if (!continueBtn.disabled) { window.location.href = `plan.html`; } });
-            }
+            if (finishBtn) { finishBtn.addEventListener('click', async () => { const unansweredCount = userAnswers.filter(a => a === null || a.checked_by === 'skipped').length; let confirmFinish = true; if (unansweredCount > 0) confirmFinish = confirm(`Nezodpověděli jste ${unansweredCount} ${unansweredCount === 1 ? 'otázku' : (unansweredCount < 5 ? 'otázky' : 'otázek')}. Přesto dokončit?`); else confirmFinish = confirm('Opravdu chcete dokončit test?'); if (confirmFinish) { finishBtn.disabled = true; finishBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Dokončuji...'; await finishTest(); } }); }
+            if (retryBtn) { retryBtn.addEventListener('click', () => { if(resultsContainer) resultsContainer.style.display = 'none'; if (reviewContainer) reviewContainer.style.display = 'none'; if(testSelector) testSelector.style.display = 'block'; questions = []; userAnswers = []; testResultsData = { score: 0 }; diagnosticId = null; selectedTestType = null; document.querySelectorAll('.test-type-card').forEach(c => c.classList.remove('selected')); if(lowScoreMessageContainer) lowScoreMessageContainer.innerHTML = ''; if (continueBtn) { continueBtn.disabled = true; continueBtn.removeAttribute('data-save-error'); } if(testLevel) testLevel.textContent = 'Výběr testu'; history.replaceState({ state: 'testSelection' }, document.title, window.location.href); }); }
+            if (continueBtn) { continueBtn.addEventListener('click', () => { if (!continueBtn.disabled) { window.location.href = `plan.html`; } }); }
             // Review and Back button listeners are attached in displayResults
             window.addEventListener('resize', () => { if (window.innerWidth > 576 && sidebar?.classList.contains('active')) { sidebar.classList.remove('active'); sidebarOverlay?.classList.remove('active'); } });
          }
@@ -2169,25 +887,17 @@
              const testIsRunning = testContainer && testContainer.style.display === 'block';
              const resultsAreShown = resultsContainer && resultsContainer.style.display === 'block';
              const reviewIsShown = reviewContainer && reviewContainer.style.display === 'block';
-
-             if (reviewIsShown) {
-                 reviewContainer.style.display = 'none';
-                 if (resultsContainer) resultsContainer.style.display = 'block';
-             } else if (testIsRunning) {
-                 if (!confirm('Opustit test? Postup nebude uložen.')) { history.pushState({ state: 'testInProgress' }, document.title, window.location.href); }
-                 else { stopTimer(); if (testContainer) testContainer.style.display = 'none'; if (testLoader) testLoader.style.display = 'none'; if (testSelector) testSelector.style.display = 'block'; if (testTimer) testTimer.style.display = 'none'; if(testLevel) testLevel.textContent = 'Výběr testu'; }
-             } else if (resultsAreShown) {
-                 if(resultsContainer) resultsContainer.style.display = 'none';
-                 if (testSelector) testSelector.style.display = 'block';
-                 if(testLevel) testLevel.textContent = 'Výběr testu';
-             } else { console.log("Navigating back (default behavior)."); }
+             if (reviewIsShown) { reviewContainer.style.display = 'none'; if (resultsContainer) resultsContainer.style.display = 'block'; }
+             else if (testIsRunning) { if (!confirm('Opustit test? Postup nebude uložen.')) { history.pushState({ state: 'testInProgress' }, document.title, window.location.href); } else { stopTimer(); if (testContainer) testContainer.style.display = 'none'; if (testLoader) testLoader.style.display = 'none'; if (testSelector) testSelector.style.display = 'block'; if (testTimer) testTimer.style.display = 'none'; if(testLevel) testLevel.textContent = 'Výběr testu'; } }
+             else if (resultsAreShown) { if(resultsContainer) resultsContainer.style.display = 'none'; if (testSelector) testSelector.style.display = 'block'; if(testLevel) testLevel.textContent = 'Výběr testu'; }
+             else { console.log("Navigating back (default behavior)."); }
          }
 
 
         // ==============================================
         //          Spuštění Aplikace
         // ==============================================
-        document.addEventListener('DOMContentLoaded', initializeApp); // Changed to initializeApp
+        document.addEventListener('DOMContentLoaded', initializeApp);
 
     </script>
 </body>
