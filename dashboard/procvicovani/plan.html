@@ -853,7 +853,7 @@
                 if (activitiesArray && Array.isArray(activitiesArray) && activitiesArray.length > 0) {
                     console.log(`Pokouším se vložit ${activitiesArray.length} aktivit...`);
 
-                    // --- Retyped map function with safety check ---
+                    // --- Using explicit function block and return ---
                     const activitiesToInsert = activitiesArray.map(act => {
                         // Basic check if 'act' is a valid object before accessing properties
                         if (typeof act !== 'object' || act === null) {
@@ -871,7 +871,8 @@
                              return null;
                          }
 
-                        return {
+                        // Define the object to be returned
+                        const activityObject = {
                             plan_id: savedPlanId,
                             day_of_week: dayOfWeek,
                             time_slot: act.time_slot || null,
@@ -879,8 +880,10 @@
                             description: act.description || null,
                             completed: false,
                         };
+                        // Explicitly return the object
+                        return activityObject;
                     }).filter(item => item !== null); // Filter out any null items from failed checks/parsing
-                    // --- End Retyped map ---
+                    // --- End explicit return block ---
 
 
                     console.log("Данные для вставки в plan_activities (после маппинга и фильтрации):", activitiesToInsert);
@@ -918,6 +921,7 @@
                 }
             }
         }
+        // --- КОНЕЦ ОБНОВЛЕННОЙ ФУНКЦИИ ---
 
 
         // Display saved plan's markdown content
