@@ -227,7 +227,8 @@
 
 
             <template id="currentPlanTemplate">
-                <div class="plan-header"> <div class="plan-meta"> <span class="plan-badge" id="planBadge">Aktuální plán</span> <h2 class="section-title" id="planTitle">Personalizovaný studijní plán</h2> <span class="plan-date" id="planDate">Vytvořeno: -</span> </div> <div class="plan-actions"> <button class="btn btn-success btn-tooltip" id="viewDetailBtn" title="Zobrazit podrobnosti plánu"> <i class="fas fa-eye"></i> Podrobnosti </button> <button class="btn btn-primary btn-tooltip" id="exportCurrentPlanBtn" title="Stáhnout plán jako PDF"> <i class="fas fa-file-export"></i> Export </button> </div> </div> <div class="plan-progress"> <div class="circular-progress"> <canvas id="progressCircle" width="150" height="150"></canvas> <div class="progress-value" id="progressValue">0%</div> </div> <div class="progress-text">Celkový pokrok v plánu</div> </div> <div class="plan-stats"> <div class="plan-stat-card btn-tooltip" title="Zbývající dny do předpokládaného ukončení plánu"> <div class="plan-stat-icon"> <i class="fas fa-calendar-alt"></i> </div> <div class="plan-stat-value" id="remainingDays">-</div> <div class="plan-stat-label">Zbývajících dnů</div> </div> <div class="plan-stat-card btn-tooltip" title="Počet dokončených aktivit v plánu"> <div class="plan-stat-icon"> <i class="fas fa-tasks"></i> </div> <div class="plan-stat-value" id="completedActivities">-/-</div> <div class="plan-stat-label">Dokončeno aktivit</div> </div> <div class="plan-stat-card btn-tooltip" title="Hlavní téma, na které se zaměřit"> <div class="plan-stat-icon"> <i class="fas fa-bullseye"></i> </div> <div class="plan-stat-value" id="priorityTopic">-</div> <div class="plan-stat-label">Prioritní téma</div> </div> </div> <h3 class="section-subtitle">Dnešní aktivity</h3> <div class="schedule-day today" id="todaySchedule"> </div> <div class="action-buttons"> <button class="btn btn-primary" id="viewFullScheduleBtn"> <i class="fas fa-calendar-week"></i> Celý harmonogram </button> <button class="btn btn-secondary btn-tooltip" id="updateProgressBtn" title="Manuálně aktualizovat svůj pokrok"> <i class="fas fa-sync-alt"></i> Aktualizovat pokrok </button> </div>
+                <div class="plan-header"> <div class="plan-meta"> <span class="plan-badge" id="planBadge">Aktuální plán</span> <h2 class="section-title" id="planTitle">Personalizovaný studijní plán</h2> <span class="plan-date" id="planDate">Vytvořeno: -</span> </div> <div class="plan-actions"> <button class="btn btn-success btn-tooltip" id="viewDetailBtn" title="Zobrazit podrobnosti plánu"> <i class="fas fa-eye"></i> Podrobnosti </button> <button class="btn btn-primary btn-tooltip" id="exportCurrentPlanBtn" title="Stáhnout plán jako PDF"> <i class="fas fa-file-export"></i> Export </button> </div> </div> <div class="plan-progress"> <div class="circular-progress"> <canvas id="progressCircle" width="150" height="150"></canvas> <div class="progress-value" id="progressValue">0%</div> </div> <div class="progress-text">Celkový pokrok v plánu</div> </div> <div class="plan-stats"> <div class="plan-stat-card btn-tooltip" title="Zbývající dny do předpokládaného ukončení plánu"> <div class="plan-stat-icon"> <i class="fas fa-calendar-alt"></i> </div> <div class="plan-stat-value" id="remainingDays">-</div> <div class="plan-stat-label">Zbývajících dnů</div> </div> <div class="plan-stat-card btn-tooltip" title="Počet dokončených aktivit v plánu"> <div class="plan-stat-icon"> <i class="fas fa-tasks"></i> </div> <div class="plan-stat-value" id="completedActivities">-/-</div> <div class="plan-stat-label">Dokončeno aktivit</div> </div> <div class="plan-stat-card btn-tooltip" title="Hlavní téma, na které se zaměřit"> <div class="plan-stat-icon"> <i class="fas fa-bullseye"></i> </div> <div class="plan-stat-value" id="priorityTopic">-</div> <div class="plan-stat-label">Prioritní téma</div> </div> </div> <h3 class="section-subtitle">Dnešní aktivity</h3> <div class="schedule-day today" id="todaySchedule"> </div> <div class="action-buttons"> <button class="btn btn-primary" id="viewFullScheduleBtn"> <i class="fas fa-calendar-week"></i> Celý harmonogram </button>
+                </div>
             </template>
             <template id="lockedPlanTemplate">
                 <div style="position: relative; min-height: 300px;"> <div class="locked-overlay"> <div class="locked-icon"> <i class="fas fa-lock"></i> </div> <h3 class="locked-title">Vytvoření nového plánu není dostupné</h3> <p class="locked-message">Nový studijní plán můžete vytvořit jednou týdně, abyste měli dostatek času pracovat na aktuálním. Váš poslední plán byl vytvořen nedávno.</p> <div class="timer-container" id="timerContainer"> Další plán můžete vytvořit za: <span id="nextPlanTimer">počítám...</span> </div> <button class="btn btn-primary" id="viewCurrentPlanBtnLocked"> <i class="fas fa-eye"></i> Zobrazit aktuální plán </button> </div> </div>
@@ -330,12 +331,40 @@
         //          Aktuální Plán
         // ==============================================
         async function loadCurrentPlan() { showLoader(currentPlanSection, currentPlanLoader); currentPlanContent.innerHTML = ''; try { if (!currentUser) throw new Error('Uživatel není přihlášen'); const { data: plans, error } = await supabaseClient.from('study_plans').select('*').eq('user_id', currentUser.id).eq('status', 'active').order('created_at', { ascending: false }).limit(1); if (error) throw error; if (plans && plans.length > 0) { currentStudyPlan = plans[0]; renderCurrentPlan(currentStudyPlan); } else { currentStudyPlan = null; const diagnostic = await getLatestDiagnostic(); if (diagnostic) { renderPromptCreatePlan(); } else { renderNoDiagnosticAvailable(currentPlanContent); } } } catch (error) { console.error('Chyba při načítání aktuálního plánu:', error); currentPlanContent.innerHTML = `<div class="notest-message error"><h3><i class="fas fa-exclamation-circle"></i> Chyba</h3><p>Nepodařilo se načíst aktuální plán.</p></div>`; } finally { hideLoader(currentPlanLoader); currentPlanContent.style.display = 'block'; initTooltips(); /* Re-init tooltips after content load */ } }
-        function renderCurrentPlan(plan) { const planFragment = currentPlanTemplate.content.cloneNode(true); planFragment.getElementById('planTitle').textContent = plan.title || 'Personalizovaný studijní plán'; planFragment.getElementById('planDate').textContent = `Vytvořeno: ${formatDate(plan.created_at)}`; planFragment.getElementById('progressValue').textContent = `${plan.progress || 0}%`; const today = new Date(); const estimatedEndDate = plan.estimated_completion_date ? new Date(plan.estimated_completion_date) : null; const daysLeft = estimatedEndDate ? Math.max(0, Math.ceil((estimatedEndDate - today) / (1000 * 60 * 60 * 24))) : '-'; planFragment.getElementById('remainingDays').textContent = daysLeft; loadAndRenderActivities(plan.id, planFragment.getElementById('completedActivities'), planFragment.getElementById('todaySchedule')); let priorityTopic = '-'; if (plan.priority_topics && typeof plan.priority_topics === 'object') { const topics = Object.entries(plan.priority_topics).sort(([,a],[,b]) => a.priority - b.priority); if (topics.length > 0) { priorityTopic = topics[0][0]; } } planFragment.getElementById('priorityTopic').textContent = priorityTopic; planFragment.getElementById('viewDetailBtn').addEventListener('click', () => showPlanDetail(plan)); planFragment.getElementById('exportCurrentPlanBtn').addEventListener('click', () => exportPlanToPDFWithStyle(plan)); planFragment.getElementById('viewFullScheduleBtn').addEventListener('click', () => showFullSchedule(plan)); planFragment.getElementById('updateProgressBtn').addEventListener('click', () => updatePlanProgressManually(plan)); currentPlanContent.innerHTML = ''; currentPlanContent.appendChild(planFragment); initProgressCircle('progressCircle', plan.progress || 0); initTooltips(); }
+        function renderCurrentPlan(plan) { const planFragment = currentPlanTemplate.content.cloneNode(true); planFragment.getElementById('planTitle').textContent = plan.title || 'Personalizovaný studijní plán'; planFragment.getElementById('planDate').textContent = `Vytvořeno: ${formatDate(plan.created_at)}`; planFragment.getElementById('progressValue').textContent = `${plan.progress || 0}%`; const today = new Date(); const estimatedEndDate = plan.estimated_completion_date ? new Date(plan.estimated_completion_date) : null; const daysLeft = estimatedEndDate ? Math.max(0, Math.ceil((estimatedEndDate - today) / (1000 * 60 * 60 * 24))) : '-'; planFragment.getElementById('remainingDays').textContent = daysLeft; loadAndRenderActivities(plan.id, planFragment.getElementById('completedActivities'), planFragment.getElementById('todaySchedule')); let priorityTopic = '-'; if (plan.priority_topics && typeof plan.priority_topics === 'object') { const topics = Object.entries(plan.priority_topics).sort(([,a],[,b]) => a.priority - b.priority); if (topics.length > 0) { priorityTopic = topics[0][0]; } } planFragment.getElementById('priorityTopic').textContent = priorityTopic; planFragment.getElementById('viewDetailBtn').addEventListener('click', () => showPlanDetail(plan)); planFragment.getElementById('exportCurrentPlanBtn').addEventListener('click', () => exportPlanToPDFWithStyle(plan)); planFragment.getElementById('viewFullScheduleBtn').addEventListener('click', () => showFullSchedule(plan));
+        // ZMĚNA: Event listener pro manuální update zakomentován
+        // planFragment.getElementById('updateProgressBtn').addEventListener('click', () => updatePlanProgressManually(plan));
+        currentPlanContent.innerHTML = ''; currentPlanContent.appendChild(planFragment); initProgressCircle('progressCircle', plan.progress || 0); initTooltips(); }
         async function loadAndRenderActivities(planId, completedElement, todayScheduleElement) { try { const { data: activities, error } = await supabaseClient.from('plan_activities').select('*').eq('plan_id', planId); if (error) throw error; const totalActivities = activities?.length || 0; const completedCount = activities?.filter(a => a.completed).length || 0; if(completedElement) completedElement.textContent = `${completedCount}/${totalActivities}`; const today = new Date(); const dayOfWeek = today.getDay(); const todayActivities = activities?.filter(a => a.day_of_week === dayOfWeek) || []; renderDayActivities(todayActivities, todayScheduleElement, planId); } catch (error) { console.error("Chyba načítání aktivit plánu:", error); if(completedElement) completedElement.textContent = 'Chyba'; if(todayScheduleElement) todayScheduleElement.innerHTML = '<p>Chyba načítání dnešních aktivit.</p>'; } }
         function renderDayActivities(activities, container, planId) { if (!container) return; if (!activities || activities.length === 0) { container.innerHTML = '<p>Žádné aktivity pro dnešek.</p>'; return; } container.innerHTML = ''; const activitiesContainer = document.createElement('div'); activitiesContainer.className = 'activities'; activities.sort((a, b) => (a.time_slot || '').localeCompare(b.time_slot || '')); activities.forEach(activity => { const activityElement = document.createElement('div'); activityElement.className = 'activity'; activityElement.innerHTML = `<div class="activity-checkbox"><input type="checkbox" id="activity-${activity.id}" ${activity.completed ? 'checked' : ''}><div class="activity-content"><div class="activity-title">${sanitizeHTML(activity.title || '')} ${activity.time_slot ? `(${activity.time_slot})` : ''}</div><div class="activity-desc">${sanitizeHTML(activity.description || '')}</div></div></div>`; const checkbox = activityElement.querySelector('input[type="checkbox"]'); checkbox.addEventListener('change', function() { handleActivityCompletionToggle(activity.id, this.checked, planId); }); activitiesContainer.appendChild(activityElement); }); container.appendChild(activitiesContainer); }
-        async function handleActivityCompletionToggle(activityId, isCompleted, planId) { try { const { error: updateError } = await supabaseClient.from('plan_activities').update({ completed: isCompleted, updated_at: new Date().toISOString() }).eq('id', activityId); if (updateError) throw updateError; console.log(`Aktivita ${activityId} označena jako ${isCompleted ? 'dokončená' : 'nedokončená'}`); await updatePlanProgress(planId); } catch (error) { console.error(`Chyba aktualizace stavu aktivity ${activityId}:`, error); showToast('Nepodařilo se aktualizovat stav aktivity', 'error'); const checkbox = document.getElementById(`activity-${activityId}`); if (checkbox) checkbox.checked = !isCompleted; } }
+        async function handleActivityCompletionToggle(activityId, isCompleted, planId) { try { const { error: updateError } = await supabaseClient.from('plan_activities').update({ completed: isCompleted, updated_at: new Date().toISOString() }).eq('id', activityId); if (updateError) throw updateError; console.log(`Aktivita ${activityId} označena jako ${isCompleted ? 'dokončená' : 'nedokončená'}`); await updatePlanProgress(planId); } catch (error) { console.error(`Chyba aktualizace stavu aktivity ${activityId}:`, error); showToast('Nepodařilo se aktualizovat stav aktivity', 'error'); const checkbox = document.getElementById(`activity-${activityId}`); if (checkbox) checkbox.checked = !isCompleted; /* Revert checkbox on error */ const checkboxSchedule = document.getElementById(`schedule-activity-${activityId}`); if(checkboxSchedule) checkboxSchedule.checked = !isCompleted; } }
         async function updatePlanProgress(planId) { if (!planId) return; try { const { data: activities, error: activitiesError } = await supabaseClient.from('plan_activities').select('completed').eq('plan_id', planId); if (activitiesError) throw activitiesError; if (!activities || activities.length === 0) return; const completedCount = activities.filter(a => a.completed).length; const progress = Math.round((completedCount / activities.length) * 100); const { error: planUpdateError } = await supabaseClient.from('study_plans').update({ progress: progress, updated_at: new Date().toISOString() }).eq('id', planId); if (planUpdateError) throw planUpdateError; console.log(`Pokrok plánu ${planId} aktualizován na ${progress}%`); if (currentStudyPlan && currentStudyPlan.id === planId) { currentStudyPlan.progress = progress; } const progressValueElement = document.getElementById('progressValue'); const completedActivitiesElement = document.getElementById('completedActivities'); if (progressValueElement) progressValueElement.textContent = `${progress}%`; if (completedActivitiesElement) completedActivitiesElement.textContent = `${completedCount}/${activities.length}`; updateProgressCircle('progressCircle', progress); } catch (error) { console.error(`Chyba při aktualizaci pokroku plánu ${planId}:`, error); } }
-        function updatePlanProgressManually(plan) { const currentProgress = plan.progress || 0; const newProgress = prompt(`Aktuální pokrok je ${currentProgress}%. Zadejte novou hodnotu (0-100):`, currentProgress); if (newProgress !== null) { const progressNum = parseInt(newProgress, 10); if (!isNaN(progressNum) && progressNum >= 0 && progressNum <= 100) { (async () => { try { const { error } = await supabaseClient.from('study_plans').update({ progress: progressNum, updated_at: new Date().toISOString() }).eq('id', plan.id); if (error) throw error; await updatePlanProgress(plan.id); showToast('Pokrok byl manuálně aktualizován.', 'success'); } catch (err) { console.error("Chyba manuální aktualizace pokroku:", err); showToast('Nepodařilo se aktualizovat pokrok.', 'error'); } })(); } else { alert('Zadejte prosím platné číslo mezi 0 a 100.'); } } }
+
+        // ZMĚNA: Funkce pro manuální update zakomentována
+        /*
+        function updatePlanProgressManually(plan) {
+             const currentProgress = plan.progress || 0;
+             const newProgress = prompt(`Aktuální pokrok je ${currentProgress}%. Zadejte novou hodnotu (0-100):`, currentProgress);
+             if (newProgress !== null) {
+                 const progressNum = parseInt(newProgress, 10);
+                 if (!isNaN(progressNum) && progressNum >= 0 && progressNum <= 100) {
+                     (async () => {
+                         try {
+                             const { error } = await supabaseClient.from('study_plans').update({ progress: progressNum, updated_at: new Date().toISOString() }).eq('id', plan.id);
+                             if (error) throw error;
+                             await updatePlanProgress(plan.id); // Recalculate and update UI based on actual activities
+                             showToast('Pokrok byl manuálně aktualizován.', 'success');
+                         } catch (err) {
+                             console.error("Chyba manuální aktualizace pokroku:", err);
+                             showToast('Nepodařilo se aktualizovat pokrok.', 'error');
+                         }
+                     })();
+                 } else {
+                     alert('Zadejte prosím platné číslo mezi 0 a 100.');
+                 }
+             }
+        }
+        */
 
          // Show Plan Details - Fetches FULL markdown content
          async function showPlanDetail(plan) {
@@ -355,7 +384,63 @@
          }
 
         async function showFullSchedule(plan) { if (!plan) return; planSection.style.display = 'none'; scheduleSection.style.display = 'block'; dailySchedule.innerHTML = '<div class="loader-container"><div class="loader"></div></div>'; try { const { data: activities, error } = await supabaseClient.from('plan_activities').select('*').eq('plan_id', plan.id).order('day_of_week').order('time_slot'); if (error) throw error; renderWeeklySchedule(activities || [], plan.id); scheduleSection.scrollIntoView({ behavior: 'smooth' }); } catch (error) { console.error("Chyba načítání celého rozvrhu:", error); dailySchedule.innerHTML = '<p>Nepodařilo se načíst rozvrh.</p>'; } }
-        function renderWeeklySchedule(activities, planId) { const days = ['Neděle', 'Pondělí', 'Úterý', 'Středa', 'Čtvrtek', 'Pátek', 'Sobota']; dailySchedule.innerHTML = ''; for (let i = 0; i < 7; i++) { const dayIndex = i; const dayActivities = activities.filter(a => a.day_of_week === dayIndex); const isToday = new Date().getDay() === dayIndex; const dayElement = document.createElement('div'); dayElement.className = `schedule-day ${isToday ? 'today' : ''}`; dayElement.innerHTML = `<div class="day-name">${days[dayIndex]} ${isToday ? '(Dnes)' : ''}</div>`; const activitiesContainer = document.createElement('div'); activitiesContainer.className = 'activities'; if (dayActivities.length === 0) { activitiesContainer.innerHTML = '<p><i>Žádné aktivity pro tento den.</i></p>'; } else { dayActivities.forEach(activity => { const activityElement = document.createElement('div'); activityElement.className = 'activity'; activityElement.innerHTML = `<div class="activity-checkbox"><input type="checkbox" id="schedule-activity-${activity.id}" ${activity.completed ? 'checked' : ''}><div class="activity-content"><div class="activity-title">${sanitizeHTML(activity.title || '')} ${activity.time_slot ? `(${activity.time_slot})` : ''}</div><div class="activity-desc">${sanitizeHTML(activity.description || '')}</div></div></div>`; const checkbox = activityElement.querySelector('input[type="checkbox"]'); checkbox.addEventListener('change', function() { handleActivityCompletionToggle(activity.id, this.checked, planId); }); activitiesContainer.appendChild(activityElement); }); } dayElement.appendChild(activitiesContainer); dailySchedule.appendChild(dayElement); } }
+
+        // ZMĚNA: Funkce renderWeeklySchedule byla opravena
+        function renderWeeklySchedule(activities, planId) {
+            const days = ['Neděle', 'Pondělí', 'Úterý', 'Středa', 'Čtvrtek', 'Pátek', 'Sobota'];
+            dailySchedule.innerHTML = ''; // Clear previous content
+
+            if (!activities || activities.length === 0) {
+                 dailySchedule.innerHTML = '<p><i>Žádné naplánované aktivity pro tento týden.</i></p>';
+                 return;
+            }
+
+            for (let i = 0; i < 7; i++) {
+                const dayIndex = i;
+                const dayActivities = activities.filter(a => a.day_of_week === dayIndex);
+                const isToday = new Date().getDay() === dayIndex;
+
+                const dayElement = document.createElement('div');
+                dayElement.className = `schedule-day ${isToday ? 'today' : ''}`;
+                dayElement.innerHTML = `<div class="day-name">${days[dayIndex]} ${isToday ? '(Dnes)' : ''}</div>`;
+
+                const activitiesContainer = document.createElement('div');
+                activitiesContainer.className = 'activities';
+
+                if (dayActivities.length === 0) {
+                    activitiesContainer.innerHTML = '<p><i>Žádné aktivity pro tento den.</i></p>';
+                } else {
+                     // Sort activities within the day by time_slot if available
+                    dayActivities.sort((a, b) => (a.time_slot || '').localeCompare(b.time_slot || ''));
+
+                    dayActivities.forEach(activity => {
+                        const activityElement = document.createElement('div');
+                        activityElement.className = 'activity';
+                        activityElement.innerHTML = `
+                            <div class="activity-checkbox">
+                                <input type="checkbox" id="schedule-activity-${activity.id}" ${activity.completed ? 'checked' : ''}>
+                                <div class="activity-content">
+                                    <div class="activity-title">
+                                        ${sanitizeHTML(activity.title || '')} ${activity.time_slot ? `(${activity.time_slot})` : ''}
+                                    </div>
+                                    <div class="activity-desc">
+                                        ${sanitizeHTML(activity.description || '')}
+                                    </div>
+                                </div>
+                            </div>`;
+                        const checkbox = activityElement.querySelector('input[type="checkbox"]');
+                        // Add event listener AFTER creating the element
+                        checkbox.addEventListener('change', function() {
+                            handleActivityCompletionToggle(activity.id, this.checked, planId);
+                        });
+                        activitiesContainer.appendChild(activityElement);
+                    });
+                }
+                dayElement.appendChild(activitiesContainer);
+                dailySchedule.appendChild(dayElement);
+            }
+        }
+
         function renderPromptCreatePlan() { currentPlanContent.innerHTML = `<div class="notest-message info"><h3><i class="fas fa-clipboard-check"></i> Diagnostický test dokončen</h3><p>Váš poslední diagnostický test je připraven k analýze. Můžete nyní vygenerovat nový personalizovaný studijní plán.</p><button class="btn btn-primary" id="createNewPlanFromPromptBtn"><i class="fas fa-plus-circle"></i> Vytvořit studijní plán</button></div>`; document.getElementById('createNewPlanFromPromptBtn').addEventListener('click', () => switchTab('create')); }
 
 
