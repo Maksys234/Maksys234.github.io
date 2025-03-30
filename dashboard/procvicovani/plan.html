@@ -8,16 +8,11 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/css/tooltipster.bundle.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/js/tooltipster.bundle.min.js"></script>
 
     <style>
-        /* --- CSS STYLES (unchanged from previous version) --- */
+        /* --- CSS STYLES (Без изменений) --- */
         /* Základní styly */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
         :root { --primary: #4361ee; --primary-light: #4895ef; --secondary: #3f37c9; --success: #06d6a0; --danger: #f72585; --warning: #f8961e; --info: #4895ef; --dark: #1e2a3a; --light: #f8f9fa; --gray: #6c757d; --gray-light: #dee2e6; --gray-dark: #343a40; --gradient-1: linear-gradient(135deg, #4361ee, #3a0ca3); --gradient-2: linear-gradient(135deg, #4cc9f0, #4361ee); --gradient-3: linear-gradient(135deg, #f72585, #7209b7); --gradient-4: linear-gradient(135deg, #f8961e, #f3722c); --white: #ffffff; --sidebar-width: 260px; --transition-speed: 0.3s; --card-radius: 16px; --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05); --shadow-md: 0 5px 15px rgba(0, 0, 0, 0.07); --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.1); --text-primary: #2d3748; --text-secondary: #4a5568; --text-muted: #718096; }
@@ -250,6 +245,13 @@
          <div id="toast-message">Operace byla úspěšně dokončena.</div>
      </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/js/tooltipster.bundle.min.js"></script>
+
     <script>
         // ==============================================
         //          Inicializace Supabase & Gemini
@@ -386,18 +388,20 @@
             planFragment.getElementById('remainingDays').textContent = daysLeft;
             loadAndRenderActivities(plan.id, planFragment.getElementById('completedActivities'), planFragment.getElementById('todaySchedule'));
             let priorityTopic = '-';
-            if (plan.priority_topics && typeof plan.priority_topics === 'object') {
-                const topics = Object.entries(plan.priority_topics).sort(([,a],[,b]) => a.priority - b.priority);
+             if (plan.priority_topics && typeof plan.priority_topics === 'object') {
+                const topics = Object.entries(plan.priority_topics)
+                     .sort(([, a], [, b]) => (a.priority ?? Infinity) - (b.priority ?? Infinity)); // Sort by priority if available
                 if (topics.length > 0) {
-                     // Check if the topic name exists, otherwise show key
-                     priorityTopic = topics[0][1]?.name || topics[0][0] || '-';
-                }
+                    // Priority topic is the first key after sorting by priority
+                    priorityTopic = topics[0][0] || '-';
+                 }
             }
-             planFragment.getElementById('priorityTopic').textContent = priorityTopic;
+            planFragment.getElementById('priorityTopic').textContent = priorityTopic;
+
             planFragment.getElementById('viewDetailBtn').addEventListener('click', () => showPlanDetail(plan));
             planFragment.getElementById('exportCurrentPlanBtn').addEventListener('click', () => exportPlanToPDFWithStyle(plan));
             planFragment.getElementById('viewFullScheduleBtn').addEventListener('click', () => showFullSchedule(plan));
-            // ZMĚNA: Event listener для ручного обновления закомментирован
+            // ZMĚНА: Event listener для ручного обновления закомментирован
             // planFragment.getElementById('updateProgressBtn').addEventListener('click', () => updatePlanProgressManually(plan));
             currentPlanContent.innerHTML = '';
             currentPlanContent.appendChild(planFragment);
@@ -456,7 +460,7 @@
 
         async function showFullSchedule(plan) { if (!plan) return; planSection.style.display = 'none'; scheduleSection.style.display = 'block'; dailySchedule.innerHTML = '<div class="loader-container"><div class="loader"></div></div>'; try { const { data: activities, error } = await supabaseClient.from('plan_activities').select('*').eq('plan_id', plan.id).order('day_of_week').order('time_slot'); if (error) throw error; renderWeeklySchedule(activities || [], plan.id); scheduleSection.scrollIntoView({ behavior: 'smooth' }); } catch (error) { console.error("Chyba načítání celého rozvrhu:", error); dailySchedule.innerHTML = '<p>Nepodařilo se načíst rozvrh.</p>'; } }
 
-        // ZMĚNA: Функция renderWeeklySchedule была исправлена
+        // ZMĚНА: Функция renderWeeklySchedule была исправлена
         function renderWeeklySchedule(activities, planId) {
             const days = ['Neděle', 'Pondělí', 'Úterý', 'Středa', 'Čtvrtek', 'Pátek', 'Sobota'];
             dailySchedule.innerHTML = ''; // Очистка предыдущего содержимого
@@ -556,8 +560,10 @@
                   let planMarkdownForStorage = fullMarkdownResponse; // Default to full response
 
                   if (jsonMatch && jsonMatch[1]) {
-                      // ZMĚNA: Очистка JSON строки от неразрывных пробелов (U+00A0)
-                      const cleanedJsonString = jsonMatch[1].replace(/\u00A0/g, ' ').trim();
+                      // ZMĚНА: Очистка JSON строки от неразрывных пробелов (U+00A0) и других потенциально проблемных символов в начале/конце строк JSON
+                      const cleanedJsonString = jsonMatch[1]
+                          .replace(/\u00A0/g, ' ') // Заменяем неразрывные пробелы на обычные
+                          .trim(); // Удаляем пробелы в начале и конце всего блока
                       try {
                            activitiesArray = JSON.parse(cleanedJsonString);
                            // Remove the JSON block from the markdown we save
@@ -590,7 +596,7 @@
              } finally { hideLoader(planLoading); }
          }
 
-        // **UPDATED PROMPT with JSON block request** (Prompt остается тем же, но обработка ответа изменена выше)
+        // **UPDATED PROMPT with JSON block request** (Prompt остается тем же)
         async function generatePlanContentWithGemini(testData, topicsData) {
              if (!GEMINI_API_KEY || GEMINI_API_KEY === 'YOUR_GEMINI_API_KEY') { console.error("Chyba: Gemini API klíč není nastaven."); return `## Chyba konfigurace\n\nNebyl nalezen platný Gemini API klíč.`; }
              try {
@@ -701,7 +707,7 @@
                      console.log(`Pokouším se vložit ${activitiesArray.length} aktivit...`);
                      const activitiesToInsert = activitiesArray.map(act => ({
                          plan_id: savedPlanId,
-                         // ZMĚNA: Удалено user_id, так как его нет в схеме
+                         // ZMĚНА: user_id удален, так как его нет в схеме
                          day_of_week: act.day_of_week,
                          time_slot: act.time_slot || null,
                          title: act.title,
@@ -717,7 +723,7 @@
                          .insert(activitiesToInsert);
 
                      if (insertActivitiesError) {
-                         // ZMĚNA: Логируем полную ошибку
+                         // ZMĚНА: Логируем полную ошибку
                          console.error("Chyba při vkládání aktivit:", insertActivitiesError);
                          showToast('Plán uložen, ale nepodařilo se uložit aktivity pro harmonogram.', 'warning');
                      } else {
@@ -733,7 +739,7 @@
 
              } catch (error) {
                  console.error("Chyba při ukládání plánu nebo aktivit:", error);
-                 // ZMĚNA: Улучшено сообщение об ошибке
+                 // ZMĚНА: Улучшено сообщение об ошибке
                  showToast(`Nepodařilo se uložit plán. Chyba: ${error.message || 'Neznámá chyba'}`, 'error');
                  if(saveButton) saveButton.disabled = false; saveButton.innerHTML = '<i class="fas fa-save"></i> Uložit tento plán';
                  // Attempt to reactivate previous plan if deactivation succeeded but insertion failed? (complex recovery)
