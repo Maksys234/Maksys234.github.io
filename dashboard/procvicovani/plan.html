@@ -726,7 +726,7 @@
                  4.  Buď co nejvíce SPECIFICKÝ v popisu úkolů v Markdown i JSON. Místo 'Procvičuj geometrii' uveď 'Výpočet obvodů a obsahů složených rovinných útvarů (3 úlohy)'.
                  5.  Rozděl denní studium (cca 75-100 minut) do 2-3 INTENZIVNÍCH bloků. Uveď odhadovaný čas.
                  6.  **DŮLEŽITÉ:** V poli 'description' v JSON bloku **NEUVÁDĚJ KONKRÉTNÍ ROVNICE NEBO ČÍSELNÉ ZADÁNÍ PŘÍKLADŮ**. Místo toho SLOVNĚ popiš TYP úloh, počet a zaměření (např. 'Řešení 5 lineárních rovnic se zlomky', 'Výpočet procentové části ze základu ve 4 slovních úlohách').
-                 7.  **KONZISTENCE:** Zajisti, aby aktivity v JSON (`title` a `description`) PŘESNĚ odpovídaly obsahu a zaměření bloků popsaných v Markdown pro KAŽDÝ den.
+                 7.  **KONZISTENCE:** Zajisti, aby aktivity v JSON (\`title\` a \`description\`) PŘESNĚ odpovídaly obsahu a zaměření bloků popsaných v Markdown pro KAŽDÝ den.
                  8.  NA KONEC celého Markdown textu PŘIDEJ validní JSON blok (\`\`\`json ... \`\`\`) obsahující pole objektů pro VŠECHNY aktivity. Klíče: "day_of_week" (číslo 0-6), "title" (string, název bloku), "description" (string, SLOVNÍ popis TYPU úkolů), "time_slot" (string, čas).
 
                  # Požadovaný formát výstupu (Markdown + JSON na konci):
@@ -878,7 +878,7 @@
                             time_slot: act.time_slot || null,
                             title: act.title || 'Nespecifikováno', // Provide default if title missing
                             description: act.description || null,
-                            completed: false,
+                            completed: false, // <--- ZDE BYLA PŘIDÁNA ČÁRKA
                         };
                         // Explicitly return the object
                         return activityObject;
