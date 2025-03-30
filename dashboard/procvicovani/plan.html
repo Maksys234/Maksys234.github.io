@@ -13,7 +13,8 @@
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/css/tooltipster.bundle.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1.min.js"></script> <script src="https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/js/tooltipster.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/js/tooltipster.bundle.min.js"></script>
 
     <style>
         /* --- CSS STYLES (unchanged) --- */
@@ -128,6 +129,10 @@
         .notest-message { background-color: rgba(255, 214, 102, 0.2); border-left: 4px solid var(--warning); padding: 1.5rem; margin: 2rem 0; border-radius: var(--card-radius); }
         .notest-message h3 { color: var(--warning); margin-bottom: 0.75rem; font-size: 1.2rem; }
         .notest-message p { color: var(--text-secondary); margin-bottom: 1rem; line-height: 1.5; }
+        .notest-message.error { background-color: rgba(247, 37, 133, 0.1); border-left-color: var(--danger); }
+        .notest-message.error h3 { color: var(--danger); }
+        .notest-message.info { background-color: rgba(72, 149, 239, 0.1); border-left-color: var(--info); }
+        .notest-message.info h3 { color: var(--info); }
         .plan-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem; }
         .plan-meta { display: flex; flex-direction: column; gap: 0.5rem; flex-grow: 1; }
         .plan-date { font-size: 0.9rem; color: var(--text-muted); }
@@ -153,9 +158,9 @@
         .history-date { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.25rem; }
         .history-title { font-weight: 600; color: var(--dark); }
         .history-status { padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.8rem; font-weight: 500; }
-        .history-status.active { background-color: rgba(76, 201, 240, 0.15); color: var(--success); }
+        .history-status.active { background-color: rgba(76, 201, 240, 0.15); color: #4cc9f0; } /* Updated success color */
         .history-status.completed { background-color: rgba(67, 97, 238, 0.15); color: var(--primary); }
-        .history-status.expired { background-color: rgba(247, 37, 133, 0.15); color: var(--danger); }
+        .history-status.inactive { background-color: rgba(108, 117, 125, 0.15); color: var(--gray);}
         .tooltip-inner { background-color: var(--dark); color: var(--white); border-radius: 4px; padding: 0.5rem 0.75rem; font-size: 0.9rem; max-width: 250px; box-shadow: var(--shadow-md); }
         .locked-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(26, 32, 44, 0.7); display: flex; flex-direction: column; justify-content: center; align-items: center; border-radius: var(--card-radius); color: white; padding: 2rem; text-align: center; }
         .locked-icon { font-size: 3rem; margin-bottom: 1rem; opacity: 0.9; }
@@ -176,7 +181,7 @@
         @media (max-width: 576px) { :root { --sidebar-width: 0; } .sidebar { transform: translateX(-100%); z-index: 1000; width: 260px; } .sidebar.active { transform: translateX(0); } .sidebar.active .sidebar-logo span, .sidebar.active .sidebar-link span, .sidebar.active .user-info, .sidebar.active .sidebar-footer { display: block; } .sidebar.active .sidebar-link i { margin-right: 0.75rem; } .sidebar.active .sidebar-header, .sidebar.active .sidebar-link { justify-content: flex-start; } .sidebar.active .user-profile { justify-content: flex-start; padding: 1rem; } .sidebar.active .user-avatar { margin-right: 0.75rem; } main { margin-left: 0; width: 100%; } .mobile-menu-toggle { display: block; } .plan-stat-card { min-width: 100%; } .test-stats { flex-direction: column; } }
         .mobile-menu-toggle { display: none; background: none; border: none; cursor: pointer; color: var(--dark); font-size: 1.5rem; margin-right: 1rem; }
         .mobile-menu-visible .sidebar { transform: translateX(0); }
-        @media (prefers-color-scheme: dark) { :root { --white: #1a202c; --light: #2d3748; --dark: #e2e8f0; --gray-light: #4a5568; --text-primary: #e2e8f0; --text-secondary: #cbd5e0; --text-muted: #a0aec0; } body { background-color: #171923; } .plan-content { background-color: #1e2533; } .test-stat-card { background-color: #2d3748; } .plan-stat-card { background-color: #2d3748; } .notest-message { background-color: rgba(255, 214, 102, 0.1); } .history-item { background-color: var(--dark-bg); } }
+        @media (prefers-color-scheme: dark) { :root { --white: #1a202c; --light: #2d3748; --dark: #e2e8f0; --gray-light: #4a5568; --text-primary: #e2e8f0; --text-secondary: #cbd5e0; --text-muted: #a0aec0; } body { background-color: #171923; } .plan-content { background-color: #1e2533; } .test-stat-card { background-color: #2d3748; } .plan-stat-card { background-color: #2d3748; } .notest-message { background-color: rgba(255, 214, 102, 0.1); } .history-item { background-color: var(--dark-bg); } .schedule-day.today { background-color: rgba(6, 214, 160, 0.08); } }
     </style>
 </head>
 <body>
@@ -219,7 +224,7 @@
 
             <div class="section plan-section" id="planSection" style="display: none;">
                  <div class="step-navigation">
-                     <button class="btn btn-secondary" id="backToCreateBtn"> <i class="fas fa-arrow-left"></i> Zpět k výběru </button>
+                     <button class="btn btn-secondary" id="backToCreateBtn"> <i class="fas fa-arrow-left"></i> Zpět </button>
                  </div>
                 <h2 class="section-title">Váš personalizovaný studijní plán</h2>
                 <div class="ai-loading" id="planLoading"> <div class="ai-loading-spinner"></div> <div>Vytvářím personalizovaný studijní plán... Může to chvíli trvat.</div> </div>
@@ -265,6 +270,11 @@
         </div>
     </main>
 
+     <div class="toast" id="toast">
+         <i class="fas fa-check-circle"></i>
+         <div id="toast-message">Operace byla úspěšně dokončena.</div>
+     </div>
+
     <script>
         // ==============================================
         //          Inicializace Supabase & Gemini
@@ -273,8 +283,10 @@
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10';
         const { createClient } = supabase;
         const supabaseClient = createClient(supabaseUrl, supabaseKey);
-        const GEMINI_API_KEY = 'AIzaSyDQboM6qtC_O2sqqpaKZZffNf2zk6HrhEs'; // POUZE PRO TESTOVÁNÍ!
+        // !!! DŮLEŽITÉ: Nahraďte tento klíč vaším vlastním platným API klíčem !!!
+        const GEMINI_API_KEY = 'AIzaSyDQboM6qtC_O2sqqpaKZZffNf2zk6HrhEs'; // <--- ZDE VLOŽTE VÁŠ KLÍČ
         const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
+
 
         // ==============================================
         //          DOM Elementy
@@ -308,74 +320,44 @@
         const historyItemTemplate = document.getElementById('historyItemTemplate');
 
         // Globální proměnné
-        let currentUser = null;
-        let currentProfile = null;
-        let latestDiagnosticData = null;
-        let currentStudyPlan = null;
-        let previousPlans = [];
-        let planCreateAllowed = false;
-        let nextPlanCreateTime = null;
-        let planTimerInterval = null;
-        let progressCircleInstance = null;
-        let currentTab = 'current'; // Sledování aktivní záložky
+        let currentUser = null; let currentProfile = null; let latestDiagnosticData = null; let currentStudyPlan = null; let previousPlans = []; let planCreateAllowed = false; let nextPlanCreateTime = null; let planTimerInterval = null; let progressCircleInstance = null; let currentTab = 'current';
 
-        // Ikony témat (volitelné, pokud je chcete použít)
+        // Ikony a mapa témat
         const topicIcons = { "Čísla a aritmetické operace": "fa-calculator", "Algebra": "fa-square-root-alt", "Geometrie": "fa-draw-polygon", "Práce s daty": "fa-chart-bar", "Problémové úlohy": "fa-lightbulb", "Proporce a procenta": "fa-percentage", "Logické úlohy": "fa-brain", "default": "fa-book" };
-        // Mapa ID témat na názvy (PŘEDPOKLAD - nahraďte skutečnými ID z vaší DB)
         const topicMap = { 1: "Čísla a aritmetické operace", 2: "Algebra", 3: "Geometrie", 4: "Práce s daty", 5: "Problémové úlohy", 6: "Proporce a procenta", 7: "Logické úlohy" };
-
 
         // ==============================================
         //          Inicializace a Navigace
         // ==============================================
         async function initializeApp() {
             try {
-                showLoader(currentPlanSection, currentPlanLoader); // Show initial loader in current plan tab
+                showLoader(currentPlanSection, currentPlanLoader);
                 currentUser = await getCurrentSupabaseUser();
                 if (!currentUser) {
                     console.warn("Uživatel není přihlášen. Používám placeholder.");
                     currentUser = { id: 'PLACEHOLDER_USER_ID', email: 'student@example.com' };
                     currentProfile = { username: 'Testovací Student', email: 'student@example.com', points: 0 };
-                } else {
-                    currentProfile = await fetchUserProfile(currentUser.id);
-                }
+                } else { currentProfile = await fetchUserProfile(currentUser.id); }
                 updateUserInfoUI(currentProfile, currentUser?.email);
                 setupEventListeners();
-                await switchTab('current'); // Load current tab content
-            } catch (error) {
-                console.error('Chyba při inicializaci aplikace:', error);
-                showGlobalError('Nepodařilo se inicializovat aplikaci: ' + error.message);
-            }
+                await switchTab('current');
+            } catch (error) { console.error('Chyba při inicializaci aplikace:', error); showGlobalError('Nepodařilo se inicializovat aplikaci: ' + error.message); }
         }
 
         function setupEventListeners() {
             if (mobileMenuToggle) mobileMenuToggle.addEventListener('click', toggleMobileMenu);
             planTabs.forEach(tab => { tab.addEventListener('click', () => switchTab(tab.dataset.tab)); });
-             if (backToCreateBtn) backToCreateBtn.addEventListener('click', () => switchTab('create'));
-             if (backToCurrentPlanBtn) backToCurrentPlanBtn.addEventListener('click', () => switchTab('current')); // Go back to plan overview
+            if (backToCreateBtn) backToCreateBtn.addEventListener('click', () => switchTab('create'));
+            if (backToCurrentPlanBtn) backToCurrentPlanBtn.addEventListener('click', () => switchTab('current'));
         }
 
         async function switchTab(tabId) {
             currentTab = tabId;
             planTabs.forEach(tab => { tab.classList.toggle('active', tab.dataset.tab === tabId); });
-            // Hide all sections initially
-            currentPlanSection.style.display = 'none';
-            historyPlanSection.style.display = 'none';
-            createPlanSection.style.display = 'none';
-            planSection.style.display = 'none'; // Generated plan detail
-            scheduleSection.style.display = 'none'; // Full schedule view
-
-            // Show the selected section and load its data
-            if (tabId === 'current') {
-                currentPlanSection.style.display = 'block';
-                await loadCurrentPlan();
-            } else if (tabId === 'history') {
-                historyPlanSection.style.display = 'block';
-                await loadPlanHistory();
-            } else if (tabId === 'create') {
-                createPlanSection.style.display = 'block';
-                await checkPlanCreationAvailability();
-            }
+            currentPlanSection.style.display = 'none'; historyPlanSection.style.display = 'none'; createPlanSection.style.display = 'none'; planSection.style.display = 'none'; scheduleSection.style.display = 'none';
+            if (tabId === 'current') { currentPlanSection.style.display = 'block'; await loadCurrentPlan(); }
+            else if (tabId === 'history') { historyPlanSection.style.display = 'block'; await loadPlanHistory(); }
+            else if (tabId === 'create') { createPlanSection.style.display = 'block'; await checkPlanCreationAvailability(); }
         }
 
         // ==============================================
@@ -386,41 +368,26 @@
         function updateUserInfoUI(profileData, userEmail) { const displayName = `${profileData?.first_name || ''} ${profileData?.last_name || ''}`.trim() || profileData?.username || userEmail?.split('@')[0] || 'Student'; if(userName) userName.textContent = displayName; if(userAvatar) { if (profileData?.avatar_url) { userAvatar.innerHTML = `<img src="${profileData.avatar_url}" alt="Avatar">`; } else { const initials = getInitials(profileData || { email: userEmail }); userAvatar.textContent = initials; } } }
         function getInitials(profileData) { if (!profileData) return 'U'; const first = profileData.first_name?.[0] || ''; const last = profileData.last_name?.[0] || ''; const usernameInitial = profileData.username?.[0] || ''; const emailInitial = profileData.email?.[0] || ''; return (first + last).toUpperCase() || usernameInitial.toUpperCase() || emailInitial.toUpperCase() || 'U'; }
         function formatDate(dateString) { if(!dateString) return '-'; const date = new Date(dateString); return date.toLocaleDateString('cs-CZ', { day: '2-digit', month: '2-digit', year: 'numeric' }); }
-        function showLoader(sectionElement, loaderElement) { loaderElement.style.display = 'flex'; const contentElement = sectionElement.querySelector('[id$="Content"]'); if (contentElement) contentElement.style.display = 'none'; }
-        function hideLoader(loaderElement) { loaderElement.style.display = 'none'; }
-        function showGlobalError(message) { const errorContainer = document.getElementById('global-error'); errorContainer.innerHTML = `<div class="error-message"><i class="fas fa-exclamation-circle"></i><div>${message}</div></div>`; errorContainer.style.display = 'block'; }
+        function showLoader(sectionElement, loaderElement) { if(loaderElement) loaderElement.style.display = 'flex'; const contentElement = sectionElement.querySelector('[id$="Content"], .plan-history, .daily-schedule, .plan-content'); if (contentElement) contentElement.style.display = 'none'; }
+        function hideLoader(loaderElement) { if(loaderElement) loaderElement.style.display = 'none'; }
+        function showGlobalError(message) { const errorContainer = document.getElementById('global-error'); if(errorContainer) { errorContainer.innerHTML = `<div class="error-message"><i class="fas fa-exclamation-circle"></i><div>${message}</div></div>`; errorContainer.style.display = 'block';} }
+        function sanitizeHTML(str) { if (str === null || str === undefined) return ''; const temp = document.createElement('div'); temp.textContent = str; return temp.innerHTML; }
+
 
         // ==============================================
         //          Aktuální Plán
         // ==============================================
         async function loadCurrentPlan() {
              showLoader(currentPlanSection, currentPlanLoader);
-             currentPlanContent.innerHTML = ''; // Clear previous content
+             currentPlanContent.innerHTML = '';
              try {
                  if (!currentUser) throw new Error('Uživatel není přihlášen');
                  const { data: plans, error } = await supabaseClient.from('study_plans').select('*').eq('user_id', currentUser.id).eq('status', 'active').order('created_at', { ascending: false }).limit(1);
                  if (error) throw error;
-
-                 if (plans && plans.length > 0) {
-                     currentStudyPlan = plans[0];
-                     renderCurrentPlan(currentStudyPlan);
-                 } else {
-                     currentStudyPlan = null; // No active plan
-                     // Check if diagnostic exists to prompt creation
-                     const diagnostic = await getLatestDiagnostic();
-                     if (diagnostic) {
-                         renderPromptCreatePlan();
-                     } else {
-                         renderNoDiagnosticAvailable(currentPlanContent); // Show 'take test' prompt here
-                     }
-                 }
-             } catch (error) {
-                 console.error('Chyba při načítání aktuálního plánu:', error);
-                 currentPlanContent.innerHTML = `<div class="notest-message error"><h3><i class="fas fa-exclamation-circle"></i> Chyba</h3><p>Nepodařilo se načíst aktuální plán.</p></div>`;
-             } finally {
-                 hideLoader(currentPlanLoader);
-                 currentPlanContent.style.display = 'block';
-             }
+                 if (plans && plans.length > 0) { currentStudyPlan = plans[0]; renderCurrentPlan(currentStudyPlan); }
+                 else { currentStudyPlan = null; const diagnostic = await getLatestDiagnostic(); if (diagnostic) { renderPromptCreatePlan(); } else { renderNoDiagnosticAvailable(currentPlanContent); } }
+             } catch (error) { console.error('Chyba při načítání aktuálního plánu:', error); currentPlanContent.innerHTML = `<div class="notest-message error"><h3><i class="fas fa-exclamation-circle"></i> Chyba</h3><p>Nepodařilo se načíst aktuální plán.</p></div>`;
+             } finally { hideLoader(currentPlanLoader); currentPlanContent.style.display = 'block'; }
          }
 
          function renderCurrentPlan(plan) {
@@ -428,435 +395,81 @@
              planFragment.getElementById('planTitle').textContent = plan.title || 'Personalizovaný studijní plán';
              planFragment.getElementById('planDate').textContent = `Vytvořeno: ${formatDate(plan.created_at)}`;
              planFragment.getElementById('progressValue').textContent = `${plan.progress || 0}%`;
-
-             const today = new Date();
-             const estimatedEndDate = plan.estimated_completion_date ? new Date(plan.estimated_completion_date) : null;
-             const daysLeft = estimatedEndDate ? Math.max(0, Math.ceil((estimatedEndDate - today) / (1000 * 60 * 60 * 24))) : '-';
-             planFragment.getElementById('remainingDays').textContent = daysLeft;
-
-             // Fetch and render activities to calculate completion status
+             const today = new Date(); const estimatedEndDate = plan.estimated_completion_date ? new Date(plan.estimated_completion_date) : null; const daysLeft = estimatedEndDate ? Math.max(0, Math.ceil((estimatedEndDate - today) / (1000 * 60 * 60 * 24))) : '-'; planFragment.getElementById('remainingDays').textContent = daysLeft;
              loadAndRenderActivities(plan.id, planFragment.getElementById('completedActivities'), planFragment.getElementById('todaySchedule'));
-
-             // Determine priority topic (simplified example)
-             let priorityTopic = '-';
-              if (plan.priority_topics && typeof plan.priority_topics === 'object') {
-                 const topics = Object.entries(plan.priority_topics).sort(([,a],[,b]) => a.priority - b.priority); // Sort by priority value
-                 if (topics.length > 0) { priorityTopic = topics[0][0]; } // Get name of highest priority topic
-              }
-             planFragment.getElementById('priorityTopic').textContent = priorityTopic;
-
-             // Add event listeners
-             planFragment.getElementById('viewDetailBtn').addEventListener('click', () => showPlanDetail(plan));
-             planFragment.getElementById('exportCurrentPlanBtn').addEventListener('click', () => exportPlanToPDFWithStyle(plan));
-             planFragment.getElementById('viewFullScheduleBtn').addEventListener('click', () => showFullSchedule(plan));
-             planFragment.getElementById('updateProgressBtn').addEventListener('click', () => updatePlanProgressManually(plan));
-
-
-             currentPlanContent.innerHTML = ''; // Clear previous
-             currentPlanContent.appendChild(planFragment);
-             initProgressCircle('progressCircle', plan.progress || 0);
-             initTooltips(); // Re-init tooltips for new buttons
+             let priorityTopic = '-'; if (plan.priority_topics && typeof plan.priority_topics === 'object') { const topics = Object.entries(plan.priority_topics).sort(([,a],[,b]) => a.priority - b.priority); if (topics.length > 0) { priorityTopic = topics[0][0]; } } planFragment.getElementById('priorityTopic').textContent = priorityTopic;
+             planFragment.getElementById('viewDetailBtn').addEventListener('click', () => showPlanDetail(plan)); planFragment.getElementById('exportCurrentPlanBtn').addEventListener('click', () => exportPlanToPDFWithStyle(plan)); planFragment.getElementById('viewFullScheduleBtn').addEventListener('click', () => showFullSchedule(plan)); planFragment.getElementById('updateProgressBtn').addEventListener('click', () => updatePlanProgressManually(plan));
+             currentPlanContent.innerHTML = ''; currentPlanContent.appendChild(planFragment); initProgressCircle('progressCircle', plan.progress || 0); initTooltips();
          }
 
          async function loadAndRenderActivities(planId, completedElement, todayScheduleElement) {
              try {
-                 const { data: activities, error } = await supabaseClient.from('plan_activities').select('*').eq('plan_id', planId);
-                 if (error) throw error;
-
-                 const totalActivities = activities?.length || 0;
-                 const completedCount = activities?.filter(a => a.completed).length || 0;
-                 if(completedElement) completedElement.textContent = `${completedCount}/${totalActivities}`;
-
-                 // Render today's activities
-                  const today = new Date();
-                  const dayOfWeek = today.getDay(); // 0 = Sun, 1 = Mon, ...
-                  const todayActivities = activities?.filter(a => a.day_of_week === dayOfWeek) || [];
-                  renderDayActivities(todayActivities, todayScheduleElement, planId); // Pass planId
-
-             } catch (error) {
-                 console.error("Chyba načítání aktivit plánu:", error);
-                  if(completedElement) completedElement.textContent = 'Chyba';
-                  if(todayScheduleElement) todayScheduleElement.innerHTML = '<p>Chyba načítání dnešních aktivit.</p>';
-             }
+                 const { data: activities, error } = await supabaseClient.from('plan_activities').select('*').eq('plan_id', planId); if (error) throw error;
+                 const totalActivities = activities?.length || 0; const completedCount = activities?.filter(a => a.completed).length || 0; if(completedElement) completedElement.textContent = `${completedCount}/${totalActivities}`;
+                 const today = new Date(); const dayOfWeek = today.getDay(); const todayActivities = activities?.filter(a => a.day_of_week === dayOfWeek) || []; renderDayActivities(todayActivities, todayScheduleElement, planId);
+             } catch (error) { console.error("Chyba načítání aktivit plánu:", error); if(completedElement) completedElement.textContent = 'Chyba'; if(todayScheduleElement) todayScheduleElement.innerHTML = '<p>Chyba načítání dnešních aktivit.</p>'; }
          }
 
-         function renderDayActivities(activities, container, planId) { // Added planId
-             if (!container) return;
-             if (!activities || activities.length === 0) {
-                 container.innerHTML = '<p>Žádné aktivity pro dnešek.</p>';
-                 return;
-             }
-              container.innerHTML = ''; // Clear previous
-             // Optional: Add day name if not already present
-             // const dayNames = ['Neděle', 'Pondělí', 'Úterý', 'Středa', 'Čtvrtek', 'Pátek', 'Sobota'];
-             // container.innerHTML = `<div class="day-name">${dayNames[new Date().getDay()]}</div>`;
-
-             const activitiesContainer = document.createElement('div');
-             activitiesContainer.className = 'activities';
-             activities.sort((a, b) => (a.time_slot || '').localeCompare(b.time_slot || ''));
-
-             activities.forEach(activity => {
-                 const activityElement = document.createElement('div');
-                 activityElement.className = 'activity';
-                 activityElement.innerHTML = `
-                     <div class="activity-checkbox">
-                         <input type="checkbox" id="activity-${activity.id}" ${activity.completed ? 'checked' : ''}>
-                         <div class="activity-content">
-                             <div class="activity-title">${sanitizeHTML(activity.title || '')} ${activity.time_slot ? `(${activity.time_slot})` : ''}</div>
-                             <div class="activity-desc">${sanitizeHTML(activity.description || '')}</div>
-                         </div>
-                     </div>`;
-                 const checkbox = activityElement.querySelector('input[type="checkbox"]');
-                 checkbox.addEventListener('change', function() {
-                      handleActivityCompletionToggle(activity.id, this.checked, planId); // Pass planId
-                 });
-                 activitiesContainer.appendChild(activityElement);
-             });
-              container.appendChild(activitiesContainer);
+         function renderDayActivities(activities, container, planId) {
+             if (!container) return; if (!activities || activities.length === 0) { container.innerHTML = '<p>Žádné aktivity pro dnešek.</p>'; return; } container.innerHTML = '';
+             const activitiesContainer = document.createElement('div'); activitiesContainer.className = 'activities'; activities.sort((a, b) => (a.time_slot || '').localeCompare(b.time_slot || ''));
+             activities.forEach(activity => { const activityElement = document.createElement('div'); activityElement.className = 'activity'; activityElement.innerHTML = `<div class="activity-checkbox"><input type="checkbox" id="activity-${activity.id}" ${activity.completed ? 'checked' : ''}><div class="activity-content"><div class="activity-title">${sanitizeHTML(activity.title || '')} ${activity.time_slot ? `(${activity.time_slot})` : ''}</div><div class="activity-desc">${sanitizeHTML(activity.description || '')}</div></div></div>`; const checkbox = activityElement.querySelector('input[type="checkbox"]'); checkbox.addEventListener('change', function() { handleActivityCompletionToggle(activity.id, this.checked, planId); }); activitiesContainer.appendChild(activityElement); }); container.appendChild(activitiesContainer);
          }
 
-          // Handle activity completion toggle and update plan progress
-          async function handleActivityCompletionToggle(activityId, isCompleted, planId) {
-              try {
-                   // Update activity status in DB
-                   const { error: updateError } = await supabaseClient
-                       .from('plan_activities')
-                       .update({ completed: isCompleted, updated_at: new Date().toISOString() })
-                       .eq('id', activityId);
-                   if (updateError) throw updateError;
-
-                   console.log(`Aktivita ${activityId} označena jako ${isCompleted ? 'dokončená' : 'nedokončená'}`);
-
-                   // Recalculate and update plan progress
-                   await updatePlanProgress(planId);
-
-              } catch (error) {
-                   console.error(`Chyba aktualizace stavu aktivity ${activityId}:`, error);
-                   showToast('Nepodařilo se aktualizovat stav aktivity', 'error');
-                   // Optionally revert checkbox state visually on error
-                   const checkbox = document.getElementById(`activity-${activityId}`);
-                   if (checkbox) checkbox.checked = !isCompleted;
-              }
-          }
-
-
-        // Recalculate and update plan progress in DB and UI
-        async function updatePlanProgress(planId) {
-             if (!planId) return;
-             try {
-                  const { data: activities, error: activitiesError } = await supabaseClient
-                      .from('plan_activities')
-                      .select('completed')
-                      .eq('plan_id', planId);
-
-                  if (activitiesError) throw activitiesError;
-                  if (!activities || activities.length === 0) return; // No activities to calculate progress from
-
-                  const completedCount = activities.filter(a => a.completed).length;
-                  const progress = Math.round((completedCount / activities.length) * 100);
-
-                  // Update plan progress in DB
-                  const { error: planUpdateError } = await supabaseClient
-                      .from('study_plans')
-                      .update({ progress: progress, updated_at: new Date().toISOString() })
-                      .eq('id', planId);
-                  if (planUpdateError) throw planUpdateError;
-
-                  console.log(`Pokrok plánu ${planId} aktualizován na ${progress}%`);
-
-                  // Update local plan object if it's the current one
-                   if (currentStudyPlan && currentStudyPlan.id === planId) {
-                       currentStudyPlan.progress = progress;
-                   }
-
-                  // Update UI elements if they exist
-                  const progressValueElement = document.getElementById('progressValue');
-                  const completedActivitiesElement = document.getElementById('completedActivities');
-
-                  if (progressValueElement) progressValueElement.textContent = `${progress}%`;
-                  if (completedActivitiesElement) completedActivitiesElement.textContent = `${completedCount}/${activities.length}`;
-                  updateProgressCircle('progressCircle', progress); // Update circle chart
-
-             } catch (error) {
-                  console.error(`Chyba při aktualizaci pokroku plánu ${planId}:`, error);
-                  // Don't show toast here to avoid spamming on every check
-             }
-         }
-
-         // Manual progress update dialog
-         function updatePlanProgressManually(plan) {
-             // (Code for the dialog from previous example - kept concise here)
-              const currentProgress = plan.progress || 0;
-              const newProgress = prompt(`Aktuální pokrok je ${currentProgress}%. Zadejte novou hodnotu (0-100):`, currentProgress);
-              if (newProgress !== null) {
-                   const progressNum = parseInt(newProgress, 10);
-                   if (!isNaN(progressNum) && progressNum >= 0 && progressNum <= 100) {
-                        // Update DB and UI
-                         (async () => {
-                              try {
-                                   const { error } = await supabaseClient.from('study_plans').update({ progress: progressNum, updated_at: new Date().toISOString() }).eq('id', plan.id);
-                                   if (error) throw error;
-                                   await updatePlanProgress(plan.id); // Recalculate based on new percentage or just update UI
-                                   showToast('Pokrok byl manuálně aktualizován.', 'success');
-                              } catch (err) {
-                                   console.error("Chyba manuální aktualizace pokroku:", err);
-                                   showToast('Nepodařilo se aktualizovat pokrok.', 'error');
-                              }
-                         })();
-                   } else {
-                        alert('Zadejte prosím platné číslo mezi 0 a 100.');
-                   }
-              }
-         }
-
-         // Show Plan Details (loads content into planSection)
-         async function showPlanDetail(plan) {
-             if (!plan) return;
-             currentPlanSection.style.display = 'none'; historyPlanSection.style.display = 'none'; createPlanSection.style.display = 'none'; scheduleSection.style.display = 'none';
-             planSection.style.display = 'block'; showLoader(planSection, planLoading); planActions.style.display = 'none';
-
-             // Wait a bit for loader animation then display content
-             setTimeout(() => {
-                 displayPlanContent(plan.plan_content || '# Studijní plán\n\nObsah plánu není k dispozici.');
-                 hideLoader(planLoading);
-                 planActions.innerHTML = ` <button class="btn btn-secondary" id="backToSourceTabBtn"> <i class="fas fa-arrow-left"></i> Zpět </button> <button class="btn btn-primary" id="viewScheduleDetailBtn"> <i class="fas fa-calendar-alt"></i> Zobrazit rozvrh </button> <button class="btn btn-success" id="exportDetailPlanBtn"> <i class="fas fa-file-export"></i> Export PDF </button> `;
-                 document.getElementById('backToSourceTabBtn').addEventListener('click', () => switchTab(currentTab)); // Go back to the tab user was on
-                 document.getElementById('viewScheduleDetailBtn').addEventListener('click', () => showFullSchedule(plan));
-                 document.getElementById('exportDetailPlanBtn').addEventListener('click', () => exportPlanToPDFWithStyle(plan));
-                 planActions.style.display = 'flex';
-                 planSection.scrollIntoView({ behavior: 'smooth' });
-             }, 300);
-         }
-
-          // Show Full Schedule (loads content into scheduleSection)
-          async function showFullSchedule(plan) {
-               if (!plan) return;
-               planSection.style.display = 'none'; // Hide detail view
-               scheduleSection.style.display = 'block';
-               dailySchedule.innerHTML = '<div class="loader-container"><div class="loader"></div></div>'; // Show loader
-
-               try {
-                    const { data: activities, error } = await supabaseClient.from('plan_activities').select('*').eq('plan_id', plan.id).order('day_of_week').order('time_slot');
-                    if (error) throw error;
-                    renderWeeklySchedule(activities || [], plan.id); // Pass planId
-                    scheduleSection.scrollIntoView({ behavior: 'smooth' });
-               } catch (error) {
-                    console.error("Chyba načítání celého rozvrhu:", error);
-                    dailySchedule.innerHTML = '<p>Nepodařilo se načíst rozvrh.</p>';
-               }
-          }
-
-          // Render the full weekly schedule
-          function renderWeeklySchedule(activities, planId) { // Added planId
-              const days = ['Neděle', 'Pondělí', 'Úterý', 'Středa', 'Čtvrtek', 'Pátek', 'Sobota'];
-              dailySchedule.innerHTML = ''; // Clear loader/previous
-
-              for (let i = 0; i < 7; i++) { // Loop through days Sun-Sat
-                   const dayIndex = i; // 0 for Sun, 1 for Mon, etc.
-                   const dayActivities = activities.filter(a => a.day_of_week === dayIndex);
-                   const isToday = new Date().getDay() === dayIndex;
-
-                   const dayElement = document.createElement('div');
-                   dayElement.className = `schedule-day ${isToday ? 'today' : ''}`;
-                   dayElement.innerHTML = `<div class="day-name">${days[dayIndex]} ${isToday ? '(Dnes)' : ''}</div>`;
-
-                   const activitiesContainer = document.createElement('div');
-                   activitiesContainer.className = 'activities';
-
-                   if (dayActivities.length === 0) {
-                       activitiesContainer.innerHTML = '<p><i>Žádné aktivity pro tento den.</i></p>';
-                   } else {
-                        dayActivities.forEach(activity => {
-                            const activityElement = document.createElement('div');
-                            activityElement.className = 'activity';
-                            activityElement.innerHTML = `
-                                <div class="activity-checkbox">
-                                    <input type="checkbox" id="schedule-activity-${activity.id}" ${activity.completed ? 'checked' : ''}>
-                                    <div class="activity-content">
-                                        <div class="activity-title">${sanitizeHTML(activity.title || '')} ${activity.time_slot ? `(${activity.time_slot})` : ''}</div>
-                                        <div class="activity-desc">${sanitizeHTML(activity.description || '')}</div>
-                                    </div>
-                                </div>`;
-                            const checkbox = activityElement.querySelector('input[type="checkbox"]');
-                             checkbox.addEventListener('change', function() {
-                                  handleActivityCompletionToggle(activity.id, this.checked, planId); // Pass planId
-                             });
-                            activitiesContainer.appendChild(activityElement);
-                        });
-                   }
-                   dayElement.appendChild(activitiesContainer);
-                   dailySchedule.appendChild(dayElement);
-              }
-          }
-
-         // Render prompt to create plan if diagnostic exists but no active plan
-         function renderPromptCreatePlan() {
-             currentPlanContent.innerHTML = `
-                 <div class="notest-message info"> <h3><i class="fas fa-clipboard-check"></i> Diagnostický test dokončen</h3>
-                     <p>Váš poslední diagnostický test je připraven k analýze. Můžete nyní vygenerovat nový personalizovaný studijní plán.</p>
-                     <button class="btn btn-primary" id="createNewPlanFromPromptBtn">
-                         <i class="fas fa-plus-circle"></i> Vytvořit studijní plán
-                     </button>
-                 </div>`;
-             document.getElementById('createNewPlanFromPromptBtn').addEventListener('click', () => switchTab('create'));
-         }
+         async function handleActivityCompletionToggle(activityId, isCompleted, planId) { try { const { error: updateError } = await supabaseClient.from('plan_activities').update({ completed: isCompleted, updated_at: new Date().toISOString() }).eq('id', activityId); if (updateError) throw updateError; console.log(`Aktivita ${activityId} označena jako ${isCompleted ? 'dokončená' : 'nedokončená'}`); await updatePlanProgress(planId); } catch (error) { console.error(`Chyba aktualizace stavu aktivity ${activityId}:`, error); showToast('Nepodařilo se aktualizovat stav aktivity', 'error'); const checkbox = document.getElementById(`activity-${activityId}`); if (checkbox) checkbox.checked = !isCompleted; } }
+         async function updatePlanProgress(planId) { if (!planId) return; try { const { data: activities, error: activitiesError } = await supabaseClient.from('plan_activities').select('completed').eq('plan_id', planId); if (activitiesError) throw activitiesError; if (!activities || activities.length === 0) return; const completedCount = activities.filter(a => a.completed).length; const progress = Math.round((completedCount / activities.length) * 100); const { error: planUpdateError } = await supabaseClient.from('study_plans').update({ progress: progress, updated_at: new Date().toISOString() }).eq('id', planId); if (planUpdateError) throw planUpdateError; console.log(`Pokrok plánu ${planId} aktualizován na ${progress}%`); if (currentStudyPlan && currentStudyPlan.id === planId) { currentStudyPlan.progress = progress; } const progressValueElement = document.getElementById('progressValue'); const completedActivitiesElement = document.getElementById('completedActivities'); if (progressValueElement) progressValueElement.textContent = `${progress}%`; if (completedActivitiesElement) completedActivitiesElement.textContent = `${completedCount}/${activities.length}`; updateProgressCircle('progressCircle', progress); } catch (error) { console.error(`Chyba při aktualizaci pokroku plánu ${planId}:`, error); } }
+         function updatePlanProgressManually(plan) { const currentProgress = plan.progress || 0; const newProgress = prompt(`Aktuální pokrok je ${currentProgress}%. Zadejte novou hodnotu (0-100):`, currentProgress); if (newProgress !== null) { const progressNum = parseInt(newProgress, 10); if (!isNaN(progressNum) && progressNum >= 0 && progressNum <= 100) { (async () => { try { const { error } = await supabaseClient.from('study_plans').update({ progress: progressNum, updated_at: new Date().toISOString() }).eq('id', plan.id); if (error) throw error; await updatePlanProgress(plan.id); showToast('Pokrok byl manuálně aktualizován.', 'success'); } catch (err) { console.error("Chyba manuální aktualizace pokroku:", err); showToast('Nepodařilo se aktualizovat pokrok.', 'error'); } })(); } else { alert('Zadejte prosím platné číslo mezi 0 a 100.'); } } }
+         async function showPlanDetail(plan) { if (!plan) return; currentPlanSection.style.display = 'none'; historyPlanSection.style.display = 'none'; createPlanSection.style.display = 'none'; scheduleSection.style.display = 'none'; planSection.style.display = 'block'; showLoader(planSection, planLoading); planActions.style.display = 'none'; setTimeout(() => { displayPlanContent(plan.plan_content || '# Studijní plán\n\nObsah plánu není k dispozici.'); hideLoader(planLoading); planActions.innerHTML = ` <button class="btn btn-secondary" id="backToSourceTabBtn"> <i class="fas fa-arrow-left"></i> Zpět </button> <button class="btn btn-primary" id="viewScheduleDetailBtn"> <i class="fas fa-calendar-alt"></i> Zobrazit rozvrh </button> <button class="btn btn-success" id="exportDetailPlanBtn"> <i class="fas fa-file-export"></i> Export PDF </button> `; document.getElementById('backToSourceTabBtn').addEventListener('click', () => switchTab(currentTab)); document.getElementById('viewScheduleDetailBtn').addEventListener('click', () => showFullSchedule(plan)); document.getElementById('exportDetailPlanBtn').addEventListener('click', () => exportPlanToPDFWithStyle(plan)); planActions.style.display = 'flex'; planSection.scrollIntoView({ behavior: 'smooth' }); }, 300); }
+         async function showFullSchedule(plan) { if (!plan) return; planSection.style.display = 'none'; scheduleSection.style.display = 'block'; dailySchedule.innerHTML = '<div class="loader-container"><div class="loader"></div></div>'; try { const { data: activities, error } = await supabaseClient.from('plan_activities').select('*').eq('plan_id', plan.id).order('day_of_week').order('time_slot'); if (error) throw error; renderWeeklySchedule(activities || [], plan.id); scheduleSection.scrollIntoView({ behavior: 'smooth' }); } catch (error) { console.error("Chyba načítání celého rozvrhu:", error); dailySchedule.innerHTML = '<p>Nepodařilo se načíst rozvrh.</p>'; } }
+         function renderWeeklySchedule(activities, planId) { const days = ['Neděle', 'Pondělí', 'Úterý', 'Středa', 'Čtvrtek', 'Pátek', 'Sobota']; dailySchedule.innerHTML = ''; for (let i = 0; i < 7; i++) { const dayIndex = i; const dayActivities = activities.filter(a => a.day_of_week === dayIndex); const isToday = new Date().getDay() === dayIndex; const dayElement = document.createElement('div'); dayElement.className = `schedule-day ${isToday ? 'today' : ''}`; dayElement.innerHTML = `<div class="day-name">${days[dayIndex]} ${isToday ? '(Dnes)' : ''}</div>`; const activitiesContainer = document.createElement('div'); activitiesContainer.className = 'activities'; if (dayActivities.length === 0) { activitiesContainer.innerHTML = '<p><i>Žádné aktivity pro tento den.</i></p>'; } else { dayActivities.forEach(activity => { const activityElement = document.createElement('div'); activityElement.className = 'activity'; activityElement.innerHTML = `<div class="activity-checkbox"><input type="checkbox" id="schedule-activity-${activity.id}" ${activity.completed ? 'checked' : ''}><div class="activity-content"><div class="activity-title">${sanitizeHTML(activity.title || '')} ${activity.time_slot ? `(${activity.time_slot})` : ''}</div><div class="activity-desc">${sanitizeHTML(activity.description || '')}</div></div></div>`; const checkbox = activityElement.querySelector('input[type="checkbox"]'); checkbox.addEventListener('change', function() { handleActivityCompletionToggle(activity.id, this.checked, planId); }); activitiesContainer.appendChild(activityElement); }); } dayElement.appendChild(activitiesContainer); dailySchedule.appendChild(dayElement); } }
+         function renderPromptCreatePlan() { currentPlanContent.innerHTML = `<div class="notest-message info"><h3><i class="fas fa-clipboard-check"></i> Diagnostický test dokončen</h3><p>Váš poslední diagnostický test je připraven k analýze. Můžete nyní vygenerovat nový personalizovaný studijní plán.</p><button class="btn btn-primary" id="createNewPlanFromPromptBtn"><i class="fas fa-plus-circle"></i> Vytvořit studijní plán</button></div>`; document.getElementById('createNewPlanFromPromptBtn').addEventListener('click', () => switchTab('create')); }
 
 
         // ==============================================
         //          Historie Plánů
         // ==============================================
-        async function loadPlanHistory() {
-            showLoader(historyPlanSection, historyLoader);
-            historyPlanContent.innerHTML = '';
-            try {
-                 if (!currentUser) throw new Error('Uživatel není přihlášen');
-                 const { data: plans, error } = await supabaseClient.from('study_plans').select('id, title, created_at, status, progress').eq('user_id', currentUser.id).order('created_at', { ascending: false });
-                 if (error) throw error;
-                 previousPlans = plans || [];
-                 renderPlanHistory(previousPlans);
-            } catch (error) {
-                 console.error('Chyba při načítání historie plánů:', error);
-                 historyPlanContent.innerHTML = `<div class="notest-message error"><h3>Chyba</h3><p>Nepodařilo se načíst historii plánů.</p></div>`;
-            } finally {
-                 hideLoader(historyLoader);
-            }
-        }
-
-        function renderPlanHistory(plans) {
-            historyPlanContent.innerHTML = '';
-            if (!plans || plans.length === 0) {
-                 historyPlanContent.innerHTML = `<div class="notest-message"><h3>Žádná historie</h3><p>Zatím jste nevytvořili žádné studijní plány.</p></div>`;
-                 return;
-            }
-            plans.forEach(plan => {
-                 const historyFragment = historyItemTemplate.content.cloneNode(true);
-                 const historyItem = historyFragment.querySelector('.history-item');
-                 historyItem.dataset.planId = plan.id;
-                 historyFragment.querySelector('.history-date').textContent = `Vytvořeno: ${formatDate(plan.created_at)}`;
-                 historyFragment.querySelector('.history-title').textContent = plan.title || "Studijní plán";
-                 const statusElement = historyFragment.querySelector('.history-status');
-                 statusElement.textContent = plan.status === 'active' ? 'Aktivní' : plan.status === 'completed' ? 'Dokončený' : 'Neaktivní'; // Assuming 'expired' or other might mean Neaktivní
-                 statusElement.className = `history-status ${plan.status}`; // Use status directly as class
-                 historyItem.addEventListener('click', () => showPlanDetail(plan)); // Show detail on click
-                 historyPlanContent.appendChild(historyFragment);
-            });
-        }
+        async function loadPlanHistory() { showLoader(historyPlanSection, historyLoader); historyPlanContent.innerHTML = ''; try { if (!currentUser) throw new Error('Uživatel není přihlášen'); const { data: plans, error } = await supabaseClient.from('study_plans').select('id, title, created_at, status, progress, plan_content').eq('user_id', currentUser.id).order('created_at', { ascending: false }); if (error) throw error; previousPlans = plans || []; renderPlanHistory(previousPlans); } catch (error) { console.error('Chyba při načítání historie plánů:', error); historyPlanContent.innerHTML = `<div class="notest-message error"><h3>Chyba</h3><p>Nepodařilo se načíst historii plánů.</p></div>`; } finally { hideLoader(historyLoader); historyPlanContent.style.display = 'block'; } } // Added display block
+        function renderPlanHistory(plans) { historyPlanContent.innerHTML = ''; if (!plans || plans.length === 0) { historyPlanContent.innerHTML = `<div class="notest-message"><h3>Žádná historie</h3><p>Zatím jste nevytvořili žádné studijní plány.</p></div>`; return; } plans.forEach(plan => { const historyFragment = historyItemTemplate.content.cloneNode(true); const historyItem = historyFragment.querySelector('.history-item'); historyItem.dataset.planId = plan.id; historyFragment.querySelector('.history-date').textContent = `Vytvořeno: ${formatDate(plan.created_at)}`; historyFragment.querySelector('.history-title').textContent = plan.title || "Studijní plán"; const statusElement = historyFragment.querySelector('.history-status'); const statusText = plan.status === 'active' ? 'Aktivní' : plan.status === 'completed' ? 'Dokončený' : 'Neaktivní'; statusElement.textContent = statusText; statusElement.className = `history-status ${plan.status || 'inactive'}`; historyItem.addEventListener('click', () => showPlanDetail(plan)); historyPlanContent.appendChild(historyFragment); }); }
 
 
         // ==============================================
         //          Vytvoření Nového Plánu
         // ==============================================
-         async function getLatestDiagnostic() {
-              if (!currentUser || currentUser.id === 'PLACEHOLDER_USER_ID') return null;
-              try {
-                   const { data, error } = await supabaseClient.from('user_diagnostics').select('*').eq('user_id', currentUser.id).order('completed_at', { ascending: false }).limit(1);
-                   if (error) throw error;
-                   return (data && data.length > 0) ? data[0] : null;
-              } catch (error) {
-                   console.error("Chyba načítání diagnostiky:", error);
-                   return null;
-              }
-         }
-
-         async function checkPlanCreationAvailability() {
-              planCreateContent.innerHTML = '<div class="loader-container"><div class="loader"></div></div>'; // Show loader
-              try {
-                  if (!currentUser) throw new Error('Uživatel není přihlášen');
-
-                  // 1. Check for latest diagnostic test
-                  latestDiagnosticData = await getLatestDiagnostic();
-                  if (!latestDiagnosticData) {
-                      renderNoDiagnosticAvailable(planCreateContent);
-                      return;
-                  }
-
-                  // 2. Check timing constraint (allow one plan per week)
-                  const { data: latestPlan, error: planError } = await supabaseClient.from('study_plans').select('created_at').eq('user_id', currentUser.id).order('created_at', { ascending: false }).limit(1);
-                  if (planError) throw planError;
-
-                  let canCreate = true;
-                  if (latestPlan && latestPlan.length > 0) {
-                      const lastPlanDate = new Date(latestPlan[0].created_at);
-                      const oneWeekAgo = new Date();
-                      oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-                      if (lastPlanDate > oneWeekAgo) {
-                          canCreate = false;
-                          nextPlanCreateTime = new Date(lastPlanDate);
-                          nextPlanCreateTime.setDate(nextPlanCreateTime.getDate() + 7);
-                      }
-                  }
-
-                  // 3. Render appropriate content
-                  if (canCreate) {
-                      planCreateAllowed = true;
-                      renderPlanCreationForm();
-                  } else {
-                      planCreateAllowed = false;
-                      renderLockedPlanSection();
-                  }
-
-              } catch (error) {
-                  console.error('Chyba při kontrole dostupnosti vytvoření plánu:', error);
-                  planCreateContent.innerHTML = `<div class="notest-message error"><h3>Chyba</h3><p>Nepodařilo se ověřit možnost vytvoření plánu.</p></div>`;
-              }
-         }
-
-          function renderNoDiagnosticAvailable(container) {
-              const noDiagFragment = noDiagnosticTemplate.content.cloneNode(true);
-              noDiagFragment.getElementById('goToTestBtn').addEventListener('click', () => { window.location.href = 'test1.html'; }); // Go to test page
-              container.innerHTML = '';
-              container.appendChild(noDiagFragment);
-          }
-
-
-         function renderLockedPlanSection() {
-             const lockedFragment = lockedPlanTemplate.content.cloneNode(true);
-             updateNextPlanTimer(lockedFragment.getElementById('nextPlanTimer'));
-             lockedFragment.getElementById('viewCurrentPlanBtnLocked').addEventListener('click', () => switchTab('current'));
-             planCreateContent.innerHTML = '';
-             planCreateContent.appendChild(lockedFragment);
-             startPlanTimer();
-         }
-
+         async function getLatestDiagnostic() { if (!currentUser || currentUser.id === 'PLACEHOLDER_USER_ID') return null; try { const { data, error } = await supabaseClient.from('user_diagnostics').select('*').eq('user_id', currentUser.id).order('completed_at', { ascending: false }).limit(1); if (error) throw error; return (data && data.length > 0) ? data[0] : null; } catch (error) { console.error("Chyba načítání diagnostiky:", error); return null; } }
+         async function checkPlanCreationAvailability() { planCreateContent.innerHTML = '<div class="loader-container"><div class="loader"></div></div>'; try { if (!currentUser) throw new Error('Uživatel není přihlášen'); latestDiagnosticData = await getLatestDiagnostic(); if (!latestDiagnosticData) { renderNoDiagnosticAvailable(planCreateContent); return; } const { data: latestPlan, error: planError } = await supabaseClient.from('study_plans').select('created_at').eq('user_id', currentUser.id).order('created_at', { ascending: false }).limit(1); if (planError) throw planError; let canCreate = true; if (latestPlan && latestPlan.length > 0) { const lastPlanDate = new Date(latestPlan[0].created_at); const oneWeekAgo = new Date(); oneWeekAgo.setDate(oneWeekAgo.getDate() - 7); if (lastPlanDate > oneWeekAgo) { canCreate = false; nextPlanCreateTime = new Date(lastPlanDate); nextPlanCreateTime.setDate(nextPlanCreateTime.getDate() + 7); } } if (canCreate) { planCreateAllowed = true; renderPlanCreationForm(); } else { planCreateAllowed = false; renderLockedPlanSection(); } } catch (error) { console.error('Chyba při kontrole dostupnosti vytvoření plánu:', error); planCreateContent.innerHTML = `<div class="notest-message error"><h3>Chyba</h3><p>Nepodařilo se ověřit možnost vytvoření plánu.</p></div>`; } }
+         function renderNoDiagnosticAvailable(container) { const noDiagFragment = noDiagnosticTemplate.content.cloneNode(true); noDiagFragment.getElementById('goToTestBtn').addEventListener('click', () => { window.location.href = 'test1.html'; }); container.innerHTML = ''; container.appendChild(noDiagFragment); }
+         function renderLockedPlanSection() { const lockedFragment = lockedPlanTemplate.content.cloneNode(true); updateNextPlanTimer(lockedFragment.getElementById('nextPlanTimer')); lockedFragment.getElementById('viewCurrentPlanBtnLocked').addEventListener('click', () => switchTab('current')); planCreateContent.innerHTML = ''; planCreateContent.appendChild(lockedFragment); startPlanTimer(); }
          function startPlanTimer() { if (planTimerInterval) clearInterval(planTimerInterval); planTimerInterval = setInterval(() => { const timerElement = document.getElementById('nextPlanTimer'); if (timerElement) updateNextPlanTimer(timerElement); else clearInterval(planTimerInterval); }, 1000); }
          function updateNextPlanTimer(timerElement) { if (!nextPlanCreateTime) return; const now = new Date(); const timeDiff = nextPlanCreateTime - now; if (timeDiff <= 0) { timerElement.textContent = 'Nyní můžete vytvořit nový plán'; clearInterval(planTimerInterval); planCreateAllowed = true; setTimeout(checkPlanCreationAvailability, 1000); return; } const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24)); const hours = Math.floor((timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)); const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60)); const seconds = Math.floor((timeDiff % (1000 * 60)) / 1000); timerElement.textContent = `${days} ${getDeclension(days, 'den', 'dny', 'dní')} ${hours} ${getDeclension(hours, 'hodina', 'hodiny', 'hodin')} ${minutes} ${getDeclension(minutes, 'minuta', 'minuty', 'minut')} ${seconds} ${getDeclension(seconds, 'sekunda', 'sekundy', 'sekund')}`; }
          function getDeclension(number, singular, plural1, plural2) { number = Math.abs(number); if (number === 1) return singular; if (number >= 2 && number <= 4) return plural1; return plural2; }
-
-         function renderPlanCreationForm() {
-              const formFragment = createPlanFormTemplate.content.cloneNode(true);
-              const diagInfoContainer = formFragment.getElementById('diagnosticInfo');
-              diagInfoContainer.innerHTML = ` <p class="section-text">Plán bude vycházet z vašeho posledního testu ze dne: <strong>${formatDate(latestDiagnosticData.completed_at)}</strong> (Skóre: ${latestDiagnosticData.total_score}/50).</p>`;
-              formFragment.getElementById('generatePlanBtn').addEventListener('click', function() { this.disabled = true; this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generuji plán...'; generateStudyPlan(); });
-              planCreateContent.innerHTML = '';
-              planCreateContent.appendChild(formFragment);
-         }
+         function renderPlanCreationForm() { const formFragment = createPlanFormTemplate.content.cloneNode(true); const diagInfoContainer = formFragment.getElementById('diagnosticInfo'); diagInfoContainer.innerHTML = ` <p class="section-text">Plán bude vycházet z vašeho posledního testu ze dne: <strong>${formatDate(latestDiagnosticData.completed_at)}</strong> (Skóre: ${latestDiagnosticData.total_score}/50).</p>`; formFragment.getElementById('generatePlanBtn').addEventListener('click', function() { this.disabled = true; this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generuji plán...'; generateStudyPlan(); }); planCreateContent.innerHTML = ''; planCreateContent.appendChild(formFragment); }
 
         // ==============================================
         //          Generování a Ukládání Plánu
         // ==============================================
          async function generateStudyPlan() {
-             if (!latestDiagnosticData || !currentUser) { alert('Nelze vygenerovat plán. Chybí diagnostická data nebo uživatel.'); const btn = document.getElementById('generatePlanBtn'); if(btn){ btn.disabled = false; btn.innerHTML = '<i class="fas fa-magic"></i> Vygenerovat studijní plán'; } return; }
+             if (!latestDiagnosticData || !currentUser) { alert('Chyba: Chybí data uživatele nebo diagnostiky pro generování plánu.'); const btn = document.getElementById('generatePlanBtn'); if(btn){ btn.disabled = false; btn.innerHTML = '<i class="fas fa-magic"></i> Vygenerovat studijní plán'; } return; }
              createPlanSection.style.display = 'none'; planSection.style.display = 'block'; showLoader(planSection, planLoading); planActions.style.display = 'none'; planContent.style.display = 'none';
 
              try {
-                 const topicsData = Object.entries(latestDiagnosticData.topic_results || {}).map(([topicId, data]) => ({ id: topicId, name: data.topic_name || topicMap[topicId] || `Téma ${topicId}`, questions: data.questions || 0, correct: data.correct || 0, score: data.score || 0, percentage: data.questions > 0 ? Math.round((data.correct / data.total) * 100) : 0 // Assuming 'correct' is full points for topic %
+                 const topicsData = Object.entries(latestDiagnosticData.topic_results || {}).map(([topicId, data]) => ({ id: topicId, name: data.name || topicMap[topicId] || `Téma ${topicId}`, questions: data.total || 0, // Use 'total' if available
+                     correct: data.correct || 0, // 'correct' should represent fully correct for %
+                     percentage: data.score || 0 // Use 'score' as the percentage calculated previously
                  })).sort((a, b) => a.percentage - b.percentage);
 
                  const generatedMarkdown = await generatePlanContentWithGemini(latestDiagnosticData, topicsData);
-                 displayPlanContent(generatedMarkdown); // Show generated plan
+                 displayPlanContent(generatedMarkdown);
 
-                 // Setup action buttons for the generated plan
                  planActions.innerHTML = ` <button class="btn btn-primary" id="saveGeneratedPlanBtn"> <i class="fas fa-save"></i> Uložit tento plán </button> <button class="btn btn-success" id="exportGeneratedPlanBtn"> <i class="fas fa-file-export"></i> Exportovat do PDF </button> <button class="btn btn-secondary" id="regeneratePlanBtn"> <i class="fas fa-sync-alt"></i> Vygenerovat znovu </button> `;
                  document.getElementById('saveGeneratedPlanBtn').addEventListener('click', () => saveGeneratedPlan(generatedMarkdown, topicsData));
-                 document.getElementById('exportGeneratedPlanBtn').addEventListener('click', () => exportPlanToPDFWithStyle({ created_at: new Date(), plan_content: generatedMarkdown, title: "Nový studijní plán" })); // Pass dummy plan object
-                 document.getElementById('regeneratePlanBtn').addEventListener('click', () => { const btn = document.getElementById('generatePlanBtn'); if(btn){ btn.disabled = false; btn.innerHTML = '<i class="fas fa-magic"></i> Vygenerovat studijní plán'; } generateStudyPlan(); }); // Regenerate
+                 document.getElementById('exportGeneratedPlanBtn').addEventListener('click', () => exportPlanToPDFWithStyle({ created_at: new Date(), plan_content: generatedMarkdown, title: "Nový studijní plán" }));
+                 document.getElementById('regeneratePlanBtn').addEventListener('click', () => { const btn = document.getElementById('generatePlanBtn'); if(btn){ btn.disabled = false; btn.innerHTML = '<i class="fas fa-magic"></i> Vygenerovat studijní plán'; } generateStudyPlan(); });
                  planActions.style.display = 'flex';
 
              } catch (error) {
                  console.error('Chyba při generování studijního plánu:', error);
                  planContent.innerHTML = `<div class="notest-message error"><h3>Chyba generování</h3><p>${error.message}</p></div>`;
                  planContent.style.display = 'block';
-                 // Show only regenerate button on error?
                  planActions.innerHTML = `<button class="btn btn-secondary" id="regeneratePlanBtn"> <i class="fas fa-sync-alt"></i> Vygenerovat znovu </button>`;
                  document.getElementById('regeneratePlanBtn').addEventListener('click', () => { const btn = document.getElementById('generatePlanBtn'); if(btn){ btn.disabled = false; btn.innerHTML = '<i class="fas fa-magic"></i> Vygenerovat studijní plán'; } generateStudyPlan(); });
                  planActions.style.display = 'flex';
@@ -865,8 +478,14 @@
              }
          }
 
-        // **UPDATED PROMPT HERE**
+        // **UPDATED PROMPT**
         async function generatePlanContentWithGemini(testData, topicsData) {
+             // ** CHECK FOR VALID API KEY **
+             if (!GEMINI_API_KEY || GEMINI_API_KEY === 'YOUR_GEMINI_API_KEY') {
+                 console.error("Chyba: Gemini API klíč není nastaven. Vložte platný klíč do proměnné GEMINI_API_KEY.");
+                 return `## Chyba konfigurace\n\nNebyl nalezen platný Gemini API klíč. Vložte prosím svůj klíč do kódu souboru plan.html, abyste mohli generovat studijní plány.`;
+             }
+
              try {
                  const totalScore = testData.total_score || 0; const totalQuestions = testData.total_questions || 1; const analysis = testData.analysis || {};
                  const overallAssessment = analysis.summary?.overall_assessment || 'N/A'; const strengths = analysis.strengths?.map(s => `${s.topic} (${s.score}%)`).join(', ') || 'Nebyly identifikovány'; const weaknesses = analysis.weaknesses?.map(w => `${w.topic} (${w.score}%)`).join(', ') || 'Nebyly identifikovány'; const recommendations = analysis.recommendations?.join('\n- ') || 'Žádná specifická.';
@@ -951,12 +570,15 @@
                  * Hodně štěstí!
                  `;
 
-                const requestData = { contents: [{ parts: [{ text: prompt }] }], generationConfig: { temperature: 0.6, topK: 40, topP: 0.95, maxOutputTokens: 4096, /*response_mime_type: "text/plain"*/ } }; // Removed mime type for broader compatibility
-                const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(requestData) });
-                const data = await response.json(); if (!response.ok) { console.error("Chyba Gemini API:", data); throw new Error(data.error?.message || `Chyba při komunikaci s Gemini API (${response.status})`); }
-                const geminiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text; if (!geminiResponse) { throw new Error('Prázdná odpověď od Gemini API'); }
-                console.log("Vygenerovaný plán od Gemini:\n", geminiResponse); return geminiResponse;
-             } catch (error) { console.error('Chyba při generování obsahu plánu:', error); return `## Chyba při generování plánu\n\nBohužel se nepodařilo vygenerovat váš personalizovaný studijní plán.\n\n**Důvod:** ${error.message}\n\nZkuste to prosím později, nebo kontaktujte podporu, pokud problém přetrvává.`; }
+                const requestData = { contents: [{ parts: [{ text: prompt }] }], generationConfig: { temperature: 0.6, topK: 40, topP: 0.95, maxOutputTokens: 4096 } };
+                 // **FIXED: Corrected fetch URL construction**
+                 const response = await fetch(GEMINI_API_URL, { // Use GEMINI_API_URL directly
+                     method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(requestData) });
+                 const data = await response.json();
+                 if (!response.ok) { console.error("Chyba Gemini API:", data); throw new Error(data.error?.message || `Chyba při komunikaci s Gemini API (${response.status})`); }
+                 const geminiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text; if (!geminiResponse) { throw new Error('Prázdná odpověď od Gemini API'); }
+                 console.log("Vygenerovaný plán od Gemini:\n", geminiResponse); return geminiResponse;
+             } catch (error) { console.error('Chyba při generování obsahu plánu:', error); return `## Chyba při generování plánu\n\nBohužel se nepodařilo vygenerovat váš personalizovaný studijní plán.\n\n**Důvod:** ${error.message}\n\nZkuste to prosím později, nebo kontaktujte podporu, pokud problém přetrvává. Ujistěte se, že máte platný Gemini API klíč vložený v kódu.`; }
         }
 
 
@@ -964,41 +586,15 @@
 
          async function saveGeneratedPlan(markdownContent, topicsData) {
              if (!currentUser || !latestDiagnosticData) { alert('Chyba: Chybí data uživatele nebo diagnostiky pro uložení plánu.'); return; }
-             const saveButton = document.getElementById('saveGeneratedPlanBtn');
-             if(saveButton) saveButton.disabled = true; saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ukládám...';
-
-              // Prepare priority topics based on topicsData used for generation
-              const priorityTopics = {};
-              topicsData.forEach((topic, index) => {
-                  priorityTopics[topic.name] = {
-                      priority: index + 1, // Lower index (worse performance) = higher priority (lower number)
-                      performance: topic.percentage,
-                      focus_level: topic.percentage < 50 ? 'high' : topic.percentage < 75 ? 'medium' : 'low'
-                  };
-              });
-
-
+             const saveButton = document.getElementById('saveGeneratedPlanBtn'); if(saveButton) saveButton.disabled = true; saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ukládám...';
+             const priorityTopics = {}; topicsData.forEach((topic, index) => { priorityTopics[topic.name] = { priority: index + 1, performance: topic.percentage, focus_level: topic.percentage < 50 ? 'high' : topic.percentage < 75 ? 'medium' : 'low' }; });
              try {
-                 // Deactivate any existing active plans first
-                 const { error: deactivateError } = await supabaseClient.from('study_plans').update({ status: 'inactive', updated_at: new Date().toISOString() }).eq('user_id', currentUser.id).eq('status', 'active');
-                 if (deactivateError) throw deactivateError;
-
-                 const today = new Date(); const completionDate = new Date(today); completionDate.setDate(completionDate.getDate() + 7); // Plan for 1 week
-
+                 const { error: deactivateError } = await supabaseClient.from('study_plans').update({ status: 'inactive', updated_at: new Date().toISOString() }).eq('user_id', currentUser.id).eq('status', 'active'); if (deactivateError) throw deactivateError;
+                 const today = new Date(); const completionDate = new Date(today); completionDate.setDate(completionDate.getDate() + 7);
                  const newPlan = { user_id: currentUser.id, title: `Studijní plán (${formatDate(today)})`, subject: "Matematika", status: "active", diagnostic_id: latestDiagnosticData.id, priority_topics: priorityTopics, estimated_completion_date: completionDate.toISOString().split('T')[0], progress: 0, is_auto_adjusted: true, plan_content: markdownContent };
-                 const { data: savedPlan, error: insertError } = await supabaseClient.from('study_plans').insert(newPlan).select().single();
-                 if (insertError) throw insertError;
-
-                 console.log("Nový plán uložen:", savedPlan);
-                 currentStudyPlan = savedPlan; // Update global variable
-                 showToast('Studijní plán byl úspěšně uložen!', 'success');
-                 switchTab('current'); // Switch to show the newly saved plan
-
-             } catch (error) {
-                 console.error("Chyba při ukládání plánu:", error);
-                 showToast('Nepodařilo se uložit plán.', 'error');
-                 if(saveButton) saveButton.disabled = false; saveButton.innerHTML = '<i class="fas fa-save"></i> Uložit tento plán';
-             }
+                 const { data: savedPlan, error: insertError } = await supabaseClient.from('study_plans').insert(newPlan).select().single(); if (insertError) throw insertError;
+                 console.log("Nový plán uložen:", savedPlan); currentStudyPlan = savedPlan; showToast('Studijní plán byl úspěšně uložen!', 'success'); switchTab('current');
+             } catch (error) { console.error("Chyba při ukládání plánu:", error); showToast('Nepodařilo se uložit plán.', 'error'); if(saveButton) saveButton.disabled = false; saveButton.innerHTML = '<i class="fas fa-save"></i> Uložit tento plán'; }
          }
 
         // ==============================================
@@ -1007,10 +603,11 @@
         function initProgressCircle(canvasId, progressValue) { const canvas = document.getElementById(canvasId); if (!canvas) return; const ctx = canvas.getContext('2d'); const centerX = canvas.width / 2; const centerY = canvas.height / 2; const radius = 65; const lineWidth = 10; ctx.clearRect(0, 0, canvas.width, canvas.height); ctx.beginPath(); ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI); ctx.lineWidth = lineWidth; ctx.strokeStyle = '#dee2e6'; ctx.stroke(); const angle = (progressValue / 100) * 2 * Math.PI; if (angle > 0) { ctx.beginPath(); ctx.arc(centerX, centerY, radius, -Math.PI / 2, -Math.PI / 2 + angle); ctx.lineWidth = lineWidth; const gradient = ctx.createLinearGradient(0, 0, canvas.width, 0); gradient.addColorStop(0, '#4361ee'); gradient.addColorStop(1, '#3a0ca3'); ctx.strokeStyle = gradient; ctx.lineCap = 'round'; ctx.stroke(); } progressCircleInstance = { canvas, ctx, centerX, centerY, radius, lineWidth }; }
         function updateProgressCircle(canvasId, progressValue) { if (!progressCircleInstance) { initProgressCircle(canvasId, progressValue); return; } const { ctx, centerX, centerY, radius, lineWidth } = progressCircleInstance; ctx.clearRect(0, 0, progressCircleInstance.canvas.width, progressCircleInstance.canvas.height); ctx.beginPath(); ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI); ctx.lineWidth = lineWidth; ctx.strokeStyle = '#dee2e6'; ctx.stroke(); const angle = (progressValue / 100) * 2 * Math.PI; if (angle > 0) { ctx.beginPath(); ctx.arc(centerX, centerY, radius, -Math.PI / 2, -Math.PI / 2 + angle); ctx.lineWidth = lineWidth; const gradient = ctx.createLinearGradient(0, 0, progressCircleInstance.canvas.width, 0); gradient.addColorStop(0, '#4361ee'); gradient.addColorStop(1, '#3a0ca3'); ctx.strokeStyle = gradient; ctx.lineCap = 'round'; ctx.stroke(); } }
         function initTooltips() { try { if (jQuery && jQuery.fn.tooltipster) { $('.btn-tooltip').tooltipster({ theme: 'tooltipster-shadow', animation: 'fade', delay: 100, side: 'top' }); } else { console.warn("Tooltipster nebo jQuery nejsou dostupné."); } } catch (e) { console.error("Chyba inicializace Tooltipster:", e); } }
-        function toggleMobileMenu() { document.body.classList.toggle('mobile-menu-visible'); const sidebar = document.querySelector('.sidebar'); sidebar?.classList.toggle('active'); } // Assuming .active class handles visibility
-        window.addEventListener('resize', () => { if (window.innerWidth > 576) { document.body.classList.remove('mobile-menu-visible'); document.querySelector('.sidebar')?.classList.remove('active'); } });
+        function toggleMobileMenu() { const sidebar = document.querySelector('.sidebar'); sidebar?.classList.toggle('active'); const overlay = document.querySelector('.sidebar-overlay'); overlay?.classList.toggle('active'); }
+        window.addEventListener('resize', () => { if (window.innerWidth > 992) { document.querySelector('.sidebar')?.classList.remove('active'); document.querySelector('.sidebar-overlay')?.classList.remove('active'); } }); // Adjusted breakpoint for sidebar collapse
         function exportPlanToPDFWithStyle(plan) { if (!plan) return; const exportContainer = document.createElement('div'); exportContainer.style.padding = '20px'; exportContainer.style.fontFamily = 'Arial, sans-serif'; exportContainer.innerHTML = `<div style="text-align: center; margin-bottom: 30px;"><h1 style="color: #4361ee; font-size: 24px; margin-bottom: 10px;">${sanitizeHTML(plan.title || 'Studijní plán')}</h1><p style="color: #6c757d; font-size: 14px;">Vytvořeno: ${formatDate(plan.created_at)}</p></div>`; if (currentUser && userName.textContent) { exportContainer.innerHTML += `<div style="margin-bottom: 20px; background-color: #f8f9fa; padding: 15px; border-radius: 10px;"><h2 style="color: #4361ee; font-size: 18px; margin-bottom: 10px;">Informace o studentovi</h2><p><strong>Student:</strong> ${userName.textContent}</p><p><strong>Datum vytvoření:</strong> ${formatDate(plan.created_at)}</p>${plan.estimated_completion_date ? `<p><strong>Předpokládané dokončení:</strong> ${formatDate(plan.estimated_completion_date)}</p>` : ''}</div>`; } const contentElement = document.createElement('div'); contentElement.innerHTML = plan.plan_content ? marked.parse(plan.plan_content) : '<p>Obsah plánu není k dispozici.</p>'; contentElement.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach(heading => { heading.style.color = '#4361ee'; heading.style.marginTop = '20px'; heading.style.marginBottom = '10px'; }); contentElement.querySelectorAll('ul, ol').forEach(list => { list.style.marginLeft = '20px'; list.style.marginBottom = '15px'; }); contentElement.querySelectorAll('p').forEach(paragraph => { paragraph.style.lineHeight = '1.6'; paragraph.style.marginBottom = '10px'; }); exportContainer.appendChild(contentElement); exportContainer.innerHTML += `<div style="margin-top: 30px; border-top: 1px solid #dee2e6; padding-top: 15px; text-align: center;"><p style="font-size: 12px; color: #6c757d;">&copy; ${new Date().getFullYear()} Justax - Personalizované studijní plány<br>www.justax.cz</p></div>`; const options = { margin: 15, filename: `studijni-plan-${formatDate(plan.created_at).replace(/\./g, '-')}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } }; html2pdf().set(options).from(exportContainer).save().then(() => { showToast('PDF bylo úspěšně vygenerováno!', 'success'); }).catch(err => { console.error("Chyba exportu PDF:", err); showToast('Nepodařilo se exportovat PDF.', 'error'); }); }
-
+         // Toast notification function
+         function showToast(message, type = 'success', duration = 4000) { const toast = document.getElementById('toast'); const toastMessage = document.getElementById('toast-message'); if (!toast || !toastMessage) return; toastMessage.textContent = message; const icon = toast.querySelector('i'); icon.className = type === 'success' ? 'fas fa-check-circle' : type === 'error' ? 'fas fa-exclamation-circle' : 'fas fa-info-circle'; toast.className = 'toast ' + type; toast.classList.add('show'); setTimeout(() => { toast.classList.remove('show'); }, duration); }
 
         // ==============================================
         //          Spuštění Aplikace
