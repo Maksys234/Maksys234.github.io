@@ -776,6 +776,7 @@
                  return `## Chyba při generování plánu\n\nBohužel se nepodařilo vygenerovat váš personalizovaný studijní plán.\n\n**Důvod:** ${error.message}\n\nZkuste to prosím později, nebo kontaktujte podporu. Ujistěte se, že máte platný Gemini API klíč.`;
              }
         }
+        // --- КОНЕЦ ОБНОВЛЕННОЙ ФУНКЦИИ ---
 
 
          // **UPDATED**: Displays confirmation, not the full plan
@@ -789,82 +790,134 @@
               hideLoader(planLoading);
          }
 
-        // --- UPDATED with Logging ---
+        // --- UPDATED with Logging & Retyped Map ---
         async function saveGeneratedPlan(markdownContent, activitiesArray, topicsData) {
-             if (!currentUser || !latestDiagnosticData || !markdownContent || !supabaseClient) { alert('Chyba: Chybí data uživatele, diagnostiky, plánu nebo Supabase client pro uložení.'); return; }
-             const saveButton = document.getElementById('saveGeneratedPlanBtn'); if(saveButton) saveButton.disabled = true; saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ukládám...';
-             const priorityTopics = {}; topicsData.forEach((topic, index) => { priorityTopics[topic.name] = { priority: index + 1, performance: topic.percentage, focus_level: topic.percentage < 50 ? 'high' : topic.percentage < 75 ? 'medium' : 'low' }; });
+            if (!currentUser || !latestDiagnosticData || !markdownContent || !supabaseClient) {
+                alert('Chyba: Chybí data uživatele, diagnostiky, plánu nebo Supabase client pro uložení.');
+                return;
+            }
+            const saveButton = document.getElementById('saveGeneratedPlanBtn');
+            if (saveButton) {
+                 saveButton.disabled = true;
+                 saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ukládám...';
+            }
+            const priorityTopics = {};
+            topicsData.forEach((topic, index) => {
+                priorityTopics[topic.name] = {
+                    priority: index + 1,
+                    performance: topic.percentage,
+                    focus_level: topic.percentage < 50 ? 'high' : topic.percentage < 75 ? 'medium' : 'low'
+                };
+            });
 
-             let savedPlanId = null;
+            let savedPlanId = null;
 
-             try {
-                 // 1. Deactivate old plans
-                 const { error: deactivateError } = await supabaseClient.from('study_plans').update({ status: 'inactive', updated_at: new Date().toISOString() }).eq('user_id', currentUser.id).eq('status', 'active'); if (deactivateError) throw deactivateError;
+            try {
+                // 1. Deactivate old plans
+                const { error: deactivateError } = await supabaseClient
+                    .from('study_plans')
+                    .update({ status: 'inactive', updated_at: new Date().toISOString() })
+                    .eq('user_id', currentUser.id)
+                    .eq('status', 'active');
+                if (deactivateError) throw deactivateError;
 
-                 // 2. Insert new plan
-                 const today = new Date(); const completionDate = new Date(today); completionDate.setDate(completionDate.getDate() + 7);
-                 const newPlanData = { user_id: currentUser.id, title: `Studijní plán (${formatDate(today)})`, subject: "Matematika", status: "active", diagnostic_id: latestDiagnosticData.id,
-                     plan_content_markdown: markdownContent,
-                     priority_topics: priorityTopics, estimated_completion_date: completionDate.toISOString().split('T')[0], progress: 0, is_auto_adjusted: true };
-                 const { data: savedPlan, error: insertPlanError } = await supabaseClient.from('study_plans').insert(newPlanData).select('id').single(); if (insertPlanError) throw insertPlanError;
+                // 2. Insert new plan
+                const today = new Date();
+                const completionDate = new Date(today);
+                completionDate.setDate(completionDate.getDate() + 7);
+                const newPlanData = {
+                    user_id: currentUser.id,
+                    title: `Studijní plán (${formatDate(today)})`,
+                    subject: "Matematika",
+                    status: "active",
+                    diagnostic_id: latestDiagnosticData.id,
+                    plan_content_markdown: markdownContent,
+                    priority_topics: priorityTopics,
+                    estimated_completion_date: completionDate.toISOString().split('T')[0],
+                    progress: 0,
+                    is_auto_adjusted: true
+                };
+                const { data: savedPlan, error: insertPlanError } = await supabaseClient
+                    .from('study_plans')
+                    .insert(newPlanData)
+                    .select('id')
+                    .single();
+                if (insertPlanError) throw insertPlanError;
 
-                 savedPlanId = savedPlan.id;
-                 console.log("Nový plán uložen, ID:", savedPlanId); // Лог ID плана
+                savedPlanId = savedPlan.id;
+                console.log("Nový plán uložen, ID:", savedPlanId); // Лог ID плана
 
-                 // 3. Insert activities if JSON was extracted successfully
-                 // --- ДОБАВЛЕНО ЛОГИРОВАНИЕ ---
-                 console.log("Проверяем activitiesArray перед вставкой:", activitiesArray);
-                 // --- КОНЕЦ ЛОГИРОВАНИЯ ---
+                // 3. Insert activities if JSON was extracted successfully
+                console.log("Проверяем activitiesArray перед вставкой:", activitiesArray);
 
-                 if (activitiesArray && Array.isArray(activitiesArray) && activitiesArray.length > 0) {
-                     console.log(`Pokouším se vložit ${activitiesArray.length} aktivit...`);
-                     const activitiesToInsert = activitiesArray.map(act => ({
-                         plan_id: savedPlanId,
-                         day_of_week: typeof act.day_of_week === 'number' ? act.day_of_week : parseInt(act.day_of_week, 10), // Ensure it's a number
-                         time_slot: act.time_slot || null,
-                         title: act.title,
-                         description: act.description || null,
-                         completed: false,
-                     })).filter(act => !isNaN(act.day_of_week)); // Filter out entries where day_of_week is NaN after parsing
+                if (activitiesArray && Array.isArray(activitiesArray) && activitiesArray.length > 0) {
+                    console.log(`Pokouším se vložit ${activitiesArray.length} aktivit...`);
 
-                     // --- ДОБАВЛЕНО ЛОГИРОВАНИЕ ---
-                     console.log("Данные для вставки в plan_activities (после маппинга и фильтрации):", activitiesToInsert);
-                     // --- КОНЕЦ ЛОГИРОВАНИЯ ---
+                    // --- Retyped map function with safety check ---
+                    const activitiesToInsert = activitiesArray.map(act => {
+                        // Basic check if 'act' is a valid object before accessing properties
+                        if (typeof act !== 'object' || act === null) {
+                            console.warn("Přeskakuji neplatnou položku v activitiesArray:", act);
+                            return null; // Mark as invalid for filtering
+                        }
+                        // Ensure day_of_week is parsed correctly
+                        const dayOfWeek = typeof act.day_of_week === 'number'
+                                          ? act.day_of_week
+                                          : parseInt(act.day_of_week, 10);
 
-                     if (activitiesToInsert.length > 0) {
-                         const { error: insertActivitiesError } = await supabaseClient
-                             .from('plan_activities')
-                             .insert(activitiesToInsert);
-
-                         if (insertActivitiesError) {
-                             // --- ДОБАВЛЕНО ЛОГИРОВАНИЕ ---
-                             console.error("!!! Ошибка при вставке активностей в Supabase:", insertActivitiesError);
-                             // --- КОНЕЦ ЛОГИРОВАНИЯ ---
-                             showToast('Plán uložen, ale nepodařilo se uložit aktivity pro harmonogram.', 'warning');
-                         } else {
-                             console.log("Aktivity úspěšně vloženy do DB.");
-                             showToast('Studijní plán a aktivity byly úspěšně uloženy!', 'success');
+                        // Check if dayOfWeek is a valid number (0-6) after parsing
+                         if (isNaN(dayOfWeek) || dayOfWeek < 0 || dayOfWeek > 6) {
+                             console.warn(`Přeskakuji aktivitu s neplatným day_of_week (${act.day_of_week}):`, act);
+                             return null;
                          }
-                     } else {
-                         console.warn("Po фильтрации не осталось активностей для вставки.");
-                         showToast('Plán uložen, ale nebyly nalezeny platné aktivity pro harmonogram.', 'warning');
-                     }
-                 } else {
-                      // --- ДОБАВЛЕНО ЛОГИРОВАНИЕ ---
-                     console.warn("activitiesArray пустой или не является массивом, активности не будут вставлены.");
-                      // --- КОНЕЦ ЛОГИРОВАНИЯ ---
-                     showToast('Studijní plán uložen (bez detailních aktivit v harmonogramu).', 'info');
-                 }
 
-                 currentStudyPlan = { ...newPlanData, id: savedPlanId };
-                 switchTab('current');
+                        return {
+                            plan_id: savedPlanId,
+                            day_of_week: dayOfWeek,
+                            time_slot: act.time_slot || null,
+                            title: act.title || 'Nespecifikováno', // Provide default if title missing
+                            description: act.description || null,
+                            completed: false,
+                        };
+                    }).filter(item => item !== null); // Filter out any null items from failed checks/parsing
+                    // --- End Retyped map ---
 
-             } catch (error) {
-                 console.error("Chyba při ukládání plánu nebo aktivit:", error);
-                 showToast(`Nepodařilo se uložit plán. Chyba: ${error.message || 'Neznámá chyba'}`, 'error');
-                 if(saveButton) saveButton.disabled = false; saveButton.innerHTML = '<i class="fas fa-save"></i> Uložit tento plán';
-             }
-         }
+
+                    console.log("Данные для вставки в plan_activities (после маппинга и фильтрации):", activitiesToInsert);
+
+                    if (activitiesToInsert.length > 0) {
+                        const { error: insertActivitiesError } = await supabaseClient
+                            .from('plan_activities')
+                            .insert(activitiesToInsert);
+
+                        if (insertActivitiesError) {
+                            console.error("!!! Ошибка при вставке активностей в Supabase:", insertActivitiesError);
+                            showToast('Plán uložen, ale nepodařilo se uložit aktivity pro harmonogram.', 'warning');
+                        } else {
+                            console.log("Aktivity úspěšně vloženy do DB.");
+                            showToast('Studijní plán a aktivity byly úspěšně uloženy!', 'success');
+                        }
+                    } else {
+                        console.warn("Po фильтрации не осталось активностей для вставки (možná neplatný formát day_of_week?).");
+                        showToast('Plán uložen, ale nebyly nalezeny platné aktivity pro harmonogram.', 'warning');
+                    }
+                } else {
+                    console.warn("activitiesArray пустой или не является массивом, активности не будут вставлены.");
+                    showToast('Studijní plán uložen (bez detailních aktivit v harmonogramu).', 'info');
+                }
+
+                currentStudyPlan = { ...newPlanData, id: savedPlanId };
+                switchTab('current');
+
+            } catch (error) {
+                console.error("Chyba při ukládání plánu nebo aktivit:", error);
+                showToast(`Nepodařilo se uložit plán. Chyba: ${error.message || 'Neznámá chyba'}`, 'error');
+                if (saveButton) {
+                    saveButton.disabled = false;
+                    saveButton.innerHTML = '<i class="fas fa-save"></i> Uložit tento plán';
+                }
+            }
+        }
 
 
         // Display saved plan's markdown content
@@ -1005,6 +1058,7 @@
                  showToast('Chyba: Knihovna pro export PDF není načtena.', 'error');
              }
         }
+        // --- КОНЕЦ ОБНОВЛЕННОЙ ФУНКЦИИ ---
 
 
         // ==============================================
