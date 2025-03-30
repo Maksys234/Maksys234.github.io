@@ -690,7 +690,7 @@
 
                  // --- НАЧАЛО ОБНОВЛЕННОГО ПРОМПТА ---
                  const prompt = `
-                 Jsi expertní AI tutor specializující se na přípravu na PŘIJÍMACÍ ZKOUŠKY z matematiky pro 9. třídu ZŠ v Česku. Tvým úkolem je vytvořit NÁROČNÝ, DETAILNÍ a KOMPLEXNÍ týdenní studijní plán v ČEŠTINĚ ve formátu Markdown, zaměřený na dosažení co nejlepšího výsledku u zkoušek. Na konci MUSÍŠ vygenerovat JSON pole aktivit pro tento plán.
+                 Jsi expertní AI tutor specializující se na přípravu na PŘIJÍMACÍ ZKOUŠKY z matematiky pro 9. třídu ZŠ v Česku. Tvým úkolem je vytvořit NÁROČNÝ, DETAILNÍ a KONZISTENTNÍ týdenní studijní plán v ČEŠTINĚ ve formátu Markdown, zaměřený na dosažení co nejlepšího výsledku u zkoušek. Na konci MUSÍŠ vygenerovat JSON pole aktivit pro tento plán, které PŘESNĚ ODRÁŽÍ obsah Markdown plánu pro daný den.
 
                  # Kontext: Student právě dokončil diagnostický test.
                  # Výsledky diagnostického testu:
@@ -713,20 +713,21 @@
                  6.  **Proporce a procenta:** Procento, promile. Procentová část, základ, počet procent. Jednoduché úrokování. Trojčlenka. Poměr (základní úpravy, rozdělení).
                  7.  **Logické úlohy:** Logické vztahy, jednoduché výroky, číselné řady, vzory, závislosti.
 
-                 # TVŮJ ÚKOL (Vytvoř NÁROČNÝ a DETAILNÍ plán):
-                 1.  Vytvoř DETAILNÍ týdenní studijní plán (Pondělí - Neděle) ve formátu Markdown. Plán musí být strukturovaný, srozumitelný a zaměřený na VÝRAZNÉ zlepšení.
-                 2.  Plán musí pokrývat klíčové oblasti z výše uvedeného seznamu OFICIÁLNÍCH TÉMAT, přičemž musí klást ZVÝŠENÝ DŮRAZ na slabé stránky studenta (${weaknesses}), ale zároveň ZAHRNOVAT OPAKOVÁNÍ i silnějších stránek pro udržení úrovně.
+                 # TVŮJ ÚKOL (Vytvoř NÁROČNÝ, DETAILNÍ a KONZISTENTNÍ plán):
+                 1.  Vytvoř DETAILNÍ týdenní studijní plán (Pondělí - Neděle) ve formátu Markdown. Musí být strukturovaný, srozumitelný a zaměřený na VÝRAZNÉ zlepšení.
+                 2.  Plán musí pokrývat klíčové oblasti z OFICIÁLNÍCH TÉMAT, klást ZVÝŠENÝ DŮRAZ na slabé stránky (${weaknesses}), ale ZAHRNOVAT i OPAKOVÁNÍ silnějších stránek.
                  3.  Navrhni RŮZNORODÉ a KONKRÉTNÍ aktivity:
-                     * Řešení KONKRÉTNÍCH typů příkladů s uvedením POČTU (např. "Vyřeš 8 složitějších lineárních rovnic se zlomky a závorkami").
-                     * Procvičování SLOVNÍCH ÚLOH zaměřených na dané téma (např. "Vyřeš 5 slovních úloh na procenta - změna základu").
-                     * Krátké OPAKOVÁNÍ definic, vzorců a vět (např. "Zopakuj si vzorce pro objem a povrch válce a kužele").
-                     * Analýzu VYSVĚTLENÝCH příkladů (např. "Projdi si řešené příklady na soustavy rovnic v učebnici XYZ, kap. 3.2").
-                     * Doporučení k ANALÝZE minulých chyb z testu.
-                     * Zařazení NÁROČNĚJŠÍCH úloh ("bonusové", "pro pokročilé") u silnějších témat.
-                 4.  Buď co nejvíce SPECIFICKÝ. Místo 'Procvičuj geometrii' napiš 'Vypočítej obvod a obsah 3 složených útvarů kombinujících obdélníky a kruhové výseče'.
-                 5.  Rozděl denní studium (cca 75-100 minut) do 2-3 INTENZIVNÍCH bloků zaměřených na konkrétní dovednosti nebo témata. Uveď odhadovaný čas pro každý blok.
-                 6.  Přidej krátké motivační tipy nebo strategie pro každý den.
-                 7.  **NA KONEC celého Markdown textu PŘIDEJ samostatný JSON blok**, který začíná \`\`\`json a končí \`\`\` a obsahuje pole objektů reprezentujících VŠECHNY aktivity z týdenního plánu. Každý objekt v poli MUSÍ mít klíče: "day_of_week" (číslo 0-6, Neděle=0), "title" (string, název aktivity/bloku, např. "Algebra: Složitější rovnice"), "description" (string, KONKRÉTNÍ popis úkolu, např. "Vyřeš 8 rovnic typu 2(x/3 - 1) = 5 - (x+1)/2"), "time_slot" (string, odhadovaný čas, např. "40 min"). Ujisti se, že JSON je validní.
+                     * Řešení KONKRÉTNÍCH TYPŮ příkladů s uvedením POČTU.
+                     * Procvičování SLOVNÍCH ÚLOH zaměřených na dané téma.
+                     * Používej formulace jako 'Opakování [téma/vzorce]' místo 'Opakuj [téma]'. Např.: 'Opakování vzorců pro mnohočleny'.
+                     * Analýzu VYSVĚTLENÝCH příkladů (např. "Projdi řešené příklady na ...").
+                     * Doporučení k ANALÝZE minulých chyb.
+                     * Zařazení NÁROČNĚJŠÍCH úloh u silnějších témat.
+                 4.  Buď co nejvíce SPECIFICKÝ v popisu úkolů v Markdown i JSON. Místo 'Procvičuj geometrii' uveď 'Výpočet obvodů a obsahů složených rovinných útvarů (3 úlohy)'.
+                 5.  Rozděl denní studium (cca 75-100 minut) do 2-3 INTENZIVNÍCH bloků. Uveď odhadovaný čas.
+                 6.  **DŮLEŽITÉ:** V poli 'description' v JSON bloku **NEUVÁDĚJ KONKRÉTNÍ ROVNICE NEBO ČÍSELNÉ ZADÁNÍ PŘÍKLADŮ**. Místo toho SLOVNĚ popiš TYP úloh, počet a zaměření (např. 'Řešení 5 lineárních rovnic se zlomky', 'Výpočet procentové části ze základu ve 4 slovních úlohách').
+                 7.  **KONZISTENCE:** Zajisti, aby aktivity v JSON (`title` a `description`) PŘESNĚ odpovídaly obsahu a zaměření bloků popsaných v Markdown pro KAŽDÝ den.
+                 8.  NA KONEC celého Markdown textu PŘIDEJ validní JSON blok (\`\`\`json ... \`\`\`) obsahující pole objektů pro VŠECHNY aktivity. Klíče: "day_of_week" (číslo 0-6), "title" (string, název bloku), "description" (string, SLOVNÍ popis TYPU úkolů), "time_slot" (string, čas).
 
                  # Požadovaný formát výstupu (Markdown + JSON na konci):
                  ## Náročný týdenní studijní plán (Personalizovaný)
@@ -739,30 +740,26 @@
                  * Zopakovat a procvičit [Silnější téma].
                  ---
                  ### Pondělí
-                 * **Fokus dne:** [Např. Lineární rovnice a procenta]
-                 * **Blok 1 (cca 45 min): Algebra - Rovnice:** Vyřeš 10 lineárních rovnic se zlomky a závorkami (různé typy obtížnosti). Zkontroluj řešení.
-                 * **Blok 2 (cca 35 min): Procenta - Základní úlohy:** Zopakuj si výpočet části, základu a počtu procent. Vyřeš 6 slovních úloh na tyto výpočty.
-                 * *Tip dne:* Při řešení rovnic si pečlivě kontroluj každý krok úpravy!
+                 * **Fokus dne:** [Např. Složitější lineární rovnice a aplikace procent]
+                 * **Blok 1 (cca 45 min): Algebra - Rovnice:** Řešení 10 složitějších lineárních rovnic se zlomky a závorkami. Důraz na správné úpravy a zkoušku.
+                 * **Blok 2 (cca 40 min): Procenta - Slovní úlohy:** Řešení 5 slovních úloh na výpočet základu a procentové změny (zdražení/sleva).
+                 * *Tip dne:* U rovnic si piš mezikroky a ověřuj si je.
                  ### Úterý
-                 * **Fokus dne:** [Např. Geometrie - Obsahy a Obvody]
-                 * **Blok 1 (cca 40 min): Geometrie - Složené útvary:** Vypočítej obvod a obsah 3 složených útvarů (kombinace obdélníků, trojúhelníků, kruhových výsečí). Udělej si náčrtek.
-                 * **Blok 2 (cca 30 min): Opakování - Mnohočleny:** Zopakuj vzorce (a±b)², a²-b². Rozlož pomocí nich 8 mnohočlenů na součin.
-                 * **Blok 3 (cca 15 min): Analýza chyb:** Projdi si 2 chybně vyřešené úlohy z minulého týdne a napiš si, v čem byla chyba.
-                 * *Tip dne:* U geometrie si vždy dělej přehledný náčrtek!
-                 * ... (atd. pro všechny dny s konkrétními, náročnými úkoly a různými typy aktivit) ...
+                 * **Fokus dne:** [Např. Geometrie - Tělesa a opakování mnohočlenů]
+                 * **Blok 1 (cca 50 min): Geometrie - Objem a povrch válce:** Opakování vzorců. Výpočet objemu a povrchu válce ve 4 úlohách (včetně slovních).
+                 * **Blok 2 (cca 30 min): Opakování - Mnohočleny:** Opakování vzorců (a±b)², a²-b². Rozklad 10 mnohočlenů na součin pomocí vytýkání a vzorců.
+                 * *Tip dne:* Kresli si náčrty těles, pomůže ti to s představivostí.
+                 * ... (atd. pro všechny dny) ...
                  ---
                  **Obecné tipy pro maximální efektivitu:**
-                 * Pravidelně analyzuj své chyby.
-                 * Nevynechávej opakování silnějších témat.
-                 * Pokud něčemu nerozumíš, aktivně hledej vysvětlení (učebnice, online zdroje).
+                 * ...
 
                  \`\`\`json
                  [
-                   { "day_of_week": 1, "title": "Algebra: Rovnice se zlomky/závorkami", "description": "Vyřeš 10 lineárních rovnic se zlomky a závorkami (různé typy obtížnosti). Zkontroluj řešení.", "time_slot": "45 min" },
-                   { "day_of_week": 1, "title": "Procenta: Základní úlohy", "description": "Zopakuj si výpočet části, základu, počtu procent. Vyřeš 6 slovních úloh.", "time_slot": "35 min" },
-                   { "day_of_week": 2, "title": "Geometrie: Obvod/obsah složených útvarů", "description": "Vypočítej obvod a obsah 3 složených útvarů (kombinace obdélníků, trojúhelníků, kruhových výsečí). Udělej si náčrtek.", "time_slot": "40 min" },
-                   { "day_of_week": 2, "title": "Opakování: Mnohočleny - vzorce", "description": "Zopakuj vzorce (a±b)², a²-b². Rozlož pomocí nich 8 mnohočlenů.", "time_slot": "30 min" },
-                   { "day_of_week": 2, "title": "Analýza chyb", "description": "Projdi si 2 chybně vyřešené úlohy z minulého týdne a napiš si, v čem byla chyba.", "time_slot": "15 min" }
+                   { "day_of_week": 1, "title": "Algebra: Složitější rovnice", "description": "Řešení 10 složitějších lineárních rovnic se zlomky a závorkami. Důraz na správné úpravy a zkoušku.", "time_slot": "45 min" },
+                   { "day_of_week": 1, "title": "Procenta: Slovní úlohy (základ, změna)", "description": "Řešení 5 slovních úloh na výpočet základu a procentové změny (zdražení/sleva).", "time_slot": "40 min" },
+                   { "day_of_week": 2, "title": "Geometrie: Objem a povrch válce", "description": "Opakování vzorců. Výpočet objemu a povrchu válce ve 4 úlohách (včetně slovních).", "time_slot": "50 min" },
+                   { "day_of_week": 2, "title": "Opakování: Rozklad mnohočlenů", "description": "Opakování vzorců (a±b)², a²-b². Rozklad 10 mnohočlenů na součin pomocí vytýkání a vzorců.", "time_slot": "30 min" }
                    // ... (další aktivity pro všechny dny) ...
                  ]
                  \`\`\`
@@ -893,43 +890,121 @@
         function initProgressCircle(canvasId, progressValue) { const canvas = document.getElementById(canvasId); if (!canvas) return; const ctx = canvas.getContext('2d'); const centerX = canvas.width / 2; const centerY = canvas.height / 2; const radius = 65; const lineWidth = 10; ctx.clearRect(0, 0, canvas.width, canvas.height); ctx.beginPath(); ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI); ctx.lineWidth = lineWidth; ctx.strokeStyle = '#dee2e6'; ctx.stroke(); const angle = (progressValue / 100) * 2 * Math.PI; if (angle > 0) { ctx.beginPath(); ctx.arc(centerX, centerY, radius, -Math.PI / 2, -Math.PI / 2 + angle); ctx.lineWidth = lineWidth; const gradient = ctx.createLinearGradient(0, 0, canvas.width, 0); gradient.addColorStop(0, '#4361ee'); gradient.addColorStop(1, '#3a0ca3'); ctx.strokeStyle = gradient; ctx.lineCap = 'round'; ctx.stroke(); } progressCircleInstance = { canvas, ctx, centerX, centerY, radius, lineWidth }; }
         function updateProgressCircle(canvasId, progressValue) { if (!progressCircleInstance) { initProgressCircle(canvasId, progressValue); return; } const { ctx, centerX, centerY, radius, lineWidth } = progressCircleInstance; ctx.clearRect(0, 0, progressCircleInstance.canvas.width, progressCircleInstance.canvas.height); ctx.beginPath(); ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI); ctx.lineWidth = lineWidth; ctx.strokeStyle = '#dee2e6'; ctx.stroke(); const angle = (progressValue / 100) * 2 * Math.PI; if (angle > 0) { ctx.beginPath(); ctx.arc(centerX, centerY, radius, -Math.PI / 2, -Math.PI / 2 + angle); ctx.lineWidth = lineWidth; const gradient = ctx.createLinearGradient(0, 0, progressCircleInstance.canvas.width, 0); gradient.addColorStop(0, '#4361ee'); gradient.addColorStop(1, '#3a0ca3'); ctx.strokeStyle = gradient; ctx.lineCap = 'round'; ctx.stroke(); } }
 
-        // ИСПРАВЛЕННАЯ ФУНКЦИЯ ЭКСПОРТА
+        // --- UPDATED PDF EXPORT FUNCTION ---
         function exportPlanToPDFWithStyle(plan) {
              if (!plan) return;
              const exportContainer = document.createElement('div');
-             exportContainer.style.padding = '20px';
-             exportContainer.style.fontFamily = 'Arial, sans-serif';
-             exportContainer.innerHTML = `<div style="text-align: center; margin-bottom: 30px;"><h1 style="color: #4361ee; font-size: 24px; margin-bottom: 10px;">${sanitizeHTML(plan.title || 'Studijní plán')}</h1><p style="color: #6c757d; font-size: 14px;">Vytvořeno: ${formatDate(plan.created_at)}</p></div>`;
+             // --- Style for better readability ---
+             exportContainer.style.padding = '25px'; // Slightly more padding
+             exportContainer.style.fontFamily = '"Poppins", Arial, sans-serif'; // Match page font
+             exportContainer.style.fontSize = '11pt'; // Base font size
+             exportContainer.style.color = '#333'; // Darker text color
+             exportContainer.style.lineHeight = '1.6';
+             // --- End Style ---
+
+             exportContainer.innerHTML = `<div style="text-align: center; margin-bottom: 30px;"><h1 style="color: #4361ee; font-size: 22pt; margin-bottom: 10px;">${sanitizeHTML(plan.title || 'Studijní plán')}</h1><p style="color: #6c757d; font-size: 11pt;">Vytvořeno: ${formatDate(plan.created_at)}</p></div>`;
 
              if (currentUser && userName.textContent) {
                  exportContainer.innerHTML += `
-                     <div style="margin-bottom: 20px; background-color: #f8f9fa; padding: 15px; border-radius: 10px;">
-                         <h2 style="color: #4361ee; font-size: 18px; margin-bottom: 10px;">Informace o studentovi</h2>
-                         <p><strong>Student:</strong> ${userName.textContent}</p>
-                         <p><strong>Datum vytvoření:</strong> ${formatDate(plan.created_at)}</p>
-                         ${plan.estimated_completion_date ? `<p><strong>Předpokládané dokončení:</strong> ${formatDate(plan.estimated_completion_date)}</p>` : ''}
+                     <div style="margin-bottom: 25px; background-color: #f8f9fa; padding: 15px; border-radius: 10px; border: 1px solid #eee;">
+                         <h2 style="color: #4361ee; font-size: 16pt; margin-top:0; margin-bottom: 10px;">Informace o studentovi</h2>
+                         <p style="margin-bottom: 5px;"><strong>Student:</strong> ${userName.textContent}</p>
+                         <p style="margin-bottom: 5px;"><strong>Datum vytvoření:</strong> ${formatDate(plan.created_at)}</p>
+                         ${plan.estimated_completion_date ? `<p style="margin-bottom: 0;"><strong>Předpokládané dokončení:</strong> ${formatDate(plan.estimated_completion_date)}</p>` : ''}
                      </div>`;
              }
 
              const contentElement = document.createElement('div');
-             contentElement.innerHTML = plan.plan_content_markdown ? marked.parse(plan.plan_content_markdown) : '<p>Obsah plánu není k dispozici.</p>';
-             contentElement.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach(heading => { heading.style.color = '#4361ee'; heading.style.marginTop = '20px'; heading.style.marginBottom = '10px'; });
-             contentElement.querySelectorAll('ul, ol').forEach(list => { list.style.marginLeft = '20px'; list.style.marginBottom = '15px'; });
-             contentElement.querySelectorAll('p').forEach(paragraph => { paragraph.style.lineHeight = '1.6'; paragraph.style.marginBottom = '10px'; });
+             try {
+                 contentElement.innerHTML = plan.plan_content_markdown ? marked.parse(plan.plan_content_markdown) : '<p>Obsah plánu není k dispozici.</p>';
+             } catch (e) {
+                 console.error("Chyba při parsování Markdown pro PDF:", e);
+                 contentElement.innerHTML = '<p>Chyba při zpracování obsahu plánu.</p>';
+             }
+
+             // --- Apply styles AFTER parsing Markdown ---
+             contentElement.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach((heading, index) => {
+                 heading.style.color = '#3f37c9'; // Darker purple for headings
+                 heading.style.marginTop = '25px';
+                 heading.style.marginBottom = '10px';
+                 heading.style.borderBottom = '1px solid #eee';
+                 heading.style.paddingBottom = '5px';
+                 // --- Add Page Break Before Daily Headings (assuming H3) ---
+                 if (heading.tagName === 'H3' && index > 0) { // Check if it's H3 and not the first heading overall
+                      // Check if the text content indicates a day of the week (simple check)
+                     const daysCzech = ['Pondělí', 'Úterý', 'Středa', 'Čtvrtek', 'Pátek', 'Sobota', 'Neděle'];
+                     if (daysCzech.some(day => heading.textContent.includes(day))) {
+                          heading.style.breakBefore = 'page'; // Standard CSS property for page breaks
+                          heading.style.pageBreakBefore = 'always'; // Older property for compatibility
+                     }
+                 }
+             });
+             contentElement.querySelectorAll('ul, ol').forEach(list => {
+                 list.style.marginLeft = '20px';
+                 list.style.marginBottom = '15px';
+             });
+             contentElement.querySelectorAll('p, li').forEach(el => {
+                 el.style.lineHeight = '1.6';
+                 el.style.marginBottom = '8px';
+                 el.style.color = '#333'; // Ensure darker text
+             });
+             contentElement.querySelectorAll('strong').forEach(el => {
+                 el.style.fontWeight = '600'; // Ensure bold is strong enough
+                 el.style.color = '#111';
+             });
+              contentElement.querySelectorAll('code').forEach(el => {
+                 el.style.backgroundColor = '#f0f0f0';
+                 el.style.padding = '2px 4px';
+                 el.style.borderRadius = '3px';
+                 el.style.fontSize = '90%';
+                 el.style.color = '#c7254e'; // Example color for code
+             });
+             contentElement.querySelectorAll('blockquote').forEach(el => {
+                el.style.borderLeft = '3px solid #ccc';
+                el.style.paddingLeft = '15px';
+                el.style.marginLeft = '0';
+                el.style.fontStyle = 'italic';
+                el.style.color = '#555';
+             });
              exportContainer.appendChild(contentElement);
+             // --- End Apply Styles ---
 
-             exportContainer.innerHTML += `<div style="margin-top: 30px; border-top: 1px solid #dee2e6; padding-top: 15px; text-align: center;"><p style="font-size: 12px; color: #6c757d;">&copy; ${new Date().getFullYear()} Justax - Personalizované studijní plány<br>www.justax.cz</p></div>`;
+             // --- Footer Update ---
+             exportContainer.innerHTML += `<div style="margin-top: 40px; border-top: 1px solid #dee2e6; padding-top: 15px; text-align: center; color: #888; font-size: 10pt;">&copy; ${new Date().getFullYear()} Justax.space</div>`;
+             // --- End Footer Update ---
 
-             const options = { margin: 15, filename: `studijni-plan-${formatDate(plan.created_at).replace(/\./g, '-')}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } };
+             const options = {
+                 margin: [15, 10, 15, 10], // top, left, bottom, right margins in mm
+                 filename: `studijni-plan-${formatDate(plan.created_at).replace(/\./g, '-')}.pdf`,
+                 image: { type: 'jpeg', quality: 0.98 },
+                 html2canvas: {
+                     scale: 2,
+                     useCORS: true,
+                     logging: false // Reduce console noise
+                 },
+                 jsPDF: {
+                     unit: 'mm',
+                     format: 'a4',
+                     orientation: 'portrait'
+                 },
+                 pagebreak: { mode: ['css', 'avoid-all'] } // Use CSS for breaks, avoid breaking inside elements
+             };
 
              // Check if html2pdf is loaded before calling
              if (typeof html2pdf === 'function') {
-                html2pdf().set(options).from(exportContainer).save().then(() => { showToast('PDF bylo úspěšně vygenerováno!', 'success'); }).catch(err => { console.error("Chyba exportu PDF:", err); showToast('Nepodařilo se exportovat PDF.', 'error'); });
+                 console.log("Starting PDF generation...");
+                 html2pdf().set(options).from(exportContainer).save().then(() => {
+                     console.log("PDF generation finished.");
+                     showToast('PDF bylo úspěšně vygenerováno!', 'success');
+                 }).catch(err => {
+                     console.error("Chyba exportu PDF:", err);
+                     showToast('Nepodařilo se exportovat PDF.', 'error');
+                 });
              } else {
-                console.error("html2pdf library is not loaded.");
-                showToast('Chyba: Knihovna pro export PDF není načtena.', 'error');
+                 console.error("html2pdf library is not loaded.");
+                 showToast('Chyba: Knihovna pro export PDF není načtena.', 'error');
              }
-         }
+        }
 
 
         // ==============================================
