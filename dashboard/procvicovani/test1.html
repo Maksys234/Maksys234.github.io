@@ -1564,12 +1564,14 @@
         async function initPage() {
             try {
                 // Show initial loader
-                testSelector.style.display = 'none';
-                testLoader.style.display = 'block';
+                if(testSelector) testSelector.style.display = 'none';
+                if(testLoader) testLoader.style.display = 'block';
                 if (loaderSubtext) loaderSubtext.textContent = 'Ověřuji uživatele...';
 
                 await checkUserAuthentication(); // Now handles profile errors internally
-                if (!currentUser) return; // Stop if user couldn't be authenticated
+                if (!currentUser) {
+                     throw new Error("Nepodařilo se ověřit uživatele pro spuštění testu."); // Stop if user couldn't be authenticated
+                }
 
                  // Check if test already completed (only for non-placeholder users)
                  if (currentUser.id !== 'PLACEHOLDER_USER_ID') {
@@ -1581,19 +1583,19 @@
                          .limit(1);
 
                      if (checkError) {
-                         console.error("Chyba při kontrole:", checkError);
+                         console.error("Chyba při kontrole existujícího testu:", checkError);
                          // Show error but allow proceeding to test selection
                          alert("Nepodařilo se ověřit, zda jste již test absolvovali. Pokračuji výběrem testu.");
                      } else if (existingDiagnostic && existingDiagnostic.length > 0) {
                          // Test already completed
-                         testSelector.innerHTML = `<div class="section animated"><h2 class="section-title"><i class="fas fa-check-circle" style="color: var(--success);"></i> Test již dokončen</h2><p>Tento test jste již absolvoval/a dne ${new Date(existingDiagnostic[0].completed_at).toLocaleDateString('cs-CZ')}.</p><p><strong>Tento test nelze opakovat.</strong></p><div style="margin-top:1.5rem; display:flex; gap:1rem; flex-wrap:wrap;"><a href="plan.html" class="btn btn-primary"><i class="fas fa-tasks"></i> Zobrazit plán</a><a href="main.html" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Zpět</a></div></div>`;
-                         testSelector.style.display = 'block';
-                         testLoader.style.display = 'none';
-                         testContainer.style.display = 'none';
-                         resultsContainer.style.display = 'none';
-                         reviewContainer.style.display = 'none';
-                         testTimer.style.display = 'none';
-                         testLevel.textContent = 'Test dokončen';
+                         if(testSelector) testSelector.innerHTML = `<div class="section animated"><h2 class="section-title"><i class="fas fa-check-circle" style="color: var(--success);"></i> Test již dokončen</h2><p>Tento test jste již absolvoval/a dne ${new Date(existingDiagnostic[0].completed_at).toLocaleDateString('cs-CZ')}.</p><p><strong>Tento test nelze opakovat.</strong></p><div style="margin-top:1.5rem; display:flex; gap:1rem; flex-wrap:wrap;"><a href="plan.html" class="btn btn-primary"><i class="fas fa-tasks"></i> Zobrazit plán</a><a href="main.html" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Zpět</a></div></div>`;
+                         if(testSelector) testSelector.style.display = 'block';
+                         if(testLoader) testLoader.style.display = 'none';
+                         if(testContainer) testContainer.style.display = 'none';
+                         if(resultsContainer) resultsContainer.style.display = 'none';
+                         if(reviewContainer) reviewContainer.style.display = 'none';
+                         if(testTimer) testTimer.style.display = 'none';
+                         if(testLevel) testLevel.textContent = 'Test dokončen';
                          return; // Stop initialization
                      }
                  } else {
@@ -1601,13 +1603,13 @@
                  }
 
                  // If test not completed or check failed, show selector
-                 testSelector.style.display = 'block';
-                 testLoader.style.display = 'none';
-                 testContainer.style.display = 'none';
-                 resultsContainer.style.display = 'none';
-                 reviewContainer.style.display = 'none';
-                 testTimer.style.display = 'none';
-                 testLevel.textContent = 'Výběr testu';
+                 if(testSelector) testSelector.style.display = 'block';
+                 if(testLoader) testLoader.style.display = 'none';
+                 if(testContainer) testContainer.style.display = 'none';
+                 if(resultsContainer) resultsContainer.style.display = 'none';
+                 if(reviewContainer) reviewContainer.style.display = 'none';
+                 if(testTimer) testTimer.style.display = 'none';
+                 if(testLevel) testLevel.textContent = 'Výběr testu';
 
                  // Add listeners for test selection
                  document.querySelectorAll('.test-type-card').forEach(card => {
@@ -1658,22 +1660,25 @@
                     } catch (profileError) {
                          console.error("Nepodařilo se načíst profil, pokračuji s výchozími údaji:", profileError);
                          // Ensure default values are set if loadUserProfile failed internally
-                         if (!userName.textContent || userName.textContent === 'Načítání...') {
-                             userName.textContent = currentUser.email.split('@')[0];
-                             userAvatar.textContent = currentUser.email.substring(0, 2).toUpperCase();
+                         // Check if elements exist before setting
+                         if (userName && (!userName.textContent || userName.textContent === 'Načítání...')) {
+                             userName.textContent = currentUser?.email?.split('@')[0] || 'Student';
+                         }
+                         if (userAvatar && (!userAvatar.innerHTML || userAvatar.textContent === 'MS')) {
+                             userAvatar.textContent = (currentUser?.email?.substring(0, 2) || 'ST').toUpperCase();
                          }
                     }
                 } else {
                     console.warn("Uživatel není přihlášen - Placeholder.");
                     currentUser = { id: 'PLACEHOLDER_USER_ID', email: 'student@example.com' };
-                    userName.textContent = 'Testovací Student';
-                    userAvatar.textContent = 'TS';
+                    if(userName) userName.textContent = 'Testovací Student';
+                    if(userAvatar) userAvatar.textContent = 'TS';
                 }
             } catch (error) {
                 console.error("Chyba autentizace:", error);
                 // Set default UI and re-throw to be caught by initPage
-                userName.textContent = 'Chyba';
-                userAvatar.textContent = 'E';
+                if(userName) userName.textContent = 'Chyba';
+                if(userAvatar) userAvatar.textContent = 'E';
                 currentUser = null;
                 throw error; // Let initPage handle showing the error message
             }
@@ -1705,13 +1710,17 @@
                  // Don't throw here, use fallback values below
              }
 
-             // Set UI elements with fallback logic
-             userName.textContent = profileUsername || currentUser?.email?.split('@')[0] || 'Student';
-             if (profileAvatarUrl) {
-                 userAvatar.innerHTML = `<img src="${profileAvatarUrl}" alt="Avatar">`;
-             } else {
-                 const initials = (profileUsername || currentUser?.email?.split('@')[0] || 'ST').substring(0, 2).toUpperCase();
-                 userAvatar.textContent = initials;
+             // Set UI elements with fallback logic, checking if elements exist first
+             if(userName) {
+                 userName.textContent = profileUsername || currentUser?.email?.split('@')[0] || 'Student';
+             }
+             if(userAvatar) {
+                 if (profileAvatarUrl) {
+                     userAvatar.innerHTML = `<img src="${profileAvatarUrl}" alt="Avatar">`;
+                 } else {
+                     const initials = (profileUsername || currentUser?.email?.split('@')[0] || 'ST').substring(0, 2).toUpperCase();
+                     userAvatar.textContent = initials;
+                 }
              }
          }
 
@@ -1986,6 +1995,8 @@
                   backToResultsBtn.onclick = () => { // Add listener for back button
                       reviewContainer.style.display = 'none';
                       resultsContainer.style.display = 'block';
+                      // Optional: push state if needed, but default back might be sufficient
+                      // history.pushState({ state: 'testFinished' }, document.title, window.location.href);
                   };
               } else {
                   // Button might not exist if reviewContainer is not shown, log warning if needed
@@ -2061,7 +2072,7 @@
                 const maxQScore = answer?.maxScore ?? (qType === 'construction' ? 2 : (!isNaN(difficultyInt) ? (difficultyInt >= 4 ? 3 : (difficultyInt === 3 ? 2 : 1)) : 1));
                 analysis.performance_by_type[qType].max_points += maxQScore;
 
-                if (answer && answer.scoreAwarded !== null) {
+                if (answer && answer.scoreAwarded !== null && answer.checked_by !== 'skipped') { // Ensure skipped answers don't affect points
                     analysis.performance_by_type[qType].points_achieved += answer.scoreAwarded;
                     if (answer.scoreAwarded < maxQScore) {
                          analysis.incorrectly_answered_details.push({ question_number: q.question_number, topic: q.topic, type: q.question_type, user_answer: answer.userAnswerValue, score_awarded: answer.scoreAwarded, max_score: maxQScore, explanation: q.solution_explanation }); // Use solution_explanation
@@ -2080,7 +2091,7 @@
         // 15. Aktualizace user stats (přeskočeno)
          async function updateUserStats() { console.log("Aktualizace user stats - přeskočeno."); }
 
-        // --- NEW Function: Display Answer Review ---
+        // --- NEW Function: Display Answer Review - **CORRECTED** try/catch block ---
         function displayReview() {
             if (!resultsContainer || !reviewContainer || !reviewContent) {
                  console.error("Review elements not found!");
@@ -2099,10 +2110,8 @@
             questions.forEach((q, index) => {
                 const answer = userAnswers[index]; // { question_id, userAnswerValue, scoreAwarded, maxScore, ... }
 
-                // Skip if answer data is truly missing (shouldn't happen with skipped logic)
                  if (!answer) {
                      console.warn(`No answer data found for question index ${index}`);
-                     // Optionally render a placeholder for missing data
                      reviewContent.innerHTML += `<div class="review-question-item skipped">
                          <div class="review-question-header">
                              <span class="review-question-number">${q.question_number}</span>
@@ -2177,13 +2186,12 @@
 
                  // Solution Display (especially for construction)
                  if (q.solution_explanation) {
-                     // Use marked.parse for potential Markdown in explanations
                      let solutionHtml;
                      try {
                         solutionHtml = marked.parse(q.solution_explanation);
                      } catch(e) {
                         console.error("Marked parsing error:", e);
-                        solutionHtml = sanitizeHTML(q.solution_explanation); // Fallback to simple sanitize
+                        solutionHtml = sanitizeHTML(q.solution_explanation); // Fallback
                      }
                      reviewHTML += `<div class="review-solution"><strong>Řešení / Postup:</strong> <div>${solutionHtml}</div></div>`;
                  }
@@ -2196,16 +2204,19 @@
             });
 
              // Typeset MathJax for the review content
+            // ** CORRECTED try/catch structure **
             if (window.MathJax && typeof window.MathJax.typesetPromise === 'function') {
                  try {
-                     setTimeout(() => window.MathJax.typesetPromise([reviewContent]).catch(e => console.error("MathJax Review error:", e)), 0);
-                 } catch (e) { console.error("MathJax Review init error:", e); }
-            }
+                     setTimeout(() => window.MathJax.typesetPromise([reviewContent]), 0);
+                 } catch (e) { // Catch block comes AFTER the try block content
+                     console.error("MathJax Review error:", e);
+                 } // Closing brace for catch
+             } // Closing brace for if
 
             // Scroll to top of review section
              reviewContainer.scrollIntoView({ behavior: 'smooth' });
 
-        }
+        } // Closing brace for displayReview function
 
 
         // 16. Obecné Event Listenery (Corrected)
@@ -2246,21 +2257,21 @@
              // Retry Button
             if (retryBtn) {
                  retryBtn.addEventListener('click', () => {
-                     resultsContainer.style.display = 'none';
+                     if(resultsContainer) resultsContainer.style.display = 'none';
                      if (reviewContainer) reviewContainer.style.display = 'none'; // Hide review too
-                     testSelector.style.display = 'block';
+                     if(testSelector) testSelector.style.display = 'block';
                      questions = [];
                      userAnswers = [];
                      testResultsData = { score: 0 };
                      diagnosticId = null;
                      selectedTestType = null;
                      document.querySelectorAll('.test-type-card').forEach(c => c.classList.remove('selected'));
-                     lowScoreMessageContainer.innerHTML = '';
+                     if(lowScoreMessageContainer) lowScoreMessageContainer.innerHTML = '';
                      if (continueBtn) {
                         continueBtn.disabled = true;
                         continueBtn.removeAttribute('data-save-error');
                      }
-                     testLevel.textContent = 'Výběr testu';
+                     if(testLevel) testLevel.textContent = 'Výběr testu';
                      history.replaceState({ state: 'testSelection' }, document.title, window.location.href);
                  });
              }
@@ -2272,17 +2283,7 @@
                      }
                  });
              }
-              // Back to Results Button (in Review section) - Ensure it exists and listener is attached correctly
-              // Moved listener attachment to displayResults to ensure button exists first
-              // if (backToResultsBtn) {
-              //     backToResultsBtn.onclick = () => {
-              //         if (reviewContainer) reviewContainer.style.display = 'none';
-              //         if (resultsContainer) resultsContainer.style.display = 'block';
-              //          history.pushState({ state: 'testFinished' }, document.title, window.location.href); // Go back to results state if needed
-              //     };
-              // } else {
-              //     console.warn("Back to Results button not found during setup."); // Log warning if not found
-              // }
+              // Back to Results Button (in Review section) - Listener attached in displayResults now
 
              // Resize Listener
             window.addEventListener('resize', () => {
@@ -2291,7 +2292,7 @@
                      sidebarOverlay?.classList.remove('active');
                  }
              });
-         }
+         } // Closing brace for setupCommonEventListeners function
 
          // 17. Zpracování tlačítka Zpět (Corrected)
          function handleBackButton(event) {
@@ -2304,7 +2305,7 @@
                  // If review is shown, go back to results
                  reviewContainer.style.display = 'none';
                  if (resultsContainer) resultsContainer.style.display = 'block';
-                 // Don't push state here, allow default back behavior to go to results state if it exists
+                 // Allow default back behavior
              } else if (testIsRunning) {
                  if (!confirm('Opustit test? Postup nebude uložen.')) {
                      history.pushState({ state: 'testInProgress' }, document.title, window.location.href); // Prevent back navigation
@@ -2314,20 +2315,20 @@
                      if (testLoader) testLoader.style.display = 'none';
                      if (testSelector) testSelector.style.display = 'block';
                      if (testTimer) testTimer.style.display = 'none';
-                     testLevel.textContent = 'Výběr testu';
+                     if(testLevel) testLevel.textContent = 'Výběr testu';
                      // Allow default back behavior
                  }
              } else if (resultsAreShown) {
                  // From results, go back to selection
-                 resultsContainer.style.display = 'none';
+                 if(resultsContainer) resultsContainer.style.display = 'none';
                  if (testSelector) testSelector.style.display = 'block';
-                 testLevel.textContent = 'Výběr testu';
+                 if(testLevel) testLevel.textContent = 'Výběr testu';
                   // Allow default back behavior
              } else {
                  console.log("Navigating back (default behavior).");
                   // Allow default back behavior (likely exits the page or goes to previous history entry)
              }
-         }
+         } // Closing brace for handleBackButton function
 
 
         // ==============================================
@@ -2335,6 +2336,6 @@
         // ==============================================
         document.addEventListener('DOMContentLoaded', initPage);
 
-    </script>
+    </script> // Closing script tag
 </body>
 </html>
