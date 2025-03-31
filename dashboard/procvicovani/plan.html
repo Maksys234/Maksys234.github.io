@@ -111,18 +111,18 @@
         .animated { animation: fadeIn 0.5s ease forwards; }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* --- Nové/Upravené styly pro KALENDÁŘ a POSUVNÍK --- */
-         .schedule-section { padding-top: 0; /* Odstraníme padding, protože hlavička je uvnitř */ }
+        /* --- Styly pro KALENDÁŘ a POSUVNÍK --- */
+         .schedule-section { padding-top: 0; }
          .calendar-scroll-container {
-            overflow-x: auto; /* Povolí horizontální posuvník */
-            padding-bottom: 10px; /* Místo pro posuvník */
-            margin-top: 0; /* Odsazení od hlavičky plánu je už v .plan-header */
+            overflow-x: auto;
+            padding-bottom: 10px;
+            margin-top: 0;
             border: 1px solid var(--gray-light);
             border-radius: var(--card-radius);
             background-color: var(--white);
-            position: relative; /* Pro případné absolutní pozicování šipek */
+            position: relative;
         }
-         /* Šipky pro posuvník (volitelné) */
+         /* Šipky pro posuvník */
          .scroll-arrow {
              position: absolute;
              top: 50%;
@@ -138,109 +138,59 @@
              cursor: pointer;
              z-index: 20;
              box-shadow: var(--shadow-sm);
-             opacity: 0; /* Skryté defaultně */
+             opacity: 0;
              transition: opacity 0.3s ease;
              color: var(--text-secondary);
+             pointer-events: none; /* Defaultně neklikatelné */
          }
-         .scroll-arrow:hover {
-             background-color: var(--white);
-             color: var(--primary);
+         .scroll-arrow:not(.disabled) {
+              pointer-events: auto; /* Aktivní jsou klikatelné */
          }
-         .calendar-scroll-container:hover .scroll-arrow {
-            opacity: 1; /* Zobrazí se při najetí myší na kontejner */
+         .calendar-scroll-container:hover .scroll-arrow:not(.disabled) {
+            opacity: 0.8; /* Zobrazí se při najetí, pokud nejsou disabled */
          }
-         .scroll-arrow.left { left: 5px; }
-         .scroll-arrow.right { right: 5px; }
-         .scroll-arrow.disabled { opacity: 0.3 !important; cursor: not-allowed; }
+         .calendar-scroll-container .scroll-arrow:not(.disabled):hover {
+              background-color: var(--white);
+              color: var(--primary);
+              opacity: 1;
+         }
+         .scroll-arrow.left { left: 10px; } /* Větší odsazení */
+         .scroll-arrow.right { right: 10px; }
+         .scroll-arrow.disabled { opacity: 0 !important; /* Skryjeme neaktivní šipky úplně */ cursor: default; }
 
 
         .calendar-grid {
             display: grid;
-            grid-template-columns: repeat(7, minmax(200px, 1fr)); /* Větší min šířka */
-            min-width: calc(7 * 200px); /* Min šířka pro všechny dny */
+            grid-template-columns: repeat(7, minmax(200px, 1fr));
+            min-width: calc(7 * 200px);
         }
-
         .calendar-day-cell {
             border-left: 1px solid var(--gray-light);
-            min-height: 300px; /* Větší výška buňky */
+            min-height: 300px;
             display: flex;
             flex-direction: column;
             position: relative;
         }
         .calendar-day-cell:first-child { border-left: none; }
-
-        .calendar-day-header {
-            padding: 0.75rem 0.5rem;
-            font-weight: 600;
-            text-align: center;
-            background-color: #f8f9fa;
-            border-bottom: 1px solid var(--gray-light);
-            font-size: 0.9rem;
-            color: var(--text-secondary);
-            position: sticky;
-            top: 0;
-            z-index: 10;
-        }
-        .calendar-day-cell.today .calendar-day-header { /* ... (beze změny) ... */ background-color: rgba(6, 214, 160, 0.15); color: var(--success); font-weight: 700; }
+        .calendar-day-header { padding: 0.75rem 0.5rem; font-weight: 600; text-align: center; background-color: #f8f9fa; border-bottom: 1px solid var(--gray-light); font-size: 0.9rem; color: var(--text-secondary); position: sticky; top: 0; z-index: 10; }
+        .calendar-day-cell.today .calendar-day-header { background-color: rgba(6, 214, 160, 0.15); color: var(--success); font-weight: 700; }
         .calendar-day-cell.today { background-color: rgba(6, 214, 160, 0.03); }
-
-        .calendar-activities {
-            padding: 0.75rem;
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
-            overflow-y: auto;
-        }
-
-        .calendar-activity {
-            background-color: var(--white);
-            border: 1px solid var(--gray-light);
-            border-left: 4px solid var(--primary);
-            border-radius: 6px;
-            padding: 0.6rem 0.8rem;
-            font-size: 0.85rem;
-            box-shadow: var(--shadow-sm);
-            transition: all 0.2s ease;
-            cursor: pointer;
-            position: relative; /* Pro tooltip popisu */
-        }
-         .calendar-activity:hover { transform: translateY(-2px) scale(1.01); box-shadow: var(--shadow-md); border-left-color: var(--secondary); }
-
+        .calendar-activities { padding: 0.75rem; flex-grow: 1; display: flex; flex-direction: column; gap: 0.75rem; overflow-y: auto; }
+        .calendar-activity { background-color: var(--white); border: 1px solid var(--gray-light); border-left: 4px solid var(--primary); border-radius: 6px; padding: 0.6rem 0.8rem; font-size: 0.85rem; box-shadow: var(--shadow-sm); transition: all 0.2s ease; cursor: default; /* Není klikatelné pro rozbalení */}
+        .calendar-activity:hover { transform: translateY(-2px) scale(1.01); box-shadow: var(--shadow-md); border-left-color: var(--secondary); }
         .calendar-activity .activity-checkbox { gap: 0.6rem; align-items: center; }
-         .calendar-activity .activity-checkbox input[type="checkbox"] { margin-top: 0; transform: scale(1.1); }
-
+        .calendar-activity .activity-checkbox input[type="checkbox"] { margin-top: 0; transform: scale(1.1); cursor: pointer; }
         .calendar-activity .activity-title { font-weight: 500; color: var(--dark); font-size: 0.9rem; margin-bottom: 2px; line-height: 1.3; }
-         .calendar-activity .activity-time-display { font-weight: 600; color: var(--primary); margin-right: 6px; font-size: 0.85em; }
-
-        .calendar-activity .activity-desc { /* Zůstává skrytý, zobrazí se tooltipem */ display: none; }
-        /* Odstraněna třída .expanded a její CSS */
-
+        .calendar-activity .activity-time-display { font-weight: 600; color: var(--primary); margin-right: 6px; font-size: 0.85em; }
+        .calendar-activity .activity-desc { /* Popis se zobrazí jen v tooltipu */ display: none; }
         .calendar-activity .activity-checkbox input:checked + .activity-content .activity-title { text-decoration: line-through; opacity: 0.7; }
 
-        /* Responsivita kalendáře */
-         @media (max-width: 1300px) { /* Širší breakpoint pro zmenšení */
-             .calendar-grid { grid-template-columns: repeat(7, minmax(160px, 1fr)); min-width: calc(7 * 160px); }
-         }
-        @media (max-width: 992px) {
-             :root { --sidebar-width: 80px; } .sidebar { width: 80px; } /* ... zbytek responzivity sidebaru ... */
-             .calendar-grid { grid-template-columns: repeat(7, minmax(150px, 1fr)); min-width: calc(7 * 150px); }
-        }
-        @media (max-width: 768px) {
-             main { padding: 1rem; } .header-content { flex-direction: column; align-items: flex-start; gap: 1rem; } .plan-header { flex-direction: column; gap: 1rem; } .plan-actions { width: 100%; justify-content: center; } .plan-tabs { overflow-x: auto; white-space: nowrap; padding-bottom: 0.5rem; } .plan-tab { padding: 0.75rem 1rem; font-size: 0.9rem; }
-             /* Na tabletu už můžeme zvážit skládání, ale zkusíme nejdřív posuvník */
-             .calendar-grid { grid-template-columns: repeat(7, minmax(130px, 1fr)); min-width: calc(7 * 130px); }
-             .scroll-arrow { display: none; } /* Skryjeme JS šipky, spoléháme na dotykový posun */
-        }
-         @media (max-width: 576px) {
-             :root { --sidebar-width: 0; } .sidebar { transform: translateX(-100%); z-index: 1000; width: 260px; } /* ... zbytek responzivity sidebaru ... */
-             main { margin-left: 0; width: 100%; } .mobile-menu-toggle { display: block; }
-             .calendar-scroll-container { border: none; border-radius: 0; margin-left: -1rem; margin-right: -1rem; }
-             .calendar-grid { display: block; min-width: unset; }
-             .calendar-day-cell { border-left: none; border-bottom: 1px solid var(--gray-light); min-height: auto; border-radius: 0; margin-bottom: 1rem; background-color: var(--white); box-shadow: var(--shadow-sm);}
-             .calendar-day-cell:last-child { border-bottom: none; margin-bottom: 0; }
-             .scroll-arrow { display: none; }
-        }
+
+        /* Responsivní úpravy */
+        @media (max-width: 1300px) { .calendar-grid { grid-template-columns: repeat(7, minmax(160px, 1fr)); min-width: calc(7 * 160px); } }
+        @media (max-width: 992px) { :root { --sidebar-width: 80px; } .sidebar { width: 80px; } .sidebar-logo span, .sidebar-link span, .user-info, .sidebar-footer { display: none; } .sidebar-link i { margin-right: 0; font-size: 1.5rem; } .sidebar-logo i { margin-right: 0; } .sidebar-header, .sidebar-link { justify-content: center; } .user-profile { justify-content: center; padding: 0.75rem 0; } .user-avatar { margin-right: 0; } main { margin-left: 80px; width: calc(100% - 80px); } .calendar-grid { grid-template-columns: repeat(7, minmax(150px, 1fr)); min-width: calc(7 * 150px); } }
+        @media (max-width: 768px) { main { padding: 1rem; } .header-content { flex-direction: column; align-items: flex-start; gap: 1rem; } .plan-header { flex-direction: column; gap: 1rem; } .plan-actions { width: 100%; justify-content: center; } .plan-tabs { overflow-x: auto; white-space: nowrap; padding-bottom: 0.5rem; } .plan-tab { padding: 0.75rem 1rem; font-size: 0.9rem; } .calendar-grid { grid-template-columns: repeat(7, minmax(130px, 1fr)); min-width: calc(7 * 130px); } .scroll-arrow { display: none; } }
+         @media (max-width: 576px) { :root { --sidebar-width: 0; } .sidebar { transform: translateX(-100%); z-index: 1000; width: 260px; } .sidebar.active { transform: translateX(0); } .sidebar.active .sidebar-logo span, .sidebar.active .sidebar-link span, .sidebar.active .user-info, .sidebar.active .sidebar-footer { display: block; } .sidebar.active .sidebar-link i { margin-right: 0.75rem; } .sidebar.active .sidebar-header, .sidebar.active .sidebar-link { justify-content: flex-start; } .sidebar.active .user-profile { justify-content: flex-start; padding: 1rem; } .sidebar.active .user-avatar { margin-right: 0.75rem; } main { margin-left: 0; width: 100%; } .mobile-menu-toggle { display: block; } .calendar-scroll-container { border: none; border-radius: 0; margin-left: -1rem; margin-right: -1rem; } .calendar-grid { display: block; min-width: unset; } .calendar-day-cell { border-left: none; border-bottom: 1px solid var(--gray-light); min-height: auto; border-radius: 0; margin-bottom: 1rem; background-color: var(--white); box-shadow: var(--shadow-sm);} .calendar-day-cell:last-child { border-bottom: none; margin-bottom: 0; } .scroll-arrow { display: none; } }
         .mobile-menu-toggle { display: none; background: none; border: none; cursor: pointer; color: var(--dark); font-size: 1.5rem; margin-right: 1rem; }
         .mobile-menu-visible .sidebar { transform: translateX(0); }
 
@@ -254,7 +204,6 @@
              .history-item { background-color: var(--dark-bg); }
              .toast { background-color: var(--dark-bg); border-color: var(--gray-light);}
              .mobile-menu-toggle { color: var(--dark); }
-
             /* Dark mode pro kalendář */
              .calendar-scroll-container { background-color: var(--dark-bg); border-color: var(--gray-light); }
              .calendar-grid { background-color: transparent; }
@@ -263,11 +212,9 @@
              .calendar-day-cell.today .calendar-day-header { background-color: rgba(6, 214, 160, 0.2); color: var(--success); }
              .calendar-day-cell.today { background-color: rgba(6, 214, 160, 0.06); }
              .calendar-activity { background-color: var(--light); border-color: var(--gray-light); border-left-color: var(--primary); }
-              @media (max-width: 576px) {
-                  .calendar-day-cell { border-bottom-color: var(--gray-light); background-color: var(--dark-bg); }
-             }
+              @media (max-width: 576px) { .calendar-day-cell { border-bottom-color: var(--gray-light); background-color: var(--dark-bg); } }
               .scroll-arrow { background-color: rgba(45, 55, 72, 0.8); border-color: var(--gray-light); color: var(--text-muted); }
-              .scroll-arrow:hover { background-color: var(--light); color: var(--primary-light); }
+              .scroll-arrow:not(.disabled):hover { background-color: var(--light); color: var(--primary-light); }
         }
 
          /* Toast notification */
@@ -292,7 +239,7 @@
 
     <main>
         <div class="dashboard-header">
-            <div class="header-content">
+             <div class="header-content">
                 <h1>Personalizovaný studijní plán</h1>
                 <button class="mobile-menu-toggle" id="mobileMenuToggle"> <i class="fas fa-bars"></i> </button>
             </div>
@@ -300,9 +247,9 @@
 
         <div class="main-content">
             <div class="plan-tabs">
-                <div class="plan-tab active" data-tab="current">Aktuální plán</div>
-                <div class="plan-tab" data-tab="history">Historie plánů</div>
-                <div class="plan-tab" data-tab="create">Vytvořit nový</div>
+                 <div class="plan-tab active" data-tab="current">Aktuální plán</div>
+                 <div class="plan-tab" data-tab="history">Historie plánů</div>
+                 <div class="plan-tab" data-tab="create">Vytvořit nový</div>
             </div>
 
             <div class="section current-plan-section" id="currentPlanSection" style="display: none;">
@@ -312,33 +259,31 @@
             </div>
 
             <div class="section history-plan-section" id="historyPlanSection" style="display: none;">
-                <h2 class="section-title">Historie studijních plánů</h2>
-                <div class="loader-container" id="historyLoader"> <div class="loader"></div> </div>
-                <div id="historyPlanContent" class="plan-history">
-                     </div>
+                 <h2 class="section-title">Historie studijních plánů</h2>
+                 <div class="loader-container" id="historyLoader"> <div class="loader"></div> </div>
+                 <div id="historyPlanContent" class="plan-history"></div>
             </div>
 
             <div class="section create-plan-section" id="createPlanSection" style="display: none;">
-                <div id="planCreateContent">
-                     </div>
+                 <div id="planCreateContent"></div>
             </div>
 
             <div class="section plan-section" id="planSection" style="display: none;">
                  <div class="step-navigation">
                      <button class="btn btn-secondary" id="genericBackBtn"> <i class="fas fa-arrow-left"></i> Zpět </button>
                  </div>
-                <h2 class="section-title">Detail plánu</h2>
+                <h2 class="section-title">Detail plánu / Návrh</h2>
                 <div class="ai-loading" id="planLoading" style="display: none;"> <div class="ai-loading-spinner"></div> <div>Načítám/Generuji...</div> </div>
-                <div class="plan-content" id="planContent" style="display: none;">
-                     </div>
-                <div class="action-buttons" id="planActions" style="display: none;">
-                    </div>
+                <div class="plan-content" id="planContent" style="display: none;"></div>
+                <div class="action-buttons" id="planActions" style="display: none;"></div>
             </div>
 
              <div class="section schedule-section" id="scheduleSection" style="display: none;">
-                 <div class="calendar-scroll-container" id="calendarScrollContainer"> <div class="daily-schedule" id="dailySchedule"> </div>
-                     <div class="scroll-arrow left" id="scrollLeftArrow"><i class="fas fa-chevron-left"></i></div>
-                     <div class="scroll-arrow right" id="scrollRightArrow"><i class="fas fa-chevron-right"></i></div>
+                 <div class="calendar-scroll-container" id="calendarScrollContainer">
+                      <div class="scroll-arrow left" id="scrollLeftArrow"><i class="fas fa-chevron-left"></i></div>
+                      <div class="scroll-arrow right" id="scrollRightArrow"><i class="fas fa-chevron-right"></i></div>
+                      <div class="daily-schedule" id="dailyScheduleContainer">
+                          </div>
                  </div>
                  <div class="step-navigation" style="margin-top: 1.5rem;">
                      <button class="btn btn-secondary" id="backToTabsBtn"> <i class="fas fa-arrow-left"></i> Zpět na záložky </button>
@@ -349,17 +294,17 @@
                  <div style="position: relative; min-height: 300px;"> <div class="locked-overlay"> <div class="locked-icon"> <i class="fas fa-lock"></i> </div> <h3 class="locked-title">Vytvoření nového plánu není dostupné</h3> <p class="locked-message">Nový studijní plán můžete vytvořit jednou týdně, abyste měli dostatek času pracovat na aktuálním. Váš poslední plán byl vytvořen nedávno.</p> <div class="timer-container" id="timerContainer"> Další plán můžete vytvořit za: <span id="nextPlanTimer">počítám...</span> </div> <button class="btn btn-primary" id="viewCurrentPlanBtnLocked"> <i class="fas fa-eye"></i> Zobrazit aktuální plán </button> </div> </div>
              </template>
              <template id="createPlanFormTemplate">
-                <h2 class="section-title">Vytvořit nový studijní plán</h2> <div id="diagnosticInfo"> </div> <p class="section-text">Personalizovaný studijní plán bude vytvořen na základě výsledků vašeho posledního diagnostického testu. Zaměří se na vaše slabší oblasti a pomůže vám efektivně se připravit.</p> <div class="action-buttons"> <button class="btn btn-primary btn-lg" id="generatePlanBtn"> <i class="fas fa-magic"></i> Vygenerovat studijní plán </button> </div>
-             </template>
+                 <h2 class="section-title">Vytvořit nový studijní plán</h2> <div id="diagnosticInfo"> </div> <p class="section-text">Personalizovaný studijní plán bude vytvořen na základě výsledků vašeho posledního diagnostického testu. Zaměří se na vaše slabší oblasti a pomůže vám efektivně se připravit.</p> <div class="action-buttons"> <button class="btn btn-primary btn-lg" id="generatePlanBtn"> <i class="fas fa-magic"></i> Vygenerovat studijní plán </button> </div>
+              </template>
              <template id="noDiagnosticTemplate">
-                 <div class="notest-message"> <h3><i class="fas fa-exclamation-circle"></i> Nejprve absolvujte diagnostický test</h3> <p>Pro vytvoření personalizovaného studijního plánu je nejprve potřeba dokončit diagnostický test na stránce Procvičování, který nám pomůže identifikovat vaše silné a slabé stránky.</p> <button class="btn btn-primary" id="goToTestBtn"> <i class="fas fa-play"></i> Přejít k testu </button> </div>
-             </template>
+                  <div class="notest-message"> <h3><i class="fas fa-exclamation-circle"></i> Nejprve absolvujte diagnostický test</h3> <p>Pro vytvoření personalizovaného studijního plánu je nejprve potřeba dokončit diagnostický test na stránce Procvičování, který nám pomůže identifikovat vaše silné a slabé stránky.</p> <button class="btn btn-primary" id="goToTestBtn"> <i class="fas fa-play"></i> Přejít k testu </button> </div>
+              </template>
             <template id="historyItemTemplate">
-                <div class="history-item" data-plan-id=""> <div class="history-info"> <div class="history-date">Vytvořeno: -</div> <div class="history-title">Studijní plán</div> </div> <div class="history-meta"> <span class="history-status active">Stav</span> </div> </div>
-            </template>
+                 <div class="history-item" data-plan-id=""> <div class="history-info"> <div class="history-date">Vytvořeno: -</div> <div class="history-title">Studijní plán</div> </div> <div class="history-meta"> <span class="history-status active">Stav</span> </div> </div>
+             </template>
             <template id="promptCreatePlanTemplate">
-                <div class="notest-message info"><h3><i class="fas fa-clipboard-check"></i> Diagnostický test dokončen</h3><p>Váš poslední diagnostický test je připraven k analýze. Můžete nyní vygenerovat nový personalizovaný studijní plán.</p><button class="btn btn-primary" id="createNewPlanFromPromptBtn"><i class="fas fa-plus-circle"></i> Vytvořit studijní plán</button></div>
-            </template>
+                 <div class="notest-message info"><h3><i class="fas fa-clipboard-check"></i> Diagnostický test dokončen</h3><p>Váš poslední diagnostický test je připraven k analýze. Můžete nyní vygenerovat nový personalizovaný studijní plán.</p><button class="btn btn-primary" id="createNewPlanFromPromptBtn"><i class="fas fa-plus-circle"></i> Vytvořit studijní plán</button></div>
+             </template>
         </div>
     </main>
 
@@ -368,12 +313,7 @@
          <div id="toast-message">Operace byla úspěšně dokončena.</div>
      </div>
 
-    <script
-        src="https://code.jquery.com/jquery-3.7.1.min.js"
-        integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
-        crossorigin="anonymous"
-        defer>
-    </script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js" defer></script>
@@ -400,8 +340,8 @@
         const scheduleSection = document.getElementById('scheduleSection');
         const planLoading = document.getElementById('planLoading');
         const planContent = document.getElementById('planContent');
-        const dailyScheduleContainer = document.getElementById('dailySchedule'); // Přejmenováno pro srozumitelnost
-        const calendarScrollContainer = document.getElementById('calendarScrollContainer'); // Nový kontejner pro posuvník
+        const dailyScheduleContainer = document.getElementById('dailyScheduleContainer'); // Kontejner pro mřížku
+        const calendarScrollContainer = document.getElementById('calendarScrollContainer');
         const scrollLeftArrow = document.getElementById('scrollLeftArrow');
         const scrollRightArrow = document.getElementById('scrollRightArrow');
         const planActions = document.getElementById('planActions');
@@ -436,49 +376,65 @@
         //          Pomocné Funkce
         // ==============================================
         function formatDate(dateString) { /* ... (beze změny) ... */ if(!dateString) return '-'; const date = new Date(dateString); return date.toLocaleDateString('cs-CZ', { day: '2-digit', month: '2-digit', year: 'numeric' }); }
-        function showLoader(sectionElement, loaderElement) { if(loaderElement) loaderElement.style.display = 'flex'; const contentElement = sectionElement.querySelector('#currentPlanContent, #historyPlanContent, #planCreateContent, #planContent, #calendarScrollContainer'); if (contentElement) contentElement.style.display = 'none'; } // Upraven selector
+        function showLoader(sectionElement, loaderElement) { /* ... (beze změny) ... */ if(loaderElement) loaderElement.style.display = 'flex'; const contentElement = sectionElement.querySelector('#currentPlanContent, #historyPlanContent, #planCreateContent, #planContent, #calendarScrollContainer'); if (contentElement) contentElement.style.display = 'none'; }
         function hideLoader(loaderElement) { /* ... (beze změny) ... */ if(loaderElement) loaderElement.style.display = 'none'; }
         function showGlobalError(message) { /* ... (beze změny) ... */ const errorContainer = document.getElementById('global-error'); if(errorContainer) { errorContainer.innerHTML = `<div class="error-message"><i class="fas fa-exclamation-circle"></i><div>${message}</div></div>`; errorContainer.style.display = 'block';} }
         function sanitizeHTML(str) { /* ... (beze změny) ... */ if (str === null || str === undefined) return ''; const temp = document.createElement('div'); temp.textContent = str; return temp.innerHTML; }
         function getInitials(profileData) { /* ... (beze změny) ... */ if (!profileData) return 'U'; const first = profileData.first_name?.[0] || ''; const last = profileData.last_name?.[0] || ''; const usernameInitial = profileData.username?.[0] || ''; const emailInitial = profileData.email?.[0] || ''; return (first + last).toUpperCase() || usernameInitial.toUpperCase() || emailInitial.toUpperCase() || 'U'; }
         function toggleMobileMenu() { /* ... (beze změny) ... */ const sidebar = document.querySelector('.sidebar'); sidebar?.classList.toggle('active'); const overlay = document.querySelector('.sidebar-overlay'); overlay?.classList.toggle('active'); }
         function showToast(message, type = 'success', duration = 4000) { /* ... (beze změny) ... */ const toast = document.getElementById('toast'); const toastMessage = document.getElementById('toast-message'); if (!toast || !toastMessage) return; toastMessage.textContent = message; const icon = toast.querySelector('i'); icon.className = type === 'success' ? 'fas fa-check-circle' : type === 'error' ? 'fas fa-exclamation-circle' : type === 'warning' ? 'fas fa-exclamation-triangle' : 'fas fa-info-circle'; toast.className = 'toast ' + type; toast.classList.add('show'); setTimeout(() => { toast.classList.remove('show'); }, duration); }
-        function initTooltips() { /* ... (beze změny) ... */ try { if (typeof window.$ !== 'undefined' && window.$.fn.tooltipster) { window.$('.btn-tooltip:not(.tooltipstered), .calendar-activity:not(.tooltipstered)').tooltipster({ // Přidán tooltip pro aktivity
-                 theme: 'tooltipster-shadow',
-                 animation: 'fade',
-                 delay: 150, // Mírně delší delay
-                 side: ['top', 'bottom'], // Preferuje top, pak bottom
-                 contentAsHTML: true, // Umožní HTML v tooltipu
-                 functionInit: function(instance, helper) {
-                      // Získáme popis z data atributu nebo skrytého elementu
-                      let content = '';
-                      const activityElement = $(helper.origin);
-                      if (activityElement.hasClass('calendar-activity')) {
-                           const descElement = activityElement.find('.activity-desc');
-                           if (descElement.length > 0 && descElement.text().trim() !== '') {
-                                content = `<div style="max-width: 250px; font-size: 0.85rem; line-height: 1.4;">${descElement.html()}</div>`; // Použijeme HTML popisu
-                           } else {
-                                content = 'Žádný popis.'; // Fallback
-                           }
-                      } else {
-                           // Standardní tooltip pro tlačítka atd.
-                           content = instance.content();
-                      }
-                      instance.content(content);
-                 }
-             }); console.log("Tooltips initialized on new elements."); } else { console.warn("Tooltipster nebo jQuery nejsou dostupné pro inicializaci."); } } catch (e) { console.error("Chyba inicializace Tooltipster:", e); } }
-        window.addEventListener('resize', () => { if (window.innerWidth > 992) { document.querySelector('.sidebar')?.classList.remove('active'); document.querySelector('.sidebar-overlay')?.classList.remove('active'); } updateScrollArrows(); /* Aktualizace šipek při změně velikosti */ });
+        function initTooltips() {
+             try {
+                 if (typeof window.$ !== 'undefined' && window.$.fn.tooltipster) {
+                     window.$('.btn-tooltip:not(.tooltipstered), .calendar-activity:not(.tooltipstered)').tooltipster({
+                          theme: 'tooltipster-shadow',
+                          animation: 'fade',
+                          delay: 150,
+                          side: ['top', 'bottom'],
+                          contentAsHTML: true,
+                          functionInit: function(instance, helper) {
+                               let content = '';
+                               const origin = $(helper.origin);
+                               if (origin.hasClass('calendar-activity')) {
+                                    const descElement = origin.find('.activity-desc');
+                                    const rawDesc = descElement.length > 0 ? descElement.html() : ''; // Použijeme html pro zachování formátování
+                                    if (rawDesc.trim() !== '') {
+                                         // Obalíme popisek, aby měl max šířku a lepší styl
+                                         content = `<div style="max-width: 250px; font-size: 0.85rem; line-height: 1.4; padding: 3px;">${rawDesc}</div>`;
+                                    } else {
+                                         content = null; // Pokud není popis, tooltip se nezobrazí
+                                         instance.destroy(); // Zničíme instanci tooltipu pro tento prvek
+                                         return; // Ukončíme funkci
+                                    }
+                               } else {
+                                    content = instance.content(); // Pro tlačítka atd.
+                               }
+                               instance.content(content);
+                          },
+                          functionReady: function(instance, helper) {
+                              // Přidáme třídu pro případné specifické stylování tooltipu pro aktivity
+                              if ($(helper.origin).hasClass('calendar-activity')) {
+                                   instance.tooltip().addClass('tooltipster-activity-desc');
+                              }
+                          }
+                      });
+                     console.log("Tooltips initialized/updated.");
+                 } else { console.warn("Tooltipster or jQuery not available."); }
+             } catch (e) { console.error("Error initializing Tooltipster:", e); }
+         }
+        window.addEventListener('resize', () => { if (window.innerWidth > 992) { document.querySelector('.sidebar')?.classList.remove('active'); document.querySelector('.sidebar-overlay')?.classList.remove('active'); } updateScrollArrows(); });
 
         // ==============================================
         //          Inicializace a Navigace
         // ==============================================
-        async function initializeApp() { /* ... (beze změny v logice, ale volá updateScrollArrows na konci) ... */
+        async function initializeApp() {
             try {
                 if (typeof supabase !== 'undefined' && typeof supabase.createClient === 'function') {
                      const { createClient } = supabase;
                      supabaseClient = createClient(supabaseUrl, supabaseKey);
                      console.log("Supabase client initialized.");
                 } else { throw new Error("Supabase library not loaded correctly."); }
+
                 showLoader(currentPlanSection, currentPlanLoader);
                 currentUser = await getCurrentSupabaseUser();
                 if (!currentUser) {
@@ -486,175 +442,169 @@
                     currentUser = { id: 'PLACEHOLDER_USER_ID', email: 'student@example.com' };
                     currentProfile = { username: 'Testovací Student', email: 'student@example.com', points: 0 };
                 } else { currentProfile = await fetchUserProfile(currentUser.id); }
+
                 updateUserInfoUI(currentProfile, currentUser?.email);
                 setupEventListeners();
-                await switchTab('current');
-                initTooltips();
-                updateScrollArrows(); // Zkontroluje šipky po načtení
-            } catch (error) { /* ... (zpracování chyby beze změny) ... */ console.error('Chyba při inicializaci aplikace:', error); showGlobalError('Nepodařilo se inicializovat aplikaci: ' + error.message); hideLoader(currentPlanLoader); currentPlanContent.innerHTML = `<div class="notest-message error"><h3>Chyba inicializace</h3><p>${error.message}</p></div>`; currentPlanSection.style.display = 'block'; }
+                await switchTab('current'); // Start with the current plan tab
+                // initTooltips(); // Tooltipy se inicializují až po načtení obsahu
+                updateScrollArrows();
+
+            } catch (error) {
+                console.error('Chyba při inicializaci aplikace:', error);
+                showGlobalError('Nepodařilo se inicializovat aplikaci: ' + error.message);
+                hideLoader(currentPlanLoader);
+                currentPlanContent.innerHTML = `<div class="notest-message error"><h3>Chyba inicializace</h3><p>${error.message}</p></div>`;
+                currentPlanSection.style.display = 'block';
+            }
         }
         async function getCurrentSupabaseUser() { /* ... (beze změny) ... */ if (!supabaseClient) throw new Error("Supabase client není inicializován"); const { data: { user }, error } = await supabaseClient.auth.getUser(); if (error) { console.error("Chyba získání uživatele:", error); throw new Error("Nepodařilo se získat informace o uživateli."); } return user; }
         async function fetchUserProfile(userId) { /* ... (beze změny) ... */ if (!userId || !supabaseClient) return null; try { const { data: profile, error } = await supabaseClient.from('profiles').select('*').eq('id', userId).single(); if (error && error.code !== 'PGRST116') { throw error; } return profile; } catch (error) { console.error("Chyba načtení profilu:", error); return null; } }
         function updateUserInfoUI(profileData, userEmail) { /* ... (beze změny) ... */ const displayName = `${profileData?.first_name || ''} ${profileData?.last_name || ''}`.trim() || profileData?.username || userEmail?.split('@')[0] || 'Student'; if(userName) userName.textContent = displayName; if(userAvatar) { if (profileData?.avatar_url) { userAvatar.innerHTML = `<img src="${profileData.avatar_url}" alt="Avatar">`; } else { const initials = getInitials(profileData || { email: userEmail }); userAvatar.textContent = initials; } } }
-        async function checkExistingDiagnostic(userId) { /* ... (beze změny) ... */ if (!userId || userId === 'PLACEHOLDER_USER_ID' || !supabaseClient) { console.warn("Kontrola testu přeskočena pro placeholder uživatele nebo neinicializovaný Supabase."); return false; } try { /* ... */ const { data: existingDiagnostic, error } = await supabaseClient.from('user_diagnostics').select('id, completed_at').eq('user_id', userId).limit(1); /* ... */ return existingDiagnostic && existingDiagnostic.length > 0; } catch(err) { /* ... */ return null; } } // Vrací null při chybě
+        async function checkExistingDiagnostic(userId) { /* ... (Upraveno vrací null při chybě) ... */ if (!userId || userId === 'PLACEHOLDER_USER_ID' || !supabaseClient) { console.warn("Kontrola testu přeskočena"); return null; } try { const { data: existingDiagnostic, error } = await supabaseClient.from('user_diagnostics').select('id, completed_at').eq('user_id', userId).limit(1); if (error) { console.error("Chyba při kontrole existujícího testu:", error); return null; } return (existingDiagnostic && existingDiagnostic.length > 0) ? existingDiagnostic[0] : false; } catch(err) { console.error("Neočekávaná chyba při kontrole testu:", err); return null; } }
 
         function setupEventListeners() {
             if (mobileMenuToggle) mobileMenuToggle.addEventListener('click', toggleMobileMenu);
-            planTabs.forEach(tab => {
-                tab.addEventListener('click', () => switchTab(tab.dataset.tab));
-            });
-            // Tlačítko zpět v detailu/generování (planSection)
-            if (genericBackBtn) {
-                 genericBackBtn.addEventListener('click', () => { switchTab(currentTab || 'current'); });
-            }
-            // Tlačítko zpět v harmonogramu (scheduleSection)
-            if (backToTabsBtn) {
-                 backToTabsBtn.addEventListener('click', () => { switchTab('current'); });
-            }
-             // Listener pro kliknutí na aktivitu v kalendáři pro tooltip (nahrazeno Tooltipsterem)
-             /*if (dailyScheduleContainer) { ... } */
-
-             // Listenery pro šipky posuvníku
-             if (scrollLeftArrow && calendarScrollContainer) {
-                  scrollLeftArrow.addEventListener('click', () => {
-                      calendarScrollContainer.scrollBy({ left: -250, behavior: 'smooth' }); // Posun o 250px doleva
-                  });
-             }
-             if (scrollRightArrow && calendarScrollContainer) {
-                  scrollRightArrow.addEventListener('click', () => {
-                       calendarScrollContainer.scrollBy({ left: 250, behavior: 'smooth' }); // Posun o 250px doprava
-                  });
-             }
-             // Aktualizace stavu šipek při skrolování
-             if (calendarScrollContainer) {
-                 calendarScrollContainer.addEventListener('scroll', updateScrollArrows);
+            planTabs.forEach(tab => { tab.addEventListener('click', () => switchTab(tab.dataset.tab)); });
+            if (genericBackBtn) { genericBackBtn.addEventListener('click', () => { switchTab(currentTab || 'current'); }); }
+            if (backToTabsBtn) { backToTabsBtn.addEventListener('click', () => { switchTab('current'); }); }
+            // Scroll arrows listeners
+             if (scrollLeftArrow && calendarScrollContainer) { scrollLeftArrow.addEventListener('click', () => { calendarScrollContainer.scrollBy({ left: -250, behavior: 'smooth' }); }); }
+             if (scrollRightArrow && calendarScrollContainer) { scrollRightArrow.addEventListener('click', () => { calendarScrollContainer.scrollBy({ left: 250, behavior: 'smooth' }); }); }
+             if (calendarScrollContainer) { calendarScrollContainer.addEventListener('scroll', updateScrollArrows); }
+             // Delegovaný listener pro checkbox v kalendáři (místo přidávání v renderWeeklySchedule)
+             const scheduleSectionElement = document.getElementById('scheduleSection');
+             if (scheduleSectionElement) {
+                 scheduleSectionElement.addEventListener('change', (event) => {
+                     if (event.target.matches('.calendar-activity .activity-checkbox input[type="checkbox"]')) {
+                          const checkbox = event.target;
+                          handleActivityCompletionToggle(checkbox.dataset.activityId, checkbox.checked, checkbox.dataset.planId);
+                     }
+                 });
              }
         }
 
         async function switchTab(tabId) {
-            if (!supabaseClient) { showGlobalError("Aplikace není správně inicializována (chybí Supabase)."); return; }
-            const targetTabId = tabId;
-            planTabs.forEach(tab => { tab.classList.toggle('active', tab.dataset.tab === targetTabId); });
-            currentPlanSection.style.display = 'none'; historyPlanSection.style.display = 'none'; createPlanSection.style.display = 'none'; planSection.style.display = 'none'; scheduleSection.style.display = 'none';
-            try {
-                if (targetTabId === 'current') {
-                    currentPlanSection.style.display = 'block'; await loadCurrentPlan();
-                } else if (targetTabId === 'history') {
-                    historyPlanSection.style.display = 'block'; await loadPlanHistory();
-                } else if (targetTabId === 'create') {
-                    createPlanSection.style.display = 'block'; await checkPlanCreationAvailability();
-                }
-                 if (['current', 'history', 'create'].includes(targetTabId)) { currentTab = targetTabId; }
-                 updateScrollArrows(); // Aktualizace šipek po přepnutí tabu
-            } catch (error) { /* ... (zpracování chyby) ... */ hideLoader(currentPlanLoader); currentPlanContent.innerHTML = `<div class="notest-message error"><h3>Chyba</h3><p>Nepodařilo se načíst obsah záložky.</p></div>`; currentPlanSection.style.display = 'block'; }
+             if (!supabaseClient) { showGlobalError("Aplikace není správně inicializována (chybí Supabase)."); return; }
+             const targetTabId = tabId;
+             planTabs.forEach(tab => { tab.classList.toggle('active', tab.dataset.tab === targetTabId); });
+             currentPlanSection.style.display = 'none'; historyPlanSection.style.display = 'none'; createPlanSection.style.display = 'none'; planSection.style.display = 'none'; scheduleSection.style.display = 'none';
+
+             try {
+                 if (targetTabId === 'current') {
+                     currentPlanSection.style.display = 'block'; // Zobrazí kontejner pro loader/výzvu
+                     showLoader(currentPlanSection, currentPlanLoader); // Explicitně zobrazíme loader
+                     await loadCurrentPlan(); // Tato funkce se postará o zbytek
+                 } else if (targetTabId === 'history') {
+                     historyPlanSection.style.display = 'block'; await loadPlanHistory();
+                 } else if (targetTabId === 'create') {
+                     createPlanSection.style.display = 'block'; await checkPlanCreationAvailability();
+                 }
+                  currentTab = targetTabId; // Uložíme aktuální záložku
+                  updateScrollArrows();
+             } catch (error) { /* ... (zpracování chyby) ... */ hideLoader(currentPlanLoader); /* ... */ }
         }
 
         // ==============================================
-        //          Aktuální Plán (Zobrazuje harmonogram nebo výzvu)
+        //          Aktuální Plán (Opravená logika načítání)
         // ==============================================
         async function loadCurrentPlan() {
-             if (!supabaseClient) { /* ... chyba ... */ return; }
-             showLoader(currentPlanSection, currentPlanLoader);
-             currentPlanContent.innerHTML = ''; // Vyčistíme obsah pro případnou výzvu
-             scheduleSection.style.display = 'none';
-             planSection.style.display = 'none';
-             let diagnostic = null; // Definujeme mimo try pro finally
+            // Loader už je zobrazen funkcí switchTab('current')
+            currentPlanContent.innerHTML = ''; // Vyčistíme obsah pro případnou výzvu
+            scheduleSection.style.display = 'none';
+            planSection.style.display = 'none';
+            let diagnostic = null; // Pro finally blok
+            let planFound = false; // Flag pro finally blok
 
-             try {
-                 if (!currentUser) throw new Error('Uživatel není přihlášen');
-                 const { data: plans, error } = await supabaseClient.from('study_plans').select('*').eq('user_id', currentUser.id).eq('status', 'active').order('created_at', { ascending: false }).limit(1);
-                 if (error) throw error;
+            try {
+                if (!supabaseClient) throw new Error("Supabase client není inicializován.");
+                if (!currentUser) throw new Error('Uživatel není přihlášen');
 
-                 if (plans && plans.length > 0) {
-                     currentStudyPlan = plans[0];
-                     currentPlanSection.style.display = 'none';
-                     await showFullSchedule(currentStudyPlan); // Zobrazí harmonogram
-                 } else {
-                     currentStudyPlan = null;
-                     diagnostic = await getLatestDiagnostic(); // Načteme diagnostiku
-                     currentPlanSection.style.display = 'block'; // Zobrazí sekci pro výzvu
-                     if (diagnostic) {
-                         renderPromptCreatePlan();
-                     } else { // Pokrývá i případ, kdy getLatestDiagnostic vrátí null (chyba nebo nic nenalezeno)
-                         renderNoDiagnosticAvailable(currentPlanContent);
-                     }
-                 }
-             } catch (error) {
-                 console.error('Chyba při načítání aktuálního plánu:', error);
-                 currentPlanContent.innerHTML = `<div class="notest-message error"><h3><i class="fas fa-exclamation-circle"></i> Chyba</h3><p>Nepodařilo se načíst aktuální plán.</p></div>`;
-                 currentPlanSection.style.display = 'block';
-             } finally {
-                  hideLoader(currentPlanLoader); // VŽDY skryjeme loader
-                  initTooltips();
-                  updateScrollArrows(); // Aktualizujeme šipky po načtení
-             }
-         }
+                console.log("loadCurrentPlan: Hledám aktivní plán...");
+                const { data: plans, error } = await supabaseClient.from('study_plans').select('*').eq('user_id', currentUser.id).eq('status', 'active').order('created_at', { ascending: false }).limit(1);
+                if (error) throw error;
 
-        async function loadAndRenderActivities(planId, todayScheduleElement) { /* ... (beze změny) ... */ if (!supabaseClient) return; try { const { data: activities, error } = await supabaseClient .from('plan_activities') .select('*') .eq('plan_id', planId); if (error) throw error; const today = new Date(); const dayOfWeek = today.getDay(); const todayActivities = activities?.filter(a => Number(a.day_of_week) === dayOfWeek) || []; if (todayScheduleElement) { renderDayActivities(todayActivities, todayScheduleElement, planId); } } catch (error) { console.error("Chyba načítání aktivit plánu:", error); if(todayScheduleElement) todayScheduleElement.innerHTML = '<p>Chyba načítání dnešních aktivit.</p>'; } }
-        function renderDayActivities(activities, container, planId) { /* Tato funkce se už přímo nevolá, renderuje ji renderWeeklySchedule */ }
-        async function handleActivityCompletionToggle(activityId, isCompleted, planId) { /* ... (beze změny) ... */ if (!supabaseClient) return; try { const { error: updateError } = await supabaseClient.from('plan_activities').update({ completed: isCompleted, updated_at: new Date().toISOString() }).eq('id', activityId); if (updateError) throw updateError; console.log(`Aktivita ${activityId} označena jako ${isCompleted ? 'dokončená' : 'nedokončená'}`); await updatePlanProgress(planId); } catch (error) { console.error(`Chyba aktualizace stavu aktivity ${activityId}:`, error); showToast('Nepodařilo se aktualizovat stav aktivity', 'error'); const checkbox = document.getElementById(`activity-${activityId}`); if (checkbox) checkbox.checked = !isCompleted; const checkboxSchedule = document.getElementById(`schedule-activity-${activityId}`); if(checkboxSchedule) checkboxSchedule.checked = !isCompleted; } }
-        async function updatePlanProgress(planId) { /* ... (beze změny) ... */ if (!planId || !supabaseClient) return; try { const { data: activities, error: activitiesError } = await supabaseClient.from('plan_activities').select('completed').eq('plan_id', planId); if (activitiesError) throw activitiesError; if (!activities || activities.length === 0) return; const completedCount = activities.filter(a => a.completed).length; const progress = Math.round((completedCount / activities.length) * 100); const { error: planUpdateError } = await supabaseClient.from('study_plans').update({ progress: progress, updated_at: new Date().toISOString() }).eq('id', planId); if (planUpdateError) throw planUpdateError; console.log(`Pokrok plánu ${planId} aktualizován na ${progress}%`); if (currentStudyPlan && currentStudyPlan.id === planId) { currentStudyPlan.progress = progress; } } catch (error) { console.error(`Chyba při aktualizaci pokroku plánu ${planId}:`, error); } }
+                if (plans && plans.length > 0) {
+                    console.log("loadCurrentPlan: Aktivní plán nalezen.");
+                    planFound = true;
+                    currentStudyPlan = plans[0];
+                    currentPlanSection.style.display = 'none'; // Skryje sekci s loaderem
+                    await showFullSchedule(currentStudyPlan); // Zobrazí harmonogram
+                } else {
+                    console.log("loadCurrentPlan: Aktivní plán nenalezen, kontroluji diagnostiku...");
+                    currentStudyPlan = null;
+                    diagnostic = await getLatestDiagnostic(); // Načteme diagnostiku
+                    console.log("loadCurrentPlan: Výsledek diagnostiky:", diagnostic);
+                    currentPlanSection.style.display = 'block'; // Zobrazí sekci pro výzvu
 
-         // Zobrazí detail HISTORICKÉHO plánu (Markdown)
-         async function showPlanDetail(plan) {
-             if (!plan || !plan.id || !supabaseClient) return;
-             currentPlanSection.style.display = 'none'; historyPlanSection.style.display = 'none'; createPlanSection.style.display = 'none'; scheduleSection.style.display = 'none';
-             planSection.style.display = 'block';
-             showLoader(planSection, planLoading);
-             planActions.style.display = 'none'; planContent.style.display = 'none';
+                    if (diagnostic) { // Kontrolujeme, zda je výsledek truthy (existuje a není false)
+                        console.log("loadCurrentPlan: Diagnostika nalezena, zobrazuji výzvu k vytvoření plánu.");
+                        renderPromptCreatePlan();
+                    } else { // Pokrývá i případ, kdy getLatestDiagnostic vrátí null (chyba) nebo false (nenalezeno)
+                        console.log("loadCurrentPlan: Diagnostika nenalezena nebo chyba, zobrazuji zprávu.");
+                        renderNoDiagnosticAvailable(currentPlanContent);
+                    }
+                }
+            } catch (error) {
+                console.error('Chyba při načítání aktuálního plánu:', error);
+                currentPlanContent.innerHTML = `<div class="notest-message error"><h3><i class="fas fa-exclamation-circle"></i> Chyba</h3><p>Nepodařilo se načíst aktuální plán.</p><p><i>${error.message}</i></p></div>`;
+                currentPlanSection.style.display = 'block'; // Zajistíme zobrazení chybové sekce
+            } finally {
+                console.log("loadCurrentPlan: Finally blok - skrývám loader.");
+                hideLoader(currentPlanLoader); // VŽDY skryjeme loader
+                initTooltips(); // Inicializujeme/aktualizujeme tooltipy
+                updateScrollArrows(); // Aktualizujeme šipky pro případ zobrazení kalendáře
+            }
+        }
 
-             if (genericBackBtn) { genericBackBtn.onclick = () => switchTab('history'); } // Vždy zpět do historie
+        // Funkce loadAndRenderActivities se již explicitně nevolá zvenčí
+        async function handleActivityCompletionToggle(activityId, isCompleted, planId) { /* ... (beze změny) ... */ }
+        async function updatePlanProgress(planId) { /* ... (beze změny) ... */ }
 
-             try {
-                 if (!plan.plan_content_markdown) { /* ... načtení markdownu ... */ }
-                 const planTitleElement = planSection.querySelector('.section-title');
-                 if(planTitleElement) planTitleElement.textContent = plan.title || 'Detail studijního plánu';
-                 displayPlanContent(plan.plan_content_markdown || '# Studijní plán\n\nObsah plánu není k dispozici.');
-                 planActions.innerHTML = `<button class="btn btn-success btn-tooltip" id="exportDetailPlanBtn" title="Stáhnout detail plánu jako PDF"><i class="fas fa-file-export"></i> Export PDF</button>`;
-                 document.getElementById('exportDetailPlanBtn').addEventListener('click', () => exportPlanToPDFWithStyle(plan));
-                 planActions.style.display = 'flex';
-                 planSection.scrollIntoView({ behavior: 'smooth' });
-                 initTooltips();
-             } catch (error) { /* ... chyba ... */ }
-             finally { hideLoader(planLoading); }
-         }
+        // Zobrazí detail HISTORICKÉHO plánu (Markdown)
+         async function showPlanDetail(plan) { /* ... (beze změny, ale tlačítko zpět je ošetřeno v setupEventListeners) ... */ }
 
         // Zobrazí AKTIVNÍ detailní týdenní harmonogram (kalendář)
         async function showFullSchedule(plan) {
-             if (!supabaseClient || !plan || !plan.id) { /* ... kontroly ... */ return; }
-             console.log(`showFullSchedule: Zobrazuji harmonogram pro Plan ID: ${plan.id}`);
-             currentPlanSection.style.display = 'none'; historyPlanSection.style.display = 'none'; createPlanSection.style.display = 'none'; planSection.style.display = 'none';
-             scheduleSection.style.display = 'block';
+            if (!supabaseClient || !plan || !plan.id) { /* ... kontroly ... */ return; }
+            console.log(`showFullSchedule: Zobrazuji harmonogram pro Plan ID: ${plan.id}`);
+            currentPlanSection.style.display = 'none'; historyPlanSection.style.display = 'none'; createPlanSection.style.display = 'none'; planSection.style.display = 'none';
+            scheduleSection.style.display = 'block';
 
-             const oldHeader = scheduleSection.querySelector('.plan-header-dynamic');
-             if (oldHeader) oldHeader.remove();
-              // Zobrazíme loader PŘED načítáním aktivit
-              dailyScheduleContainer.innerHTML = '<div class="loader-container"><div class="loader"></div></div>';
-
+            const oldHeader = scheduleSection.querySelector('.plan-header-dynamic');
+            if (oldHeader) oldHeader.remove();
+            dailyScheduleContainer.innerHTML = '<div class="loader-container"><div class="loader"></div></div>'; // Loader v kontejneru pro grid
 
              const headerDiv = document.createElement('div');
              headerDiv.className = 'plan-header plan-header-dynamic';
              headerDiv.style.marginBottom = '1.5rem';
-             headerDiv.innerHTML = `... (HTML pro hlavičku s názvem, datem, exportem) ...`; // Stejné jako předtím
-             scheduleSection.insertBefore(headerDiv, scheduleSection.firstChild);
+             headerDiv.innerHTML = `
+                 <div class="plan-meta">
+                     <h2 class="section-title" style="margin-bottom: 0.5rem;">${sanitizeHTML(plan.title || 'Týdenní harmonogram')}</h2>
+                     <span class="plan-date">Vytvořeno: ${formatDate(plan.created_at)}</span>
+                     ${plan.estimated_completion_date ? `<br><span class="plan-date">Odhad. dokončení: ${formatDate(plan.estimated_completion_date)}</span>` : ''}
+                 </div>
+                 <div class="plan-actions">
+                      <button class="btn btn-primary btn-tooltip" id="exportSchedulePlanBtnDynamic" title="Stáhnout plán jako PDF">
+                          <i class="fas fa-file-export"></i> Export
+                      </button>
+                 </div>
+             `;
+             scheduleSection.insertBefore(headerDiv, calendarScrollContainer); // Vložíme PŘED scroll kontejner
 
              const exportButton = headerDiv.querySelector('#exportSchedulePlanBtnDynamic');
              if (exportButton) { /* ... listener pro export ... */ exportButton.addEventListener('click', async () => { if (!plan.plan_content_markdown) { try { const { data: fullPlanData, error } = await supabaseClient.from('study_plans').select('plan_content_markdown').eq('id', plan.id).single(); if (error) throw error; plan.plan_content_markdown = fullPlanData.plan_content_markdown; } catch (fetchError) { console.error("Nepodařilo se načíst markdown pro export:", fetchError); showToast('Chyba: Nepodařilo se načíst data pro export.', 'error'); return; } } exportPlanToPDFWithStyle(plan); }); initTooltips(); }
-             if (backToTabsBtn) { backToTabsBtn.innerHTML = '<i class="fas fa-arrow-left"></i> Zpět na záložky'; }
+             if (!backToTabsBtn) { console.warn("Tlačítko #backToTabsBtn nebylo nalezeno."); }
 
              try {
                  console.log(`showFullSchedule: Dotazuji se na aktivity s plan_id = ${plan.id}`);
                  const { data: activities, error, status } = await supabaseClient.from('plan_activities').select('*').eq('plan_id', plan.id).order('day_of_week').order('time_slot');
                  if (error) { throw new Error(`Nepodařilo se načíst aktivity: ${error.message}. Zkontrolujte také RLS.`); }
                  console.log(`showFullSchedule: Aktivity získané:`, activities);
-                 renderWeeklySchedule(activities || [], plan.id); // Renderuje kalendář do #dailyScheduleContainer
+                 renderWeeklySchedule(activities || [], plan.id); // Renderuje kalendář
                  updateScrollArrows(); // Aktualizujeme šipky po renderování
-             } catch (error) {
-                 console.error("showFullSchedule: Celková chyba:", error);
-                 dailyScheduleContainer.innerHTML = `<p style="padding: 1rem; text-align: center;"><i>Chyba při načítání nebo zobrazování harmonogramu: ${error.message}</i></p>`;
+             } catch (error) { /* ... chyba ... */ console.error("showFullSchedule: Celková chyba:", error); dailyScheduleContainer.innerHTML = `<p style="padding: 1rem; text-align: center;"><i>Chyba při načítání nebo zobrazování harmonogramu: ${error.message}</i></p>`;
              } finally {
-                 // Loader už není potřeba, protože renderWeeklySchedule přepsal obsah
-                 // scheduleSection.style.display = 'block'; // Již nastaveno
+                  // Loader už je přepsán v renderWeeklySchedule nebo chybovou hláškou
              }
         }
 
@@ -662,9 +612,8 @@
             const days = ['Neděle', 'Pondělí', 'Úterý', 'Středa', 'Čtvrtek', 'Pátek', 'Sobota'];
             const todayIndex = new Date().getDay();
 
-            // Cílový kontejner pro mřížku je nyní #dailyScheduleContainer
             if (!dailyScheduleContainer) { console.error("Kontejner #dailyScheduleContainer nenalezen!"); return; }
-            dailyScheduleContainer.innerHTML = ''; // Vyčistíme předchozí obsah
+            dailyScheduleContainer.innerHTML = ''; // Vyčistíme kontejner pro grid
 
             const gridContainer = document.createElement('div');
             gridContainer.className = 'calendar-grid';
@@ -681,7 +630,7 @@
 
                 const dayHeader = document.createElement('div');
                 dayHeader.className = 'calendar-day-header';
-                dayHeader.textContent = dayName; // Odebráno "(Dnes)" pro čistší vzhled, zvýraznění řeší třída .today
+                dayHeader.textContent = dayName;
                 dayCell.appendChild(dayHeader);
 
                 const activitiesContainer = document.createElement('div');
@@ -697,7 +646,10 @@
                         const activityElement = document.createElement('div');
                         activityElement.className = 'calendar-activity';
                         // Uložíme popis do data atributu pro tooltip
-                        activityElement.setAttribute('data-tooltip-content', sanitizeHTML(activity.description || ''));
+                         const descriptionContent = sanitizeHTML(activity.description || '');
+                         if (descriptionContent) { // Přidáme atribut jen pokud existuje popis
+                             activityElement.setAttribute('data-tooltip-content', descriptionContent);
+                         }
 
                         const timeDisplay = activity.time_slot ? `<span class="activity-time-display">${activity.time_slot}</span>` : '';
                         activityElement.innerHTML = `
@@ -708,30 +660,25 @@
                                         ${timeDisplay}
                                         ${sanitizeHTML(activity.title || 'Nespecifikovaná aktivita')}
                                     </div>
-                                    <div class="activity-desc"> ${sanitizeHTML(activity.description || '')}
+                                    <div class="activity-desc"> ${descriptionContent}
                                     </div>
                                 </div>
                             </div>`;
-                        const checkbox = activityElement.querySelector('input[type="checkbox"]');
-                        checkbox.addEventListener('change', function() {
-                            handleActivityCompletionToggle(this.dataset.activityId, this.checked, this.dataset.planId);
-                        });
+                        // Listener pro checkbox je nyní delegován v setupEventListeners
                         activitiesContainer.appendChild(activityElement);
                     });
                 } else {
                      activitiesContainer.innerHTML = '<p style="font-size: 0.8em; text-align: center; color: var(--text-muted); margin-top: 1rem; padding: 0 0.5rem;">Žádné aktivity</p>';
                 }
-
                 dayCell.appendChild(activitiesContainer);
                 gridContainer.appendChild(dayCell);
             }
-            // Vložíme mřížku do #dailyScheduleContainer
-            dailyScheduleContainer.appendChild(gridContainer);
+            dailyScheduleContainer.appendChild(gridContainer); // Vložíme grid do kontejneru
             initTooltips(); // Re-inicializace tooltipů pro nové aktivity
             console.log("Kalendářový harmonogram úspěšně vyrenderován.");
         }
 
-        function renderPromptCreatePlan() { /* ... (beze změny) ... */ const promptFragment = promptCreatePlanTemplate.content.cloneNode(true); promptFragment.getElementById('createNewPlanFromPromptBtn').addEventListener('click', () => switchTab('create')); currentPlanContent.innerHTML = ''; currentPlanContent.appendChild(promptFragment); currentPlanSection.style.display = 'block'; }
+        function renderPromptCreatePlan() { /* ... (beze změny) ... */ const promptFragment = promptCreatePlanTemplate.content.cloneNode(true); promptFragment.getElementById('createNewPlanFromPromptBtn').addEventListener('click', () => switchTab('create')); currentPlanContent.innerHTML = ''; currentPlanContent.appendChild(promptFragment); /* Nezobrazujeme currentPlanSection explicitně zde, řeší to loadCurrentPlan */ }
 
         // ==============================================
         //          Historie Plánů
@@ -742,20 +689,20 @@
         // ==============================================
         //          Vytvoření Nového Plánu
         // ==============================================
-         async function getLatestDiagnostic() { /* ... (Upraveno - vrací null při chybě) ... */ if (!currentUser || currentUser.id === 'PLACEHOLDER_USER_ID' || !supabaseClient) return null; try { const { data, error } = await supabaseClient.from('user_diagnostics').select('*').eq('user_id', currentUser.id).order('completed_at', { ascending: false }).limit(1); if (error) throw error; return (data && data.length > 0) ? data[0] : null; } catch (error) { console.error("Chyba načítání diagnostiky:", error); return null; } }
-         async function checkPlanCreationAvailability() { /* ... (beze změny) ... */ if (!supabaseClient) { console.error("Nelze zkontrolovat dostupnost..."); return; } planCreateContent.innerHTML = '<div class="loader-container"><div class="loader"></div></div>'; try { if (!currentUser) throw new Error('Uživatel není přihlášen'); latestDiagnosticData = await getLatestDiagnostic(); if (latestDiagnosticData === null) { renderNoDiagnosticAvailable(planCreateContent); return; } const { data: latestPlan, error: planError } = await supabaseClient.from('study_plans').select('created_at').eq('user_id', currentUser.id).order('created_at', { ascending: false }).limit(1); if (planError) throw planError; let canCreate = true; if (latestPlan && latestPlan.length > 0) { const lastPlanDate = new Date(latestPlan[0].created_at); const oneWeekAgo = new Date(); oneWeekAgo.setDate(oneWeekAgo.getDate() - 7); if (lastPlanDate > oneWeekAgo) { canCreate = false; nextPlanCreateTime = new Date(lastPlanDate); nextPlanCreateTime.setDate(nextPlanCreateTime.getDate() + 7); } } if (canCreate) { planCreateAllowed = true; renderPlanCreationForm(); } else { planCreateAllowed = false; renderLockedPlanSection(); } } catch (error) { console.error('Chyba při kontrole dostupnosti vytvoření plánu:', error); planCreateContent.innerHTML = `<div class="notest-message error"><h3>Chyba</h3><p>Nepodařilo se ověřit možnost vytvoření plánu.</p></div>`; } }
-         function renderNoDiagnosticAvailable(container) { /* ... (beze změny) ... */ const noDiagFragment = noDiagnosticTemplate.content.cloneNode(true); noDiagFragment.getElementById('goToTestBtn').addEventListener('click', () => { window.location.href = 'test1.html'; }); container.innerHTML = ''; container.appendChild(noDiagFragment); }
-         function renderLockedPlanSection() { /* ... (beze změny) ... */ const lockedFragment = lockedPlanTemplate.content.cloneNode(true); updateNextPlanTimer(lockedFragment.getElementById('nextPlanTimer')); lockedFragment.getElementById('viewCurrentPlanBtnLocked').addEventListener('click', () => switchTab('current')); planCreateContent.innerHTML = ''; planCreateContent.appendChild(lockedFragment); startPlanTimer(); }
-         function startPlanTimer() { /* ... (beze změny) ... */ if (planTimerInterval) clearInterval(planTimerInterval); planTimerInterval = setInterval(() => { const timerElement = document.getElementById('nextPlanTimer'); if (timerElement) updateNextPlanTimer(timerElement); else clearInterval(planTimerInterval); }, 1000); }
-         function updateNextPlanTimer(timerElement) { /* ... (beze změny) ... */ if (!nextPlanCreateTime) return; const now = new Date(); const timeDiff = nextPlanCreateTime - now; if (timeDiff <= 0) { timerElement.textContent = 'Nyní můžete vytvořit nový plán'; clearInterval(planTimerInterval); planCreateAllowed = true; setTimeout(checkPlanCreationAvailability, 1000); return; } const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24)); const hours = Math.floor((timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)); const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60)); const seconds = Math.floor((timeDiff % (1000 * 60)) / 1000); timerElement.textContent = `${days} ${getDeclension(days, 'den', 'dny', 'dní')} ${hours} ${getDeclension(hours, 'hodina', 'hodiny', 'hodin')} ${minutes} ${getDeclension(minutes, 'minuta', 'minuty', 'minut')} ${seconds} ${getDeclension(seconds, 'sekunda', 'sekundy', 'sekund')}`; }
-         function getDeclension(number, singular, plural1, plural2) { /* ... (beze změny) ... */ number = Math.abs(number); if (number === 1) return singular; if (number >= 2 && number <= 4) return plural1; return plural2; }
-         function renderPlanCreationForm() { /* ... (beze změny) ... */ const formFragment = createPlanFormTemplate.content.cloneNode(true); const diagInfoContainer = formFragment.getElementById('diagnosticInfo'); diagInfoContainer.innerHTML = ` <p class="section-text">Plán bude vycházet z vašeho posledního testu ze dne: <strong>${formatDate(latestDiagnosticData.completed_at)}</strong> (Skóre: ${latestDiagnosticData.total_score}/50).</p>`; formFragment.getElementById('generatePlanBtn').addEventListener('click', function() { this.disabled = true; this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generuji plán...'; generateStudyPlan(); }); planCreateContent.innerHTML = ''; planCreateContent.appendChild(formFragment); }
+         async function getLatestDiagnostic() { /* ... (beze změny - vrací null při chybě) ... */ }
+         async function checkPlanCreationAvailability() { /* ... (beze změny) ... */ }
+         function renderNoDiagnosticAvailable(container) { /* ... (beze změny) ... */ }
+         function renderLockedPlanSection() { /* ... (beze změny) ... */ }
+         function startPlanTimer() { /* ... (beze změny) ... */ }
+         function updateNextPlanTimer(timerElement) { /* ... (beze změny) ... */ }
+         function getDeclension(number, singular, plural1, plural2) { /* ... (beze změny) ... */ }
+         function renderPlanCreationForm() { /* ... (beze změny) ... */ }
 
         // ==============================================
         //          Generování a Ukládání Plánu
         // ==============================================
-         async function generateStudyPlan() { /* ... (beze změny v logice) ... */ }
-         async function generatePlanContentWithGemini(testData, topicsData) { /* ... (beze změny v promptu) ... */ }
+         async function generateStudyPlan() { /* ... (beze změny) ... */ }
+         async function generatePlanContentWithGemini(testData, topicsData) { /* ... (beze změny) ... */ }
          function displayPlanGenerationConfirmation() { /* ... (beze změny) ... */ }
          async function saveGeneratedPlan(markdownContent, activitiesArray, topicsData) { /* ... (beze změny) ... */ }
          function displayPlanContent(markdownContent) { /* ... (beze změny) ... */ }
@@ -765,113 +712,103 @@
         // ==============================================
         async function exportPlanToPDFWithStyle(plan) {
              if (!plan) return;
-             // Zajistíme, že máme markdown pro export
              if (!plan.plan_content_markdown) {
                  showToast('Načítám data pro PDF...', 'info', 2000);
-                 try { /* ... načtení markdownu ... */ } catch (fetchError) { /* ... chyba ... */ return; }
+                 try {
+                     console.log("Načítám plný markdown pro export...");
+                     const { data: fullPlanData, error } = await supabaseClient.from('study_plans').select('plan_content_markdown, title, created_at, estimated_completion_date').eq('id', plan.id).single();
+                     if (error) throw error;
+                     plan = { ...plan, ...fullPlanData };
+                 } catch (fetchError) { console.error("Nepodařilo se načíst markdown pro export:", fetchError); showToast('Chyba: Nepodařilo se načíst data pro export.', 'error'); return; }
              }
 
              const exportContainer = document.createElement('div');
              exportContainer.id = 'pdf-export-content';
 
-             // --- Vylepšené CSS styly pro PDF ---
+             // --- Finální CSS styly pro PDF ---
              const pdfStyles = `
              <style>
-                 body { font-family: 'Helvetica', 'Arial', sans-serif; font-size: 10.5pt; color: #222; line-height: 1.45; } /* Čitelnější font a řádkování */
-                 #pdf-export-content { padding: 20mm 15mm; }
-                 .pdf-header { text-align: center; margin-bottom: 12mm; border-bottom: 1px solid #ddd; padding-bottom: 4mm; }
-                 .pdf-header h1 { color: #3f37c9; font-size: 17pt; margin: 0 0 4px 0; font-weight: 600; }
-                 .pdf-header p { color: #555; font-size: 9pt; margin: 0; }
+                 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap'); /* Zkusíme načíst Poppins */
+                 body { font-family: 'Poppins', Helvetica, Arial, sans-serif; font-size: 10pt; color: #333; line-height: 1.5; } /* Záložní fonty */
+                 #pdf-export-content { padding: 15mm 12mm; }
+                 .pdf-header { text-align: center; margin-bottom: 12mm; border-bottom: 1px solid #eee; padding-bottom: 4mm; }
+                 .pdf-header h1 { color: #3f37c9; font-size: 18pt; margin: 0 0 4px 0; font-weight: 600; }
+                 .pdf-header p { color: #666; font-size: 9pt; margin: 0; }
 
-                 .student-info { background-color: #f9f9f9; padding: 8mm 10mm; border-radius: 6px; border: 1px solid #e5e5e5; margin-bottom: 10mm; font-size: 9pt; break-inside: avoid; }
-                 .student-info h2 { color: #3f37c9; font-size: 11pt; margin: 0 0 6px 0; padding-bottom: 3px; border-bottom: 1px dotted #ddd; font-weight: 600;}
+                 .student-info { background-color: #fdfdff; padding: 8mm 10mm; border-radius: 6px; border: 1px solid #eef; margin-bottom: 10mm; font-size: 9pt; break-inside: avoid; }
+                 .student-info h2 { color: #4361ee; font-size: 11pt; margin: 0 0 6px 0; padding-bottom: 3px; border-bottom: 1px dotted #ddd; font-weight: 600;}
                  .student-info p { margin: 0 0 3px 0; line-height: 1.4; }
-                 .student-info strong { font-weight: 600; color: #111; }
+                 .student-info strong { font-weight: 600; color: #222; }
 
-                 .pdf-content h2, .pdf-content h3, .pdf-content h4 { margin-top: 7mm; margin-bottom: 3mm; padding-bottom: 2px; font-weight: 600; break-after: avoid; color: #3f37c9; }
-                 .pdf-content h2 { font-size: 13pt; border-bottom: 1px solid #e5e5e5; }
+                 .pdf-content h2, .pdf-content h3, .pdf-content h4 { margin-top: 6mm; margin-bottom: 2.5mm; padding-bottom: 1.5px; font-weight: 600; break-after: avoid; color: #3f37c9; }
+                 .pdf-content h2 { font-size: 12.5pt; border-bottom: 1px solid #e5e5e5; }
                  .pdf-content h3 { font-size: 11pt; color: #1e2a3a; border-bottom: 1px dotted #ccc; }
-                 .pdf-content h4 { font-size: 10.5pt; color: #4361ee; border-bottom: none; margin-top: 5mm; }
+                 .pdf-content h4 { font-size: 10.5pt; color: #4361ee; border-bottom: none; margin-top: 4mm; }
 
-                 .pdf-content p, .pdf-content li { margin-bottom: 2mm; color: #222; text-align: left; }
-                 .pdf-content ul, .pdf-content ol { padding-left: 6mm; margin-left: 0; margin-bottom: 4mm; break-inside: avoid;}
+                 .pdf-content p, .pdf-content li { margin-bottom: 2mm; color: #222; text-align: left; font-size: 10pt; }
+                 .pdf-content ul, .pdf-content ol { padding-left: 5mm; margin-left: 2mm; margin-bottom: 3mm; break-inside: avoid;}
                  .pdf-content li { margin-bottom: 1.5mm; }
+                 .pdf-content li::marker { color: #4361ee; }
                  .pdf-content strong { font-weight: 600; color: #000; }
-                 .pdf-content em { font-style: italic; color: #444; } /* Tmavší kurzíva */
-                 .pdf-content code { font-family: 'Courier New', Courier, monospace; background-color: #f0f0f0; padding: 1px 4px; border-radius: 3px; font-size: 9pt; color: #c7254e; }
-                 .pdf-content pre { background-color: #f8f8f8; border: 1px solid #ddd; padding: 3mm; margin: 4mm 0; border-radius: 5px; white-space: pre-wrap; word-wrap: break-word; font-size: 9pt; break-inside: avoid; }
-                 .pdf-content blockquote { border-left: 3px solid #bbb; padding-left: 4mm; margin: 4mm 0 4mm 2mm; color: #444; font-style: italic; break-inside: avoid; }
+                 .pdf-content em { font-style: italic; color: #555; }
+                 .pdf-content code { font-family: monospace; background-color: #f0f0f0; padding: 1px 4px; border-radius: 3px; font-size: 9pt; color: #c7254e; }
+                 .pdf-content pre { background-color: #f8f8f8; border: 1px solid #eee; padding: 3mm; margin: 4mm 0; border-radius: 5px; white-space: pre-wrap; word-wrap: break-word; font-size: 9pt; break-inside: avoid; }
+                 .pdf-content blockquote { border-left: 3px solid #ccc; padding-left: 4mm; margin: 4mm 0 4mm 2mm; color: #555; font-style: italic; break-inside: avoid; }
                  .pdf-content hr { border: none; border-top: 1px dashed #ccc; margin: 6mm 0; }
 
-                 /* Stylování specifických částí markdownu */
-                 .pdf-content ul > li > strong:first-child { display: inline-block; margin-right: 5px; color: #3f37c9; }
-                 .pdf-content ul > li em { display: block; margin-top: 2mm; padding-left: 5mm; color: #069176; font-size: 9pt; }
+                 .pdf-content ul > li > strong:first-child { color: #3f37c9; }
+                 .pdf-content ul > li em { display: block; margin-top: 1.5mm; padding-left: 5mm; color: #069176; font-size: 9pt; }
 
                  .pdf-footer { text-align: center; margin-top: 10mm; padding-top: 5mm; border-top: 1px solid #ccc; color: #777; font-size: 8pt; }
 
-                 /* Zalamování stránek - pomocí DIV wrapperu */
-                 .pdf-day-content-wrapper {
-                      break-inside: avoid !important; /* Hlavní pravidlo */
-                      margin-bottom: 8mm; /* Větší mezera mezi dny */
-                      padding-top: 2mm; /* Malý prostor nad H3 */
-                 }
-                 /* Můžeme přidat i pro další elementy, pokud je potřeba */
+                 .pdf-day-content-wrapper { break-inside: avoid !important; margin-bottom: 6mm; padding-top: 1mm; }
                  .pdf-content h2, .pdf-content h3, .pdf-content h4 { break-after: avoid; }
                  .pdf-content ul, .pdf-content ol, .pdf-content p, .pdf-content pre, .pdf-content blockquote { break-inside: avoid; }
-
              </style>
              `;
              exportContainer.innerHTML = pdfStyles;
-
              const pdfTitle = plan.title ? plan.title.replace(/\s*\(\d{2}\.\d{2}\.\d{4}\)$/, '').trim() : 'Studijní plán';
              const headerHTML = `<div class="pdf-header"><h1>${sanitizeHTML(pdfTitle)}</h1><p>Vytvořeno: ${formatDate(plan.created_at)}</p></div>`;
              exportContainer.innerHTML += headerHTML;
-
              if (currentUser && userName.textContent) { exportContainer.innerHTML += `<div class="student-info"><h2>Informace o studentovi</h2><p><strong>Student:</strong> ${userName.textContent}</p><p><strong>Datum vytvoření plánu:</strong> ${formatDate(plan.created_at)}</p>${plan.estimated_completion_date ? `<p><strong>Předpokládané dokončení:</strong> ${formatDate(plan.estimated_completion_date)}</p>` : ''}</div>`; }
 
              const contentDiv = document.createElement('div');
              contentDiv.className = 'pdf-content';
              try {
-                 // Parsování Markdownu
                  const rawHtml = marked.parse(plan.plan_content_markdown || '');
-                 const tempWrapper = document.createElement('div'); // Dočasný wrapper pro manipulaci
+                 const tempWrapper = document.createElement('div');
                  tempWrapper.innerHTML = rawHtml;
-
-                 // Obalení obsahu každého dne do divu PO PARSOVÁNÍ
-                 const daysCzech = ['Pondělí', 'Úterý', 'Středa', 'Čtvrtek', 'Pátek', 'Sobota', 'Neděle'];
                  const nodesToWrap = [];
                  let currentDayWrapper = null;
+                 const daysCzech = ['Pondělí', 'Úterý', 'Středa', 'Čtvrtek', 'Pátek', 'Sobota', 'Neděle'];
 
                  Array.from(tempWrapper.childNodes).forEach(node => {
-                     if (node.nodeType === Node.ELEMENT_NODE && node.tagName === 'H3' && daysCzech.some(day => node.textContent.trim().startsWith(day))) {
-                         // Našli jsme nový den, vytvoříme nový wrapper
-                         currentDayWrapper = document.createElement('div');
-                         currentDayWrapper.className = 'pdf-day-content-wrapper';
-                         currentDayWrapper.appendChild(node.cloneNode(true)); // Přidáme H3
-                         nodesToWrap.push(currentDayWrapper);
-                     } else if (currentDayWrapper && node.nodeType !== Node.ELEMENT_NODE && !node.textContent.trim()) {
-                          // Ignorujeme prázdné textové uzly mezi elementy
-                     } else if (currentDayWrapper) {
-                         // Přidáme další obsah do aktuálního wrapperu dne
-                         currentDayWrapper.appendChild(node.cloneNode(true));
-                     } else {
-                          // Obsah před prvním dnem (např. analýza)
-                          nodesToWrap.push(node.cloneNode(true));
-                     }
-                 });
+                      // Identifikace H3 jako začátku dne
+                      const isDayHeader = node.nodeType === Node.ELEMENT_NODE && node.tagName === 'H3' && daysCzech.some(day => node.textContent.trim().startsWith(day));
 
-                 // Vyčistíme původní obsah a přidáme obalené uzly
-                 contentDiv.innerHTML = '';
-                 nodesToWrap.forEach(wrappedNode => {
-                      contentDiv.appendChild(wrappedNode);
+                      if (isDayHeader) {
+                           currentDayWrapper = document.createElement('div');
+                           currentDayWrapper.className = 'pdf-day-content-wrapper';
+                           nodesToWrap.push(currentDayWrapper); // Přidáme wrapper do finálního pole
+                           currentDayWrapper.appendChild(node.cloneNode(true)); // Přidáme H3 do wrapperu
+                      } else if (currentDayWrapper && node.nodeType === Node.TEXT_NODE && !node.textContent.trim()) {
+                           // Ignorujeme prázdné textové uzly
+                      } else if (currentDayWrapper) {
+                           // Přidáme další obsah do aktuálního wrapperu dne
+                           currentDayWrapper.appendChild(node.cloneNode(true));
+                      } else {
+                           // Obsah PŘED prvním dnem (např. analýza, cíle)
+                           nodesToWrap.push(node.cloneNode(true));
+                      }
                  });
+                 contentDiv.innerHTML = ''; // Vyčistíme contentDiv
+                 nodesToWrap.forEach(wrappedNode => { contentDiv.appendChild(wrappedNode); }); // Přidáme zpracované uzly
 
              } catch (e) { console.error("Chyba při parsování/balení Markdown pro PDF:", e); contentDiv.innerHTML = '<p>Chyba při zpracování obsahu plánu.</p>'; }
              exportContainer.appendChild(contentDiv);
-
              exportContainer.innerHTML += `<div class="pdf-footer">&copy; ${new Date().getFullYear()} Justax.space</div>`;
 
-             const options = { margin: [18, 13, 18, 13], filename: `studijni-plan-${formatDate(plan.created_at).replace(/\./g, '-')}.pdf`, image: { type: 'jpeg', quality: 0.95 }, html2canvas: { scale: 2, useCORS: true, logging: false, letterRendering: true }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }, pagebreak: { mode: ['css', 'avoid-all'] } }; // CSS by mělo řídit zalamování
+             const options = { margin: [15, 12, 15, 12], filename: `studijni-plan-${formatDate(plan.created_at).replace(/\./g, '-')}.pdf`, image: { type: 'jpeg', quality: 0.95 }, html2canvas: { scale: 2, useCORS: true, logging: false, letterRendering: true }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }, pagebreak: { mode: ['css', 'avoid-all'] } };
 
              if (typeof html2pdf === 'function') {
                  console.log("Starting PDF generation...");
@@ -880,40 +817,40 @@
              } else { console.error("html2pdf library is not loaded."); showToast('Chyba: Knihovna pro export PDF není načtena.', 'error'); }
         }
 
-
          // Funkce pro ovládání šipek posuvníku
          function updateScrollArrows() {
              if (!calendarScrollContainer || !scrollLeftArrow || !scrollRightArrow) return;
 
-             const scrollLeft = calendarScrollContainer.scrollLeft;
-             const maxScrollLeft = calendarScrollContainer.scrollWidth - calendarScrollContainer.clientWidth;
+             // Defer the check slightly to allow the browser to render and calculate dimensions
+             setTimeout(() => {
+                 const scrollLeft = Math.round(calendarScrollContainer.scrollLeft);
+                 const maxScrollLeft = Math.round(calendarScrollContainer.scrollWidth - calendarScrollContainer.clientWidth);
 
-             // Skryjeme/zobrazíme šipky pokud není co scrollovat
-             if (calendarScrollContainer.scrollWidth <= calendarScrollContainer.clientWidth) {
-                 scrollLeftArrow.style.opacity = '0';
-                 scrollRightArrow.style.opacity = '0';
-                 scrollLeftArrow.classList.add('disabled');
-                 scrollRightArrow.classList.add('disabled');
-             } else {
-                 // Levá šipka
-                 if (scrollLeft > 5) { // Malá tolerance
-                     scrollLeftArrow.classList.remove('disabled');
-                     scrollLeftArrow.style.opacity = '1'; // Zobrazit, pokud lze scrollovat doleva
+                 // Check if scrollable
+                 if (calendarScrollContainer.scrollWidth > calendarScrollContainer.clientWidth + 1) { // +1 pro toleranci
+                     // Left arrow
+                     if (scrollLeft > 5) {
+                         scrollLeftArrow.classList.remove('disabled');
+                     } else {
+                         scrollLeftArrow.classList.add('disabled');
+                     }
+                     // Right arrow
+                     if (scrollLeft < maxScrollLeft - 5) {
+                         scrollRightArrow.classList.remove('disabled');
+                     } else {
+                         scrollRightArrow.classList.add('disabled');
+                     }
                  } else {
+                     // Not scrollable, disable both
                      scrollLeftArrow.classList.add('disabled');
-                     //scrollLeftArrow.style.opacity = '0.3'; // Necháme ji viditelnou, ale neaktivní
-                 }
-                 // Pravá šipka
-                 if (scrollLeft < maxScrollLeft - 5) { // Malá tolerance
-                     scrollRightArrow.classList.remove('disabled');
-                      scrollRightArrow.style.opacity = '1'; // Zobrazit, pokud lze scrollovat doprava
-                 } else {
                      scrollRightArrow.classList.add('disabled');
-                     //scrollRightArrow.style.opacity = '0.3'; // Necháme ji viditelnou, ale neaktivní
                  }
-             }
-         }
+                   // Zobrazíme šipky POUZE pokud je co scrollovat a nejsou disabled
+                  scrollLeftArrow.style.opacity = scrollLeftArrow.classList.contains('disabled') ? '0' : '';
+                  scrollRightArrow.style.opacity = scrollRightArrow.classList.contains('disabled') ? '0' : '';
 
+             }, 100); // Krátké zpoždění
+         }
 
         // ==============================================
         //          Spuštění Aplikace
