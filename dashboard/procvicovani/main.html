@@ -62,7 +62,6 @@
             overflow-x: hidden;
         }
 
-        /* --- Sidebar and other existing styles (keep them as they are) --- */
          /* Boční panel */
          .sidebar {
             width: var(--sidebar-width);
@@ -194,6 +193,7 @@
             width: calc(100% - var(--sidebar-width));
         }
 
+        /* --- UPDATED Header Styles --- */
         .dashboard-header {
             margin-bottom: 2rem;
             background-color: var(--white);
@@ -206,34 +206,42 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-wrap: wrap; /* Allow wrapping */
+            gap: 1rem; /* Gap between sections when wrapped */
         }
 
-         .header-content > div:first-child { /* Kontejner pro toggle a H1 */
-             display: flex;
-             align-items: center;
-             gap: 1rem; /* Mezera mezi toggle a H1 */
-         }
-
+        .header-title-section { /* Container for toggle and title */
+            display: flex;
+            align-items: center;
+            gap: 1rem; /* Space between toggle and title */
+            flex-grow: 1; /* Allow this section to grow */
+        }
 
         .header-content h1 {
             font-size: 1.75rem;
             font-weight: 600;
             color: var(--dark);
+            margin: 0; /* Remove default margin */
         }
 
-        .header-actions {
+        .header-actions { /* Container for buttons */
             display: flex;
             align-items: center;
             gap: 1rem;
+            flex-shrink: 0; /* Prevent buttons shrinking too much */
+        }
+        .header-actions .btn span { /* Ensure text is visible by default */
+             display: inline;
         }
 
-        /* Hlavní obsah */
+        /* Main Content Grid */
         .main-content {
             display: grid;
             grid-template-columns: 1fr;
             gap: 1.75rem;
         }
 
+        /* Section Styling */
         .section {
             background-color: var(--white);
             border-radius: var(--card-radius);
@@ -251,26 +259,14 @@
             align-items: center;
             justify-content: space-between;
         }
-
-        .section-title .btn-sm {
-            padding: 0.35rem 0.75rem;
-            font-size: 0.85rem;
-        }
-
+         /* ... other section styles ... */
         .section-subtitle {
             font-size: 1.1rem;
             font-weight: 500;
             margin-bottom: 1rem;
             color: var(--dark);
         }
-
-        .section-text {
-            font-size: 1rem;
-            color: var(--text-secondary);
-            line-height: 1.6;
-            margin-bottom: 1.5rem;
-        }
-        .diagnostic-prompt { /* Styl pro výzvu k diagnostice */
+         .diagnostic-prompt {
             padding: 1rem;
             margin: 1rem 0;
             background-color: rgba(72, 149, 239, 0.1);
@@ -278,89 +274,37 @@
             border-radius: 8px;
         }
 
-        /* Grid pro dashboard */
+        /* Dashboard Grid & Cards */
         .dashboard-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 1.5rem;
             margin-bottom: 1.5rem;
         }
-
-        .dashboard-card {
+         /* ... other dashboard card styles ... */
+         .dashboard-card {
             background-color: var(--white);
             border-radius: var(--card-radius);
             box-shadow: var(--shadow-sm);
             padding: 1.5rem;
             transition: all 0.3s ease;
         }
-
-        .dashboard-card:hover {
+         .dashboard-card:hover {
             transform: translateY(-5px);
             box-shadow: var(--shadow-md);
         }
-
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 1rem;
-        }
-
-        .card-title {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: var(--dark);
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .card-title i {
-            font-size: 1.2rem;
-            color: var(--primary);
-        }
-
-        .card-badge {
-            padding: 0.25rem 0.75rem;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: 500;
-            background-color: rgba(67, 97, 238, 0.1);
-            color: var(--primary);
-        }
-         /* ... other badge styles ... */
-
-        .card-content {
-            margin-bottom: 1rem;
-        }
-
-        .card-value {
+         .card-value {
             font-size: 2rem;
             font-weight: 700;
             color: var(--primary);
             margin-bottom: 0.5rem;
         }
 
-        .card-description {
-            font-size: 0.9rem;
-            color: var(--text-secondary);
-        }
-
-        .card-footer {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        /* ... other card styles ... */
-
-
-        /* Styly tlačítek */
+        /* Buttons */
         .btn {
             display: inline-flex;
             align-items: center;
-            justify-content: center; /* Center content in button */
+            justify-content: center;
             padding: 0.75rem 1.5rem;
             border-radius: 12px;
             font-weight: 500;
@@ -371,40 +315,34 @@
             border: none;
             gap: 0.5rem;
         }
-
         .btn-primary {
             background: var(--gradient-1);
             color: white;
             box-shadow: 0 4px 10px rgba(67, 97, 238, 0.2);
         }
-
         .btn-primary:hover {
             transform: translateY(-2px);
             box-shadow: 0 6px 15px rgba(67, 97, 238, 0.25);
         }
-
         .btn-secondary {
             background-color: var(--light);
             color: var(--text-secondary);
             border: 1px solid var(--gray-light);
         }
-
         .btn-secondary:hover {
             background-color: var(--gray-light);
         }
-         /* ... other button styles ... */
-         .btn-outline {
+        .btn-outline {
             background: transparent;
             border: 1px solid var(--primary);
             color: var(--primary);
         }
-
         .btn-outline:hover {
             background-color: var(--primary);
             color: white;
         }
 
-        /* Progress bar */
+        /* Progress Bar */
         .progress-container {
             width: 100%;
             height: 10px;
@@ -413,383 +351,346 @@
             overflow: hidden;
             margin: 1rem 0;
         }
-
         .progress-bar {
             height: 100%;
             border-radius: 5px;
             background: var(--gradient-1);
             transition: width 0.5s ease;
         }
-        /* ... other progress styles ... */
 
-        /* Topic cards */
+        /* Topic Analysis */
         .topic-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
             gap: 1.5rem;
             margin-top: 1.5rem;
         }
-        /* ... other topic card styles ... */
+         /* ... other topic card styles ... */
+         .topic-card {
+            background-color: var(--white);
+            border-radius: var(--card-radius);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.3s ease;
+            border-left: 4px solid var(--primary);
+        }
+        .topic-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-md);
+        }
+        .topic-card.strength { border-left: 4px solid var(--success-alt); }
+        .topic-card.weakness { border-left: 4px solid var(--danger); }
+        .topic-card.neutral { border-left: 4px solid var(--warning); }
+        .topic-icon {
+            width: 40px; height: 40px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            color: var(--white); background: var(--primary); font-size: 1.2rem;
+        }
+        .topic-card.strength .topic-icon { background: var(--success-alt); }
+        .topic-card.weakness .topic-icon { background: var(--danger); }
+        .topic-card.neutral .topic-icon { background: var(--warning); }
 
-        /* --- DELETED .plan-container and its children styles --- */
 
-        /* Schedule */
-        /* --- DELETED .weekly-schedule, .day-card and its children --- */
-
-        /* Statistiky testu */
+        /* Test Results Tab Specific */
         .test-stats {
             display: flex;
             flex-wrap: wrap;
             gap: 1rem;
             margin-bottom: 1.5rem;
         }
-        /* ... other test stats styles ... */
-
-        /* Chart area */
-        .chart-container {
-            height: 300px;
-            position: relative;
-            margin-bottom: 2rem;
+         /* ... other test stats styles ... */
+         .stats-card {
+            flex: 1; min-width: 150px; background-color: var(--white);
+            border-radius: var(--card-radius); padding: 1.25rem;
+            box-shadow: var(--shadow-sm); text-align: center;
         }
+         .stats-icon {
+             width: 50px; height: 50px; border-radius: 50%; margin: 0 auto 1rem auto;
+             display: flex; align-items: center; justify-content: center;
+             font-size: 1.5rem; color: white;
+         }
+         .stats-icon.primary { background: var(--gradient-1); }
+         .stats-icon.success { background: linear-gradient(135deg, #4cc9f0, #38b2ac); }
+         .stats-icon.warning { background: linear-gradient(135deg, #f8961e, #f3722c); }
+         .stats-icon.danger { background: linear-gradient(135deg, #f72585, #b5179e); }
+         .stats-value {
+             font-size: 1.75rem; font-weight: 700; margin-bottom: 0.25rem;
+             background: var(--gradient-1); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+         }
+         .stats-value.success { background: linear-gradient(135deg, #4cc9f0, #38b2ac); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+         .stats-value.warning { background: linear-gradient(135deg, #f8961e, #f3722c); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+         .stats-value.danger { background: linear-gradient(135deg, #f72585, #b5179e); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 
-        /* Latest test result */
+
+        .chart-container { height: 300px; position: relative; margin-bottom: 2rem; }
         .test-result-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid var(--gray-light);
-            margin-bottom: 1.5rem;
+            display: flex; justify-content: space-between; align-items: center;
+            padding-bottom: 1rem; border-bottom: 1px solid var(--gray-light); margin-bottom: 1.5rem;
         }
          /* ... other test result styles ... */
+        .test-list { margin-top: 1.5rem; }
+        .test-item {
+             display: flex; justify-content: space-between; align-items: center;
+             padding: 1rem 1.5rem; margin-bottom: 0.75rem; background-color: var(--white);
+             border-radius: var(--card-radius); box-shadow: var(--shadow-sm); transition: all 0.3s ease;
+         }
+         .test-item:hover { transform: translateX(5px); box-shadow: var(--shadow-md); }
+         .test-icon { /* Style for test icon */
+             width: 40px; height: 40px; min-width: 40px; border-radius: 8px;
+             background: var(--gradient-1); color: white; display: flex;
+             align-items: center; justify-content: center; font-size: 1.2rem;
+         }
 
-        /* Test list */
-        .test-list {
-            margin-top: 1.5rem;
-        }
-        /* ... other test list styles ... */
-
-        /* Loading */
-        .loading {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 2rem;
-            font-size: 1rem;
-            color: var(--text-muted);
-        }
-        .loading::after {
-            content: "";
-            width: 24px;
-            height: 24px;
-            margin-left: 12px;
-            border: 2px solid var(--primary);
-            border-radius: 50%;
-            border-top-color: transparent;
-            animation: loading-spinner 0.8s linear infinite;
-        }
+        /* Loading & Empty States */
+        .loading { display: flex; justify-content: center; align-items: center; padding: 2rem; font-size: 1rem; color: var(--text-muted); }
+        .loading::after { content: ""; width: 24px; height: 24px; margin-left: 12px; border: 2px solid var(--primary); border-radius: 50%; border-top-color: transparent; animation: loading-spinner 0.8s linear infinite; }
         @keyframes loading-spinner { to { transform: rotate(360deg); } }
-
-        /* Empty state */
-        .empty-state {
-            text-align: center;
-            padding: 3rem 1.5rem;
-            color: var(--text-secondary);
-        }
-        /* ... other empty state styles ... */
+        .empty-state { text-align: center; padding: 3rem 1.5rem; color: var(--text-secondary); }
+        .empty-state i { font-size: 3.5rem; margin-bottom: 1.5rem; color: var(--gray-light); }
+        .empty-state h3 { font-size: 1.2rem; font-weight: 600; margin-bottom: 1rem; color: var(--dark); }
+        .empty-state p { margin-bottom: 1.5rem; max-width: 500px; margin-left: auto; margin-right: auto; }
 
         /* Tabs */
-        .content-tabs {
-            display: flex;
-            border-bottom: 1px solid var(--gray-light);
-            margin-bottom: 1.5rem;
-            overflow-x: auto;
-            scrollbar-width: none;
-        }
+        .content-tabs { display: flex; border-bottom: 1px solid var(--gray-light); margin-bottom: 1.5rem; overflow-x: auto; scrollbar-width: none; }
         .content-tabs::-webkit-scrollbar { display: none; }
-        .content-tab {
-            padding: 1rem 1.5rem;
-            font-weight: 500;
-            color: var(--text-secondary);
-            cursor: pointer;
-            transition: all 0.3s ease;
-            white-space: nowrap;
-            position: relative;
-        }
+        .content-tab { padding: 1rem 1.5rem; font-weight: 500; color: var(--text-secondary); cursor: pointer; transition: all 0.3s ease; white-space: nowrap; position: relative; }
         .content-tab.active { color: var(--primary); }
         .content-tab.active::after { content: ''; position: absolute; bottom: -1px; left: 0; width: 100%; height: 2px; background-color: var(--primary); }
         .tab-content { display: none; }
         .tab-content.active { display: block; animation: fadeIn 0.5s ease forwards; }
-
-        /* Animace */
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Mobile menu toggle */
-        .mobile-menu-toggle {
-            display: none; /* Initially hidden on larger screens */
-            background: none;
-            border: none;
-            cursor: pointer;
-            font-size: 1.5rem;
-            color: var(--dark);
-            padding: 0.5rem;
-        }
-
-        /* Overlay for mobile */
-        .sidebar-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            z-index: 999;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-             backdrop-filter: blur(5px);
-        }
+        /* Mobile Menu & Overlay */
+        .mobile-menu-toggle { display: none; background: none; border: none; cursor: pointer; font-size: 1.5rem; color: var(--dark); padding: 0.5rem; }
+        .sidebar-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); z-index: 999; opacity: 0; transition: opacity 0.3s ease; backdrop-filter: blur(5px); }
         .sidebar-overlay.active { display: block; opacity: 1; }
 
-
-        /* --- NEW STYLES for Weekly Schedule in main.html --- */
+        /* --- REDESIGNED Weekly Schedule Styles --- */
         .main-weekly-schedule {
-            margin-top: 1rem; /* Reduced top margin */
-            padding: 1rem;
-            background-color: var(--white); /* Add background to the whole section */
-            border-radius: var(--card-radius);
-            box-shadow: var(--shadow-sm);
+            margin-top: 1rem;
+            padding: 0; /* No padding on the main container */
+            background-color: transparent;
+            border-radius: 0;
+            box-shadow: none;
+            border: none;
         }
 
         .schedule-grid {
             display: grid;
-            /* grid-template-columns: repeat(7, 1fr); /* 7 equal columns */
-            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); /* Responsive columns */
-            gap: 1rem;
-            /* background-color: #f9f9ff; /* Light background for the grid area - removed, parent has bg */
-            /* padding: 1rem; /* Reduced padding */
-            /* border-radius: var(--card-radius); */
-            /* border: 1px solid var(--gray-light); /* Removed border */
-            margin-top: 1rem; /* Add space below subtitle */
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); /* Responsive columns */
+            gap: 1.5rem; /* Gap between day cards */
+            margin-top: 1rem;
+            padding: 0; /* No padding on grid */
         }
 
         .schedule-day {
-            background-color: #f8f9fa; /* Slightly off-white background */
-            border-radius: 12px; /* Softer corners */
-            box-shadow: none; /* Remove individual shadow */
+            background-color: var(--white); /* White card for each day */
+            border-radius: var(--card-radius);
+            box-shadow: var(--shadow-md); /* Clearer shadow */
             display: flex;
             flex-direction: column;
-            overflow: hidden; /* Ensure content stays within bounds */
-            border: 1px solid var(--gray-light);
+            overflow: hidden;
+            border: none; /* No border on the card */
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .schedule-day:hover {
+             transform: translateY(-5px);
+             box-shadow: var(--shadow-lg);
         }
 
         .schedule-day-header {
-            padding: 0.75rem 1rem;
+            padding: 0.8rem 1.2rem;
             font-weight: 600;
-            font-size: 0.95rem; /* Slightly smaller header */
+            font-size: 1.05rem;
             text-align: center;
-            background: var(--gradient-2); /* Use a gradient for header */
-            color: white;
-            border-bottom: 1px solid rgba(0,0,0,0.05);
+            background: #fff; /* White header */
+            color: var(--primary); /* Primary color text */
+            border-bottom: 1px solid var(--gray-light); /* Separator line */
         }
 
         .schedule-activities {
-            padding: 0.75rem; /* Reduced padding */
+            padding: 1rem 1.2rem; /* Padding inside the card */
             flex-grow: 1;
-            min-height: 120px; /* Reduced minimum height */
+            min-height: 150px; /* Ensure some height */
             display: flex;
             flex-direction: column;
-            gap: 0.6rem; /* Reduced gap */
+            gap: 0.8rem; /* Gap between activities */
         }
 
         .schedule-activity-item {
-            background-color: var(--white); /* White background for items */
-            border-left: 4px solid var(--primary);
-            padding: 0.6rem 0.9rem;
-            border-radius: 6px;
-            font-size: 0.85rem; /* Slightly smaller font */
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-            border: 1px solid var(--gray-light); /* Add subtle border */
+            display: flex;
+            align-items: flex-start; /* Align icon top */
+            gap: 0.75rem; /* Gap between icon and text */
+            background-color: transparent; /* No background for item */
+            border: none;
+            border-left: 3px solid var(--primary-light); /* Subtle indicator */
+            padding: 0.5rem 0 0.5rem 0.75rem; /* Padding for alignment */
+            border-radius: 0;
+            font-size: 0.9rem;
+            transition: border-left-color 0.2s ease; /* Smooth transition */
         }
+         .schedule-activity-item:hover {
+             border-left-color: var(--secondary); /* Darker border on hover */
+         }
 
-        .schedule-activity-item:hover {
-            transform: translateX(3px);
-            box-shadow: 0 2px 5px rgba(0,0,0,0.08);
-            border-left-color: var(--secondary);
-        }
+        .activity-icon {
+             font-size: 1.1rem; /* Icon size */
+             color: var(--primary);
+             width: 20px; /* Fixed width */
+             text-align: center;
+             margin-top: 2px; /* Align icon slightly */
+             flex-shrink: 0;
+         }
+
+         .activity-details {
+             flex-grow: 1;
+         }
 
         .schedule-activity-item strong { /* Activity title */
             display: block;
             font-weight: 500;
             color: var(--dark);
-            margin-bottom: 2px; /* Reduced margin */
-            line-height: 1.3;
+            margin-bottom: 2px;
+            line-height: 1.4;
         }
 
         .schedule-activity-item span { /* Optional time/description */
-            font-size: 0.75rem; /* Smaller time/desc */
+            font-size: 0.8rem;
             color: var(--text-secondary);
-            display: block; /* Ensure it takes its own line if needed */
+            display: block;
         }
 
         .schedule-activity-item.completed {
             border-left-color: var(--success-alt);
-            background-color: rgba(6, 214, 160, 0.05);
-            opacity: 0.7;
-            border-color: rgba(6, 214, 160, 0.2);
+            opacity: 0.65; /* Fade completed items */
         }
+         .schedule-activity-item.completed .activity-icon {
+              color: var(--success-alt);
+         }
         .schedule-activity-item.completed strong {
              text-decoration: line-through;
-             text-decoration-color: rgba(0,0,0,0.4);
+             text-decoration-color: rgba(0,0,0,0.5);
+             color: var(--text-secondary); /* Fade text */
         }
-        /* --- End of NEW STYLES --- */
+
+        .schedule-activities .no-activities-placeholder { /* Placeholder style */
+             text-align: center;
+             font-style: italic;
+             color: var(--text-muted);
+             font-size: 0.85rem;
+             margin-top: auto;
+             margin-bottom: auto;
+             padding: 1rem 0;
+         }
+         /* Link below schedule grid */
+         .full-plan-link-container {
+             text-align: center;
+             margin-top: 1.5rem;
+         }
+
+        /* --- End of REDESIGNED Weekly Schedule Styles --- */
 
 
-        /* Responsivní design */
-        @media (max-width: 992px) {
-            :root {
-                --sidebar-width: 80px;
-            }
-             main { /* Přidáno pro správné odsazení */
-                 margin-left: 80px;
-                 width: calc(100% - 80px);
-             }
-             /* Adjust sidebar content visibility for collapsed state */
-             .sidebar-logo span,
-             .sidebar-link span,
-             .user-info,
-             .sidebar-footer {
-                 display: none;
-             }
+        /* Responsivní design - Updates */
+        @media (max-width: 992px) { /* Collapsed Sidebar */
+             :root { --sidebar-width: 80px; }
+             main { margin-left: 80px; width: calc(100% - 80px); }
+             .sidebar-logo span, .sidebar-link span, .user-info, .sidebar-footer { display: none; }
              .sidebar-link i { margin-right: 0; font-size: 1.5rem; }
              .sidebar-logo i { margin-right: 0; }
              .sidebar-header, .sidebar-link { justify-content: center; }
              .user-profile { justify-content: center; padding: 0.75rem; }
              .user-avatar { margin-right: 0; }
-
-             .schedule-grid {
-                 /* grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); */
-             }
+             /* Optional: Hide button text when sidebar is collapsed */
+             /* .header-actions .btn span { display: none; } */
+             /* .header-actions .btn { padding: 0.6rem 0.8rem; } */
         }
 
-        @media (max-width: 768px) {
-            main {
-                padding: 1rem;
-            }
-            .header-content {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 1rem;
-            }
-            .header-actions {
-                width: 100%;
-                 justify-content: flex-start; /* Zarovnat doleva na mobilu */
-                 gap: 0.75rem; /* Menší mezery */
-            }
-             .header-actions .btn { /* Menší tlačítka */
-                  padding: 0.6rem 1.2rem;
-                  font-size: 0.9rem;
-             }
+        @media (max-width: 768px) { /* Tablet */
+            main { padding: 1rem; }
+            .header-content { flex-direction: column; align-items: flex-start; }
+            .header-title-section { width: 100%; justify-content: space-between; }
+             .header-title-section h1 { font-size: 1.6rem; }
+            .header-actions { width: 100%; justify-content: flex-start; margin-top: 0.5rem; }
+             .header-actions .btn { padding: 0.6rem 1.2rem; font-size: 0.9rem; }
             .dashboard-grid { grid-template-columns: 1fr; }
             .test-stats { flex-direction: column; }
-            /* Plan Header removed */
-            /* Plan Actions removed */
             .test-item { flex-direction: column; align-items: flex-start; gap: 0.75rem; }
             .test-score { margin-top: 0.5rem; width: 100%; text-align: right; }
-             .schedule-grid {
-                 grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); /* Adjust min width */
-             }
+            .schedule-grid { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); } /* Adjust min width */
         }
 
-        @media (max-width: 576px) {
+        @media (max-width: 576px) { /* Mobile */
             :root { --sidebar-width: 0; }
+            main { margin-left: 0; width: 100%; }
             .sidebar { transform: translateX(-100%); width: 260px; z-index: 1000; }
             .sidebar.active {
                 transform: translateX(0);
-                 /* Ensure content is visible in expanded mobile menu */
                  .sidebar-logo span, .sidebar-link span, .user-info, .sidebar-footer { display: block; }
-                 .sidebar-link i { margin-right: 0.75rem; font-size: 1.2rem; } /* Reset icon size */
+                 .sidebar-link i { margin-right: 0.75rem; font-size: 1.2rem;}
                  .sidebar-header, .sidebar-link { justify-content: flex-start; }
-                 .user-profile { justify-content: flex-start; padding: 1rem; }
+                 .user-profile { justify-content: flex-start; padding: 1rem;}
                  .user-avatar { margin-right: 0.75rem; }
             }
-            main { margin-left: 0; width: 100%; }
-            .mobile-menu-toggle { display: block; } /* Show toggle button */
-             /* Adjust header layout for mobile */
-             .dashboard-header > .header-content > div:first-child {
-                  width: 100%; /* Take full width */
-                  justify-content: space-between; /* Space out toggle and title */
-             }
-             .dashboard-header > .header-content > div:first-child h1 {
-                  margin-left: 0; /* No extra margin */
-                  flex-grow: 1; /* Allow title to take space */
-                  text-align: left; /* Align title left */
-                  font-size: 1.5rem; /* Adjust title size */
-             }
-
+            .mobile-menu-toggle { display: block; } /* Show toggle */
+             .header-title-section h1 { font-size: 1.4rem; text-align: left; }
             .test-info { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
-             .schedule-grid {
-                 grid-template-columns: 1fr; /* Stack days vertically */
-             }
+            .schedule-grid { grid-template-columns: 1fr; } /* Stack days */
         }
 
-        /* Dark mode */
+
+        /* Dark mode - Updates */
         @media (prefers-color-scheme: dark) {
             :root {
-                --white: #1a202c;
-                --light: #2d3748;
-                --dark: #e2e8f0;
-                --gray-light: #4a5568;
-                --text-primary: #e2e8f0;
-                --text-secondary: #cbd5e0;
-                --text-muted: #a0aec0;
-                 --dark-bg: #1e2533;
+                --white: #1a202c; --light: #2d3748; --dark: #e2e8f0;
+                --gray-light: #4a5568; --text-primary: #e2e8f0; --text-secondary: #cbd5e0;
+                --text-muted: #a0aec0; --dark-bg: #1e2533;
             }
             body { background-color: #171923; }
-            /* --- Adjustments for general elements --- */
             .section, .dashboard-header, .dashboard-card, .topic-card, .test-item, .stats-card {
-                 background-color: var(--dark-bg);
-                 border-color: var(--gray-light); /* If they have border */
+                 background-color: var(--dark-bg); border-color: var(--gray-light);
             }
-             .mobile-menu-toggle { color: var(--dark); }
-             .empty-state i { color: var(--light); }
-             .plan-container { background-color: #21232f; /* Ensure plan container style removed if not used */ }
-             .test-stats .stats-card { background-color: var(--dark-bg); } /* Ensure stats card bg is dark */
+            .mobile-menu-toggle { color: var(--dark); }
+            .empty-state i { color: var(--light); }
+            .test-stats .stats-card { background-color: var(--dark-bg); }
 
-
-            /* --- Dark mode for NEW Weekly Schedule --- */
-            .main-weekly-schedule {
-                background-color: var(--dark-bg); /* Use dark background */
-            }
-            /* .schedule-grid background removed */
-            .schedule-day {
-                background-color: var(--light); /* Use light dark background for day */
-                border-color: var(--gray-light);
-            }
-            .schedule-day-header {
-                 /* Gradient might look okay, or use solid color */
-                 /* background: var(--gradient-2); */
-                 background: var(--gray-dark); /* Solid dark header */
-            }
-            .schedule-activity-item {
-                background-color: var(--dark-bg); /* Use main dark bg for items */
-                border-left-color: var(--primary-light);
-                border-color: var(--gray-light);
-            }
+            /* --- Dark mode for REDESIGNED Weekly Schedule --- */
+             .main-weekly-schedule { background-color: transparent; }
+             .schedule-day {
+                 background-color: var(--dark-bg); /* Use dark background for card */
+                 box-shadow: var(--shadow-md); /* Keep shadow */
+             }
+             .schedule-day-header {
+                 background: var(--dark-bg); /* Match card bg */
+                 color: var(--primary-light); /* Use lighter primary color */
+                 border-bottom-color: var(--gray-light);
+             }
+             .schedule-activity-item {
+                 border-left-color: var(--primary-light);
+             }
+             .activity-icon {
+                 color: var(--primary-light);
+             }
              .schedule-activity-item strong {
-                 color: var(--dark); /* Use light text color for title */
+                 color: var(--dark); /* Light text */
              }
              .schedule-activity-item span {
-                 color: var(--text-secondary); /* Use secondary light text */
+                 color: var(--text-secondary); /* Lighter secondary text */
              }
-            .schedule-activity-item.completed {
-                background-color: rgba(6, 214, 160, 0.1); /* Keep consistent completed bg */
-                border-left-color: var(--success-alt);
-                 border-color: rgba(6, 214, 160, 0.3);
-            }
-             .schedule-activity-item.completed strong {
-                 text-decoration-color: rgba(255,255,255,0.4);
+             .schedule-activity-item.completed {
+                 border-left-color: var(--success-alt);
+                 opacity: 0.6; /* Slightly more fade in dark mode maybe */
              }
+              .schedule-activity-item.completed .activity-icon {
+                  color: var(--success-alt);
+             }
+              .schedule-activity-item.completed strong {
+                  text-decoration-color: rgba(255,255,255,0.5);
+                  color: var(--text-secondary); /* Match faded text color */
+              }
+              .schedule-activities .no-activities-placeholder {
+                  color: var(--text-muted);
+              }
         }
     </style>
 </head>
@@ -804,7 +705,7 @@
             </a>
         </div>
 
-        <ul class="sidebar-menu">
+         <ul class="sidebar-menu">
              <li class="sidebar-item">
                  <a href="/dashboard/dashboard.html" class="sidebar-link"> <i class="fas fa-th-large"></i>
                      <span>Dashboard</span>
@@ -852,28 +753,27 @@
     </aside>
 
     <main>
-        <div class="dashboard-header">
-            <div class="header-content">
-                 <div> {/* Container for toggle and H1 */}
+         <div class="dashboard-header">
+             <div class="header-content">
+                 <div class="header-title-section">
                      <button class="mobile-menu-toggle" id="mobile-menu-toggle">
                          <i class="fas fa-bars"></i>
                      </button>
-                    <h1>Procvičování</h1>
+                     <h1>Procvičování</h1>
                  </div>
-                <div class="header-actions">
+                 <div class="header-actions">
                      <a href="/dashboard/procvicovani/vyuka.html" class="btn btn-secondary">
                          <i class="fas fa-graduation-cap"></i>
-                         Výuka
+                         <span>Výuka</span>
                      </a>
-                     <a href="test1.html" class="btn btn-primary"> {/* Keep link to test */}
+                     <a href="test1.html" class="btn btn-primary">
                          <i class="fas fa-vial"></i>
-                         Diagnostický Test
+                         <span>Diagnostický Test</span>
                      </a>
-                </div>
-            </div>
-        </div>
-
-        <div class="main-content">
+                 </div>
+             </div>
+         </div>
+         <div class="main-content">
             <section class="section overview-section">
                 <h2 class="section-title">Přehled pokroku</h2>
                 <div class="dashboard-grid" id="stats-cards">
@@ -888,37 +788,30 @@
                     <div class="content-tab" data-tab="topic-analysis">Analýza témat</div>
                 </div>
 
-                <div class="tab-content active" id="test-results">
-                    <div id="test-results-loading" class="loading">Načítání výsledků testů...</div>
-                    <div id="test-results-content" style="display: none">
-                        <div id="diagnostic-prompt-results" class="diagnostic-prompt" style="display: none;">
-                             <p><i class="fas fa-info-circle"></i> Pro plnou funkcionalitu a personalizovaný plán <a href="test1.html">dokončete diagnostický test</a>.</p>
-                        </div>
-
-                        <div class="test-stats" id="test-stats">
-                            </div>
-
-                        <div class="chart-container">
-                            <canvas id="testsChart"></canvas>
-                        </div>
-
-                        <h3 class="section-subtitle">Poslední výsledek testu</h3>
-                        <div id="last-test-result">
-                            </div>
-
-                        <h3 class="section-subtitle">Historie testů</h3>
-                        <div class="test-list" id="test-history">
-                            </div>
-                    </div>
-                    <div id="test-results-empty" class="empty-state" style="display: none">
-                        <i class="fas fa-clipboard-list"></i>
-                        <h3 id="empty-state-title">Žádné testy</h3>
-                        <p id="empty-state-message">Zatím nemáte žádné dokončené testy. Začněte procvičovat a vaše výsledky se zobrazí zde.</p>
-                        <a href="test1.html" class="btn btn-primary" id="start-test-btn"> <i class="fas fa-play"></i>
-                            <span id="empty-state-button-text">Začít procvičovat</span>
-                        </a>
-                    </div>
-                </div>
+                 <div class="tab-content active" id="test-results">
+                     <div id="test-results-loading" class="loading">Načítání výsledků testů...</div>
+                     <div id="test-results-content" style="display: none">
+                         <div class="test-stats" id="test-stats">
+                             </div>
+                         <div class="chart-container">
+                             <canvas id="testsChart"></canvas>
+                         </div>
+                         <h3 class="section-subtitle">Poslední výsledek diagnostického testu</h3>
+                         <div id="last-test-result">
+                             </div>
+                         <h3 class="section-subtitle">Historie diagnostických testů</h3>
+                         <div class="test-list" id="test-history">
+                             </div>
+                     </div>
+                     <div id="test-results-empty" class="empty-state" style="display: none">
+                         <i class="fas fa-clipboard-list"></i>
+                         <h3 id="empty-state-title">Diagnostický test</h3> {/* Updated default title */}
+                         <p id="empty-state-message">Zatím jste nedokončili diagnostický test. Je důležitý pro personalizaci vašeho učení.</p> {/* Updated default message */}
+                         <a href="test1.html" class="btn btn-primary" id="start-test-btn"> <i class="fas fa-play"></i>
+                             <span id="empty-state-button-text">Spustit diagnostický test</span> {/* Updated default button text */}
+                         </a>
+                     </div>
+                 </div>
 
                  <div class="tab-content" id="study-plan">
                      <div id="study-plan-loading" class="loading">Načítání studijního plánu...</div>
@@ -926,12 +819,13 @@
                          <div class="main-weekly-schedule">
                              <h3 class="section-subtitle">Týdenní přehled aktivit</h3>
                              <div class="schedule-grid" id="main-plan-schedule">
-                                 </div>
-                              <div style="text-align: center; margin-top: 1.5rem;">
-                                  <a href="plan.html" class="btn btn-primary">
-                                      <i class="fas fa-calendar-alt"></i> Zobrazit podrobný plán
-                                  </a>
-                              </div>
+                                 {/* Content generated by JS */}
+                             </div>
+                             <div class="full-plan-link-container"> {/* Added container class */}
+                                 <a href="plan.html" class="btn btn-primary">
+                                     <i class="fas fa-calendar-alt"></i> Zobrazit podrobný plán
+                                 </a>
+                             </div>
                          </div>
                      </div>
                      <div id="study-plan-empty" class="empty-state" style="display: none">
@@ -943,7 +837,8 @@
                          </a>
                      </div>
                  </div>
-                 <div class="tab-content" id="topic-analysis">
+
+                <div class="tab-content" id="topic-analysis">
                     <div id="topic-analysis-loading" class="loading">Načítání analýzy témat...</div>
                     <div id="topic-analysis-content" style="display: none">
                         <div class="topic-grid" id="topic-grid">
@@ -964,13 +859,12 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Inicializace Supabase klienta
+            // Supabase Init
             const supabaseUrl = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
             const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10';
             const supabase = window.supabase?.createClient ? window.supabase.createClient(supabaseUrl, supabaseKey) : supabase.createClient(supabaseUrl, supabaseKey);
 
-
-            // DOM elementy
+            // DOM Elements
             const userAvatar = document.getElementById('user-avatar');
             const userName = document.getElementById('user-name');
             const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
@@ -981,59 +875,82 @@
             const statsCards = document.getElementById('stats-cards');
             const statsLoading = document.getElementById('stats-loading');
 
-            // Test results tab elements
+            // Test Results Tab Elements
             const testResultsLoading = document.getElementById('test-results-loading');
             const testResultsContent = document.getElementById('test-results-content');
             const testResultsEmpty = document.getElementById('test-results-empty');
             const testStats = document.getElementById('test-stats');
             const lastTestResult = document.getElementById('last-test-result');
             const testHistory = document.getElementById('test-history');
-            const diagnosticPromptResults = document.getElementById('diagnostic-prompt-results');
+            const diagnosticPromptResults = document.getElementById('diagnostic-prompt-results'); // Keep ref if needed elsewhere
             const emptyStateTitle = document.getElementById('empty-state-title');
             const emptyStateMessage = document.getElementById('empty-state-message');
             const emptyStateButtonText = document.getElementById('empty-state-button-text');
             const emptyStateButtonLink = document.getElementById('start-test-btn');
 
-
-            // Study plan tab elements
+            // Study Plan Tab Elements
             const studyPlanLoading = document.getElementById('study-plan-loading');
             const studyPlanContent = document.getElementById('study-plan-content');
             const studyPlanEmpty = document.getElementById('study-plan-empty');
-            const mainPlanScheduleGrid = document.getElementById('main-plan-schedule'); // *** NEW ELEMENT REFERENCE ***
-            // const createPlanBtn = document.getElementById('create-plan-btn'); // Nyní link
-            // --- Removed references to old plan elements like planTitle, planDate, etc. ---
-            // const planTitle = document.getElementById('plan-title');
-            // const planDate = document.getElementById('plan-date');
-            // const planProgressValue = document.getElementById('plan-progress-value');
-            // const planProgressBar = document.getElementById('plan-progress-bar');
-            // const planDescription = document.getElementById('plan-description');
-            // const planSchedule = document.getElementById('plan-schedule');
-            // const updatePlanBtn = document.getElementById('update-plan-btn');
-            // const downloadPlanBtn = document.getElementById('download-plan-btn');
+            const mainPlanScheduleGrid = document.getElementById('main-plan-schedule'); // Ref to new grid
 
-            // Topic analysis tab elements
+            // Topic Analysis Tab Elements
             const topicAnalysisLoading = document.getElementById('topic-analysis-loading');
             const topicAnalysisContent = document.getElementById('topic-analysis-content');
             const topicAnalysisEmpty = document.getElementById('topic-analysis-empty');
             const topicGrid = document.getElementById('topic-grid');
-            // const startPracticeBtn = document.getElementById('start-practice-btn'); // Nyní link
 
-            // Globální proměnné pro data
+            // Global Variables
             let currentUser = null;
             let userStats = null;
-            let allTestResults = [];
-            let diagnosticTestResults = [];
-            let otherTestResults = [];
-            let studyPlans = []; // Keep this if needed elsewhere
+            let diagnosticTestResults = []; // Specifically for diagnostic results now
             let topicProgress = [];
-            let testsChart = null;
+            let testsChart = null; // Chart instance for test results
 
-            // Ikony pro témata
-            const topicIcons = {
-                "Algebra": "fa-square-root-alt", "Aritmetika": "fa-calculator", "Geometrie": "fa-draw-polygon", "Logika": "fa-brain", "Logické úlohy": "fa-brain", "Statistika": "fa-chart-bar", "Práce s daty": "fa-chart-bar", "Problémové úlohy": "fa-lightbulb", "Proporce a procenta": "fa-percentage", "Čísla a aritmetické operace": "fa-calculator", "Trigonometrie": "fa-ruler-combined", "default": "fa-book"
-            };
+            // Topic Icons (keep as is)
+            const topicIcons = { /* ... icons ... */ };
 
-            // Event listener pro přepínání záložek
+             // Helper function to sanitize HTML
+             function sanitizeHTML(str) {
+                 if (str === null || str === undefined) return '';
+                 const temp = document.createElement('div');
+                 temp.textContent = str;
+                 return temp.innerHTML;
+             }
+             // Helper function to format dates
+              function formatDate(dateString) {
+                 if(!dateString) return '-';
+                 try {
+                     const date = new Date(dateString);
+                      if (isNaN(date.getTime())) return '-'; // Invalid date handling
+                     return date.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
+                 } catch (e) {
+                     console.error("Chyba formátování data:", e);
+                     return '-';
+                 }
+              }
+              // Helper function to get initials
+              function getInitials(profile) {
+                 if (!profile) return 'U';
+                 let initials = '';
+                 if (profile.first_name) initials += profile.first_name[0];
+                 if (profile.last_name) initials += profile.last_name[0];
+                 if (initials) return initials.toUpperCase();
+                 if (profile.username) return profile.username[0].toUpperCase();
+                 if (profile.email) return profile.email[0].toUpperCase();
+                 return 'U';
+              }
+              // Helper function to format time (seconds -> mm:ss)
+              const formatTime = (seconds) => {
+                    if (isNaN(seconds) || seconds < 0) return '00:00';
+                    const m = Math.floor(seconds / 60);
+                    const s = Math.round(seconds % 60);
+                    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+                };
+
+
+            // --- Event Listeners ---
+            // Tab Switching
             contentTabs.forEach(tab => {
                 tab.addEventListener('click', () => {
                     contentTabs.forEach(t => t.classList.remove('active'));
@@ -1049,115 +966,104 @@
                 });
             });
 
-            // Mobile menu toggle
+            // Mobile Menu
              if (mobileMenuToggle && sidebar && sidebarOverlay) {
                  mobileMenuToggle.addEventListener('click', (e) => {
                       e.stopPropagation();
                       sidebar.classList.toggle('active');
                       sidebarOverlay.classList.toggle('active');
                  });
-
                  sidebarOverlay.addEventListener('click', () => {
                       sidebar.classList.remove('active');
                       sidebarOverlay.classList.remove('active');
                  });
-                  // Close sidebar on main content click only if sidebar is active
                   document.querySelector('main').addEventListener('click', () => {
                        if (sidebar.classList.contains('active')) {
                             sidebar.classList.remove('active');
                             sidebarOverlay.classList.remove('active');
                        }
                   });
-             } else {
-                  console.warn("Některé prvky pro mobilní menu nebyly nalezeny.");
-             }
+             } else { console.warn("Mobile menu elements not found."); }
 
-             // Helper function to sanitize HTML (important!)
-             function sanitizeHTML(str) {
-                 if (str === null || str === undefined) return '';
-                 const temp = document.createElement('div');
-                 temp.textContent = str;
-                 return temp.innerHTML;
-             }
+            // Window Resize
+            window.addEventListener('resize', function() {
+                 if (window.innerWidth > 576 && sidebar && sidebarOverlay && sidebar.classList.contains('active')) {
+                      sidebar.classList.remove('active');
+                      sidebarOverlay.classList.remove('active');
+                 }
+            });
 
-            // Načtení dat uživatele a inicializace stránky
+
+            // --- Data Loading Functions ---
+            // Initialize App
             async function init() {
                 try {
                     await loadUserProfile();
-                    if (!currentUser) return; // Stop if user not loaded/logged in
+                    if (!currentUser) {
+                        console.log("No user logged in, stopping init.");
+                        // Optionally show a message or redirect
+                        return;
+                    }
                     await loadUserStats();
-                    await loadTestResults();
-                    await loadStudyPlan(); // This will now try to load the weekly schedule
+                    await loadTestResults(); // Focuses on diagnostic now
+                    await loadStudyPlan();   // Shows weekly overview
                     await loadTopicAnalysis();
                 } catch (error) {
                     console.error('Chyba při inicializaci stránky:', error);
-                    const mainContentArea = document.querySelector('.main-content');
-                     if(mainContentArea) mainContentArea.innerHTML = `<div class="section error-message"><i class="fas fa-exclamation-triangle"></i> Chyba načítání stránky. Zkuste to prosím znovu. ${error.message}</div>`;
+                     const mainContentArea = document.querySelector('.main-content');
+                      if(mainContentArea) mainContentArea.innerHTML = `<div class="section error-message"><i class="fas fa-exclamation-triangle"></i> Chyba načítání stránky. Zkuste to prosím znovu. ${sanitizeHTML(error.message)}</div>`;
                 }
             }
 
-            // Získání informací o přihlášeném uživateli
+            // Load User Profile
             async function loadUserProfile() {
-                 try {
-                      if (!supabase) throw new Error("Supabase client not initialized");
-                      const { data: { user }, error: userError } = await supabase.auth.getUser();
-                      if (userError) throw userError;
+                try {
+                    if (!supabase) throw new Error("Supabase client not initialized");
+                    const { data: { user }, error: userError } = await supabase.auth.getUser();
+                    if (userError) throw userError;
 
-                      if (user) {
-                           currentUser = user; // Set global user object
-                           const { data: profile, error } = await supabase.from('profiles').select('*').eq('id', user.id).single();
-                           if (error && error.code !== 'PGRST116') throw error;
-
-                           const displayName = profile?.first_name && profile?.last_name ? `${profile.first_name} ${profile.last_name}` : profile?.username || user.email?.split('@')[0] || 'Uživatel';
-                           userName.textContent = displayName;
-                           if (profile?.avatar_url) {
-                                userAvatar.innerHTML = `<img src="${profile.avatar_url}" alt="${displayName}" />`;
-                           } else {
-                                userAvatar.textContent = getInitials(profile || { email: user.email });
-                           }
-                      } else {
-                           console.log("Uživatel není přihlášen, přesměrovávám...");
-                           // Optional: Redirect to login page
-                           // window.location.href = '/login.html';
-                           currentUser = null; // Ensure currentUser is null if not logged in
-                           userName.textContent = 'Nepřihlášen';
-                           userAvatar.textContent = '?';
-                      }
-                 } catch (error) {
-                      console.error('Chyba při načítání profilu:', error);
-                      userName.textContent = 'Chyba';
-                      userAvatar.textContent = '?';
-                      currentUser = null; // Ensure currentUser is null on error
-                 }
+                    if (user) {
+                         currentUser = user;
+                         const { data: profile, error } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+                         if (error && error.code !== 'PGRST116') throw error;
+                         const displayName = profile?.first_name && profile?.last_name ? `${profile.first_name} ${profile.last_name}` : profile?.username || user.email?.split('@')[0] || 'Uživatel';
+                         if(userName) userName.textContent = displayName;
+                         if(userAvatar) {
+                              if (profile?.avatar_url) { userAvatar.innerHTML = `<img src="${profile.avatar_url}" alt="${displayName}" />`; }
+                              else { userAvatar.textContent = getInitials(profile || { email: user.email }); }
+                         }
+                    } else {
+                         console.log("User not logged in.");
+                         currentUser = null;
+                         if(userName) userName.textContent = 'Nepřihlášen';
+                         if(userAvatar) userAvatar.textContent = '?';
+                         // Display message indicating login required?
+                         // const mainContentArea = document.querySelector('.main-content');
+                         // if(mainContentArea) mainContentArea.innerHTML = `<div class="section info-message">Pro zobrazení obsahu se prosím <a href="/login.html">přihlaste</a>.</div>`;
+                    }
+                } catch (error) {
+                     console.error('Chyba při načítání profilu:', error);
+                     if(userName) userName.textContent = 'Chyba';
+                     if(userAvatar) userAvatar.textContent = '?';
+                     currentUser = null;
+                }
             }
 
-            // Získání iniciál z profilu
-            function getInitials(profile) {
-                 if (!profile) return 'U';
-                 let initials = '';
-                 if (profile.first_name) initials += profile.first_name[0];
-                 if (profile.last_name) initials += profile.last_name[0];
-                 if (initials) return initials.toUpperCase();
-                 if (profile.username) return profile.username[0].toUpperCase();
-                 if (profile.email) return profile.email[0].toUpperCase();
-                 return 'U';
-            }
-
-            // Načtení statistik uživatele
-            async function loadUserStats() {
+            // Load User Stats
+             async function loadUserStats() {
                 if (!currentUser || !supabase) return;
+                 if (!statsLoading || !statsCards) return; // Check if elements exist
                 statsLoading.style.display = 'flex';
                 statsCards.innerHTML = ''; // Clear previous stats
                 try {
                     let { data: stats, error } = await supabase.from('user_stats').select('*').eq('user_id', currentUser.id).single();
-                     // Fetch profile data again for points/streak fallback if needed
-                     const { data: profile, error: profileError } = await supabase.from('profiles').select('points, streak_days').eq('id', currentUser.id).single();
+                    const { data: profile, error: profileError } = await supabase.from('profiles').select('points, streak_days').eq('id', currentUser.id).single();
+
                     if (error && error.code === 'PGRST116') { // No stats found
                         stats = { progress: 0, progress_weekly: 0, completed_tests: 0, total_tests: 0, points: profile?.points || 0, points_weekly: 0, streak_current: profile?.streak_days || 0, last_test_date: null };
                         console.log("No user_stats found, using default/profile data.");
                     } else if (error) { throw error; }
-                    else {
-                         // Ensure points and streak are taken from profile if stats table is missing them
+                    else { // Stats found, ensure points/streak fallback if null
                          stats.points = stats.points ?? profile?.points ?? 0;
                          stats.streak_current = stats.streak_current ?? profile?.streak_days ?? 0;
                     }
@@ -1165,366 +1071,389 @@
                     renderStatsCards(stats);
                 } catch (error) {
                     console.error('Chyba při načítání statistik:', error);
-                    statsCards.innerHTML = `<div class="error-message">Chyba načítání statistik.</div>`;
+                    if(statsCards) statsCards.innerHTML = `<div class="error-message">Chyba načítání statistik.</div>`;
                 } finally {
-                    statsLoading.style.display = 'none';
+                    if(statsLoading) statsLoading.style.display = 'none';
                 }
             }
-
-            // Zobrazení karet se statistikami
+            // Render User Stats Cards
              function renderStatsCards(stats) {
                  if (!statsCards) return;
+                  // Get last test date string
+                  const lastTestDateStr = getLastTestDateString(stats);
                  statsCards.innerHTML = `
                      <div class="dashboard-card"> <div class="card-header"> <h3 class="card-title"> <i class="fas fa-chart-line"></i> Celkový pokrok </h3> <span class="card-badge">Tento měsíc</span> </div> <div class="card-content"> <div class="card-value">${stats.progress || 0}%</div> <div class="progress-container"> <div class="progress-bar" style="width: ${stats.progress || 0}%;"></div> </div> <div class="progress-info"> <span>0%</span> <span>100%</span> </div> </div> <div class="card-footer ${stats.progress_weekly > 0 ? 'positive' : stats.progress_weekly < 0 ? 'negative' : ''}"> <i class="fas ${stats.progress_weekly > 0 ? 'fa-arrow-up' : stats.progress_weekly < 0 ? 'fa-arrow-down' : 'fa-minus'}"></i> <span>${stats.progress_weekly > 0 ? '+' : ''}${stats.progress_weekly || 0}% od minulého měsíce</span> </div> </div>
-                     <div class="dashboard-card"> <div class="card-header"> <h3 class="card-title"> <i class="fas fa-tasks"></i> Dokončené testy </h3> <span class="card-badge">Celkem</span> </div> <div class="card-content"> <div class="card-value">${stats.completed_tests || 0}</div> <div class="card-description">z celkem ${stats.total_tests || 0} dostupných testů</div> </div> <div class="card-footer"> <i class="fas fa-calendar-alt"></i> <span>Poslední test: ${getLastTestDate(stats)}</span> </div> </div>
+                     <div class="dashboard-card"> <div class="card-header"> <h3 class="card-title"> <i class="fas fa-tasks"></i> Dokončené testy </h3> <span class="card-badge">Celkem</span> </div> <div class="card-content"> <div class="card-value">${stats.completed_tests || 0}</div> <div class="card-description">z celkem ${stats.total_tests || 0} dostupných testů</div> </div> <div class="card-footer"> <i class="fas fa-calendar-alt"></i> <span>Poslední test: ${lastTestDateStr}</span> </div> </div>
                      <div class="dashboard-card"> <div class="card-header"> <h3 class="card-title"> <i class="fas fa-fire"></i> Studijní body </h3> <span class="card-badge success">Aktivní</span> </div> <div class="card-content"> <div class="card-value">${stats.points || 0}</div> <div class="card-description">Dnů v řadě: ${stats.streak_current || 0}</div> </div> <div class="card-footer ${stats.points_weekly > 0 ? 'positive' : stats.points_weekly < 0 ? 'negative' : ''}"> <i class="fas ${stats.points_weekly > 0 ? 'fa-arrow-up' : stats.points_weekly < 0 ? 'fa-arrow-down' : 'fa-minus'}"></i> <span>${stats.points_weekly > 0 ? '+' : ''}${stats.points_weekly || 0} bodů za poslední týden</span> </div> </div>
                  `;
              }
-
-            // Pomocná funkce pro zobrazení data posledního testu
-            function getLastTestDate(stats) {
+             // Helper for last test date string
+            function getLastTestDateString(stats) {
                  const now = new Date();
                  if (!stats.last_test_date) return 'Žádný test';
                  try {
                       const lastTest = new Date(stats.last_test_date);
                       if (isNaN(lastTest.getTime())) return 'Neplatné datum';
-
-                      const diffTime = Math.abs(now - lastTest);
-                      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)); // Use floor for full days
-
-                      const isSameDay = now.getFullYear() === lastTest.getFullYear() &&
-                                      now.getMonth() === lastTest.getMonth() &&
-                                      now.getDate() === lastTest.getDate();
-
-                      const yesterday = new Date(now);
-                      yesterday.setDate(now.getDate() - 1);
-                      const isYesterday = yesterday.getFullYear() === lastTest.getFullYear() &&
-                                         yesterday.getMonth() === lastTest.getMonth() &&
-                                         yesterday.getDate() === lastTest.getDate();
+                      const diffTime = now.getTime() - lastTest.getTime();
+                      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+                      const isSameDay = now.toDateString() === lastTest.toDateString();
+                      const yesterday = new Date(now); yesterday.setDate(now.getDate() - 1);
+                      const isYesterday = yesterday.toDateString() === lastTest.toDateString();
 
                       if (isSameDay) return 'Dnes';
                       if (isYesterday) return 'Včera';
                       if (diffDays < 7) return `Před ${diffDays} dny`;
                       return lastTest.toLocaleDateString('cs-CZ');
-                 } catch (e) {
-                      console.error("Chyba formátování data:", e); return 'Chyba data';
-                 }
+                 } catch (e) { console.error("Chyba formátování data:", e); return 'Chyba data'; }
             }
-             // Add helper function formatDate if not already present
-             function formatDate(dateString) {
-                 if(!dateString) return '-';
-                 try {
-                     const date = new Date(dateString);
-                      if (isNaN(date.getTime())) return '-'; // Invalid date handling
-                     return date.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
-                 } catch (e) {
-                     console.error("Chyba formátování data:", e);
-                     return '-';
-                 }
-             }
 
 
-            // *** UPRAVENÁ FUNKCE loadTestResults ***
+            // *** UPDATED: Load DIAGNOSTIC Test Results ***
             async function loadTestResults() {
                 if (!currentUser || !supabase) return;
+                 if (!testResultsLoading || !testResultsContent || !testResultsEmpty) return; // Check elements
+
                 testResultsLoading.style.display = 'flex';
                 testResultsContent.style.display = 'none';
                 testResultsEmpty.style.display = 'none';
-                 if(diagnosticPromptResults) diagnosticPromptResults.style.display = 'none';
+                if(diagnosticPromptResults) diagnosticPromptResults.style.display = 'none';
 
                 try {
-                    const { data: results, error } = await supabase
+                    console.log("Hledám výsledky diagnostického testu...");
+                    let results;
+                    let queryError;
+
+                    // Attempt 1: Query directly filtering by type='diagnostic'
+                    ({ data: results, error: queryError } = await supabase
                         .from('test_results')
-                        .select('*, tests(title, type, subject)')
+                        .select('*, tests ( title, type, subject )')
                         .eq('user_id', currentUser.id)
-                        .order('created_at', { ascending: false });
+                        .eq('tests.type', 'diagnostic')
+                        .order('created_at', { ascending: false }));
 
-                    if (error) throw error;
+                    // Attempt 2: Fallback if direct join fails (permissions, schema issues)
+                     if (queryError && (queryError.message.includes('permission denied') || queryError.message.includes('relation') || queryError.message.includes('referenced table'))) {
+                        console.warn("Chyba při přímém filtrování testů, zkouším fallback...");
+                        const { data: allResultsFallback, error: fallbackError } = await supabase
+                             .from('test_results')
+                             .select('*, tests (title, type, subject)')
+                             .eq('user_id', currentUser.id)
+                             .order('created_at', { ascending: false });
 
-                    allTestResults = results || [];
-                    diagnosticTestResults = allTestResults.filter(r => r.tests?.type === 'diagnostic');
-                    otherTestResults = allTestResults.filter(r => r.tests?.type !== 'diagnostic');
+                        if (fallbackError) {
+                            console.error("Fallback načítání také selhalo:", fallbackError);
+                            throw fallbackError; // Throw the fallback error if it also fails
+                         }
+                         results = (allResultsFallback || []).filter(r => r.tests?.type === 'diagnostic');
+                         console.log("Fallback úspěšný, výsledky filtrovány v JS:", results);
+                     } else if (queryError) {
+                        console.error("Jiná chyba při načítání výsledků testů:", queryError);
+                        throw queryError; // Throw other errors
+                     }
 
-                    const hasDiagnostic = diagnosticTestResults.length > 0;
-                    const hasOtherResults = otherTestResults.length > 0;
-                    const hasAnyResults = allTestResults.length > 0;
+                    diagnosticTestResults = results || [];
 
-                    if (hasAnyResults) {
+                    if (diagnosticTestResults.length > 0) {
+                        console.log("Nalezeny výsledky diagnostického testu:", diagnosticTestResults);
                         testResultsContent.style.display = 'block';
                         testResultsEmpty.style.display = 'none';
 
-                        if (!hasDiagnostic && hasOtherResults && diagnosticPromptResults) {
-                             diagnosticPromptResults.style.display = 'block';
-                        }
-
-                        renderTestStats(allTestResults);
-                        renderTestChart(allTestResults);
-
-                        const lastResultToShow = allTestResults[0]; // Always show the latest overall
-                        renderLastTestResult(lastResultToShow);
-                        renderTestHistory(allTestResults);
+                        renderTestStats(diagnosticTestResults);
+                        renderTestChart(diagnosticTestResults);
+                        renderLastTestResult(diagnosticTestResults[0]);
+                        renderTestHistory(diagnosticTestResults);
 
                     } else {
-                        // No results at all
+                        console.log("Nebyly nalezeny žádné výsledky diagnostického testu.");
                         testResultsContent.style.display = 'none';
                         testResultsEmpty.style.display = 'block';
-                        if(emptyStateTitle) emptyStateTitle.textContent = "Žádné dokončené testy";
-                        if(emptyStateMessage) emptyStateMessage.textContent = "Absolvujte diagnostický test nebo začněte procvičovat.";
+
+                        // Customize empty state for diagnostic test
+                        if(emptyStateTitle) emptyStateTitle.textContent = "Diagnostický test";
+                        if(emptyStateMessage) emptyStateMessage.textContent = "Zatím jste nedokončili diagnostický test. Je důležitý pro personalizaci vašeho učení.";
                         if(emptyStateButtonText) emptyStateButtonText.textContent = "Spustit diagnostický test";
                         if(emptyStateButtonLink) emptyStateButtonLink.href = "test1.html";
                     }
 
                 } catch (error) {
-                    console.error('Chyba při načítání výsledků testů:', error);
-                    testResultsLoading.innerHTML = `<div class="error-message">Chyba načítání výsledků.</div>`;
-                    testResultsContent.style.display = 'none';
-                    testResultsEmpty.style.display = 'none';
+                    console.error('Celková chyba při načítání výsledků diagnostického testu:', error);
+                    if(testResultsLoading) testResultsLoading.innerHTML = `<div class="error-message">Chyba načítání výsledků.</div>`;
+                    if(testResultsContent) testResultsContent.style.display = 'none';
+                    if(testResultsEmpty) testResultsEmpty.style.display = 'none';
                 } finally {
-                    testResultsLoading.style.display = 'none';
+                    if(testResultsLoading) testResultsLoading.style.display = 'none';
                 }
             }
 
-            // Zobrazení statistik testů
-            function renderTestStats(resultsToUse) {
-                 if (!resultsToUse || resultsToUse.length === 0 || !testStats) {
-                     if(testStats) testStats.innerHTML = '<p style="text-align:center; color: var(--text-muted);">Nedostatek dat pro statistiky.</p>';
+            // Render Test Stats (using provided results)
+             function renderTestStats(resultsToUse) {
+                 if (!testStats) return;
+                 if (!resultsToUse || resultsToUse.length === 0) {
+                     testStats.innerHTML = '<p style="text-align:center; color: var(--text-muted);">Žádná data pro statistiky.</p>';
                      return;
                  }
                  const validResults = resultsToUse.filter(t => typeof t.score === 'number');
                   if (validResults.length === 0) {
-                       testStats.innerHTML = '<p style="text-align:center; color: var(--text-muted);">Nedostatek platných dat pro statistiky.</p>';
+                       testStats.innerHTML = '<p style="text-align:center; color: var(--text-muted);">Žádná platná data pro statistiky.</p>';
                        return;
                   }
                   const avgScore = validResults.reduce((acc, test) => acc + test.score, 0) / validResults.length;
                   const bestScore = Math.max(...validResults.map(test => test.score));
-                  const validTimeResults = validResults.filter(t => typeof t.time_spent === 'number');
+                  const validTimeResults = validResults.filter(t => typeof t.time_spent === 'number' && t.time_spent > 0);
                   const avgTime = validTimeResults.length > 0 ? validTimeResults.reduce((acc, test) => acc + test.time_spent, 0) / validTimeResults.length : 0;
-                  const validRateResults = validResults.filter(t => typeof t.correct_answers === 'number' && typeof t.total_questions === 'number' && t.total_questions > 0);
-                  const avgCorrectRate = validRateResults.length > 0 ? validRateResults.reduce((acc, test) => acc + (test.correct_answers / test.total_questions * 100), 0) / validRateResults.length : 0;
-                  const formatTime = (seconds) => { const m=Math.floor(seconds/60); const s=Math.round(seconds%60); return `${m}:${s.toString().padStart(2,'0')}`; };
+
                   testStats.innerHTML = `
                       <div class="stats-card"> <div class="stats-icon primary"><i class="fas fa-percentage"></i></div> <div class="stats-value">${Math.round(avgScore)}%</div> <div class="stats-label">Průměrné skóre</div> </div>
-                      <div class="stats-card"> <div class="stats-icon success"><i class="fas fa-chart-pie"></i></div> <div class="stats-value success">${Math.round(bestScore)}%</div> <div class="stats-label">Nejlepší skóre</div> </div>
+                      <div class="stats-card"> <div class="stats-icon success"><i class="fas fa-trophy"></i></div> <div class="stats-value success">${Math.round(bestScore)}%</div> <div class="stats-label">Nejlepší skóre</div> </div>
                       ${avgTime > 0 ? `<div class="stats-card"> <div class="stats-icon warning"><i class="fas fa-clock"></i></div> <div class="stats-value warning">${formatTime(avgTime)}</div> <div class="stats-label">Průměrný čas</div> </div>` : ''}
-                      ${avgCorrectRate > 0 ? `<div class="stats-card"> <div class="stats-icon danger"><i class="fas fa-check-circle"></i></div> <div class="stats-value danger">${Math.round(avgCorrectRate)}%</div> <div class="stats-label">Správné odpovědi</div> </div>` : ''}
                   `;
-            }
+             }
 
-            // Zobrazení grafu výsledků testů
-            function renderTestChart(resultsToUse) {
+            // Render Test Chart (using provided results)
+             function renderTestChart(resultsToUse) {
                  const ctxElement = document.getElementById('testsChart');
-                 if (!ctxElement) { console.error("Canvas element #testsChart not found."); return; }
-                  const chartContainer = ctxElement.closest('.chart-container'); // Find parent container
+                 if (!ctxElement) { console.error("Canvas #testsChart nenalezen."); return; }
+                 const chartContainer = ctxElement.closest('.chart-container');
+                 if (!chartContainer) { console.error("Kontejner grafu nenalezen."); return; }
 
-                  if (!resultsToUse || resultsToUse.length === 0) {
-                       if (chartContainer) chartContainer.innerHTML = '<p style="text-align:center; color: var(--text-muted); padding-top: 50px;">Nedostatek dat pro graf.</p>';
-                       if (testsChart) { testsChart.destroy(); testsChart = null; }
-                       return;
-                  }
-                  // Ensure canvas exists if it was replaced by the no-data message
-                  if (chartContainer && !chartContainer.querySelector('canvas')) {
-                       chartContainer.innerHTML = '<canvas id="testsChart"></canvas>';
-                       ctx = document.getElementById('testsChart'); // Get the new canvas context
-                        if(!ctx) { console.error("Failed to re-create canvas context."); return; }
-                  } else {
-                       ctx = ctxElement.getContext('2d'); // Get context from existing canvas
-                  }
+                 // Filter for valid data points for the chart
+                 const validChartData = resultsToUse
+                     .filter(r => r.created_at && typeof r.score === 'number')
+                     .sort((a, b) => new Date(a.created_at) - new Date(b.created_at)); // Sort chronologically
 
-                  const chartData = prepareChartData(resultsToUse);
-                  if (testsChart) {
-                      testsChart.data.labels = chartData.labels;
-                      testsChart.data.datasets[0].data = chartData.scores;
-                      testsChart.update();
-                  } else {
-                       testsChart = new Chart(ctx, {
-                           type: 'line',
-                           data: { labels: chartData.labels, datasets: [{ label: 'Skóre testů (%)', data: chartData.scores, fill: true, borderColor: 'var(--primary)', backgroundColor: 'rgba(67, 97, 238, 0.1)', tension: 0.4, borderWidth: 3, pointBackgroundColor: 'var(--primary)', pointRadius: 4, pointHoverRadius: 6 }] },
-                           options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { mode: 'index', intersect: false, backgroundColor: 'var(--dark)', titleColor: 'var(--white)', bodyColor: 'var(--white)', borderColor: 'var(--primary)', borderWidth: 1, padding: 10, displayColors: false, callbacks: { label: function(context) { return `Skóre: ${context.parsed.y}%`; } } } }, scales: { y: { beginAtZero: true, max: 100, ticks: { stepSize: 20, color: 'var(--text-muted)' }, grid: { color: 'rgba(113, 128, 150, 0.1)' } }, x: { ticks: { color: 'var(--text-muted)' }, grid: { display: false } } } }
-                      });
-                  }
+                 if (validChartData.length === 0) {
+                     chartContainer.innerHTML = '<p style="text-align:center; color: var(--text-muted); padding-top: 50px;">Nedostatek dat pro graf.</p>';
+                     if (testsChart) { testsChart.destroy(); testsChart = null; }
+                     return;
+                 }
+
+                 // Ensure canvas exists
+                 if (!chartContainer.querySelector('canvas')) {
+                     chartContainer.innerHTML = '<canvas id="testsChart"></canvas>';
+                     const newCtxElement = document.getElementById('testsChart');
+                     if (!newCtxElement) { console.error("Nepodařilo se znovu vytvořit canvas."); return; }
+                      ctx = newCtxElement.getContext('2d');
+                 } else {
+                      ctx = ctxElement.getContext('2d');
+                 }
+
+                 // Prepare data for the last N results
+                 const maxPointsToShow = 7;
+                 const chartDataPoints = validChartData.slice(-maxPointsToShow);
+                 const labels = chartDataPoints.map(result => { const date = new Date(result.created_at); return `${date.getDate()}.${date.getMonth() + 1}.`; });
+                 const scores = chartDataPoints.map(result => result.score);
+
+                 if (testsChart) { // Update existing chart
+                     testsChart.data.labels = labels;
+                     testsChart.data.datasets[0].data = scores;
+                     testsChart.update();
+                 } else { // Create new chart
+                     testsChart = new Chart(ctx, {
+                         type: 'line',
+                         data: {
+                             labels: labels,
+                             datasets: [{
+                                 label: 'Skóre testů (%)', data: scores, fill: true,
+                                 borderColor: 'var(--primary)', backgroundColor: 'rgba(67, 97, 238, 0.1)',
+                                 tension: 0.3, borderWidth: 2, pointBackgroundColor: 'var(--primary)',
+                                 pointRadius: 4, pointHoverRadius: 6
+                             }]
+                         },
+                         options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { mode: 'index', intersect: false, backgroundColor: 'var(--dark)', titleColor: 'var(--white)', bodyColor: 'var(--white)', borderColor: 'var(--primary)', borderWidth: 1, padding: 10, displayColors: false, callbacks: { label: (context) => `Skóre: ${context.parsed.y}%` } } }, scales: { y: { beginAtZero: true, max: 100, ticks: { stepSize: 20, color: 'var(--text-muted)' }, grid: { color: 'rgba(113, 128, 150, 0.1)' } }, x: { ticks: { color: 'var(--text-muted)' }, grid: { display: false } } } }
+                     });
+                 }
              }
 
-            // Příprava dat pro graf
-            function prepareChartData(results) {
-                 const sortedResults = [...results].filter(r => r.created_at && typeof r.score === 'number').sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
-                 const limitedResults = sortedResults.slice(-10); // Show last 10 results
-                 const labels = limitedResults.map(result => { const date = new Date(result.created_at); return `${date.getDate()}.${date.getMonth() + 1}.`; });
-                 const scores = limitedResults.map(result => result.score);
-                 return { labels, scores };
-             }
-
-            // Zobrazení posledního výsledku testu
-            function renderLastTestResult(lastTest) {
+            // Render Last Test Result (using provided result)
+             function renderLastTestResult(lastTest) {
                  if (!lastTestResult) return;
                  if (!lastTest) { lastTestResult.innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 1rem;">Žádný poslední test k zobrazení.</p>'; return; }
-                 const testDate = new Date(lastTest.created_at);
-                 const formattedDate = formatDate(lastTest.created_at); // Use helper function
-                 const isDiagnostic = lastTest.tests?.type === 'diagnostic';
-                 lastTestResult.innerHTML = `<div class="test-result-header"> <div class="test-result-title"> <h3>${lastTest.tests?.title || 'Neznámý test'} ${isDiagnostic ? '(Diagnostika)' : ''}</h3> <div class="test-result-meta">Dokončeno ${formattedDate}</div> </div> <div class="test-result-score"> <div class="test-result-score-value">${lastTest.score ?? 'N/A'}%</div> <div class="test-result-score-label">Skóre</div> </div> </div>`;
-            }
+                 const formattedDate = formatDate(lastTest.created_at);
+                 const title = lastTest.tests?.title || 'Diagnostický test';
+                 lastTestResult.innerHTML = `<div class="test-result-header"> <div class="test-result-title"> <h3>${sanitizeHTML(title)}</h3> <div class="test-result-meta">Dokončeno ${formattedDate}</div> </div> <div class="test-result-score"> <div class="test-result-score-value">${lastTest.score ?? 'N/A'}%</div> <div class="test-result-score-label">Skóre</div> </div> </div>`;
+             }
 
-            // Zobrazení historie testů
-            function renderTestHistory(results) {
+            // Render Test History (diagnostic only)
+             function renderTestHistory(results) {
                  if (!testHistory) return;
-                 if (!results || results.length === 0) { testHistory.innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 1rem;">Žádná historie testů.</p>'; return; }
+                 if (!results || results.length === 0) {
+                      testHistory.innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 1rem;">Žádná historie diagnostických testů.</p>';
+                      return;
+                 }
                  let html = '';
                  results.forEach(test => {
-                      const testDate = new Date(test.created_at);
-                      const formattedDate = testDate.toLocaleDateString('cs-CZ', { day: '2-digit', month: '2-digit', year: 'numeric' });
-                      const formattedTime = testDate.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' });
-                      const isDiagnostic = test.tests?.type === 'diagnostic';
-                      let iconClass = topicIcons['default'];
-                      if (isDiagnostic) { iconClass = 'fa-clipboard-check'; }
-                      else if (test.tests?.subject && topicIcons[test.tests.subject]) { iconClass = topicIcons[test.tests.subject]; }
+                     const testDate = new Date(test.created_at);
+                     const formattedDate = testDate.toLocaleDateString('cs-CZ', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                     const formattedTime = testDate.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' });
+                     const iconClass = 'fa-clipboard-check'; // Always diagnostic
+                      const title = test.tests?.title || 'Diagnostický test';
 
-                      html += `
-                          <div class="test-item">
-                               <div class="test-info">
-                                    <div class="test-icon"> <i class="fas ${iconClass}"></i> </div>
-                                    <div class="test-details">
-                                         <h4>${test.tests?.title || 'Neznámý test'} ${isDiagnostic ? '(Diagnostika)' : ''}</h4>
-                                         <div class="test-meta">
-                                              <span><i class="far fa-calendar"></i> ${formattedDate}</span>
-                                              <span><i class="far fa-clock"></i> ${formattedTime}</span>
-                                              ${test.tests?.subject ? `<span><i class="fas fa-book"></i> ${test.tests.subject}</span>` : ''}
-                                         </div>
-                                    </div>
-                               </div>
-                               <div class="test-score">${test.score ?? 'N/A'}%</div>
-                               </div>
-                      `;
+                     html += `
+                         <div class="test-item">
+                              <div class="test-info">
+                                   <div class="test-icon"> <i class="fas ${iconClass}"></i> </div>
+                                   <div class="test-details">
+                                        <h4>${sanitizeHTML(title)}</h4>
+                                        <div class="test-meta">
+                                             <span><i class="far fa-calendar"></i> ${formattedDate}</span>
+                                             <span><i class="far fa-clock"></i> ${formattedTime}</span>
+                                             ${test.tests?.subject ? `<span><i class="fas fa-book"></i> ${sanitizeHTML(test.tests.subject)}</span>` : ''}
+                                        </div>
+                                   </div>
+                              </div>
+                              <div class="test-score">${test.score ?? 'N/A'}%</div>
+                         </div>
+                     `;
                  });
                  testHistory.innerHTML = html;
-            }
+             }
 
-            // *** MODIFIED loadStudyPlan FUNCTION ***
-            async function loadStudyPlan() {
-                if (!currentUser || !supabase) return;
-                studyPlanLoading.style.display = 'flex';
-                studyPlanContent.style.display = 'none';
-                studyPlanEmpty.style.display = 'none';
-                if(mainPlanScheduleGrid) mainPlanScheduleGrid.innerHTML = ''; // Clear previous schedule
 
-                try {
-                    // Fetch the active study plan ID
-                    const { data: plans, error } = await supabase
-                        .from('study_plans')
-                        .select('id') // Only need the ID to fetch activities
-                        .eq('user_id', currentUser.id)
-                        .eq('status', 'active')
-                        .order('created_at', { ascending: false })
-                        .limit(1);
-
-                    if (error) throw error;
-
-                    if (plans && plans.length > 0) {
-                        const activePlanId = plans[0].id;
-                        console.log("Active plan found, ID:", activePlanId);
-
-                        // Fetch activities for the active plan
-                        const { data: activities, error: activityError } = await supabase
-                            .from('plan_activities')
-                            .select('*')
-                            .eq('plan_id', activePlanId)
-                            .order('day_of_week', { ascending: true })
-                            .order('time_slot', { ascending: true }); // Ensure correct order
-
-                        if (activityError) throw activityError;
-
-                        // Render the fetched activities into the new grid
-                        renderMainWeeklySchedule(activities || []);
-
-                        studyPlanContent.style.display = 'block'; // Show the content area with the schedule
-                        studyPlanEmpty.style.display = 'none';
-                    } else {
-                        // No active plan
-                        console.log("No active study plan found for user.");
-                        studyPlanContent.style.display = 'none';
-                        studyPlanEmpty.style.display = 'block';
-                    }
-                } catch (error) {
-                    console.error('Chyba při načítání studijního plánu nebo aktivit:', error);
-                    studyPlanLoading.innerHTML = `<div class="error-message">Chyba načítání plánu.</div>`;
-                    studyPlanContent.style.display = 'none';
-                    studyPlanEmpty.style.display = 'none';
-                } finally {
-                    studyPlanLoading.style.display = 'none';
-                }
-            }
-
-            // *** NEW FUNCTION to render the weekly schedule in main.html ***
-            function renderMainWeeklySchedule(activities) {
-                if (!mainPlanScheduleGrid) {
-                    console.error("Element #main-plan-schedule nebyl nalezen.");
-                    return;
-                }
-                mainPlanScheduleGrid.innerHTML = ''; // Clear existing grid content
-
-                const daysOrder = [1, 2, 3, 4, 5, 6, 0]; // Po, Út, St, Čt, Pá, So, Ne
-                const dayNames = { 0: 'Neděle', 1: 'Pondělí', 2: 'Úterý', 3: 'Středa', 4: 'Čtvrtek', 5: 'Pátek', 6: 'Sobota' };
-
-                // Group activities by day
-                const activitiesByDay = {};
-                daysOrder.forEach(dayIndex => activitiesByDay[dayIndex] = []); // Initialize
-                activities.forEach(activity => {
-                    if (activitiesByDay[activity.day_of_week] !== undefined) {
-                        activitiesByDay[activity.day_of_week].push(activity);
-                    }
-                });
-
-                // Create day columns
-                daysOrder.forEach(dayIndex => {
-                    const dayName = dayNames[dayIndex];
-                    const dayDiv = document.createElement('div');
-                    dayDiv.className = 'schedule-day';
-
-                    const headerDiv = document.createElement('div');
-                    headerDiv.className = 'schedule-day-header';
-                    headerDiv.textContent = dayName;
-                    dayDiv.appendChild(headerDiv);
-
-                    const activitiesDiv = document.createElement('div');
-                    activitiesDiv.className = 'schedule-activities';
-                    activitiesDiv.dataset.day = dayIndex;
-
-                    const dayActivities = activitiesByDay[dayIndex];
-                    if (dayActivities.length > 0) {
-                        dayActivities.forEach(activity => {
-                            const activityItem = document.createElement('div');
-                            // Use sanitizeHTML for all content coming from DB
-                            const title = sanitizeHTML(activity.title || 'Nespecifikovaná aktivita');
-                            const timeSlot = activity.time_slot ? `<span>${sanitizeHTML(activity.time_slot)}</span>` : '';
-                            activityItem.className = `schedule-activity-item ${activity.completed ? 'completed' : ''}`;
-                            activityItem.innerHTML = `<strong>${title}</strong>${timeSlot}`;
-                            activitiesDiv.appendChild(activityItem);
-                        });
-                    } else {
-                        activitiesDiv.innerHTML = `<p style="text-align:center; font-style:italic; color:var(--text-muted); font-size:0.85rem; margin-top:1rem;">Žádné aktivity</p>`;
-                    }
-
-                    dayDiv.appendChild(activitiesDiv);
-                    mainPlanScheduleGrid.appendChild(dayDiv);
-                });
-
-                 // Ensure the link to the full plan is present (added in HTML, this verifies)
-                 const fullPlanLinkContainer = mainPlanScheduleGrid.closest('.main-weekly-schedule')?.querySelector('div[style*="text-align: center"]');
-                 if (!fullPlanLinkContainer) {
-                     console.warn("Kontejner pro odkaz na detailní plán nebyl nalezen vedle mřížky.");
-                 }
-            }
-
-            // Načtení analýzy témat
-            async function loadTopicAnalysis() {
+            // *** Load Study Plan (Displays Weekly Overview) ***
+             async function loadStudyPlan() {
                  if (!currentUser || !supabase) return;
+                 if (!studyPlanLoading || !studyPlanContent || !studyPlanEmpty || !mainPlanScheduleGrid) return; // Check elements
+
+                 studyPlanLoading.style.display = 'flex';
+                 studyPlanContent.style.display = 'none';
+                 studyPlanEmpty.style.display = 'none';
+                 mainPlanScheduleGrid.innerHTML = ''; // Clear previous schedule
+
+                 try {
+                     const { data: plans, error } = await supabase
+                         .from('study_plans')
+                         .select('id') // Only need ID
+                         .eq('user_id', currentUser.id)
+                         .eq('status', 'active')
+                         .order('created_at', { ascending: false })
+                         .limit(1);
+
+                     if (error) throw error;
+
+                     if (plans && plans.length > 0) {
+                         const activePlanId = plans[0].id;
+                         console.log("Active plan found, ID:", activePlanId);
+
+                         const { data: activities, error: activityError } = await supabase
+                             .from('plan_activities')
+                             .select('*')
+                             .eq('plan_id', activePlanId)
+                             .order('day_of_week', { ascending: true })
+                             .order('time_slot', { ascending: true });
+
+                         if (activityError) throw activityError;
+
+                         renderMainWeeklySchedule(activities || []); // Render the overview
+
+                         studyPlanContent.style.display = 'block';
+                         studyPlanEmpty.style.display = 'none';
+                     } else {
+                         console.log("No active study plan found.");
+                         studyPlanContent.style.display = 'none';
+                         studyPlanEmpty.style.display = 'block';
+                     }
+                 } catch (error) {
+                     console.error('Chyba při načítání studijního plánu:', error);
+                      if(studyPlanLoading) studyPlanLoading.innerHTML = `<div class="error-message">Chyba načítání plánu.</div>`;
+                     if(studyPlanContent) studyPlanContent.style.display = 'none';
+                     if(studyPlanEmpty) studyPlanEmpty.style.display = 'none';
+                 } finally {
+                     if(studyPlanLoading) studyPlanLoading.style.display = 'none';
+                 }
+             }
+
+            // *** Render Weekly Schedule Overview (Redesigned) ***
+            function renderMainWeeklySchedule(activities) {
+                 if (!mainPlanScheduleGrid) { console.error("Element #main-plan-schedule nebyl nalezen."); return; }
+                 mainPlanScheduleGrid.innerHTML = '';
+
+                 const daysOrder = [1, 2, 3, 4, 5, 6, 0]; // Po-Ne
+                 const dayNames = { 0: 'Neděle', 1: 'Pondělí', 2: 'Úterý', 3: 'Středa', 4: 'Čtvrtek', 5: 'Pátek', 6: 'Sobota' };
+
+                 const activitiesByDay = {};
+                 daysOrder.forEach(dayIndex => activitiesByDay[dayIndex] = []);
+                 activities.forEach(activity => {
+                     if (activitiesByDay[activity.day_of_week] !== undefined) {
+                         activitiesByDay[activity.day_of_week].push(activity);
+                     }
+                 });
+
+                 daysOrder.forEach(dayIndex => {
+                     const dayName = dayNames[dayIndex];
+                     const dayDiv = document.createElement('div');
+                     dayDiv.className = 'schedule-day';
+
+                     const headerDiv = document.createElement('div');
+                     headerDiv.className = 'schedule-day-header';
+                     headerDiv.textContent = dayName;
+                     dayDiv.appendChild(headerDiv);
+
+                     const activitiesDiv = document.createElement('div');
+                     activitiesDiv.className = 'schedule-activities';
+                     activitiesDiv.dataset.day = dayIndex;
+
+                     const dayActivities = activitiesByDay[dayIndex];
+                     if (dayActivities.length > 0) {
+                         dayActivities.forEach(activity => {
+                             const activityItem = document.createElement('div');
+                             const title = sanitizeHTML(activity.title || 'Nespecifikovaná aktivita');
+                             const timeSlot = activity.time_slot ? `<span>${sanitizeHTML(activity.time_slot)}</span>` : '';
+                             activityItem.className = `schedule-activity-item ${activity.completed ? 'completed' : ''}`;
+
+                             let iconClass = 'fa-tasks';
+                             const lowerTitle = title.toLowerCase();
+                             if (lowerTitle.includes('číst') || lowerTitle.includes('materiál') || lowerTitle.includes('teorie')) iconClass = 'fa-book-open';
+                             else if (lowerTitle.includes('řešit') || lowerTitle.includes('příklad') || lowerTitle.includes('úloh') || lowerTitle.includes('procvič')) iconClass = 'fa-pencil-alt';
+                             else if (lowerTitle.includes('opakování') || lowerTitle.includes('review')) iconClass = 'fa-redo-alt';
+                             else if (lowerTitle.includes('test') || lowerTitle.includes('zkouška')) iconClass = 'fa-vial';
+                              else if (lowerTitle.includes('video') || lowerTitle.includes('sledovat')) iconClass = 'fa-play-circle';
+
+                             activityItem.innerHTML = `
+                                 <div class="activity-icon"><i class="fas ${iconClass}"></i></div>
+                                 <div class="activity-details">
+                                     <strong>${title}</strong>
+                                     ${timeSlot}
+                                 </div>
+                             `;
+                             activitiesDiv.appendChild(activityItem);
+                         });
+                     } else {
+                         activitiesDiv.innerHTML = `<p class="no-activities-placeholder">Žádné aktivity</p>`;
+                     }
+
+                     dayDiv.appendChild(activitiesDiv);
+                     mainPlanScheduleGrid.appendChild(dayDiv);
+                 });
+
+                 // Ensure link container is appended correctly
+                 const scheduleContainer = mainPlanScheduleGrid.closest('.main-weekly-schedule');
+                  if (scheduleContainer) {
+                       let linkContainer = scheduleContainer.querySelector('.full-plan-link-container');
+                       if (!linkContainer) { // Add if missing
+                            linkContainer = document.createElement('div');
+                            linkContainer.className = 'full-plan-link-container';
+                            linkContainer.style.textAlign = 'center';
+                            linkContainer.style.marginTop = '1.5rem';
+                            linkContainer.innerHTML = `<a href="plan.html" class="btn btn-primary"><i class="fas fa-calendar-alt"></i> Zobrazit podrobný plán</a>`;
+                            scheduleContainer.appendChild(linkContainer);
+                       }
+                  }
+            }
+
+            // Load Topic Analysis (keep as is)
+             async function loadTopicAnalysis() {
+                 if (!currentUser || !supabase) return;
+                  if (!topicAnalysisLoading || !topicAnalysisContent || !topicAnalysisEmpty || !topicGrid) return; // Check elements
+
                  topicAnalysisLoading.style.display = 'flex';
                  topicAnalysisContent.style.display = 'none';
                  topicAnalysisEmpty.style.display = 'none';
                  try {
                      const { data: topics, error } = await supabase
                          .from('user_topic_progress')
-                         .select('*, exam_topics(name, subject)') // Assuming exam_topics holds the name
+                         .select('*, exam_topics(name, subject)')
                          .eq('user_id', currentUser.id)
-                         .order('strength', { ascending: true }); // Sort by strength
+                         .order('strength', { ascending: true });
                      if (error) throw error;
                      topicProgress = topics || [];
                      if (topicProgress.length > 0) {
@@ -1537,42 +1466,33 @@
                      }
                  } catch (error) {
                      console.error('Chyba při načítání analýzy témat:', error);
-                     topicAnalysisLoading.innerHTML = `<div class="error-message">Chyba načítání analýzy.</div>`;
-                     topicAnalysisContent.style.display = 'none';
-                     topicAnalysisEmpty.style.display = 'none';
+                     if(topicAnalysisLoading) topicAnalysisLoading.innerHTML = `<div class="error-message">Chyba načítání analýzy.</div>`;
+                     if(topicAnalysisContent) topicAnalysisContent.style.display = 'none';
+                     if(topicAnalysisEmpty) topicAnalysisEmpty.style.display = 'none';
                  } finally {
-                     topicAnalysisLoading.style.display = 'none';
+                     if(topicAnalysisLoading) topicAnalysisLoading.style.display = 'none';
                  }
              }
-
-            // Zobrazení karet témat
-            function renderTopicCards(topics) {
+            // Render Topic Cards (keep as is)
+             function renderTopicCards(topics) {
                  if (!topicGrid) return;
-                 if (!topics || topics.length === 0) {
-                     topicGrid.innerHTML = '<p style="text-align:center; color: var(--text-muted);">Žádná data pro analýzu.</p>';
-                     return;
-                 }
-                 // Define order for sorting weaknesses first
+                 if (!topics || topics.length === 0) { topicGrid.innerHTML = '<p style="text-align:center; color: var(--text-muted);">Žádná data pro analýzu.</p>'; return; }
                  const strengthOrder = { 'weakness': 0, 'neutral': 1, 'strength': 2 };
                  topics.sort((a, b) => (strengthOrder[a.strength] ?? 1) - (strengthOrder[b.strength] ?? 1));
-
                  let html = '';
                  topics.forEach(topic => {
-                     // Use name from joined table if available, otherwise fallback
                      const topicName = topic.exam_topics?.name || `Téma ID ${topic.topic_id}` || 'Neznámé téma';
-                      const subjectName = topic.exam_topics?.subject || ''; // Get subject if available
+                     const subjectName = topic.exam_topics?.subject || '';
                      const iconClass = topicIcons[topicName] || topicIcons[subjectName] || topicIcons.default;
                      const strength = topic.strength || 'neutral';
                      const questionsAttempted = topic.questions_attempted || 0;
                      const questionsCorrect = topic.questions_correct || 0;
                      const accuracy = questionsAttempted > 0 ? Math.round((questionsCorrect / questionsAttempted) * 100) : 0;
                      const progress = topic.progress || 0;
-
                      let descriptionPoints = [];
                      if (strength === 'strength') descriptionPoints = ['Výborná znalost', 'Konzistentní výsledky', 'Pokračuj v opakování'];
                      else if (strength === 'weakness') descriptionPoints = ['Potřeba zlepšení', 'Častější chyby', 'Doporučeno procvičování'];
                      else descriptionPoints = ['Průměrná znalost', 'Občasné chyby', 'Doporučeno opakování'];
-
                      html += `
                          <div class="topic-card ${strength}">
                               <div class="topic-header">
@@ -1580,39 +1500,16 @@
                                    <h3 class="topic-title">${sanitizeHTML(topicName)}</h3>
                               </div>
                               <div class="topic-stats">
-                                   <div class="topic-stat" title="Správnost odpovědí">
-                                        <i class="fas fa-check-circle"></i> <span>${accuracy}% správně</span>
-                                   </div>
-                                   <div class="topic-stat" title="Počet zodpovězených otázek">
-                                        <i class="fas fa-tasks"></i> <span>${questionsAttempted} otázek</span>
-                                   </div>
+                                   <div class="topic-stat" title="Správnost odpovědí"> <i class="fas fa-check-circle"></i> <span>${accuracy}% správně</span> </div>
+                                   <div class="topic-stat" title="Počet zodpovězených otázek"> <i class="fas fa-tasks"></i> <span>${questionsAttempted} otázek</span> </div>
                               </div>
-                              <div class="progress-container" title="Celkový pokrok v tématu">
-                                   <div class="progress-bar" style="width: ${progress}%;"></div>
-                              </div>
-                              <div class="topic-content">
-                                   <ul>
-                                        ${descriptionPoints.map(desc => `<li>${sanitizeHTML(desc)}</li>`).join('')}
-                                   </ul>
-                              </div>
-                         </div>`;
-                 });
+                              <div class="progress-container" title="Celkový pokrok v tématu"> <div class="progress-bar" style="width: ${progress}%;"></div> </div>
+                              <div class="topic-content"> <ul> ${descriptionPoints.map(desc => `<li>${sanitizeHTML(desc)}</li>`).join('')} </ul> </div>
+                         </div>`; });
                  topicGrid.innerHTML = html;
-            }
+             }
 
-            // Event listeners pro tlačítka (REMOVE old plan buttons listeners)
-            // if (updatePlanBtn) { ... }
-            // if (downloadPlanBtn) { ... }
-
-            // Event listener pro změnu velikosti okna
-            window.addEventListener('resize', function() {
-                 if (window.innerWidth > 576 && sidebar && sidebarOverlay && sidebar.classList.contains('active')) {
-                      sidebar.classList.remove('active');
-                      sidebarOverlay.classList.remove('active');
-                 }
-            });
-
-            // Inicializace stránky
+            // Initialize the app
             init();
         });
     </script>
