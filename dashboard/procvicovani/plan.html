@@ -4,12 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Justax - Studijní plán</title>
-    <link rel="preconnect" href="[https://fonts.googleapis.com](https://fonts.googleapis.com)">
-    <link rel="preconnect" href="[https://fonts.gstatic.com](https://fonts.gstatic.com)" crossorigin>
-    <link href="[https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap](https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap)" rel="stylesheet">
-    <link rel="stylesheet" href="[https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css](https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css)">
-    <script id="MathJax-script" async src="[https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js](https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js)"></script>
-    <link rel="stylesheet" href="[https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/css/tooltipster.bundle.min.css](https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/css/tooltipster.bundle.min.css)">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="css/all.min.css">
+
+    <link rel="stylesheet" href="css/tooltipster.bundle.min.css">
+
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 
     <style>
         /* --- Základní CSS STYLES (Site Theme) --- */
@@ -417,18 +421,24 @@
          <div id="toast-message">Operace byla úspěšně dokončena.</div>
      </div>
 
-    <script src="[https://code.jquery.com/jquery-3.7.1.min.js](https://code.jquery.com/jquery-3.7.1.min.js)" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous" defer></script>
-    <script src="[https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2](https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2)" defer></script>
-    <script src="[https://cdn.jsdelivr.net/npm/chart.js](https://cdn.jsdelivr.net/npm/chart.js)" defer></script>
-    <script src="[https://cdn.jsdelivr.net/npm/marked/marked.min.js](https://cdn.jsdelivr.net/npm/marked/marked.min.js)" defer></script>
-    <script src="[https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js](https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js)" defer></script>
-    <script src="[https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/js/tooltipster.bundle.min.js](https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/js/tooltipster.bundle.min.js)" defer></script>
+    <script src="js/jquery-3.7.1.min.js" defer></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+
+    <script src="js/chart.js" defer></script>
+
+    <script src="js/marked.min.js" defer></script>
+
+    <script src="js/html2pdf.bundle.min.js" defer></script>
+
+    <script src="js/tooltipster.bundle.min.js" defer></script>
+
 
     <script>
         // ==============================================
         //          Inicializace Supabase & Gemini
         // ==============================================
-        const supabaseUrl = '[https://qcimhjjwvsbgjsitmvuh.supabase.co](https://qcimhjjwvsbgjsitmvuh.supabase.co)';
+        const supabaseUrl = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10';
         let supabaseClient = null;
         const GEMINI_API_KEY = 'AIzaSyDQboM6qtC_O2sqqpaKZZffNf2zk6HrhEs'; // <--- ZDE VLOŽTE VÁŠ KLÍČ
@@ -469,7 +479,7 @@
         const promptCreatePlanTemplate = document.getElementById('promptCreatePlanTemplate');
 
         // Globální proměnné
-        let currentUser = null; let currentProfile = null; let latestDiagnosticData = null; let currentStudyPlan = null; let previousPlans = []; let planCreateAllowed = false; let nextPlanCreateTime = null; let planTimerInterval = null; let currentTab = 'current';
+        let currentUser = null; let currentProfile = null; let latestDiagnosticData = undefined; /* Use undefined to differentiate from null (error) and false (not found) */ let currentStudyPlan = null; let previousPlans = []; let planCreateAllowed = false; let nextPlanCreateTime = null; let planTimerInterval = null; let currentTab = 'current';
         let lastGeneratedMarkdown = null;
         let lastGeneratedActivitiesJson = null;
 
@@ -489,9 +499,10 @@
         function showToast(message, type = 'success', duration = 4000) { const toast = document.getElementById('toast'); const toastMessage = document.getElementById('toast-message'); if (!toast || !toastMessage) return; toastMessage.textContent = message; const icon = toast.querySelector('i'); icon.className = type === 'success' ? 'fas fa-check-circle' : type === 'error' ? 'fas fa-exclamation-circle' : type === 'warning' ? 'fas fa-exclamation-triangle' : 'fas fa-info-circle'; toast.className = 'toast ' + type; toast.classList.add('show'); setTimeout(() => { toast.classList.remove('show'); }, duration); }
         function initTooltips() {
              try {
-                 if (typeof window.$ !== 'undefined' && window.<span class="math-inline">\.fn\.tooltipster\) \{
-// Odstraníme existující instance před inicializací nových
-window\.</span>('.btn-tooltip.tooltipstered, .calendar-activity.tooltipstered').tooltipster('destroy');
+                 // Check if jQuery and Tooltipster are loaded
+                 if (typeof window.$ !== 'undefined' && typeof window.$.fn.tooltipster === 'function') {
+                     // Odstraníme existující instance před inicializací nových
+                     window.$('.btn-tooltip.tooltipstered, .calendar-activity.tooltipstered').tooltipster('destroy');
 
                      window.$('.btn-tooltip, .calendar-activity').tooltipster({
                           theme: 'tooltipster-shadow', // Použijeme vestavěné téma nebo vlastní
@@ -533,7 +544,12 @@ window\.</span>('.btn-tooltip.tooltipstered, .calendar-activity.tooltipstered').
                           }
                       });
                      // console.log("Tooltips initialized/updated.");
-                 } else { console.warn("Tooltipster or jQuery not available."); }
+                 } else {
+                     // Log warning only if Tooltipster related elements exist, but library failed to load
+                     if (document.querySelector('.btn-tooltip, .calendar-activity')) {
+                          console.warn("Tooltipster or jQuery not available or failed to load. Tooltips will not work.");
+                     }
+                 }
              } catch (e) { console.error("Error initializing Tooltipster:", e); }
          }
         window.addEventListener('resize', () => { if (window.innerWidth > 992) { document.querySelector('.sidebar')?.classList.remove('active'); document.querySelector('.sidebar-overlay')?.classList.remove('active'); } updateScrollArrows(); });
@@ -543,11 +559,27 @@ window\.</span>('.btn-tooltip.tooltipstered, .calendar-activity.tooltipstered').
         // ==============================================
         async function initializeApp() {
             try {
+                // Check if Supabase is loaded
                 if (typeof supabase !== 'undefined' && typeof supabase.createClient === 'function') {
                      const { createClient } = supabase;
                      supabaseClient = createClient(supabaseUrl, supabaseKey);
                      console.log("Supabase client initialized.");
-                } else { throw new Error("Supabase library not loaded correctly."); }
+                } else {
+                    // Supabase failed to load - crucial dependency
+                     throw new Error("Supabase library failed to load. Cannot initialize application.");
+                }
+
+                // Check if Marked is loaded (needed for rendering)
+                if (typeof marked === 'undefined') {
+                    console.warn("Marked.js library failed to load. Markdown rendering will not work.");
+                    // We might allow the app to continue but markdown won't render
+                }
+                // Check if html2pdf is loaded (needed for export)
+                if (typeof html2pdf === 'undefined') {
+                     console.warn("html2pdf.js library failed to load. PDF export will not work.");
+                     // App can continue, export button just won't work
+                }
+
 
                 // Initially hide all content sections
                 currentPlanSection.style.display = 'none';
@@ -570,11 +602,16 @@ window\.</span>('.btn-tooltip.tooltipstered, .calendar-activity.tooltipstered').
 
             } catch (error) {
                 console.error('Chyba při inicializaci aplikace:', error);
-                showGlobalError('Nepodařilo se inicializovat aplikaci: ' + error.message);
-                // Display error in the main area if init fails badly
+                // Display critical error prominently
                 const mainContentArea = document.querySelector('.main-content');
                 if(mainContentArea) {
-                    mainContentArea.innerHTML = `<div class="section"><div class="notest-message error"><h3>Chyba inicializace</h3><p>${sanitizeHTML(error.message)}</p></div></div>`;
+                    // Clear tabs and show error
+                    const tabs = document.querySelector('.plan-tabs');
+                    if(tabs) tabs.style.display = 'none';
+                    mainContentArea.innerHTML = `<div class="section"><div class="notest-message error"><h3>Kritická chyba inicializace</h3><p>Aplikaci se nepodařilo spustit. Zkontrolujte konzoli pro detaily.</p><p><i>${sanitizeHTML(error.message)}</i></p><button onclick="location.reload()" class="btn btn-primary" style="margin-top: 1rem;">Zkusit znovu</button></div></div>`;
+                } else {
+                     // Fallback if main content area isn't found
+                     alert(`Kritická chyba inicializace: ${error.message}`);
                 }
             }
         }
@@ -695,7 +732,10 @@ window\.</span>('.btn-tooltip.tooltipstered, .calendar-activity.tooltipstered').
                 } else {
                     console.log("loadCurrentPlan: No active plan found. Checking diagnostics...");
                     currentStudyPlan = null;
-                    latestDiagnosticData = await getLatestDiagnostic(); // Store result globally
+                     // Use globally stored data if available, otherwise fetch
+                     if (latestDiagnosticData === undefined) {
+                          latestDiagnosticData = await getLatestDiagnostic();
+                     }
                     console.log("loadCurrentPlan: Diagnostic check result:", latestDiagnosticData);
 
                     // Keep currentPlanSection visible to display the message/prompt
@@ -1140,10 +1180,10 @@ window\.</span>('.btn-tooltip.tooltipstered, .calendar-activity.tooltipstered').
                 if (!planCreateAllowed && nextPlanCreateTime) {
                     renderLockedPlanSection();
                 } else {
-                    // 3. Check for diagnostic test (use globally stored data if available)
-                    if (latestDiagnosticData === undefined) { // If not checked before (e.g., direct navigation)
-                         latestDiagnosticData = await getLatestDiagnostic();
-                    }
+                     // 3. Check for diagnostic test (use globally stored data if available)
+                     if (latestDiagnosticData === undefined) { // If not checked before (e.g., direct navigation)
+                          latestDiagnosticData = await getLatestDiagnostic();
+                     }
 
                     if (latestDiagnosticData) { // Diagnostic exists
                         renderPlanCreationForm();
@@ -1462,9 +1502,15 @@ window\.</span>('.btn-tooltip.tooltipstered, .calendar-activity.tooltipstered').
         function displayPlanContent(markdownContent) {
              if (!planContent) return;
              try {
-                 // Use marked library to convert Markdown to HTML
-                 const htmlContent = marked.parse(markdownContent || '');
-                 planContent.innerHTML = htmlContent;
+                 // Check if Marked library is loaded before using it
+                 if (typeof marked === 'function') {
+                     const htmlContent = marked.parse(markdownContent || '');
+                     planContent.innerHTML = htmlContent;
+                 } else {
+                      console.warn("Marked.js není načteno. Zobrazuji surový Markdown.");
+                      planContent.innerHTML = `<pre>${sanitizeHTML(markdownContent || '')}</pre>`;
+                 }
+
                  // Re-run MathJax typesetting for the new content
                  if (window.MathJax && typeof window.MathJax.typesetPromise === 'function') {
                      setTimeout(() => { // Delay slightly to ensure content is in DOM
@@ -1484,6 +1530,13 @@ window\.</span>('.btn-tooltip.tooltipstered, .calendar-activity.tooltipstered').
         // ==============================================
         async function exportPlanToPDFWithStyle(plan) {
              if (!plan || !plan.id) { showToast('Chyba: Chybí data plánu pro export.', 'error'); return; }
+
+             // Check if html2pdf library is loaded
+             if (typeof html2pdf === 'undefined') {
+                  showToast('Chyba: Knihovna pro export PDF (html2pdf) není načtena.', 'error');
+                  console.error("html2pdf library is not loaded.");
+                  return;
+             }
 
              // Ensure markdown content is available
              let markdown = plan.plan_content_markdown;
@@ -1514,7 +1567,7 @@ window\.</span>('.btn-tooltip.tooltipstered, .calendar-activity.tooltipstered').
              // --- Vylepšené CSS styly pro PDF ---
              const pdfStyles = `
              <style>
-                 @import url('[https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap](https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap)');
+                 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
                  body { font-family: 'Poppins', Helvetica, Arial, sans-serif; font-size: 10pt; color: #2d3748; /* --text-primary */ line-height: 1.6; background-color: #ffffff; }
                  #pdf-export-content { padding: 15mm 12mm; }
 
@@ -1579,9 +1632,17 @@ window\.</span>('.btn-tooltip.tooltipstered, .calendar-activity.tooltipstered').
              const contentDiv = document.createElement('div');
              contentDiv.className = 'pdf-content';
              try {
-                 const rawHtml = marked.parse(markdown || ''); // Use the ensured markdown
+                  // Check if Marked is loaded before parsing
+                 let htmlContent;
+                  if (typeof marked === 'function') {
+                      htmlContent = marked.parse(markdown || ''); // Use the ensured markdown
+                  } else {
+                       console.warn("Marked.js není načteno pro PDF export. Zobrazuji jako preformátovaný text.");
+                       htmlContent = `<pre>${sanitizeHTML(markdown || '')}</pre>`;
+                  }
+
                  const tempWrapper = document.createElement('div');
-                 tempWrapper.innerHTML = rawHtml;
+                 tempWrapper.innerHTML = htmlContent; // Use parsed or preformatted content
 
                  const nodesToWrap = [];
                  let currentDayWrapper = null;
@@ -1638,22 +1699,17 @@ window\.</span>('.btn-tooltip.tooltipstered, .calendar-activity.tooltipstered').
                  pagebreak: { mode: ['css', 'avoid-all'], before: '.pdf-day-content-wrapper' } // Try page break before day wrapper
              };
 
-             if (typeof html2pdf === 'function') {
-                 console.log("Starting PDF generation...");
-                 showToast('Generuji PDF...', 'info', 5000);
-                 html2pdf().set(options).from(exportContainer).save()
-                     .then(() => {
-                         console.log("PDF generation finished.");
-                         showToast('PDF bylo úspěšně vygenerováno!', 'success');
-                     })
-                     .catch(err => {
-                         console.error("Chyba exportu PDF:", err);
-                         showToast('Nepodařilo se exportovat PDF.', 'error');
-                     });
-             } else {
-                 console.error("html2pdf library is not loaded.");
-                 showToast('Chyba: Knihovna pro export PDF není načtena.', 'error');
-             }
+             console.log("Starting PDF generation...");
+             showToast('Generuji PDF...', 'info', 5000);
+             html2pdf().set(options).from(exportContainer).save()
+                 .then(() => {
+                     console.log("PDF generation finished.");
+                     showToast('PDF bylo úspěšně vygenerováno!', 'success');
+                 })
+                 .catch(err => {
+                     console.error("Chyba exportu PDF:", err);
+                     showToast('Nepodařilo se exportovat PDF.', 'error');
+                 });
         }
 
 
@@ -1690,6 +1746,8 @@ window\.</span>('.btn-tooltip.tooltipstered, .calendar-activity.tooltipstered').
         // ==============================================
         document.addEventListener('DOMContentLoaded', function() {
             console.log("DOM fully loaded and parsed, starting application initialization...");
+            // Defer initialization slightly to give libraries more time to load? (Optional)
+            // setTimeout(initializeApp, 50);
             initializeApp();
         });
 
