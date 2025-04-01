@@ -8,74 +8,41 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        window.MathJax = {
+          tex: {
+            inlineMath: [['\\(', '\\)']],
+            displayMath: [['$$', '$$']],
+            processEscapes: true,
+            processEnvironments: true
+          },
+          options: {
+            skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+            ignoreHtmlClass: 'tex2jax_ignore',
+            processHtmlClass: 'tex2jax_process'
+          }
+        };
+        </script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/css/tooltipster.bundle.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/js/tooltipster.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://unpkg.com/tldraw@1.24.2/dist/tldraw.js"></script>
+
 
     <style>
         /* Základní styly (kopie z main.html, upraveno pro vyuku.html) */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Poppins', sans-serif;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; scroll-behavior: smooth; }
         :root {
-            --primary: #4361ee;
-            --primary-light: #4895ef;
-            --secondary: #3f37c9;
-            --success: #4cc9f0;
-            --success-alt: #06d6a0;
-            --danger: #f72585;
-            --warning: #f8961e;
-            --info: #4895ef;
-            --dark: #1e2a3a;
-            --light: #f8f9fa;
-            --gray: #6c757d;
-            --gray-light: #dee2e6;
-            --gray-dark: #343a40;
-            --gradient-1: linear-gradient(135deg, #4361ee, #3a0ca3);
-            --gradient-2: linear-gradient(135deg, #4cc9f0, #4361ee);
-            --white: #ffffff;
-            --sidebar-width: 260px;
-            --transition-speed: 0.3s;
-            --card-radius: 16px;
-            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
-            --shadow-md: 0 5px 15px rgba(0, 0, 0, 0.07);
-            --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.1);
-            --text-primary: #2d3748;
-            --text-secondary: #4a5568;
-            --text-muted: #718096;
+            --primary: #4361ee; --primary-light: #4895ef; --secondary: #3f37c9; --success: #06d6a0; --danger: #f72585; --warning: #f8961e; --info: #4895ef; --dark: #1e2a3a; --light: #f8f9fa; --gray: #6c757d; --gray-light: #dee2e6; --gray-dark: #343a40; --gradient-1: linear-gradient(135deg, #4361ee, #3a0ca3); --gradient-2: linear-gradient(135deg, #4cc9f0, #4361ee); --white: #ffffff; --sidebar-width: 260px; --transition-speed: 0.3s; --card-radius: 16px; --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05); --shadow-md: 0 5px 15px rgba(0, 0, 0, 0.07); --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.1); --text-primary: #2d3748; --text-secondary: #4a5568; --text-muted: #718096;
         }
+        body { background-color: #f6f8ff; color: var(--text-primary); min-height: 100vh; display: flex; overflow-x: hidden; }
 
-        body {
-            background-color: #f6f8ff;
-            color: var(--text-primary);
-            min-height: 100vh;
-            display: flex;
-            overflow-x: hidden;
-        }
-
-         /* Boční panel (Přesně jako v main.html) */
-         .sidebar {
-            width: var(--sidebar-width);
-            height: 100vh;
-            position: fixed;
-            top: 0;
-            left: 0;
-            background: var(--gradient-1);
-            color: var(--white);
-            padding: 1.5rem 1rem;
-            display: flex;
-            flex-direction: column;
-            z-index: 100;
-            box-shadow: var(--shadow-lg);
-            transition: all var(--transition-speed) ease;
-        }
+        /* --- Sidebar (přesně jako v main.html) --- */
+        .sidebar { width: var(--sidebar-width); height: 100vh; position: fixed; top: 0; left: 0; background: var(--gradient-1); color: var(--white); padding: 1.5rem 1rem; display: flex; flex-direction: column; z-index: 100; box-shadow: var(--shadow-lg); transition: all var(--transition-speed) ease; }
         .sidebar-header { display: flex; align-items: center; margin-bottom: 2rem; padding: 0 0.75rem; }
         .sidebar-logo { font-size: 1.5rem; font-weight: 700; color: var(--white); text-decoration: none; display: flex; align-items: center; gap: 0.75rem; }
         .sidebar-logo i { font-size: 1.75rem; }
@@ -92,7 +59,7 @@
         .user-name { font-weight: 600; font-size: 0.95rem; }
         .user-role { font-size: 0.8rem; opacity: 0.8; }
 
-        /* Hlavní obsah */
+        /* --- Hlavní obsah --- */
         main {
             flex: 1;
             margin-left: var(--sidebar-width);
@@ -101,471 +68,249 @@
             width: calc(100% - var(--sidebar-width));
             display: flex;
             flex-direction: column;
-            height: 100vh; /* Zajistí výšku pro vnitřní flex layout */
+            height: 100vh; /* Důležité pro layout */
+            overflow: hidden; /* Zabrání přetékání main */
         }
-
-        /* Header (podobný jako v main.html) */
-        .dashboard-header {
-            margin-bottom: 1.5rem; /* Menší mezera */
-            background-color: var(--white);
-            border-radius: var(--card-radius);
-            padding: 1rem 1.5rem; /* Menší padding */
-            box-shadow: var(--shadow-sm);
-            flex-shrink: 0; /* Header se nebude smršťovat */
-        }
+        .dashboard-header { margin-bottom: 1.5rem; background-color: var(--white); border-radius: var(--card-radius); padding: 1rem 1.5rem; box-shadow: var(--shadow-sm); flex-shrink: 0; }
         .header-content { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
         .header-title-section { display: flex; align-items: center; gap: 1rem; }
         .header-content h1 { font-size: 1.6rem; font-weight: 600; color: var(--dark); margin: 0; }
         .header-actions { display: flex; align-items: center; gap: 1rem; }
 
-        /* Hlavní kontejner pro výuku */
-        .learning-container {
+        /* --- Struktura layoutu Výuky --- */
+        .learning-layout {
             display: flex;
-            flex-direction: column;
-            flex-grow: 1; /* Zabere zbývající místo */
+            flex-grow: 1; /* Zabere zbytek výšky */
             gap: 1.5rem;
-            overflow: hidden; /* Zabrání přetékání hlavní části */
+            overflow: hidden; /* Zabrání přetékání layoutu */
+        }
+        .left-panel {
+            flex: 1; /* Poměrně se roztáhne */
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            min-width: 400px; /* Minimální šířka levého panelu */
+            overflow: hidden; /* Zabrání přetékání panelu */
+        }
+        .right-panel {
+            width: 450px; /* Pevná šířka pravého panelu (chatu) */
+            flex-shrink: 0; /* Zabrání smršťování */
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
         }
 
-        .section {
-            background-color: var(--white);
-            border-radius: var(--card-radius);
-            box-shadow: var(--shadow-sm);
-            padding: 1.5rem;
-            animation: fadeIn 0.5s ease forwards;
-            flex-shrink: 0; /* Sekce se nebudou primárně smršťovat */
-        }
-
+        /* --- Levé komponenty (Výběr, Vysvětlení, Doška) --- */
+        .section { background-color: var(--white); border-radius: var(--card-radius); box-shadow: var(--shadow-sm); padding: 1.5rem; animation: fadeIn 0.5s ease forwards; transition: box-shadow 0.3s ease; }
+        .section:hover { box-shadow: var(--shadow-md); }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .section-title { font-size: 1.3rem; font-weight: 600; margin-bottom: 1rem; color: var(--dark); display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; }
+        .section-title i { color: var(--primary); margin-right: 0.5rem; }
 
-        .section-title {
-            font-size: 1.3rem;
-            font-weight: 600;
-            margin-bottom: 1rem;
-            color: var(--dark);
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
+        .topic-selection-section { flex-shrink: 0; } /* Tato sekce se nesmršťuje */
+        .topic-selector { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;}
+        .topic-selector label { font-weight: 500; color: var(--text-secondary); flex-shrink: 0; }
+        .topic-selector select { padding: 0.5rem 1rem; border-radius: 8px; border: 1px solid var(--gray-light); font-size: 1rem; flex-grow: 1; max-width: 350px; }
+        .topic-selector select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 2px rgba(67, 97, 238, 0.1); }
 
-        /* Výběr téma */
-        .topic-selector {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-        }
-        .topic-selector label {
-            font-weight: 500;
-            color: var(--text-secondary);
-        }
-        .topic-selector select {
-            padding: 0.5rem 1rem;
-            border-radius: 8px;
-            border: 1px solid var(--gray-light);
-            font-size: 1rem;
-            flex-grow: 1;
-            max-width: 400px;
-        }
+        .explanation-section { flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; }
+        #explanation-content { flex-grow: 1; overflow-y: auto; padding-right: 10px; /* Místo pro scrollbar */ line-height: 1.7; }
+        #explanation-content .step { margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px dashed var(--gray-light); }
+        #explanation-content .step:last-child { border-bottom: none; }
+        #explanation-content h3 { color: var(--secondary); margin-top: 1.5rem; margin-bottom: 0.75rem; }
 
-        /* Oblast výuky (vysvětlení + "bílá doška") */
-        .learning-area {
-            display: flex;
-            flex-direction: column;
-            flex-grow: 1; /* Tato oblast se roztáhne */
-            overflow-y: auto; /* Povolí skrolování POUZE této oblasti */
-            gap: 1.5rem; /* Mezera mezi vysvětlením a "doškou" */
-            padding-right: 0.5rem; /* Místo pro scrollbar */
-        }
-         /* Kontejner pro "Bílou došku" (simulovanou) */
-         .whiteboard-area {
-            background-color: #f9fafb; /* Světlé pozadí pro kontrast */
-            border: 1px solid var(--gray-light);
-            border-radius: 12px;
-            padding: 1.5rem;
-            min-height: 200px; /* Minimální výška */
-            box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
-            line-height: 1.7;
-        }
-        .whiteboard-area h3 {
-             margin-top: 0;
-             margin-bottom: 1rem;
-             font-weight: 600;
-             color: var(--secondary);
-             border-bottom: 1px solid var(--gray-light);
-             padding-bottom: 0.5rem;
-        }
-        .whiteboard-area code {
-            background-color: rgba(67, 97, 238, 0.1);
-            padding: 0.2rem 0.4rem;
-            border-radius: 4px;
-            font-size: 1rem; /* Větší písmo pro čitelnost */
-            font-family: 'Courier New', Courier, monospace;
-        }
-         .whiteboard-area pre code {
-            display: block;
-            padding: 1rem;
-            background-color: var(--dark);
-            color: var(--light);
-            border-radius: 8px;
-            font-size: 0.95rem;
-            line-height: 1.6;
-         }
-         .whiteboard-area .math-display { /* Pro MathJax */
-             margin: 1rem 0;
-             font-size: 1.1rem;
-         }
-         .whiteboard-area .step {
-             margin-bottom: 1rem;
-             padding-bottom: 1rem;
-             border-bottom: 1px dashed var(--gray-light);
-         }
-         .whiteboard-area .step:last-child {
-             border-bottom: none;
-             margin-bottom: 0;
-             padding-bottom: 0;
-         }
+        .whiteboard-section { height: 400px; /* Pevná výška došky */ flex-shrink: 0; display: flex; flex-direction: column; padding: 0; /* Padding bude na vnitřním kontejneru */ overflow: hidden; }
+        .whiteboard-container { width: 100%; height: 100%; border-radius: var(--card-radius); overflow: hidden; position: relative; /* Pro tldraw */ border: 1px solid var(--gray-light); }
+        /* tldraw se automaticky přizpůsobí kontejneru */
 
-        /* Oblast chatu */
-        .chat-area {
-            display: flex;
-            flex-direction: column;
-            height: 350px; /* Pevná výška pro chat */
-            border: 1px solid var(--gray-light);
-            border-radius: var(--card-radius);
-            background-color: var(--white);
-            overflow: hidden; /* Skryje přetékání */
-            flex-shrink: 0; /* Chat se nebude smršťovat */
-        }
+        /* --- Pravý panel (Chat) --- */
+        .chat-area { display: flex; flex-direction: column; height: 100%; /* Zabere celou výšku pravého panelu */ border: 1px solid var(--gray-light); border-radius: var(--card-radius); background-color: var(--white); overflow: hidden; }
+        .chat-header { padding: 0.75rem 1.25rem; border-bottom: 1px solid var(--gray-light); display: flex; justify-content: space-between; align-items: center; background-color: #f8f9fa; flex-shrink: 0; }
+        .chat-header h3 { font-size: 1.1rem; font-weight: 600; color: var(--dark); margin: 0; display: flex; align-items: center; gap: 0.5rem; }
+        .chat-header h3 i { color: var(--primary); }
+        .chat-actions button { background: none; border: none; color: var(--text-secondary); cursor: pointer; padding: 0.4rem; font-size: 1.1rem; transition: color 0.2s ease; }
+        .chat-actions button:hover { color: var(--primary); }
+        .chat-actions button:disabled { color: var(--gray-light); cursor: not-allowed; }
+        .chat-actions button i { vertical-align: middle; }
 
-        .chat-messages {
-            flex-grow: 1;
-            padding: 1rem;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
+        .chat-messages { flex-grow: 1; padding: 1rem; overflow-y: auto; display: flex; flex-direction: column; gap: 1rem; }
+        .chat-message { display: flex; gap: 0.75rem; max-width: 85%; align-items: flex-end; }
+        .chat-message.user { margin-left: auto; flex-direction: row-reverse; }
+        .message-avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 1rem; flex-shrink: 0; box-shadow: var(--shadow-sm); }
+        .chat-message.user .message-avatar { background: var(--success); color: white; }
+        .chat-message.gemini .message-avatar { background: var(--primary); color: white; }
+        .message-bubble { padding: 0.8rem 1.1rem; border-radius: 18px; line-height: 1.55; word-wrap: break-word; box-shadow: var(--shadow-sm); position: relative; }
+        .chat-message.user .message-bubble { background: var(--gradient-2); color: white; border-bottom-right-radius: 6px; }
+        .chat-message.gemini .message-bubble { background: var(--light); color: var(--text-primary); border: 1px solid var(--gray-light); border-bottom-left-radius: 6px; }
+        .message-bubble p:last-child { margin-bottom: 0; }
+        .message-bubble code { font-size: 0.9em; background-color: rgba(0,0,0,0.05); padding: 1px 5px; border-radius: 4px; }
+        .chat-message.user .message-bubble code { background-color: rgba(255,255,255,0.2); color: white; }
+        .message-timestamp { font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; text-align: right; }
+        .chat-message.gemini .message-timestamp { text-align: left; }
+        .message-thinking-indicator { display: flex; align-items: center; gap: 5px; }
+        .typing-dot { width: 8px; height: 8px; background-color: var(--primary); border-radius: 50%; animation: typing 1s infinite ease-in-out; }
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes typing { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1.0); } }
 
-        .chat-message {
-            display: flex;
-            gap: 0.75rem;
-            max-width: 85%;
-            align-items: flex-end; /* Zarovná ikonu a bublinu dolů */
-        }
-        .chat-message.user {
-            margin-left: auto;
-            flex-direction: row-reverse;
-        }
-        .message-avatar {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            background-color: var(--primary);
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 600;
-            font-size: 0.9rem;
-            flex-shrink: 0;
-        }
-        .chat-message.user .message-avatar {
-            background-color: var(--success-alt);
-        }
-        .message-bubble {
-            padding: 0.75rem 1rem;
-            border-radius: 18px;
-            background-color: #f0f2f5;
-            color: var(--text-primary);
-            line-height: 1.5;
-            word-wrap: break-word; /* Zajistí zalamování dlouhých slov */
-        }
-        .chat-message.user .message-bubble {
-            background-color: var(--primary);
-            color: white;
-            border-bottom-right-radius: 4px; /* Zkosení rohu */
-        }
-        .chat-message.gemini .message-bubble {
-            border-bottom-left-radius: 4px; /* Zkosení rohu */
-        }
-         .message-bubble p:last-child { margin-bottom: 0; }
-         .message-bubble code { font-size: 0.9em; background-color: rgba(0,0,0,0.05); padding: 1px 4px; border-radius: 3px; }
-         .chat-message.user .message-bubble code { background-color: rgba(255,255,255,0.2); }
+        .chat-input-area { display: flex; padding: 1rem; border-top: 1px solid var(--gray-light); background-color: #f8f9fa; flex-shrink: 0; }
+        .chat-input { flex-grow: 1; padding: 0.75rem 1rem; border: 1px solid var(--gray-light); border-radius: 20px; margin-right: 0.75rem; font-size: 1rem; resize: none; height: 44px; overflow-y: auto; transition: border-color 0.2s ease, box-shadow 0.2s ease; }
+        .chat-input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 2px rgba(67, 97, 238, 0.1); }
+        .send-button { padding: 0.6rem 1.2rem; border-radius: 20px; font-weight: 500; font-size: 0.95rem; cursor: pointer; border: none; background: var(--gradient-1); color: white; transition: all 0.3s ease; }
+        .send-button:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(67, 97, 238, 0.2); }
+        .send-button:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }
+        .send-button i { margin-left: 0.5rem; vertical-align: middle;}
+        .send-button .fa-spinner { margin-left: 0; margin-right: 0.5rem;}
 
-        .chat-input-area {
-            display: flex;
-            padding: 1rem;
-            border-top: 1px solid var(--gray-light);
-            background-color: #f8f9fa;
-        }
-        .chat-input {
-            flex-grow: 1;
-            padding: 0.75rem 1rem;
-            border: 1px solid var(--gray-light);
-            border-radius: 20px;
-            margin-right: 0.75rem;
-            font-size: 1rem;
-            resize: none; /* Zakáže uživatelskou změnu velikosti */
-            height: 44px; /* Počáteční výška pro jeden řádek */
-            overflow-y: hidden; /* Skryje scrollbar, dokud není potřeba */
-        }
-        .chat-input:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 2px rgba(67, 97, 238, 0.1);
-        }
-        .send-button {
-            padding: 0.6rem 1.2rem;
-            border-radius: 20px;
-            font-weight: 500;
-            font-size: 0.95rem;
-            cursor: pointer;
-            border: none;
-            background: var(--gradient-1);
-            color: white;
-            transition: all 0.3s ease;
-        }
-        .send-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 10px rgba(67, 97, 238, 0.2);
-        }
-        .send-button:disabled {
-             opacity: 0.6;
-             cursor: not-allowed;
-             transform: none;
-             box-shadow: none;
-        }
-        .send-button i { margin-left: 0.5rem; }
-
-        /* Loading & Empty States */
-        .loading { display: flex; justify-content: center; align-items: center; padding: 2rem; font-size: 1rem; color: var(--text-muted); }
-        .loading::after { content: ""; width: 24px; height: 24px; margin-left: 12px; border: 2px solid var(--primary); border-radius: 50%; border-top-color: transparent; animation: loading-spinner 0.8s linear infinite; }
+        /* --- Utility & State Styles --- */
+        .loading { display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 2rem; font-size: 1rem; color: var(--text-muted); text-align: center; }
+        .loading::after { content: ""; width: 24px; height: 24px; margin-top: 12px; border: 3px solid var(--primary-light); border-radius: 50%; border-top-color: var(--primary); animation: loading-spinner 0.8s linear infinite; }
         @keyframes loading-spinner { to { transform: rotate(360deg); } }
         .empty-state { text-align: center; padding: 3rem 1.5rem; color: var(--text-secondary); }
         .empty-state i { font-size: 3.5rem; margin-bottom: 1.5rem; color: var(--gray-light); }
         .empty-state h3 { font-size: 1.2rem; font-weight: 600; margin-bottom: 1rem; color: var(--dark); }
         .empty-state p { margin-bottom: 1.5rem; max-width: 500px; margin-left: auto; margin-right: auto; }
-         .btn { display: inline-flex; align-items: center; justify-content: center; padding: 0.75rem 1.5rem; border-radius: 12px; font-weight: 500; font-size: 0.95rem; text-decoration: none; transition: all 0.3s ease; cursor: pointer; border: none; gap: 0.5rem; }
-         .btn-primary { background: var(--gradient-1); color: white; box-shadow: 0 4px 10px rgba(67, 97, 238, 0.2); }
-         .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(67, 97, 238, 0.25); }
+        .btn { display: inline-flex; align-items: center; justify-content: center; padding: 0.65rem 1.3rem; /* Upravený padding */ border-radius: 10px; /* Mírně menší radius */ font-weight: 500; font-size: 0.9rem; /* Mírně menší písmo */ text-decoration: none; transition: all 0.3s ease; cursor: pointer; border: none; gap: 0.5rem; line-height: 1.4; }
+        .btn-primary { background: var(--gradient-1); color: white; box-shadow: 0 4px 10px rgba(67, 97, 238, 0.2); }
+        .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(67, 97, 238, 0.25); }
+        .btn-secondary { background-color: var(--light); color: var(--text-secondary); border: 1px solid var(--gray-light); }
+        .btn-secondary:hover { background-color: var(--gray-light); color: var(--dark);}
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .btn i { font-size: 0.95em; /* Mírně menší ikony v tlačítkách */ }
 
-        /* Responsivní design - úpravy pro vyuku.html */
-         /* Mobile Menu & Overlay (kopie z main.html) */
-         .mobile-menu-toggle { display: none; background: none; border: none; cursor: pointer; font-size: 1.5rem; color: var(--dark); padding: 0.5rem; }
-         .sidebar-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); z-index: 999; opacity: 0; transition: opacity 0.3s ease; backdrop-filter: blur(5px); }
-         .sidebar-overlay.active { display: block; opacity: 1; }
+        /* --- Responsiveness --- */
+        .mobile-menu-toggle { display: none; background: none; border: none; cursor: pointer; font-size: 1.5rem; color: var(--dark); padding: 0.5rem; }
+        .sidebar-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); z-index: 999; opacity: 0; transition: opacity 0.3s ease; backdrop-filter: blur(5px); }
+        .sidebar-overlay.active { display: block; opacity: 1; }
 
+        @media (max-width: 1200px) { /* Menší úpravy pro menší desktopy */
+            .right-panel { width: 400px; }
+            .left-panel { min-width: 350px;}
+        }
         @media (max-width: 992px) { /* Collapsed Sidebar */
-             :root { --sidebar-width: 80px; }
-             main { margin-left: 80px; width: calc(100% - 80px); }
-             .sidebar-logo span, .sidebar-link span, .user-info, .sidebar-footer { display: none; }
-             .sidebar-link i { margin-right: 0; font-size: 1.5rem; }
-             .sidebar-logo i { margin-right: 0; }
-             .sidebar-header, .sidebar-link { justify-content: center; }
-             .user-profile { justify-content: center; padding: 0.75rem; }
-             .user-avatar { margin-right: 0; }
+            :root { --sidebar-width: 80px; } main { margin-left: 80px; width: calc(100% - 80px); }
+            .sidebar-logo span, .sidebar-link span, .user-info, .sidebar-footer { display: none; }
+            .sidebar-link i { margin-right: 0; font-size: 1.5rem; } .sidebar-logo i { margin-right: 0; }
+            .sidebar-header, .sidebar-link { justify-content: center; } .user-profile { justify-content: center; padding: 0.75rem; } .user-avatar { margin-right: 0; }
+            .learning-layout { flex-direction: column; height: auto; overflow-y: auto; /* Povolí skrolování celého layoutu */ }
+            .right-panel { width: 100%; height: 450px; /* Pevná výška chatu na tabletu */ order: 2; /* Chat bude dole */ }
+            .left-panel { width: 100%; order: 1; min-width: unset; }
+            .whiteboard-section { height: 350px; } /* Menší doška na tabletu */
         }
-
         @media (max-width: 768px) { /* Tablet */
-            main { padding: 1rem; height: auto; min-height: 100vh; /* Zajistí, že main má alespoň výšku okna */ }
-            .header-content { flex-direction: column; align-items: flex-start; }
-            .header-title-section { width: 100%; justify-content: space-between; }
-             .header-title-section h1 { font-size: 1.5rem; }
-            .header-actions { width: 100%; justify-content: flex-start; margin-top: 0.5rem; }
-            .learning-container { height: auto; /* Výška se přizpůsobí obsahu */ }
-            .chat-area { height: 300px; /* Menší chat na tabletu */ }
+            main { padding: 1rem; height: auto; min-height: 100vh; }
+            .header-content { flex-direction: column; align-items: flex-start; } .header-title-section { width: 100%; justify-content: space-between; }
+            .header-title-section h1 { font-size: 1.5rem; } .header-actions { width: 100%; justify-content: flex-start; margin-top: 0.5rem; }
+            .right-panel { height: 400px; }
+            .whiteboard-section { height: 300px; }
         }
-
         @media (max-width: 576px) { /* Mobile */
-            :root { --sidebar-width: 0; }
-            main { margin-left: 0; width: 100%; }
+            :root { --sidebar-width: 0; } main { margin-left: 0; width: 100%; }
             .sidebar { transform: translateX(-100%); width: 260px; z-index: 1000; }
-            .sidebar.active {
-                transform: translateX(0);
+            .sidebar.active { transform: translateX(0); /* Zobrazí sidebar */
                  .sidebar-logo span, .sidebar-link span, .user-info, .sidebar-footer { display: block; }
                  .sidebar-link i { margin-right: 0.75rem; font-size: 1.2rem;}
                  .sidebar-header, .sidebar-link { justify-content: flex-start; }
                  .user-profile { justify-content: flex-start; padding: 1rem;}
-                 .user-avatar { margin-right: 0.75rem; }
-            }
-            .mobile-menu-toggle { display: block; } /* Show toggle */
-             .header-title-section h1 { font-size: 1.4rem; text-align: left; }
-             .chat-area { height: 250px; /* Ještě menší chat */ }
-             .chat-input-area { padding: 0.75rem; }
-             .chat-input { font-size: 0.95rem; height: 40px; }
-             .send-button { padding: 0.5rem 1rem; font-size: 0.9rem; }
-             .chat-message { max-width: 90%; }
-             .whiteboard-area { padding: 1rem; }
+                 .user-avatar { margin-right: 0.75rem; } }
+            .mobile-menu-toggle { display: block; } .header-title-section h1 { font-size: 1.4rem; text-align: left; }
+            .right-panel { height: 350px; } /* Ještě menší chat */
+            .whiteboard-section { height: 250px; }
+            .chat-input-area { padding: 0.75rem; } .chat-input { font-size: 0.95rem; height: 40px; } .send-button { padding: 0.5rem 1rem; font-size: 0.9rem; }
+            .chat-message { max-width: 90%; }
         }
 
-        /* Dark mode (kopie z main.html, úpravy pro nové elementy) */
+        /* --- Dark mode --- */
         @media (prefers-color-scheme: dark) {
-            :root {
-                --white: #1a202c; --light: #2d3748; --dark: #e2e8f0;
-                --gray-light: #4a5568; --text-primary: #e2e8f0; --text-secondary: #cbd5e0;
-                --text-muted: #a0aec0; --dark-bg: #1e2533;
-            }
+            :root { --white: #1a202c; --light: #2d3748; --dark: #e2e8f0; --gray-light: #4a5568; --text-primary: #e2e8f0; --text-secondary: #cbd5e0; --text-muted: #a0aec0; --dark-bg: #1e2533;}
             body { background-color: #171923; }
             .section, .dashboard-header { background-color: var(--dark-bg); border-color: var(--gray-light); }
-            .mobile-menu-toggle { color: var(--dark); }
-            .empty-state i { color: var(--light); }
+            .mobile-menu-toggle { color: var(--dark); } .empty-state i { color: var(--light); }
             .topic-selector select { background-color: var(--light); color: var(--text-primary); border-color: var(--gray-light); }
-
-            .whiteboard-area { background-color: #2d3748; /* Tmavší pozadí došky */ border-color: var(--gray-light); }
-            .whiteboard-area h3 { color: var(--primary-light); border-bottom-color: var(--gray-light); }
-            .whiteboard-area code { background-color: rgba(72, 149, 239, 0.15); color: var(--primary-light); }
-            .whiteboard-area pre code { background-color: #1a202c; color: #d1d5db; }
-
-
+            .whiteboard-container { border-color: var(--gray-light); } /* Tldraw si možná bude řídit vlastní barvy */
+            #explanation-content { scrollbar-color: var(--gray) var(--dark-bg); } /* Scrollbar pro vysvětlení */
+            #explanation-content::-webkit-scrollbar { width: 8px; } #explanation-content::-webkit-scrollbar-track { background: var(--dark-bg); } #explanation-content::-webkit-scrollbar-thumb { background-color: var(--gray); border-radius: 4px; }
             .chat-area { background-color: var(--dark-bg); border-color: var(--gray-light); }
-            .chat-messages { }
-            .message-bubble { background-color: var(--light); color: var(--text-primary); }
-            .chat-message.user .message-bubble { background-color: var(--primary); color: white; }
-            .chat-message.user .message-bubble code { background-color: rgba(255,255,255,0.3); }
-
+            .chat-header { background-color: var(--light); border-bottom-color: var(--gray-light); } .chat-header h3 { color: var(--dark); } .chat-actions button { color: var(--text-secondary); } .chat-actions button:hover { color: var(--primary-light); }
+            .chat-messages { scrollbar-color: var(--gray) var(--dark-bg); /* Firefox scrollbar */ }
+            .chat-messages::-webkit-scrollbar { width: 8px; } .chat-messages::-webkit-scrollbar-track { background: var(--dark-bg); } .chat-messages::-webkit-scrollbar-thumb { background-color: var(--gray); border-radius: 4px; border: 2px solid var(--dark-bg); }
+            .message-bubble { background-color: var(--light); color: var(--text-primary); border-color: var(--gray-light); }
+            .chat-message.user .message-bubble { background: var(--gradient-2); color: var(--white); }
+            .message-bubble code { background-color: rgba(255,255,255,0.1); color: var(--text-primary); }
+            .chat-message.user .message-bubble code { background-color: rgba(255,255,255,0.3); color: white; }
             .chat-input-area { background-color: var(--light); border-top-color: var(--gray-light); }
-            .chat-input { background-color: var(--dark-bg); color: var(--text-primary); border-color: var(--gray-light); }
-             .chat-input::placeholder { color: var(--text-muted); }
+            .chat-input { background-color: var(--dark-bg); color: var(--text-primary); border-color: var(--gray-light); } .chat-input::placeholder { color: var(--text-muted); }
+             /* tldraw dark mode - knihovna by si to měla řídit sama, pokud detekuje dark scheme */
+             .tl-container { background-color: var(--dark-bg) !important; } /* Pokud by bylo třeba přepsat */
         }
-         /* Toast notification (kopie) */
-         .toast { position: fixed; bottom: 20px; right: 20px; background-color: var(--white); color: var(--text-primary); border-radius: 8px; padding: 1rem; box-shadow: var(--shadow-lg); max-width: 300px; z-index: 1001; display: flex; align-items: center; transform: translateY(120px); opacity: 0; transition: all 0.4s ease-in-out; }
-         .toast.show { transform: translateY(0); opacity: 1; }
-         .toast.success { border-left: 4px solid #10b981; }
-         .toast.error { border-left: 4px solid var(--danger); }
-         .toast.warning { border-left: 4px solid var(--warning); }
-         .toast i { margin-right: 0.75rem; font-size: 1.25rem; }
-         .toast.success i { color: #10b981; }
-         .toast.error i { color: var(--danger); }
-         .toast.warning i { color: var(--warning); }
-          @media (prefers-color-scheme: dark) {
-              .toast { background-color: var(--dark-bg); border-color: var(--gray-light); color: var(--text-primary);}
-          }
+        /* --- Toast notification (kopie) --- */
+        .toast { position: fixed; bottom: 20px; right: 20px; background-color: var(--white); color: var(--text-primary); border-radius: 8px; padding: 1rem; box-shadow: var(--shadow-lg); max-width: 300px; z-index: 1005; display: flex; align-items: center; transform: translateY(120px); opacity: 0; transition: all 0.4s ease-in-out; }
+        .toast.show { transform: translateY(0); opacity: 1; }
+        .toast.success { border-left: 4px solid #10b981; } .toast.error { border-left: 4px solid var(--danger); } .toast.warning { border-left: 4px solid var(--warning); }
+        .toast i { margin-right: 0.75rem; font-size: 1.25rem; }
+        .toast.success i { color: #10b981; } .toast.error i { color: var(--danger); } .toast.warning i { color: var(--warning); }
+        @media (prefers-color-scheme: dark) { .toast { background-color: var(--dark-bg); border-color: var(--gray-light); color: var(--text-primary);} }
+
     </style>
 </head>
 <body>
     <div id="sidebar-overlay" class="sidebar-overlay"></div>
 
     <aside id="sidebar" class="sidebar">
-        <div class="sidebar-header">
-            <a href="/" class="sidebar-logo">
-                <i class="fas fa-calculator"></i>
-                <span>Justax</span>
-            </a>
-        </div>
-
-         <ul class="sidebar-menu">
-             <li class="sidebar-item">
-                 <a href="/dashboard/dashboard.html" class="sidebar-link"> <i class="fas fa-th-large"></i>
-                     <span>Dashboard</span>
-                 </a>
-             </li>
-             <li class="sidebar-item">
-                 <a href="/dashboard/procvicovani/main.html" class="sidebar-link active">
-                     <i class="fas fa-book-open"></i>
-                     <span>Procvičování</span>
-                 </a>
-             </li>
-             <li class="sidebar-item">
-                  <a href="/dashboard/pokrok.html" class="sidebar-link"> <i class="fas fa-chart-line"></i>
-                      <span>Pokrok</span>
-                  </a>
-              </li>
-              <li class="sidebar-item">
-                  <a href="/dashboard/oceneni.html" class="sidebar-link"> <i class="fas fa-medal"></i>
-                      <span>Ocenění</span>
-                  </a>
-              </li>
-              <li class="sidebar-item">
-                  <a href="/dashboard/materialy.html" class="sidebar-link"> <i class="fas fa-file-alt"></i>
-                      <span>Materiály</span>
-                  </a>
-              </li>
-              <li class="sidebar-item">
-                  <a href="/dashboard/profile.html" class="sidebar-link"> <i class="fas fa-user-cog"></i>
-                      <span>Profil</span>
-                  </a>
-              </li>
-         </ul>
-
-        <div class="user-profile">
-            <div class="user-avatar" id="user-avatar">?</div>
-            <div class="user-info">
-                <div class="user-name" id="user-name">Načítání...</div>
-                <div class="user-role">Student</div>
-            </div>
-        </div>
-
-        <div class="sidebar-footer">
-            &copy; 2025 Justax
-        </div>
+        <div class="sidebar-header"> <a href="/" class="sidebar-logo"> <i class="fas fa-calculator"></i> <span>Justax</span> </a> </div>
+         <ul class="sidebar-menu"> <li class="sidebar-item"> <a href="/dashboard/dashboard.html" class="sidebar-link"> <i class="fas fa-th-large"></i> <span>Dashboard</span> </a> </li> <li class="sidebar-item"> <a href="/dashboard/procvicovani/main.html" class="sidebar-link active"> <i class="fas fa-book-open"></i> <span>Procvičování</span> </a> </li> <li class="sidebar-item"> <a href="/dashboard/pokrok.html" class="sidebar-link"> <i class="fas fa-chart-line"></i> <span>Pokrok</span> </a> </li> <li class="sidebar-item"> <a href="/dashboard/oceneni.html" class="sidebar-link"> <i class="fas fa-medal"></i> <span>Ocenění</span> </a> </li> <li class="sidebar-item"> <a href="/dashboard/materialy.html" class="sidebar-link"> <i class="fas fa-file-alt"></i> <span>Materiály</span> </a> </li> <li class="sidebar-item"> <a href="/dashboard/profile.html" class="sidebar-link"> <i class="fas fa-user-cog"></i> <span>Profil</span> </a> </li> </ul>
+         <div class="user-profile"> <div class="user-avatar" id="user-avatar">?</div> <div class="user-info"> <div class="user-name" id="user-name">Načítání...</div> <div class="user-role">Student</div> </div> </div>
+         <div class="sidebar-footer"> &copy; 2025 Justax </div>
     </aside>
 
     <main>
          <div class="dashboard-header">
-             <div class="header-content">
-                 <div class="header-title-section">
-                     <button class="mobile-menu-toggle" id="mobile-menu-toggle">
-                         <i class="fas fa-bars"></i>
-                     </button>
-                     <h1>Interaktivní výuka</h1>
-                 </div>
-                 <div class="header-actions">
-                    <a href="/dashboard/procvicovani/main.html" class="btn btn-secondary">
-                        <i class="fas fa-arrow-left"></i> Zpět na přehled
-                    </a>
-                 </div>
-             </div>
+             <div class="header-content"> <div class="header-title-section"> <button class="mobile-menu-toggle" id="mobile-menu-toggle"> <i class="fas fa-bars"></i> </button> <h1>Interaktivní výuka</h1> </div> <div class="header-actions"> <a href="/dashboard/procvicovani/main.html" class="btn btn-secondary"> <i class="fas fa-arrow-left"></i> Zpět na přehled </a> </div> </div>
          </div>
 
-         <div class="learning-container">
+         <div class="learning-layout">
 
-             <section class="section topic-selection-section">
-                 <div class="topic-selector">
-                     <label for="topic-select">Vyberte téma k výuce:</label>
-                     <select id="topic-select">
-                         <option value="" disabled selected>Načítám témata...</option>
-                         </select>
-                      <button class="btn btn-primary" id="start-learning-btn" disabled>
-                          <i class="fas fa-play"></i> Začít výuku
-                      </button>
-                 </div>
-             </section>
-
-             <div id="learning-area" class="learning-area" style="display: none;">
-                 <section class="section explanation-section">
-                     <h2 class="section-title" id="explanation-title"><i class="fas fa-chalkboard-teacher"></i> Vysvětlení tématu</h2>
-                     <div id="explanation-content" class="loading">Čekám na výběr tématu...</div>
+             <div class="left-panel">
+                 <section class="section topic-selection-section">
+                      <div class="topic-selector"> <label for="topic-select">Vyberte téma k výuce:</label> <select id="topic-select"> <option value="" disabled selected>Načítám témata...</option> </select> <button class="btn btn-primary" id="start-learning-btn" disabled> <i class="fas fa-play"></i> Začít výuku </button> </div>
                  </section>
 
-                 <section class="section whiteboard-section">
-                      <h2 class="section-title" id="whiteboard-title"><i class="fas fa-pencil-ruler"></i> "Bílá doška"</h2>
-                     <div id="whiteboard-content" class="whiteboard-area">
-                          <div class="empty-state">
-                               <i class="fas fa-border-style"></i>
-                               <h3>Zde se zobrazí kroky</h3>
-                               <p>Gemini sem bude psát příklady a postupy krok za krokem.</p>
+                 <section id="explanation-container" class="section explanation-section" style="display: none;">
+                      <h2 class="section-title" id="explanation-title"><i class="fas fa-chalkboard-teacher"></i> Vysvětlení tématu</h2>
+                      <div id="explanation-content" class="loading">Čekám na výběr tématu...</div>
+                       <div style="text-align: center; margin-top: 1rem;">
+                            <button class="btn btn-secondary" id="next-step-btn" style="display: none;"><i class="fas fa-forward"></i> Pokračovat / Další krok</button>
+                       </div>
+                 </section>
+
+                 <section id="whiteboard-container-section" class="section whiteboard-section" style="display: none;">
+                      <h2 class="section-title"><i class="fas fa-pencil-ruler"></i> Interaktivní doška</h2>
+                      <div class="whiteboard-container" id="tldraw-container">
+                           </div>
+                 </section>
+             </div>
+
+             <div id="chat-panel" class="right-panel" style="display: none;">
+                 <section class="chat-area">
+                     <div class="chat-header">
+                          <h3><i class="fas fa-comments"></i> Chat s AI</h3>
+                          <div class="chat-actions">
+                              <button id="save-chat-btn" title="Uložit chat jako PDF" class="btn-tooltip"> <i class="fas fa-save"></i> </button>
+                              <button id="clear-chat-btn" title="Vymazat historii chatu" class="btn-tooltip"> <i class="fas fa-trash-alt"></i> </button>
                           </div>
+                     </div>
+                     <div class="chat-messages" id="chat-messages">
+                          </div>
+                     <div class="chat-input-area">
+                          <textarea class="chat-input" id="chat-input" placeholder="Napiš svou otázku..." rows="1"></textarea>
+                          <button class="send-button" id="send-button">
+                               <i class="fas fa-paper-plane"></i>
+                          </button>
                      </div>
                  </section>
              </div>
 
-             <section id="chat-container" class="chat-area" style="display: none;">
-                 <div class="chat-messages" id="chat-messages">
-                     <div class="chat-message gemini">
-                           <div class="message-avatar"><i class="fas fa-robot"></i></div>
-                           <div class="message-bubble">Ahoj! Jsem připravený ti pomoct s vybraným tématem. Na co se mám zaměřit nejdříve? Nebo mi polož otázku.</div>
-                      </div>
-                 </div>
-                 <div class="chat-input-area">
-                     <textarea class="chat-input" id="chat-input" placeholder="Napiš svou otázku nebo požadavek..." rows="1"></textarea>
-                     <button class="send-button" id="send-button">
-                         Odeslat <i class="fas fa-paper-plane"></i>
-                     </button>
-                 </div>
-             </section>
-         </div>
-    </main>
+         </div> </main>
 
       <div class="toast" id="toast">
           <i class="fas fa-check-circle"></i>
@@ -573,13 +318,13 @@
       </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', async function() {
             // --- Supabase & Gemini Init ---
             const supabaseUrl = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
             const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10';
             const supabase = window.supabase?.createClient ? window.supabase.createClient(supabaseUrl, supabaseKey) : null;
-            const GEMINI_API_KEY = 'AIzaSyDQboM6qtC_O2sqqpaKZZffNf2zk6HrhEs'; // Z plan.html - POUZE PRO TESTOVÁNÍ!
-            const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`; // Flash model
+            const GEMINI_API_KEY = 'AIzaSyDQboM6qtC_O2sqqpaKZZffNf2zk6HrhEs'; // POUZE PRO TESTOVÁNÍ!
+            const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
 
             // --- DOM Elements ---
             const userAvatar = document.getElementById('user-avatar');
@@ -589,329 +334,404 @@
             const sidebarOverlay = document.getElementById('sidebar-overlay');
             const topicSelect = document.getElementById('topic-select');
             const startLearningBtn = document.getElementById('start-learning-btn');
-            const learningArea = document.getElementById('learning-area');
+            const explanationContainer = document.getElementById('explanation-container');
             const explanationTitle = document.getElementById('explanation-title');
             const explanationContent = document.getElementById('explanation-content');
-            const whiteboardTitle = document.getElementById('whiteboard-title');
-            const whiteboardContent = document.getElementById('whiteboard-content');
-            const chatContainer = document.getElementById('chat-container');
+            const whiteboardContainerSection = document.getElementById('whiteboard-container-section');
+            const tldrawContainer = document.getElementById('tldraw-container');
+            const chatPanel = document.getElementById('chat-panel');
             const chatMessages = document.getElementById('chat-messages');
             const chatInput = document.getElementById('chat-input');
             const sendButton = document.getElementById('send-button');
+            const saveChatBtn = document.getElementById('save-chat-btn');
+            const clearChatBtn = document.getElementById('clear-chat-btn');
+            const nextStepBtn = document.getElementById('next-step-btn');
             const toastEl = document.getElementById('toast');
             const toastMessageEl = document.getElementById('toast-message');
-
 
             // --- Global Variables ---
             let currentUser = null;
             let currentProfile = null;
-            let availableTopics = []; // Seznam dostupných témat (např. z plánu)
-            let currentTopic = null; // Aktuálně vybrané téma
-            let chatHistory = []; // Historie chatu pro kontext Gemini
+            let availableTopics = [];
+            let currentTopic = null;
+            let currentSessionId = null; // Unikátní ID pro tuto výukovou session
+            let chatHistory = []; // Jen pro kontext Gemini API, ne pro ukládání
+            let tldrawApp = null; // Instance tldraw
+            let geminiIsThinking = false;
 
             // --- Helper Functions ---
-            function sanitizeHTML(str) {
-                 if (str === null || str === undefined) return '';
-                 const temp = document.createElement('div');
-                 temp.textContent = str;
-                 return temp.innerHTML;
-            }
-
-            function getInitials(profileData, userEmail) {
-                 if (!profileData) return userEmail ? userEmail[0].toUpperCase() : '?';
-                 let initials = '';
-                 if (profileData.first_name) initials += profileData.first_name[0];
-                 if (profileData.last_name) initials += profileData.last_name[0];
-                 if (initials) return initials.toUpperCase();
-                 if (profileData.username) return profileData.username[0].toUpperCase();
-                 if (userEmail) return userEmail[0].toUpperCase();
-                 return '?';
-            }
-
-            function showToast(message, type = 'success', duration = 4000) {
-                 if (!toastEl || !toastMessageEl) return;
-                 toastMessageEl.textContent = message;
-                 const icon = toastEl.querySelector('i');
-                 icon.className = type === 'success' ? 'fas fa-check-circle' : type === 'error' ? 'fas fa-exclamation-circle' : 'fas fa-exclamation-triangle';
-                 toastEl.className = 'toast ' + type;
-                 toastEl.classList.add('show');
-                 setTimeout(() => { toastEl.classList.remove('show'); }, duration);
-            }
-
-             function renderMarkdown(element, markdownText) {
-                 try {
-                     element.innerHTML = marked.parse(markdownText || '');
-                      // Po renderování zkusit spustit MathJax
-                      if (window.MathJax && typeof window.MathJax.typesetPromise === 'function') {
-                          setTimeout(() => {
-                              window.MathJax.typesetPromise([element]).catch(e => console.error("MathJax chyba:", e));
-                          }, 0); // Krátké zpoždění pro jistotu
-                      }
-                 } catch (e) {
-                     console.error("Chyba při renderování Markdown:", e);
-                     element.innerHTML = `<p style="color: red;">Chyba zobrazení obsahu.</p>`;
-                 }
-             }
-
-             // Automatické přizpůsobení výšky textarea
-             function autoResizeTextarea() {
-                 chatInput.style.height = 'auto'; // Reset výšky
-                 chatInput.style.height = chatInput.scrollHeight + 'px'; // Nastaví novou výšku
-             }
+            const sanitizeHTML = (str) => { const temp = document.createElement('div'); temp.textContent = str || ''; return temp.innerHTML; };
+            const getInitials = (profile, email) => { if (!profile) return email ? email[0].toUpperCase() : '?'; let i = (profile.first_name?.[0]||'')+(profile.last_name?.[0]||''); return i.toUpperCase() || profile.username?.[0].toUpperCase() || email?.[0].toUpperCase() || '?'; };
+            const showToast = (message, type = 'success', duration = 4000) => { if (!toastEl || !toastMessageEl) return; toastMessageEl.textContent = message; const icon = toastEl.querySelector('i'); icon.className = type === 'success' ? 'fas fa-check-circle' : type === 'error' ? 'fas fa-exclamation-circle' : 'fas fa-exclamation-triangle'; toastEl.className = 'toast ' + type; toastEl.classList.add('show'); setTimeout(() => toastEl.classList.remove('show'), duration); };
+            const renderMarkdown = (element, markdownText) => { try { element.innerHTML = marked.parse(markdownText || ''); if (window.MathJax) setTimeout(() => window.MathJax.typesetPromise([element]).catch(e=>console.error("MathJax:",e)), 0); } catch (e) { console.error("Markdown:", e); element.innerHTML = `<p style="color: red;">Chyba zobrazení.</p>`; }};
+            const autoResizeTextarea = () => { chatInput.style.height = 'auto'; chatInput.style.height = Math.min(chatInput.scrollHeight, 150) + 'px'; }; // Omezí max výšku
+            const generateSessionId = () => `session_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
+            const formatTimestamp = (date) => date.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' });
 
             // --- Initialization ---
-            async function initializeApp() {
-                if (!supabase) {
-                     showToast("Chyba: Supabase klient není inicializován.", "error");
-                     return;
-                }
+            const initializeApp = async () => {
+                if (!supabase) { showToast("Chyba: Supabase klient není inicializován.", "error"); return; }
                 setupEventListeners();
+                initTooltips();
                 await loadUserProfile();
-                await loadAvailableTopics(); // Načte témata (např. z plánu nebo obecná)
-                // Další inicializace...
-                 initTooltips(); // Inicializace tooltipsteru
-            }
+                await loadAvailableTopics();
+                // Zkusíme načíst poslední session, pokud existuje? Prozatím ne.
+                 initializeTldraw(); // Inicializujeme tldraw hned
+            };
 
-            async function loadUserProfile() {
-                 try {
-                     const { data: { user }, error: userError } = await supabase.auth.getUser();
-                     if (userError) throw userError;
-                     if (user) {
-                          currentUser = user;
-                          const { data: profile, error: profileError } = await supabase.from('profiles').select('*').eq('id', user.id).single();
-                          if (profileError && profileError.code !== 'PGRST116') throw profileError;
-                          currentProfile = profile;
-                          updateUserInfoUI();
-                     } else {
-                          currentUser = null; currentProfile = null;
-                          updateUserInfoUI(); // Zobrazí výchozí stav
-                          showToast("Nejste přihlášen.", "warning");
-                          // Možná přesměrovat na login?
+            const loadUserProfile = async () => { /* ... (stejné jako předtím) ... */ try { const { data: { user }, error: userError } = await supabase.auth.getUser(); if (userError) throw userError; if (user) { currentUser = user; const { data: profile, error: profileError } = await supabase.from('profiles').select('*').eq('id', user.id).single(); if (profileError && profileError.code !== 'PGRST116') throw profileError; currentProfile = profile; updateUserInfoUI(); } else { currentUser = null; currentProfile = null; updateUserInfoUI(); showToast("Nejste přihlášen.", "warning"); } } catch (error) { console.error('Chyba profilu:', error); showToast("Chyba načítání profilu.", "error"); currentUser = null; currentProfile = null; updateUserInfoUI(); } };
+            const updateUserInfoUI = () => { /* ... (stejné jako předtím) ... */ const email = currentUser?.email; const displayName = `${currentProfile?.first_name || ''} ${currentProfile?.last_name || ''}`.trim() || currentProfile?.username || email?.split('@')[0] || 'Student'; if(userName) userName.textContent = displayName; if(userAvatar) { if (currentProfile?.avatar_url) userAvatar.innerHTML = `<img src="${currentProfile.avatar_url}" alt="${displayName}" />`; else userAvatar.textContent = getInitials(currentProfile, email); }};
+            const setupEventListeners = () => { /* ... (sidebar, mobile menu - stejné) ... */ if (mobileMenuToggle) mobileMenuToggle.addEventListener('click', () => { sidebar?.classList.toggle('active'); sidebarOverlay?.classList.toggle('active'); }); if (sidebarOverlay) sidebarOverlay.addEventListener('click', () => { sidebar?.classList.remove('active'); sidebarOverlay?.classList.remove('active'); }); window.addEventListener('resize', () => { if (window.innerWidth > 576 && sidebar?.classList.contains('active')) { sidebar.classList.remove('active'); sidebarOverlay?.classList.remove('active'); } }); if (topicSelect) topicSelect.addEventListener('change', () => { startLearningBtn.disabled = !topicSelect.value; }); if (startLearningBtn) startLearningBtn.addEventListener('click', startLearningSession); if (sendButton) sendButton.addEventListener('click', handleSendMessage); if (chatInput) { chatInput.addEventListener('keypress', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(); } }); chatInput.addEventListener('input', autoResizeTextarea); } if (saveChatBtn) saveChatBtn.addEventListener('click', saveChatToPDF); if (clearChatBtn) clearChatBtn.addEventListener('click', confirmClearChat); if (nextStepBtn) nextStepBtn.addEventListener('click', requestNextStep); };
+            const initTooltips = () => { try { if (window.$ && $.fn.tooltipster) { $('.btn-tooltip:not(.tooltipstered)').tooltipster({ theme: 'tooltipster-shadow', animation: 'fade', delay: 100, side: ['top', 'bottom'] }); console.log("Tooltips initialized."); } else console.warn("Tooltipster/jQuery not ready."); } catch (e) { console.error("Tooltipster error:", e); } };
+
+             const initializeTldraw = () => {
+                if (typeof tldraw !== 'undefined' && tldraw.Tldraw && tldrawContainer) {
+                     try {
+                        console.log("Initializing tldraw...");
+                        tldrawApp = new tldraw.Tldraw({
+                             container: tldrawContainer,
+                             showUI: true, // Zobrazí standardní UI tldraw
+                             readOnly: false // Umožní uživateli kreslit
+                         });
+                         console.log("tldraw initialized:", tldrawApp);
+                         whiteboardContainerSection.style.display = 'flex'; // Zobrazíme sekci s došku
+                     } catch (error) {
+                          console.error("Failed to initialize tldraw:", error);
+                          tldrawContainer.innerHTML = "<p style='padding: 1rem; color: red;'>Chyba inicializace interaktivní došky.</p>";
+                          whiteboardContainerSection.style.display = 'flex'; // Zobrazíme i s chybou
                      }
-                 } catch (error) {
-                      console.error('Chyba při načítání profilu:', error);
-                      showToast("Chyba načítání profilu.", "error");
-                      currentUser = null; currentProfile = null;
-                      updateUserInfoUI();
+                 } else {
+                     console.warn("tldraw library or container not found.");
+                      whiteboardContainerSection.style.display = 'flex'; // Zobrazíme sekci
+                      tldrawContainer.innerHTML = "<p style='padding: 1rem; color: orange;'>Interaktivní doška není dostupná.</p>";
                  }
-            }
-
-            function updateUserInfoUI() {
-                 const email = currentUser?.email;
-                 const displayName = `${currentProfile?.first_name || ''} ${currentProfile?.last_name || ''}`.trim() || currentProfile?.username || email?.split('@')[0] || 'Student';
-                 if(userName) userName.textContent = displayName;
-                 if(userAvatar) {
-                      if (currentProfile?.avatar_url) {
-                           userAvatar.innerHTML = `<img src="${currentProfile.avatar_url}" alt="${displayName}" />`;
-                      } else {
-                           userAvatar.textContent = getInitials(currentProfile, email);
-                      }
-                 }
-            }
-
-             function setupEventListeners() {
-                 if (mobileMenuToggle) {
-                     mobileMenuToggle.addEventListener('click', () => {
-                          sidebar?.classList.toggle('active');
-                          sidebarOverlay?.classList.toggle('active');
-                     });
-                 }
-                 if (sidebarOverlay) {
-                      sidebarOverlay.addEventListener('click', () => {
-                           sidebar?.classList.remove('active');
-                           sidebarOverlay?.classList.remove('active');
-                      });
-                 }
-                  window.addEventListener('resize', () => {
-                       if (window.innerWidth > 576 && sidebar?.classList.contains('active')) {
-                            sidebar.classList.remove('active');
-                            sidebarOverlay?.classList.remove('active');
-                       }
-                  });
-
-                 if (topicSelect) {
-                     topicSelect.addEventListener('change', () => {
-                          startLearningBtn.disabled = !topicSelect.value;
-                     });
-                 }
-
-                 if (startLearningBtn) {
-                     startLearningBtn.addEventListener('click', startLearningSession);
-                 }
-
-                 if (sendButton) {
-                     sendButton.addEventListener('click', handleSendMessage);
-                 }
-
-                 if (chatInput) {
-                     chatInput.addEventListener('keypress', (e) => {
-                          if (e.key === 'Enter' && !e.shiftKey) {
-                               e.preventDefault(); // Zabrání výchozímu Enteru (nový řádek)
-                               handleSendMessage();
-                          }
-                     });
-                      // Přidání listeneru pro automatickou změnu velikosti
-                      chatInput.addEventListener('input', autoResizeTextarea);
-                 }
-            }
-
-            function initTooltips() {
-                 try {
-                      if (typeof window.$ !== 'undefined' && window.$.fn.tooltipster) {
-                           // Inicializace na existujících elementech (pokud nějaké jsou)
-                           // window.$('.btn-tooltip:not(.tooltipstered)').tooltipster({...});
-                           console.log("Tooltipster připraven (nejsou zde specifické tooltips).");
-                      } else {
-                           console.warn("Tooltipster nebo jQuery nejsou dostupné.");
-                      }
-                 } catch (e) {
-                      console.error("Chyba inicializace Tooltipster:", e);
-                 }
-            }
+             };
 
             // --- Topic Loading and Selection ---
-            async function loadAvailableTopics() {
-                 // TOTO JE ZJEDNODUŠENÍ - V REÁLNÉ APLIKACI BY SE TÉMATA NAČETLA
-                 // Z DATABÁZE (např. z tabulky study_plans nebo plan_activities)
-                 availableTopics = [
-                      { id: 'rovnice', name: 'Lineární rovnice' },
-                      { id: 'zlomky', name: 'Zlomky' },
-                      { id: 'procenta', name: 'Procenta' },
-                      { id: 'geometrie_obvod', name: 'Geometrie - Obvody a obsahy' },
-                      { id: 'vyrazy', name: 'Algebraické výrazy' }
-                 ];
+            const loadAvailableTopics = async () => { /* ... (stejné jako předtím, ale přidáme "empty state") ... */ availableTopics = [ { id: 'rovnice', name: 'Lineární rovnice' }, { id: 'zlomky', name: 'Zlomky' }, { id: 'procenta', name: 'Procenta' }, { id: 'geometrie_obvod', name: 'Geometrie - Obvody a obsahy' }, { id: 'vyrazy', name: 'Algebraické výrazy' } ]; if (topicSelect) { topicSelect.innerHTML = '<option value="" disabled selected>Vyberte téma...</option>'; availableTopics.forEach(topic => { const option = document.createElement('option'); option.value = topic.id; option.textContent = topic.name; topicSelect.appendChild(option); }); } else { console.error("Topic select element not found"); } };
 
-                 if (topicSelect) {
-                     topicSelect.innerHTML = '<option value="" disabled selected>Vyberte téma...</option>'; // Reset
-                     availableTopics.forEach(topic => {
-                          const option = document.createElement('option');
-                          option.value = topic.id;
-                          option.textContent = topic.name;
-                          topicSelect.appendChild(option);
-                     });
+            const startLearningSession = async () => {
+                const selectedTopicId = topicSelect.value;
+                if (!selectedTopicId || !currentUser) { showToast(!currentUser ? "Prosím, přihlaste se." : "Nejprve vyberte téma.", "warning"); return; }
+                currentTopic = availableTopics.find(t => t.id === selectedTopicId);
+                if (!currentTopic) { showToast("Vybrané téma nebylo nalezeno.", "error"); return; }
+
+                currentSessionId = generateSessionId(); // Nová session pro každé spuštění
+                console.log(`Starting session ${currentSessionId} for topic: ${currentTopic.name}`);
+                showToast(`Začínáme s tématem: ${currentTopic.name}`, "success");
+
+                // Zobrazí relevantní UI elementy
+                explanationContainer.style.display = 'block';
+                whiteboardContainerSection.style.display = 'flex'; // Doška je teď flex kontejner
+                chatPanel.style.display = 'flex'; // Zobrazí celý pravý panel
+
+                explanationTitle.innerHTML = `<i class="fas fa-chalkboard-teacher"></i> Vysvětlení: ${sanitizeHTML(currentTopic.name)}`;
+                explanationContent.innerHTML = '<div class="loading">Požaduji úvodní vysvětlení od AI...</div>';
+                nextStepBtn.style.display = 'none'; // Skryjeme tlačítko "další krok" na začátku
+
+                // Vyčistí chat a historii
+                chatMessages.innerHTML = '';
+                chatHistory = [];
+                addChatMessage(`Ahoj! Jsem připravený ti pomoct s tématem: **${sanitizeHTML(currentTopic.name)}**. Začneme se základy. Řekni **"pokračuj"** nebo polož otázku.`, 'gemini', true); // Uložíme i první zprávu
+
+                // Reset tldraw (pokud existuje instance)
+                 if (tldrawApp && typeof tldrawApp.resetDocument === 'function') {
+                      tldrawApp.resetDocument();
+                      console.log("tldraw document reset.");
+                 } else if (tldrawApp && typeof tldrawApp.replacePageContent === 'function') {
+                     // Starší API?
+                     tldrawApp.replacePageContent({}, {});
+                     console.log("tldraw content cleared (using replacePageContent).");
+                 } else {
+                     console.warn("Cannot reset tldraw document automatically.");
                  }
-            }
-
-            async function startLearningSession() {
-                 const selectedTopicId = topicSelect.value;
-                 if (!selectedTopicId) {
-                      showToast("Nejprve vyberte téma.", "warning");
-                      return;
-                 }
-
-                 currentTopic = availableTopics.find(t => t.id === selectedTopicId);
-                 if (!currentTopic) {
-                      showToast("Vybrané téma nebylo nalezeno.", "error");
-                      return;
-                 }
-
-                 console.log(`Zahajuji výuku tématu: ${currentTopic.name}`);
-                 showToast(`Začínáme s tématem: ${currentTopic.name}`, "success");
-
-                 // Zobrazí výukovou a chatovací oblast
-                 learningArea.style.display = 'flex'; // Používáme flex pro layout
-                 chatContainer.style.display = 'flex';
-
-                 // Nastaví tituly
-                 explanationTitle.innerHTML = `<i class="fas fa-chalkboard-teacher"></i> Vysvětlení: ${currentTopic.name}`;
-                 whiteboardTitle.innerHTML = `<i class="fas fa-pencil-ruler"></i> "Bílá doška": ${currentTopic.name}`;
-
-                 // Vyčistí předchozí obsah
-                 explanationContent.innerHTML = '<div class="loading">Generuji základní vysvětlení...</div>';
-                 whiteboardContent.innerHTML = '<div class="empty-state"><i class="fas fa-hourglass-half"></i><p>Čekám na obsah od Gemini...</p></div>';
-                 chatMessages.innerHTML = ''; // Vyčistíme chat
-                  addChatMessage('Ahoj! Jsem připraven ti pomoct s tématem: ' + currentTopic.name + '. Co tě zajímá jako první?', 'gemini');
-                 chatHistory = []; // Reset historie chatu pro nové téma
 
 
-                 // Pošle první požadavek Gemini pro základní vysvětlení
-                 await sendToGemini(`Vysvětli mi ZÁKLADY tématu "${currentTopic.name}" pro studenta 9. třídy ZŠ v Česku, který se připravuje na přijímačky. Zaměř se na klíčové pojmy a první kroky.`, 'explanation');
-            }
+                // Požadavek na první krok od Gemini
+                 updateGeminiThinkingState(true);
+                await sendToGemini(`Začni vysvětlovat ZÁKLADY tématu "${currentTopic.name}" pro 9. třídu ZŠ (přijímačky CERMAT). Rozděl to na malé kroky. Toto je PRVNÍ KROK.`, 'explanation');
+                 updateGeminiThinkingState(false);
+                 nextStepBtn.style.display = 'inline-flex'; // Zobrazíme tlačítko po prvním kroku
+            };
+
+            const requestNextStep = async () => {
+                 if (!currentTopic || geminiIsThinking) return;
+                 console.log("Requesting next step from Gemini...");
+                 nextStepBtn.disabled = true;
+                 nextStepBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Načítám...';
+                 updateGeminiThinkingState(true);
+
+                 // Zpráva pro Gemini, aby pokračoval
+                 const prompt = `Pokračuj ve vysvětlování tématu "${currentTopic.name}". Co následuje po předchozím kroku? Vysvětluj stručně a krok za krokem.`;
+
+                 // Přidáme info do chatu, že žádáme další krok
+                 addChatMessage("Pokračuj prosím / Další krok.", 'user', true); // Uložíme i tento "pseudo" požadavek
+
+                 await sendToGemini(prompt, 'explanation'); // Odpověď půjde do vysvětlení
+
+                 updateGeminiThinkingState(false);
+                 nextStepBtn.disabled = false;
+                 nextStepBtn.innerHTML = '<i class="fas fa-forward"></i> Pokračovat / Další krok';
+            };
+
 
             // --- Chat Functionality ---
-            function addChatMessage(message, sender) {
+            const addChatMessage = async (message, sender, saveToDb = false, timestamp = new Date()) => {
+                 const messageId = `msg_${Date.now()}_${Math.random().toString(16).slice(2)}`;
                  const messageDiv = document.createElement('div');
                  messageDiv.classList.add('chat-message', sender);
+                 messageDiv.id = messageId;
 
                  const avatarDiv = document.createElement('div');
                  avatarDiv.classList.add('message-avatar');
-                 avatarDiv.innerHTML = sender === 'user' ? getInitials(currentProfile, currentUser?.email) : '<i class="fas fa-robot"></i>';
+                 avatarDiv.innerHTML = sender === 'user' ? sanitizeHTML(getInitials(currentProfile, currentUser?.email)) : '<i class="fas fa-robot"></i>';
 
                  const bubbleDiv = document.createElement('div');
                  bubbleDiv.classList.add('message-bubble');
-                 // Použijeme renderMarkdown pro zobrazení zprávy (podpora Markdownu v chatu)
-                 renderMarkdown(bubbleDiv, message);
+                 renderMarkdown(bubbleDiv, message); // Použijeme Markdown render
+
+                 // Přidáme časové razítko
+                 const timeDiv = document.createElement('div');
+                 timeDiv.classList.add('message-timestamp');
+                 timeDiv.textContent = formatTimestamp(timestamp);
 
                  messageDiv.appendChild(avatarDiv);
                  messageDiv.appendChild(bubbleDiv);
+                 bubbleDiv.appendChild(timeDiv); // Čas pod bublinu
                  chatMessages.appendChild(messageDiv);
-
-                 // Automatické skrolování dolů
                  chatMessages.scrollTop = chatMessages.scrollHeight;
-            }
 
-            async function handleSendMessage() {
+                 // Uložení do DB (pokud je požadováno a možné)
+                 if (saveToDb && supabase && currentUser && currentSessionId && currentTopic) {
+                      try {
+                           const { error } = await supabase.from('chat_history').insert({
+                                user_id: currentUser.id,
+                                session_id: currentSessionId,
+                                topic_id: currentTopic.id,
+                                topic_name: currentTopic.name,
+                                role: sender === 'user' ? 'user' : 'model',
+                                content: message, // Ukládáme původní Markdown text
+                                created_at: timestamp.toISOString()
+                           });
+                           if (error) throw error;
+                           console.log(`Message saved to DB (Session: ${currentSessionId}, Sender: ${sender})`);
+                      } catch (dbError) {
+                           console.error("DB save error:", dbError);
+                           showToast("Chyba ukládání zprávy do historie.", "error");
+                           // Můžeme přidat vizuální indikátor chyby k zprávě?
+                            const errorIndicator = document.createElement('i');
+                            errorIndicator.className = 'fas fa-exclamation-circle';
+                            errorIndicator.style.color = 'var(--danger)';
+                            errorIndicator.style.fontSize = '0.8em';
+                            errorIndicator.style.marginLeft = '5px';
+                            errorIndicator.title = `Chyba DB: ${dbError.message}`;
+                            bubbleDiv.appendChild(errorIndicator);
+                      }
+                 }
+                 return messageId; // Vrátíme ID pro případnou aktualizaci (např. pro thinking indicator)
+            };
+
+            const updateGeminiThinkingState = (isThinking) => {
+                geminiIsThinking = isThinking;
+                sendButton.disabled = isThinking; // Deaktivuje i send button
+                 nextStepBtn.disabled = isThinking; // A next step button
+
+                if (isThinking) {
+                    // Přidáme "..." indikátor do chatu
+                     addThinkingIndicator();
+                     sendButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                 } else {
+                     // Odebereme "..." indikátor
+                     removeThinkingIndicator();
+                     sendButton.innerHTML = '<i class="fas fa-paper-plane"></i>';
+                     nextStepBtn.innerHTML = '<i class="fas fa-forward"></i> Pokračovat / Další krok';
+                 }
+            };
+
+             let thinkingIndicatorId = null;
+            const addThinkingIndicator = () => {
+                removeThinkingIndicator(); // Odstraní předchozí, pokud existuje
+                 const indicatorDiv = document.createElement('div');
+                 thinkingIndicatorId = `thinking_${Date.now()}`;
+                 indicatorDiv.id = thinkingIndicatorId;
+                 indicatorDiv.classList.add('chat-message', 'gemini');
+                 indicatorDiv.innerHTML = `
+                      <div class="message-avatar"><i class="fas fa-robot"></i></div>
+                      <div class="message-bubble message-thinking-indicator">
+                           <div class="typing-dot"></div>
+                           <div class="typing-dot"></div>
+                           <div class="typing-dot"></div>
+                      </div>
+                 `;
+                 chatMessages.appendChild(indicatorDiv);
+                 chatMessages.scrollTop = chatMessages.scrollHeight;
+            };
+            const removeThinkingIndicator = () => {
+                 if (thinkingIndicatorId) {
+                      const indicator = document.getElementById(thinkingIndicatorId);
+                      if (indicator) indicator.remove();
+                      thinkingIndicatorId = null;
+                 }
+            };
+
+
+            const handleSendMessage = async () => {
                 const messageText = chatInput.value.trim();
-                if (!messageText || !currentTopic) {
-                    if (!currentTopic) showToast("Nejprve vyberte téma.", "warning");
-                    return; // Neodesílat prázdnou zprávu nebo pokud není téma
-                }
+                if (!messageText || !currentTopic || geminiIsThinking) return;
 
-                // Přidá zprávu uživatele do chatu
-                addChatMessage(messageText, 'user');
-                chatInput.value = ''; // Vyčistí vstupní pole
-                 autoResizeTextarea(); // Resetne výšku inputu
+                const timestamp = new Date();
+                await addChatMessage(messageText, 'user', true, timestamp); // Uložíme zprávu uživatele
+                chatHistory.push({ role: "user", parts: [{ text: messageText }] });
+                chatInput.value = '';
+                autoResizeTextarea();
+                updateGeminiThinkingState(true);
+                 nextStepBtn.style.display = 'inline-flex'; // Zajistíme viditelnost tlačítka po odeslání zprávy
 
-                 // Přidá uživatelskou zprávu do historie pro kontext
-                 chatHistory.push({ role: "user", parts: [{ text: messageText }] });
+                await sendToGemini(messageText, 'chat'); // Odpověď z chatu půjde do chatu
 
-                // Deaktivuje tlačítko odeslání
-                sendButton.disabled = true;
-                 sendButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                 updateGeminiThinkingState(false);
+            };
 
-                // Pošle zprávu Gemini a čeká na odpověď
-                await sendToGemini(messageText, 'chat');
+             const confirmClearChat = () => {
+                  if (!currentSessionId || !currentUser) {
+                       showToast("Nelze vymazat chat bez aktivní session.", "warning");
+                       return;
+                  }
+                  if (confirm("Opravdu chcete vymazat celou historii tohoto chatu? Tato akce je nevratná.")) {
+                       clearChatHistory();
+                  }
+             };
 
-                // Znovu aktivuje tlačítko
-                 sendButton.disabled = false;
-                 sendButton.innerHTML = 'Odeslat <i class="fas fa-paper-plane"></i>';
-            }
-
-
-             // --- Gemini Interaction ---
-            async function sendToGemini(promptText, targetArea) {
-                 if (!GEMINI_API_KEY || GEMINI_API_KEY.startsWith('YOUR_')) {
-                      showToast("Chyba: Není nastaven Gemini API klíč.", "error");
-                      handleGeminiError("Chybí API klíč.", targetArea);
+             const clearChatHistory = async () => {
+                 if (!currentSessionId || !currentUser || !supabase) {
+                      showToast("Chyba: Nelze smazat historii.", "error");
                       return;
                  }
-                 if (!currentTopic) {
-                     showToast("Chyba: Není vybráno téma.", "error");
-                     handleGeminiError("Není vybráno téma.", targetArea);
-                     return;
+                 console.log(`Clearing chat history for session: ${currentSessionId}`);
+                 clearChatBtn.disabled = true; // Deaktivovat během mazání
+
+                 try {
+                      // 1. Smazat z databáze
+                      const { error: deleteError } = await supabase
+                           .from('chat_history')
+                           .delete()
+                           .eq('user_id', currentUser.id)
+                           .eq('session_id', currentSessionId);
+                      if (deleteError) throw deleteError;
+
+                      // 2. Vyčistit UI
+                      chatMessages.innerHTML = '';
+
+                      // 3. Resetovat lokální historii (pokud ji používáme pro kontext)
+                      chatHistory = [];
+
+                      // 4. Přidat úvodní zprávu zpět
+                      addChatMessage(`Historie chatu byla vymazána. Můžeme začít znovu s tématem **${sanitizeHTML(currentTopic?.name || 'aktuálním tématem')}**.`, 'gemini', false); // Tuto zprávu neukládáme
+
+                      showToast("Historie chatu byla úspěšně vymazána.", "success");
+
+                 } catch (error) {
+                      console.error("Chyba při mazání historie chatu:", error);
+                      showToast("Nepodařilo se vymazat historii chatu.", "error");
+                 } finally {
+                     clearChatBtn.disabled = false; // Znovu aktivovat
+                 }
+             };
+
+             const saveChatToPDF = () => {
+                 if (!chatMessages || chatMessages.children.length === 0) {
+                      showToast("Není co ukládat.", "warning");
+                      return;
                  }
 
+                 const originalTitle = document.title;
+                 const topicNameSafe = currentTopic ? currentTopic.name.replace(/[^a-z0-9]/gi, '_').toLowerCase() : 'chat';
+                 const filename = `justax_chat_${topicNameSafe}_${new Date().toISOString().split('T')[0]}.pdf`;
+
+                 // Vytvoříme klon pro PDF, abychom neovlivnili aktuální stránku
+                 const contentToExport = chatMessages.cloneNode(true);
+
+                 // Přidáme jednoduchý titulek do exportu
+                 const titleElement = document.createElement('h2');
+                 titleElement.style.textAlign = 'center';
+                 titleElement.style.marginBottom = '20px';
+                 titleElement.style.fontFamily = 'Poppins, sans-serif';
+                 titleElement.textContent = `Historie chatu - ${currentTopic ? currentTopic.name : 'Výuka'}`;
+                 contentToExport.insertBefore(titleElement, contentToExport.firstChild);
+
+                 // Přidáme styly pro PDF export (volitelné, ale zlepšuje vzhled)
+                 const styles = `
+                      <style>
+                           body { font-family: 'Poppins', sans-serif; font-size: 10pt; }
+                           .chat-message { margin-bottom: 10px; display: flex; gap: 8px; max-width: 90%; align-items: flex-start; }
+                           .chat-message.user { margin-left: 10%; flex-direction: row-reverse; }
+                           .message-avatar { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.8em; flex-shrink: 0; background-color: #eee; color: #555; }
+                           .chat-message.user .message-avatar { background-color: #06d6a0; color: white; }
+                           .chat-message.gemini .message-avatar { background-color: #4361ee; color: white; }
+                           .message-bubble { padding: 8px 12px; border-radius: 12px; background-color: #f0f2f5; line-height: 1.4; word-wrap: break-word; border: 1px solid #eee; }
+                           .chat-message.user .message-bubble { background-color: #4361ee; color: white; border: none; }
+                           .message-timestamp { font-size: 0.7em; color: #888; margin-top: 3px; display: block; text-align: right; }
+                           .chat-message.gemini .message-timestamp { text-align: left; }
+                           i { font-family: 'Font Awesome 6 Free'!important; font-weight: 900; } /* Zajistí ikony, pokud je font dostupný */
+                           code { background-color: rgba(0,0,0,0.05); padding: 1px 4px; border-radius: 3px; font-family: monospace; }
+                           .chat-message.user code { background-color: rgba(255,255,255,0.2); }
+                      </style>
+                 `;
+                 const head = document.createElement('head');
+                 head.innerHTML = styles;
+                 // Vytvoříme dočasný div pro export
+                 const exportWrapper = document.createElement('div');
+                 exportWrapper.appendChild(head);
+                 exportWrapper.appendChild(contentToExport);
+
+
+                 document.title = filename; // Změní titulek stránky pro název PDF
+                 showToast("Generuji PDF...", "info");
+
+                 html2pdf().from(exportWrapper).set({
+                      margin: [15, 15, 15, 15],
+                      filename: filename,
+                      image: { type: 'jpeg', quality: 0.95 },
+                      html2canvas: { scale: 2, useCORS: true, letterRendering: true },
+                      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                 }).save().then(() => {
+                      showToast("PDF bylo úspěšně uloženo.", "success");
+                      document.title = originalTitle; // Vrátí původní titulek
+                 }).catch(err => {
+                      showToast("Nepodařilo se vygenerovat PDF.", "error");
+                      console.error("PDF export error:", err);
+                      document.title = originalTitle;
+                 });
+            };
+
+
+            // --- Gemini Interaction ---
+            const sendToGemini = async (promptText, targetArea) => {
+                 if (!GEMINI_API_KEY || GEMINI_API_KEY.startsWith('YOUR_')) { showToast("Chyba: Chybí API klíč.", "error"); handleGeminiError("Chybí API klíč.", targetArea); return; }
+                 if (!currentTopic) { showToast("Chyba: Není vybráno téma.", "error"); handleGeminiError("Není vybráno téma.", targetArea); return; }
+
                  console.log(`Posílám Gemini (cíl: ${targetArea}): "${promptText}"`);
+                 const timestamp = new Date(); // Čas odeslání
 
-                 // Připravíme kontext chatu pro Gemini
-                 // Začneme systémovou instrukcí a přidáme historii
-                 const systemInstruction = {
-                     role: "system", // Použití role "system" nebo jako první "user" zpráva
-                     parts: [{ text: `Jsi AI Tutor specializující se na matematiku pro 9. třídu ZŠ v ČR (přijímačky CERMAT). Vyučuješ téma: "${currentTopic.name}". Vysvětluj trpělivě, krok za krokem. Používej Markdown pro formátování a MathJax pro matematické výrazy (např. $$x^2$$ pro blokové a \\(ax+b\\) pro inline). Pokud máš ukázat postup řešení příkladu, dej ho do bloku označeného jako "whiteboard-target" na začátku a na konci.` }]
-                 };
+                 // --- Vylepšený Prompt pro Gemini ---
+                 const systemInstructionText = `Jsi AI Tutor "Justax", expert na matematiku pro 9. třídu ZŠ v ČR (přijímačky CERMAT). Vyučuješ téma: "${currentTopic.name}". Tvůj styl je jako PŘÁTELSKÝ, TRPĚLIVÝ a PODROBNÝ UČITEL. Vysvětluj krok za krokem, používej příklady. Důsledně používej Markdown pro formátování (nadpisy **, seznamy *, tučně **, kurzívu *) a MathJax syntax pro matematiku (blokové: $$...$$, inline: \\(...\\)). Odpovídej VŽDY ČESKY.
 
-                // Zkonstruujeme obsah pro API request
-                // Gemini API preferuje střídání user/model rolí.
-                const requestContents = [
-                    // Začneme naší systémovou instrukcí jako první "uživatelská" zpráva pro model,
-                    // nebo ji zkombinujeme s prvním skutečným promptem.
-                    { role: "user", parts: [{ text: `${systemInstruction.parts[0].text}\n\nMůj požadavek: ${promptText}` }] }
-                    // Zde by se přidala předchozí relevantní historie chatu, pokud by byla
-                    // ... chatHistory.map(msg => ({ role: msg.role === 'user' ? 'user' : 'model', parts: msg.parts })) ...
-                    // Pro jednoduchost zde historii zatím nepřidáváme explicitně do API callu,
-                    // ale spoléháme na kontext v rámci jedné session (Gemini by si to měl pamatovat do určité míry).
-                    // V produkční verzi by bylo robustnější posílat historii.
-                ];
+                 DŮLEŽITÉ POKYNY PRO VÝUKU:
+                 1.  **KROK ZA KROKEM:** Nepokrývej příliš mnoho informací najednou. Zaměř se na jeden koncept nebo krok postupu v jedné odpovědi. Počkej na reakci studenta ("pokračuj", otázka) než přejdeš dál.
+                 2.  **INTERAKTIVITA:** Aktivně zapojuj studenta. Pokládej otázky ("Co si myslíš, jaký bude další krok?", "Chápeš tento pojem?", "Chceš vidět další příklad?").
+                 3.  **"BÍLÁ DOŠKA":** Pokud potřebuješ ukázat detailní postup řešení PŘÍKLADU nebo odvození vzorce, který vyžaduje více kroků, označ TENTO specifický blok textu na začátku ` + "```whiteboard-target" + ` a na konci ` + "```whiteboard-target" + `. V tomto bloku piš jasně jednotlivé kroky. Ostatní vysvětlení piš normálně. NEPOUŽÍVEJ tyto značky pro běžné vysvětlení teorie nebo jednoduché příklady.
+                 4.  **DÉLKA ODPOVĚDI:** Drž odpovědi relativně stručné a zaměřené na jeden krok/myšlenku, aby se student neztratil. Cílem je simulovat přirozený dialog a postupný výklad, ne vygenerovat esej.
+                 5.  **REAKCE NA VSTUP:** Pečlivě čti poslední zprávu uživatele a reaguj na ni. Pokud nerozumíš, požádej o upřesnění. Pokud uživatel řekne "pokračuj" nebo "další krok", vysvětli následující logický krok tématu.`;
+
+                 // Kontext chatu (posledních pár zpráv pro Gemini)
+                 // Gemini Flash model nemá tak velký kontext, omezíme historii
+                 const historyLimit = 4; // Počet posledních zpráv (user + model)
+                 const recentHistory = chatHistory.slice(-historyLimit);
+
+                 const requestContents = [
+                    // První zpráva s instrukcí a aktuálním promptem
+                    { role: "user", parts: [{ text: `${systemInstructionText}\n\n**Kontext předchozího rozhovoru (pokud existuje):**\n${recentHistory.map(m => `${m.role === 'user' ? 'Student' : 'Tutor'}: ${m.parts[0].text}`).join('\n')}\n\n**Aktuální požadavek studenta:**\n${promptText}` }] }
+                 ];
 
                  try {
                       const response = await fetch(GEMINI_API_URL, {
@@ -919,94 +739,109 @@
                            headers: { 'Content-Type': 'application/json' },
                            body: JSON.stringify({
                                 contents: requestContents,
-                                generationConfig: {
-                                     temperature: 0.6, // Trochu kreativity, ale držet se tématu
-                                     topP: 0.95,
-                                     topK: 40,
-                                     maxOutputTokens: 4096,
-                                },
-                                safetySettings: [ // Uvolnění pro matematiku
-                                    { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
-                                    { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
-                                    { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
-                                    { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" },
-                                ]
+                                generationConfig: { temperature: 0.5, topP: 0.95, topK: 40, maxOutputTokens: 4096 },
+                                safetySettings: [ { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" }, { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" }, { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" }, { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" } ]
                            })
                       });
 
-                      if (!response.ok) {
-                           const errorBody = await response.json();
-                           console.error("Chyba Gemini API:", response.status, errorBody);
-                           const message = errorBody.error?.message || `Chyba API (${response.status})`;
-                           throw new Error(message);
-                      }
-
+                      if (!response.ok) { const errorBody = await response.json(); throw new Error(errorBody.error?.message || `Chyba API (${response.status})`); }
                       const data = await response.json();
-                       console.log("Gemini response data:", data);
-
-                      if (!data.candidates || !data.candidates[0]?.content?.parts[0]?.text) {
-                            throw new Error('Neplatná odpověď od Gemini API.');
-                      }
+                      if (!data.candidates || !data.candidates[0]?.content?.parts[0]?.text) throw new Error('Neplatná odpověď od Gemini.');
 
                       const geminiResponseText = data.candidates[0].content.parts[0].text;
+                      chatHistory.push({ role: "model", parts: [{ text: geminiResponseText }] }); // Uložíme do lokální historie pro kontext
 
-                       // Přidáme odpověď modelu do historie pro budoucí kontext
-                       chatHistory.push({ role: "model", parts: [{ text: geminiResponseText }] });
-
-                      // Zpracujeme odpověď a zobrazíme ji ve správné oblasti
-                      processGeminiResponse(geminiResponseText, targetArea);
+                      processGeminiResponse(geminiResponseText, targetArea, timestamp); // Předáme i čas pro DB
 
                  } catch (error) {
                       console.error('Chyba komunikace s Gemini:', error);
                       showToast(`Chyba AI: ${error.message}`, "error");
-                      handleGeminiError(`Chyba komunikace s AI: ${error.message}`, targetArea);
+                      handleGeminiError(`Chyba komunikace s AI: ${error.message}`, targetArea, timestamp);
                  }
-            }
+            };
 
-            function processGeminiResponse(responseText, targetArea) {
-                 // Zkontrolujeme, zda odpověď obsahuje speciální blok pro "došku"
-                 const whiteboardRegex = /whiteboard-target([\s\S]*?)whiteboard-target/g; // Non-greedy match
-                 const whiteboardMatch = whiteboardRegex.exec(responseText);
+             // Rozšířená funkce pro zpracování odpovědi Gemini
+             const processGeminiResponse = (responseText, targetArea, timestamp) => {
+                 removeThinkingIndicator(); // Odstraníme indikátor přemýšlení
 
+                 const whiteboardRegex = /```whiteboard-target([\s\S]*?)```whiteboard-target/g;
                  let mainExplanationText = responseText;
-                 let whiteboardText = null;
+                 let whiteboardContentFound = false;
 
-                 if (whiteboardMatch && whiteboardMatch[1]) {
-                      whiteboardText = whiteboardMatch[1].trim();
-                      // Odstraníme whiteboard blok z hlavní odpovědi
-                      mainExplanationText = responseText.replace(whiteboardRegex, '').trim();
-                      console.log("Whiteboard content extracted:", whiteboardText);
-                     // Zobrazíme obsah na "došce"
-                     renderMarkdown(whiteboardContent, whiteboardText);
+                 // Zpracujeme VŠECHNY whiteboard bloky, pokud jich je více
+                  let combinedWhiteboardHtml = "";
+                  let match;
+                  while ((match = whiteboardRegex.exec(responseText)) !== null) {
+                       const whiteboardText = match[1].trim();
+                       if (whiteboardText) {
+                            whiteboardContentFound = true;
+                            // Vytvoříme dočasný div pro renderování a přidáme ho
+                            const tempDiv = document.createElement('div');
+                             renderMarkdown(tempDiv, whiteboardText); // Renderujeme jako Markdown
+                             combinedWhiteboardHtml += tempDiv.innerHTML + "<hr style='border-style: dashed; margin: 1rem 0;'>"; // Oddělíme bloky
+                             console.log("Whiteboard content block processed.");
+                       }
+                       // Odstraníme zpracovaný blok z hlavního textu
+                       mainExplanationText = mainExplanationText.replace(match[0], '').trim();
+                  }
+
+                 if (whiteboardContentFound && whiteboardContent) {
+                     // Pokud byl nalezen obsah pro došku, zobrazíme ho
+                     whiteboardContent.innerHTML = combinedWhiteboardHtml.slice(0, -combinedWhiteboardHtml.lastIndexOf("<hr")); // Odstraní poslední <hr>
+                     // Zkusíme znovu aplikovat MathJax po vložení
+                     if (window.MathJax) setTimeout(() => window.MathJax.typesetPromise([whiteboardContent]).catch(e=>console.error("MathJax WB:",e)), 0);
+                 } else if (targetArea !== 'chat' && !whiteboardContentFound && whiteboardContent) {
+                     // Pokud nebyl whiteboard obsah a cílem nebylo jen chat, můžeme zobrazit placeholder
+                      // whiteboardContent.innerHTML = '<div class="empty-state"><i class="fas fa-info-circle"></i><p>Pro tento krok není specifický obsah pro došku.</p></div>';
                  }
 
-                 // Zobrazíme zbytek odpovědi (nebo celou, pokud nebyl whiteboard blok)
+
+                 // Zobrazíme hlavní text ve správné oblasti
                  if (targetArea === 'explanation') {
-                     renderMarkdown(explanationContent, mainExplanationText);
+                      const stepDiv = document.createElement('div');
+                      stepDiv.className = 'step';
+                      renderMarkdown(stepDiv, mainExplanationText);
+                      explanationContent.appendChild(stepDiv);
+                      explanationContent.scrollTop = explanationContent.scrollHeight; // Scroll dolů
+                      // Uložíme odpověď do DB jako zprávu modelu
+                      addChatMessage(responseText, 'gemini', true, timestamp); // Uložíme celou odpověď vč. whiteboard značek
                  } else if (targetArea === 'chat') {
-                     addChatMessage(mainExplanationText, 'gemini');
+                      addChatMessage(mainExplanationText, 'gemini', true, timestamp); // Uložíme jen text pro chat
                  } else {
-                      // Fallback - pokud cíl není specifikován, přidáme do chatu
-                      addChatMessage(mainExplanationText, 'gemini');
+                      addChatMessage(mainExplanationText, 'gemini', true, timestamp); // Fallback - uložíme do chatu
                  }
-            }
 
+                 // Zobrazíme tlačítko "další krok", pokud jsme ve vysvětlení
+                 if (targetArea === 'explanation') {
+                     nextStepBtn.style.display = 'inline-flex';
+                 }
+            };
 
-             function handleGeminiError(errorMessage, targetArea) {
+             // Rozšířená funkce pro zpracování chyby Gemini
+             const handleGeminiError = (errorMessage, targetArea, timestamp) => {
+                 removeThinkingIndicator(); // Odstraníme indikátor přemýšlení
+                 updateGeminiThinkingState(false); // Ukončíme stav přemýšlení
+
                  const errorText = `Omlouvám se, nastala chyba: ${errorMessage}`;
                  if (targetArea === 'explanation') {
-                      explanationContent.innerHTML = `<p style="color: red;">${errorText}</p>`;
-                 } else if (targetArea === 'chat') {
-                      addChatMessage(errorText, 'gemini');
-                       // Znovu aktivujeme tlačítko, pokud byla chyba v chatu
-                       sendButton.disabled = false;
-                       sendButton.innerHTML = 'Odeslat <i class="fas fa-paper-plane"></i>';
+                      const errorDiv = document.createElement('p');
+                      errorDiv.style.color = 'red';
+                      errorDiv.textContent = errorText;
+                      explanationContent.appendChild(errorDiv);
+                      explanationContent.scrollTop = explanationContent.scrollHeight;
+                      // Uložíme chybu do DB jako zprávu modelu
+                      addChatMessage(errorText, 'gemini', true, timestamp);
                  } else {
-                      addChatMessage(errorText, 'gemini');
+                      // V chatu nebo fallback
+                      addChatMessage(errorText, 'gemini', true, timestamp);
                  }
-                 // Můžeme vyčistit i whiteboard v případě chyby?
-                 // whiteboardContent.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle" style="color:red;"></i><p>Chyba při generování obsahu.</p></div>';
-             }
+                 // Možná resetovat tlačítko "Další krok", pokud byla chyba ve vysvětlení
+                  if (targetArea === 'explanation' && nextStepBtn) {
+                       nextStepBtn.disabled = false; // Povolíme znovu zkusit
+                       nextStepBtn.innerHTML = '<i class="fas fa-redo"></i> Zkusit znovu';
+                       nextStepBtn.onclick = requestNextStep; // Zajistí, že tlačítko stále volá správnou funkci
+                  }
+             };
 
 
             // --- Run Application ---
