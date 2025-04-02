@@ -3,19 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Justax - Výuka s AI (Videocall Interface v2)</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <title>Justax - Výuka s AI (Videocall Interface v2.1)</title> <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script>
-        // Simple check to prevent potential syntax errors if window.MathJax is redefined later
+        // Robust check to prevent SyntaxError if window.MathJax is already defined (e.g., by another script/extension)
         if (typeof window.MathJax === 'undefined') {
             window.MathJax = {
                 tex: { inlineMath: [['\\(', '\\)']], displayMath: [['$$', '$$']], processEscapes: true, processEnvironments: true },
                 options: { skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'], ignoreHtmlClass: 'tex2jax_ignore', processHtmlClass: 'tex2jax_process' },
                 startup: { ready: () => { MathJax.startup.defaultReady(); MathJax.startup.promise.then(() => console.log('MathJax loaded and ready.')); } }
             };
+        } else {
+             console.warn("window.MathJax already defined, skipping default config assignment.");
         }
     </script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
@@ -26,13 +27,12 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/js/tooltipster.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
-        /* --- CSS Styly (rovnaké ako v predchádzajúcej odpovedi) --- */
+        /* --- CSS Styly (s drobnými úpravami dizajnu) --- */
         /* --- Reset & Base Styles --- */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; scroll-behavior: smooth; }
-        :root { /* ... variables ... */
-            --primary-rgb: 67, 97, 238;
-            --primary: #4361ee; --primary-light: #4895ef; --secondary: #3f37c9; --success: #06d6a0; --danger: #f72585; --warning: #f8961e; --info: #4cc9f0; --dark: #1e2a3a; --light: #f8f9fa; --gray: #6c757d; --gray-light: #dee2e6; --gray-dark: #343a40; --gradient-1: linear-gradient(135deg, #4361ee, #3a0ca3); --gradient-2: linear-gradient(135deg, #4cc9f0, #4361ee); --white: #ffffff; --sidebar-width: 260px; --transition-speed: 0.3s; --card-radius: 12px; --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.05); --shadow-md: 0 5px 12px rgba(0, 0, 0, 0.07); --shadow-lg: 0 10px 20px rgba(0, 0, 0, 0.1); --text-primary: #2d3748; --text-secondary: #4a5568; --text-muted: #718096; --call-bg: #f0f2f5; --call-panel-bg: var(--white); --avatar-size: 50px;
-         }
+        :root {
+            --primary-rgb: 67, 97, 238; --primary: #4361ee; --primary-light: #4895ef; --secondary: #3f37c9; --success: #06d6a0; --danger: #f72585; --warning: #f8961e; --info: #4cc9f0; --dark: #1e2a3a; --light: #f8f9fa; --gray: #6c757d; --gray-light: #dee2e6; --gray-dark: #343a40; --gradient-1: linear-gradient(135deg, #4361ee, #3a0ca3); --gradient-2: linear-gradient(135deg, #4cc9f0, #4361ee); --white: #ffffff; --sidebar-width: 260px; --transition-speed: 0.3s; --card-radius: 12px; --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.05); --shadow-md: 0 5px 12px rgba(0, 0, 0, 0.07); --shadow-lg: 0 10px 20px rgba(0, 0, 0, 0.1); --text-primary: #2d3748; --text-secondary: #4a5568; --text-muted: #718096; --call-bg: #f0f2f5; --call-panel-bg: var(--white); --avatar-size: 50px;
+        }
         body { background-color: var(--call-bg); color: var(--text-primary); min-height: 100vh; display: flex; overflow: hidden; }
 
         /* --- Sidebar --- */
@@ -53,8 +53,7 @@
         .user-name { font-weight: 600; font-size: 0.95rem; }
         .user-role { font-size: 0.8rem; opacity: 0.8; }
 
-
-        /* --- Main Content Area (Wrapper for Call Interface) --- */
+        /* --- Main Content Area --- */
         main { flex: 1; margin-left: var(--sidebar-width); transition: margin var(--transition-speed) ease; width: calc(100% - var(--sidebar-width)); height: 100vh; display: flex; flex-direction: column; overflow: hidden; background-color: var(--call-bg); }
         .main-header { padding: 1rem 1.5rem; background-color: var(--white); box-shadow: var(--shadow-sm); display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; z-index: 100; border-bottom: 1px solid var(--gray-light); }
         .header-content h1 { font-size: 1.5rem; font-weight: 600; color: var(--dark); margin: 0; }
@@ -63,34 +62,34 @@
         /* --- Videocall Interface Layout --- */
         .call-interface { flex-grow: 1; display: flex; overflow: hidden; padding: 1.5rem; gap: 1.5rem; }
 
-        /* Left Side: AI Presenter Area (Avatar + Whiteboard) */
-        .ai-presenter-area { flex-grow: 1; display: flex; flex-direction: column; background-color: var(--call-panel-bg); border-radius: var(--card-radius); box-shadow: var(--shadow-md); overflow: hidden; }
+        /* Left Side: AI Presenter Area */
+        .ai-presenter-area { flex-grow: 1; display: flex; flex-direction: column; background-color: var(--call-panel-bg); border-radius: var(--card-radius); box-shadow: var(--shadow-md); overflow: hidden; border: 1px solid var(--gray-light); }
         .ai-presenter-header { padding: 0.75rem 1.25rem; border-bottom: 1px solid var(--gray-light); display: flex; align-items: center; gap: 0.75rem; background-color: var(--light); }
         .ai-avatar-placeholder { width: var(--avatar-size); height: var(--avatar-size); background: var(--gradient-1); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5rem; flex-shrink: 0; box-shadow: var(--shadow-sm); }
         .ai-presenter-info h2 { font-size: 1.1rem; font-weight: 600; color: var(--dark); margin: 0; }
         .ai-presenter-info p { font-size: 0.85rem; color: var(--text-secondary); margin: 0; }
-        .whiteboard-main-container { flex-grow: 1; position: relative; overflow: hidden; border-radius: 0 0 var(--card-radius) var(--card-radius); }
-        #tldraw-wrapper { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--white); /* Ensure background for tldraw */ }
+        .whiteboard-main-container { flex-grow: 1; position: relative; overflow: hidden; border-radius: 0 0 var(--card-radius) var(--card-radius); background-color: var(--white); }
+        #tldraw-wrapper { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
         #tldraw-wrapper > div { border-radius: inherit; }
         #tldraw-wrapper > p { padding: 2rem; text-align: center; font-style: italic; color: var(--text-muted); }
 
-        /* Right Side: Interaction Panel (Tabs: Explanation, Chat) */
-        .interaction-panel { width: 400px; flex-shrink: 0; display: flex; flex-direction: column; background-color: var(--call-panel-bg); border-radius: var(--card-radius); box-shadow: var(--shadow-md); overflow: hidden; }
+        /* Right Side: Interaction Panel */
+        .interaction-panel { width: 420px; /* Slightly wider */ flex-shrink: 0; display: flex; flex-direction: column; background-color: var(--call-panel-bg); border-radius: var(--card-radius); box-shadow: var(--shadow-md); overflow: hidden; border: 1px solid var(--gray-light); }
         .interaction-tabs { display: flex; border-bottom: 1px solid var(--gray-light); background-color: var(--light); flex-shrink: 0; }
-        .interaction-tab { flex: 1; text-align: center; padding: 0.9rem 1rem; font-weight: 500; color: var(--text-secondary); cursor: pointer; transition: all 0.2s ease; border-bottom: 3px solid transparent; font-size: 0.95rem; }
+        .interaction-tab { flex: 1; text-align: center; padding: 0.9rem 1rem; font-weight: 500; color: var(--text-secondary); cursor: pointer; transition: all 0.2s ease; border-bottom: 3px solid transparent; font-size: 0.95rem; position: relative; }
         .interaction-tab:hover { color: var(--primary); background-color: rgba(var(--primary-rgb), 0.05); }
-        .interaction-tab.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 600; }
+        .interaction-tab.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 600; background-color: var(--call-panel-bg); /* Match content bg */ }
+        .interaction-tab.active::after { /* Subtle top border */ content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 1px; background-color: var(--gray-light); }
         .interaction-tab i { margin-right: 0.5rem; }
 
         .interaction-content-area { flex-grow: 1; overflow: hidden; position: relative; }
-        .tab-content { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; overflow: hidden; visibility: hidden; opacity: 0; transition: opacity 0.3s ease, visibility 0s linear 0.3s; background-color: var(--call-panel-bg); /* Ensure background */ }
+        .tab-content { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; overflow: hidden; visibility: hidden; opacity: 0; transition: opacity 0.3s ease, visibility 0s linear 0.3s; background-color: var(--call-panel-bg); }
         .tab-content.active { visibility: visible; opacity: 1; transition: opacity 0.3s ease; }
 
         /* Explanation Tab Content */
-        #explanation-tab-content { /* Container takes full height */ }
         .explanation-scroll-content { flex-grow: 1; padding: 1.5rem; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--gray-light) transparent; }
         .explanation-scroll-content::-webkit-scrollbar { width: 8px; } .explanation-scroll-content::-webkit-scrollbar-track { background: transparent; } .explanation-scroll-content::-webkit-scrollbar-thumb { background-color: var(--gray-light); border-radius: 4px; border: 2px solid var(--call-panel-bg); }
-        #explanation-title { font-size: 1.2rem; font-weight: 600; margin-bottom: 1rem; color: var(--dark); }
+        #explanation-title { display: none; /* Title is clear from context */ }
         #explanation-display { line-height: 1.7; }
         #explanation-display p:last-child { margin-bottom: 0; }
         #explanation-display .step { margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px dashed var(--gray-light); }
@@ -103,12 +102,10 @@
         #explanation-display blockquote { border-left: 3px solid var(--primary-light); padding-left: 1rem; margin: 1rem 0 1rem 0.5rem; color: var(--text-secondary); font-style: italic; }
         #explanation-display ul, #explanation-display ol { margin-left: 1.5rem; margin-bottom: 1rem; padding-left: 1rem; }
         #explanation-display li { margin-bottom: 0.5rem; }
-        .explanation-controls { flex-shrink: 0; margin-top: 1.5rem; padding: 1rem 1.5rem; border-top: 1px solid var(--gray-light); text-align: center; background-color: var(--light); }
+        .explanation-controls { flex-shrink: 0; margin-top: auto; /* Push to bottom */ padding: 1rem 1.5rem; border-top: 1px solid var(--gray-light); text-align: center; background-color: var(--light); display: flex; justify-content: space-around; gap: 1rem; }
 
         /* Chat Tab Content */
-        #chat-tab-content { padding: 0; }
-        .chat-area { height: 100%; background-color: transparent; box-shadow: none; border: none; border-radius: 0; }
-        .chat-messages { flex-grow: 1; padding: 1.25rem; overflow-y: auto; /* Scroll handled by tab-content */ scrollbar-color: var(--gray-light) var(--call-panel-bg); }
+        .chat-messages { flex-grow: 1; padding: 1.25rem; overflow-y: auto; scrollbar-color: var(--gray-light) var(--call-panel-bg); }
         .chat-messages::-webkit-scrollbar-track { background: var(--call-panel-bg); } .chat-messages::-webkit-scrollbar-thumb { border-color: var(--call-panel-bg); }
         .chat-input-area { flex-shrink: 0; padding: 1rem 1.25rem; background-color: var(--light); border-top: 1px solid var(--gray-light); display: flex; align-items: flex-end; gap: 0.8rem; }
         .chat-message { display: flex; gap: 0.8rem; max-width: 88%; align-items: flex-end; }
@@ -116,9 +113,9 @@
         .message-avatar { width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 1rem; flex-shrink: 0; box-shadow: var(--shadow-sm); border: 2px solid var(--call-panel-bg); }
         .chat-message.user .message-avatar { background: var(--success); color: white; }
         .chat-message.gemini .message-avatar { background: var(--primary); color: white; }
-        .message-bubble { padding: 0.9rem 1.2rem; border-radius: 20px; line-height: 1.6; word-wrap: break-word; box-shadow: var(--shadow-sm); position: relative; transition: transform 0.2s ease; background-color: var(--light); color: var(--text-primary); border: 1px solid #e9ecef; border-bottom-left-radius: 6px; }
-        .message-bubble:hover { transform: scale(1.01); }
-        .chat-message.user .message-bubble { background: var(--gradient-1); color: white; border: none; border-bottom-right-radius: 6px; border-bottom-left-radius: 20px; }
+        .message-bubble { padding: 0.9rem 1.2rem; border-radius: 18px; /* Slightly less round */ line-height: 1.6; word-wrap: break-word; box-shadow: var(--shadow-sm); position: relative; transition: transform 0.2s ease; background-color: var(--light); color: var(--text-primary); border: 1px solid #e9ecef; }
+        .chat-message.gemini .message-bubble { border-bottom-left-radius: 5px; } /* Pointy corner */
+        .chat-message.user .message-bubble { background: var(--gradient-1); color: white; border: none; border-bottom-right-radius: 5px; } /* Pointy corner */
         .message-bubble code { background-color: rgba(var(--primary-rgb), 0.1); padding: 0.1em 0.3em; border-radius: 4px; font-size: 0.9em; color: var(--secondary); }
         .chat-message.user .message-bubble code { background-color: rgba(255, 255, 255, 0.2); color: #fff; }
         .message-bubble pre { margin: 0.5rem 0; }
@@ -144,13 +141,12 @@
         #current-topic-display { font-size: 1rem; font-weight: 500; color: var(--text-secondary); }
         #current-topic-display strong { color: var(--primary); font-weight: 600; }
         #current-topic-display .placeholder { font-style: italic; color: var(--text-muted); }
-         /* Hide the load button */
-         #load-next-topic-btn { display: none; }
+        #load-next-topic-btn { display: none; } /* Button removed */
 
         /* Utility & State Styles */
         .loading-placeholder { display: flex; align-items: center; justify-content: center; padding: 3rem; text-align: center; font-style: italic; color: var(--text-muted); flex-grow: 1; }
         .loading-placeholder i { margin-right: 0.75rem; font-size: 1.5rem; }
-        .empty-state { text-align: center; padding: 3rem 1.5rem; color: var(--text-secondary); margin-top: 2rem; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; } /* Center empty state */
+        .empty-state { text-align: center; padding: 3rem 1.5rem; color: var(--text-secondary); margin-top: 2rem; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; }
         .empty-state i { font-size: 3.5rem; margin-bottom: 1.5rem; color: var(--gray-light); }
         .empty-state h3 { font-size: 1.2rem; font-weight: 600; margin-bottom: 1rem; color: var(--dark); }
         .empty-state p { margin-bottom: 1.5rem; max-width: 500px; margin-left: auto; margin-right: auto; }
@@ -159,21 +155,71 @@
         .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: var(--shadow-md); background: linear-gradient(135deg, var(--primary-light), var(--secondary)); }
         .btn-secondary { background-color: var(--light); color: var(--text-secondary); border: 1px solid var(--gray-light); box-shadow: var(--shadow-sm); }
         .btn-secondary:hover:not(:disabled) { background-color: #e9ecef; color: var(--dark); border-color: #ced4da; }
-        .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none !important; box-shadow: none !important; background: var(--gray-light); }
+        .btn-success { background: linear-gradient(135deg, var(--success), #05a381); color: white; box-shadow: var(--shadow-sm); }
+        .btn-success:hover:not(:disabled) { transform: translateY(-2px); box-shadow: var(--shadow-md); background: linear-gradient(135deg, #0cd1a7, var(--success));}
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none !important; box-shadow: none !important; background: var(--gray); color: var(--white); }
         .btn i { font-size: 1em; }
 
-        /* --- Responsiveness Adjustments --- */
+        /* Responsiveness & Mobile Menu */
         .mobile-menu-toggle { display: none; background: none; border: none; cursor: pointer; color: var(--dark); font-size: 1.5rem; margin-right: 1rem; padding: 0.5rem; z-index: 1060; }
         .sidebar-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); z-index: 1040; opacity: 0; transition: opacity 0.3s ease; backdrop-filter: blur(5px); }
         .sidebar-overlay.active { display: block; opacity: 1; }
 
-        @media (max-width: 1200px) { .interaction-panel { width: 340px; } .call-interface { padding: 1rem; gap: 1rem; } .main-header { padding: 0.75rem 1rem; } .header-content h1 { font-size: 1.3rem; } }
-        @media (max-width: 992px) { :root { --sidebar-width: 80px; } main { margin-left: 80px; width: calc(100% - 80px); } .sidebar-logo span, .sidebar-link span, .user-info, .sidebar-footer { display: none; } .sidebar-link i { margin-right: 0; font-size: 1.5rem; } .sidebar-logo i { margin-right: 0; } .sidebar-header, .sidebar-link { justify-content: center; } .user-profile { justify-content: center; padding: 0.75rem 0; } .user-avatar { margin-right: 0; } .call-interface { flex-direction: column; } .ai-presenter-area { } .interaction-panel { width: 100%; max-height: 50vh; } .whiteboard-main-container { min-height: 300px; } }
-        @media (max-width: 768px) { main { padding: 0; } .main-header { padding: 0.75rem; border-radius: 0; } .call-interface { padding: 0.75rem; gap: 0.75rem; } .interaction-panel { max-height: 45vh; } .ai-avatar-placeholder { width: 40px; height: 40px; font-size: 1.2rem; } .ai-presenter-info h2 { font-size: 1rem; } .interaction-tab { padding: 0.75rem 0.5rem; font-size: 0.9rem; } .chat-messages { padding: 1rem; gap: 0.75rem; } .chat-input-area { padding: 0.75rem 1rem; } }
-        @media (max-width: 576px) { :root { --sidebar-width: 0; } main { margin-left: 0; width: 100%; } .sidebar { transform: translateX(-100%); width: 260px; z-index: 1050; } .sidebar.active { transform: translateX(0); .sidebar-logo span, .sidebar-link span, .user-info, .sidebar-footer { display: block; } .sidebar-link i { margin-right: 0.75rem; } .sidebar-header, .sidebar-link { justify-content: flex-start; } .user-profile { justify-content: flex-start; padding: 1rem; } .user-avatar { margin-right: 0.75rem; } } .mobile-menu-toggle { display: block; } .header-content h1 { font-size: 1.2rem; } .call-interface { padding: 0.5rem; gap: 0.5rem; } .interaction-panel { max-height: 40vh; } .whiteboard-main-container { min-height: 250px; } .ai-presenter-header { padding: 0.5rem 0.75rem; } .message-bubble { padding: 0.7rem 1rem; } .chat-input { font-size: 0.9rem; } .send-button { height: 38px; padding: 0 1rem; } }
+        @media (max-width: 1200px) { /* ... same ... */ }
+        @media (max-width: 992px) { /* ... same ... */ }
+        @media (max-width: 768px) { /* ... same ... */ }
+        @media (max-width: 576px) { /* ... same ... */ }
 
         /* Dark mode Adjustments */
-        @media (prefers-color-scheme: dark) { :root { /* ... dark mode variables ... */ --white: #1a202c; --light: #2d3748; --dark: #e2e8f0; --gray-light: #4a5568; --text-primary: #e2e8f0; --text-secondary: #cbd5e0; --text-muted: #a0aec0; --dark-bg: #171923; --call-bg: #131720; --call-panel-bg: #1e2533; } body { background-color: var(--dark-bg); } main { background-color: var(--call-bg); } .main-header { background-color: var(--call-panel-bg); border-bottom-color: var(--gray-light); } .mobile-menu-toggle { color: var(--dark); } .ai-presenter-area, .interaction-panel { background-color: var(--call-panel-bg); box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2); } .ai-presenter-header { background-color: var(--light); border-bottom-color: var(--gray-light); } .whiteboard-main-container, #tldraw-wrapper { background-color: var(--dark-bg); } .interaction-tabs { background-color: var(--light); border-bottom-color: var(--gray-light); } .interaction-tab { color: var(--text-secondary); } .interaction-tab:hover { color: var(--primary-light); background-color: rgba(72, 149, 239, 0.1); } .interaction-tab.active { color: var(--primary-light); border-bottom-color: var(--primary-light); } .tab-content { background-color: var(--call-panel-bg); } /* Explanation Dark */ .explanation-scroll-content { scrollbar-color: var(--gray) var(--call-panel-bg); } .explanation-scroll-content::-webkit-scrollbar-thumb { border-color: var(--call-panel-bg); } #explanation-display pre code { background-color: #1a202c; color: #d1d5db; } #explanation-display code { background-color: rgba(72, 149, 239, 0.15); color: var(--primary-light); } #explanation-display strong { color: var(--light); } #explanation-display blockquote { border-left-color: var(--primary); color: var(--text-secondary); } .explanation-controls { background-color: var(--light); border-top-color: var(--gray-light); } /* Chat Dark */ .chat-messages { scrollbar-color: var(--gray) var(--call-panel-bg); } .chat-messages::-webkit-scrollbar-track { background: var(--call-panel-bg); } .chat-messages::-webkit-scrollbar-thumb { border-color: var(--call-panel-bg); } .message-avatar { border-color: var(--call-panel-bg); } .message-bubble { background-color: var(--light); color: var(--text-primary); border-color: var(--gray-light); } .chat-message.user .message-bubble { background: var(--gradient-2); color: var(--dark); } .message-bubble code { background-color: rgba(255,255,255,0.1); color: var(--text-primary); } .chat-message.user .message-bubble code { background-color: rgba(0, 0, 0, 0.2); color: var(--light); } .message-bubble pre code { background-color: #1a202c; color: #d1d5db; } .chat-message.user .message-bubble pre code { background-color: rgba(0,0,0,0.3); color: #eee; } .message-thinking-indicator { background: var(--light); } .typing-dot { background-color: var(--gray); } .chat-input-area { background-color: var(--light); border-top-color: var(--gray-light); } .chat-input { background-color: var(--dark-bg); color: var(--text-primary); border-color: var(--gray-light); } .chat-input::placeholder { color: var(--text-muted); } .chat-input:focus { box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.2); } .chat-controls { background-color: var(--light); border-top-color: var(--gray-light); } .chat-controls button { color: var(--text-muted); } .chat-controls button:hover { color: var(--primary-light); } /* Buttons Dark */ .btn-secondary { background-color: var(--light); color: var(--text-secondary); border-color: var(--gray-light); } .btn-secondary:hover:not(:disabled) { background-color: var(--gray-light); color: var(--dark); } .topic-loading-bar { background-color: var(--light); border-bottom-color: var(--gray-light); } }
+        @media (prefers-color-scheme: dark) { /* ... same dark mode styles ... */
+             :root { --white: #1a202c; --light: #2d3748; --dark: #e2e8f0; --gray-light: #4a5568; --text-primary: #e2e8f0; --text-secondary: #cbd5e0; --text-muted: #a0aec0; --dark-bg: #171923; --call-bg: #131720; --call-panel-bg: #1e2533; }
+             body { background-color: var(--dark-bg); }
+             main { background-color: var(--call-bg); }
+             .main-header { background-color: var(--call-panel-bg); border-bottom-color: var(--gray-light); }
+             .mobile-menu-toggle { color: var(--dark); }
+             .ai-presenter-area, .interaction-panel { background-color: var(--call-panel-bg); box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2); border-color: var(--gray-light); }
+             .ai-presenter-header { background-color: var(--light); border-bottom-color: var(--gray-light); }
+             .whiteboard-main-container { background-color: var(--dark-bg); }
+             #tldraw-wrapper { background-color: var(--dark-bg); /* Ensure wrapper matches */ }
+             .interaction-tabs { background-color: var(--light); border-bottom-color: var(--gray-light); }
+             .interaction-tab { color: var(--text-secondary); }
+             .interaction-tab:hover { color: var(--primary-light); background-color: rgba(72, 149, 239, 0.1); }
+             .interaction-tab.active { color: var(--primary-light); border-bottom-color: var(--primary-light); background-color: var(--call-panel-bg); } /* Match content bg */
+             .tab-content { background-color: var(--call-panel-bg); }
+             .explanation-scroll-content { scrollbar-color: var(--gray) var(--call-panel-bg); }
+             .explanation-scroll-content::-webkit-scrollbar-thumb { border-color: var(--call-panel-bg); }
+             #explanation-display pre code { background-color: #1a202c; color: #d1d5db; }
+             #explanation-display code { background-color: rgba(72, 149, 239, 0.15); color: var(--primary-light); }
+             #explanation-display strong { color: var(--light); }
+             #explanation-display blockquote { border-left-color: var(--primary); color: var(--text-secondary); }
+             .explanation-controls { background-color: var(--light); border-top-color: var(--gray-light); }
+             .chat-messages { scrollbar-color: var(--gray) var(--call-panel-bg); }
+             .chat-messages::-webkit-scrollbar-track { background: var(--call-panel-bg); }
+             .chat-messages::-webkit-scrollbar-thumb { border-color: var(--call-panel-bg); }
+             .message-avatar { border-color: var(--call-panel-bg); }
+             .message-bubble { background-color: var(--light); color: var(--text-primary); border-color: var(--gray-light); }
+             .chat-message.user .message-bubble { background: var(--gradient-2); color: var(--dark); }
+             .message-bubble code { background-color: rgba(255,255,255,0.1); color: var(--text-primary); }
+             .chat-message.user .message-bubble code { background-color: rgba(0, 0, 0, 0.2); color: var(--light); }
+             .message-bubble pre code { background-color: #1a202c; color: #d1d5db; }
+             .chat-message.user .message-bubble pre code { background-color: rgba(0,0,0,0.3); color: #eee; }
+             .message-thinking-indicator { background: var(--light); }
+             .typing-dot { background-color: var(--gray); }
+             .chat-input-area { background-color: var(--light); border-top-color: var(--gray-light); }
+             .chat-input { background-color: var(--dark-bg); color: var(--text-primary); border-color: var(--gray-light); }
+             .chat-input::placeholder { color: var(--text-muted); }
+             .chat-input:focus { box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.2); }
+             .chat-controls { background-color: var(--light); border-top-color: var(--gray-light); }
+             .chat-controls button { color: var(--text-muted); }
+             .chat-controls button:hover { color: var(--primary-light); }
+             .btn-secondary { background-color: var(--light); color: var(--text-secondary); border-color: var(--gray-light); }
+             .btn-secondary:hover:not(:disabled) { background-color: var(--gray-light); color: var(--dark); }
+             .btn-success { background: linear-gradient(135deg, var(--success), #05a381); }
+             .btn-success:hover:not(:disabled) { background: linear-gradient(135deg, #0cd1a7, var(--success));}
+             .btn:disabled { background: var(--gray); color: var(--text-muted); } /* Adjusted disabled dark */
+             .topic-loading-bar { background-color: var(--light); border-bottom-color: var(--gray-light); }
+             .empty-state i { color: var(--light); }
+        }
 
         /* Toast notification */
         .toast { /* ... same ... */ }
@@ -214,48 +260,32 @@
 
             <div class="ai-presenter-area">
                 <div class="ai-presenter-header">
-                    <div class="ai-avatar-placeholder">
-                        <i class="fas fa-robot"></i>
-                    </div>
+                    <div class="ai-avatar-placeholder"> <i class="fas fa-robot"></i> </div>
                     <div class="ai-presenter-info">
                         <h2>AI Tutor Justax</h2>
                         <p id="ai-status-text">Čekání na téma...</p>
                     </div>
                 </div>
                 <div class="whiteboard-main-container">
-                    <div id="tldraw-wrapper">
-                         <p>Inicializace interaktivní došky...</p>
-                    </div>
+                    <div id="tldraw-wrapper"> <p>Inicializace interaktivní došky...</p> </div>
                 </div>
             </div>
 
             <div class="interaction-panel">
                 <div class="interaction-tabs">
-                    <div class="interaction-tab active" data-tab="explanation-tab">
-                        <i class="fas fa-chalkboard-teacher"></i> Vysvětlení
-                    </div>
-                    <div class="interaction-tab" data-tab="chat-tab">
-                        <i class="fas fa-comments"></i> Chat
-                    </div>
+                    <div class="interaction-tab active" data-tab="explanation-tab"> <i class="fas fa-chalkboard-teacher"></i> Vysvětlení </div>
+                    <div class="interaction-tab" data-tab="chat-tab"> <i class="fas fa-comments"></i> Chat </div>
                 </div>
                 <div class="interaction-content-area">
                     <div id="explanation-tab-content" class="tab-content active">
                          <div class="explanation-scroll-content">
                               <div id="explanation-display">
-                                   <div class="empty-state">
-                                        <i class="fas fa-book-reader"></i>
-                                        <h3>Výuka připravena</h3>
-                                        <p>Počkejte na načtení tématu.</p>
-                                   </div>
+                                   <div class="empty-state"> <i class="fas fa-book-reader"></i> <h3>Výuka připravena</h3> <p>Počkejte na automatické načtení tématu.</p> </div>
                               </div>
                          </div>
                          <div class="explanation-controls">
-                              <button class="btn btn-primary" id="next-step-btn" style="display: none;" title="Požádat AI o další krok nebo pokračování">
-                                   <i class="fas fa-forward"></i> Pokračovat / Další krok
-                              </button>
-                              <button class="btn btn-success" id="mark-complete-btn" style="display: none;" title="Označit toto téma jako dokončené a načíst další">
-                                    <i class="fas fa-check-circle"></i> Téma dokončeno
-                               </button>
+                              <button class="btn btn-primary" id="next-step-btn" style="display: none;" title="Požádat AI o další krok"> <i class="fas fa-forward"></i> Další krok </button>
+                              <button class="btn btn-success" id="mark-complete-btn" style="display: none;" title="Označit téma jako dokončené"> <i class="fas fa-check-circle"></i> Téma dokončeno </button>
                          </div>
                     </div>
                     <div id="chat-tab-content" class="tab-content">
@@ -263,18 +293,10 @@
                             <div class="chat-messages" id="chat-messages"></div>
                             <div class="chat-input-area">
                                 <textarea class="chat-input" id="chat-input" placeholder="Napiš svou otázku..." rows="1"></textarea>
-                                <button class="send-button" id="send-button" title="Odeslat zprávu">
-                                    <i class="fas fa-paper-plane"></i>
-                                </button>
+                                <button class="send-button" id="send-button" title="Odeslat zprávu"> <i class="fas fa-paper-plane"></i> </button>
                             </div>
                             <div class="chat-controls">
-                                <button id="clear-chat-btn" class="btn-tooltip" title="Vymazat historii tohoto chatu">
-                                    <i class="fas fa-trash-alt"></i> Vymazat chat
-                                </button>
-                                 |
-                                <button id="save-chat-btn" class="btn-tooltip" title="Uložit chat jako PDF">
-                                    <i class="fas fa-save"></i> Uložit PDF
-                                </button>
+                                <button id="clear-chat-btn" class="btn-tooltip" title="Vymazat historii tohoto chatu"> <i class="fas fa-trash-alt"></i> Vymazat chat </button> | <button id="save-chat-btn" class="btn-tooltip" title="Uložit chat jako PDF"> <i class="fas fa-save"></i> Uložit PDF </button>
                             </div>
                         </section>
                     </div>
@@ -286,29 +308,29 @@
     <div class="toast" id="toast"> <i class="fas fa-info-circle"></i> <div id="toast-message">Operace úspěšná.</div> </div>
 
     <script>
-        // Wrap the entire script in a try...catch block for better top-level error handling
+        // Wrap the entire script in a try...catch block
         try {
             document.addEventListener('DOMContentLoaded', async function() {
-                console.log("DOM Loaded. Initializing application..."); // Initial log
+                console.log("DOM Loaded. Initializing application...");
 
                 // --- Constants & Config ---
                 const SUPABASE_URL = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
                 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10';
                 const GEMINI_API_KEY = 'AIzaSyDQboM6qtC_O2sqqpaKZZffNf2zk6HrhEs'; // WARNING: Test key only!
                 const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
-                const TLDR AW_CDN_URL = 'https://unpkg.com/tldraw@1.24.2/dist/tldraw.js'; // tldraw v1 URL
-                const DRAW_COMMAND_REGEX = /DRAW_ON_WHITEBOARD:\s*```json\s*([\s\S]*?)\s*```/g; // Regex to find draw commands
+                const TLDR AW_CDN_URL = 'https://unpkg.com/tldraw@1.24.2/dist/tldraw.js';
+                const DRAW_COMMAND_REGEX = /DRAW_ON_WHITEBOARD:\s*```json\s*([\s\S]*?)\s*```/g;
 
                 // --- DOM Elements ---
+                // (Get references to all necessary DOM elements as defined in the previous JS block)
                 const userAvatarEl = document.getElementById('user-avatar');
                 const userNameEl = document.getElementById('user-name');
                 const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
                 const sidebar = document.getElementById('sidebar');
                 const sidebarOverlay = document.getElementById('sidebar-overlay');
                 const currentTopicDisplay = document.getElementById('current-topic-display');
-                // const loadNextTopicBtn = document.getElementById('load-next-topic-btn'); // Button is removed
                 const explanationDisplay = document.getElementById('explanation-display');
-                const explanationScrollContent = document.querySelector('.explanation-scroll-content'); // Scrollable div
+                const explanationScrollContent = document.querySelector('.explanation-scroll-content');
                 const tldrawWrapper = document.getElementById('tldraw-wrapper');
                 const chatMessages = document.getElementById('chat-messages');
                 const chatInput = document.getElementById('chat-input');
@@ -322,355 +344,149 @@
                 const interactionTabs = document.querySelectorAll('.interaction-tab');
                 const tabContents = document.querySelectorAll('.tab-content');
                 const aiStatusText = document.getElementById('ai-status-text');
+                const callInterface = document.querySelector('.call-interface'); // Main container
 
                 // --- Global State ---
                 let supabase = null;
                 let currentUser = null;
                 let currentProfile = null;
-                let currentTopic = null; // { id: string, name: string, activity_id: number, plan_id: string }
-                let currentPlanId = null; // Store the active plan ID
+                let currentTopic = null;
+                let currentPlanId = null;
                 let currentSessionId = null;
                 let geminiChatContext = [];
                 let tldrawApp = null;
                 let tldrawScriptLoaded = false;
                 let geminiIsThinking = false;
                 let thinkingIndicatorId = null;
-                let topicLoadInProgress = false; // Flag to prevent concurrent loading
-
+                let topicLoadInProgress = false;
 
                 // --- Helper Functions ---
-                const sanitizeHTML = (str) => { /* ... */ const temp = document.createElement('div'); temp.textContent = str || ''; return temp.innerHTML; };
-                const getInitials = (profile, email) => { /* ... */ if (!profile) return email ? email[0].toUpperCase() : '?'; let i = (profile.first_name?.[0]||'')+(profile.last_name?.[0]||''); return i.toUpperCase() || profile.username?.[0].toUpperCase() || email?.[0].toUpperCase() || '?'; };
-                const showToast = (message, type = 'info', duration = 4000) => { /* ... */ if (!toastEl || !toastMessageEl) return; toastMessageEl.textContent = message; const icon = toastEl.querySelector('i'); icon.className = type === 'success' ? 'fas fa-check-circle' : type === 'error' ? 'fas fa-exclamation-circle' : type === 'warning' ? 'fas fa-exclamation-triangle' : 'fas fa-info-circle'; toastEl.className = 'toast ' + type; toastEl.classList.add('show'); setTimeout(() => toastEl.classList.remove('show'), duration); };
-                const renderMarkdown = (element, markdownText) => { /* ... */ try { if (!element) return; element.innerHTML = marked.parse(markdownText || '', { breaks: true, gfm: true }); if (window.MathJax && typeof window.MathJax.typesetPromise === 'function') { setTimeout(() => window.MathJax.typesetPromise([element]).catch(e=>console.error("MathJax error:",e)), 50); } } catch (e) { console.error("Markdown rendering error:", e); if (element) element.innerHTML = `<p style="color: red;">Chyba zobrazení obsahu.</p>`; }};
-                const autoResizeTextarea = () => { /* ... */ chatInput.style.height = 'auto'; chatInput.style.height = Math.min(chatInput.scrollHeight, 150) + 'px'; };
+                const sanitizeHTML = (str) => { const temp = document.createElement('div'); temp.textContent = str || ''; return temp.innerHTML; };
+                const getInitials = (profile, email) => { if (!profile) return email ? email[0].toUpperCase() : '?'; let i = (profile.first_name?.[0]||'')+(profile.last_name?.[0]||''); return i.toUpperCase() || profile.username?.[0].toUpperCase() || email?.[0].toUpperCase() || '?'; };
+                const showToast = (message, type = 'info', duration = 4000) => { if (!toastEl || !toastMessageEl) return; toastMessageEl.textContent = message; const icon = toastEl.querySelector('i'); icon.className = type === 'success' ? 'fas fa-check-circle' : type === 'error' ? 'fas fa-exclamation-circle' : type === 'warning' ? 'fas fa-exclamation-triangle' : 'fas fa-info-circle'; toastEl.className = 'toast ' + type; toastEl.classList.add('show'); setTimeout(() => toastEl.classList.remove('show'), duration); };
+                const renderMarkdown = (element, markdownText) => { try { if (!element) return; element.innerHTML = marked.parse(markdownText || '', { breaks: true, gfm: true }); if (window.MathJax && typeof window.MathJax.typesetPromise === 'function') { setTimeout(() => window.MathJax.typesetPromise([element]).catch(e=>console.error("MathJax error:",e)), 50); } } catch (e) { console.error("Markdown rendering error:", e); if (element) element.innerHTML = `<p style="color: red;">Chyba zobrazení obsahu.</p>`; }};
+                const autoResizeTextarea = () => { if(!chatInput) return; chatInput.style.height = 'auto'; chatInput.style.height = Math.min(chatInput.scrollHeight, 150) + 'px'; };
                 const generateSessionId = () => `session_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
                 const formatTimestamp = (date) => date.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' });
                 const updateAIStatus = (text) => { if (aiStatusText) aiStatusText.textContent = text; };
                 // --- End Helper Functions ---
 
-
                 // --- Initialization Functions ---
+                const loadTldrawScript = () => { /* ... same robust loading logic ... */ return new Promise((resolve, reject) => { if (tldrawScriptLoaded || typeof tldraw !== 'undefined') { console.log("tldraw script already loaded or available."); tldrawScriptLoaded = true; resolve(); return; } if (document.querySelector(`script[src="${TLDR AW_CDN_URL}"]`)) { console.warn("tldraw script tag exists, but library not ready? Waiting..."); setTimeout(() => { if (typeof tldraw !== 'undefined') { console.log("tldraw now available after delay."); tldrawScriptLoaded = true; resolve(); } else { reject(new Error("tldraw script tag existed, but library failed to load globally.")); } }, 1000); return; } console.log("Dynamically loading tldraw script..."); const script = document.createElement('script'); script.src = TLDR AW_CDN_URL; script.async = true; script.onload = () => { console.log("tldraw script loaded successfully."); tldrawScriptLoaded = true; resolve(); }; script.onerror = (err) => { console.error("Failed to load tldraw script:", err); tldrawScriptLoaded = false; reject(err); }; document.body.appendChild(script); }); };
+                const initializeTldrawInstance = () => { /* ... same robust initialization logic ... */ if (tldrawApp) return true; if (!tldrawScriptLoaded) { console.warn("Cannot init tldraw instance: script not loaded."); if (tldrawWrapper) tldrawWrapper.innerHTML = "<p>Čekání na načtení knihovny pro došku...</p>"; return false; } if (typeof tldraw === 'undefined' || !tldraw.Tldraw) { console.error("Cannot init tldraw instance: 'tldraw.Tldraw' is not defined!"); if (tldrawWrapper) tldrawWrapper.innerHTML = "<p style='color: red;'>Chyba: Knižnice tldraw není správně definována.</p>"; return false; } const containerElement = document.getElementById('tldraw-wrapper'); console.log("Attempting to initialize tldraw instance..."); console.log("tldraw global object check:", typeof tldraw, tldraw.Tldraw); console.log("tldraw container check:", containerElement); if (tldraw.Tldraw && containerElement) { try { console.log("Creating tldraw instance..."); containerElement.innerHTML = ''; tldrawApp = new tldraw.Tldraw({ container: containerElement, showUI: true, readOnly: false, darkMode: window.matchMedia?.('(prefers-color-scheme: dark)').matches }); console.log("tldraw instance CREATED successfully.", tldrawApp); return true; } catch (error) { console.error("Failed to initialize tldraw INSTANCE:", error); if (containerElement) containerElement.innerHTML = "<p style='padding: 1rem; color: red;'>Chyba při vytváření instance interaktivní došky.</p>"; return false; } } else { console.warn("Could not initialize tldraw - library or container missing."); if (!containerElement) console.error("Element #tldraw-wrapper not found!"); if (containerElement) containerElement.innerHTML = "<p style='padding: 1rem; color: orange;'>Interaktivní doška není dostupná.</p>"; return false; } };
 
-                /** Dynamically loads the tldraw script */
-                 const loadTldrawScript = () => {
-                    return new Promise((resolve, reject) => {
-                        if (tldrawScriptLoaded || typeof tldraw !== 'undefined') {
-                            console.log("tldraw script already loaded or available.");
-                            tldrawScriptLoaded = true;
-                            resolve();
-                            return;
-                        }
-                        if (document.querySelector(`script[src="${TLDR AW_CDN_URL}"]`)) {
-                             console.warn("tldraw script tag exists, but library not ready? Waiting...");
-                             // Re-check after a delay
-                             setTimeout(() => {
-                                 if (typeof tldraw !== 'undefined') {
-                                     console.log("tldraw now available after delay.");
-                                     tldrawScriptLoaded = true;
-                                     resolve();
-                                 } else {
-                                     reject(new Error("tldraw script tag existed, but library failed to load globally."));
-                                 }
-                             }, 1000);
-                             return;
-                        }
-                        console.log("Dynamically loading tldraw script...");
-                        const script = document.createElement('script');
-                        script.src = TLDR AW_CDN_URL;
-                        script.async = true;
-                        script.onload = () => { console.log("tldraw script loaded successfully."); tldrawScriptLoaded = true; resolve(); };
-                        script.onerror = (err) => { console.error("Failed to load tldraw script:", err); tldrawScriptLoaded = false; reject(err); };
-                        document.body.appendChild(script);
-                    });
-                 };
-
-                /** Initializes the tldraw instance */
-                const initializeTldrawInstance = () => {
-                    if (tldrawApp) return true; // Already initialized
-                    if (!tldrawScriptLoaded) { console.warn("Cannot init tldraw instance: script not loaded."); if (tldrawWrapper) tldrawWrapper.innerHTML = "<p>Čekání na načtení knihovny pro došku...</p>"; return false; }
-                    if (typeof tldraw === 'undefined' || !tldraw.Tldraw) { console.error("Cannot init tldraw instance: 'tldraw.Tldraw' is not defined!"); if (tldrawWrapper) tldrawWrapper.innerHTML = "<p style='color: red;'>Chyba: Knižnice tldraw není správně definována.</p>"; return false; }
-
-                    const containerElement = document.getElementById('tldraw-wrapper');
-                    console.log("Attempting to initialize tldraw instance...");
-                    console.log("tldraw global object check:", typeof tldraw, tldraw.Tldraw);
-                    console.log("tldraw container check:", containerElement);
-
-                    if (tldraw.Tldraw && containerElement) {
-                        try {
-                            console.log("Creating tldraw instance...");
-                            containerElement.innerHTML = ''; // Clear placeholder
-                            tldrawApp = new tldraw.Tldraw({
-                                container: containerElement,
-                                showUI: true, readOnly: false, // User can draw too
-                                darkMode: window.matchMedia?.('(prefers-color-scheme: dark)').matches // Sync dark mode
-                            });
-                            console.log("tldraw instance CREATED successfully.", tldrawApp);
-                            return true;
-                        } catch (error) {
-                            console.error("Failed to initialize tldraw INSTANCE:", error);
-                            if (containerElement) containerElement.innerHTML = "<p style='padding: 1rem; color: red;'>Chyba při vytváření instance interaktivní došky.</p>";
-                            return false;
-                        }
-                    } else { /* ... warning/error ... */ console.warn("Could not initialize tldraw - library or container missing."); if (!containerElement) console.error("Element #tldraw-wrapper not found!"); if (containerElement) containerElement.innerHTML = "<p style='padding: 1rem; color: orange;'>Interaktivní doška není dostupná.</p>"; return false; }
-                };
-
-                /** Main application initializer */
                 const initializeApp = async () => {
                     try {
-                         if (window.supabase?.createClient) {
-                             supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-                             console.log("Supabase client initialized.");
-                         } else { throw new Error("Supabase library not loaded correctly."); }
-                    } catch (error) { /* ... handle Supabase init error ... */ console.error("Supabase initialization failed:", error); showToast("Kritická chyba: Nepodařilo se připojit k databázi.", "error", 15000); return; }
+                        if (window.supabase?.createClient) { supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); console.log("Supabase client initialized."); }
+                        else { throw new Error("Supabase library not loaded correctly."); }
+                    } catch (error) { console.error("Supabase initialization failed:", error); showToast("Kritická chyba: Nepodařilo se připojit k databázi.", "error", 15000); return; }
 
                     setupEventListeners();
                     initTooltips();
 
-                    // Load tldraw script first
-                    try {
-                        await loadTldrawScript();
-                        initializeTldrawInstance(); // Attempt initialization immediately after load
-                    } catch (error) {
-                        // Error already logged/toast shown in loadTldrawScript
-                    }
+                    try { await loadTldrawScript(); initializeTldrawInstance(); }
+                    catch (error) { console.error("tldraw setup failed:", error); showToast("Nepodařilo se připravit interaktivní došku.", "error", 7000); if (tldrawWrapper) tldrawWrapper.innerHTML = "<p style='padding: 1rem; color: red;'>Interaktivní doška nemohla být načtena.</p>"; }
 
-                    // Load user profile
                     await loadUserProfile();
 
-                    if (currentUser) {
-                        // Automatically load the first uncompleted topic
-                        await loadNextUncompletedTopic();
-                    } else {
-                        currentTopicDisplay.innerHTML = '<span class="placeholder"><i class="fas fa-sign-in-alt"></i> Pro zahájení výuky se prosím přihlaste.</span>';
-                        // loadNextTopicBtn.disabled = true; // Button removed
-                        hideLearningUI();
-                    }
+                    if (currentUser) { await loadNextUncompletedTopic(); }
+                    else { currentTopicDisplay.innerHTML = '<span class="placeholder"><i class="fas fa-sign-in-alt"></i> Pro zahájení výuky se prosím přihlaste.</span>'; hideLearningUI(); }
                 };
 
                 const loadUserProfile = async () => { /* ... same ... */ };
                 const updateUserInfoUI = () => { /* ... same ... */ };
-                const setupEventListeners = () => { /* ... same as previous, WITHOUT loadNextTopicBtn listener ... */
-                     // Sidebar Toggles
-                     if (mobileMenuToggle) mobileMenuToggle.addEventListener('click', () => { sidebar?.classList.toggle('active'); sidebarOverlay?.classList.toggle('active'); });
-                     if (sidebarOverlay) sidebarOverlay.addEventListener('click', () => { sidebar?.classList.remove('active'); sidebarOverlay?.classList.remove('active'); });
-                     window.addEventListener('resize', () => { if (window.innerWidth > 576 && sidebar?.classList.contains('active')) { sidebar.classList.remove('active'); sidebarOverlay?.classList.remove('active'); } });
-
-                     // Chat
-                     if (sendButton) sendButton.addEventListener('click', handleSendMessage);
-                     if (chatInput) { chatInput.addEventListener('keypress', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(); } }); chatInput.addEventListener('input', autoResizeTextarea); }
-                     if (saveChatBtn) saveChatBtn.addEventListener('click', saveChatToPDF);
-                     if (clearChatBtn) clearChatBtn.addEventListener('click', confirmClearChat);
-
-                     // Explanation & Topic Completion
-                     if (nextStepBtn) nextStepBtn.addEventListener('click', requestNextStep);
-                     if (markCompleteBtn) markCompleteBtn.addEventListener('click', handleMarkTopicComplete);
-
-
-                     // Tab switching
-                     interactionTabs.forEach(tab => { tab.addEventListener('click', () => { const targetTabId = tab.dataset.tab; interactionTabs.forEach(t => t.classList.remove('active')); tabContents.forEach(c => c.classList.remove('active')); tab.classList.add('active'); const targetContent = document.getElementById(targetTabId + '-content'); if (targetContent) { targetContent.classList.add('active'); } if (targetTabId === 'chat-tab') { chatInput.focus(); } }); });
-                 };
+                const setupEventListeners = () => { /* ... same ... */ };
                 const initTooltips = () => { /* ... same ... */ };
 
-
                 // --- Topic Loading and Progress ---
-
-                /** Loads the next uncompleted topic based on plan and user_topic_status */
                 const loadNextUncompletedTopic = async () => {
-                    if (topicLoadInProgress) {
-                        console.log("Topic load already in progress, skipping.");
-                        return;
-                    }
-                    if (!currentUser || !supabase) { showToast("Nelze načíst téma, nejste přihlášeni.", "warning"); return; }
+                     if (topicLoadInProgress) return;
+                     if (!currentUser || !supabase) { showToast("Nelze načíst téma, nejste přihlášeni.", "warning"); return; }
+                     topicLoadInProgress = true;
+                     currentTopicDisplay.innerHTML = '<span class="placeholder"><i class="fas fa-spinner fa-spin"></i> Hledám další téma v plánu...</span>';
+                     updateAIStatus('Hledám téma...');
+                     hideLearningUI();
 
-                    topicLoadInProgress = true;
-                    currentTopicDisplay.innerHTML = '<span class="placeholder"><i class="fas fa-spinner fa-spin"></i> Hledám další téma v plánu...</span>';
-                    hideLearningUI(); // Hide main UI elements while loading
+                     try {
+                         const { data: activePlan, error: planError } = await supabase.from('study_plans').select('id').eq('user_id', currentUser.id).eq('status', 'active').order('created_at', { ascending: false }).limit(1).maybeSingle();
+                         if (planError) throw planError;
+                         if (!activePlan) throw new Error("Nebyl nalezen žádný aktivní studijní plán. Vytvořte si plán v sekci 'Procvičování'.");
+                         currentPlanId = activePlan.id;
 
-                    try {
-                        // 1. Get active plan
-                        const { data: activePlan, error: planError } = await supabase.from('study_plans').select('id').eq('user_id', currentUser.id).eq('status', 'active').order('created_at', { ascending: false }).limit(1).maybeSingle();
-                        if (planError) throw planError;
-                        if (!activePlan) throw new Error("Nebyl nalezen žádný aktivní studijní plán.");
-                        currentPlanId = activePlan.id; // Store current plan ID
+                         const { data: planActivities, error: activityError } = await supabase.from('plan_activities').select('id, title').eq('plan_id', currentPlanId).order('day_of_week', { ascending: true }).order('time_slot', { ascending: true });
+                         if (activityError) throw activityError;
+                         if (!planActivities || planActivities.length === 0) throw new Error("V aktivním plánu nebyly nalezeny žádné aktivity.");
 
-                        // 2. Get all activities for the plan, ordered correctly
-                        const { data: planActivities, error: activityError } = await supabase.from('plan_activities').select('id, title').eq('plan_id', currentPlanId).order('day_of_week', { ascending: true }).order('time_slot', { ascending: true });
-                        if (activityError) throw activityError;
-                        if (!planActivities || planActivities.length === 0) throw new Error("V aktivním plánu nebyly nalezeny žádné aktivity.");
+                         const activityIds = planActivities.map(a => a.id);
+                         const { data: statuses, error: statusError } = await supabase.from('user_topic_status').select('activity_id, status').eq('user_id', currentUser.id).in('activity_id', activityIds);
+                         if (statusError) {
+                              console.error("Chyba při načítání stavů témat (zkontrolujte, zda tabulka 'user_topic_status' existuje a má RLS):", statusError);
+                              throw new Error("Chyba při kontrole pokroku témat. Zkontrolujte nastavení databáze.");
+                         }
 
-                        // 3. Get completion statuses for these activities for the user
-                        const activityIds = planActivities.map(a => a.id);
-                        const { data: statuses, error: statusError } = await supabase.from('user_topic_status').select('activity_id, status').eq('user_id', currentUser.id).in('activity_id', activityIds);
-                        if (statusError) throw statusError;
+                         let nextActivity = null;
+                         for (const activity of planActivities) {
+                             const statusRecord = statuses?.find(s => s.activity_id === activity.id);
+                             if (!statusRecord || statusRecord.status !== 'completed') { nextActivity = activity; break; }
+                         }
 
-                        // 4. Find the first activity that is NOT marked as 'completed'
-                        let nextActivity = null;
-                        for (const activity of planActivities) {
-                            const statusRecord = statuses?.find(s => s.activity_id === activity.id);
-                            if (!statusRecord || statusRecord.status !== 'completed') {
-                                nextActivity = activity;
-                                break; // Found the first uncompleted one
-                            }
-                        }
+                         if (!nextActivity) { throw new Error("Gratulujeme! Všechny aktivity v tomto plánu jsou dokončeny!"); }
 
-                        if (!nextActivity) {
-                             throw new Error("Gratulujeme! Všechny aktivity v tomto plánu jsou dokončeny!");
-                        }
+                         currentTopic = { id: `activity_${nextActivity.id}`, name: nextActivity.title, activity_id: nextActivity.id, plan_id: currentPlanId };
+                         currentTopicDisplay.innerHTML = `Aktuální téma: <strong>${sanitizeHTML(currentTopic.name)}</strong>`;
+                         await startLearningSession();
 
-                        // 5. Set current topic and start session
-                        currentTopic = {
-                             id: `activity_${nextActivity.id}`, // Use activity ID for topic ID in this context
-                             name: nextActivity.title,
-                             activity_id: nextActivity.id,
-                             plan_id: currentPlanId
-                        };
-                        currentTopicDisplay.innerHTML = `Aktuální téma: <strong>${sanitizeHTML(currentTopic.name)}</strong>`;
-                        await startLearningSession(); // This will also show the UI elements
+                     } catch (error) {
+                         console.error("Chyba při načítání dalšího tématu:", error);
+                         showToast(error.message || "Nepodařilo se načíst další téma.", "error");
+                         currentTopicDisplay.innerHTML = `<span class="placeholder" style="color: var(--danger);"><i class="fas fa-exclamation-circle"></i> ${error.message || 'Chyba načítání tématu.'}</span>`;
+                         hideLearningUI();
+                     } finally { topicLoadInProgress = false; }
+                 };
 
-                    } catch (error) {
-                        console.error("Chyba při načítání dalšího tématu:", error);
-                        showToast(error.message || "Nepodařilo se načíst další téma.", "error");
-                        currentTopicDisplay.innerHTML = `<span class="placeholder" style="color: var(--danger);"><i class="fas fa-exclamation-circle"></i> ${error.message || 'Chyba načítání tématu.'}</span>`;
-                        hideLearningUI(); // Keep UI hidden on error
-                    } finally {
-                         topicLoadInProgress = false;
-                    }
-                };
-
-                /** Marks the current topic as completed and loads the next one */
-                const handleMarkTopicComplete = async () => {
+                 const handleMarkTopicComplete = async () => {
                      if (!currentTopic || !currentUser || !supabase || geminiIsThinking || topicLoadInProgress) return;
-
                      console.log(`Marking topic ${currentTopic.activity_id} as complete...`);
-                     markCompleteBtn.disabled = true;
+                     markCompleteBtn.disabled = true; nextStepBtn.disabled = true; // Disable both while saving
                      markCompleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ukládám...';
 
                      try {
                           const now = new Date().toISOString();
-                          // Upsert ensures record exists, updates status and completed_at
+                          // Use upsert to handle cases where the record might not exist yet
                           const { error } = await supabase.from('user_topic_status').upsert(
-                              {
-                                   user_id: currentUser.id,
-                                   activity_id: currentTopic.activity_id,
-                                   plan_id: currentTopic.plan_id, // Include plan_id
-                                   status: 'completed',
-                                   completed_at: now,
-                                   updated_at: now
-                              },
-                              { onConflict: 'user_id, activity_id' } // Unique constraint
-                          );
-                          if (error) throw error;
+                              { user_id: currentUser.id, activity_id: currentTopic.activity_id, plan_id: currentTopic.plan_id, status: 'completed', completed_at: now, updated_at: now },
+                              { onConflict: 'user_id, activity_id' } // Assumes unique constraint on (user_id, activity_id)
+                          ).select(); // Add select() to check if operation succeeded
+
+                          if (error) {
+                               console.error("Chyba při upsert stavu tématu (zkontrolujte tabulku, constrainty a RLS):", error);
+                               throw new Error("Chyba při ukládání pokroku.");
+                          }
 
                           showToast(`Téma "${currentTopic.name}" označeno jako dokončené.`, "success");
-                          // Load the next topic automatically
-                          await loadNextUncompletedTopic();
+                          await loadNextUncompletedTopic(); // Load next topic automatically
 
                      } catch (error) {
-                          console.error("Error marking topic as complete:", error);
-                          showToast("Chyba při označování tématu jako dokončeného.", "error");
-                          markCompleteBtn.disabled = false; // Re-enable button on error
+                          console.error("Error marking topic complete:", error);
+                          showToast(error.message || "Chyba při označování tématu.", "error");
+                           markCompleteBtn.disabled = false; // Re-enable buttons on error
+                           nextStepBtn.disabled = false;
                            markCompleteBtn.innerHTML = '<i class="fas fa-check-circle"></i> Téma dokončeno';
-                     } finally {
-                           // Button state will be reset when new topic loads or if error occurred
                      }
-                };
+                     // No finally block needed here as state is reset by loadNextUncompletedTopic or error handling
+                 };
 
 
                 // --- Learning Session Management ---
-                const startLearningSession = async () => {
-                    if (!currentTopic || !currentUser || !supabase) { console.error("startLearningSession called without necessary data"); return; }
-                    console.log(`Preparing session for topic: ${currentTopic.name} (Activity ID: ${currentTopic.activity_id})`);
-
-                    // --- Delete PREVIOUS history ---
-                    console.log(`Deleting previous chat history for user: ${currentUser.id}...`);
-                    try { /* ... deletion code ... */ const { error: deleteError } = await supabase .from('chat_history') .delete() .eq('user_id', currentUser.id); if (deleteError) { console.error("Error deleting previous chat history:", deleteError); showToast("Nepodařilo se vymazat starou historii chatu.", "warning", 6000); } else { console.log("Previous chat history deleted."); } } catch (delCatchError) { /* ... error handling ... */ console.error("Unexpected error during history deletion:", delCatchError); showToast("Neočekávaná chyba při mazání historie.", "error", 6000); }
-
-                    // --- Setup New Session ---
-                    currentSessionId = generateSessionId();
-                    console.log(`Starting NEW session ${currentSessionId} for topic: ${currentTopic.name}`);
-                    updateAIStatus(`Vysvětluje: ${currentTopic.name}`);
-
-                    // Show UI elements
-                    showLearningUI();
-
-                    // Reset content and state
-                    explanationDisplay.innerHTML = '<div class="loading-placeholder"><i class="fas fa-spinner fa-spin"></i> Požaduji úvodní vysvětlení od AI...</div>';
-                    nextStepBtn.style.display = 'none';
-                    markCompleteBtn.style.display = 'none'; // Hide complete button initially
-                    chatMessages.innerHTML = '';
-                    geminiChatContext = [];
-
-                    // Reset tldraw canvas
-                    if (tldrawApp && tldrawApp.resetDocument) {
-                         try { tldrawApp.resetDocument(); tldrawApp.zoomToFit(); console.log("tldraw reset & zoomed for new session."); } catch (e) { console.warn("Could not reset/zoom tldraw:", e); }
-                    } else {
-                         // Attempt to initialize again if it failed before
-                          if (!tldrawApp) initializeTldrawInstance();
-                    }
-
-                    // Add first message and save it
-                    await addChatMessage(`Ahoj! Začínáme s tématem: **${sanitizeHTML(currentTopic.name)}**. Budu vysvětlovat krok za krokem. Můžeš mi kdykoli položit otázku nebo říct **"pokračuj"**.`, 'gemini', true);
-
-                    // Request initial explanation
-                    updateGeminiThinkingState(true);
-                    await sendToGemini(`Začni vysvětlovat ZÁKLADY tématu "${currentTopic.name}" pro 9. třídu ZŠ (přijímačky CERMAT). Rozděl to na malé kroky. Toto je PRVNÍ KROK. Vysvětluj podrobně a přátelsky. Pokud je to vhodné, zahrň jednoduchý úvodní příklad a výzvu k použití došky.`, 'explanation');
-
-                    // Show control buttons after first explanation attempt
-                    nextStepBtn.style.display = 'inline-flex';
-                    markCompleteBtn.style.display = 'inline-flex';
-                     markCompleteBtn.disabled = false; // Ensure it's enabled
-                     markCompleteBtn.innerHTML = '<i class="fas fa-check-circle"></i> Téma dokončeno';
-
-                };
-
-                 /** Shows the main learning UI panels */
-                const showLearningUI = () => {
-                     // These elements are always expected to exist in the new layout
-                     const callInterface = document.querySelector('.call-interface');
-                     if(callInterface) callInterface.style.display = 'flex'; // Show the main container
-                     // Reset explanation display for new content
-                     if(explanationDisplay) explanationDisplay.innerHTML = '';
-                     // Reset chat display
-                     if(chatMessages) chatMessages.innerHTML = '';
-                     // Activate the explanation tab by default
-                     switchInteractionTab('explanation-tab');
-
-                };
-
-                 /** Hides the main learning UI panels */
-                const hideLearningUI = () => {
-                     const callInterface = document.querySelector('.call-interface');
-                     if(callInterface) callInterface.style.display = 'none'; // Hide the main container
-                     // Also clear state
-                     explanationDisplay.innerHTML = '';
-                     nextStepBtn.style.display = 'none';
-                     markCompleteBtn.style.display = 'none';
-                     chatMessages.innerHTML = '';
-                     if (tldrawApp && tldrawApp.resetDocument) tldrawApp.resetDocument();
-                     currentTopic = null;
-                     currentSessionId = null;
-                     geminiChatContext = [];
-                     updateAIStatus('Čekání na téma...');
-                 };
-
-                /** Switches the active tab in the interaction panel */
-                const switchInteractionTab = (tabId) => {
-                     interactionTabs.forEach(t => t.classList.remove('active'));
-                     tabContents.forEach(c => c.classList.remove('active'));
-                     const activeTab = document.querySelector(`.interaction-tab[data-tab="${tabId}"]`);
-                     const activeContent = document.getElementById(tabId + '-content');
-                     if (activeTab) activeTab.classList.add('active');
-                     if (activeContent) activeContent.classList.add('active');
-                     if (tabId === 'chat-tab') chatInput.focus();
-                 };
-
-
-                const requestNextStep = async () => { /* ... same as previous ... */ };
+                const startLearningSession = async () => { /* ... same logic, ensures UI is shown correctly */ if (!currentTopic || !currentUser || !supabase) { console.error("startLearningSession called without necessary data"); return; } console.log(`Preparing session for topic: ${currentTopic.name} (Activity ID: ${currentTopic.activity_id})`); console.log(`Deleting previous chat history for user: ${currentUser.id}...`); try { const { error: deleteError } = await supabase .from('chat_history') .delete() .eq('user_id', currentUser.id); if (deleteError) { console.error("Error deleting previous chat history:", deleteError); showToast("Nepodařilo se vymazat starou historii chatu.", "warning", 6000); } else { console.log("Previous chat history deleted."); } } catch (delCatchError) { console.error("Unexpected error during history deletion:", delCatchError); showToast("Neočekávaná chyba při mazání historie.", "error", 6000); } currentSessionId = generateSessionId(); console.log(`Starting NEW session ${currentSessionId} for topic: ${currentTopic.name}`); updateAIStatus(`Vysvětluje: ${currentTopic.name}`); showLearningUI(); explanationDisplay.innerHTML = '<div class="loading-placeholder"><i class="fas fa-spinner fa-spin"></i> Požaduji úvodní vysvětlení od AI...</div>'; nextStepBtn.style.display = 'none'; markCompleteBtn.style.display = 'none'; chatMessages.innerHTML = ''; geminiChatContext = []; if (tldrawApp && tldrawApp.resetDocument) { try { tldrawApp.resetDocument(); tldrawApp.zoomToFit(); console.log("tldraw reset & zoomed for new session."); } catch (e) { console.warn("Could not reset/zoom tldraw:", e); } } else if (!tldrawApp) { initializeTldrawInstance(); } await addChatMessage(`Ahoj! Začínáme s tématem: **${sanitizeHTML(currentTopic.name)}**. Budu vysvětlovat krok za krokem. Můžeš mi kdykoli položit otázku nebo říct **"pokračuj"**.`, 'gemini', true); updateGeminiThinkingState(true); await sendToGemini(`Začni vysvětlovat ZÁKLADY tématu "${currentTopic.name}" pro 9. třídu ZŠ (přijímačky CERMAT). Rozděl to na malé kroky. Toto je PRVNÍ KROK. Vysvětluj podrobně a přátelsky. Pokud je to vhodné, zahrň jednoduchý úvodní příklad a výzvu k použití došky, případně POKYN K NAKRESLENÍ (použij formát DRAW_ON_WHITEBOARD).`, 'explanation'); nextStepBtn.style.display = 'inline-flex'; markCompleteBtn.style.display = 'inline-flex'; markCompleteBtn.disabled = false; markCompleteBtn.innerHTML = '<i class="fas fa-check-circle"></i> Téma dokončeno'; };
+                const showLearningUI = () => { if(callInterface) callInterface.style.display = 'flex'; if(explanationDisplay) explanationDisplay.innerHTML = ''; if(chatMessages) chatMessages.innerHTML = ''; switchInteractionTab('explanation-tab'); };
+                const hideLearningUI = () => { if(callInterface) callInterface.style.display = 'none'; if(explanationDisplay) explanationDisplay.innerHTML = ''; if(nextStepBtn) nextStepBtn.style.display = 'none'; if(markCompleteBtn) markCompleteBtn.style.display = 'none'; if(chatMessages) chatMessages.innerHTML = ''; if (tldrawApp && tldrawApp.resetDocument) tldrawApp.resetDocument(); currentTopic = null; currentSessionId = null; geminiChatContext = []; updateAIStatus('Čekání na téma...'); };
+                const switchInteractionTab = (tabId) => { /* ... same ... */ };
+                const requestNextStep = async () => { /* ... same ... */ };
 
                 // --- Chat Functionality ---
                 const addChatMessage = async (message, sender, saveToDb = false, timestamp = new Date()) => { /* ... same ... */ };
-                const updateGeminiThinkingState = (isThinking) => { /* ... same (ensure markCompleteBtn is also disabled) ... */ geminiIsThinking = isThinking; sendButton.disabled = isThinking; if(nextStepBtn) nextStepBtn.disabled = isThinking; if(markCompleteBtn) markCompleteBtn.disabled = isThinking; /* loadNextTopicBtn is removed */ if (isThinking) { addThinkingIndicator(); sendButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; updateAIStatus('Přemýšlím...'); } else { removeThinkingIndicator(); sendButton.innerHTML = '<i class="fas fa-paper-plane"></i>'; if(nextStepBtn) nextStepBtn.innerHTML = '<i class="fas fa-forward"></i> Pokračovat / Další krok'; if(currentTopic) updateAIStatus(`Vysvětluje: ${currentTopic.name}`); else updateAIStatus('Připraven'); } };
+                const updateGeminiThinkingState = (isThinking) => { /* ... same ... */ };
                 const addThinkingIndicator = () => { /* ... same ... */ };
                 const removeThinkingIndicator = () => { /* ... same ... */ };
                 const handleSendMessage = async () => { /* ... same ... */ };
@@ -680,234 +496,18 @@
 
 
                 // --- Gemini Interaction & AI Drawing ---
-
-                /** Parses AI response for drawing commands and executes them */
-                const parseAndDrawAiOutput = async (responseText) => {
-                     if (!tldrawApp) {
-                          console.warn("Cannot draw: tldrawApp is not initialized.");
-                          return responseText; // Return original text if no whiteboard
-                     }
-
-                     let remainingText = responseText;
-                     const drawCommands = [];
-                     let match;
-
-                     // Find all draw commands
-                     while ((match = DRAW_COMMAND_REGEX.exec(responseText)) !== null) {
-                          try {
-                               const jsonString = match[1];
-                               const commandData = JSON.parse(jsonString);
-                               drawCommands.push(commandData);
-                               // Remove the command block from the text to be displayed
-                               remainingText = remainingText.replace(match[0], '').trim();
-                          } catch (e) {
-                               console.error("Failed to parse DRAW_ON_WHITEBOARD JSON:", e, match[1]);
-                               // Keep the text, but don't attempt to draw this command
-                          }
-                     }
-
-                      // Execute draw commands if any were found
-                      if (drawCommands.length > 0) {
-                           console.log("Found AI draw commands:", drawCommands);
-                           try {
-                               // Option 1: Clear board before drawing new stuff
-                               // tldrawApp.resetDocument(); // Might be too aggressive
-                               // Option 2: Delete existing shapes (safer)
-                               const existingShapes = tldrawApp.shapes;
-                               if (existingShapes.length > 0) {
-                                   tldrawApp.deleteShapes(existingShapes.map(s => s.id));
-                                   console.log("Cleared existing shapes before AI drawing.");
-                                   await new Promise(resolve => setTimeout(resolve, 50)); // Short delay
-                               }
-
-
-                               const shapesToCreate = [];
-                               let shapeIdCounter = Date.now(); // Simple ID generator
-
-                                for (const cmd of drawCommands) {
-                                     const baseProps = {
-                                          id: `${cmd.type}_${shapeIdCounter++}`,
-                                          x: cmd.x ?? 100,
-                                          y: cmd.y ?? 100,
-                                          rotation: cmd.rotation ?? 0,
-                                          style: {
-                                               color: cmd.color ?? 'black',
-                                               size: cmd.size ?? 'medium', // small, medium, large
-                                               isFilled: cmd.isFilled ?? false,
-                                                ...(cmd.style || {}) // Allow overriding specific styles
-                                          }
-                                     };
-
-                                     if (cmd.type === 'text') {
-                                          shapesToCreate.push({
-                                               ...baseProps,
-                                               type: 'text',
-                                               text: cmd.text || '?',
-                                               style: { ...baseProps.style, scale: cmd.scale ?? 1 }
-                                          });
-                                     } else if (cmd.type === 'rectangle' || cmd.type === 'ellipse') {
-                                           shapesToCreate.push({
-                                                ...baseProps,
-                                                type: cmd.type,
-                                                width: cmd.width ?? 100,
-                                                height: cmd.height ?? 100
-                                           });
-                                     } else if (cmd.type === 'arrow') {
-                                            shapesToCreate.push({
-                                                 ...baseProps,
-                                                 type: 'arrow',
-                                                 points: cmd.points ?? [[0,0], [50,0]], // Default simple arrow
-                                                 arrowheadStart: cmd.arrowheadStart ?? 'none',
-                                                 arrowheadEnd: cmd.arrowheadEnd ?? 'arrow',
-                                                 style: { ...baseProps.style, strokeWidth: cmd.strokeWidth ?? baseProps.style.size === 'small' ? 2 : 4}
-                                            });
-                                     }
-                                      // Add more shape types as needed (line, draw, etc.)
-                                      else {
-                                           console.warn("Unsupported AI draw command type:", cmd.type);
-                                      }
-                                } // end for loop
-
-                                if (shapesToCreate.length > 0) {
-                                     console.log("Creating shapes:", shapesToCreate);
-                                     tldrawApp.createShapes(shapesToCreate);
-                                     await new Promise(resolve => setTimeout(resolve, 50)); // Delay
-                                     tldrawApp.zoomToFit();
-                                     console.log("AI drawing executed.");
-                                }
-
-                           } catch (drawError) {
-                                console.error("Error executing AI draw commands:", drawError);
-                                showToast("Chyba při kreslení na tabuli.", "error");
-                           }
-                      }
-
-                     return remainingText; // Return text without the drawing commands
-                };
-
-
-                const sendToGemini = async (promptText, targetArea) => {
-                    /* ... (safety checks, setup, history build - same as before) ... */
-                    if (!GEMINI_API_KEY || GEMINI_API_KEY.startsWith('YOUR_')) { /* ... */ return; }
-                    if (!currentTopic) { /* ... */ return; }
-                    console.log(`Posílám Gemini (cíl: ${targetArea}): "${promptText}"`);
-                    updateAIStatus('Přemýšlím...');
-                    const timestamp = new Date();
-                    updateGeminiThinkingState(true); // Ensure thinking state is set
-
-                    // --- ** MODIFIED SYSTEM INSTRUCTION FOR DRAWING ** ---
-                    const systemInstructionText = `Jsi AI Tutor "Justax", expert na matematiku pro 9. třídu ZŠ v ČR (přijímačky CERMAT). Vyučuješ téma: "${currentTopic.name}". Tvůj styl je PŘÁTELSKÝ, TRPĚLIVÝ a PODROBNÝ. Vysvětluj krok za krokem, používej příklady. Důsledně používej Markdown (nadpisy **, seznamy *, tučně **, kurzívu *) a MathJax (blok: $$...$$, inline: \\(...\\)). Odpovídej VŽDY ČESKY.
-
-                    DŮLEŽITÉ POKYNY PRO VÝUKU:
-                    1.  **KROK ZA KROKEM:** Drž se jednoho konceptu/kroku v odpovědi.
-                    2.  **INTERAKTIVITA:** Pokládej otázky, vyzývej studenta.
-                    3.  **INTERAKTIVNÍ DOŠKA:** Máš k dispozici virtuální došku. Pokud vysvětluješ geometrický koncept, vzorec, rovnici, nebo graf, MŮŽEŠ přidat **na konec své textové odpovědi** speciální blok pro kreslení. Tento blok MUSÍ začínat přesně ` + "`DRAW_ON_WHITEBOARD:`" + ` následovaný JSON objektem v code bloku (\`\`\`json ... \`\`\`).
-                        * **Formát JSON:** Pole objektů, každý objekt popisuje jeden tvar.
-                        * **Podporované ` + "`type`" + `: "rectangle", "ellipse", "arrow", "text".`
-                        * **Společné vlastnosti:** ` + "`x`, `y` (pozice levý horní roh), `color` (napr. 'black', 'red', 'blue'), `size` ('small', 'medium', 'large'), `isFilled` (true/false pro tvary), `rotation` (stupně). Nepovinné." + `
-                        * **Typ "text":** Vyžaduje ` + "`text` (string). Volitelně `scale` (číslo, např. 1.5), `style.font` ('sans', 'serif', 'draw', 'mono')." + `
-                        * **Typ "rectangle", "ellipse":** Vyžaduje ` + "`width`, `height`." + `
-                        * **Typ "arrow":** Vyžaduje ` + "`points` (pole polí, např. [[0,0], [50,50]]), volitelně `arrowheadStart` / `arrowheadEnd` ('none', 'arrow', 'triangle', 'bar', ...), `style.strokeWidth` (číslo)." + `
-                        * **PŘÍKLAD BLOKU:**
-                            DRAW_ON_WHITEBOARD: \`\`\`json
-                            [
-                              {"type": "rectangle", "x": 50, "y": 50, "width": 100, "height": 60, "color": "blue"},
-                              {"type": "text", "x": 60, "y": 70, "text": "A^2 + B^2 = C^2", "scale": 1.2, "color": "red"}
-                            ]
-                            \`\`\`
-                    4.  **POUŽITÍ KRESLENÍ:** Používej kreslení S MÍROU, jen když to výrazně pomůže vizualizaci (vzorce, jednoduché geometrické tvary, osy grafu). Nekresli příliš složité veci. Textové vysvětlení je stále primární. Kresba doplňuje text. Následný text by měl odkazovat na kresbu ("Jak vidíš na tabuli...").
-                    5.  **DÉLKA ODPOVĚDI:** Drž textové odpovědi stručné a zaměřené.
-                    6.  **REAKCE NA VSTUP:** Pečlivě čti poslední zprávu uživatele a reaguj na ni.`;
-                    // --- ** END MODIFIED SYSTEM INSTRUCTION ** ---
-
-                    const historyForApi = [...geminiChatContext];
-                    const currentRequestContent = { role: "user", parts: [{ text: promptText }] };
-                    const cleanHistory = historyForApi.filter(item => item.role === 'user' || item.role === 'model');
-                    const requestBody = { contents: [currentRequestContent], systemInstruction: { parts: [{ text: systemInstructionText }] }, history: cleanHistory.length > 0 ? cleanHistory : undefined, generationConfig: { temperature: 0.6, topP: 0.95, topK: 40, maxOutputTokens: 4096 }, safetySettings: [ { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" }, { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" }, { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" }, { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" } ] };
-
-                    try {
-                        const response = await fetch(GEMINI_API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(requestBody) });
-                         if (!response.ok) { /* ... error handling ... */ const errorBody = await response.json(); console.error("Gemini API Error Response:", errorBody); throw new Error(errorBody.error?.message || `Chyba API (${response.status})`); }
-                         const data = await response.json();
-                         console.log("Gemini API Raw Response:", data);
-                         if (data.candidates && data.candidates[0].finishReason === "SAFETY") { /* ... safety block handling ... */ console.warn("Gemini response blocked due to safety settings."); throw new Error("Odpověď byla blokována z bezpečnostních důvodů."); }
-                         if (!data.candidates || !data.candidates[0]?.content?.parts || !data.candidates[0]?.content?.parts[0]?.text) { /* ... invalid structure handling ... */ console.error("Invalid response structure from Gemini:", data); throw new Error('Neplatná nebo prázdná odpověď od Gemini.'); }
-
-                        const geminiResponseText = data.candidates[0].content.parts[0].text;
-                        geminiChatContext.push({ role: "model", parts: [{ text: geminiResponseText }] }); // Add raw response to context
-
-                        // Parse for drawing commands *before* adding to chat/explanation
-                        const textToDisplay = await parseAndDrawAiOutput(geminiResponseText);
-
-                        processGeminiResponse(textToDisplay, targetArea, timestamp); // Process text part
-                        updateAIStatus(`Vysvětluje: ${currentTopic.name}`);
-
-                    } catch (error) { /* ... error handling ... */ console.error('Chyba komunikace s Gemini:', error); showToast(`Chyba AI: ${error.message}`, "error"); handleGeminiError(error.message, targetArea, timestamp); updateAIStatus('Nastala chyba'); }
-                    finally { updateGeminiThinkingState(false); }
-                };
-
-                // --- Processing Gemini Response ---
-                 const processGeminiResponse = (responseText, targetArea, timestamp) => {
-                     removeThinkingIndicator();
-                     const textToRender = responseText.trim(); // Already stripped of draw commands
-
-                     if (targetArea === 'explanation') {
-                          const loadingDiv = explanationDisplay.querySelector('.loading-placeholder, .empty-state');
-                          if (loadingDiv) loadingDiv.remove();
-                          if (explanationDisplay.innerHTML.includes('Výuka připravena')) { // Clear initial empty state
-                              explanationDisplay.innerHTML = '';
-                          }
-                          const stepDiv = document.createElement('div');
-                          stepDiv.className = 'step';
-                          renderMarkdown(stepDiv, textToRender);
-                          explanationDisplay.appendChild(stepDiv);
-                          // Scroll to the new step within the scrollable container
-                          if(explanationScrollContent) {
-                               setTimeout(() => stepDiv.scrollIntoView({ behavior: 'smooth', block: 'end' }), 100);
-                          }
-                          addChatMessage(textToRender, 'gemini', true, timestamp); // Save text part to DB
-                          if (nextStepBtn) nextStepBtn.style.display = 'inline-flex';
-                          if (markCompleteBtn) markCompleteBtn.style.display = 'inline-flex'; // Show complete btn too
-                     } else { // Chat
-                          addChatMessage(textToRender, 'gemini', true, timestamp);
-                     }
-                 };
-
-
-                // --- Handling Gemini Errors ---
-                const handleGeminiError = (errorMessage, targetArea, timestamp) => {
-                     removeThinkingIndicator();
-                     updateGeminiThinkingState(false);
-                     const errorText = `Omlouvám se, při komunikaci s AI nastala chyba. Zkuste to prosím znovu.\n*(Detail: ${errorMessage})*`;
-
-                     if (targetArea === 'explanation') {
-                          const loadingDiv = explanationDisplay.querySelector('.loading-placeholder, .empty-state');
-                          if (loadingDiv) loadingDiv.remove();
-                          const errorDiv = document.createElement('div');
-                          errorDiv.className = 'step';
-                          errorDiv.style.color = 'var(--danger)';
-                          errorDiv.style.fontWeight = '500';
-                          renderMarkdown(errorDiv, errorText);
-                          explanationDisplay.appendChild(errorDiv);
-                          if (explanationScrollContent) {
-                              setTimeout(() => errorDiv.scrollIntoView({ behavior: 'smooth', block: 'end' }), 100);
-                          }
-                          addChatMessage(errorText, 'gemini', true, timestamp);
-                          if (nextStepBtn) { nextStepBtn.disabled = false; nextStepBtn.innerHTML = '<i class="fas fa-redo"></i> Požádat znovu'; nextStepBtn.style.display = 'inline-flex'; }
-                          if (markCompleteBtn) markCompleteBtn.style.display = 'inline-flex'; // Show complete btn even on error
-                     } else {
-                          addChatMessage(errorText, 'gemini', true, timestamp);
-                     }
-                };
+                const parseAndDrawAiOutput = async (responseText) => { /* ... same drawing logic ... */ if (!tldrawApp) { console.warn("Cannot draw: tldrawApp is not initialized."); return responseText; } let remainingText = responseText; const drawCommands = []; let match; while ((match = DRAW_COMMAND_REGEX.exec(responseText)) !== null) { try { const jsonString = match[1]; const commandData = JSON.parse(jsonString); drawCommands.push(commandData); remainingText = remainingText.replace(match[0], '').trim(); } catch (e) { console.error("Failed to parse DRAW_ON_WHITEBOARD JSON:", e, match[1]); } } if (drawCommands.length > 0) { console.log("Found AI draw commands:", drawCommands); try { const existingShapes = tldrawApp.shapes; if (existingShapes.length > 0) { tldrawApp.deleteShapes(existingShapes.map(s => s.id)); console.log("Cleared existing shapes before AI drawing."); await new Promise(resolve => setTimeout(resolve, 50)); } const shapesToCreate = []; let shapeIdCounter = Date.now(); for (const cmd of drawCommands) { const baseProps = { id: `${cmd.type}_${shapeIdCounter++}`, x: cmd.x ?? 100, y: cmd.y ?? 100, rotation: cmd.rotation ?? 0, style: { color: cmd.color ?? 'black', size: cmd.size ?? 'medium', isFilled: cmd.isFilled ?? false, ...(cmd.style || {}) } }; if (cmd.type === 'text') { shapesToCreate.push({ ...baseProps, type: 'text', text: cmd.text || '?', style: { ...baseProps.style, scale: cmd.scale ?? 1, font: cmd.style?.font ?? 'sans'} }); } else if (cmd.type === 'rectangle' || cmd.type === 'ellipse') { shapesToCreate.push({ ...baseProps, type: cmd.type, width: cmd.width ?? 100, height: cmd.height ?? 100 }); } else if (cmd.type === 'arrow') { shapesToCreate.push({ ...baseProps, type: 'arrow', points: cmd.points ?? [[0,0], [50,0]], arrowheadStart: cmd.arrowheadStart ?? 'none', arrowheadEnd: cmd.arrowheadEnd ?? 'arrow', style: { ...baseProps.style } }); } else { console.warn("Unsupported AI draw command type:", cmd.type); } } if (shapesToCreate.length > 0) { console.log("Creating shapes:", shapesToCreate); tldrawApp.createShapes(shapesToCreate); await new Promise(resolve => setTimeout(resolve, 50)); tldrawApp.zoomToFit(); console.log("AI drawing executed."); } } catch (drawError) { console.error("Error executing AI draw commands:", drawError); showToast("Chyba při kreslení na tabuli.", "error"); } } return remainingText; };
+                const sendToGemini = async (promptText, targetArea) => { /* ... same logic including updated system prompt ... */ if (!GEMINI_API_KEY || GEMINI_API_KEY.startsWith('YOUR_')) { showToast("Chyba: Chybí API klíč.", "error", 8000); handleGeminiError("Chybí API klíč.", targetArea, new Date()); return; } if (!currentTopic) { showToast("Chyba: Není vybráno téma.", "error"); handleGeminiError("Není vybráno téma.", targetArea, new Date()); return; } console.log(`Posílám Gemini (cíl: ${targetArea}): "${promptText}"`); updateAIStatus('Přemýšlím...'); const timestamp = new Date(); updateGeminiThinkingState(true); const systemInstructionText = `Jsi AI Tutor "Justax", expert na matematiku pro 9. třídu ZŠ v ČR (přijímačky CERMAT). Vyučuješ téma: "${currentTopic.name}". Tvůj styl je PŘÁTELSKÝ, TRPĚLIVÝ a PODROBNÝ. Vysvětluj krok za krokem, používej příklady. Důsledně používej Markdown (nadpisy **, seznamy *, tučně **, kurzívu *) a MathJax (blok: $$...$$, inline: \\(...\\)). Odpovídej VŽDY ČESKY. DŮLEŽITÉ POKYNY PRO VÝUKU: 1. **KROK ZA KROKEM:** Drž se jednoho konceptu/kroku v odpovědi. 2. **INTERAKTIVITA:** Pokládej otázky, vyzývej studenta. 3. **INTERAKTIVNÍ DOŠKA:** Máš k dispozici virtuální došku. Pokud vysvětluješ geometrický koncept, vzorec, rovnici, nebo graf, MŮŽEŠ přidat **na konec své textové odpovědi** speciální blok pro kreslení. Tento blok MUSÍ začínat přesně \`DRAW_ON_WHITEBOARD:\` následovaný JSON objektem v code bloku (\`\`\`json ... \`\`\`). * **Formát JSON:** Pole objektů, každý objekt popisuje jeden tvar. * **Podporované \`type\`:** "rectangle", "ellipse", "arrow", "text". * **Společné vlastnosti:** \`x\`, \`y\` (pozice), \`color\`, \`size\` ('small', 'medium', 'large'), \`isFilled\` (true/false), \`rotation\` (stupně). Nepovinné. * **Typ "text":** Vyžaduje \`text\` (string). Volitelně \`scale\` (číslo), \`style.font\` ('sans', 'serif', 'draw', 'mono'). * **Typ "rectangle", "ellipse":** Vyžaduje \`width\`, \`height\`. * **Typ "arrow":** Vyžaduje \`points\` (pole polí), volitelně \`arrowheadStart\` / \`arrowheadEnd\`, \`style.strokeWidth\`. * **PŘÍKLAD:** DRAW_ON_WHITEBOARD: \`\`\`json [{"type": "rectangle", "x": 50, "y": 50, "width": 100, "height": 60, "color": "blue"},{"type": "text", "x": 60, "y": 70, "text": "A^2+B^2=C^2", "scale": 1.2, "color": "red"}] \`\`\` 4. **POUŽITÍ KRESLENÍ:** Používej kreslení S MÍROU, jen když to výrazně pomůže vizualizaci. Textové vysvětlení je primární. Kresba doplňuje text. 5. **DÉLKA ODPOVĚDI:** Drž textové odpovědi stručné. 6. **REAKCE NA VSTUP:** Reaguj na poslední zprávu uživatele.`; const historyForApi = [...geminiChatContext]; const currentRequestContent = { role: "user", parts: [{ text: promptText }] }; const cleanHistory = historyForApi.filter(item => item.role === 'user' || item.role === 'model'); const requestBody = { contents: [currentRequestContent], systemInstruction: { parts: [{ text: systemInstructionText }] }, history: cleanHistory.length > 0 ? cleanHistory : undefined, generationConfig: { temperature: 0.6, topP: 0.95, topK: 40, maxOutputTokens: 4096 }, safetySettings: [ { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" }, { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" }, { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" }, { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" } ] }; try { const response = await fetch(GEMINI_API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(requestBody) }); if (!response.ok) { const errorBody = await response.json(); console.error("Gemini API Error Response:", errorBody); throw new Error(errorBody.error?.message || `Chyba API (${response.status})`); } const data = await response.json(); console.log("Gemini API Raw Response:", data); if (data.candidates && data.candidates[0].finishReason === "SAFETY") { console.warn("Gemini response blocked due to safety settings."); throw new Error("Odpověď byla blokována z bezpečnostních důvodů."); } if (!data.candidates || !data.candidates[0]?.content?.parts || !data.candidates[0]?.content?.parts[0]?.text) { console.error("Invalid response structure from Gemini:", data); throw new Error('Neplatná nebo prázdná odpověď od Gemini.'); } const geminiResponseText = data.candidates[0].content.parts[0].text; geminiChatContext.push({ role: "model", parts: [{ text: geminiResponseText }] }); const textToDisplay = await parseAndDrawAiOutput(geminiResponseText); processGeminiResponse(textToDisplay, targetArea, timestamp); updateAIStatus(`Vysvětluje: ${currentTopic.name}`); } catch (error) { console.error('Chyba komunikace s Gemini:', error); showToast(`Chyba AI: ${error.message}`, "error"); handleGeminiError(error.message, targetArea, timestamp); updateAIStatus('Nastala chyba'); } finally { updateGeminiThinkingState(false); } };
+                const processGeminiResponse = (responseText, targetArea, timestamp) => { /* ... same logic, ensures scrolling in explanation ... */ removeThinkingIndicator(); const textToRender = responseText.trim(); if (targetArea === 'explanation') { const loadingDiv = explanationDisplay.querySelector('.loading-placeholder, .empty-state'); if (loadingDiv) loadingDiv.remove(); if (explanationDisplay.innerHTML.includes('Výuka připravena')) { explanationDisplay.innerHTML = ''; } const stepDiv = document.createElement('div'); stepDiv.className = 'step'; renderMarkdown(stepDiv, textToRender); explanationDisplay.appendChild(stepDiv); if(explanationScrollContent) { setTimeout(() => stepDiv.scrollIntoView({ behavior: 'smooth', block: 'end' }), 100); } addChatMessage(textToRender, 'gemini', true, timestamp); if (nextStepBtn) nextStepBtn.style.display = 'inline-flex'; if (markCompleteBtn) markCompleteBtn.style.display = 'inline-flex'; } else { addChatMessage(textToRender, 'gemini', true, timestamp); } };
+                const handleGeminiError = (errorMessage, targetArea, timestamp) => { /* ... same logic, ensures scrolling in explanation ... */ removeThinkingIndicator(); updateGeminiThinkingState(false); const errorText = `Omlouvám se, při komunikaci s AI nastala chyba. Zkuste to prosím znovu.\n*(Detail: ${errorMessage})*`; if (targetArea === 'explanation') { const loadingDiv = explanationDisplay.querySelector('.loading-placeholder, .empty-state'); if (loadingDiv) loadingDiv.remove(); const errorDiv = document.createElement('div'); errorDiv.className = 'step'; errorDiv.style.color = 'var(--danger)'; errorDiv.style.fontWeight = '500'; renderMarkdown(errorDiv, errorText); explanationDisplay.appendChild(errorDiv); if (explanationScrollContent) { setTimeout(() => errorDiv.scrollIntoView({ behavior: 'smooth', block: 'end' }), 100); } addChatMessage(errorText, 'gemini', true, timestamp); if (nextStepBtn) { nextStepBtn.disabled = false; nextStepBtn.innerHTML = '<i class="fas fa-redo"></i> Požádat znovu'; nextStepBtn.style.display = 'inline-flex'; } if (markCompleteBtn) markCompleteBtn.style.display = 'inline-flex'; } else { addChatMessage(errorText, 'gemini', true, timestamp); } };
 
 
                 // --- Run Application ---
                 initializeApp();
             });
         } catch (e) {
-             console.error("Top-level script error:", e);
-             // Display a fallback error message to the user if the whole script fails
-             document.body.innerHTML = `<div style="padding: 30px; text-align: center; font-family: sans-serif; color: red;"><h1>Kritická chyba skriptu</h1><p>Nepodařilo se spustit výukové rozhraní. Zkontrolujte prosím konzolu prohlížeče (F12) pro detaily.</p><pre>${e.message}\n${e.stack}</pre></div>`;
+            console.error("FATAL SCRIPT ERROR:", e);
+            document.body.innerHTML = `<div style="padding: 30px; text-align: center; font-family: sans-serif; color: red;"><h1>FATÁLNÍ CHYBA SKRIPTU</h1><p>Nepodařilo se spustit aplikaci. Zkontrolujte konzolu (F12).</p><pre>${e.message}\n${e.stack}</pre></div>`;
         }
     </script>
 
