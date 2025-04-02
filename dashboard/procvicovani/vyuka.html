@@ -28,8 +28,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/js/tooltipster.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
-        /* --- CSS Styly (s drobnými úpravami dizajnu) --- */
-        /* --- Reset & Base Styles --- */
+        /* --- CSS Styly (beze změny) --- */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; scroll-behavior: smooth; }
         :root {
             --primary-rgb: 67, 97, 238; --primary: #4361ee; --primary-light: #4895ef; --secondary: #3f37c9; --success: #06d6a0; --danger: #f72585; --warning: #f8961e; --info: #4cc9f0; --dark: #1e2a3a; --light: #f8f9fa; --gray: #6c757d; --gray-light: #dee2e6; --gray-dark: #343a40; --gradient-1: linear-gradient(135deg, #4361ee, #3a0ca3); --gradient-2: linear-gradient(135deg, #4cc9f0, #4361ee); --white: #ffffff; --sidebar-width: 260px; --transition-speed: 0.3s; --card-radius: 12px; --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.05); --shadow-md: 0 5px 12px rgba(0, 0, 0, 0.07); --shadow-lg: 0 10px 20px rgba(0, 0, 0, 0.1); --text-primary: #2d3748; --text-secondary: #4a5568; --text-muted: #718096; --call-bg: #f0f2f5; --call-panel-bg: var(--white); --avatar-size: 50px;
@@ -167,29 +166,24 @@
         .sidebar-overlay.active { display: block; opacity: 1; }
 
         @media (max-width: 1200px) {
-            /* Adjust sidebar and main content for medium-large screens */
             :root { --sidebar-width: 240px; }
             .interaction-panel { width: 380px; }
         }
-
         @media (max-width: 992px) {
-            /* Hide sidebar, show toggle button, adjust layout for tablets */
             .sidebar { transform: translateX(-100%); }
             .sidebar.active { transform: translateX(0); }
             main { margin-left: 0; width: 100%; }
             .mobile-menu-toggle { display: block; }
             .call-interface { flex-direction: column; padding: 1rem; gap: 1rem; }
-            .ai-presenter-area { height: 50vh; } /* Give presenter a fixed height */
-            .interaction-panel { width: 100%; max-height: calc(50vh - 2rem); /* Adjust based on gap */}
+            .ai-presenter-area { height: 50vh; }
+            .interaction-panel { width: 100%; max-height: calc(50vh - 2rem); }
             .explanation-scroll-content { padding: 1rem; }
             .chat-messages { padding: 1rem; }
             .chat-input-area { padding: 0.75rem 1rem; }
             .main-header { padding: 0.75rem 1rem; }
             .header-content h1 { font-size: 1.2rem; }
         }
-
         @media (max-width: 768px) {
-            /* Further adjustments for smaller tablets/large phones */
             :root { --sidebar-width: 220px; }
              .ai-presenter-area { height: 45vh; }
              .interaction-panel { max-height: calc(55vh - 2rem); }
@@ -197,12 +191,10 @@
             .btn { padding: 0.6rem 1.2rem; font-size: 0.85rem; }
             .header-actions a { padding: 0.5rem 1rem; }
         }
-
         @media (max-width: 576px) {
-            /* Mobile specific styles */
-            .sidebar { width: 100%; max-width: 280px; /* Slightly wider for mobile menu */ }
-            .sidebar-logo span { display: inline; } /* Ensure logo text visible */
-            .ai-presenter-area { height: 40vh; } /* Less height for video/whiteboard */
+            .sidebar { width: 100%; max-width: 280px; }
+            .sidebar-logo span { display: inline; }
+            .ai-presenter-area { height: 40vh; }
             .interaction-panel { max-height: calc(60vh - 2rem); }
             .interaction-tab i { margin-right: 0.3rem; }
             .chat-input { font-size: 0.95rem; padding: 0.7rem 1rem; }
@@ -225,11 +217,11 @@
             .ai-presenter-area, .interaction-panel { background-color: var(--call-panel-bg); box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2); border-color: var(--gray-light); }
             .ai-presenter-header { background-color: var(--light); border-bottom-color: var(--gray-light); }
             .whiteboard-main-container { background-color: var(--dark-bg); }
-            #tldraw-wrapper { background-color: var(--dark-bg); /* Ensure wrapper matches */ }
+            #tldraw-wrapper { background-color: var(--dark-bg); }
             .interaction-tabs { background-color: var(--light); border-bottom-color: var(--gray-light); }
             .interaction-tab { color: var(--text-secondary); }
             .interaction-tab:hover { color: var(--primary-light); background-color: rgba(72, 149, 239, 0.1); }
-            .interaction-tab.active { color: var(--primary-light); border-bottom-color: var(--primary-light); background-color: var(--call-panel-bg); } /* Match content bg */
+            .interaction-tab.active { color: var(--primary-light); border-bottom-color: var(--primary-light); background-color: var(--call-panel-bg); }
             .tab-content { background-color: var(--call-panel-bg); }
             .explanation-scroll-content { scrollbar-color: var(--gray) var(--call-panel-bg); }
             .explanation-scroll-content::-webkit-scrollbar-thumb { border-color: var(--call-panel-bg); }
@@ -261,7 +253,7 @@
             .btn-secondary:hover:not(:disabled) { background-color: var(--gray-light); color: var(--dark); }
             .btn-success { background: linear-gradient(135deg, var(--success), #05a381); }
             .btn-success:hover:not(:disabled) { background: linear-gradient(135deg, #0cd1a7, var(--success));}
-            .btn:disabled { background: var(--gray); color: var(--text-muted); } /* Adjusted disabled dark */
+            .btn:disabled { background: var(--gray); color: var(--text-muted); }
             .topic-loading-bar { background-color: var(--light); border-bottom-color: var(--gray-light); }
             .empty-state i { color: var(--light); }
         }
@@ -365,7 +357,6 @@
                 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10';
                 const GEMINI_API_KEY = 'AIzaSyDQboM6qtC_O2sqqpaKZZffNf2zk6HrhEs'; // WARNING: Test key only!
                 const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
-                // ***** FIXED ERROR HERE: Removed space in variable name *****
                 const TLDRAW_CDN_URL = 'https://unpkg.com/tldraw@1.24.2/dist/tldraw.js';
                 const DRAW_COMMAND_REGEX = /DRAW_ON_WHITEBOARD:\s*```json\s*([\s\S]*?)\s*```/g;
 
@@ -391,7 +382,7 @@
                 const interactionTabs = document.querySelectorAll('.interaction-tab');
                 const tabContents = document.querySelectorAll('.tab-content');
                 const aiStatusText = document.getElementById('ai-status-text');
-                const callInterface = document.querySelector('.call-interface'); // Main container
+                const callInterface = document.querySelector('.call-interface');
 
                 // --- Global State ---
                 let supabase = null;
@@ -416,18 +407,14 @@
                 const generateSessionId = () => `session_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
                 const formatTimestamp = (date) => date.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' });
                 const updateAIStatus = (text) => { if (aiStatusText) aiStatusText.textContent = text; };
-                // --- End Helper Functions ---
 
                 // --- Initialization Functions ---
                 const loadTldrawScript = () => {
-                    // ***** FIXED ERROR HERE: Updated variable name *****
                     return new Promise((resolve, reject) => {
                         if (tldrawScriptLoaded || typeof tldraw !== 'undefined') { console.log("tldraw script already loaded or available."); tldrawScriptLoaded = true; resolve(); return; }
                         if (document.querySelector(`script[src="${TLDRAW_CDN_URL}"]`)) { console.warn("tldraw script tag exists, but library not ready? Waiting..."); setTimeout(() => { if (typeof tldraw !== 'undefined') { console.log("tldraw now available after delay."); tldrawScriptLoaded = true; resolve(); } else { reject(new Error("tldraw script tag existed, but library failed to load globally.")); } }, 1000); return; }
                         console.log("Dynamically loading tldraw script...");
-                        const script = document.createElement('script');
-                        script.src = TLDRAW_CDN_URL;
-                        script.async = true;
+                        const script = document.createElement('script'); script.src = TLDRAW_CDN_URL; script.async = true;
                         script.onload = () => { console.log("tldraw script loaded successfully."); tldrawScriptLoaded = true; resolve(); };
                         script.onerror = (err) => { console.error("Failed to load tldraw script:", err); tldrawScriptLoaded = false; reject(err); };
                         document.body.appendChild(script);
@@ -439,1245 +426,201 @@
                      if (typeof tldraw === 'undefined' || !tldraw.Tldraw) { console.error("Cannot init tldraw instance: 'tldraw.Tldraw' is not defined!"); if (tldrawWrapper) tldrawWrapper.innerHTML = "<p style='color: red;'>Chyba: Knižnice tldraw není správně definována.</p>"; return false; }
                      const containerElement = document.getElementById('tldraw-wrapper');
                      console.log("Attempting to initialize tldraw instance...");
-                     console.log("tldraw global object check:", typeof tldraw, tldraw?.Tldraw);
-                     console.log("tldraw container check:", containerElement);
                      if (tldraw.Tldraw && containerElement) {
                          try {
-                             console.log("Creating tldraw instance...");
-                             containerElement.innerHTML = ''; // Clear placeholder
-                             tldrawApp = new tldraw.Tldraw({
-                                 container: containerElement,
-                                 showUI: true,
-                                 readOnly: false, // User can draw too
-                                 darkMode: window.matchMedia?.('(prefers-color-scheme: dark)').matches
-                             });
-                             console.log("tldraw instance CREATED successfully.", tldrawApp);
-                             return true;
-                         } catch (error) {
-                             console.error("Failed to initialize tldraw INSTANCE:", error);
-                             if (containerElement) containerElement.innerHTML = "<p style='padding: 1rem; color: red;'>Chyba při vytváření instance interaktivní došky.</p>";
-                             return false;
-                         }
-                     } else {
-                         console.warn("Could not initialize tldraw - library or container missing.");
-                         if (!containerElement) console.error("Element #tldraw-wrapper not found!");
-                         if (containerElement) containerElement.innerHTML = "<p style='padding: 1rem; color: orange;'>Interaktivní doška není dostupná.</p>";
-                         return false;
-                     }
+                             console.log("Creating tldraw instance..."); containerElement.innerHTML = '';
+                             tldrawApp = new tldraw.Tldraw({ container: containerElement, showUI: true, readOnly: false, darkMode: window.matchMedia?.('(prefers-color-scheme: dark)').matches });
+                             console.log("tldraw instance CREATED successfully.", tldrawApp); return true;
+                         } catch (error) { console.error("Failed to initialize tldraw INSTANCE:", error); if (containerElement) containerElement.innerHTML = "<p style='padding: 1rem; color: red;'>Chyba při vytváření instance interaktivní došky.</p>"; return false; }
+                     } else { console.warn("Could not initialize tldraw - library or container missing."); if (!containerElement) console.error("Element #tldraw-wrapper not found!"); if (containerElement) containerElement.innerHTML = "<p style='padding: 1rem; color: orange;'>Interaktivní doška není dostupná.</p>"; return false; }
                  };
-
                 const initializeApp = async () => {
                     try {
-                        if (window.supabase?.createClient) {
-                            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-                            console.log("Supabase client initialized.");
-                        } else {
-                            throw new Error("Supabase library not loaded correctly.");
-                        }
-                    } catch (error) {
-                        console.error("Supabase initialization failed:", error);
-                        showToast("Kritická chyba: Nepodařilo se připojit k databázi.", "error", 15000);
-                        // Maybe display a message in the main area too
-                        if(currentTopicDisplay) currentTopicDisplay.innerHTML = '<span class="placeholder" style="color: red;">Chyba připojení k databázi.</span>';
-                        return; // Stop initialization
-                    }
-
+                        if (window.supabase?.createClient) { supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); console.log("Supabase client initialized."); }
+                        else { throw new Error("Supabase library not loaded correctly."); }
+                    } catch (error) { console.error("Supabase initialization failed:", error); showToast("Kritická chyba: Nepodařilo se připojit k databázi.", "error", 15000); if(currentTopicDisplay) currentTopicDisplay.innerHTML = '<span class="placeholder" style="color: red;">Chyba připojení k databázi.</span>'; return; }
                     setupEventListeners();
                     initTooltips();
-
-                    try {
-                        await loadTldrawScript();
-                        initializeTldrawInstance(); // Try to initialize it immediately
-                    } catch (error) {
-                        console.error("tldraw setup failed:", error);
-                        showToast("Nepodařilo se připravit interaktivní došku.", "error", 7000);
-                        if (tldrawWrapper) tldrawWrapper.innerHTML = "<p style='padding: 1rem; color: red;'>Interaktivní doška nemohla být načtena.</p>";
-                    }
-
-                    await loadUserProfile(); // Load user profile after basic setup
-
-                    if (currentUser) {
-                        await loadNextUncompletedTopic();
-                    } else {
-                        currentTopicDisplay.innerHTML = '<span class="placeholder"><i class="fas fa-sign-in-alt"></i> Pro zahájení výuky se prosím přihlaste nebo počkejte na načtení profilu.</span>';
-                        hideLearningUI(); // Ensure UI is hidden if no user
-                    }
+                    try { await loadTldrawScript(); initializeTldrawInstance(); }
+                    catch (error) { console.error("tldraw setup failed:", error); showToast("Nepodařilo se připravit interaktivní došku.", "error", 7000); if (tldrawWrapper) tldrawWrapper.innerHTML = "<p style='padding: 1rem; color: red;'>Interaktivní doška nemohla být načtena.</p>"; }
+                    await loadUserProfile();
+                    if (currentUser) { await loadNextUncompletedTopic(); }
+                    else { currentTopicDisplay.innerHTML = '<span class="placeholder"><i class="fas fa-sign-in-alt"></i> Pro zahájení výuky se prosím přihlaste.</span>'; hideLearningUI(); }
                 };
-
-                 const loadUserProfile = async () => {
-                    if (!supabase) { console.error("Supabase client not available for profile load."); return; }
-                     console.log("Loading user profile...");
-                     userNameEl.textContent = 'Načítání...';
-                     userAvatarEl.textContent = '?';
+                const loadUserProfile = async () => {
+                    if (!supabase) { console.error("Supabase client not available."); return; }
+                     console.log("Loading user profile..."); userNameEl.textContent = 'Načítání...'; userAvatarEl.textContent = '?';
                      try {
-                         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-                         if (sessionError) throw sessionError;
-
+                         const { data: { session }, error: sessionError } = await supabase.auth.getSession(); if (sessionError) throw sessionError;
                          if (session?.user) {
-                             currentUser = session.user;
-                             console.log("User session found:", currentUser.id, currentUser.email);
-                             const { data: profile, error: profileError } = await supabase
-                                 .from('profiles')
-                                 .select('username, first_name, last_name, avatar_url')
-                                 .eq('id', currentUser.id)
-                                 .single();
-
-                             if (profileError && profileError.code !== 'PGRST116') { // Ignore 'resource not found' for profiles
-                                 console.warn("Error fetching profile details:", profileError);
-                             }
-                             currentProfile = profile;
-                             console.log("User profile data:", currentProfile);
-                             updateUserInfoUI();
-
-                         } else {
-                             console.log("No active user session found.");
-                             currentUser = null;
-                             currentProfile = null;
-                             updateUserInfoUI(); // Clear UI
-                             // Optionally redirect to login or show login prompt
-                             // showToast("Nejste přihlášeni. Přihlaste se pro pokračování.", "info", 6000);
-                             // window.location.href = '/login.html'; // Example redirect
-                         }
-                     } catch (error) {
-                         console.error("Error loading user profile:", error);
-                         showToast("Chyba při načítání profilu.", "error");
-                         currentUser = null;
-                         currentProfile = null;
-                         updateUserInfoUI();
-                     }
+                             currentUser = session.user; console.log("User session found:", currentUser.id, currentUser.email);
+                             const { data: profile, error: profileError } = await supabase.from('profiles').select('username, first_name, last_name, avatar_url').eq('id', currentUser.id).single();
+                             if (profileError && profileError.code !== 'PGRST116') { console.warn("Error fetching profile:", profileError); }
+                             currentProfile = profile; console.log("User profile data:", currentProfile); updateUserInfoUI();
+                         } else { console.log("No active user session."); currentUser = null; currentProfile = null; updateUserInfoUI(); }
+                     } catch (error) { console.error("Error loading user profile:", error); showToast("Chyba při načítání profilu.", "error"); currentUser = null; currentProfile = null; updateUserInfoUI(); }
                  };
-
                  const updateUserInfoUI = () => {
-                     if (currentUser) {
-                         userNameEl.textContent = currentProfile?.username || currentProfile?.first_name || currentUser.email;
-                         userAvatarEl.textContent = getInitials(currentProfile, currentUser.email);
-                         // TODO: Load avatar image if URL exists
-                         // if (currentProfile?.avatar_url) { ... }
-                     } else {
-                         userNameEl.textContent = 'Nepřihlášen';
-                         userAvatarEl.textContent = '?';
-                     }
+                     if (currentUser) { userNameEl.textContent = currentProfile?.username || currentProfile?.first_name || currentUser.email; userAvatarEl.textContent = getInitials(currentProfile, currentUser.email); /* TODO: Avatar image */ }
+                     else { userNameEl.textContent = 'Nepřihlášen'; userAvatarEl.textContent = '?'; }
                  };
-
                  const setupEventListeners = () => {
                      console.log("Setting up event listeners...");
-
-                     // Mobile Menu Toggle
-                     if (mobileMenuToggle && sidebar && sidebarOverlay) {
-                         mobileMenuToggle.addEventListener('click', () => {
-                             sidebar.classList.toggle('active');
-                             sidebarOverlay.classList.toggle('active');
-                         });
-                         sidebarOverlay.addEventListener('click', () => {
-                             sidebar.classList.remove('active');
-                             sidebarOverlay.classList.remove('active');
-                         });
-                     } else { console.warn("Mobile menu elements not found."); }
-
-                     // Interaction Tabs
-                     if (interactionTabs.length > 0 && tabContents.length > 0) {
-                         interactionTabs.forEach(tab => {
-                             tab.addEventListener('click', () => switchInteractionTab(tab.dataset.tab));
-                         });
-                     } else { console.warn("Interaction tab elements not found."); }
-
-                     // Chat Input & Send Button
-                     if (chatInput && sendButton) {
-                         chatInput.addEventListener('input', autoResizeTextarea);
-                         chatInput.addEventListener('keydown', (e) => {
-                             if (e.key === 'Enter' && !e.shiftKey && !geminiIsThinking) {
-                                 e.preventDefault(); // Prevent newline
-                                 handleSendMessage();
-                             }
-                         });
-                         sendButton.addEventListener('click', () => {
-                            if (!geminiIsThinking) handleSendMessage();
-                         });
-                     } else { console.warn("Chat input/send button not found."); }
-
-                     // Chat Controls
+                     if (mobileMenuToggle && sidebar && sidebarOverlay) { mobileMenuToggle.addEventListener('click', () => { sidebar.classList.toggle('active'); sidebarOverlay.classList.toggle('active'); }); sidebarOverlay.addEventListener('click', () => { sidebar.classList.remove('active'); sidebarOverlay.classList.remove('active'); }); }
+                     if (interactionTabs.length > 0 && tabContents.length > 0) { interactionTabs.forEach(tab => { tab.addEventListener('click', () => switchInteractionTab(tab.dataset.tab)); }); }
+                     if (chatInput && sendButton) { chatInput.addEventListener('input', autoResizeTextarea); chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey && !geminiIsThinking) { e.preventDefault(); handleSendMessage(); } }); sendButton.addEventListener('click', () => { if (!geminiIsThinking) handleSendMessage(); }); }
                      if (clearChatBtn) { clearChatBtn.addEventListener('click', confirmClearChat); }
-                     else { console.warn("Clear chat button not found."); }
                      if (saveChatBtn) { saveChatBtn.addEventListener('click', saveChatToPDF); }
-                     else { console.warn("Save chat button not found."); }
-
-                     // Explanation Controls
                      if (nextStepBtn) { nextStepBtn.addEventListener('click', requestNextStep); }
-                     else { console.warn("Next step button not found."); }
                      if (markCompleteBtn) { markCompleteBtn.addEventListener('click', handleMarkTopicComplete); }
-                     else { console.warn("Mark complete button not found."); }
-
-                     // Dark mode listener (optional, for tldraw if needed)
-                    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
-                        if (tldrawApp && tldrawApp.updateSettings) {
-                             try {
-                                tldrawApp.updateSettings({ isDarkMode: event.matches });
-                                console.log("tldraw dark mode updated via listener.");
-                             } catch(e) { console.warn("Could not update tldraw dark mode setting:", e); }
-                        }
-                     });
-
+                     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => { if (tldrawApp?.updateSettings) { try { tldrawApp.updateSettings({ isDarkMode: event.matches }); } catch(e) { console.warn("Could not update tldraw dark mode:", e); } } });
                  };
+                const initTooltips = () => { if (typeof $.fn.tooltipster === 'function') { $('.btn-tooltip').tooltipster({ theme: 'tooltipster-light', animation: 'fade', delay: 100, side: 'top' }); } else { console.warn("Tooltipster not ready."); } };
 
-                const initTooltips = () => {
-                     console.log("Initializing tooltips...");
-                     if (typeof $.fn.tooltipster === 'function') {
-                         $('.btn-tooltip').tooltipster({
-                             theme: 'tooltipster-light', // Use a theme compatible with light/dark mode or create custom
-                             animation: 'fade',
-                             delay: 100,
-                             side: 'top'
-                         });
-                         console.log("Tooltips initialized.");
-                     } else {
-                         console.warn("Tooltipster library not found or not ready.");
-                     }
-                 };
-
-                 // --- Topic Loading and Progress ---
+                // --- Topic Loading and Progress (MODIFIED) ---
                 const loadNextUncompletedTopic = async () => {
-                     if (topicLoadInProgress) { console.log("Topic load already in progress."); return; }
-                     if (!currentUser || !supabase) { showToast("Nelze načíst téma, nejste přihlášeni nebo databáze není dostupná.", "warning"); return; }
+                    if (topicLoadInProgress) return;
+                    if (!currentUser || !supabase) { showToast("Nelze načíst téma, nejste přihlášeni.", "warning"); return; }
+                    topicLoadInProgress = true;
+                    currentTopicDisplay.innerHTML = '<span class="placeholder"><i class="fas fa-spinner fa-spin"></i> Hledám další téma v plánu...</span>';
+                    updateAIStatus('Hledám téma...');
+                    hideLearningUI();
 
-                     topicLoadInProgress = true;
-                     currentTopicDisplay.innerHTML = '<span class="placeholder"><i class="fas fa-spinner fa-spin"></i> Hledám další téma v plánu...</span>';
-                     updateAIStatus('Hledám téma...');
-                     hideLearningUI(); // Hide main interface while loading topic
+                    try {
+                        // 1. Najít aktivní plán
+                        const { data: activePlan, error: planError } = await supabase.from('study_plans').select('id').eq('user_id', currentUser.id).eq('status', 'active').order('created_at', { ascending: false }).limit(1).maybeSingle();
+                        if (planError) throw planError;
+                        if (!activePlan) throw new Error("Nebyl nalezen žádný aktivní studijní plán. Vytvořte si plán v sekci 'Procvičování'.");
+                        currentPlanId = activePlan.id;
+                        console.log("Aktivní plán nalezen:", currentPlanId);
 
-                     try {
-                         console.log("Fetching active study plan...");
-                         const { data: activePlan, error: planError } = await supabase
-                             .from('study_plans')
-                             .select('id')
-                             .eq('user_id', currentUser.id)
-                             .eq('status', 'active')
-                             .order('created_at', { ascending: false })
-                             .limit(1)
-                             .maybeSingle();
+                        // 2. Načíst aktivity pro tento plán, VČETNĚ stavu 'completed'
+                        const { data: planActivities, error: activityError } = await supabase
+                            .from('plan_activities')
+                            .select('id, title, completed') // Přidáno 'completed'
+                            .eq('plan_id', currentPlanId)
+                            .order('day_of_week', { ascending: true })
+                            .order('time_slot', { ascending: true });
 
-                         if (planError) throw planError;
-                         if (!activePlan) {
-                             throw new Error("Nebyl nalezen žádný aktivní studijní plán. Vytvořte si plán v sekci 'Procvičování'.");
-                         }
-                         currentPlanId = activePlan.id;
-                         console.log("Active plan found:", currentPlanId);
-
-                         console.log("Fetching activities for plan:", currentPlanId);
-                         const { data: planActivities, error: activityError } = await supabase
-                             .from('plan_activities')
-                             .select('id, title') // Removed content, should come from AI
-                             .eq('plan_id', currentPlanId)
-                             .order('day_of_week', { ascending: true }) // Assuming these exist for ordering
-                             .order('time_slot', { ascending: true });
-
-                         if (activityError) throw activityError;
-                         if (!planActivities || planActivities.length === 0) {
+                        if (activityError) {
+                             console.error("Chyba při načítání aktivit plánu:", activityError);
+                             throw new Error("Chyba při načítání aktivit plánu. Zkontrolujte RLS pro 'plan_activities'.");
+                        }
+                        if (!planActivities || planActivities.length === 0) {
                              throw new Error("V aktivním plánu nebyly nalezeny žádné aktivity (témata).");
-                         }
-                         console.log("Found activities:", planActivities.length);
+                        }
+                        console.log("Aktivity plánu načteny:", planActivities.length);
 
-                         const activityIds = planActivities.map(a => a.id);
-                         console.log("Fetching completion statuses for activities:", activityIds);
-                         const { data: statuses, error: statusError } = await supabase
-                             .from('user_topic_status')
-                             .select('activity_id, status')
-                             .eq('user_id', currentUser.id)
-                             .in('activity_id', activityIds);
+                        // 3. Najít první nedokončenou aktivitu (completed != true)
+                        let nextActivity = null;
+                        for (const activity of planActivities) {
+                             // Kontrolujeme, zda completed není true (tj. je false nebo null)
+                            if (activity.completed !== true) {
+                                nextActivity = activity;
+                                break;
+                            }
+                        }
 
-                         if (statusError) {
-                             // Check common RLS/table existence errors
-                             if(statusError.message.includes("relation") && statusError.message.includes("does not exist")) {
-                                 console.error("Critical DB Error: Table 'user_topic_status' likely missing!");
-                                 throw new Error("Chyba databáze: Tabulka pro sledování pokroku chybí.");
-                             } else if (statusError.message.includes("permission denied")) {
-                                 console.error("Critical DB Error: RLS policy likely blocking access to 'user_topic_status'.");
-                                 throw new Error("Chyba oprávnění: Nelze číst pokrok témat.");
-                             } else {
-                                 console.error("Error fetching topic statuses:", statusError);
-                                 throw new Error("Chyba při kontrole pokroku témat.");
-                             }
-                         }
-                         console.log("Found statuses:", statuses || []);
-
-                         let nextActivity = null;
-                         for (const activity of planActivities) {
-                             const statusRecord = statuses?.find(s => s.activity_id === activity.id);
-                             if (!statusRecord || statusRecord.status !== 'completed') {
-                                 nextActivity = activity;
-                                 break;
-                             }
-                         }
-
-                         if (!nextActivity) {
+                        if (!nextActivity) {
+                             // Všechny aktivity v plánu jsou dokončeny
                              showToast("Gratulujeme! Všechny aktivity v tomto plánu jsou dokončeny!", "success", 8000);
                              currentTopicDisplay.innerHTML = '<span class="placeholder" style="color: var(--success);"><i class="fas fa-check-circle"></i> Všechny aktivity v plánu dokončeny!</span>';
-                             // Optionally, offer to start a new plan or review
-                             hideLearningUI(); // Hide the UI as there's nothing to learn now
-                             topicLoadInProgress = false; // Ensure it's reset
-                             return; // Stop here
-                         }
+                             hideLearningUI();
+                             topicLoadInProgress = false;
+                             return; // Ukončit funkci zde
+                        }
 
-                         console.log("Next topic found:", nextActivity.title, `(ID: ${nextActivity.id})`);
-                         currentTopic = {
-                             id: `activity_${nextActivity.id}`, // Unique identifier for this learning context
-                             name: nextActivity.title,
-                             activity_id: nextActivity.id, // Keep original activity ID for progress tracking
-                             plan_id: currentPlanId
-                         };
+                        // 4. Nastavit aktuální téma a spustit seanci
+                         console.log("Následující téma:", nextActivity.title, `(ID: ${nextActivity.id})`);
+                        currentTopic = {
+                            id: `activity_${nextActivity.id}`, // Unique ID for session context
+                            name: nextActivity.title,
+                            activity_id: nextActivity.id, // Original ID for DB operations
+                            plan_id: currentPlanId
+                        };
+                        currentTopicDisplay.innerHTML = `Aktuální téma: <strong>${sanitizeHTML(currentTopic.name)}</strong>`;
+                        await startLearningSession();
 
-                         currentTopicDisplay.innerHTML = `Aktuální téma: <strong>${sanitizeHTML(currentTopic.name)}</strong>`;
-                         await startLearningSession(); // Start AI interaction etc.
-
-                     } catch (error) {
-                         console.error("Error loading next topic:", error);
-                         showToast(error.message || "Nepodařilo se načíst další téma.", "error");
-                         currentTopicDisplay.innerHTML = `<span class="placeholder" style="color: var(--danger);"><i class="fas fa-exclamation-circle"></i> ${error.message || 'Chyba načítání tématu.'}</span>`;
-                         hideLearningUI(); // Keep UI hidden on error
-                     } finally {
-                         topicLoadInProgress = false; // Ensure flag is reset
-                     }
+                    } catch (error) {
+                        console.error("Chyba při načítání dalšího tématu:", error);
+                        showToast(error.message || "Nepodařilo se načíst další téma.", "error");
+                        currentTopicDisplay.innerHTML = `<span class="placeholder" style="color: var(--danger);"><i class="fas fa-exclamation-circle"></i> ${error.message || 'Chyba načítání tématu.'}</span>`;
+                        hideLearningUI();
+                    } finally {
+                        topicLoadInProgress = false;
+                    }
                  };
 
                 const handleMarkTopicComplete = async () => {
-                     if (!currentTopic || !currentUser || !supabase || geminiIsThinking || topicLoadInProgress) {
-                         console.warn("Cannot mark complete: Invalid state or operation in progress.");
-                         showToast("Nelze označit jako dokončené.", "warning");
-                         return;
-                     }
-                     console.log(`Marking topic ${currentTopic.activity_id} as complete...`);
-                     markCompleteBtn.disabled = true;
-                     nextStepBtn.disabled = true; // Disable both while saving
-                     markCompleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ukládám...';
-
-                     try {
-                         const now = new Date().toISOString();
-                         // Use upsert to handle cases where the record might not exist yet (e.g., first interaction)
-                         // Ensure your table `user_topic_status` has a UNIQUE constraint on (user_id, activity_id) for upsert.
-                         console.log("Upserting status:", { user_id: currentUser.id, activity_id: currentTopic.activity_id, plan_id: currentTopic.plan_id, status: 'completed', completed_at: now, updated_at: now });
-                         const { data, error } = await supabase
-                             .from('user_topic_status')
-                             .upsert(
-                                 {
-                                     user_id: currentUser.id,
-                                     activity_id: currentTopic.activity_id,
-                                     plan_id: currentTopic.plan_id, // Ensure plan_id is included if it's part of your primary/unique key or needed
-                                     status: 'completed',
-                                     completed_at: now,
-                                     updated_at: now
-                                 },
-                                 {
-                                     onConflict: 'user_id, activity_id' // Adjust based on your actual unique constraint
-                                 }
-                             )
-                             .select(); // Add select() to check if operation succeeded & get result (optional)
-
-
-                         if (error) {
-                             console.error("Error upserting topic status (check table, constraints, RLS):", error);
-                              if (error.message.includes("violates unique constraint")) {
-                                  console.error("DB Constraint Issue: Unique constraint likely missing or incorrect for upsert on 'user_topic_status(user_id, activity_id)'.");
-                                 throw new Error("Chyba databáze: Problém s unikátním klíčem při ukládání.");
-                              } else if (error.message.includes("permission denied")) {
-                                  console.error("DB RLS Issue: RLS policy likely blocking write access to 'user_topic_status'.");
-                                  throw new Error("Chyba oprávnění: Nelze uložit pokrok tématu.");
-                              }
-                              else {
-                                 throw new Error("Chyba při ukládání pokroku.");
-                              }
-                         }
-
-                         console.log("Topic status upserted successfully.", data);
-                         showToast(`Téma "${currentTopic.name}" označeno jako dokončené.`, "success");
-
-                         await loadNextUncompletedTopic(); // Load next topic automatically
-
-                     } catch (error) {
-                         console.error("Error marking topic complete:", error);
-                         showToast(error.message || "Chyba při označování tématu.", "error");
-                         // Re-enable buttons ONLY if we are *not* loading the next topic
-                         if (!topicLoadInProgress) {
-                             markCompleteBtn.disabled = false;
-                             nextStepBtn.disabled = false;
-                             markCompleteBtn.innerHTML = '<i class="fas fa-check-circle"></i> Téma dokončeno';
-                         }
-                     }
-                     // No finally block needed here if loadNext handles UI reset or error handling re-enables buttons.
-                 };
-
-
-                 // --- Learning Session Management ---
-                const startLearningSession = async () => {
-                    if (!currentTopic || !currentUser || !supabase) { console.error("startLearningSession called without necessary data."); hideLearningUI(); return; }
-                    console.log(`Preparing session for topic: ${currentTopic.name} (Activity ID: ${currentTopic.activity_id})`);
-
-                    // Optional: Clear previous chat history from DB for this user if desired
-                    // This might be too aggressive depending on requirements.
-                    // console.log(`Deleting previous chat history for user: ${currentUser.id}...`);
-                    // try {
-                    //     const { error: deleteError } = await supabase
-                    //         .from('chat_history')
-                    //         .delete()
-                    //         .eq('user_id', currentUser.id); // Be careful with broad deletes! Maybe add session_id or topic_id?
-                    //     if (deleteError) {
-                    //         console.error("Error deleting previous chat history:", deleteError);
-                    //         showToast("Nepodařilo se vymazat starou historii chatu.", "warning", 6000);
-                    //     } else {
-                    //         console.log("Previous chat history deleted.");
-                    //     }
-                    // } catch (delCatchError) {
-                    //     console.error("Unexpected error during history deletion:", delCatchError);
-                    //     showToast("Neočekávaná chyba při mazání historie.", "error", 6000);
-                    // }
-
-                    currentSessionId = generateSessionId();
-                    console.log(`Starting NEW session ${currentSessionId} for topic: ${currentTopic.name}`);
-
-                    updateAIStatus(`Vysvětluje: ${currentTopic.name}`);
-                    showLearningUI(); // Make interface visible
-
-                    // Reset UI elements for the new topic
-                    explanationDisplay.innerHTML = '<div class="loading-placeholder"><i class="fas fa-spinner fa-spin"></i> Požaduji úvodní vysvětlení od AI...</div>';
-                    nextStepBtn.style.display = 'none'; // Hide until first explanation arrives
-                    markCompleteBtn.style.display = 'none'; // Hide until first explanation arrives
-                    chatMessages.innerHTML = ''; // Clear visual chat history
-                    geminiChatContext = []; // Clear internal chat history
-
-                    // Reset tldraw if available
-                     if (tldrawApp && typeof tldrawApp.resetDocument === 'function') {
-                         try {
-                             await tldrawApp.resetDocument(); // Use await if it's async
-                             await tldrawApp.zoomToFit();
-                             console.log("tldraw reset & zoomed for new session.");
-                         } catch (e) {
-                             console.warn("Could not reset/zoom tldraw:", e);
-                             // Attempt re-initialization if reset fails badly
-                             if (!initializeTldrawInstance()) {
-                                 showToast("Nepodařilo se resetovat došku.", "error");
-                             }
-                         }
-                     } else if (!tldrawApp) {
-                         // Attempt to initialize if it wasn't ready before
-                         initializeTldrawInstance();
-                     }
-
-                    // Add initial greeting message (optional, AI can do this)
-                    // await addChatMessage(`Ahoj! Začínáme s tématem: **${sanitizeHTML(currentTopic.name)}**. Budu vysvětlovat krok za krokem. Můžeš mi kdykoli položit otázku nebo požádat o další krok.`, 'gemini', true);
-
-                    // Send initial prompt to Gemini
-                    updateGeminiThinkingState(true); // Show thinking indicator immediately
-                    const initialPrompt = `Začni vysvětlovat ZÁKLADY tématu "${currentTopic.name}" pro studenta 9. třídy ZŠ připravujícího se na přijímačky CERMAT. Vysvětluj podrobně, přátelsky a krok za krokem. Toto je PRVNÍ krok. Pokud je to vhodné, můžeš zahrnout jednoduchý úvodní příklad nebo výzvu k použití interaktivní došky (pomocí formátu DRAW_ON_WHITEBOARD).`;
-                    await sendToGemini(initialPrompt, 'explanation'); // Send first request
-
-                    // Show buttons after sending request (they will be enabled/disabled by response handling)
-                    nextStepBtn.style.display = 'inline-flex';
-                    markCompleteBtn.style.display = 'inline-flex';
-                    markCompleteBtn.disabled = false; // Initially enabled
-                    markCompleteBtn.innerHTML = '<i class="fas fa-check-circle"></i> Téma dokončeno';
-                    nextStepBtn.disabled = false; // Initially enabled
-                    nextStepBtn.innerHTML = '<i class="fas fa-forward"></i> Další krok';
-                };
-
-                const showLearningUI = () => {
-                     if(callInterface) callInterface.style.display = 'flex';
-                     // Reset states visually
-                     if(explanationDisplay) explanationDisplay.innerHTML = '<div class="empty-state"><i class="fas fa-book-reader"></i><h3>Čekání na obsah</h3><p>AI připravuje vysvětlení...</p></div>';
-                     if(chatMessages) chatMessages.innerHTML = '';
-                     if(nextStepBtn) nextStepBtn.style.display = 'none';
-                     if(markCompleteBtn) markCompleteBtn.style.display = 'none';
-                     switchInteractionTab('explanation-tab'); // Default to explanation tab
-                 };
-
-                 const hideLearningUI = () => {
-                     console.log("Hiding learning UI.");
-                     if(callInterface) callInterface.style.display = 'none';
-                     if(explanationDisplay) explanationDisplay.innerHTML = ''; // Clear content
-                     if(nextStepBtn) nextStepBtn.style.display = 'none';
-                     if(markCompleteBtn) markCompleteBtn.style.display = 'none';
-                     if(chatMessages) chatMessages.innerHTML = '';
-                     // Don't reset tldraw here, let startLearningSession handle it
-                     // Reset state variables related to the current session
-                     // currentTopic = null; // Reset by loadNext...
-                     // currentSessionId = null; // Reset by startLearning...
-                     // geminiChatContext = []; // Reset by startLearning...
-                     updateAIStatus('Čekání na téma...'); // Reset AI status
-                 };
-
-                 const switchInteractionTab = (tabId) => {
-                    console.log("Switching tab to:", tabId);
-                     if (!interactionTabs || !tabContents) return;
-                     interactionTabs.forEach(tab => tab.classList.remove('active'));
-                     tabContents.forEach(content => content.classList.remove('active'));
-
-                     const activeTab = document.querySelector(`.interaction-tab[data-tab="${tabId}"]`);
-                     const activeContent = document.getElementById(`${tabId}-content`);
-
-                     if (activeTab) activeTab.classList.add('active');
-                     if (activeContent) activeContent.classList.add('active');
-                     else console.warn(`Content area for tab ${tabId} not found.`);
-                 };
-
-                 const requestNextStep = async () => {
-                    if (!currentTopic || geminiIsThinking || topicLoadInProgress) {
-                        showToast("Počkejte na dokončení předchozí akce.", "info");
-                        return;
-                    }
-                    console.log("Requesting next step from AI...");
-                    updateAIStatus('Žádám o další krok...');
-                    nextStepBtn.disabled = true;
-                    nextStepBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Čekám...';
-                    markCompleteBtn.disabled = true; // Disable completion while getting next step
-
-                    switchInteractionTab('explanation-tab'); // Ensure explanation tab is visible
-                    addThinkingIndicator(); // Show indicator in chat as well
-
-                    await sendToGemini("Pokračuj prosím dalším krokem ve vysvětlování.", 'explanation');
-
-                     // Re-enable buttons (response handler will update text/state if needed)
-                     // The sendToGemini function's finally block handles disabling thinking state
-                     // We just reset the button text here, assuming success unless error handler overrides
-                     if (!geminiIsThinking) { // Check state again after await
-                        nextStepBtn.disabled = false;
-                        nextStepBtn.innerHTML = '<i class="fas fa-forward"></i> Další krok';
-                        markCompleteBtn.disabled = false;
-                     }
-                 };
-
-                 // --- Chat Functionality ---
-                 const addChatMessage = async (message, sender, saveToDb = false, timestamp = new Date()) => {
-                    if (!chatMessages) { console.error("Chat messages container not found."); return; }
-
-                    const messageId = `${sender}_${timestamp.getTime()}`;
-                    const messageDiv = document.createElement('div');
-                    messageDiv.classList.add('chat-message', sender);
-                    messageDiv.id = messageId;
-
-                    const avatarDiv = document.createElement('div');
-                    avatarDiv.classList.add('message-avatar');
-                    if (sender === 'user') {
-                        avatarDiv.textContent = getInitials(currentProfile, currentUser?.email);
-                    } else {
-                        avatarDiv.innerHTML = '<i class="fas fa-robot"></i>'; // AI avatar
-                    }
-
-                    const bubbleDiv = document.createElement('div');
-                    bubbleDiv.classList.add('message-bubble');
-
-                    // Render Markdown content within the bubble
-                    renderMarkdown(bubbleDiv, message); // Use the existing Markdown renderer
-
-                    const timestampDiv = document.createElement('div');
-                    timestampDiv.classList.add('message-timestamp');
-                    timestampDiv.textContent = formatTimestamp(timestamp);
-
-                    bubbleDiv.appendChild(timestampDiv); // Add timestamp inside the bubble
-
-                    // Assemble message structure
-                    if (sender === 'user') {
-                        messageDiv.appendChild(bubbleDiv);
-                        messageDiv.appendChild(avatarDiv);
-                    } else {
-                        messageDiv.appendChild(avatarDiv);
-                        messageDiv.appendChild(bubbleDiv);
-                    }
-
-                    chatMessages.appendChild(messageDiv);
-
-                    // Scroll to bottom
-                     setTimeout(() => chatMessages.scrollTop = chatMessages.scrollHeight, 50); // Small delay ensure rendering
-
-                    // Save to DB if needed
-                    if (saveToDb && supabase && currentUser && currentTopic && currentSessionId) {
-                        try {
-                            const { error } = await supabase.from('chat_history').insert({
-                                user_id: currentUser.id,
-                                session_id: currentSessionId,
-                                sender: sender,
-                                message_text: message, // Store raw Markdown
-                                timestamp: timestamp.toISOString(),
-                                topic_name: currentTopic.name, // Context
-                                activity_id: currentTopic.activity_id // Context
-                            });
-                            if (error) {
-                                console.error("Error saving chat message to DB:", error);
-                                // Optional: show non-critical toast
-                                // showToast("Nepodařilo se uložit zprávu do historie.", "warning");
-                            }
-                        } catch (dbError) {
-                             console.error("Exception saving chat message:", dbError);
-                        }
-                    }
-                };
-
-                 const updateGeminiThinkingState = (isThinking) => {
-                    geminiIsThinking = isThinking;
-                    if (sendButton) {
-                        sendButton.disabled = isThinking;
-                        sendButton.innerHTML = isThinking ? '<i class="fas fa-spinner fa-spin"></i>' : '<i class="fas fa-paper-plane"></i>';
-                    }
-                    if (chatInput) { chatInput.disabled = isThinking; }
-                    if (nextStepBtn) {
-                        // Only disable if AI is thinking; don't overwrite text if it's already 'Čekám...'
-                        if (isThinking) {
-                           nextStepBtn.disabled = true;
-                           // Keep existing spinner text if set by requestNextStep
-                           if (!nextStepBtn.innerHTML.includes('fa-spinner')) {
-                               nextStepBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Přemýšlím...';
-                           }
-                        } else {
-                            nextStepBtn.disabled = topicLoadInProgress; // Re-enable unless topic is loading
-                            nextStepBtn.innerHTML = '<i class="fas fa-forward"></i> Další krok';
-                        }
-                    }
-                     if (markCompleteBtn) {
-                        markCompleteBtn.disabled = isThinking || topicLoadInProgress;
-                        // Only reset text if it was changed to spinner
-                        if (!isThinking && markCompleteBtn.innerHTML.includes('fa-spinner')) {
-                             markCompleteBtn.innerHTML = '<i class="fas fa-check-circle"></i> Téma dokončeno';
-                        }
-                     }
-
-                    if (isThinking) {
-                        addThinkingIndicator();
-                    } else {
-                        removeThinkingIndicator();
-                    }
-                };
-
-                 const addThinkingIndicator = () => {
-                    if (thinkingIndicatorId || !chatMessages) return; // Already exists or container missing
-                    thinkingIndicatorId = `thinking_${Date.now()}`;
-                    const indicatorDiv = document.createElement('div');
-                    indicatorDiv.classList.add('chat-message', 'gemini'); // Style like AI message
-                    indicatorDiv.id = thinkingIndicatorId;
-
-                     const avatarDiv = document.createElement('div');
-                     avatarDiv.classList.add('message-avatar');
-                     avatarDiv.innerHTML = '<i class="fas fa-robot"></i>';
-
-                    const bubbleDiv = document.createElement('div');
-                    bubbleDiv.classList.add('message-bubble', 'message-thinking-indicator'); // Special class
-                    bubbleDiv.innerHTML = `
-                        <div class="typing-dot"></div>
-                        <div class="typing-dot"></div>
-                        <div class="typing-dot"></div>
-                    `;
-
-                     indicatorDiv.appendChild(avatarDiv);
-                     indicatorDiv.appendChild(bubbleDiv);
-
-                    chatMessages.appendChild(indicatorDiv);
-                    setTimeout(() => chatMessages.scrollTop = chatMessages.scrollHeight, 50);
-                 };
-
-                 const removeThinkingIndicator = () => {
-                    if (thinkingIndicatorId) {
-                        const indicator = document.getElementById(thinkingIndicatorId);
-                        if (indicator) {
-                            indicator.remove();
-                        }
-                        thinkingIndicatorId = null;
-                    }
-                 };
-
-                 const handleSendMessage = async () => {
-                    const messageText = chatInput.value.trim();
-                    if (!messageText || geminiIsThinking || !currentTopic) {
-                        return;
-                    }
-                     if (!currentUser || !supabase) {
-                        showToast("Nejste přihlášeni nebo nastal problém s připojením.", "error");
-                        return;
-                    }
-
-                    console.log("User sending message:", messageText);
-                    chatInput.value = ''; // Clear input immediately
-                    autoResizeTextarea(); // Resize back to single line
-
-                    // Add user message to UI and context (saveToDb handled by addChatMessage)
-                    await addChatMessage(messageText, 'user', true);
-                    geminiChatContext.push({ role: "user", parts: [{ text: messageText }] });
-
-                    // Switch to chat tab if not already active
-                    switchInteractionTab('chat-tab');
-
-                    // Send to Gemini
-                    updateAIStatus('Odpovídám...');
-                    updateGeminiThinkingState(true); // Show thinking indicator
-                    await sendToGemini(messageText, 'chat'); // Target 'chat' area
-
-                     // Response handling is done within sendToGemini and processGeminiResponse
-                     // Thinking state is reset in sendToGemini's finally block
-                 };
-
-                 const confirmClearChat = () => {
-                    if (confirm("Opravdu chcete vymazat aktuální historii chatu?\nTato akce je nevratná.")) {
-                        clearCurrentChatSessionHistory();
-                    }
-                 };
-
-                 const clearCurrentChatSessionHistory = async () => {
-                     console.log("Clearing current chat session UI and context.");
-                     chatMessages.innerHTML = ''; // Clear UI
-                     geminiChatContext = []; // Clear internal context
-                     showToast("Historie chatu vymazána.", "info");
-
-                     // Optional: Clear from database if session_id is tracked reliably
-                     if (supabase && currentUser && currentSessionId) {
-                         console.log(`Attempting to delete DB history for session: ${currentSessionId}`);
-                         try {
-                             const { error } = await supabase
-                                 .from('chat_history')
-                                 .delete()
-                                 .eq('user_id', currentUser.id)
-                                 .eq('session_id', currentSessionId);
-                             if (error) {
-                                 console.error("Error deleting chat history from DB:", error);
-                                 showToast("Nepodařilo se vymazat historii z databáze.", "warning");
-                             } else {
-                                 console.log("Chat history deleted from DB for session.");
-                             }
-                         } catch(dbError) {
-                             console.error("Exception deleting chat history:", dbError);
-                         }
-                     }
-                     // Add a system message indicating clearance (optional)
-                     // addChatMessage("Historie chatu byla vymazána.", "system");
-                 };
-
-                const saveChatToPDF = async () => {
-                    if (!chatMessages || chatMessages.children.length === 0) {
-                        showToast("Není co ukládat.", "info");
-                        return;
-                    }
-                    if (typeof html2pdf === 'undefined') {
-                         showToast("Chyba: Knihovna pro generování PDF není načtena.", "error");
-                         console.error("html2pdf library is not available.");
-                         return;
-                     }
-
-
-                    console.log("Generating PDF from chat...");
-                    showToast("Generuji PDF...", "info", 2000);
-
-                     // Clone the chat messages container to avoid modifying the live one
-                     const chatClone = chatMessages.cloneNode(true);
-
-                     // Prepare the clone for PDF generation (e.g., remove interactive elements, simplify styles if needed)
-                     chatClone.style.overflowY = 'visible'; // Ensure all content is captured
-                     chatClone.style.height = 'auto';
-                     chatClone.style.padding = '20px'; // Add padding for PDF layout
-                     chatClone.style.border = '1px solid #ccc'; // Optional border
-                     chatClone.style.fontFamily = 'Arial, sans-serif'; // Use PDF-safe fonts
-
-                     // Simplify message bubbles for better PDF rendering? (Optional)
-                     chatClone.querySelectorAll('.message-bubble').forEach(bubble => {
-                         bubble.style.boxShadow = 'none';
-                         // bubble.style.backgroundColor = '#f0f0f0'; // Example: Use simpler backgrounds
-                     });
-                     chatClone.querySelectorAll('.message-avatar').forEach(avatar => {
-                         avatar.style.display = 'inline-block'; // Ensure avatars are rendered
-                         avatar.style.marginRight = '10px';
-                         avatar.style.verticalAlign = 'top';
-                     });
-                      chatClone.querySelectorAll('.chat-message').forEach(msg => {
-                         msg.style.marginBottom = '15px';
-                     });
-
-
-                     // Temporarily append the clone off-screen to ensure styles are applied (might not be needed with html2pdf)
-                     // document.body.appendChild(chatClone);
-                     // chatClone.style.position = 'absolute';
-                     // chatClone.style.left = '-9999px';
-
-                     const filename = `chat_justax_${currentTopic ? currentTopic.name.replace(/[^a-z0-9]/gi, '_') : 'session'}_${new Date().toISOString().split('T')[0]}.pdf`;
-
-                     const options = {
-                         margin: [15, 10, 15, 10], // top, left, bottom, right (in mm)
-                         filename: filename,
-                         image: { type: 'jpeg', quality: 0.95 },
-                         html2canvas: { scale: 2, useCORS: true, logging: false }, // Increase scale for better resolution
-                         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-                     };
-
-                     try {
-                         // Use the cloned element for PDF generation
-                        await html2pdf().set(options).from(chatClone).save();
-                         console.log("PDF generated successfully:", filename);
-                         showToast("Chat uložen jako PDF.", "success");
-                     } catch (error) {
-                         console.error("Error generating PDF:", error);
-                         showToast("Chyba při generování PDF.", "error");
-                     } finally {
-                          // Remove the clone if it was appended
-                          // if (chatClone.parentNode === document.body) {
-                          //    document.body.removeChild(chatClone);
-                          // }
-                     }
-                 };
-
-
-                 // --- Gemini Interaction & AI Drawing ---
-                const parseAndDrawAiOutput = async (responseText) => {
-                    if (!tldrawApp) { console.warn("Cannot draw: tldrawApp is not initialized."); return responseText; }
-                    if (typeof tldrawApp.createShapes !== 'function') { console.warn("Cannot draw: tldrawApp.createShapes is not a function."); return responseText; }
-
-                    let remainingText = responseText;
-                    const drawCommands = [];
-                    let match;
-
-                    // Use RegExp.exec in a loop to find all matches
-                    DRAW_COMMAND_REGEX.lastIndex = 0; // Reset regex state before loop
-                    while ((match = DRAW_COMMAND_REGEX.exec(responseText)) !== null) {
-                        try {
-                            const jsonString = match[1];
-                             // Basic validation: Check if it looks like JSON before parsing
-                             if (jsonString.trim().startsWith('[') || jsonString.trim().startsWith('{')) {
-                                const commandData = JSON.parse(jsonString);
-                                // Ensure commandData is an array, even if single object is provided
-                                const commandsArray = Array.isArray(commandData) ? commandData : [commandData];
-                                drawCommands.push(...commandsArray); // Add all commands from the array
-                                remainingText = remainingText.replace(match[0], '').trim(); // Remove the matched block
-                             } else {
-                                 console.warn("Skipping DRAW_ON_WHITEBOARD block - content doesn't look like JSON:", jsonString);
-                             }
-                        } catch (e) {
-                            console.error("Failed to parse DRAW_ON_WHITEBOARD JSON:", e, "\nContent:", match[1]);
-                            // Don't remove the block if parsing failed, leave it in the text.
-                        }
-                    }
-
-                    if (drawCommands.length > 0) {
-                        console.log("Found AI draw commands:", drawCommands);
-                        showToast("AI kreslí na tabuli...", "info", 1500);
-                        try {
-                            // Optional: Clear existing shapes if desired before drawing new ones
-                             const existingShapes = tldrawApp.shapes ?? []; // Use nullish coalescing
-                             if (existingShapes.length > 0 && typeof tldrawApp.deleteShapes === 'function') {
-                                 console.log("Clearing existing shapes before AI drawing.");
-                                 await tldrawApp.deleteShapes(existingShapes.map(s => s.id));
-                                 await new Promise(resolve => setTimeout(resolve, 100)); // Short delay after delete
-                             } else if (existingShapes.length > 0) {
-                                 console.warn("tldrawApp.deleteShapes not available, cannot clear.");
-                             }
-
-
-                            const shapesToCreate = [];
-                            let shapeIdCounter = Date.now(); // Simple unique ID generation
-
-                            for (const cmd of drawCommands) {
-                                if (!cmd || typeof cmd !== 'object' || !cmd.type) {
-                                    console.warn("Skipping invalid draw command:", cmd);
-                                    continue;
-                                }
-
-                                // Default properties and style
-                                const baseProps = {
-                                    id: `${cmd.type}_${shapeIdCounter++}`,
-                                    x: cmd.x ?? 50, // Default position if missing
-                                    y: cmd.y ?? 50,
-                                    rotation: cmd.rotation ?? 0,
-                                    opacity: cmd.opacity ?? 1, // Added opacity
-                                    style: {
-                                        color: cmd.color ?? 'black',
-                                        size: cmd.size ?? 'medium', // 'small', 'medium', 'large'
-                                        isFilled: cmd.isFilled ?? false,
-                                        dash: cmd.style?.dash ?? 'draw', // 'draw', 'solid', 'dashed', 'dotted'
-                                        font: cmd.style?.font ?? 'sans', // 'sans', 'serif', 'draw', 'mono'
-                                        scale: cmd.style?.scale ?? 1,
-                                        ...(cmd.style || {}) // Merge any other valid style props
-                                    }
-                                };
-
-                                // --- Shape Specific Properties ---
-                                let shapeData = null;
-                                switch (cmd.type.toLowerCase()) {
-                                     case 'text':
-                                         if (!cmd.text) { console.warn("Skipping text shape: missing 'text' property."); continue; }
-                                         shapeData = {
-                                             ...baseProps,
-                                             type: 'text',
-                                             text: String(cmd.text), // Ensure text is string
-                                              style: { ...baseProps.style, scale: cmd.scale ?? 1 } // Override scale from top level if present
-                                         };
-                                         break;
-                                     case 'rectangle':
-                                     case 'rect': // Allow alias
-                                         shapeData = {
-                                             ...baseProps,
-                                             type: 'rectangle',
-                                             width: cmd.width ?? 100, // Default size
-                                             height: cmd.height ?? 100
-                                         };
-                                         break;
-                                     case 'ellipse':
-                                     case 'circle': // Allow alias
-                                         shapeData = {
-                                             ...baseProps,
-                                             type: 'ellipse',
-                                             width: cmd.width ?? 100,
-                                             height: cmd.height ?? (cmd.width ?? 100), // Default to circle if height missing
-                                             // Ensure width/height are same if it was meant to be circle? Tldraw handles this.
-                                         };
-                                         break;
-                                     case 'arrow':
-                                        // Points validation
-                                        if (!Array.isArray(cmd.points) || cmd.points.length < 2 || !cmd.points.every(p => Array.isArray(p) && p.length === 2)) {
-                                            console.warn("Skipping arrow shape: invalid 'points' array. Expected [[x1,y1], [x2,y2], ...].", cmd.points);
-                                            continue;
-                                        }
-                                         shapeData = {
-                                             ...baseProps,
-                                             type: 'arrow',
-                                             points: cmd.points,
-                                             arrowheadStart: cmd.arrowheadStart ?? 'none', // 'none', 'arrow', 'triangle', etc.
-                                             arrowheadEnd: cmd.arrowheadEnd ?? 'arrow',
-                                              // Arrow-specific style properties might exist, merge them
-                                              style: { ...baseProps.style, ...(cmd.style || {}) }
-                                         };
-                                         break;
-                                    // Add more shapes if tldraw supports them (line, draw, etc.)
-                                     case 'line':
-                                        if (!Array.isArray(cmd.points) || cmd.points.length < 2 || !cmd.points.every(p => Array.isArray(p) && p.length === 2)) {
-                                            console.warn("Skipping line shape: invalid 'points' array.", cmd.points);
-                                            continue;
-                                        }
-                                        shapeData = {
-                                            ...baseProps,
-                                            type: 'line',
-                                            points: cmd.points,
-                                            style: { ...baseProps.style, ...(cmd.style || {}) }
-                                        };
-                                        break;
-
-                                     default:
-                                         console.warn("Unsupported AI draw command type:", cmd.type);
-                                         continue; // Skip unsupported types
-                                }
-
-                                if (shapeData) {
-                                    shapesToCreate.push(shapeData);
-                                }
-                            } // End for loop
-
-                            if (shapesToCreate.length > 0) {
-                                console.log("Creating shapes:", shapesToCreate);
-                                await tldrawApp.createShapes(shapesToCreate);
-                                await new Promise(resolve => setTimeout(resolve, 100)); // Delay for rendering
-                                // Zoom to fit the newly created shapes or all shapes?
-                                 if (typeof tldrawApp.zoomToFit === 'function') {
-                                    await tldrawApp.zoomToFit({ duration: 500 }); // Animate zoom
-                                    console.log("AI drawing executed and zoomed.");
-                                 } else {
-                                     console.log("AI drawing executed (zoomToFit not available).");
-                                 }
-                            }
-
-                        } catch (drawError) {
-                            console.error("Error executing AI draw commands:", drawError);
-                            showToast("Chyba při kreslení na tabuli.", "error");
-                        }
-                    } else {
-                         console.log("No valid DRAW_ON_WHITEBOARD commands found in response.");
-                    }
-
-                    return remainingText.trim(); // Return the text without the draw commands
-                };
-
-
-                const sendToGemini = async (promptText, targetArea) => {
-                    if (!GEMINI_API_KEY || GEMINI_API_KEY.startsWith('AIzaSyD') === false) { // Basic check if key looks plausible
-                        const errorMsg = "Chyba konfigurace: Chybí nebo je neplatný API klíč pro Gemini.";
-                        showToast(errorMsg, "error", 10000);
-                        console.error(errorMsg);
-                        handleGeminiError(errorMsg, targetArea, new Date());
-                        return;
-                    }
-                    if (!currentTopic) {
-                        const errorMsg = "Chyba: Není vybráno žádné téma pro kontext AI.";
-                        showToast(errorMsg, "error");
-                        console.error(errorMsg);
-                        handleGeminiError(errorMsg, targetArea, new Date());
-                        return;
-                    }
-
-                    console.log(`Sending to Gemini (Target: ${targetArea}): "${promptText.substring(0, 100)}..."`);
-                    updateAIStatus('Přemýšlím...');
-                    const requestTimestamp = new Date(); // Timestamp before sending
-                    updateGeminiThinkingState(true); // Set thinking state, handles indicators/buttons
-
-                    // --- System Prompt ---
-                    const systemInstructionText = `Jsi AI Tutor "Justax", expert na matematiku pro 9. třídu ZŠ v ČR, specializující se na přípravu na přijímací zkoušky CERMAT. Momentálně vyučuješ téma: "${currentTopic.name}".
-Tvůj styl je PŘÁTELSKÝ, TRPĚLIVÝ, POVZBUZUJÍCÍ a VELMI PODROBNÝ. Vysvětluj vše krok za krokem, jako bys mluvil se studentem, který látce zatím nerozumí. Používej jednoduché analogie a konkrétní příklady.
-Formátování:
-* Používej Markdown pro strukturu (nadpisy ##, ###, seznamy *, **, tučně **, kurzívu *).
-* Matematické vzorce sázej pomocí MathJax: inline matematika \\( e = mc^2 \\), bloková matematika $$ \\sum_{i=1}^{n} i = \\frac{n(n+1)}{2} $$. Ujisti se, že syntaxe MathJax je správná.
-* Odpovídej VŽDY ČESKY.
-
-DŮLEŽITÉ POKYNY PRO VÝUKU:
-1.  **KROK ZA KROKEM:** Drž se jednoho malého konceptu nebo kroku výpočtu v každé odpovědi. Nerozepisuj se příliš doširoka najednou. Po každém kroku se studenta zeptej, zda rozumí, nebo mu dej malý úkol související s vysvětleným krokem.
-2.  **INTERAKTIVITA:** Aktivně zapojuj studenta. Pokládej kontrolní otázky ("Co si myslíš, že bude další krok?", "Jak bys to zapsal?", "Rozumíš, proč jsme udělali tohle?"). Povzbuzuj ho ("Skvěle!", "Přesně tak!", "Dobrá úvaha!").
-3.  **INTERAKTIVNÍ DOŠKA (Whiteboard):** Máš k dispozici virtuální došku (whiteboard). Můžeš ji použít pro vizualizaci geometrie, grafů, rovnic nebo kroků výpočtu.
-    * **Kdy použít:** Používej kreslení S MÍROU, jen když to VÝRAZNĚ pomůže pochopení. Textové vysvětlení je primární. Kresba doplňuje text, neměla by ho nahrazovat. Dobré případy: geometrické náčrtky, osy grafů, zvýraznění částí rovnice.
-    * **Jak použít:** Na KONEC své textové odpovědi přidej speciální blok začínající PŘESNĚ \`DRAW_ON_WHITEBOARD:\` následovaný JSON polem objektů v Markdown code bloku (\`\`\`json ... \`\`\`).
-    * **Formát JSON:** \`[ { ...objekt1... }, { ...objekt2... } ]\`
-        * Každý objekt popisuje jeden tvar.
-        * **Povinné vlastnosti:** \`type\` (string: "rectangle", "ellipse", "arrow", "text", "line").
-        * **Volitelné společné vlastnosti:** \`x\`, \`y\` (číslo, pozice levého horního rohu), \`color\` (string, např. "red", "#00FF00"), \`size\` (string: 'small', 'medium', 'large'), \`isFilled\` (boolean), \`rotation\` (číslo, stupně), \`opacity\` (číslo 0-1).
-        * **Typ "text":** Vyžaduje \`text\` (string). Volitelně \`scale\` (číslo > 0), \`style.font\` ('sans', 'serif', 'draw', 'mono').
-        * **Typ "rectangle", "ellipse":** Vyžaduje \`width\`, \`height\` (číslo > 0).
-        * **Typ "arrow", "line":** Vyžaduje \`points\` (pole polí čísel, např. \`[[0,0], [50,50]]\`). Volitelně pro arrow: \`arrowheadStart\`, \`arrowheadEnd\` ('none', 'arrow', 'triangle', ...).
-        * **Styl:** Můžeš přidat objekt \`style\` s dalšími vlastnostmi jako \`dash\` ('draw', 'solid', 'dashed', 'dotted'), \`strokeWidth\` (číslo).
-    * **PŘÍKLAD KRESBY:**
-        \`\`\`
-        Jasně, ukážeme si Pythagorovu větu na trojúhelníku.
-        DRAW_ON_WHITEBOARD:
-        \`\`\`json
-        [
-          {"type": "line", "points": [[50, 50], [50, 150]], "color": "blue", "style": {"size": "medium"}},
-          {"type": "line", "points": [[50, 150], [180, 150]], "color": "blue", "style": {"size": "medium"}},
-          {"type": "line", "points": [[180, 150], [50, 50]], "color": "red", "style": {"size": "medium"}},
-          {"type": "text", "x": 30, "y": 95, "text": "a", "color": "blue"},
-          {"type": "text", "x": 110, "y": 160, "text": "b", "color": "blue"},
-          {"type": "text", "x": 105, "y": 85, "text": "c", "color": "red", "rotation": -38},
-          {"type": "text", "x": 200, "y": 100, "text": "Platí: \\\\(a^2 + b^2 = c^2\\\\)", "scale": 1.2}
-        ]
-        \`\`\`
-        \`\`\`
-4.  **DÉLKA ODPOVĚDI:** Drž textové odpovědi relativně krátké a zaměřené na jeden krok/myšlenku. Raději více kratších odpovědí než jedna dlouhá.
-5.  **REAKCE NA VSTUP:** Vždy reaguj na poslední zprávu uživatele. Pokud položí otázku, odpověz na ni. Pokud řekne "pokračuj" nebo "další krok", pokračuj logicky ve vysvětlování. Pokud nerozumí, zkus to vysvětlit jinak.`;
-
-
-                    // --- Prepare History and Request ---
-                     // Filter context to only include user and model roles for the API
-                    const historyForApi = geminiChatContext.filter(item => item.role === 'user' || item.role === 'model');
-
-                    const currentRequestContent = { role: "user", parts: [{ text: promptText }] };
-
-                    const requestBody = {
-                        contents: historyForApi.concat([currentRequestContent]), // Send history + current prompt
-                        // systemInstruction: { parts: [{ text: systemInstructionText }] }, // Use if model supports it directly
-                        generationConfig: {
-                            temperature: 0.65, // Slightly more creative but still focused
-                            topP: 0.95,
-                            topK: 40,
-                            maxOutputTokens: 4096 // Generous limit
-                        },
-                        safetySettings: [ // Keep safety settings relaxed for educational content
-                            { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
-                            { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
-                            { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
-                            { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" }
-                        ]
-                    };
-
-                     // If the model doesn't support systemInstruction directly, prepend it to the first user message or handle differently
-                     // Prepending approach (if needed):
-                     if (historyForApi.length === 0) {
-                          // This is the first real user message after potential greeting
-                          // Modify the first content item to include the system instruction implicitly
-                           requestBody.contents = [{
-                               role: "user",
-                               parts: [{ text: systemInstructionText + "\n\n---\n\nStudent: " + promptText }]
-                           }];
-                           // Or, create a fake first 'user' message with the system prompt
-                           // requestBody.contents = [
-                           //    { role: "user", parts: [{ text: systemInstructionText }] },
-                           //    { role: "model", parts: [{ text: "Rozumím. Jsem připraven pomoci s tématem: " + currentTopic.name }] }, // Fake AI ack
-                           //    currentRequestContent
-                           //];
-
-                     }
-
-
-                    console.log("Sending request to Gemini API...");
-                    // console.log("Request Body:", JSON.stringify(requestBody, null, 2)); // Log full request for debugging if needed
+                    if (!currentTopic || !currentUser || !supabase || geminiIsThinking || topicLoadInProgress) return;
+                    console.log(`Označuji aktivitu ${currentTopic.activity_id} jako dokončenou...`);
+                    markCompleteBtn.disabled = true; nextStepBtn.disabled = true;
+                    markCompleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ukládám...';
 
                     try {
-                        const response = await fetch(GEMINI_API_URL, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(requestBody)
-                        });
+                        const now = new Date().toISOString();
+                        // Aktualizovat přímo tabulku 'plan_activities'
+                        const { error } = await supabase
+                            .from('plan_activities')
+                            .update({ completed: true, updated_at: now })
+                            .eq('id', currentTopic.activity_id); // Shoda podle ID aktivity
 
-                        if (!response.ok) {
-                            let errorBodyText = await response.text();
-                            let errorMessage = `Chyba API (${response.status}): ${response.statusText}`;
-                             try {
-                                const errorBodyJson = JSON.parse(errorBodyText);
-                                console.error("Gemini API Error Response Body:", errorBodyJson);
-                                errorMessage = errorBodyJson.error?.message || errorMessage;
-                             } catch (e) {
-                                console.error("Gemini API Error Response Text (not JSON):", errorBodyText);
-                             }
-                             throw new Error(errorMessage);
+                        if (error) {
+                            console.error("Chyba při aktualizaci stavu aktivity:", error);
+                            // Zkontrolovat specifické chyby, např. RLS
+                            if (error.message.includes("permission denied")) {
+                                throw new Error("Chyba oprávnění: Nelze aktualizovat stav aktivity. Zkontrolujte RLS.");
+                            } else {
+                                throw new Error("Chyba při ukládání pokroku aktivity.");
+                            }
                         }
 
-                        const data = await response.json();
-                        // console.log("Gemini API Raw Response:", data); // Log raw response if needed
-
-                        // --- Process Response ---
-                        const candidate = data.candidates?.[0];
-                        if (!candidate) {
-                             if (data.promptFeedback?.blockReason) {
-                                console.warn("Gemini request blocked:", data.promptFeedback.blockReason, data.promptFeedback.safetyRatings);
-                                throw new Error(`Požadavek byl blokován: ${data.promptFeedback.blockReason}`);
-                             } else {
-                                console.error("Invalid response structure from Gemini: No candidates.", data);
-                                throw new Error('Neplatná odpověď od AI (žádní kandidáti).');
-                             }
-                         }
-
-                        if (candidate.finishReason && candidate.finishReason !== "STOP" && candidate.finishReason !== "MAX_TOKENS") {
-                             console.warn("Gemini response finished unexpectedly:", candidate.finishReason, candidate.safetyRatings);
-                              if (candidate.finishReason === "SAFETY") {
-                                 throw new Error("Odpověď byla blokována z bezpečnostních důvodů.");
-                              } else {
-                                  throw new Error(`Generování odpovědi bylo přerušeno: ${candidate.finishReason}`);
-                              }
-                         }
-
-                        const geminiResponseText = candidate.content?.parts?.[0]?.text;
-                        if (!geminiResponseText) {
-                            console.error("Invalid response structure from Gemini: No text part found.", candidate);
-                            throw new Error('Neplatná nebo prázdná textová odpověď od AI.');
-                        }
-
-                         // Add response to context *before* parsing draw commands
-                        geminiChatContext.push({ role: "model", parts: [{ text: geminiResponseText }] });
-
-                        // Parse for drawing commands and get the remaining text
-                        const textToDisplay = await parseAndDrawAiOutput(geminiResponseText);
-
-                        // Process the text part of the response for the UI
-                        processGeminiResponse(textToDisplay, targetArea, requestTimestamp); // Use original request timestamp
-
-                        // Update status based on successful response
-                         updateAIStatus(currentTopic ? `Vysvětluje: ${currentTopic.name}` : 'Připraven');
-
+                        showToast(`Téma "${currentTopic.name}" označeno jako dokončené.`, "success");
+                        await loadNextUncompletedTopic(); // Načíst další téma automaticky
 
                     } catch (error) {
-                        console.error('Chyba komunikace s Gemini:', error);
-                        showToast(`Chyba AI: ${error.message}`, "error", 6000);
-                        handleGeminiError(error.message, targetArea, requestTimestamp); // Use original request timestamp
-                        updateAIStatus('Nastala chyba');
-                    } finally {
-                        updateGeminiThinkingState(false); // Ensure thinking state is always reset
-                    }
-                };
-
-                const processGeminiResponse = (responseText, targetArea, timestamp) => {
-                    removeThinkingIndicator(); // Remove indicator from chat
-                    const textToRender = responseText.trim(); // Use the text *after* potential drawing commands were removed
-
-                    if (!textToRender) {
-                        console.warn("Gemini response was empty after processing (e.g., only draw commands).");
-                        // Maybe add a default message?
-                        // addChatMessage("AI provedlo akci na tabuli.", 'gemini', true, timestamp);
-                        // return; // Don't proceed if nothing to render
-                    }
-
-
-                    if (targetArea === 'explanation') {
-                        // Clear placeholder/empty state if present
-                         const placeholder = explanationDisplay.querySelector('.loading-placeholder, .empty-state');
-                         if (placeholder) placeholder.remove();
-                         // Handle initial state text if necessary
-                         if (explanationDisplay.innerHTML.includes('Výuka připravena') || explanationDisplay.innerHTML.includes('Čekání na obsah')) {
-                             explanationDisplay.innerHTML = '';
-                         }
-
-                        // Append new step
-                         const stepDiv = document.createElement('div');
-                         stepDiv.className = 'step';
-                         renderMarkdown(stepDiv, textToRender); // Render the cleaned text
-                         explanationDisplay.appendChild(stepDiv);
-
-                        // Scroll to the new step
-                         if(explanationScrollContent) {
-                             setTimeout(() => {
-                                try {
-                                     stepDiv.scrollIntoView({ behavior: 'smooth', block: 'end' });
-                                 } catch (scrollError) {
-                                     console.warn("Smooth scroll failed, using instant scroll.", scrollError);
-                                     explanationScrollContent.scrollTop = explanationScrollContent.scrollHeight;
-                                 }
-                             }, 100);
-                         }
-
-                        // Also add the same *cleaned* text to the chat log for history continuity
-                         addChatMessage(textToRender, 'gemini', true, timestamp);
-
-                        // Ensure control buttons are visible and enabled after explanation step
-                         if (nextStepBtn) {
-                             nextStepBtn.style.display = 'inline-flex';
-                             nextStepBtn.disabled = false;
-                             nextStepBtn.innerHTML = '<i class="fas fa-forward"></i> Další krok';
-                         }
-                         if (markCompleteBtn) {
-                            markCompleteBtn.style.display = 'inline-flex';
-                            markCompleteBtn.disabled = false; // Re-enable after step received
+                        console.error("Error marking topic complete:", error);
+                        showToast(error.message || "Chyba při označování tématu.", "error");
+                        // Povolit tlačítka pouze pokud nenačítáme další téma
+                        if (!topicLoadInProgress) {
+                            markCompleteBtn.disabled = false;
+                            nextStepBtn.disabled = false;
                             markCompleteBtn.innerHTML = '<i class="fas fa-check-circle"></i> Téma dokončeno';
-                         }
-
-                    } else { // targetArea === 'chat'
-                        // Just add the cleaned response to the chat
-                         addChatMessage(textToRender, 'gemini', true, timestamp);
+                        }
                     }
-                };
+                 };
 
-                const handleGeminiError = (errorMessage, targetArea, timestamp) => {
-                    removeThinkingIndicator(); // Remove indicator from chat
-                    updateGeminiThinkingState(false); // Ensure buttons/input are re-enabled
+                 // --- Learning Session Management ---
+                 const startLearningSession = async () => { if (!currentTopic || !currentUser || !supabase) { console.error("startLearningSession called without data"); return; } console.log(`Preparing session for topic: ${currentTopic.name} (Activity ID: ${currentTopic.activity_id})`); /* Optional chat history delete */ currentSessionId = generateSessionId(); console.log(`Starting NEW session ${currentSessionId} for topic: ${currentTopic.name}`); updateAIStatus(`Vysvětluje: ${currentTopic.name}`); showLearningUI(); explanationDisplay.innerHTML = '<div class="loading-placeholder"><i class="fas fa-spinner fa-spin"></i> Požaduji úvodní vysvětlení...</div>'; nextStepBtn.style.display = 'none'; markCompleteBtn.style.display = 'none'; chatMessages.innerHTML = ''; geminiChatContext = []; if (tldrawApp?.resetDocument) { try { await tldrawApp.resetDocument(); await tldrawApp.zoomToFit(); console.log("tldraw reset."); } catch (e) { console.warn("Could not reset/zoom tldraw:", e); if (!initializeTldrawInstance()) { showToast("Nepodařilo se resetovat došku.", "error"); } } } else if (!tldrawApp) { initializeTldrawInstance(); } updateGeminiThinkingState(true); const initialPrompt = `Začni vysvětlovat ZÁKLADY tématu "${currentTopic.name}" pro studenta 9. třídy ZŠ připravujícího se na přijímačky CERMAT. Vysvětluj podrobně, přátelsky a krok za krokem. Toto je PRVNÍ krok. Pokud je to vhodné, zahrň jednoduchý úvodní příklad nebo výzvu k použití došky (formát DRAW_ON_WHITEBOARD).`; await sendToGemini(initialPrompt, 'explanation'); nextStepBtn.style.display = 'inline-flex'; markCompleteBtn.style.display = 'inline-flex'; markCompleteBtn.disabled = false; markCompleteBtn.innerHTML = '<i class="fas fa-check-circle"></i> Téma dokončeno'; nextStepBtn.disabled = false; nextStepBtn.innerHTML = '<i class="fas fa-forward"></i> Další krok'; };
+                 const showLearningUI = () => { if(callInterface) callInterface.style.display = 'flex'; if(explanationDisplay) explanationDisplay.innerHTML = '<div class="empty-state"><i class="fas fa-book-reader"></i><h3>Čekání...</h3><p>AI připravuje vysvětlení.</p></div>'; if(chatMessages) chatMessages.innerHTML = ''; if(nextStepBtn) nextStepBtn.style.display = 'none'; if(markCompleteBtn) markCompleteBtn.style.display = 'none'; switchInteractionTab('explanation-tab'); };
+                 const hideLearningUI = () => { console.log("Hiding learning UI."); if(callInterface) callInterface.style.display = 'none'; if(explanationDisplay) explanationDisplay.innerHTML = ''; if(nextStepBtn) nextStepBtn.style.display = 'none'; if(markCompleteBtn) markCompleteBtn.style.display = 'none'; if(chatMessages) chatMessages.innerHTML = ''; updateAIStatus('Čekání na téma...'); };
+                 const switchInteractionTab = (tabId) => { console.log("Switching tab to:", tabId); if (!interactionTabs || !tabContents) return; interactionTabs.forEach(tab => tab.classList.remove('active')); tabContents.forEach(content => content.classList.remove('active')); const activeTab = document.querySelector(`.interaction-tab[data-tab="${tabId}"]`); const activeContent = document.getElementById(`${tabId}-content`); if (activeTab) activeTab.classList.add('active'); if (activeContent) activeContent.classList.add('active'); else console.warn(`Content area ${tabId} not found.`); };
+                 const requestNextStep = async () => { if (!currentTopic || geminiIsThinking || topicLoadInProgress) { showToast("Počkejte...", "info"); return; } console.log("Requesting next step..."); updateAIStatus('Žádám o další krok...'); nextStepBtn.disabled = true; nextStepBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Čekám...'; markCompleteBtn.disabled = true; switchInteractionTab('explanation-tab'); addThinkingIndicator(); await sendToGemini("Pokračuj prosím dalším krokem ve vysvětlování.", 'explanation'); if (!geminiIsThinking) { nextStepBtn.disabled = false; nextStepBtn.innerHTML = '<i class="fas fa-forward"></i> Další krok'; markCompleteBtn.disabled = false; } };
 
-                    const errorText = `Omlouvám se, při komunikaci s AI nastala chyba. Zkuste to prosím znovu.\n*(Detail: ${sanitizeHTML(errorMessage)})*`;
+                 // --- Chat Functionality (bez změny) ---
+                 const addChatMessage = async (message, sender, saveToDb = false, timestamp = new Date()) => { if (!chatMessages) return; const messageId = `${sender}_${timestamp.getTime()}`; const messageDiv = document.createElement('div'); messageDiv.classList.add('chat-message', sender); messageDiv.id = messageId; const avatarDiv = document.createElement('div'); avatarDiv.classList.add('message-avatar'); avatarDiv.innerHTML = sender === 'user' ? getInitials(currentProfile, currentUser?.email) : '<i class="fas fa-robot"></i>'; const bubbleDiv = document.createElement('div'); bubbleDiv.classList.add('message-bubble'); renderMarkdown(bubbleDiv, message); const timestampDiv = document.createElement('div'); timestampDiv.classList.add('message-timestamp'); timestampDiv.textContent = formatTimestamp(timestamp); bubbleDiv.appendChild(timestampDiv); if (sender === 'user') { messageDiv.appendChild(bubbleDiv); messageDiv.appendChild(avatarDiv); } else { messageDiv.appendChild(avatarDiv); messageDiv.appendChild(bubbleDiv); } chatMessages.appendChild(messageDiv); setTimeout(() => chatMessages.scrollTop = chatMessages.scrollHeight, 50); if (saveToDb && supabase && currentUser && currentTopic && currentSessionId) { try { const { error } = await supabase.from('chat_history').insert({ user_id: currentUser.id, session_id: currentSessionId, sender: sender, message_text: message, timestamp: timestamp.toISOString(), topic_name: currentTopic.name, activity_id: currentTopic.activity_id }); if (error) console.error("Error saving chat message:", error); } catch (dbError) { console.error("Exception saving chat:", dbError); } } };
+                 const updateGeminiThinkingState = (isThinking) => { geminiIsThinking = isThinking; if (sendButton) { sendButton.disabled = isThinking; sendButton.innerHTML = isThinking ? '<i class="fas fa-spinner fa-spin"></i>' : '<i class="fas fa-paper-plane"></i>'; } if (chatInput) chatInput.disabled = isThinking; if (nextStepBtn) { if (isThinking) { nextStepBtn.disabled = true; if (!nextStepBtn.innerHTML.includes('fa-spinner')) { nextStepBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Přemýšlím...'; } } else { nextStepBtn.disabled = topicLoadInProgress; nextStepBtn.innerHTML = '<i class="fas fa-forward"></i> Další krok'; } } if (markCompleteBtn) { markCompleteBtn.disabled = isThinking || topicLoadInProgress; if (!isThinking && markCompleteBtn.innerHTML.includes('fa-spinner')) { markCompleteBtn.innerHTML = '<i class="fas fa-check-circle"></i> Téma dokončeno'; } } if (isThinking) addThinkingIndicator(); else removeThinkingIndicator(); };
+                 const addThinkingIndicator = () => { if (thinkingIndicatorId || !chatMessages) return; thinkingIndicatorId = `thinking_${Date.now()}`; const indicatorDiv = document.createElement('div'); indicatorDiv.classList.add('chat-message', 'gemini'); indicatorDiv.id = thinkingIndicatorId; const avatarDiv = document.createElement('div'); avatarDiv.classList.add('message-avatar'); avatarDiv.innerHTML = '<i class="fas fa-robot"></i>'; const bubbleDiv = document.createElement('div'); bubbleDiv.classList.add('message-bubble', 'message-thinking-indicator'); bubbleDiv.innerHTML = `<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>`; indicatorDiv.appendChild(avatarDiv); indicatorDiv.appendChild(bubbleDiv); chatMessages.appendChild(indicatorDiv); setTimeout(() => chatMessages.scrollTop = chatMessages.scrollHeight, 50); };
+                 const removeThinkingIndicator = () => { if (thinkingIndicatorId) { const indicator = document.getElementById(thinkingIndicatorId); if (indicator) indicator.remove(); thinkingIndicatorId = null; } };
+                 const handleSendMessage = async () => { const messageText = chatInput.value.trim(); if (!messageText || geminiIsThinking || !currentTopic) return; if (!currentUser || !supabase) { showToast("Problém s připojením.", "error"); return; } console.log("User sending:", messageText); chatInput.value = ''; autoResizeTextarea(); await addChatMessage(messageText, 'user', true); geminiChatContext.push({ role: "user", parts: [{ text: messageText }] }); switchInteractionTab('chat-tab'); updateAIStatus('Odpovídám...'); updateGeminiThinkingState(true); await sendToGemini(messageText, 'chat'); };
+                 const confirmClearChat = () => { if (confirm("Opravdu vymazat historii chatu?")) clearCurrentChatSessionHistory(); };
+                 const clearCurrentChatSessionHistory = async () => { console.log("Clearing chat session."); chatMessages.innerHTML = ''; geminiChatContext = []; showToast("Historie chatu vymazána.", "info"); if (supabase && currentUser && currentSessionId) { console.log(`Deleting DB history for session: ${currentSessionId}`); try { const { error } = await supabase.from('chat_history').delete().eq('user_id', currentUser.id).eq('session_id', currentSessionId); if (error) { console.error("Error deleting DB history:", error); showToast("Chyba mazání historie z DB.", "warning"); } else console.log("DB history deleted."); } catch(dbError) { console.error("Exception deleting history:", dbError); } } };
+                 const saveChatToPDF = async () => { /* ... (bez změny) ... */ if (!chatMessages || chatMessages.children.length === 0) { showToast("Není co ukládat.", "info"); return; } if (typeof html2pdf === 'undefined') { showToast("Chyba: PDF knihovna není načtena.", "error"); return; } console.log("Generating PDF..."); showToast("Generuji PDF...", "info", 2000); const chatClone = chatMessages.cloneNode(true); chatClone.style.overflowY = 'visible'; chatClone.style.height = 'auto'; chatClone.style.padding = '20px'; chatClone.style.border = '1px solid #ccc'; chatClone.style.fontFamily = 'Arial, sans-serif'; chatClone.querySelectorAll('.message-bubble').forEach(b => b.style.boxShadow = 'none'); chatClone.querySelectorAll('.message-avatar').forEach(a => { a.style.display = 'inline-block'; a.style.marginRight = '10px'; a.style.verticalAlign = 'top'; }); chatClone.querySelectorAll('.chat-message').forEach(m => m.style.marginBottom = '15px'); const filename = `chat_justax_${currentTopic ? currentTopic.name.replace(/[^a-z0-9]/gi, '_') : 'session'}_${new Date().toISOString().split('T')[0]}.pdf`; const options = { margin: [15, 10, 15, 10], filename: filename, image: { type: 'jpeg', quality: 0.95 }, html2canvas: { scale: 2, useCORS: true, logging: false }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } }; try { await html2pdf().set(options).from(chatClone).save(); console.log("PDF generated:", filename); showToast("Chat uložen jako PDF.", "success"); } catch (error) { console.error("Error generating PDF:", error); showToast("Chyba generování PDF.", "error"); } };
 
-                    if (targetArea === 'explanation') {
-                        const placeholder = explanationDisplay.querySelector('.loading-placeholder, .empty-state');
-                        if (placeholder) placeholder.remove();
-
-                        const errorDiv = document.createElement('div');
-                        errorDiv.className = 'step error-message'; // Add error class for styling
-                        errorDiv.style.color = 'var(--danger)';
-                        errorDiv.style.fontWeight = '500';
-                        renderMarkdown(errorDiv, errorText);
-                        explanationDisplay.appendChild(errorDiv);
-
-                        if (explanationScrollContent) {
-                            setTimeout(() => {
-                                 try { errorDiv.scrollIntoView({ behavior: 'smooth', block: 'end' }); }
-                                 catch (e) { explanationScrollContent.scrollTop = explanationScrollContent.scrollHeight; }
-                            }, 100);
-                        }
-
-                        // Also add error to chat
-                        addChatMessage(errorText, 'gemini', true, timestamp); // Save error context
-
-                        // Reset/Re-enable buttons specific to explanation flow
-                        if (nextStepBtn) {
-                            nextStepBtn.disabled = false; // Allow user to retry
-                            nextStepBtn.innerHTML = '<i class="fas fa-redo"></i> Požádat znovu';
-                            nextStepBtn.style.display = 'inline-flex'; // Ensure visible
-                        }
-                        if (markCompleteBtn) {
-                            markCompleteBtn.disabled = false; // Allow completing even if step failed
-                            markCompleteBtn.style.display = 'inline-flex'; // Ensure visible
-                        }
-
-                    } else { // targetArea === 'chat'
-                        addChatMessage(errorText, 'gemini', true, timestamp); // Add error to chat log
-                    }
-                     updateAIStatus('Nastala chyba'); // Update overall status
-                };
+                 // --- Gemini Interaction & AI Drawing (bez změny) ---
+                 const parseAndDrawAiOutput = async (responseText) => { if (!tldrawApp || typeof tldrawApp.createShapes !== 'function') { return responseText; } let remainingText = responseText; const drawCommands = []; let match; DRAW_COMMAND_REGEX.lastIndex = 0; while ((match = DRAW_COMMAND_REGEX.exec(responseText)) !== null) { try { const jsonString = match[1]; if (jsonString.trim().startsWith('[') || jsonString.trim().startsWith('{')) { const commandData = JSON.parse(jsonString); const commandsArray = Array.isArray(commandData) ? commandData : [commandData]; drawCommands.push(...commandsArray); remainingText = remainingText.replace(match[0], '').trim(); } else { console.warn("Skipping DRAW block - not JSON:", jsonString); } } catch (e) { console.error("Failed to parse DRAW JSON:", e, match[1]); } } if (drawCommands.length > 0) { console.log("Found AI draw commands:", drawCommands); showToast("AI kreslí...", "info", 1500); try { const existingShapes = tldrawApp.shapes ?? []; if (existingShapes.length > 0 && typeof tldrawApp.deleteShapes === 'function') { await tldrawApp.deleteShapes(existingShapes.map(s => s.id)); await new Promise(r => setTimeout(r, 100)); } else if (existingShapes.length > 0) { console.warn("deleteShapes not available."); } const shapesToCreate = []; let shapeIdCounter = Date.now(); for (const cmd of drawCommands) { if (!cmd || typeof cmd !== 'object' || !cmd.type) { console.warn("Skipping invalid draw command:", cmd); continue; } const baseProps = { id: `${cmd.type}_${shapeIdCounter++}`, x: cmd.x ?? 50, y: cmd.y ?? 50, rotation: cmd.rotation ?? 0, opacity: cmd.opacity ?? 1, style: { color: cmd.color ?? 'black', size: cmd.size ?? 'medium', isFilled: cmd.isFilled ?? false, dash: cmd.style?.dash ?? 'draw', font: cmd.style?.font ?? 'sans', scale: cmd.style?.scale ?? 1, ...(cmd.style || {}) } }; let shapeData = null; switch (cmd.type.toLowerCase()) { case 'text': if (!cmd.text) { console.warn("Skipping text: missing 'text'."); continue; } shapeData = { ...baseProps, type: 'text', text: String(cmd.text), style: { ...baseProps.style, scale: cmd.scale ?? 1 } }; break; case 'rectangle': case 'rect': shapeData = { ...baseProps, type: 'rectangle', width: cmd.width ?? 100, height: cmd.height ?? 100 }; break; case 'ellipse': case 'circle': shapeData = { ...baseProps, type: 'ellipse', width: cmd.width ?? 100, height: cmd.height ?? (cmd.width ?? 100) }; break; case 'arrow': if (!Array.isArray(cmd.points) || cmd.points.length < 2 || !cmd.points.every(p => Array.isArray(p) && p.length === 2)) { console.warn("Skipping arrow: invalid 'points'.", cmd.points); continue; } shapeData = { ...baseProps, type: 'arrow', points: cmd.points, arrowheadStart: cmd.arrowheadStart ?? 'none', arrowheadEnd: cmd.arrowheadEnd ?? 'arrow', style: { ...baseProps.style, ...(cmd.style || {}) } }; break; case 'line': if (!Array.isArray(cmd.points) || cmd.points.length < 2 || !cmd.points.every(p => Array.isArray(p) && p.length === 2)) { console.warn("Skipping line: invalid 'points'.", cmd.points); continue; } shapeData = { ...baseProps, type: 'line', points: cmd.points, style: { ...baseProps.style, ...(cmd.style || {}) } }; break; default: console.warn("Unsupported draw type:", cmd.type); continue; } if (shapeData) shapesToCreate.push(shapeData); } if (shapesToCreate.length > 0) { console.log("Creating shapes:", shapesToCreate); await tldrawApp.createShapes(shapesToCreate); await new Promise(r => setTimeout(r, 100)); if (typeof tldrawApp.zoomToFit === 'function') { await tldrawApp.zoomToFit({ duration: 500 }); console.log("AI drawing executed and zoomed."); } else console.log("AI drawing executed."); } } catch (drawError) { console.error("Error executing draw commands:", drawError); showToast("Chyba kreslení.", "error"); } } else console.log("No valid DRAW commands found."); return remainingText.trim(); };
+                 const sendToGemini = async (promptText, targetArea) => { if (!GEMINI_API_KEY || GEMINI_API_KEY.startsWith('AIzaSyD') === false) { const msg = "Chyba: Chybí API klíč."; showToast(msg, "error", 10000); handleGeminiError(msg, targetArea, new Date()); return; } if (!currentTopic) { const msg = "Chyba: Není téma."; showToast(msg, "error"); handleGeminiError(msg, targetArea, new Date()); return; } console.log(`Sending (Target: ${targetArea}): "${promptText.substring(0, 100)}..."`); updateAIStatus('Přemýšlím...'); const requestTimestamp = new Date(); updateGeminiThinkingState(true); const systemInstructionText = `Jsi AI Tutor "Justax", expert na matematiku pro 9. třídu ZŠ v ČR (přijímačky CERMAT). Vyučuješ téma: "${currentTopic.name}". Tvůj styl je PŘÁTELSKÝ, TRPĚLIVÝ a PODROBNÝ. Vysvětluj krok za krokem, používej příklady. Důsledně používej Markdown a MathJax (blok: $$...$$, inline: \\(...\\)). Odpovídej VŽDY ČESKY. DŮLEŽITÉ POKYNY: 1. KROK ZA KROKEM: Drž se jednoho konceptu/kroku. 2. INTERAKTIVITA: Pokládej otázky. 3. INTERAKTIVNÍ DOŠKA: Pro vizualizaci (geometrie, grafy, rovnice) MŮŽEŠ na KONEC odpovědi přidat blok \`DRAW_ON_WHITEBOARD:\` následovaný JSON polem v \`\`\`json ... \`\`\`. Formát JSON: [{"type": "rectangle/ellipse/arrow/text/line", "x":#, "y":#, "color":"...", "size":"...", "isFilled":bool, ... další vlastnosti ...}]. Používej kreslení S MÍROU. 4. DÉLKA ODPOVĚDI: Krátké odpovědi. 5. REAKCE NA VSTUP: Reaguj na poslední zprávu uživatele.`; const historyForApi = geminiChatContext.filter(item => item.role === 'user' || item.role === 'model'); const currentRequestContent = { role: "user", parts: [{ text: promptText }] }; const requestBody = { contents: historyForApi.concat([currentRequestContent]), generationConfig: { temperature: 0.65, topP: 0.95, topK: 40, maxOutputTokens: 4096 }, safetySettings: [ { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" }, { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" }, { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" }, { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" } ] }; if (historyForApi.length === 0) { requestBody.contents = [{ role: "user", parts: [{ text: systemInstructionText + "\n\n---\n\nStudent: " + promptText }] }]; } try { const response = await fetch(GEMINI_API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(requestBody) }); if (!response.ok) { let errorBodyText = await response.text(); let errorMessage = `Chyba API (${response.status}): ${response.statusText}`; try { const errorBodyJson = JSON.parse(errorBodyText); console.error("API Error Body:", errorBodyJson); errorMessage = errorBodyJson.error?.message || errorMessage; } catch (e) { console.error("API Error Text:", errorBodyText); } throw new Error(errorMessage); } const data = await response.json(); const candidate = data.candidates?.[0]; if (!candidate) { if (data.promptFeedback?.blockReason) { throw new Error(`Požadavek blokován: ${data.promptFeedback.blockReason}`); } else { throw new Error('Neplatná odpověď (žádní kandidáti).'); } } if (candidate.finishReason && candidate.finishReason !== "STOP" && candidate.finishReason !== "MAX_TOKENS") { if (candidate.finishReason === "SAFETY") { throw new Error("Odpověď blokována z bezp. důvodů."); } else { throw new Error(`Generování přerušeno: ${candidate.finishReason}`); } } const geminiResponseText = candidate.content?.parts?.[0]?.text; if (!geminiResponseText) { throw new Error('Prázdná textová odpověď.'); } geminiChatContext.push({ role: "model", parts: [{ text: geminiResponseText }] }); const textToDisplay = await parseAndDrawAiOutput(geminiResponseText); processGeminiResponse(textToDisplay, targetArea, requestTimestamp); updateAIStatus(currentTopic ? `Vysvětluje: ${currentTopic.name}` : 'Připraven'); } catch (error) { console.error('Chyba komunikace s Gemini:', error); showToast(`Chyba AI: ${error.message}`, "error", 6000); handleGeminiError(error.message, targetArea, requestTimestamp); updateAIStatus('Nastala chyba'); } finally { updateGeminiThinkingState(false); } };
+                 const processGeminiResponse = (responseText, targetArea, timestamp) => { removeThinkingIndicator(); const textToRender = responseText.trim(); if (!textToRender) { console.warn("Empty Gemini response after processing."); return; } if (targetArea === 'explanation') { const placeholder = explanationDisplay.querySelector('.loading-placeholder, .empty-state'); if (placeholder) placeholder.remove(); if (explanationDisplay.innerHTML.includes('Výuka připravena') || explanationDisplay.innerHTML.includes('Čekání')) explanationDisplay.innerHTML = ''; const stepDiv = document.createElement('div'); stepDiv.className = 'step'; renderMarkdown(stepDiv, textToRender); explanationDisplay.appendChild(stepDiv); if(explanationScrollContent) { setTimeout(() => { try { stepDiv.scrollIntoView({ behavior: 'smooth', block: 'end' }); } catch (e) { explanationScrollContent.scrollTop = explanationScrollContent.scrollHeight; } }, 100); } addChatMessage(textToRender, 'gemini', true, timestamp); if (nextStepBtn) { nextStepBtn.style.display = 'inline-flex'; nextStepBtn.disabled = false; nextStepBtn.innerHTML = '<i class="fas fa-forward"></i> Další krok'; } if (markCompleteBtn) { markCompleteBtn.style.display = 'inline-flex'; markCompleteBtn.disabled = false; markCompleteBtn.innerHTML = '<i class="fas fa-check-circle"></i> Téma dokončeno'; } } else { addChatMessage(textToRender, 'gemini', true, timestamp); } };
+                 const handleGeminiError = (errorMessage, targetArea, timestamp) => { removeThinkingIndicator(); updateGeminiThinkingState(false); const errorText = `Omlouvám se, nastala chyba. Zkuste to znovu.\n*(Detail: ${sanitizeHTML(errorMessage)})*`; if (targetArea === 'explanation') { const placeholder = explanationDisplay.querySelector('.loading-placeholder, .empty-state'); if (placeholder) placeholder.remove(); const errorDiv = document.createElement('div'); errorDiv.className = 'step error-message'; errorDiv.style.color = 'var(--danger)'; errorDiv.style.fontWeight = '500'; renderMarkdown(errorDiv, errorText); explanationDisplay.appendChild(errorDiv); if (explanationScrollContent) { setTimeout(() => { try { errorDiv.scrollIntoView({ behavior: 'smooth', block: 'end' }); } catch (e) { explanationScrollContent.scrollTop = explanationScrollContent.scrollHeight; } }, 100); } addChatMessage(errorText, 'gemini', true, timestamp); if (nextStepBtn) { nextStepBtn.disabled = false; nextStepBtn.innerHTML = '<i class="fas fa-redo"></i> Znovu'; nextStepBtn.style.display = 'inline-flex'; } if (markCompleteBtn) { markCompleteBtn.disabled = false; markCompleteBtn.style.display = 'inline-flex'; } } else { addChatMessage(errorText, 'gemini', true, timestamp); } updateAIStatus('Nastala chyba'); };
 
 
                 // --- Run Application ---
-                initializeApp(); // Start the whole process
+                initializeApp();
 
             }); // End DOMContentLoaded
         } catch (e) {
             console.error("FATAL SCRIPT ERROR:", e);
-            // Display a user-friendly error message if the entire script fails
-            document.body.innerHTML = `<div style="padding: 30px; text-align: center; font-family: sans-serif; color: red; background-color: #fff5f5; border: 2px solid red; margin: 20px;"><h1>FATÁLNÍ CHYBA SKRIPTU</h1><p>Nepodařilo se spustit výukovou aplikaci kvůli závažné chybě v kódu.</p><p>Zkontrolujte prosím konzoli prohlížeče (klávesa F12) pro technické detaily.</p><hr><pre style="text-align: left; white-space: pre-wrap; word-wrap: break-word; font-size: 0.8em; max-height: 300px; overflow-y: auto; background: #eee; padding: 10px; border-radius: 5px;">${e.message}\n${e.stack}</pre></div>`;
+            document.body.innerHTML = `<div style="padding: 30px; text-align: center; font-family: sans-serif; color: red; background-color: #fff5f5; border: 2px solid red; margin: 20px;"><h1>FATÁLNÍ CHYBA SKRIPTU</h1><p>Nepodařilo se spustit aplikaci.</p><pre>${e.message}\n${e.stack}</pre></div>`;
         }
     </script>
 
