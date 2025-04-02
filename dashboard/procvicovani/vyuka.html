@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    {/* Používáme váš původní title */}
-    <title>Justax - Výuka s AI (Videocall Interface v2.1)</title>
+    <title>Justax - Výuka s AI (Canvas)</title> {/* Změněn název */}
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -19,12 +18,12 @@
                 startup: { ready: () => { MathJax.startup.defaultReady(); MathJax.startup.promise.then(() => console.log('MathJax loaded and ready.')); } }
             };
         } else {
-             console.warn("window.MathJax already defined, skipping default config assignment.");
+             console.warn("window.MathJax already defined.");
         }
     </script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 
-    {/* Knihovny načítané PŘED hlavním skriptem */}
+    {/* Ostatní knihovny */}
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
@@ -32,30 +31,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/js/tooltipster.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
-    {/* Excalidraw Dependencies & Library - MÍSTO PRO INLINE VLOŽENÍ */}
-    {/* !! ODSTRANĚNO NAČÍTÁNÍ PŘES CDN !! */}
-    {/* 1. Vložte obsah react.production.min.js sem */}
-    <script>
-        // Obsah souboru https://cdn.jsdelivr.net/npm/react@17.0.2/umd/react.production.min.js
-        // Zde by měl být celý minifikovaný kód Reactu
-        console.log("Placeholder for React inline script");
-    </script>
-    {/* 2. Vložte obsah react-dom.production.min.js sem */}
-    <script>
-        // Obsah souboru https://cdn.jsdelivr.net/npm/react-dom@17.0.2/umd/react-dom.production.min.js
-        // Zde by měl být celý minifikovaný kód ReactDOM
-        console.log("Placeholder for ReactDOM inline script");
-    </script>
-    {/* 3. Vložte obsah excalidraw.production.min.js sem */}
-    <script>
-        // Obsah souboru https://cdn.jsdelivr.net/npm/@excalidraw/excalidraw@0.17.0/dist/excalidraw.production.min.js
-        // Zde by měl být celý minifikovaný kód Excalidraw
-        console.log("Placeholder for Excalidraw inline script");
-    </script>
-
+    {/* Odebrány scripty pro React, ReactDOM, Excalidraw */}
 
     <style>
-        /* --- KOMPLETNÍ CSS STYLY Z VAŠEHO SOUBORU --- */
+        /* --- VAŠE ORIGINÁLNÍ CSS STYLY --- */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; scroll-behavior: smooth; }
         :root {
             --primary-rgb: 67, 97, 238; --primary: #4361ee; --primary-light: #4895ef; --secondary: #3f37c9; --success: #06d6a0; --danger: #f72585; --warning: #f8961e; --info: #4cc9f0; --dark: #1e2a3a; --light: #f8f9fa; --gray: #6c757d; --gray-light: #dee2e6; --gray-dark: #343a40; --gradient-1: linear-gradient(135deg, #4361ee, #3a0ca3); --gradient-2: linear-gradient(135deg, #4cc9f0, #4361ee); --white: #ffffff; --sidebar-width: 260px; --transition-speed: 0.3s; --card-radius: 12px; --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.05); --shadow-md: 0 5px 12px rgba(0, 0, 0, 0.07); --shadow-lg: 0 10px 20px rgba(0, 0, 0, 0.1); --text-primary: #2d3748; --text-secondary: #4a5568; --text-muted: #718096; --call-bg: #f0f2f5; --call-panel-bg: var(--white); --avatar-size: 50px;
@@ -95,13 +74,31 @@
         .ai-avatar-placeholder { width: var(--avatar-size); height: var(--avatar-size); background: var(--gradient-1); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5rem; flex-shrink: 0; box-shadow: var(--shadow-sm); }
         .ai-presenter-info h2 { font-size: 1.1rem; font-weight: 600; color: var(--dark); margin: 0; }
         .ai-presenter-info p { font-size: 0.85rem; color: var(--text-secondary); margin: 0; }
-        .whiteboard-main-container { flex-grow: 1; position: relative; overflow: hidden; border-radius: 0 0 var(--card-radius) var(--card-radius); background-color: var(--white); }
+        .whiteboard-main-container { flex-grow: 1; position: relative; overflow: hidden; border-radius: 0 0 var(--card-radius) var(--card-radius); background-color: var(--white); display: flex; /* Added for centering canvas */ justify-content: center; align-items: center; /* Center vertically */ padding: 10px; /* Add some padding */ }
 
-        /* Specific styles for Excalidraw container (replacing tldraw-wrapper) */
-        #excalidraw-container { height: 100%; width: 100%; display: flex; align-items: center; justify-content: center;}
-        #excalidraw-container .excalidraw-wrapper { height: 100% !important; width: 100% !important; }
-        #excalidraw-container > p { padding: 2rem; text-align: center; font-style: italic; color: var(--text-muted); }
-
+        /* Specific styles for Canvas */
+        #drawingCanvas {
+            /* display: block; Remove display block */
+            max-width: 100%; /* Allow shrinking */
+            max-height: 100%; /* Allow shrinking */
+            background-color: #fff; /* Explicit white background */
+            border: 1px solid var(--gray-light); /* Optional border */
+            /* Dimensions will be set in JS */
+        }
+        .canvas-controls { /* Optional container for controls */
+             position: absolute;
+             top: 10px;
+             right: 10px;
+             display: flex;
+             gap: 5px;
+             background-color: rgba(255, 255, 255, 0.8);
+             padding: 5px;
+             border-radius: 5px;
+         }
+         .canvas-controls button {
+             padding: 3px 8px;
+             font-size: 0.8em;
+         }
 
         /* Right Side: Interaction Panel */
         .interaction-panel { width: 420px; flex-shrink: 0; display: flex; flex-direction: column; background-color: var(--call-panel-bg); border-radius: var(--card-radius); box-shadow: var(--shadow-md); overflow: hidden; border: 1px solid var(--gray-light); }
@@ -199,18 +196,69 @@
         @media (max-width: 992px) { /* ... */ }
         @media (max-width: 768px) { /* ... */ }
         @media (max-width: 576px) { /* ... */ }
-        @media (prefers-color-scheme: dark) { /* ... */ }
+        @media (prefers-color-scheme: dark) {
+             :root { --white: #1a202c; --light: #2d3748; --dark: #e2e8f0; --gray-light: #4a5568; --text-primary: #e2e8f0; --text-secondary: #cbd5e0; --text-muted: #a0aec0; --dark-bg: #171923; --call-bg: #131720; --call-panel-bg: #1e2533; }
+             body { background-color: var(--dark-bg); }
+             main { background-color: var(--call-bg); }
+             .main-header { background-color: var(--call-panel-bg); border-bottom-color: var(--gray-light); }
+             .mobile-menu-toggle { color: var(--dark); }
+             .ai-presenter-area, .interaction-panel { background-color: var(--call-panel-bg); box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2); border-color: var(--gray-light); }
+             .ai-presenter-header { background-color: var(--light); border-bottom-color: var(--gray-light); }
+             .whiteboard-main-container { background-color: var(--call-panel-bg); } /* Match panel bg */
+             #drawingCanvas { background-color: var(--call-panel-bg); border-color: var(--gray-light); } /* Adjust canvas bg */
+             .interaction-tabs { background-color: var(--light); border-bottom-color: var(--gray-light); }
+             .interaction-tab { color: var(--text-secondary); }
+             .interaction-tab:hover { color: var(--primary-light); background-color: rgba(72, 149, 239, 0.1); }
+             .interaction-tab.active { color: var(--primary-light); border-bottom-color: var(--primary-light); background-color: var(--call-panel-bg); }
+             .tab-content { background-color: var(--call-panel-bg); }
+             .explanation-scroll-content { scrollbar-color: var(--gray) var(--call-panel-bg); }
+             .explanation-scroll-content::-webkit-scrollbar-thumb { border-color: var(--call-panel-bg); }
+             #explanation-display pre code { background-color: #1a202c; color: #d1d5db; }
+             #explanation-display code { background-color: rgba(72, 149, 239, 0.15); color: var(--primary-light); }
+             #explanation-display strong { color: var(--light); }
+             #explanation-display blockquote { border-left-color: var(--primary); color: var(--text-secondary); }
+             .explanation-controls { background-color: var(--light); border-top-color: var(--gray-light); }
+             .chat-messages { scrollbar-color: var(--gray) var(--call-panel-bg); }
+             .chat-messages::-webkit-scrollbar-track { background: var(--call-panel-bg); }
+             .chat-messages::-webkit-scrollbar-thumb { border-color: var(--call-panel-bg); }
+             .message-avatar { border-color: var(--call-panel-bg); }
+             .message-bubble { background-color: var(--light); color: var(--text-primary); border-color: var(--gray-light); }
+             .chat-message.user .message-bubble { background: var(--gradient-2); color: var(--dark); }
+             .message-bubble code { background-color: rgba(255,255,255,0.1); color: var(--text-primary); }
+             .chat-message.user .message-bubble code { background-color: rgba(0, 0, 0, 0.2); color: var(--light); }
+             .message-bubble pre code { background-color: #1a202c; color: #d1d5db; }
+             .chat-message.user .message-bubble pre code { background-color: rgba(0,0,0,0.3); color: #eee; }
+             .message-thinking-indicator { background: var(--light); border-color: var(--gray-light);}
+             .typing-dot { background-color: var(--gray); }
+             .chat-input-area { background-color: var(--light); border-top-color: var(--gray-light); }
+             .chat-input { background-color: var(--dark-bg); color: var(--text-primary); border-color: var(--gray-light); }
+             .chat-input::placeholder { color: var(--text-muted); }
+             .chat-input:focus { box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.2); }
+             .chat-controls { background-color: var(--light); border-top-color: var(--gray-light); }
+             .chat-controls button { color: var(--text-muted); }
+             .chat-controls button:hover { color: var(--primary-light); }
+             .btn-secondary { background-color: var(--light); color: var(--text-secondary); border-color: var(--gray-light); }
+             .btn-secondary:hover:not(:disabled) { background-color: var(--gray-light); color: var(--dark); }
+             .btn-success { background: linear-gradient(135deg, var(--success), #05a381); }
+             .btn-success:hover:not(:disabled) { background: linear-gradient(135deg, #0cd1a7, var(--success));}
+             .btn:disabled { background: var(--gray); color: var(--text-muted); }
+             .topic-loading-bar { background-color: var(--light); border-bottom-color: var(--gray-light); }
+             .empty-state i { color: var(--light); }
+             .toast { background-color: var(--call-panel-bg); border-color: var(--gray-light); color: var(--text-primary); box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);}
+        }
+
+        /* Toast notification */
         .toast { /* ... */ }
     </style>
 </head>
 <body>
     <div id="sidebar-overlay" class="sidebar-overlay"></div>
-    <aside id="sidebar" class="sidebar">
-        <div class="sidebar-header"> <a href="/" class="sidebar-logo"> <i class="fas fa-calculator"></i> <span>Justax</span> </a> </div>
-         <ul class="sidebar-menu"> <li class="sidebar-item"> <a href="/dashboard/dashboard.html" class="sidebar-link"> <i class="fas fa-th-large"></i> <span>Dashboard</span> </a> </li> <li class="sidebar-item"> <a href="/dashboard/procvicovani/main.html" class="sidebar-link active"> <i class="fas fa-book-open"></i> <span>Procvičování</span> </a> </li> <li class="sidebar-item"> <a href="/dashboard/pokrok.html" class="sidebar-link"> <i class="fas fa-chart-line"></i> <span>Pokrok</span> </a> </li> <li class="sidebar-item"> <a href="/dashboard/oceneni.html" class="sidebar-link"> <i class="fas fa-medal"></i> <span>Ocenění</span> </a> </li> <li class="sidebar-item"> <a href="/dashboard/materialy.html" class="sidebar-link"> <i class="fas fa-file-alt"></i> <span>Materiály</span> </a> </li> <li class="sidebar-item"> <a href="/dashboard/profile.html" class="sidebar-link"> <i class="fas fa-user-cog"></i> <span>Profil</span> </a> </li> </ul>
-         <div class="user-profile"> <div class="user-avatar" id="user-avatar">?</div> <div class="user-info"> <div class="user-name" id="user-name">Načítání...</div> <div class="user-role">Student</div> </div> </div>
-         <div class="sidebar-footer"> &copy; 2025 Justax </div>
-    </aside>
+     <aside id="sidebar" class="sidebar">
+         <div class="sidebar-header"> <a href="/" class="sidebar-logo"> <i class="fas fa-calculator"></i> <span>Justax</span> </a> </div>
+          <ul class="sidebar-menu"> <li class="sidebar-item"> <a href="/dashboard/dashboard.html" class="sidebar-link"> <i class="fas fa-th-large"></i> <span>Dashboard</span> </a> </li> <li class="sidebar-item"> <a href="/dashboard/procvicovani/main.html" class="sidebar-link active"> <i class="fas fa-book-open"></i> <span>Procvičování</span> </a> </li> <li class="sidebar-item"> <a href="/dashboard/pokrok.html" class="sidebar-link"> <i class="fas fa-chart-line"></i> <span>Pokrok</span> </a> </li> <li class="sidebar-item"> <a href="/dashboard/oceneni.html" class="sidebar-link"> <i class="fas fa-medal"></i> <span>Ocenění</span> </a> </li> <li class="sidebar-item"> <a href="/dashboard/materialy.html" class="sidebar-link"> <i class="fas fa-file-alt"></i> <span>Materiály</span> </a> </li> <li class="sidebar-item"> <a href="/dashboard/profile.html" class="sidebar-link"> <i class="fas fa-user-cog"></i> <span>Profil</span> </a> </li> </ul>
+          <div class="user-profile"> <div class="user-avatar" id="user-avatar">?</div> <div class="user-info"> <div class="user-name" id="user-name">Načítání...</div> <div class="user-role">Student</div> </div> </div>
+          <div class="sidebar-footer"> &copy; 2025 Justax </div>
+     </aside>
 
     <main>
         <div class="main-header">
@@ -237,9 +285,12 @@
                      </div>
                  </div>
                  <div class="whiteboard-main-container">
-                     {/* Změněno ID a obsah pro Excalidraw */}
-                     <div id="excalidraw-container">
-                         <p style="padding: 2rem; text-align: center; font-style: italic; color: var(--text-muted);">Inicializace kreslící plochy...</p>
+                     {/* Nahrazeno Canvasem */}
+                     <canvas id="drawingCanvas"></canvas>
+                     {/* Volitelné: Přidání ovládacích prvků pro canvas */}
+                     <div class="canvas-controls" style="display: none;" id="canvas-controls">
+                          <button id="clear-canvas-btn" class="btn btn-secondary btn-sm btn-tooltip" title="Vymazat kresbu"> <i class="fas fa-eraser"></i> </button>
+                          {/* Další ovládací prvky mohou být přidány sem */}
                      </div>
                  </div>
              </div>
@@ -287,8 +338,8 @@
                 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10';
                 const GEMINI_API_KEY = 'AIzaSyDQboM6qtC_O2sqqpaKZZffNf2zk6HrhEs'; // Test key
                 const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
-                const DRAW_COMMAND_REGEX = /DRAW_ON_WHITEBOARD:\s*```json\s*([\s\S]*?)\s*```/g;
-                // Removed TLDRAW_CDN_URL
+                // Regex pro jednoduché Canvas příkazy
+                const CANVAS_COMMAND_REGEX = /(CLEAR_CANVAS|DRAW_LINE|DRAW_RECT|DRAW_CIRCLE|DRAW_TEXT):\s*```json\s*([\s\S]*?)\s*```/g;
 
                 // --- DOM Elements ---
                 const userAvatarEl = document.getElementById('user-avatar');
@@ -299,8 +350,12 @@
                 const currentTopicDisplay = document.getElementById('current-topic-display');
                 const explanationDisplay = document.getElementById('explanation-display');
                 const explanationScrollContent = document.querySelector('.explanation-scroll-content');
-                // Changed to excalidrawContainer
-                const excalidrawContainer = document.getElementById('excalidraw-container');
+                // Canvas Elementy
+                const canvasContainer = document.querySelector('.whiteboard-main-container'); // Kontejner pro canvas
+                const canvas = document.getElementById('drawingCanvas');
+                const canvasControls = document.getElementById('canvas-controls');
+                const clearCanvasBtn = document.getElementById('clear-canvas-btn');
+                // Ostatní elementy
                 const chatMessages = document.getElementById('chat-messages');
                 const chatInput = document.getElementById('chat-input');
                 const sendButton = document.getElementById('send-button');
@@ -323,16 +378,15 @@
                 let currentPlanId = null;
                 let currentSessionId = null;
                 let geminiChatContext = [];
-                let excalidrawAPI = null; // Replaces tldrawApp
-                let ExcalidrawLib = null; // Reference to Excalidraw library
-                // Removed tldrawScriptLoaded
+                let canvasCtx = null; // Canvas context místo Excalidraw API
                 let geminiIsThinking = false;
                 let thinkingIndicatorId = null;
                 let topicLoadInProgress = false;
-                // Removed excalidrawInitRetries and related interval constants
+                let canvasWidth = 600; // Výchozí šířka
+                let canvasHeight = 400; // Výchozí výška
 
                 // --- Helper Functions ---
-                const sanitizeHTML = (str) => { /* ... */ };
+                const sanitizeHTML = (str) => { const temp = document.createElement('div'); temp.textContent = str || ''; return temp.innerHTML; };
                 const getInitials = (profile, email) => { /* ... */ };
                 const showToast = (message, type = 'info', duration = 4000) => { /* ... */ };
                 const renderMarkdown = (element, markdownText) => { /* ... */ };
@@ -341,75 +395,132 @@
                 const formatTimestamp = (date) => date.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' });
                 const updateAIStatus = (text) => { if (aiStatusText) aiStatusText.textContent = text; };
 
-                // --- Initialization Functions ---
-                // Removed loadTldrawScript
+                // --- Canvas Functions ---
+                const initializeCanvas = () => {
+                    if (!canvas) { console.error("Canvas element not found!"); return false; }
+                    canvasCtx = canvas.getContext('2d');
+                    if (!canvasCtx) { console.error("Failed to get 2D context from canvas"); return false; }
 
-                 const initializeExcalidraw = () => {
-                    console.log("Attempting to initialize Excalidraw...");
-                    if (excalidrawAPI) { console.log("Excalidraw already initialized."); return true; }
+                    // Nastavení rozměrů canvasu podle kontejneru
+                    resizeCanvas();
 
-                    // Explicit check before using libraries
-                    if (typeof React === 'undefined' || typeof ReactDOM === 'undefined' || typeof Excalidraw === 'undefined') {
-                        console.error("ERROR: React, ReactDOM, or Excalidraw library not loaded globally. Ensure inline scripts are correctly placed and loaded.");
-                        if (excalidrawContainer) excalidrawContainer.innerHTML = "<p style='color: red; padding: 1rem;'>Chyba: Knihovny pro kreslení (React/Excalidraw) nejsou dostupné.</p>";
-                        return false;
-                    }
+                    // Vynulování plátna
+                    clearCanvas();
+                    console.log("Canvas initialized.");
+                    if(canvasControls) canvasControls.style.display = 'flex'; // Zobrazit ovládání
+                    return true;
+                };
 
-                    ExcalidrawLib = Excalidraw;
-                    if (!excalidrawContainer) { console.error("Element #excalidraw-container not found!"); return false; }
+                const resizeCanvas = () => {
+                     if (!canvas || !canvasContainer) return;
+                     // Získat rozměry rodičovského kontejneru (po odečtení paddingu)
+                     const containerStyle = window.getComputedStyle(canvasContainer);
+                     const containerWidth = canvasContainer.clientWidth - parseFloat(containerStyle.paddingLeft) - parseFloat(containerStyle.paddingRight);
+                     const containerHeight = canvasContainer.clientHeight - parseFloat(containerStyle.paddingTop) - parseFloat(containerStyle.paddingBottom);
 
-                    try {
-                        const ExcalidrawComponent = () => {
-                            const excalidrawRef = React.useRef(null);
-                            React.useEffect(() => {
-                                excalidrawAPI = excalidrawRef.current;
-                                console.log("Excalidraw API reference obtained:", excalidrawAPI ? 'OK' : 'Failed');
-                                // Trigger actions dependent on API being ready here if needed
-                                if (excalidrawAPI && currentTopic && !geminiIsThinking) {
-                                     console.log("Excalidraw ready, triggering initial AI prompt.");
-                                     // Removed redundant call, startLearningSession handles the initial prompt
-                                } else if (!excalidrawAPI) {
-                                     console.error("Failed to get API ref in useEffect!");
-                                }
-                            }, []); // Empty dependency array
+                     // Omezit maximální rozměry, pokud je potřeba
+                     const maxWidth = 1000;
+                     const maxHeight = 700;
 
-                            return React.createElement(
-                                "div", { style: { height: "100%", width: "100%" }, className: "excalidraw-wrapper" },
-                                React.createElement(ExcalidrawLib.Excalidraw, {
-                                    ref: excalidrawRef,
-                                    theme: window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light',
-                                    initialData: { elements: [], appState: { viewBackgroundColor: window.matchMedia?.('(prefers-color-scheme: dark)').matches ? '#1e2533' : '#ffffff' } },
-                                    UIOptions: { canvasActions: { changeViewBackgroundColor: true, clearCanvas: true, loadScene: false } }
-                                })
-                            );
-                        };
-                        ReactDOM.render(React.createElement(ExcalidrawComponent), excalidrawContainer);
-                        console.log("Excalidraw component render initiated.");
-                        return true;
-                    } catch (error) {
-                        console.error("Failed to render Excalidraw component:", error);
-                        if (excalidrawContainer) excalidrawContainer.innerHTML = `<p style='color: red; padding: 1rem;'>Chyba vykreslení kreslící plochy: ${error.message}</p>`;
-                        showToast("Chyba vykreslení kreslení.", "error");
-                        return false;
-                    }
+                     canvasWidth = Math.min(containerWidth, maxWidth);
+                     canvasHeight = Math.min(containerHeight, maxHeight);
+
+                     // Nastavit atributy i styl pro správné vykreslení
+                     canvas.width = canvasWidth;
+                     canvas.height = canvasHeight;
+                     canvas.style.width = `${canvasWidth}px`;
+                     canvas.style.height = `${canvasHeight}px`;
+
+                     console.log(`Canvas resized to: ${canvasWidth}x${canvasHeight}`);
+                     // Překreslit obsah, pokud je potřeba (např. po resize okna)
+                     // redrawCanvasContent(); // Funkce pro překreslení (zatím není)
                  };
 
+                const clearCanvas = () => {
+                    if (!canvasCtx) return;
+                    canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
+                    console.log("Canvas cleared.");
+                };
+
+                // Funkce pro zpracování kreslících příkazů od AI
+                const handleCanvasDrawCommand = (command, data) => {
+                    if (!canvasCtx) { console.error("Canvas context not available for drawing."); return; }
+
+                    // Výchozí styly
+                    canvasCtx.strokeStyle = data.color || '#000000'; // Default black
+                    canvasCtx.fillStyle = data.fillColor || data.color || '#000000';
+                    canvasCtx.lineWidth = data.lineWidth || 1;
+                    canvasCtx.font = data.font || '16px Poppins';
+                    canvasCtx.textAlign = data.textAlign || 'left';
+                    canvasCtx.textBaseline = data.textBaseline || 'top';
+                    if (data.lineDash && Array.isArray(data.lineDash)) {
+                         canvasCtx.setLineDash(data.lineDash);
+                    } else {
+                         canvasCtx.setLineDash([]); // Solid line
+                    }
+
+                    switch(command) {
+                        case 'CLEAR_CANVAS':
+                            clearCanvas();
+                            break;
+                        case 'DRAW_LINE':
+                            if (data.x1 != null && data.y1 != null && data.x2 != null && data.y2 != null) {
+                                canvasCtx.beginPath();
+                                canvasCtx.moveTo(data.x1, data.y1);
+                                canvasCtx.lineTo(data.x2, data.y2);
+                                canvasCtx.stroke();
+                            } else console.warn("DRAW_LINE: Missing coordinates", data);
+                            break;
+                        case 'DRAW_RECT':
+                            if (data.x != null && data.y != null && data.width != null && data.height != null) {
+                                if (data.filled) {
+                                    canvasCtx.fillRect(data.x, data.y, data.width, data.height);
+                                } else {
+                                    canvasCtx.strokeRect(data.x, data.y, data.width, data.height);
+                                }
+                            } else console.warn("DRAW_RECT: Missing properties", data);
+                            break;
+                        case 'DRAW_CIRCLE':
+                             if (data.x != null && data.y != null && data.radius != null && data.radius > 0) {
+                                 canvasCtx.beginPath();
+                                 canvasCtx.arc(data.x, data.y, data.radius, 0, Math.PI * 2);
+                                 if (data.filled) { canvasCtx.fill(); } else { canvasCtx.stroke(); }
+                             } else console.warn("DRAW_CIRCLE: Missing or invalid properties", data);
+                             break;
+                         case 'DRAW_TEXT':
+                             if (data.text != null && data.x != null && data.y != null) {
+                                 canvasCtx.fillStyle = data.color || '#000000'; // Ensure fillStyle is set for text
+                                 canvasCtx.fillText(data.text, data.x, data.y);
+                             } else console.warn("DRAW_TEXT: Missing properties", data);
+                             break;
+                         default:
+                            console.warn("Unknown canvas command:", command);
+                    }
+                    // Reset line dash po každém kreslení
+                    canvasCtx.setLineDash([]);
+                };
+
+                // --- Initialization Functions ---
                 const initializeApp = async () => {
                     try {
                         supabase = window.supabase?.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
                         if (!supabase) throw new Error("Supabase client creation failed.");
                         console.log("Supabase client initialized.");
-                    } catch (error) { /* ... */ return; }
+                    } catch (error) { console.error("Supabase initialization failed:", error); /* ... */ return; }
 
                     setupEventListeners();
                     initTooltips();
 
-                    // Initialize Excalidraw directly AFTER main setup and script tags
-                    // The inline scripts should ensure libraries are available now
-                    if (!initializeExcalidraw()) {
-                        console.error("Excalidraw failed to initialize even with inline script approach.");
-                        // Keep the error message displayed by initializeExcalidraw
+                    // Initialize Canvas instead of Excalidraw
+                    if (!initializeCanvas()) {
+                        console.error("Canvas initialization failed!");
+                        // Zobrazit chybu uživateli
+                        if(canvasContainer) canvasContainer.innerHTML = "<p style='color:red; padding:1rem;'>Nelze inicializovat kreslící plochu.</p>";
+                    } else {
+                         // Přidat listener pro resize canvasu, pokud je potřeba
+                         window.addEventListener('resize', resizeCanvas);
                     }
+
 
                     await loadUserProfile();
                     if (currentUser) { await loadNextUncompletedTopic(); }
@@ -419,7 +530,28 @@
                 // --- User Profile, Event Listeners, Tooltips ---
                 const loadUserProfile = async () => { /* ... (beze změny) ... */ };
                 const updateUserInfoUI = () => { /* ... (beze změny) ... */ };
-                const setupEventListeners = () => { /* ... (beze změny) ... */ };
+                const setupEventListeners = () => {
+                     console.log("Setting up event listeners...");
+                     if (mobileMenuToggle && sidebar && sidebarOverlay) { /* ... */ }
+                     if (interactionTabs.length > 0 && tabContents.length > 0) { /* ... */ }
+                     if (chatInput && sendButton) { /* ... */ }
+                     if (clearChatBtn) clearChatBtn.addEventListener('click', confirmClearChat);
+                     if (saveChatBtn) saveChatBtn.addEventListener('click', saveChatToPDF);
+                     if (nextStepBtn) nextStepBtn.addEventListener('click', requestNextStep);
+                     if (markCompleteBtn) markCompleteBtn.addEventListener('click', handleMarkTopicComplete);
+                     // Přidán listener pro tlačítko mazání canvasu
+                     if (clearCanvasBtn) {
+                         clearCanvasBtn.addEventListener('click', () => {
+                              clearCanvas();
+                              showToast("Kresba vymazána.", "info");
+                              // Volitelně poslat info AI? např. sendToGemini("Uživatel smazal plátno.", "system_event");
+                         });
+                     }
+                     window.addEventListener('resize', () => {
+                          if (window.innerWidth > 992 && sidebar?.classList.contains('active')) { /* ... */ }
+                          resizeCanvas(); // Zavolat resize canvasu při změně velikosti okna
+                     });
+                 };
                 const initTooltips = () => { /* ... (beze změny) ... */ };
 
                 // --- Topic Loading and Progress ---
@@ -437,136 +569,142 @@
                      chatMessages.innerHTML = '';
                      geminiChatContext = [];
 
-                     // Reset Excalidraw safely
-                     if (excalidrawAPI && typeof excalidrawAPI.resetScene === 'function') {
-                         try {
-                              excalidrawAPI.resetScene();
-                              const isDarkMode = window.matchMedia?.('(prefers-color-scheme: dark)').matches;
-                              excalidrawAPI.updateScene({ appState: { viewBackgroundColor: isDarkMode ? '#1e2533' : '#ffffff' } });
-                              console.log("Excalidraw reset.");
-                         } catch (e) { console.warn("Could not reset Excalidraw:", e); }
-                     } else if (!excalidrawAPI) {
-                          console.warn("Cannot reset Excalidraw - API not available. Attempting init again.");
-                          initializeExcalidraw(); // Try again if it failed earlier
-                     }
+                     // Clear canvas
+                     clearCanvas();
 
                      updateGeminiThinkingState(true);
                      let initialPrompt = `Začni vysvětlovat ZÁKLADY tématu "${currentTopic.name}" pro studenta 9. třídy ZŠ (přijímačky CERMAT).`;
                      if (currentTopic.description) { initialPrompt += `\nPopis tématu: "${currentTopic.description}".`; }
-                     initialPrompt += `\nVysvětluj podrobně, přátelsky, krok za krokem. Toto je PRVNÍ krok. Vhodně použij příklad nebo výzvu k použití kreslící plochy (DRAW_ON_WHITEBOARD s JSON pro Excalidraw). Poskytni krátký souhrn pro chat (CHAT_SUMMARY:).`;
+                     initialPrompt += `\nVysvětluj podrobně, přátelsky, krok za krokem. Toto je PRVNÍ krok. Vhodně použij příklad nebo výzvu k použití KRESLÍCÍ PLOCHY (použij příkazy jako DRAW_LINE, DRAW_TEXT, DRAW_RECT, DRAW_CIRCLE, CLEAR_CANVAS s JSON parametry). Poskytni krátký souhrn pro chat (CHAT_SUMMARY:).`;
                      await sendToGemini(initialPrompt, 'explanation');
-                     // Buttons enabled in updateGeminiThinkingState(false) called by sendToGemini's finally block
                  };
-                 const showLearningUI = () => { /* ... (beze změny) ... */ };
-                 const hideLearningUI = () => { /* ... (beze změny) ... */ };
-                 const switchInteractionTab = (tabId) => { /* ... (beze změny) ... */ };
-                 const requestNextStep = async () => { /* ... (beze změny) ... */ };
+                 const showLearningUI = () => { /* ... */ };
+                 const hideLearningUI = () => { /* ... */ };
+                 const switchInteractionTab = (tabId) => { /* ... */ };
+                 const requestNextStep = async () => { /* ... */ };
 
                  // --- Chat Functionality ---
                  const addChatMessage = async (message, sender, saveToDb = false, timestamp = new Date()) => {
-                     // ... (vytvoření HTML) ...
-                     if (!chatMessages) return;
-                     const messageId = `${sender}_${timestamp.getTime()}_${Math.random().toString(16).slice(2)}`;
-                     const messageDiv = document.createElement('div'); messageDiv.classList.add('chat-message', sender); messageDiv.id = messageId;
-                     const avatarDiv = document.createElement('div'); avatarDiv.classList.add('message-avatar'); avatarDiv.innerHTML = sender === 'user' ? getInitials(currentProfile, currentUser?.email) : '<i class="fas fa-robot"></i>';
-                     const bubbleDiv = document.createElement('div'); bubbleDiv.classList.add('message-bubble'); renderMarkdown(bubbleDiv, message);
-                     const timestampDiv = document.createElement('div'); timestampDiv.classList.add('message-timestamp'); timestampDiv.textContent = formatTimestamp(timestamp); bubbleDiv.appendChild(timestampDiv);
-                     if (sender === 'user') { messageDiv.appendChild(bubbleDiv); messageDiv.appendChild(avatarDiv); } else { messageDiv.appendChild(avatarDiv); messageDiv.appendChild(bubbleDiv); }
-                     chatMessages.appendChild(messageDiv);
-                     requestAnimationFrame(() => { chatMessages.scrollTop = chatMessages.scrollHeight; });
-
-                    // --- SUPABASE CHAT SAVE (using role/content, conditional activity_id) ---
-                    if (saveToDb && supabase && currentUser && currentTopic && currentSessionId) {
-                        const dataToSave = {
-                            user_id: currentUser.id,
-                            session_id: currentSessionId,
-                            topic_name: currentTopic.name,
-                            role: sender,        // Ensure this matches your DB column name
-                            content: message,      // Ensure this matches your DB column name
-                            created_at: timestamp.toISOString(),
-                            // topic_id: null, // Add if available in currentTopic
-                        };
-                        // Conditionally add activity_id
-                        if (currentTopic.activity_id) {
-                            // !! DOUBLE-CHECK this column name ('activity_id') in your database !!
-                            dataToSave.activity_id = currentTopic.activity_id;
-                        } else {
-                             console.warn("activity_id not found in currentTopic, skipping.");
-                        }
-                        console.log("Attempting to save to chat_history:", dataToSave);
-                        try {
-                            const { error } = await supabase.from('chat_history').insert(dataToSave);
-                            if (error) {
-                                console.error("Error saving chat message:", error);
-                                showToast(`Chyba ukládání zprávy: ${error.message}`, "error");
-                            } else { console.log("Chat message saved."); }
-                        } catch (dbError) { console.error("Exception saving chat:", dbError); showToast("Neočekávaná chyba ukládání chatu.", "error"); }
-                    }
+                     // ... (HTML creation) ...
+                     // --- SUPABASE CHAT SAVE (using role/content, conditional activity_id) ---
+                     if (saveToDb && supabase && currentUser && currentTopic && currentSessionId) {
+                         const dataToSave = { user_id: currentUser.id, session_id: currentSessionId, topic_name: currentTopic.name, role: sender, content: message, created_at: timestamp.toISOString() };
+                         if (currentTopic.activity_id) { dataToSave.activity_id = currentTopic.activity_id; }
+                         console.log("Attempting to save to chat_history:", dataToSave);
+                         try { const { error } = await supabase.from('chat_history').insert(dataToSave); if (error) { /* ... (error handling) ... */ } else { console.log("Chat message saved."); }
+                         } catch (dbError) { /* ... */ }
+                     }
                  };
-                const updateGeminiThinkingState = (isThinking) => { /* ... (Implementace beze změny) ... */ };
-                const addThinkingIndicator = () => { /* ... (Implementace beze změny) ... */ };
-                const removeThinkingIndicator = () => { /* ... (Implementace beze změny) ... */ };
-                const handleSendMessage = async () => { /* ... (Implementace beze změny) ... */ };
-                const confirmClearChat = () => { /* ... (Implementace beze změny) ... */ };
-                const clearCurrentChatSessionHistory = async () => { /* ... (Implementace beze změny) ... */ };
-                const saveChatToPDF = async () => { /* ... (Implementace beze změny) ... */ };
+                 const updateGeminiThinkingState = (isThinking) => { /* ... */ };
+                 const addThinkingIndicator = () => { /* ... */ };
+                 const removeThinkingIndicator = () => { /* ... */ };
+                 const handleSendMessage = async () => { /* ... */ };
+                 const confirmClearChat = () => { /* ... */ };
+                 const clearCurrentChatSessionHistory = async () => { /* ... */ };
+                 const saveChatToPDF = async () => { /* ... */ };
 
                  // --- Gemini Interaction & AI Drawing ---
-                 const parseAndDrawAiOutput = async (responseText) => {
-                    // Ensure API is ready before drawing
-                     if (!excalidrawAPI) {
-                         console.warn("Excalidraw API not ready in parseAndDraw. Skipping drawing.");
-                         return responseText;
-                     }
-                      if (typeof excalidrawAPI.updateScene !== 'function' || typeof excalidrawAPI.getSceneElements !== 'function') {
-                          console.warn("Excalidraw API methods not available. Skipping drawing.");
-                          return responseText;
-                      }
-                    // ... (Rest of the parsing/drawing logic - beze změny) ...
-                      let remainingText = responseText;
-                      const elementsToDraw = [];
-                      let match;
-                      DRAW_COMMAND_REGEX.lastIndex = 0;
-                      while ((match = DRAW_COMMAND_REGEX.exec(responseText)) !== null) {
-                          try {
-                              const jsonString = match[1];
-                              if (jsonString.trim().startsWith('[')) {
-                                  const commandData = JSON.parse(jsonString);
-                                  if (Array.isArray(commandData)) {
-                                      commandData.forEach(element => {
-                                          if(typeof element === 'object' && element !== null && element.id && element.type) {
-                                              elementsToDraw.push({
-                                                  isDeleted: false, version: 1,
-                                                  ...element,
-                                                  x: Number(element.x ?? 0), y: Number(element.y ?? 0), width: Number(element.width ?? 100), height: Number(element.height ?? 100), angle: Number(element.angle ?? 0), strokeWidth: Number(element.strokeWidth ?? 1), roughness: Number(element.roughness ?? 0), opacity: Number(element.opacity ?? 100),
-                                                  seed: element.seed ?? Math.floor(Math.random() * 100000),
-                                                  versionNonce: element.versionNonce ?? Math.random() * 1000000
-                                              });
-                                          } else { console.warn("Skipping invalid element:", element); }
-                                      });
-                                  } else { console.warn("Skipping DRAW block - not array:", commandData); }
-                                  remainingText = remainingText.replace(match[0], '').trim();
-                              } else { console.warn("Skipping DRAW block - does not start with '[':", jsonString.substring(0, 50) + '...'); }
-                          } catch (e) { console.error("Failed to parse DRAW JSON:", e, "Content:", match[1].substring(0, 100) + '...'); }
-                      }
-                      if (elementsToDraw.length > 0) {
-                          console.log("Excalidraw elements:", JSON.stringify(elementsToDraw));
-                          showToast("AI kreslí...", "info", 1500);
-                          try {
-                              const existingElements = excalidrawAPI.getSceneElements() || [];
-                              excalidrawAPI.updateScene({ elements: [...existingElements, ...elementsToDraw] });
-                              await new Promise(r => setTimeout(r, 150));
-                              if (typeof excalidrawAPI.zoomToFit === 'function') {
-                                   const elementIds = elementsToDraw.map(el => el.id);
-                                   if (elementIds.length > 0) { excalidrawAPI.zoomToFit(elementIds, 0.9); console.log("Zoomed to new elements."); }
-                              } else { console.log("Drawing executed (zoom unavailable)."); }
-                          } catch (drawError) { console.error("Excalidraw draw error:", drawError); showToast("Chyba kreslení.", "error"); }
-                      } else { console.log("No valid DRAW commands found."); }
-                      return remainingText.trim();
+                 // *** PŘEPSÁNO pro Canvas ***
+                 const parseAndProcessCanvasCommands = async (responseText) => {
+                    let remainingText = responseText;
+                    let match;
+                    CANVAS_COMMAND_REGEX.lastIndex = 0; // Reset regex index
+
+                    // Zpracováváme synchronně, abychom zachovali pořadí
+                    while ((match = CANVAS_COMMAND_REGEX.exec(responseText)) !== null) {
+                        const command = match[1]; // Např. DRAW_LINE
+                        const jsonString = match[2];
+                        console.log(`Found Canvas Command: ${command}`);
+
+                        try {
+                            const data = JSON.parse(jsonString);
+                            // Zavoláme funkci pro vykreslení s příkazem a daty
+                            handleCanvasDrawCommand(command, data);
+                            // Odebereme zpracovaný blok z textu, který se má zobrazit
+                            remainingText = remainingText.replace(match[0], '').trim();
+                        } catch (e) {
+                            console.error(`Failed to parse CANVAS JSON for ${command}:`, e, jsonString);
+                            // Necháme neparsovatelný blok v textu pro případné zobrazení chyby
+                        }
+                    }
+                    // Krátká pauza, aby se změny na canvasu projevily (volitelné)
+                    // await new Promise(r => setTimeout(r, 50));
+                    return remainingText.trim(); // Vracíme text bez zpracovaných příkazů
                  };
-                 const sendToGemini = async (promptText, targetArea) => { /* ... (Implementace beze změny) ... */ };
-                 const processGeminiResponse = async (rawResponseText, targetArea, timestamp) => { /* ... (Implementace beze změny) ... */ };
-                 const handleGeminiError = (errorMessage, targetArea, timestamp) => { /* ... (Implementace beze změny) ... */ };
+
+                 const sendToGemini = async (promptText, targetArea) => {
+                    if (!GEMINI_API_KEY || !GEMINI_API_KEY.startsWith('AIzaSy')) { /*...*/ return; }
+                    if (!currentTopic) { /*...*/ return; }
+                    console.log(`Sending (Target: ${targetArea}): "${promptText.substring(0, 100)}..."`);
+                    updateAIStatus('Přemýšlím...');
+                    const requestTimestamp = new Date();
+                    updateGeminiThinkingState(true);
+
+                    // *** UPRAVENÝ SYSTÉMOVÝ PROMPT PRO CANVAS ***
+                    const systemInstructionText = `Jsi AI Tutor "Justax", expert na matematiku pro 9. třídu ZŠ v ČR (přijímačky CERMAT). Vyučuješ téma: "${currentTopic.name}"${currentTopic.description ? ` (Popis: "${currentTopic.description}")` : ''}. Tvůj styl je PŘÁTELSKÝ, TRPĚLIVÝ a PODROBNÝ. Vysvětluj krok za krokem, používej příklady. Důsledně používej Markdown a MathJax (blok: $$...$$, inline: \\(...\\)). Odpovídej VŽDY ČESKY.
+DŮLEŽITÉ POKYNY:
+1. KROK ZA KROKEM: Drž se jednoho konceptu/kroku.
+2. INTERAKTIVITA: Pokládej otázky.
+3. **KRESLÍCÍ PLOCHA (HTML5 Canvas):** Pro vizualizaci (geometrie, grafy, osy, kroky) MŮŽEŠ na KONEC odpovědi přidat JEDEN NEBO VÍCE bloků s příkazy pro kreslení. Každý blok má formát: \`PŘÍKAZ: \`\`\`json ... \`\`\`\`. Používej POUZE tyto PŘÍKAZY:
+    * \`CLEAR_CANVAS: {}\` - Vymaže celé plátno. Použij na začátku složitějšího kreslení.
+    * \`DRAW_LINE: {"x1":#, "y1":#, "x2":#, "y2":#, "color":"#RRGGBB", "lineWidth":#}\` - Nakreslí čáru.
+    * \`DRAW_RECT: {"x":#, "y":#, "width":#, "height":#, "color":"#RRGGBB", "lineWidth":#, "filled":false/true}\` - Nakreslí obdélník (vyplněný nebo jen obrys).
+    * \`DRAW_CIRCLE: {"x":#, "y":#, "radius":#, "color":"#RRGGBB", "lineWidth":#, "filled":false/true}\` - Nakreslí kruh/kružnici.
+    * \`DRAW_TEXT: {"text":"...", "x":#, "y":#, "color":"#RRGGBB", "font":"16px Poppins", "textAlign":"left/center/right", "textBaseline":"top/middle/bottom"}\` - Napíše text.
+    Souřadnice X rostou doprava, Y dolů. Levý horní roh je [0, 0]. Plátno má rozměry ${canvasWidth}x${canvasHeight}. Kresli S MÍROU a přehledně. Barvy zadávej jako hex kódy (#RRGGBB).
+4. DÉLKA ODPOVĚDI: Pro "Vysvětlení" podrobně, ale děl kroky. Pro chat stručně.
+5. REAKCE NA VSTUP: Reaguj na poslední zprávu nebo požadavek.
+6. VÝSTUP DO CHATU (SHRNUTÍ): Pokud je odpověď primárně pro "Vysvětlení", na úplný konec odpovědi (i po kreslících příkazech) přidej krátký souhrn pro chat ve formátu: \`CHAT_SUMMARY: [Zde tvůj krátký souhrn]\`. Jinak CHAT_SUMMARY nepřidávej.`;
+
+                    // ... (zbytek sendToGemini - sestavení requestu, fetch, error handling - beze změny) ...
+                     const historyForApi = geminiChatContext.length > 0 ? geminiChatContext.filter(item => item.role === 'user' || item.role === 'model') : [];
+                     const currentRequestContent = { role: "user", parts: [{ text: promptText }] };
+                     const contentsPayload = historyForApi.length === 0
+                         ? [{ role: "user", parts: [{ text: systemInstructionText + "\n\n---\n\nStudent: " + promptText }] }]
+                         : [...historyForApi, currentRequestContent];
+                     const requestBody = { contents: contentsPayload, generationConfig: { temperature: 0.6, topP: 0.95, topK: 40, maxOutputTokens: 4096 }, safetySettings: [ { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" }, { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" }, { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" }, { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" } ] };
+                     try {
+                         const response = await fetch(GEMINI_API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(requestBody) });
+                         if (!response.ok) { /* ... error handling ... */ throw new Error(`API Error (${response.status})`); }
+                         const data = await response.json();
+                         const candidate = data.candidates?.[0];
+                         if (!candidate) { /* ... error handling ... */ throw new Error('Invalid AI response.'); }
+                         if (candidate.finishReason && !["STOP", "MAX_TOKENS"].includes(candidate.finishReason)) { /* ... error handling ... */ throw new Error(`Generation stopped: ${candidate.finishReason}`); }
+                         const geminiResponseText = candidate.content?.parts?.[0]?.text;
+                         if (!geminiResponseText) { throw new Error('AI returned empty text.'); }
+                         geminiChatContext.push({ role: "model", parts: [{ text: geminiResponseText }] });
+                         await processGeminiResponse(geminiResponseText, targetArea, requestTimestamp); // Process the response
+                         updateAIStatus(currentTopic ? `Vysvětluje: ${currentTopic.name}` : 'Připraven');
+                     } catch (error) { console.error('Gemini error:', error); showToast(`Chyba AI: ${error.message}`, "error"); handleGeminiError(error.message, targetArea, requestTimestamp); updateAIStatus('Nastala chyba'); } finally { updateGeminiThinkingState(false); }
+                 };
+
+                 const processGeminiResponse = async (rawResponseText, targetArea, timestamp) => {
+                     removeThinkingIndicator();
+                     let chatSummary = null;
+                     const summaryMatch = rawResponseText.match(/CHAT_SUMMARY:\s*(.*)/s);
+                     let textForProcessing = rawResponseText;
+                     if (summaryMatch && summaryMatch[1]) { chatSummary = summaryMatch[1].trim(); textForProcessing = rawResponseText.replace(/CHAT_SUMMARY:[\s\S]*/, '').trim(); console.log("Extracted Summary:", chatSummary); }
+
+                     // *** Zpracování Canvas příkazů ***
+                     const textToDisplay = await parseAndProcessCanvasCommands(textForProcessing);
+
+                     if (targetArea === 'explanation') {
+                         const placeholder = explanationDisplay.querySelector('.loading-placeholder, .empty-state');
+                         if (placeholder) placeholder.remove();
+                         if (explanationDisplay.querySelectorAll('.step').length === 0 && (explanationDisplay.innerHTML.includes('Výuka připravena') || explanationDisplay.innerHTML.includes('Čekání'))) { explanationDisplay.innerHTML = ''; }
+                         const stepDiv = document.createElement('div'); stepDiv.className = 'step'; renderMarkdown(stepDiv, textToDisplay); explanationDisplay.appendChild(stepDiv);
+                         if(explanationScrollContent) { /* ... scroll ... */ }
+                         if (chatSummary) { await addChatMessage(chatSummary, 'gemini', true, timestamp); }
+                         else if (textToDisplay.trim()) { await addChatMessage(`AI pokračovala ve vysvětlení...`, 'gemini', false, timestamp); }
+                         if (nextStepBtn) nextStepBtn.style.display = 'inline-flex';
+                         if (markCompleteBtn) markCompleteBtn.style.display = 'inline-flex';
+                     } else {
+                         if (textToDisplay.trim()) { await addChatMessage(textToDisplay, 'gemini', true, timestamp); }
+                         else { await addChatMessage("(AI odpověď byla prázdná)", 'gemini', false, timestamp); }
+                     }
+                 };
+
+                 const handleGeminiError = (errorMessage, targetArea, timestamp) => { /* ... */ };
 
                 // --- Run Application ---
                 initializeApp();
@@ -575,7 +713,7 @@
         } catch (e) {
             // --- Fatal Error Handling ---
             console.error("FATAL SCRIPT ERROR:", e);
-            document.body.innerHTML = `... (Fatal error message HTML) ...`;
+            document.body.innerHTML = `...`;
         }
     </script>
 
