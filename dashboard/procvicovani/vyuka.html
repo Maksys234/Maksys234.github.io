@@ -3,13 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Justax - Výuka s AI (Canvas)</title> {/* Změněn název */}
+    <title>Justax - Výuka s AI (Canvas)</title> 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    {/* MathJax Configuration */}
     <script>
         // Ensure MathJax object exists before configuring
         if (typeof window.MathJax === 'undefined') {
@@ -41,7 +40,6 @@
     </script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 
-    {/* Ostatní knihovny */}
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
@@ -49,7 +47,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/js/tooltipster.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
-    {/* Odebrány scripty pro React, ReactDOM, Excalidraw */}
 
     <style>
         /* --- CSS STYLY (z předchozí verze, mírně upraveno pro canvas) --- */
@@ -646,19 +643,19 @@
     <div id="sidebar-overlay" class="sidebar-overlay"></div>
      <aside id="sidebar" class="sidebar">
          <div class="sidebar-header">
-            <a href="/dashboard/dashboard.html" class="sidebar-logo"> {/* Link na hlavní dashboard */}
+            <a href="/dashboard/dashboard.html" class="sidebar-logo"> 
                 <i class="fas fa-calculator"></i>
                 <span>Justax</span>
             </a>
         </div>
          <ul class="sidebar-menu">
              <li class="sidebar-item">
-                 <a href="/dashboard/dashboard.html" class="sidebar-link"> {/* Link na hlavní dashboard */}
+                 <a href="/dashboard/dashboard.html" class="sidebar-link"> 
                      <i class="fas fa-th-large"></i> <span>Dashboard</span>
                  </a>
              </li>
              <li class="sidebar-item">
-                 <a href="/dashboard/procvicovani/main.html" class="sidebar-link active"> {/* Aktivní odkaz */}
+                 <a href="/dashboard/procvicovani/main.html" class="sidebar-link active"> 
                      <i class="fas fa-book-open"></i> <span>Procvičování</span>
                  </a>
              </li>
@@ -701,7 +698,6 @@
                       <h1>Interaktivní výuka</h1>
                  </div>
                  <div class="header-actions">
-                      {/* Tlačítko pro návrat na hlavní stránku procvičování */}
                       <a href="/dashboard/procvicovani/main.html" class="btn btn-secondary">
                            <i class="fas fa-times"></i> Ukončit výuku
                        </a>
@@ -710,9 +706,8 @@
         </div>
         <div class="topic-loading-bar">
              <div id="current-topic-display"><span class="placeholder">Načítám data...</span></div>
-             {/* Odstraněno tlačítko #load-next-topic-btn, nahrazeno logikou v explanation-controls */}
         </div>
-        <div class="call-interface" style="display: none;"> {/* Skryto dokud není načteno téma */}
+        <div class="call-interface" style="display: none;"> 
              <div class="ai-presenter-area">
                  <div class="ai-presenter-header">
                      <div class="ai-avatar-placeholder"> <i class="fas fa-robot"></i> </div>
@@ -722,14 +717,11 @@
                      </div>
                  </div>
                  <div class="whiteboard-main-container">
-                     {/* Canvas nahrazuje Excalidraw */}
-                     <canvas id="drawingCanvas" width="600" height="400"></canvas> {/* Default dimensions, JS upraví */}
-                     {/* Volitelné: Přidání ovládacích prvků pro canvas */}
+                     <canvas id="drawingCanvas" width="600" height="400"></canvas>
                      <div class="canvas-controls" style="display: none;" id="canvas-controls">
                           <button id="clear-canvas-btn" class="btn btn-secondary btn-sm btn-tooltip" title="Vymazat kresbu">
                               <i class="fas fa-eraser"></i>
                           </button>
-                          {/* Další ovládací prvky mohou být přidány sem (např. barvy, tloušťka) */}
                      </div>
                  </div>
              </div>
@@ -746,7 +738,6 @@
                      <div id="explanation-tab-content" class="tab-content active">
                          <div class="explanation-scroll-content">
                              <div id="explanation-display">
-                                 {/* Initially empty or with a placeholder */}
                                  <div class="empty-state">
                                      <i class="fas fa-book-reader"></i>
                                      <h3>Výuka připravena</h3>
@@ -766,7 +757,6 @@
                      <div id="chat-tab-content" class="tab-content">
                          <section class="chat-area" style="display: flex; flex-direction: column; height: 100%;">
                              <div class="chat-messages" id="chat-messages">
-                                 {/* Chat messages will be appended here */}
                              </div>
                              <div class="chat-input-area">
                                  <textarea class="chat-input" id="chat-input" placeholder="Napiš svou otázku..." rows="1"></textarea>
