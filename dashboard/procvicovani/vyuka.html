@@ -34,9 +34,9 @@
         /* --- VYLEPŠENÉ CSS STYLY --- */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; scroll-behavior: smooth; }
         :root {
-            --primary-rgb: 67, 97, 238; --primary: #4361ee; --primary-light: #4895ef; --secondary: #3f37c9; --success: #06d6a0; --danger: #f72585; --warning: #f8961e; --info: #4cc9f0; --dark: #1e2a3a; --light: #f8f9fa; --gray: #6c757d; --gray-light: #dee2e6; --gray-dark: #343a40; --gradient-1: linear-gradient(135deg, #4361ee, #3a0ca3); --gradient-2: linear-gradient(135deg, #4cc9f0, #4361ee); --white: #ffffff; --sidebar-width: 260px; --transition-speed: 0.3s; --card-radius: 16px; /* Slightly larger radius */ --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06); --shadow-md: 0 5px 15px rgba(0, 0, 0, 0.08); --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.12); --text-primary: #2d3748; --text-secondary: #4a5568; --text-muted: #718096; --call-bg: #f4f7fe; /* Lighter main background */ --call-panel-bg: var(--white); --avatar-size: 48px; /* Slightly smaller avatar */
+            --primary-rgb: 67, 97, 238; --primary: #4361ee; --primary-light: #4895ef; --secondary: #3f37c9; --success: #06d6a0; --danger: #f72585; --warning: #f8961e; --info: #4cc9f0; --dark: #1e2a3a; --light: #f8f9fa; --gray: #6c757d; --gray-light: #dee2e6; --gray-dark: #343a40; --gradient-1: linear-gradient(135deg, #4361ee, #3a0ca3); --gradient-2: linear-gradient(135deg, #4cc9f0, #4361ee); --white: #ffffff; --sidebar-width: 260px; --transition-speed: 0.3s; --card-radius: 16px; --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06); --shadow-md: 0 5px 15px rgba(0, 0, 0, 0.08); --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.12); --text-primary: #2d3748; --text-secondary: #4a5568; --text-muted: #718096; --call-bg: #f4f7fe; --call-panel-bg: var(--white); --avatar-size: 48px;
         }
-        body { background-color: var(--call-bg); color: var(--text-primary); min-height: 100vh; display: flex; overflow: hidden; font-size: 15px; /* Base font size */ }
+        body { background-color: var(--call-bg); color: var(--text-primary); min-height: 100vh; display: flex; overflow: hidden; font-size: 15px; }
 
         /* Sidebar */
         .sidebar { width: var(--sidebar-width); height: 100vh; position: fixed; top: 0; left: 0; background: var(--gradient-1); color: var(--white); padding: 1.5rem 1rem; display: flex; flex-direction: column; z-index: 1050; box-shadow: var(--shadow-lg); transition: transform var(--transition-speed) ease, width var(--transition-speed) ease; }
@@ -78,14 +78,14 @@
         .ai-avatar-placeholder { width: var(--avatar-size); height: var(--avatar-size); background: var(--gradient-1); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.6rem; flex-shrink: 0; box-shadow: var(--shadow-sm); }
         .ai-presenter-info h2 { font-size: 1.15rem; font-weight: 600; color: var(--dark); margin: 0; }
         .ai-presenter-info p { font-size: 0.88rem; color: var(--text-secondary); margin: 0; }
-        .whiteboard-main-container { flex-grow: 1; position: relative; overflow: hidden; border-radius: 0 0 var(--card-radius) var(--card-radius); background-color: #fdfdfd; /* Slightly off-white */ display: flex; justify-content: center; align-items: center; padding: 15px; }
+        .whiteboard-main-container { flex-grow: 1; position: relative; overflow: hidden; border-radius: 0 0 var(--card-radius) var(--card-radius); background-color: #fdfdfd; display: flex; justify-content: center; align-items: center; padding: 15px; }
         #drawingCanvas { max-width: 100%; max-height: 100%; background-color: #fff; border: 1px dashed var(--gray-light); object-fit: contain; border-radius: 8px; }
         .canvas-controls { position: absolute; bottom: 15px; right: 15px; display: flex; gap: 8px; background-color: rgba(255, 255, 255, 0.9); padding: 8px 10px; border-radius: var(--card-radius); box-shadow: var(--shadow-sm); border: 1px solid var(--gray-light); }
         .canvas-controls button { padding: 6px 12px; font-size: 0.9em; line-height: 1; min-width: auto; background-color: var(--white); border: 1px solid var(--gray-light); color: var(--text-secondary); transition: all 0.2s ease; }
         .canvas-controls button:hover { background-color: var(--light); color: var(--primary); border-color: var(--primary-light); transform: scale(1.05); }
 
         /* Interaction Panel */
-        .interaction-panel { width: 450px; /* Slightly wider */ flex-shrink: 0; display: flex; flex-direction: column; background-color: var(--call-panel-bg); border-radius: var(--card-radius); box-shadow: var(--shadow-md); overflow: hidden; border: 1px solid var(--gray-light); transition: box-shadow 0.3s ease; }
+        .interaction-panel { width: 450px; flex-shrink: 0; display: flex; flex-direction: column; background-color: var(--call-panel-bg); border-radius: var(--card-radius); box-shadow: var(--shadow-md); overflow: hidden; border: 1px solid var(--gray-light); transition: box-shadow 0.3s ease; }
         .interaction-panel:hover { box-shadow: var(--shadow-lg); }
         .interaction-tabs { display: flex; border-bottom: 1px solid var(--gray-light); background-color: #fcfdff; flex-shrink: 0; }
         .interaction-tab { flex: 1; text-align: center; padding: 1rem 1rem; font-weight: 500; color: var(--text-secondary); cursor: pointer; transition: all 0.2s ease; border-bottom: 3px solid transparent; font-size: 1rem; position: relative; }
@@ -99,16 +99,16 @@
         /* Explanation Tab */
         .explanation-scroll-content { flex-grow: 1; padding: 1.75rem; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--gray-light) transparent; }
         .explanation-scroll-content::-webkit-scrollbar { width: 8px; } .explanation-scroll-content::-webkit-scrollbar-track { background: transparent; } .explanation-scroll-content::-webkit-scrollbar-thumb { background-color: var(--gray-light); border-radius: 4px; border: 2px solid var(--call-panel-bg); }
-        #explanation-display { line-height: 1.75; font-size: 0.98rem; /* Slightly larger font */ }
+        #explanation-display { line-height: 1.75; font-size: 0.98rem; }
         #explanation-display .step { margin-bottom: 1.5rem; padding: 1.2rem; border-radius: 10px; background-color: #fdfdff; border: 1px solid #f0f0f5; animation: fadeIn 0.5s ease forwards; }
         #explanation-display .step:last-child { margin-bottom: 0; }
         #explanation-display h3 { color: var(--secondary); margin-top: 0; margin-bottom: 0.8rem; font-size: 1.15rem; padding-bottom: 0.3rem; border-bottom: 1px solid var(--gray-light); }
         #explanation-display code { background-color: rgba(var(--primary-rgb), 0.1); padding: 0.2rem 0.5rem; border-radius: 5px; font-size: 0.92em; color: var(--secondary); border: 1px solid rgba(var(--primary-rgb), 0.15); }
-        #explanation-display pre { margin: 1.1rem 0; } #explanation-display pre code { display: block; background-color: #2f3542; /* Darker code block */ color: #e8e8e8; padding: 1.1rem; border-radius: 10px; font-size: 0.9rem; line-height: 1.65; white-space: pre-wrap; word-wrap: break-word; border: 1px solid #414a5c; }
-        #explanation-display strong { color: var(--dark); font-weight: 600; } #explanation-display blockquote { border-left: 4px solid var(--primary-light); padding-left: 1.2rem; margin: 1.1rem 0 1.1rem 0.5rem; color: #5a6e8a; /* Adjusted color */ font-style: italic; background-color: #f8faff; /* Subtle background */ border-radius: 0 8px 8px 0; }
+        #explanation-display pre { margin: 1.1rem 0; } #explanation-display pre code { display: block; background-color: #2f3542; color: #e8e8e8; padding: 1.1rem; border-radius: 10px; font-size: 0.9rem; line-height: 1.65; white-space: pre-wrap; word-wrap: break-word; border: 1px solid #414a5c; }
+        #explanation-display strong { color: var(--dark); font-weight: 600; } #explanation-display blockquote { border-left: 4px solid var(--primary-light); padding-left: 1.2rem; margin: 1.1rem 0 1.1rem 0.5rem; color: #5a6e8a; font-style: italic; background-color: #f8faff; border-radius: 0 8px 8px 0; }
         #explanation-display ul, #explanation-display ol { margin-left: 1.5rem; margin-bottom: 1rem; padding-left: 1.2rem; } #explanation-display li { margin-bottom: 0.6rem; }
         .explanation-controls { flex-shrink: 0; margin-top: auto; padding: 1.2rem 1.75rem; border-top: 1px solid var(--gray-light); text-align: center; background-color: #f8f9fa; display: flex; justify-content: space-between; gap: 1rem; }
-        .explanation-controls .btn { flex: 1; } /* Make buttons fill space */
+        .explanation-controls .btn { flex: 1; }
 
         /* Chat Tab */
         #chat-tab-content { display: flex; flex-direction: column; height: 100%; }
@@ -122,7 +122,7 @@
         .message-bubble { padding: 1rem 1.35rem; border-radius: 20px; line-height: 1.65; word-wrap: break-word; box-shadow: var(--shadow-md); position: relative; background-color: var(--white); color: var(--text-primary); border: 1px solid #eef2f7; }
         .chat-message.gemini .message-bubble { border-bottom-left-radius: 6px; }
         .chat-message.user .message-bubble { background: var(--gradient-1); color: white; border: none; border-bottom-right-radius: 6px; }
-        .message-bubble code { background-color: rgba(var(--primary-rgb), 0.12); padding: 0.15em 0.4em; border-radius: 5px; font-size: 0.92em; color: var(--secondary); border: 1px solid rgba(var(--primary-rgb), 0.2); }
+        .message-bubble code { background-color: rgba(var(--primary-rgb), 0.12); padding: 0.15em 0.4em; border-radius: 5px; font-size: 0.92em; color: var(--secondary); border: 1px solid rgba(var(--primary-rgb), 0.15); }
         .chat-message.user .message-bubble code { background-color: rgba(255, 255, 255, 0.25); color: #fff; border: 1px solid rgba(255, 255, 255, 0.3); }
         .message-bubble pre { margin: 0.6rem 0; } .message-bubble pre code { display: block; background-color: #2f3542; color: #e8e8e8; padding: 0.9rem; border-radius: 8px; font-size: 0.88rem; line-height: 1.6; white-space: pre-wrap; word-wrap: break-word; border: 1px solid #414a5c; }
         .chat-message.user .message-bubble pre code { background-color: rgba(0,0,0,0.35); color: #eee; }
@@ -163,7 +163,7 @@
         .sidebar-overlay.active { display: block; opacity: 1; }
         @keyframes fadeIn { 0% { opacity: 0; transform: translateY(8px); } 100% { opacity: 1; transform: translateY(0); } }
         @media (max-width: 1200px) { .interaction-panel { width: 400px; } .call-interface { padding: 1.5rem; gap: 1.5rem; } }
-        @media (max-width: 992px) { :root { --sidebar-width: 80px; } .sidebar { width: 80px; } .sidebar-logo span, .sidebar-link span, .user-info, .sidebar-footer { display: none; } .sidebar-link i { margin-right: 0; font-size: 1.5rem; } .sidebar-logo i { margin-right: 0; } .sidebar-header, .sidebar-link { justify-content: center; } .user-profile { justify-content: center; padding: 0.75rem 0; } .user-avatar { margin-right: 0; } main { margin-left: 80px; width: calc(100% - 80px); } .call-interface { flex-direction: column; padding: 1.2rem; gap: 1.2rem; } .interaction-panel { width: 100%; height: 48vh; order: 2; /* Interaction below presenter */ } .ai-presenter-area { height: 48vh; order: 1; } }
+        @media (max-width: 992px) { :root { --sidebar-width: 80px; } .sidebar { width: 80px; } .sidebar-logo span, .sidebar-link span, .user-info, .sidebar-footer { display: none; } .sidebar-link i { margin-right: 0; font-size: 1.5rem; } .sidebar-logo i { margin-right: 0; } .sidebar-header, .sidebar-link { justify-content: center; } .user-profile { justify-content: center; padding: 0.75rem 0; } .user-avatar { margin-right: 0; } main { margin-left: 80px; width: calc(100% - 80px); } .call-interface { flex-direction: column; padding: 1.2rem; gap: 1.2rem; } .interaction-panel { width: 100%; height: 48vh; order: 2; } .ai-presenter-area { height: 48vh; order: 1; } }
         @media (max-width: 768px) { .main-header { padding: 0.9rem 1.2rem; } .header-content h1 { font-size: 1.4rem; } .interaction-panel { height: 50vh; } .ai-presenter-area { height: 45vh; } .interaction-tab { padding: 0.85rem 0.5rem; font-size: 0.95rem; } .chat-input { font-size: 0.95rem; padding: 0.8rem 1.1rem; } .send-button { height: 44px; padding: 0 1.2rem; } .btn { padding: 0.7rem 1.4rem; font-size: 0.9rem; } }
         @media (max-width: 576px) { :root { --sidebar-width: 0; } .sidebar { transform: translateX(-100%); z-index: 1050; width: 260px; } .sidebar.active { transform: translateX(0); } .sidebar.active .sidebar-logo span, .sidebar.active .sidebar-link span, .sidebar.active .user-info, .sidebar.active .sidebar-footer { display: block; } .sidebar.active .sidebar-link i { margin-right: 0.75rem; } .sidebar.active .sidebar-header, .sidebar.active .sidebar-link { justify-content: flex-start; } .sidebar.active .user-profile { justify-content: flex-start; padding: 1rem; } .sidebar.active .user-avatar { margin-right: 0.75rem; } main { margin-left: 0; width: 100%; } .mobile-menu-toggle { display: block; } .main-header { padding: 0.8rem 1rem; } .header-content h1 { font-size: 1.25rem; } .call-interface { padding: 1rem; gap: 1rem; } .interaction-panel { height: 55vh; } .ai-presenter-area { height: 40vh; } .message-bubble { padding: 0.8rem 1.1rem; } .chat-input { padding: 0.7rem 1rem; } .send-button { height: 42px; padding: 0 1rem; } }
         @media (prefers-color-scheme: dark) {
@@ -175,7 +175,7 @@
              .ai-presenter-area, .interaction-panel { background-color: var(--call-panel-bg); box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3); border-color: var(--gray-light); }
              .ai-presenter-header { background-color: #242c3b; border-bottom-color: var(--gray-light); }
              .whiteboard-main-container { background-color: #1a202c; }
-             #drawingCanvas { background-color: #283044; border-color: #4a5568; } /* Darker canvas */
+             #drawingCanvas { background-color: #283044; border-color: #4a5568; }
              .canvas-controls { background-color: rgba(45, 55, 72, 0.85); border-color: var(--gray-light); }
              .canvas-controls button { background-color: var(--light); border-color: var(--gray-light); color: var(--text-secondary); }
              .canvas-controls button:hover { background-color: #4a5568; color: var(--white); }
@@ -192,7 +192,7 @@
              .chat-messages { scrollbar-color: var(--gray) var(--call-panel-bg); } .chat-messages::-webkit-scrollbar-track { background: var(--call-panel-bg); } .chat-messages::-webkit-scrollbar-thumb { border-color: var(--call-panel-bg); }
              .message-avatar { border-color: var(--call-panel-bg); }
              .message-bubble { background-color: var(--light); color: var(--text-primary); border-color: #3b4458; }
-             .chat-message.user .message-bubble { background: var(--gradient-2); color: #1a202c; /* Darker text for better contrast */ }
+             .chat-message.user .message-bubble { background: var(--gradient-2); color: #1a202c; }
              .message-bubble code { background-color: rgba(255,255,255,0.1); color: var(--text-primary); border-color: rgba(255,255,255,0.15); }
              .chat-message.user .message-bubble code { background-color: rgba(0, 0, 0, 0.2); color: #2d3748; border-color: rgba(0,0,0,0.25); }
              .message-bubble pre code { background-color: #161a22; color: #d1d5db; border-color: #363d4b; }
@@ -288,6 +288,7 @@
     <div class="toast" id="toast"> <i class="fas fa-info-circle"></i> <div id="toast-message">Operace úspěšná.</div> </div>
 
     <script>
+        // JavaScript kód s opravami
         try {
             document.addEventListener('DOMContentLoaded', async function() {
                 console.log("DOM Loaded. Initializing Justax AI Tutor (Canvas Version)...");
@@ -297,7 +298,8 @@
                 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10';
                 const GEMINI_API_KEY = 'AIzaSyDQboM6qtC_O2sqqpaKZZffNf2zk6HrhEs'; // Test key
                 const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
-                const CANVAS_COMMAND_REGEX = /(CLEAR_CANVAS|DRAW_LINE|DRAW_RECT|DRAW_CIRCLE|DRAW_TEXT):\s*```json\s*([\s\S]*?)\s*```/g;
+                // const CANVAS_COMMAND_REGEX = /(CLEAR_CANVAS|DRAW_LINE|DRAW_RECT|DRAW_CIRCLE|DRAW_TEXT):\s*```json\s*([\s\S]*?)\s*```/g; // Původní regex
+                const JSON_COMMAND_REGEX = /\{\s*"PŘÍKAZ"\s*:\s*"([^"]+)"\s*,\s*"data"\s*:\s*(\{[\s\S]*?\})\s*\}/g; // Nový regex pro formát AI
 
                 // DOM Elements
                 const userAvatarEl = document.getElementById('user-avatar');
@@ -352,9 +354,9 @@
                 const formatTimestamp = (date = new Date()) => date.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' });
                 const updateAIStatus = (text) => { if (aiStatusText) aiStatusText.textContent = text; };
 
-                // --- Canvas Functions ---
+                // Canvas Functions
                 const initializeCanvas = () => { if (!canvas) { console.error("Canvas element not found!"); return false; } try { canvasCtx = canvas.getContext('2d', { willReadFrequently: false }); if (!canvasCtx) throw new Error("Failed to get 2D context"); resizeCanvas(); clearCanvas(); console.log("Canvas initialized successfully."); if (canvasControls) canvasControls.style.display = 'flex'; return true; } catch (e) { console.error("Canvas initialization failed:", e); if (canvasContainer) canvasContainer.innerHTML = "<p style='color:red; padding:1rem;'>Chyba: Nelze inicializovat kreslící plochu.</p>"; return false; } };
-                const resizeCanvas = () => { if (!canvas || !canvasContainer || !canvasCtx) return; const containerStyle = window.getComputedStyle(canvasContainer); const containerWidth = canvasContainer.clientWidth - parseFloat(containerStyle.paddingLeft) - parseFloat(containerStyle.paddingRight); const containerHeight = canvasContainer.clientHeight - parseFloat(containerStyle.paddingTop) - parseFloat(containerStyle.paddingBottom); const maxWidth = 1200; const maxHeight = 800; canvasWidth = Math.max(100, Math.min(containerWidth, maxWidth)); canvasHeight = Math.max(100, Math.min(containerHeight, maxHeight)); if (canvas.width !== canvasWidth || canvas.height !== canvasHeight) { const currentContent = canvasCtx.getImageData(0, 0, canvas.width, canvas.height); canvas.width = canvasWidth; canvas.height = canvasHeight; canvas.style.width = `${canvasWidth}px`; canvas.style.height = `${canvasHeight}px`; clearCanvas(); console.log(`Canvas resized to: ${canvasWidth}x${canvasHeight}. Content cleared.`); } };
+                const resizeCanvas = () => { if (!canvas || !canvasContainer || !canvasCtx) return; const containerStyle = window.getComputedStyle(canvasContainer); const containerWidth = canvasContainer.clientWidth - parseFloat(containerStyle.paddingLeft) - parseFloat(containerStyle.paddingRight); const containerHeight = canvasContainer.clientHeight - parseFloat(containerStyle.paddingTop) - parseFloat(containerStyle.paddingBottom); const maxWidth = 1200; const maxHeight = 800; canvasWidth = Math.max(100, Math.min(containerWidth, maxWidth)); canvasHeight = Math.max(100, Math.min(containerHeight, maxHeight)); if (canvas.width !== canvasWidth || canvas.height !== canvasHeight) { canvas.width = canvasWidth; canvas.height = canvasHeight; canvas.style.width = `${canvasWidth}px`; canvas.style.height = `${canvasHeight}px`; clearCanvas(); console.log(`Canvas resized to: ${canvasWidth}x${canvasHeight}. Content cleared.`); } };
                 const clearCanvas = () => { if (!canvasCtx) return; canvasCtx.clearRect(0, 0, canvas.width, canvas.height); console.log("Canvas cleared."); };
                 const handleCanvasDrawCommand = (command, data) => { if (!canvasCtx) { console.error("Canvas context not available for drawing."); return; } console.log(`Executing Canvas Command: ${command}`, data); canvasCtx.save(); try { canvasCtx.strokeStyle = data.color || '#000000'; canvasCtx.fillStyle = data.fillColor || data.color || '#000000'; canvasCtx.lineWidth = typeof data.lineWidth === 'number' && data.lineWidth > 0 ? data.lineWidth : 1; canvasCtx.font = data.font || '16px Poppins'; canvasCtx.textAlign = data.textAlign || 'left'; canvasCtx.textBaseline = data.textBaseline || 'alphabetic'; if (data.lineDash && Array.isArray(data.lineDash)) { canvasCtx.setLineDash(data.lineDash); } else { canvasCtx.setLineDash([]); } switch (command) { case 'CLEAR_CANVAS': clearCanvas(); break; case 'DRAW_LINE': if (data.x1 != null && data.y1 != null && data.x2 != null && data.y2 != null) { canvasCtx.beginPath(); canvasCtx.moveTo(data.x1, data.y1); canvasCtx.lineTo(data.x2, data.y2); canvasCtx.stroke(); } else console.warn("DRAW_LINE: Missing coordinates", data); break; case 'DRAW_RECT': if (data.x != null && data.y != null && data.width != null && data.height != null) { if (data.filled === true) { canvasCtx.fillRect(data.x, data.y, data.width, data.height); } else { canvasCtx.strokeRect(data.x, data.y, data.width, data.height); } } else console.warn("DRAW_RECT: Missing properties", data); break; case 'DRAW_CIRCLE': if (data.x != null && data.y != null && data.radius != null && data.radius > 0) { canvasCtx.beginPath(); canvasCtx.arc(data.x, data.y, data.radius, 0, Math.PI * 2); if (data.filled === true) { canvasCtx.fill(); } else { canvasCtx.stroke(); } } else console.warn("DRAW_CIRCLE: Missing or invalid properties", data); break; case 'DRAW_TEXT': if (data.text != null && data.x != null && data.y != null) { canvasCtx.fillStyle = data.color || '#000000'; const lines = String(data.text).split('\\n'); const lineHeight = parseFloat(canvasCtx.font) * 1.2; lines.forEach((line, index) => { canvasCtx.fillText(line, data.x, data.y + (index * lineHeight)); }); } else console.warn("DRAW_TEXT: Missing properties", data); break; default: console.warn("Unknown canvas command:", command); } } catch (e) { console.error(`Error executing canvas command ${command}:`, e, data); } finally { canvasCtx.restore(); } };
 
@@ -378,61 +380,47 @@
                 const switchInteractionTab = (tabId) => { interactionTabs.forEach(tab => tab.classList.toggle('active', tab.dataset.tab === tabId)); tabContents.forEach(content => content.classList.toggle('active', content.id === `${tabId}-content`)); console.log(`Switched to tab: ${tabId}`); };
                 const requestNextStep = async () => { if (geminiIsThinking || !currentTopic) return; console.log("Requesting next step..."); updateGeminiThinkingState(true); nextStepBtn.disabled = true; nextStepBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Načítám...'; const prompt = `Pokračuj ve vysvětlování tématu "${currentTopic.name}". Naváž na předchozí krok. Nezapomeň na možnost využití kreslící plochy a ukončení shrnutím pro chat (CHAT_SUMMARY:).`; await sendToGemini(prompt, 'explanation'); if(nextStepBtn) { nextStepBtn.disabled = false; nextStepBtn.innerHTML = '<i class="fas fa-forward"></i> Další krok'; } };
 
-                // Chat Functionality
-                // *** OPRAVENÁ FUNKCE pro ukládání do DB ***
-                const addChatMessage = async (message, sender, saveToDb = true, timestamp = new Date()) => {
-                    if (!chatMessages) return;
-                    const messageId = `msg-${Date.now()}-${Math.random().toString(16).substring(2, 8)}`;
-                    const avatarInitial = sender === 'user' ? getInitials(currentProfile, currentUser?.email) : 'AI';
-                    const messageDiv = document.createElement('div');
-                    messageDiv.className = `chat-message ${sender}`;
-                    messageDiv.id = messageId;
-                    const bubbleDiv = document.createElement('div');
-                    bubbleDiv.className = 'message-bubble';
-                    renderMarkdown(bubbleDiv, message); // Use renderMarkdown here
-                    messageDiv.innerHTML = `<div class="message-avatar">${avatarInitial}</div>`;
-                    messageDiv.appendChild(bubbleDiv);
-                    messageDiv.innerHTML += `<div class="message-timestamp">${formatTimestamp(timestamp)}</div>`;
-                    chatMessages.appendChild(messageDiv);
-                    chatMessages.scrollTop = chatMessages.scrollHeight;
-
-                    // --- SUPABASE CHAT SAVE (s opravami) ---
-                    if (saveToDb && supabase && currentUser && currentTopic && currentSessionId) {
-                         const dataToSave = {
-                              user_id: currentUser.id,
-                              session_id: currentSessionId,
-                              topic_name: currentTopic.name,
-                              role: sender === 'gemini' ? 'assistant' : sender, // Standardize role to 'assistant'
-                              content: message,
-                              created_at: timestamp.toISOString(),
-                              // Vždy přidej activity_id, i když je null
-                              activity_id: currentTopic.activity_id || null
-                         };
-                         console.log("Attempting to save chat message:", dataToSave);
-                         try {
-                              const { error } = await supabase.from('chat_history').insert(dataToSave);
-                              if (error) {
-                                   console.error("Supabase chat save error:", error);
-                                   showToast(`Chyba ukládání chatu: ${error.message}`, 'error'); // Zobrazit chybu uživateli
-                              } else {
-                                   console.log("Chat message saved to DB.");
-                              }
-                         } catch (dbError) {
-                              console.error("Exception during chat save:", dbError);
-                              showToast(`Výjimka při ukládání chatu: ${dbError.message}`, 'error');
-                         }
-                    }
-                };
+                // Chat Functionality (s opravou pro DB save)
+                const addChatMessage = async (message, sender, saveToDb = true, timestamp = new Date()) => { if (!chatMessages) return; const messageId = `msg-${Date.now()}-${Math.random().toString(16).substring(2, 8)}`; const avatarInitial = sender === 'user' ? getInitials(currentProfile, currentUser?.email) : 'AI'; const messageDiv = document.createElement('div'); messageDiv.className = `chat-message ${sender}`; messageDiv.id = messageId; const bubbleDiv = document.createElement('div'); bubbleDiv.className = 'message-bubble'; renderMarkdown(bubbleDiv, message); messageDiv.innerHTML = `<div class="message-avatar">${avatarInitial}</div>`; messageDiv.appendChild(bubbleDiv); messageDiv.innerHTML += `<div class="message-timestamp">${formatTimestamp(timestamp)}</div>`; chatMessages.appendChild(messageDiv); chatMessages.scrollTop = chatMessages.scrollHeight; if (saveToDb && supabase && currentUser && currentTopic && currentSessionId) { const dataToSave = { user_id: currentUser.id, session_id: currentSessionId, topic_name: currentTopic.name, role: sender === 'gemini' ? 'assistant' : sender, content: message, created_at: timestamp.toISOString(), activity_id: currentTopic.activity_id || null }; console.log("Attempting to save chat message:", dataToSave); try { const { error } = await supabase.from('chat_history').insert(dataToSave); if (error) { console.error("Supabase chat save error:", error); showToast(`Chyba ukládání chatu: ${error.message}`, 'error'); } else { console.log("Chat message saved to DB."); } } catch (dbError) { console.error("Exception during chat save:", dbError); showToast(`Výjimka při ukládání chatu: ${dbError.message}`, 'error'); } } };
                 const updateGeminiThinkingState = (isThinking) => { geminiIsThinking = isThinking; if(sendButton) { sendButton.disabled = isThinking; sendButton.innerHTML = isThinking ? '<i class="fas fa-spinner fa-spin"></i>' : '<i class="fas fa-paper-plane"></i>'; } if (isThinking) { addThinkingIndicator(); } else { removeThinkingIndicator(); } };
                 const addThinkingIndicator = () => { if (thinkingIndicatorId || !chatMessages) return; const indicatorDiv = document.createElement('div'); indicatorDiv.className = 'chat-message gemini'; thinkingIndicatorId = `thinking-${Date.now()}`; indicatorDiv.id = thinkingIndicatorId; indicatorDiv.innerHTML = `<div class="message-avatar">AI</div><div class="message-thinking-indicator"><span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span></div>`; chatMessages.appendChild(indicatorDiv); chatMessages.scrollTop = chatMessages.scrollHeight; };
                 const removeThinkingIndicator = () => { if (thinkingIndicatorId) { const indicator = document.getElementById(thinkingIndicatorId); if (indicator) indicator.remove(); thinkingIndicatorId = null; } };
                 const handleSendMessage = async () => { const messageText = chatInput.value.trim(); if (!messageText || geminiIsThinking || !currentTopic) return; chatInput.value = ''; autoResizeTextarea(); chatInput.focus(); const userTimestamp = new Date(); await addChatMessage(messageText, 'user', true, userTimestamp); geminiChatContext.push({ role: "user", parts: [{ text: messageText }] }); updateGeminiThinkingState(true); await sendToGemini(messageText, 'chat'); };
                 const confirmClearChat = () => { if (confirm("Opravdu chcete vymazat historii tohoto chatu?\nTato akce je nevratná.")) { clearCurrentChatSessionHistory(); } };
                 const clearCurrentChatSessionHistory = async () => { if (chatMessages) chatMessages.innerHTML = ''; geminiChatContext = []; showToast("Historie chatu vymazána.", "info"); console.log("Chat history cleared for this session."); if (supabase && currentUser && currentSessionId) { try { console.log(`Deleting chat history from DB for session: ${currentSessionId}`); const { error } = await supabase.from('chat_history').delete().eq('user_id', currentUser.id).eq('session_id', currentSessionId); if (error) { console.error("Error deleting chat history from DB:", error); showToast("Chyba při mazání historie z databáze.", "error"); } else { console.log("Chat history deleted from DB."); } } catch(dbError) { console.error("Exception during DB chat history deletion:", dbError); } } };
-                const saveChatToPDF = async () => { /* ... (beze změny) ... */ };
+                const saveChatToPDF = async () => { /* ... (kód pro PDF beze změny) ... */ };
 
                 // Gemini Interaction & AI Drawing
-                const parseAndProcessCanvasCommands = async (responseText) => { let remainingText = responseText; let match; CANVAS_COMMAND_REGEX.lastIndex = 0; console.log("Parsing for canvas commands..."); while ((match = CANVAS_COMMAND_REGEX.exec(responseText)) !== null) { const fullMatch = match[0]; const command = match[1]; const jsonString = match[2]; console.log(`Found Canvas Command Block: ${command}`); remainingText = remainingText.replace(fullMatch, '').trim(); try { const data = JSON.parse(jsonString); handleCanvasDrawCommand(command, data); } catch (e) { console.error(`Failed to parse/execute CANVAS command ${command}:`, e, "\nJSON String:", jsonString); } } console.log("Finished parsing canvas commands."); return remainingText; };
+                // *** OPRAVENÁ VERZE PARSERU ***
+                const parseAndProcessCanvasCommands = async (responseText) => {
+                    let remainingText = responseText;
+                    const JSON_COMMAND_REGEX = /\{\s*"PŘÍKAZ"\s*:\s*"([^"]+)"\s*,\s*"data"\s*:\s*(\{[\s\S]*?\})\s*\}/g; // Regex pro AI formát
+                    let match;
+                    let commandsFound = [];
+                    console.log("Parsing for JSON canvas command blocks...");
+                    JSON_COMMAND_REGEX.lastIndex = 0;
+                    while ((match = JSON_COMMAND_REGEX.exec(responseText)) !== null) {
+                        commandsFound.push({ fullMatch: match[0], command: match[1], dataString: match[2] });
+                        console.log(`Found JSON command block: ${match[1]}`);
+                    }
+                    if (commandsFound.length > 0) {
+                        commandsFound.forEach(found => {
+                            remainingText = remainingText.replace(found.fullMatch, '').trim();
+                            try {
+                                const data = JSON.parse(found.dataString);
+                                handleCanvasDrawCommand(found.command, data);
+                            } catch (e) {
+                                console.error(`Failed to parse/execute CANVAS JSON command ${found.command}:`, e, "\nData String:", found.dataString);
+                            }
+                        });
+                    } else {
+                        console.log("No JSON canvas command blocks found in the response.");
+                    }
+                    console.log("Finished parsing JSON canvas commands.");
+                    return remainingText.trim();
+                };
+                // *** KONEC OPRAVENÉHO PARSERU ***
+
                 const sendToGemini = async (promptText, targetArea) => { if (!GEMINI_API_KEY || !GEMINI_API_KEY.startsWith('AIzaSy')) { showToast("Chyba: AI není správně nakonfigurována.", "error"); return; } if (!currentTopic) { showToast("Chyba: Není vybráno žádné téma.", "error"); return; } console.log(`Sending to Gemini (Target: ${targetArea}): "${promptText.substring(0, 100)}..."`); updateAIStatus('AI přemýšlí...'); const requestTimestamp = new Date(); updateGeminiThinkingState(true); const systemInstructionText = `Jsi AI Tutor "Justax", expert na matematiku pro 9. třídu ZŠ v ČR (přijímačky CERMAT). Vyučuješ téma: "${currentTopic.name}"${currentTopic.description ? ` (Popis: "${currentTopic.description}")` : ''}. Tvůj styl je PŘÁTELSKÝ, TRPĚLIVÝ a PODROBNÝ. Vysvětluj krok za krokem, používej příklady. Důsledně používej Markdown a MathJax (blok: $$...$$, inline: \\(...\\)). Odpovídej VŽDY ČESKY. DŮLEŽITÉ POKYNY PRO TEBE: 1. KROK ZA KROKEM: Drž se jednoho konceptu/kroku na odpověď, zvláště v záložce "Vysvětlení". Buď systematický. 2. INTERAKTIVITA: Pokládej studentovi kontrolní otázky nebo ho vyzývej k zamyšlení. 3. **KRESLÍCÍ PLOCHA (HTML5 Canvas):** Pro vizualizaci (geometrie, grafy, číselné osy, kroky řešení, vzorce) MŮŽEŠ na KONEC své textové odpovědi přidat JEDEN NEBO VÍCE speciálních bloků s příkazy pro kreslení. Každý blok MUSÍ mít tento formát: \`PŘÍKAZ: \`\`\`json { /* JSON data pro příkaz */ } \`\`\`\`. Používej POUZE tyto PŘÍKAZY (case-sensitive): * \`CLEAR_CANVAS: {}\` - Vymaže celé plátno. Použij PŘED kreslením nové komplexní scény. * \`DRAW_LINE: {"x1":#, "y1":#, "x2":#, "y2":#, "color":"#RRGGBB", "lineWidth":#}\` - Nakreslí čáru. Barva a tloušťka jsou volitelné (default: #000000, 1). * \`DRAW_RECT: {"x":#, "y":#, "width":#, "height":#, "color":"#RRGGBB", "lineWidth":#, "filled":false}\` - Nakreslí obdélník. \`filled: true\` pro vyplněný. Barva a tloušťka jsou volitelné. * \`DRAW_CIRCLE: {"x":#, "y":#, "radius":#, "color":"#RRGGBB", "lineWidth":#, "filled":false}\` - Nakreslí kruh/kružnici. \`filled: true\` pro vyplněný. Barva a tloušťka jsou volitelné. * \`DRAW_TEXT: {"text":"Text k vypsání (může obsahovat \\n pro nový řádek)", "x":#, "y":#, "color":"#RRGGBB", "font":"16px Poppins", "textAlign":"left/center/right", "textBaseline":"top/middle/bottom"}\` - Napíše text. Barva, font, zarovnání jsou volitelné. Souřadnice [0, 0] je LEVÝ HORNÍ roh. Aktuální rozměry plátna jsou ${canvasWidth}px (šířka) x ${canvasHeight}px (výška). Kresli S MÍROU, PŘEHLEDNĚ a V RÁMCI PLÁTNA. Nepřekrývej zbytečně prvky. Barvy zadávej jako hex kódy (#RRGGBB). 4. DÉLKA ODPOVĚDI: Pro záložku "Vysvětlení" buď podrobný, ale drž se jednoho kroku. Pro "Chat" odpovídej stručněji a přímo na dotaz. 5. VÝSTUP DO CHATU (SHRNUTÍ): Pokud generuješ delší odpověď pro "Vysvětlení", na ÚPLNÝ konec celé odpovědi (i za případné kreslící příkazy) PŘIDEJ krátký, výstižný souhrn pro zobrazení v chatu, ve formátu: \`CHAT_SUMMARY: [Zde tvůj krátký souhrn]\`. Pokud odpovídáš přímo v chatu (target 'chat'), CHAT_SUMMARY nepřidávej.`; const historyForApi = geminiChatContext.filter(item => item.role === 'user' || item.role === 'model'); const currentRequestContent = { role: "user", parts: [{ text: promptText }] }; let contentsPayload; if (historyForApi.length === 0) { contentsPayload = [{ role: "user", parts: [{ text: systemInstructionText + "\n\n---\n\nStudentův dotaz/požadavek: " + promptText }] }]; geminiChatContext.unshift({ role: "system", parts: [{ text: systemInstructionText }] }); } else { contentsPayload = [...historyForApi, currentRequestContent]; } const requestBody = { contents: contentsPayload, generationConfig: { temperature: 0.6, topP: 0.95, topK: 40, maxOutputTokens: 4096 }, safetySettings: [ { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" }, { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" }, { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" }, { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" } ] }; try { console.log("Sending payload to Gemini:", JSON.stringify(requestBody).substring(0, 500) + "..."); const response = await fetch(GEMINI_API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(requestBody) }); if (!response.ok) { const errorBody = await response.text(); console.error("Gemini API Error Response:", errorBody); throw new Error(`Chyba Gemini API (${response.status}): ${errorBody.substring(0, 100)}`); } const data = await response.json(); console.log("Raw Gemini Response:", data); const candidate = data.candidates?.[0]; if (!candidate) { console.error("Invalid response structure from Gemini:", data); const promptFeedback = data.promptFeedback; if (promptFeedback?.blockReason) { throw new Error(`Obsah blokován: ${promptFeedback.blockReason}. Detail: ${promptFeedback.safetyRatings?.map(r => `${r.category}: ${r.probability}`).join(', ')}`); } throw new Error('Chybná struktura odpovědi od AI.'); } if (candidate.finishReason && !["STOP", "MAX_TOKENS"].includes(candidate.finishReason)) { console.warn(`Gemini generation stopped unexpectedly: ${candidate.finishReason}`); throw new Error(`Generování zastaveno: ${candidate.finishReason}`); } const geminiResponseText = candidate.content?.parts?.[0]?.text; if (!geminiResponseText) { console.warn("Gemini returned empty text content."); throw new Error('AI vrátila prázdnou odpověď.'); } geminiChatContext.push({ role: "model", parts: [{ text: geminiResponseText }] }); await processGeminiResponse(geminiResponseText, targetArea, requestTimestamp); updateAIStatus(currentTopic ? `Vysvětluje: ${currentTopic.name}` : 'Připraven'); } catch (error) { console.error('Error sending/processing Gemini request:', error); showToast(`Chyba komunikace s AI: ${error.message}`, "error"); handleGeminiError(error.message, targetArea, requestTimestamp); updateAIStatus('Nastala chyba'); } finally { updateGeminiThinkingState(false); } };
                 const processGeminiResponse = async (rawResponseText, targetArea, timestamp) => { removeThinkingIndicator(); let chatSummary = null; const summaryRegex = /CHAT_SUMMARY:\s*([\s\S]*)/; const summaryMatch = rawResponseText.match(summaryRegex); let textForProcessing = rawResponseText; if (summaryMatch && summaryMatch[1]) { chatSummary = summaryMatch[1].trim(); textForProcessing = rawResponseText.replace(summaryRegex, '').trim(); console.log("Extracted Chat Summary:", chatSummary); } const textToDisplay = await parseAndProcessCanvasCommands(textForProcessing); if (targetArea === 'explanation') { console.log("Processing for EXPLANATION area."); const placeholder = explanationDisplay.querySelector('.loading-placeholder, .empty-state'); if (placeholder) placeholder.remove(); const isFirstStep = explanationDisplay.querySelectorAll('.step').length === 0 && lastExplanationTimestamp === 0; if (isFirstStep) { explanationDisplay.innerHTML = ''; console.log("First explanation step, clearing initial placeholder."); } else { console.log("Appending explanation step."); } const stepDiv = document.createElement('div'); stepDiv.className = 'step'; renderMarkdown(stepDiv, textToDisplay); explanationDisplay.appendChild(stepDiv); lastExplanationTimestamp = Date.now(); if(explanationScrollContent) { explanationScrollContent.scrollTop = explanationScrollContent.scrollHeight; } if (chatSummary) { await addChatMessage(chatSummary, 'assistant', true, timestamp); } else if (textToDisplay.trim()) { await addChatMessage(`AI pokračovala ve vysvětlení (viz záložka Vysvětlení).`, 'assistant', false, timestamp); } if (nextStepBtn) nextStepBtn.style.display = 'inline-flex'; if (markCompleteBtn) markCompleteBtn.style.display = 'inline-flex'; } else { console.log("Processing for CHAT area."); if (textToDisplay.trim()) { await addChatMessage(textToDisplay, 'assistant', true, timestamp); } else if (chatSummary) { await addChatMessage(chatSummary, 'assistant', true, timestamp); } else { await addChatMessage("(AI odpověď byla prázdná nebo obsahovala pouze kreslící příkazy)", 'assistant', false, timestamp); console.warn("AI chat response was effectively empty after processing commands."); } } if (window.MathJax && typeof window.MathJax.typesetPromise === 'function') { setTimeout(() => window.MathJax.typesetPromise(), 50); } };
                 const handleGeminiError = (errorMessage, targetArea, timestamp) => { const errorMsg = `Omlouvám se, nastala chyba při zpracování: ${errorMessage}`; addChatMessage(errorMsg, 'assistant', false, timestamp); if (targetArea === 'explanation') { explanationDisplay.innerHTML += `<p style="color:var(--danger); margin-top:1rem;">${errorMsg}</p>`; if(explanationScrollContent) explanationScrollContent.scrollTop = explanationScrollContent.scrollHeight; } };
@@ -444,7 +432,7 @@
         } catch (e) {
             // Fatal Error Handling
             console.error("FATAL SCRIPT ERROR:", e);
-            document.body.innerHTML = `<div style="padding: 30px; text-align: center; font-family: sans-serif; color: #dc3545;"><h1>Nastala kritická chyba</h1><p>Omlouváme se, aplikace nemohla být spuštěna.</p><p>Zkuste prosím obnovit stránku. Pokud problém přetrvává, kontaktujte podporu.</p><pre style="margin-top: 20px; padding: 15px; background-color: #f8d7da; border: 1px solid #f5c6cb; border-radius: 5px; text-align: left; font-size: 12px; white-space: pre-wrap; word-wrap: break-word;">${e.message}\n${e.stack}</pre></div>`;
+            document.body.innerHTML = `<div style="padding: 30px; text-align: center; font-family: sans-serif; color: #dc3545;"><h1>Nastala kritická chyba</h1><p>Omlouváme se, aplikace nemohla být spuštěna.</p><p>Zkuste prosím obnovit stránku.</p><pre style="margin-top: 20px; padding: 15px; background-color: #f8d7da; border: 1px solid #f5c6cb; border-radius: 5px; text-align: left; font-size: 12px; white-space: pre-wrap; word-wrap: break-word;">${e.message}\n${e.stack}</pre></div>`;
         }
     </script>
 
