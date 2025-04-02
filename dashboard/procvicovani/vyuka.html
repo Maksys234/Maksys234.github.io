@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    {/* Používáme váš původní title */}
-    <title>Justax - Výuka s AI (Canvas)</title>
+    <title>Justax - Výuka s AI (Canvas)</title> {/* Změněn název */}
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -12,14 +11,32 @@
 
     {/* MathJax Configuration */}
     <script>
+        // Ensure MathJax object exists before configuring
         if (typeof window.MathJax === 'undefined') {
             window.MathJax = {
-                tex: { inlineMath: [['\\(', '\\)']], displayMath: [['$$', '$$']], processEscapes: true, processEnvironments: true },
-                options: { skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'], ignoreHtmlClass: 'tex2jax_ignore', processHtmlClass: 'tex2jax_process' },
-                startup: { ready: () => { MathJax.startup.defaultReady(); MathJax.startup.promise.then(() => console.log('MathJax loaded and ready.')); } }
+                tex: {
+                    inlineMath: [['\\(', '\\)']], // Standard inline math delimiters
+                    displayMath: [['$$', '$$']], // Standard display math delimiters
+                    processEscapes: true,
+                    processEnvironments: true
+                },
+                options: {
+                    skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'], // Tags to ignore
+                    ignoreHtmlClass: 'tex2jax_ignore', // Class to ignore
+                    processHtmlClass: 'tex2jax_process' // Class to process
+                },
+                startup: {
+                    ready: () => {
+                        console.log('MathJax Startup: Ready callback triggered.');
+                        MathJax.startup.defaultReady();
+                        MathJax.startup.promise.then(() => {
+                            console.log('MathJax initialized and ready.');
+                        });
+                    }
+                }
             };
         } else {
-             console.warn("window.MathJax already defined.");
+             console.warn("window.MathJax object already exists. Configuration might be skipped or overwritten.");
         }
     </script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
@@ -32,18 +49,66 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/js/tooltipster.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
-    {/* Excalidraw/React/ReactDOM scripty jsou ODEBRÁNY */}
+    {/* Odebrány scripty pro React, ReactDOM, Excalidraw */}
 
     <style>
-        /* --- Kompletní CSS styly z vašeho původního souboru --- */
+        /* --- CSS STYLY (z předchozí verze, mírně upraveno pro canvas) --- */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; scroll-behavior: smooth; }
         :root {
-            --primary-rgb: 67, 97, 238; --primary: #4361ee; --primary-light: #4895ef; --secondary: #3f37c9; --success: #06d6a0; --danger: #f72585; --warning: #f8961e; --info: #4cc9f0; --dark: #1e2a3a; --light: #f8f9fa; --gray: #6c757d; --gray-light: #dee2e6; --gray-dark: #343a40; --gradient-1: linear-gradient(135deg, #4361ee, #3a0ca3); --gradient-2: linear-gradient(135deg, #4cc9f0, #4361ee); --white: #ffffff; --sidebar-width: 260px; --transition-speed: 0.3s; --card-radius: 12px; --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.05); --shadow-md: 0 5px 12px rgba(0, 0, 0, 0.07); --shadow-lg: 0 10px 20px rgba(0, 0, 0, 0.1); --text-primary: #2d3748; --text-secondary: #4a5568; --text-muted: #718096; --call-bg: #f0f2f5; --call-panel-bg: var(--white); --avatar-size: 50px;
+            --primary-rgb: 67, 97, 238; /* RGB for rgba */
+            --primary: #4361ee;
+            --primary-light: #4895ef;
+            --secondary: #3f37c9;
+            --success: #06d6a0;
+            --danger: #f72585;
+            --warning: #f8961e;
+            --info: #4cc9f0;
+            --dark: #1e2a3a;
+            --light: #f8f9fa;
+            --gray: #6c757d;
+            --gray-light: #dee2e6;
+            --gray-dark: #343a40;
+            --gradient-1: linear-gradient(135deg, #4361ee, #3a0ca3);
+            --gradient-2: linear-gradient(135deg, #4cc9f0, #4361ee);
+            --white: #ffffff;
+            --sidebar-width: 260px;
+            --transition-speed: 0.3s;
+            --card-radius: 12px; /* Consistent radius */
+            --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 5px 12px rgba(0, 0, 0, 0.07);
+            --shadow-lg: 0 10px 20px rgba(0, 0, 0, 0.1);
+            --text-primary: #2d3748;
+            --text-secondary: #4a5568;
+            --text-muted: #718096;
+            --call-bg: #f0f2f5; /* Background for the main area */
+            --call-panel-bg: var(--white); /* Background for panels */
+            --avatar-size: 50px;
         }
-        body { background-color: var(--call-bg); color: var(--text-primary); min-height: 100vh; display: flex; overflow: hidden; }
+
+        body {
+            background-color: var(--call-bg);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            overflow: hidden; /* Prevent body scroll */
+        }
 
         /* --- Sidebar --- */
-        .sidebar { width: var(--sidebar-width); height: 100vh; position: fixed; top: 0; left: 0; background: var(--gradient-1); color: var(--white); padding: 1.5rem 1rem; display: flex; flex-direction: column; z-index: 1050; box-shadow: var(--shadow-lg); transition: transform var(--transition-speed) ease, width var(--transition-speed) ease; }
+        .sidebar {
+            width: var(--sidebar-width);
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background: var(--gradient-1);
+            color: var(--white);
+            padding: 1.5rem 1rem;
+            display: flex;
+            flex-direction: column;
+            z-index: 1050; /* Ensure sidebar is above overlay */
+            box-shadow: var(--shadow-lg);
+            transition: transform var(--transition-speed) ease, width var(--transition-speed) ease;
+        }
         .sidebar-header { display: flex; align-items: center; margin-bottom: 2rem; padding: 0 0.75rem; }
         .sidebar-logo { font-size: 1.5rem; font-weight: 700; color: var(--white); text-decoration: none; display: flex; align-items: center; gap: 0.75rem; }
         .sidebar-logo i { font-size: 1.75rem; }
@@ -61,49 +126,212 @@
         .user-role { font-size: 0.8rem; opacity: 0.8; }
 
         /* --- Main Content Area --- */
-        main { flex: 1; margin-left: var(--sidebar-width); transition: margin var(--transition-speed) ease; width: calc(100% - var(--sidebar-width)); height: 100vh; display: flex; flex-direction: column; overflow: hidden; background-color: var(--call-bg); }
-        .main-header { padding: 1rem 1.5rem; background-color: var(--white); box-shadow: var(--shadow-sm); display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; z-index: 100; border-bottom: 1px solid var(--gray-light); }
+        main {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            transition: margin var(--transition-speed) ease;
+            width: calc(100% - var(--sidebar-width));
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden; /* Prevent main area scroll */
+            background-color: var(--call-bg);
+        }
+
+        .main-header {
+            padding: 1rem 1.5rem;
+            background-color: var(--white);
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0; /* Header should not shrink */
+            z-index: 100;
+            border-bottom: 1px solid var(--gray-light);
+        }
         .header-content h1 { font-size: 1.5rem; font-weight: 600; color: var(--dark); margin: 0; }
         .header-actions button, .header-actions a { font-size: 0.9rem; padding: 0.6rem 1.2rem; }
 
-        /* --- Videocall Interface Layout --- */
-        .call-interface { flex-grow: 1; display: flex; overflow: hidden; padding: 1.5rem; gap: 1.5rem; }
+        /* --- Topic Loading Bar --- */
+        .topic-loading-bar {
+            padding: 1rem 1.5rem;
+            background-color: var(--light);
+            border-bottom: 1px solid var(--gray-light);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+            flex-shrink: 0; /* Bar should not shrink */
+        }
+        #current-topic-display { font-size: 1rem; font-weight: 500; color: var(--text-secondary); }
+        #current-topic-display strong { color: var(--primary); font-weight: 600; }
+        #current-topic-display .placeholder { font-style: italic; color: var(--text-muted); }
 
-        /* Left Side: AI Presenter Area */
-        .ai-presenter-area { flex-grow: 1; display: flex; flex-direction: column; background-color: var(--call-panel-bg); border-radius: var(--card-radius); box-shadow: var(--shadow-md); overflow: hidden; border: 1px solid var(--gray-light); }
-        .ai-presenter-header { padding: 0.75rem 1.25rem; border-bottom: 1px solid var(--gray-light); display: flex; align-items: center; gap: 0.75rem; background-color: var(--light); }
-        .ai-avatar-placeholder { width: var(--avatar-size); height: var(--avatar-size); background: var(--gradient-1); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5rem; flex-shrink: 0; box-shadow: var(--shadow-sm); }
+        /* --- Videocall Interface Layout --- */
+        .call-interface {
+            flex-grow: 1; /* Take remaining space */
+            display: flex;
+            overflow: hidden; /* Prevent overflow within this container */
+            padding: 1.5rem;
+            gap: 1.5rem;
+        }
+
+        /* Left Side: AI Presenter Area (with Canvas) */
+        .ai-presenter-area {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--call-panel-bg);
+            border-radius: var(--card-radius);
+            box-shadow: var(--shadow-md);
+            overflow: hidden;
+            border: 1px solid var(--gray-light);
+        }
+        .ai-presenter-header {
+            padding: 0.75rem 1.25rem;
+            border-bottom: 1px solid var(--gray-light);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            background-color: var(--light);
+            flex-shrink: 0;
+        }
+        .ai-avatar-placeholder {
+            width: var(--avatar-size);
+            height: var(--avatar-size);
+            background: var(--gradient-1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+            flex-shrink: 0;
+            box-shadow: var(--shadow-sm);
+        }
         .ai-presenter-info h2 { font-size: 1.1rem; font-weight: 600; color: var(--dark); margin: 0; }
         .ai-presenter-info p { font-size: 0.85rem; color: var(--text-secondary); margin: 0; }
-        .whiteboard-main-container { flex-grow: 1; position: relative; overflow: hidden; border-radius: 0 0 var(--card-radius) var(--card-radius); background-color: var(--white); display: flex; justify-content: center; align-items: center; padding: 10px; }
 
-        /* Specific styles for Canvas */
-        #drawingCanvas { max-width: 100%; max-height: 100%; background-color: #fff; border: 1px solid var(--gray-light); }
-        .canvas-controls { position: absolute; top: 15px; right: 15px; display: flex; gap: 5px; background-color: rgba(255, 255, 255, 0.8); padding: 5px; border-radius: 5px; box-shadow: var(--shadow-sm); z-index: 10; /* Ensure controls are above canvas */ }
-        .canvas-controls button { padding: 3px 8px; font-size: 0.8em; }
+        .whiteboard-main-container {
+            flex-grow: 1; /* Takes available space in the left panel */
+            position: relative; /* For absolute positioning of controls */
+            overflow: hidden; /* Prevents canvas overflow */
+            border-radius: 0 0 var(--card-radius) var(--card-radius);
+            background-color: var(--white); /* BG for the container */
+            display: flex; /* Use flexbox for centering */
+            justify-content: center; /* Center horizontally */
+            align-items: center; /* Center vertically */
+            padding: 10px; /* Padding around the canvas */
+        }
+
+        #drawingCanvas {
+            /* display: block; Removed, flexbox handles layout */
+            max-width: 100%; /* Important: prevent canvas exceeding container width */
+            max-height: 100%; /* Important: prevent canvas exceeding container height */
+            background-color: #fff; /* Explicit white background for canvas itself */
+            border: 1px solid var(--gray-light); /* Optional border for canvas */
+            /* Actual width/height set by JS based on container */
+            object-fit: contain; /* Ensure aspect ratio is maintained if needed */
+        }
+
+        .canvas-controls {
+             position: absolute;
+             top: 15px; /* Adjusted position */
+             right: 15px; /* Adjusted position */
+             display: flex;
+             gap: 8px; /* Slightly more gap */
+             background-color: rgba(255, 255, 255, 0.9);
+             padding: 8px; /* More padding */
+             border-radius: 8px; /* Rounded corners */
+             box-shadow: var(--shadow-sm);
+         }
+         .canvas-controls button {
+             padding: 5px 10px; /* Slightly larger buttons */
+             font-size: 0.85em;
+             line-height: 1; /* Ensure icon is centered */
+             min-width: 36px; /* Ensure minimum size */
+             min-height: 30px;
+         }
 
         /* Right Side: Interaction Panel */
-        .interaction-panel { width: 420px; flex-shrink: 0; display: flex; flex-direction: column; background-color: var(--call-panel-bg); border-radius: var(--card-radius); box-shadow: var(--shadow-md); overflow: hidden; border: 1px solid var(--gray-light); }
-        .interaction-tabs { display: flex; border-bottom: 1px solid var(--gray-light); background-color: var(--light); flex-shrink: 0; }
-        .interaction-tab { flex: 1; text-align: center; padding: 0.9rem 1rem; font-weight: 500; color: var(--text-secondary); cursor: pointer; transition: all 0.2s ease; border-bottom: 3px solid transparent; font-size: 0.95rem; position: relative; }
+        .interaction-panel {
+            width: 420px; /* Fixed width for the right panel */
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--call-panel-bg);
+            border-radius: var(--card-radius);
+            box-shadow: var(--shadow-md);
+            overflow: hidden; /* Important for nested scroll */
+            border: 1px solid var(--gray-light);
+        }
+        .interaction-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--gray-light);
+            background-color: var(--light);
+            flex-shrink: 0;
+        }
+        .interaction-tab {
+            flex: 1; /* Equal width tabs */
+            text-align: center;
+            padding: 0.9rem 1rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-bottom: 3px solid transparent;
+            font-size: 0.95rem;
+            position: relative; /* For active state indicator */
+        }
         .interaction-tab:hover { color: var(--primary); background-color: rgba(var(--primary-rgb), 0.05); }
         .interaction-tab.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 600; background-color: var(--call-panel-bg); }
-        .interaction-tab.active::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 1px; background-color: var(--gray-light); }
+        .interaction-tab.active::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 1px; background-color: var(--gray-light); } /* subtle top border */
         .interaction-tab i { margin-right: 0.5rem; }
 
-        .interaction-content-area { flex-grow: 1; overflow: hidden; position: relative; }
-        .tab-content { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; overflow: hidden; visibility: hidden; opacity: 0; transition: opacity 0.3s ease, visibility 0s linear 0.3s; background-color: var(--call-panel-bg); }
-        .tab-content.active { visibility: visible; opacity: 1; transition: opacity 0.3s ease; }
+        .interaction-content-area {
+            flex-grow: 1; /* Take remaining space */
+            overflow: hidden; /* Hide overflowing tab content */
+            position: relative; /* For positioning tab content */
+        }
+        .tab-content {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden; /* Prevent content scroll, manage scroll inside */
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.3s ease, visibility 0s linear 0.3s;
+            background-color: var(--call-panel-bg);
+        }
+        .tab-content.active {
+            visibility: visible;
+            opacity: 1;
+            transition: opacity 0.3s ease;
+        }
 
         /* Explanation Tab Content */
-        .explanation-scroll-content { flex-grow: 1; padding: 1.5rem; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--gray-light) transparent; }
-        .explanation-scroll-content::-webkit-scrollbar { width: 8px; } .explanation-scroll-content::-webkit-scrollbar-track { background: transparent; } .explanation-scroll-content::-webkit-scrollbar-thumb { background-color: var(--gray-light); border-radius: 4px; border: 2px solid var(--call-panel-bg); }
-        #explanation-title { display: none; }
+        .explanation-scroll-content {
+            flex-grow: 1; /* Allow this to take space */
+            padding: 1.5rem;
+            overflow-y: auto; /* Enable vertical scroll */
+            scrollbar-width: thin; /* Firefox */
+            scrollbar-color: var(--gray-light) transparent; /* Firefox */
+        }
+        .explanation-scroll-content::-webkit-scrollbar { width: 8px; }
+        .explanation-scroll-content::-webkit-scrollbar-track { background: transparent; }
+        .explanation-scroll-content::-webkit-scrollbar-thumb { background-color: var(--gray-light); border-radius: 4px; border: 2px solid var(--call-panel-bg); }
+        #explanation-title { display: none; } /* Title managed by header */
         #explanation-display { line-height: 1.7; }
         #explanation-display p:last-child { margin-bottom: 0; }
         #explanation-display .step { margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px dashed var(--gray-light); }
         #explanation-display .step:last-child { border-bottom: none; padding-bottom: 0; }
         #explanation-display h3 { color: var(--secondary); margin-top: 1.5rem; margin-bottom: 0.7rem; font-size: 1.1rem; }
+        /* MathJax/Code styles */
         #explanation-display code { background-color: rgba(var(--primary-rgb), 0.1); padding: 0.2rem 0.4rem; border-radius: 4px; font-size: 0.95em; color: var(--secondary); }
         #explanation-display pre { margin: 1rem 0; }
         #explanation-display pre code { display: block; background-color: var(--gray-dark); color: #e0e0e0; padding: 1rem; border-radius: 8px; font-size: 0.9rem; line-height: 1.6; white-space: pre-wrap; word-wrap: break-word; }
@@ -111,20 +339,83 @@
         #explanation-display blockquote { border-left: 3px solid var(--primary-light); padding-left: 1rem; margin: 1rem 0 1rem 0.5rem; color: var(--text-secondary); font-style: italic; }
         #explanation-display ul, #explanation-display ol { margin-left: 1.5rem; margin-bottom: 1rem; padding-left: 1rem; }
         #explanation-display li { margin-bottom: 0.5rem; }
-        .explanation-controls { flex-shrink: 0; margin-top: auto; padding: 1rem 1.5rem; border-top: 1px solid var(--gray-light); text-align: center; background-color: var(--light); display: flex; justify-content: space-around; gap: 1rem; }
+        .explanation-controls {
+            flex-shrink: 0; /* Prevent controls shrinking */
+            margin-top: auto; /* Push to bottom if content is short */
+            padding: 1rem 1.5rem;
+            border-top: 1px solid var(--gray-light);
+            text-align: center;
+            background-color: var(--light);
+            display: flex;
+            justify-content: space-around;
+            gap: 1rem;
+        }
 
         /* Chat Tab Content */
-        .chat-messages { flex-grow: 1; padding: 1.25rem; overflow-y: auto; scrollbar-color: var(--gray-light) var(--call-panel-bg); }
-        .chat-messages::-webkit-scrollbar-track { background: var(--call-panel-bg); } .chat-messages::-webkit-scrollbar-thumb { border-color: var(--call-panel-bg); }
-        .chat-input-area { flex-shrink: 0; padding: 1rem 1.25rem; background-color: var(--light); border-top: 1px solid var(--gray-light); display: flex; align-items: flex-end; gap: 0.8rem; }
-        .chat-message { display: flex; gap: 0.8rem; max-width: 88%; align-items: flex-end; margin-bottom: 1rem; }
+        #chat-tab-content { /* Ensure the flex direction */
+             display: flex;
+             flex-direction: column;
+             height: 100%; /* Make sure it fills the container */
+        }
+        .chat-messages {
+            flex-grow: 1; /* Takes available space */
+            padding: 1.25rem;
+            overflow-y: auto; /* Scroll for messages */
+            scrollbar-width: thin;
+            scrollbar-color: var(--gray-light) var(--call-panel-bg);
+        }
+        .chat-messages::-webkit-scrollbar { width: 6px; }
+        .chat-messages::-webkit-scrollbar-track { background: var(--call-panel-bg); }
+        .chat-messages::-webkit-scrollbar-thumb { background-color: var(--gray-light); border-radius: 3px; border: 1px solid var(--call-panel-bg); }
+
+        .chat-input-area {
+            flex-shrink: 0; /* Prevent shrinking */
+            padding: 1rem 1.25rem;
+            background-color: var(--light);
+            border-top: 1px solid var(--gray-light);
+            display: flex;
+            align-items: flex-end; /* Align items to bottom for textarea growth */
+            gap: 0.8rem;
+        }
+        .chat-message {
+            display: flex;
+            gap: 0.8rem;
+            max-width: 88%; /* Prevent messages taking full width */
+            align-items: flex-end; /* Align avatar to bottom */
+            margin-bottom: 1rem;
+            animation: fadeIn 0.3s ease forwards; /* Fade in messages */
+        }
         .chat-message.user { margin-left: auto; flex-direction: row-reverse; }
-        .message-avatar { width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 1rem; flex-shrink: 0; box-shadow: var(--shadow-sm); border: 2px solid var(--call-panel-bg); }
+        .message-avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 1rem;
+            flex-shrink: 0;
+            box-shadow: var(--shadow-sm);
+            border: 2px solid var(--call-panel-bg); /* Match panel background */
+        }
         .chat-message.user .message-avatar { background: var(--success); color: white; }
         .chat-message.gemini .message-avatar { background: var(--primary); color: white; }
-        .message-bubble { padding: 0.9rem 1.2rem; border-radius: 18px; line-height: 1.6; word-wrap: break-word; box-shadow: var(--shadow-sm); position: relative; transition: transform 0.2s ease; background-color: var(--light); color: var(--text-primary); border: 1px solid #e9ecef; }
+        .message-bubble {
+            padding: 0.9rem 1.2rem;
+            border-radius: 18px;
+            line-height: 1.6;
+            word-wrap: break-word; /* Ensure long words break */
+            box-shadow: var(--shadow-sm);
+            position: relative;
+            transition: transform 0.2s ease;
+            background-color: var(--light);
+            color: var(--text-primary);
+            border: 1px solid #e9ecef; /* Subtle border */
+        }
         .chat-message.gemini .message-bubble { border-bottom-left-radius: 5px; }
         .chat-message.user .message-bubble { background: var(--gradient-1); color: white; border: none; border-bottom-right-radius: 5px; }
+        /* Code styling within bubbles */
         .message-bubble code { background-color: rgba(var(--primary-rgb), 0.1); padding: 0.1em 0.3em; border-radius: 4px; font-size: 0.9em; color: var(--secondary); }
         .chat-message.user .message-bubble code { background-color: rgba(255, 255, 255, 0.2); color: #fff; }
         .message-bubble pre { margin: 0.5rem 0; }
@@ -132,64 +423,275 @@
         .chat-message.user .message-bubble pre code { background-color: rgba(0,0,0,0.3); color: #eee; }
         .message-timestamp { font-size: 0.7rem; color: var(--text-muted); margin-top: 5px; display: block; text-align: left; opacity: 0.8; }
         .chat-message.user .message-timestamp { text-align: right; }
-        .message-thinking-indicator { background: var(--light); display: flex; align-items: center; padding: 0.9rem 1.2rem; border-radius: 18px; box-shadow: var(--shadow-sm); border: 1px solid #e9ecef; width: fit-content; }
+        .message-thinking-indicator {
+            background: var(--light);
+            display: flex;
+            align-items: center;
+            padding: 0.9rem 1.2rem;
+            border-radius: 18px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid #e9ecef;
+            width: fit-content; /* Adjust to content size */
+        }
         .typing-dot { width: 7px; height: 7px; background-color: var(--gray); border-radius: 50%; margin: 0 2px; display: inline-block; animation: typing 1.2s infinite ease-in-out; }
-        .typing-dot:nth-child(2) { animation-delay: 0.2s; } .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
         @keyframes typing { 0%, 60%, 100% { transform: translateY(0); opacity: 0.5; } 30% { transform: translateY(-3px); opacity: 1; } }
-        .chat-input { flex-grow: 1; padding: 0.8rem 1.1rem; border: 1px solid var(--gray-light); border-radius: 22px; font-size: 1rem; resize: none; max-height: 150px; overflow-y: auto; transition: border-color 0.2s ease, box-shadow 0.2s ease; line-height: 1.4; }
+
+        .chat-input {
+            flex-grow: 1;
+            padding: 0.8rem 1.1rem;
+            border: 1px solid var(--gray-light);
+            border-radius: 22px; /* Rounded input */
+            font-size: 1rem;
+            resize: none; /* Prevent manual resize */
+            max-height: 150px; /* Limit height */
+            overflow-y: auto; /* Allow scroll if text exceeds max height */
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+            line-height: 1.4;
+            background-color: var(--white); /* Ensure bg */
+        }
         .chat-input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.15); }
-        .send-button { padding: 0 1.3rem; border-radius: 22px; font-weight: 500; font-size: 1rem; cursor: pointer; border: none; background: var(--gradient-1); color: white; transition: all 0.3s ease; flex-shrink: 0; height: 44px; display: flex; align-items: center; justify-content: center; }
+        .send-button {
+            padding: 0 1.3rem;
+            border-radius: 22px; /* Match input radius */
+            font-weight: 500;
+            font-size: 1rem;
+            cursor: pointer;
+            border: none;
+            background: var(--gradient-1);
+            color: white;
+            transition: all 0.3s ease;
+            flex-shrink: 0; /* Prevent button shrinking */
+            height: 44px; /* Fixed height */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
         .send-button:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(var(--primary-rgb), 0.2); }
-        .send-button i { font-size: 1.1em; } .send-button .fa-spinner { margin: 0; }
-        .chat-controls { padding: 0.5rem 1.25rem; font-size: 0.8rem; color: var(--text-muted); text-align: right; background-color: var(--light); border-top: 1px solid var(--gray-light); flex-shrink: 0; }
+        .send-button i { font-size: 1.1em; }
+        .send-button .fa-spinner { margin: 0; } /* Adjust spinner margin if needed */
+        .chat-controls {
+            flex-shrink: 0; /* Prevent shrinking */
+            padding: 0.5rem 1.25rem;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-align: right;
+            background-color: var(--light);
+            border-top: 1px solid var(--gray-light);
+        }
         .chat-controls button { background:none; border:none; color: var(--text-muted); cursor:pointer; font-size: 0.9em; padding: 2px 5px; margin-left: 10px; }
         .chat-controls button:hover { color: var(--primary); }
 
-        /* Topic Loading Bar */
-        .topic-loading-bar { padding: 1rem 1.5rem; background-color: var(--light); border-bottom: 1px solid var(--gray-light); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; flex-shrink: 0; }
-        #current-topic-display { font-size: 1rem; font-weight: 500; color: var(--text-secondary); }
-        #current-topic-display strong { color: var(--primary); font-weight: 600; }
-        #current-topic-display .placeholder { font-style: italic; color: var(--text-muted); }
-        #load-next-topic-btn { display: none; } /* Button removed in original */
-
         /* Utility & State Styles */
-        .loading-placeholder { /* ... */ }
-        .empty-state { /* ... */ }
-        .btn { /* ... */ }
-        /* ... (ostatní utility & button styly) ... */
+        .loading-placeholder { display: flex; align-items: center; justify-content: center; padding: 3rem; text-align: center; font-style: italic; color: var(--text-muted); flex-grow: 1; }
+        .loading-placeholder i { margin-right: 0.75rem; font-size: 1.5rem; }
+        .empty-state { text-align: center; padding: 3rem 1.5rem; color: var(--text-secondary); margin-top: 2rem; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        .empty-state i { font-size: 3.5rem; margin-bottom: 1.5rem; color: var(--gray-light); }
+        .empty-state h3 { font-size: 1.2rem; font-weight: 600; margin-bottom: 1rem; color: var(--dark); }
+        .empty-state p { margin-bottom: 1.5rem; max-width: 500px; margin-left: auto; margin-right: auto; }
+
+        /* Buttons */
+        .btn { display: inline-flex; align-items: center; justify-content: center; padding: 0.7rem 1.4rem; border-radius: 8px; font-weight: 500; font-size: 0.9rem; text-decoration: none; transition: all 0.2s ease; cursor: pointer; border: none; gap: 0.5rem; line-height: 1.4; }
+        .btn-primary { background: var(--gradient-1); color: white; box-shadow: var(--shadow-sm); }
+        .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: var(--shadow-md); background: linear-gradient(135deg, var(--primary-light), var(--secondary)); }
+        .btn-secondary { background-color: var(--light); color: var(--text-secondary); border: 1px solid var(--gray-light); box-shadow: var(--shadow-sm); }
+        .btn-secondary:hover:not(:disabled) { background-color: #e9ecef; color: var(--dark); border-color: #ced4da; }
+        .btn-success { background: linear-gradient(135deg, var(--success), #05a381); color: white; box-shadow: var(--shadow-sm); }
+        .btn-success:hover:not(:disabled) { transform: translateY(-2px); box-shadow: var(--shadow-md); background: linear-gradient(135deg, #0cd1a7, var(--success));}
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none !important; box-shadow: none !important; background: var(--gray); color: var(--white); }
+        .btn i { font-size: 1em; }
+        .btn-sm { padding: 0.4rem 0.8rem; font-size: 0.8rem; }
 
         /* Responsiveness & Mobile Menu */
-        .mobile-menu-toggle { /* ... */ }
-        .sidebar-overlay { /* ... */ }
-        @media (max-width: 1200px) { /* ... */ }
-        @media (max-width: 992px) { /* ... */ }
-        @media (max-width: 768px) { /* ... */ }
-        @media (max-width: 576px) { /* ... */ }
+        .mobile-menu-toggle { display: none; background: none; border: none; cursor: pointer; color: var(--dark); font-size: 1.5rem; margin-right: 1rem; padding: 0.5rem; z-index: 1060; }
+        .sidebar-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); z-index: 1040; opacity: 0; transition: opacity 0.3s ease; backdrop-filter: blur(5px); }
+        .sidebar-overlay.active { display: block; opacity: 1; }
 
-        /* Dark mode Adjustments */
+        @media (max-width: 1200px) {
+            .interaction-panel { width: 360px; }
+        }
+
+        @media (max-width: 992px) { /* Tablet - Collapsed Sidebar */
+             :root { --sidebar-width: 80px; }
+             .sidebar { width: 80px; }
+             .sidebar-logo span, .sidebar-link span, .user-info, .sidebar-footer { display: none; }
+             .sidebar-link i { margin-right: 0; font-size: 1.5rem; }
+             .sidebar-logo i { margin-right: 0; }
+             .sidebar-header, .sidebar-link { justify-content: center; }
+             .user-profile { justify-content: center; padding: 0.75rem 0; }
+             .user-avatar { margin-right: 0; }
+             main { margin-left: 80px; width: calc(100% - 80px); }
+             .call-interface { flex-direction: column; padding: 1rem; gap: 1rem; }
+             .interaction-panel { width: 100%; height: 45vh; } /* Panel takes full width, limited height */
+             .ai-presenter-area { height: 50vh; } /* Presenter takes remaining height */
+        }
+
+        @media (max-width: 768px) { /* Smaller Tablet */
+            .main-header { padding: 0.8rem 1rem; }
+            .header-content h1 { font-size: 1.3rem; }
+            .interaction-panel { width: 100%; height: 40vh; }
+            .ai-presenter-area { height: 55vh; }
+             .interaction-tab { padding: 0.75rem 0.5rem; font-size: 0.9rem; }
+             .chat-input { font-size: 0.95rem; padding: 0.7rem 1rem; }
+             .send-button { height: 40px; padding: 0 1rem; }
+             .btn { padding: 0.6rem 1.2rem; font-size: 0.85rem; }
+        }
+
+        @media (max-width: 576px) { /* Mobile - Hidden Sidebar */
+            :root { --sidebar-width: 0; }
+            .sidebar { transform: translateX(-100%); z-index: 1050; width: 260px; } /* Keep full width when open */
+            .sidebar.active { transform: translateX(0); }
+            /* Restore text etc. when sidebar is active */
+            .sidebar.active .sidebar-logo span, .sidebar.active .sidebar-link span, .sidebar.active .user-info, .sidebar.active .sidebar-footer { display: block; }
+            .sidebar.active .sidebar-link i { margin-right: 0.75rem; }
+            .sidebar.active .sidebar-header, .sidebar.active .sidebar-link { justify-content: flex-start; }
+            .sidebar.active .user-profile { justify-content: flex-start; padding: 1rem; }
+            .sidebar.active .user-avatar { margin-right: 0.75rem; }
+
+            main { margin-left: 0; width: 100%; }
+            .mobile-menu-toggle { display: block; } /* Show toggle button */
+            .main-header { padding: 0.7rem 1rem; }
+            .header-content h1 { font-size: 1.2rem; }
+            .call-interface { padding: 0.75rem; gap: 0.75rem; }
+             .interaction-panel { height: 45vh; }
+             .ai-presenter-area { height: 50vh; }
+        }
+
+        /* Dark mode styles */
         @media (prefers-color-scheme: dark) {
-            :root { /* ... dark mode variables ... */ }
-            body { /* ... */ }
-            main { /* ... */ }
-            .main-header { /* ... */ }
-            /* ... Další dark mode pravidla ... */
-            .whiteboard-main-container { background-color: var(--call-panel-bg); }
-            #drawingCanvas { background-color: var(--call-panel-bg); border-color: var(--gray-light); }
-             /* ... zbytek dark mode ... */
+             :root {
+                 --white: #1a202c;
+                 --light: #2d3748;
+                 --dark: #e2e8f0;
+                 --gray-light: #4a5568;
+                 --text-primary: #e2e8f0;
+                 --text-secondary: #cbd5e0;
+                 --text-muted: #a0aec0;
+                 --dark-bg: #171923;
+                 --call-bg: #131720; /* Darker call background */
+                 --call-panel-bg: #1e2533; /* Dark panel background */
+             }
+             body { background-color: var(--dark-bg); }
+             main { background-color: var(--call-bg); }
+             .main-header { background-color: var(--call-panel-bg); border-bottom-color: var(--gray-light); }
+             .mobile-menu-toggle { color: var(--dark); }
+             .ai-presenter-area, .interaction-panel { background-color: var(--call-panel-bg); box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2); border-color: var(--gray-light); }
+             .ai-presenter-header { background-color: var(--light); border-bottom-color: var(--gray-light); }
+             /* --- Canvas Dark Mode --- */
+             .whiteboard-main-container { background-color: var(--call-panel-bg); } /* Match panel bg */
+             #drawingCanvas { background-color: #283044; border-color: var(--gray-light); } /* Slightly lighter dark bg for canvas */
+             .canvas-controls { background-color: rgba(45, 55, 72, 0.8); } /* Darker controls background */
+
+             .interaction-tabs { background-color: var(--light); border-bottom-color: var(--gray-light); }
+             .interaction-tab { color: var(--text-secondary); }
+             .interaction-tab:hover { color: var(--primary-light); background-color: rgba(72, 149, 239, 0.1); }
+             .interaction-tab.active { color: var(--primary-light); border-bottom-color: var(--primary-light); background-color: var(--call-panel-bg); }
+             .tab-content { background-color: var(--call-panel-bg); }
+             .explanation-scroll-content { scrollbar-color: var(--gray) var(--call-panel-bg); }
+             .explanation-scroll-content::-webkit-scrollbar-thumb { border-color: var(--call-panel-bg); }
+             /* Code/MathJax in explanation */
+             #explanation-display pre code { background-color: #1a202c; color: #d1d5db; }
+             #explanation-display code { background-color: rgba(72, 149, 239, 0.15); color: var(--primary-light); }
+             #explanation-display strong { color: var(--light); }
+             #explanation-display blockquote { border-left-color: var(--primary); color: var(--text-secondary); }
+             .explanation-controls { background-color: var(--light); border-top-color: var(--gray-light); }
+             /* Chat dark mode */
+             .chat-messages { scrollbar-color: var(--gray) var(--call-panel-bg); }
+             .chat-messages::-webkit-scrollbar-track { background: var(--call-panel-bg); }
+             .chat-messages::-webkit-scrollbar-thumb { border-color: var(--call-panel-bg); }
+             .message-avatar { border-color: var(--call-panel-bg); }
+             .message-bubble { background-color: var(--light); color: var(--text-primary); border-color: var(--gray-light); }
+             .chat-message.user .message-bubble { background: var(--gradient-2); color: var(--dark); /* Lighter text on gradient */ }
+             .message-bubble code { background-color: rgba(255,255,255,0.1); color: var(--text-primary); }
+             .chat-message.user .message-bubble code { background-color: rgba(0, 0, 0, 0.2); color: var(--light); }
+             .message-bubble pre code { background-color: #1a202c; color: #d1d5db; }
+             .chat-message.user .message-bubble pre code { background-color: rgba(0,0,0,0.3); color: #eee; }
+             .message-thinking-indicator { background: var(--light); border-color: var(--gray-light);}
+             .typing-dot { background-color: var(--gray); }
+             .chat-input-area { background-color: var(--light); border-top-color: var(--gray-light); }
+             .chat-input { background-color: var(--dark-bg); color: var(--text-primary); border-color: var(--gray-light); }
+             .chat-input::placeholder { color: var(--text-muted); }
+             .chat-input:focus { box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.2); }
+             .chat-controls { background-color: var(--light); border-top-color: var(--gray-light); }
+             .chat-controls button { color: var(--text-muted); }
+             .chat-controls button:hover { color: var(--primary-light); }
+             /* Buttons Dark Mode */
+             .btn-secondary { background-color: var(--light); color: var(--text-secondary); border-color: var(--gray-light); }
+             .btn-secondary:hover:not(:disabled) { background-color: var(--gray-light); color: var(--dark); }
+             .btn-success { background: linear-gradient(135deg, var(--success), #05a381); }
+             .btn-success:hover:not(:disabled) { background: linear-gradient(135deg, #0cd1a7, var(--success));}
+             .btn:disabled { background: var(--gray); color: var(--text-muted); }
+             /* Other Elements */
+             .topic-loading-bar { background-color: var(--light); border-bottom-color: var(--gray-light); }
+             .empty-state i { color: var(--light); }
+             .toast { background-color: var(--call-panel-bg); border-color: var(--gray-light); color: var(--text-primary); box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);}
         }
 
         /* Toast notification */
-        .toast { /* ... */ }
+         .toast { position: fixed; bottom: 20px; right: 20px; background-color: var(--white); color: var(--text-primary); border-radius: 8px; padding: 1rem; box-shadow: var(--shadow-lg); max-width: 300px; z-index: 1001; display: flex; align-items: center; transform: translateY(120px); opacity: 0; transition: all 0.4s ease-in-out; }
+         .toast.show { transform: translateY(0); opacity: 1; }
+         .toast.success { border-left: 4px solid var(--success); }
+         .toast.error { border-left: 4px solid var(--danger); }
+         .toast.warning { border-left: 4px solid var(--warning); }
+         .toast.info { border-left: 4px solid var(--info); }
+         .toast i { margin-right: 0.75rem; font-size: 1.25rem; }
+         .toast.success i { color: var(--success); }
+         .toast.error i { color: var(--danger); }
+         .toast.warning i { color: var(--warning); }
+         .toast.info i { color: var(--info); }
     </style>
 </head>
 <body>
     <div id="sidebar-overlay" class="sidebar-overlay"></div>
-    <aside id="sidebar" class="sidebar">
-        <div class="sidebar-header"> <a href="/" class="sidebar-logo"> <i class="fas fa-calculator"></i> <span>Justax</span> </a> </div>
-         <ul class="sidebar-menu"> <li class="sidebar-item"> <a href="/dashboard/dashboard.html" class="sidebar-link"> <i class="fas fa-th-large"></i> <span>Dashboard</span> </a> </li> <li class="sidebar-item"> <a href="/dashboard/procvicovani/main.html" class="sidebar-link active"> <i class="fas fa-book-open"></i> <span>Procvičování</span> </a> </li> <li class="sidebar-item"> <a href="/dashboard/pokrok.html" class="sidebar-link"> <i class="fas fa-chart-line"></i> <span>Pokrok</span> </a> </li> <li class="sidebar-item"> <a href="/dashboard/oceneni.html" class="sidebar-link"> <i class="fas fa-medal"></i> <span>Ocenění</span> </a> </li> <li class="sidebar-item"> <a href="/dashboard/materialy.html" class="sidebar-link"> <i class="fas fa-file-alt"></i> <span>Materiály</span> </a> </li> <li class="sidebar-item"> <a href="/dashboard/profile.html" class="sidebar-link"> <i class="fas fa-user-cog"></i> <span>Profil</span> </a> </li> </ul>
-         <div class="user-profile"> <div class="user-avatar" id="user-avatar">?</div> <div class="user-info"> <div class="user-name" id="user-name">Načítání...</div> <div class="user-role">Student</div> </div> </div>
+     <aside id="sidebar" class="sidebar">
+         <div class="sidebar-header">
+            <a href="/dashboard/dashboard.html" class="sidebar-logo"> {/* Link na hlavní dashboard */}
+                <i class="fas fa-calculator"></i>
+                <span>Justax</span>
+            </a>
+        </div>
+         <ul class="sidebar-menu">
+             <li class="sidebar-item">
+                 <a href="/dashboard/dashboard.html" class="sidebar-link"> {/* Link na hlavní dashboard */}
+                     <i class="fas fa-th-large"></i> <span>Dashboard</span>
+                 </a>
+             </li>
+             <li class="sidebar-item">
+                 <a href="/dashboard/procvicovani/main.html" class="sidebar-link active"> {/* Aktivní odkaz */}
+                     <i class="fas fa-book-open"></i> <span>Procvičování</span>
+                 </a>
+             </li>
+             <li class="sidebar-item">
+                 <a href="/dashboard/pokrok.html" class="sidebar-link">
+                     <i class="fas fa-chart-line"></i> <span>Pokrok</span>
+                 </a>
+             </li>
+             <li class="sidebar-item">
+                 <a href="/dashboard/oceneni.html" class="sidebar-link">
+                     <i class="fas fa-medal"></i> <span>Ocenění</span>
+                 </a>
+             </li>
+             <li class="sidebar-item">
+                 <a href="/dashboard/materialy.html" class="sidebar-link">
+                     <i class="fas fa-file-alt"></i> <span>Materiály</span>
+                 </a>
+             </li>
+             <li class="sidebar-item">
+                 <a href="/dashboard/profile.html" class="sidebar-link">
+                     <i class="fas fa-user-cog"></i> <span>Profil</span>
+                 </a>
+             </li>
+         </ul>
+         <div class="user-profile">
+             <div class="user-avatar" id="user-avatar">?</div>
+             <div class="user-info">
+                 <div class="user-name" id="user-name">Načítání...</div>
+                 <div class="user-role">Student</div>
+             </div>
+         </div>
          <div class="sidebar-footer"> &copy; 2025 Justax </div>
-    </aside>
+     </aside>
 
     <main>
         <div class="main-header">
@@ -199,14 +701,18 @@
                       <h1>Interaktivní výuka</h1>
                  </div>
                  <div class="header-actions">
-                      <a href="/dashboard/procvicovani/main.html" class="btn btn-secondary"> <i class="fas fa-times"></i> Ukončit výuku </a>
+                      {/* Tlačítko pro návrat na hlavní stránku procvičování */}
+                      <a href="/dashboard/procvicovani/main.html" class="btn btn-secondary">
+                           <i class="fas fa-times"></i> Ukončit výuku
+                       </a>
                  </div>
              </div>
         </div>
         <div class="topic-loading-bar">
              <div id="current-topic-display"><span class="placeholder">Načítám data...</span></div>
+             {/* Odstraněno tlačítko #load-next-topic-btn, nahrazeno logikou v explanation-controls */}
         </div>
-        <div class="call-interface" style="display: none;">
+        <div class="call-interface" style="display: none;"> {/* Skryto dokud není načteno téma */}
              <div class="ai-presenter-area">
                  <div class="ai-presenter-header">
                      <div class="ai-avatar-placeholder"> <i class="fas fa-robot"></i> </div>
@@ -216,38 +722,65 @@
                      </div>
                  </div>
                  <div class="whiteboard-main-container">
-                     {/* Nahrazeno #tldraw-wrapper Canvasem */}
-                     <canvas id="drawingCanvas"></canvas>
+                     {/* Canvas nahrazuje Excalidraw */}
+                     <canvas id="drawingCanvas" width="600" height="400"></canvas> {/* Default dimensions, JS upraví */}
+                     {/* Volitelné: Přidání ovládacích prvků pro canvas */}
                      <div class="canvas-controls" style="display: none;" id="canvas-controls">
-                          <button id="clear-canvas-btn" class="btn btn-secondary btn-sm btn-tooltip" title="Vymazat kresbu"> <i class="fas fa-eraser"></i> </button>
+                          <button id="clear-canvas-btn" class="btn btn-secondary btn-sm btn-tooltip" title="Vymazat kresbu">
+                              <i class="fas fa-eraser"></i>
+                          </button>
+                          {/* Další ovládací prvky mohou být přidány sem (např. barvy, tloušťka) */}
                      </div>
                  </div>
              </div>
              <div class="interaction-panel">
                  <div class="interaction-tabs">
-                     <div class="interaction-tab active" data-tab="explanation-tab"> <i class="fas fa-chalkboard-teacher"></i> Vysvětlení </div>
-                     <div class="interaction-tab" data-tab="chat-tab"> <i class="fas fa-comments"></i> Chat </div>
+                     <div class="interaction-tab active" data-tab="explanation-tab">
+                         <i class="fas fa-chalkboard-teacher"></i> Vysvětlení
+                     </div>
+                     <div class="interaction-tab" data-tab="chat-tab">
+                         <i class="fas fa-comments"></i> Chat
+                     </div>
                  </div>
                  <div class="interaction-content-area">
                      <div id="explanation-tab-content" class="tab-content active">
                          <div class="explanation-scroll-content">
-                             <div id="explanation-display"><div class="empty-state"> <i class="fas fa-book-reader"></i> <h3>Výuka připravena</h3> <p>Počkejte na automatické načtení tématu.</p> </div></div>
+                             <div id="explanation-display">
+                                 {/* Initially empty or with a placeholder */}
+                                 <div class="empty-state">
+                                     <i class="fas fa-book-reader"></i>
+                                     <h3>Výuka připravena</h3>
+                                     <p>Počkejte na automatické načtení tématu nebo vyberte téma manuálně (pokud bude implementováno).</p>
+                                 </div>
+                             </div>
                          </div>
                          <div class="explanation-controls">
-                             <button class="btn btn-primary btn-tooltip" id="next-step-btn" style="display: none;" title="Požádat AI o další krok"> <i class="fas fa-forward"></i> Další krok </button>
-                             <button class="btn btn-success btn-tooltip" id="mark-complete-btn" style="display: none;" title="Označit téma jako dokončené"> <i class="fas fa-check-circle"></i> Téma dokončeno </button>
+                             <button class="btn btn-primary btn-tooltip" id="next-step-btn" style="display: none;" title="Požádat AI o další krok vysvětlení">
+                                 <i class="fas fa-forward"></i> Další krok
+                             </button>
+                             <button class="btn btn-success btn-tooltip" id="mark-complete-btn" style="display: none;" title="Označit aktuální téma jako probrané a načíst další">
+                                 <i class="fas fa-check-circle"></i> Téma dokončeno
+                             </button>
                          </div>
                      </div>
                      <div id="chat-tab-content" class="tab-content">
                          <section class="chat-area" style="display: flex; flex-direction: column; height: 100%;">
-                             <div class="chat-messages" id="chat-messages"></div>
+                             <div class="chat-messages" id="chat-messages">
+                                 {/* Chat messages will be appended here */}
+                             </div>
                              <div class="chat-input-area">
                                  <textarea class="chat-input" id="chat-input" placeholder="Napiš svou otázku..." rows="1"></textarea>
-                                 <button class="send-button" id="send-button" title="Odeslat zprávu"> <i class="fas fa-paper-plane"></i> </button>
+                                 <button class="send-button" id="send-button" title="Odeslat zprávu">
+                                     <i class="fas fa-paper-plane"></i>
+                                 </button>
                              </div>
                              <div class="chat-controls">
-                                 <button id="clear-chat-btn" class="btn-tooltip" title="Vymazat historii tohoto chatu"> <i class="fas fa-trash-alt"></i> Vymazat chat </button> |
-                                 <button id="save-chat-btn" class="btn-tooltip" title="Uložit chat jako PDF"> <i class="fas fa-save"></i> Uložit PDF </button>
+                                 <button id="clear-chat-btn" class="btn-tooltip" title="Vymazat historii tohoto chatu">
+                                     <i class="fas fa-trash-alt"></i> Vymazat chat
+                                 </button> |
+                                 <button id="save-chat-btn" class="btn-tooltip" title="Uložit chat jako PDF">
+                                     <i class="fas fa-save"></i> Uložit PDF
+                                 </button>
                              </div>
                          </section>
                      </div>
@@ -255,19 +788,24 @@
              </div>
         </div>
     </main>
-    <div class="toast" id="toast"> <i class="fas fa-info-circle"></i> <div id="toast-message">Operace úspěšná.</div> </div>
+    <div class="toast" id="toast">
+        <i class="fas fa-info-circle"></i>
+        <div id="toast-message">Operace úspěšná.</div>
+    </div>
 
     <script>
+        // --- Wrapped in try...catch for safety ---
         try {
             document.addEventListener('DOMContentLoaded', async function() {
-                console.log("DOM Loaded. Initializing application...");
+                console.log("DOM Loaded. Initializing Justax AI Tutor (Canvas Version)...");
 
                 // --- Constants & Config ---
                 const SUPABASE_URL = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
                 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10';
-                const GEMINI_API_KEY = 'AIzaSyDQboM6qtC_O2sqqpaKZZffNf2zk6HrhEs'; // Test key
+                const GEMINI_API_KEY = 'AIzaSyDQboM6qtC_O2sqqpaKZZffNf2zk6HrhEs'; // !!! POUZE PRO TESTOVÁNÍ - V PRODUKCI POUŽIJTE SERVER !!!
                 const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
-                const CANVAS_COMMAND_REGEX = /(CLEAR_CANVAS|DRAW_LINE|DRAW_RECT|DRAW_CIRCLE|DRAW_TEXT):\s*```json\s*([\s\S]*?)\s*```/g;
+                // Regex for Canvas Commands (Updated to be potentially multi-line and handle optional whitespace)
+                const CANVAS_COMMAND_REGEX = /(CLEAR_CANVAS|DRAW_LINE|DRAW_RECT|DRAW_CIRCLE|DRAW_TEXT)\s*:\s*```json\s*([\s\S]*?)\s*```/g;
 
                 // --- DOM Elements ---
                 const userAvatarEl = document.getElementById('user-avatar');
@@ -300,85 +838,119 @@
                 let supabase = null;
                 let currentUser = null;
                 let currentProfile = null;
-                let currentTopic = null;
-                let currentPlanId = null;
-                let currentSessionId = null;
-                let geminiChatContext = [];
-                let canvasCtx = null; // Canvas context
+                let currentTopic = null; // { id, name, description, plan_id, activity_id, user_id }
+                let currentPlanId = null; // ID of the active study plan
+                let currentSessionId = null; // Unique ID for this learning session
+                let geminiChatContext = []; // History for Gemini API
+                let canvasCtx = null; // Canvas 2D context
                 let geminiIsThinking = false;
                 let thinkingIndicatorId = null;
                 let topicLoadInProgress = false;
-                let canvasWidth = 600;
-                let canvasHeight = 400;
-                let resizeTimeout; // Pro debouncing resize
+                let canvasWidth = 600; // Default canvas width
+                let canvasHeight = 400; // Default canvas height
+                let lastExplanationTimestamp = 0; // Track last explanation update
 
                 // --- Helper Functions ---
-                const sanitizeHTML = (str) => { const temp = document.createElement('div'); temp.textContent = str || ''; return temp.innerHTML; };
-                const getInitials = (profile, email) => { if (!profile) return email ? email[0].toUpperCase() : '?'; let i = (profile.first_name?.[0]||'')+(profile.last_name?.[0]||''); return i.toUpperCase() || profile.username?.[0].toUpperCase() || email?.[0].toUpperCase() || '?'; };
-                const showToast = (message, type = 'info', duration = 4000) => { if (!toastEl || !toastMessageEl) return; toastMessageEl.textContent = message; const icon = toastEl.querySelector('i'); icon.className = 'fas ' + (type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle'); toastEl.className = 'toast ' + type; toastEl.classList.add('show'); setTimeout(() => toastEl.classList.remove('show'), duration); };
-                const renderMarkdown = (element, markdownText) => { try { if (!element) return; element.innerHTML = marked.parse(markdownText || '', { breaks: true, gfm: true }); if (window.MathJax && typeof window.MathJax.typesetPromise === 'function') { setTimeout(() => window.MathJax.typesetPromise([element]).catch(e=>console.error("MathJax error:",e)), 50); } } catch (e) { console.error("Markdown rendering error:", e); if (element) element.innerHTML = `<p style="color: red;">Chyba zobrazení obsahu.</p>`; }};
-                const autoResizeTextarea = () => { if(!chatInput) return; chatInput.style.height = 'auto'; chatInput.style.height = Math.min(chatInput.scrollHeight, 150) + 'px'; };
+                const sanitizeHTML = (str) => {
+                    if (str === null || typeof str === 'undefined') return '';
+                    const temp = document.createElement('div');
+                    temp.textContent = str;
+                    return temp.innerHTML;
+                };
+                const getInitials = (profile, email) => {
+                    if (!profile && !email) return '?';
+                    let initials = '';
+                    if (profile?.first_name) initials += profile.first_name[0];
+                    if (profile?.last_name) initials += profile.last_name[0];
+                    if (initials) return initials.toUpperCase();
+                    if (profile?.username) return profile.username[0].toUpperCase();
+                    if (email) return email[0].toUpperCase();
+                    return 'U';
+                };
+                const showToast = (message, type = 'info', duration = 4000) => {
+                    if (!toastEl || !toastMessageEl) return;
+                    console.log(`Toast (${type}): ${message}`);
+                    toastMessageEl.textContent = message;
+                    const icon = toastEl.querySelector('i');
+                    toastEl.className = 'toast ' + type; // Reset classes then add type
+                    icon.className = `fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle'}`;
+                    toastEl.classList.add('show');
+                    setTimeout(() => toastEl.classList.remove('show'), duration);
+                };
+                const renderMarkdown = (element, markdownText) => {
+                    if (!element) return;
+                    try {
+                        element.innerHTML = marked.parse(markdownText || '');
+                         // Schedule MathJax typesetting after markdown is rendered
+                         if (window.MathJax && typeof window.MathJax.typesetPromise === 'function') {
+                             // Timeout helps ensure DOM is updated before typesetting starts
+                              setTimeout(() => {
+                                   console.log("MathJax: Queuing typeset for element:", element);
+                                   window.MathJax.typesetPromise([element])
+                                       .then(() => console.log("MathJax: Typesetting complete for:", element))
+                                       .catch(err => console.error('MathJax typesetting error:', err));
+                              }, 0);
+                         }
+                    } catch (e) {
+                        console.error("Markdown rendering error:", e);
+                        element.innerHTML = `<p style="color:red;">Chyba při zobrazování obsahu.</p><pre>${sanitizeHTML(markdownText)}</pre>`;
+                    }
+                };
+                 const autoResizeTextarea = () => {
+                      if (!chatInput) return;
+                      chatInput.style.height = 'auto'; // Reset height
+                      const scrollHeight = chatInput.scrollHeight;
+                      const maxHeight = 150; // Corresponds to max-height in CSS
+                      chatInput.style.height = `${Math.min(scrollHeight, maxHeight)}px`;
+                      // Enable scroll if content exceeds max height
+                      chatInput.style.overflowY = scrollHeight > maxHeight ? 'scroll' : 'hidden';
+                 };
                 const generateSessionId = () => `session_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
-                const formatTimestamp = (date) => date.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' });
+                const formatTimestamp = (date = new Date()) => date.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' });
                 const updateAIStatus = (text) => { if (aiStatusText) aiStatusText.textContent = text; };
 
                 // --- Canvas Functions ---
                 const initializeCanvas = () => {
                     if (!canvas) { console.error("Canvas element not found!"); return false; }
-                    canvasCtx = canvas.getContext('2d');
-                    if (!canvasCtx) { console.error("Failed to get 2D context from canvas"); return false; }
-                    resizeCanvas(); // Set initial size
-                    clearCanvas();
-                    console.log("Canvas initialized.");
-                    if(canvasControls) canvasControls.style.display = 'flex';
-                    return true;
+                    try {
+                        canvasCtx = canvas.getContext('2d');
+                        if (!canvasCtx) throw new Error("Failed to get 2D context");
+                        resizeCanvas(); // Set initial size based on container
+                        clearCanvas();
+                        console.log("Canvas initialized successfully.");
+                        if (canvasControls) canvasControls.style.display = 'flex';
+                        return true;
+                    } catch (e) {
+                        console.error("Canvas initialization failed:", e);
+                        if (canvasContainer) canvasContainer.innerHTML = "<p style='color:red; padding:1rem;'>Chyba: Nelze inicializovat kreslící plochu.</p>";
+                        return false;
+                    }
                 };
 
-                const debounce = (func, wait) => {
-                     let timeout;
-                     return function executedFunction(...args) {
-                         const later = () => {
-                             clearTimeout(timeout);
-                             func(...args);
-                         };
-                         clearTimeout(timeout);
-                         timeout = setTimeout(later, wait);
-                     };
-                 };
+                const resizeCanvas = () => {
+                    if (!canvas || !canvasContainer || !canvasCtx) return;
+                    const containerStyle = window.getComputedStyle(canvasContainer);
+                    const containerWidth = canvasContainer.clientWidth - parseFloat(containerStyle.paddingLeft) - parseFloat(containerStyle.paddingRight);
+                    const containerHeight = canvasContainer.clientHeight - parseFloat(containerStyle.paddingTop) - parseFloat(containerStyle.paddingBottom);
 
-                const resizeCanvas = debounce(() => {
-                     if (!canvas || !canvasContainer || !canvasCtx) return;
-                     const containerStyle = window.getComputedStyle(canvasContainer);
-                     const containerWidth = canvasContainer.clientWidth - parseFloat(containerStyle.paddingLeft) - parseFloat(containerStyle.paddingRight);
-                     const containerHeight = canvasContainer.clientHeight - parseFloat(containerStyle.paddingTop) - parseFloat(containerStyle.paddingBottom);
-                     const aspectRatio = canvasWidth / canvasHeight; // Original aspect ratio (or default)
+                    // Keep dimensions reasonable, adjust if needed
+                    const maxWidth = 1000;
+                    const maxHeight = 700;
+                    canvasWidth = Math.max(100, Math.min(containerWidth, maxWidth)); // Ensure minimum size
+                    canvasHeight = Math.max(100, Math.min(containerHeight, maxHeight)); // Ensure minimum size
 
-                     // Calculate new dimensions maintaining aspect ratio
-                     let newWidth = containerWidth;
-                     let newHeight = containerWidth / aspectRatio;
-
-                     if (newHeight > containerHeight) {
-                          newHeight = containerHeight;
-                          newWidth = containerHeight * aspectRatio;
-                     }
-
-                     // Update internal dimensions used for drawing logic
-                     canvasWidth = Math.max(100, Math.floor(newWidth)); // Min width 100
-                     canvasHeight = Math.max(100, Math.floor(newHeight)); // Min height 100
-
-                     // Update canvas element dimensions
-                     canvas.width = canvasWidth;
-                     canvas.height = canvasHeight;
-                     // Optional: Style can be set if needed, but width/height attributes are key
-                     // canvas.style.width = `${canvasWidth}px`;
-                     // canvas.style.height = `${canvasHeight}px`;
-
-                     console.log(`Canvas resized to: ${canvasWidth}x${canvasHeight}`);
-                     // Re-draw content if necessary (might be complex with AI commands)
-                     // For now, just clear on resize. AI will redraw needed elements.
-                     clearCanvas();
-                     // Or potentially re-send context to AI? More complex.
-                 }, 250); // Debounce resize events
+                    if (canvas.width !== canvasWidth || canvas.height !== canvasHeight) {
+                         const currentContent = canvasCtx.getImageData(0, 0, canvas.width, canvas.height);
+                         canvas.width = canvasWidth;
+                         canvas.height = canvasHeight;
+                         canvas.style.width = `${canvasWidth}px`;
+                         canvas.style.height = `${canvasHeight}px`;
+                         // Restore content after resize (optional, might distort)
+                         // canvasCtx.putImageData(currentContent, 0, 0); // Simple restore, might not scale well
+                         clearCanvas(); // Or just clear after resize
+                         console.log(`Canvas resized to: ${canvasWidth}x${canvasHeight}. Content cleared.`);
+                    }
+                };
 
                 const clearCanvas = () => {
                     if (!canvasCtx) return;
@@ -386,229 +958,912 @@
                     console.log("Canvas cleared.");
                 };
 
-                const handleCanvasDrawCommand = (command, data) => {
-                    if (!canvasCtx) { console.error("Canvas context not available for drawing."); return; }
-                    canvasCtx.save(); // Save current state
-                    canvasCtx.strokeStyle = data.color || '#000000';
-                    canvasCtx.fillStyle = data.fillColor || data.color || '#000000';
-                    canvasCtx.lineWidth = data.lineWidth || 1;
-                    canvasCtx.font = data.font || '16px Poppins';
-                    canvasCtx.textAlign = data.textAlign || 'left';
-                    canvasCtx.textBaseline = data.textBaseline || 'top';
-                    if (data.lineDash && Array.isArray(data.lineDash)) { canvasCtx.setLineDash(data.lineDash); }
+                // Handles drawing commands from AI
+                 const handleCanvasDrawCommand = (command, data) => {
+                     if (!canvasCtx) { console.error("Canvas context not available for drawing."); return; }
+                     console.log(`Executing Canvas Command: ${command}`, data);
 
-                    try {
-                        switch(command) {
-                            case 'CLEAR_CANVAS': clearCanvas(); break;
-                            case 'DRAW_LINE':
-                                if (data.x1 != null && data.y1 != null && data.x2 != null && data.y2 != null) {
-                                    canvasCtx.beginPath(); canvasCtx.moveTo(data.x1, data.y1); canvasCtx.lineTo(data.x2, data.y2); canvasCtx.stroke();
-                                } else console.warn("DRAW_LINE: Missing coordinates", data);
-                                break;
-                            case 'DRAW_RECT':
-                                if (data.x != null && data.y != null && data.width != null && data.height != null) {
-                                    if (data.filled) { canvasCtx.fillRect(data.x, data.y, data.width, data.height); }
-                                    else { canvasCtx.strokeRect(data.x, data.y, data.width, data.height); }
-                                } else console.warn("DRAW_RECT: Missing properties", data);
-                                break;
-                            case 'DRAW_CIRCLE':
+                     // Save current state to restore defaults later
+                     canvasCtx.save();
+
+                     try {
+                         // Set styles from data or defaults
+                         canvasCtx.strokeStyle = data.color || '#000000';
+                         canvasCtx.fillStyle = data.fillColor || data.color || '#000000'; // Use fillColor if provided, else color
+                         canvasCtx.lineWidth = typeof data.lineWidth === 'number' && data.lineWidth > 0 ? data.lineWidth : 1;
+                         canvasCtx.font = data.font || '16px Poppins'; // Use Poppins as default
+                         canvasCtx.textAlign = data.textAlign || 'left';
+                         canvasCtx.textBaseline = data.textBaseline || 'alphabetic'; // Changed default for better alignment
+
+                         if (data.lineDash && Array.isArray(data.lineDash)) {
+                             canvasCtx.setLineDash(data.lineDash);
+                         } else {
+                             canvasCtx.setLineDash([]); // Default solid line
+                         }
+
+                         // Execute command
+                         switch (command) {
+                             case 'CLEAR_CANVAS':
+                                 clearCanvas();
+                                 break;
+                             case 'DRAW_LINE':
+                                 if (data.x1 != null && data.y1 != null && data.x2 != null && data.y2 != null) {
+                                     canvasCtx.beginPath();
+                                     canvasCtx.moveTo(data.x1, data.y1);
+                                     canvasCtx.lineTo(data.x2, data.y2);
+                                     canvasCtx.stroke();
+                                 } else console.warn("DRAW_LINE: Missing coordinates", data);
+                                 break;
+                             case 'DRAW_RECT':
+                                 if (data.x != null && data.y != null && data.width != null && data.height != null) {
+                                      if (data.filled === true) { // Explicit check for true
+                                          canvasCtx.fillRect(data.x, data.y, data.width, data.height);
+                                      } else {
+                                          canvasCtx.strokeRect(data.x, data.y, data.width, data.height);
+                                      }
+                                 } else console.warn("DRAW_RECT: Missing properties", data);
+                                 break;
+                             case 'DRAW_CIRCLE':
                                  if (data.x != null && data.y != null && data.radius != null && data.radius > 0) {
-                                     canvasCtx.beginPath(); canvasCtx.arc(data.x, data.y, data.radius, 0, Math.PI * 2);
-                                     if (data.filled) { canvasCtx.fill(); } else { canvasCtx.stroke(); }
-                                 } else console.warn("DRAW_CIRCLE: Missing/invalid properties", data);
+                                     canvasCtx.beginPath();
+                                     canvasCtx.arc(data.x, data.y, data.radius, 0, Math.PI * 2);
+                                     if (data.filled === true) { // Explicit check for true
+                                         canvasCtx.fill();
+                                     } else {
+                                         canvasCtx.stroke();
+                                     }
+                                 } else console.warn("DRAW_CIRCLE: Missing or invalid properties", data);
                                  break;
                              case 'DRAW_TEXT':
                                  if (data.text != null && data.x != null && data.y != null) {
-                                     canvasCtx.fillStyle = data.color || '#000000';
-                                     canvasCtx.fillText(data.text, data.x, data.y);
+                                     canvasCtx.fillStyle = data.color || '#000000'; // Ensure fillStyle for text
+                                     // Handle potential multi-line text
+                                     const lines = String(data.text).split('\\n'); // Split by explicit newline chars
+                                     const lineHeight = parseFloat(canvasCtx.font) * 1.2; // Estimate line height
+                                     lines.forEach((line, index) => {
+                                         canvasCtx.fillText(line, data.x, data.y + (index * lineHeight));
+                                     });
                                  } else console.warn("DRAW_TEXT: Missing properties", data);
                                  break;
-                             default: console.warn("Unknown canvas command:", command);
-                        }
-                    } catch (e) {
+                             default:
+                                 console.warn("Unknown canvas command:", command);
+                         }
+                     } catch (e) {
                          console.error(`Error executing canvas command ${command}:`, e, data);
-                    } finally {
-                         canvasCtx.restore(); // Restore previous state (includes lineDash reset)
-                    }
-                };
+                     } finally {
+                          // Restore default state (important for lineDash, colors, etc.)
+                          canvasCtx.restore();
+                     }
+                 };
 
                 // --- Initialization Functions ---
                 const initializeApp = async () => {
+                    console.log("Initializing Supabase...");
                     try {
                         supabase = window.supabase?.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
                         if (!supabase) throw new Error("Supabase client creation failed.");
                         console.log("Supabase client initialized.");
-                    } catch (error) { console.error("Supabase initialization failed:", error); showToast("Kritická chyba: Nepodařilo se připojit.", "error"); return; }
+                    } catch (error) {
+                        console.error("Supabase initialization failed:", error);
+                        showToast("Chyba připojení k databázi.", "error", 10000);
+                        return; // Stop initialization
+                    }
 
+                    console.log("Setting up event listeners...");
                     setupEventListeners();
                     initTooltips();
 
-                    // Initialize Canvas AFTER DOM ready
+                    console.log("Initializing Canvas...");
                     if (!initializeCanvas()) {
-                        console.error("Canvas initialization failed!");
+                        showToast("Chyba inicializace kreslící plochy!", "error", 10000);
+                        // Optionally hide the call interface if canvas fails
+                        if(callInterface) callInterface.style.display = 'none';
+                        if(currentTopicDisplay) currentTopicDisplay.innerHTML = '<span class="placeholder" style="color:var(--danger);">Chyba kreslící plochy</span>';
+                        return; // Stop initialization
                     }
 
+                    console.log("Loading user profile...");
                     await loadUserProfile();
-                    if (currentUser) { await loadNextUncompletedTopic(); }
-                    else { /* Handle not logged in */ }
+
+                    if (currentUser) {
+                        console.log("User logged in, loading topic...");
+                        await loadNextUncompletedTopic(); // Load first topic for the user
+                    } else {
+                        console.warn("User not logged in.");
+                        updateAIStatus("Přihlaste se pro zahájení výuky.");
+                        if (currentTopicDisplay) currentTopicDisplay.innerHTML = '<span class="placeholder">Nejste přihlášeni</span>';
+                        showToast("Prosím, přihlaste se.", "warning");
+                        // Optionally redirect or disable UI elements
+                         if(callInterface) callInterface.style.display = 'none'; // Hide main UI
+                    }
                 };
 
                 // --- User Profile, Event Listeners, Tooltips ---
-                const loadUserProfile = async () => { /* ... */ };
-                const updateUserInfoUI = () => { /* ... */ };
+                 const loadUserProfile = async () => {
+                     if (!supabase) return;
+                     try {
+                          const { data: { user }, error: userError } = await supabase.auth.getUser();
+                          if (userError) throw userError;
+                          if (user) {
+                               currentUser = user;
+                               const { data: profile, error: profileError } = await supabase
+                                    .from('profiles')
+                                    .select('*')
+                                    .eq('id', user.id)
+                                    .single();
+                               if (profileError && profileError.code !== 'PGRST116') throw profileError; // Ignore 'not found'
+                               currentProfile = profile;
+                               console.log("User profile loaded:", currentProfile);
+                          } else {
+                               currentUser = null;
+                               currentProfile = null;
+                               console.log("No user logged in.");
+                          }
+                     } catch (error) {
+                          console.error('Error loading user profile:', error);
+                          currentUser = null;
+                          currentProfile = null;
+                          showToast("Nepodařilo se načíst profil.", "error");
+                     } finally {
+                          updateUserInfoUI(); // Update UI regardless of success/failure
+                     }
+                 };
+                 const updateUserInfoUI = () => {
+                     if (userNameEl && userAvatarEl) {
+                          if (currentProfile || currentUser) {
+                               const email = currentUser?.email;
+                               const initials = getInitials(currentProfile, email);
+                               const displayName = `${currentProfile?.first_name || ''} ${currentProfile?.last_name || ''}`.trim() || currentProfile?.username || email?.split('@')[0] || 'Uživatel';
+                               userNameEl.textContent = displayName;
+                               if (currentProfile?.avatar_url) {
+                                    userAvatarEl.innerHTML = `<img src="${currentProfile.avatar_url}" alt="${initials}">`;
+                               } else {
+                                    userAvatarEl.textContent = initials;
+                                    userAvatarEl.innerHTML = ''; // Clear any previous img
+                                    userAvatarEl.textContent = initials;
+                               }
+                          } else {
+                               userNameEl.textContent = 'Nepřihlášen';
+                               userAvatarEl.textContent = '?';
+                                userAvatarEl.innerHTML = '?';
+                          }
+                     }
+                 };
                 const setupEventListeners = () => {
                      console.log("Setting up event listeners...");
-                     if (mobileMenuToggle && sidebar && sidebarOverlay) { mobileMenuToggle.addEventListener('click', () => { sidebar.classList.toggle('active'); sidebarOverlay.classList.toggle('active'); }); sidebarOverlay.addEventListener('click', () => { sidebar.classList.remove('active'); sidebarOverlay.classList.remove('active'); }); }
-                     if (interactionTabs.length > 0 && tabContents.length > 0) { interactionTabs.forEach(tab => { tab.addEventListener('click', () => switchInteractionTab(tab.dataset.tab)); }); }
-                     if (chatInput && sendButton) { chatInput.addEventListener('input', autoResizeTextarea); chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey && !geminiIsThinking) { e.preventDefault(); handleSendMessage(); } }); sendButton.addEventListener('click', () => { if (!geminiIsThinking) handleSendMessage(); }); }
+                     // Mobile Menu
+                     if (mobileMenuToggle && sidebar && sidebarOverlay) {
+                         mobileMenuToggle.addEventListener('click', (e) => {
+                             e.stopPropagation(); // Prevent main click listener
+                             sidebar.classList.toggle('active');
+                             sidebarOverlay.classList.toggle('active');
+                         });
+                         sidebarOverlay.addEventListener('click', () => {
+                             sidebar.classList.remove('active');
+                             sidebarOverlay.classList.remove('active');
+                         });
+                          // Close sidebar on main content click (if open)
+                          document.querySelector('main')?.addEventListener('click', () => {
+                               if (sidebar?.classList.contains('active')) {
+                                    sidebar.classList.remove('active');
+                                    sidebarOverlay.classList.remove('active');
+                               }
+                          });
+                     } else { console.warn("Mobile menu elements not found."); }
+
+                     // Interaction Tabs
+                     if (interactionTabs.length > 0 && tabContents.length > 0) {
+                         interactionTabs.forEach(tab => {
+                             tab.addEventListener('click', () => switchInteractionTab(tab.dataset.tab));
+                         });
+                     } else { console.warn("Interaction tab elements not found."); }
+
+                     // Chat Input & Send Button
+                     if (chatInput && sendButton) {
+                         chatInput.addEventListener('input', autoResizeTextarea);
+                         chatInput.addEventListener('keypress', (e) => {
+                             if (e.key === 'Enter' && !e.shiftKey) {
+                                 e.preventDefault(); // Prevent newline
+                                 if (!geminiIsThinking) handleSendMessage();
+                             }
+                         });
+                         sendButton.addEventListener('click', () => {
+                              if (!geminiIsThinking) handleSendMessage();
+                         });
+                     } else { console.warn("Chat input/send elements not found."); }
+
+                     // Chat Controls
                      if (clearChatBtn) clearChatBtn.addEventListener('click', confirmClearChat);
                      if (saveChatBtn) saveChatBtn.addEventListener('click', saveChatToPDF);
+
+                     // Explanation Controls
                      if (nextStepBtn) nextStepBtn.addEventListener('click', requestNextStep);
                      if (markCompleteBtn) markCompleteBtn.addEventListener('click', handleMarkTopicComplete);
-                     if (clearCanvasBtn) { clearCanvasBtn.addEventListener('click', () => { clearCanvas(); showToast("Kresba vymazána.", "info"); }); }
-                     window.addEventListener('resize', resizeCanvas); // Add debounced resize listener
-                     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', clearCanvas); // Optional: Clear canvas on theme change? Or redraw?
+
+                     // Canvas Controls
+                     if (clearCanvasBtn) {
+                         clearCanvasBtn.addEventListener('click', () => {
+                              clearCanvas();
+                              showToast("Kresba vymazána.", "info");
+                              // Optional: Inform AI? e.g., sendToGemini("Uživatel smazal plátno.", "system_event", false);
+                         });
+                     }
+
+                     // Window Resize Listener (already includes canvas resize)
+                     window.addEventListener('resize', () => {
+                          // Close sidebar on larger screens if it was open
+                          if (window.innerWidth > 992 && sidebar?.classList.contains('active')) {
+                               sidebar.classList.remove('active');
+                               sidebarOverlay?.classList.remove('active');
+                          }
+                          resizeCanvas(); // Resize canvas when window resizes
+                     });
                  };
-                const initTooltips = () => { /* ... */ };
+                const initTooltips = () => {
+                    try {
+                        if (window.jQuery && window.jQuery.fn.tooltipster) {
+                            window.jQuery('.btn-tooltip:not(.tooltipstered)').tooltipster({
+                                theme: 'tooltipster-shadow',
+                                animation: 'fade',
+                                delay: 100,
+                                side: 'top'
+                            });
+                        } else {
+                             console.warn("jQuery or Tooltipster not fully loaded for initTooltips.");
+                        }
+                    } catch (e) {
+                        console.error("Tooltipster initialization error:", e);
+                    }
+                };
 
                 // --- Topic Loading and Progress ---
-                const loadNextUncompletedTopic = async () => { /* ... */ };
-                const handleMarkTopicComplete = async () => { /* ... */ };
+                const loadNextUncompletedTopic = async () => {
+                     if (!currentUser || topicLoadInProgress || !supabase) {
+                          console.log("Skipping topic load:", { loggedIn: !!currentUser, loading: topicLoadInProgress });
+                          return;
+                     }
+                     topicLoadInProgress = true;
+                     if (currentTopicDisplay) currentTopicDisplay.innerHTML = '<span class="placeholder"><i class="fas fa-spinner fa-spin"></i> Hledám další téma...</span>';
+                     updateAIStatus('Hledám téma...');
+                      hideLearningUI(); // Hide main UI while loading topic
+
+                     try {
+                          // 1. Find the active study plan
+                          const { data: activePlans, error: planError } = await supabase
+                               .from('study_plans')
+                               .select('id')
+                               .eq('user_id', currentUser.id)
+                               .eq('status', 'active')
+                               .order('created_at', { ascending: false })
+                               .limit(1);
+
+                          if (planError) throw planError;
+                          if (!activePlans || activePlans.length === 0) {
+                               console.log("No active study plan found.");
+                               if (currentTopicDisplay) currentTopicDisplay.innerHTML = '<span class="placeholder">Žádný aktivní studijní plán</span>';
+                               showToast("Nemáte aktivní studijní plán. Vytvořte si ho v sekci Plán.", "warning");
+                               updateAIStatus("Nemáte aktivní plán.");
+                               return; // Exit if no active plan
+                          }
+                          currentPlanId = activePlans[0].id;
+                          console.log("Active plan ID:", currentPlanId);
+
+                          // 2. Find the first uncompleted activity in this plan
+                           const { data: nextActivities, error: activityError } = await supabase
+                               .from('plan_activities')
+                               .select('id, title, description, day_of_week, time_slot, study_topic_id, status') // Include status
+                               .eq('plan_id', currentPlanId)
+                               .neq('status', 'completed') // Find activities NOT marked as completed
+                               .order('day_of_week', { ascending: true })
+                               .order('time_slot', { ascending: true })
+                               .limit(1);
+
+                           if (activityError) throw activityError;
+
+                           if (nextActivities && nextActivities.length > 0) {
+                                const nextActivity = nextActivities[0];
+                                console.log("Next activity found:", nextActivity);
+
+                                // 3. Fetch the related topic details (if exists)
+                                let topicName = nextActivity.title || 'Nespecifikované téma';
+                                let topicDescription = nextActivity.description || '';
+                                if (nextActivity.study_topic_id) {
+                                     const { data: topicData, error: topicError } = await supabase
+                                          .from('study_topics') // Assuming you have a 'study_topics' table
+                                          .select('name, description')
+                                          .eq('id', nextActivity.study_topic_id)
+                                          .single();
+                                     if (topicError && topicError.code !== 'PGRST116') throw topicError; // Ignore not found
+                                     if (topicData) {
+                                          topicName = topicData.name || topicName;
+                                          topicDescription = topicData.description || topicDescription;
+                                     }
+                                }
+
+                                currentTopic = {
+                                     activity_id: nextActivity.id, // Link to the plan_activity
+                                     plan_id: currentPlanId,
+                                     name: topicName,
+                                     description: topicDescription,
+                                     user_id: currentUser.id,
+                                     // Add other relevant fields if needed, like day_of_week, time_slot
+                                };
+
+                                console.log("Current topic set:", currentTopic);
+                                if (currentTopicDisplay) currentTopicDisplay.innerHTML = `Aktuální téma: <strong>${sanitizeHTML(currentTopic.name)}</strong>`;
+                                await startLearningSession(); // Start the session with the new topic
+
+                           } else {
+                                console.log("All activities in the current plan seem completed.");
+                                if (currentTopicDisplay) currentTopicDisplay.innerHTML = '<span class="placeholder">Gratulujeme, plán je dokončen!</span>';
+                                showToast("Všechna témata v plánu jsou dokončena!", "success");
+                                updateAIStatus("Plán dokončen.");
+                                // Optional: Mark the plan as completed?
+                                // await supabase.from('study_plans').update({ status: 'completed', progress: 100 }).eq('id', currentPlanId);
+                           }
+
+                     } catch (error) {
+                          console.error('Error loading next topic:', error);
+                          if (currentTopicDisplay) currentTopicDisplay.innerHTML = '<span class="placeholder" style="color:var(--danger);">Chyba načítání tématu</span>';
+                          showToast(`Nepodařilo se načíst téma: ${error.message}`, "error");
+                          updateAIStatus("Chyba načítání.");
+                     } finally {
+                          topicLoadInProgress = false;
+                     }
+                 };
+                const handleMarkTopicComplete = async () => {
+                     if (!currentTopic || !currentTopic.activity_id || !supabase || topicLoadInProgress) return;
+                     console.log(`Marking activity ${currentTopic.activity_id} as complete.`);
+                     markCompleteBtn.disabled = true;
+                     markCompleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ukládám...';
+
+                     try {
+                          // Update the specific plan_activity status
+                           const { error } = await supabase
+                               .from('plan_activities')
+                               .update({ status: 'completed', completed_at: new Date().toISOString() })
+                               .eq('id', currentTopic.activity_id);
+
+                           if (error) throw error;
+
+                           showToast(`Téma "${currentTopic.name}" označeno jako dokončené.`, "success");
+                           currentTopic = null; // Reset current topic
+                           if (currentTopicDisplay) currentTopicDisplay.innerHTML = '<span class="placeholder">Načítám další...</span>';
+                            hideLearningUI(); // Hide current session UI
+                           // Immediately try to load the next topic
+                           await loadNextUncompletedTopic();
+
+                     } catch (error) {
+                          console.error(`Error marking activity ${currentTopic.activity_id} complete:`, error);
+                          showToast("Chyba při označování tématu jako dokončeného.", "error");
+                     } finally {
+                         if(markCompleteBtn) {
+                              markCompleteBtn.disabled = false;
+                              markCompleteBtn.innerHTML = '<i class="fas fa-check-circle"></i> Téma dokončeno';
+                         }
+                     }
+                 };
 
                  // --- Learning Session Management ---
                  const startLearningSession = async () => {
-                     if (!currentTopic || !currentUser || !supabase) { /* ... */ return; }
-                     console.log(`Starting session for: ${currentTopic.name}`);
+                     if (!currentTopic || !currentUser || !supabase) {
+                          console.error("Cannot start session: Missing topic, user, or Supabase client.");
+                           updateAIStatus('Chyba: Nelze zahájit výuku.');
+                          return;
+                     }
+                     console.log(`Starting session for topic: "${currentTopic.name}" (Activity ID: ${currentTopic.activity_id})`);
                      currentSessionId = generateSessionId();
                      updateAIStatus(`Vysvětluje: ${currentTopic.name}`);
-                     showLearningUI();
-                     explanationDisplay.innerHTML = '<div class="loading-placeholder"><i class="fas fa-spinner fa-spin"></i> Požaduji úvodní vysvětlení...</div>';
-                     chatMessages.innerHTML = '';
-                     geminiChatContext = [];
-                     clearCanvas(); // Clear canvas for new topic
+                     showLearningUI(); // Make the main interface visible
+                     explanationDisplay.innerHTML = '<div class="loading-placeholder"><i class="fas fa-spinner fa-spin"></i> Požaduji úvodní vysvětlení od AI...</div>';
+                     chatMessages.innerHTML = ''; // Clear previous chat messages
+                     geminiChatContext = []; // Reset Gemini context for the new topic
+
+                     // Clear canvas for the new topic
+                     clearCanvas();
+
+                     // Prepare the initial prompt for Gemini
                      updateGeminiThinkingState(true);
-                     let initialPrompt = `Začni vysvětlovat ZÁKLADY tématu "${currentTopic.name}" pro studenta 9. třídy ZŠ (přijímačky CERMAT).`;
-                     if (currentTopic.description) { initialPrompt += `\nPopis tématu: "${currentTopic.description}".`; }
-                     initialPrompt += `\nVysvětluj podrobně, přátelsky, krok za krokem. Toto je PRVNÍ krok. Vhodně použij příklad nebo výzvu k použití KRESLÍCÍ PLOCHY (použij příkazy jako DRAW_LINE, DRAW_TEXT, DRAW_RECT, DRAW_CIRCLE, CLEAR_CANVAS s JSON parametry). Poskytni krátký souhrn pro chat (CHAT_SUMMARY:). Rozměry plátna jsou ${canvasWidth}x${canvasHeight}.`;
+                     let initialPrompt = `Jako AI Tutor "Justax" začni vysvětlovat ZÁKLADY tématu "${currentTopic.name}" pro studenta 9. třídy ZŠ (přijímačky CERMAT).`;
+                      // Add topic description if available
+                      if (currentTopic.description) {
+                          initialPrompt += ` Popis tématu pro kontext: "${currentTopic.description}".`;
+                      }
+                     initialPrompt += ` Buď podrobný, přátelský a postupuj krok za krokem. Toto je ÚPLNĚ PRVNÍ krok vysvětlení tohoto tématu. Vhodně použij příklad nebo výzvu k použití KRESLÍCÍ PLOCHY (použij příkazy jako DRAW_LINE, DRAW_TEXT, DRAW_RECT, DRAW_CIRCLE, CLEAR_CANVAS s JSON parametry v blocích \`\`\`json ... \`\`\`). Ukonči odpověď krátkým shrnutím pro chat ve formátu: \`CHAT_SUMMARY: [Zde tvůj krátký souhrn první části]\`.`;
+
+                     // Send the initial prompt to Gemini, targeting the explanation area
                      await sendToGemini(initialPrompt, 'explanation');
+
+                      // Enable explanation controls after the first response
+                      if (nextStepBtn) nextStepBtn.style.display = 'inline-flex';
+                      if (markCompleteBtn) markCompleteBtn.style.display = 'inline-flex';
                  };
-                 const showLearningUI = () => { /* ... */ };
-                 const hideLearningUI = () => { /* ... */ };
-                 const switchInteractionTab = (tabId) => { /* ... */ };
-                 const requestNextStep = async () => { /* ... */ };
+                 const showLearningUI = () => {
+                    if(callInterface) callInterface.style.display = 'flex';
+                 };
+                 const hideLearningUI = () => {
+                      if(callInterface) callInterface.style.display = 'none';
+                      if (nextStepBtn) nextStepBtn.style.display = 'none';
+                      if (markCompleteBtn) markCompleteBtn.style.display = 'none';
+                 };
+                 const switchInteractionTab = (tabId) => {
+                     interactionTabs.forEach(tab => tab.classList.toggle('active', tab.dataset.tab === tabId));
+                     tabContents.forEach(content => content.classList.toggle('active', content.id === `${tabId}-content`));
+                     console.log(`Switched to tab: ${tabId}`);
+                 };
+                 const requestNextStep = async () => {
+                     if (geminiIsThinking || !currentTopic) return;
+                     console.log("Requesting next step...");
+                     updateGeminiThinkingState(true);
+                     nextStepBtn.disabled = true;
+                     nextStepBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Načítám...';
+                     // Simple prompt to continue
+                     const prompt = `Pokračuj ve vysvětlování tématu "${currentTopic.name}". Naváž na předchozí krok. Nezapomeň na možnost využití kreslící plochy a ukončení shrnutím pro chat (CHAT_SUMMARY:).`;
+                     await sendToGemini(prompt, 'explanation');
+                      if(nextStepBtn) {
+                           nextStepBtn.disabled = false;
+                           nextStepBtn.innerHTML = '<i class="fas fa-forward"></i> Další krok';
+                      }
+                 };
 
                  // --- Chat Functionality ---
-                 const addChatMessage = async (message, sender, saveToDb = false, timestamp = new Date()) => {
-                     // ... (HTML creation) ...
-                     // --- SUPABASE CHAT SAVE (using role/content, conditional activity_id) ---
-                     if (saveToDb && supabase && currentUser && currentTopic && currentSessionId) {
-                         const dataToSave = { /* ... (stejné jako v předchozí odpovědi) ... */ };
-                         console.log("Attempting to save to chat_history:", dataToSave);
-                         try { const { error } = await supabase.from('chat_history').insert(dataToSave); if (error) { /* ... */ } else { console.log("Chat message saved."); } } catch (dbError) { /* ... */ }
+                 const addChatMessage = async (message, sender, saveToDb = true, timestamp = new Date()) => {
+                      if (!chatMessages) return;
+                      const messageId = `msg-${Date.now()}-${Math.random().toString(16).substring(2, 8)}`;
+                      const avatarInitial = sender === 'user' ? getInitials(currentProfile, currentUser?.email) : 'AI';
+                      const messageDiv = document.createElement('div');
+                      messageDiv.className = `chat-message ${sender}`;
+                      messageDiv.id = messageId;
+
+                      const bubbleDiv = document.createElement('div');
+                      bubbleDiv.className = 'message-bubble';
+                      // Render markdown content within the bubble
+                      renderMarkdown(bubbleDiv, message); // Use renderMarkdown here
+
+                      messageDiv.innerHTML = `
+                          <div class="message-avatar">${avatarInitial}</div>
+                      `;
+                      messageDiv.appendChild(bubbleDiv); // Append the bubble after rendering markdown
+                      messageDiv.innerHTML += `<div class="message-timestamp">${formatTimestamp(timestamp)}</div>`;
+
+                      chatMessages.appendChild(messageDiv);
+                      chatMessages.scrollTop = chatMessages.scrollHeight; // Scroll to bottom
+
+                      // --- SUPABASE CHAT SAVE ---
+                      if (saveToDb && supabase && currentUser && currentTopic && currentSessionId) {
+                           const dataToSave = {
+                                user_id: currentUser.id,
+                                session_id: currentSessionId,
+                                topic_name: currentTopic.name, // Save topic name for context
+                                role: sender, // 'user' or 'gemini' (or 'model')
+                                content: message, // The raw message content
+                                created_at: timestamp.toISOString()
+                           };
+                           // Link to plan_activity if available
+                           if (currentTopic.activity_id) {
+                                dataToSave.activity_id = currentTopic.activity_id;
+                           }
+                           console.log("Attempting to save chat message:", dataToSave);
+                           try {
+                                const { error } = await supabase.from('chat_history').insert(dataToSave);
+                                if (error) {
+                                     console.error("Supabase chat save error:", error);
+                                     // Optionally show a subtle error indicator?
+                                } else {
+                                     console.log("Chat message saved to DB.");
+                                }
+                           } catch (dbError) {
+                                console.error("Exception during chat save:", dbError);
+                           }
+                      }
+                 };
+                 const updateGeminiThinkingState = (isThinking) => {
+                     geminiIsThinking = isThinking;
+                      if(sendButton) {
+                           sendButton.disabled = isThinking;
+                           sendButton.innerHTML = isThinking ? '<i class="fas fa-spinner fa-spin"></i>' : '<i class="fas fa-paper-plane"></i>';
+                      }
+                     if (isThinking) {
+                         addThinkingIndicator();
+                     } else {
+                         removeThinkingIndicator();
                      }
                  };
-                 const updateGeminiThinkingState = (isThinking) => { /* ... */ };
-                 const addThinkingIndicator = () => { /* ... */ };
-                 const removeThinkingIndicator = () => { /* ... */ };
-                 const handleSendMessage = async () => { /* ... */ };
-                 const confirmClearChat = () => { /* ... */ };
-                 const clearCurrentChatSessionHistory = async () => { /* ... */ };
-                 const saveChatToPDF = async () => { /* ... */ };
+                 const addThinkingIndicator = () => {
+                     if (thinkingIndicatorId || !chatMessages) return;
+                     const indicatorDiv = document.createElement('div');
+                     indicatorDiv.className = 'chat-message gemini'; // Style like an AI message
+                     thinkingIndicatorId = `thinking-${Date.now()}`;
+                     indicatorDiv.id = thinkingIndicatorId;
+                     indicatorDiv.innerHTML = `
+                          <div class="message-avatar">AI</div>
+                          <div class="message-thinking-indicator">
+                               <span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span>
+                          </div>`;
+                     chatMessages.appendChild(indicatorDiv);
+                     chatMessages.scrollTop = chatMessages.scrollHeight;
+                 };
+                 const removeThinkingIndicator = () => {
+                     if (thinkingIndicatorId) {
+                          const indicator = document.getElementById(thinkingIndicatorId);
+                          if (indicator) indicator.remove();
+                          thinkingIndicatorId = null;
+                     }
+                 };
+                 const handleSendMessage = async () => {
+                     const messageText = chatInput.value.trim();
+                     if (!messageText || geminiIsThinking || !currentTopic) return;
 
-                 // --- Gemini Interaction & AI Drawing ---
-                 const parseAndProcessCanvasCommands = async (responseText) => {
-                    let remainingText = responseText;
-                    let match;
-                    CANVAS_COMMAND_REGEX.lastIndex = 0;
-                    console.log("Parsing for canvas commands...");
-                    while ((match = CANVAS_COMMAND_REGEX.exec(responseText)) !== null) {
-                        const command = match[1];
-                        const jsonString = match[2];
-                        console.log(`Found Canvas Command: ${command}`);
-                        try {
-                            const data = JSON.parse(jsonString);
-                            handleCanvasDrawCommand(command, data);
-                            remainingText = remainingText.replace(match[0], '').trim();
-                        } catch (e) { console.error(`Failed to parse CANVAS JSON for ${command}:`, e, jsonString); }
-                    }
-                    // No need for await/delay here anymore
-                    return remainingText.trim();
+                     chatInput.value = ''; // Clear input immediately
+                     autoResizeTextarea(); // Reset textarea height
+                     chatInput.focus(); // Keep focus on input
+
+                     // Add user message to UI and context
+                     const userTimestamp = new Date();
+                     await addChatMessage(messageText, 'user', true, userTimestamp); // Save user message
+                     geminiChatContext.push({ role: "user", parts: [{ text: messageText }] });
+
+                      // Send to Gemini, targeting the chat area
+                     updateGeminiThinkingState(true);
+                      await sendToGemini(messageText, 'chat'); // Target 'chat'
+                 };
+                 const confirmClearChat = () => {
+                      if (confirm("Opravdu chcete vymazat historii tohoto chatu?\nTato akce je nevratná.")) {
+                           clearCurrentChatSessionHistory();
+                      }
+                 };
+                  const clearCurrentChatSessionHistory = async () => {
+                       // Clear UI
+                       if (chatMessages) chatMessages.innerHTML = '';
+                       // Clear Gemini context for this session
+                       geminiChatContext = [];
+                       showToast("Historie chatu vymazána.", "info");
+                       console.log("Chat history cleared for this session.");
+
+                       // Optional: Delete from Supabase for the current session_id
+                       if (supabase && currentUser && currentSessionId) {
+                            try {
+                                 console.log(`Deleting chat history from DB for session: ${currentSessionId}`);
+                                 const { error } = await supabase
+                                      .from('chat_history')
+                                      .delete()
+                                      .eq('user_id', currentUser.id)
+                                      .eq('session_id', currentSessionId);
+                                 if (error) {
+                                      console.error("Error deleting chat history from DB:", error);
+                                      showToast("Chyba při mazání historie z databáze.", "error");
+                                 } else {
+                                       console.log("Chat history deleted from DB.");
+                                 }
+                            } catch(dbError) {
+                                 console.error("Exception during DB chat history deletion:", dbError);
+                            }
+                       }
+                  };
+                 const saveChatToPDF = async () => {
+                      if (!chatMessages || !currentTopic) {
+                           showToast("Není co uložit.", "warning");
+                           return;
+                      }
+                      const chatContainer = document.createElement('div');
+                      chatContainer.style.fontFamily = "'Poppins', sans-serif";
+                      chatContainer.style.padding = '20px';
+                      chatContainer.style.fontSize = '10pt';
+                      chatContainer.style.lineHeight = '1.5';
+
+                      // Add Header
+                      chatContainer.innerHTML = `
+                           <div style="text-align:center; margin-bottom: 20px; border-bottom: 1px solid #ccc; padding-bottom: 10px;">
+                                <h1 style="font-size: 16pt; color: #4361ee; margin:0;">Justax - Záznam chatu</h1>
+                                <p style="font-size: 9pt; color: #6c757d; margin: 5px 0 0 0;">
+                                     Téma: ${sanitizeHTML(currentTopic.name)} | Student: ${sanitizeHTML(userNameEl.textContent)} | Datum: ${new Date().toLocaleDateString('cs-CZ')}
+                                </p>
+                           </div>
+                      `;
+
+                      // Clone messages for PDF styling
+                      const messages = chatMessages.querySelectorAll('.chat-message');
+                      messages.forEach(msg => {
+                           const clonedMsg = msg.cloneNode(true);
+                           const bubble = clonedMsg.querySelector('.message-bubble');
+                           const avatar = clonedMsg.querySelector('.message-avatar');
+                           const timestamp = clonedMsg.querySelector('.message-timestamp');
+
+                           // Basic PDF styling adjustments
+                           clonedMsg.style.maxWidth = '100%'; // Allow full width in PDF
+                           clonedMsg.style.marginBottom = '12px';
+                           if(bubble) {
+                                bubble.style.borderRadius = '8px';
+                                bubble.style.padding = '10px 15px';
+                                bubble.style.boxShadow = 'none';
+                                bubble.style.border = '1px solid #eee';
+                           }
+                           if (avatar) avatar.style.display = 'none'; // Hide avatar in PDF
+                           if (timestamp) timestamp.style.fontSize = '8pt';
+
+                           if (clonedMsg.classList.contains('user')) {
+                                clonedMsg.style.marginLeft = 'auto';
+                                clonedMsg.style.textAlign = 'right';
+                                if(bubble) bubble.style.backgroundColor = '#e7f0ff'; // Lighter blue for PDF
+                                if (timestamp) timestamp.style.textAlign = 'right';
+                           } else { // AI message
+                                clonedMsg.style.marginRight = 'auto';
+                                if(bubble) bubble.style.backgroundColor = '#f8f9fa'; // Very light gray
+                                if (timestamp) timestamp.style.textAlign = 'left';
+                           }
+                           chatContainer.appendChild(clonedMsg);
+                      });
+
+                      const options = {
+                           margin: [15, 15, 15, 15],
+                           filename: `justax_chat_${currentTopic.name.replace(/[^a-z0-9]/gi, '_')}_${new Date().toISOString().split('T')[0]}.pdf`,
+                           image: { type: 'jpeg', quality: 0.95 },
+                           html2canvas: { scale: 2, useCORS: true, logging: false },
+                           jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                      };
+
+                      if (typeof html2pdf === 'function') {
+                           showToast('Generuji PDF chatu...', 'info');
+                           html2pdf().set(options).from(chatContainer).save()
+                                .then(() => showToast('PDF chatu uloženo.', 'success'))
+                                .catch(err => {
+                                     console.error("PDF generation error:", err);
+                                     showToast('Chyba generování PDF.', 'error');
+                                });
+                      } else {
+                           console.error("html2pdf library not loaded.");
+                           showToast('Chyba: Knihovna pro export PDF není načtena.', 'error');
+                      }
                  };
 
-                 const sendToGemini = async (promptText, targetArea) => {
-                    if (!GEMINI_API_KEY || !GEMINI_API_KEY.startsWith('AIzaSy')) { /*...*/ return; }
-                    if (!currentTopic) { /*...*/ return; }
-                    console.log(`Sending (Target: ${targetArea}): "${promptText.substring(0, 100)}..."`);
-                    updateAIStatus('Přemýšlím...');
+                // --- Gemini Interaction & AI Drawing ---
+                const parseAndProcessCanvasCommands = async (responseText) => {
+                     let remainingText = responseText;
+                     let match;
+                     CANVAS_COMMAND_REGEX.lastIndex = 0; // Reset regex index
+
+                     console.log("Parsing for canvas commands...");
+                     // Loop to find all command blocks
+                     while ((match = CANVAS_COMMAND_REGEX.exec(responseText)) !== null) {
+                          const fullMatch = match[0]; // The entire matched block (e.g., DRAW_LINE: ```json...```)
+                          const command = match[1]; // The command name (e.g., DRAW_LINE)
+                          const jsonString = match[2]; // The JSON string content
+
+                          console.log(`Found Canvas Command Block: ${command}`);
+                          // Remove the matched block from the text to be displayed
+                           remainingText = remainingText.replace(fullMatch, '').trim();
+
+                          try {
+                               // Attempt to parse the JSON string
+                               const data = JSON.parse(jsonString);
+                               // Execute the drawing command
+                               handleCanvasDrawCommand(command, data);
+                          } catch (e) {
+                               console.error(`Failed to parse/execute CANVAS command ${command}:`, e, "\nJSON String:", jsonString);
+                               // Keep the unparsable block in the text for debugging? Or add an error message?
+                               // For now, just log the error. The block is already removed from remainingText.
+                          }
+                     }
+
+                     // Optional slight delay to allow canvas updates to render visually
+                     // await new Promise(resolve => setTimeout(resolve, 50));
+
+                     console.log("Finished parsing canvas commands.");
+                     return remainingText; // Return the text with command blocks removed
+                 };
+
+                const sendToGemini = async (promptText, targetArea) => {
+                    if (!GEMINI_API_KEY || !GEMINI_API_KEY.startsWith('AIzaSy')) {
+                        showToast("Chyba: AI není správně nakonfigurována.", "error");
+                        return;
+                    }
+                    if (!currentTopic) {
+                        showToast("Chyba: Není vybráno žádné téma.", "error");
+                        return;
+                    }
+                    console.log(`Sending to Gemini (Target: ${targetArea}): "${promptText.substring(0, 100)}..."`);
+                    updateAIStatus('AI přemýšlí...');
                     const requestTimestamp = new Date();
                     updateGeminiThinkingState(true);
 
-                    // *** UPRAVENÝ SYSTÉMOVÝ PROMPT PRO CANVAS ***
-                    const systemInstructionText = `Jsi AI Tutor "Justax", expert na matematiku pro 9. třídu ZŠ v ČR (přijímačky CERMAT). Vyučuješ téma: "${currentTopic.name}"${currentTopic.description ? ` (Popis: "${currentTopic.description}")` : ''}. Tvůj styl je PŘÁTELSKÝ, TRPĚLIVÝ a PODROBNÝ. Vysvětluj krok za krokem, používej příklady. Důsledně používej Markdown a MathJax (blok: $$...$$, inline: \\(...\\)). Odpovídej VŽDY ČESKY.
-DŮLEŽITÉ POKYNY:
-1. KROK ZA KROKEM: Drž se jednoho konceptu/kroku.
-2. INTERAKTIVITA: Pokládej otázky.
-3. **KRESLÍCÍ PLOCHA (HTML5 Canvas ${canvasWidth}x${canvasHeight}px):** Pro vizualizaci MŮŽEŠ na KONEC odpovědi přidat JEDEN NEBO VÍCE bloků s příkazy. Formát: \`PŘÍKAZ: \`\`\`json ... \`\`\`\`. Příkazy:
-    * \`CLEAR_CANVAS: {}\` - Vymaže plátno.
-    * \`DRAW_LINE: {"x1":#, "y1":#, "x2":#, "y2":#, "color":"#RRGGBB", "lineWidth":#}\`
-    * \`DRAW_RECT: {"x":#, "y":#, "width":#, "height":#, "color":"#RRGGBB", "lineWidth":#, "filled":false/true}\`
-    * \`DRAW_CIRCLE: {"x":#, "y":#, "radius":#, "color":"#RRGGBB", "lineWidth":#, "filled":false/true}\`
-    * \`DRAW_TEXT: {"text":"...", "x":#, "y":#, "color":"#RRGGBB", "font":"16px Poppins", "textAlign":"left/center/right"}\`
-    Souřadnice [0,0] je levý horní roh. Kresli S MÍROU a přehledně.
-4. DÉLKA ODPOVĚDI: Pro "Vysvětlení" podrobně, ale děl kroky. Pro chat stručně.
-5. REAKCE NA VSTUP: Reaguj na poslední zprávu nebo požadavek.
-6. VÝSTUP DO CHATU (SHRNUTÍ): Pokud je odpověď pro "Vysvětlení", na úplný konec odpovědi (i po kreslení) přidej krátký souhrn pro chat: \`CHAT_SUMMARY: [Zde tvůj souhrn]\`. Jinak CHAT_SUMMARY nepřidávej.`;
+                     // --- UPDATED SYSTEM PROMPT FOR CANVAS ---
+                     const systemInstructionText = `Jsi AI Tutor "Justax", expert na matematiku pro 9. třídu ZŠ v ČR (přijímačky CERMAT). Vyučuješ téma: "${currentTopic.name}"${currentTopic.description ? ` (Popis: "${currentTopic.description}")` : ''}. Tvůj styl je PŘÁTELSKÝ, TRPĚLIVÝ a PODROBNÝ. Vysvětluj krok za krokem, používej příklady. Důsledně používej Markdown a MathJax (blok: $$...$$, inline: \\(...\\)). Odpovídej VŽDY ČESKY.
+ DŮLEŽITÉ POKYNY PRO TEBE:
+ 1. KROK ZA KROKEM: Drž se jednoho konceptu/kroku na odpověď, zvláště v záložce "Vysvětlení". Buď systematický.
+ 2. INTERAKTIVITA: Pokládej studentovi kontrolní otázky nebo ho vyzývej k zamyšlení.
+ 3. **KRESLÍCÍ PLOCHA (HTML5 Canvas):** Pro vizualizaci (geometrie, grafy, číselné osy, kroky řešení, vzorce) MŮŽEŠ na KONEC své textové odpovědi přidat JEDEN NEBO VÍCE speciálních bloků s příkazy pro kreslení. Každý blok MUSÍ mít tento formát:
+    \`PŘÍKAZ: \`\`\`json
+    { /* JSON data pro příkaz */ }
+    \`\`\`\`
+    Používej POUZE tyto PŘÍKAZY (case-sensitive):
+     * \`CLEAR_CANVAS: \`\`\`json{ /* bez parametrů */} \`\`\` - Vymaže celé plátno. Použij PŘED kreslením nové komplexní scény.
+     * \`DRAW_LINE: \`\`\`json{ "x1":#, "y1":#, "x2":#, "y2":#, "color":"#RRGGBB", "lineWidth":# }\`\`\` - Nakreslí čáru. Barva a tloušťka jsou volitelné (default: #000000, 1).
+     * \`DRAW_RECT: \`\`\`json{ "x":#, "y":#, "width":#, "height":#, "color":"#RRGGBB", "lineWidth":#, "filled":false }\`\`\` - Nakreslí obdélník. \`filled: true\` pro vyplněný. Barva a tloušťka jsou volitelné.
+     * \`DRAW_CIRCLE: \`\`\`json{ "x":#, "y":#, "radius":#, "color":"#RRGGBB", "lineWidth":#, "filled":false }\`\`\` - Nakreslí kruh/kružnici. \`filled: true\` pro vyplněný. Barva a tloušťka jsou volitelné.
+     * \`DRAW_TEXT: \`\`\`json{ "text":"Text k vypsání (může obsahovat \\n pro nový řádek)", "x":#, "y":#, "color":"#RRGGBB", "font":"16px Poppins", "textAlign":"left/center/right", "textBaseline":"top/middle/bottom" }\`\`\` - Napíše text. Barva, font, zarovnání jsou volitelné.
+     Souřadnice [0, 0] je LEVÝ HORNÍ roh. Aktuální rozměry plátna jsou ${canvasWidth}px (šířka) x ${canvasHeight}px (výška). Kresli S MÍROU, PŘEHLEDNĚ a V RÁMCI PLÁTNA. Nepřekrývej zbytečně prvky. Barvy zadávej jako hex kódy (#RRGGBB).
+ 4. DÉLKA ODPOVĚDI: Pro záložku "Vysvětlení" buď podrobný, ale drž se jednoho kroku. Pro "Chat" odpovídej stručněji a přímo na dotaz.
+ 5. VÝSTUP DO CHATU (SHRNUTÍ): Pokud generuješ delší odpověď pro "Vysvětlení", na ÚPLNÝ konec celé odpovědi (i za případné kreslící příkazy) PŘIDEJ krátký, výstižný souhrn pro zobrazení v chatu, ve formátu: \`CHAT_SUMMARY: [Zde tvůj krátký souhrn]\`. Pokud odpovídáš přímo v chatu (target 'chat'), CHAT_SUMMARY nepřidávej.`;
 
-                    // ... (zbytek sendToGemini - sestavení requestu, fetch, error handling) ...
-                     const historyForApi = geminiChatContext.length > 0 ? geminiChatContext.filter(item => item.role === 'user' || item.role === 'model') : [];
+                    // --- Sestavení a odeslání requestu ---
+                     // Filter context: Remove system instructions, keep only user/model pairs
+                     const historyForApi = geminiChatContext.filter(item => item.role === 'user' || item.role === 'model');
                      const currentRequestContent = { role: "user", parts: [{ text: promptText }] };
-                     const contentsPayload = historyForApi.length === 0
-                         ? [{ role: "user", parts: [{ text: systemInstructionText + "\n\n---\n\nStudent: " + promptText }] }]
-                         : [...historyForApi, currentRequestContent];
-                     const requestBody = { contents: contentsPayload, generationConfig: { temperature: 0.6, topP: 0.95, topK: 40, maxOutputTokens: 4096 }, safetySettings: [ { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" }, { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" }, { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" }, { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" } ] };
+
+                      // Construct payload, add system instruction ONLY if history is empty or as needed
+                      let contentsPayload;
+                      if (historyForApi.length === 0) {
+                           // First turn, prepend system instruction to the user prompt
+                            contentsPayload = [{
+                                 role: "user",
+                                 parts: [{ text: systemInstructionText + "\n\n---\n\nStudentův dotaz/požadavek: " + promptText }]
+                            }];
+                           // Also add system instruction to our local context for future reference (but don't send it again)
+                           geminiChatContext.unshift({ role: "system", parts: [{ text: systemInstructionText }] });
+                      } else {
+                           // Subsequent turns, just append the user message
+                           contentsPayload = [...historyForApi, currentRequestContent];
+                      }
+
+                     const requestBody = {
+                          contents: contentsPayload,
+                          generationConfig: {
+                               temperature: 0.6, // Balanced creativity and consistency
+                               topP: 0.95,
+                               topK: 40,
+                               maxOutputTokens: 4096 // Generous token limit
+                          },
+                          safetySettings: [ // Relax safety for math/logic context
+                               { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
+                               { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
+                               { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
+                               { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" },
+                          ]
+                     };
+
                      try {
-                         const response = await fetch(GEMINI_API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(requestBody) });
-                         if (!response.ok) { /*...*/ throw new Error(`API Error (${response.status})`); }
-                         const data = await response.json();
-                         const candidate = data.candidates?.[0];
-                         if (!candidate) { /*...*/ throw new Error('Invalid AI response.'); }
-                         if (candidate.finishReason && !["STOP", "MAX_TOKENS"].includes(candidate.finishReason)) { /*...*/ throw new Error(`Generation stopped: ${candidate.finishReason}`); }
-                         const geminiResponseText = candidate.content?.parts?.[0]?.text;
-                         if (!geminiResponseText) { throw new Error('AI returned empty text.'); }
-                         geminiChatContext.push({ role: "model", parts: [{ text: geminiResponseText }] });
-                         await processGeminiResponse(geminiResponseText, targetArea, requestTimestamp); // Process the response
-                         updateAIStatus(currentTopic ? `Vysvětluje: ${currentTopic.name}` : 'Připraven');
-                     } catch (error) { /*...*/ } finally { updateGeminiThinkingState(false); }
-                 };
+                          console.log("Sending payload to Gemini:", JSON.stringify(requestBody).substring(0, 500) + "..."); // Log snippet
+                          const response = await fetch(GEMINI_API_URL, {
+                               method: 'POST',
+                               headers: { 'Content-Type': 'application/json' },
+                               body: JSON.stringify(requestBody)
+                          });
 
-                 const processGeminiResponse = async (rawResponseText, targetArea, timestamp) => {
-                     removeThinkingIndicator();
-                     let chatSummary = null;
-                     const summaryMatch = rawResponseText.match(/CHAT_SUMMARY:\s*(.*)/s);
-                     let textForProcessing = rawResponseText;
-                     if (summaryMatch && summaryMatch[1]) { chatSummary = summaryMatch[1].trim(); textForProcessing = rawResponseText.replace(/CHAT_SUMMARY:[\s\S]*/, '').trim(); }
+                          if (!response.ok) {
+                               const errorBody = await response.text();
+                               console.error("Gemini API Error Response:", errorBody);
+                               throw new Error(`Chyba Gemini API (${response.status}): ${errorBody.substring(0, 100)}`);
+                          }
 
-                     // Process Canvas commands first
-                     const textToDisplay = await parseAndProcessCanvasCommands(textForProcessing);
+                          const data = await response.json();
+                           console.log("Raw Gemini Response:", data); // Log the full response
 
-                     // Display text content
-                     if (targetArea === 'explanation') {
-                         const placeholder = explanationDisplay.querySelector('.loading-placeholder, .empty-state');
-                         if (placeholder) placeholder.remove();
-                         if (explanationDisplay.querySelectorAll('.step').length === 0 && (explanationDisplay.innerHTML.includes('Výuka připravena') || explanationDisplay.innerHTML.includes('Čekání'))) { explanationDisplay.innerHTML = ''; }
-                         const stepDiv = document.createElement('div'); stepDiv.className = 'step'; renderMarkdown(stepDiv, textToDisplay); explanationDisplay.appendChild(stepDiv);
-                         if(explanationScrollContent) { /* scroll */ }
-                         if (chatSummary) { await addChatMessage(chatSummary, 'gemini', true, timestamp); }
-                         else if (textToDisplay.trim()) { await addChatMessage(`AI pokračovala ve vysvětlení...`, 'gemini', false, timestamp); }
-                         if (nextStepBtn) nextStepBtn.style.display = 'inline-flex';
-                         if (markCompleteBtn) markCompleteBtn.style.display = 'inline-flex';
-                     } else {
-                         if (textToDisplay.trim()) { await addChatMessage(textToDisplay, 'gemini', true, timestamp); }
-                         else { await addChatMessage("(Odpověď AI byla prázdná)", 'gemini', false, timestamp); }
+                          const candidate = data.candidates?.[0];
+                          if (!candidate) {
+                               console.error("Invalid response structure from Gemini:", data);
+                               // Check for prompt feedback if no candidates
+                                const promptFeedback = data.promptFeedback;
+                                if (promptFeedback?.blockReason) {
+                                      throw new Error(`Obsah blokován: ${promptFeedback.blockReason}. Detail: ${promptFeedback.safetyRatings?.map(r => `${r.category}: ${r.probability}`).join(', ')}`);
+                                }
+                                throw new Error('Chybná struktura odpovědi od AI.');
+                          }
+
+                          // Check finish reason
+                           if (candidate.finishReason && !["STOP", "MAX_TOKENS"].includes(candidate.finishReason)) {
+                                console.warn(`Gemini generation stopped unexpectedly: ${candidate.finishReason}`);
+                                throw new Error(`Generování zastaveno: ${candidate.finishReason}`);
+                           }
+
+                          const geminiResponseText = candidate.content?.parts?.[0]?.text;
+                          if (!geminiResponseText) {
+                               console.warn("Gemini returned empty text content.");
+                               throw new Error('AI vrátila prázdnou odpověď.');
+                          }
+
+                           // Add AI response to local context BEFORE processing
+                           geminiChatContext.push({ role: "model", parts: [{ text: geminiResponseText }] });
+
+                           // Process the response (parse commands, display text/summary)
+                           await processGeminiResponse(geminiResponseText, targetArea, requestTimestamp);
+
+                          updateAIStatus(currentTopic ? `Vysvětluje: ${currentTopic.name}` : 'Připraven');
+
+                     } catch (error) {
+                          console.error('Error sending/processing Gemini request:', error);
+                          showToast(`Chyba komunikace s AI: ${error.message}`, "error");
+                          handleGeminiError(error.message, targetArea, requestTimestamp); // Handle the error display
+                          updateAIStatus('Nastala chyba');
+                     } finally {
+                          updateGeminiThinkingState(false); // Ensure thinking state is turned off
                      }
-                 };
+                };
 
-                 const handleGeminiError = (errorMessage, targetArea, timestamp) => { /* ... */ };
+                const processGeminiResponse = async (rawResponseText, targetArea, timestamp) => {
+                    removeThinkingIndicator(); // Remove "..." indicator
+                    let chatSummary = null;
+                    const summaryRegex = /CHAT_SUMMARY:\s*([\s\S]*)/; // Regex to capture summary
+                    const summaryMatch = rawResponseText.match(summaryRegex);
+                    let textForProcessing = rawResponseText;
+
+                    // Extract chat summary if present and remove it from the main text
+                    if (summaryMatch && summaryMatch[1]) {
+                        chatSummary = summaryMatch[1].trim();
+                        textForProcessing = rawResponseText.replace(summaryRegex, '').trim();
+                        console.log("Extracted Chat Summary:", chatSummary);
+                    }
+
+                    // Parse canvas commands and get remaining text
+                    const textToDisplay = await parseAndProcessCanvasCommands(textForProcessing);
+
+                    // Display content based on target area
+                    if (targetArea === 'explanation') {
+                        console.log("Processing for EXPLANATION area.");
+                        const placeholder = explanationDisplay.querySelector('.loading-placeholder, .empty-state');
+                        if (placeholder) placeholder.remove(); // Remove initial placeholder
+
+                        // Clear explanation area only if it's the very first step
+                        const isFirstStep = explanationDisplay.querySelectorAll('.step').length === 0 && lastExplanationTimestamp === 0;
+                        if (isFirstStep) {
+                              explanationDisplay.innerHTML = ''; // Clear "Výuka připravena"
+                              console.log("First explanation step, clearing initial placeholder.");
+                         } else {
+                              console.log("Appending explanation step.");
+                         }
+
+                        const stepDiv = document.createElement('div');
+                        stepDiv.className = 'step';
+                        renderMarkdown(stepDiv, textToDisplay); // Render the main explanation text
+                        explanationDisplay.appendChild(stepDiv);
+                        lastExplanationTimestamp = Date.now(); // Update timestamp
+
+                        // Scroll explanation area to the bottom
+                        if(explanationScrollContent) {
+                             explanationScrollContent.scrollTop = explanationScrollContent.scrollHeight;
+                        }
+
+                         // Add chat summary (if extracted) or a generic message to chat
+                         if (chatSummary) {
+                              await addChatMessage(chatSummary, 'gemini', true, timestamp); // Save summary
+                         } else if (textToDisplay.trim()) {
+                             // Only add generic message if explanation wasn't empty
+                              await addChatMessage(`AI pokračovala ve vysvětlení (viz záložka Vysvětlení).`, 'gemini', false, timestamp); // Don't save generic message
+                         }
+
+                        // Ensure controls are visible after first step
+                        if (nextStepBtn) nextStepBtn.style.display = 'inline-flex';
+                        if (markCompleteBtn) markCompleteBtn.style.display = 'inline-flex';
+
+                    } else { // Target is 'chat'
+                        console.log("Processing for CHAT area.");
+                        if (textToDisplay.trim()) {
+                            await addChatMessage(textToDisplay, 'gemini', true, timestamp); // Add AI chat response and save it
+                        } else if (chatSummary) {
+                             // If only summary was extracted (unlikely for chat target, but handle it)
+                             await addChatMessage(chatSummary, 'gemini', true, timestamp);
+                        } else {
+                            // Handle case where AI response might be only canvas commands or empty
+                             await addChatMessage("(AI odpověď byla prázdná nebo obsahovala pouze kreslící příkazy)", 'gemini', false, timestamp);
+                             console.warn("AI chat response was effectively empty after processing commands.");
+                        }
+                    }
+                     // Ensure MathJax re-renders if needed
+                      if (window.MathJax && typeof window.MathJax.typesetPromise === 'function') {
+                          setTimeout(() => window.MathJax.typesetPromise(), 10); // Typeset the whole page after content update
+                      }
+                };
+
+                const handleGeminiError = (errorMessage, targetArea, timestamp) => {
+                     // Display error in the chat regardless of the original target
+                     const errorMsg = `Omlouvám se, nastala chyba při zpracování vašeho požadavku: ${errorMessage}`;
+                     addChatMessage(errorMsg, 'gemini', false, timestamp); // Don't save AI errors to history
+                     // If the error was during an explanation step, show error there too
+                     if (targetArea === 'explanation') {
+                          explanationDisplay.innerHTML += `<p style="color:var(--danger); margin-top:1rem;">${errorMsg}</p>`;
+                          if(explanationScrollContent) explanationScrollContent.scrollTop = explanationScrollContent.scrollHeight;
+                     }
+                };
+
 
                 // --- Run Application ---
                 initializeApp();
@@ -617,7 +1872,14 @@ DŮLEŽITÉ POKYNY:
         } catch (e) {
             // --- Fatal Error Handling ---
             console.error("FATAL SCRIPT ERROR:", e);
-             document.body.innerHTML = `<div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: #fff5f5; color: #d00; padding: 40px; font-family: sans-serif; text-align: center; z-index: 9999;"><h1>FATÁLNÍ CHYBA SKRIPTU</h1><p>Omlouváme se, ale aplikace nemohla být spuštěna kvůli závažné chybě.</p><p>Zkuste prosím obnovit stránku (F5). Pokud problém přetrvává, kontaktujte podporu.</p><hr style="margin: 20px 0; border-color: #fcc;"><pre style="text-align: left; background-color: #ffeaea; padding: 15px; border-radius: 5px; overflow-x: auto; font-size: 0.8em;">${e.message}\n${e.stack}</pre></div>`;
+             // Display a user-friendly message covering the entire page
+             document.body.innerHTML = `
+                 <div style="padding: 30px; text-align: center; font-family: sans-serif; color: #dc3545;">
+                      <h1>Nastala kritická chyba</h1>
+                      <p>Omlouváme se, aplikace nemohla být spuštěna.</p>
+                      <p>Zkuste prosím obnovit stránku. Pokud problém přetrvává, kontaktujte podporu.</p>
+                      <pre style="margin-top: 20px; padding: 15px; background-color: #f8d7da; border: 1px solid #f5c6cb; border-radius: 5px; text-align: left; font-size: 12px; white-space: pre-wrap; word-wrap: break-word;">${e.message}\n${e.stack}</pre>
+                 </div>`;
         }
     </script>
 
