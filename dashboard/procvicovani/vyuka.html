@@ -17,7 +17,7 @@
             processEnvironments: true
           },
           options: {
-            skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'], // Přidáno 'code'
+            skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
             ignoreHtmlClass: 'tex2jax_ignore',
             processHtmlClass: 'tex2jax_process'
           },
@@ -38,10 +38,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/css/tooltipster.bundle.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/js/tooltipster.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <script src="https://unpkg.com/tldraw@1.24.2/dist/tldraw.js"></script>
-
-    <style>
-        /* --- Základní styly a proměnné --- */
+    <script src="https://unpkg.com/tldraw@1.24.2/dist/tldraw.js" defer></script> <style>
+        /* --- CSS Styly (z predchádzajúcej odpovede - bezo zmeny) --- */
+        /* Základní styly a proměnné */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; scroll-behavior: smooth; }
         :root {
             --primary-rgb: 67, 97, 238; /* For rgba */
@@ -49,7 +48,7 @@
         }
         body { background-color: #f6f8ff; color: var(--text-primary); min-height: 100vh; display: flex; overflow-x: hidden; }
 
-        /* --- Sidebar --- */
+        /* Sidebar */
         .sidebar { width: var(--sidebar-width); height: 100vh; position: fixed; top: 0; left: 0; background: var(--gradient-1); color: var(--white); padding: 1.5rem 1rem; display: flex; flex-direction: column; z-index: 100; box-shadow: var(--shadow-lg); transition: transform var(--transition-speed) ease, width var(--transition-speed) ease; }
         .sidebar-header { display: flex; align-items: center; margin-bottom: 2rem; padding: 0 0.75rem; }
         .sidebar-logo { font-size: 1.5rem; font-weight: 700; color: var(--white); text-decoration: none; display: flex; align-items: center; gap: 0.75rem; }
@@ -67,8 +66,7 @@
         .user-name { font-weight: 600; font-size: 0.95rem; }
         .user-role { font-size: 0.8rem; opacity: 0.8; }
 
-
-        /* --- Hlavní obsah --- */
+        /* Hlavní obsah */
         main { flex: 1; margin-left: var(--sidebar-width); padding: 1.5rem 2rem; transition: margin var(--transition-speed) ease; width: calc(100% - var(--sidebar-width)); display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
         .dashboard-header { margin-bottom: 1.5rem; background-color: var(--white); border-radius: var(--card-radius); padding: 1.25rem 1.5rem; box-shadow: var(--shadow-sm); flex-shrink: 0; }
         .header-content { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
@@ -76,19 +74,19 @@
         .header-content h1 { font-size: 1.7rem; font-weight: 600; color: var(--dark); margin: 0; }
         .header-actions { display: flex; align-items: center; gap: 1rem; }
 
-        /* --- Layout Výuky --- */
+        /* Layout Výuky */
         .learning-layout { display: flex; flex-grow: 1; gap: 1.75rem; overflow: hidden; }
         .left-panel { flex: 1; display: flex; flex-direction: column; gap: 1.75rem; min-width: 400px; overflow: hidden; }
         .right-panel { width: 420px; flex-shrink: 0; display: flex; flex-direction: column; overflow: hidden; }
 
-        /* --- Levé komponenty --- */
+        /* Levé komponenty */
         .section { background-color: var(--white); border-radius: var(--card-radius); box-shadow: var(--shadow-sm); padding: 1.75rem; animation: fadeIn 0.5s ease forwards; transition: box-shadow 0.3s ease; display: flex; flex-direction: column; /* Umožní flex-grow obsahu */ }
         .section:hover { box-shadow: var(--shadow-md); }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .section-title { font-size: 1.35rem; font-weight: 600; margin-bottom: 1.25rem; color: var(--dark); display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; border-bottom: 1px solid var(--gray-light); padding-bottom: 0.75rem; flex-shrink: 0; /* Nadpis nezabírá místo navíc */ }
         .section-title i { color: var(--primary); margin-right: 0.6rem; font-size: 1.1em; }
 
-        .topic-loading-section { flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; background-color: #f8f9fa; padding: 1.25rem 1.75rem; /* Upravený padding */ }
+        .topic-loading-section { flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; background-color: #f8f9fa; padding: 1.25rem 1.75rem; }
         #current-topic-display { font-size: 1.1rem; font-weight: 500; color: var(--text-secondary); }
         #current-topic-display strong { color: var(--primary); font-weight: 600; }
         #current-topic-display .placeholder { font-style: italic; color: var(--text-muted); }
@@ -103,7 +101,7 @@
         #explanation-content .step:last-child { border-bottom: none; padding-bottom: 0.5rem; /* Menší mezera u posledního */ }
         #explanation-content h3 { color: var(--secondary); margin-top: 1.75rem; margin-bottom: 0.8rem; font-size: 1.15rem; }
         #explanation-content code { background-color: rgba(var(--primary-rgb), 0.1); padding: 0.2rem 0.4rem; border-radius: 4px; font-size: 0.95em; color: var(--secondary); }
-        #explanation-content pre { margin: 1rem 0; } /* Přidáme margin pro pre bloky */
+        #explanation-content pre { margin: 1rem 0; }
         #explanation-content pre code { display: block; background-color: var(--gray-dark); color: #e0e0e0; padding: 1rem; border-radius: 8px; font-size: 0.9rem; line-height: 1.6; white-space: pre-wrap; word-wrap: break-word; }
         #explanation-content strong { color: var(--dark); font-weight: 600; }
         #explanation-content blockquote { border-left: 3px solid var(--primary-light); padding-left: 1rem; margin: 1rem 0 1rem 0.5rem; color: var(--text-secondary); font-style: italic; }
@@ -111,12 +109,11 @@
         #explanation-content li { margin-bottom: 0.5rem; }
         .explanation-footer { flex-shrink: 0; text-align: center; margin-top: 1rem; border-top: 1px solid var(--gray-light); padding-top: 1rem; }
 
-        .whiteboard-section { height: 400px; /* Fixní výška */ flex-shrink: 0; display: flex; flex-direction: column; padding: 0; overflow: hidden; background: transparent; box-shadow: none; border: none; }
+        .whiteboard-section { height: 400px; flex-shrink: 0; display: flex; flex-direction: column; padding: 0; overflow: hidden; background: transparent; box-shadow: none; border: none; }
         .whiteboard-container { width: 100%; height: 100%; border-radius: var(--card-radius); overflow: hidden; position: relative; border: 1px solid var(--gray-light); box-shadow: var(--shadow-sm); background-color: var(--white); /* Bílé pozadí pro kontrast */ }
-         /* Placeholder/Error for whiteboard */
-         #tldraw-container > p { padding: 2rem; text-align: center; font-style: italic; color: var(--text-muted); }
+        #tldraw-container > p { padding: 2rem; text-align: center; font-style: italic; color: var(--text-muted); }
 
-        /* --- Pravý panel (Chat) --- */
+        /* Pravý panel (Chat) */
         .chat-area { display: flex; flex-direction: column; height: 100%; border-radius: var(--card-radius); background-color: var(--white); overflow: hidden; box-shadow: var(--shadow-md); }
         .chat-header { padding: 0.8rem 1.3rem; border-bottom: 1px solid var(--gray-light); display: flex; justify-content: space-between; align-items: center; background-color: #f8f9fa; flex-shrink: 0; }
         .chat-header h3 { font-size: 1.15rem; font-weight: 600; color: var(--dark); margin: 0; display: flex; align-items: center; gap: 0.6rem; }
@@ -138,13 +135,13 @@
         .chat-message.user .message-avatar { background: var(--success); color: white; }
         .chat-message.gemini .message-avatar { background: var(--primary); color: white; }
 
-        .message-bubble { padding: 0.9rem 1.2rem; border-radius: 20px; line-height: 1.6; word-wrap: break-word; box-shadow: var(--shadow-sm); position: relative; transition: transform 0.2s ease; background-color: var(--light); /* Default pro Gemini */ color: var(--text-primary); border: 1px solid #e9ecef; border-bottom-left-radius: 6px; }
+        .message-bubble { padding: 0.9rem 1.2rem; border-radius: 20px; line-height: 1.6; word-wrap: break-word; box-shadow: var(--shadow-sm); position: relative; transition: transform 0.2s ease; background-color: var(--light); color: var(--text-primary); border: 1px solid #e9ecef; border-bottom-left-radius: 6px; }
         .message-bubble:hover { transform: scale(1.01); }
-        .chat-message.user .message-bubble { background: var(--gradient-1); color: white; border: none; border-bottom-right-radius: 6px; border-bottom-left-radius: 20px; /* Reset */ }
-        /* Code inside bubbles */
+        .chat-message.user .message-bubble { background: var(--gradient-1); color: white; border: none; border-bottom-right-radius: 6px; border-bottom-left-radius: 20px; }
         .message-bubble code { background-color: rgba(var(--primary-rgb), 0.1); padding: 0.1em 0.3em; border-radius: 4px; font-size: 0.9em; color: var(--secondary); }
         .chat-message.user .message-bubble code { background-color: rgba(255, 255, 255, 0.2); color: #fff; }
-        .message-bubble pre code { display: block; background-color: var(--gray-dark); color: #e0e0e0; padding: 0.8rem; border-radius: 6px; font-size: 0.85rem; line-height: 1.5; margin: 0.5rem 0; white-space: pre-wrap; word-wrap: break-word; }
+        .message-bubble pre { margin: 0.5rem 0; } /* Přidán margin */
+        .message-bubble pre code { display: block; background-color: var(--gray-dark); color: #e0e0e0; padding: 0.8rem; border-radius: 6px; font-size: 0.85rem; line-height: 1.5; white-space: pre-wrap; word-wrap: break-word; }
         .chat-message.user .message-bubble pre code { background-color: rgba(0,0,0,0.3); color: #eee; }
         .message-timestamp { font-size: 0.7rem; color: var(--text-muted); margin-top: 5px; display: block; text-align: left; opacity: 0.8; }
         .chat-message.user .message-timestamp { text-align: right; }
@@ -162,10 +159,10 @@
         .send-button i { font-size: 1.1em; }
         .send-button .fa-spinner { margin: 0; }
 
-        /* --- Utility & State Styles --- */
+        /* Utility & State Styles */
         .loading { display: flex; align-items: center; justify-content: center; padding: 2rem; font-style: italic; color: var(--text-muted); }
         .loading i { margin-right: 0.75rem; }
-        .empty-state { text-align: center; padding: 3rem 1.5rem; color: var(--text-secondary); }
+        .empty-state { text-align: center; padding: 3rem 1.5rem; color: var(--text-secondary); margin-top: 2rem; }
         .empty-state i { font-size: 3.5rem; margin-bottom: 1.5rem; color: var(--gray-light); }
         .empty-state h3 { font-size: 1.2rem; font-weight: 600; margin-bottom: 1rem; color: var(--dark); }
         .empty-state p { margin-bottom: 1.5rem; max-width: 500px; margin-left: auto; margin-right: auto; }
@@ -177,95 +174,21 @@
         .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
         .btn i { font-size: 1em; }
 
-        /* --- Responsiveness --- */
+        /* Responsiveness */
         .mobile-menu-toggle { display: none; background: none; border: none; cursor: pointer; color: var(--dark); font-size: 1.5rem; margin-right: 1rem; padding: 0.5rem; z-index: 1001; }
         .sidebar-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); z-index: 999; opacity: 0; transition: opacity 0.3s ease; backdrop-filter: blur(5px); }
         .sidebar-overlay.active { display: block; opacity: 1; }
 
-        @media (max-width: 1200px) {
-            .right-panel { width: 360px; }
-            .learning-layout { gap: 1.25rem; }
-            main { padding: 1.5rem; }
-        }
-        @media (max-width: 992px) {
-             :root { --sidebar-width: 80px; }
-             main { margin-left: 80px; width: calc(100% - 80px); }
-             .sidebar-logo span, .sidebar-link span, .user-info, .sidebar-footer { display: none; }
-             .sidebar-link i { margin-right: 0; font-size: 1.5rem; }
-             .sidebar-logo i { margin-right: 0; }
-             .sidebar-header, .sidebar-link { justify-content: center; }
-             .user-profile { justify-content: center; padding: 0.75rem 0; }
-             .user-avatar { margin-right: 0; }
-             .learning-layout { flex-direction: column; overflow-y: auto; height: calc(100vh - 80px - 3rem); /* Adjust based on header height */ }
-             .left-panel, .right-panel { width: 100%; min-width: unset; overflow: visible; }
-             .right-panel { max-height: 60vh; /* Limit chat height on tablets */ }
-             .whiteboard-section { height: 300px; /* Reduce whiteboard height */ }
-        }
-        @media (max-width: 768px) {
-            main { padding: 1rem; }
-            .header-content { flex-direction: column; align-items: flex-start; gap: 1rem; }
-            .header-actions { width: 100%; justify-content: flex-start; }
-            .learning-layout { height: calc(100vh - 120px - 2rem); gap: 1rem; /* Adjust based on header height */ }
-            .right-panel { max-height: 50vh; }
-            .section { padding: 1.25rem; }
-            .chat-area { box-shadow: var(--shadow-sm); }
-            .chat-messages { padding: 1rem; gap: 1rem; }
-            .chat-input-area { padding: 0.75rem 1rem; }
-            .chat-input { padding: 0.7rem 1rem; font-size: 0.95rem; }
-            .send-button { height: 40px; padding: 0 1rem; }
-        }
-        @media (max-width: 576px) {
-             :root { --sidebar-width: 0; }
-             main { margin-left: 0; width: 100%; }
-             .sidebar { transform: translateX(-100%); width: 260px; z-index: 1000; }
-             .sidebar.active { transform: translateX(0); .sidebar-logo span, .sidebar-link span, .user-info, .sidebar-footer { display: block; } .sidebar-link i { margin-right: 0.75rem; } .sidebar-header, .sidebar-link { justify-content: flex-start; } .user-profile { justify-content: flex-start; padding: 1rem; } .user-avatar { margin-right: 0.75rem; } }
-             .mobile-menu-toggle { display: block; }
-             .header-content h1 { font-size: 1.4rem; }
-             .learning-layout { height: auto; }
-             .right-panel { max-height: unset; /* Allow chat to take more space */ }
-             .whiteboard-section { height: 250px; }
-             .chat-message { max-width: 95%; }
-        }
+        @media (max-width: 1200px) { .right-panel { width: 360px; } .learning-layout { gap: 1.25rem; } main { padding: 1.5rem; } }
+        @media (max-width: 992px) { :root { --sidebar-width: 80px; } main { margin-left: 80px; width: calc(100% - 80px); } .sidebar-logo span, .sidebar-link span, .user-info, .sidebar-footer { display: none; } .sidebar-link i { margin-right: 0; font-size: 1.5rem; } .sidebar-logo i { margin-right: 0; } .sidebar-header, .sidebar-link { justify-content: center; } .user-profile { justify-content: center; padding: 0.75rem 0; } .user-avatar { margin-right: 0; } .learning-layout { flex-direction: column; overflow-y: auto; height: calc(100vh - 80px - 3rem); } .left-panel, .right-panel { width: 100%; min-width: unset; overflow: visible; } .right-panel { max-height: 60vh; } .whiteboard-section { height: 300px; } }
+        @media (max-width: 768px) { main { padding: 1rem; } .header-content { flex-direction: column; align-items: flex-start; gap: 1rem; } .header-actions { width: 100%; justify-content: flex-start; } .learning-layout { height: calc(100vh - 120px - 2rem); gap: 1rem; } .right-panel { max-height: 50vh; } .section { padding: 1.25rem; } .chat-area { box-shadow: var(--shadow-sm); } .chat-messages { padding: 1rem; gap: 1rem; } .chat-input-area { padding: 0.75rem 1rem; } .chat-input { padding: 0.7rem 1rem; font-size: 0.95rem; } .send-button { height: 40px; padding: 0 1rem; } }
+        @media (max-width: 576px) { :root { --sidebar-width: 0; } main { margin-left: 0; width: 100%; } .sidebar { transform: translateX(-100%); width: 260px; z-index: 1000; } .sidebar.active { transform: translateX(0); .sidebar-logo span, .sidebar-link span, .user-info, .sidebar-footer { display: block; } .sidebar-link i { margin-right: 0.75rem; } .sidebar-header, .sidebar-link { justify-content: flex-start; } .user-profile { justify-content: flex-start; padding: 1rem; } .user-avatar { margin-right: 0.75rem; } } .mobile-menu-toggle { display: block; } .header-content h1 { font-size: 1.4rem; } .learning-layout { height: auto; } .right-panel { max-height: unset; } .whiteboard-section { height: 250px; } .chat-message { max-width: 95%; } }
 
-        /* --- Dark mode --- */
-        @media (prefers-color-scheme: dark) {
-            :root { --white: #1a202c; --light: #2d3748; --dark: #e2e8f0; --gray-light: #4a5568; --text-primary: #e2e8f0; --text-secondary: #cbd5e0; --text-muted: #a0aec0; --dark-bg: #1e2533;}
-            body { background-color: #171923; }
-            .section, .dashboard-header { background-color: var(--dark-bg); border-color: var(--gray-light); }
-            .mobile-menu-toggle { color: var(--dark); } .empty-state i { color: var(--light); }
-            .topic-loading-section { background-color: #212733; }
-            .whiteboard-container { border-color: var(--gray-light); background-color: var(--dark-bg); }
-            #explanation-content { scrollbar-color: var(--gray) var(--dark-bg); }
-            #explanation-content::-webkit-scrollbar-thumb { background-color: var(--gray); border-color: var(--dark-bg); }
-            #explanation-content pre code { background-color: #1a202c; color: #d1d5db; }
-            #explanation-content code { background-color: rgba(72, 149, 239, 0.15); color: var(--primary-light); }
-            #explanation-content strong { color: var(--light); }
-            #explanation-content blockquote { border-left-color: var(--primary); color: var(--text-secondary); }
+        /* Dark mode */
+        @media (prefers-color-scheme: dark) { :root { --white: #1a202c; --light: #2d3748; --dark: #e2e8f0; --gray-light: #4a5568; --text-primary: #e2e8f0; --text-secondary: #cbd5e0; --text-muted: #a0aec0; --dark-bg: #1e2533;} body { background-color: #171923; } .section, .dashboard-header { background-color: var(--dark-bg); border-color: var(--gray-light); } .mobile-menu-toggle { color: var(--dark); } .empty-state i { color: var(--light); } .topic-loading-section { background-color: #212733; } .whiteboard-container { border-color: var(--gray-light); background-color: var(--dark-bg); } #explanation-content { scrollbar-color: var(--gray) var(--dark-bg); } #explanation-content::-webkit-scrollbar-thumb { background-color: var(--gray); border-color: var(--dark-bg); } #explanation-content pre code { background-color: #1a202c; color: #d1d5db; } #explanation-content code { background-color: rgba(72, 149, 239, 0.15); color: var(--primary-light); } #explanation-content strong { color: var(--light); } #explanation-content blockquote { border-left-color: var(--primary); color: var(--text-secondary); } .chat-area { background-color: var(--dark-bg); box-shadow: var(--shadow-md); border: 1px solid var(--gray-light); } .chat-header { background-color: var(--light); border-bottom-color: var(--gray-light); } .chat-header h3 { color: var(--dark); } .chat-actions button { color: var(--text-secondary); } .chat-actions button:hover:not(:disabled) { color: var(--primary-light); background-color: rgba(255,255,255,0.1); } .chat-messages { scrollbar-color: var(--gray) var(--dark-bg); } .chat-messages::-webkit-scrollbar-thumb { background-color: var(--gray); border-color: var(--dark-bg); } .message-avatar { border-color: var(--dark-bg); } .message-bubble { background-color: var(--light); color: var(--text-primary); border-color: var(--gray-light); } .chat-message.user .message-bubble { background: var(--gradient-2); color: var(--white); } .message-bubble code { background-color: rgba(255,255,255,0.1); color: var(--text-primary); } .chat-message.user .message-bubble code { background-color: rgba(255,255,255,0.3); color: white; } .message-bubble pre code { background-color: #1a202c; color: #d1d5db; } .chat-message.user .message-bubble pre code { background-color: rgba(0,0,0,0.3); color: #eee; } .message-thinking-indicator { background: var(--light); } .typing-dot { background-color: var(--gray); } .chat-input-area { background-color: var(--light); border-top-color: var(--gray-light); } .chat-input { background-color: var(--dark-bg); color: var(--text-primary); border-color: var(--gray-light); } .chat-input::placeholder { color: var(--text-muted); } .chat-input:focus { box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.2); } .btn-secondary { background-color: var(--light); color: var(--text-secondary); border-color: var(--gray-light); } .btn-secondary:hover:not(:disabled) { background-color: var(--gray-light); color: var(--dark); } }
 
-            .chat-area { background-color: var(--dark-bg); box-shadow: var(--shadow-md); border: 1px solid var(--gray-light); } /* Přidán jemný border v dark */
-            .chat-header { background-color: var(--light); border-bottom-color: var(--gray-light); } .chat-header h3 { color: var(--dark); } .chat-actions button { color: var(--text-secondary); } .chat-actions button:hover:not(:disabled) { color: var(--primary-light); background-color: rgba(255,255,255,0.1); }
-            .chat-messages { scrollbar-color: var(--gray) var(--dark-bg); }
-            .chat-messages::-webkit-scrollbar-thumb { background-color: var(--gray); border-color: var(--dark-bg); }
-            .message-avatar { border-color: var(--dark-bg); } /* Border pro avatar v tmavém režimu */
-            .message-bubble { background-color: var(--light); color: var(--text-primary); border-color: var(--gray-light); }
-            .chat-message.user .message-bubble { background: var(--gradient-2); color: var(--white); }
-            /* Code inside bubbles - dark */
-            .message-bubble code { background-color: rgba(255,255,255,0.1); color: var(--text-primary); }
-            .chat-message.user .message-bubble code { background-color: rgba(255,255,255,0.3); color: white; }
-            .message-bubble pre code { background-color: #1a202c; color: #d1d5db; }
-            .chat-message.user .message-bubble pre code { background-color: rgba(0,0,0,0.3); color: #eee; }
-            .message-thinking-indicator { background: var(--light); }
-            .typing-dot { background-color: var(--gray); }
-
-            .chat-input-area { background-color: var(--light); border-top-color: var(--gray-light); }
-            .chat-input { background-color: var(--dark-bg); color: var(--text-primary); border-color: var(--gray-light); } .chat-input::placeholder { color: var(--text-muted); }
-            .chat-input:focus { box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.2); }
-            .btn-secondary { background-color: var(--light); color: var(--text-secondary); border-color: var(--gray-light); }
-            .btn-secondary:hover:not(:disabled) { background-color: var(--gray-light); color: var(--dark); }
-        }
-
-        /* --- Toast notification --- */
-        .toast { position: fixed; bottom: 20px; right: 20px; background-color: var(--white); color: var(--text-primary); border-radius: 8px; padding: 1rem; box-shadow: var(--shadow-lg); max-width: 300px; z-index: 1001; display: flex; align-items: center; transform: translateY(120px); opacity: 0; transition: all 0.4s ease-in-out; border-left: 4px solid var(--primary); /* Default info */ }
+        /* Toast notification */
+        .toast { position: fixed; bottom: 20px; right: 20px; background-color: var(--white); color: var(--text-primary); border-radius: 8px; padding: 1rem; box-shadow: var(--shadow-lg); max-width: 300px; z-index: 1001; display: flex; align-items: center; transform: translateY(120px); opacity: 0; transition: all 0.4s ease-in-out; border-left: 4px solid var(--primary); }
         .toast.show { transform: translateY(0); opacity: 1; }
         .toast.success { border-left-color: var(--success); }
         .toast.error { border-left-color: var(--danger); }
@@ -397,9 +320,9 @@
             // --- Helper Functions ---
             const sanitizeHTML = (str) => { const temp = document.createElement('div'); temp.textContent = str || ''; return temp.innerHTML; };
             const getInitials = (profile, email) => { if (!profile) return email ? email[0].toUpperCase() : '?'; let i = (profile.first_name?.[0]||'')+(profile.last_name?.[0]||''); return i.toUpperCase() || profile.username?.[0].toUpperCase() || email?.[0].toUpperCase() || '?'; };
-            const showToast = (message, type = 'info', duration = 4000) => { /* ... (beze změny) ... */ if (!toastEl || !toastMessageEl) return; toastMessageEl.textContent = message; const icon = toastEl.querySelector('i'); icon.className = type === 'success' ? 'fas fa-check-circle' : type === 'error' ? 'fas fa-exclamation-circle' : type === 'warning' ? 'fas fa-exclamation-triangle' : 'fas fa-info-circle'; toastEl.className = 'toast ' + type; toastEl.classList.add('show'); setTimeout(() => toastEl.classList.remove('show'), duration); };
+            const showToast = (message, type = 'info', duration = 4000) => { if (!toastEl || !toastMessageEl) return; toastMessageEl.textContent = message; const icon = toastEl.querySelector('i'); icon.className = type === 'success' ? 'fas fa-check-circle' : type === 'error' ? 'fas fa-exclamation-circle' : type === 'warning' ? 'fas fa-exclamation-triangle' : 'fas fa-info-circle'; toastEl.className = 'toast ' + type; toastEl.classList.add('show'); setTimeout(() => toastEl.classList.remove('show'), duration); };
             const renderMarkdown = (element, markdownText) => { try { element.innerHTML = marked.parse(markdownText || '', { breaks: true, gfm: true }); if (window.MathJax && typeof window.MathJax.typesetPromise === 'function') { setTimeout(() => window.MathJax.typesetPromise([element]).catch(e=>console.error("MathJax error:",e)), 50); } } catch (e) { console.error("Markdown rendering error:", e); element.innerHTML = `<p style="color: red;">Chyba zobrazení obsahu.</p>`; }};
-            const autoResizeTextarea = () => { /* ... (beze změny) ... */ chatInput.style.height = 'auto'; chatInput.style.height = Math.min(chatInput.scrollHeight, 150) + 'px'; };
+            const autoResizeTextarea = () => { chatInput.style.height = 'auto'; chatInput.style.height = Math.min(chatInput.scrollHeight, 150) + 'px'; };
             const generateSessionId = () => `session_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
             const formatTimestamp = (date) => date.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' });
 
@@ -410,7 +333,9 @@
                 initTooltips();
                 await loadUserProfile();
                 if (currentUser) {
+                     // Initialize Tldraw first
                      initializeTldraw();
+                     // Then load the topic, which will decide whether to show the whiteboard section
                      await loadNextTopicFromPlan();
                 } else {
                      currentTopicDisplay.innerHTML = '<span class="placeholder"><i class="fas fa-sign-in-alt"></i> Pro zahájení výuky se prosím přihlaste.</span>';
@@ -419,18 +344,73 @@
                 }
             };
 
-            const loadUserProfile = async () => { /* ... (beze změny) ... */ try { const { data: { user }, error: userError } = await supabase.auth.getUser(); if (userError) throw userError; if (user) { currentUser = user; const { data: profile, error: profileError } = await supabase.from('profiles').select('*').eq('id', user.id).single(); if (profileError && profileError.code !== 'PGRST116') throw profileError; currentProfile = profile; updateUserInfoUI(); } else { currentUser = null; currentProfile = null; updateUserInfoUI(); } } catch (error) { console.error('Chyba profilu:', error); showToast("Chyba načítání profilu.", "error"); currentUser = null; currentProfile = null; updateUserInfoUI(); } };
-            const updateUserInfoUI = () => { /* ... (beze změny) ... */ const email = currentUser?.email; const displayName = `${currentProfile?.first_name || ''} ${currentProfile?.last_name || ''}`.trim() || currentProfile?.username || email?.split('@')[0] || 'Student'; if(userName) userName.textContent = displayName; if(userAvatar) { if (currentProfile?.avatar_url) userAvatar.innerHTML = `<img src="${currentProfile.avatar_url}" alt="${displayName}" />`; else userAvatar.textContent = getInitials(currentProfile, email); }};
-            const setupEventListeners = () => { /* ... (beze změny) ... */ if (mobileMenuToggle) mobileMenuToggle.addEventListener('click', () => { sidebar?.classList.toggle('active'); sidebarOverlay?.classList.toggle('active'); }); if (sidebarOverlay) sidebarOverlay.addEventListener('click', () => { sidebar?.classList.remove('active'); sidebarOverlay?.classList.remove('active'); }); window.addEventListener('resize', () => { if (window.innerWidth > 576 && sidebar?.classList.contains('active')) { sidebar.classList.remove('active'); sidebarOverlay?.classList.remove('active'); } }); if (loadNextTopicBtn) loadNextTopicBtn.addEventListener('click', loadNextTopicFromPlan); if (sendButton) sendButton.addEventListener('click', handleSendMessage); if (chatInput) { chatInput.addEventListener('keypress', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(); } }); chatInput.addEventListener('input', autoResizeTextarea); } if (saveChatBtn) saveChatBtn.addEventListener('click', saveChatToPDF); if (clearChatBtn) clearChatBtn.addEventListener('click', confirmClearChat); if (nextStepBtn) nextStepBtn.addEventListener('click', requestNextStep); };
-            const initTooltips = () => { /* ... (beze změny) ... */ try { if (window.$ && $.fn.tooltipster) { $('.btn-tooltip:not(.tooltipstered)').tooltipster({ theme: 'tooltipster-shadow', animation: 'fade', delay: 100, side: ['top', 'bottom'] }); console.log("Tooltips initialized."); } else console.warn("Tooltipster/jQuery not ready."); } catch (e) { console.error("Tooltipster error:", e); } };
-            const initializeTldraw = () => { /* ... (beze změny) ... */ if (typeof tldraw !== 'undefined' && tldraw.Tldraw && tldrawContainer) { try { console.log("Initializing tldraw..."); tldrawApp = new tldraw.Tldraw({ container: tldrawContainer, showUI: true, readOnly: false }); console.log("tldraw initialized."); } catch (error) { console.error("Failed to initialize tldraw:", error); tldrawContainer.innerHTML = "<p style='padding: 1rem; color: red;'>Chyba inicializace interaktivní došky.</p>"; } } else { console.warn("tldraw library or container not found."); tldrawContainer.innerHTML = "<p style='padding: 1rem; color: orange;'>Interaktivní doška není dostupná.</p>"; } /* Sekce se zobrazí až později */};
+            const loadUserProfile = async () => { try { const { data: { user }, error: userError } = await supabase.auth.getUser(); if (userError) throw userError; if (user) { currentUser = user; const { data: profile, error: profileError } = await supabase.from('profiles').select('*').eq('id', user.id).single(); if (profileError && profileError.code !== 'PGRST116') throw profileError; currentProfile = profile; updateUserInfoUI(); } else { currentUser = null; currentProfile = null; updateUserInfoUI(); } } catch (error) { console.error('Chyba profilu:', error); showToast("Chyba načítání profilu.", "error"); currentUser = null; currentProfile = null; updateUserInfoUI(); } };
+            const updateUserInfoUI = () => { const email = currentUser?.email; const displayName = `${currentProfile?.first_name || ''} ${currentProfile?.last_name || ''}`.trim() || currentProfile?.username || email?.split('@')[0] || 'Student'; if(userName) userName.textContent = displayName; if(userAvatar) { if (currentProfile?.avatar_url) userAvatar.innerHTML = `<img src="${currentProfile.avatar_url}" alt="${displayName}" />`; else userAvatar.textContent = getInitials(currentProfile, email); }};
+            const setupEventListeners = () => { if (mobileMenuToggle) mobileMenuToggle.addEventListener('click', () => { sidebar?.classList.toggle('active'); sidebarOverlay?.classList.toggle('active'); }); if (sidebarOverlay) sidebarOverlay.addEventListener('click', () => { sidebar?.classList.remove('active'); sidebarOverlay?.classList.remove('active'); }); window.addEventListener('resize', () => { if (window.innerWidth > 576 && sidebar?.classList.contains('active')) { sidebar.classList.remove('active'); sidebarOverlay?.classList.remove('active'); } }); if (loadNextTopicBtn) loadNextTopicBtn.addEventListener('click', loadNextTopicFromPlan); if (sendButton) sendButton.addEventListener('click', handleSendMessage); if (chatInput) { chatInput.addEventListener('keypress', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(); } }); chatInput.addEventListener('input', autoResizeTextarea); } if (saveChatBtn) saveChatBtn.addEventListener('click', saveChatToPDF); if (clearChatBtn) clearChatBtn.addEventListener('click', confirmClearChat); if (nextStepBtn) nextStepBtn.addEventListener('click', requestNextStep); };
+            const initTooltips = () => { try { if (window.$ && $.fn.tooltipster) { $('.btn-tooltip:not(.tooltipstered)').tooltipster({ theme: 'tooltipster-shadow', animation: 'fade', delay: 100, side: ['top', 'bottom'] }); console.log("Tooltips initialized."); } else console.warn("Tooltipster/jQuery not ready."); } catch (e) { console.error("Tooltipster error:", e); } };
+
+             // --- ** OPRAVA: Initialize Tldraw with better checks ** ---
+             const initializeTldraw = () => {
+                 // Ensure we only initialize once if called multiple times
+                 if (tldrawApp) {
+                     console.log("tldraw already initialized.");
+                     return;
+                 }
+
+                 // Check if the library is loaded AFTER the script tag potentially runs
+                 // Using a small delay or checking repeatedly might be necessary if 'defer' isn't enough
+                 setTimeout(() => {
+                     const tldrawContainerElement = document.getElementById('tldraw-container');
+
+                     console.log("Attempting to initialize tldraw...");
+                     console.log("tldraw library object:", typeof tldraw, tldraw);
+                     console.log("tldraw container element:", tldrawContainerElement);
+
+                     if (typeof tldraw !== 'undefined' && tldraw.Tldraw && tldrawContainerElement) {
+                         try {
+                             console.log("Found tldraw library and container. Creating instance...");
+                             tldrawContainerElement.innerHTML = ''; // Clear placeholder
+                             tldrawApp = new tldraw.Tldraw({
+                                 container: tldrawContainerElement,
+                                 showUI: true, // Keep UI visible for user interaction
+                                 readOnly: false // Allow user drawing
+                                 // darkMode: window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches // Optional: sync dark mode
+                             });
+                             console.log("tldraw instance created successfully.", tldrawApp);
+                             // We show the section only when a learning session starts (in startLearningSession)
+                             // whiteboardContainerSection.style.display = 'flex'; // Don't show yet
+                         } catch (error) {
+                             console.error("Failed to initialize tldraw INSTANCE:", error);
+                             if (tldrawContainerElement) {
+                                 tldrawContainerElement.innerHTML = "<p style='padding: 1rem; color: red;'>Chyba při vytváření instance interaktivní došky.</p>";
+                             }
+                             if (whiteboardContainerSection) {
+                                 whiteboardContainerSection.style.display = 'flex'; // Show section to display the error
+                             }
+                         }
+                     } else {
+                         console.warn("tldraw library or container NOT found yet or not ready. Whiteboard unavailable.");
+                         if (tldrawContainerElement) {
+                              tldrawContainerElement.innerHTML = "<p style='padding: 1rem; color: orange;'>Interaktivní doška není dostupná (knihovna nebo kontejner nenalezen).</p>";
+                         } else {
+                              console.error("HTML element with ID 'tldraw-container' not found!");
+                         }
+                         // Show section to display the warning/error
+                         if (whiteboardContainerSection) {
+                              whiteboardContainerSection.style.display = 'flex';
+                         }
+                     }
+                 }, 100); // Small delay to allow script loading
+             };
+            // --- ** KONEC OPRAVY tldraw ** ---
+
 
             // --- Topic Loading and Learning Session ---
             const loadNextTopicFromPlan = async () => {
                 if (!currentUser || !supabase) { showToast("Nelze načíst téma, nejste přihlášeni.", "warning"); return; }
                 currentTopicDisplay.innerHTML = '<span class="placeholder"><i class="fas fa-spinner fa-spin"></i> Hledám další téma v plánu...</span>';
                 loadNextTopicBtn.disabled = true;
-                hideLearningUI();
+                hideLearningUI(); // Hide elements before loading new topic
 
                  try {
                      const { data: activePlan, error: planError } = await supabase.from('study_plans').select('id').eq('user_id', currentUser.id).eq('status', 'active').order('created_at', { ascending: false }).limit(1).maybeSingle();
@@ -443,7 +423,7 @@
 
                      currentTopic = { id: `activity_${nextActivity.id}`, name: nextActivity.title, activity_id: nextActivity.id };
                      currentTopicDisplay.innerHTML = `Aktuální téma: <strong>${sanitizeHTML(currentTopic.name)}</strong>`;
-                     await startLearningSession(); // Spustí session s novým tématem
+                     await startLearningSession();
 
                  } catch (error) {
                      console.error("Chyba při načítání dalšího tématu:", error);
@@ -454,369 +434,83 @@
                  }
              };
 
-             // --- *** ZMĚNA: Automatické mazání historie PŘED startem nové relace *** ---
-             const startLearningSession = async () => {
-                 if (!currentTopic || !currentUser || !supabase) { console.error("startLearningSession voláno bez potřebných dat"); return; }
+            const startLearningSession = async () => {
+                if (!currentTopic || !currentUser || !supabase) { console.error("startLearningSession called without necessary data"); return; }
+                console.log(`Preparing to start session for topic: ${currentTopic.name} (Activity ID: ${currentTopic.activity_id})`);
 
-                 console.log(`Preparing to start session for topic: ${currentTopic.name} (Activity ID: ${currentTopic.activity_id})`);
+                // --- Step 1: Delete PREVIOUS chat history for this user ---
+                console.log(`Deleting previous chat history for user: ${currentUser.id}...`);
+                try {
+                    const { error: deleteError } = await supabase
+                        .from('chat_history')
+                        .delete()
+                        .eq('user_id', currentUser.id);
+                    if (deleteError) {
+                        console.error("Error deleting previous chat history, continuing session anyway:", deleteError);
+                        showToast("Nepodařilo se vymazat starou historii chatu, může se zobrazit smíchaná.", "warning", 6000);
+                    } else {
+                        console.log("Previous chat history deleted successfully.");
+                    }
+                } catch (delCatchError) {
+                    console.error("Unexpected error during chat history deletion:", delCatchError);
+                    showToast("Neočekávaná chyba při mazání staré historie.", "error", 6000);
+                }
+                // --- End Step 1 ---
 
-                 // --- KROK 1: Vymazání PŘEDCHOZÍ historie chatu pro tohoto uživatele ---
-                 console.log(`Deleting previous chat history for user: ${currentUser.id}...`);
-                 try {
-                      // Mažeme VŠECHNY záznamy pro daného uživatele
-                      const { error: deleteError } = await supabase
-                          .from('chat_history')
-                          .delete()
-                          .eq('user_id', currentUser.id);
-                      if (deleteError) {
-                          // Pokračujeme i při chybě mazání, ale zalogujeme ji
-                           console.error("Error deleting previous chat history, continuing session anyway:", deleteError);
-                           showToast("Nepodařilo se vymazat starou historii chatu, může se zobrazit smíchaná.", "warning", 6000);
-                      } else {
-                           console.log("Previous chat history deleted successfully.");
-                      }
-                 } catch (delCatchError) {
-                       console.error("Unexpected error during chat history deletion:", delCatchError);
-                       showToast("Neočekávaná chyba při mazání staré historie.", "error", 6000);
-                 }
-                 // --- KONEC Kroku 1 ---
+                // --- Step 2: Setup new session ---
+                currentSessionId = generateSessionId();
+                console.log(`Starting NEW session ${currentSessionId} for topic: ${currentTopic.name}`);
 
-                 // --- KROK 2: Nastavení nové relace ---
-                 currentSessionId = generateSessionId();
-                 console.log(`Starting NEW session ${currentSessionId} for topic: ${currentTopic.name}`);
+                // Show UI elements
+                explanationContainer.style.display = 'flex';
+                if (tldrawApp) { // Only show whiteboard section if tldraw initialized
+                     whiteboardContainerSection.style.display = 'flex';
+                     if (tldrawApp.resetDocument) { // Reset canvas for new session
+                          try { tldrawApp.resetDocument(); console.log("tldraw reset for new session."); } catch (e) { console.warn("Could not reset tldraw:", e); }
+                     }
+                } else {
+                     whiteboardContainerSection.style.display = 'flex'; // Keep section visible to show error/warning
+                     console.log("Whiteboard section shown, but tldrawApp is not available.");
+                }
+                chatPanel.style.display = 'flex';
 
-                 explanationContainer.style.display = 'flex';
-                 whiteboardContainerSection.style.display = 'flex';
-                 chatPanel.style.display = 'flex';
+                // Reset content
+                explanationTitle.innerHTML = `<i class="fas fa-chalkboard-teacher"></i> Vysvětlení: ${sanitizeHTML(currentTopic.name)}`;
+                explanationContent.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Požaduji úvodní vysvětlení od AI...</div>';
+                nextStepBtn.style.display = 'none';
+                chatMessages.innerHTML = '';
+                geminiChatContext = [];
 
-                 explanationTitle.innerHTML = `<i class="fas fa-chalkboard-teacher"></i> Vysvětlení: ${sanitizeHTML(currentTopic.name)}`;
-                 explanationContent.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Požaduji úvodní vysvětlení od AI...</div>';
-                 nextStepBtn.style.display = 'none';
+                // Add first message and save it
+                await addChatMessage(`Ahoj! Jsem připravený ti pomoct s tématem: **${sanitizeHTML(currentTopic.name)}**. Začneme se základy. Řekni **"pokračuj"** nebo polož otázku.`, 'gemini', true);
 
-                 chatMessages.innerHTML = '';
-                 geminiChatContext = []; // Vyčistit kontext pro Gemini
-                 await addChatMessage(`Ahoj! Jsem připravený ti pomoct s tématem: **${sanitizeHTML(currentTopic.name)}**. Začneme se základy. Řekni **"pokračuj"** nebo polož otázku.`, 'gemini', true); // Uložíme první zprávu nové relace
-
-                 if (tldrawApp && tldrawApp.resetDocument) { try { tldrawApp.resetDocument(); console.log("tldraw reset."); } catch (e) { console.warn("Could not reset tldraw:", e); } }
-
-                 updateGeminiThinkingState(true);
-                 await sendToGemini(`Začni vysvětlovat ZÁKLADY tématu "${currentTopic.name}" pro 9. třídu ZŠ (přijímačky CERMAT). Rozděl to na malé kroky. Toto je PRVNÍ KROK.`, 'explanation');
-                 // updateGeminiThinkingState(false) se volá ve finally sendToGemini
-                 nextStepBtn.style.display = 'inline-flex'; // Zobrazí se po prvním kroku
-             };
-             // --- *** KONEC ZMĚNY startLearningSession *** ---
-
-            const hideLearningUI = () => { /* ... (beze změny) ... */ explanationContainer.style.display = 'none'; whiteboardContainerSection.style.display = 'none'; chatPanel.style.display = 'none'; explanationContent.innerHTML = ''; chatMessages.innerHTML = ''; if (tldrawApp && tldrawApp.resetDocument) tldrawApp.resetDocument(); currentTopic = null; currentSessionId = null; geminiChatContext = []; };
-
-            const requestNextStep = async () => {
-                 if (!currentTopic || geminiIsThinking) return;
-                 console.log("Requesting next step from Gemini...");
-                 nextStepBtn.disabled = true;
-                 nextStepBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Načítám...';
-                 updateGeminiThinkingState(true);
-
-                 const prompt = `Pokračuj ve vysvětlování tématu "${currentTopic.name}". Co následuje po předchozím kroku? Vysvětluj stručně a krok za krokem.`;
-                 await addChatMessage("Pokračuj prosím / Další krok.", 'user', true); // Uložíme i tento požadavek do DB
-                 geminiChatContext.push({ role: "user", parts: [{ text: "Pokračuj prosím / Další krok." }] }); // Přidáme do kontextu Gemini
-
-                 await sendToGemini(prompt, 'explanation');
-
-                 nextStepBtn.disabled = false;
-                 nextStepBtn.innerHTML = '<i class="fas fa-forward"></i> Pokračovat / Další krok';
+                // Request initial explanation
+                updateGeminiThinkingState(true);
+                await sendToGemini(`Začni vysvětlovat ZÁKLADY tématu "${currentTopic.name}" pro 9. třídu ZŠ (přijímačky CERMAT). Rozděl to na malé kroky. Toto je PRVNÍ KROK.`, 'explanation');
+                // State updated in finally block of sendToGemini
+                nextStepBtn.style.display = 'inline-flex';
             };
+
+            const hideLearningUI = () => { explanationContainer.style.display = 'none'; whiteboardContainerSection.style.display = 'none'; chatPanel.style.display = 'none'; explanationContent.innerHTML = ''; chatMessages.innerHTML = ''; if (tldrawApp && tldrawApp.resetDocument) tldrawApp.resetDocument(); currentTopic = null; currentSessionId = null; geminiChatContext = []; };
+
+            const requestNextStep = async () => { if (!currentTopic || geminiIsThinking) return; console.log("Requesting next step from Gemini..."); nextStepBtn.disabled = true; nextStepBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Načítám...'; updateGeminiThinkingState(true); const prompt = `Pokračuj ve vysvětlování tématu "${currentTopic.name}". Co následuje po předchozím kroku? Vysvětluj stručně a krok za krokem.`; await addChatMessage("Pokračuj prosím / Další krok.", 'user', true); geminiChatContext.push({ role: "user", parts: [{ text: "Pokračuj prosím / Další krok." }] }); await sendToGemini(prompt, 'explanation'); nextStepBtn.disabled = false; nextStepBtn.innerHTML = '<i class="fas fa-forward"></i> Pokračovat / Další krok'; };
 
             // --- Chat Functionality ---
-            const addChatMessage = async (message, sender, saveToDb = false, timestamp = new Date()) => {
-                 const messageId = `msg_${Date.now()}_${Math.random().toString(16).slice(2)}`;
-                 const messageDiv = document.createElement('div');
-                 messageDiv.classList.add('chat-message', sender);
-                 messageDiv.id = messageId;
-
-                 const avatarDiv = document.createElement('div');
-                 avatarDiv.classList.add('message-avatar');
-                 avatarDiv.innerHTML = sender === 'user' ? sanitizeHTML(getInitials(currentProfile, currentUser?.email)) : '<i class="fas fa-robot"></i>';
-
-                 const bubbleDiv = document.createElement('div');
-                 bubbleDiv.classList.add('message-bubble');
-                 renderMarkdown(bubbleDiv, message); // Render markdown content
-
-                 const timeDiv = document.createElement('div');
-                 timeDiv.classList.add('message-timestamp');
-                 timeDiv.textContent = formatTimestamp(timestamp);
-
-                 messageDiv.appendChild(avatarDiv);
-                 messageDiv.appendChild(bubbleDiv);
-                 bubbleDiv.appendChild(timeDiv); // Timestamp inside bubble
-
-                 chatMessages.appendChild(messageDiv);
-                 setTimeout(() => chatMessages.scrollTop = chatMessages.scrollHeight, 50);
-
-                 // Uložení do DB (pokud je povoleno a relevantní)
-                 if (saveToDb && supabase && currentUser && currentSessionId && currentTopic) {
-                      try {
-                           const { error } = await supabase.from('chat_history').insert({
-                                user_id: currentUser.id,
-                                session_id: currentSessionId, // Použije ID aktuální relace
-                                topic_id: currentTopic.activity_id, // Použijeme activity_id jako topic_id
-                                topic_name: currentTopic.name,
-                                role: sender === 'user' ? 'user' : 'model',
-                                content: message, // Ukládáme surový markdown
-                                created_at: timestamp.toISOString() });
-                           if (error) throw error;
-                           console.log(`Msg saved (Sess:${currentSessionId}, Sender:${sender})`);
-                      } catch (dbError) {
-                           console.error("DB save error:", dbError);
-                           showToast("Chyba ukládání zprávy do databáze.", "error");
-                           const errorIcon = bubbleDiv.querySelector('.db-error-indicator');
-                           if (!errorIcon) {
-                                const errorIndicator = document.createElement('i');
-                                errorIndicator.className = 'fas fa-exclamation-circle db-error-indicator';
-                                errorIndicator.style.cssText = 'color: var(--danger); font-size: 0.8em; margin-left: 8px; cursor: help;';
-                                errorIndicator.title = `DB Error: ${dbError.message}`;
-                                bubbleDiv.appendChild(errorIndicator); // Append error icon
-                           }
-                      }
-                 }
-                 return messageId; // Vrací ID pro případnou aktualizaci (např. u thinking indicator)
-            };
-
-
-            const updateGeminiThinkingState = (isThinking) => { /* ... (beze změny) ... */ geminiIsThinking = isThinking; sendButton.disabled = isThinking; if(nextStepBtn) nextStepBtn.disabled = isThinking; loadNextTopicBtn.disabled = isThinking; // Block topic change while thinking
- if (isThinking) { addThinkingIndicator(); sendButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; } else { removeThinkingIndicator(); sendButton.innerHTML = '<i class="fas fa-paper-plane"></i>'; if(nextStepBtn) nextStepBtn.innerHTML = '<i class="fas fa-forward"></i> Pokračovat / Další krok'; } };
-            const addThinkingIndicator = () => { /* ... (beze změny) ... */ removeThinkingIndicator(); const indicatorDiv = document.createElement('div'); thinkingIndicatorId = `thinking_${Date.now()}`; indicatorDiv.id = thinkingIndicatorId; indicatorDiv.classList.add('chat-message', 'gemini'); indicatorDiv.innerHTML = ` <div class="message-avatar"><i class="fas fa-robot"></i></div> <div class="message-bubble message-thinking-indicator"> <div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div> </div>`; chatMessages.appendChild(indicatorDiv); chatMessages.scrollTop = chatMessages.scrollHeight; };
-            const removeThinkingIndicator = () => { /* ... (beze změny) ... */ if (thinkingIndicatorId) { const indicator = document.getElementById(thinkingIndicatorId); if (indicator) indicator.remove(); thinkingIndicatorId = null; } };
-
-            const handleSendMessage = async () => {
-                 const messageText = chatInput.value.trim();
-                 if (!messageText || !currentTopic || geminiIsThinking) return;
-                 const timestamp = new Date();
-                 await addChatMessage(messageText, 'user', true, timestamp); // Uložíme do DB
-                 geminiChatContext.push({ role: "user", parts: [{ text: messageText }] }); // Přidáme do kontextu Gemini
-                 chatInput.value = '';
-                 autoResizeTextarea();
-                 updateGeminiThinkingState(true);
-                 if (nextStepBtn) nextStepBtn.style.display = 'inline-flex';
-                 await sendToGemini(messageText, 'chat');
-                 // updateGeminiThinkingState(false) se volá ve finally v sendToGemini
-            };
-
-            // --- *** ZMĚNA: Clear nyní maže jen aktuální relaci *** ---
+            const addChatMessage = async (message, sender, saveToDb = false, timestamp = new Date()) => { /* ... (beze změny z predchádzajúcej odpovede)... */ const messageId = `msg_${Date.now()}_${Math.random().toString(16).slice(2)}`; const messageDiv = document.createElement('div'); messageDiv.classList.add('chat-message', sender); messageDiv.id = messageId; const avatarDiv = document.createElement('div'); avatarDiv.classList.add('message-avatar'); avatarDiv.innerHTML = sender === 'user' ? sanitizeHTML(getInitials(currentProfile, currentUser?.email)) : '<i class="fas fa-robot"></i>'; const bubbleDiv = document.createElement('div'); bubbleDiv.classList.add('message-bubble'); renderMarkdown(bubbleDiv, message); const timeDiv = document.createElement('div'); timeDiv.classList.add('message-timestamp'); timeDiv.textContent = formatTimestamp(timestamp); messageDiv.appendChild(avatarDiv); messageDiv.appendChild(bubbleDiv); bubbleDiv.appendChild(timeDiv); chatMessages.appendChild(messageDiv); setTimeout(() => chatMessages.scrollTop = chatMessages.scrollHeight, 50); if (saveToDb && supabase && currentUser && currentSessionId && currentTopic) { try { const { error } = await supabase.from('chat_history').insert({ user_id: currentUser.id, session_id: currentSessionId, topic_id: currentTopic.activity_id, topic_name: currentTopic.name, role: sender === 'user' ? 'user' : 'model', content: message, created_at: timestamp.toISOString() }); if (error) throw error; console.log(`Msg saved (Sess:${currentSessionId}, Sender:${sender})`); } catch (dbError) { console.error("DB save error:", dbError); showToast("Chyba ukládání zprávy do databáze.", "error"); const errorIcon = bubbleDiv.querySelector('.db-error-indicator'); if (!errorIcon) { const errorIndicator = document.createElement('i'); errorIndicator.className = 'fas fa-exclamation-circle db-error-indicator'; errorIndicator.style.cssText = 'color: var(--danger); font-size: 0.8em; margin-left: 8px; cursor: help;'; errorIndicator.title = `DB Error: ${dbError.message}`; bubbleDiv.appendChild(errorIndicator); } } } return messageId; };
+            const updateGeminiThinkingState = (isThinking) => { geminiIsThinking = isThinking; sendButton.disabled = isThinking; if(nextStepBtn) nextStepBtn.disabled = isThinking; loadNextTopicBtn.disabled = isThinking; if (isThinking) { addThinkingIndicator(); sendButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; } else { removeThinkingIndicator(); sendButton.innerHTML = '<i class="fas fa-paper-plane"></i>'; if(nextStepBtn) nextStepBtn.innerHTML = '<i class="fas fa-forward"></i> Pokračovat / Další krok'; } };
+            const addThinkingIndicator = () => { removeThinkingIndicator(); const indicatorDiv = document.createElement('div'); thinkingIndicatorId = `thinking_${Date.now()}`; indicatorDiv.id = thinkingIndicatorId; indicatorDiv.classList.add('chat-message', 'gemini'); indicatorDiv.innerHTML = ` <div class="message-avatar"><i class="fas fa-robot"></i></div> <div class="message-bubble message-thinking-indicator"> <div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div> </div>`; chatMessages.appendChild(indicatorDiv); chatMessages.scrollTop = chatMessages.scrollHeight; };
+            const removeThinkingIndicator = () => { if (thinkingIndicatorId) { const indicator = document.getElementById(thinkingIndicatorId); if (indicator) indicator.remove(); thinkingIndicatorId = null; } };
+            const handleSendMessage = async () => { const messageText = chatInput.value.trim(); if (!messageText || !currentTopic || geminiIsThinking) return; const timestamp = new Date(); await addChatMessage(messageText, 'user', true, timestamp); geminiChatContext.push({ role: "user", parts: [{ text: messageText }] }); chatInput.value = ''; autoResizeTextarea(); updateGeminiThinkingState(true); if (nextStepBtn) nextStepBtn.style.display = 'inline-flex'; await sendToGemini(messageText, 'chat'); };
             const confirmClearChat = () => { if (!currentSessionId || !currentUser) { showToast("Nelze vymazat chat bez aktivní relace.", "warning"); return; } if (confirm("Opravdu chcete vymazat celou historii této aktuální relace?")) { clearCurrentChatSessionHistory(); } };
-            const clearCurrentChatSessionHistory = async () => {
-                 if (!currentSessionId || !currentUser || !supabase) { showToast("Chyba: Nelze smazat historii.", "error"); return; }
-                 console.log(`Clearing chat history for CURRENT session: ${currentSessionId}`);
-                 clearChatBtn.disabled = true;
-                 const originalContent = chatMessages.innerHTML;
-                 chatMessages.innerHTML = '<div class="loading">Mažu historii aktuální relace...</div>';
-
-                 try {
-                      // Mažeme jen záznamy pro AKTUÁLNÍ session_id a uživatele
-                      const { error: deleteError } = await supabase
-                           .from('chat_history')
-                           .delete()
-                           .eq('user_id', currentUser.id)
-                           .eq('session_id', currentSessionId); // Klíčová změna zde
-
-                      if (deleteError) throw deleteError;
-
-                      chatMessages.innerHTML = '';
-                      geminiChatContext = []; // Vyčistíme i kontext pro Gemini
-                      // Můžeme přidat úvodní zprávu znovu, ale nebudeme ji ukládat
-                      await addChatMessage(`Historie této relace byla vymazána. Pokračujeme s tématem **${sanitizeHTML(currentTopic?.name || 'aktuálním tématem')}**.`, 'gemini', false);
-                      showToast("Historie aktuální relace byla vymazána.", "success");
-
-                 } catch (error) {
-                      console.error("Chyba při mazání historie aktuální relace:", error);
-                      showToast("Nepodařilo se vymazat historii této relace.", "error");
-                      chatMessages.innerHTML = originalContent;
-                 } finally {
-                     clearChatBtn.disabled = false;
-                 }
-            };
-             // --- *** KONEC ZMĚNY Clear *** ---
-
-            const saveChatToPDF = async () => {
-                if (!currentTopic || !currentSessionId || !currentUser) {
-                    showToast("Nelze uložit prázdný chat nebo bez aktivní relace.", "warning"); return;
-                }
-                saveChatBtn.disabled = true;
-                saveChatBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-                showToast("Generuji PDF...", "info");
-
-                 // Načtení zpráv pro AKTUÁLNÍ session_id z DB pro kompletnost
-                 let messagesToExport = [];
-                 try {
-                     const { data: dbMessages, error: fetchError } = await supabase
-                         .from('chat_history')
-                         .select('role, content, created_at')
-                         .eq('user_id', currentUser.id)
-                         .eq('session_id', currentSessionId)
-                         .order('created_at', { ascending: true });
-                     if (fetchError) throw fetchError;
-                     messagesToExport = dbMessages || [];
-                     console.log(`Načteno ${messagesToExport.length} zpráv z DB pro export.`);
-                 } catch (error) {
-                      console.error("Chyba načítání zpráv z DB pro PDF:", error);
-                      showToast("Chyba načítání historie pro PDF.", "error");
-                      saveChatBtn.disabled = false;
-                      saveChatBtn.innerHTML = '<i class="fas fa-save"></i>';
-                      return; // Neexportovat, pokud se nepodařilo načíst
-                 }
-
-                 if (messagesToExport.length === 0) {
-                      showToast("Není co exportovat.", "info");
-                      saveChatBtn.disabled = false;
-                      saveChatBtn.innerHTML = '<i class="fas fa-save"></i>';
-                      return;
-                 }
-
-
-                 const pdfContent = document.createElement('div');
-                 pdfContent.style.fontFamily = "'Poppins', sans-serif";
-                 pdfContent.style.padding = "20mm";
-                 pdfContent.style.fontSize = "10pt";
-                 pdfContent.style.lineHeight = "1.5";
-
-                 pdfContent.innerHTML = `
-                     <style>
-                         body { font-family: 'Poppins', sans-serif; font-size: 10pt; color: #333; }
-                         .pdf-header { text-align: center; margin-bottom: 15mm; border-bottom: 1px solid #ccc; padding-bottom: 5mm; }
-                         .pdf-header h1 { font-size: 16pt; color: #4361ee; margin: 0; }
-                         .pdf-header p { font-size: 9pt; color: #6c757d; margin: 2px 0; }
-                         .pdf-message { margin-bottom: 8mm; display: flex; max-width: 90%; }
-                         .pdf-message.user { margin-left: 10%; justify-content: flex-end; }
-                         .pdf-avatar { width: 30px; height: 30px; border-radius: 50%; background-color: #eee; color: #555; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0; font-size: 10pt; margin-right: 8px; }
-                         .pdf-message.user .pdf-avatar { background-color: #06d6a0; color: white; margin-left: 8px; margin-right: 0; order: 2; }
-                         .pdf-message.gemini .pdf-avatar { background-color: #4361ee; color: white; }
-                         .pdf-bubble { background-color: #f1f3f5; padding: 8px 12px; border-radius: 15px; border-bottom-left-radius: 4px; word-wrap: break-word; border: 1px solid #e0e0e0;}
-                         .pdf-message.user .pdf-bubble { background-color: #4361ee; color: white; border-bottom-right-radius: 4px; border-bottom-left-radius: 15px; order: 1; border: none;}
-                         .pdf-timestamp { font-size: 7pt; color: #999; margin-top: 3px; display: block; text-align: left; }
-                         .pdf-message.user .pdf-timestamp { text-align: right; }
-                         code { background-color: rgba(0,0,0,0.05); padding: 1px 3px; border-radius: 3px; font-size: 0.9em; }
-                         .pdf-message.user code { background-color: rgba(255,255,255,0.2); }
-                         pre { background-color: #343a40; color: #f8f9fa; padding: 10px; border-radius: 5px; font-size: 9pt; white-space: pre-wrap; word-wrap: break-word; margin: 5px 0;}
-                         .pdf-message.user pre { background-color: rgba(0,0,0,0.3); }
-                     </style>
-                     <div class="pdf-header">
-                         <h1>Záznam Chatu - Výuka</h1>
-                         <p>Téma: ${sanitizeHTML(currentTopic?.name || 'Nespecifikováno')}</p>
-                         <p>Uživatel: ${sanitizeHTML(userName?.textContent || 'Student')}</p>
-                         <p>Datum exportu: ${new Date().toLocaleDateString('cs-CZ')} ${new Date().toLocaleTimeString('cs-CZ')}</p>
-                     </div>
-                 `;
-
-                 messagesToExport.forEach(msg => {
-                     const isUser = msg.role === 'user';
-                     const avatarText = isUser ? sanitizeHTML(getInitials(currentProfile, currentUser?.email)) : 'AI';
-                     const messageHTML = marked.parse(msg.content || '', { breaks: true, gfm: true }); // Render markdown for PDF
-                     const time = new Date(msg.created_at).toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' });
-
-                     pdfContent.innerHTML += `
-                         <div class="pdf-message ${isUser ? 'user' : 'gemini'}">
-                             <div class="pdf-avatar">${avatarText}</div>
-                             <div class="pdf-bubble">
-                                 ${messageHTML}
-                                 <span class="pdf-timestamp">${time}</span>
-                             </div>
-                         </div>
-                     `;
-                 });
-
-                 const options = {
-                     margin: [20, 15, 20, 15], filename: `chat-vyuka-${currentTopic?.name.replace(/[^a-z0-9]/gi, '_') || 'export'}.pdf`,
-                     image: { type: 'jpeg', quality: 0.95 },
-                     html2canvas: { scale: 2, useCORS: true, logging: false },
-                     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-                 };
-
-                 if (typeof html2pdf === 'function') {
-                    html2pdf().set(options).from(pdfContent).save()
-                     .then(() => { showToast("Chat byl úspěšně uložen jako PDF.", "success"); })
-                     .catch(err => { console.error("PDF export error:", err); showToast("Nepodařilo se uložit PDF.", "error"); })
-                     .finally(() => { saveChatBtn.disabled = false; saveChatBtn.innerHTML = '<i class="fas fa-save"></i>'; });
-                 } else {
-                     console.error("html2pdf library not found.");
-                     showToast("Chyba: Knihovna pro export PDF není načtena.", "error");
-                     saveChatBtn.disabled = false;
-                     saveChatBtn.innerHTML = '<i class="fas fa-save"></i>';
-                 }
-            };
+            const clearCurrentChatSessionHistory = async () => { if (!currentSessionId || !currentUser || !supabase) { showToast("Chyba: Nelze smazat historii.", "error"); return; } console.log(`Clearing chat history for CURRENT session: ${currentSessionId}`); clearChatBtn.disabled = true; const originalContent = chatMessages.innerHTML; chatMessages.innerHTML = '<div class="loading">Mažu historii aktuální relace...</div>'; try { const { error: deleteError } = await supabase .from('chat_history') .delete() .eq('user_id', currentUser.id) .eq('session_id', currentSessionId); if (deleteError) throw deleteError; chatMessages.innerHTML = ''; geminiChatContext = []; await addChatMessage(`Historie této relace byla vymazána. Pokračujeme s tématem **${sanitizeHTML(currentTopic?.name || 'aktuálním tématem')}**.`, 'gemini', false); showToast("Historie aktuální relace byla vymazána.", "success"); } catch (error) { console.error("Chyba při mazání historie aktuální relace:", error); showToast("Nepodařilo se vymazat historii této relace.", "error"); chatMessages.innerHTML = originalContent; } finally { clearChatBtn.disabled = false; } };
+            const saveChatToPDF = async () => { /* ... (beze změny z predchádzajúcej odpovede)... */ if (!currentTopic || !currentSessionId || !currentUser) { showToast("Nelze uložit prázdný chat nebo bez aktivní relace.", "warning"); return; } saveChatBtn.disabled = true; saveChatBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; showToast("Generuji PDF...", "info"); let messagesToExport = []; try { const { data: dbMessages, error: fetchError } = await supabase .from('chat_history') .select('role, content, created_at') .eq('user_id', currentUser.id) .eq('session_id', currentSessionId) .order('created_at', { ascending: true }); if (fetchError) throw fetchError; messagesToExport = dbMessages || []; console.log(`Načteno ${messagesToExport.length} zpráv z DB pro export.`); } catch (error) { console.error("Chyba načítání zpráv z DB pro PDF:", error); showToast("Chyba načítání historie pro PDF.", "error"); saveChatBtn.disabled = false; saveChatBtn.innerHTML = '<i class="fas fa-save"></i>'; return; } if (messagesToExport.length === 0) { showToast("Není co exportovat.", "info"); saveChatBtn.disabled = false; saveChatBtn.innerHTML = '<i class="fas fa-save"></i>'; return; } const pdfContent = document.createElement('div'); pdfContent.style.fontFamily = "'Poppins', sans-serif"; pdfContent.style.padding = "20mm"; pdfContent.style.fontSize = "10pt"; pdfContent.style.lineHeight = "1.5"; pdfContent.innerHTML = ` <style> body { font-family: 'Poppins', sans-serif; font-size: 10pt; color: #333; } .pdf-header { text-align: center; margin-bottom: 15mm; border-bottom: 1px solid #ccc; padding-bottom: 5mm; } .pdf-header h1 { font-size: 16pt; color: #4361ee; margin: 0; } .pdf-header p { font-size: 9pt; color: #6c757d; margin: 2px 0; } .pdf-message { margin-bottom: 8mm; display: flex; max-width: 90%; } .pdf-message.user { margin-left: 10%; justify-content: flex-end; } .pdf-avatar { width: 30px; height: 30px; border-radius: 50%; background-color: #eee; color: #555; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0; font-size: 10pt; margin-right: 8px; } .pdf-message.user .pdf-avatar { background-color: #06d6a0; color: white; margin-left: 8px; margin-right: 0; order: 2; } .pdf-message.gemini .pdf-avatar { background-color: #4361ee; color: white; } .pdf-bubble { background-color: #f1f3f5; padding: 8px 12px; border-radius: 15px; border-bottom-left-radius: 4px; word-wrap: break-word; border: 1px solid #e0e0e0;} .pdf-message.user .pdf-bubble { background-color: #4361ee; color: white; border-bottom-right-radius: 4px; border-bottom-left-radius: 15px; order: 1; border: none;} .pdf-timestamp { font-size: 7pt; color: #999; margin-top: 3px; display: block; text-align: left; } .pdf-message.user .pdf-timestamp { text-align: right; } code { background-color: rgba(0,0,0,0.05); padding: 1px 3px; border-radius: 3px; font-size: 0.9em; } .pdf-message.user code { background-color: rgba(255,255,255,0.2); } pre { background-color: #343a40; color: #f8f9fa; padding: 10px; border-radius: 5px; font-size: 9pt; white-space: pre-wrap; word-wrap: break-word; margin: 5px 0;} .pdf-message.user pre { background-color: rgba(0,0,0,0.3); } </style> <div class="pdf-header"> <h1>Záznam Chatu - Výuka</h1> <p>Téma: ${sanitizeHTML(currentTopic?.name || 'Nespecifikováno')}</p> <p>Uživatel: ${sanitizeHTML(userName?.textContent || 'Student')}</p> <p>Datum exportu: ${new Date().toLocaleDateString('cs-CZ')} ${new Date().toLocaleTimeString('cs-CZ')}</p> </div> `; messagesToExport.forEach(msg => { const isUser = msg.role === 'user'; const avatarText = isUser ? sanitizeHTML(getInitials(currentProfile, currentUser?.email)) : 'AI'; const messageHTML = marked.parse(msg.content || '', { breaks: true, gfm: true }); const time = new Date(msg.created_at).toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' }); pdfContent.innerHTML += ` <div class="pdf-message ${isUser ? 'user' : 'gemini'}"> <div class="pdf-avatar">${avatarText}</div> <div class="pdf-bubble"> ${messageHTML} <span class="pdf-timestamp">${time}</span> </div> </div> `; }); const options = { margin: [20, 15, 20, 15], filename: `chat-vyuka-${currentTopic?.name.replace(/[^a-z0-9]/gi, '_') || 'export'}.pdf`, image: { type: 'jpeg', quality: 0.95 }, html2canvas: { scale: 2, useCORS: true, logging: false }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } }; if (typeof html2pdf === 'function') { html2pdf().set(options).from(pdfContent).save() .then(() => { showToast("Chat byl úspěšně uložen jako PDF.", "success"); }) .catch(err => { console.error("PDF export error:", err); showToast("Nepodařilo se uložit PDF.", "error"); }) .finally(() => { saveChatBtn.disabled = false; saveChatBtn.innerHTML = '<i class="fas fa-save"></i>'; }); } else { console.error("html2pdf library not found."); showToast("Chyba: Knihovna pro export PDF není načtena.", "error"); saveChatBtn.disabled = false; saveChatBtn.innerHTML = '<i class="fas fa-save"></i>'; } };
 
 
             // --- Gemini Interaction ---
-            const sendToGemini = async (promptText, targetArea) => {
-                 if (!GEMINI_API_KEY || GEMINI_API_KEY.startsWith('YOUR_')) { showToast("Chyba: Chybí API klíč.", "error", 8000); handleGeminiError("Chybí API klíč.", targetArea, new Date()); return; }
-                 if (!currentTopic) { showToast("Chyba: Není vybráno téma.", "error"); handleGeminiError("Není vybráno téma.", targetArea, new Date()); return; }
-
-                 console.log(`Posílám Gemini (cíl: ${targetArea}): "${promptText}"`);
-                 const timestamp = new Date();
-                 // updateGeminiThinkingState(true) se volá PŘED voláním této funkce
-
-                 const systemInstructionText = `Jsi AI Tutor "Justax", expert na matematiku pro 9. třídu ZŠ v ČR (přijímačky CERMAT). Vyučuješ téma: "${currentTopic.name}". Tvůj styl je jako PŘÁTELSKÝ, TRPĚLIVÝ a PODROBNÝ UČITEL. Vysvětluj krok za krokem, používej příklady. Důsledně používej Markdown pro formátování (nadpisy **, seznamy *, tučně **, kurzívu *) a MathJax syntax pro matematiku (blokové: $$...$$, inline: \\(...\\)). Odpovídej VŽDY ČESKY.
-
-                 DŮLEŽITÉ POKYNY PRO VÝUKU:
-                 1.  **KROK ZA KROKEM:** Nepokrývej příliš mnoho informací najednou. Zaměř se na jeden koncept nebo krok postupu v jedné odpovědi. Počkej na reakci studenta ("pokračuj", otázka) než přejdeš dál.
-                 2.  **INTERAKTIVITA:** Aktivně zapojuj studenta. Pokládej otázky ("Co si myslíš, jaký bude další krok?", "Chápeš tento pojem?", "Chceš vidět další příklad?").
-                 3.  **"BÍLÁ DOŠKA" (Konceptuálně):** Student má k dispozici interaktivní došku. Můžeš ho VYZVAT, aby si na ni něco zkusil nakreslit nebo napsat ("Zkus si teď na došce načrtnout...", "Můžeš si na došce zapsat hlavní kroky..."). Ty na došku NEKRESLÍŠ, pouze poskytuješ textové vysvětlení a příklady.
-                 4.  **DÉLKA ODPOVĚDI:** Drž odpovědi relativně stručné a zaměřené na jeden krok/myšlenku.
-                 5.  **REAKCE NA VSTUP:** Pečlivě čti poslední zprávu uživatele a reaguj na ni. Pokud nerozumíš, požádej o upřesnění. Pokud uživatel řekne "pokračuj" nebo "další krok", vysvětli následující logický krok tématu.`;
-
-                 // Dynamicky sestavíme historii pro API volání z geminiChatContext
-                 const historyForApi = [...geminiChatContext]; // Vytvoříme kopii
-                 // Přidáme aktuální prompt jako poslední zprávu uživatele
-                 historyForApi.push({ role: "user", parts: [{ text: promptText }] });
-                 // Odebereme poslední (aktuální) user prompt z historie, protože ho posíláme jako `contents`
-                 const requestContents = historyForApi.pop();
-
-                 const requestBody = {
-                     contents: [requestContents], // Poslední zpráva uživatele
-                     systemInstruction: { parts: [{ text: systemInstructionText }] }, // Systémová instrukce
-                     history: historyForApi.length > 0 ? historyForApi : undefined, // Historie, pokud existuje
-                     generationConfig: { temperature: 0.6, topP: 0.95, topK: 40, maxOutputTokens: 4096 },
-                     safetySettings: [ { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" }, { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" }, { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" }, { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" } ]
-                 };
-
-                 try {
-                     const response = await fetch(GEMINI_API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(requestBody) });
-                     if (!response.ok) { const errorBody = await response.json(); throw new Error(errorBody.error?.message || `Chyba API (${response.status})`); }
-                     const data = await response.json();
-                     if (!data.candidates || !data.candidates[0]?.content?.parts[0]?.text) throw new Error('Neplatná odpověď od Gemini.');
-                     const geminiResponseText = data.candidates[0].content.parts[0].text;
-                     geminiChatContext.push({ role: "model", parts: [{ text: geminiResponseText }] }); // Přidáme odpověď AI do kontextu
-                     processGeminiResponse(geminiResponseText, targetArea, timestamp);
-                 } catch (error) {
-                     console.error('Chyba komunikace s Gemini:', error);
-                     showToast(`Chyba AI: ${error.message}`, "error");
-                     handleGeminiError(error.message, targetArea, timestamp);
-                 } finally {
-                     updateGeminiThinkingState(false);
-                 }
-            };
-
-            // Zpracování odpovědi Gemini
-            const processGeminiResponse = (responseText, targetArea, timestamp) => {
-                 removeThinkingIndicator();
-                 const mainExplanationText = responseText.trim();
-
-                 if (targetArea === 'explanation') {
-                      const loadingDiv = explanationContent.querySelector('.loading');
-                      if (loadingDiv) loadingDiv.remove(); // Odstraníme loader, pokud existuje
-                      // Přidáme jako nový krok
-                      const stepDiv = document.createElement('div');
-                      stepDiv.className = 'step';
-                      renderMarkdown(stepDiv, mainExplanationText);
-                      explanationContent.appendChild(stepDiv);
-                      explanationContent.scrollTop = explanationContent.scrollHeight;
-                      // Uložíme odpověď do DB
-                      addChatMessage(responseText, 'gemini', true, timestamp);
-                      if (nextStepBtn) nextStepBtn.style.display = 'inline-flex';
-                 } else { // Chat nebo fallback
-                      addChatMessage(mainExplanationText, 'gemini', true, timestamp);
-                 }
-            };
-
-            // Zpracování chyby Gemini
-            const handleGeminiError = (errorMessage, targetArea, timestamp) => { /* ... (beze změny) ... */ removeThinkingIndicator(); updateGeminiThinkingState(false); const errorText = `Omlouvám se, při komunikaci s AI nastala chyba. Zkuste to prosím znovu. (Detail: ${errorMessage})`; if (targetArea === 'explanation') { const loadingDiv = explanationContent.querySelector('.loading'); if (loadingDiv) loadingDiv.remove(); const errorDiv = document.createElement('p'); errorDiv.style.color = 'var(--danger)'; errorDiv.style.fontWeight = '500'; errorDiv.textContent = errorText; explanationContent.appendChild(errorDiv); explanationContent.scrollTop = explanationContent.scrollHeight; addChatMessage(errorText, 'gemini', true, timestamp); if (nextStepBtn) { nextStepBtn.disabled = false; nextStepBtn.innerHTML = '<i class="fas fa-redo"></i> Požádat znovu'; } } else { addChatMessage(errorText, 'gemini', true, timestamp); } };
+            const sendToGemini = async (promptText, targetArea) => { /* ... (beze změny z predchádzajúcej odpovede)... */ if (!GEMINI_API_KEY || GEMINI_API_KEY.startsWith('YOUR_')) { showToast("Chyba: Chybí API klíč.", "error", 8000); handleGeminiError("Chybí API klíč.", targetArea, new Date()); return; } if (!currentTopic) { showToast("Chyba: Není vybráno téma.", "error"); handleGeminiError("Není vybráno téma.", targetArea, new Date()); return; } console.log(`Posílám Gemini (cíl: ${targetArea}): "${promptText}"`); const timestamp = new Date(); const systemInstructionText = `Jsi AI Tutor "Justax", expert na matematiku pro 9. třídu ZŠ v ČR (přijímačky CERMAT). Vyučuješ téma: "${currentTopic.name}". Tvůj styl je jako PŘÁTELSKÝ, TRPĚLIVÝ a PODROBNÝ UČITEL. Vysvětluj krok za krokem, používej příklady. Důsledně používej Markdown pro formátování (nadpisy **, seznamy *, tučně **, kurzívu *) a MathJax syntax pro matematiku (blokové: $$...$$, inline: \\(...\\)). Odpovídej VŽDY ČESKY. DŮLEŽITÉ POKYNY PRO VÝUKU: 1. **KROK ZA KROKEM:** Nepokrývej příliš mnoho informací najednou. Zaměř se na jeden koncept nebo krok postupu v jedné odpovědi. Počkej na reakci studenta ("pokračuj", otázka) než přejdeš dál. 2. **INTERAKTIVITA:** Aktivně zapojuj studenta. Pokládej otázky ("Co si myslíš, jaký bude další krok?", "Chápeš tento pojem?", "Chceš vidět další příklad?"). 3. **"BÍLÁ DOŠKA" (Konceptuálně):** Student má k dispozici interaktivní došku. Můžeš ho VYZVAT, aby si na ni něco zkusil nakreslit nebo napsat ("Zkus si teď na došce načrtnout...", "Můžeš si na došce zapsat hlavní kroky..."). Ty na došku NEKRESLÍŠ, pouze poskytuješ textové vysvětlení a příklady. 4. **DÉLKA ODPOVĚDI:** Drž odpovědi relativně stručné a zaměřené na jeden krok/myšlenku. 5. **REAKCE NA VSTUP:** Pečlivě čti poslední zprávu uživatele a reaguj na ni. Pokud nerozumíš, požádej o upřesnění. Pokud uživatel řekne "pokračuj" nebo "další krok", vysvětli následující logický krok tématu.`; const historyForApi = [...geminiChatContext]; const requestContents = historyForApi.pop() || { role: "user", parts: [{ text: promptText }] }; // Ensure requestContents is the last user message
+ const requestBody = { contents: [requestContents], systemInstruction: { parts: [{ text: systemInstructionText }] }, history: historyForApi.length > 0 ? historyForApi : undefined, generationConfig: { temperature: 0.6, topP: 0.95, topK: 40, maxOutputTokens: 4096 }, safetySettings: [ { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" }, { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" }, { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" }, { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" } ] }; try { const response = await fetch(GEMINI_API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(requestBody) }); if (!response.ok) { const errorBody = await response.json(); throw new Error(errorBody.error?.message || `Chyba API (${response.status})`); } const data = await response.json(); if (!data.candidates || !data.candidates[0]?.content?.parts[0]?.text) throw new Error('Neplatná odpověď od Gemini.'); const geminiResponseText = data.candidates[0].content.parts[0].text; geminiChatContext.push({ role: "model", parts: [{ text: geminiResponseText }] }); processGeminiResponse(geminiResponseText, targetArea, timestamp); } catch (error) { console.error('Chyba komunikace s Gemini:', error); showToast(`Chyba AI: ${error.message}`, "error"); handleGeminiError(error.message, targetArea, timestamp); } finally { updateGeminiThinkingState(false); } };
+            const processGeminiResponse = (responseText, targetArea, timestamp) => { removeThinkingIndicator(); const mainExplanationText = responseText.trim(); if (targetArea === 'explanation') { const loadingDiv = explanationContent.querySelector('.loading'); if (loadingDiv) loadingDiv.remove(); const stepDiv = document.createElement('div'); stepDiv.className = 'step'; renderMarkdown(stepDiv, mainExplanationText); explanationContent.appendChild(stepDiv); explanationContent.scrollTop = explanationContent.scrollHeight; addChatMessage(responseText, 'gemini', true, timestamp); if (nextStepBtn) nextStepBtn.style.display = 'inline-flex'; } else { addChatMessage(mainExplanationText, 'gemini', true, timestamp); } };
+            const handleGeminiError = (errorMessage, targetArea, timestamp) => { removeThinkingIndicator(); updateGeminiThinkingState(false); const errorText = `Omlouvám se, při komunikaci s AI nastala chyba. Zkuste to prosím znovu. (Detail: ${errorMessage})`; if (targetArea === 'explanation') { const loadingDiv = explanationContent.querySelector('.loading'); if (loadingDiv) loadingDiv.remove(); const errorDiv = document.createElement('p'); errorDiv.style.color = 'var(--danger)'; errorDiv.style.fontWeight = '500'; errorDiv.textContent = errorText; explanationContent.appendChild(errorDiv); explanationContent.scrollTop = explanationContent.scrollHeight; addChatMessage(errorText, 'gemini', true, timestamp); if (nextStepBtn) { nextStepBtn.disabled = false; nextStepBtn.innerHTML = '<i class="fas fa-redo"></i> Požádat znovu'; } } else { addChatMessage(errorText, 'gemini', true, timestamp); } };
 
 
             // --- Run Application ---
