@@ -294,10 +294,12 @@
             const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10';
             const GEMINI_API_KEY = 'AIzaSyDQboM6qtC_O2sqqpaKZZffNf2zk6HrhEs'; // Test key
             const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
-            const CANVAS_COMMAND_BLOCK_REGEX = /(CLEAR_CANVAS|DRAW_LINE|DRAW_RECT|DRAW_CIRCLE|DRAW_TEXT):\s*```json\s*(\{[\s\S]*?\})\s*```\s*/g;
+            // Regex for NEW command format: PŘÍKAZ: ```json { "type": "CMD", "data": {...} } ```
+            const CANVAS_COMMAND_BLOCK_REGEX = /PŘÍKAZ:\s*```json\s*(\{[\s\S]*?\})\s*```\s*/g;
+
 
             // --- DOM Elements Cache ---
-            const uiElements = { /* ... (cache elements as before) ... */
+            const uiElements = {
                 userAvatar: document.getElementById('user-avatar'),
                 userName: document.getElementById('user-name'),
                 mobileMenuToggle: document.getElementById('mobile-menu-toggle'),
@@ -326,11 +328,11 @@
             };
 
             // --- Global State ---
-            let state = { /* ... (state variables as before) ... */
+            let state = {
                 supabase: null,
                 currentUser: null,
                 currentProfile: null,
-                currentTopic: null,
+                currentTopic: null, // Stores { activity_id, plan_id, name, description, user_id, topic_id }
                 currentPlanId: null,
                 currentSessionId: null,
                 geminiChatContext: [],
@@ -360,8 +362,8 @@
             const initializeApp = async () => { console.log("DOM Loaded. Initializing Justax AI Tutor..."); if (!initializeSupabase()) return; if (!initializeUI()) return; console.log("Loading user profile..."); await loadUserProfile(); if (state.currentUser) { console.log("User logged in, loading topic..."); await loadNextUncompletedTopic(); } else { handleLoggedOutUser(); } };
 
             // --- UI State Management ---
-            const manageUIState = (mode) => { /* ... (function as before) ... */
-                console.log("Managing UI State:", mode);
+            const manageUIState = (mode) => {
+                 console.log("Managing UI State:", mode);
                  const showCallInterface = mode === 'learning' || mode === 'requestingExplanation' || mode === 'loadingTopic'; // Show interface during loading too
                  if (uiElements.callInterface) uiElements.callInterface.style.display = showCallInterface ? 'flex' : 'none';
 
@@ -382,8 +384,8 @@
                      }
                  }
             };
-            const manageButtonStates = () => { /* ... (function as before) ... */
-                const enableSend = !state.geminiIsThinking && !!state.currentTopic;
+            const manageButtonStates = () => {
+                 const enableSend = !state.geminiIsThinking && !!state.currentTopic;
                  const enableNext = !state.geminiIsThinking && !!state.currentTopic;
                  const enableComplete = !state.geminiIsThinking && !!state.currentTopic;
 
@@ -396,19 +398,18 @@
             };
 
             // --- Canvas Functions ---
-            const initializeCanvas = () => { /* ... (function as before) ... */ if (!uiElements.canvas) { console.error("Canvas element not found!"); return false; } try { state.canvasCtx = uiElements.canvas.getContext('2d', { willReadFrequently: false }); if (!state.canvasCtx) throw new Error("Failed to get 2D context"); resizeCanvas(); clearCanvas(); console.log("Canvas initialized successfully."); if (uiElements.canvasControls) uiElements.canvasControls.style.display = 'flex'; return true; } catch (e) { console.error("Canvas initialization failed:", e); if (uiElements.canvasContainer) uiElements.canvasContainer.innerHTML = "<p style='color:red; padding:1rem;'>Chyba: Nelze inicializovat kreslící plochu.</p>"; return false; } };
-            const resizeCanvas = () => { /* ... (function as before) ... */ if (!uiElements.canvas || !uiElements.canvasContainer || !state.canvasCtx) return; const containerStyle = window.getComputedStyle(uiElements.canvasContainer); const containerWidth = uiElements.canvasContainer.clientWidth - parseFloat(containerStyle.paddingLeft) - parseFloat(containerStyle.paddingRight); const containerHeight = uiElements.canvasContainer.clientHeight - parseFloat(containerStyle.paddingTop) - parseFloat(containerStyle.paddingBottom); const maxWidth = 1200; const maxHeight = 800; state.canvasWidth = Math.max(100, Math.min(containerWidth, maxWidth)); state.canvasHeight = Math.max(100, Math.min(containerHeight, maxHeight)); if (uiElements.canvas.width !== state.canvasWidth || uiElements.canvas.height !== state.canvasHeight) { uiElements.canvas.width = state.canvasWidth; uiElements.canvas.height = state.canvasHeight; uiElements.canvas.style.width = `${state.canvasWidth}px`; uiElements.canvas.style.height = `${state.canvasHeight}px`; clearCanvas(); console.log(`Canvas resized to: ${state.canvasWidth}x${state.canvasHeight}. Content cleared.`); } };
-            const clearCanvas = () => { /* ... (function as before) ... */ if (!state.canvasCtx) return; state.canvasCtx.clearRect(0, 0, uiElements.canvas.width, uiElements.canvas.height); console.log("Canvas cleared."); };
-            const handleCanvasDrawCommand = (command, data) => { /* ... (function as before, check DRAW_TEXT line height) ... */ if (!state.canvasCtx) { console.error("Canvas context not available for drawing."); return; } console.log(`Executing Canvas Command: ${command}`, data); state.canvasCtx.save(); try { state.canvasCtx.strokeStyle = data.color || '#000000'; state.canvasCtx.fillStyle = data.fillColor || data.color || '#000000'; state.canvasCtx.lineWidth = typeof data.lineWidth === 'number' && data.lineWidth > 0 ? data.lineWidth : 1; state.canvasCtx.font = data.font || '16px Poppins'; state.canvasCtx.textAlign = data.textAlign || 'left'; state.canvasCtx.textBaseline = data.textBaseline || 'alphabetic'; if (data.lineDash && Array.isArray(data.lineDash)) { state.canvasCtx.setLineDash(data.lineDash); } else { state.canvasCtx.setLineDash([]); } switch (command) { case 'CLEAR_CANVAS': clearCanvas(); break; case 'DRAW_LINE': if (data.x1 != null && data.y1 != null && data.x2 != null && data.y2 != null) { state.canvasCtx.beginPath(); state.canvasCtx.moveTo(data.x1, data.y1); state.canvasCtx.lineTo(data.x2, data.y2); state.canvasCtx.stroke(); } else console.warn("DRAW_LINE: Missing coordinates", data); break; case 'DRAW_RECT': if (data.x != null && data.y != null && data.width != null && data.height != null) { if (data.filled === true) { state.canvasCtx.fillRect(data.x, data.y, data.width, data.height); } else { state.canvasCtx.strokeRect(data.x, data.y, data.width, data.height); } } else console.warn("DRAW_RECT: Missing properties", data); break; case 'DRAW_CIRCLE': if (data.x != null && data.y != null && data.radius != null && data.radius > 0) { state.canvasCtx.beginPath(); state.canvasCtx.arc(data.x, data.y, data.radius, 0, Math.PI * 2); if (data.filled === true) { state.canvasCtx.fill(); } else { state.canvasCtx.stroke(); } } else console.warn("DRAW_CIRCLE: Missing or invalid properties", data); break; case 'DRAW_TEXT': if (data.text != null && data.x != null && data.y != null) { state.canvasCtx.fillStyle = data.color || '#000000'; const lines = String(data.text).split('\\n'); const fontSizeMatch = state.canvasCtx.font.match(/(\d+)(px|pt|em|rem)/); const fontSize = fontSizeMatch ? parseFloat(fontSizeMatch[1]) : 16; const lineHeight = fontSize * 1.2 || 20; // Calculate line height based on font size
-                    lines.forEach((line, index) => { state.canvasCtx.fillText(line, data.x, data.y + (index * lineHeight)); }); } else console.warn("DRAW_TEXT: Missing properties", data); break; default: console.warn("Unknown canvas command:", command); } } catch (e) { console.error(`Error executing canvas command ${command}:`, e, data); } finally { state.canvasCtx.restore(); } };
+            const initializeCanvas = () => { if (!uiElements.canvas) { console.error("Canvas element not found!"); return false; } try { state.canvasCtx = uiElements.canvas.getContext('2d', { willReadFrequently: false }); if (!state.canvasCtx) throw new Error("Failed to get 2D context"); resizeCanvas(); clearCanvas(); console.log("Canvas initialized successfully."); if (uiElements.canvasControls) uiElements.canvasControls.style.display = 'flex'; return true; } catch (e) { console.error("Canvas initialization failed:", e); if (uiElements.canvasContainer) uiElements.canvasContainer.innerHTML = "<p style='color:red; padding:1rem;'>Chyba: Nelze inicializovat kreslící plochu.</p>"; return false; } };
+            const resizeCanvas = () => { if (!uiElements.canvas || !uiElements.canvasContainer || !state.canvasCtx) return; const containerStyle = window.getComputedStyle(uiElements.canvasContainer); const containerWidth = uiElements.canvasContainer.clientWidth - parseFloat(containerStyle.paddingLeft) - parseFloat(containerStyle.paddingRight); const containerHeight = uiElements.canvasContainer.clientHeight - parseFloat(containerStyle.paddingTop) - parseFloat(containerStyle.paddingBottom); const maxWidth = 1200; const maxHeight = 800; state.canvasWidth = Math.max(100, Math.min(containerWidth, maxWidth)); state.canvasHeight = Math.max(100, Math.min(containerHeight, maxHeight)); if (uiElements.canvas.width !== state.canvasWidth || uiElements.canvas.height !== state.canvasHeight) { uiElements.canvas.width = state.canvasWidth; uiElements.canvas.height = state.canvasHeight; uiElements.canvas.style.width = `${state.canvasWidth}px`; uiElements.canvas.style.height = `${state.canvasHeight}px`; clearCanvas(); console.log(`Canvas resized to: ${state.canvasWidth}x${state.canvasHeight}. Content cleared.`); } };
+            const clearCanvas = () => { if (!state.canvasCtx) return; state.canvasCtx.clearRect(0, 0, uiElements.canvas.width, uiElements.canvas.height); console.log("Canvas cleared."); };
+            const handleCanvasDrawCommand = (command, data) => { if (!state.canvasCtx) { console.error("Canvas context not available for drawing."); return; } console.log(`Executing Canvas Command: ${command}`, data); state.canvasCtx.save(); try { state.canvasCtx.strokeStyle = data.color || '#000000'; state.canvasCtx.fillStyle = data.fillColor || data.color || '#000000'; state.canvasCtx.lineWidth = typeof data.lineWidth === 'number' && data.lineWidth > 0 ? data.lineWidth : 1; state.canvasCtx.font = data.font || '16px Poppins'; state.canvasCtx.textAlign = data.textAlign || 'left'; state.canvasCtx.textBaseline = data.textBaseline || 'alphabetic'; if (data.lineDash && Array.isArray(data.lineDash)) { state.canvasCtx.setLineDash(data.lineDash); } else { state.canvasCtx.setLineDash([]); } switch (command) { case 'CLEAR_CANVAS': clearCanvas(); break; case 'DRAW_LINE': if (data.x1 != null && data.y1 != null && data.x2 != null && data.y2 != null) { state.canvasCtx.beginPath(); state.canvasCtx.moveTo(data.x1, data.y1); state.canvasCtx.lineTo(data.x2, data.y2); state.canvasCtx.stroke(); } else console.warn("DRAW_LINE: Missing coordinates", data); break; case 'DRAW_RECT': if (data.x != null && data.y != null && data.width != null && data.height != null) { if (data.filled === true) { state.canvasCtx.fillRect(data.x, data.y, data.width, data.height); } else { state.canvasCtx.strokeRect(data.x, data.y, data.width, data.height); } } else console.warn("DRAW_RECT: Missing properties", data); break; case 'DRAW_CIRCLE': if (data.x != null && data.y != null && data.radius != null && data.radius > 0) { state.canvasCtx.beginPath(); state.canvasCtx.arc(data.x, data.y, data.radius, 0, Math.PI * 2); if (data.filled === true) { state.canvasCtx.fill(); } else { state.canvasCtx.stroke(); } } else console.warn("DRAW_CIRCLE: Missing or invalid properties", data); break; case 'DRAW_TEXT': if (data.text != null && data.x != null && data.y != null) { state.canvasCtx.fillStyle = data.color || '#000000'; const lines = String(data.text).split('\\n'); const fontSizeMatch = state.canvasCtx.font.match(/(\d+)(px|pt|em|rem)/); const fontSize = fontSizeMatch ? parseFloat(fontSizeMatch[1]) : 16; const lineHeight = fontSize * 1.2 || 20; lines.forEach((line, index) => { state.canvasCtx.fillText(line, data.x, data.y + (index * lineHeight)); }); } else console.warn("DRAW_TEXT: Missing properties", data); break; default: console.warn("Unknown canvas command:", command); } } catch (e) { console.error(`Error executing canvas command ${command}:`, e, data); } finally { state.canvasCtx.restore(); } };
 
             // --- User Profile & Auth ---
-            const loadUserProfile = async () => { /* ... (function as before) ... */ if (!state.supabase) return; try { const { data: { user }, error: userError } = await state.supabase.auth.getUser(); if (userError) throw userError; if (user) { state.currentUser = user; const { data: profile, error: profileError } = await state.supabase.from('profiles').select('*').eq('id', user.id).single(); if (profileError && profileError.code !== 'PGRST116') throw profileError; state.currentProfile = profile; console.log("User profile loaded:", state.currentProfile); } else { state.currentUser = null; state.currentProfile = null; console.log("No user logged in."); } } catch (error) { console.error('Error loading user profile:', error); state.currentUser = null; state.currentProfile = null; showToast("Nepodařilo se načíst profil.", "error"); } finally { updateUserInfoUI(); } };
-            const updateUserInfoUI = () => { /* ... (function as before) ... */ if (uiElements.userName && uiElements.userAvatar) { if (state.currentProfile || state.currentUser) { const email = state.currentUser?.email; const initials = getInitials(state.currentProfile, email); const displayName = `${state.currentProfile?.first_name || ''} ${state.currentProfile?.last_name || ''}`.trim() || state.currentProfile?.username || email?.split('@')[0] || 'Uživatel'; uiElements.userName.textContent = displayName; if (state.currentProfile?.avatar_url) { uiElements.userAvatar.innerHTML = `<img src="${state.currentProfile.avatar_url}" alt="${initials}">`; } else { uiElements.userAvatar.innerHTML = ''; uiElements.userAvatar.textContent = initials; } } else { uiElements.userName.textContent = 'Nepřihlášen'; uiElements.userAvatar.innerHTML = '?'; } } };
-            const handleLoggedOutUser = () => { /* ... (function as before) ... */ console.warn("User not logged in."); updateAIStatus("Přihlaste se pro zahájení výuky."); if (uiElements.currentTopicDisplay) uiElements.currentTopicDisplay.innerHTML = '<span class="placeholder">Nejste přihlášeni</span>'; showToast("Prosím, přihlaste se.", "warning"); manageUIState('loggedOut'); manageButtonStates(); };
+            const loadUserProfile = async () => { if (!state.supabase) return; try { const { data: { user }, error: userError } = await state.supabase.auth.getUser(); if (userError) throw userError; if (user) { state.currentUser = user; const { data: profile, error: profileError } = await state.supabase.from('profiles').select('*').eq('id', user.id).single(); if (profileError && profileError.code !== 'PGRST116') throw profileError; state.currentProfile = profile; console.log("User profile loaded:", state.currentProfile); } else { state.currentUser = null; state.currentProfile = null; console.log("No user logged in."); } } catch (error) { console.error('Error loading user profile:', error); state.currentUser = null; state.currentProfile = null; showToast("Nepodařilo se načíst profil.", "error"); } finally { updateUserInfoUI(); } };
+            const updateUserInfoUI = () => { if (uiElements.userName && uiElements.userAvatar) { if (state.currentProfile || state.currentUser) { const email = state.currentUser?.email; const initials = getInitials(state.currentProfile, email); const displayName = `${state.currentProfile?.first_name || ''} ${state.currentProfile?.last_name || ''}`.trim() || state.currentProfile?.username || email?.split('@')[0] || 'Uživatel'; uiElements.userName.textContent = displayName; if (state.currentProfile?.avatar_url) { uiElements.userAvatar.innerHTML = `<img src="${state.currentProfile.avatar_url}" alt="${initials}">`; } else { uiElements.userAvatar.innerHTML = ''; uiElements.userAvatar.textContent = initials; } } else { uiElements.userName.textContent = 'Nepřihlášen'; uiElements.userAvatar.innerHTML = '?'; } } };
+            const handleLoggedOutUser = () => { console.warn("User not logged in."); updateAIStatus("Přihlaste se pro zahájení výuky."); if (uiElements.currentTopicDisplay) uiElements.currentTopicDisplay.innerHTML = '<span class="placeholder">Nejste přihlášeni</span>'; showToast("Prosím, přihlaste se.", "warning"); manageUIState('loggedOut'); manageButtonStates(); };
 
              // --- Event Listeners Setup ---
-            const setupEventListeners = () => { /* ... (function as before) ... */
+            const setupEventListeners = () => {
                 console.log("Setting up event listeners...");
                 // Mobile Menu
                 if (uiElements.mobileMenuToggle && uiElements.sidebar && uiElements.sidebarOverlay) {
@@ -443,10 +444,10 @@
                 // Window Resize
                 window.addEventListener('resize', () => { if (window.innerWidth > 992 && uiElements.sidebar?.classList.contains('active')) { uiElements.sidebar.classList.remove('active'); uiElements.sidebarOverlay.classList.remove('active'); } resizeCanvas(); });
             };
-            const initTooltips = () => { /* ... (function as before) ... */ try { if (window.jQuery && window.jQuery.fn.tooltipster) { window.jQuery('.btn-tooltip:not(.tooltipstered)').tooltipster({ theme: 'tooltipster-shadow', animation: 'fade', delay: 100, side: 'top' }); } else { console.warn("jQuery or Tooltipster not fully loaded for initTooltips."); } } catch (e) { console.error("Tooltipster initialization error:", e); } };
+            const initTooltips = () => { try { if (window.jQuery && window.jQuery.fn.tooltipster) { window.jQuery('.btn-tooltip:not(.tooltipstered)').tooltipster({ theme: 'tooltipster-shadow', animation: 'fade', delay: 100, side: 'top' }); } else { console.warn("jQuery or Tooltipster not fully loaded for initTooltips."); } } catch (e) { console.error("Tooltipster initialization error:", e); } };
 
             // --- Topic Loading and Progress ---
-            const loadNextUncompletedTopic = async () => { /* ... (function as before) ... */
+            const loadNextUncompletedTopic = async () => {
                  if (!state.currentUser || state.topicLoadInProgress || !state.supabase) { console.log("Skipping topic load:", { loggedIn: !!state.currentUser, loading: state.topicLoadInProgress }); return; }
                 state.topicLoadInProgress = true;
                 if (uiElements.currentTopicDisplay) uiElements.currentTopicDisplay.innerHTML = '<span class="placeholder"><i class="fas fa-spinner fa-spin"></i> Hledám další téma...</span>';
@@ -481,7 +482,7 @@
 
                         if (nextActivity.topic_id) {
                             const { data: topicData, error: topicError } = await state.supabase.from('exam_topics').select('name, description').eq('id', nextActivity.topic_id).single();
-                            if (topicError && topicError.code !== 'PGRST116') { console.warn(`Could not fetch topic details for ID ${nextActivity.topic_id}:`, topicError); } // Warn instead of throw
+                            if (topicError && topicError.code !== 'PGRST116') { console.warn(`Could not fetch topic details for ID ${nextActivity.topic_id}:`, topicError); }
                             if (topicData) {
                                 topicName = topicData.name || topicName;
                                 topicDescription = topicData.description || topicDescription;
@@ -518,7 +519,7 @@
                     manageButtonStates();
                 }
             };
-            const handleMarkTopicComplete = async () => { /* ... (function as before) ... */
+            const handleMarkTopicComplete = async () => {
                  if (!state.currentTopic || !state.currentTopic.activity_id || !state.supabase || state.topicLoadInProgress) return;
                 console.log(`Marking activity ${state.currentTopic.activity_id} as complete.`);
                 state.topicLoadInProgress = true;
@@ -548,7 +549,7 @@
             };
 
             // --- Learning Session Management ---
-            const startLearningSession = async () => { /* ... (function as before) ... */
+            const startLearningSession = async () => {
                  if (!state.currentTopic || !state.currentUser || !state.supabase || !state.isCanvasInitialized) {
                      console.error("Cannot start session:", { topic: !!state.currentTopic, user: !!state.currentUser, supabase: !!state.supabase, canvas: state.isCanvasInitialized });
                      updateAIStatus('Chyba: Nelze zahájit výuku.');
@@ -570,7 +571,7 @@
 
                 let initialPrompt = `Jako AI Tutor "Justax" začni vysvětlovat ZÁKLADY tématu "${state.currentTopic.name}" pro studenta 9. třídy ZŠ (přijímačky CERMAT).`;
                 if (state.currentTopic.description) { initialPrompt += ` Popis tématu pro kontext: "${state.currentTopic.description}".`; }
-                initialPrompt += ` Buď podrobný, přátelský a postupuj krok za krokem. Toto je ÚPLNĚ PRVNÍ krok vysvětlení tohoto tématu. Vhodně použij příklad nebo výzvu k použití KRESLÍCÍ PLOCHY (použij příkazy jako DRAW_LINE, DRAW_TEXT, DRAW_RECT, DRAW_CIRCLE, CLEAR_CANVAS s JSON parametry ve formátu \`PŘÍKAZ: \`\`\`json ... \`\`\`\`). Ukonči odpověď krátkým shrnutím pro chat ve formátu: \`CHAT_SUMMARY: [Zde tvůj krátký souhrn první části]\`.`;
+                initialPrompt += ` Buď podrobný, přátelský a postupuj krok za krokem. Toto je ÚPLNĚ PRVNÍ krok vysvětlení tohoto tématu. Vhodně použij příklad nebo výzvu k použití KRESLÍCÍ PLOCHY (použij příkazy pro kreslení ve formátu \`PŘÍKAZ: \`\`\`json { "type": "NAZEV_PRIKAZU", "data": { ... } } \`\`\`\`). Ukonči odpověď krátkým shrnutím pro chat ve formátu: \`CHAT_SUMMARY: [Zde tvůj krátký souhrn první části]\`.`;
 
                 await sendToGemini(initialPrompt, 'explanation');
             };
@@ -578,7 +579,7 @@
             const requestNextStep = async () => { /* ... (function as before) ... */ if (state.geminiIsThinking || !state.currentTopic) return; console.log("Requesting next step..."); updateGeminiThinkingState(true); manageButtonStates(); const prompt = `Pokračuj ve vysvětlování tématu "${state.currentTopic.name}". Naváž na předchozí krok. Nezapomeň na možnost využití kreslící plochy a ukončení shrnutím pro chat (CHAT_SUMMARY:).`; await sendToGemini(prompt, 'explanation'); };
 
             // --- Chat Functionality ---
-            const addChatMessage = async (message, sender, saveToDb = true, timestamp = new Date()) => { /* ... (function as before, includes DB save fix) ... */
+            const addChatMessage = async (message, sender, saveToDb = true, timestamp = new Date()) => { /* ... (function as before, uses 'model' role) ... */
                  if (!uiElements.chatMessages) return;
                 const messageId = `msg-${Date.now()}-${Math.random().toString(16).substring(2, 8)}`;
                 const avatarInitial = sender === 'user' ? getInitials(state.currentProfile, state.currentUser?.email) : 'AI';
@@ -678,19 +679,12 @@
                     Array.from(uiElements.chatMessages.children).forEach(msgElement => {
                         if (msgElement.classList.contains('chat-message')) {
                             const clone = msgElement.cloneNode(true);
-                            // Remove interactive elements or simplify structure if needed for PDF
                             chatContainer.appendChild(clone);
                         }
                     });
 
                     const filename = `chat-justax-${state.currentTopic?.name?.replace(/[^a-z0-9]/gi, '_') || 'vyuka'}-${formatTimestamp().replace(/[:\s]/g, '')}.pdf`;
-                    const options = {
-                        margin: 15,
-                        filename: filename,
-                        image: { type: 'jpeg', quality: 0.95 },
-                        html2canvas: { scale: 2, useCORS: true, logging: false, letterRendering: true },
-                        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-                    };
+                    const options = { margin: 15, filename: filename, image: { type: 'jpeg', quality: 0.95 }, html2canvas: { scale: 2, useCORS: true, logging: false, letterRendering: true }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } };
 
                     try {
                          await html2pdf().set(options).from(chatContainer).save();
@@ -699,59 +693,64 @@
                          console.error("Chyba exportu PDF:", pdfError);
                          showToast("Nepodařilo se exportovat chat do PDF.", "error");
                      }
-            };
+             };
 
-            // --- Gemini Interaction & AI Drawing (FIXED PARSER) ---
+
+            // --- Gemini Interaction & AI Drawing (FIXED PARSER for NEW format) ---
             const parseAndProcessCanvasCommands = (responseText) => {
                  let cleanedText = responseText; // Work on a copy
-                 const commandBlocks = [];
+                 const commandMatches = [];
                  let match;
-                 // Use the specific regex targeting the COMMAND: ```json ... ``` format
-                 const CANVAS_COMMAND_BLOCK_REGEX = /(CLEAR_CANVAS|DRAW_LINE|DRAW_RECT|DRAW_CIRCLE|DRAW_TEXT):\s*```json\s*(\{[\s\S]*?\})\s*```\s*/g;
-                 CANVAS_COMMAND_BLOCK_REGEX.lastIndex = 0; // Reset regex index
+                 // New Regex for PŘÍKAZ: ```json { "type": "CMD", "data": {...} } ```
+                 const NEW_COMMAND_BLOCK_REGEX = /PŘÍKAZ:\s*```json\s*(\{[\s\S]*?\})\s*```\s*/g;
+                 NEW_COMMAND_BLOCK_REGEX.lastIndex = 0; // Reset regex index
 
-                 console.log("Parsing for canvas command blocks (COMMAND: ```json...``` format)...");
+                 console.log("Parsing for NEW canvas command blocks (PŘÍKAZ: ```json...``` format)...");
 
-                 // First pass: find all command blocks and store them with their full match string
-                 while ((match = CANVAS_COMMAND_BLOCK_REGEX.exec(responseText)) !== null) {
-                     commandBlocks.push({
-                         fullMatch: match[0], // The entire matched string like "DRAW_LINE: ```json...``` "
-                         command: match[1],   // The command name (e.g., "DRAW_LINE")
-                         dataString: match[2] // The JSON string part " { ... } "
-                     });
+                 // First pass: find all command blocks
+                 while ((match = NEW_COMMAND_BLOCK_REGEX.exec(responseText)) !== null) {
+                      commandMatches.push({
+                          fullMatch: match[0], // The entire matched string "PŘÍKAZ: ```json...``` "
+                          jsonString: match[1] // The inner JSON string "{ ... }"
+                      });
                  }
 
-                 if (commandBlocks.length > 0) {
-                     console.log(`Found ${commandBlocks.length} canvas command blocks.`);
-                     // Second pass: execute commands and remove the *exact* matched block from the text
-                     commandBlocks.forEach(block => {
+                 if (commandMatches.length > 0) {
+                     console.log(`Found ${commandMatches.length} NEW canvas command blocks.`);
+                     // Second pass: execute commands and remove them from the text
+                     commandMatches.forEach(block => {
                          // Replace the *entire* matched block string from the cleanedText copy
                          if (cleanedText.includes(block.fullMatch)) {
                              cleanedText = cleanedText.replace(block.fullMatch, '');
-                             console.log(`Removed block for command: ${block.command}`);
+                             console.log(`Removed block starting with: ${block.fullMatch.substring(0, 50)}...`);
                          } else {
-                             // This might happen if identical blocks exist, the first removal took care of it
-                             console.warn(`Block for command ${block.command} already removed or not found in remaining text.`);
+                             console.warn(`Block already removed or not found in remaining text: ${block.fullMatch.substring(0, 50)}...`);
                          }
 
-                         // Execute the drawing command
+                         // Parse the inner JSON and execute
                          try {
-                             const data = JSON.parse(block.dataString);
-                             handleCanvasDrawCommand(block.command, data);
+                             const parsedJson = JSON.parse(block.jsonString);
+                             const commandType = parsedJson.type; // Get command from "type" field
+                             const commandData = parsedJson.data; // Get data from "data" field
+
+                             if (commandType && commandData) {
+                                 handleCanvasDrawCommand(commandType, commandData); // Execute drawing
+                             } else {
+                                  console.warn("Parsed JSON is missing 'type' or 'data' field:", parsedJson);
+                             }
                          } catch (e) {
-                             console.error(`Failed to parse/execute CANVAS command ${block.command}:`, e, "\nData String:", block.dataString);
+                             console.error(`Failed to parse JSON or execute command:`, e, "\nJSON String:", block.jsonString);
                          }
                      });
                  } else {
-                     console.log("No canvas command blocks found in the response.");
+                     console.log("No NEW canvas command blocks found in the response.");
                  }
 
                  console.log("Finished parsing canvas commands. Returning cleaned text.");
-                 // Return the text with all identified command blocks removed
-                 return cleanedText.trim();
-            };
+                 return cleanedText.trim(); // Return the text with commands removed
+             };
 
-
+            // Improved Gemini Prompt and Interaction Logic
             const sendToGemini = async (promptText, targetArea) => {
                  if (!GEMINI_API_KEY || !GEMINI_API_KEY.startsWith('AIzaSy')) { showToast("Chyba: AI není správně nakonfigurována.", "error"); updateGeminiThinkingState(false); return; }
                  if (!state.currentTopic) { showToast("Chyba: Není vybráno žádné téma.", "error"); updateGeminiThinkingState(false); return; }
@@ -761,8 +760,25 @@
                  const requestTimestamp = new Date();
                  updateGeminiThinkingState(true);
 
-                 // Slightly refined System Instruction
-                 const systemInstructionText = `Jsi AI Tutor "Justax", expert na matematiku pro 9. třídu ZŠ v ČR (přijímačky CERMAT). Vyučuješ téma: "${state.currentTopic.name}"${state.currentTopic.description ? ` (Popis: "${state.currentTopic.description}")` : ''}. Tvůj styl je PŘÁTELSKÝ, TRPĚLIVÝ a PODROBNÝ. Vysvětluj krok za krokem, používej příklady. Důsledně používej Markdown a MathJax (blok: $$...$$, inline: \\(...\\)). Odpovídej VŽDY ČESKY. DŮLEŽITÉ POKYNY PRO TEBE: 1. KROK ZA KROKEM: Drž se jednoho konceptu/kroku na odpověď, zvláště v záložce "Vysvětlení". Buď systematický. 2. INTERAKTIVITA: Pokládej studentovi kontrolní otázky nebo ho vyzývej k zamyšlení. 3. **KRESLÍCÍ PLOCHA (HTML5 Canvas):** Pro vizualizaci (geometrie, grafy, číselné osy, kroky řešení, vzorce) MŮŽEŠ na KONEC své textové odpovědi přidat JEDEN NEBO VÍCE speciálních bloků s příkazy pro kreslení. Každý blok MUSÍ mít tento formát: \`PŘÍKAZ: \`\`\`json { /* JSON data pro příkaz */ } \`\`\`\`. Používej POUZE tyto PŘÍKAZY (case-sensitive): * \`CLEAR_CANVAS: {}\` - Vymaže celé plátno. Použij PŘED kreslením nové komplexní scény. * \`DRAW_LINE: {"x1":#, "y1":#, "x2":#, "y2":#, "color":"#RRGGBB", "lineWidth":#}\` - Nakreslí čáru. Barva a tloušťka jsou volitelné (default: #000000, 1). * \`DRAW_RECT: {"x":#, "y":#, "width":#, "height":#, "color":"#RRGGBB", "lineWidth":#, "filled":false}\` - Nakreslí obdélník. \`filled: true\` pro vyplněný. Barva a tloušťka jsou volitelné. * \`DRAW_CIRCLE: {"x":#, "y":#, "radius":#, "color":"#RRGGBB", "lineWidth":#, "filled":false}\` - Nakreslí kruh/kružnici. \`filled: true\` pro vyplněný. Barva a tloušťka jsou volitelné. * \`DRAW_TEXT: {"text":"Text k vypsání (může obsahovat \\n pro nový řádek)", "x":#, "y":#, "color":"#RRGGBB", "font":"16px Poppins", "textAlign":"left/center/right", "textBaseline":"top/middle/bottom"}\` - Napíše text. Barva, font, zarovnání jsou volitelné. Souřadnice [0, 0] je LEVÝ HORNÍ roh. Aktuální rozměry plátna jsou ${state.canvasWidth}px (šířka) x ${state.canvasHeight}px (výška). Kresli S MÍROU, PŘEHLEDNĚ, V RÁMCI PLÁTNA a POKUD MOŽNO NE PŘES SEBE (vyhni se překrývání textu a důležitých prvků). Barvy zadávej jako hex kódy (#RRGGBB). 4. DÉLKA ODPOVĚDI: Pro záložku "Vysvětlení" buď podrobný, ale drž se jednoho kroku. Pro "Chat" odpovídej stručněji a přímo na dotaz. 5. VÝSTUP DO CHATU (SHRNUTÍ): Pokud generuješ delší odpověď pro "Vysvětlení", na ÚPLNÝ konec celé odpovědi (i za případné kreslící příkazy) PŘIDEJ krátký, výstižný souhrn pro zobrazení v chatu, ve formátu: \`CHAT_SUMMARY: [Zde tvůj krátký souhrn]\`. Pokud odpovídáš přímo v chatu (target 'chat'), CHAT_SUMMARY nepřidávej.`;
+                 // --- Enhanced System Instruction ---
+                 const systemInstructionText = `Jsi AI Tutor "Justax", expert na matematiku pro 9. třídu ZŠ v ČR (přijímačky CERMAT). Vyučuješ téma: "${state.currentTopic.name}"${state.currentTopic.description ? ` (Popis: "${state.currentTopic.description}")` : ''}.
+                 Tvůj styl je PŘÁTELSKÝ, TRPĚLIVÝ a PODROBNÝ. Vysvětluj krok za krokem, používej PŘESNÉ matematické termíny a jednoduché příklady.
+                 Důsledně používej Markdown pro formátování textu a MathJax pro matematické vzorce (blokové vzorce: $$...$$, inline vzorce: \\(...\\)). Odpovídej VŽDY ČESKY.
+
+                 DŮLEŽITÉ POKYNY PRO TEBE:
+                 1.  **KROK ZA KROKEM:** V záložce "Vysvětlení" se drž JEDNOHO logického kroku nebo konceptu na odpověď. Buď systematický a postupný. Nezahlcuj studenta příliš mnoha informacemi najednou.
+                 2.  **INTERAKTIVITA:** Pravidelně pokládej studentovi KONTROLNÍ OTÁZKY ("Zkus si teď sám:", "Co si myslíš, že bude další krok?", "Je ti tento postup jasný?") nebo ho vyzývej k zamyšlení. Počkej na jeho reakci (pomocí tlačítka "Další krok" nebo odpovědi v chatu).
+                 3.  **KRESLÍCÍ PLOCHA (HTML5 Canvas):** Pro vizualizaci (geometrie, grafy, číselné osy, kroky řešení rovnic, vzorce) MŮŽEŠ na KONEC své textové odpovědi přidat JEDEN NEBO VÍCE speciálních bloků s příkazy pro kreslení. Každý blok MUSÍ mít TENTO PŘESNÝ FORMÁT JSON: \`PŘÍKAZ: \`\`\`json { "type": "NAZEV_PRIKAZU", "data": { /* JSON data pro příkaz */ } } \`\`\`\`.
+                     * Používej POUZE tyto hodnoty pro pole "type" (case-sensitive): "CLEAR_CANVAS", "DRAW_LINE", "DRAW_RECT", "DRAW_CIRCLE", "DRAW_TEXT".
+                     * Objekt "data" MUSÍ obsahovat VŠECHNY potřebné parametry pro daný příkaz (např. souřadnice x, y, rozměry, text, barva).
+                     * Příklad pro text: \`PŘÍKAZ: \`\`\`json { "type": "DRAW_TEXT", "data": { "text": "a = 5", "x": 50, "y": 50, "color": "#3f37c9", "font": "bold 16px Poppins" } } \`\`\`\`
+                     * Příklad pro vymazání: \`PŘÍKAZ: \`\`\`json { "type": "CLEAR_CANVAS", "data": {} } \`\`\`\`
+                     * Aktuální rozměry plátna jsou ${state.canvasWidth}px (šířka) x ${state.canvasHeight}px (výška). Souřadnice [0, 0] je LEVÝ HORNÍ roh.
+                     * Kresli PŘEHLEDNĚ a SROZUMITELNĚ. Vyhni se PŘEKRÝVÁNÍ textu a důležitých prvků. Používej KONZISTENTNÍ styl. Před složitějším obrázkem VŽDY použij CLEAR_CANVAS. Koordináty volte tak, aby se vešly na plátno.
+                 4.  **DÉLKA ODPOVĚDI:** Pro záložku "Vysvětlení" buď podrobný, ale stručný v rámci jednoho kroku. Pro "Chat" odpovídej stručněji a přímo na dotaz studenta.
+                 5.  **VÝSTUP DO CHATU (SHRNUTÍ):** POKUD generuješ delší odpověď pro "Vysvětlení", na ÚPLNÝ konec celé odpovědi (i za případné kreslící příkazy) PŘIDEJ krátký, výstižný souhrn pro zobrazení v chatu, ve formátu: \`CHAT_SUMMARY: [Zde tvůj krátký souhrn jednoho až dvou vět]\`. Pokud odpovídáš přímo v chatu (target 'chat'), CHAT_SUMMARY nepřidávej.`;
+                 // --- End of Enhanced System Instruction ---
+
                  const historyForApi = state.geminiChatContext.filter(item => item.role === 'user' || item.role === 'model');
                  const currentRequestContent = { role: "user", parts: [{ text: promptText }] };
                  let contentsPayload;
@@ -770,13 +786,9 @@
                  if (historyForApi.length === 0) {
                      contentsPayload = [{ role: "user", parts: [{ text: systemInstructionText + "\n\n---\n\nStudentův dotaz/požadavek: " + promptText }] }];
                  } else {
-                     // For subsequent turns, we might not need to resend the full system instruction
-                     // depending on how the API handles context. Assuming it retains context:
                      contentsPayload = [...historyForApi, currentRequestContent];
-                     // Optionally, add the system instruction if the API requires it explicitly for context setting
-                     // if (!state.geminiChatContext.some(m => m.role === 'system')) {
-                     //    contentsPayload.unshift({ role: "system", parts: [{ text: systemInstructionText }] });
-                     // }
+                     // Optional: Add system instruction if needed for context (check API docs)
+                     // contentsPayload.unshift({ role: "system", parts: [{ text: systemInstructionText }] });
                  }
 
                  const requestBody = {
@@ -797,11 +809,8 @@
                      const geminiResponseText = candidate.content?.parts?.[0]?.text;
                      if (!geminiResponseText) { console.warn("Gemini returned empty text content."); throw new Error('AI vrátila prázdnou odpověď.'); }
 
-                     // Add raw response to context *before* processing commands
                      state.geminiChatContext.push({ role: "model", parts: [{ text: geminiResponseText }] });
-
-                     // Process response (includes parsing commands and rendering)
-                     await processGeminiResponse(geminiResponseText, targetArea, requestTimestamp); // Await might not be needed if parsing is sync
+                     await processGeminiResponse(geminiResponseText, targetArea, requestTimestamp);
                      updateAIStatus(state.currentTopic ? `Vysvětluje: ${state.currentTopic.name}` : 'Připraven');
 
                  } catch (error) {
@@ -810,7 +819,7 @@
                      handleGeminiError(error.message, targetArea, requestTimestamp);
                      updateAIStatus('Nastala chyba');
                  } finally {
-                     updateGeminiThinkingState(false); // Ensure state is reset regardless of outcome
+                     updateGeminiThinkingState(false);
                  }
              };
 
@@ -829,7 +838,7 @@
                  }
 
                  // Process canvas commands AND get the remaining text WITHOUT commands
-                 const textToDisplay = parseAndProcessCanvasCommands(textForProcessing); // This now returns cleaned text
+                 const textToDisplay = parseAndProcessCanvasCommands(textForProcessing); // Uses the NEW fixed parser
 
                  if (targetArea === 'explanation') {
                      console.log("Processing for EXPLANATION area.");
@@ -838,7 +847,7 @@
 
                      const isFirstStep = uiElements.explanationDisplay.querySelectorAll('.step').length === 0 && state.lastExplanationTimestamp === 0;
                      if (isFirstStep) {
-                         uiElements.explanationDisplay.innerHTML = ''; // Clear only on first step
+                         uiElements.explanationDisplay.innerHTML = '';
                          console.log("First explanation step, clearing initial placeholder.");
                      } else {
                          console.log("Appending explanation step.");
@@ -852,26 +861,24 @@
 
                      if(uiElements.explanationScrollContent) { uiElements.explanationScrollContent.scrollTop = uiElements.explanationScrollContent.scrollHeight; }
 
-                     // Add summary to chat if present, otherwise a generic message if text was displayed
                      if (chatSummary) {
                          addChatMessage(chatSummary, 'gemini', true, timestamp);
                      } else if (textToDisplay.trim()) {
                          addChatMessage(`AI pokračovala ve vysvětlení (viz záložka Vysvětlení).`, 'gemini', false, timestamp);
                      }
-                     manageUIState('learning');
-                     manageButtonStates();
+                      manageUIState('learning');
+                      manageButtonStates();
 
                  } else { // Target is 'chat'
                      console.log("Processing for CHAT area.");
                      if (textToDisplay.trim()) {
-                         addChatMessage(textToDisplay, 'gemini', true, timestamp); // Add cleaned text to chat
-                     } else if (chatSummary) { // Fallback if only summary exists (shouldn't happen for chat target)
+                         addChatMessage(textToDisplay, 'gemini', true, timestamp);
+                     } else if (chatSummary) { // Fallback
                          addChatMessage(chatSummary, 'gemini', true, timestamp);
                      } else {
-                         // If textToDisplay is empty, check if commands were actually processed
                          if (rawResponseText !== textForProcessing) {
                              console.log("Chat response contained only canvas commands.");
-                             // Optionally add a message like: addChatMessage("(AI nakreslila na plochu)", 'gemini', false, timestamp);
+                             // Optional: addChatMessage("(AI nakreslila na plochu)", 'gemini', false, timestamp);
                          } else {
                              addChatMessage("(AI neposkytla textovou odpověď)", 'gemini', false, timestamp);
                              console.warn("AI chat response was empty after processing commands.");
@@ -879,17 +886,16 @@
                      }
                  }
 
-                 // Typeset MathJax after rendering potentially new content
                  if (window.MathJax && typeof window.MathJax.typesetPromise === 'function') {
                      setTimeout(() => window.MathJax.typesetPromise(), 50);
                  }
              };
+
              const handleGeminiError = (errorMessage, targetArea, timestamp) => { /* ... (function as before) ... */
                 const errorMsg = `Omlouvám se, nastala chyba při zpracování: ${errorMessage}`;
                 removeThinkingIndicator(); // Ensure indicator is removed on error
                 addChatMessage(errorMsg, 'gemini', false, timestamp); // Show error in chat
                 if (targetArea === 'explanation' && uiElements.explanationDisplay) {
-                    // Append error to explanation area without removing previous steps
                     const errorP = document.createElement('p');
                     errorP.style.color = 'var(--danger)';
                     errorP.style.marginTop = '1rem';
