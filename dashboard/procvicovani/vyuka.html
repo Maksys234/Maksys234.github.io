@@ -31,7 +31,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <style>
-        /* --- CSS Styles (Slight adjustments for spacing) --- */
+        /* --- CSS Styles (Unchanged from previous version with canvas resize) --- */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; scroll-behavior: smooth; }
         :root {
             --primary-rgb: 67, 97, 238; --primary: #4361ee; --primary-light: #4895ef; --secondary: #3f37c9; --success: #06d6a0; --danger: #f72585; --warning: #f8961e; --info: #4cc9f0; --dark: #1e2a3a; --light: #f8f9fa; --gray: #6c757d; --gray-light: #dee2e6; --gray-dark: #343a40; --gradient-1: linear-gradient(135deg, #4361ee, #3a0ca3); --gradient-2: linear-gradient(135deg, #4cc9f0, #4361ee); --white: #ffffff; --sidebar-width: 260px; --transition-speed: 0.3s; --card-radius: 16px; --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06); --shadow-md: 0 5px 15px rgba(0, 0, 0, 0.08); --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.12); --text-primary: #2d3748; --text-secondary: #4a5568; --text-muted: #718096; --call-bg: #f4f7fe; --call-panel-bg: var(--white); --avatar-size: 48px;
@@ -72,24 +72,20 @@
 
         /* Videocall Interface Layout */
         .call-interface { flex-grow: 1; display: flex; overflow: hidden; padding: 1.75rem; gap: 2rem; /* Increased gap */ }
-        .ai-presenter-area { flex-grow: 1; /* Takes up remaining space */ display: flex; flex-direction: column; background-color: var(--call-panel-bg); border-radius: var(--card-radius); box-shadow: var(--shadow-md); overflow: hidden; border: 1px solid var(--gray-light); transition: box-shadow 0.3s ease; }
+        .ai-presenter-area { flex-grow: 1; display: flex; flex-direction: column; background-color: var(--call-panel-bg); border-radius: var(--card-radius); box-shadow: var(--shadow-md); overflow: hidden; border: 1px solid var(--gray-light); transition: box-shadow 0.3s ease; }
         .ai-presenter-area:hover { box-shadow: var(--shadow-lg); }
-        .ai-presenter-header { padding: 0.8rem 1.5rem; /* Slightly more padding */ border-bottom: 1px solid var(--gray-light); display: flex; align-items: center; gap: 0.8rem; background-color: #fcfdff; flex-shrink: 0; }
+        .ai-presenter-header { padding: 0.8rem 1.5rem; border-bottom: 1px solid var(--gray-light); display: flex; align-items: center; gap: 0.8rem; background-color: #fcfdff; flex-shrink: 0; }
         .ai-avatar-placeholder { width: var(--avatar-size); height: var(--avatar-size); background: var(--gradient-1); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.6rem; flex-shrink: 0; box-shadow: var(--shadow-sm); }
         .ai-presenter-info h2 { font-size: 1.15rem; font-weight: 600; color: var(--dark); margin: 0; }
         .ai-presenter-info p { font-size: 0.88rem; color: var(--text-secondary); margin: 0; }
-        .whiteboard-main-container { flex-grow: 1; position: relative; overflow: hidden; border-radius: 0 0 var(--card-radius) var(--card-radius); background-color: #fdfdfd; display: flex; justify-content: center; align-items: center; padding: 20px; /* Increased padding */ }
+        .whiteboard-main-container { flex-grow: 1; position: relative; overflow: hidden; border-radius: 0 0 var(--card-radius) var(--card-radius); background-color: #fdfdfd; display: flex; justify-content: center; align-items: center; padding: 20px; }
         #drawingCanvas { max-width: 100%; max-height: 100%; background-color: #fff; border: 1px dashed var(--gray-light); object-fit: contain; border-radius: 8px; }
-        .canvas-controls { position: absolute; bottom: 20px; right: 20px; /* Adjusted position */ display: flex; gap: 10px; background-color: rgba(255, 255, 255, 0.9); padding: 10px 12px; border-radius: var(--card-radius); box-shadow: var(--shadow-sm); border: 1px solid var(--gray-light); }
+        .canvas-controls { position: absolute; bottom: 20px; right: 20px; display: flex; gap: 10px; background-color: rgba(255, 255, 255, 0.9); padding: 10px 12px; border-radius: var(--card-radius); box-shadow: var(--shadow-sm); border: 1px solid var(--gray-light); }
         .canvas-controls button { padding: 8px 14px; font-size: 0.95em; line-height: 1; min-width: auto; background-color: var(--white); border: 1px solid var(--gray-light); color: var(--text-secondary); transition: all 0.2s ease; }
         .canvas-controls button:hover { background-color: var(--light); color: var(--primary); border-color: var(--primary-light); transform: scale(1.05); }
 
         /* Interaction Panel */
-        .interaction-panel {
-            width: 380px; /* Slightly reduced width */
-            flex-shrink: 0;
-            display: flex; flex-direction: column; background-color: var(--call-panel-bg); border-radius: var(--card-radius); box-shadow: var(--shadow-md); overflow: hidden; border: 1px solid var(--gray-light); transition: box-shadow 0.3s ease;
-        }
+        .interaction-panel { width: 380px; /* Reduced width */ flex-shrink: 0; display: flex; flex-direction: column; background-color: var(--call-panel-bg); border-radius: var(--card-radius); box-shadow: var(--shadow-md); overflow: hidden; border: 1px solid var(--gray-light); transition: box-shadow 0.3s ease; }
         .interaction-panel:hover { box-shadow: var(--shadow-lg); }
         .interaction-tabs { display: flex; border-bottom: 1px solid var(--gray-light); background-color: #fcfdff; flex-shrink: 0; }
         .interaction-tab { flex: 1; text-align: center; padding: 1rem 1rem; font-weight: 500; color: var(--text-secondary); cursor: pointer; transition: all 0.2s ease; border-bottom: 3px solid transparent; font-size: 1rem; position: relative; }
@@ -101,24 +97,24 @@
         .tab-content.active { visibility: visible; opacity: 1; transition: opacity 0.3s ease; }
 
         /* Explanation Tab */
-        .explanation-scroll-content { flex-grow: 1; padding: 2rem; /* Increased padding */ overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--gray-light) transparent; }
+        .explanation-scroll-content { flex-grow: 1; padding: 2rem; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--gray-light) transparent; }
         .explanation-scroll-content::-webkit-scrollbar { width: 8px; } .explanation-scroll-content::-webkit-scrollbar-track { background: transparent; } .explanation-scroll-content::-webkit-scrollbar-thumb { background-color: var(--gray-light); border-radius: 4px; border: 2px solid var(--call-panel-bg); }
         #explanation-display { line-height: 1.75; font-size: 0.98rem; }
-        #explanation-display .step { margin-bottom: 1.75rem; /* Increased margin */ padding: 1.4rem; border-radius: 10px; background-color: #fdfdff; border: 1px solid #f0f0f5; animation: fadeIn 0.5s ease forwards; }
+        #explanation-display .step { margin-bottom: 1.75rem; padding: 1.4rem; border-radius: 10px; background-color: #fdfdff; border: 1px solid #f0f0f5; animation: fadeIn 0.5s ease forwards; }
         #explanation-display .step:last-child { margin-bottom: 0; }
         #explanation-display h3 { color: var(--secondary); margin-top: 0; margin-bottom: 0.8rem; font-size: 1.15rem; padding-bottom: 0.3rem; border-bottom: 1px solid var(--gray-light); }
         #explanation-display code { background-color: rgba(var(--primary-rgb), 0.1); padding: 0.2rem 0.5rem; border-radius: 5px; font-size: 0.92em; color: var(--secondary); border: 1px solid rgba(var(--primary-rgb), 0.15); }
         #explanation-display pre { margin: 1.1rem 0; } #explanation-display pre code { display: block; background-color: #2f3542; color: #e8e8e8; padding: 1.1rem; border-radius: 10px; font-size: 0.9rem; line-height: 1.65; white-space: pre-wrap; word-wrap: break-word; border: 1px solid #414a5c; }
         #explanation-display strong { color: var(--dark); font-weight: 600; } #explanation-display blockquote { border-left: 4px solid var(--primary-light); padding-left: 1.2rem; margin: 1.1rem 0 1.1rem 0.5rem; color: #5a6e8a; font-style: italic; background-color: #f8faff; border-radius: 0 8px 8px 0; }
         #explanation-display ul, #explanation-display ol { margin-left: 1.5rem; margin-bottom: 1rem; padding-left: 1.2rem; } #explanation-display li { margin-bottom: 0.6rem; }
-        .explanation-controls { flex-shrink: 0; margin-top: auto; padding: 1.2rem 2rem; /* Increased padding */ border-top: 1px solid var(--gray-light); text-align: center; background-color: #f8f9fa; display: flex; justify-content: space-between; gap: 1rem; }
+        .explanation-controls { flex-shrink: 0; margin-top: auto; padding: 1.2rem 2rem; border-top: 1px solid var(--gray-light); text-align: center; background-color: #f8f9fa; display: flex; justify-content: space-between; gap: 1rem; }
         .explanation-controls .btn { flex: 1; }
 
         /* Chat Tab */
         #chat-tab-content { display: flex; flex-direction: column; height: 100%; }
-        .chat-messages { flex-grow: 1; padding: 1.75rem; /* Increased padding */ overflow-y: auto; scrollbar-color: var(--gray-light) var(--call-panel-bg); }
+        .chat-messages { flex-grow: 1; padding: 1.75rem; overflow-y: auto; scrollbar-color: var(--gray-light) var(--call-panel-bg); }
         .chat-messages::-webkit-scrollbar-track { background: var(--call-panel-bg); } .chat-messages::-webkit-scrollbar-thumb { border-color: var(--call-panel-bg); }
-        .chat-input-area { flex-shrink: 0; padding: 1.1rem 1.75rem; /* Increased padding */ background-color: #f8f9fa; border-top: 1px solid var(--gray-light); display: flex; align-items: flex-end; gap: 0.9rem; }
+        .chat-input-area { flex-shrink: 0; padding: 1.1rem 1.75rem; background-color: #f8f9fa; border-top: 1px solid var(--gray-light); display: flex; align-items: flex-end; gap: 0.9rem; }
         .chat-message { display: flex; gap: 0.9rem; max-width: 90%; align-items: flex-end; margin-bottom: 1.2rem; animation: fadeIn 0.4s ease forwards; }
         .chat-message.user { margin-left: auto; flex-direction: row-reverse; }
         .message-avatar { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 1rem; flex-shrink: 0; box-shadow: var(--shadow-sm); border: 2px solid var(--call-panel-bg); }
@@ -142,7 +138,7 @@
         .send-button:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(var(--primary-rgb), 0.25); }
         .send-button:active:not(:disabled) { transform: translateY(-1px); box-shadow: 0 3px 8px rgba(var(--primary-rgb), 0.2); }
         .send-button i { font-size: 1.15em; } .send-button .fa-spinner { margin: 0; }
-        .chat-controls { flex-shrink: 0; padding: 0.6rem 1.75rem; /* Increased padding */ font-size: 0.85rem; color: var(--text-muted); text-align: right; background-color: #f8f9fa; border-top: 1px solid var(--gray-light); }
+        .chat-controls { flex-shrink: 0; padding: 0.6rem 1.75rem; font-size: 0.85rem; color: var(--text-muted); text-align: right; background-color: #f8f9fa; border-top: 1px solid var(--gray-light); }
         .chat-controls button { background:none; border:none; color: var(--text-muted); cursor:pointer; font-size: 0.95em; padding: 3px 6px; margin-left: 12px; transition: color 0.2s ease; }
         .chat-controls button:hover { color: var(--primary); }
 
@@ -169,7 +165,7 @@
 
         @media (max-width: 1200px) {
             .interaction-panel {
-                 width: 360px; /* Adjusted width */
+                 width: 360px; /* Keep adjusted width */
             }
             .call-interface { padding: 1.5rem; gap: 1.5rem; }
         }
@@ -177,11 +173,9 @@
              :root { --sidebar-width: 80px; }
              .sidebar { width: 80px; }
              .sidebar-logo span, .sidebar-link span, .user-info, .sidebar-footer { display: none; }
-             .sidebar-link i { margin-right: 0; font-size: 1.5rem; }
-             .sidebar-logo i { margin-right: 0; }
+             .sidebar-link i { margin-right: 0; font-size: 1.5rem; } .sidebar-logo i { margin-right: 0; }
              .sidebar-header, .sidebar-link { justify-content: center; }
-             .user-profile { justify-content: center; padding: 0.75rem 0; }
-             .user-avatar { margin-right: 0; }
+             .user-profile { justify-content: center; padding: 0.75rem 0; } .user-avatar { margin-right: 0; }
              main { margin-left: 80px; width: calc(100% - 80px); }
              .call-interface { flex-direction: column; padding: 1.2rem; gap: 1.2rem; }
              .interaction-panel { width: 100%; height: 48vh; order: 2; }
@@ -193,46 +187,27 @@
         @media (prefers-color-scheme: dark) {
              /* Dark mode styles (без изменений) */
              :root { --white: #1a202c; --light: #2d3748; --dark: #e2e8f0; --gray-light: #4a5568; --text-primary: #e2e8f0; --text-secondary: #cbd5e0; --text-muted: #a0aec0; --dark-bg: #171923; --call-bg: #131720; --call-panel-bg: #1e2533; }
-             body { background-color: var(--dark-bg); }
-             main { background-color: var(--call-bg); }
-             .main-header { background-color: var(--call-panel-bg); border-bottom-color: var(--gray-light); }
-             .mobile-menu-toggle { color: var(--dark); }
+             body { background-color: var(--dark-bg); } main { background-color: var(--call-bg); }
+             .main-header { background-color: var(--call-panel-bg); border-bottom-color: var(--gray-light); } .mobile-menu-toggle { color: var(--dark); }
              .ai-presenter-area, .interaction-panel { background-color: var(--call-panel-bg); box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3); border-color: var(--gray-light); }
-             .ai-presenter-header { background-color: #242c3b; border-bottom-color: var(--gray-light); }
-             .whiteboard-main-container { background-color: #1a202c; }
-             #drawingCanvas { background-color: #283044; border-color: #4a5568; }
-             .canvas-controls { background-color: rgba(45, 55, 72, 0.85); border-color: var(--gray-light); }
-             .canvas-controls button { background-color: var(--light); border-color: var(--gray-light); color: var(--text-secondary); }
-             .canvas-controls button:hover { background-color: #4a5568; color: var(--white); }
-             .interaction-tabs { background-color: #242c3b; border-bottom-color: var(--gray-light); }
-             .interaction-tab { color: var(--text-secondary); } .interaction-tab:hover { color: var(--primary-light); background-color: rgba(72, 149, 239, 0.1); } .interaction-tab.active { color: var(--primary-light); border-bottom-color: var(--primary-light); background-color: var(--call-panel-bg); }
-             .tab-content { background-color: var(--call-panel-bg); }
-             .explanation-scroll-content { scrollbar-color: var(--gray) var(--call-panel-bg); } .explanation-scroll-content::-webkit-scrollbar-thumb { border-color: var(--call-panel-bg); }
-             #explanation-display .step { background-color: #232a37; border-color: #3b4458; }
-             #explanation-display pre code { background-color: #161a22; color: #d1d5db; border-color: #363d4b; }
+             .ai-presenter-header { background-color: #242c3b; border-bottom-color: var(--gray-light); } .whiteboard-main-container { background-color: #1a202c; }
+             #drawingCanvas { background-color: #283044; border-color: #4a5568; } .canvas-controls { background-color: rgba(45, 55, 72, 0.85); border-color: var(--gray-light); }
+             .canvas-controls button { background-color: var(--light); border-color: var(--gray-light); color: var(--text-secondary); } .canvas-controls button:hover { background-color: #4a5568; color: var(--white); }
+             .interaction-tabs { background-color: #242c3b; border-bottom-color: var(--gray-light); } .interaction-tab { color: var(--text-secondary); } .interaction-tab:hover { color: var(--primary-light); background-color: rgba(72, 149, 239, 0.1); } .interaction-tab.active { color: var(--primary-light); border-bottom-color: var(--primary-light); background-color: var(--call-panel-bg); }
+             .tab-content { background-color: var(--call-panel-bg); } .explanation-scroll-content { scrollbar-color: var(--gray) var(--call-panel-bg); } .explanation-scroll-content::-webkit-scrollbar-thumb { border-color: var(--call-panel-bg); }
+             #explanation-display .step { background-color: #232a37; border-color: #3b4458; } #explanation-display pre code { background-color: #161a22; color: #d1d5db; border-color: #363d4b; }
              #explanation-display code { background-color: rgba(72, 149, 239, 0.2); color: var(--primary-light); border-color: rgba(72, 149, 239, 0.3); }
-             #explanation-display strong { color: #f0f2f5; }
-             #explanation-display blockquote { border-left-color: var(--primary); color: #a0b3d0; background-color: #242c3b; }
-             .explanation-controls { background-color: #242c3b; border-top-color: var(--gray-light); }
-             .chat-messages { scrollbar-color: var(--gray) var(--call-panel-bg); } .chat-messages::-webkit-scrollbar-track { background: var(--call-panel-bg); } .chat-messages::-webkit-scrollbar-thumb { border-color: var(--call-panel-bg); }
-             .message-avatar { border-color: var(--call-panel-bg); }
-             .message-bubble { background-color: var(--light); color: var(--text-primary); border-color: #3b4458; }
-             .chat-message.user .message-bubble { background: var(--gradient-2); color: #1a202c; }
-             .message-bubble code { background-color: rgba(255,255,255,0.1); color: var(--text-primary); border-color: rgba(255,255,255,0.15); }
-             .chat-message.user .message-bubble code { background-color: rgba(0, 0, 0, 0.2); color: #2d3748; border-color: rgba(0,0,0,0.25); }
-             .message-bubble pre code { background-color: #161a22; color: #d1d5db; border-color: #363d4b; }
-             .chat-message.user .message-bubble pre code { background-color: rgba(0,0,0,0.3); color: #eee; }
+             #explanation-display strong { color: #f0f2f5; } #explanation-display blockquote { border-left-color: var(--primary); color: #a0b3d0; background-color: #242c3b; }
+             .explanation-controls { background-color: #242c3b; border-top-color: var(--gray-light); } .chat-messages { scrollbar-color: var(--gray) var(--call-panel-bg); } .chat-messages::-webkit-scrollbar-track { background: var(--call-panel-bg); } .chat-messages::-webkit-scrollbar-thumb { border-color: var(--call-panel-bg); }
+             .message-avatar { border-color: var(--call-panel-bg); } .message-bubble { background-color: var(--light); color: var(--text-primary); border-color: #3b4458; } .chat-message.user .message-bubble { background: var(--gradient-2); color: #1a202c; }
+             .message-bubble code { background-color: rgba(255,255,255,0.1); color: var(--text-primary); border-color: rgba(255,255,255,0.15); } .chat-message.user .message-bubble code { background-color: rgba(0, 0, 0, 0.2); color: #2d3748; border-color: rgba(0,0,0,0.25); }
+             .message-bubble pre code { background-color: #161a22; color: #d1d5db; border-color: #363d4b; } .chat-message.user .message-bubble pre code { background-color: rgba(0,0,0,0.3); color: #eee; }
              .message-thinking-indicator { background: var(--light); border-color: #3b4458;} .typing-dot { background-color: #8494a6; }
-             .chat-input-area { background-color: #242c3b; border-top-color: var(--gray-light); }
-             .chat-input { background-color: var(--dark-bg); color: var(--text-primary); border-color: var(--gray-light); }
-             .chat-input::placeholder { color: var(--text-muted); }
-             .chat-input:focus { box-shadow: 0 0 0 4px rgba(var(--primary-rgb), 0.25); }
-             .chat-controls { background-color: #242c3b; border-top-color: var(--gray-light); } .chat-controls button { color: var(--text-muted); } .chat-controls button:hover { color: var(--primary-light); }
+             .chat-input-area { background-color: #242c3b; border-top-color: var(--gray-light); } .chat-input { background-color: var(--dark-bg); color: var(--text-primary); border-color: var(--gray-light); } .chat-input::placeholder { color: var(--text-muted); }
+             .chat-input:focus { box-shadow: 0 0 0 4px rgba(var(--primary-rgb), 0.25); } .chat-controls { background-color: #242c3b; border-top-color: var(--gray-light); } .chat-controls button { color: var(--text-muted); } .chat-controls button:hover { color: var(--primary-light); }
              .btn-secondary { background-color: var(--light); color: var(--text-secondary); border-color: var(--gray-light); } .btn-secondary:hover:not(:disabled) { background-color: #4a5568; color: var(--white); border-color: #6c757d; }
              .btn-success { background: linear-gradient(135deg, var(--success), #05a381); } .btn-success:hover:not(:disabled) { background: linear-gradient(135deg, #0cd1a7, var(--success));}
-             .btn:disabled { background: #4a5568; color: #a0aec0; }
-             .topic-loading-bar { background-color: var(--light); border-bottom-color: var(--gray-light); }
-             .empty-state i { color: #4a5568; }
+             .btn:disabled { background: #4a5568; color: #a0aec0; } .topic-loading-bar { background-color: var(--light); border-bottom-color: var(--gray-light); } .empty-state i { color: #4a5568; }
              .toast { background-color: var(--call-panel-bg); border-color: var(--gray-light); color: var(--text-primary); box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);}
         }
         .toast { position: fixed; bottom: 20px; right: 20px; background-color: var(--white); color: var(--text-primary); border-radius: 10px; padding: 1.1rem 1.3rem; box-shadow: var(--shadow-lg); max-width: 350px; z-index: 1001; display: flex; align-items: center; transform: translateY(150px); opacity: 0; transition: all 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55); } .toast.show { transform: translateY(0); opacity: 1; } .toast.success { border-left: 5px solid var(--success); } .toast.error { border-left: 5px solid var(--danger); } .toast.warning { border-left: 5px solid var(--warning); } .toast.info { border-left: 5px solid var(--info); } .toast i { margin-right: 1rem; font-size: 1.4rem; } .toast.success i { color: var(--success); } .toast.error i { color: var(--danger); } .toast.warning i { color: var(--warning); } .toast.info i { color: var(--info); }
@@ -322,7 +297,6 @@
             // Regex for the NEW command format: PŘÍKAZ: ```json { "type": "CMD", "data": {...} } ```
             const CANVAS_COMMAND_BLOCK_REGEX = /PŘÍKAZ:\s*```json\s*(\{[\s\S]*?\})\s*```\s*/g;
 
-
             // --- DOM Elements Cache ---
             const uiElements = { /* ... (cache elements as before) ... */
                 userAvatar: document.getElementById('user-avatar'),
@@ -350,7 +324,7 @@
                 tabContents: document.querySelectorAll('.tab-content'),
                 aiStatusText: document.getElementById('ai-status-text'),
                 callInterface: document.querySelector('.call-interface')
-            };
+             };
 
             // --- Global State ---
             let state = { /* ... (state variables as before) ... */
@@ -388,11 +362,8 @@
                  console.log("Initializing UI elements and Canvas...");
                  if (!initializeCanvas()) { showToast("Chyba inicializace kreslící plochy!", "error", 10000); if(uiElements.callInterface) uiElements.callInterface.style.display = 'none'; if(uiElements.currentTopicDisplay) uiElements.currentTopicDisplay.innerHTML = '<span class="placeholder" style="color:var(--danger);">Chyba kreslící plochy</span>'; state.isCanvasInitialized = false; return false; }
                  state.isCanvasInitialized = true;
-                 // Restore last active tab
                  const lastTab = sessionStorage.getItem('activeVyukaTab');
-                 if (lastTab) { switchInteractionTab(lastTab); }
-                 else { switchInteractionTab('explanation-tab'); } // Default
-
+                 switchInteractionTab(lastTab || 'explanation-tab'); // Restore or default
                  setupEventListeners();
                  initTooltips();
                  manageUIState('initial');
@@ -420,7 +391,7 @@
                          uiElements.explanationDisplay.innerHTML = "<div class='loading-placeholder'><i class='fas fa-spinner fa-spin'></i><p>Požaduji úvodní vysvětlení...</p></div>";
                      }
                  }
-             };
+            };
             const manageButtonStates = () => { /* ... (function as before) ... */
                  const enableSend = !state.geminiIsThinking && !!state.currentTopic;
                  const enableNext = !state.geminiIsThinking && !!state.currentTopic;
@@ -462,67 +433,47 @@
             // --- Topic Loading and Progress ---
             const loadNextUncompletedTopic = async () => { /* ... (function as before) ... */
                  if (!state.currentUser || state.topicLoadInProgress || !state.supabase) { console.log("Skipping topic load:", { loggedIn: !!state.currentUser, loading: state.topicLoadInProgress }); return; }
-                state.topicLoadInProgress = true;
-                if (uiElements.currentTopicDisplay) uiElements.currentTopicDisplay.innerHTML = '<span class="placeholder"><i class="fas fa-spinner fa-spin"></i> Hledám další téma...</span>';
-                updateAIStatus('Hledám téma...');
-                manageUIState('loadingTopic');
-                manageButtonStates();
-                try {
-                    const { data: activePlans, error: planError } = await state.supabase.from('study_plans').select('id').eq('user_id', state.currentUser.id).eq('status', 'active').order('created_at', { ascending: false }).limit(1);
-                    if (planError) throw planError;
-                    if (!activePlans || activePlans.length === 0) { console.log("No active study plan found."); if (uiElements.currentTopicDisplay) uiElements.currentTopicDisplay.innerHTML = '<span class="placeholder">Žádný aktivní studijní plán</span>'; showToast("Nemáte aktivní studijní plán.", "warning"); updateAIStatus("Nemáte aktivní plán."); manageUIState('noPlan'); state.topicLoadInProgress = false; return; }
-                    state.currentPlanId = activePlans[0].id;
-                    console.log("Active plan ID:", state.currentPlanId);
-                    const { data: nextActivities, error: activityError } = await state.supabase.from('plan_activities').select('id, title, description, day_of_week, time_slot, topic_id, completed').eq('plan_id', state.currentPlanId).eq('completed', false).order('day_of_week', { ascending: true }).order('time_slot', { ascending: true }).limit(1);
-                    if (activityError) throw activityError;
-                    if (nextActivities && nextActivities.length > 0) {
-                        const nextActivity = nextActivities[0]; console.log("Next activity found:", nextActivity); let topicName = nextActivity.title || 'Nespecifikované téma'; let topicDescription = nextActivity.description || '';
-                        if (nextActivity.topic_id) { const { data: topicData, error: topicError } = await state.supabase.from('exam_topics').select('name, description').eq('id', nextActivity.topic_id).single(); if (topicError && topicError.code !== 'PGRST116') { console.warn(`Could not fetch topic details for ID ${nextActivity.topic_id}:`, topicError); } if (topicData) { topicName = topicData.name || topicName; topicDescription = topicData.description || topicDescription; } }
-                        state.currentTopic = { activity_id: nextActivity.id, plan_id: state.currentPlanId, name: topicName, description: topicDescription, user_id: state.currentUser.id, topic_id: nextActivity.topic_id };
-                        console.log("Current topic set:", state.currentTopic); if (uiElements.currentTopicDisplay) uiElements.currentTopicDisplay.innerHTML = `Aktuální téma: <strong>${sanitizeHTML(state.currentTopic.name)}</strong>`; await startLearningSession();
-                    } else { console.log("All activities completed."); if (uiElements.currentTopicDisplay) uiElements.currentTopicDisplay.innerHTML = '<span class="placeholder">Gratulujeme, plán dokončen!</span>'; showToast("Všechna témata v plánu jsou dokončena!", "success"); updateAIStatus("Plán dokončen."); manageUIState('planComplete'); }
-                } catch (error) { console.error('Error loading next topic:', error); if (uiElements.currentTopicDisplay) uiElements.currentTopicDisplay.innerHTML = '<span class="placeholder" style="color:var(--danger);">Chyba</span>'; showToast(`Nepodařilo se načíst téma: ${error.message}`, "error"); updateAIStatus("Chyba načítání."); manageUIState('error');
-                } finally { state.topicLoadInProgress = false; manageButtonStates(); }
+                 state.topicLoadInProgress = true; if (uiElements.currentTopicDisplay) uiElements.currentTopicDisplay.innerHTML = '<span class="placeholder"><i class="fas fa-spinner fa-spin"></i> Hledám další téma...</span>'; updateAIStatus('Hledám téma...'); manageUIState('loadingTopic'); manageButtonStates();
+                 try { const { data: activePlans, error: planError } = await state.supabase.from('study_plans').select('id').eq('user_id', state.currentUser.id).eq('status', 'active').order('created_at', { ascending: false }).limit(1); if (planError) throw planError;
+                     if (!activePlans || activePlans.length === 0) { console.log("No active study plan found."); if (uiElements.currentTopicDisplay) uiElements.currentTopicDisplay.innerHTML = '<span class="placeholder">Žádný aktivní studijní plán</span>'; showToast("Nemáte aktivní studijní plán.", "warning"); updateAIStatus("Nemáte aktivní plán."); manageUIState('noPlan'); state.topicLoadInProgress = false; return; }
+                     state.currentPlanId = activePlans[0].id; console.log("Active plan ID:", state.currentPlanId);
+                     const { data: nextActivities, error: activityError } = await state.supabase.from('plan_activities').select('id, title, description, day_of_week, time_slot, topic_id, completed').eq('plan_id', state.currentPlanId).eq('completed', false).order('day_of_week', { ascending: true }).order('time_slot', { ascending: true }).limit(1); if (activityError) throw activityError;
+                     if (nextActivities && nextActivities.length > 0) { const nextActivity = nextActivities[0]; console.log("Next activity found:", nextActivity); let topicName = nextActivity.title || 'Nespecifikované téma'; let topicDescription = nextActivity.description || '';
+                         if (nextActivity.topic_id) { const { data: topicData, error: topicError } = await state.supabase.from('exam_topics').select('name, description').eq('id', nextActivity.topic_id).single(); if (topicError && topicError.code !== 'PGRST116') { console.warn(`Could not fetch topic details for ID ${nextActivity.topic_id}:`, topicError); } if (topicData) { topicName = topicData.name || topicName; topicDescription = topicData.description || topicDescription; } }
+                         state.currentTopic = { activity_id: nextActivity.id, plan_id: state.currentPlanId, name: topicName, description: topicDescription, user_id: state.currentUser.id, topic_id: nextActivity.topic_id };
+                         console.log("Current topic set:", state.currentTopic); if (uiElements.currentTopicDisplay) uiElements.currentTopicDisplay.innerHTML = `Aktuální téma: <strong>${sanitizeHTML(state.currentTopic.name)}</strong>`; await startLearningSession();
+                     } else { console.log("All activities completed."); if (uiElements.currentTopicDisplay) uiElements.currentTopicDisplay.innerHTML = '<span class="placeholder">Gratulujeme, plán dokončen!</span>'; showToast("Všechna témata v plánu jsou dokončena!", "success"); updateAIStatus("Plán dokončen."); manageUIState('planComplete'); }
+                 } catch (error) { console.error('Error loading next topic:', error); if (uiElements.currentTopicDisplay) uiElements.currentTopicDisplay.innerHTML = '<span class="placeholder" style="color:var(--danger);">Chyba</span>'; showToast(`Nepodařilo se načíst téma: ${error.message}`, "error"); updateAIStatus("Chyba načítání."); manageUIState('error');
+                 } finally { state.topicLoadInProgress = false; manageButtonStates(); }
             };
             const handleMarkTopicComplete = async () => { /* ... (function as before) ... */
                  if (!state.currentTopic || !state.currentTopic.activity_id || !state.supabase || state.topicLoadInProgress) return;
-                console.log(`Marking activity ${state.currentTopic.activity_id} as complete.`); state.topicLoadInProgress = true; manageButtonStates(); if(uiElements.markCompleteBtn) uiElements.markCompleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ukládám...';
-                try { const { error } = await state.supabase.from('plan_activities').update({ completed: true, updated_at: new Date().toISOString() }).eq('id', state.currentTopic.activity_id); if (error) throw error; showToast(`Téma "${state.currentTopic.name}" dokončeno.`, "success"); state.currentTopic = null; if (uiElements.currentTopicDisplay) uiElements.currentTopicDisplay.innerHTML = '<span class="placeholder">Načítám další...</span>'; if (uiElements.explanationDisplay) uiElements.explanationDisplay.innerHTML = ''; if (uiElements.chatMessages) uiElements.chatMessages.innerHTML = ''; clearCanvas(); state.geminiChatContext = []; state.lastExplanationTimestamp = 0; await loadNextUncompletedTopic();
-                } catch (error) { console.error(`Error marking activity ${state.currentTopic?.activity_id} complete:`, error); showToast("Chyba při označování tématu.", "error"); state.topicLoadInProgress = false; manageButtonStates();
-                } finally { if(uiElements.markCompleteBtn) uiElements.markCompleteBtn.innerHTML = '<i class="fas fa-check-circle"></i> Téma dokončeno'; }
+                 console.log(`Marking activity ${state.currentTopic.activity_id} as complete.`); state.topicLoadInProgress = true; manageButtonStates(); if(uiElements.markCompleteBtn) uiElements.markCompleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ukládám...';
+                 try { const { error } = await state.supabase.from('plan_activities').update({ completed: true, updated_at: new Date().toISOString() }).eq('id', state.currentTopic.activity_id); if (error) throw error; showToast(`Téma "${state.currentTopic.name}" dokončeno.`, "success"); state.currentTopic = null; if (uiElements.currentTopicDisplay) uiElements.currentTopicDisplay.innerHTML = '<span class="placeholder">Načítám další...</span>'; if (uiElements.explanationDisplay) uiElements.explanationDisplay.innerHTML = ''; if (uiElements.chatMessages) uiElements.chatMessages.innerHTML = ''; clearCanvas(); state.geminiChatContext = []; state.lastExplanationTimestamp = 0; await loadNextUncompletedTopic();
+                 } catch (error) { console.error(`Error marking activity ${state.currentTopic?.activity_id} complete:`, error); showToast("Chyba při označování tématu.", "error"); state.topicLoadInProgress = false; manageButtonStates();
+                 } finally { if(uiElements.markCompleteBtn) uiElements.markCompleteBtn.innerHTML = '<i class="fas fa-check-circle"></i> Téma dokončeno'; }
             };
 
             // --- Learning Session Management ---
             const startLearningSession = async () => { /* ... (function as before) ... */
                  if (!state.currentTopic || !state.currentUser || !state.supabase || !state.isCanvasInitialized) { console.error("Cannot start session:", { topic: !!state.currentTopic, user: !!state.currentUser, supabase: !!state.supabase, canvas: state.isCanvasInitialized }); updateAIStatus('Chyba: Nelze zahájit výuku.'); manageUIState('error'); return; }
-                console.log(`Starting session for: "${state.currentTopic.name}" (Activity ID: ${state.currentTopic.activity_id})`); state.currentSessionId = generateSessionId(); updateAIStatus(`Vysvětluje: ${state.currentTopic.name}`); manageUIState('requestingExplanation'); manageButtonStates(); if (uiElements.chatMessages) uiElements.chatMessages.innerHTML = ''; state.geminiChatContext = []; state.lastExplanationTimestamp = 0; clearCanvas(); updateGeminiThinkingState(true);
-                let initialPrompt = `Jako AI Tutor "Justax" začni vysvětlovat ZÁKLADY tématu "${state.currentTopic.name}" pro studenta 9. třídy ZŠ (přijímačky CERMAT).`; if (state.currentTopic.description) { initialPrompt += ` Popis tématu pro kontext: "${state.currentTopic.description}".`; } initialPrompt += ` Buď podrobný, přátelský a postupuj krok za krokem. Toto je ÚPLNĚ PRVNÍ krok vysvětlení tohoto tématu. Vhodně použij příklad nebo výzvu k použití KRESLÍCÍ PLOCHY (použij příkazy pro kreslení ve formátu \`PŘÍKAZ: \`\`\`json { "type": "NAZEV_PRIKAZU", "data": { ... } } \`\`\`\`). Ukonči odpověď krátkým shrnutím pro chat ve formátu: \`CHAT_SUMMARY: [Zde tvůj krátký souhrn první části]\`.`;
-                await sendToGemini(initialPrompt, 'explanation');
+                 console.log(`Starting session for: "${state.currentTopic.name}" (Activity ID: ${state.currentTopic.activity_id})`); state.currentSessionId = generateSessionId(); updateAIStatus(`Vysvětluje: ${state.currentTopic.name}`); manageUIState('requestingExplanation'); manageButtonStates(); if (uiElements.chatMessages) uiElements.chatMessages.innerHTML = ''; state.geminiChatContext = []; state.lastExplanationTimestamp = 0; clearCanvas(); updateGeminiThinkingState(true);
+                 let initialPrompt = `Jako AI Tutor "Justax" začni vysvětlovat ZÁKLADY tématu "${state.currentTopic.name}" pro studenta 9. třídy ZŠ (přijímačky CERMAT).`; if (state.currentTopic.description) { initialPrompt += ` Popis tématu pro kontext: "${state.currentTopic.description}".`; } initialPrompt += ` Buď podrobný, přátelský a postupuj krok za krokem. Toto je ÚPLNĚ PRVNÍ krok vysvětlení tohoto tématu. Vhodně použij příklad nebo výzvu k použití KRESLÍCÍ PLOCHY (použij příkazy pro kreslení ve formátu \`PŘÍKAZ: \`\`\`json { "type": "NAZEV_PRIKAZU", "data": { ... } } \`\`\`\`). Ukonči odpověď krátkým shrnutím pro chat ve formátu: \`CHAT_SUMMARY: [Zde tvůj krátký souhrn první části]\`.`;
+                 await sendToGemini(initialPrompt, 'explanation');
             };
             const switchInteractionTab = (tabId) => { /* ... (function as before, includes sessionStorage) ... */
-                uiElements.interactionTabs.forEach(tab => tab.classList.toggle('active', tab.dataset.tab === tabId));
-                uiElements.tabContents.forEach(content => content.classList.toggle('active', content.id === `${tabId}-content`));
-                state.activeInteractionTab = tabId;
-                sessionStorage.setItem('activeVyukaTab', tabId); // Save active tab
-                console.log(`Switched to tab: ${tabId}`);
-            };
+                 uiElements.interactionTabs.forEach(tab => tab.classList.toggle('active', tab.dataset.tab === tabId));
+                 uiElements.tabContents.forEach(content => content.classList.toggle('active', content.id === `${tabId}-content`));
+                 state.activeInteractionTab = tabId;
+                 sessionStorage.setItem('activeVyukaTab', tabId); // Save active tab
+                 console.log(`Switched to tab: ${tabId}`);
+             };
             const requestNextStep = async () => { /* ... (function as before) ... */ if (state.geminiIsThinking || !state.currentTopic) return; console.log("Requesting next step..."); updateGeminiThinkingState(true); manageButtonStates(); const prompt = `Pokračuj ve vysvětlování tématu "${state.currentTopic.name}". Naváž na předchozí krok. Nezapomeň na možnost využití kreslící plochy a ukončení shrnutím pro chat (CHAT_SUMMARY:).`; await sendToGemini(prompt, 'explanation'); };
 
             // --- Chat Functionality ---
-            const addChatMessage = async (message, sender, saveToDb = true, timestamp = new Date()) => { /* ... (function as before, includes DB save fix) ... */
-                 if (!uiElements.chatMessages) return;
-                 const messageId = `msg-${Date.now()}-${Math.random().toString(16).substring(2, 8)}`;
-                 const avatarInitial = sender === 'user' ? getInitials(state.currentProfile, state.currentUser?.email) : 'AI';
-                 const messageDiv = document.createElement('div'); messageDiv.className = `chat-message ${sender === 'gemini' ? 'model' : sender}`; messageDiv.id = messageId;
-                 const bubbleDiv = document.createElement('div'); bubbleDiv.className = 'message-bubble'; renderMarkdown(bubbleDiv, message);
-                 messageDiv.innerHTML = `<div class="message-avatar">${avatarInitial}</div>`; messageDiv.appendChild(bubbleDiv); messageDiv.innerHTML += `<div class="message-timestamp">${formatTimestamp(timestamp)}</div>`;
-                 uiElements.chatMessages.appendChild(messageDiv); uiElements.chatMessages.scrollTop = uiElements.chatMessages.scrollHeight;
-                 if (saveToDb && state.supabase && state.currentUser && state.currentTopic && state.currentSessionId) {
-                     const dataToSave = { user_id: state.currentUser?.id || null, session_id: state.currentSessionId, topic_id: state.currentTopic?.topic_id || null, topic_name: state.currentTopic?.name || null, role: sender === 'gemini' ? 'model' : 'user', content: message };
-                     if (!dataToSave.session_id || !dataToSave.role || !dataToSave.content) { console.error("Supabase chat save error: Missing required fields (session_id, role, content).", dataToSave); showToast("Ошибка: Не удалось сохранить сообщение, отсутствуют обязательные данные.", "error"); return; }
-                     console.log("Attempting to save chat message:", dataToSave);
-                     try { const { error } = await state.supabase.from('chat_history').insert(dataToSave); if (error) { console.error("Supabase chat save error:", error); console.error("Data sent:", dataToSave); showToast(`Chyba ukládání chatu: ${error.message}`, 'error'); } else { console.log("Chat message saved to DB."); } } catch (dbError) { console.error("Exception during chat save:", dbError); console.error("Data sent:", dataToSave); showToast(`Výjimka při ukládání chatu: ${dbError.message}`, 'error'); }
-                 }
+            const addChatMessage = async (message, sender, saveToDb = true, timestamp = new Date()) => { /* ... (function as before, uses 'model' role) ... */
+                  if (!uiElements.chatMessages) return; const messageId = `msg-${Date.now()}-${Math.random().toString(16).substring(2, 8)}`; const avatarInitial = sender === 'user' ? getInitials(state.currentProfile, state.currentUser?.email) : 'AI'; const messageDiv = document.createElement('div'); messageDiv.className = `chat-message ${sender === 'gemini' ? 'model' : sender}`; messageDiv.id = messageId; const bubbleDiv = document.createElement('div'); bubbleDiv.className = 'message-bubble'; renderMarkdown(bubbleDiv, message); messageDiv.innerHTML = `<div class="message-avatar">${avatarInitial}</div>`; messageDiv.appendChild(bubbleDiv); messageDiv.innerHTML += `<div class="message-timestamp">${formatTimestamp(timestamp)}</div>`; uiElements.chatMessages.appendChild(messageDiv); uiElements.chatMessages.scrollTop = uiElements.chatMessages.scrollHeight;
+                  if (saveToDb && state.supabase && state.currentUser && state.currentTopic && state.currentSessionId) { const dataToSave = { user_id: state.currentUser?.id || null, session_id: state.currentSessionId, topic_id: state.currentTopic?.topic_id || null, topic_name: state.currentTopic?.name || null, role: sender === 'gemini' ? 'model' : 'user', content: message }; if (!dataToSave.session_id || !dataToSave.role || !dataToSave.content) { console.error("Supabase chat save error: Missing required fields (session_id, role, content).", dataToSave); showToast("Ошибка: Не удалось сохранить сообщение, отсутствуют обязательные данные.", "error"); return; } console.log("Attempting to save chat message:", dataToSave); try { const { error } = await state.supabase.from('chat_history').insert(dataToSave); if (error) { console.error("Supabase chat save error:", error); console.error("Data sent:", dataToSave); showToast(`Chyba ukládání chatu: ${error.message}`, 'error'); } else { console.log("Chat message saved to DB."); } } catch (dbError) { console.error("Exception during chat save:", dbError); console.error("Data sent:", dataToSave); showToast(`Výjimka při ukládání chatu: ${dbError.message}`, 'error'); } }
             };
             const updateGeminiThinkingState = (isThinking) => { /* ... (function as before) ... */ state.geminiIsThinking = isThinking; manageButtonStates(); if (isThinking) { addThinkingIndicator(); } else { removeThinkingIndicator(); } };
             const addThinkingIndicator = () => { /* ... (function as before) ... */ if (state.thinkingIndicatorId || !uiElements.chatMessages) return; const indicatorDiv = document.createElement('div'); indicatorDiv.className = 'chat-message model'; state.thinkingIndicatorId = `thinking-${Date.now()}`; indicatorDiv.id = state.thinkingIndicatorId; indicatorDiv.innerHTML = `<div class="message-avatar">AI</div><div class="message-thinking-indicator"><span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span></div>`; uiElements.chatMessages.appendChild(indicatorDiv); uiElements.chatMessages.scrollTop = uiElements.chatMessages.scrollHeight; };
@@ -531,66 +482,73 @@
             const confirmClearChat = () => { /* ... (function as before) ... */ if (confirm("Opravdu chcete vymazat historii tohoto chatu?\nTato akce je nevratná.")) { clearCurrentChatSessionHistory(); } };
             const clearCurrentChatSessionHistory = async () => { /* ... (function as before) ... */ if (uiElements.chatMessages) uiElements.chatMessages.innerHTML = ''; state.geminiChatContext = []; showToast("Historie chatu vymazána.", "info"); console.log("Chat history cleared for this session."); if (state.supabase && state.currentUser && state.currentSessionId) { try { console.log(`Deleting chat history from DB for session: ${state.currentSessionId}`); const { error } = await state.supabase.from('chat_history').delete().eq('user_id', state.currentUser.id).eq('session_id', state.currentSessionId); if (error) { console.error("Error deleting chat history from DB:", error); showToast("Chyba při mazání historie z databáze.", "error"); } else { console.log("Chat history deleted from DB."); } } catch(dbError) { console.error("Exception during DB chat history deletion:", dbError); } } };
             const saveChatToPDF = async () => { /* ... (function as before) ... */
-                 if (!uiElements.chatMessages || uiElements.chatMessages.children.length === 0) { showToast("Není co uložit.", "warning"); return; }
-                 showToast("Generuji PDF...", "info", 2000);
-                 const chatContainer = document.createElement('div'); chatContainer.id = "pdf-export-content";
-                 const pdfStyles = `...`; chatContainer.innerHTML = pdfStyles; // Styles omitted for brevity
-                 const headerDiv = document.createElement('div'); headerDiv.className = 'pdf-header'; headerDiv.innerHTML = `<h1>Záznam chatu - ${sanitizeHTML(state.currentTopic?.name || 'Neznámé téma')}</h1><p>Exportováno: ${new Date().toLocaleString('cs-CZ')}</p>`; chatContainer.appendChild(headerDiv);
-                 Array.from(uiElements.chatMessages.children).forEach(msgElement => { if (msgElement.classList.contains('chat-message')) { const clone = msgElement.cloneNode(true); chatContainer.appendChild(clone); } });
-                 const filename = `chat-justax-${state.currentTopic?.name?.replace(/[^a-z0-9]/gi, '_') || 'vyuka'}-${formatTimestamp().replace(/[:\s]/g, '')}.pdf`;
-                 const options = { margin: 15, filename: filename, image: { type: 'jpeg', quality: 0.95 }, html2canvas: { scale: 2, useCORS: true, logging: false, letterRendering: true }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } };
-                 try { await html2pdf().set(options).from(chatContainer).save(); showToast("Chat uložen jako PDF!", "success"); } catch (pdfError) { console.error("Chyba exportu PDF:", pdfError); showToast("Nepodařilo se exportovat chat do PDF.", "error"); }
+                  if (!uiElements.chatMessages || uiElements.chatMessages.children.length === 0) { showToast("Není co uložit.", "warning"); return; } showToast("Generuji PDF...", "info", 2000); const chatContainer = document.createElement('div'); chatContainer.id = "pdf-export-content"; const pdfStyles = `...`; chatContainer.innerHTML = pdfStyles; const headerDiv = document.createElement('div'); headerDiv.className = 'pdf-header'; headerDiv.innerHTML = `<h1>Záznam chatu - ${sanitizeHTML(state.currentTopic?.name || 'Neznámé téma')}</h1><p>Exportováno: ${new Date().toLocaleString('cs-CZ')}</p>`; chatContainer.appendChild(headerDiv); Array.from(uiElements.chatMessages.children).forEach(msgElement => { if (msgElement.classList.contains('chat-message')) { const clone = msgElement.cloneNode(true); chatContainer.appendChild(clone); } }); const filename = `chat-justax-${state.currentTopic?.name?.replace(/[^a-z0-9]/gi, '_') || 'vyuka'}-${formatTimestamp().replace(/[:\s]/g, '')}.pdf`; const options = { margin: 15, filename: filename, image: { type: 'jpeg', quality: 0.95 }, html2canvas: { scale: 2, useCORS: true, logging: false, letterRendering: true }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } }; try { await html2pdf().set(options).from(chatContainer).save(); showToast("Chat uložen jako PDF!", "success"); } catch (pdfError) { console.error("Chyba exportu PDF:", pdfError); showToast("Nepodařilo se exportovat chat do PDF.", "error"); }
              };
 
-            // --- Gemini Interaction & AI Drawing (NEW PARSER + Improved Prompt) ---
-            // --- *** CORRECTED PARSER (Attempt 3 - Iterative Replace) *** ---
-            const parseAndProcessCanvasCommands = (responseText) => {
+             // --- Gemini Interaction & AI Drawing (Parser Attempt 3 + Improved Prompt) ---
+             // --- *** CORRECTED PARSER (Attempt 3 - Iterative Replace) *** ---
+             const parseAndProcessCanvasCommands = (responseText) => {
                  let cleanedText = responseText;
+                 // Regex for the NEW command format: PŘÍKAZ: ```json { "type": "CMD", "data": {...} } ```
                  const NEW_COMMAND_BLOCK_REGEX = /PŘÍKAZ:\s*```json\s*(\{[\s\S]*?\})\s*```\s*/g;
                  console.log("Parsing for NEW canvas command blocks (PŘÍKAZ: ```json...``` format) using iterative replace...");
-                 const commandsToExecute = [];
+                 const commandsToExecute = []; // Store commands to execute after cleaning
 
-                 cleanedText = cleanedText.replace(NEW_COMMAND_BLOCK_REGEX, (match, jsonString) => {
-                     console.log(`Found and processing block: ${match.substring(0, 60)}...`);
-                     try {
-                         const parsedJson = JSON.parse(jsonString);
-                         const commandType = parsedJson.type;
-                         const commandData = parsedJson.data;
-                         if (commandType && commandData) {
-                             commandsToExecute.push({ type: commandType, data: commandData });
-                             console.log(`Stored command: ${commandType}`);
-                         } else {
-                              console.warn("Parsed JSON is missing 'type' or 'data' field during replace:", parsedJson);
+                 // Use replace with a function to extract data and remove the block
+                 // This avoids modifying the string while iterating with exec
+                 try {
+                     cleanedText = cleanedText.replace(NEW_COMMAND_BLOCK_REGEX, (match, jsonString) => {
+                         console.log(`Found and processing block: ${match.substring(0, 60)}...`);
+                         try {
+                             const parsedJson = JSON.parse(jsonString);
+                             const commandType = parsedJson.type;
+                             const commandData = parsedJson.data;
+
+                             if (commandType && commandData) {
+                                 // Store command for later execution
+                                 commandsToExecute.push({ type: commandType, data: commandData });
+                                 console.log(`Stored command for execution: ${commandType}`);
+                             } else {
+                                  console.warn("Parsed JSON is missing 'type' or 'data' field during replace:", parsedJson);
+                             }
+                         } catch (e) {
+                             console.error(`Failed to parse JSON during replace:`, e, "\nJSON String:", jsonString);
                          }
-                     } catch (e) {
-                         console.error(`Failed to parse JSON during replace:`, e, "\nJSON String:", jsonString);
-                     }
-                     return ''; // Replace the matched block with an empty string
-                 });
+                         return ''; // Replace the matched block with an empty string
+                     });
+                 } catch (replaceError) {
+                     console.error("Error during regex replace:", replaceError);
+                     // Return original text if replace fails catastrophically
+                     return responseText.trim();
+                 }
 
+
+                 // Now execute the stored commands *after* the text is fully cleaned
                  if (commandsToExecute.length > 0) {
                       console.log(`Executing ${commandsToExecute.length} stored canvas commands.`);
                       commandsToExecute.forEach(cmd => {
-                           if (state.isCanvasInitialized) { handleCanvasDrawCommand(cmd.type, cmd.data); }
-                           else { console.warn(`Canvas not initialized, skipping command: ${cmd.type}`); }
+                           if (state.isCanvasInitialized) {
+                               handleCanvasDrawCommand(cmd.type, cmd.data);
+                           } else {
+                                console.warn(`Canvas not initialized, skipping command: ${cmd.type}`);
+                           }
                       });
                   } else {
-                      console.log("No canvas commands found or extracted for execution.");
+                      console.log("No valid canvas commands found or extracted for execution.");
                   }
 
                  console.log("Finished parsing/executing canvas commands. Returning cleaned text.");
-                 return cleanedText.trim();
+                 return cleanedText.trim(); // Return the text with commands removed
              };
              // --- *** END OF CORRECTED PARSER *** ---
 
-            const sendToGemini = async (promptText, targetArea) => {
+             const sendToGemini = async (promptText, targetArea) => {
+                 /* ... (Error checks as before) ... */
                  if (!GEMINI_API_KEY || !GEMINI_API_KEY.startsWith('AIzaSy')) { showToast("Chyba: AI není správně nakonfigurována.", "error"); updateGeminiThinkingState(false); return; }
                  if (!state.currentTopic) { showToast("Chyba: Není vybráno žádné téma.", "error"); updateGeminiThinkingState(false); return; }
 
                  console.log(`Sending to Gemini (Target: ${targetArea}): "${promptText.substring(0, 100)}..."`);
-                 updateAIStatus('AI přemýšlí...');
-                 const requestTimestamp = new Date();
-                 updateGeminiThinkingState(true);
+                 updateAIStatus('AI přemýšlí...'); const requestTimestamp = new Date(); updateGeminiThinkingState(true);
 
                  // --- ** Enhanced System Instruction ** ---
                  const systemInstructionText = `Jsi AI Tutor "Justax", expert na matematiku pro 9. třídu ZŠ v ČR (přijímačky CERMAT). Vyučuješ téma: "${state.currentTopic.name}"${state.currentTopic.description ? ` (Popis: "${state.currentTopic.description}")` : ''}.
@@ -606,7 +564,7 @@
                      * Příklad pro text: \`PŘÍKAZ: \`\`\`json { "type": "DRAW_TEXT", "data": { "text": "a = 5", "x": 50, "y": 50, "color": "#3f37c9", "font": "bold 16px Poppins" } } \`\`\`\`
                      * Příklad pro vymazání: \`PŘÍKAZ: \`\`\`json { "type": "CLEAR_CANVAS", "data": {} } \`\`\`\`
                      * Aktuální rozměry plátna jsou ${state.canvasWidth}px (šířka) x ${state.canvasHeight}px (výška). Souřadnice [0, 0] je LEVÝ HORNÍ roh.
-                     * **Kresli PŘEHLEDNĚ a SROZUMITELNĚ.** Vyhni se **PŘEKRÝVÁNÍ** textu a důležitých prvků. Používej **KONZISTENTNÍ** styl (barvy, fonty). Před složitějším obrázkem **VŽDY** použij `CLEAR_CANVAS`. Koordináty volte tak, aby se **VEŠLY** na plátno (0 až ${state.canvasWidth} pro x, 0 až ${state.canvasHeight} pro y) s malým okrajem.
+                     * **Kresli PŘEHLEDNĚ a SROZUMITELNĚ.** Vyhni se **PŘEKRÝVÁNÍ** textu a důležitých prvků. Používej **KONZISTENTNÍ** styl (barvy, fonty). Před složitějším obrázkem **VŽDY** použij `CLEAR_CANVAS`. Koordináty volte tak, aby se **VEŠLY** na plátno (0 až ${state.canvasWidth} pro x, 0 až ${state.canvasHeight} pro y) s malým okrajem (cca 10px).
                  4.  **DÉLKA ODPOVĚDI:** Pro záložku "Vysvětlení" buď podrobný, ale stručný v rámci jednoho kroku. Pro "Chat" odpovídej stručněji a přímo na dotaz studenta.
                  5.  **VÝSTUP DO CHATU (SHRNUTÍ):** POKUD generuješ delší odpověď pro "Vysvětlení", na ÚPLNÝ konec celé odpovědi (i za případné kreslící příkazy) PŘIDEJ krátký, výstižný souhrn pro zobrazení v chatu, ve formátu: \`CHAT_SUMMARY: [Zde tvůj krátký souhrn jednoho až dvou vět]\`. Pokud odpovídáš přímo v chatu (target 'chat'), CHAT_SUMMARY nepřidávej.`;
                  // --- End of Enhanced System Instruction ---
@@ -614,20 +572,13 @@
                  const historyForApi = state.geminiChatContext.filter(item => item.role === 'user' || item.role === 'model');
                  const currentRequestContent = { role: "user", parts: [{ text: promptText }] };
                  let contentsPayload;
-
-                 if (historyForApi.length === 0) {
-                     contentsPayload = [{ role: "user", parts: [{ text: systemInstructionText + "\n\n---\n\nStudentův dotaz/požadavek: " + promptText }] }];
-                 } else {
-                     contentsPayload = [...historyForApi, currentRequestContent];
-                     // Optional: Add system instruction if needed
-                     // contentsPayload.unshift({ role: "system", parts: [{ text: systemInstructionText }] });
-                 }
-
+                 if (historyForApi.length === 0) { contentsPayload = [{ role: "user", parts: [{ text: systemInstructionText + "\n\n---\n\nStudentův dotaz/požadavek: " + promptText }] }]; }
+                 else { contentsPayload = [...historyForApi, currentRequestContent]; }
                  const requestBody = { /* ... (requestBody as before) ... */
-                    contents: contentsPayload,
-                    generationConfig: { temperature: 0.6, topP: 0.95, topK: 40, maxOutputTokens: 4096 },
-                    safetySettings: [ { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" }, { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" }, { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" }, { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" } ]
-                };
+                     contents: contentsPayload,
+                     generationConfig: { temperature: 0.6, topP: 0.95, topK: 40, maxOutputTokens: 4096 },
+                     safetySettings: [ { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" }, { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" }, { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" }, { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" } ]
+                 };
 
                  try {
                      console.log("Sending payload to Gemini:", JSON.stringify(requestBody).substring(0, 500) + "...");
@@ -653,7 +604,6 @@
                  const summaryRegex = /CHAT_SUMMARY:\s*([\s\S]*)/;
                  const summaryMatch = rawResponseText.match(summaryRegex);
                  let textForProcessing = rawResponseText;
-
                  if (summaryMatch && summaryMatch[1]) { chatSummary = summaryMatch[1].trim(); textForProcessing = rawResponseText.replace(summaryRegex, '').trim(); console.log("Extracted Chat Summary:", chatSummary); }
 
                  // Process canvas commands AND get the remaining text WITHOUT commands
@@ -661,16 +611,14 @@
 
                  if (targetArea === 'explanation') {
                      console.log("Processing for EXPLANATION area.");
-                     const placeholder = uiElements.explanationDisplay.querySelector('.loading-placeholder, .empty-state');
-                     if (placeholder) placeholder.remove();
+                     const placeholder = uiElements.explanationDisplay.querySelector('.loading-placeholder, .empty-state'); if (placeholder) placeholder.remove();
                      const isFirstStep = uiElements.explanationDisplay.querySelectorAll('.step').length === 0 && state.lastExplanationTimestamp === 0;
                      if (isFirstStep) { uiElements.explanationDisplay.innerHTML = ''; console.log("First explanation step, clearing initial placeholder."); } else { console.log("Appending explanation step."); }
-                     const stepDiv = document.createElement('div'); stepDiv.className = 'step'; renderMarkdown(stepDiv, textToDisplay); // Render the CLEANED text
-                     uiElements.explanationDisplay.appendChild(stepDiv); state.lastExplanationTimestamp = Date.now();
+                     const stepDiv = document.createElement('div'); stepDiv.className = 'step'; renderMarkdown(stepDiv, textToDisplay); uiElements.explanationDisplay.appendChild(stepDiv); state.lastExplanationTimestamp = Date.now();
                      if(uiElements.explanationScrollContent) { uiElements.explanationScrollContent.scrollTop = uiElements.explanationScrollContent.scrollHeight; }
                      if (chatSummary) { addChatMessage(chatSummary, 'gemini', true, timestamp); }
                      else if (textToDisplay.trim()) { addChatMessage(`AI pokračovala ve vysvětlení (viz záložka Vysvětlení).`, 'gemini', false, timestamp); }
-                     manageUIState('learning'); manageButtonStates();
+                      manageUIState('learning'); manageButtonStates();
                  } else { // Target is 'chat'
                      console.log("Processing for CHAT area.");
                      if (textToDisplay.trim()) { addChatMessage(textToDisplay, 'gemini', true, timestamp); }
@@ -684,10 +632,9 @@
              };
 
              const handleGeminiError = (errorMessage, targetArea, timestamp) => { /* ... (function as before) ... */
-                const errorMsg = `Omlouvám se, nastala chyba při zpracování: ${errorMessage}`;
-                removeThinkingIndicator(); addChatMessage(errorMsg, 'gemini', false, timestamp);
-                if (targetArea === 'explanation' && uiElements.explanationDisplay) { const errorP = document.createElement('p'); errorP.style.color = 'var(--danger)'; errorP.style.marginTop = '1rem'; errorP.style.fontWeight = 'bold'; errorP.textContent = errorMsg; uiElements.explanationDisplay.appendChild(errorP); if(uiElements.explanationScrollContent) uiElements.explanationScrollContent.scrollTop = uiElements.explanationScrollContent.scrollHeight; }
-                updateAIStatus('Nastala chyba'); manageButtonStates();
+                 const errorMsg = `Omlouvám se, nastala chyba při zpracování: ${errorMessage}`; removeThinkingIndicator(); addChatMessage(errorMsg, 'gemini', false, timestamp);
+                 if (targetArea === 'explanation' && uiElements.explanationDisplay) { const errorP = document.createElement('p'); errorP.style.color = 'var(--danger)'; errorP.style.marginTop = '1rem'; errorP.style.fontWeight = 'bold'; errorP.textContent = errorMsg; uiElements.explanationDisplay.appendChild(errorP); if(uiElements.explanationScrollContent) uiElements.explanationScrollContent.scrollTop = uiElements.explanationScrollContent.scrollHeight; }
+                 updateAIStatus('Nastala chyba'); manageButtonStates();
              };
 
             // --- Run Application ---
