@@ -4,16 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Justax - Interaktivní Výuka</title>
-    <link rel="preconnect" href="[https://fonts.googleapis.com](https://fonts.googleapis.com)">
-    <link rel="preconnect" href="[https://fonts.gstatic.com](https://fonts.gstatic.com)" crossorigin>
-    <link href="[https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap](https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap)" rel="stylesheet">
-    <link rel="stylesheet" href="[https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css](https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css)">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <script>
         // MathJax Configuration
         if (typeof window.MathJax === 'undefined') {
             window.MathJax = {
-                tex: { inlineMath: [['\\(', '\\)']], displayMath: [['<span class="math-block">', '</span>']], processEscapes: true, processEnvironments: true },
+                tex: { inlineMath: [['\\(', '\\)']], displayMath: [['$$', '$$']], processEscapes: true, processEnvironments: true },
                 options: { skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'], ignoreHtmlClass: 'tex2jax_ignore', processHtmlClass: 'tex2jax_process' },
                 startup: { ready: () => { MathJax.startup.defaultReady(); MathJax.startup.promise.then(() => console.log('MathJax loaded and ready.')); } }
             };
@@ -21,17 +21,17 @@
              console.warn("window.MathJax already defined.");
         }
     </script>
-    <script id="MathJax-script" async src="[https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js](https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js)"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 
-    <script src="[https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2](https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2)"></script>
-    <script src="[https://cdn.jsdelivr.net/npm/marked/marked.min.js](https://cdn.jsdelivr.net/npm/marked/marked.min.js)"></script>
-    <script src="[https://code.jquery.com/jquery-3.7.1.min.js](https://code.jquery.com/jquery-3.7.1.min.js)"></script>
-    <link rel="stylesheet" href="[https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/css/tooltipster.bundle.min.css](https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/css/tooltipster.bundle.min.css)">
-    <script src="[https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/js/tooltipster.bundle.min.js](https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/js/tooltipster.bundle.min.js)"></script>
-    <script src="[https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js](https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js)"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/css/tooltipster.bundle.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/js/tooltipster.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <style>
-        /* --- Стили CSS остаются без изменений --- */
+        /* --- Стили CSS (без изменений) --- */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; scroll-behavior: smooth; }
         :root {
             --primary-rgb: 67, 97, 238; --primary: #4361ee; --primary-light: #4895ef; --secondary: #3f37c9; --success: #06d6a0; --danger: #f72585; --warning: #f8961e; --info: #4cc9f0; --dark: #1e2a3a; --light: #f8f9fa; --gray: #6c757d; --gray-light: #dee2e6; --gray-dark: #343a40; --gradient-1: linear-gradient(135deg, #4361ee, #3a0ca3); --gradient-2: linear-gradient(135deg, #4cc9f0, #4361ee); --white: #ffffff; --sidebar-width: 260px; --transition-speed: 0.3s; --card-radius: 16px; --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06); --shadow-md: 0 5px 15px rgba(0, 0, 0, 0.08); --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.12); --text-primary: #2d3748; --text-secondary: #4a5568; --text-muted: #718096; --call-bg: #f4f7fe; --call-panel-bg: var(--white); --avatar-size: 48px;
@@ -289,17 +289,15 @@
 
     <script>
         try {
-            // Constants & Config
-            const SUPABASE_URL = '[https://qcimhjjwvsbgjsitmvuh.supabase.co](https://qcimhjjwvsbgjsitmvuh.supabase.co)';
+            // --- Constants & Config ---
+            const SUPABASE_URL = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
             const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10';
             const GEMINI_API_KEY = 'AIzaSyDQboM6qtC_O2sqqpaKZZffNf2zk6HrhEs'; // Test key
             const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
-            // Regex for parsing canvas commands (Matches the structure like "COMMAND_NAME: ```json ... ```")
             const CANVAS_COMMAND_BLOCK_REGEX = /(CLEAR_CANVAS|DRAW_LINE|DRAW_RECT|DRAW_CIRCLE|DRAW_TEXT):\s*```json\s*(\{[\s\S]*?\})\s*```\s*/g;
 
-
-            // DOM Elements Cache
-            const uiElements = {
+            // --- DOM Elements Cache ---
+            const uiElements = { /* ... (cache elements as before) ... */
                 userAvatar: document.getElementById('user-avatar'),
                 userName: document.getElementById('user-name'),
                 mobileMenuToggle: document.getElementById('mobile-menu-toggle'),
@@ -327,12 +325,12 @@
                 callInterface: document.querySelector('.call-interface')
             };
 
-            // Global State
-            let state = {
+            // --- Global State ---
+            let state = { /* ... (state variables as before) ... */
                 supabase: null,
                 currentUser: null,
                 currentProfile: null,
-                currentTopic: null, // Stores { activity_id, plan_id, name, description, user_id, topic_id }
+                currentTopic: null,
                 currentPlanId: null,
                 currentSessionId: null,
                 geminiChatContext: [],
@@ -362,8 +360,8 @@
             const initializeApp = async () => { console.log("DOM Loaded. Initializing Justax AI Tutor..."); if (!initializeSupabase()) return; if (!initializeUI()) return; console.log("Loading user profile..."); await loadUserProfile(); if (state.currentUser) { console.log("User logged in, loading topic..."); await loadNextUncompletedTopic(); } else { handleLoggedOutUser(); } };
 
             // --- UI State Management ---
-            const manageUIState = (mode) => {
-                 console.log("Managing UI State:", mode);
+            const manageUIState = (mode) => { /* ... (function as before) ... */
+                console.log("Managing UI State:", mode);
                  const showCallInterface = mode === 'learning' || mode === 'requestingExplanation' || mode === 'loadingTopic'; // Show interface during loading too
                  if (uiElements.callInterface) uiElements.callInterface.style.display = showCallInterface ? 'flex' : 'none';
 
@@ -384,8 +382,8 @@
                      }
                  }
             };
-            const manageButtonStates = () => {
-                 const enableSend = !state.geminiIsThinking && !!state.currentTopic;
+            const manageButtonStates = () => { /* ... (function as before) ... */
+                const enableSend = !state.geminiIsThinking && !!state.currentTopic;
                  const enableNext = !state.geminiIsThinking && !!state.currentTopic;
                  const enableComplete = !state.geminiIsThinking && !!state.currentTopic;
 
@@ -398,19 +396,19 @@
             };
 
             // --- Canvas Functions ---
-            const initializeCanvas = () => { if (!uiElements.canvas) { console.error("Canvas element not found!"); return false; } try { state.canvasCtx = uiElements.canvas.getContext('2d', { willReadFrequently: false }); if (!state.canvasCtx) throw new Error("Failed to get 2D context"); resizeCanvas(); clearCanvas(); console.log("Canvas initialized successfully."); if (uiElements.canvasControls) uiElements.canvasControls.style.display = 'flex'; return true; } catch (e) { console.error("Canvas initialization failed:", e); if (uiElements.canvasContainer) uiElements.canvasContainer.innerHTML = "<p style='color:red; padding:1rem;'>Chyba: Nelze inicializovat kreslící plochu.</p>"; return false; } };
-            const resizeCanvas = () => { if (!uiElements.canvas || !uiElements.canvasContainer || !state.canvasCtx) return; const containerStyle = window.getComputedStyle(uiElements.canvasContainer); const containerWidth = uiElements.canvasContainer.clientWidth - parseFloat(containerStyle.paddingLeft) - parseFloat(containerStyle.paddingRight); const containerHeight = uiElements.canvasContainer.clientHeight - parseFloat(containerStyle.paddingTop) - parseFloat(containerStyle.paddingBottom); const maxWidth = 1200; const maxHeight = 800; state.canvasWidth = Math.max(100, Math.min(containerWidth, maxWidth)); state.canvasHeight = Math.max(100, Math.min(containerHeight, maxHeight)); if (uiElements.canvas.width !== state.canvasWidth || uiElements.canvas.height !== state.canvasHeight) { uiElements.canvas.width = state.canvasWidth; uiElements.canvas.height = state.canvasHeight; uiElements.canvas.style.width = `${state.canvasWidth}px`; uiElements.canvas.style.height = `${state.canvasHeight}px`; clearCanvas(); console.log(`Canvas resized to: ${state.canvasWidth}x${state.canvasHeight}. Content cleared.`); } };
-            const clearCanvas = () => { if (!state.canvasCtx) return; state.canvasCtx.clearRect(0, 0, uiElements.canvas.width, uiElements.canvas.height); console.log("Canvas cleared."); };
-            const handleCanvasDrawCommand = (command, data) => { if (!state.canvasCtx) { console.error("Canvas context not available for drawing."); return; } console.log(`Executing Canvas Command: ${command}`, data); state.canvasCtx.save(); try { state.canvasCtx.strokeStyle = data.color || '#000000'; state.canvasCtx.fillStyle = data.fillColor || data.color || '#000000'; state.canvasCtx.lineWidth = typeof data.lineWidth === 'number' && data.lineWidth > 0 ? data.lineWidth : 1; state.canvasCtx.font = data.font || '16px Poppins'; state.canvasCtx.textAlign = data.textAlign || 'left'; state.canvasCtx.textBaseline = data.textBaseline || 'alphabetic'; if (data.lineDash && Array.isArray(data.lineDash)) { state.canvasCtx.setLineDash(data.lineDash); } else { state.canvasCtx.setLineDash([]); } switch (command) { case 'CLEAR_CANVAS': clearCanvas(); break; case 'DRAW_LINE': if (data.x1 != null && data.y1 != null && data.x2 != null && data.y2 != null) { state.canvasCtx.beginPath(); state.canvasCtx.moveTo(data.x1, data.y1); state.canvasCtx.lineTo(data.x2, data.y2); state.canvasCtx.stroke(); } else console.warn("DRAW_LINE: Missing coordinates", data); break; case 'DRAW_RECT': if (data.x != null && data.y != null && data.width != null && data.height != null) { if (data.filled === true) { state.canvasCtx.fillRect(data.x, data.y, data.width, data.height); } else { state.canvasCtx.strokeRect(data.x, data.y, data.width, data.height); } } else console.warn("DRAW_RECT: Missing properties", data); break; case 'DRAW_CIRCLE': if (data.x != null && data.y != null && data.radius != null && data.radius > 0) { state.canvasCtx.beginPath(); state.canvasCtx.arc(data.x, data.y, data.radius, 0, Math.PI * 2); if (data.filled === true) { state.canvasCtx.fill(); } else { state.canvasCtx.stroke(); } } else console.warn("DRAW_CIRCLE: Missing or invalid properties", data); break; case 'DRAW_TEXT': if (data.text != null && data.x != null && data.y != null) { state.canvasCtx.fillStyle = data.color || '#000000'; const lines = String(data.text).split('\\n'); const lineHeight = parseFloat(state.canvasCtx.font) * 1.2 || 20; // Ensure default line height
+            const initializeCanvas = () => { /* ... (function as before) ... */ if (!uiElements.canvas) { console.error("Canvas element not found!"); return false; } try { state.canvasCtx = uiElements.canvas.getContext('2d', { willReadFrequently: false }); if (!state.canvasCtx) throw new Error("Failed to get 2D context"); resizeCanvas(); clearCanvas(); console.log("Canvas initialized successfully."); if (uiElements.canvasControls) uiElements.canvasControls.style.display = 'flex'; return true; } catch (e) { console.error("Canvas initialization failed:", e); if (uiElements.canvasContainer) uiElements.canvasContainer.innerHTML = "<p style='color:red; padding:1rem;'>Chyba: Nelze inicializovat kreslící plochu.</p>"; return false; } };
+            const resizeCanvas = () => { /* ... (function as before) ... */ if (!uiElements.canvas || !uiElements.canvasContainer || !state.canvasCtx) return; const containerStyle = window.getComputedStyle(uiElements.canvasContainer); const containerWidth = uiElements.canvasContainer.clientWidth - parseFloat(containerStyle.paddingLeft) - parseFloat(containerStyle.paddingRight); const containerHeight = uiElements.canvasContainer.clientHeight - parseFloat(containerStyle.paddingTop) - parseFloat(containerStyle.paddingBottom); const maxWidth = 1200; const maxHeight = 800; state.canvasWidth = Math.max(100, Math.min(containerWidth, maxWidth)); state.canvasHeight = Math.max(100, Math.min(containerHeight, maxHeight)); if (uiElements.canvas.width !== state.canvasWidth || uiElements.canvas.height !== state.canvasHeight) { uiElements.canvas.width = state.canvasWidth; uiElements.canvas.height = state.canvasHeight; uiElements.canvas.style.width = `${state.canvasWidth}px`; uiElements.canvas.style.height = `${state.canvasHeight}px`; clearCanvas(); console.log(`Canvas resized to: ${state.canvasWidth}x${state.canvasHeight}. Content cleared.`); } };
+            const clearCanvas = () => { /* ... (function as before) ... */ if (!state.canvasCtx) return; state.canvasCtx.clearRect(0, 0, uiElements.canvas.width, uiElements.canvas.height); console.log("Canvas cleared."); };
+            const handleCanvasDrawCommand = (command, data) => { /* ... (function as before, check DRAW_TEXT line height) ... */ if (!state.canvasCtx) { console.error("Canvas context not available for drawing."); return; } console.log(`Executing Canvas Command: ${command}`, data); state.canvasCtx.save(); try { state.canvasCtx.strokeStyle = data.color || '#000000'; state.canvasCtx.fillStyle = data.fillColor || data.color || '#000000'; state.canvasCtx.lineWidth = typeof data.lineWidth === 'number' && data.lineWidth > 0 ? data.lineWidth : 1; state.canvasCtx.font = data.font || '16px Poppins'; state.canvasCtx.textAlign = data.textAlign || 'left'; state.canvasCtx.textBaseline = data.textBaseline || 'alphabetic'; if (data.lineDash && Array.isArray(data.lineDash)) { state.canvasCtx.setLineDash(data.lineDash); } else { state.canvasCtx.setLineDash([]); } switch (command) { case 'CLEAR_CANVAS': clearCanvas(); break; case 'DRAW_LINE': if (data.x1 != null && data.y1 != null && data.x2 != null && data.y2 != null) { state.canvasCtx.beginPath(); state.canvasCtx.moveTo(data.x1, data.y1); state.canvasCtx.lineTo(data.x2, data.y2); state.canvasCtx.stroke(); } else console.warn("DRAW_LINE: Missing coordinates", data); break; case 'DRAW_RECT': if (data.x != null && data.y != null && data.width != null && data.height != null) { if (data.filled === true) { state.canvasCtx.fillRect(data.x, data.y, data.width, data.height); } else { state.canvasCtx.strokeRect(data.x, data.y, data.width, data.height); } } else console.warn("DRAW_RECT: Missing properties", data); break; case 'DRAW_CIRCLE': if (data.x != null && data.y != null && data.radius != null && data.radius > 0) { state.canvasCtx.beginPath(); state.canvasCtx.arc(data.x, data.y, data.radius, 0, Math.PI * 2); if (data.filled === true) { state.canvasCtx.fill(); } else { state.canvasCtx.stroke(); } } else console.warn("DRAW_CIRCLE: Missing or invalid properties", data); break; case 'DRAW_TEXT': if (data.text != null && data.x != null && data.y != null) { state.canvasCtx.fillStyle = data.color || '#000000'; const lines = String(data.text).split('\\n'); const fontSizeMatch = state.canvasCtx.font.match(/(\d+)(px|pt|em|rem)/); const fontSize = fontSizeMatch ? parseFloat(fontSizeMatch[1]) : 16; const lineHeight = fontSize * 1.2 || 20; // Calculate line height based on font size
                     lines.forEach((line, index) => { state.canvasCtx.fillText(line, data.x, data.y + (index * lineHeight)); }); } else console.warn("DRAW_TEXT: Missing properties", data); break; default: console.warn("Unknown canvas command:", command); } } catch (e) { console.error(`Error executing canvas command ${command}:`, e, data); } finally { state.canvasCtx.restore(); } };
 
             // --- User Profile & Auth ---
-            const loadUserProfile = async () => { if (!state.supabase) return; try { const { data: { user }, error: userError } = await state.supabase.auth.getUser(); if (userError) throw userError; if (user) { state.currentUser = user; const { data: profile, error: profileError } = await state.supabase.from('profiles').select('*').eq('id', user.id).single(); if (profileError && profileError.code !== 'PGRST116') throw profileError; state.currentProfile = profile; console.log("User profile loaded:", state.currentProfile); } else { state.currentUser = null; state.currentProfile = null; console.log("No user logged in."); } } catch (error) { console.error('Error loading user profile:', error); state.currentUser = null; state.currentProfile = null; showToast("Nepodařilo se načíst profil.", "error"); } finally { updateUserInfoUI(); } };
-            const updateUserInfoUI = () => { if (uiElements.userName && uiElements.userAvatar) { if (state.currentProfile || state.currentUser) { const email = state.currentUser?.email; const initials = getInitials(state.currentProfile, email); const displayName = `${state.currentProfile?.first_name || ''} ${state.currentProfile?.last_name || ''}`.trim() || state.currentProfile?.username || email?.split('@')[0] || 'Uživatel'; uiElements.userName.textContent = displayName; if (state.currentProfile?.avatar_url) { uiElements.userAvatar.innerHTML = `<img src="${state.currentProfile.avatar_url}" alt="${initials}">`; } else { uiElements.userAvatar.innerHTML = ''; uiElements.userAvatar.textContent = initials; } } else { uiElements.userName.textContent = 'Nepřihlášen'; uiElements.userAvatar.innerHTML = '?'; } } };
-            const handleLoggedOutUser = () => { console.warn("User not logged in."); updateAIStatus("Přihlaste se pro zahájení výuky."); if (uiElements.currentTopicDisplay) uiElements.currentTopicDisplay.innerHTML = '<span class="placeholder">Nejste přihlášeni</span>'; showToast("Prosím, přihlaste se.", "warning"); manageUIState('loggedOut'); manageButtonStates(); };
+            const loadUserProfile = async () => { /* ... (function as before) ... */ if (!state.supabase) return; try { const { data: { user }, error: userError } = await state.supabase.auth.getUser(); if (userError) throw userError; if (user) { state.currentUser = user; const { data: profile, error: profileError } = await state.supabase.from('profiles').select('*').eq('id', user.id).single(); if (profileError && profileError.code !== 'PGRST116') throw profileError; state.currentProfile = profile; console.log("User profile loaded:", state.currentProfile); } else { state.currentUser = null; state.currentProfile = null; console.log("No user logged in."); } } catch (error) { console.error('Error loading user profile:', error); state.currentUser = null; state.currentProfile = null; showToast("Nepodařilo se načíst profil.", "error"); } finally { updateUserInfoUI(); } };
+            const updateUserInfoUI = () => { /* ... (function as before) ... */ if (uiElements.userName && uiElements.userAvatar) { if (state.currentProfile || state.currentUser) { const email = state.currentUser?.email; const initials = getInitials(state.currentProfile, email); const displayName = `${state.currentProfile?.first_name || ''} ${state.currentProfile?.last_name || ''}`.trim() || state.currentProfile?.username || email?.split('@')[0] || 'Uživatel'; uiElements.userName.textContent = displayName; if (state.currentProfile?.avatar_url) { uiElements.userAvatar.innerHTML = `<img src="${state.currentProfile.avatar_url}" alt="${initials}">`; } else { uiElements.userAvatar.innerHTML = ''; uiElements.userAvatar.textContent = initials; } } else { uiElements.userName.textContent = 'Nepřihlášen'; uiElements.userAvatar.innerHTML = '?'; } } };
+            const handleLoggedOutUser = () => { /* ... (function as before) ... */ console.warn("User not logged in."); updateAIStatus("Přihlaste se pro zahájení výuky."); if (uiElements.currentTopicDisplay) uiElements.currentTopicDisplay.innerHTML = '<span class="placeholder">Nejste přihlášeni</span>'; showToast("Prosím, přihlaste se.", "warning"); manageUIState('loggedOut'); manageButtonStates(); };
 
              // --- Event Listeners Setup ---
-            const setupEventListeners = () => {
+            const setupEventListeners = () => { /* ... (function as before) ... */
                 console.log("Setting up event listeners...");
                 // Mobile Menu
                 if (uiElements.mobileMenuToggle && uiElements.sidebar && uiElements.sidebarOverlay) {
@@ -445,11 +443,11 @@
                 // Window Resize
                 window.addEventListener('resize', () => { if (window.innerWidth > 992 && uiElements.sidebar?.classList.contains('active')) { uiElements.sidebar.classList.remove('active'); uiElements.sidebarOverlay.classList.remove('active'); } resizeCanvas(); });
             };
-            const initTooltips = () => { try { if (window.jQuery && window.jQuery.fn.tooltipster) { window.jQuery('.btn-tooltip:not(.tooltipstered)').tooltipster({ theme: 'tooltipster-shadow', animation: 'fade', delay: 100, side: 'top' }); } else { console.warn("jQuery or Tooltipster not fully loaded for initTooltips."); } } catch (e) { console.error("Tooltipster initialization error:", e); } };
+            const initTooltips = () => { /* ... (function as before) ... */ try { if (window.jQuery && window.jQuery.fn.tooltipster) { window.jQuery('.btn-tooltip:not(.tooltipstered)').tooltipster({ theme: 'tooltipster-shadow', animation: 'fade', delay: 100, side: 'top' }); } else { console.warn("jQuery or Tooltipster not fully loaded for initTooltips."); } } catch (e) { console.error("Tooltipster initialization error:", e); } };
 
             // --- Topic Loading and Progress ---
-            const loadNextUncompletedTopic = async () => {
-                if (!state.currentUser || state.topicLoadInProgress || !state.supabase) { console.log("Skipping topic load:", { loggedIn: !!state.currentUser, loading: state.topicLoadInProgress }); return; }
+            const loadNextUncompletedTopic = async () => { /* ... (function as before) ... */
+                 if (!state.currentUser || state.topicLoadInProgress || !state.supabase) { console.log("Skipping topic load:", { loggedIn: !!state.currentUser, loading: state.topicLoadInProgress }); return; }
                 state.topicLoadInProgress = true;
                 if (uiElements.currentTopicDisplay) uiElements.currentTopicDisplay.innerHTML = '<span class="placeholder"><i class="fas fa-spinner fa-spin"></i> Hledám další téma...</span>';
                 updateAIStatus('Hledám téma...');
@@ -520,8 +518,8 @@
                     manageButtonStates();
                 }
             };
-            const handleMarkTopicComplete = async () => {
-                if (!state.currentTopic || !state.currentTopic.activity_id || !state.supabase || state.topicLoadInProgress) return;
+            const handleMarkTopicComplete = async () => { /* ... (function as before) ... */
+                 if (!state.currentTopic || !state.currentTopic.activity_id || !state.supabase || state.topicLoadInProgress) return;
                 console.log(`Marking activity ${state.currentTopic.activity_id} as complete.`);
                 state.topicLoadInProgress = true;
                 manageButtonStates();
@@ -538,21 +536,20 @@
                     clearCanvas();
                     state.geminiChatContext = [];
                     state.lastExplanationTimestamp = 0;
-                    await loadNextUncompletedTopic(); // Load next one immediately
+                    await loadNextUncompletedTopic();
                 } catch (error) {
                     console.error(`Error marking activity ${state.currentTopic?.activity_id} complete:`, error);
                     showToast("Chyba při označování tématu.", "error");
-                    state.topicLoadInProgress = false; // Allow retry if saving failed
+                    state.topicLoadInProgress = false;
                     manageButtonStates();
                 } finally {
                     if(uiElements.markCompleteBtn) uiElements.markCompleteBtn.innerHTML = '<i class="fas fa-check-circle"></i> Téma dokončeno';
-                     // topicLoadInProgress is handled within loadNextUncompletedTopic or here on error
                 }
             };
 
             // --- Learning Session Management ---
-            const startLearningSession = async () => {
-                if (!state.currentTopic || !state.currentUser || !state.supabase || !state.isCanvasInitialized) {
+            const startLearningSession = async () => { /* ... (function as before) ... */
+                 if (!state.currentTopic || !state.currentUser || !state.supabase || !state.isCanvasInitialized) {
                      console.error("Cannot start session:", { topic: !!state.currentTopic, user: !!state.currentUser, supabase: !!state.supabase, canvas: state.isCanvasInitialized });
                      updateAIStatus('Chyba: Nelze zahájit výuku.');
                      manageUIState('error');
@@ -562,14 +559,14 @@
                 console.log(`Starting session for: "${state.currentTopic.name}" (Activity ID: ${state.currentTopic.activity_id})`);
                 state.currentSessionId = generateSessionId();
                 updateAIStatus(`Vysvětluje: ${state.currentTopic.name}`);
-                manageUIState('requestingExplanation'); // Show loading placeholder in explanation
+                manageUIState('requestingExplanation');
                 manageButtonStates();
 
-                if (uiElements.chatMessages) uiElements.chatMessages.innerHTML = ''; // Clear chat
-                state.geminiChatContext = []; // Reset context
-                state.lastExplanationTimestamp = 0; // Reset explanation timestamp
-                clearCanvas(); // Clear canvas for new topic
-                updateGeminiThinkingState(true); // Show thinking immediately
+                if (uiElements.chatMessages) uiElements.chatMessages.innerHTML = '';
+                state.geminiChatContext = [];
+                state.lastExplanationTimestamp = 0;
+                clearCanvas();
+                updateGeminiThinkingState(true);
 
                 let initialPrompt = `Jako AI Tutor "Justax" začni vysvětlovat ZÁKLADY tématu "${state.currentTopic.name}" pro studenta 9. třídy ZŠ (přijímačky CERMAT).`;
                 if (state.currentTopic.description) { initialPrompt += ` Popis tématu pro kontext: "${state.currentTopic.description}".`; }
@@ -577,12 +574,12 @@
 
                 await sendToGemini(initialPrompt, 'explanation');
             };
-            const switchInteractionTab = (tabId) => { uiElements.interactionTabs.forEach(tab => tab.classList.toggle('active', tab.dataset.tab === tabId)); uiElements.tabContents.forEach(content => content.classList.toggle('active', content.id === `${tabId}-content`)); console.log(`Switched to tab: ${tabId}`); };
-            const requestNextStep = async () => { if (state.geminiIsThinking || !state.currentTopic) return; console.log("Requesting next step..."); updateGeminiThinkingState(true); manageButtonStates(); const prompt = `Pokračuj ve vysvětlování tématu "${state.currentTopic.name}". Naváž na předchozí krok. Nezapomeň na možnost využití kreslící plochy a ukončení shrnutím pro chat (CHAT_SUMMARY:).`; await sendToGemini(prompt, 'explanation'); /* Button state handled by updateGeminiThinkingState */ };
+            const switchInteractionTab = (tabId) => { /* ... (function as before) ... */ uiElements.interactionTabs.forEach(tab => tab.classList.toggle('active', tab.dataset.tab === tabId)); uiElements.tabContents.forEach(content => content.classList.toggle('active', content.id === `${tabId}-content`)); console.log(`Switched to tab: ${tabId}`); };
+            const requestNextStep = async () => { /* ... (function as before) ... */ if (state.geminiIsThinking || !state.currentTopic) return; console.log("Requesting next step..."); updateGeminiThinkingState(true); manageButtonStates(); const prompt = `Pokračuj ve vysvětlování tématu "${state.currentTopic.name}". Naváž na předchozí krok. Nezapomeň na možnost využití kreslící plochy a ukončení shrnutím pro chat (CHAT_SUMMARY:).`; await sendToGemini(prompt, 'explanation'); };
 
             // --- Chat Functionality ---
-            const addChatMessage = async (message, sender, saveToDb = true, timestamp = new Date()) => {
-                if (!uiElements.chatMessages) return;
+            const addChatMessage = async (message, sender, saveToDb = true, timestamp = new Date()) => { /* ... (function as before, includes DB save fix) ... */
+                 if (!uiElements.chatMessages) return;
                 const messageId = `msg-${Date.now()}-${Math.random().toString(16).substring(2, 8)}`;
                 const avatarInitial = sender === 'user' ? getInitials(state.currentProfile, state.currentUser?.email) : 'AI';
                 const messageDiv = document.createElement('div');
@@ -633,62 +630,125 @@
                     }
                 }
             };
-            const updateGeminiThinkingState = (isThinking) => { state.geminiIsThinking = isThinking; manageButtonStates(); if (isThinking) { addThinkingIndicator(); } else { removeThinkingIndicator(); } };
-            const addThinkingIndicator = () => { if (state.thinkingIndicatorId || !uiElements.chatMessages) return; const indicatorDiv = document.createElement('div'); indicatorDiv.className = 'chat-message model'; state.thinkingIndicatorId = `thinking-${Date.now()}`; indicatorDiv.id = state.thinkingIndicatorId; indicatorDiv.innerHTML = `<div class="message-avatar">AI</div><div class="message-thinking-indicator"><span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span></div>`; uiElements.chatMessages.appendChild(indicatorDiv); uiElements.chatMessages.scrollTop = uiElements.chatMessages.scrollHeight; };
-            const removeThinkingIndicator = () => { if (state.thinkingIndicatorId) { const indicator = document.getElementById(state.thinkingIndicatorId); if (indicator) indicator.remove(); state.thinkingIndicatorId = null; } };
-            const handleSendMessage = async () => { const messageText = uiElements.chatInput.value.trim(); if (!messageText || state.geminiIsThinking || !state.currentTopic) return; uiElements.chatInput.value = ''; autoResizeTextarea(); uiElements.chatInput.focus(); const userTimestamp = new Date(); await addChatMessage(messageText, 'user', true, userTimestamp); state.geminiChatContext.push({ role: "user", parts: [{ text: messageText }] }); updateGeminiThinkingState(true); await sendToGemini(messageText, 'chat'); };
-            const confirmClearChat = () => { if (confirm("Opravdu chcete vymazat historii tohoto chatu?\nTato akce je nevratná.")) { clearCurrentChatSessionHistory(); } };
-            const clearCurrentChatSessionHistory = async () => { if (uiElements.chatMessages) uiElements.chatMessages.innerHTML = ''; state.geminiChatContext = []; showToast("Historie chatu vymazána.", "info"); console.log("Chat history cleared for this session."); if (state.supabase && state.currentUser && state.currentSessionId) { try { console.log(`Deleting chat history from DB for session: ${state.currentSessionId}`); const { error } = await state.supabase.from('chat_history').delete().eq('user_id', state.currentUser.id).eq('session_id', state.currentSessionId); if (error) { console.error("Error deleting chat history from DB:", error); showToast("Chyba při mazání historie z databáze.", "error"); } else { console.log("Chat history deleted from DB."); } } catch(dbError) { console.error("Exception during DB chat history deletion:", dbError); } } };
-            const saveChatToPDF = async () => { /* ... (kód pro PDF beze změny z předchozí verze) ... */ };
+            const updateGeminiThinkingState = (isThinking) => { /* ... (function as before) ... */ state.geminiIsThinking = isThinking; manageButtonStates(); if (isThinking) { addThinkingIndicator(); } else { removeThinkingIndicator(); } };
+            const addThinkingIndicator = () => { /* ... (function as before) ... */ if (state.thinkingIndicatorId || !uiElements.chatMessages) return; const indicatorDiv = document.createElement('div'); indicatorDiv.className = 'chat-message model'; state.thinkingIndicatorId = `thinking-${Date.now()}`; indicatorDiv.id = state.thinkingIndicatorId; indicatorDiv.innerHTML = `<div class="message-avatar">AI</div><div class="message-thinking-indicator"><span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span></div>`; uiElements.chatMessages.appendChild(indicatorDiv); uiElements.chatMessages.scrollTop = uiElements.chatMessages.scrollHeight; };
+            const removeThinkingIndicator = () => { /* ... (function as before) ... */ if (state.thinkingIndicatorId) { const indicator = document.getElementById(state.thinkingIndicatorId); if (indicator) indicator.remove(); state.thinkingIndicatorId = null; } };
+            const handleSendMessage = async () => { /* ... (function as before) ... */ const messageText = uiElements.chatInput.value.trim(); if (!messageText || state.geminiIsThinking || !state.currentTopic) return; uiElements.chatInput.value = ''; autoResizeTextarea(); uiElements.chatInput.focus(); const userTimestamp = new Date(); await addChatMessage(messageText, 'user', true, userTimestamp); state.geminiChatContext.push({ role: "user", parts: [{ text: messageText }] }); updateGeminiThinkingState(true); await sendToGemini(messageText, 'chat'); };
+            const confirmClearChat = () => { /* ... (function as before) ... */ if (confirm("Opravdu chcete vymazat historii tohoto chatu?\nTato akce je nevratná.")) { clearCurrentChatSessionHistory(); } };
+            const clearCurrentChatSessionHistory = async () => { /* ... (function as before) ... */ if (uiElements.chatMessages) uiElements.chatMessages.innerHTML = ''; state.geminiChatContext = []; showToast("Historie chatu vymazána.", "info"); console.log("Chat history cleared for this session."); if (state.supabase && state.currentUser && state.currentSessionId) { try { console.log(`Deleting chat history from DB for session: ${state.currentSessionId}`); const { error } = await state.supabase.from('chat_history').delete().eq('user_id', state.currentUser.id).eq('session_id', state.currentSessionId); if (error) { console.error("Error deleting chat history from DB:", error); showToast("Chyba při mazání historie z databáze.", "error"); } else { console.log("Chat history deleted from DB."); } } catch(dbError) { console.error("Exception during DB chat history deletion:", dbError); } } };
+            const saveChatToPDF = async () => { /* ... (function as before) ... */
+                 if (!uiElements.chatMessages || uiElements.chatMessages.children.length === 0) {
+                        showToast("Není co uložit.", "warning");
+                        return;
+                    }
+                    showToast("Generuji PDF...", "info", 2000);
+                    const chatContainer = document.createElement('div');
+                    chatContainer.id = "pdf-export-content";
+                    const pdfStyles = `
+                        <style>
+                            body { font-family: 'Poppins', sans-serif; font-size: 10pt; line-height: 1.5; }
+                            #pdf-export-content { padding: 15mm; }
+                            .pdf-header { text-align: center; margin-bottom: 10mm; padding-bottom: 5mm; border-bottom: 1px solid #eee; }
+                            .pdf-header h1 { font-size: 16pt; margin: 0 0 5px 0; color: #4361ee; }
+                            .pdf-header p { font-size: 9pt; color: #6c757d; margin: 0; }
+                            .chat-message { margin-bottom: 8mm; display: flex; align-items: flex-start; max-width: 90%; clear: both; }
+                            .chat-message.user { margin-left: 10%; flex-direction: row-reverse; }
+                            .chat-message.model { margin-right: 10%; }
+                            .message-avatar { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 9pt; flex-shrink: 0; margin: 0 8px; color: white; }
+                            .chat-message.user .message-avatar { background-color: #06d6a0; }
+                            .chat-message.model .message-avatar { background-color: #4361ee; }
+                            .message-content { display: flex; flex-direction: column; }
+                            .message-bubble { padding: 8px 12px; border-radius: 15px; background-color: #f1f3f5; color: #212529; word-wrap: break-word; max-width: 100%; }
+                            .chat-message.user .message-bubble { background-color: #4361ee; color: white; border-bottom-right-radius: 5px; text-align: right; }
+                            .chat-message.model .message-bubble { border-bottom-left-radius: 5px; }
+                            .message-timestamp { font-size: 8pt; color: #6c757d; margin-top: 3px; }
+                            .chat-message.user .message-timestamp { text-align: right; }
+                            .message-bubble pre { background-color: #343a40; color: #f8f9fa; padding: 8px; border-radius: 4px; margin: 5px 0; white-space: pre-wrap; word-wrap: break-word; font-size: 9pt; }
+                            .chat-message.user .message-bubble pre { background-color: rgba(0,0,0,0.2); }
+                            .message-bubble code:not(pre code) { background-color: rgba(0,0,0,0.05); padding: 1px 4px; border-radius: 3px; font-size: 0.9em; }
+                            .chat-message.user .message-bubble code:not(pre code) { background-color: rgba(255,255,255,0.2); }
+                        </style>`;
+                    chatContainer.innerHTML = pdfStyles;
+
+                    const headerDiv = document.createElement('div');
+                    headerDiv.className = 'pdf-header';
+                    headerDiv.innerHTML = `<h1>Záznam chatu - ${sanitizeHTML(state.currentTopic?.name || 'Neznámé téma')}</h1><p>Exportováno: ${new Date().toLocaleString('cs-CZ')}</p>`;
+                    chatContainer.appendChild(headerDiv);
+
+                    Array.from(uiElements.chatMessages.children).forEach(msgElement => {
+                        if (msgElement.classList.contains('chat-message')) {
+                            const clone = msgElement.cloneNode(true);
+                            // Remove interactive elements or simplify structure if needed for PDF
+                            chatContainer.appendChild(clone);
+                        }
+                    });
+
+                    const filename = `chat-justax-${state.currentTopic?.name?.replace(/[^a-z0-9]/gi, '_') || 'vyuka'}-${formatTimestamp().replace(/[:\s]/g, '')}.pdf`;
+                    const options = {
+                        margin: 15,
+                        filename: filename,
+                        image: { type: 'jpeg', quality: 0.95 },
+                        html2canvas: { scale: 2, useCORS: true, logging: false, letterRendering: true },
+                        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                    };
+
+                    try {
+                         await html2pdf().set(options).from(chatContainer).save();
+                         showToast("Chat uložen jako PDF!", "success");
+                     } catch (pdfError) {
+                         console.error("Chyba exportu PDF:", pdfError);
+                         showToast("Nepodařilo se exportovat chat do PDF.", "error");
+                     }
+            };
 
             // --- Gemini Interaction & AI Drawing (FIXED PARSER) ---
             const parseAndProcessCanvasCommands = (responseText) => {
-                let cleanedText = responseText; // Work on a copy
-                const commandBlocks = [];
-                let match;
-                // Use the corrected regex targeting the specific format
-                const CANVAS_COMMAND_BLOCK_REGEX = /(CLEAR_CANVAS|DRAW_LINE|DRAW_RECT|DRAW_CIRCLE|DRAW_TEXT):\s*```json\s*(\{[\s\S]*?\})\s*```\s*/g;
-                CANVAS_COMMAND_BLOCK_REGEX.lastIndex = 0; // Reset regex index
+                 let cleanedText = responseText; // Work on a copy
+                 const commandBlocks = [];
+                 let match;
+                 // Use the specific regex targeting the COMMAND: ```json ... ``` format
+                 const CANVAS_COMMAND_BLOCK_REGEX = /(CLEAR_CANVAS|DRAW_LINE|DRAW_RECT|DRAW_CIRCLE|DRAW_TEXT):\s*```json\s*(\{[\s\S]*?\})\s*```\s*/g;
+                 CANVAS_COMMAND_BLOCK_REGEX.lastIndex = 0; // Reset regex index
 
-                console.log("Parsing for canvas command blocks (COMMAND: ```json...``` format)...");
+                 console.log("Parsing for canvas command blocks (COMMAND: ```json...``` format)...");
 
-                // First pass: find all command blocks and store them
-                while ((match = CANVAS_COMMAND_BLOCK_REGEX.exec(responseText)) !== null) {
+                 // First pass: find all command blocks and store them with their full match string
+                 while ((match = CANVAS_COMMAND_BLOCK_REGEX.exec(responseText)) !== null) {
                      commandBlocks.push({
-                         fullMatch: match[0], // The entire matched string (e.g., "DRAW_LINE: ```json...```")
+                         fullMatch: match[0], // The entire matched string like "DRAW_LINE: ```json...``` "
                          command: match[1],   // The command name (e.g., "DRAW_LINE")
                          dataString: match[2] // The JSON string part " { ... } "
                      });
-                }
+                 }
 
-                if (commandBlocks.length > 0) {
-                    console.log(`Found ${commandBlocks.length} canvas command blocks.`);
-                    // Second pass: execute commands and remove them from the text
-                    commandBlocks.forEach(block => {
-                        // Replace the *entire* matched block from the cleanedText copy
-                        // Ensure replacement happens only once per found block to avoid issues with identical blocks
-                        if (cleanedText.includes(block.fullMatch)) {
-                            cleanedText = cleanedText.replace(block.fullMatch, '');
-                            console.log(`Removed block: ${block.command}`);
-                        } else {
+                 if (commandBlocks.length > 0) {
+                     console.log(`Found ${commandBlocks.length} canvas command blocks.`);
+                     // Second pass: execute commands and remove the *exact* matched block from the text
+                     commandBlocks.forEach(block => {
+                         // Replace the *entire* matched block string from the cleanedText copy
+                         if (cleanedText.includes(block.fullMatch)) {
+                             cleanedText = cleanedText.replace(block.fullMatch, '');
+                             console.log(`Removed block for command: ${block.command}`);
+                         } else {
+                             // This might happen if identical blocks exist, the first removal took care of it
                              console.warn(`Block for command ${block.command} already removed or not found in remaining text.`);
-                        }
+                         }
 
-                        // Execute the drawing command
-                        try {
-                            const data = JSON.parse(block.dataString);
-                            handleCanvasDrawCommand(block.command, data);
-                        } catch (e) {
-                            console.error(`Failed to parse/execute CANVAS command ${block.command}:`, e, "\nData String:", block.dataString);
-                        }
-                    });
-                } else {
-                    console.log("No canvas command blocks found in the response.");
-                }
+                         // Execute the drawing command
+                         try {
+                             const data = JSON.parse(block.dataString);
+                             handleCanvasDrawCommand(block.command, data);
+                         } catch (e) {
+                             console.error(`Failed to parse/execute CANVAS command ${block.command}:`, e, "\nData String:", block.dataString);
+                         }
+                     });
+                 } else {
+                     console.log("No canvas command blocks found in the response.");
+                 }
 
-                console.log("Finished parsing canvas commands. Returning cleaned text.");
-                // Return the text with all command blocks removed
-                return cleanedText.trim();
+                 console.log("Finished parsing canvas commands. Returning cleaned text.");
+                 // Return the text with all identified command blocks removed
+                 return cleanedText.trim();
             };
 
 
@@ -701,53 +761,47 @@
                  const requestTimestamp = new Date();
                  updateGeminiThinkingState(true);
 
-                 // Enhanced System Instruction
+                 // Slightly refined System Instruction
                  const systemInstructionText = `Jsi AI Tutor "Justax", expert na matematiku pro 9. třídu ZŠ v ČR (přijímačky CERMAT). Vyučuješ téma: "${state.currentTopic.name}"${state.currentTopic.description ? ` (Popis: "${state.currentTopic.description}")` : ''}. Tvůj styl je PŘÁTELSKÝ, TRPĚLIVÝ a PODROBNÝ. Vysvětluj krok za krokem, používej příklady. Důsledně používej Markdown a MathJax (blok: $$...$$, inline: \\(...\\)). Odpovídej VŽDY ČESKY. DŮLEŽITÉ POKYNY PRO TEBE: 1. KROK ZA KROKEM: Drž se jednoho konceptu/kroku na odpověď, zvláště v záložce "Vysvětlení". Buď systematický. 2. INTERAKTIVITA: Pokládej studentovi kontrolní otázky nebo ho vyzývej k zamyšlení. 3. **KRESLÍCÍ PLOCHA (HTML5 Canvas):** Pro vizualizaci (geometrie, grafy, číselné osy, kroky řešení, vzorce) MŮŽEŠ na KONEC své textové odpovědi přidat JEDEN NEBO VÍCE speciálních bloků s příkazy pro kreslení. Každý blok MUSÍ mít tento formát: \`PŘÍKAZ: \`\`\`json { /* JSON data pro příkaz */ } \`\`\`\`. Používej POUZE tyto PŘÍKAZY (case-sensitive): * \`CLEAR_CANVAS: {}\` - Vymaže celé plátno. Použij PŘED kreslením nové komplexní scény. * \`DRAW_LINE: {"x1":#, "y1":#, "x2":#, "y2":#, "color":"#RRGGBB", "lineWidth":#}\` - Nakreslí čáru. Barva a tloušťka jsou volitelné (default: #000000, 1). * \`DRAW_RECT: {"x":#, "y":#, "width":#, "height":#, "color":"#RRGGBB", "lineWidth":#, "filled":false}\` - Nakreslí obdélník. \`filled: true\` pro vyplněný. Barva a tloušťka jsou volitelné. * \`DRAW_CIRCLE: {"x":#, "y":#, "radius":#, "color":"#RRGGBB", "lineWidth":#, "filled":false}\` - Nakreslí kruh/kružnici. \`filled: true\` pro vyplněný. Barva a tloušťka jsou volitelné. * \`DRAW_TEXT: {"text":"Text k vypsání (může obsahovat \\n pro nový řádek)", "x":#, "y":#, "color":"#RRGGBB", "font":"16px Poppins", "textAlign":"left/center/right", "textBaseline":"top/middle/bottom"}\` - Napíše text. Barva, font, zarovnání jsou volitelné. Souřadnice [0, 0] je LEVÝ HORNÍ roh. Aktuální rozměry plátna jsou ${state.canvasWidth}px (šířka) x ${state.canvasHeight}px (výška). Kresli S MÍROU, PŘEHLEDNĚ, V RÁMCI PLÁTNA a POKUD MOŽNO NE PŘES SEBE (vyhni se překrývání textu a důležitých prvků). Barvy zadávej jako hex kódy (#RRGGBB). 4. DÉLKA ODPOVĚDI: Pro záložku "Vysvětlení" buď podrobný, ale drž se jednoho kroku. Pro "Chat" odpovídej stručněji a přímo na dotaz. 5. VÝSTUP DO CHATU (SHRNUTÍ): Pokud generuješ delší odpověď pro "Vysvětlení", na ÚPLNÝ konec celé odpovědi (i za případné kreslící příkazy) PŘIDEJ krátký, výstižný souhrn pro zobrazení v chatu, ve formátu: \`CHAT_SUMMARY: [Zde tvůj krátký souhrn]\`. Pokud odpovídáš přímo v chatu (target 'chat'), CHAT_SUMMARY nepřidávej.`;
                  const historyForApi = state.geminiChatContext.filter(item => item.role === 'user' || item.role === 'model');
                  const currentRequestContent = { role: "user", parts: [{ text: promptText }] };
                  let contentsPayload;
 
-                 // Construct payload, assuming history might be empty
-                 contentsPayload = [...historyForApi, currentRequestContent];
-                 // Prepend system instruction only if history is empty to avoid repetition (or adjust based on API)
                  if (historyForApi.length === 0) {
-                    // If API supports system_instruction field, use it, otherwise prepend to first user message
-                    // Prepending approach:
                      contentsPayload = [{ role: "user", parts: [{ text: systemInstructionText + "\n\n---\n\nStudentův dotaz/požadavek: " + promptText }] }];
+                 } else {
+                     // For subsequent turns, we might not need to resend the full system instruction
+                     // depending on how the API handles context. Assuming it retains context:
+                     contentsPayload = [...historyForApi, currentRequestContent];
+                     // Optionally, add the system instruction if the API requires it explicitly for context setting
+                     // if (!state.geminiChatContext.some(m => m.role === 'system')) {
+                     //    contentsPayload.unshift({ role: "system", parts: [{ text: systemInstructionText }] });
+                     // }
                  }
-
 
                  const requestBody = {
                      contents: contentsPayload,
                      generationConfig: { temperature: 0.6, topP: 0.95, topK: 40, maxOutputTokens: 4096 },
-                     safetySettings: [
-                         { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
-                         { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
-                         { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
-                         { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" }
-                     ]
+                     safetySettings: [ { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" }, { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" }, { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" }, { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" } ]
                  };
 
                  try {
                      console.log("Sending payload to Gemini:", JSON.stringify(requestBody).substring(0, 500) + "...");
                      const response = await fetch(GEMINI_API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(requestBody) });
-
                      if (!response.ok) { const errorBody = await response.text(); console.error("Gemini API Error Response:", errorBody); throw new Error(`Chyba Gemini API (${response.status}): ${errorBody.substring(0, 100)}`); }
-
                      const data = await response.json();
                      console.log("Raw Gemini Response:", data);
                      const candidate = data.candidates?.[0];
-
                      if (!candidate) { console.error("Invalid response structure from Gemini:", data); const promptFeedback = data.promptFeedback; if (promptFeedback?.blockReason) { throw new Error(`Obsah blokován: ${promptFeedback.blockReason}. Detail: ${promptFeedback.safetyRatings?.map(r => `${r.category}: ${r.probability}`).join(', ')}`); } throw new Error('Chybná struktura odpovědi od AI.'); }
-                     if (candidate.finishReason && !["STOP", "MAX_TOKENS"].includes(candidate.finishReason)) { console.warn(`Gemini generation stopped unexpectedly: ${candidate.finishReason}`); /* Consider handling MAX_TOKENS specifically if needed */ }
-
+                     if (candidate.finishReason && !["STOP", "MAX_TOKENS"].includes(candidate.finishReason)) { console.warn(`Gemini generation stopped unexpectedly: ${candidate.finishReason}`); }
                      const geminiResponseText = candidate.content?.parts?.[0]?.text;
                      if (!geminiResponseText) { console.warn("Gemini returned empty text content."); throw new Error('AI vrátila prázdnou odpověď.'); }
 
-                     // Add model response to context *before* processing
+                     // Add raw response to context *before* processing commands
                      state.geminiChatContext.push({ role: "model", parts: [{ text: geminiResponseText }] });
 
-                     await processGeminiResponse(geminiResponseText, targetArea, requestTimestamp); // Changed await position
+                     // Process response (includes parsing commands and rendering)
+                     await processGeminiResponse(geminiResponseText, targetArea, requestTimestamp); // Await might not be needed if parsing is sync
                      updateAIStatus(state.currentTopic ? `Vysvětluje: ${state.currentTopic.name}` : 'Připraven');
 
                  } catch (error) {
@@ -756,12 +810,12 @@
                      handleGeminiError(error.message, targetArea, requestTimestamp);
                      updateAIStatus('Nastala chyba');
                  } finally {
-                     updateGeminiThinkingState(false);
+                     updateGeminiThinkingState(false); // Ensure state is reset regardless of outcome
                  }
              };
 
-             // Process response (now awaits the async parsing function)
-             const processGeminiResponse = async (rawResponseText, targetArea, timestamp) => {
+             // Process response (Handles parsing and rendering)
+             const processGeminiResponse = (rawResponseText, targetArea, timestamp) => {
                  removeThinkingIndicator();
                  let chatSummary = null;
                  const summaryRegex = /CHAT_SUMMARY:\s*([\s\S]*)/;
@@ -770,12 +824,12 @@
 
                  if (summaryMatch && summaryMatch[1]) {
                      chatSummary = summaryMatch[1].trim();
-                     textForProcessing = rawResponseText.replace(summaryRegex, '').trim(); // Remove summary for further processing
+                     textForProcessing = rawResponseText.replace(summaryRegex, '').trim();
                      console.log("Extracted Chat Summary:", chatSummary);
                  }
 
                  // Process canvas commands AND get the remaining text WITHOUT commands
-                 const textToDisplay = parseAndProcessCanvasCommands(textForProcessing); // Await removed, assuming sync
+                 const textToDisplay = parseAndProcessCanvasCommands(textForProcessing); // This now returns cleaned text
 
                  if (targetArea === 'explanation') {
                      console.log("Processing for EXPLANATION area.");
@@ -784,7 +838,7 @@
 
                      const isFirstStep = uiElements.explanationDisplay.querySelectorAll('.step').length === 0 && state.lastExplanationTimestamp === 0;
                      if (isFirstStep) {
-                         uiElements.explanationDisplay.innerHTML = '';
+                         uiElements.explanationDisplay.innerHTML = ''; // Clear only on first step
                          console.log("First explanation step, clearing initial placeholder.");
                      } else {
                          console.log("Appending explanation step.");
@@ -792,45 +846,45 @@
 
                      const stepDiv = document.createElement('div');
                      stepDiv.className = 'step';
-                     renderMarkdown(stepDiv, textToDisplay); // Render the cleaned text
+                     renderMarkdown(stepDiv, textToDisplay); // Render the CLEANED text
                      uiElements.explanationDisplay.appendChild(stepDiv);
                      state.lastExplanationTimestamp = Date.now();
 
                      if(uiElements.explanationScrollContent) { uiElements.explanationScrollContent.scrollTop = uiElements.explanationScrollContent.scrollHeight; }
 
+                     // Add summary to chat if present, otherwise a generic message if text was displayed
                      if (chatSummary) {
                          addChatMessage(chatSummary, 'gemini', true, timestamp);
                      } else if (textToDisplay.trim()) {
-                         // Only add generic message if there was actual text displayed
                          addChatMessage(`AI pokračovala ve vysvětlení (viz záložka Vysvětlení).`, 'gemini', false, timestamp);
                      }
-                      manageUIState('learning');
-                      manageButtonStates();
+                     manageUIState('learning');
+                     manageButtonStates();
 
                  } else { // Target is 'chat'
                      console.log("Processing for CHAT area.");
                      if (textToDisplay.trim()) {
-                         addChatMessage(textToDisplay, 'gemini', true, timestamp);
-                     } else if (chatSummary) { // Should not happen if target is chat, but as fallback
+                         addChatMessage(textToDisplay, 'gemini', true, timestamp); // Add cleaned text to chat
+                     } else if (chatSummary) { // Fallback if only summary exists (shouldn't happen for chat target)
                          addChatMessage(chatSummary, 'gemini', true, timestamp);
                      } else {
-                          // Avoid adding empty/generic message if only canvas commands were processed
-                          if(rawResponseText !== textForProcessing) { // Check if commands were actually processed
-                            console.log("Chat response contained only canvas commands.");
-                          } else {
-                            addChatMessage("(AI neposkytla textovou odpověď)", 'gemini', false, timestamp);
-                            console.warn("AI chat response was empty.");
-                          }
+                         // If textToDisplay is empty, check if commands were actually processed
+                         if (rawResponseText !== textForProcessing) {
+                             console.log("Chat response contained only canvas commands.");
+                             // Optionally add a message like: addChatMessage("(AI nakreslila na plochu)", 'gemini', false, timestamp);
+                         } else {
+                             addChatMessage("(AI neposkytla textovou odpověď)", 'gemini', false, timestamp);
+                             console.warn("AI chat response was empty after processing commands.");
+                         }
                      }
                  }
 
-                 // Typeset MathJax after rendering
+                 // Typeset MathJax after rendering potentially new content
                  if (window.MathJax && typeof window.MathJax.typesetPromise === 'function') {
                      setTimeout(() => window.MathJax.typesetPromise(), 50);
                  }
              };
-
-             const handleGeminiError = (errorMessage, targetArea, timestamp) => {
+             const handleGeminiError = (errorMessage, targetArea, timestamp) => { /* ... (function as before) ... */
                 const errorMsg = `Omlouvám se, nastala chyba při zpracování: ${errorMessage}`;
                 removeThinkingIndicator(); // Ensure indicator is removed on error
                 addChatMessage(errorMsg, 'gemini', false, timestamp); // Show error in chat
