@@ -9,8 +9,30 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <script>
-        // MathJax Configuration (unchanged)
-        if (typeof window.MathJax === 'undefined') { window.MathJax = { tex: { inlineMath: [['\\(', '\\)']], displayMath: [['$$', '$$']], processEscapes: true, processEnvironments: true }, options: { skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'], ignoreHtmlClass: 'tex2jax_ignore', processHtmlClass: 'tex2jax_process' }, startup: { ready: () => { MathJax.startup.defaultReady(); MathJax.startup.promise.then(() => console.log('MathJax loaded and ready.')); } } }; } else { console.warn("window.MathJax already defined."); }
+        // MathJax Configuration
+        if (typeof window.MathJax === 'undefined') {
+            window.MathJax = {
+                tex: {
+                    inlineMath: [['\\(', '\\)']], // Standard LaTeX inline math
+                    displayMath: [['$$', '$$']],   // Standard LaTeX display math
+                    processEscapes: true,
+                    processEnvironments: true
+                },
+                options: {
+                    skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
+                    ignoreHtmlClass: 'tex2jax_ignore',
+                    processHtmlClass: 'tex2jax_process'
+                },
+                startup: {
+                    ready: () => {
+                        MathJax.startup.defaultReady();
+                        MathJax.startup.promise.then(() => console.log('MathJax loaded and ready.'));
+                    }
+                }
+            };
+        } else {
+            console.warn("window.MathJax already defined.");
+        }
     </script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 
@@ -177,25 +199,32 @@
             min-height: 350px; /* Minimum drawing area height */
             display: flex; /* Use flex to make child fill */
         }
-        #excalidraw-container .ExcalidrawApp { /* Target the wrapper Excalidraw creates */
-             width: 100% !important;
-             height: 100% !important;
-             display: flex !important;
-         }
-         #excalidraw-container .excalidraw { /* Target the core component */
-             width: 100% !important;
-             height: 100% !important;
-             min-height: 350px; /* Ensure canvas itself has min height */
-             border: none !important; /* Remove default border if any */
-         }
+        /* Target the specific wrapper Excalidraw creates */
+        #excalidraw-container > .excalidraw-wrapper {
+            width: 100% !important;
+            height: 100% !important;
+            display: flex !important;
+            flex-direction: column !important; /* Ensure vertical stacking if needed */
+        }
+        /* Target the core component */
+        #excalidraw-container .excalidraw {
+            width: 100% !important;
+            height: 100% !important;
+            min-height: 350px; /* Ensure canvas itself has min height */
+            border: none !important; /* Remove default border if any */
+            flex-grow: 1 !important; /* Make sure the canvas itself grows */
+        }
         #excalidraw-container .loading-placeholder {
-             width: 100%;
-             height: 100%;
+             position: absolute; /* Position it over the container */
+             top: 0; left: 0;
+             width: 100%; height: 100%;
              display: flex;
              align-items: center;
              justify-content: center;
              flex-direction: column;
              color: var(--text-muted);
+             background-color: var(--white); /* Match container bg */
+             z-index: 5; /* Ensure it's above the base container but below the rendered Excalidraw */
         }
 
         /* Interaction Panel */
@@ -346,9 +375,27 @@
         .btn i { font-size: 1em; }
 
         /* MathJax Highlighting */
-        mjx-math[display="inline"] { color: var(--secondary); background-color: rgba(var(--primary-rgb), 0.05); padding: 0.1em 0.3em; border-radius: 4px; font-weight: 500;}
-        .chat-message.user .message-bubble mjx-math[display="inline"] { color: #cdeeff; background-color: rgba(255, 255, 255, 0.1); }
-        #explanation-display .step mjx-math[display="inline"] { background-color: rgba(var(--primary-rgb), 0.08); }
+        mjx-math[display="inline"] {
+          color: var(--secondary);
+          background-color: rgba(var(--primary-rgb), 0.05);
+          padding: 0.1em 0.3em;
+          border-radius: 4px;
+          font-weight: 500;
+          border: 1px solid rgba(var(--primary-rgb), 0.08); /* Subtle border */
+          display: inline-block; /* Helps with spacing */
+          line-height: 1; /* Adjust if needed */
+          margin: 0 1px; /* Slight horizontal spacing */
+          vertical-align: baseline; /* Align with surrounding text */
+        }
+        .chat-message.user .message-bubble mjx-math[display="inline"] {
+          color: #cdeeff;
+          background-color: rgba(255, 255, 255, 0.1);
+          border-color: rgba(255, 255, 255, 0.15);
+        }
+        #explanation-display .step mjx-math[display="inline"] {
+          background-color: rgba(var(--primary-rgb), 0.08);
+          border-color: rgba(var(--primary-rgb), 0.12);
+        }
 
         /* Responsive Adjustments */
         .mobile-menu-toggle { display: none; background: none; border: none; cursor: pointer; color: var(--dark); font-size: 1.6rem; margin-right: 1rem; padding: 0.5rem; z-index: 1060; transition: color 0.2s ease; }
@@ -410,7 +457,8 @@
             .mobile-menu-toggle { color: var(--dark); }
             .ai-presenter-area, .interaction-panel { background-color: var(--call-panel-bg); box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3); border-color: var(--gray-light); }
             .ai-presenter-header { background-color: #242c3b; border-bottom-color: var(--gray-light); }
-            #excalidraw-container { background-color: #1a202c; }
+            #excalidraw-container { background-color: #1a202c; } /* Ensure Excalidraw container matches */
+            #excalidraw-container .loading-placeholder { background-color: #1a202c; color: var(--text-muted); }
             .interaction-tabs { background-color: #242c3b; border-bottom-color: var(--gray-light); }
             .interaction-tab { color: var(--text-secondary); }
             .interaction-tab:hover { color: var(--primary-light); background-color: rgba(72, 149, 239, 0.1); }
@@ -451,9 +499,20 @@
             .topic-loading-bar { background-color: var(--light); border-bottom-color: var(--gray-light); }
             .empty-state i { color: #4a5568; }
             .toast { background-color: var(--call-panel-bg); border-color: var(--gray-light); color: var(--text-primary); box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);}
-            mjx-math[display="inline"] { color: var(--primary-light); background-color: rgba(72, 149, 239, 0.1); }
-            .chat-message.user .message-bubble mjx-math[display="inline"] { color: #eee; background-color: rgba(255, 255, 255, 0.08); }
-            #explanation-display .step mjx-math[display="inline"] { background-color: rgba(72, 149, 239, 0.15); }
+            mjx-math[display="inline"] {
+              color: var(--primary-light);
+              background-color: rgba(72, 149, 239, 0.1);
+              border-color: rgba(72, 149, 239, 0.15);
+            }
+            .chat-message.user .message-bubble mjx-math[display="inline"] {
+              color: #eee;
+              background-color: rgba(255, 255, 255, 0.08);
+              border-color: rgba(255, 255, 255, 0.1);
+            }
+            #explanation-display .step mjx-math[display="inline"] {
+              background-color: rgba(72, 149, 239, 0.15);
+              border-color: rgba(72, 149, 239, 0.2);
+            }
         }
         /* Toast Notification */
         .toast {
@@ -580,20 +639,59 @@
     <script>
         // --- Updated JavaScript with Enhanced Prompts & Logging ---
         try {
-            // --- Constants & Config (Unchanged) ---
+            // --- Constants & Config ---
             const SUPABASE_URL = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
             const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10';
             const GEMINI_API_KEY = 'AIzaSyDQboM6qtC_O2sqqpaKZZffNf2zk6HrhEs'; // Test key
             const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
             const EXCALIDRAW_SCENE_REGEX = /EXCALIDRAW_SCENE:\s*```json\s*(\[[\s\S]*?\])\s*```\s*/g;
 
-            // --- DOM Elements Cache (Unchanged) ---
-            const uiElements = { userAvatar: document.getElementById('user-avatar'), userName: document.getElementById('user-name'), mobileMenuToggle: document.getElementById('mobile-menu-toggle'), sidebar: document.getElementById('sidebar'), sidebarOverlay: document.getElementById('sidebar-overlay'), currentTopicDisplay: document.getElementById('current-topic-display'), explanationDisplay: document.getElementById('explanation-display'), explanationScrollContent: document.querySelector('.explanation-scroll-content'), excalidrawContainer: document.getElementById('excalidraw-container'), chatMessages: document.getElementById('chat-messages'), chatInput: document.getElementById('chat-input'), sendButton: document.getElementById('send-button'), saveChatBtn: document.getElementById('save-chat-btn'), clearChatBtn: document.getElementById('clear-chat-btn'), nextStepBtn: document.getElementById('next-step-btn'), markCompleteBtn: document.getElementById('mark-complete-btn'), toast: document.getElementById('toast'), toastMessage: document.getElementById('toast-message'), interactionTabs: document.querySelectorAll('.interaction-tab'), tabContents: document.querySelectorAll('.tab-content'), aiStatusText: document.getElementById('ai-status-text'), callInterface: document.querySelector('.call-interface') };
+            // --- DOM Elements Cache ---
+            const uiElements = {
+                userAvatar: document.getElementById('user-avatar'),
+                userName: document.getElementById('user-name'),
+                mobileMenuToggle: document.getElementById('mobile-menu-toggle'),
+                sidebar: document.getElementById('sidebar'),
+                sidebarOverlay: document.getElementById('sidebar-overlay'),
+                currentTopicDisplay: document.getElementById('current-topic-display'),
+                explanationDisplay: document.getElementById('explanation-display'),
+                explanationScrollContent: document.querySelector('.explanation-scroll-content'),
+                excalidrawContainer: document.getElementById('excalidraw-container'),
+                chatMessages: document.getElementById('chat-messages'),
+                chatInput: document.getElementById('chat-input'),
+                sendButton: document.getElementById('send-button'),
+                saveChatBtn: document.getElementById('save-chat-btn'),
+                clearChatBtn: document.getElementById('clear-chat-btn'),
+                nextStepBtn: document.getElementById('next-step-btn'),
+                markCompleteBtn: document.getElementById('mark-complete-btn'),
+                toast: document.getElementById('toast'),
+                toastMessage: document.getElementById('toast-message'),
+                interactionTabs: document.querySelectorAll('.interaction-tab'),
+                tabContents: document.querySelectorAll('.tab-content'),
+                aiStatusText: document.getElementById('ai-status-text'),
+                callInterface: document.querySelector('.call-interface')
+            };
 
-            // --- Global State (Unchanged) ---
-            let state = { supabase: null, currentUser: null, currentProfile: null, currentTopic: null, currentPlanId: null, currentSessionId: null, geminiChatContext: [], excalidrawAPI: null, excalidrawElements: [], excalidrawRoot: null, geminiIsThinking: false, thinkingIndicatorId: null, topicLoadInProgress: false, lastExplanationTimestamp: 0, activeInteractionTab: 'explanation-tab' };
+            // --- Global State ---
+            let state = {
+                supabase: null,
+                currentUser: null,
+                currentProfile: null,
+                currentTopic: null,
+                currentPlanId: null,
+                currentSessionId: null,
+                geminiChatContext: [],
+                excalidrawAPI: null,
+                excalidrawElements: [],
+                excalidrawRoot: null,
+                geminiIsThinking: false,
+                thinkingIndicatorId: null,
+                topicLoadInProgress: false,
+                lastExplanationTimestamp: 0,
+                activeInteractionTab: 'explanation-tab'
+            };
 
-            // --- Utility Functions (Unchanged, except added logging to renderMarkdown) ---
+            // --- Utility Functions ---
             const sanitizeHTML = (str) => { const temp = document.createElement('div'); temp.textContent = str || ''; return temp.innerHTML; };
             const getInitials = (profile, email) => { if (!profile && !email) return '?'; let initials = ''; if (profile?.first_name) initials += profile.first_name[0]; if (profile?.last_name) initials += profile.last_name[0]; if (initials) return initials.toUpperCase(); if (profile?.username) return profile.username[0].toUpperCase(); if (email) return email[0].toUpperCase(); return 'U'; };
             const showToast = (message, type = 'info', duration = 4000) => { if (!uiElements.toast || !uiElements.toastMessage) return; console.log(`Toast (${type}): ${message}`); uiElements.toastMessage.textContent = message; const icon = uiElements.toast.querySelector('i'); uiElements.toast.className = 'toast ' + type; icon.className = `fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle'}`; uiElements.toast.classList.add('show'); setTimeout(() => uiElements.toast.classList.remove('show'), duration); };
@@ -603,13 +701,12 @@
                 try {
                     element.innerHTML = marked.parse(markdownText || '');
                     if (window.MathJax && typeof window.MathJax.typesetPromise === 'function') {
-                        // Use timeout to ensure DOM is updated before MathJax runs
-                        setTimeout(() => {
+                        setTimeout(() => { // Delay MathJax processing
                             console.log("MathJax: Queuing typeset for element:", element);
                             window.MathJax.typesetPromise([element])
                                 .then(() => console.log("MathJax: Typesetting complete for:", element))
                                 .catch(err => console.error('MathJax typesetting error:', err));
-                        }, 10); // Small delay
+                        }, 50); // Increased delay slightly
                     } else {
                         console.warn("MathJax not ready or typesetPromise not available.");
                     }
@@ -618,63 +715,157 @@
                     element.innerHTML = `<p style="color:red;">Chyba renderování Markdownu.</p><pre>${sanitizeHTML(markdownText)}</pre>`;
                 }
             };
-            const autoResizeTextarea = () => { if (!uiElements.chatInput) return; uiElements.chatInput.style.height = 'auto'; const scrollHeight = uiElements.chatInput.scrollHeight; const maxHeight = 120; uiElements.chatInput.style.height = `${Math.min(scrollHeight, maxHeight)}px`; uiElements.chatInput.style.overflowY = scrollHeight > maxHeight ? 'scroll' : 'hidden'; };
+            const autoResizeTextarea = () => { if (!uiElements.chatInput) return; uiElements.chatInput.style.height = 'auto'; const scrollHeight = uiElements.chatInput.scrollHeight; const maxHeight = 150; uiElements.chatInput.style.height = `${Math.min(scrollHeight, maxHeight)}px`; uiElements.chatInput.style.overflowY = scrollHeight > maxHeight ? 'scroll' : 'hidden'; };
             const generateSessionId = () => `session_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
             const formatTimestamp = (date = new Date()) => date.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' });
             const updateAIStatus = (text) => { if (uiElements.aiStatusText) uiElements.aiStatusText.textContent = text; };
 
-            // --- Initialization Functions (Unchanged) ---
+            // --- Initialization Functions ---
             const initializeSupabase = () => { console.log("Initializing Supabase..."); try { state.supabase = window.supabase?.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); if (!state.supabase) throw new Error("Supabase client creation failed."); console.log("Supabase client initialized."); return true; } catch (error) { console.error("Supabase initialization failed:", error); showToast("Chyba připojení k databázi.", "error", 10000); return false; } };
             const initializeUI = () => { console.log("Initializing UI elements and Excalidraw..."); if (!initializeExcalidraw()) { showToast("Chyba inicializace Excalidraw!", "error", 10000); if(uiElements.callInterface) uiElements.callInterface.style.display = 'none'; if(uiElements.currentTopicDisplay) uiElements.currentTopicDisplay.innerHTML = '<span class="placeholder" style="color:var(--danger);">Chyba Excalidraw</span>'; return false; } const lastTab = sessionStorage.getItem('activeVyukaTab'); switchInteractionTab(lastTab || 'explanation-tab'); setupEventListeners(); initTooltips(); manageUIState('initial'); manageButtonStates(); return true; };
             const initializeApp = async () => { console.log("DOM Loaded. Initializing Justax AI Tutor (Excalidraw Mode)..."); if (!initializeSupabase()) return; if (!initializeUI()) return; console.log("Loading user profile..."); await loadUserProfile(); if (state.currentUser) { console.log("User logged in, loading topic..."); await loadNextUncompletedTopic(); } else { handleLoggedOutUser(); } };
 
-            // --- UI State Management (Unchanged) ---
+            // --- UI State Management ---
             const manageUIState = (mode) => { console.log("Managing UI State:", mode); const showCallInterface = mode === 'learning' || mode === 'requestingExplanation' || mode === 'loadingTopic'; if (uiElements.callInterface) uiElements.callInterface.style.display = showCallInterface ? 'flex' : 'none'; if (mode === 'initial' || mode === 'loggedOut' || mode === 'noPlan' || mode === 'planComplete' || mode === 'error') { let message = "<div class='empty-state'><i class='fas fa-book-reader'></i><h3>Výuka připravena</h3><p>Čekám na data...</p></div>"; if(mode === 'loggedOut') message = "<div class='empty-state'><i class='fas fa-sign-in-alt'></i><h3>Nejste přihlášeni</h3><p>Přihlaste se prosím pro zahájení výuky.</p></div>"; if(mode === 'noPlan') message = "<div class='empty-state'><i class='fas fa-calendar-times'></i><h3>Žádný plán</h3><p>Nemáte aktivní studijní plán.</p></div>"; if(mode === 'planComplete') message = "<div class='empty-state'><i class='fas fa-check-circle'></i><h3>Plán dokončen</h3><p>Gratulujeme, všechna témata jsou hotová!</p></div>"; if(mode === 'error') message = "<div class='empty-state'><i class='fas fa-exclamation-triangle'></i><h3>Chyba</h3><p>Při načítání dat došlo k chybě.</p></div>"; if(uiElements.explanationDisplay) uiElements.explanationDisplay.innerHTML = message; } else if (mode === 'loadingTopic') { if(uiElements.explanationDisplay) uiElements.explanationDisplay.innerHTML = "<div class='loading-placeholder'><i class='fas fa-spinner fa-spin'></i><p>Načítám téma...</p></div>"; } else if (mode === 'requestingExplanation') { if(uiElements.explanationDisplay && (!uiElements.explanationDisplay.hasChildNodes() || uiElements.explanationDisplay.querySelector('.empty-state, .loading-placeholder'))) { uiElements.explanationDisplay.innerHTML = "<div class='loading-placeholder'><i class='fas fa-spinner fa-spin'></i><p>Požaduji úvodní vysvětlení...</p></div>"; } } };
             const manageButtonStates = () => { const enableSend = !state.geminiIsThinking && !!state.currentTopic; const enableNext = !state.geminiIsThinking && !!state.currentTopic; const enableComplete = !state.geminiIsThinking && !!state.currentTopic; if (uiElements.sendButton) uiElements.sendButton.disabled = !enableSend; if (uiElements.sendButton) uiElements.sendButton.innerHTML = state.geminiIsThinking ? '<i class="fas fa-spinner fa-spin"></i>' : '<i class="fas fa-paper-plane"></i>'; if (uiElements.nextStepBtn) uiElements.nextStepBtn.disabled = !enableNext; if (uiElements.nextStepBtn) uiElements.nextStepBtn.style.display = state.currentTopic ? 'inline-flex' : 'none'; if (uiElements.markCompleteBtn) uiElements.markCompleteBtn.disabled = !enableComplete; if (uiElements.markCompleteBtn) uiElements.markCompleteBtn.style.display = state.currentTopic ? 'inline-flex' : 'none'; };
 
-            // --- Excalidraw Functions (Added logging and error handling) ---
-             const initializeExcalidraw = () => { console.log("Initializing Excalidraw..."); if (!uiElements.excalidrawContainer) { console.error("Excalidraw container not found!"); return false; } if (typeof React === 'undefined' || typeof ReactDOM === 'undefined' || typeof ExcalidrawLib === 'undefined') { console.error("React, ReactDOM, or Excalidraw library not loaded!"); uiElements.excalidrawContainer.innerHTML = '<p style="color:red; padding: 1rem;">Chyba: Potřebné knihovny (React, Excalidraw) nebyly načteny.</p>'; return false; } try { uiElements.excalidrawContainer.innerHTML = ''; state.excalidrawRoot = ReactDOM.createRoot(uiElements.excalidrawContainer); const initialData = { appState: { viewBackgroundColor: "#ffffff", /* White background */ currentItemFontFamily: 1, /* Virgil */ currentItemFontSize: 20, }, scrollToContent: true, }; state.excalidrawRoot.render( React.createElement(ExcalidrawLib.Excalidraw, { initialData: initialData, excalidrawAPI: (api) => { state.excalidrawAPI = api; console.log("Excalidraw API ready."); // Clear initial elements if any default ones are shown api.updateScene({ elements: [] }); }, UIOptions: { canvasActions: { saveToActiveFile: false, clearCanvas: false, loadScene: false, /* Potentially hide load button */ } }, // viewModeEnabled: true, // Keep false to allow interaction if needed, or true for view-only
-                   zenModeEnabled: false, gridModeEnabled: true, theme: window.matchMedia?.('(prefers-color-scheme: dark)')?.matches ? 'dark' : 'light', onChange: (elements, appState) => { state.excalidrawElements = elements; console.log("Excalidraw content changed, elements count:", elements.length); } }) ); console.log("Excalidraw component mounted."); return true; } catch (error) { console.error("Error mounting Excalidraw:", error); uiElements.excalidrawContainer.innerHTML = `<p style="color:red; padding: 1rem;">Chyba při inicializaci Excalidraw: ${error.message}</p>`; return false; } };
-             const updateExcalidrawScene = (elements) => { if (!state.excalidrawAPI) { console.warn("Excalidraw API not available for scene update."); return; } if (!Array.isArray(elements)) { console.warn("Invalid elements data for Excalidraw update (must be an array):", elements); return; } console.log(`Updating Excalidraw scene with ${elements.length} elements.`); console.log("Elements data:", JSON.stringify(elements).substring(0, 200) + "..."); try { state.excalidrawAPI.updateScene({ elements: elements }); state.excalidrawElements = elements; // Debounced scroll to content
-                   setTimeout(() => { if (state.excalidrawAPI && typeof state.excalidrawAPI.scrollToContent === 'function') { const currentElements = state.excalidrawAPI.getSceneElements(); if (currentElements && currentElements.length > 0) { console.log("Attempting to scroll to content..."); state.excalidrawAPI.scrollToContent(currentElements, { fitToContent: true, // fitToViewport: true, // Alternative
-                           duration: 300 // Smooth scroll duration
-                       }); } else { console.log("No elements to scroll to."); } } else { console.warn("scrollToContent function not available on Excalidraw API."); } }, 200); // Delay to allow rendering
-               } catch (error) { console.error("Error updating Excalidraw scene:", error); showToast("Chyba při aktualizaci kreslící plochy.", "error"); } };
+            // --- Excalidraw Functions ---
+             const initializeExcalidraw = () => {
+                 console.log("Initializing Excalidraw...");
+                 const container = uiElements.excalidrawContainer;
+                 if (!container) { console.error("Excalidraw container not found!"); return false; }
+                 if (typeof React === 'undefined' || typeof ReactDOM === 'undefined' || typeof ExcalidrawLib === 'undefined') { console.error("React, ReactDOM, or Excalidraw library not loaded!"); container.innerHTML = '<p style="color:red; padding: 1rem;">Chyba: Potřebné knihovny (React, Excalidraw) nebyly načteny.</p>'; return false; }
+                 try {
+                     container.innerHTML = ''; // Clear previous content
+                     state.excalidrawRoot = ReactDOM.createRoot(container);
+                     const initialData = {
+                         appState: {
+                             viewBackgroundColor: "#ffffff", // Explicitly white
+                             currentItemFontFamily: 1, // Default Virgil font
+                             currentItemFontSize: 20, // Default font size
+                             theme: window.matchMedia?.('(prefers-color-scheme: dark)')?.matches ? 'dark' : 'light', // Respect system theme
+                         },
+                         elements: [], // Start with empty elements
+                         scrollToContent: true,
+                     };
+                     state.excalidrawRoot.render(
+                         React.createElement(ExcalidrawLib.Excalidraw, {
+                             initialData: initialData,
+                             excalidrawAPI: (api) => {
+                                 state.excalidrawAPI = api;
+                                 console.log("Excalidraw API ready.");
+                                 // Ensure canvas is truly empty initially
+                                 if (api.getSceneElements().length > 0) {
+                                     api.updateScene({ elements: [] });
+                                 }
+                             },
+                             UIOptions: {
+                                 canvasActions: {
+                                     saveToActiveFile: false,
+                                     loadScene: false, // Hide load button
+                                     clearCanvas: false, // Hide clear button
+                                     // Consider hiding other controls if it's purely for viewing
+                                     // export: false,
+                                     // saveAsImage: false,
+                                 }
+                             },
+                             viewModeEnabled: true, // Set to true for viewing only
+                             zenModeEnabled: false,
+                             gridModeEnabled: false, // Turn off grid for cleaner look
+                             onChange: (elements, appState) => {
+                                 state.excalidrawElements = elements;
+                                 // console.log("Excalidraw content changed, elements count:", elements.length); // Can be noisy
+                             }
+                         })
+                     );
+                     console.log("Excalidraw component mounted.");
+                     return true;
+                 } catch (error) {
+                     console.error("Error mounting Excalidraw:", error);
+                     container.innerHTML = `<div class="loading-placeholder" style="color:var(--danger);"><i class="fas fa-exclamation-triangle"></i><p>Chyba Excalidraw:<br>${error.message}</p></div>`;
+                     return false;
+                 }
+             };
+             const updateExcalidrawScene = (elements) => {
+                 if (!state.excalidrawAPI) { console.warn("Excalidraw API not available for scene update."); return; }
+                 if (!Array.isArray(elements)) { console.warn("Invalid elements data for Excalidraw update (must be an array):", elements); return; }
+                 console.log(`Updating Excalidraw scene with ${elements.length} elements.`);
+                 console.log("Elements data (first 200 chars):", JSON.stringify(elements).substring(0, 200) + "...");
 
-            // --- User Profile & Auth (Unchanged) ---
+                 // Remove placeholder if Excalidraw is about to be updated
+                 const placeholder = uiElements.excalidrawContainer?.querySelector('.loading-placeholder');
+                 if (placeholder) placeholder.style.display = 'none';
+
+                 try {
+                     state.excalidrawAPI.updateScene({ elements: elements });
+                     state.excalidrawElements = elements;
+                     // Debounced scroll to content, ensure elements are rendered
+                     setTimeout(() => {
+                         if (state.excalidrawAPI && typeof state.excalidrawAPI.scrollToContent === 'function') {
+                             const currentElements = state.excalidrawAPI.getSceneElements();
+                             if (currentElements && currentElements.length > 0) {
+                                 console.log("Attempting to scroll to content...");
+                                 state.excalidrawAPI.scrollToContent(currentElements, {
+                                     fitToContent: true, // Try fitting content within viewport
+                                     duration: 300 // Smooth scroll
+                                 });
+                             } else {
+                                 console.log("No elements to scroll to.");
+                             }
+                         } else {
+                             console.warn("scrollToContent function not available on Excalidraw API.");
+                         }
+                     }, 200); // Delay
+                 } catch (error) {
+                     console.error("Error updating Excalidraw scene:", error);
+                     showToast("Chyba při aktualizaci kreslící plochy.", "error");
+                 }
+             };
+
+            // --- User Profile & Auth ---
             const loadUserProfile = async () => { if (!state.supabase) return; try { const { data: { user }, error: userError } = await state.supabase.auth.getUser(); if (userError) throw userError; if (user) { state.currentUser = user; const { data: profile, error: profileError } = await state.supabase.from('profiles').select('*').eq('id', user.id).single(); if (profileError && profileError.code !== 'PGRST116') throw profileError; state.currentProfile = profile; console.log("User profile loaded:", state.currentProfile); } else { state.currentUser = null; state.currentProfile = null; console.log("No user logged in."); } } catch (error) { console.error('Error loading user profile:', error); state.currentUser = null; state.currentProfile = null; showToast("Nepodařilo se načíst profil.", "error"); } finally { updateUserInfoUI(); } };
             const updateUserInfoUI = () => { if (uiElements.userName && uiElements.userAvatar) { if (state.currentProfile || state.currentUser) { const email = state.currentUser?.email; const initials = getInitials(state.currentProfile, email); const displayName = `${state.currentProfile?.first_name || ''} ${state.currentProfile?.last_name || ''}`.trim() || state.currentProfile?.username || email?.split('@')[0] || 'Uživatel'; uiElements.userName.textContent = displayName; if (state.currentProfile?.avatar_url) { uiElements.userAvatar.innerHTML = `<img src="${state.currentProfile.avatar_url}" alt="${initials}">`; } else { uiElements.userAvatar.innerHTML = ''; uiElements.userAvatar.textContent = initials; } } else { uiElements.userName.textContent = 'Nepřihlášen'; uiElements.userAvatar.innerHTML = '?'; } } };
             const handleLoggedOutUser = () => { console.warn("User not logged in."); updateAIStatus("Přihlaste se pro zahájení výuky."); if (uiElements.currentTopicDisplay) uiElements.currentTopicDisplay.innerHTML = '<span class="placeholder">Nejste přihlášeni</span>'; showToast("Prosím, přihlaste se.", "warning"); manageUIState('loggedOut'); manageButtonStates(); };
 
-             // --- Event Listeners Setup (Unchanged) ---
+             // --- Event Listeners Setup ---
             const setupEventListeners = () => { console.log("Setting up event listeners..."); if (uiElements.mobileMenuToggle && uiElements.sidebar && uiElements.sidebarOverlay) { uiElements.mobileMenuToggle.addEventListener('click', (e) => { e.stopPropagation(); uiElements.sidebar.classList.toggle('active'); uiElements.sidebarOverlay.classList.toggle('active'); }); uiElements.sidebarOverlay.addEventListener('click', () => { uiElements.sidebar.classList.remove('active'); uiElements.sidebarOverlay.classList.remove('active'); }); document.querySelector('main')?.addEventListener('click', () => { if (uiElements.sidebar?.classList.contains('active')) { uiElements.sidebar.classList.remove('active'); uiElements.sidebarOverlay.classList.remove('active'); } }); } else { console.warn("Mobile menu elements not found."); } if (uiElements.interactionTabs.length > 0 && uiElements.tabContents.length > 0) { uiElements.interactionTabs.forEach(tab => { tab.addEventListener('click', () => switchInteractionTab(tab.dataset.tab)); }); } else { console.warn("Interaction tab elements not found."); } if (uiElements.chatInput && uiElements.sendButton) { uiElements.chatInput.addEventListener('input', autoResizeTextarea); uiElements.chatInput.addEventListener('keypress', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); if (!state.geminiIsThinking) handleSendMessage(); } }); uiElements.sendButton.addEventListener('click', () => { if (!state.geminiIsThinking) handleSendMessage(); }); } else { console.warn("Chat input/send elements not found."); } if (uiElements.clearChatBtn) uiElements.clearChatBtn.addEventListener('click', confirmClearChat); if (uiElements.saveChatBtn) uiElements.saveChatBtn.addEventListener('click', saveChatToPDF); if (uiElements.nextStepBtn) uiElements.nextStepBtn.addEventListener('click', requestNextStep); if (uiElements.markCompleteBtn) uiElements.markCompleteBtn.addEventListener('click', handleMarkTopicComplete); window.addEventListener('resize', () => { if (window.innerWidth > 992 && uiElements.sidebar?.classList.contains('active')) { uiElements.sidebar.classList.remove('active'); uiElements.sidebarOverlay.classList.remove('active'); } }); };
             const initTooltips = () => { try { if (window.jQuery && window.jQuery.fn.tooltipster) { window.jQuery('.btn-tooltip:not(.tooltipstered)').tooltipster({ theme: 'tooltipster-shadow', animation: 'fade', delay: 100, side: 'top' }); } else { console.warn("jQuery or Tooltipster not fully loaded for initTooltips."); } } catch (e) { console.error("Tooltipster initialization error:", e); } };
 
-            // --- Topic Loading and Progress (Unchanged) ---
+            // --- Topic Loading and Progress ---
             const loadNextUncompletedTopic = async () => { if (!state.currentUser || state.topicLoadInProgress || !state.supabase) { console.log("Skipping topic load:", { loggedIn: !!state.currentUser, loading: state.topicLoadInProgress }); return; } state.topicLoadInProgress = true; if (uiElements.currentTopicDisplay) uiElements.currentTopicDisplay.innerHTML = '<span class="placeholder"><i class="fas fa-spinner fa-spin"></i> Hledám další téma...</span>'; updateAIStatus('Hledám téma...'); manageUIState('loadingTopic'); manageButtonStates(); try { const { data: activePlans, error: planError } = await state.supabase.from('study_plans').select('id').eq('user_id', state.currentUser.id).eq('status', 'active').order('created_at', { ascending: false }).limit(1); if (planError) throw planError; if (!activePlans || activePlans.length === 0) { console.log("No active study plan found."); if (uiElements.currentTopicDisplay) uiElements.currentTopicDisplay.innerHTML = '<span class="placeholder">Žádný aktivní studijní plán</span>'; showToast("Nemáte aktivní studijní plán.", "warning"); updateAIStatus("Nemáte aktivní plán."); manageUIState('noPlan'); state.topicLoadInProgress = false; return; } state.currentPlanId = activePlans[0].id; console.log("Active plan ID:", state.currentPlanId); const { data: nextActivities, error: activityError } = await state.supabase.from('plan_activities').select('id, title, description, day_of_week, time_slot, topic_id, completed').eq('plan_id', state.currentPlanId).eq('completed', false).order('day_of_week', { ascending: true }).order('time_slot', { ascending: true }).limit(1); if (activityError) throw activityError; if (nextActivities && nextActivities.length > 0) { const nextActivity = nextActivities[0]; console.log("Next activity found:", nextActivity); let topicName = nextActivity.title || 'Nespecifikované téma'; let topicDescription = nextActivity.description || ''; if (nextActivity.topic_id) { const { data: topicData, error: topicError } = await state.supabase.from('exam_topics').select('name, description').eq('id', nextActivity.topic_id).single(); if (topicError && topicError.code !== 'PGRST116') { console.warn(`Could not fetch topic details for ID ${nextActivity.topic_id}:`, topicError); } if (topicData) { topicName = topicData.name || topicName; topicDescription = topicData.description || topicDescription; } } state.currentTopic = { activity_id: nextActivity.id, plan_id: state.currentPlanId, name: topicName, description: topicDescription, user_id: state.currentUser.id, topic_id: nextActivity.topic_id }; console.log("Current topic set:", state.currentTopic); if (uiElements.currentTopicDisplay) uiElements.currentTopicDisplay.innerHTML = `Aktuální téma: <strong>${sanitizeHTML(state.currentTopic.name)}</strong>`; await startLearningSession(); } else { console.log("All activities completed."); if (uiElements.currentTopicDisplay) uiElements.currentTopicDisplay.innerHTML = '<span class="placeholder">Gratulujeme, plán dokončen!</span>'; showToast("Všechna témata v plánu jsou dokončena!", "success"); updateAIStatus("Plán dokončen."); manageUIState('planComplete'); } } catch (error) { console.error('Error loading next topic:', error); if (uiElements.currentTopicDisplay) uiElements.currentTopicDisplay.innerHTML = '<span class="placeholder" style="color:var(--danger);">Chyba</span>'; showToast(`Nepodařilo se načíst téma: ${error.message}`, "error"); updateAIStatus("Chyba načítání."); manageUIState('error'); } finally { state.topicLoadInProgress = false; manageButtonStates(); } };
             const handleMarkTopicComplete = async () => { if (!state.currentTopic || !state.currentTopic.activity_id || !state.supabase || state.topicLoadInProgress) return; console.log(`Marking activity ${state.currentTopic.activity_id} as complete.`); state.topicLoadInProgress = true; manageButtonStates(); if(uiElements.markCompleteBtn) uiElements.markCompleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ukládám...'; try { const { error } = await state.supabase.from('plan_activities').update({ completed: true, updated_at: new Date().toISOString() }).eq('id', state.currentTopic.activity_id); if (error) throw error; showToast(`Téma "${state.currentTopic.name}" dokončeno.`, "success"); state.currentTopic = null; if (uiElements.currentTopicDisplay) uiElements.currentTopicDisplay.innerHTML = '<span class="placeholder">Načítám další...</span>'; if (uiElements.explanationDisplay) uiElements.explanationDisplay.innerHTML = ''; if (uiElements.chatMessages) uiElements.chatMessages.innerHTML = ''; updateExcalidrawScene([]); state.geminiChatContext = []; state.lastExplanationTimestamp = 0; await loadNextUncompletedTopic(); } catch (error) { console.error(`Error marking activity ${state.currentTopic?.activity_id} complete:`, error); showToast("Chyba při označování tématu.", "error"); state.topicLoadInProgress = false; manageButtonStates(); } finally { if(uiElements.markCompleteBtn) uiElements.markCompleteBtn.innerHTML = '<i class="fas fa-check-circle"></i> Téma dokončeno'; } };
 
-            // --- Learning Session Management (Unchanged) ---
-            const startLearningSession = async () => { if (!state.currentTopic || !state.currentUser || !state.supabase) { console.error("Cannot start session: Missing data."); updateAIStatus('Chyba: Nelze zahájit výuku.'); manageUIState('error'); return; } console.log(`Starting session for: "${state.currentTopic.name}" (Activity ID: ${state.currentTopic.activity_id})`); state.currentSessionId = generateSessionId(); updateAIStatus(`Vysvětluje: ${state.currentTopic.name}`); manageUIState('requestingExplanation'); manageButtonStates(); if (uiElements.chatMessages) uiElements.chatMessages.innerHTML = ''; state.geminiChatContext = []; state.lastExplanationTimestamp = 0; updateExcalidrawScene([]); updateGeminiThinkingState(true); let initialPrompt = `Jako AI Tutor "Justax" začni vysvětlovat ZÁKLADY tématu "${state.currentTopic.name}" pro studenta 9. třídy ZŠ (přijímačky CERMAT).`; if (state.currentTopic.description) { initialPrompt += ` Popis tématu pro kontext: "${state.currentTopic.description}".`; } initialPrompt += ` Buď podrobný, přátelský a postupuj krok za krokem. Toto je ÚPLNĚ PRVNÍ krok vysvětlení tohoto tématu. **POKUD je to vhodné, použij kreslící plochu (Excalidraw) k VIZUALIZACI nebo ŘEŠENÍ PŘÍKLADU KROK ZA KROKEM.** Pro vizualizaci můžeš na konec odpovědi přidat JSON data pro Excalidraw ve formátu \`EXCALIDRAW_SCENE: \`\`\`json [ ... ] \`\`\`\`. Ukonči odpověď KRÁTKÝM A VÝSTIŽNÝM souhrnem (max 1-2 věty, jako zápis do sešitu) pro zobrazení v chatu ve formátu: \`CHAT_SUMMARY: [Zde tvůj krátký souhrn]\`.`; await sendToGemini(initialPrompt, 'explanation'); };
+            // --- Learning Session Management ---
+            const startLearningSession = async () => { if (!state.currentTopic || !state.currentUser || !state.supabase) { console.error("Cannot start session: Missing data."); updateAIStatus('Chyba: Nelze zahájit výuku.'); manageUIState('error'); return; } console.log(`Starting session for: "${state.currentTopic.name}" (Activity ID: ${state.currentTopic.activity_id})`); state.currentSessionId = generateSessionId(); updateAIStatus(`Vysvětluje: ${state.currentTopic.name}`); manageUIState('requestingExplanation'); manageButtonStates(); if (uiElements.chatMessages) uiElements.chatMessages.innerHTML = ''; state.geminiChatContext = []; state.lastExplanationTimestamp = 0; updateExcalidrawScene([]); // Clear board at start of new topic
+                 updateGeminiThinkingState(true);
+                 let initialPrompt = `Jako AI Tutor "Justax" začni vysvětlovat ZÁKLADY tématu "${state.currentTopic.name}" pro studenta 9. třídy ZŠ (přijímačky CERMAT).`;
+                 if (state.currentTopic.description) { initialPrompt += ` Popis tématu pro kontext: "${state.currentTopic.description}".`; }
+                 initialPrompt += ` Buď podrobný, přátelský a postupuj krok za krokem. Toto je ÚPLNĚ PRVNÍ krok vysvětlení tohoto tématu. **POKUD je to vhodné, použij kreslící plochu (Excalidraw) k VIZUALIZACI nebo ŘEŠENÍ PŘÍKLADU KROK ZA KROKEM.** Pro vizualizaci můžeš na konec odpovědi přidat JSON data pro Excalidraw ve formátu \`EXCALIDRAW_SCENE: \`\`\`json [ ... ] \`\`\`\`. Ukonči odpověď KRÁTKÝM A VÝSTIŽNÝM souhrnem (max 1-2 věty, jako zápis do sešitu) pro zobrazení v chatu ve formátu: \`CHAT_SUMMARY: [Zde tvůj krátký souhrn]\`.`;
+                 await sendToGemini(initialPrompt, 'explanation');
+            };
             const switchInteractionTab = (tabId) => { uiElements.interactionTabs.forEach(tab => tab.classList.toggle('active', tab.dataset.tab === tabId)); uiElements.tabContents.forEach(content => content.classList.toggle('active', content.id === `${tabId}-content`)); state.activeInteractionTab = tabId; sessionStorage.setItem('activeVyukaTab', tabId); console.log(`Switched to tab: ${tabId}`); };
-            const requestNextStep = async () => { if (state.geminiIsThinking || !state.currentTopic) return; console.log("Requesting next step..."); updateGeminiThinkingState(true); manageButtonStates(); const prompt = `Pokračuj ve vysvětlování tématu "${state.currentTopic.name}". Naváž na předchozí krok. **Použij Excalidraw, POKUD se to hodí pro ukázku dalšího kroku řešení příkladu nebo pro vizualizaci.** Nezapomeň na formát \`EXCALIDRAW_SCENE: \`\`\`json [ ... ] \`\`\`\` a na KRÁTKÝ A VÝSTIŽNÝ souhrn pro chat (CHAT_SUMMARY:).`; await sendToGemini(prompt, 'explanation'); };
+            const requestNextStep = async () => {
+                if (state.geminiIsThinking || !state.currentTopic) return;
+                console.log("Requesting next step...");
+                updateGeminiThinkingState(true);
+                manageButtonStates();
+                const prompt = `Pokračuj ve vysvětlování tématu "${state.currentTopic.name}". Naváž na předchozí krok. **Použij Excalidraw, POKUD se to hodí pro ukázku dalšího kroku řešení příkladu nebo pro vizualizaci.** Nezapomeň na formát \`EXCALIDRAW_SCENE: \`\`\`json [ ... ] \`\`\`\` a na KRÁTKÝ A VÝSTIŽNÝ souhrn pro chat (CHAT_SUMMARY:).`;
+                await sendToGemini(prompt, 'explanation');
+            };
 
-            // --- Chat Functionality (Unchanged) ---
-            const addChatMessage = async (message, sender, saveToDb = true, timestamp = new Date()) => { if (!uiElements.chatMessages) return; const messageId = `msg-${Date.now()}-${Math.random().toString(16).substring(2, 8)}`; const avatarInitial = sender === 'user' ? getInitials(state.currentProfile, state.currentUser?.email) : 'AI'; const messageDiv = document.createElement('div'); messageDiv.className = `chat-message ${sender === 'gemini' ? 'model' : sender}`; messageDiv.id = messageId; const bubbleDiv = document.createElement('div'); bubbleDiv.className = 'message-bubble'; renderMarkdown(bubbleDiv, message); messageDiv.innerHTML = `<div class="message-avatar">${avatarInitial}</div>`; messageDiv.appendChild(bubbleDiv); messageDiv.innerHTML += `<div class="message-timestamp">${formatTimestamp(timestamp)}</div>`; uiElements.chatMessages.appendChild(messageDiv); uiElements.chatMessages.scrollTop = uiElements.chatMessages.scrollHeight; if (saveToDb && state.supabase && state.currentUser && state.currentTopic && state.currentSessionId) { const dataToSave = { user_id: state.currentUser?.id || null, session_id: state.currentSessionId, topic_id: state.currentTopic?.topic_id || null, topic_name: state.currentTopic?.name || null, role: sender === 'gemini' ? 'model' : 'user', content: message }; if (!dataToSave.session_id || !dataToSave.role || !dataToSave.content) { console.error("Supabase chat save error: Missing required fields (session_id, role, content).", dataToSave); showToast("Ошибка: Не удалось сохранить сообщение, отсутствуют обязательные данные.", "error"); return; } console.log("Attempting to save chat message:", dataToSave); try { const { error } = await state.supabase.from('chat_history').insert(dataToSave); if (error) { console.error("Supabase chat save error:", error); console.error("Data sent:", dataToSave); showToast(`Chyba ukládání chatu: ${error.message}`, 'error'); } else { console.log("Chat message saved to DB."); } } catch (dbError) { console.error("Exception during chat save:", dbError); console.error("Data sent:", dataToSave); showToast(`Výjimka při ukládání chatu: ${dbError.message}`, 'error'); } } };
+            // --- Chat Functionality ---
+            const addChatMessage = async (message, sender, saveToDb = true, timestamp = new Date()) => { if (!uiElements.chatMessages) return; const messageId = `msg-${Date.now()}-${Math.random().toString(16).substring(2, 8)}`; const avatarInitial = sender === 'user' ? getInitials(state.currentProfile, state.currentUser?.email) : 'AI'; const messageDiv = document.createElement('div'); messageDiv.className = `chat-message ${sender === 'gemini' ? 'model' : sender}`; messageDiv.id = messageId; const bubbleDiv = document.createElement('div'); bubbleDiv.className = 'message-bubble'; renderMarkdown(bubbleDiv, message); // Render message content as Markdown
+                 messageDiv.innerHTML = `<div class="message-avatar">${avatarInitial}</div>`; messageDiv.appendChild(bubbleDiv); messageDiv.innerHTML += `<div class="message-timestamp">${formatTimestamp(timestamp)}</div>`; uiElements.chatMessages.appendChild(messageDiv); uiElements.chatMessages.scrollTop = uiElements.chatMessages.scrollHeight; if (saveToDb && state.supabase && state.currentUser && state.currentTopic && state.currentSessionId) { const dataToSave = { user_id: state.currentUser?.id || null, session_id: state.currentSessionId, topic_id: state.currentTopic?.topic_id || null, topic_name: state.currentTopic?.name || null, role: sender === 'gemini' ? 'model' : 'user', content: message }; if (!dataToSave.session_id || !dataToSave.role || !dataToSave.content) { console.error("Supabase chat save error: Missing required fields (session_id, role, content).", dataToSave); showToast("Chyba: Nelze uložit zprávu, chybí data.", "error"); return; } console.log("Attempting to save chat message:", dataToSave); try { const { error } = await state.supabase.from('chat_history').insert(dataToSave); if (error) { console.error("Supabase chat save error:", error); console.error("Data sent:", dataToSave); showToast(`Chyba ukládání chatu: ${error.message}`, 'error'); } else { console.log("Chat message saved to DB."); } } catch (dbError) { console.error("Exception during chat save:", dbError); console.error("Data sent:", dataToSave); showToast(`Výjimka při ukládání chatu: ${dbError.message}`, 'error'); } } };
             const updateGeminiThinkingState = (isThinking) => { state.geminiIsThinking = isThinking; manageButtonStates(); if (isThinking) { addThinkingIndicator(); } else { removeThinkingIndicator(); } };
             const addThinkingIndicator = () => { if (state.thinkingIndicatorId || !uiElements.chatMessages) return; const indicatorDiv = document.createElement('div'); indicatorDiv.className = 'chat-message model'; state.thinkingIndicatorId = `thinking-${Date.now()}`; indicatorDiv.id = state.thinkingIndicatorId; indicatorDiv.innerHTML = `<div class="message-avatar">AI</div><div class="message-thinking-indicator"><span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span></div>`; uiElements.chatMessages.appendChild(indicatorDiv); uiElements.chatMessages.scrollTop = uiElements.chatMessages.scrollHeight; };
             const removeThinkingIndicator = () => { if (state.thinkingIndicatorId) { const indicator = document.getElementById(state.thinkingIndicatorId); if (indicator) indicator.remove(); state.thinkingIndicatorId = null; } };
             const handleSendMessage = async () => { const messageText = uiElements.chatInput.value.trim(); if (!messageText || state.geminiIsThinking || !state.currentTopic) return; uiElements.chatInput.value = ''; autoResizeTextarea(); uiElements.chatInput.focus(); const userTimestamp = new Date(); await addChatMessage(messageText, 'user', true, userTimestamp); state.geminiChatContext.push({ role: "user", parts: [{ text: messageText }] }); updateGeminiThinkingState(true); await sendToGemini(messageText, 'chat'); };
             const confirmClearChat = () => { if (confirm("Opravdu chcete vymazat historii tohoto chatu?\nTato akce je nevratná.")) { clearCurrentChatSessionHistory(); } };
             const clearCurrentChatSessionHistory = async () => { if (uiElements.chatMessages) uiElements.chatMessages.innerHTML = ''; state.geminiChatContext = []; updateExcalidrawScene([]); showToast("Historie chatu a kresba vymazána.", "info"); console.log("Chat history and Excalidraw cleared for this session."); if (state.supabase && state.currentUser && state.currentSessionId) { try { console.log(`Deleting chat history from DB for session: ${state.currentSessionId}`); const { error } = await state.supabase.from('chat_history').delete().eq('user_id', state.currentUser.id).eq('session_id', state.currentSessionId); if (error) { console.error("Error deleting chat history from DB:", error); showToast("Chyba při mazání historie z databáze.", "error"); } else { console.log("Chat history deleted from DB."); } } catch(dbError) { console.error("Exception during DB chat history deletion:", dbError); } } };
-            const saveChatToPDF = async () => { if (!uiElements.chatMessages || uiElements.chatMessages.children.length === 0) { showToast("Není co uložit.", "warning"); return; } showToast("Generuji PDF...", "info", 2000); const chatContainer = document.createElement('div'); chatContainer.id = "pdf-export-content"; const pdfStyles = ` <style> body { font-family: 'Poppins', sans-serif; font-size: 10pt; line-height: 1.5; } .pdf-header { text-align: center; margin-bottom: 15px; border-bottom: 1px solid #ccc; padding-bottom: 10px; } .chat-message { margin-bottom: 10px; max-width: 85%; } .chat-message.user { margin-left: 15%; } .chat-message.model { margin-right: 15%; } .message-bubble { padding: 8px 12px; border-radius: 10px; background-color: #f1f1f1; display: inline-block; } .chat-message.user .message-bubble { background-color: #dcf8c6; } .message-timestamp { font-size: 8pt; color: #888; margin-top: 3px; } code { font-family: monospace; background-color: #eee; padding: 1px 3px; border-radius: 3px; } pre code { display: block; padding: 8px; background-color: #f8f8f8; border: 1px solid #ddd; border-radius: 4px; white-space: pre-wrap; word-wrap: break-word; } </style> `; chatContainer.innerHTML = pdfStyles; const headerDiv = document.createElement('div'); headerDiv.className = 'pdf-header'; headerDiv.innerHTML = `<h1>Záznam chatu - ${sanitizeHTML(state.currentTopic?.name || 'Neznámé téma')}</h1><p>Exportováno: ${new Date().toLocaleString('cs-CZ')}</p>`; chatContainer.appendChild(headerDiv); Array.from(uiElements.chatMessages.children).forEach(msgElement => { if (msgElement.classList.contains('chat-message')) { const clone = msgElement.cloneNode(true); // Basic styling for PDF
-                const bubble = clone.querySelector('.message-bubble'); if(bubble) bubble.style.cssText = 'padding: 8px 12px; border-radius: 10px; background-color: #f1f1f1; display: inline-block; border: 1px solid #eee;'; if(clone.classList.contains('user')){ clone.style.marginLeft = '15%'; if(bubble) bubble.style.backgroundColor = '#e1ffc7'; } else { clone.style.marginRight = '15%'; } const avatar = clone.querySelector('.message-avatar'); if(avatar) avatar.remove(); // Remove avatar for PDF
-                chatContainer.appendChild(clone); } }); const filename = `chat-justax-${state.currentTopic?.name?.replace(/[^a-z0-9]/gi, '_') || 'vyuka'}-${formatTimestamp().replace(/[:\s]/g, '')}.pdf`; const options = { margin: 15, filename: filename, image: { type: 'jpeg', quality: 0.95 }, html2canvas: { scale: 2, useCORS: true, logging: false, letterRendering: true }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } }; try { await html2pdf().set(options).from(chatContainer).save(); showToast("Chat uložen jako PDF!", "success"); } catch (pdfError) { console.error("Chyba exportu PDF:", pdfError); showToast("Nepodařilo se exportovat chat do PDF.", "error"); } };
-
+            const saveChatToPDF = async () => { if (!uiElements.chatMessages || uiElements.chatMessages.children.length === 0) { showToast("Není co uložit.", "warning"); return; } showToast("Generuji PDF...", "info", 2000); const chatContainer = document.createElement('div'); chatContainer.id = "pdf-export-content"; const pdfStyles = ` <style> body { font-family: 'Poppins', sans-serif; font-size: 10pt; line-height: 1.5; } .pdf-header { text-align: center; margin-bottom: 15px; border-bottom: 1px solid #ccc; padding-bottom: 10px; } .chat-message { margin-bottom: 10px; max-width: 85%; } .chat-message.user { margin-left: 15%; text-align: right; } .chat-message.model { margin-right: 15%; text-align: left;} .message-bubble { padding: 8px 12px; border-radius: 10px; background-color: #f1f1f1; display: inline-block; border: 1px solid #eee; text-align: left; /* Ensure text inside is left-aligned */ } .chat-message.user .message-bubble { background-color: #e1ffc7; } .message-timestamp { font-size: 8pt; color: #888; margin-top: 3px; display: block; } .chat-message.user .message-timestamp { text-align: right; } code { font-family: monospace; background-color: #eee; padding: 1px 3px; border-radius: 3px; } pre { margin: 5px 0;} pre code { display: block; padding: 8px; background-color: #f8f8f8; border: 1px solid #ddd; border-radius: 4px; white-space: pre-wrap; word-wrap: break-word; text-align: left; } </style> `; chatContainer.innerHTML = pdfStyles; const headerDiv = document.createElement('div'); headerDiv.className = 'pdf-header'; headerDiv.innerHTML = `<h1>Záznam chatu - ${sanitizeHTML(state.currentTopic?.name || 'Neznámé téma')}</h1><p>Exportováno: ${new Date().toLocaleString('cs-CZ')}</p>`; chatContainer.appendChild(headerDiv); Array.from(uiElements.chatMessages.children).forEach(msgElement => { if (msgElement.classList.contains('chat-message')) { const clone = msgElement.cloneNode(true); const avatar = clone.querySelector('.message-avatar'); if(avatar) avatar.remove(); chatContainer.appendChild(clone); } }); const filename = `chat-justax-${state.currentTopic?.name?.replace(/[^a-z0-9]/gi, '_') || 'vyuka'}-${formatTimestamp().replace(/[:\s]/g, '')}.pdf`; const options = { margin: 15, filename: filename, image: { type: 'jpeg', quality: 0.95 }, html2canvas: { scale: 2, useCORS: true, logging: false, letterRendering: true }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } }; try { await html2pdf().set(options).from(chatContainer).save(); showToast("Chat uložen jako PDF!", "success"); } catch (pdfError) { console.error("Chyba exportu PDF:", pdfError); showToast("Nepodařilo se exportovat chat do PDF.", "error"); } };
 
             // --- Gemini Interaction & Excalidraw Processing ---
-            // *** UPDATED Prompt Engineering Section ***
-             const parseExcalidrawScene = (responseText) => {
+            const parseExcalidrawScene = (responseText) => {
                  console.log("Attempting to parse Excalidraw scene data...");
                  EXCALIDRAW_SCENE_REGEX.lastIndex = 0; // Reset regex index
                  const match = EXCALIDRAW_SCENE_REGEX.exec(responseText);
@@ -684,24 +875,19 @@
                  if (match && match[1]) {
                      console.log("Found EXCALIDRAW_SCENE block.");
                      try {
-                         // Attempt to clean potential non-standard JSON issues if needed
                          let jsonString = match[1].trim();
-                         // jsonString = jsonString.replace(/,\s*]/g, ']').replace(/,\s*}/g, '}'); // Example cleaning
-
                          sceneData = JSON.parse(jsonString);
                          if (!Array.isArray(sceneData)) {
                              console.warn("Parsed Excalidraw data is not an array:", sceneData);
                              sceneData = null;
                          } else {
                              console.log(`Successfully parsed ${sceneData.length} Excalidraw elements.`);
-                             // Remove the matched block from the text
-                             cleanedText = cleanedText.replace(match[0], '').trim();
+                             cleanedText = cleanedText.replace(match[0], '').trim(); // Remove the block
                          }
                      } catch (e) {
                          console.error("Failed to parse Excalidraw JSON:", e, "\nJSON String (Raw):", match[1]);
-                         // Attempt to show the raw block for debugging
                          cleanedText += `\n\n--- NEZPRACOVANÁ KRESBA (chyba JSON) ---\n${match[1]}\n--- KONEC KRESBY ---`;
-                         sceneData = null; // Ensure sceneData is null on error
+                         sceneData = null; // Ensure null on error
                      }
                  } else {
                      console.log("No EXCALIDRAW_SCENE block found.");
@@ -718,7 +904,6 @@
                 const requestTimestamp = new Date();
                 updateGeminiThinkingState(true);
 
-                // --- *** ENHANCED SYSTEM INSTRUCTION *** ---
                 const systemInstructionText = `Jsi AI Tutor "Justax", expert na matematiku pro 9. třídu ZŠ v ČR (přijímačky CERMAT).
 Vyučuješ téma: "${state.currentTopic.name}"${state.currentTopic.description ? ` (Popis: "${state.currentTopic.description}")` : ''}.
 Tvůj styl je PŘÁTELSKÝ, TRPĚLIVÝ a PODROBNÝ. Vysvětluj krok za krokem, používej PŘESNÉ matematické termíny a jednoduché příklady. Důsledně používej Markdown pro formátování textu a MathJax pro matematické vzorce (blokové vzorce: $$...$$, inline vzorce: \\(...\\)). Odpovídej VŽDY ČESKY.
@@ -737,89 +922,92 @@ DŮLEŽITÉ POKYNY PRO TEBE:
         * **STRUKTURA:** Kresli PŘEHLEDNĚ. Nepřekrývej prvky. Nový krok řešení umísti pod předchozí nebo vedle něj.
         * **JEDNODUCHOST:** Používej základní tvary (text, line, arrow, rectangle, ellipse).
         * **AKTUALIZACE:** Pošli VŽDY KOMPLETNÍ scénu pro daný krok (včetně prvků z předchozích kroků, pokud mají zůstat viditelné). Pro smazání tabule pošli prázdné pole \`[]\`.
-        * **TEXT V KRESBĚ:** Textové elementy ('type': 'text') jsou klíčové pro zápis kroků řešení. Použij `\\n` pro nový řádek v textu.
+        * **TEXT V KRESBĚ:** Textové elementy ('type': 'text') jsou klíčové pro zápis kroků řešení. Použij \`\\n\` pro nový řádek v textu.
         * **PŘÍKLAD TEXTOVÉHO ELEMENTU PRO KROK ŘEŠENÍ:**
-            \`{ "type": "text", "x": 20, "y": 100, "width": 300, "height": 60, "text": "2. Odečteme 5 od obou stran:\\n   2x + 5 - 5 = 11 - 5\\n   2x = 6", "fontSize": 20, "fontFamily": 1, "strokeColor": "#000000", "textAlign": "left" }\`
+            \`{ "type": "text", "x": 20, "y": 100, "width": 300, "height": 60, "text": "2. Odečteme 5 od obou stran:\\n   2x + 5 - 5 = 11 - 5\\n   2x = 6", "fontSize": 20, "fontFamily": 1, "strokeColor": "#000000", "textAlign": "left", "roughness": 0 }\`
 4.  **DÉLKA ODPOVĚDI:** Vysvětlení může být delší, ale členěné. Chatové odpovědi stručné.
 5.  **VÝSTUP DO CHATU (SHRNUTÍ):** POKUD generuješ delší odpověď pro "Vysvětlení", na ÚPLNÝ konec celé odpovědi (i za případný EXCALIDRAW_SCENE blok) PŘIDEJ **KRÁTKÝ A VÝSTIŽNÝ** souhrn (max 1-2 věty, jako zápis do sešitu) pro zobrazení v chatu: \`CHAT_SUMMARY: [Zde tvůj krátký souhrn]\`.`;
-                // --- *** END OF ENHANCED SYSTEM INSTRUCTION *** ---
 
                 const historyForApi = state.geminiChatContext.filter(item => item.role === 'user' || item.role === 'model');
                 const currentRequestContent = { role: "user", parts: [{ text: promptText }] };
                 let contentsPayload;
 
+                // Include system instruction only for the very first request of the session
                 if (historyForApi.length === 0 && targetArea === 'explanation') {
-                    // For the very first explanation request, include the system instruction directly
                     contentsPayload = [{ role: "user", parts: [{ text: systemInstructionText + "\n\n---\n\nStudentův požadavek (první krok): " + promptText }] }];
                 } else {
-                     // For subsequent requests or chat, prepend system instruction if needed (optional, model might remember)
-                     // Or just send history + current prompt
-                     // Let's assume the model remembers context for simplicity here. Adjust if context is lost.
-                     contentsPayload = [...historyForApi, currentRequestContent];
+                    contentsPayload = [...historyForApi, currentRequestContent];
                 }
-
 
                 const requestBody = {
                     contents: contentsPayload,
-                    // Add system_instruction field if needed and supported by the specific model/API version
-                    // system_instruction: { parts: [{ text: systemInstructionText }] }, // Example
                     generationConfig: {
-                        temperature: 0.5, // Slightly lower for more focused explanations
+                        temperature: 0.5,
                         topP: 0.95,
                         topK: 40,
                         maxOutputTokens: 8192
                     },
-                    safetySettings: [ // Keep relaxed safety for math
+                    safetySettings: [
                         { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
                         { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
                         { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
                         { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" }
                     ]
-                };
+                }; // <-- Syntakticky správné ukončení objektu
 
-                 try {
-                     console.log("Sending payload to Gemini:", JSON.stringify(requestBody).substring(0, 500) + "...");
-                     const response = await fetch(GEMINI_API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(requestBody) });
+                try {
+                    console.log("Sending payload to Gemini:", JSON.stringify(requestBody).substring(0, 500) + "...");
+                    const response = await fetch(GEMINI_API_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(requestBody)
+                    });
 
-                     if (!response.ok) {
-                         const errorBody = await response.text();
-                         console.error("Gemini API Error Response:", errorBody);
-                         throw new Error(`Chyba Gemini API (${response.status}): ${errorBody.substring(0, 100)}`);
-                     }
+                    if (!response.ok) {
+                        const errorBody = await response.text();
+                        console.error("Gemini API Error Response:", errorBody);
+                        throw new Error(`Chyba Gemini API (${response.status}): ${errorBody.substring(0, 100)}`);
+                    }
 
-                     const data = await response.json();
-                     console.log("Raw Gemini Response:", data);
+                    const data = await response.json();
+                    console.log("Raw Gemini Response:", JSON.stringify(data).substring(0, 300) + "..."); // Log beginning of response
 
-                     const candidate = data.candidates?.[0];
-                     if (!candidate) {
-                         console.error("Invalid response structure from Gemini:", data);
-                         const promptFeedback = data.promptFeedback;
-                         if (promptFeedback?.blockReason) { throw new Error(`Obsah blokován: ${promptFeedback.blockReason}. Detail: ${promptFeedback.safetyRatings?.map(r => `${r.category}: ${r.probability}`).join(', ')}`); }
-                         throw new Error('Chybná struktura odpovědi od AI.');
-                     }
-                     if (candidate.finishReason && !["STOP", "MAX_TOKENS"].includes(candidate.finishReason)) { console.warn(`Gemini generation stopped unexpectedly: ${candidate.finishReason}`); }
+                    const candidate = data.candidates?.[0];
+                    if (!candidate) {
+                        console.error("Invalid response structure from Gemini:", data);
+                        const promptFeedback = data.promptFeedback;
+                        if (promptFeedback?.blockReason) {
+                            throw new Error(`Obsah blokován: ${promptFeedback.blockReason}. Detail: ${promptFeedback.safetyRatings?.map(r => `${r.category}: ${r.probability}`).join(', ')}`);
+                        }
+                        throw new Error('Chybná struktura odpovědi od AI.');
+                    }
+                    if (candidate.finishReason && !["STOP", "MAX_TOKENS"].includes(candidate.finishReason)) {
+                        console.warn(`Gemini generation stopped unexpectedly: ${candidate.finishReason}`);
+                    }
 
-                     const geminiResponseText = candidate.content?.parts?.[0]?.text;
-                     if (!geminiResponseText) { console.warn("Gemini returned empty text content."); throw new Error('AI vrátila prázdnou odpověď.'); }
+                    const geminiResponseText = candidate.content?.parts?.[0]?.text;
+                    if (!geminiResponseText) {
+                        console.warn("Gemini returned empty text content.");
+                        throw new Error('AI vrátila prázdnou odpověď.');
+                    }
 
-                     // Add response to context BEFORE processing
-                     state.geminiChatContext.push({ role: "model", parts: [{ text: geminiResponseText }] });
+                    // Add response to context BEFORE processing
+                    state.geminiChatContext.push({ role: "model", parts: [{ text: geminiResponseText }] });
 
-                     processGeminiResponse(geminiResponseText, targetArea, requestTimestamp); // Process the full response
-                     updateAIStatus(state.currentTopic ? `Vysvětluje: ${state.currentTopic.name}` : 'Připraven');
+                    processGeminiResponse(geminiResponseText, targetArea, requestTimestamp); // Process the full response
+                    updateAIStatus(state.currentTopic ? `Vysvětluje: ${state.currentTopic.name}` : 'Připraven');
 
-                 } catch (error) {
-                     console.error('Error sending/processing Gemini request:', error);
-                     showToast(`Chyba komunikace s AI: ${error.message}`, "error");
-                     handleGeminiError(error.message, targetArea, requestTimestamp);
-                     updateAIStatus('Nastala chyba');
-                 } finally {
-                     updateGeminiThinkingState(false);
-                 }
-             };
+                } catch (error) {
+                    console.error('Error sending/processing Gemini request:', error);
+                    showToast(`Chyba komunikace s AI: ${error.message}`, "error");
+                    handleGeminiError(error.message, targetArea, requestTimestamp);
+                    updateAIStatus('Nastala chyba');
+                } finally {
+                    updateGeminiThinkingState(false);
+                }
+            };
 
-
-            // Process response (Handles Excalidraw parsing and rendering - Unchanged from previous correction)
+            // Process response (Handles Excalidraw parsing and rendering)
             const processGeminiResponse = (rawResponseText, targetArea, timestamp) => {
                 removeThinkingIndicator();
                 let chatSummary = null;
@@ -835,13 +1023,9 @@ DŮLEŽITÉ POKYNY PRO TEBE:
 
                 const { cleanedText, sceneData } = parseExcalidrawScene(textForProcessing);
 
-                // Always update Excalidraw if sceneData exists, regardless of targetArea
+                // Update Excalidraw if sceneData is present
                 if (sceneData) {
                     updateExcalidrawScene(sceneData);
-                } else if (targetArea === 'explanation' && state.excalidrawElements.length > 0) {
-                     // Optionally clear the board if explanation doesn't provide a new scene
-                     // updateExcalidrawScene([]);
-                     // console.log("Explanation step without scene data, board potentially cleared.");
                 }
 
                 const textToDisplay = cleanedText;
@@ -853,21 +1037,19 @@ DŮLEŽITÉ POKYNY PRO TEBE:
 
                     const isFirstStep = uiElements.explanationDisplay.querySelectorAll('.step').length === 0 && state.lastExplanationTimestamp === 0;
                     if (isFirstStep) {
-                        uiElements.explanationDisplay.innerHTML = ''; // Clear only if it's the very first step
+                        uiElements.explanationDisplay.innerHTML = ''; // Clear placeholder only on first step
                         console.log("First explanation step, clearing initial placeholder.");
-                    } else {
-                        console.log("Appending explanation step.");
                     }
 
-                    if (textToDisplay.trim()) { // Only add step if there is text content
+                    if (textToDisplay.trim()) { // Add step only if there's text
                         const stepDiv = document.createElement('div');
                         stepDiv.className = 'step';
                         renderMarkdown(stepDiv, textToDisplay);
                         uiElements.explanationDisplay.appendChild(stepDiv);
                         state.lastExplanationTimestamp = Date.now();
-                        if(uiElements.explanationScrollContent) {
-                           // Scroll smoothly to the new step
-                           setTimeout(() => stepDiv.scrollIntoView({ behavior: "smooth", block: "end" }), 100);
+                        if (uiElements.explanationScrollContent) {
+                            // Scroll smoothly to the new step
+                            setTimeout(() => stepDiv.scrollIntoView({ behavior: "smooth", block: "end" }), 100);
                         }
                     } else {
                         console.log("No text content for explanation step, step div not added.");
@@ -876,44 +1058,61 @@ DŮLEŽITÉ POKYNY PRO TEBE:
                     // Add chat message based on summary or fallback
                     if (chatSummary) {
                         addChatMessage(chatSummary, 'gemini', true, timestamp);
-                    } else if (textToDisplay.trim() || sceneData) {
-                        // Generate a generic chat message if no summary but content exists
+                    } else if (textToDisplay.trim() || sceneData) { // If there was *any* content
                         let chatMsg = "Pokračuji ve vysvětlení";
                         if (sceneData) chatMsg += " a aktualizoval(a) jsem kresbu";
                         chatMsg += ".";
-                        addChatMessage(chatMsg, 'gemini', false, timestamp);
+                        addChatMessage(chatMsg, 'gemini', false, timestamp); // Don't save generic DB message
                     }
-                    manageUIState('learning');
+                    manageUIState('learning'); // Ensure UI is in learning mode
                     manageButtonStates();
 
                 } else { // Target area is 'chat'
                     console.log("Processing for CHAT area.");
-                     if (textToDisplay.trim()) {
+                    if (textToDisplay.trim()) {
                         addChatMessage(textToDisplay, 'gemini', true, timestamp);
-                    } else if (chatSummary) {
-                        // If chat only yielded a summary (unlikely but possible)
+                    } else if (chatSummary) { // Unlikely for chat, but handle just in case
                         addChatMessage(chatSummary, 'gemini', true, timestamp);
                     } else {
+                        // If only Excalidraw was updated via chat command
                         if (sceneData) {
-                             addChatMessage("(Aktualizoval(a) jsem kresbu podle tvého dotazu.)", 'gemini', false, timestamp);
-                             console.log("Chat response primarily updated Excalidraw.");
-                         } else {
-                             addChatMessage("(AI neposkytla textovou odpověď)", 'gemini', false, timestamp);
-                             console.warn("AI chat response was empty and no scene data found.");
-                         }
+                            addChatMessage("(Aktualizoval(a) jsem kresbu podle tvého dotazu.)", 'gemini', false, timestamp);
+                            console.log("Chat response primarily updated Excalidraw.");
+                        } else {
+                            // AI really returned nothing relevant
+                            addChatMessage("(AI neposkytla textovou odpověď)", 'gemini', false, timestamp);
+                            console.warn("AI chat response was empty and no scene data found.");
+                        }
                     }
                 }
 
-                 // Ensure MathJax typesets after potential DOM updates
-                 if (window.MathJax && typeof window.MathJax.typesetPromise === 'function') {
-                     setTimeout(() => window.MathJax.typesetPromise(), 100); // Run slightly later
-                 }
+                // Run MathJax typesetting after potential DOM updates
+                if (window.MathJax && typeof window.MathJax.typesetPromise === 'function') {
+                    setTimeout(() => window.MathJax.typesetPromise(), 150); // Delay slightly more
+                }
              };
 
-            const handleGeminiError = (errorMessage, targetArea, timestamp) => { const errorMsg = `Omlouvám se, nastala chyba při zpracování: ${errorMessage}`; removeThinkingIndicator(); addChatMessage(errorMsg, 'gemini', false, timestamp); if (targetArea === 'explanation' && uiElements.explanationDisplay) { const errorP = document.createElement('p'); errorP.style.color = 'var(--danger)'; errorP.style.marginTop = '1rem'; errorP.style.fontWeight = 'bold'; errorP.textContent = errorMsg; uiElements.explanationDisplay.appendChild(errorP); if(uiElements.explanationScrollContent) uiElements.explanationScrollContent.scrollTop = uiElements.explanationScrollContent.scrollHeight; } updateAIStatus('Nastala chyba'); manageButtonStates(); };
+             const handleGeminiError = (errorMessage, targetArea, timestamp) => {
+                 const errorMsg = `Omlouvám se, nastala chyba při zpracování: ${errorMessage}`;
+                 removeThinkingIndicator();
+                 addChatMessage(errorMsg, 'gemini', false, timestamp); // Don't save error to DB
+                 if (targetArea === 'explanation' && uiElements.explanationDisplay) {
+                     const errorP = document.createElement('p');
+                     errorP.style.color = 'var(--danger)';
+                     errorP.style.marginTop = '1rem';
+                     errorP.style.fontWeight = 'bold';
+                     errorP.textContent = errorMsg;
+                     uiElements.explanationDisplay.appendChild(errorP);
+                     if(uiElements.explanationScrollContent) {
+                         uiElements.explanationScrollContent.scrollTop = uiElements.explanationScrollContent.scrollHeight;
+                     }
+                 }
+                 updateAIStatus('Nastala chyba');
+                 manageButtonStates();
+             };
 
             // --- Run Application ---
-             initializeApp();
+            document.addEventListener('DOMContentLoaded', initializeApp);
 
         } catch (e) {
             // Fatal Error Handling
