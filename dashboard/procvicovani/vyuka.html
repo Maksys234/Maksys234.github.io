@@ -572,10 +572,10 @@
                      state.excalidrawRoot = ReactDOM.createRoot(container);
                      const initialData = {
                          appState: {
-                             viewBackgroundColor: "#ffffff", // Explicitně bílé pozadí
+                             viewBackgroundColor: "#ffffff",
                              currentItemFontFamily: 1,
                              currentItemFontSize: 20,
-                             theme: 'light', // <-- Vždy nastavit světlé téma
+                             theme: 'light', // Keep light theme
                          },
                          elements: [],
                          scrollToContent: true,
@@ -586,9 +586,8 @@
                              excalidrawAPI: (api) => {
                                  state.excalidrawAPI = api;
                                  console.log("Excalidraw API ready.");
-                                 const placeholder = container.querySelector('.loading-placeholder'); // Remove placeholder once API is ready
+                                 const placeholder = container.querySelector('.loading-placeholder');
                                  if (placeholder) placeholder.remove();
-                                 // Ensure canvas is initially empty
                                  const currentElements = api.getSceneElements();
                                  if (currentElements && currentElements.length > 0) {
                                      console.log("Clearing initial Excalidraw elements if any.");
@@ -596,10 +595,11 @@
                                  }
                              },
                              UIOptions: { canvasActions: { saveToActiveFile: false, loadScene: false, clearCanvas: false } },
-                             viewModeEnabled: true, // Only AI can draw
+                             // viewModeEnabled: true, // ORIGINAL LINE
+                             viewModeEnabled: false, // <-- CHANGE HERE: Allow interaction (pan/zoom)
                              zenModeEnabled: false,
                              gridModeEnabled: false,
-                             onChange: (elements, appState) => { state.excalidrawElements = elements; } // Keep track of elements if needed
+                             onChange: (elements, appState) => { state.excalidrawElements = elements; }
                          })
                      );
                      console.log("Excalidraw component mount initiated.");
@@ -637,7 +637,6 @@
                  } catch (error) {
                      console.error("Error updating Excalidraw scene inside updateScene call:", error);
                      showToast("Chyba při aktualizaci kreslící plochy.", "error");
-                     // Optionally re-throw or handle specifically in the calling function
                  }
              };
             // --- END OF UPDATED FUNCTION ---
@@ -689,7 +688,7 @@
             };
 
             // --- Chat Functionality ---
-            const addChatMessage = async (message, sender, saveToDb = true, timestamp = new Date()) => { if (!uiElements.chatMessages) return; const messageId = `msg-${Date.now()}-${Math.random().toString(16).substring(2, 8)}`; const avatarInitial = sender === 'user' ? getInitials(state.currentProfile, state.currentUser?.email) : 'AI'; const messageDiv = document.createElement('div'); messageDiv.className = `chat-message ${sender === 'gemini' ? 'model' : sender}`; messageDiv.id = messageId; const bubbleDiv = document.createElement('div'); bubbleDiv.className = 'message-bubble'; renderMarkdown(bubbleDiv, message);
+            const addChatMessage = async (message, sender, saveToDb = true, timestamp = new Date()) => { if (!uiElements.chatMessages) return; const messageId = `msg-${Date.now()}-${Math.random().toString(16).substring(2, 8)}`; const avatarInitial = sender === 'user' ? getInitials(state.currentProfile, state.currentUser?.email) : 'AI'; const messageDiv = document.createElement('div'); messageDiv.className = `chat-message ${sender === 'gemini' ? 'model' : sender}`; messageDiv.id = messageId; const bubbleDiv = document.createElement('div'); bubbleDiv.className = 'message-bubble'; renderMarkdown(bubbleDiv, message); // renderMarkdown handles MathJax queuing internally now
                  messageDiv.innerHTML = `<div class="message-avatar">${avatarInitial}</div>`; messageDiv.appendChild(bubbleDiv); messageDiv.innerHTML += `<div class="message-timestamp">${formatTimestamp(timestamp)}</div>`; uiElements.chatMessages.appendChild(messageDiv); uiElements.chatMessages.scrollTop = uiElements.chatMessages.scrollHeight; if (saveToDb && state.supabase && state.currentUser && state.currentTopic && state.currentSessionId) { const dataToSave = { user_id: state.currentUser?.id || null, session_id: state.currentSessionId, topic_id: state.currentTopic?.topic_id || null, topic_name: state.currentTopic?.name || null, role: sender === 'gemini' ? 'model' : 'user', content: message }; if (!dataToSave.session_id || !dataToSave.role || !dataToSave.content) { console.error("Supabase chat save error: Missing required fields (session_id, role, content).", dataToSave); showToast("Chyba: Nelze uložit zprávu, chybí data.", "error"); return; } console.log("Attempting to save chat message:", dataToSave); try { const { error } = await state.supabase.from('chat_history').insert(dataToSave); if (error) { console.error("Supabase chat save error:", error); console.error("Data sent:", dataToSave); showToast(`Chyba ukládání chatu: ${error.message}`, 'error'); } else { console.log("Chat message saved to DB."); } } catch (dbError) { console.error("Exception during chat save:", dbError); console.error("Data sent:", dataToSave); showToast(`Výjimka při ukládání chatu: ${dbError.message}`, 'error'); } } };
             const updateGeminiThinkingState = (isThinking) => { state.geminiIsThinking = isThinking; manageButtonStates(); if (isThinking) { addThinkingIndicator(); } else { removeThinkingIndicator(); } };
             const addThinkingIndicator = () => { if (state.thinkingIndicatorId || !uiElements.chatMessages) return; const indicatorDiv = document.createElement('div'); indicatorDiv.className = 'chat-message model'; state.thinkingIndicatorId = `thinking-${Date.now()}`; indicatorDiv.id = state.thinkingIndicatorId; indicatorDiv.innerHTML = `<div class="message-avatar">AI</div><div class="message-thinking-indicator"><span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span></div>`; uiElements.chatMessages.appendChild(indicatorDiv); uiElements.chatMessages.scrollTop = uiElements.chatMessages.scrollHeight; };
@@ -770,22 +769,19 @@ DŮLEŽITÉ POKYNY PRO TEBE:
                 const currentRequestContent = { role: "user", parts: [{ text: promptText }] };
                 let contentsPayload;
 
-                // Include system instruction more consistently, maybe trimmed
+                // Include system instruction more consistently
                 const baseSystemInstruction = [{ role: "user", parts: [{ text: systemInstructionText }] }];
 
                 if (historyForApi.length === 0 && targetArea === 'explanation') {
-                    // First request includes full system instruction and user prompt
                      contentsPayload = [
                          ...baseSystemInstruction,
-                         { role: "model", parts: [{ text: "Rozumím. Jsem připraven začít vysvětlovat." }] }, // Initial AI confirmation might help context
+                         { role: "model", parts: [{ text: "Rozumím. Jsem připraven začít vysvětlovat." }] },
                          { role: "user", parts: [{ text: "Studentův požadavek (první krok): " + promptText }] }
                      ];
                 } else {
-                    // Subsequent requests include history and current prompt
-                    // Let's try sending the system instruction again, but maybe shorter if needed later
                      contentsPayload = [
                          ...baseSystemInstruction, // Keep sending system instruction for context
-                         { role: "model", parts: [{ text: "Pokračuji..." }] }, // Reminder for the AI about its role
+                         { role: "model", parts: [{ text: "Pokračuji..." }] }, // Reminder for the AI
                          ...historyForApi,
                          currentRequestContent
                      ];
@@ -837,9 +833,9 @@ DŮLEŽITÉ POKYNY PRO TEBE:
                     const geminiResponseText = candidate.content?.parts?.[0]?.text;
                     if (!geminiResponseText) { console.warn("Gemini returned empty text content."); throw new Error('AI vrátila prázdnou odpověď.'); }
 
-                    // Add only the model's response to the context for future turns
-                    state.geminiChatContext.push({ role: "user", parts: [{ text: promptText }] }); // Add user prompt to history
-                    state.geminiChatContext.push({ role: "model", parts: [{ text: geminiResponseText }] }); // Add model response to history
+                    // Add *only* model response to history for next turn (user prompt already added in handleSendMessage/requestNextStep)
+                    // state.geminiChatContext.push({ role: "user", parts: [{ text: promptText }] }); // User prompt added BEFORE calling sendToGemini
+                    state.geminiChatContext.push({ role: "model", parts: [{ text: geminiResponseText }] });
 
                     processGeminiResponse(geminiResponseText, targetArea, requestTimestamp);
                     updateAIStatus(state.currentTopic ? `Vysvětluje: ${state.currentTopic.name}` : 'Připraven');
@@ -907,7 +903,7 @@ DŮLEŽITÉ POKYNY PRO TEBE:
                     if (textToDisplay.trim()) {
                         const stepDiv = document.createElement('div');
                         stepDiv.className = 'step';
-                        renderMarkdown(stepDiv, textToDisplay); // renderMarkdown handles MathJax queuing
+                        renderMarkdown(stepDiv, textToDisplay); // renderMarkdown handles MathJax queuing internally now
                         uiElements.explanationDisplay.appendChild(stepDiv);
                         state.lastExplanationTimestamp = Date.now();
                         if (uiElements.explanationScrollContent) { setTimeout(() => stepDiv.scrollIntoView({ behavior: "smooth", block: "end" }), 100); }
