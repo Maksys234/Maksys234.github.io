@@ -544,14 +544,7 @@
                 console.log("Rendering Markdown in element:", element);
                 try {
                     element.innerHTML = marked.parse(markdownText || '');
-                    if (window.MathJax && typeof window.MathJax.typesetPromise === 'function') {
-                        setTimeout(() => {
-                            console.log("MathJax: Queuing typeset for element:", element);
-                            window.MathJax.typesetPromise([element])
-                                .then(() => console.log("MathJax: Typesetting complete for:", element))
-                                .catch(err => console.error('MathJax typesetting error:', err));
-                        }, 50);
-                    } else { console.warn("MathJax not ready or typesetPromise not available."); }
+                    // MathJax typesetting is now handled at the end of processGeminiResponse
                 } catch (e) { console.error("Markdown rendering error:", e); element.innerHTML = `<p style="color:red;">Chyba renderování Markdownu.</p><pre>${sanitizeHTML(markdownText)}</pre>`; }
             };
             const autoResizeTextarea = () => { if (!uiElements.chatInput) return; uiElements.chatInput.style.height = 'auto'; const scrollHeight = uiElements.chatInput.scrollHeight; const maxHeight = 150; uiElements.chatInput.style.height = `${Math.min(scrollHeight, maxHeight)}px`; uiElements.chatInput.style.overflowY = scrollHeight > maxHeight ? 'scroll' : 'hidden'; };
@@ -582,8 +575,7 @@
                              viewBackgroundColor: "#ffffff", // Explicitně bílé pozadí
                              currentItemFontFamily: 1,
                              currentItemFontSize: 20,
-                             // theme: window.matchMedia?.('(prefers-color-scheme: dark)')?.matches ? 'dark' : 'light', // PŮVODNÍ ŘÁDEK
-                             theme: 'light', // <-- ZMĚNA ZDE: Vždy nastavit světlé téma
+                             theme: 'light', // <-- Vždy nastavit světlé téma
                          },
                          elements: [],
                          scrollToContent: true,
@@ -596,13 +588,18 @@
                                  console.log("Excalidraw API ready.");
                                  const placeholder = container.querySelector('.loading-placeholder'); // Remove placeholder once API is ready
                                  if (placeholder) placeholder.remove();
-                                 if (api.getSceneElements().length > 0) { api.updateScene({ elements: [] }); }
+                                 // Ensure canvas is initially empty
+                                 const currentElements = api.getSceneElements();
+                                 if (currentElements && currentElements.length > 0) {
+                                     console.log("Clearing initial Excalidraw elements if any.");
+                                     api.updateScene({ elements: [] });
+                                 }
                              },
                              UIOptions: { canvasActions: { saveToActiveFile: false, loadScene: false, clearCanvas: false } },
-                             viewModeEnabled: true, // Ponecháno true, aby uživatel nemohl kreslit, jen AI
+                             viewModeEnabled: true, // Only AI can draw
                              zenModeEnabled: false,
                              gridModeEnabled: false,
-                             onChange: (elements, appState) => { state.excalidrawElements = elements; }
+                             onChange: (elements, appState) => { state.excalidrawElements = elements; } // Keep track of elements if needed
                          })
                      );
                      console.log("Excalidraw component mount initiated.");
@@ -613,18 +610,23 @@
                      return false;
                  }
              };
+
+             // --- UPDATED updateExcalidrawScene with try-catch ---
              const updateExcalidrawScene = (elements) => {
                  if (!state.excalidrawAPI) { console.warn("Excalidraw API not available for scene update."); return; }
-                 if (!Array.isArray(elements)) { console.warn("Invalid elements data for Excalidraw update (must be an array):", elements); return; }
+                 // Validation should happen before calling this function (in processGeminiResponse)
+
                  console.log(`Updating Excalidraw scene with ${elements.length} elements.`);
                  console.log("Elements data (first 200 chars):", JSON.stringify(elements).substring(0, 200) + "...");
                  const placeholder = uiElements.excalidrawContainer?.querySelector('.loading-placeholder');
                  if (placeholder) placeholder.style.display = 'none'; // Hide placeholder
-                 try {
+
+                 try { // *** ADDED TRY-CATCH HERE ***
                      state.excalidrawAPI.updateScene({ elements: elements });
-                     state.excalidrawElements = elements;
+                     state.excalidrawElements = elements; // Update local state
+                     // Scroll to content after a short delay to allow rendering
                      setTimeout(() => {
-                         if (state.excalidrawAPI?.scrollToContent) { // Check if API and method exist
+                         if (state.excalidrawAPI?.scrollToContent) {
                              const currentElements = state.excalidrawAPI.getSceneElements();
                              if (currentElements?.length > 0) {
                                  console.log("Attempting to scroll to content...");
@@ -632,8 +634,14 @@
                              } else { console.log("No elements to scroll to."); }
                          } else { console.warn("scrollToContent function not available on Excalidraw API."); }
                      }, 200);
-                 } catch (error) { console.error("Error updating Excalidraw scene:", error); showToast("Chyba při aktualizaci kreslící plochy.", "error"); }
+                 } catch (error) {
+                     console.error("Error updating Excalidraw scene inside updateScene call:", error);
+                     showToast("Chyba při aktualizaci kreslící plochy.", "error");
+                     // Optionally re-throw or handle specifically in the calling function
+                 }
              };
+            // --- END OF UPDATED FUNCTION ---
+
 
             // --- User Profile & Auth ---
             const loadUserProfile = async () => { if (!state.supabase) return; try { const { data: { user }, error: userError } = await state.supabase.auth.getUser(); if (userError) throw userError; if (user) { state.currentUser = user; const { data: profile, error: profileError } = await state.supabase.from('profiles').select('*').eq('id', user.id).single(); if (profileError && profileError.code !== 'PGRST116') throw profileError; state.currentProfile = profile; console.log("User profile loaded:", state.currentProfile); } else { state.currentUser = null; state.currentProfile = null; console.log("No user logged in."); } } catch (error) { console.error('Error loading user profile:', error); state.currentUser = null; state.currentProfile = null; showToast("Nepodařilo se načíst profil.", "error"); } finally { updateUserInfoUI(); } };
@@ -694,7 +702,7 @@
             // --- Gemini Interaction & Excalidraw Processing ---
             const parseExcalidrawScene = (responseText) => {
                  console.log("Attempting to parse Excalidraw scene data...");
-                 EXCALIDRAW_SCENE_REGEX.lastIndex = 0;
+                 EXCALIDRAW_SCENE_REGEX.lastIndex = 0; // Reset regex state
                  const match = EXCALIDRAW_SCENE_REGEX.exec(responseText);
                  let sceneData = null;
                  let cleanedText = responseText;
@@ -702,17 +710,21 @@
                      console.log("Found EXCALIDRAW_SCENE block.");
                      try {
                          let jsonString = match[1].trim();
+                         // Attempt to fix potential trailing commas before closing brackets/braces
+                         jsonString = jsonString.replace(/,\s*([}\]])/g, '$1');
                          sceneData = JSON.parse(jsonString);
                          if (!Array.isArray(sceneData)) {
                              console.warn("Parsed Excalidraw data is not an array:", sceneData);
-                             sceneData = null;
+                             sceneData = null; // Invalidate if not an array
                          } else {
                              console.log(`Successfully parsed ${sceneData.length} Excalidraw elements.`);
+                             // Remove the matched block from the text
                              cleanedText = cleanedText.replace(match[0], '').trim();
                          }
                      } catch (e) {
-                         console.error("Failed to parse Excalidraw JSON:", e, "\nJSON String (Raw):", match[1]);
-                         cleanedText += `\n\n--- NEZPRACOVANÁ KRESBA (chyba JSON) ---\n${match[1]}\n--- KONEC KRESBY ---`;
+                         console.error("Failed to parse Excalidraw JSON:", e, "\nJSON String (Attempted):", match[1]);
+                         // Keep the raw block in the text for debugging if parsing fails
+                         cleanedText = responseText; // Revert to original text if parse fails
                          sceneData = null;
                      }
                  } else { console.log("No EXCALIDRAW_SCENE block found."); }
@@ -758,26 +770,37 @@ DŮLEŽITÉ POKYNY PRO TEBE:
                 const currentRequestContent = { role: "user", parts: [{ text: promptText }] };
                 let contentsPayload;
 
+                // Include system instruction more consistently, maybe trimmed
+                const baseSystemInstruction = [{ role: "user", parts: [{ text: systemInstructionText }] }];
+
                 if (historyForApi.length === 0 && targetArea === 'explanation') {
-                    contentsPayload = [{ role: "user", parts: [{ text: systemInstructionText + "\n\n---\n\nStudentův požadavek (první krok): " + promptText }] }];
+                    // First request includes full system instruction and user prompt
+                     contentsPayload = [
+                         ...baseSystemInstruction,
+                         { role: "model", parts: [{ text: "Rozumím. Jsem připraven začít vysvětlovat." }] }, // Initial AI confirmation might help context
+                         { role: "user", parts: [{ text: "Studentův požadavek (první krok): " + promptText }] }
+                     ];
                 } else {
-                    // Pro další požadavky můžeme vložit zkrácenou verzi system instruction nebo spoléhat na kontext
-                    // Pro jistotu můžeme přidat klíčové body znovu:
-                     const shortSystemReminder = `Připomínka: Jsi AI Tutor Justax, vysvětluješ "${state.currentTopic.name}". Drž se stylu, používej Markdown, MathJax a ČASTO Excalidraw pro PŘÍKLADY.`;
-                     // contentsPayload = [{role: "user", parts: [{ text: shortSystemReminder }]}, ...historyForApi, currentRequestContent];
-                    // Nebo spoléháme, že si kontext pamatuje dobře z prvního volání:
-                     contentsPayload = [...historyForApi, currentRequestContent];
+                    // Subsequent requests include history and current prompt
+                    // Let's try sending the system instruction again, but maybe shorter if needed later
+                     contentsPayload = [
+                         ...baseSystemInstruction, // Keep sending system instruction for context
+                         { role: "model", parts: [{ text: "Pokračuji..." }] }, // Reminder for the AI about its role
+                         ...historyForApi,
+                         currentRequestContent
+                     ];
                 }
+
 
                 const requestBody = {
                     contents: contentsPayload,
                     generationConfig: {
-                        temperature: 0.5, // Lower for more factual/step-by-step
+                        temperature: 0.5,
                         topP: 0.95,
                         topK: 40,
                         maxOutputTokens: 8192
                     },
-                    safetySettings: [ // Keep relaxed for math
+                    safetySettings: [
                         { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
                         { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
                         { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
@@ -795,7 +818,7 @@ DŮLEŽITÉ POKYNY PRO TEBE:
 
                     if (!response.ok) {
                         const errorBody = await response.text();
-                        console.error("Gemini API Error Response:", errorBody);
+                        console.error("Gemini API Error Response:", response.status, errorBody);
                         throw new Error(`Chyba Gemini API (${response.status}): ${errorBody.substring(0, 100)}`);
                     }
 
@@ -814,7 +837,10 @@ DŮLEŽITÉ POKYNY PRO TEBE:
                     const geminiResponseText = candidate.content?.parts?.[0]?.text;
                     if (!geminiResponseText) { console.warn("Gemini returned empty text content."); throw new Error('AI vrátila prázdnou odpověď.'); }
 
-                    state.geminiChatContext.push({ role: "model", parts: [{ text: geminiResponseText }] }); // Add response to context
+                    // Add only the model's response to the context for future turns
+                    state.geminiChatContext.push({ role: "user", parts: [{ text: promptText }] }); // Add user prompt to history
+                    state.geminiChatContext.push({ role: "model", parts: [{ text: geminiResponseText }] }); // Add model response to history
+
                     processGeminiResponse(geminiResponseText, targetArea, requestTimestamp);
                     updateAIStatus(state.currentTopic ? `Vysvětluje: ${state.currentTopic.name}` : 'Připraven');
 
@@ -828,6 +854,7 @@ DŮLEŽITÉ POKYNY PRO TEBE:
                 }
             };
 
+            // --- UPDATED processGeminiResponse with VALIDATION ---
             const processGeminiResponse = (rawResponseText, targetArea, timestamp) => {
                 removeThinkingIndicator();
                 let chatSummary = null;
@@ -843,7 +870,30 @@ DŮLEŽITÉ POKYNY PRO TEBE:
 
                 const { cleanedText, sceneData } = parseExcalidrawScene(textForProcessing);
 
-                if (sceneData) { updateExcalidrawScene(sceneData); }
+                // --- VALIDATION & ERROR HANDLING ADDED ---
+                let sceneUpdateAttempted = false;
+                if (sceneData) {
+                    sceneUpdateAttempted = true; // Mark that we found a scene block
+                    // Validate if sceneData is an array
+                    if (!Array.isArray(sceneData)) {
+                        console.error("Excalidraw Validation Error: Parsed scene data is not an array!", sceneData);
+                        showToast("Chyba: AI vrátila neplatná data pro kresbu (není pole).", "error");
+                        addChatMessage("Omlouvám se, nastal problém s daty pro kreslící plochu (formát není pole).", 'gemini', false, new Date());
+                    } else {
+                        // Basic validation of elements (optional but helpful)
+                        const hasInvalidElement = sceneData.some(el => typeof el !== 'object' || el === null || !el.type);
+                        if (hasInvalidElement) {
+                             console.error("Excalidraw Validation Error: Some elements in the scene data are invalid!", sceneData.filter(el => typeof el !== 'object' || el === null || !el.type));
+                             showToast("Chyba: AI vrátila neplatná data pro kresbu (chybný element).", "error");
+                             addChatMessage("Omlouvám se, nastal problém s daty pro kreslící plochu (chybná struktura elementu).", 'gemini', false, new Date());
+                        } else {
+                            // Data seem valid, try updating the scene (function now contains try-catch)
+                            updateExcalidrawScene(sceneData);
+                        }
+                    }
+                }
+                // --- END OF VALIDATION & ERROR HANDLING ---
+
 
                 const textToDisplay = cleanedText;
 
@@ -857,14 +907,16 @@ DŮLEŽITÉ POKYNY PRO TEBE:
                     if (textToDisplay.trim()) {
                         const stepDiv = document.createElement('div');
                         stepDiv.className = 'step';
-                        renderMarkdown(stepDiv, textToDisplay);
+                        renderMarkdown(stepDiv, textToDisplay); // renderMarkdown handles MathJax queuing
                         uiElements.explanationDisplay.appendChild(stepDiv);
                         state.lastExplanationTimestamp = Date.now();
                         if (uiElements.explanationScrollContent) { setTimeout(() => stepDiv.scrollIntoView({ behavior: "smooth", block: "end" }), 100); }
                     } else { console.log("No text content for explanation step, step div not added."); }
 
                     if (chatSummary) { addChatMessage(chatSummary, 'gemini', true, timestamp); }
-                    else if (textToDisplay.trim() || sceneData) { addChatMessage(`AI pokračovala ve vysvětlení ${sceneData ? 'a aktualizovala kresbu' : ''}.`, 'gemini', false, timestamp); }
+                    else if (textToDisplay.trim() || sceneUpdateAttempted) { // Add generic msg if text OR scene was attempted
+                        addChatMessage(`AI pokračovala ve vysvětlení ${sceneUpdateAttempted ? 'a aktualizovala kresbu' : ''}.`, 'gemini', false, timestamp);
+                     }
                     manageUIState('learning');
                     manageButtonStates();
 
@@ -872,12 +924,29 @@ DŮLEŽITÉ POKYNY PRO TEBE:
                     console.log("Processing for CHAT area.");
                     if (textToDisplay.trim()) { addChatMessage(textToDisplay, 'gemini', true, timestamp); }
                     else if (chatSummary) { addChatMessage(chatSummary, 'gemini', true, timestamp); }
-                    else { if (sceneData) { addChatMessage("(Aktualizoval(a) jsem kresbu podle tvého dotazu.)", 'gemini', false, timestamp); console.log("Chat response primarily updated Excalidraw."); }
-                           else { addChatMessage("(AI neposkytla textovou odpověď)", 'gemini', false, timestamp); console.warn("AI chat response was empty and no scene data found."); }
+                    else { if (sceneUpdateAttempted) { // Add generic msg if scene was attempted
+                             addChatMessage("(Aktualizoval(a) jsem kresbu podle tvého dotazu.)", 'gemini', false, timestamp);
+                             console.log("Chat response primarily updated Excalidraw.");
+                           }
+                           else {
+                             addChatMessage("(AI neposkytla textovou odpověď)", 'gemini', false, timestamp);
+                             console.warn("AI chat response was empty and no scene data found.");
+                           }
                     }
                 }
-                if (window.MathJax && typeof window.MathJax.typesetPromise === 'function') { setTimeout(() => window.MathJax.typesetPromise(), 150); }
+
+                 // Re-run MathJax typesetting after all content changes for this response
+                 if (window.MathJax && typeof window.MathJax.typesetPromise === 'function') {
+                      setTimeout(() => {
+                          console.log("MathJax: Queuing typeset after Gemini response processing.");
+                          window.MathJax.typesetPromise() // Typeset whole document or specific containers
+                              .then(() => console.log("MathJax: Typesetting complete after Gemini response."))
+                              .catch(err => console.error('MathJax typesetting error after Gemini:', err));
+                      }, 150); // Delay slightly
+                 }
              };
+            // --- END OF UPDATED FUNCTION ---
+
 
              const handleGeminiError = (errorMessage, targetArea, timestamp) => {
                  const errorMsg = `Omlouvám se, nastala chyba při zpracování: ${errorMessage}`;
