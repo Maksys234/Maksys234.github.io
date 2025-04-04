@@ -53,7 +53,7 @@
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
     <script src="https://unpkg.com/@excalidraw/excalidraw@0.17.3/dist/excalidraw.production.min.js" crossorigin></script>
     <style>
-        /* --- Updated CSS Styles --- */
+        /* --- CSS Styly (beze změny) --- */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; scroll-behavior: smooth; }
         :root {
             --primary-rgb: 67, 97, 238;
@@ -575,7 +575,7 @@
                              viewBackgroundColor: "#ffffff",
                              currentItemFontFamily: 1,
                              currentItemFontSize: 20,
-                             theme: 'light', // Keep light theme
+                             theme: 'light',
                          },
                          elements: [],
                          scrollToContent: true,
@@ -595,7 +595,7 @@
                                  }
                              },
                              UIOptions: { canvasActions: { saveToActiveFile: false, loadScene: false, clearCanvas: false } },
-                             // viewModeEnabled: true, // ORIGINAL LINE
+                             // viewModeEnabled: true, // Original Line
                              viewModeEnabled: false, // <-- CHANGE HERE: Allow interaction (pan/zoom)
                              zenModeEnabled: false,
                              gridModeEnabled: false,
@@ -614,10 +614,12 @@
              // --- UPDATED updateExcalidrawScene with try-catch ---
              const updateExcalidrawScene = (elements) => {
                  if (!state.excalidrawAPI) { console.warn("Excalidraw API not available for scene update."); return; }
-                 // Validation should happen before calling this function (in processGeminiResponse)
+                 // Validation happens before calling this function now in processGeminiResponse
 
                  console.log(`Updating Excalidraw scene with ${elements.length} elements.`);
-                 console.log("Elements data (first 200 chars):", JSON.stringify(elements).substring(0, 200) + "...");
+                 // Log only basic structure to avoid huge logs
+                 console.log("First few elements data (structure check):", elements.slice(0,2).map(el => ({type: el.type, id: el.id})));
+
                  const placeholder = uiElements.excalidrawContainer?.querySelector('.loading-placeholder');
                  if (placeholder) placeholder.style.display = 'none'; // Hide placeholder
 
@@ -631,16 +633,17 @@
                              if (currentElements?.length > 0) {
                                  console.log("Attempting to scroll to content...");
                                  state.excalidrawAPI.scrollToContent(currentElements, { fitToContent: true, duration: 300 });
-                             } else { console.log("No elements to scroll to."); }
+                             } else { console.log("No elements to scroll to after update."); }
                          } else { console.warn("scrollToContent function not available on Excalidraw API."); }
                      }, 200);
                  } catch (error) {
                      console.error("Error updating Excalidraw scene inside updateScene call:", error);
                      showToast("Chyba při aktualizaci kreslící plochy.", "error");
+                     // Log the elements that caused the crash for debugging
+                     console.error("Data that likely caused the error:", elements);
                  }
              };
             // --- END OF UPDATED FUNCTION ---
-
 
             // --- User Profile & Auth ---
             const loadUserProfile = async () => { if (!state.supabase) return; try { const { data: { user }, error: userError } = await state.supabase.auth.getUser(); if (userError) throw userError; if (user) { state.currentUser = user; const { data: profile, error: profileError } = await state.supabase.from('profiles').select('*').eq('id', user.id).single(); if (profileError && profileError.code !== 'PGRST116') throw profileError; state.currentProfile = profile; console.log("User profile loaded:", state.currentProfile); } else { state.currentUser = null; state.currentProfile = null; console.log("No user logged in."); } } catch (error) { console.error('Error loading user profile:', error); state.currentUser = null; state.currentProfile = null; showToast("Nepodařilo se načíst profil.", "error"); } finally { updateUserInfoUI(); } };
@@ -729,6 +732,89 @@
                  } else { console.log("No EXCALIDRAW_SCENE block found."); }
                  return { cleanedText, sceneData };
             };
+
+             // --- NEW FUNCTION: Validate Excalidraw Elements ---
+             const validateExcalidrawElements = (elements) => {
+                 if (!Array.isArray(elements)) {
+                     console.error("Validation failed: Input is not an array.");
+                     return { isValid: false, invalidElements: [] };
+                 }
+                 const invalidElements = [];
+                 const requiredProps = {
+                     text: ['type', 'x', 'y', 'width', 'height', 'text', 'fontSize', 'fontFamily'],
+                     line: ['type', 'x', 'y', 'width', 'height', 'points'],
+                     arrow: ['type', 'x', 'y', 'width', 'height', 'points'],
+                     rectangle: ['type', 'x', 'y', 'width', 'height'],
+                     ellipse: ['type', 'x', 'y', 'width', 'height'],
+                     // Add other types as needed
+                 };
+                 const numericProps = ['x', 'y', 'width', 'height', 'angle', 'strokeWidth', 'fontSize']; // Properties that must be numbers
+
+                 elements.forEach((el, index) => {
+                     let isValidElement = true;
+                     if (typeof el !== 'object' || el === null || !el.type) {
+                         console.warn(`Validation failed: Element at index ${index} is not an object or missing 'type'.`, el);
+                         invalidElements.push({ index, element: el, reason: "Not object or missing type" });
+                         return; // Skip further checks for this element
+                     }
+
+                     const propsToCheck = requiredProps[el.type] || ['type', 'x', 'y', 'width', 'height']; // Default check if type unknown
+
+                     for (const prop of propsToCheck) {
+                         if (el[prop] === undefined) {
+                             console.warn(`Validation failed: Element index ${index} (type: ${el.type}) missing required property '${prop}'.`, el);
+                             isValidElement = false;
+                             break; // No need to check other props for this element
+                         }
+                     }
+                     if (!isValidElement) {
+                         invalidElements.push({ index, element: el, reason: "Missing required properties" });
+                         return; // Skip further checks for this element
+                     }
+
+                     // Check numeric properties
+                     for (const prop of numericProps) {
+                         if (el[prop] !== undefined && typeof el[prop] !== 'number') {
+                             console.warn(`Validation failed: Element index ${index} (type: ${el.type}) has non-numeric property '${prop}'.`, el);
+                             isValidElement = false;
+                             break;
+                         }
+                     }
+                      if (!isValidElement) {
+                         invalidElements.push({ index, element: el, reason: "Non-numeric property" });
+                         return;
+                     }
+
+
+                     // Specific checks for line/arrow points
+                     if (['line', 'arrow'].includes(el.type)) {
+                         if (!Array.isArray(el.points) || el.points.length < 2) {
+                             console.warn(`Validation failed: Element index ${index} (type: ${el.type}) has invalid 'points' (not array or too short).`, el);
+                             isValidElement = false;
+                         } else {
+                             const hasInvalidPoint = el.points.some(p => !Array.isArray(p) || p.length !== 2 || typeof p[0] !== 'number' || typeof p[1] !== 'number');
+                             if (hasInvalidPoint) {
+                                 console.warn(`Validation failed: Element index ${index} (type: ${el.type}) has invalid point structure in 'points'.`, el);
+                                 isValidElement = false;
+                             }
+                         }
+                     }
+
+                     if (!isValidElement && !invalidElements.some(inv => inv.index === index)) {
+                          invalidElements.push({ index, element: el, reason: "Specific property validation failed (e.g., points)" });
+                     }
+                 });
+
+                 const overallIsValid = invalidElements.length === 0;
+                 if (!overallIsValid) {
+                     console.error(`Excalidraw data validation failed. Found ${invalidElements.length} invalid elements.`, invalidElements);
+                 } else {
+                     console.log("Excalidraw data validation successful.");
+                 }
+                 return { isValid: overallIsValid, invalidElements };
+             };
+             // --- END OF NEW FUNCTION ---
+
 
             const sendToGemini = async (promptText, targetArea) => {
                 if (!GEMINI_API_KEY || !GEMINI_API_KEY.startsWith('AIzaSy')) { showToast("Chyba: AI není správně nakonfigurována.", "error"); updateGeminiThinkingState(false); return; }
@@ -833,9 +919,9 @@ DŮLEŽITÉ POKYNY PRO TEBE:
                     const geminiResponseText = candidate.content?.parts?.[0]?.text;
                     if (!geminiResponseText) { console.warn("Gemini returned empty text content."); throw new Error('AI vrátila prázdnou odpověď.'); }
 
-                    // Add *only* model response to history for next turn (user prompt already added in handleSendMessage/requestNextStep)
-                    // state.geminiChatContext.push({ role: "user", parts: [{ text: promptText }] }); // User prompt added BEFORE calling sendToGemini
-                    state.geminiChatContext.push({ role: "model", parts: [{ text: geminiResponseText }] });
+                    // Add *only* model response to history for next turn
+                    state.geminiChatContext.push({ role: "user", parts: [{ text: promptText }] }); // Add user prompt to history
+                    state.geminiChatContext.push({ role: "model", parts: [{ text: geminiResponseText }] }); // Add model response to history
 
                     processGeminiResponse(geminiResponseText, targetArea, requestTimestamp);
                     updateAIStatus(state.currentTopic ? `Vysvětluje: ${state.currentTopic.name}` : 'Připraven');
@@ -868,24 +954,21 @@ DŮLEŽITÉ POKYNY PRO TEBE:
 
                 // --- VALIDATION & ERROR HANDLING ADDED ---
                 let sceneUpdateAttempted = false;
+                let sceneDataIsValid = false; // Flag to track validation result
+
                 if (sceneData) {
                     sceneUpdateAttempted = true; // Mark that we found a scene block
-                    // Validate if sceneData is an array
-                    if (!Array.isArray(sceneData)) {
-                        console.error("Excalidraw Validation Error: Parsed scene data is not an array!", sceneData);
-                        showToast("Chyba: AI vrátila neplatná data pro kresbu (není pole).", "error");
-                        addChatMessage("Omlouvám se, nastal problém s daty pro kreslící plochu (formát není pole).", 'gemini', false, new Date());
+                    const validationResult = validateExcalidrawElements(sceneData); // Validate the data
+                    sceneDataIsValid = validationResult.isValid; // Store validation result
+
+                    if (!sceneDataIsValid) {
+                        // Log detailed error for invalid elements
+                        console.error("Excalidraw Validation Failed. Invalid Elements:", validationResult.invalidElements);
+                        showToast("Chyba: AI vrátila neplatná data pro kresbu.", "error");
+                        addChatMessage("Omlouvám se, nastal problém s daty pro kreslící plochu (nevalidní struktura). Nelze vykreslit.", 'gemini', false, new Date());
                     } else {
-                        // Basic validation of elements (optional but helpful)
-                        const hasInvalidElement = sceneData.some(el => typeof el !== 'object' || el === null || !el.type);
-                        if (hasInvalidElement) {
-                             console.error("Excalidraw Validation Error: Some elements in the scene data are invalid!", sceneData.filter(el => typeof el !== 'object' || el === null || !el.type));
-                             showToast("Chyba: AI vrátila neplatná data pro kresbu (chybný element).", "error");
-                             addChatMessage("Omlouvám se, nastal problém s daty pro kreslící plochu (chybná struktura elementu).", 'gemini', false, new Date());
-                        } else {
-                            // Data seem valid, try updating the scene (function now contains try-catch)
-                            updateExcalidrawScene(sceneData);
-                        }
+                        // Data seem valid, try updating the scene (updateExcalidrawScene now contains try-catch)
+                        updateExcalidrawScene(sceneData);
                     }
                 }
                 // --- END OF VALIDATION & ERROR HANDLING ---
@@ -903,28 +986,34 @@ DŮLEŽITÉ POKYNY PRO TEBE:
                     if (textToDisplay.trim()) {
                         const stepDiv = document.createElement('div');
                         stepDiv.className = 'step';
-                        renderMarkdown(stepDiv, textToDisplay); // renderMarkdown handles MathJax queuing internally now
+                        renderMarkdown(stepDiv, textToDisplay); // renderMarkdown handles MathJax queuing
                         uiElements.explanationDisplay.appendChild(stepDiv);
                         state.lastExplanationTimestamp = Date.now();
                         if (uiElements.explanationScrollContent) { setTimeout(() => stepDiv.scrollIntoView({ behavior: "smooth", block: "end" }), 100); }
                     } else { console.log("No text content for explanation step, step div not added."); }
 
-                    if (chatSummary) { addChatMessage(chatSummary, 'gemini', true, timestamp); }
-                    else if (textToDisplay.trim() || sceneUpdateAttempted) { // Add generic msg if text OR scene was attempted
-                        addChatMessage(`AI pokračovala ve vysvětlení ${sceneUpdateAttempted ? 'a aktualizovala kresbu' : ''}.`, 'gemini', false, timestamp);
+                    // Add summary to chat only if it exists
+                    if (chatSummary) {
+                         addChatMessage(chatSummary, 'gemini', true, timestamp);
+                    }
+                    // Add generic message only if explanation text was added OR a VALID scene was attempted
+                    else if (textToDisplay.trim() || (sceneUpdateAttempted && sceneDataIsValid)) {
+                        addChatMessage(`AI pokračovala ve vysvětlení ${sceneUpdateAttempted && sceneDataIsValid ? 'a aktualizovala kresbu' : ''}.`, 'gemini', false, timestamp);
                      }
                     manageUIState('learning');
                     manageButtonStates();
 
                 } else { // Target area is 'chat'
                     console.log("Processing for CHAT area.");
+                    // Add main text or summary to chat
                     if (textToDisplay.trim()) { addChatMessage(textToDisplay, 'gemini', true, timestamp); }
                     else if (chatSummary) { addChatMessage(chatSummary, 'gemini', true, timestamp); }
-                    else { if (sceneUpdateAttempted) { // Add generic msg if scene was attempted
+                    // Add generic message only if VALID scene was attempted and no text was generated
+                    else { if (sceneUpdateAttempted && sceneDataIsValid) {
                              addChatMessage("(Aktualizoval(a) jsem kresbu podle tvého dotazu.)", 'gemini', false, timestamp);
                              console.log("Chat response primarily updated Excalidraw.");
                            }
-                           else {
+                           else if (!sceneUpdateAttempted){ // Only show this if no scene was even attempted
                              addChatMessage("(AI neposkytla textovou odpověď)", 'gemini', false, timestamp);
                              console.warn("AI chat response was empty and no scene data found.");
                            }
