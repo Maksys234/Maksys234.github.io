@@ -214,7 +214,31 @@
             const removeThinkingIndicator = () => { if (state.thinkingIndicatorId) { const indicator = document.getElementById(state.thinkingIndicatorId); if (indicator) indicator.remove(); state.thinkingIndicatorId = null; } };
             const handleSendMessage = async () => { const messageText = uiElements.chatInput.value.trim(); if (!messageText || state.geminiIsThinking || !state.currentTopic) return; uiElements.chatInput.value = ''; autoResizeTextarea(); uiElements.chatInput.focus(); const userTimestamp = new Date(); await addChatMessage(messageText, 'user', true, userTimestamp); state.geminiChatContext.push({ role: "user", parts: [{ text: messageText }] }); updateGeminiThinkingState(true); await sendToGemini(messageText, 'chat'); };
             const confirmClearChat = () => { if (confirm("Opravdu chcete vymazat historii tohoto chatu?\nTato akce je nevratná.")) { clearCurrentChatSessionHistory(); } };
-            const clearCurrentChatSessionHistory = async () => { if (uiElements.chatMessages) uiElements.chatMessages.innerHTML = ''; state.geminiChatContext = []; updateExcalidrawScene([]); showToast("Historie chatu a kresba vymazána.", "info"); console.log("Chat history and Excalidraw cleared for this session."); if (state.supabase && state.currentUser && state.currentSessionId) { try { console.log(`Deleting chat history from DB for session: ${state.currentSessionId}`); const { error } = await state.supabase.from('chat_history').delete().eq('user_id', state.currentUser.id).eq('session_id', state.currentSessionId); if (error) { console.error("Error deleting chat history from DB:", error); showToast("Chyba při mazání historie z databáze.", "error"); } else { console.log("Chat history deleted from DB."); } } catch(dbError) { console.error("Exception during DB chat history deletion:", dbError); } } };
+            const clearCurrentChatSessionHistory = async () => {
+                 if (uiElements.chatMessages) uiElements.chatMessages.innerHTML = '';
+                 state.geminiChatContext = [];
+                 updateExcalidrawScene([]);
+                 showToast("Historie chatu a kresba vymazána.", "info");
+                 console.log("Chat history and Excalidraw cleared for this session.");
+                 if (state.supabase && state.currentUser && state.currentSessionId) {
+                     try {
+                         console.log(`Deleting chat history from DB for session: ${state.currentSessionId}`);
+                         const { error } = await state.supabase
+                             .from('chat_history')
+                             .delete()
+                             .eq('user_id', state.currentUser.id)
+                             .eq('session_id', state.currentSessionId);
+                         if (error) {
+                             console.error("Error deleting chat history from DB:", error);
+                             showToast("Chyba při mazání historie z databáze.", "error");
+                         } else {
+                             console.log("Chat history deleted from DB.");
+                         }
+                     } catch (dbError) { // <-- FIX: Added closing brace for try block
+                         console.error("Exception during DB chat history deletion:", dbError);
+                     }
+                 }
+            };
             const saveChatToPDF = async () => {
                 if (!uiElements.chatMessages || uiElements.chatMessages.children.length === 0) {
                     showToast("Není co uložit.", "warning");
@@ -242,7 +266,7 @@
                 try {
                     await html2pdf().set(options).from(chatContainer).save();
                     showToast("Chat uložen jako PDF!", "success");
-                } catch (pdfError) { //<- FIX: Added closing brace for try block
+                } catch (pdfError) {
                     console.error("Chyba exportu PDF:", pdfError);
                     showToast("Nepodařilo se exportovat chat do PDF.", "error");
                 }
