@@ -36,8 +36,6 @@
             };
         } else {
             console.warn("window.MathJax already defined.");
-            // Optionally update existing config if needed, but usually it's set once.
-            // window.MathJax.tex.inlineMath = [['\\(', '\\)'], ['$','$']];
         }
     </script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
@@ -651,11 +649,23 @@
             const handleMarkTopicComplete = async () => { if (!state.currentTopic || !state.currentTopic.activity_id || !state.supabase || state.topicLoadInProgress) return; console.log(`Marking activity ${state.currentTopic.activity_id} as complete.`); state.topicLoadInProgress = true; manageButtonStates(); if(uiElements.markCompleteBtn) uiElements.markCompleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ukládám...'; try { const { error } = await state.supabase.from('plan_activities').update({ completed: true, updated_at: new Date().toISOString() }).eq('id', state.currentTopic.activity_id); if (error) throw error; showToast(`Téma "${state.currentTopic.name}" dokončeno.`, "success"); state.currentTopic = null; if (uiElements.currentTopicDisplay) uiElements.currentTopicDisplay.innerHTML = '<span class="placeholder">Načítám další...</span>'; if (uiElements.explanationDisplay) uiElements.explanationDisplay.innerHTML = ''; if (uiElements.chatMessages) uiElements.chatMessages.innerHTML = ''; updateExcalidrawScene([]); state.geminiChatContext = []; state.lastExplanationTimestamp = 0; await loadNextUncompletedTopic(); } catch (error) { console.error(`Error marking activity ${state.currentTopic?.activity_id} complete:`, error); showToast("Chyba při označování tématu.", "error"); state.topicLoadInProgress = false; manageButtonStates(); } finally { if(uiElements.markCompleteBtn) uiElements.markCompleteBtn.innerHTML = '<i class="fas fa-check-circle"></i> Téma dokončeno'; } };
 
             // --- Learning Session Management ---
-            const startLearningSession = async () => { if (!state.currentTopic || !state.currentUser || !state.supabase) { console.error("Cannot start session: Missing data."); updateAIStatus('Chyba: Nelze zahájit výuku.'); manageUIState('error'); return; } console.log(`Starting session for: "${state.currentTopic.name}" (Activity ID: ${state.currentTopic.activity_id})`); state.currentSessionId = generateSessionId(); updateAIStatus(`Vysvětluje: ${state.currentTopic.name}`); manageUIState('requestingExplanation'); manageButtonStates(); if (uiElements.chatMessages) uiElements.chatMessages.innerHTML = ''; state.geminiChatContext = []; state.lastExplanationTimestamp = 0; updateExcalidrawScene([]);
+            const startLearningSession = async () => {
+                if (!state.currentTopic || !state.currentUser || !state.supabase) { console.error("Cannot start session: Missing data."); updateAIStatus('Chyba: Nelze zahájit výuku.'); manageUIState('error'); return; }
+                console.log(`Starting session for: "${state.currentTopic.name}" (Activity ID: ${state.currentTopic.activity_id})`);
+                state.currentSessionId = generateSessionId();
+                updateAIStatus(`Vysvětluje: ${state.currentTopic.name}`);
+                manageUIState('requestingExplanation');
+                manageButtonStates();
+                if (uiElements.chatMessages) uiElements.chatMessages.innerHTML = '';
+                state.geminiChatContext = [];
+                state.lastExplanationTimestamp = 0;
+                updateExcalidrawScene([]);
                  updateGeminiThinkingState(true);
+                 // --- *** UPDATED INITIAL PROMPT *** ---
                  let initialPrompt = `Jako AI Tutor "Justax" začni vysvětlovat ZÁKLADY tématu "${state.currentTopic.name}" pro studenta 9. třídy ZŠ (přijímačky CERMAT).`;
                  if (state.currentTopic.description) { initialPrompt += ` Popis tématu pro kontext: "${state.currentTopic.description}".`; }
-                 initialPrompt += ` Buď podrobný, přátelský a postupuj krok za krokem. Toto je ÚPLNĚ PRVNÍ krok vysvětlení tohoto tématu. **POKUD je to vhodné, použij kreslící plochu (Excalidraw) k VIZUALIZACI nebo ŘEŠENÍ PŘÍKLADU KROK ZA KROKEM.** Pro vizualizaci můžeš na konec odpovědi přidat JSON data pro Excalidraw ve formátu \`EXCALIDRAW_SCENE: \`\`\`json [ ... ] \`\`\`\`. Ukonči odpověď KRÁTKÝM A VÝSTIŽNÝM souhrnem (max 1-2 věty, jako zápis do sešitu) pro zobrazení v chatu ve formátu: \`CHAT_SUMMARY: [Zde tvůj krátký souhrn]\`.`;
+                 initialPrompt += ` Buď podrobný, přátelský a postupuj krok za krokem. Toto je ÚPLNĚ PRVNÍ krok vysvětlení tohoto tématu. **POUŽIJ kreslící plochu (Excalidraw) k VIZUALIZACI základního konceptu NEBO k UKÁZCE jednoduchého PŘÍKLADU krok za krokem, pokud je to relevantní pro úvod.** Nenechávej tabuli prázdnou, pokud se nabízí vizuální vysvětlení nebo příklad. Pro vizualizaci můžeš na konec odpovědi přidat JSON data pro Excalidraw ve formátu \`EXCALIDRAW_SCENE: \`\`\`json [ ... ] \`\`\`\`. Ukonči odpověď KRÁTKÝM A VÝSTIŽNÝM souhrnem (max 1-2 věty, jako zápis do sešitu) pro zobrazení v chatu ve formátu: \`CHAT_SUMMARY: [Zde tvůj krátký souhrn]\`.`;
+                 // --- *** END OF UPDATED INITIAL PROMPT *** ---
                  await sendToGemini(initialPrompt, 'explanation');
             };
             const switchInteractionTab = (tabId) => { uiElements.interactionTabs.forEach(tab => tab.classList.toggle('active', tab.dataset.tab === tabId)); uiElements.tabContents.forEach(content => content.classList.toggle('active', content.id === `${tabId}-content`)); state.activeInteractionTab = tabId; sessionStorage.setItem('activeVyukaTab', tabId); console.log(`Switched to tab: ${tabId}`); };
@@ -664,7 +674,9 @@
                 console.log("Requesting next step...");
                 updateGeminiThinkingState(true);
                 manageButtonStates();
-                const prompt = `Pokračuj ve vysvětlování tématu "${state.currentTopic.name}". Naváž na předchozí krok. **Použij Excalidraw, POKUD se to hodí pro ukázku dalšího kroku řešení příkladu nebo pro vizualizaci.** Nezapomeň na formát \`EXCALIDRAW_SCENE: \`\`\`json [ ... ] \`\`\`\` a na KRÁTKÝ A VÝSTIŽNÝ souhrn pro chat (CHAT_SUMMARY:).`;
+                 // --- *** UPDATED NEXT STEP PROMPT *** ---
+                const prompt = `Pokračuj ve vysvětlování tématu "${state.currentTopic.name}". Naváž na předchozí krok. **DŮRAZNĚ POUŽIJ Excalidraw, zejména POKUD pokračuješ v řešení příkladu nebo vysvětluješ geometrický koncept, graf, apod.** Zobrazuj jednotlivé kroky výpočtů nebo konstrukce na tabuli. Nezapomeň na formát \`EXCALIDRAW_SCENE: \`\`\`json [ ... ] \`\`\`\` a na KRÁTKÝ A VÝSTIŽNÝ souhrn pro chat (CHAT_SUMMARY:).`;
+                 // --- *** END OF UPDATED NEXT STEP PROMPT *** ---
                 await sendToGemini(prompt, 'explanation');
             };
 
@@ -716,7 +728,7 @@
                 const requestTimestamp = new Date();
                 updateGeminiThinkingState(true);
 
-                // --- *** UPDATED SYSTEM INSTRUCTION *** ---
+                // --- *** UPDATED SYSTEM INSTRUCTION (More emphasis on Excalidraw) *** ---
                 const systemInstructionText = `Jsi AI Tutor "Justax", expert na matematiku pro 9. třídu ZŠ v ČR (přijímačky CERMAT).
 Vyučuješ téma: "${state.currentTopic.name}"${state.currentTopic.description ? ` (Popis: "${state.currentTopic.description}")` : ''}.
 Tvůj styl je PŘÁTELSKÝ, TRPĚLIVÝ a PODROBNÝ. Vysvětluj krok za krokem, používej PŘESNÉ matematické termíny a jednoduché příklady. Důsledně používej Markdown pro formátování textu a MathJax pro matematické vzorce (blokové vzorce: $$...$$, inline vzorce: $...$ nebo \\(...\\)). Odpovídej VŽDY ČESKY.
@@ -724,12 +736,12 @@ Tvůj styl je PŘÁTELSKÝ, TRPĚLIVÝ a PODROBNÝ. Vysvětluj krok za krokem, p
 DŮLEŽITÉ POKYNY PRO TEBE:
 1.  **KROK ZA KROKEM:** V záložce "Vysvětlení" se drž JEDNOHO logického kroku nebo konceptu na odpověď. Buď systematický a postupný. Nezahlcuj studenta příliš mnoha informacemi najednou.
 2.  **INTERAKTIVITA:** Pravidelně pokládej studentovi KONTROLNÍ OTÁZKY nebo ho vyzývej k zamyšlení.
-3.  **VIZUALIZACE S EXCALIDRAW (PRIORITA PRO PŘÍKLADY):**
-    * **AKTIVNĚ POUŽÍVEJ EXCALIDRAW** primárně k **ŘEŠENÍ KONKRÉTNÍCH PŘÍKLADŮ KROK ZA KROKEM**. To je hlavní účel tabule. Pokud vysvětluješ koncept, který lze ilustrovat příkladem, UKAŽ HO na tabuli. Nenechávej tabuli prázdnou, pokud je vizuální příklad relevantní!
-    * Můžeš ho použít i pro geometrické náčrty, grafy, číselné osy, zápisy vzorců apod., POKUD to přímo souvisí s vysvětlovaným krokem.
+3.  **VIZUALIZACE S EXCALIDRAW (KLÍČOVÉ PRO PŘÍKLADY):**
+    * **AKTIVNĚ a ČASTO POUŽÍVEJ EXCALIDRAW**, PŘEDEVŠÍM k **ŘEŠENÍ KONKRÉTNÍCH PŘÍKLADŮ KROK ZA KROKEM**. Je to tvůj hlavní nástroj pro názorné ukázky výpočtů a postupů. Nenechávej tabuli prázdnou, pokud vysvětluješ něco, co lze ukázat na příkladu!
+    * Použij Excalidraw také pro geometrické náčrty, grafy, číselné osy, zápisy vzorců apod., POKUD to přímo souvisí s vysvětlovaným krokem.
     * **FORMÁT:** Na KONEC textové odpovědi přidej JSON data pro Excalidraw: \`EXCALIDRAW_SCENE: \`\`\`json [ { /* element 1 */ }, ... ] \`\`\`\`. JSON musí být VALIDNÍ.
-    * **OBSAH KRESBY:**
-        * **PŘÍKLADY:** Zapiš zadání a **JEDNOTLIVÉ KROKY ŘEŠENÍ** jasně a čitelně. Použij textové elementy. Šipkami můžeš naznačit návaznost kroků.
+    * **OBSAH KRESBY (DŮLEŽITÉ):**
+        * **PŘÍKLADY:** Zapiš zadání a **JEDNOTLIVÉ KROKY ŘEŠENÍ** jasně a čitelně. Použij textové elementy. Šipkami můžeš naznačit návaznost kroků. Buď EXPLICITNÍ v zobrazování kroků.
         * **ČITELNOST:** Použij **ČERNOU** nebo **TMAVĚ MODROU** barvu pro hlavní text a výpočty (#000000 nebo #1E3A8A). Pro zvýraznění můžeš použít **TMAVĚ ČERVENOU** (#DC2626) nebo **TMAVĚ ZELENOU** (#16A34A), ale střídmě. Pozadí VŽDY NECH BÍLÉ (#ffffff).
         * **FONT:** Použij výchozí font (Virgil - fontFamily: 1) nebo čitelný Helvetica (fontFamily: 2). Velikost písma (fontSize) zvol přiměřenou (např. 20 nebo 28), aby byla dobře vidět.
         * **STRUKTURA:** Kresli PŘEHLEDNĚ. Nepřekrývej prvky. Nový krok řešení umísti pod předchozí nebo vedle něj.
@@ -749,9 +761,12 @@ DŮLEŽITÉ POKYNY PRO TEBE:
                 if (historyForApi.length === 0 && targetArea === 'explanation') {
                     contentsPayload = [{ role: "user", parts: [{ text: systemInstructionText + "\n\n---\n\nStudentův požadavek (první krok): " + promptText }] }];
                 } else {
-                    // Pro další požadavky předpokládáme, že model si kontext pamatuje.
-                    // Můžeme sem případně znovu vložit systemInstructionText, pokud by model kontext ztrácel.
-                    contentsPayload = [...historyForApi, currentRequestContent];
+                    // Pro další požadavky můžeme vložit zkrácenou verzi system instruction nebo spoléhat na kontext
+                    // Pro jistotu můžeme přidat klíčové body znovu:
+                     const shortSystemReminder = `Připomínka: Jsi AI Tutor Justax, vysvětluješ "${state.currentTopic.name}". Drž se stylu, používej Markdown, MathJax a ČASTO Excalidraw pro PŘÍKLADY.`;
+                     // contentsPayload = [{role: "user", parts: [{ text: shortSystemReminder }]}, ...historyForApi, currentRequestContent];
+                    // Nebo spoléháme, že si kontext pamatuje dobře z prvního volání:
+                     contentsPayload = [...historyForApi, currentRequestContent];
                 }
 
                 const requestBody = {
