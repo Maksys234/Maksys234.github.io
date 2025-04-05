@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Justax - Výuka s Interaktivní Tabulí v8</title>
+    <title>Justax - Výuka s Interaktivní Tabulí v9 (Test)</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -482,6 +482,7 @@
             const BOARD_BACKGROUND_DARK = "#2d3748"; // Dark board background
             const ELEMENT_COLOR_LIGHT = "#000000"; // Black element color (including text)
             const ELEMENT_COLOR_DARK = "#EAEAEA"; // Light gray element color (including text)
+            const DEBUG_TEXT_COLOR = "#FF0000"; // Red color for testing text visibility
 
             // --- DOM Elements Cache ---
             const uiElements = {
@@ -622,45 +623,51 @@
                  return { cleanedText: cleaned, sceneData: data };
              };
             const validateExcalidrawElements = (elements) => { /* ... (no changes) ... */ if (!Array.isArray(elements)) return { isValid: false }; let isValid = true; elements.forEach((el, i) => { if (typeof el !== 'object' || !el?.type || (el.type === 'text' && typeof el.text !== 'string')) { console.error(`Invalid element [${i}]:`, el); isValid = false; }}); return { isValid }; };
-            // Adds/overwrites default Excalidraw properties, including color - CORRECTED & LOGGING ADDED
+            // Adds/overwrites default Excalidraw properties, including color - FORCING RED TEXT FOR DEBUGGING
             const addDefaultExcalidrawProps = (elements) => {
                 if (!Array.isArray(elements)) return [];
-                const color = getElementColor(); // Get current color based on theme
+                const defaultColor = getElementColor(); // Get theme color for non-text
+                const textColor = DEBUG_TEXT_COLOR; // Force red for text
                 const seed = Math.random() * 1e9 | 0;
-                console.log(`[addDefaultExcalidrawProps] Applying defaults. Current theme color: ${color} (isDarkMode: ${state.isDarkMode})`);
+                console.log(`[addDefaultExcalidrawProps] Applying defaults. Theme color: ${defaultColor}, FORCING TEXT COLOR: ${textColor}`);
                 return elements.map((el, index) => {
                     if (typeof el !== 'object' || el === null) {
                         console.warn(`[addDefaultExcalidrawProps] Skipping invalid element at index ${index}:`, el);
                         return null; // Skip invalid elements
                     }
-                    // Default values
-                    const defaults = { x: 0, y: 0, width: 50, height: 20, angle: 0, strokeColor: color, // Use current theme color
+                    // Default values - use theme color as base
+                    const defaults = { x: 0, y: 0, width: 50, height: 20, angle: 0, strokeColor: defaultColor,
                     backgroundColor: 'transparent', fillStyle: 'hachure', strokeWidth: 1, strokeStyle: 'solid', roughness: 0, opacity: 100, strokeSharpness: 'sharp', seed: seed, version: 2, versionNonce: (Math.random() * 1e9 | 0), isDeleted: false, groupIds: [], frameId: null, boundElements: null, updated: Date.now(), link: null, locked: false };
-                    // Defaults for text - Explicitly set strokeColor
-                    const textDefaults = { fontSize: 24, fontFamily: 2, textAlign: 'left', verticalAlign: 'top', baseline: 18, strokeColor: color };
-                    // Defaults for lines/arrows - Explicitly set strokeColor
-                    const lineDefaults = { points: [[0, 0], [fallback(el.width, 50), fallback(el.height, 20)]], startArrowhead: null, endArrowhead: null, strokeColor: color };
-                    const arrowDefaults = { ...lineDefaults, endArrowhead: 'arrow', strokeColor: color };
+                    // Defaults for text - FORCE RED
+                    const textDefaults = { fontSize: 24, fontFamily: 2, textAlign: 'left', verticalAlign: 'top', baseline: 18, strokeColor: textColor };
+                    // Defaults for lines/arrows - use theme color
+                    const lineDefaults = { points: [[0, 0], [fallback(el.width, 50), fallback(el.height, 20)]], startArrowhead: null, endArrowhead: null, strokeColor: defaultColor };
+                    const arrowDefaults = { ...lineDefaults, endArrowhead: 'arrow', strokeColor: defaultColor };
 
                     let typeDefaults = {};
+                    let finalColor = defaultColor; // Default to theme color
+
                     // --- FORCE COLOR FOR TEXT ---
                     if (el.type === 'text') {
-                        typeDefaults = textDefaults; // Apply text defaults which include the correct strokeColor
-                        console.log(`[addDefaultExcalidrawProps] Processing text element [${index}]: "${el.text?.substring(0, 30)}..." - Forcing strokeColor: ${color}`);
+                        typeDefaults = textDefaults; // Apply text defaults which include the RED strokeColor
+                        finalColor = textColor; // Ensure final color is red
+                        console.log(`[addDefaultExcalidrawProps] Processing text element [${index}]: "${el.text?.substring(0, 30)}..." - Forcing strokeColor: ${finalColor}`);
                     }
                     else if (el.type === 'line') typeDefaults = lineDefaults;
                     else if (el.type === 'arrow') typeDefaults = arrowDefaults;
                     else {
                         // For other shapes, ensure strokeColor is set if not present
                         if (!el.strokeColor) {
-                            // el.strokeColor = color; // Let's rely on the defaults merge below
-                            console.log(`[addDefaultExcalidrawProps] Non-text element [${index}] type: ${el.type} - will use default strokeColor ${color}`);
+                            console.log(`[addDefaultExcalidrawProps] Non-text element [${index}] type: ${el.type} - will use default strokeColor ${finalColor}`);
                         }
                     }
 
                     // Merge default, received properties, and type-specific defaults
                     // Order: Defaults < Received Element < Type Defaults (to force text color)
                     const patched = { ...defaults, ...el, ...typeDefaults };
+                    // Ensure the final strokeColor is correctly set (especially for text)
+                    patched.strokeColor = finalColor;
+
 
                     // Correct dimensions and text
                     patched.width = Math.max(1, fallback(patched.width, 1));
@@ -669,12 +676,11 @@
                     // Correct points for lines/arrows
                     if (['line', 'arrow'].includes(patched.type)) { if (!Array.isArray(patched.points) || patched.points.length < 2 || patched.points.some(p => !Array.isArray(p) || p.length !== 2)) patched.points = [[0,0], [patched.width, patched.height]]; }
 
-                    // Final check: Ensure strokeColor is explicitly set if somehow missed (especially for non-text)
+                    // Final check: Ensure strokeColor is explicitly set if somehow missed
                     if (!patched.strokeColor) {
-                         console.warn(`[addDefaultExcalidrawProps] Element [${index}] type ${patched.type} still missing strokeColor after merge, forcing to ${color}`);
-                         patched.strokeColor = color;
+                         console.warn(`[addDefaultExcalidrawProps] Element [${index}] type ${patched.type} still missing strokeColor after merge, forcing to ${finalColor}`);
+                         patched.strokeColor = finalColor;
                     }
-
 
                     return patched;
                 }).filter(el => el !== null); // Filter out skipped invalid elements
@@ -691,7 +697,7 @@
 
                  // 1. Process drawing (if exists)
                  if (sceneData) {
-                     const validatedElements = addDefaultExcalidrawProps(sceneData); // Apply default properties, including color
+                     const validatedElements = addDefaultExcalidrawProps(sceneData); // Apply default properties, including RED text color
                      if (validateExcalidrawElements(validatedElements).isValid) {
                          state.lastAiElementsCount = state.excalidrawElements.length; // Store count BEFORE adding new ones
                          updateExcalidrawScene(validatedElements); // Add to board
@@ -739,8 +745,8 @@
 
 
             // --- Prompts and Gemini Calls ---
-            const _buildInitialPrompt = () => { /* ... (no changes, uses getBoardBackgroundColor/getElementColor) ... */ return `Jako AI Tutor vysvětli ZÁKLADY tématu "${state.currentTopic.name}". VŠE kresli POUZE na Excalidraw. Pozadí ${getBoardBackgroundColor()}, prvky barvou "${getElementColor()}", font Helvetica 24px (family:2). Umísti obsah na Y=50. Pokud chceš přidat POZNÁMKU do chatu, napiš ji MIMO JSON blok. Formát pro kresbu: \`EXCALIDRAW_SCENE: \`\`\`json [ ... ] \`\`\`\`.`; };
-            const _buildGeminiPayloadContents = (userPrompt) => { /* ... (no changes, uses getBoardBackgroundColor/getElementColor) ... */ const color = getElementColor(); const system = `Jsi AI Tutor "Justax". Vyučuješ téma: "${state.currentTopic.name}". Vysvětluj VŠE POUZE kreslením na Excalidraw. Textové poznámky nebo otázky pro studenta piš MIMO JSON blok. PRAVIDLA KRESLENÍ: 1. NOVÝ obsah umísti POD existující (aktuální nejnižší Y je ${state.lowestY}). Přičti k Y nových prvků alespoň ${VERTICAL_SPACING}. 2. Pozadí=${getBoardBackgroundColor()}, všechny prvky kresli barvou "${color}". 3. Font Helvetica 24px (family:2). Řeš příklady krok za krokem. Piš čitelně. Můžeš klást otázky vyžadující kreslení. 4. Kresbu formátuj VŽDY jako: \`EXCALIDRAW_SCENE: \`\`\`json [ ... ] \`\`\`\`.`; const history = state.geminiChatContext.slice(-MAX_GEMINI_HISTORY_TURNS * 2); const current = { role: "user", parts: [{ text: userPrompt }] }; const modelAck = { role: "model", parts: [{ text: `Rozumím. Budu kreslit na tabuli (${getBoardBackgroundColor()}), prvky ${color}, font Helvetica 24px, pod Y=${state.lowestY}. Kresbu dám do EXCALIDRAW_SCENE bloku. Případné poznámky nebo otázky napíšu mimo něj.` }]}; return [{ role: "user", parts:[{text:system}] }, modelAck, ...history, current]; };
+            const _buildInitialPrompt = () => { /* ... (no changes, uses getElementColor) ... */ return `Jako AI Tutor vysvětli ZÁKLADY tématu "${state.currentTopic.name}". VŠE kresli POUZE na Excalidraw. Pozadí ${getBoardBackgroundColor()}, prvky barvou "${getElementColor()}", font Helvetica 24px (family:2). Umísti obsah na Y=50. Pokud chceš přidat POZNÁMKU do chatu, napiš ji MIMO JSON blok. Formát pro kresbu: \`EXCALIDRAW_SCENE: \`\`\`json [ ... ] \`\`\`\`.`; };
+            const _buildGeminiPayloadContents = (userPrompt) => { /* ... (no changes, uses getElementColor) ... */ const color = getElementColor(); const system = `Jsi AI Tutor "Justax". Vyučuješ téma: "${state.currentTopic.name}". Vysvětluj VŠE POUZE kreslením na Excalidraw. Textové poznámky nebo otázky pro studenta piš MIMO JSON blok. PRAVIDLA KRESLENÍ: 1. NOVÝ obsah umísti POD existující (aktuální nejnižší Y je ${state.lowestY}). Přičti k Y nových prvků alespoň ${VERTICAL_SPACING}. 2. Pozadí=${getBoardBackgroundColor()}, všechny prvky kresli barvou "${color}". 3. Font Helvetica 24px (family:2). Řeš příklady krok za krokem. Piš čitelně. Můžeš klást otázky vyžadující kreslení. 4. Kresbu formátuj VŽDY jako: \`EXCALIDRAW_SCENE: \`\`\`json [ ... ] \`\`\`\`.`; const history = state.geminiChatContext.slice(-MAX_GEMINI_HISTORY_TURNS * 2); const current = { role: "user", parts: [{ text: userPrompt }] }; const modelAck = { role: "model", parts: [{ text: `Rozumím. Budu kreslit na tabuli (${getBoardBackgroundColor()}), prvky ${color}, font Helvetica 24px, pod Y=${state.lowestY}. Kresbu dám do EXCALIDRAW_SCENE bloku. Případné poznámky nebo otázky napíšu mimo něj.` }]}; return [{ role: "user", parts:[{text:system}] }, modelAck, ...history, current]; };
             const sendToGemini = async (prompt) => { /* ... (no changes) ... */ if (!GEMINI_API_KEY || GEMINI_API_KEY.startsWith('YOUR_')) {showToast("Chyba: AI Key.", "error"); updateGeminiThinkingState(false); return;} if (!state.currentTopic) {showToast("Chyba: Není téma.", "error"); updateGeminiThinkingState(false); return;} if (!navigator.onLine) {showToast("Chyba: Offline.", "error"); updateGeminiThinkingState(false); return;} console.log(`Sending: "${prompt.substring(0, 100)}..."`); const timestamp = new Date(); updateGeminiThinkingState(true); const contents = _buildGeminiPayloadContents(prompt); const body = { contents, generationConfig: { temperature: 0.6, topP: 0.95, topK: 40, maxOutputTokens: 8192 }, safetySettings: [{ category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" }, { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" }, { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" }, { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" }] }; try { const response = await fetch(GEMINI_API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }); if (!response.ok) { let errorText = `API Chyba (${response.status})`; try { const errData = await response.json(); errorText += `: ${errData?.error?.message || 'Neznámá'}`; } catch (e) { errorText += `: ${await response.text()}`; } throw new Error(errorText); } const data = await response.json(); const candidate = data.candidates?.[0]; if (data.promptFeedback?.blockReason) throw new Error(`Blokováno: ${data.promptFeedback.blockReason}.`); if (!candidate) throw new Error('Chybná odpověď AI.'); if (candidate.finishReason && !["STOP", "MAX_TOKENS"].includes(candidate.finishReason)) { if(candidate.finishReason === 'SAFETY') throw new Error('Blokováno filtrem AI.'); console.warn(`Gemini finishReason: ${candidate.finishReason}.`); } const text = candidate.content?.parts?.[0]?.text; if (!text) { if (candidate.finishReason === 'MAX_TOKENS') throw new Error('Max. délka odpovědi.'); else throw new Error('Prázdná odpověď AI.'); } state.geminiChatContext.push({ role: "user", parts: [{ text: prompt }] }); state.geminiChatContext.push({ role: "model", parts: [{ text }] }); if (state.geminiChatContext.length > MAX_GEMINI_HISTORY_TURNS * 2) state.geminiChatContext.splice(0, state.geminiChatContext.length - MAX_GEMINI_HISTORY_TURNS * 2); processGeminiResponse(text, timestamp); } catch (error) { console.error('Gemini Chyba:', error); showToast(`Chyba AI: ${error.message}`, "error"); handleGeminiError(error.message, timestamp); } finally { if (!state.isWaitingForBoardAnswer) { updateGeminiThinkingState(false); } } };
             const handleGeminiError = (msg, time) => { /* ... (no changes) ... */ addChatMessage(`Chyba: ${msg}`, 'gemini', false, time); state.isWaitingForBoardAnswer = false; updateGeminiThinkingState(false); manageUIState('learning'); };
 
