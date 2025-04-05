@@ -429,7 +429,7 @@
                              },
                              UIOptions: { canvasActions: { saveToActiveFile: false, loadScene: false, export: { saveFileToDisk: true }, clearCanvas: false } },
                              viewModeEnabled: true, zenModeEnabled: false, gridModeEnabled: false,
-                             onChange: (elements, appState) => { console.log(`[Excalidraw onChange] Elements: ${elements.length}, ViewMode: ${appState.viewModeEnabled}`); /* state.excalidrawElements = elements; // Avoid storing full elements here unless needed */ }
+                             onChange: (elements, appState) => { /* console.log(`[Excalidraw onChange] Elements: ${elements.length}, ViewMode: ${appState.viewModeEnabled}`); */ /* state.excalidrawElements = elements; // Avoid storing full elements here unless needed */ }
                          })
                      );
                      console.log("Excalidraw component mount initiated.");
@@ -444,16 +444,26 @@
                  if (!state.excalidrawAPI) { console.warn("Excalidraw API not available for scene update."); showToast("Chyba: Kreslící plocha není připravena.", "error"); return; }
                  if (!Array.isArray(elements)) { console.warn("Attempted to update scene with non-array elements, clearing scene instead:", elements); elements = []; }
 
-                 // --- *** Enhanced Logging - KEY FOR DEBUGGING *** ---
-                 console.warn(`[PRE-UPDATE] Attempting Excalidraw update with ${elements.length} elements.`);
-                 console.warn(`[PRE-UPDATE] Data (stringified):`, JSON.stringify(elements)); // Log the exact data
+                 // --- *** Enhanced Logging - START *** ---
+                 console.groupCollapsed(`[Excalidraw Update Attempt] Updating with ${elements.length} elements.`);
+                 console.log("Raw elements data:", JSON.stringify(elements));
                  let currentAppState = {};
                  if (state.excalidrawAPI.getAppState) {
-                      try { currentAppState = state.excalidrawAPI.getAppState(); console.warn('[PRE-UPDATE] Current App State:', JSON.stringify(currentAppState)); }
+                      try { currentAppState = state.excalidrawAPI.getAppState(); console.log('Current App State:', JSON.stringify(currentAppState)); }
                       catch (e) { console.warn("Couldn't get/stringify appState", e); }
                  } else { console.warn("getAppState not available on API"); }
-                 // --- *** End Enhanced Logging *** ---
-
+                 // Log specific details of TEXT elements
+                 const textElements = elements.filter(el => el && el.type === 'text');
+                 if (textElements.length > 0) {
+                    console.log(`Found ${textElements.length} text elements:`);
+                    textElements.forEach((el, idx) => {
+                        console.log(`  Text Element #${idx}: text="${el.text}", x=${el.x}, y=${el.y}, w=${el.width}, h=${el.height}, strokeColor=${el.strokeColor}, bgColor=${el.backgroundColor}, opacity=${el.opacity}, fontSize=${el.fontSize}, fontFamily=${el.fontFamily}`);
+                    });
+                 } else {
+                    console.log("No text elements found in this update.");
+                 }
+                 console.groupEnd();
+                 // --- *** Enhanced Logging - END *** ---
 
                  const placeholder = uiElements.excalidrawContainer?.querySelector('.loading-placeholder');
                  if (placeholder) placeholder.style.display = 'none';
@@ -467,14 +477,13 @@
                      console.log("Excalidraw updateScene called successfully.");
                      state.excalidrawElements = elements; // Update local cache ONLY after successful call
 
-                    // --- Temporarily disable scrollToContent for testing ---
-                    // console.log("Skipping scrollToContent for testing.");
-                    /*
+                    // Optional: Scroll to content after a slight delay
                     setTimeout(() => {
                         if (!state.excalidrawAPI || !state.excalidrawAPI.scrollToContent) {
                              console.warn("scrollToContent function not available or API lost."); return;
                         }
-                        const currentElements = state.excalidrawAPI.getSceneElements();
+                        // Get current elements directly from API to be sure
+                        const currentElements = state.excalidrawAPI.getSceneElements ? state.excalidrawAPI.getSceneElements() : elements;
                         if (currentElements?.length > 0) {
                             console.log("Attempting to scroll to content...");
                             try {
@@ -483,9 +492,7 @@
                         } else {
                             console.log("No elements to scroll to after update.");
                         }
-                    }, 300); // Slightly longer delay
-                    */
-                    // --- End temporary disable ---
+                    }, 300);
 
                  } catch (error) {
                      console.error("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
@@ -494,7 +501,12 @@
                      console.error("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
                      showToast("Kritická chyba při vykreslování na plochu!", "error", 6000);
                      // Optionally try to recover by clearing the scene?
-                     // try { state.excalidrawAPI.updateScene({ elements: [] }); } catch (e) {}
+                     try {
+                         console.warn("Attempting to recover by clearing the scene...");
+                         state.excalidrawAPI.updateScene({ elements: [] });
+                      } catch (e) {
+                         console.error("Failed to clear scene after error:", e);
+                      }
                  }
              };
 
@@ -568,7 +580,9 @@
              /** Validates Excalidraw elements, logging details about invalid ones. */
             const validateExcalidrawElements = (elements) => { /* (Logic remains same as previous version) */ if (!Array.isArray(elements)) { console.error("Validation failed: Input is not an array."); return { isValid: false, invalidElementsDetails: [{ index: -1, reason: "Input is not an array", element: elements }] }; } const invalidElementsDetails = []; const requiredPropsByType = { text: ['type', 'x', 'y', 'width', 'height', 'text', 'fontSize', 'fontFamily'], line: ['type', 'x', 'y', 'width', 'height', 'points'], arrow: ['type', 'x', 'y', 'width', 'height', 'points'], rectangle: ['type', 'x', 'y', 'width', 'height'], ellipse: ['type', 'x', 'y', 'width', 'height'], }; const numericProps = ['x', 'y', 'width', 'height', 'angle', 'strokeWidth', 'fontSize', 'opacity']; elements.forEach((el, index) => { let elementIssues = []; if (typeof el !== 'object' || el === null) { elementIssues.push("Element is not an object or is null."); } else if (!el.type || typeof el.type !== 'string') { elementIssues.push("Missing or invalid 'type' property."); } else { const requiredProps = requiredPropsByType[el.type] || ['type', 'x', 'y', 'width', 'height']; for (const prop of requiredProps) { if (el[prop] === undefined || el[prop] === null) { elementIssues.push(`Missing or null required property: '${prop}'.`); } } for (const prop of numericProps) { if (el[prop] !== undefined && el[prop] !== null && typeof el[prop] !== 'number') { elementIssues.push(`Non-numeric value for property '${prop}': ${JSON.stringify(el[prop])}.`); } } if (typeof el.width === 'number' && el.width < 0) elementIssues.push(`Negative width: ${el.width}.`); if (typeof el.height === 'number' && el.height < 0) elementIssues.push(`Negative height: ${el.height}.`); if (typeof el.opacity === 'number' && (el.opacity < 0 || el.opacity > 100)) elementIssues.push(`Invalid opacity: ${el.opacity}.`); if (el.type === 'text' && typeof el.text !== 'string') { elementIssues.push("Invalid 'text' property (must be string)."); } if (['line', 'arrow'].includes(el.type)) { if (!Array.isArray(el.points) || el.points.length < 2) { elementIssues.push("Invalid 'points' array (must be array with at least 2 points)."); } else { const hasInvalidPoint = el.points.some(p => !Array.isArray(p) || p.length !== 2 || typeof p[0] !== 'number' || typeof p[1] !== 'number'); if (hasInvalidPoint) { elementIssues.push("Invalid point format within 'points' array (each point must be [number, number])."); } } } } if (elementIssues.length > 0) { invalidElementsDetails.push({ index, reasons: elementIssues, element: el }); } }); const overallIsValid = invalidElementsDetails.length === 0; if (!overallIsValid) { console.error(`Excalidraw data validation failed. Found issues in ${invalidElementsDetails.length} element(s).`); invalidElementsDetails.forEach(inv => { console.error(`--> Invalid Element (Index ${inv.index}): Reasons: ${inv.reasons.join(', ')}`); console.log("Problematic Element Data:"); console.dir(inv.element); }); } else { console.log("Excalidraw data validation successful."); } return { isValid: overallIsValid, invalidElementsDetails }; };
              /** Adds missing default properties and attempts to fix common issues in Excalidraw elements. */
-            const addDefaultExcalidrawProps = (elements) => { /* (Logic remains same as previous version) */ if (!Array.isArray(elements)) return elements; console.log("Patching Excalidraw elements with default properties..."); const defaultSeed = Math.floor(Math.random() * 2 ** 31); return elements.map((el, index) => { if (typeof el !== 'object' || el === null) { console.warn(`Skipping patching for invalid element at index ${index}:`, el); return el; } el.x = (typeof el.x === 'number') ? el.x : 0; el.y = (typeof el.y === 'number') ? el.y : 0; el.width = (typeof el.width === 'number' && el.width >= 0) ? el.width : 10; el.height = (typeof el.height === 'number' && el.height >= 0) ? el.height : 10; el.angle = (typeof el.angle === 'number') ? el.angle : 0; el.strokeColor = (typeof el.strokeColor === 'string') ? el.strokeColor : '#000000'; el.backgroundColor = el.backgroundColor ?? 'transparent'; el.fillStyle = el.fillStyle ?? 'hachure'; el.strokeWidth = (typeof el.strokeWidth === 'number') ? el.strokeWidth : 1; el.strokeStyle = el.strokeStyle ?? 'solid'; el.roughness = (typeof el.roughness === 'number') ? el.roughness : 0; el.opacity = (typeof el.opacity === 'number' && el.opacity >= 0 && el.opacity <= 100) ? el.opacity : 100; el.strokeSharpness = el.strokeSharpness ?? (el.type === 'line' || el.type === 'arrow' || el.type === 'freedraw' ? 'round' : 'sharp'); el.seed = (typeof el.seed === 'number') ? el.seed : defaultSeed; el.version = el.version ?? 2; el.versionNonce = el.versionNonce ?? Math.floor(Math.random() * 2 ** 31); el.isDeleted = el.isDeleted ?? false; el.groupIds = Array.isArray(el.groupIds) ? el.groupIds : []; el.frameId = el.frameId ?? null; el.boundElements = Array.isArray(el.boundElements) ? el.boundElements : null; el.updated = el.updated ?? Date.now(); el.link = el.link ?? null; el.locked = el.locked ?? false; if (el.type === 'text') { el.fontSize = (typeof el.fontSize === 'number' && el.fontSize > 0) ? el.fontSize : 20; el.fontFamily = (typeof el.fontFamily === 'number') ? el.fontFamily : 1; el.text = (typeof el.text === 'string') ? el.text : '(Chybějící text)'; el.textAlign = el.textAlign ?? 'left'; el.verticalAlign = el.verticalAlign ?? 'top'; el.baseline = el.baseline ?? 18; el.containerId = el.containerId ?? null; el.originalText = el.originalText ?? el.text; } else if (['rectangle', 'ellipse', 'diamond'].includes(el.type)) { el.roundness = el.roundness ?? null; } else if (['line', 'arrow', 'freedraw'].includes(el.type)) { if (!Array.isArray(el.points) || el.points.length < (el.type === 'freedraw' ? 1: 2) || el.points.some(p => !Array.isArray(p) || p.length !== 2 || typeof p[0] !== 'number' || typeof p[1] !== 'number')) { console.warn(`Invalid points data found for ${el.type} element (index ${index}), resetting to default:`, el.points); el.points = (el.type === 'freedraw' ? [[0,0]] : [[0, 0], [el.width || 10, el.height || 10]]); } el.lastCommittedPoint = el.lastCommittedPoint ?? null; el.startBinding = el.startBinding ?? null; el.endBinding = el.endBinding ?? null; el.startArrowhead = el.startArrowhead ?? null; el.endArrowhead = el.endArrowhead ?? (el.type === 'arrow' ? 'arrow' : null); } return el; }); };
+            const addDefaultExcalidrawProps = (elements) => { /* (Logic remains same as previous version) */ if (!Array.isArray(elements)) return elements; console.log("Patching Excalidraw elements with default properties..."); const defaultSeed = Math.floor(Math.random() * 2 ** 31); return elements.map((el, index) => { if (typeof el !== 'object' || el === null) { console.warn(`Skipping patching for invalid element at index ${index}:`, el); return el; } el.x = (typeof el.x === 'number') ? el.x : 0; el.y = (typeof el.y === 'number') ? el.y : 0; el.width = (typeof el.width === 'number' && el.width >= 0) ? el.width : 10; el.height = (typeof el.height === 'number' && el.height >= 0) ? el.height : 10; el.angle = (typeof el.angle === 'number') ? el.angle : 0; el.strokeColor = (typeof el.strokeColor === 'string') ? el.strokeColor : '#000000'; // Default to black
+ el.backgroundColor = el.backgroundColor ?? 'transparent'; el.fillStyle = el.fillStyle ?? 'hachure'; el.strokeWidth = (typeof el.strokeWidth === 'number') ? el.strokeWidth : 1; el.strokeStyle = el.strokeStyle ?? 'solid'; el.roughness = (typeof el.roughness === 'number') ? el.roughness : 0; el.opacity = (typeof el.opacity === 'number' && el.opacity >= 0 && el.opacity <= 100) ? el.opacity : 100; // Default to fully opaque
+ el.strokeSharpness = el.strokeSharpness ?? (el.type === 'line' || el.type === 'arrow' || el.type === 'freedraw' ? 'round' : 'sharp'); el.seed = (typeof el.seed === 'number') ? el.seed : defaultSeed; el.version = el.version ?? 2; el.versionNonce = el.versionNonce ?? Math.floor(Math.random() * 2 ** 31); el.isDeleted = el.isDeleted ?? false; el.groupIds = Array.isArray(el.groupIds) ? el.groupIds : []; el.frameId = el.frameId ?? null; el.boundElements = Array.isArray(el.boundElements) ? el.boundElements : null; el.updated = el.updated ?? Date.now(); el.link = el.link ?? null; el.locked = el.locked ?? false; if (el.type === 'text') { el.fontSize = (typeof el.fontSize === 'number' && el.fontSize > 0) ? el.fontSize : 20; el.fontFamily = (typeof el.fontFamily === 'number') ? el.fontFamily : 1; el.text = (typeof el.text === 'string') ? el.text : '(Chybějící text)'; el.textAlign = el.textAlign ?? 'left'; el.verticalAlign = el.verticalAlign ?? 'top'; el.baseline = el.baseline ?? 18; el.containerId = el.containerId ?? null; el.originalText = el.originalText ?? el.text; } else if (['rectangle', 'ellipse', 'diamond'].includes(el.type)) { el.roundness = el.roundness ?? null; } else if (['line', 'arrow', 'freedraw'].includes(el.type)) { if (!Array.isArray(el.points) || el.points.length < (el.type === 'freedraw' ? 1: 2) || el.points.some(p => !Array.isArray(p) || p.length !== 2 || typeof p[0] !== 'number' || typeof p[1] !== 'number')) { console.warn(`Invalid points data found for ${el.type} element (index ${index}), resetting to default:`, el.points); el.points = (el.type === 'freedraw' ? [[0,0]] : [[0, 0], [el.width || 10, el.height || 10]]); } el.lastCommittedPoint = el.lastCommittedPoint ?? null; el.startBinding = el.startBinding ?? null; el.endBinding = el.endBinding ?? null; el.startArrowhead = el.startArrowhead ?? null; el.endArrowhead = el.endArrowhead ?? (el.type === 'arrow' ? 'arrow' : null); } return el; }); };
              /** Processes Gemini response, handles Excalidraw data, and updates UI. */
             const processGeminiResponse = (rawResponseText, targetArea, timestamp) => {
                  removeThinkingIndicator();
