@@ -3,20 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Justax - Výuka s Interaktivní Tabulí v2</title>
+    <title>Justax - Výuka na Tabuli v3</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <script>
-        if (typeof window.MathJax === 'undefined') {
-            window.MathJax = {
-                tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$']], processEscapes: true },
-                options: { skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'], ignoreHtmlClass: 'tex2jax_ignore' },
-                startup: { ready: () => { MathJax.startup.defaultReady(); MathJax.startup.promise.then(() => console.log('MathJax loaded and ready.')); } }
-            };
-        } else { console.warn("window.MathJax already defined."); }
+        // MathJax config - beze změny
+        if (typeof window.MathJax === 'undefined') { window.MathJax = { tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$']], processEscapes: true }, options: { skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'], ignoreHtmlClass: 'tex2jax_ignore' }, startup: { ready: () => { MathJax.startup.defaultReady(); MathJax.startup.promise.then(() => console.log('MathJax ready.')); } } }; } else { console.warn("MathJax already defined."); }
     </script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 
@@ -31,7 +26,7 @@
     <script src="https://unpkg.com/@excalidraw/excalidraw@0.17.3/dist/excalidraw.production.min.js" crossorigin></script>
 
     <style>
-        /* --- CSS Styly --- */
+        /* --- CSS Styly v3 --- */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; scroll-behavior: smooth; }
         :root {
             --primary-rgb: 67, 97, 238; --primary: #4361ee; --primary-light: #4895ef; --secondary: #3f37c9;
@@ -39,64 +34,67 @@
             --dark: #1e2a3a; --light: #f8f9fa; --gray: #6c757d; --gray-light: #dee2e6;
             --gray-dark: #343a40; --gradient-1: linear-gradient(135deg, #4361ee, #3a0ca3);
             --gradient-2: linear-gradient(135deg, #4cc9f0, #4361ee); --white: #ffffff;
-            --sidebar-width: 260px; --transition-speed: 0.3s; --card-radius: 14px;
-            --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.05); --shadow-md: 0 5px 12px rgba(0, 0, 0, 0.07);
-            --shadow-lg: 0 10px 20px rgba(0, 0, 0, 0.1); --text-primary: #2d3748;
-            --text-secondary: #4a5568; --text-muted: #718096; --page-bg: #f0f2f5;
-            --panel-bg: var(--white); --avatar-size: 38px;
-            --board-bg-light: var(--white); /* Bílá tabule */
-            --board-bg-dark: #2d3748;
-            --element-color-light: #000000; /* Černá */
-            --element-color-dark: #EAEAEA;
+            --sidebar-width: 260px; --transition-speed: 0.3s; --card-radius: 16px; /* Větší radius */
+            --shadow-sm: 0 3px 6px rgba(0, 0, 0, 0.06); --shadow-md: 0 6px 12px rgba(0, 0, 0, 0.08);
+            --shadow-lg: 0 12px 24px rgba(0, 0, 0, 0.1); --text-primary: #2d3748;
+            --text-secondary: #4a5568; --text-muted: #718096; --page-bg: #f4f7fc; /* Světlejší modrošedá */
+            --panel-bg: var(--white); --avatar-size: 40px; /* Větší avatar */
+            --board-bg-light: #FFF0F5; /* LavenderBlush - RŮŽOVÁ */
+            --board-bg-dark: #2D132C; /* Tmavě fialová */
+            /* Barvy prvků nyní řídí motiv Excalidraw */
         }
         html, body { height: 100%; overflow: hidden; }
         body { background-color: var(--page-bg); color: var(--text-primary); min-height: 100vh; display: flex; font-size: 15px; }
 
-        /* --- Sidebar (beze změny) --- */
-        .sidebar { width: var(--sidebar-width); height: 100vh; position: fixed; top: 0; left: 0; background: var(--gradient-1); color: var(--white); padding: 1.5rem 1rem; display: flex; flex-direction: column; z-index: 1050; box-shadow: var(--shadow-lg); transition: transform var(--transition-speed) ease, width var(--transition-speed) ease; }
+        /* --- Sidebar --- */
+        .sidebar { /* ... (stejné jako předtím) ... */ width: var(--sidebar-width); height: 100vh; position: fixed; top: 0; left: 0; background: var(--gradient-1); color: var(--white); padding: 1.5rem 1rem; display: flex; flex-direction: column; z-index: 1050; box-shadow: var(--shadow-lg); transition: transform var(--transition-speed) ease, width var(--transition-speed) ease; }
         .sidebar-header { display: flex; align-items: center; margin-bottom: 2rem; padding: 0 0.75rem; } .sidebar-logo { font-size: 1.6rem; font-weight: 700; color: var(--white); text-decoration: none; display: flex; align-items: center; gap: 0.8rem; transition: transform 0.2s ease; } .sidebar-logo:hover { transform: scale(1.03); } .sidebar-logo i { font-size: 1.8rem; } .sidebar-menu { list-style: none; padding: 0; margin: 0; flex-grow: 1; overflow-y: auto; } .sidebar-item { margin-bottom: 0.5rem; } .sidebar-link { display: flex; align-items: center; padding: 0.85rem 1.1rem; color: rgba(255, 255, 255, 0.9); text-decoration: none; border-radius: 10px; transition: all 0.2s ease; font-weight: 500; position: relative; } .sidebar-link i { margin-right: 0.8rem; font-size: 1.25rem; width: 24px; text-align: center; transition: transform 0.2s ease; } .sidebar-link.active, .sidebar-link:hover { background-color: rgba(255, 255, 255, 0.2); color: var(--white); } .sidebar-link:hover i { transform: scale(1.1); } .sidebar-link.active::before { content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 4px; height: 65%; background-color: var(--white); border-radius: 0 4px 4px 0; } .sidebar-footer { margin-top: auto; padding: 1rem; font-size: 0.85rem; color: rgba(255, 255, 255, 0.7); text-align: center; flex-shrink: 0; } .user-profile { display: flex; align-items: center; padding: 1rem; margin-top: 1rem; background-color: rgba(255, 255, 255, 0.1); border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.15); flex-shrink: 0;} .user-avatar { width: 42px; height: 42px; border-radius: 50%; background-color: var(--primary-light); display: flex; align-items: center; justify-content: center; margin-right: 0.8rem; font-weight: 500; overflow: hidden; color: var(--white); border: 2px solid rgba(255, 255, 255, 0.4); } .user-avatar img { width: 100%; height: 100%; object-fit: cover; } .user-info { flex-grow: 1; line-height: 1.3; } .user-name { font-weight: 600; font-size: 0.95rem; } .user-role { font-size: 0.8rem; opacity: 0.8; }
+
 
         /* --- Hlavní obsah --- */
         main { flex: 1; margin-left: var(--sidebar-width); transition: margin var(--transition-speed) ease; width: calc(100% - var(--sidebar-width)); height: 100vh; display: flex; flex-direction: column; overflow: hidden; background-color: var(--page-bg); }
-        .main-header { padding: 1rem 1.75rem; background-color: var(--white); box-shadow: 0 2px 4px rgba(0,0,0,0.04); display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; z-index: 100; border-bottom: 1px solid var(--gray-light); }
-        .header-content h1 { font-size: 1.5rem; font-weight: 600; color: var(--dark); margin: 0; } .header-actions { display: flex; align-items: center; gap: 0.75rem; } .header-actions button, .header-actions a { font-size: 0.9rem; padding: 0.6rem 1.2rem; }
+        .main-header { padding: 1rem 1.75rem; background-color: var(--white); box-shadow: var(--shadow-sm); display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; z-index: 100; border-bottom: 1px solid var(--gray-light); }
+        .header-content h1 { font-size: 1.6rem; font-weight: 600; color: var(--dark); margin: 0; } .header-actions { display: flex; align-items: center; gap: 0.75rem; } .header-actions button, .header-actions a { font-size: 0.9rem; padding: 0.6rem 1.2rem; }
         .topic-bar { padding: 0.7rem 1.75rem; background-color: var(--light); border-bottom: 1px solid var(--gray-light); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; flex-shrink: 0; min-height: 60px; }
         #current-topic-display { font-size: 1.1rem; font-weight: 500; color: var(--text-secondary); flex-grow: 1; } #current-topic-display strong { color: var(--primary); font-weight: 600; } #current-topic-display .placeholder { font-style: italic; color: var(--text-muted); } #current-topic-display .fa-spinner { margin-right: 0.5rem; }
 
-        /* --- Call Interface --- */
-        .call-interface {
+        /* --- Learning Interface - Layout (Tabule + Chat) --- */
+        .learning-interface {
             flex-grow: 1; display: flex; overflow: hidden;
-            padding: 1.5rem; gap: 1.5rem;
+            padding: 1.5rem; gap: 1.5rem; /* Větší mezery a padding */
             height: calc(100vh - 65px - 60px - 3rem);
         }
 
         /* --- Excalidraw Oblast --- */
-        .ai-presenter-area {
-            flex: 1 1 60%; /* Mírně větší */
-            display: flex; flex-direction: column; background-color: var(--panel-bg);
-            border-radius: var(--card-radius); box-shadow: var(--shadow-md);
-            overflow: hidden; border: 1px solid var(--gray-light); min-height: 0; position: relative;
+        .board-area { /* Přejmenováno pro srozumitelnost */
+            flex: 3 1 70%; display: flex; flex-direction: column;
+            background-color: var(--panel-bg); border-radius: var(--card-radius);
+            box-shadow: var(--shadow-md); overflow: hidden; border: 1px solid var(--gray-light);
+            min-height: 0; position: relative; transition: box-shadow 0.3s ease;
         }
-        .ai-presenter-header { padding: 0.8rem 1.25rem; border-bottom: 1px solid var(--gray-light); display: flex; align-items: center; justify-content: space-between; background-color: #fdfdff; flex-shrink: 0; }
-        .ai-presenter-header h2 { font-size: 1.1rem; font-weight: 600; color: var(--dark); margin: 0; display: flex; align-items: center; gap: 0.7rem;}
-        .ai-presenter-header h2 i { color: var(--primary); }
-        .ai-presenter-header-controls { display: flex; gap: 0.5rem; }
-        .ai-presenter-header-controls button { font-size: 0.8rem; padding: 0.3rem 0.6rem; background-color: var(--light); border: 1px solid var(--gray-light); border-radius: 6px; color: var(--text-secondary); cursor: pointer; transition: all 0.2s ease;}
-        .ai-presenter-header-controls button:hover:not(:disabled) { background-color: var(--gray-light); color: var(--dark); border-color: var(--gray); }
-        .ai-presenter-header-controls button:disabled { opacity: 0.5; cursor: not-allowed; }
-        .ai-presenter-header-controls button i { margin-right: 0.3rem; }
+        .board-area:hover { box-shadow: var(--shadow-lg); }
+        .board-header { /* Přejmenováno */
+             padding: 0.8rem 1.25rem; border-bottom: 1px solid var(--gray-light); display: flex; align-items: center; justify-content: space-between; background-color: #fdfdff; flex-shrink: 0;
+        }
+        .board-header h2 { font-size: 1.1rem; font-weight: 600; color: var(--dark); margin: 0; display: flex; align-items: center; gap: 0.7rem;}
+        .board-header h2 i { color: var(--primary); }
+        .board-header-controls { display: flex; gap: 0.5rem; }
+        .board-header-controls button { font-size: 0.8rem; padding: 0.4rem 0.8rem; background-color: var(--light); border: 1px solid var(--gray-light); border-radius: 6px; color: var(--text-secondary); cursor: pointer; transition: all 0.2s ease;}
+        .board-header-controls button:hover:not(:disabled) { background-color: var(--gray-light); color: var(--dark); border-color: var(--gray); transform: translateY(-1px); }
+        .board-header-controls button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        .board-header-controls button i { margin-right: 0.3rem; }
 
         #excalidraw-container {
-            flex-grow: 1; position: relative; overflow: auto; /* Scrollbar zde */
-            min-height: 0; background-color: var(--board-bg-light); /* Bílé pozadí */
+            flex-grow: 1; position: relative; overflow: auto;
+            min-height: 0; background-color: var(--board-bg-light); /* RŮŽOVÁ */
             border-radius: 0 0 var(--card-radius) var(--card-radius);
+            /* Vylepšený scrollbar */
+            scrollbar-width: thin; scrollbar-color: var(--gray-light) transparent;
         }
-        /* ... (styly pro scrollbar) ... */
-         #excalidraw-container::-webkit-scrollbar { width: 10px; height: 10px; }
-         #excalidraw-container::-webkit-scrollbar-track { background: rgba(0,0,0,0.05); border-radius: 5px; }
-         #excalidraw-container::-webkit-scrollbar-thumb { background-color: var(--gray-light); border-radius: 5px; border: 2px solid transparent; background-clip: content-box;}
-         #excalidraw-container::-webkit-scrollbar-thumb:hover { background-color: var(--gray); }
-         #excalidraw-container { scrollbar-width: thin; scrollbar-color: var(--gray-light) rgba(0,0,0,0.05); }
+        #excalidraw-container::-webkit-scrollbar { width: 10px; height: 10px; }
+        #excalidraw-container::-webkit-scrollbar-track { background: transparent; margin: 2px;}
+        #excalidraw-container::-webkit-scrollbar-thumb { background-color: var(--gray-light); border-radius: 5px; border: 2px solid transparent; background-clip: content-box;}
+        #excalidraw-container::-webkit-scrollbar-thumb:hover { background-color: var(--gray); }
 
         #excalidraw-container > .excalidraw-wrapper { width: 100% !important; height: 100% !important; display: flex !important; flex-direction: column !important; }
         #excalidraw-container .excalidraw { width: 100% !important; min-height: 100% !important; height: auto !important; border: none !important; }
@@ -105,84 +103,68 @@
         #excalidraw-container .loading-placeholder p { font-size: 1rem; }
         @keyframes spinPulse { 0% { transform: scale(1) rotate(0deg); opacity: 0.7; } 50% { transform: scale(1.1) rotate(180deg); opacity: 1; } 100% { transform: scale(1) rotate(360deg); opacity: 0.7; } }
 
-        /* --- Interaction Panel (Zachován, ale záložka Vysvětlení skrytá) --- */
-        .interaction-panel {
-            flex: 1 1 40%; max-width: 450px; min-width: 320px;
+        /* --- Chat Panel --- */
+        .chat-panel { /* Přejmenováno z interaction-panel */
+            flex: 1 1 30%; max-width: 400px; min-width: 300px;
             display: flex; flex-direction: column; background-color: var(--panel-bg);
             border-radius: var(--card-radius); box-shadow: var(--shadow-md);
             overflow: hidden; border: 1px solid var(--gray-light); min-height: 0;
+            transition: box-shadow 0.3s ease;
         }
-        .interaction-tabs { display: flex; border-bottom: 1px solid var(--gray-light); background-color: #fdfdff; flex-shrink: 0; }
-        .interaction-tab { flex: 1; text-align: center; padding: 0.9rem 1rem; font-weight: 500; color: var(--text-secondary); cursor: pointer; transition: all 0.2s ease; border-bottom: 3px solid transparent; font-size: 0.95rem; position: relative; }
-        .interaction-tab:hover { color: var(--primary); background-color: rgba(var(--primary-rgb), 0.03); }
-        .interaction-tab.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 600; }
-        .interaction-tab i { margin-right: 0.5rem; font-size: 1.05em; }
-        /* --- SKRYTÍ ZÁLOŽKY VYSVĚTLENÍ --- */
-        .interaction-tab[data-tab="explanation-tab"] { display: none !important; }
-
-        .interaction-content-area { flex-grow: 1; overflow: hidden; position: relative; min-height: 0; background-color: var(--panel-bg); }
-        .tab-content { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; overflow: hidden; visibility: hidden; opacity: 0; transition: none; }
-        .tab-content.active { visibility: visible; opacity: 1; }
-        /* --- SKRYTÍ OBSAHU VYSVĚTLENÍ --- */
-        #explanation-tab-content { display: none !important; }
-        /* Zajištění, že chat je vždy aktivní */
-        #chat-tab-content { visibility: visible; opacity: 1; }
-
-        /* --- Chat Panel (Vnitřní styly) --- */
-        #chat-tab-content { display: flex; flex-direction: column; height: 100%; }
+        .chat-panel:hover { box-shadow: var(--shadow-lg); }
         .chat-header { padding: 0.9rem 1.25rem; border-bottom: 1px solid var(--gray-light); background-color: #fdfdff; font-size: 1.1rem; font-weight: 600; color: var(--dark); display: flex; align-items: center; gap: 0.7rem; flex-shrink: 0; }
         .chat-header i { color: var(--secondary); }
         .chat-area { flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 0; }
         .chat-messages { flex-grow: 1; padding: 1rem; overflow-y: auto; scrollbar-color: var(--gray-light) var(--panel-bg); min-height: 0; }
-        /* ... (zbytek stylů chatu jako v předchozí verzi) ... */
-         .chat-messages::-webkit-scrollbar { width: 8px; } .chat-messages::-webkit-scrollbar-track { background: var(--panel-bg); } .chat-messages::-webkit-scrollbar-thumb { background-color: var(--gray-light); border-radius: 4px; border: 2px solid var(--panel-bg); }
-         .chat-message { display: flex; gap: 0.7rem; max-width: 95%; align-items: flex-end; margin-bottom: 1rem; }
-         .chat-message.user { margin-left: auto; flex-direction: row-reverse; }
-         .message-avatar { width: var(--avatar-size); height: var(--avatar-size); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 500; font-size: 0.9rem; flex-shrink: 0; box-shadow: var(--shadow-sm); border: 2px solid var(--panel-bg); }
-         .chat-message.user .message-avatar { background: var(--success); color: white; } .chat-message.model .message-avatar { background: var(--primary); color: white; }
-         .message-bubble { padding: 0.7rem 1.1rem; border-radius: 16px; line-height: 1.55; word-wrap: break-word; box-shadow: var(--shadow-sm); position: relative; background-color: var(--white); color: var(--text-primary); border: 1px solid #eef2f7; }
-         .chat-message.model .message-bubble { border-bottom-left-radius: 5px; background: #f8faff; } .chat-message.user .message-bubble { background: var(--gradient-1); color: white; border: none; border-bottom-right-radius: 5px; }
-         .message-timestamp { font-size: 0.7rem; color: var(--text-muted); margin-top: 4px; display: block; text-align: left; opacity: 0.8; } .chat-message.user .message-timestamp { text-align: right; }
-         .message-thinking-indicator { background: var(--white); display: flex; align-items: center; padding: 0.7rem 1rem; border-radius: 16px; box-shadow: var(--shadow-sm); border: 1px solid #eef2f7; width: fit-content; border-bottom-left-radius: 5px;}
-         .typing-dot { width: 6px; height: 6px; background-color: var(--gray); border-radius: 50%; margin: 0 2px; display: inline-block; animation: typing 1.3s infinite ease-in-out; } .typing-dot:nth-child(2) { animation-delay: 0.2s; } .typing-dot:nth-child(3) { animation-delay: 0.4s; }
-         @keyframes typing { 0%, 60%, 100% { transform: translateY(0); opacity: 0.5; } 30% { transform: translateY(-3px); opacity: 1; } }
-         .chat-input-area { flex-shrink: 0; padding: 0.8rem 1rem; background-color: #f8f9fa; border-top: 1px solid var(--gray-light); display: flex; flex-direction: column; gap: 0.5rem; }
-         .chat-input-wrapper { display: flex; gap: 0.75rem; align-items: flex-end;}
-         .chat-input { flex-grow: 1; padding: 0.7rem 1rem; border: 1px solid var(--gray-light); border-radius: 18px; font-size: 0.9rem; resize: none; max-height: 110px; overflow-y: auto; transition: border-color 0.2s ease, box-shadow 0.2s ease; line-height: 1.4; background-color: var(--white); } .chat-input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.1); }
-         .send-button { padding: 0 1rem; border-radius: 18px; font-weight: 600; font-size: 0.9rem; cursor: pointer; border: none; background: var(--gradient-1); color: white; transition: all 0.3s ease; flex-shrink: 0; height: 38px; display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-sm); } .send-button:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 5px 10px rgba(var(--primary-rgb), 0.2); } .send-button:active:not(:disabled) { transform: translateY(-1px); box-shadow: 0 3px 6px rgba(var(--primary-rgb), 0.15); } .send-button i { font-size: 1em; } .send-button .fa-spinner { margin: 0; }
-         .chat-controls { flex-shrink: 0; padding: 0.4rem 1rem; font-size: 0.75rem; color: var(--text-muted); text-align: right; background-color: #f8f9fa; border-top: 1px solid var(--gray-light); } .chat-controls button { background:none; border:none; color: var(--text-muted); cursor:pointer; font-size: 0.9em; padding: 2px 5px; margin-left: 8px; transition: color 0.2s ease; } .chat-controls button:hover { color: var(--primary); }
-         #send-board-answer-btn { width: 100%; margin-top: 0.5rem; display: none; }
+        .chat-messages::-webkit-scrollbar { width: 8px; } .chat-messages::-webkit-scrollbar-track { background: var(--panel-bg); } .chat-messages::-webkit-scrollbar-thumb { background-color: var(--gray-light); border-radius: 4px; border: 2px solid var(--panel-bg); }
+        .chat-message { display: flex; gap: 0.7rem; max-width: 95%; align-items: flex-end; margin-bottom: 1rem; }
+        .chat-message.user { margin-left: auto; flex-direction: row-reverse; }
+        .message-avatar { width: var(--avatar-size); height: var(--avatar-size); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 500; font-size: 0.9rem; flex-shrink: 0; box-shadow: var(--shadow-sm); border: 2px solid var(--panel-bg); }
+        .chat-message.user .message-avatar { background: var(--success); color: white; } .chat-message.model .message-avatar { background: var(--primary); color: white; }
+        .message-bubble { padding: 0.8rem 1.2rem; /* Větší padding */ border-radius: 18px; /* Kulatější rohy */ line-height: 1.55; word-wrap: break-word; box-shadow: var(--shadow-sm); position: relative; background-color: #f0f2f5; /* Světle šedé pozadí */ color: var(--text-primary); border: 1px solid transparent; }
+        .chat-message.model .message-bubble { border-bottom-left-radius: 5px; background: #e9ecef; }
+        .chat-message.user .message-bubble { background: var(--gradient-1); color: white; border: none; border-bottom-right-radius: 5px; }
+        .message-timestamp { font-size: 0.7rem; color: var(--text-muted); margin-top: 4px; display: block; text-align: left; opacity: 0.8; } .chat-message.user .message-timestamp { text-align: right; }
+        .message-thinking-indicator { background: var(--white); display: flex; align-items: center; padding: 0.7rem 1rem; border-radius: 16px; box-shadow: var(--shadow-sm); border: 1px solid #eef2f7; width: fit-content; border-bottom-left-radius: 5px;}
+        .typing-dot { width: 6px; height: 6px; background-color: var(--gray); border-radius: 50%; margin: 0 2px; display: inline-block; animation: typing 1.3s infinite ease-in-out; } .typing-dot:nth-child(2) { animation-delay: 0.2s; } .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes typing { 0%, 60%, 100% { transform: translateY(0); opacity: 0.5; } 30% { transform: translateY(-3px); opacity: 1; } }
+        .chat-input-area { flex-shrink: 0; padding: 0.8rem 1rem; background-color: #f8f9fa; border-top: 1px solid var(--gray-light); display: flex; flex-direction: column; gap: 0.5rem; }
+        .chat-input-wrapper { display: flex; gap: 0.75rem; align-items: flex-end;}
+        .chat-input { flex-grow: 1; padding: 0.75rem 1.1rem; /* Trochu větší padding */ border: 1px solid var(--gray-light); border-radius: 20px; /* Kulatější */ font-size: 0.95rem; resize: none; max-height: 110px; overflow-y: auto; transition: border-color 0.2s ease, box-shadow 0.2s ease; line-height: 1.4; background-color: var(--white); } .chat-input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.1); }
+        .send-button { padding: 0 1rem; border-radius: 20px; font-weight: 600; font-size: 0.9rem; cursor: pointer; border: none; background: var(--gradient-1); color: white; transition: all 0.3s ease; flex-shrink: 0; height: 40px; /* Trochu větší */ display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-sm); } .send-button:hover:not(:disabled) { transform: translateY(-2px); box-shadow: var(--shadow-md); } .send-button:active:not(:disabled) { transform: translateY(-1px); box-shadow: 0 3px 6px rgba(var(--primary-rgb), 0.15); } .send-button i { font-size: 1em; } .send-button .fa-spinner { margin: 0; }
+        .chat-controls { flex-shrink: 0; padding: 0.4rem 1rem; font-size: 0.75rem; color: var(--text-muted); text-align: right; background-color: #f8f9fa; border-top: 1px solid var(--gray-light); } .chat-controls button { background:none; border:none; color: var(--text-muted); cursor:pointer; font-size: 0.9em; padding: 2px 5px; margin-left: 8px; transition: color 0.2s ease; } .chat-controls button:hover { color: var(--primary); }
+        #send-board-answer-btn { width: 100%; margin-top: 0.5rem; display: none; }
 
         /* --- Common Elements & Responsiveness --- */
-         /* ... (stejné jako v předchozí verzi) ... */
-         .btn { display: inline-flex; align-items: center; justify-content: center; padding: 0.7rem 1.4rem; border-radius: 8px; font-weight: 500; font-size: 0.9rem; text-decoration: none; transition: all 0.25s ease; cursor: pointer; border: none; gap: 0.5rem; line-height: 1.5; } .btn-primary { background: var(--gradient-1); color: white; box-shadow: var(--shadow-sm); } .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: var(--shadow-md); background: linear-gradient(135deg, var(--primary-light), var(--secondary)); } .btn-secondary { background-color: var(--white); color: var(--text-secondary); border: 1px solid var(--gray-light); box-shadow: var(--shadow-sm); } .btn-secondary:hover:not(:disabled) { background-color: #f8f9fa; color: var(--primary); border-color: var(--primary-light); } .btn-success { background: linear-gradient(135deg, var(--success), #05a381); color: white; box-shadow: var(--shadow-sm); } .btn-success:hover:not(:disabled) { transform: translateY(-2px); box-shadow: var(--shadow-md); background: linear-gradient(135deg, #0cd1a7, var(--success));} .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; box-shadow: none !important; background: var(--gray); color: var(--white); border: none; } .btn i { font-size: 1em; }
-         .loading-placeholder { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem; text-align: center; font-style: italic; color: var(--text-muted); flex-grow: 1; min-height: 150px; } .loading-placeholder i { margin-bottom: 1rem; font-size: 2.2rem; color: var(--primary-light); animation: spin 1.5s linear infinite; } @keyframes spin { to { transform: rotate(360deg); } }
-         .empty-state { text-align: center; padding: 1.5rem; color: var(--text-secondary); flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 100px; } .empty-state i { font-size: 2.5rem; margin-bottom: 1rem; color: var(--gray-light); opacity: 0.7; } .empty-state h3 { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.6rem; color: var(--dark); } .empty-state p { margin-bottom: 1rem; max-width: 400px; margin-left: auto; margin-right: auto; line-height: 1.5; font-size: 0.9rem;}
-         .mobile-menu-toggle { display: none; background: none; border: none; cursor: pointer; color: var(--dark); font-size: 1.6rem; margin-right: 1rem; padding: 0.5rem; z-index: 1060; transition: color 0.2s ease; } .mobile-menu-toggle:hover { color: var(--primary); }
-         .sidebar-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.55); z-index: 1040; opacity: 0; transition: opacity 0.3s ease; backdrop-filter: blur(5px); } .sidebar-overlay.active { display: block; opacity: 1; }
-         .toast { position: fixed; bottom: 20px; right: 20px; background-color: var(--white); color: var(--text-primary); border-radius: 8px; padding: 1rem 1.2rem; box-shadow: var(--shadow-lg); max-width: 320px; z-index: 1001; display: flex; align-items: center; transform: translateX(calc(100% + 30px)); opacity: 0; transition: all 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55); } .toast.show { transform: translateX(0); opacity: 1; } .toast.success { border-left: 4px solid var(--success); } .toast.success i { color: var(--success); } .toast.error { border-left: 4px solid var(--danger); } .toast.error i { color: var(--danger); } .toast.warning { border-left: 4px solid var(--warning); } .toast.warning i { color: var(--warning); } .toast.info { border-left: 4px solid var(--info); } .toast.info i { color: var(--info); } .toast i { margin-right: 0.8rem; font-size: 1.3rem; }
-         mjx-math { display: inline-block; font-size: 1.05em; }
-         .message-bubble mjx-math { color: var(--secondary); }
-         .chat-message.user .message-bubble mjx-math { color: #e0e0ff; }
+         .btn { display: inline-flex; align-items: center; justify-content: center; padding: 0.75rem 1.5rem; /* Větší padding */ border-radius: 10px; /* Mírně kulatější */ font-weight: 500; font-size: 0.95rem; /* Mírně větší */ text-decoration: none; transition: all 0.25s ease; cursor: pointer; border: none; gap: 0.6rem; line-height: 1.5; }
+         .btn-primary { background: var(--gradient-1); color: white; box-shadow: var(--shadow-sm); } .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: var(--shadow-md); background: linear-gradient(135deg, var(--primary-light), var(--secondary)); }
+         .btn-secondary { background-color: var(--white); color: var(--text-secondary); border: 1px solid var(--gray-light); box-shadow: var(--shadow-sm); } .btn-secondary:hover:not(:disabled) { background-color: #f8f9fa; color: var(--primary); border-color: var(--primary-light); transform: translateY(-1px);}
+         .btn-success { background: linear-gradient(135deg, var(--success), #05a381); color: white; box-shadow: var(--shadow-sm); } .btn-success:hover:not(:disabled) { transform: translateY(-2px); box-shadow: var(--shadow-md); background: linear-gradient(135deg, #0cd1a7, var(--success));}
+         .btn-info { background: linear-gradient(135deg, var(--info), #3b7cde); color: white; box-shadow: var(--shadow-sm); } .btn-info:hover:not(:disabled) { transform: translateY(-2px); box-shadow: var(--shadow-md); background: linear-gradient(135deg, #48aff0, var(--info)); }
+         .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; box-shadow: none !important; background: var(--gray); color: var(--white); border: none; } .btn i { font-size: 1em; }
+         .loading-placeholder { /* ... */ } @keyframes spin { /* ... */ }
+         .empty-state { /* ... */ }
+         .mobile-menu-toggle { /* ... */ }
+         .sidebar-overlay { /* ... */ }
+         .toast { /* ... */ }
+         mjx-math { /* ... */ }
 
-         @media (max-width: 1200px) { .interaction-panel { flex-basis: 35%; max-width: 400px; } .call-interface { padding: 1rem; gap: 1rem; height: calc(100vh - 65px - 60px - 2rem); } }
-         @media (max-width: 992px) { :root { --sidebar-width: 80px; } .sidebar { width: 80px; } .sidebar-logo span, .sidebar-link span, .user-info, .sidebar-footer { display: none; } .sidebar-link i { margin-right: 0; font-size: 1.5rem; } .sidebar-logo i { margin-right: 0; } .sidebar-header, .sidebar-link { justify-content: center; } .user-profile { justify-content: center; padding: 0.75rem 0; } .user-avatar { margin-right: 0; } main { margin-left: 80px; width: calc(100% - 80px); } .call-interface { flex-direction: column; height: calc(100vh - 65px - 60px - 1.6rem); padding: 0.8rem; gap: 0.8rem;} .ai-presenter-area { flex: 6 1 60%; order: 1; } .interaction-panel { width: 100%; flex: 4 1 40%; order: 2; max-width: none; } }
-         @media (max-width: 576px) { :root { --sidebar-width: 0; } .sidebar { transform: translateX(-100%); z-index: 1050; width: 260px; } .sidebar.active { transform: translateX(0); } .sidebar.active .sidebar-logo span, .sidebar.active .sidebar-link span, .sidebar.active .user-info, .sidebar.active .sidebar-footer { display: block; } .sidebar.active .sidebar-link i { margin-right: 0.75rem; font-size: 1.25rem; } .sidebar.active .sidebar-header, .sidebar.active .sidebar-link { justify-content: flex-start; } .sidebar.active .user-profile { justify-content: flex-start; padding: 1rem; } .sidebar.active .user-avatar { margin-right: 0.75rem; } main { margin-left: 0; width: 100%; } .mobile-menu-toggle { display: block; } .main-header { padding: 0.7rem 1rem; } .header-content h1 { font-size: 1.15rem; } .call-interface { padding: 0.5rem; gap: 0.5rem; height: calc(100vh - 58px - 55px - 1rem); } .ai-presenter-area { flex-basis: 55%; } .interaction-panel { flex-basis: 45%; } .chat-input { padding: 0.6rem 0.9rem; font-size: 0.85rem; } .send-button { height: 36px; padding: 0 0.8rem; } .message-bubble { padding: 0.6rem 0.9rem; } #continue-btn { padding: 0.5rem 1rem; font-size: 0.85rem; } }
+         @media (max-width: 1200px) { .chat-panel { flex-basis: 35%; max-width: 360px; } .learning-interface { padding: 1rem; gap: 1rem; height: calc(100vh - 65px - 60px - 2rem); } }
+         @media (max-width: 992px) { /* ... (jako předtím) ... */ :root { --sidebar-width: 80px; } .sidebar { width: 80px; } .sidebar-logo span, .sidebar-link span, .user-info, .sidebar-footer { display: none; } .sidebar-link i { margin-right: 0; font-size: 1.5rem; } .sidebar-logo i { margin-right: 0; } .sidebar-header, .sidebar-link { justify-content: center; } .user-profile { justify-content: center; padding: 0.75rem 0; } .user-avatar { margin-right: 0; } main { margin-left: 80px; width: calc(100% - 80px); } .learning-interface { flex-direction: column; height: calc(100vh - 65px - 60px - 1.6rem); padding: 0.8rem; gap: 0.8rem;} .ai-presenter-area { flex: 6 1 60%; order: 1; } .chat-panel { width: 100%; flex: 4 1 40%; order: 2; max-width: none; } }
+         @media (max-width: 576px) { /* ... (jako předtím) ... */ :root { --sidebar-width: 0; } .sidebar { transform: translateX(-100%); z-index: 1050; width: 260px; } .sidebar.active { transform: translateX(0); } .sidebar.active .sidebar-logo span, .sidebar.active .sidebar-link span, .sidebar.active .user-info, .sidebar.active .sidebar-footer { display: block; } .sidebar.active .sidebar-link i { margin-right: 0.75rem; font-size: 1.25rem; } .sidebar.active .sidebar-header, .sidebar.active .sidebar-link { justify-content: flex-start; } .sidebar.active .user-profile { justify-content: flex-start; padding: 1rem; } .sidebar.active .user-avatar { margin-right: 0.75rem; } main { margin-left: 0; width: 100%; } .mobile-menu-toggle { display: block; } .main-header { padding: 0.7rem 1rem; } .header-content h1 { font-size: 1.15rem; } .learning-interface { padding: 0.5rem; gap: 0.5rem; height: calc(100vh - 58px - 55px - 1rem); } .ai-presenter-area { flex-basis: 55%; } .chat-panel { flex-basis: 45%; } .chat-input { padding: 0.6rem 0.9rem; font-size: 0.85rem; } .send-button { height: 36px; padding: 0 0.8rem; } .message-bubble { padding: 0.6rem 0.9rem; } #continue-btn { padding: 0.5rem 1rem; font-size: 0.85rem; } }
 
          /* Dark Mode */
          @media (prefers-color-scheme: dark) {
-             :root { --white: #1a202c; --light: #2d3748; --dark: #e2e8f0; --gray-light: #4a5568; --text-primary: #e2e8f0; --text-secondary: #cbd5e0; --text-muted: #a0aec0; --dark-bg: #171923; --page-bg: #131720; --panel-bg: #1e2533; --element-color: var(--element-color-dark); }
+             /* ... (většina beze změny, jen pozadí a barvy prvků) ... */
+              :root { --white: #1a202c; --light: #2d3748; --dark: #e2e8f0; --gray-light: #4a5568; --text-primary: #e2e8f0; --text-secondary: #cbd5e0; --text-muted: #a0aec0; --dark-bg: #171923; --page-bg: #131720; --panel-bg: #1e2533; --element-color: var(--element-color-dark); }
              body { background-color: var(--dark-bg); } main { background-color: var(--page-bg); }
              .main-header { background-color: var(--panel-bg); border-bottom-color: var(--gray-light); }
              .mobile-menu-toggle { color: var(--dark); } .topic-bar { background-color: var(--light); border-bottom-color: var(--gray-light); }
-             .ai-presenter-area, .interaction-panel { background-color: var(--panel-bg); box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3); border-color: var(--gray-light); }
+             .ai-presenter-area, .chat-panel { background-color: var(--panel-bg); box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3); border-color: var(--gray-light); }
              .ai-presenter-header { background-color: #242c3b; border-bottom-color: var(--gray-light); }
              .chat-header { background-color: #242c3b; border-bottom-color: var(--gray-light); }
-             #excalidraw-container { background-color: var(--board-bg-dark); }
+             #excalidraw-container { background-color: var(--board-bg-dark); /* Tmavá tabule */ }
              #excalidraw-container .loading-placeholder { background-color: rgba(30, 37, 51, 0.8); }
-             .interaction-tabs { background-color: #242c3b; border-bottom-color: var(--gray-light); }
-             .interaction-tab { color: var(--text-secondary); } .interaction-tab:hover { color: var(--primary-light); background-color: rgba(72, 149, 239, 0.1); } .interaction-tab.active { color: var(--primary-light); border-bottom-color: var(--primary-light); }
-             .tab-content { background-color: var(--panel-bg); }
              .chat-messages { scrollbar-color: var(--gray) var(--panel-bg); } .chat-messages::-webkit-scrollbar-track { background: var(--panel-bg); } .chat-messages::-webkit-scrollbar-thumb { border-color: var(--panel-bg); }
              .message-avatar { border-color: var(--panel-bg); }
              .message-bubble { background-color: var(--light); color: var(--text-primary); border-color: #3b4458; }
@@ -244,7 +226,7 @@
         </div>
         <div class="call-interface" style="display: none;">
             <div class="ai-presenter-area">
-                <div class="ai-presenter-header">
+                 <div class="ai-presenter-header">
                      <div style="display: flex; align-items: center; gap: 0.8rem;">
                         <div class="ai-avatar-placeholder"> <i class="fas fa-chalkboard-teacher"></i> </div>
                         <div class="ai-presenter-info"> <h2>AI Tutor Justax</h2> <p id="ai-status-text">Připraven kreslit...</p> </div>
@@ -260,23 +242,7 @@
                 </div>
             </div>
             <div class="interaction-panel">
-                 <div class="interaction-tabs">
-                     <div class="interaction-tab" data-tab="explanation-tab" style="display: none !important;">
-                          <i class="fas fa-graduation-cap"></i> Vysvětlení
-                     </div>
-                     <div class="interaction-tab active" data-tab="chat-tab">
-                          <i class="fas fa-comments"></i> Chat
-                     </div>
-                 </div>
-                 <div class="interaction-content-area">
-                    <div id="explanation-tab-content" class="tab-content">
-                         <div class="explanation-scroll-content">
-                             <div id="explanation-display"></div>
-                         </div>
-                         <div class="explanation-controls">
-                              <button class="btn" id="next-step-btn" style="display: none !important;"></button>
-                         </div>
-                     </div>
+                 <div class="interaction-tabs" style="display: none !important;"></div> <div class="interaction-content-area">
                     <div id="chat-tab-content" class="tab-content active">
                         <div class="chat-header"><i class="fas fa-comments"></i> Chat s AI Tutorem</div>
                         <section class="chat-area">
@@ -304,6 +270,7 @@
                              </div>
                         </section>
                      </div>
+                     <div id="explanation-tab-content" class="tab-content" style="display: none !important;"></div>
                 </div>
             </div>
         </div>
@@ -316,14 +283,14 @@
             // --- Constants & Configuration ---
             const SUPABASE_URL = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
             const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10';
-            const GEMINI_API_KEY = 'AIzaSyDQboM6qtC_O2sqqpaKZZffNf2zk6HrhEs'; // !!! Production: Use a secure method !!!
+            const GEMINI_API_KEY = 'AIzaSyDQboM6qtC_O2sqqpaKZZffNf2zk6HrhEs'; // !!! Use secure method in production !!!
             const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
             const EXCALIDRAW_SCENE_REGEX = /EXCALIDRAW_SCENE:\s*```json\s*(\[[\s\S]*?\])\s*```\s*/gim;
             const MAX_GEMINI_HISTORY_TURNS = 8;
             const VERTICAL_SPACING = 60;
-            const BOARD_BACKGROUND_LIGHT = "#ffffff"; // Bílá tabule
+            const BOARD_BACKGROUND_LIGHT = "#ffffff"; // White background
             const BOARD_BACKGROUND_DARK = "#2d3748";
-            const ELEMENT_COLOR_LIGHT = "#000000"; // Černá
+            const ELEMENT_COLOR_LIGHT = "#000000"; // Black elements
             const ELEMENT_COLOR_DARK = "#EAEAEA";
 
             // --- DOM Elements Cache ---
@@ -340,11 +307,10 @@
                 toast: document.getElementById('toast'), toastMessage: document.getElementById('toast-message'),
                 learningInterface: document.querySelector('.call-interface'), chatPanel: document.querySelector('.interaction-panel'),
                 aiPresenterArea: document.querySelector('.ai-presenter-area'),
+                // Hidden elements
                 interactionTabs: document.querySelector('.interaction-tabs'),
-                explanationTabContent: document.getElementById('explanation-tab-content'), // Ponecháno pro skrytí
-                chatTabContent: document.getElementById('chat-tab-content'),
-                explanationTabButton: document.querySelector('.interaction-tab[data-tab="explanation-tab"]'),
-                chatTabButton: document.querySelector('.interaction-tab[data-tab="chat-tab"]')
+                explanationTabContent: document.getElementById('explanation-tab-content'),
+                chatTabContent: document.getElementById('chat-tab-content'), // Stále potřebujeme pro aktivaci
             };
 
             // --- Global State ---
@@ -369,22 +335,23 @@
             const updateCurrentLowestY = () => { let maxEndY = 0; state.excalidrawElements.forEach(el => { if (el && typeof el.y === 'number' && typeof el.height === 'number') { maxEndY = Math.max(maxEndY, el.y + el.height); } }); state.lowestY = maxEndY + VERTICAL_SPACING; console.log(`Calculated next available Y: ${state.lowestY}`); };
             const getBoardBackgroundColor = () => state.isDarkMode ? BOARD_BACKGROUND_DARK : BOARD_BACKGROUND_LIGHT;
             const getElementColor = () => state.isDarkMode ? ELEMENT_COLOR_DARK : ELEMENT_COLOR_LIGHT;
-            const fallback = (value, def) => (value !== null && value !== undefined) ? value : def; // Oprava ??
+            const fallback = (value, def) => (value !== null && value !== undefined) ? value : def; // Náhrada za ??
 
             // --- Initialization ---
             const initializeSupabase = () => { try { if (!window.supabase) throw new Error("Supabase lib not loaded."); state.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); if (!state.supabase) throw new Error("Client creation failed."); console.log("Supabase initialized."); return true; } catch (error) { console.error("Supabase init failed:", error); showToast("Chyba DB.", "error", 10000); return false; } };
-            const initializeUI = () => { try { if (!initializeExcalidraw()) { throw new Error("Excalidraw initialization failed."); } setupEventListeners(); initTooltips(); // Skrytí explanation tabu a obsahu
- if(uiElements.explanationTabButton) uiElements.explanationTabButton.style.display = 'none'; if(uiElements.explanationTabContent) uiElements.explanationTabContent.style.display = 'none'; // Aktivace chat tabu
- if(uiElements.chatTabButton) uiElements.chatTabButton.classList.add('active'); if(uiElements.chatTabContent) uiElements.chatTabContent.classList.add('active'); // Odstranění zbytečného flex: 1 z tab tlačítek, pokud je jen jedno viditelné
- if(uiElements.chatTabButton && !uiElements.explanationTabButton?.offsetParent) uiElements.chatTabButton.style.flex = 'none'; manageUIState('initial'); return true; } catch(error) { console.error("UI Init failed:", error); showToast(`Chyba UI: ${error.message}`, "error", 10000); return false; }};
-            const initializeApp = async () => { console.log("DOM Loaded. Initializing Board Tutor (Keep Length)..."); if (!initializeSupabase()) return; if (!initializeUI()) return; manageUIState('loadingUser'); try { await loadUserProfile(); if (state.currentUser) { await loadNextUncompletedTopic(); } else { handleLoggedOutUser(); } } catch (error) { console.error("App initialization error:", error); manageUIState('error'); showToast("Chyba při startu aplikace.", "error"); }};
+            const initializeUI = () => { try { if (!initializeExcalidraw()) { throw new Error("Excalidraw initialization failed."); } setupEventListeners(); initTooltips(); // Ensure chat tab is visually active
+ if(uiElements.chatTabButton) uiElements.chatTabButton.classList.add('active'); if(uiElements.chatTabContent) uiElements.chatTabContent.classList.add('active'); if(uiElements.interactionTabs) uiElements.interactionTabs.style.display = ''; // Keep tabs container for chat tab styling
+ manageUIState('initial'); return true; } catch(error) { console.error("UI Init failed:", error); showToast(`Chyba UI: ${error.message}`, "error", 10000); return false; }};
+            const initializeApp = async () => { console.log("DOM Loaded. Initializing Board Tutor (Preserve Length)..."); if (!initializeSupabase()) return; if (!initializeUI()) return; manageUIState('loadingUser'); try { await loadUserProfile(); if (state.currentUser) { await loadNextUncompletedTopic(); } else { handleLoggedOutUser(); } } catch (error) { console.error("App initialization error:", error); manageUIState('error'); showToast("Chyba při startu aplikace.", "error"); }};
 
             // --- UI State & Button Management ---
-            const manageUIState = (mode, options = {}) => {
+             const manageUIState = (mode, options = {}) => {
                  console.log("UI State:", mode, options);
                  const isLearning = ['learning', 'chatting', 'requestingExplanation', 'waitingForBoardAnswer'].includes(mode);
                  const showLearningInterface = !!state.currentTopic || mode === 'loadingTopic' || mode === 'requestingExplanation' || mode === 'noPlan' || mode === 'planComplete' || mode === 'error';
                  if (uiElements.learningInterface) uiElements.learningInterface.style.display = showLearningInterface ? 'flex' : 'none';
+
+                 // Zprávy pro chat panel
                  if (uiElements.chatMessages && !isLearning && mode !== 'loadingUser') {
                      let emptyStateHTML = '';
                      switch (mode) {
@@ -393,27 +360,38 @@
                          case 'noPlan': emptyStateHTML = "<div class='empty-state'><i class='fas fa-calendar-times'></i><h3>Žádný aktivní plán</h3></div>"; break;
                          case 'planComplete': emptyStateHTML = "<div class='empty-state'><i class='fas fa-check-circle'></i><h3>Plán dokončen!</h3></div>"; break;
                          case 'error': emptyStateHTML = "<div class='empty-state'><i class='fas fa-exclamation-triangle'></i><h3>Chyba</h3></div>"; break;
-                         default: emptyStateHTML = '';
+                         default: emptyStateHTML = '<div class="empty-state"><i class="fas fa-chalkboard-teacher"></i><h3>Připraveno</h3><p>AI začne kreslit na tabuli.</p></div>'; // Default message when learning starts
                      }
+                     // Update only if needed or specific states occurred
                      if (emptyStateHTML || uiElements.chatMessages.children.length === 0 || ['loggedOut', 'noPlan', 'planComplete', 'error'].includes(mode)) {
                          uiElements.chatMessages.innerHTML = emptyStateHTML;
                      }
                  }
+
                  state.isWaitingForBoardAnswer = (mode === 'waitingForBoardAnswer');
-                 try { if (state.excalidrawAPI?.updateScene) { state.excalidrawAPI.updateScene({ appState: { viewModeEnabled: !state.isWaitingForBoardAnswer } }); console.log("Drawing enabled:", state.isWaitingForBoardAnswer); }
+                 try {
+                     if (state.excalidrawAPI?.updateScene) {
+                         state.excalidrawAPI.updateScene({ appState: { viewModeEnabled: !state.isWaitingForBoardAnswer } });
+                         if(state.isWaitingForBoardAnswer) {
+                              state.lastAiElementsCount = state.excalidrawElements.length;
+                              console.log("User drawing enabled. AI element count:", state.lastAiElementsCount);
+                              showToast("Nakreslete/napište odpověď na tabuli a klikněte na 'Odeslat odpověď'.", "info", 6000);
+                         } else { console.log("User drawing disabled."); }
+                     }
                  } catch (e) { console.error("Error setting view mode:", e); }
+
                  manageButtonStates();
              };
-             const manageButtonStates = () => {
+            const manageButtonStates = () => {
                 const canInteractNormally = !!state.currentTopic && !state.geminiIsThinking && !state.topicLoadInProgress && !state.isWaitingForBoardAnswer;
                 const canSendBoardAnswer = state.isWaitingForBoardAnswer && !state.geminiIsThinking;
                 if (uiElements.sendButton) { uiElements.sendButton.disabled = !canInteractNormally; uiElements.sendButton.innerHTML = state.geminiIsThinking ? '<i class="fas fa-spinner fa-spin"></i>' : '<i class="fas fa-paper-plane"></i>'; }
                 if (uiElements.continueBtn) { uiElements.continueBtn.disabled = !canInteractNormally || state.isWaitingForBoardAnswer; uiElements.continueBtn.style.display = (canInteractNormally || state.isWaitingForBoardAnswer) ? 'inline-flex' : 'none'; }
                 if (uiElements.markCompleteBtn) { uiElements.markCompleteBtn.disabled = !canInteractNormally || state.isWaitingForBoardAnswer; uiElements.markCompleteBtn.style.display = (canInteractNormally || state.isWaitingForBoardAnswer) ? 'inline-flex' : 'none'; }
-                if (uiElements.chatInput) { uiElements.chatInput.disabled = !canInteractNormally; }
+                if (uiElements.chatInput) { uiElements.chatInput.disabled = !canInteractNormally; } // Chat je blokován při čekání na kresbu
                 if (uiElements.clearBoardBtn) { uiElements.clearBoardBtn.disabled = !state.excalidrawAPI || state.excalidrawElements.length === 0 || state.geminiIsThinking || state.isWaitingForBoardAnswer; }
                 if (uiElements.sendBoardAnswerBtn) { uiElements.sendBoardAnswerBtn.disabled = !canSendBoardAnswer; uiElements.sendBoardAnswerBtn.style.display = state.isWaitingForBoardAnswer ? 'block' : 'none'; }
-             };
+            };
 
              // --- Excalidraw Functions ---
              const initializeExcalidraw = () => {
@@ -423,7 +401,7 @@
                 if (typeof React === 'undefined' || typeof ReactDOM === 'undefined' || typeof ExcalidrawLib === 'undefined') { console.error("React/Excalidraw lib not loaded!"); return false; }
                 try {
                     container.innerHTML = '<div class="loading-placeholder"><i class="fas fa-spinner"></i><p>Načítám kreslící plochu...</p></div>';
-                    if (state.excalidrawRoot) { state.excalidrawRoot.unmount(); state.excalidrawRoot = null; state.excalidrawAPI = null; }
+                    if (state.excalidrawRoot) { state.excalidrawRoot.unmount(); state.excalidrawRoot = null; state.excalidrawAPI = null;}
 
                     state.excalidrawRoot = ReactDOM.createRoot(container);
                     const initialAppState = {
@@ -455,9 +433,7 @@
             const updateExcalidrawScene = (newElements = []) => {
                 if (!state.excalidrawAPI) { console.warn("Excalidraw API not ready."); return; }
                 if (!Array.isArray(newElements)) { console.warn("Invalid elements data:", newElements); return; }
-
                 let elementsToUpdate = []; let shouldScroll = false;
-
                 if (newElements.length > 0) {
                     const yOffset = state.lowestY;
                     const processedNewElements = addDefaultExcalidrawProps(newElements).map(el => ({ ...el, y: (typeof el.y === 'number' ? el.y + yOffset : yOffset) }));
@@ -465,15 +441,12 @@
                     elementsToUpdate = state.excalidrawElements;
                     updateCurrentLowestY();
                     shouldScroll = true;
-                    console.log(`Appended ${processedNewElements.length}. New lowestY: ${state.lowestY}`);
                 } else {
                     state.excalidrawElements = []; elementsToUpdate = []; state.lowestY = 50;
                     console.log("Clearing board.");
                 }
-
                 const validationResult = validateExcalidrawElements(elementsToUpdate);
                 if (!validationResult.isValid) { console.error("Validation failed. Aborting updateScene."); return; }
-
                  try {
                     let currentAppState = state.excalidrawAPI.getAppState ? state.excalidrawAPI.getAppState() : {};
                     state.excalidrawAPI.updateScene({
@@ -481,9 +454,8 @@
                         appState: { ...currentAppState, viewModeEnabled: state.isWaitingForBoardAnswer ? false : true, viewBackgroundColor: getBoardBackgroundColor() }
                     });
                     console.log("Excalidraw updateScene successful.");
-
                     if (shouldScroll && uiElements.excalidrawContainer) {
-                        setTimeout(() => { uiElements.excalidrawContainer.scrollTo({ top: uiElements.excalidrawContainer.scrollHeight, behavior: 'smooth' }); console.log("Scrolled container."); }, 150);
+                        setTimeout(() => { uiElements.excalidrawContainer.scrollTo({ top: uiElements.excalidrawContainer.scrollHeight, behavior: 'smooth' }); }, 150);
                     }
                  } catch (error) { console.error("!!! Error during Excalidraw updateScene:", error); showToast("Chyba při aktualizaci tabule!", "error"); }
                  manageButtonStates();
@@ -540,7 +512,7 @@
                     if (activities && activities.length > 0) {
                         const activity = activities[0];
                         let name = activity.title || 'N/A', desc = activity.description || '';
-                        if (activity.topic_id) { try { const { data: topic } = await state.supabase.from('exam_topics').select('name, description').eq('id', activity.topic_id).single(); if (topic) { name = topic.name || name; desc = topic.description || desc; } } catch(e){ console.warn("Could not fetch topic details", e) } }
+                        if (activity.topic_id) { try { const { data: topic } = await state.supabase.from('exam_topics').select('name, description').eq('id', activity.topic_id).single(); if (topic) { name = topic.name || name; desc = topic.description || desc; } } catch(e){/* ignore */} }
                         state.currentTopic = { activity_id: activity.id, plan_id: state.currentPlanId, name, description: desc, user_id: state.currentUser.id, topic_id: activity.topic_id };
                         if (uiElements.currentTopicDisplay) uiElements.currentTopicDisplay.innerHTML = `Téma: <strong>${sanitizeHTML(name)}</strong>`;
                         await startLearningSession();
@@ -552,12 +524,12 @@
 
             // --- Learning Session & Chat ---
             const startLearningSession = async () => { if (!state.currentTopic) return; state.currentSessionId = generateSessionId(); manageUIState('requestingExplanation'); const prompt = _buildInitialPrompt(); await sendToGemini(prompt); };
-            const requestContinue = async () => { if (state.geminiIsThinking || !state.currentTopic) return; const prompt = `Pokračuj ve vysvětlování tématu "${state.currentTopic.name}" na tabuli. Naváž na předchozí obsah. Nový obsah umísti POD Y=${state.lowestY}. Použij barvu "${getElementColor()}", font Helvetica 24px (family:2). Můžeš položit otázku vyžadující kreslení. JEN Excalidraw JSON.`; await sendToGemini(prompt); };
+            const requestContinue = async () => { if (state.geminiIsThinking || !state.currentTopic) return; const prompt = `Pokračuj ve vysvětlování tématu "${state.currentTopic.name}" na tabuli. Naváž na předchozí obsah. Nový obsah umísti POD Y=${state.lowestY}. Použij barvu "${getElementColor()}", font Helvetica 24px (family:2). Můžeš položit otázku vyžadující kreslení. Pokud ano, jasně to uveď v textu MIMO JSON. Formát pro kresbu: \`EXCALIDRAW_SCENE: \`\`\`json [ ... ] \`\`\`\`.`; await sendToGemini(prompt); };
             const addChatMessage = async (message, sender, saveToDb = true, timestamp = new Date()) => { if (!uiElements.chatMessages) return; const id = `msg-${Date.now()}`; const avatar = sender === 'user' ? getInitials(state.currentProfile, state.currentUser?.email) : 'AI'; const div = document.createElement('div'); div.className = `chat-message ${sender === 'gemini' ? 'model' : sender}`; div.id = id; const avatarDiv = `<div class="message-avatar">${avatar}</div>`; const bubbleDiv = document.createElement('div'); bubbleDiv.className = 'message-bubble'; renderMarkdown(bubbleDiv, message); const timeDiv = `<div class="message-timestamp">${formatTimestamp(timestamp)}</div>`; div.innerHTML = avatarDiv + bubbleDiv.outerHTML + timeDiv; const empty = uiElements.chatMessages.querySelector('.empty-state'); if(empty) empty.remove(); uiElements.chatMessages.appendChild(div); div.scrollIntoView({ behavior: 'smooth', block: 'end' }); if (saveToDb && state.supabase && state.currentUser && state.currentTopic && state.currentSessionId) { try { await state.supabase.from('chat_history').insert({ user_id: state.currentUser.id, session_id: state.currentSessionId, topic_id: state.currentTopic.topic_id, topic_name: state.currentTopic.name, role: sender === 'gemini' ? 'model' : 'user', content: message }); } catch (e) { console.error("Chat save error:", e); showToast("Chyba ukládání chatu.", "error");} } };
             const updateGeminiThinkingState = (isThinking) => { state.geminiIsThinking = isThinking; manageButtonStates(); if (isThinking) addThinkingIndicator(); else removeThinkingIndicator(); };
             const addThinkingIndicator = () => { if (state.thinkingIndicatorId || !uiElements.chatMessages) return; const id = `thinking-${Date.now()}`; const div = document.createElement('div'); div.className = 'chat-message model'; div.id = id; div.innerHTML = `<div class="message-avatar">AI</div><div class="message-thinking-indicator"><span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span></div>`; const empty = uiElements.chatMessages.querySelector('.empty-state'); if(empty) empty.remove(); uiElements.chatMessages.appendChild(div); div.scrollIntoView({ behavior: 'smooth', block: 'end' }); state.thinkingIndicatorId = id; };
             const removeThinkingIndicator = () => { if (state.thinkingIndicatorId) { document.getElementById(state.thinkingIndicatorId)?.remove(); state.thinkingIndicatorId = null; } };
-            const handleSendMessage = async () => { const text = uiElements.chatInput?.value.trim(); if (!text || state.geminiIsThinking || !state.currentTopic || state.isWaitingForBoardAnswer) return; await addChatMessage(text, 'user'); state.geminiChatContext.push({ role: "user", parts: [{ text }] }); if (uiElements.chatInput) { uiElements.chatInput.value = ''; autoResizeTextarea(); uiElements.chatInput.focus(); } manageUIState('chatting'); updateGeminiThinkingState(true); const prompt = `Student píše do chatu: "${text}". Odpověz stručně k tématu "${state.currentTopic.name}". Můžeš také aktualizovat tabuli (přidej prvky POD Y=${state.lowestY}, barva="${getElementColor()}", font Helvetica 24px). Pokud posíláš kresbu, formátuj ji jako \`EXCALIDRAW_SCENE: \`\`\`json [ ... ] \`\`\`\`. Text odpovědi napiš MIMO JSON blok.`; await sendToGemini(prompt); }; // Upraveno pro možný text i kresbu
+            const handleSendMessage = async () => { const text = uiElements.chatInput?.value.trim(); if (!text || state.geminiIsThinking || !state.currentTopic || state.isWaitingForBoardAnswer) return; await addChatMessage(text, 'user'); state.geminiChatContext.push({ role: "user", parts: [{ text }] }); if (uiElements.chatInput) { uiElements.chatInput.value = ''; autoResizeTextarea(); uiElements.chatInput.focus(); } manageUIState('chatting'); updateGeminiThinkingState(true); const prompt = `Student píše do chatu: "${text}". Odpověz stručně k tématu "${state.currentTopic.name}". Můžeš také aktualizovat tabuli (přidej prvky POD Y=${state.lowestY}, barva="${getElementColor()}", font Helvetica 24px). Pokud posíláš kresbu, formátuj ji jako \`EXCALIDRAW_SCENE: \`\`\`json [ ... ] \`\`\`\`. Text odpovědi napiš MIMO JSON blok.`; await sendToGemini(prompt); };
             const confirmClearChat = () => { if (confirm("Opravdu vymazat chat?")) clearCurrentChatSessionHistory(); };
             const clearCurrentChatSessionHistory = async () => { if (uiElements.chatMessages) uiElements.chatMessages.innerHTML = '<div class="empty-state"><i class="fas fa-comments"></i><h3>Chat vymazán</h3></div>'; state.geminiChatContext = []; showToast("Historie chatu vymazána.", "info"); if (state.supabase && state.currentUser && state.currentSessionId) { try { await state.supabase.from('chat_history').delete().match({ user_id: state.currentUser.id, session_id: state.currentSessionId }); } catch (e) { console.error("DB clear chat error:", e); } } };
             const saveChatToPDF = async () => { /* ... (stejná logika jako předtím) ... */ if (!uiElements.chatMessages || uiElements.chatMessages.children.length === 0) { showToast("Není co uložit.", "warning"); return; } if (typeof html2pdf === 'undefined') { showToast("Chyba: PDF knihovna.", "error"); return; } showToast("Generuji PDF...", "info", 3000); const el = document.createElement('div'); el.style.padding="20mm"; el.innerHTML=`<style>body{font-family:Poppins,sans-serif;font-size:10pt;line-height:1.5;color:#333}.user{margin-left:10%}.model{margin-right:10%}.msg{margin-bottom:10px;max-width:90%;page-break-inside:avoid}.bubble{padding:8px 12px;border-radius:12px;background:#eee;display:inline-block;}.user .bubble{background:#dcf8c6;}.time{font-size:8pt;color:#888;margin-top:3px;display:block;}.user .time{text-align:right;}h1{font-size:16pt;color:#3f37c9;text-align:center;margin-bottom:5px}p{font-size:9pt;color:#6c757d;text-align:center;margin:0 0 10px}hr{border:0;border-top:1px solid #ccc;margin:10px 0}</style><h1>Chat - ${sanitizeHTML(state.currentTopic?.name||'Neznámé')}</h1><p>${new Date().toLocaleString('cs-CZ')}</p><hr>`; Array.from(uiElements.chatMessages.children).forEach(m=>{if(m.classList.contains('chat-message')&&!m.id.startsWith('thinking-')){const c=m.cloneNode(true);c.querySelector('.message-avatar')?.remove();c.classList.add(m.classList.contains('user')?'user':'model','msg');c.querySelector('.message-bubble').classList.add('bubble');c.querySelector('.message-timestamp').classList.add('time');el.appendChild(c);}}); const fn=`chat-${state.currentTopic?.name?.replace(/[^a-z0-9]/gi,'_')||'vyuka'}.pdf`; try{await html2pdf().set({margin:15,filename:fn,jsPDF:{unit:'mm',format:'a4'}}).from(el).save();showToast("Chat uložen!", "success");}catch(e){console.error("PDF Error:",e);showToast("Chyba PDF.", "error");} };
@@ -584,13 +556,13 @@
                     return patched;
                 });
             };
-             // --- processGeminiResponse - Opraveno pro správné zobrazení ---
+             // --- processGeminiResponse - Upraveno pro oddělení textu a kresby ---
              const processGeminiResponse = (rawText, timestamp) => {
                  removeThinkingIndicator();
-                 let { cleanedText, sceneData } = parseExcalidrawScene(rawText);
+                 let { cleanedText, sceneData } = parseExcalidrawScene(rawText); // Rozdělí odpověď
                  let askUserToDraw = false;
 
-                 // 1. Zpracuj kresbu, pokud existuje
+                 // 1. Zpracuj kresbu (pokud existuje)
                  if (sceneData) {
                      if (validateExcalidrawElements(sceneData).isValid) {
                          updateExcalidrawScene(sceneData); // Přidá prvky na tabuli
@@ -599,7 +571,8 @@
                          const lastElement = sceneData[sceneData.length - 1];
                          if (lastElement?.type === 'text' && typeof lastElement.text === 'string') {
                              const questionText = lastElement.text.toLowerCase();
-                             if (questionText.includes("nakresli") || questionText.includes("narýsuj") || questionText.includes("doplň na tabuli") || questionText.includes("ukaž na tabuli")) {
+                             // Přesnější detekce otázky na kreslení
+                             if (/\b(nakresli|narýsuj|doplň (na|do) tabul|ukaž na tabul|vyznač|sestroj)\b/.test(questionText)) {
                                  askUserToDraw = true;
                                  state.lastQuestionForBoard = lastElement.text;
                                  console.log("AI asks user to draw:", state.lastQuestionForBoard);
@@ -607,22 +580,22 @@
                          }
                      } else {
                          console.error("Invalid Excalidraw data received.");
-                         cleanedText = `(AI poslala neplatná data pro tabuli)\n${cleanedText}`; // Přidáme info do textu
+                         cleanedText = `(AI poslala neplatná data pro tabuli)\n${cleanedText || ''}`; // Přidáme info do textu
                      }
                  }
 
-                 // 2. Zpracuj text (pokud existuje a není to jen prázdné místo)
+                 // 2. Zpracuj text (pokud existuje a není prázdný)
                  const textToShowInChat = cleanedText.trim();
                  if (textToShowInChat) {
                      addChatMessage(textToShowInChat, 'gemini', true, timestamp);
                      console.log("Displayed additional text in chat:", textToShowInChat);
                  } else if (!sceneData) {
-                      // Pokud nebyla ani kresba ani text
-                      addChatMessage("(AI neposlala žádný obsah)", 'gemini', false, timestamp);
-                      console.log("AI sent no usable content.");
+                     // Pokud nebyla ani kresba ani text
+                     addChatMessage("(AI neposlala žádný obsah)", 'gemini', false, timestamp);
+                     console.log("AI sent no usable content.");
                  }
 
-                 // 3. Nastav stav UI
+                 // 3. Nastav stav UI podle toho, zda se má kreslit
                  if (askUserToDraw) {
                      manageUIState('waitingForBoardAnswer');
                  } else {
@@ -630,31 +603,28 @@
                  }
              };
 
-
-            // --- Nová funkce pro odeslání kresby uživatele ---
+            // --- Funkce pro odeslání kresby uživatele ---
             const handleSendBoardAnswer = async () => {
                  if (!state.isWaitingForBoardAnswer || state.geminiIsThinking || !state.excalidrawAPI) return;
                  console.log("Sending user's board answer...");
                  updateGeminiThinkingState(true);
-                 manageUIState('chatting'); // Zobrazíme přemýšlení, ale tabuli ještě necháme editovatelnou
+                 manageUIState('chatting'); // Zobrazí přemýšlení
 
                  try {
                      const allElements = state.excalidrawAPI.getSceneElements();
-                     // Získáme prvky PŘIDANÉ uživatelem (indexy > state.lastAiElementsCount)
                      const userDrawnElements = allElements.slice(state.lastAiElementsCount);
 
                      if (userDrawnElements.length === 0) {
                          showToast("Nejprve odpovězte na tabuli.", "warning");
                          updateGeminiThinkingState(false);
-                         manageUIState('waitingForBoardAnswer'); // Zpět do kreslení
-                         return;
+                         manageUIState('waitingForBoardAnswer'); return;
                      }
 
-                     // Posuneme Y souřadnice uživatelských prvků zpět na relativní (vůči začátku jejich bloku) pro AI
-                     const firstUserElementY = userDrawnElements[0]?.y || state.lowestY - VERTICAL_SPACING; // Odhad, kde začal kreslit
+                     // Odhadneme Y začátek uživatelovy kresby pro relativní pozicování
+                     const firstUserElementY = userDrawnElements[0]?.y || (state.lowestY - VERTICAL_SPACING);
                      const relativeUserElements = userDrawnElements.map(el => ({
                          ...el,
-                         y: (typeof el.y === 'number') ? el.y - (firstUserElementY - VERTICAL_SPACING) : 0 // Odhad relativní pozice
+                         y: (typeof el.y === 'number') ? Math.max(0, el.y - firstUserElementY) : 0 // Relativní Y vůči začátku bloku
                      }));
 
                      const userDrawingJson = JSON.stringify(relativeUserElements, null, 2);
@@ -666,9 +636,8 @@ ${userDrawingJson}
 \`\`\`
 Posuď správnost. Poskytni zpětnou vazbu POUZE jako NOVÉ prvky pro Excalidraw (umísti pod Y=${state.lowestY}, barva="${getElementColor()}", font Helvetica 24px). Můžeš pochválit nebo opravit chyby. Formát: \`EXCALIDRAW_SCENE: \`\`\`json [ ... ] \`\`\`\`. Žádný text mimo JSON.`;
 
-                     state.lastQuestionForBoard = null; // Vyčistíme otázku
-                     state.isWaitingForBoardAnswer = false; // Už nečekáme
-                     await sendToGemini(analysisPrompt); // Pošleme k analýze (AI odpoví na tabuli)
+                     state.lastQuestionForBoard = null; state.isWaitingForBoardAnswer = false;
+                     await sendToGemini(analysisPrompt);
 
                  } catch (error) {
                      console.error("Error sending user drawing:", error);
@@ -677,17 +646,15 @@ Posuď správnost. Poskytni zpětnou vazbu POUZE jako NOVÉ prvky pro Excalidraw
                  }
             };
 
-
             // --- Prompty a volání Gemini ---
-            const _buildInitialPrompt = () => { return `Jako AI Tutor vysvětli ZÁKLADY tématu "${state.currentTopic.name}". VŠE kresli POUZE na Excalidraw. Pozadí ${getBoardBackgroundColor()}, prvky barvou "${getElementColor()}", font Helvetica 24px (family:2). Umísti obsah na Y=50. Pokud chceš přidat POZNÁMKU do chatu, napiš ji MIMO JSON blok. Formát pro kresbu: \`EXCALIDRAW_SCENE: \`\`\`json [ ... ] \`\`\`\`.`; };
-            const _buildGeminiPayloadContents = (userPrompt) => { const color = getElementColor(); const system = `Jsi AI Tutor "Justax". Vyučuješ téma: "${state.currentTopic.name}". Vysvětluj VŠE POUZE kreslením na Excalidraw. Textové poznámky nebo otázky pro studenta piš MIMO JSON blok.
+            const _buildInitialPrompt = () => { return `Jako AI Tutor vysvětli ZÁKLADY tématu "${state.currentTopic.name}". VŠE kresli POUZE na Excalidraw. Pozadí ${getBoardBackgroundColor()}, prvky barvou "${getElementColor()}", font Helvetica 24px (family:2). Umísti obsah na Y=50. Můžeš přidat POZNÁMKU do chatu MIMO JSON blok. Formát pro kresbu: \`EXCALIDRAW_SCENE: \`\`\`json [ ... ] \`\`\`\`.`; };
+            const _buildGeminiPayloadContents = (userPrompt) => { const color = getElementColor(); const system = `Jsi AI Tutor "Justax". Vyučuješ téma: "${state.currentTopic.name}". Vysvětluj VŠE POUZE kreslením na Excalidraw. Textové poznámky/otázky pro studenta piš MIMO JSON blok.
 PRAVIDLA KRESLENÍ:
-1. NOVÝ obsah umísti POD existující (aktuální nejnižší Y je ${state.lowestY}). Přičti k Y nových prvků alespoň ${VERTICAL_SPACING}.
-2. Pozadí=${getBoardBackgroundColor()}, všechny prvky kresli barvou "${color}".
-3. Font Helvetica 24px (family:2). Řeš příklady krok za krokem. Piš čitelně. Můžeš klást otázky vyžadující kreslení.
-4. Kresbu formátuj VŽDY jako: \`EXCALIDRAW_SCENE: \`\`\`json [ ... ] \`\`\`\`.`; const history = state.geminiChatContext.slice(-MAX_GEMINI_HISTORY_TURNS * 2); const current = { role: "user", parts: [{ text: userPrompt }] }; const modelAck = { role: "model", parts: [{ text: `Rozumím. Budu kreslit na tabuli (${getBoardBackgroundColor()}), prvky ${color}, font Helvetica 24px, pod Y=${state.lowestY}. Kresbu dám do EXCALIDRAW_SCENE bloku. Případné poznámky nebo otázky napíšu mimo něj.` }]}; return [{ role: "user", parts:[{text:system}] }, modelAck, ...history, current]; };
-            const sendToGemini = async (prompt) => { if (!GEMINI_API_KEY || GEMINI_API_KEY.startsWith('YOUR_')) {showToast("Chyba: AI Key.", "error"); updateGeminiThinkingState(false); return;} if (!state.currentTopic) {showToast("Chyba: Není téma.", "error"); updateGeminiThinkingState(false); return;} if (!navigator.onLine) {showToast("Chyba: Offline.", "error"); updateGeminiThinkingState(false); return;} console.log(`Sending: "${prompt.substring(0, 100)}..."`); const timestamp = new Date(); updateGeminiThinkingState(true); const contents = _buildGeminiPayloadContents(prompt); const body = { contents, generationConfig: { temperature: 0.6, topP: 0.95, topK: 40, maxOutputTokens: 8192 }, safetySettings: [{ category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" }, { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" }, { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" }, { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" }] }; try { const response = await fetch(GEMINI_API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }); if (!response.ok) { let errorText = `API Error (${response.status})`; try { const errData = await response.json(); errorText += `: ${errData?.error?.message || 'Unknown'}`; } catch (e) { errorText += `: ${await response.text()}`; } throw new Error(errorText); } const data = await response.json(); const candidate = data.candidates?.[0]; if (data.promptFeedback?.blockReason) throw new Error(`Blokováno: ${data.promptFeedback.blockReason}.`); if (!candidate) throw new Error('Chybná odpověď AI.'); if (candidate.finishReason && !["STOP", "MAX_TOKENS"].includes(candidate.finishReason)) { if(candidate.finishReason === 'SAFETY') throw new Error('Blokováno filtrem AI.'); console.warn(`Gemini finishReason: ${candidate.finishReason}.`); } const text = candidate.content?.parts?.[0]?.text; if (!text) { if (candidate.finishReason === 'MAX_TOKENS') throw new Error('Max. délka odpovědi.'); else throw new Error('Prázdná odpověď AI.'); } state.geminiChatContext.push({ role: "user", parts: [{ text: prompt }] }); state.geminiChatContext.push({ role: "model", parts: [{ text }] }); if (state.geminiChatContext.length > MAX_GEMINI_HISTORY_TURNS * 2) state.geminiChatContext.splice(0, state.geminiChatContext.length - MAX_GEMINI_HISTORY_TURNS * 2); processGeminiResponse(text, timestamp); } catch (error) { console.error('Gemini Error:', error); showToast(`Chyba AI: ${error.message}`, "error"); handleGeminiError(error.message, timestamp); } finally { if (!state.isWaitingForBoardAnswer) { updateGeminiThinkingState(false); } // Neukončíme přemýšlení, pokud čekáme na kresbu
- } };
+1. NOVÝ obsah umísti POD existující (Y=${state.lowestY}). Přičti k Y nových prvků ${VERTICAL_SPACING}.
+2. Pozadí=${getBoardBackgroundColor()}, prvky barvou "${color}".
+3. Font Helvetica 24px (family:2). Řeš příklady krok za krokem. Můžeš klást otázky vyžadující kreslení (specifikuj to v textu mimo JSON).
+4. Kresbu formátuj VŽDY jako: \`EXCALIDRAW_SCENE: \`\`\`json [ ... ] \`\`\`\`.`; const history = state.geminiChatContext.slice(-MAX_GEMINI_HISTORY_TURNS * 2); const current = { role: "user", parts: [{ text: userPrompt }] }; const modelAck = { role: "model", parts: [{ text: `Rozumím. Kreslím na tabuli (${getBoardBackgroundColor()}), prvky ${color}, font Helvetica 24px, pod Y=${state.lowestY}. Kresbu dám do EXCALIDRAW_SCENE bloku. Poznámky/otázky napíšu mimo něj.` }]}; return [{ role: "user", parts:[{text:system}] }, modelAck, ...history, current]; };
+            const sendToGemini = async (prompt) => { if (!GEMINI_API_KEY || GEMINI_API_KEY.startsWith('YOUR_')) {showToast("Chyba: AI Key.", "error"); updateGeminiThinkingState(false); return;} if (!state.currentTopic) {showToast("Chyba: Není téma.", "error"); updateGeminiThinkingState(false); return;} if (!navigator.onLine) {showToast("Chyba: Offline.", "error"); updateGeminiThinkingState(false); return;} console.log(`Sending: "${prompt.substring(0, 100)}..."`); const timestamp = new Date(); updateGeminiThinkingState(true); const contents = _buildGeminiPayloadContents(prompt); const body = { contents, generationConfig: { temperature: 0.6, topP: 0.95, topK: 40, maxOutputTokens: 8192 }, safetySettings: [{ category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" }, { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" }, { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" }, { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" }] }; try { const response = await fetch(GEMINI_API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }); if (!response.ok) { let errorText = `API Error (${response.status})`; try { const errData = await response.json(); errorText += `: ${errData?.error?.message || 'Unknown'}`; } catch (e) { errorText += `: ${await response.text()}`; } throw new Error(errorText); } const data = await response.json(); const candidate = data.candidates?.[0]; if (data.promptFeedback?.blockReason) throw new Error(`Blokováno: ${data.promptFeedback.blockReason}.`); if (!candidate) throw new Error('Chybná odpověď AI.'); if (candidate.finishReason && !["STOP", "MAX_TOKENS"].includes(candidate.finishReason)) { if(candidate.finishReason === 'SAFETY') throw new Error('Blokováno filtrem AI.'); console.warn(`Gemini finishReason: ${candidate.finishReason}.`); } const text = candidate.content?.parts?.[0]?.text; if (!text) { if (candidate.finishReason === 'MAX_TOKENS') throw new Error('Max. délka odpovědi.'); else throw new Error('Prázdná odpověď AI.'); } state.geminiChatContext.push({ role: "user", parts: [{ text: prompt }] }); state.geminiChatContext.push({ role: "model", parts: [{ text }] }); if (state.geminiChatContext.length > MAX_GEMINI_HISTORY_TURNS * 2) state.geminiChatContext.splice(0, state.geminiChatContext.length - MAX_GEMINI_HISTORY_TURNS * 2); processGeminiResponse(text, timestamp); } catch (error) { console.error('Gemini Error:', error); showToast(`Chyba AI: ${error.message}`, "error"); handleGeminiError(error.message, timestamp); } finally { if (!state.isWaitingForBoardAnswer) { updateGeminiThinkingState(false); } } };
             const handleGeminiError = (msg, time) => { addChatMessage(`Chyba: ${msg}`, 'gemini', false, time); state.isWaitingForBoardAnswer = false; updateGeminiThinkingState(false); manageUIState('learning'); };
 
             // --- Run Application ---
