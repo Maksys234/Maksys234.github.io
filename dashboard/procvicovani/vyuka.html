@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Justax - Výuka s Interaktivní Tabulí v6</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>Justax - Výuka s Interaktivní Tabulí v7</title>
+    <link rel="preconnect" href="[https://fonts.googleapis.com](https://fonts.googleapis.com)">
+    <link rel="preconnect" href="[https://fonts.gstatic.com](https://fonts.gstatic.com)" crossorigin>
+    <link href="[https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap](https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap)" rel="stylesheet">
+    <link rel="stylesheet" href="[https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css](https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css)">
 
     <script>
         // MathJax Configuration
@@ -19,18 +19,18 @@
             };
         } else { console.warn("window.MathJax already defined."); }
     </script>
-    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script id="MathJax-script" async src="[https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js](https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js)"></script>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/css/tooltipster.bundle.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/js/tooltipster.bundle.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="[https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2](https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2)"></script>
+    <script src="[https://cdn.jsdelivr.net/npm/marked/marked.min.js](https://cdn.jsdelivr.net/npm/marked/marked.min.js)"></script>
+    <script src="[https://code.jquery.com/jquery-3.7.1.min.js](https://code.jquery.com/jquery-3.7.1.min.js)"></script>
+    <link rel="stylesheet" href="[https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/css/tooltipster.bundle.min.css](https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/css/tooltipster.bundle.min.css)">
+    <script src="[https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/js/tooltipster.bundle.min.js](https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/js/tooltipster.bundle.min.js)"></script>
+    <script src="[https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js](https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js)"></script>
 
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
-    <script src="https://unpkg.com/@excalidraw/excalidraw@0.17.3/dist/excalidraw.production.min.js" crossorigin></script>
+    <script src="[https://unpkg.com/react@18/umd/react.production.min.js](https://unpkg.com/react@18/umd/react.production.min.js)" crossorigin></script>
+    <script src="[https://unpkg.com/react-dom@18/umd/react-dom.production.min.js](https://unpkg.com/react-dom@18/umd/react-dom.production.min.js)" crossorigin></script>
+    <script src="[https://unpkg.com/@excalidraw/excalidraw@0.17.3/dist/excalidraw.production.min.js](https://unpkg.com/@excalidraw/excalidraw@0.17.3/dist/excalidraw.production.min.js)" crossorigin></script>
 
     <style>
         /* --- Base CSS Styles --- */
@@ -147,6 +147,16 @@
         #excalidraw-container .loading-placeholder i { font-size: 2.5rem; color: var(--primary); margin-bottom: 1rem; animation: spinPulse 2s infinite ease-in-out; }
         #excalidraw-container .loading-placeholder p { font-size: 1rem; }
         @keyframes spinPulse { 0% { transform: scale(1) rotate(0deg); opacity: 0.7; } 50% { transform: scale(1.1) rotate(180deg); opacity: 1; } 100% { transform: scale(1) rotate(360deg); opacity: 0.7; } }
+
+        /* CSS rule to prevent external styles from hiding text */
+        #excalidraw-container svg text {
+             stroke: inherit !important; /* Inherit stroke from Excalidraw */
+             fill: inherit !important;   /* Inherit fill from Excalidraw */
+             /* Alternatively, for debugging: */
+             /* stroke: lime !important; */
+             /* fill: lime !important; */
+         }
+
 
         /* --- Interaction Panel --- */
         .interaction-panel {
@@ -462,7 +472,7 @@
         // Wrap the entire script in a try-catch block for robust error handling
         try {
             // --- Constants & Configuration ---
-            const SUPABASE_URL = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
+            const SUPABASE_URL = '[https://qcimhjjwvsbgjsitmvuh.supabase.co](https://qcimhjjwvsbgjsitmvuh.supabase.co)';
             const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10';
             const GEMINI_API_KEY = 'AIzaSyDQboM6qtC_O2sqqpaKZZffNf2zk6HrhEs'; // !!! Production: Use a secure method !!!
             const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
@@ -544,8 +554,10 @@
 
              // --- Excalidraw Functions ---
             const initializeExcalidraw = () => { /* ... (no changes, uses getBoardBackgroundColor/getElementColor) ... */ console.log("Initializing Excalidraw..."); const container = uiElements.excalidrawContainer; if (!container) { console.error("Excalidraw container not found!"); return false; } if (typeof React === 'undefined' || typeof ReactDOM === 'undefined' || typeof ExcalidrawLib === 'undefined') { console.error("React/Excalidraw libraries not loaded!"); return false; } try { container.innerHTML = '<div class="loading-placeholder"><i class="fas fa-spinner"></i><p>Načítám kreslící plochu...</p></div>'; if (state.excalidrawRoot) { state.excalidrawRoot.unmount(); state.excalidrawRoot = null; state.excalidrawAPI = null; } state.excalidrawRoot = ReactDOM.createRoot(container); const initialAppState = { viewBackgroundColor: getBoardBackgroundColor(), currentItemFontFamily: 2, currentItemFontSize: 24, theme: state.isDarkMode ? 'dark' : 'light', viewModeEnabled: true, gridSize: null, currentItemStrokeColor: getElementColor() }; state.excalidrawRoot.render( React.createElement(ExcalidrawLib.Excalidraw, { initialData: { appState: initialAppState, elements: [] }, excalidrawAPI: (api) => { if (!state.excalidrawAPI) { state.excalidrawAPI = api; console.log("Excalidraw API ready."); uiElements.excalidrawWrapper = container.querySelector('.excalidraw-wrapper'); const placeholder = container.querySelector('.loading-placeholder'); if (placeholder) placeholder.remove(); try { api.updateScene({ elements: [], appState: { viewBackgroundColor: getBoardBackgroundColor() } }); } catch(e) { console.error("Error clearing scene on init", e); } } }, UIOptions: { canvasActions: { saveToActiveFile: false, loadScene: false, export: { saveFileToDisk: true }, clearCanvas: false } }, viewModeEnabled: true, zenModeEnabled: false, gridModeEnabled: false, theme: state.isDarkMode ? 'dark' : 'light', }) ); console.log("Excalidraw component mount initiated."); return true; } catch (error) { console.error("Error mounting Excalidraw:", error); container.innerHTML = `<div class="loading-placeholder" style="color:var(--danger);"><i class="fas fa-exclamation-triangle"></i><p>Chyba Excalidraw:<br>${error.message}</p></div>`; return false; } };
-            const updateExcalidrawScene = (newElements = []) => { /* ... (no changes, uses getBoardBackgroundColor) ... */ if (!state.excalidrawAPI) { console.warn("Excalidraw API not ready."); return; } if (!Array.isArray(newElements)) { console.warn("Invalid element data:", newElements); return; } let elementsToUpdate = []; let shouldScroll = false; if (newElements.length > 0) { const yOffset = state.lowestY; const processedNewElements = addDefaultExcalidrawProps(newElements).map(el => ({ ...el, y: (typeof el.y === 'number' ? el.y + yOffset : yOffset) })); state.excalidrawElements = [...state.excalidrawElements, ...processedNewElements]; elementsToUpdate = state.excalidrawElements; updateCurrentLowestY(); shouldScroll = true; console.log(`Appended ${processedNewElements.length}. New lowestY: ${state.lowestY}`); } else { state.excalidrawElements = []; elementsToUpdate = []; state.lowestY = 50; console.log("Clearing board."); } const validationResult = validateExcalidrawElements(elementsToUpdate); if (!validationResult.isValid) { console.error("Validation failed. Aborting updateScene."); return; } try { let currentAppState = state.excalidrawAPI.getAppState ? state.excalidrawAPI.getAppState() : {}; state.excalidrawAPI.updateScene({ elements: elementsToUpdate, appState: { ...currentAppState, viewModeEnabled: state.isWaitingForBoardAnswer ? false : true, viewBackgroundColor: getBoardBackgroundColor(), // Ensure background is set
- theme: state.isDarkMode ? 'dark' : 'light' // Ensure theme is set
+            const updateExcalidrawScene = (newElements = []) => { /* ... (no changes, uses getBoardBackgroundColor) ... */ if (!state.excalidrawAPI) { console.warn("Excalidraw API not ready."); return; } if (!Array.isArray(newElements)) { console.warn("Invalid element data:", newElements); return; } let elementsToUpdate = []; let shouldScroll = false; if (newElements.length > 0) { const yOffset = state.lowestY; const processedNewElements = addDefaultExcalidrawProps(newElements).map(el => ({ ...el, y: (typeof el.y === 'number' ? el.y + yOffset : yOffset) })); state.excalidrawElements = [...state.excalidrawElements, ...processedNewElements]; elementsToUpdate = state.excalidrawElements; updateCurrentLowestY(); shouldScroll = true; console.log(`Appended ${processedNewElements.length}. New lowestY: ${state.lowestY}`); } else { state.excalidrawElements = []; elementsToUpdate = []; state.lowestY = 50; console.log("Clearing board."); } const validationResult = validateExcalidrawElements(elementsToUpdate); if (!validationResult.isValid) { console.error("Validation failed. Aborting updateScene."); return; } try { let currentAppState = state.excalidrawAPI.getAppState ? state.excalidrawAPI.getAppState() : {}; // Force update appState with current theme and background color
+ state.excalidrawAPI.updateScene({ elements: elementsToUpdate, appState: { ...currentAppState, viewModeEnabled: state.isWaitingForBoardAnswer ? false : true, viewBackgroundColor: getBoardBackgroundColor(), // Ensure background is set
+ theme: state.isDarkMode ? 'dark' : 'light', // Ensure theme is set
+ currentItemStrokeColor: getElementColor() // Ensure default drawing color matches
  } }); console.log("Excalidraw updateScene successful."); if (shouldScroll && uiElements.excalidrawContainer) { setTimeout(() => { uiElements.excalidrawContainer.scrollTo({ top: uiElements.excalidrawContainer.scrollHeight, behavior: 'smooth' }); console.log("Scrolled container."); }, 150); } } catch (error) { console.error("!!! Error during Excalidraw updateScene:", error); showToast("Chyba při aktualizaci tabule!", "error"); } manageButtonStates(); };
             const clearExcalidrawBoard = () => { /* ... (no changes) ... */ if (!state.excalidrawAPI) { showToast("Tabule není připravena.", "warning"); return; } if (state.excalidrawElements.length === 0) { showToast("Tabule je již prázdná.", "info"); return; } if (!confirm("Opravdu chcete smazat celý obsah tabule?")) return; try { updateExcalidrawScene([]); console.log("Board cleared."); showToast("Tabule vymazána.", "info"); } catch (error) { console.error("Error clearing board:", error); showToast("Chyba při mazání tabule.", "error"); } };
 
@@ -578,32 +590,37 @@
             const saveChatToPDF = async () => { /* ... (no changes) ... */ if (!uiElements.chatMessages || uiElements.chatMessages.children.length === 0) { showToast("Není co uložit.", "warning"); return; } if (typeof html2pdf === 'undefined') { showToast("Chyba: PDF knihovna.", "error"); return; } showToast("Generuji PDF...", "info", 3000); const el = document.createElement('div'); el.style.padding="20mm"; el.innerHTML=`<style>body{font-family:Poppins,sans-serif;font-size:10pt;line-height:1.5;color:#333}.user{margin-left:10%}.model{margin-right:10%}.msg{margin-bottom:10px;max-width:90%;page-break-inside:avoid}.bubble{padding:8px 12px;border-radius:12px;background:#eee;display:inline-block;}.user .bubble{background:#dcf8c6;}.time{font-size:8pt;color:#888;margin-top:3px;display:block;}.user .time{text-align:right;}h1{font-size:16pt;color:#3f37c9;text-align:center;margin-bottom:5px}p{font-size:9pt;color:#6c757d;text-align:center;margin:0 0 10px}hr{border:0;border-top:1px solid #ccc;margin:10px 0}</style><h1>Chat - ${sanitizeHTML(state.currentTopic?.name||'Neznámé')}</h1><p>${new Date().toLocaleString('cs-CZ')}</p><hr>`; Array.from(uiElements.chatMessages.children).forEach(m=>{if(m.classList.contains('chat-message')&&!m.id.startsWith('thinking-')){const c=m.cloneNode(true);c.querySelector('.message-avatar')?.remove();c.classList.add(m.classList.contains('user')?'user':'model','msg');c.querySelector('.message-bubble').classList.add('bubble');c.querySelector('.message-timestamp').classList.add('time');el.appendChild(c);}}); const fn=`chat-${state.currentTopic?.name?.replace(/[^a-z0-9]/gi,'_')||'vyuka'}.pdf`; try{await html2pdf().set({margin:15,filename:fn,jsPDF:{unit:'mm',format:'a4'}}).from(el).save();showToast("Chat uložen!", "success");}catch(e){console.error("PDF Error:",e);showToast("Chyba PDF.", "error");} };
 
              // --- Gemini Interaction & Excalidraw Processing ---
-            // Updated Regex: More flexible, non-greedy, case-insensitive, multiline
+            // Updated Regex and parsing logic
             const parseExcalidrawScene = (text) => {
-                 const regex = /EXCALIDRAW_SCENE:\s*```(?:json)?\s*([\s\S]*?)\s*```\s*/im; // Removed 'g' flag
+                 const regex = /EXCALIDRAW_SCENE:\s*```(?:json)?\s*([\s\S]*?)\s*```\s*/im; // Non-greedy, case-insensitive, multiline, optional 'json'
                  const match = text.match(regex);
                  let data = null;
                  let cleaned = text;
-                 if (match?.[1]) {
+
+                 if (match?.[0] && match?.[1]) { // Check if both the full match and the group exist
+                     const fullMatchString = match[0];
+                     const jsonString = match[1].trim();
+                     console.log("[parseExcalidrawScene] Found potential scene block:", fullMatchString);
+                     console.log("[parseExcalidrawScene] Extracted JSON string:", jsonString);
                      try {
-                         // Attempt to parse the captured JSON string
-                         data = JSON.parse(match[1].trim().replace(/,\s*([}\]])/g, '$1'));
+                         data = JSON.parse(jsonString.replace(/,\s*([}\]])/g, '$1')); // Attempt to parse
                          if (!Array.isArray(data)) {
-                             console.warn("Parsed Excalidraw data is not an array, discarding.");
+                             console.warn("[parseExcalidrawScene] Parsed data is not an array, discarding scene.");
                              data = null; // Discard if not an array
+                             // Keep original text if parsing failed in a way that didn't throw
                          } else {
-                             // If parsing is successful, remove the entire matched block from the text
-                             cleaned = text.replace(match[0], '').trim();
-                             console.log("[parseExcalidrawScene] Successfully parsed and removed scene data.");
+                             // Successfully parsed: remove the entire matched block
+                             cleaned = text.replace(fullMatchString, '').trim();
+                             console.log("[parseExcalidrawScene] Successfully parsed and removed scene data. Cleaned text:", cleaned);
                          }
                      } catch (e) {
-                         console.error("[parseExcalidrawScene] Excalidraw JSON parse error:", e, "Raw JSON string:", match[1]);
-                         data = null; // Parsing failed, keep original text
-                         cleaned = text; // Keep original text if parsing fails
+                         console.error("[parseExcalidrawScene] JSON parse error:", e);
+                         data = null; // Parsing failed
+                         // Do not modify 'cleaned' here, keep original text with the invalid block
                          showToast("Chyba při zpracování dat tabule od AI.", "warning");
                      }
                  } else {
-                    console.log("[parseExcalidrawScene] No Excalidraw scene block found in text.");
+                    console.log("[parseExcalidrawScene] No Excalidraw scene block found using regex.");
                  }
                  return { cleanedText: cleaned, sceneData: data };
              };
@@ -629,24 +646,24 @@
                     const arrowDefaults = { ...lineDefaults, endArrowhead: 'arrow', strokeColor: color };
 
                     let typeDefaults = {};
+                    // --- FORCE COLOR FOR TEXT ---
                     if (el.type === 'text') {
-                        typeDefaults = textDefaults;
-                         console.log(`[addDefaultExcalidrawProps] Processing text element [${index}]: "${el.text?.substring(0, 30)}..." - Applying strokeColor: ${color}`);
+                        typeDefaults = textDefaults; // Apply text defaults which include the correct strokeColor
+                        console.log(`[addDefaultExcalidrawProps] Processing text element [${index}]: "${el.text?.substring(0, 30)}..." - Forcing strokeColor: ${color}`);
                     }
                     else if (el.type === 'line') typeDefaults = lineDefaults;
                     else if (el.type === 'arrow') typeDefaults = arrowDefaults;
                     else {
                         // For other shapes, ensure strokeColor is set if not present
                         if (!el.strokeColor) {
-                            el.strokeColor = color;
-                            console.log(`[addDefaultExcalidrawProps] Applying default strokeColor ${color} to non-text element [${index}] type: ${el.type}`);
+                            // el.strokeColor = color; // Let's rely on the defaults merge below
+                            console.log(`[addDefaultExcalidrawProps] Non-text element [${index}] type: ${el.type} - will use default strokeColor ${color}`);
                         }
                     }
 
-
-                    // Merge default, type-specific, and received properties
-                    // Ensure received properties override defaults, but our forced color overrides received color for text
-                    const patched = { ...defaults, ...el, ...typeDefaults }; // Apply typeDefaults last to ensure text color is forced
+                    // Merge default, received properties, and type-specific defaults
+                    // Order: Defaults < Received Element < Type Defaults (to force text color)
+                    const patched = { ...defaults, ...el, ...typeDefaults };
 
                     // Correct dimensions and text
                     patched.width = Math.max(1, fallback(patched.width, 1));
@@ -654,8 +671,13 @@
                     if (patched.type === 'text' && typeof patched.text !== 'string') { patched.text = String(patched.text || ''); }
                     // Correct points for lines/arrows
                     if (['line', 'arrow'].includes(patched.type)) { if (!Array.isArray(patched.points) || patched.points.length < 2 || patched.points.some(p => !Array.isArray(p) || p.length !== 2)) patched.points = [[0,0], [patched.width, patched.height]]; }
-                    // Ensure all keys from defaults are present (redundant due to spread order, but safe)
-                    for (const key in defaults) { if (patched[key] === undefined) patched[key] = defaults[key]; }
+
+                    // Final check: Ensure strokeColor is explicitly set if somehow missed (especially for non-text)
+                    if (!patched.strokeColor) {
+                         console.warn(`[addDefaultExcalidrawProps] Element [${index}] type ${patched.type} still missing strokeColor after merge, forcing to ${color}`);
+                         patched.strokeColor = color;
+                    }
+
 
                     return patched;
                 }).filter(el => el !== null); // Filter out skipped invalid elements
@@ -663,7 +685,7 @@
              // --- processGeminiResponse - Uses updated parseExcalidrawScene ---
              const processGeminiResponse = (rawText, timestamp) => {
                  removeThinkingIndicator();
-                 console.log("Raw Gemini Response:", rawText); // Log raw response
+                 console.log("Raw Gemini Response Received:", rawText); // Log raw response
                  let { cleanedText, sceneData } = parseExcalidrawScene(rawText); // Use updated parser
                  console.log("Parsed - Cleaned Text:", cleanedText); // Log cleaned text
                  console.log("Parsed - Scene Data:", sceneData ? `Found ${sceneData.length} elements` : "None"); // Log scene data presence
@@ -689,7 +711,7 @@
                              }
                          }
                      } else {
-                         console.error("Invalid Excalidraw data received.");
+                         console.error("Invalid Excalidraw data received after validation.");
                          // Prepend error info to the text to be displayed in chat
                          cleanedText = `(AI poslala neplatná data pro tabuli)\n${cleanedText}`; // AI sent invalid data for the board
                      }
