@@ -387,16 +387,16 @@
                 if (str === '') return NaN; // Handle empty strings after normalization
 
                 // Zlomek: 3/2, -1/4
-                if (str.includes('/') && !str.startsWith('.') && !str.endsWith('.') && str.match(/^-?\d+(\.\d+)?\/-?\d+(\.\d+)?$/)) {
-                    const parts = str.split('/');
-                    if (parts.length === 2) {
-                        const num = parseFloat(parts[0]);
-                        const den = parseFloat(parts[1]);
-                        if (!isNaN(num) && !isNaN(den) && den !== 0) return num / den;
-                    }
-                }
-                // Smíšené číslo: 1 1/2, -2 3/4
-                const mixedMatch = str.match(/^(-?\d+)\s+(\d+)\/(\d+)$/);
+                if (str.includes('/') && !str.startsWith('.') && !str.endsWith('.') && str.match(/^-?\d+(\.\d+)?\/-?\d+(\.\d+)?<span class="math-inline">/\)\) \{
+const parts \= str\.split\('/'\);
+if \(parts\.length \=\=\= 2\) \{
+const num \= parseFloat\(parts\[0\]\);
+const den \= parseFloat\(parts\[1\]\);
+if \(\!isNaN\(num\) && \!isNaN\(den\) && den \!\=\= 0\) return num / den;
+\}
+\}
+// Smíšené číslo\: 1 1/2, \-2 3/4
+const mixedMatch \= str\.match\(/^\(\-?\\d\+\)\\s\+\(\\d\+\)\\/\(\\d\+\)</span>/);
                 if (mixedMatch) {
                     const whole = parseFloat(mixedMatch[1]);
                     const num = parseFloat(mixedMatch[2]);
@@ -812,7 +812,7 @@
 
              // 4. Doporučení (Více detailní)
              if (analysis.weaknesses.length > 0) {
-                 analysis.recommendations.push(`Priorita č. 1: Intenzivně se zaměřte na nejslabší témata: **${analysis.weaknesses.map(w => `${w.topic} (${w.score}%)`).join(', ')}**. Projděte si teorii a řešte co nejvíce příkladů z těchto oblastí.`);
+                 analysis.recommendations.push(`Priorita č. 1: Intenzivně se zaměřte na nejslabší témata: **${analysis.weaknesses.map(w => `<span class="math-inline">\{w\.topic\} \(</span>{w.score}%)`).join(', ')}**. Projděte si teorii a řešte co nejvíce příkladů z těchto oblastí.`);
                  const incorrectWeakTopics = analysis.detailed_question_performance.filter(q => analysis.weaknesses.some(w => w.topic === q.topic) && q.status === 'incorrect');
                  if (incorrectWeakTopics.length > 0) {
                       analysis.recommendations.push(`Analyzujte konkrétní chyby v otázkách č. ${incorrectWeakTopics.map(q => q.question_number).slice(0, 5).join(', ')} z těchto slabých témat.`);
