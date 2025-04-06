@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Justax - Výuka s Tabulí a TTS Komentářem</title> <link rel="preconnect" href="https://fonts.googleapis.com">
+    <title>Justax - Výuka s Tabulí, TTS a Hlasem</title> <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -253,7 +253,7 @@
         .send-button:active:not(:disabled) { transform: translateY(-1px); box-shadow: 0 3px 6px rgba(var(--primary-rgb), 0.15); }
         .send-button i { font-size: 1em; }
         .send-button .fa-spinner { margin: 0; }
-        .chat-controls { flex-shrink: 0; padding: 0.4rem 1rem; font-size: 0.75rem; color: var(--text-muted); text-align: right; background-color: #f8f9fa; border-top: 1px solid var(--gray-light); }
+        .chat-controls { flex-shrink: 0; padding: 0.4rem 1rem; font-size: 0.75rem; color: var(--text-muted); text-align: right; background-color: #f8f9fa; border-top: 1px solid var(--gray-light); display: flex; align-items: center; justify-content: flex-end; gap: 0.5rem;} /* Added flex for mic button */
         .chat-controls button { background:none; border:none; color: var(--text-muted); cursor:pointer; font-size: 0.9em; padding: 2px 5px; margin-left: 8px; transition: color 0.2s ease; }
         .chat-controls button:hover { color: var(--primary); }
         #send-board-answer-btn { display: none !important; } /* Hide send board answer button */
@@ -269,6 +269,41 @@
         .whiteboard-chunk .tts-listen-btn { /* Position button for whiteboard */
             position: absolute; top: 0; right: 0;
         }
+
+        /* --- Microphone Button Style --- */
+        #mic-btn {
+            background: none; border: none; font-size: 1.2em; color: var(--text-secondary);
+            cursor: pointer; padding: 0.3rem 0.5rem; border-radius: 50%;
+            transition: color 0.2s ease, background-color 0.2s ease;
+        }
+        #mic-btn:hover:not(:disabled) { color: var(--primary); background-color: rgba(var(--primary-rgb), 0.1); }
+        #mic-btn.listening { color: var(--danger); animation: pulseMic 1.5s infinite ease-in-out; }
+        #mic-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        @keyframes pulseMic { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+
+        /* --- AI Avatar Placeholder --- */
+        #ai-avatar-corner {
+            position: fixed;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            width: 60px;
+            height: 60px;
+            background-color: rgba(var(--primary-rgb), 0.1);
+            border: 2px solid var(--primary-light);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: var(--primary);
+            opacity: 0.8;
+            z-index: 1000;
+            box-shadow: var(--shadow-md);
+        }
+        @media (max-width: 768px) {
+            #ai-avatar-corner { width: 50px; height: 50px; font-size: 1.8rem; bottom: 1rem; right: 1rem; }
+        }
+
 
         /* --- Common Elements & Responsiveness --- (No changes) */
         .btn { display: inline-flex; align-items: center; justify-content: center; padding: 0.7rem 1.4rem; border-radius: 8px; font-weight: 500; font-size: 0.9rem; text-decoration: none; transition: all 0.25s ease; cursor: pointer; border: none; gap: 0.5rem; line-height: 1.5; }
@@ -412,6 +447,10 @@
             .toast { background-color: var(--panel-bg); border-color: var(--gray-light); color: var(--text-primary); box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);}
             .ai-presenter-header-controls button { background-color: var(--light); color: var(--text-secondary); border-color: var(--gray-light);}
             .ai-presenter-header-controls button:hover { background-color: var(--gray-light); color: var(--dark); border-color: var(--gray);}
+            #mic-btn { color: var(--text-secondary); }
+            #mic-btn:hover:not(:disabled) { color: var(--primary-light); background-color: rgba(var(--primary-rgb), 0.15); }
+            #mic-btn.listening { color: var(--danger); }
+            #ai-avatar-corner { background-color: rgba(var(--primary-rgb), 0.2); border-color: var(--primary); color: var(--primary-light); }
         }
     </style>
 </head>
@@ -511,6 +550,9 @@
                                  </div>
                                  </div>
                              <div class="chat-controls">
+                                 <button id="mic-btn" class="btn-tooltip" title="Zahájit hlasový vstup">
+                                     <i class="fas fa-microphone"></i>
+                                 </button>
                                  <button id="clear-chat-btn" class="btn-tooltip" title="Vymazat historii tohoto chatu"> <i class="fas fa-trash-alt"></i> Vymazat chat </button>
                                  | <button id="save-chat-btn" class="btn-tooltip" title="Uložit chat jako PDF"> <i class="fas fa-save"></i> Uložit chat </button>
                              </div>
@@ -518,6 +560,9 @@
                      </div>
                 </div>
             </div>
+        </div>
+        <div id="ai-avatar-corner">
+            <i class="fas fa-robot"></i>
         </div>
     </main>
     <div class="toast" id="toast"> <i class="fas fa-info-circle"></i> <div id="toast-message">Operace úspěšná.</div> </div>
@@ -544,12 +589,14 @@
                 clearChatBtn: document.getElementById('clear-chat-btn'), continueBtn: document.getElementById('continue-btn'),
                 markCompleteBtn: document.getElementById('mark-complete-btn'), clearBoardBtn: document.getElementById('clear-board-btn'),
                 stopSpeechBtn: document.getElementById('stop-speech-btn'), // Added
+                micBtn: document.getElementById('mic-btn'), // Added Microphone button
                 toast: document.getElementById('toast'), toastMessage: document.getElementById('toast-message'),
                 learningInterface: document.querySelector('.call-interface'), chatPanel: document.querySelector('.interaction-panel'),
                 aiPresenterArea: document.querySelector('.ai-presenter-area'),
                 interactionTabs: document.querySelector('.interaction-tabs'),
                 chatTabContent: document.getElementById('chat-tab-content'),
                 chatTabButton: document.querySelector('.interaction-tab[data-tab="chat-tab"]')
+                // aiAvatarCorner: document.getElementById('ai-avatar-corner') // Reference to avatar placeholder
             };
 
             // --- Global State ---
@@ -563,7 +610,10 @@
                 isDarkMode: window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches, // Current theme
                 boardContentHistory: [], // Store chunks of markdown for the board
                 speechSynthesisSupported: ('speechSynthesis' in window), // Check TTS support
-                czechVoice: null // To store the Czech voice object
+                czechVoice: null, // To store the Czech voice object
+                speechRecognitionSupported: ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window), // Check STT support
+                speechRecognition: null, // SpeechRecognition instance
+                isListening: false // Flag for STT active state
             };
 
             // --- Utility Functions ---
@@ -585,19 +635,36 @@
             // --- TTS Functions ---
             const loadVoices = () => {
                 if (!state.speechSynthesisSupported) return;
-                const voices = window.speechSynthesis.getVoices();
-                console.log('Available voices:', voices); // Log all voices
-                // Try to find a female Czech voice first
-                state.czechVoice = voices.find(voice => voice.lang === 'cs-CZ' && /female|žena|ženský/i.test(voice.name));
-                // If not found, find any Czech voice
-                if (!state.czechVoice) {
-                    state.czechVoice = voices.find(voice => voice.lang === 'cs-CZ');
+                try {
+                    const voices = window.speechSynthesis.getVoices();
+                    if (!voices || voices.length === 0) {
+                        console.warn("No voices available yet or API error.");
+                        return; // Wait for voiceschanged event
+                    }
+                    console.log('Available voices:', voices.map(v => ({ name: v.name, lang: v.lang, default: v.default })));
+
+                    // 1. Try to find a Czech voice marked as female first
+                    let preferredVoice = voices.find(voice => voice.lang === 'cs-CZ' && /female|žena|ženský|iveta|zuzana/i.test(voice.name));
+
+                    // 2. If not found, find any Czech voice
+                    if (!preferredVoice) {
+                        preferredVoice = voices.find(voice => voice.lang === 'cs-CZ');
+                    }
+                    // 3. If still not found, fallback to any Czech-related
+                    if (!preferredVoice) {
+                        preferredVoice = voices.find(voice => voice.lang.startsWith('cs'));
+                    }
+                     // 4. If still none, use browser default (might not be Czech)
+                     if (!preferredVoice) {
+                         preferredVoice = voices.find(v => v.default) || voices[0];
+                     }
+
+                    state.czechVoice = preferredVoice;
+                    console.log("Selected voice:", state.czechVoice?.name, state.czechVoice?.lang);
+                } catch (e) {
+                    console.error("Error loading voices:", e);
+                    state.czechVoice = null; // Reset on error
                 }
-                // If still not found, fallback to any Czech-related or first available
-                if (!state.czechVoice) {
-                    state.czechVoice = voices.find(voice => voice.lang.startsWith('cs')) || voices[0];
-                }
-                console.log("Selected voice:", state.czechVoice?.name, state.czechVoice?.lang);
             };
 
             const speakText = (text) => {
@@ -610,8 +677,7 @@
                     return;
                 }
 
-                // Clean text for speech (remove markdown, maybe simplify math?)
-                // Basic cleaning: remove markdown formatting characters
+                // Clean text for speech
                 const plainText = text
                     .replace(/<[^>]*>/g, ' ') // Remove HTML tags
                     .replace(/[`*#_~[\]()]/g, '') // Remove common markdown chars
@@ -635,7 +701,12 @@
                 if (state.czechVoice) {
                     utterance.voice = state.czechVoice;
                 } else {
-                    console.warn("Czech voice not found, using default.");
+                    loadVoices(); // Attempt to load voices again
+                    if (state.czechVoice) {
+                         utterance.voice = state.czechVoice;
+                    } else {
+                        console.warn("Czech voice not found, using default.");
+                    }
                 }
 
                 utterance.onerror = (event) => {
@@ -654,6 +725,100 @@
                 }
             };
 
+            // --- STT (Speech-to-Text) Functions ---
+            const initializeSpeechRecognition = () => {
+                if (!state.speechRecognitionSupported) {
+                    console.warn("Speech Recognition not supported in this browser.");
+                    if(uiElements.micBtn) uiElements.micBtn.disabled = true;
+                    return;
+                }
+
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                state.speechRecognition = new SpeechRecognition();
+                state.speechRecognition.lang = 'cs-CZ';
+                state.speechRecognition.interimResults = false; // We want final results
+                state.speechRecognition.maxAlternatives = 1;
+                state.speechRecognition.continuous = false; // Stop after first utterance
+
+                state.speechRecognition.onresult = (event) => {
+                    const transcript = event.results[0][0].transcript;
+                    console.log('Speech recognized:', transcript);
+                    if (uiElements.chatInput) {
+                        uiElements.chatInput.value = transcript;
+                        autoResizeTextarea(); // Adjust textarea size
+                        // Optionally send automatically: handleSendMessage();
+                    }
+                };
+
+                state.speechRecognition.onerror = (event) => {
+                    console.error('Speech recognition error:', event.error);
+                    let errorMsg = "Chyba rozpoznávání řeči";
+                    if (event.error === 'no-speech') {
+                        errorMsg = "Nerozpoznal jsem žádnou řeč.";
+                    } else if (event.error === 'audio-capture') {
+                        errorMsg = "Chyba mikrofonu.";
+                    } else if (event.error === 'not-allowed') {
+                        errorMsg = "Přístup k mikrofonu zamítnut.";
+                    }
+                    showToast(errorMsg, 'error');
+                    stopListening(); // Ensure state is reset
+                };
+
+                state.speechRecognition.onend = () => {
+                    console.log('Speech recognition ended.');
+                    stopListening(); // Ensure state and UI are reset
+                };
+
+                 state.speechRecognition.onaudiostart = () => console.log('Audio capture started.');
+                 state.speechRecognition.onaudioend = () => console.log('Audio capture ended.');
+                 state.speechRecognition.onspeechstart = () => console.log('Speech detected.');
+                 state.speechRecognition.onspeechend = () => console.log('Speech ended.');
+
+                console.log("Speech Recognition initialized.");
+            };
+
+            const startListening = () => {
+                if (!state.speechRecognitionSupported || !state.speechRecognition || state.isListening) return;
+                try {
+                    state.speechRecognition.start();
+                    state.isListening = true;
+                    if(uiElements.micBtn) uiElements.micBtn.classList.add('listening');
+                    if(uiElements.micBtn) uiElements.micBtn.title = "Zastavit hlasový vstup"; // Stop voice input
+                    console.log('Speech recognition started.');
+                } catch (e) {
+                    console.error("Error starting speech recognition:", e);
+                    showToast("Nepodařilo se spustit rozpoznávání.", "error");
+                    stopListening(); // Reset state
+                }
+            };
+
+            const stopListening = () => {
+                if (!state.speechRecognitionSupported || !state.speechRecognition || !state.isListening) return;
+                try {
+                    state.speechRecognition.stop();
+                } catch (e) {
+                    console.error("Error stopping speech recognition (might be normal if already stopped):", e);
+                } finally {
+                    state.isListening = false;
+                    if(uiElements.micBtn) uiElements.micBtn.classList.remove('listening');
+                    if(uiElements.micBtn) uiElements.micBtn.title = "Zahájit hlasový vstup"; // Start voice input
+                    console.log('Speech recognition stopped.');
+                }
+            };
+
+            const handleMicClick = () => {
+                if (!state.speechRecognitionSupported) {
+                    showToast("Rozpoznávání řeči není podporováno.", "warning");
+                    return;
+                }
+                if (state.isListening) {
+                    stopListening();
+                } else {
+                    startListening();
+                }
+            };
+
+
             // --- Initialization ---
             const initializeSupabase = () => { /* ... (no changes) ... */ try { if (!window.supabase) throw new Error("Supabase library not loaded."); state.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); if (!state.supabase) throw new Error("Client creation failed."); console.log("Supabase initialized."); return true; } catch (error) { console.error("Supabase init failed:", error); showToast("Chyba DB.", "error", 10000); return false; } };
             const initializeUI = () => { try { // No Excalidraw/Canvas init needed
@@ -661,14 +826,17 @@
  if(uiElements.chatTabButton) uiElements.chatTabButton.classList.add('active'); if(uiElements.chatTabContent) uiElements.chatTabContent.classList.add('active'); if(uiElements.chatTabButton) uiElements.chatTabButton.style.flex = 'none'; // Make chat tab take full width if it's the only one
  updateTheme(); // Set initial theme for whiteboard div
  // Load voices for TTS
- if (state.speechSynthesisSupported) { loadVoices(); // Initial load
- // Voices might load asynchronously
- if (window.speechSynthesis.onvoiceschanged !== undefined) { window.speechSynthesis.onvoiceschanged = loadVoices; } } else { console.warn("Speech Synthesis not supported."); } manageUIState('initial'); return true; } catch(error) { console.error("UI Init failed:", error); showToast(`Chyba UI: ${error.message}`, "error", 10000); return false; }};
+ if (state.speechSynthesisSupported) { // Load voices immediately if available
+ if (window.speechSynthesis.getVoices().length > 0) { loadVoices(); } else if (window.speechSynthesis.onvoiceschanged !== undefined) { // Otherwise wait for the event
+ window.speechSynthesis.onvoiceschanged = loadVoices; } } else { console.warn("Speech Synthesis not supported."); } // Initialize Speech Recognition
+ initializeSpeechRecognition(); manageUIState('initial'); return true; } catch(error) { console.error("UI Init failed:", error); showToast(`Chyba UI: ${error.message}`, "error", 10000); return false; }};
             const initializeApp = async () => { /* ... (no changes) ... */ console.log("DOM Loaded. Initializing Board Tutor..."); if (!initializeSupabase()) return; if (!initializeUI()) return; manageUIState('loadingUser'); try { await loadUserProfile(); if (state.currentUser) { await loadNextUncompletedTopic(); } else { handleLoggedOutUser(); } } catch (error) { console.error("App initialization error:", error); manageUIState('error'); showToast("Chyba při startu aplikace.", "error"); }};
 
             // --- UI State & Button Management ---
             const manageUIState = (mode, options = {}) => { /* ... (Simplified) ... */ console.log("UI State:", mode, options); const isLearning = ['learning', 'chatting', 'requestingExplanation'].includes(mode); const showLearningInterface = !!state.currentTopic || mode === 'loadingTopic' || mode === 'requestingExplanation' || mode === 'noPlan' || mode === 'planComplete' || mode === 'error'; if (uiElements.learningInterface) uiElements.learningInterface.style.display = showLearningInterface ? 'flex' : 'none'; if (uiElements.chatMessages && !isLearning && mode !== 'loadingUser') { let emptyStateHTML = ''; switch (mode) { case 'initial': case 'loadingUser': emptyStateHTML = "<div class='empty-state'><i class='fas fa-user-circle'></i><h3>Načítání...</h3></div>"; break; case 'loggedOut': emptyStateHTML = "<div class='empty-state'><i class='fas fa-sign-in-alt'></i><h3>Nejste přihlášeni</h3></div>"; break; case 'noPlan': emptyStateHTML = "<div class='empty-state'><i class='fas fa-calendar-times'></i><h3>Žádný aktivní plán</h3><p>Nejprve prosím dokončete diagnostický test v sekci Procvičování.</p></div>"; break; case 'planComplete': emptyStateHTML = "<div class='empty-state'><i class='fas fa-check-circle'></i><h3>Plán dokončen!</h3><p>Všechny naplánované aktivity jsou hotové.</p></div>"; break; case 'error': emptyStateHTML = "<div class='empty-state'><i class='fas fa-exclamation-triangle'></i><h3>Chyba</h3><p>Nastala chyba při načítání dat.</p></div>"; break; default: emptyStateHTML = ''; } if (emptyStateHTML || uiElements.chatMessages.children.length === 0 || ['loggedOut', 'noPlan', 'planComplete', 'error'].includes(mode)) { uiElements.chatMessages.innerHTML = emptyStateHTML; } } manageButtonStates(); };
-            const manageButtonStates = () => { /* ... (Simplified) ... */ const canInteractNormally = !!state.currentTopic && !state.geminiIsThinking && !state.topicLoadInProgress; if (uiElements.sendButton) { uiElements.sendButton.disabled = !canInteractNormally; uiElements.sendButton.innerHTML = state.geminiIsThinking ? '<i class="fas fa-spinner fa-spin"></i>' : '<i class="fas fa-paper-plane"></i>'; } if (uiElements.continueBtn) { uiElements.continueBtn.disabled = !canInteractNormally; uiElements.continueBtn.style.display = canInteractNormally ? 'inline-flex' : 'none'; } if (uiElements.markCompleteBtn) { uiElements.markCompleteBtn.disabled = !canInteractNormally; uiElements.markCompleteBtn.style.display = canInteractNormally ? 'inline-flex' : 'none'; } if (uiElements.chatInput) { uiElements.chatInput.disabled = !canInteractNormally; } if (uiElements.clearBoardBtn) { uiElements.clearBoardBtn.disabled = !uiElements.whiteboardContent || state.geminiIsThinking; } };
+            const manageButtonStates = () => { /* ... (Simplified, added mic button state) ... */ const canInteractNormally = !!state.currentTopic && !state.geminiIsThinking && !state.topicLoadInProgress; if (uiElements.sendButton) { uiElements.sendButton.disabled = !canInteractNormally; uiElements.sendButton.innerHTML = state.geminiIsThinking ? '<i class="fas fa-spinner fa-spin"></i>' : '<i class="fas fa-paper-plane"></i>'; } if (uiElements.continueBtn) { uiElements.continueBtn.disabled = !canInteractNormally; uiElements.continueBtn.style.display = canInteractNormally ? 'inline-flex' : 'none'; } if (uiElements.markCompleteBtn) { uiElements.markCompleteBtn.disabled = !canInteractNormally; uiElements.markCompleteBtn.style.display = canInteractNormally ? 'inline-flex' : 'none'; } if (uiElements.chatInput) { uiElements.chatInput.disabled = !canInteractNormally; } if (uiElements.clearBoardBtn) { uiElements.clearBoardBtn.disabled = !uiElements.whiteboardContent || state.geminiIsThinking; } // Mic button state
+ if (uiElements.micBtn) { uiElements.micBtn.disabled = !canInteractNormally || !state.speechRecognitionSupported || state.isListening; // Disable if not supported or already listening
+ uiElements.micBtn.classList.toggle('listening', state.isListening); uiElements.micBtn.title = state.isListening ? "Zastavit hlasový vstup" : "Zahájit hlasový vstup"; } };
 
              // --- Whiteboard Div Functions ---
             const updateTheme = () => {
@@ -727,7 +895,7 @@
             const updateUserInfoUI = () => { if (uiElements.userName && uiElements.userAvatar) { if (state.currentUser) { const email = state.currentUser.email; const initials = getInitials(state.currentProfile, email); const name = `${state.currentProfile?.first_name || ''} ${state.currentProfile?.last_name || ''}`.trim() || state.currentProfile?.username || email?.split('@')[0] || 'Uživatel'; uiElements.userName.textContent = name; uiElements.userAvatar.innerHTML = state.currentProfile?.avatar_url ? `<img src="${state.currentProfile.avatar_url}" alt="${initials}">` : initials; } else { uiElements.userName.textContent = 'Nepřihlášen'; uiElements.userAvatar.innerHTML = '?'; } } };
             const handleLoggedOutUser = () => { console.warn("User not logged in."); if (uiElements.currentTopicDisplay) uiElements.currentTopicDisplay.innerHTML = '<span class="placeholder">Nejste přihlášeni</span>'; showToast("Prosím, přihlaste se.", "warning"); manageUIState('loggedOut'); };
 
-            // --- Event Listeners Setup --- (Added TTS listeners)
+            // --- Event Listeners Setup --- (Added Mic listener)
             const setupEventListeners = () => {
                  console.log("Setting up event listeners...");
                  if (uiElements.mobileMenuToggle) uiElements.mobileMenuToggle.addEventListener('click', (e) => { e.stopPropagation(); uiElements.sidebar?.classList.toggle('active'); uiElements.sidebarOverlay?.classList.toggle('active'); });
@@ -740,7 +908,8 @@
                  if (uiElements.continueBtn) uiElements.continueBtn.addEventListener('click', requestContinue);
                  if (uiElements.markCompleteBtn) uiElements.markCompleteBtn.addEventListener('click', handleMarkTopicComplete);
                  if (uiElements.clearBoardBtn) uiElements.clearBoardBtn.addEventListener('click', () => clearWhiteboard(true));
-                 if (uiElements.stopSpeechBtn) uiElements.stopSpeechBtn.addEventListener('click', stopSpeech); // Listener for global stop button
+                 if (uiElements.stopSpeechBtn) uiElements.stopSpeechBtn.addEventListener('click', stopSpeech);
+                 if (uiElements.micBtn) uiElements.micBtn.addEventListener('click', handleMicClick); // Added Mic button listener
 
                  // Event delegation for TTS buttons in chat
                  if (uiElements.chatMessages) {
@@ -748,11 +917,8 @@
                          const button = event.target.closest('.tts-listen-btn');
                          if (button) {
                              const text = button.dataset.textToSpeak;
-                             if (text) {
-                                 speakText(text);
-                             } else {
-                                 console.warn("No text found for TTS button in chat.");
-                             }
+                             if (text) { speakText(text); }
+                             else { console.warn("No text found for TTS button in chat."); }
                          }
                      });
                  }
@@ -762,11 +928,8 @@
                          const button = event.target.closest('.tts-listen-btn');
                          if (button) {
                              const text = button.dataset.textToSpeak;
-                             if (text) {
-                                 speakText(text);
-                             } else {
-                                 console.warn("No text found for TTS button on whiteboard.");
-                             }
+                             if (text) { speakText(text); }
+                             else { console.warn("No text found for TTS button on whiteboard."); }
                          }
                      });
                  }
@@ -877,55 +1040,45 @@
                 const boardStart = rawText.indexOf(boardMarker);
                 const ttsStart = rawText.indexOf(ttsMarker);
 
+                // Extract Board Markdown
                 if (boardStart !== -1) {
-                    let boardEnd = rawText.indexOf("```", boardStart + boardMarker.length); // Find start of markdown block
-                    if (boardEnd !== -1) {
-                        boardEnd = rawText.indexOf("```", boardEnd + 3); // Find end of markdown block
-                        if (boardEnd !== -1) {
-                            boardMarkdown = rawText.substring(rawText.indexOf("```", boardStart) + 3, boardEnd).trim();
-                        } else { // Markdown block not properly closed
-                            boardMarkdown = rawText.substring(rawText.indexOf("```", boardStart) + 3).trim(); // Take rest of string
+                    let blockStart = rawText.indexOf("```", boardStart + boardMarker.length);
+                    if (blockStart !== -1) {
+                        let blockEnd = rawText.indexOf("```", blockStart + 3);
+                        if (blockEnd !== -1) {
+                            boardMarkdown = rawText.substring(blockStart + 3, blockEnd).trim();
+                        } else {
+                            boardMarkdown = rawText.substring(blockStart + 3).trim(); // Assume rest is markdown if end ``` is missing
                         }
                     }
                 }
 
+                // Extract TTS Commentary
                 if (ttsStart !== -1) {
-                    // Assume commentary runs until the next marker or end of string
                     let commentaryEnd = rawText.indexOf("[", ttsStart + ttsMarker.length); // Look for next potential marker
-                    if (commentaryEnd === -1) commentaryEnd = rawText.length; // If no marker, go to end
+                    if (commentaryEnd === -1 || (boardStart !== -1 && commentaryEnd > boardStart && ttsStart < boardStart)) {
+                         // If no next marker, or if board marker comes *after* tts marker starts
+                         commentaryEnd = (boardStart !== -1 && ttsStart < boardStart) ? boardStart : rawText.length;
+                    }
                     ttsCommentary = rawText.substring(ttsStart + ttsMarker.length, commentaryEnd).trim();
                 }
 
-                // Determine chat text (anything not part of the defined blocks)
+                // Determine Chat Text (anything not part of the defined blocks)
                 if (boardStart === -1 && ttsStart === -1) {
                     chatText = rawText.trim(); // If no markers, assume whole response is chat
                 } else {
-                    // Collect text parts outside the defined blocks
-                    let lastIndex = 0;
-                    chatText = "";
-                    if (boardStart !== -1 && boardStart > lastIndex) {
-                        chatText += rawText.substring(lastIndex, boardStart).trim() + " ";
-                    }
-                    if (ttsStart !== -1 && ttsStart > (boardStart !== -1 ? rawText.indexOf("```", rawText.indexOf("```", boardStart) + 3) + 3 : lastIndex)) {
-                         let startIdx = (boardStart !== -1 ? rawText.indexOf("```", rawText.indexOf("```", boardStart) + 3) + 3 : lastIndex);
-                         chatText += rawText.substring(startIdx, ttsStart).trim() + " ";
-                    }
-                     // Add text after the last marker found
-                     let endOfLastMarker = 0;
-                     if (ttsStart !== -1 && boardStart !== -1) {
-                         endOfLastMarker = Math.max(
-                             ttsStart + ttsMarker.length + ttsCommentary.length,
-                             boardStart !== -1 ? rawText.indexOf("```", rawText.indexOf("```", boardStart) + 3) + 3 : 0
-                         );
-                     } else if (ttsStart !== -1) {
-                         endOfLastMarker = ttsStart + ttsMarker.length + ttsCommentary.length;
-                     } else if (boardStart !== -1) {
-                          endOfLastMarker = rawText.indexOf("```", rawText.indexOf("```", boardStart) + 3) + 3;
+                     // This part is tricky, let's simplify: if there's board/tts, assume no separate chat text for now
+                     // unless it's explicitly outside both recognised blocks.
+                     // For simplicity in this version, we prioritize board/tts extraction.
+                     // A more robust parser would handle interleaved text.
+                     if (boardMarkdown || ttsCommentary) {
+                         // Let's assume for now that if board/tts is present, other text is negligible or part of tts
+                         chatText = "";
+                         console.log("[parseGeminiResponse] Prioritizing BOARD/TTS extraction, ignoring potential separate chat text for now.");
+                     } else {
+                         // This case should ideally not happen if the prompt is followed, but as fallback:
+                         chatText = rawText.trim();
                      }
-                     if (endOfLastMarker < rawText.length) {
-                         chatText += rawText.substring(endOfLastMarker).trim();
-                     }
-                     chatText = chatText.trim();
                 }
 
 
@@ -954,14 +1107,14 @@
 
                  // 2. Add chat text if present
                  if (chatText) {
-                     // Pass commentary if available AND no board content was added (to avoid duplicate TTS buttons)
+                     // Pass commentary only if it exists and no board content was added (to avoid duplicate TTS)
                      const ttsForChat = ttsCommentary && !boardMarkdown ? ttsCommentary : null;
                      addChatMessage(chatText, 'gemini', true, timestamp, ttsForChat);
                      console.log("Displayed text in chat.");
                      aiResponded = true;
                  } else if (ttsCommentary && !boardMarkdown) {
-                     // If only TTS commentary exists, add a generic message to chat with the TTS button
-                     addChatMessage("(AI přidalo hlasový komentář)", 'gemini', true, timestamp, ttsCommentary);
+                     // If only TTS commentary exists (e.g., response to chat question), add it to chat
+                     addChatMessage(ttsCommentary, 'gemini', true, timestamp, ttsCommentary); // Speak the commentary itself
                      aiResponded = true;
                  }
 
@@ -986,7 +1139,7 @@ Formát odpovědi:
 (Zde napiš Markdown text pro zobrazení na virtuální tabuli. Použij nadpisy, seznamy, zvýraznění, LaTeX pro vzorce mezi $...$ nebo $$...$$)
 \`\`\`
 [TTS_COMMENTARY]:
-(Zde napiš konverzační komentář k obsahu tabule, jako bys mluvil/a k studentovi. Můžeš přidat doplňující info.)`;
+(Zde napiš konverzační komentář k obsahu tabule, jako bys mluvil/a k studentovi. Můžeš přidat doplňující info nebo vysvětlit kroky podrobněji. Tento text bude přečten nahlas.)`;
             };
             const _buildContinuePrompt = () => {
                 return `Pokračuj ve vysvětlování tématu "${state.currentTopic.name}". Naváž na předchozí vysvětlení (poslední část historie je relevantní).
@@ -996,10 +1149,10 @@ Formát odpovědi:
 (Zde napiš další část Markdown textu pro tabuli.)
 \`\`\`
 [TTS_COMMENTARY]:
-(Zde napiš konverzační komentář k NOVÉMU obsahu tabule.)`;
+(Zde napiš konverzační komentář k NOVÉMU obsahu tabule pro hlasový výstup.)`;
             };
             const _buildGeminiPayloadContents = (userPrompt) => {
-                const system = `Jsi AI Tutor "Justax". Vyučuješ téma: "${state.currentTopic.name}". Vždy odpovídej ve formátu s bloky [BOARD_MARKDOWN]: \`\`\`markdown ... \`\`\` a [TTS_COMMENTARY]: .... Text pro tabuli má být strukturovaný (nadpisy, seznamy, vzorce v LaTeXu). Komentář pro TTS má být konverzační a doplňující. Pokud odpovídáš na dotaz studenta v chatu, odpověz pouze běžným textem bez těchto bloků.`;
+                const system = `Jsi AI Tutor "Justax". Vyučuješ téma: "${state.currentTopic.name}". Vždy odpovídej ve formátu s bloky [BOARD_MARKDOWN]: \`\`\`markdown ... \`\`\` a [TTS_COMMENTARY]: .... Text pro tabuli má být strukturovaný (nadpisy, seznamy, vzorce v LaTeXu). Komentář pro TTS má být konverzační a doplňující k textu na tabuli (jako bys mluvil). Pokud odpovídáš na dotaz studenta v chatu, odpověz pouze běžným textem bez těchto bloků.`;
                 const history = state.geminiChatContext.slice(-MAX_GEMINI_HISTORY_TURNS * 2);
                 const current = { role: "user", parts: [{ text: userPrompt }] };
                 // Simplified ACK, assuming the system prompt is sufficient
