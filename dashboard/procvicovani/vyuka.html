@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Justax - Výuka s Tabulí a TTS</title> <link rel="preconnect" href="https://fonts.googleapis.com">
+    <title>Justax - Výuka s Tabulí a TTS Komentářem</title> <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -445,7 +445,7 @@
             <div class="header-content">
                 <div style="display: flex; align-items: center; gap: 1rem;">
                     <button class="mobile-menu-toggle" id="mobile-menu-toggle"> <i class="fas fa-bars"></i> </button>
-                    <h1>Výuka s Tabulí</h1>
+                    <h1>Výuka s Tabulí a TTS</h1>
                 </div>
                 <div class="header-actions">
                      <button class="btn btn-success btn-tooltip" id="mark-complete-btn" style="display: none;" title="Označit aktuální téma jako probrané">
@@ -586,12 +586,18 @@
             const loadVoices = () => {
                 if (!state.speechSynthesisSupported) return;
                 const voices = window.speechSynthesis.getVoices();
-                state.czechVoice = voices.find(voice => voice.lang === 'cs-CZ');
+                console.log('Available voices:', voices); // Log all voices
+                // Try to find a female Czech voice first
+                state.czechVoice = voices.find(voice => voice.lang === 'cs-CZ' && /female|žena|ženský/i.test(voice.name));
+                // If not found, find any Czech voice
                 if (!state.czechVoice) {
-                    // Fallback to any voice if Czech is not available
+                    state.czechVoice = voices.find(voice => voice.lang === 'cs-CZ');
+                }
+                // If still not found, fallback to any Czech-related or first available
+                if (!state.czechVoice) {
                     state.czechVoice = voices.find(voice => voice.lang.startsWith('cs')) || voices[0];
                 }
-                console.log("Voices loaded. Selected Czech voice:", state.czechVoice?.name);
+                console.log("Selected voice:", state.czechVoice?.name, state.czechVoice?.lang);
             };
 
             const speakText = (text) => {
@@ -607,14 +613,24 @@
                 // Clean text for speech (remove markdown, maybe simplify math?)
                 // Basic cleaning: remove markdown formatting characters
                 const plainText = text
+                    .replace(/<[^>]*>/g, ' ') // Remove HTML tags
                     .replace(/[`*#_~[\]()]/g, '') // Remove common markdown chars
                     .replace(/\$\$(.*?)\$\$/g, 'matematický vzorec') // Replace display math
-                    .replace(/\$(.*?)\$/g, 'vzorec'); // Replace inline math
+                    .replace(/\$(.*?)\$/g, 'vzorec') // Replace inline math
+                    .replace(/\s+/g, ' ') // Collapse multiple whitespace
+                    .trim();
+
+                if (!plainText) {
+                    console.warn("TTS: Text is empty after cleaning.");
+                    return;
+                }
 
                 window.speechSynthesis.cancel(); // Stop any previous speech
 
                 const utterance = new SpeechSynthesisUtterance(plainText);
                 utterance.lang = 'cs-CZ';
+                utterance.rate = 0.9; // Slightly slower
+                utterance.pitch = 1.0; // Neutral pitch
 
                 if (state.czechVoice) {
                     utterance.voice = state.czechVoice;
@@ -627,6 +643,7 @@
                     showToast(`Chyba při čtení: ${event.error}`, 'error');
                 };
 
+                console.log(`TTS: Speaking with voice: ${utterance.voice?.name}, lang: ${utterance.lang}, rate: ${utterance.rate}, pitch: ${utterance.pitch}`);
                 window.speechSynthesis.speak(utterance);
             };
 
@@ -645,6 +662,7 @@
  updateTheme(); // Set initial theme for whiteboard div
  // Load voices for TTS
  if (state.speechSynthesisSupported) { loadVoices(); // Initial load
+ // Voices might load asynchronously
  if (window.speechSynthesis.onvoiceschanged !== undefined) { window.speechSynthesis.onvoiceschanged = loadVoices; } } else { console.warn("Speech Synthesis not supported."); } manageUIState('initial'); return true; } catch(error) { console.error("UI Init failed:", error); showToast(`Chyba UI: ${error.message}`, "error", 10000); return false; }};
             const initializeApp = async () => { /* ... (no changes) ... */ console.log("DOM Loaded. Initializing Board Tutor..."); if (!initializeSupabase()) return; if (!initializeUI()) return; manageUIState('loadingUser'); try { await loadUserProfile(); if (state.currentUser) { await loadNextUncompletedTopic(); } else { handleLoggedOutUser(); } } catch (error) { console.error("App initialization error:", error); manageUIState('error'); showToast("Chyba při startu aplikace.", "error"); }};
 
@@ -670,7 +688,8 @@
                 if (showToastMsg) showToast("Tabule vymazána.", "info");
             };
 
-            const appendToWhiteboard = (markdownContent) => {
+            // Updated to store commentary text in button
+            const appendToWhiteboard = (markdownContent, commentaryText) => {
                 if (!uiElements.whiteboardContent || !uiElements.whiteboardContainer) return;
                 const chunkDiv = document.createElement('div');
                 chunkDiv.className = 'whiteboard-chunk'; // Add a class for potential future styling/separation
@@ -682,9 +701,10 @@
                 // Create TTS button
                 const ttsButton = document.createElement('button');
                 ttsButton.className = 'tts-listen-btn btn-tooltip';
-                ttsButton.title = 'Poslechnout text'; // Tooltip text
+                ttsButton.title = 'Poslechnout komentář'; // Tooltip text
                 ttsButton.innerHTML = '<i class="fas fa-volume-up"></i>';
-                ttsButton.dataset.textToSpeak = markdownContent; // Store raw markdown for speech
+                // Store the COMMENTARY text for speaking, fallback to markdown if commentary is missing
+                ttsButton.dataset.textToSpeak = commentaryText || markdownContent;
 
                 // Append content and button to the chunk div
                 chunkDiv.appendChild(contentDiv);
@@ -693,7 +713,7 @@
                 }
 
                 uiElements.whiteboardContent.appendChild(chunkDiv); // Append the new chunk
-                state.boardContentHistory.push(markdownContent); // Store the chunk
+                state.boardContentHistory.push(markdownContent); // Store the markdown chunk
 
                 // Scroll to the bottom of the whiteboard container
                 uiElements.whiteboardContainer.scrollTop = uiElements.whiteboardContainer.scrollHeight;
@@ -725,8 +745,8 @@
                  // Event delegation for TTS buttons in chat
                  if (uiElements.chatMessages) {
                      uiElements.chatMessages.addEventListener('click', (event) => {
-                         if (event.target.closest('.tts-listen-btn')) {
-                             const button = event.target.closest('.tts-listen-btn');
+                         const button = event.target.closest('.tts-listen-btn');
+                         if (button) {
                              const text = button.dataset.textToSpeak;
                              if (text) {
                                  speakText(text);
@@ -739,8 +759,8 @@
                  // Event delegation for TTS buttons on whiteboard
                  if (uiElements.whiteboardContent) {
                      uiElements.whiteboardContent.addEventListener('click', (event) => {
-                         if (event.target.closest('.tts-listen-btn')) {
-                             const button = event.target.closest('.tts-listen-btn');
+                         const button = event.target.closest('.tts-listen-btn');
+                         if (button) {
                              const text = button.dataset.textToSpeak;
                              if (text) {
                                  speakText(text);
@@ -766,13 +786,12 @@
  state.geminiChatContext = []; if (uiElements.currentTopicDisplay) uiElements.currentTopicDisplay.innerHTML = '<span class="placeholder"><i class="fas fa-spinner fa-spin"></i> Hledám...</span>'; manageUIState('loadingTopic'); try { const { data: plans } = await state.supabase.from('study_plans').select('id').eq('user_id', state.currentUser.id).eq('status', 'active').limit(1); if (!plans || plans.length === 0) { manageUIState('noPlan'); return; } state.currentPlanId = plans[0].id; const { data: activities } = await state.supabase.from('plan_activities').select('id, title, description, topic_id').eq('plan_id', state.currentPlanId).eq('completed', false).order('day_of_week').order('time_slot').limit(1); if (activities && activities.length > 0) { const activity = activities[0]; let name = activity.title || 'N/A', desc = activity.description || ''; if (activity.topic_id) { try { const { data: topic } = await state.supabase.from('exam_topics').select('name, description').eq('id', activity.topic_id).single(); if (topic) { name = topic.name || name; desc = topic.description || desc; } } catch(e){ console.warn("Could not fetch topic details", e) } } state.currentTopic = { activity_id: activity.id, plan_id: state.currentPlanId, name, description: desc, user_id: state.currentUser.id, topic_id: activity.topic_id }; if (uiElements.currentTopicDisplay) uiElements.currentTopicDisplay.innerHTML = `Téma: <strong>${sanitizeHTML(name)}</strong>`; await startLearningSession(); } else { manageUIState('planComplete'); } } catch (error) { console.error('Error loading topic:', error); showToast(`Chyba: ${error.message}`, "error"); manageUIState('error'); } finally { state.topicLoadInProgress = false; manageButtonStates(); } };
             const handleMarkTopicComplete = async () => { /* ... (no changes) ... */ if (!state.currentTopic || !state.supabase || state.topicLoadInProgress) return; state.topicLoadInProgress = true; manageButtonStates(); try { await state.supabase.from('plan_activities').update({ completed: true, updated_at: new Date().toISOString() }).eq('id', state.currentTopic.activity_id); showToast(`Téma "${state.currentTopic.name}" dokončeno.`, "success"); await loadNextUncompletedTopic(); } catch (error) { console.error(`Error marking complete:`, error); showToast("Chyba při označování tématu.", "error"); state.topicLoadInProgress = false; manageButtonStates(); } };
 
-            // --- Learning Session & Chat --- (Simplified prompts)
-            const startLearningSession = async () => { if (!state.currentTopic) return; state.currentSessionId = generateSessionId(); manageUIState('requestingExplanation'); const prompt = `Jako AI Tutor vysvětli ZÁKLADY tématu "${state.currentTopic.name}". Vysvětlení napiš jako Markdown text, který se zobrazí na virtuální tabuli. Začni stručným úvodem. Používej nadpisy, seznamy, zvýraznění a matematické vzorce (v LaTeXu mezi $$...$$ nebo $...$). Odpovídej pouze Markdown textem pro tabuli.`; // Updated prompt
- await sendToGemini(prompt); };
-            const requestContinue = async () => { if (state.geminiIsThinking || !state.currentTopic) return; const prompt = `Pokračuj ve vysvětlování tématu "${state.currentTopic.name}". Naváž na předchozí vysvětlení na tabuli (poslední část je na konci historie). Nový text napiš jako Markdown pro tabuli. Odpovídej pouze Markdown textem pro tabuli.`; // Updated prompt
- await sendToGemini(prompt); };
+            // --- Learning Session & Chat --- (Updated prompts)
+            const startLearningSession = async () => { if (!state.currentTopic) return; state.currentSessionId = generateSessionId(); manageUIState('requestingExplanation'); const prompt = _buildInitialPrompt(); await sendToGemini(prompt); };
+            const requestContinue = async () => { if (state.geminiIsThinking || !state.currentTopic) return; const prompt = _buildContinuePrompt(); await sendToGemini(prompt); };
             // Updated addChatMessage to include TTS button
-            const addChatMessage = async (message, sender, saveToDb = true, timestamp = new Date()) => {
+            const addChatMessage = async (message, sender, saveToDb = true, timestamp = new Date(), ttsText = null) => {
+                 // The ttsText parameter is added to potentially store a different text for TTS
                  if (!uiElements.chatMessages) return;
                  const id = `msg-${Date.now()}`;
                  const avatar = sender === 'user' ? getInitials(state.currentProfile, state.currentUser?.email) : 'AI';
@@ -800,9 +819,10 @@
                  if (sender === 'gemini' && state.speechSynthesisSupported) {
                      const ttsButton = document.createElement('button');
                      ttsButton.className = 'tts-listen-btn btn-tooltip';
-                     ttsButton.title = 'Poslechnout zprávu'; // Tooltip text
+                     ttsButton.title = 'Poslechnout komentář'; // Tooltip text
                      ttsButton.innerHTML = '<i class="fas fa-volume-up"></i>';
-                     ttsButton.dataset.textToSpeak = message; // Store raw message for speech
+                     // Use specific TTS text if provided, otherwise fall back to message content
+                     ttsButton.dataset.textToSpeak = ttsText || message;
                      bubbleContentDiv.appendChild(ttsButton); // Append button next to text
                  }
 
@@ -828,7 +848,7 @@
                              topic_id: state.currentTopic.topic_id,
                              topic_name: state.currentTopic.name,
                              role: sender === 'gemini' ? 'model' : 'user',
-                             content: message // Save original message
+                             content: message // Save original message (chat or board content)
                          });
                      } catch (e) {
                          console.error("Chat save error:", e);
@@ -839,40 +859,155 @@
             const updateGeminiThinkingState = (isThinking) => { /* ... (no changes) ... */ state.geminiIsThinking = isThinking; manageButtonStates(); if (isThinking) addThinkingIndicator(); else removeThinkingIndicator(); };
             const addThinkingIndicator = () => { /* ... (no changes) ... */ if (state.thinkingIndicatorId || !uiElements.chatMessages) return; const id = `thinking-${Date.now()}`; const div = document.createElement('div'); div.className = 'chat-message model'; div.id = id; div.innerHTML = `<div class="message-avatar">AI</div><div class="message-thinking-indicator"><span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span></div>`; const empty = uiElements.chatMessages.querySelector('.empty-state'); if(empty) empty.remove(); uiElements.chatMessages.appendChild(div); div.scrollIntoView({ behavior: 'smooth', block: 'end' }); state.thinkingIndicatorId = id; };
             const removeThinkingIndicator = () => { /* ... (no changes) ... */ if (state.thinkingIndicatorId) { document.getElementById(state.thinkingIndicatorId)?.remove(); state.thinkingIndicatorId = null; } };
-            const handleSendMessage = async () => { /* ... (Simplified prompt) ... */ const text = uiElements.chatInput?.value.trim(); if (!text || state.geminiIsThinking || !state.currentTopic) return; await addChatMessage(text, 'user'); state.geminiChatContext.push({ role: "user", parts: [{ text }] }); if (uiElements.chatInput) { uiElements.chatInput.value = ''; autoResizeTextarea(); uiElements.chatInput.focus(); } manageUIState('chatting'); updateGeminiThinkingState(true); // Ask AI to respond in chat, considering the board content (history)
- const prompt = `Student píše do chatu: "${text}". Odpověz textem v chatu k tématu "${state.currentTopic.name}". Měj na paměti, co už bylo vysvětleno na tabuli (poslední části jsou na konci historie). Odpovídej pouze textem do chatu, neposílej žádný Markdown pro tabuli, pokud to není explicitně vyžádáno pro opravu nebo doplnění tabule.`; await sendToGemini(prompt); };
+            const handleSendMessage = async () => { /* ... (Updated prompt) ... */ const text = uiElements.chatInput?.value.trim(); if (!text || state.geminiIsThinking || !state.currentTopic) return; await addChatMessage(text, 'user'); state.geminiChatContext.push({ role: "user", parts: [{ text }] }); if (uiElements.chatInput) { uiElements.chatInput.value = ''; autoResizeTextarea(); uiElements.chatInput.focus(); } manageUIState('chatting'); updateGeminiThinkingState(true); // Ask AI to respond in chat, considering the board content (history)
+ const prompt = `Student píše do chatu: "${text}". Odpověz textem v chatu k tématu "${state.currentTopic.name}". Měj na paměti, co už bylo vysvětleno na tabuli (poslední části jsou na konci historie). Odpovídej pouze textem do chatu. Neposílej žádný Markdown pro tabuli, pokud to není explicitně vyžádáno pro opravu nebo doplnění tabule.`; await sendToGemini(prompt); };
             const confirmClearChat = () => { /* ... (no changes) ... */ if (confirm("Opravdu vymazat chat?")) clearCurrentChatSessionHistory(); };
             const clearCurrentChatSessionHistory = async () => { /* ... (no changes) ... */ if (uiElements.chatMessages) uiElements.chatMessages.innerHTML = '<div class="empty-state"><i class="fas fa-comments"></i><h3>Chat vymazán</h3></div>'; state.geminiChatContext = []; showToast("Historie chatu vymazána.", "info"); if (state.supabase && state.currentUser && state.currentSessionId) { try { await state.supabase.from('chat_history').delete().match({ user_id: state.currentUser.id, session_id: state.currentSessionId }); } catch (e) { console.error("DB clear chat error:", e); } } };
             const saveChatToPDF = async () => { /* ... (no changes) ... */ if (!uiElements.chatMessages || uiElements.chatMessages.children.length === 0) { showToast("Není co uložit.", "warning"); return; } if (typeof html2pdf === 'undefined') { showToast("Chyba: PDF knihovna.", "error"); return; } showToast("Generuji PDF...", "info", 3000); const el = document.createElement('div'); el.style.padding="20mm"; el.innerHTML=`<style>body{font-family:Poppins,sans-serif;font-size:10pt;line-height:1.5;color:#333}.user{margin-left:10%}.model{margin-right:10%}.msg{margin-bottom:10px;max-width:90%;page-break-inside:avoid}.bubble{padding:8px 12px;border-radius:12px;background:#eee;display:inline-block;}.user .bubble{background:#dcf8c6;}.time{font-size:8pt;color:#888;margin-top:3px;display:block;}.user .time{text-align:right;}h1{font-size:16pt;color:#3f37c9;text-align:center;margin-bottom:5px}p{font-size:9pt;color:#6c757d;text-align:center;margin:0 0 10px}hr{border:0;border-top:1px solid #ccc;margin:10px 0}</style><h1>Chat - ${sanitizeHTML(state.currentTopic?.name||'Neznámé')}</h1><p>${new Date().toLocaleString('cs-CZ')}</p><hr>`; Array.from(uiElements.chatMessages.children).forEach(m=>{if(m.classList.contains('chat-message')&&!m.id.startsWith('thinking-')){const c=m.cloneNode(true);c.querySelector('.message-avatar')?.remove();c.classList.add(m.classList.contains('user')?'user':'model','msg');c.querySelector('.message-bubble').classList.add('bubble');c.querySelector('.message-timestamp').classList.add('time');el.appendChild(c);}}); const fn=`chat-${state.currentTopic?.name?.replace(/[^a-z0-9]/gi,'_')||'vyuka'}.pdf`; try{await html2pdf().set({margin:15,filename:fn,jsPDF:{unit:'mm',format:'a4'}}).from(el).save();showToast("Chat uložen!", "success");}catch(e){console.error("PDF Error:",e);showToast("Chyba PDF.", "error");} };
 
-             // --- Gemini Interaction & Simplified Processing ---
-             // Removed Excalidraw parsing functions
+             // --- Gemini Interaction & Parsing ---
+             // Function to parse AI response for board markdown and TTS commentary
+             const parseGeminiResponse = (rawText) => {
+                const boardMarker = "[BOARD_MARKDOWN]:";
+                const ttsMarker = "[TTS_COMMENTARY]:";
+                let boardMarkdown = "";
+                let ttsCommentary = "";
+                let chatText = ""; // Text that is neither board nor commentary
 
-             // --- processGeminiResponse - Simplified for text/markdown only ---
+                const boardStart = rawText.indexOf(boardMarker);
+                const ttsStart = rawText.indexOf(ttsMarker);
+
+                if (boardStart !== -1) {
+                    let boardEnd = rawText.indexOf("```", boardStart + boardMarker.length); // Find start of markdown block
+                    if (boardEnd !== -1) {
+                        boardEnd = rawText.indexOf("```", boardEnd + 3); // Find end of markdown block
+                        if (boardEnd !== -1) {
+                            boardMarkdown = rawText.substring(rawText.indexOf("```", boardStart) + 3, boardEnd).trim();
+                        } else { // Markdown block not properly closed
+                            boardMarkdown = rawText.substring(rawText.indexOf("```", boardStart) + 3).trim(); // Take rest of string
+                        }
+                    }
+                }
+
+                if (ttsStart !== -1) {
+                    // Assume commentary runs until the next marker or end of string
+                    let commentaryEnd = rawText.indexOf("[", ttsStart + ttsMarker.length); // Look for next potential marker
+                    if (commentaryEnd === -1) commentaryEnd = rawText.length; // If no marker, go to end
+                    ttsCommentary = rawText.substring(ttsStart + ttsMarker.length, commentaryEnd).trim();
+                }
+
+                // Determine chat text (anything not part of the defined blocks)
+                if (boardStart === -1 && ttsStart === -1) {
+                    chatText = rawText.trim(); // If no markers, assume whole response is chat
+                } else {
+                    // Collect text parts outside the defined blocks
+                    let lastIndex = 0;
+                    chatText = "";
+                    if (boardStart !== -1 && boardStart > lastIndex) {
+                        chatText += rawText.substring(lastIndex, boardStart).trim() + " ";
+                    }
+                    if (ttsStart !== -1 && ttsStart > (boardStart !== -1 ? rawText.indexOf("```", rawText.indexOf("```", boardStart) + 3) + 3 : lastIndex)) {
+                         let startIdx = (boardStart !== -1 ? rawText.indexOf("```", rawText.indexOf("```", boardStart) + 3) + 3 : lastIndex);
+                         chatText += rawText.substring(startIdx, ttsStart).trim() + " ";
+                    }
+                     // Add text after the last marker found
+                     let endOfLastMarker = 0;
+                     if (ttsStart !== -1 && boardStart !== -1) {
+                         endOfLastMarker = Math.max(
+                             ttsStart + ttsMarker.length + ttsCommentary.length,
+                             boardStart !== -1 ? rawText.indexOf("```", rawText.indexOf("```", boardStart) + 3) + 3 : 0
+                         );
+                     } else if (ttsStart !== -1) {
+                         endOfLastMarker = ttsStart + ttsMarker.length + ttsCommentary.length;
+                     } else if (boardStart !== -1) {
+                          endOfLastMarker = rawText.indexOf("```", rawText.indexOf("```", boardStart) + 3) + 3;
+                     }
+                     if (endOfLastMarker < rawText.length) {
+                         chatText += rawText.substring(endOfLastMarker).trim();
+                     }
+                     chatText = chatText.trim();
+                }
+
+
+                console.log("[parseGeminiResponse] Board Markdown:", boardMarkdown.substring(0,100)+"...");
+                console.log("[parseGeminiResponse] TTS Commentary:", ttsCommentary.substring(0,100)+"...");
+                console.log("[parseGeminiResponse] Chat Text:", chatText.substring(0,100)+"...");
+
+                return { boardMarkdown, ttsCommentary, chatText };
+             };
+
+
+             // --- processGeminiResponse - Uses updated parsing logic ---
              const processGeminiResponse = (rawText, timestamp) => {
                  removeThinkingIndicator();
                  console.log("Raw Gemini Response Received:", rawText.substring(0, 200) + "...");
-                 const cleanedText = rawText.trim(); // Assume the entire response is markdown for the board
+                 const { boardMarkdown, ttsCommentary, chatText } = parseGeminiResponse(rawText);
 
-                 if (cleanedText) {
-                     // Append the content to the whiteboard div
-                     appendToWhiteboard(cleanedText);
-                     console.log("Appended markdown to whiteboard:", cleanedText.substring(0, 100) + "...");
-                     // Optionally add a confirmation or summary to chat
-                     // addChatMessage(`Vysvětlení k tématu "${state.currentTopic.name}" bylo přidáno na tabuli.`, 'gemini', true, timestamp);
-                 } else {
-                      addChatMessage("(AI neposlala žádný text pro tabuli)", 'gemini', false, timestamp); // AI sent no text for the board
-                      console.log("AI sent no usable text content for the whiteboard.");
+                 let aiResponded = false;
+
+                 // 1. Append content to the whiteboard if present
+                 if (boardMarkdown) {
+                     appendToWhiteboard(boardMarkdown, ttsCommentary); // Pass commentary for the button
+                     console.log("Appended markdown to whiteboard.");
+                     aiResponded = true;
                  }
+
+                 // 2. Add chat text if present
+                 if (chatText) {
+                     // Pass commentary if available AND no board content was added (to avoid duplicate TTS buttons)
+                     const ttsForChat = ttsCommentary && !boardMarkdown ? ttsCommentary : null;
+                     addChatMessage(chatText, 'gemini', true, timestamp, ttsForChat);
+                     console.log("Displayed text in chat.");
+                     aiResponded = true;
+                 } else if (ttsCommentary && !boardMarkdown) {
+                     // If only TTS commentary exists, add a generic message to chat with the TTS button
+                     addChatMessage("(AI přidalo hlasový komentář)", 'gemini', true, timestamp, ttsCommentary);
+                     aiResponded = true;
+                 }
+
+
+                 // 3. Handle cases where AI might not have sent expected content
+                 if (!aiResponded) {
+                      addChatMessage("(AI neodpovědělo očekávaným způsobem)", 'gemini', false, timestamp); // AI did not respond as expected
+                      console.log("AI sent no usable content for whiteboard or chat.");
+                 }
+
                  manageUIState('learning'); // Go back to learning state after response
              };
 
             // Removed handleSendBoardAnswer function
 
-            // --- Prompts and Gemini Calls --- (Simplified)
-            const _buildInitialPrompt = () => { return `Jako AI Tutor vysvětli ZÁKLADY tématu "${state.currentTopic.name}". Vysvětlení napiš jako Markdown text, který se zobrazí na virtuální tabuli. Začni stručným úvodem. Používej nadpisy, seznamy, zvýraznění a matematické vzorce (v LaTeXu mezi $$...$$ nebo $...$). Odpovídej pouze Markdown textem pro tabuli.`; };
-            const _buildGeminiPayloadContents = (userPrompt) => { const system = `Jsi AI Tutor "Justax". Vyučuješ téma: "${state.currentTopic.name}". Generuj vysvětlení jako Markdown text pro zobrazení na virtuální tabuli. Používej nadpisy, seznamy, zvýraznění a matematické vzorce (v LaTeXu mezi $$...$$ nebo $...$). Odpovídej pouze Markdown textem pro tabuli.`; const history = state.geminiChatContext.slice(-MAX_GEMINI_HISTORY_TURNS * 2); const current = { role: "user", parts: [{ text: userPrompt }] }; const modelAck = { role: "model", parts: [{ text: `Rozumím. Vygeneruji vysvětlení tématu "${state.currentTopic.name}" jako Markdown pro tabuli.` }]}; return [{ role: "user", parts:[{text:system}] }, modelAck, ...history, current]; };
-            const sendToGemini = async (prompt) => { if (!GEMINI_API_KEY || GEMINI_API_KEY.startsWith('YOUR_')) {showToast("Chyba: AI Key.", "error"); updateGeminiThinkingState(false); return;} if (!state.currentTopic) {showToast("Chyba: Není téma.", "error"); updateGeminiThinkingState(false); return;} if (!navigator.onLine) {showToast("Chyba: Offline.", "error"); updateGeminiThinkingState(false); return;} console.log(`Sending: "${prompt.substring(0, 100)}..."`); const timestamp = new Date(); updateGeminiThinkingState(true); const contents = _buildGeminiPayloadContents(prompt); const body = { contents, generationConfig: { temperature: 0.7, topP: 0.95, topK: 40, maxOutputTokens: 4096 }, safetySettings: [{ category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" }, { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" }, { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" }, { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" }] }; try { const response = await fetch(GEMINI_API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }); if (!response.ok) { let errorText = `API Chyba (${response.status})`; try { const errData = await response.json(); errorText += `: ${errData?.error?.message || 'Neznámá'}`; } catch (e) { errorText += `: ${await response.text()}`; } throw new Error(errorText); } const data = await response.json(); const candidate = data.candidates?.[0]; if (data.promptFeedback?.blockReason) throw new Error(`Blokováno: ${data.promptFeedback.blockReason}.`); if (!candidate) throw new Error('Chybná odpověď AI.'); if (candidate.finishReason && !["STOP", "MAX_TOKENS"].includes(candidate.finishReason)) { if(candidate.finishReason === 'SAFETY') throw new Error('Blokováno filtrem AI.'); console.warn(`Gemini finishReason: ${candidate.finishReason}.`); } const text = candidate.content?.parts?.[0]?.text; if (!text) { if (candidate.finishReason === 'MAX_TOKENS') throw new Error('Max. délka odpovědi.'); else throw new Error('Prázdná odpověď AI.'); } // Store user prompt and AI response (which is now board content)
+            // --- Prompts and Gemini Calls --- (Updated)
+            const _buildInitialPrompt = () => {
+                return `Jako AI Tutor vysvětli ZÁKLADY tématu "${state.currentTopic.name}".
+Formát odpovědi:
+[BOARD_MARKDOWN]:
+\`\`\`markdown
+(Zde napiš Markdown text pro zobrazení na virtuální tabuli. Použij nadpisy, seznamy, zvýraznění, LaTeX pro vzorce mezi $...$ nebo $$...$$)
+\`\`\`
+[TTS_COMMENTARY]:
+(Zde napiš konverzační komentář k obsahu tabule, jako bys mluvil/a k studentovi. Můžeš přidat doplňující info.)`;
+            };
+            const _buildContinuePrompt = () => {
+                return `Pokračuj ve vysvětlování tématu "${state.currentTopic.name}". Naváž na předchozí vysvětlení (poslední část historie je relevantní).
+Formát odpovědi:
+[BOARD_MARKDOWN]:
+\`\`\`markdown
+(Zde napiš další část Markdown textu pro tabuli.)
+\`\`\`
+[TTS_COMMENTARY]:
+(Zde napiš konverzační komentář k NOVÉMU obsahu tabule.)`;
+            };
+            const _buildGeminiPayloadContents = (userPrompt) => {
+                const system = `Jsi AI Tutor "Justax". Vyučuješ téma: "${state.currentTopic.name}". Vždy odpovídej ve formátu s bloky [BOARD_MARKDOWN]: \`\`\`markdown ... \`\`\` a [TTS_COMMENTARY]: .... Text pro tabuli má být strukturovaný (nadpisy, seznamy, vzorce v LaTeXu). Komentář pro TTS má být konverzační a doplňující. Pokud odpovídáš na dotaz studenta v chatu, odpověz pouze běžným textem bez těchto bloků.`;
+                const history = state.geminiChatContext.slice(-MAX_GEMINI_HISTORY_TURNS * 2);
+                const current = { role: "user", parts: [{ text: userPrompt }] };
+                // Simplified ACK, assuming the system prompt is sufficient
+                const modelAck = { role: "model", parts: [{ text: `Rozumím. Vygeneruji obsah pro tabuli a TTS komentář ve specifikovaném formátu pro téma "${state.currentTopic.name}", nebo odpovím na dotaz v chatu.` }]};
+                return [{ role: "user", parts:[{text:system}] }, modelAck, ...history, current];
+            };
+            // sendToGemini and handleGeminiError remain largely the same, just use the updated build functions
+            const sendToGemini = async (prompt) => { if (!GEMINI_API_KEY || GEMINI_API_KEY.startsWith('YOUR_')) {showToast("Chyba: AI Key.", "error"); updateGeminiThinkingState(false); return;} if (!state.currentTopic) {showToast("Chyba: Není téma.", "error"); updateGeminiThinkingState(false); return;} if (!navigator.onLine) {showToast("Chyba: Offline.", "error"); updateGeminiThinkingState(false); return;} console.log(`Sending: "${prompt.substring(0, 100)}..."`); const timestamp = new Date(); updateGeminiThinkingState(true); const contents = _buildGeminiPayloadContents(prompt); const body = { contents, generationConfig: { temperature: 0.7, topP: 0.95, topK: 40, maxOutputTokens: 4096 }, safetySettings: [{ category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" }, { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" }, { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" }, { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" }] }; try { const response = await fetch(GEMINI_API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }); if (!response.ok) { let errorText = `API Chyba (${response.status})`; try { const errData = await response.json(); errorText += `: ${errData?.error?.message || 'Neznámá'}`; } catch (e) { errorText += `: ${await response.text()}`; } throw new Error(errorText); } const data = await response.json(); const candidate = data.candidates?.[0]; if (data.promptFeedback?.blockReason) throw new Error(`Blokováno: ${data.promptFeedback.blockReason}.`); if (!candidate) throw new Error('Chybná odpověď AI.'); if (candidate.finishReason && !["STOP", "MAX_TOKENS"].includes(candidate.finishReason)) { if(candidate.finishReason === 'SAFETY') throw new Error('Blokováno filtrem AI.'); console.warn(`Gemini finishReason: ${candidate.finishReason}.`); } const text = candidate.content?.parts?.[0]?.text; if (!text) { if (candidate.finishReason === 'MAX_TOKENS') throw new Error('Max. délka odpovědi.'); else throw new Error('Prázdná odpověď AI.'); } // Store user prompt and AI response
  state.geminiChatContext.push({ role: "user", parts: [{ text: prompt }] }); state.geminiChatContext.push({ role: "model", parts: [{ text }] }); if (state.geminiChatContext.length > MAX_GEMINI_HISTORY_TURNS * 2) state.geminiChatContext.splice(0, state.geminiChatContext.length - MAX_GEMINI_HISTORY_TURNS * 2); processGeminiResponse(text, timestamp); } catch (error) { console.error('Gemini Chyba:', error); showToast(`Chyba AI: ${error.message}`, "error"); handleGeminiError(error.message, timestamp); } finally { updateGeminiThinkingState(false); // Always remove thinking indicator after processing
  } };
             const handleGeminiError = (msg, time) => { /* ... (no changes) ... */ addChatMessage(`Chyba: ${msg}`, 'gemini', false, time); updateGeminiThinkingState(false); manageUIState('learning'); };
