@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Justax - Výuka s Tabulí (Div)</title> <link rel="preconnect" href="https://fonts.googleapis.com">
+    <title>Justax - Výuka s Tabulí a TTS</title> <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -138,6 +138,17 @@
              line-height: 1.6;
              font-size: 1.05rem; /* Slightly larger font for board */
         }
+        .whiteboard-chunk { /* Style for each chunk added */
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px dashed var(--gray-light);
+            position: relative; /* For TTS button positioning */
+        }
+        .whiteboard-chunk:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
         /* Styles for Markdown elements inside the board */
         #whiteboard-content h1, #whiteboard-content h2, #whiteboard-content h3 {
             margin-top: 1em; margin-bottom: 0.5em;
@@ -186,7 +197,7 @@
         #explanation-tab-content { display: none !important; } /* Hide explanation content */
         #chat-tab-content { visibility: visible; opacity: 1; } /* Chat always active */
 
-        /* --- Chat Panel (Inner Styles) --- (No changes) */
+        /* --- Chat Panel (Inner Styles) --- */
         #chat-tab-content { display: flex; flex-direction: column; height: 100%; }
         .chat-header { padding: 0.9rem 1.25rem; border-bottom: 1px solid var(--gray-light); background-color: #fdfdff; font-size: 1.1rem; font-weight: 600; color: var(--dark); display: flex; align-items: center; gap: 0.7rem; flex-shrink: 0; }
         .chat-header i { color: var(--secondary); }
@@ -201,10 +212,31 @@
         .chat-message.user .message-avatar { background: var(--success); color: white; }
         .chat-message.model .message-avatar { background: var(--primary); color: white; }
         .message-bubble { padding: 0.7rem 1.1rem; border-radius: 16px; line-height: 1.55; word-wrap: break-word; box-shadow: var(--shadow-sm); position: relative; }
-        .chat-message.model .message-bubble { background: var(--model-bubble-bg); color: var(--model-bubble-text); border: 1px solid #eef2f7; border-bottom-left-radius: 5px; }
-        .chat-message.user .message-bubble { background: var(--user-bubble-bg); color: var(--user-bubble-text); border: none; border-bottom-right-radius: 5px; }
-        .message-bubble mjx-math { color: var(--secondary); }
-        .chat-message.user .message-bubble mjx-math { color: #e0e0ff; }
+        .message-bubble-content { /* Wrapper for text and button */
+            display: flex;
+            align-items: flex-start; /* Align button top */
+            gap: 0.5rem;
+        }
+        .message-text-content { flex-grow: 1; } /* Allow text to take space */
+
+        /* --- CORRECTED CHAT TEXT STYLES --- */
+        .chat-message.model .message-bubble {
+            background: var(--model-bubble-bg);
+            color: var(--model-bubble-text);
+            border: 1px solid #eef2f7;
+            border-bottom-left-radius: 5px;
+        }
+        .chat-message.user .message-bubble {
+            background: var(--user-bubble-bg);
+            color: var(--user-bubble-text); /* White text */
+            border: none;
+            border-bottom-right-radius: 5px;
+        }
+        /* MathJax styles within messages */
+        .message-bubble mjx-math { color: var(--secondary); /* Default color for model */ }
+        .chat-message.user .message-bubble mjx-math { color: #e0e0ff; /* Light color for user */ }
+        /* --- END OF CHAT STYLE CORRECTIONS --- */
+
         .message-timestamp { font-size: 0.7rem; color: var(--text-muted); margin-top: 4px; display: block; text-align: left; opacity: 0.8; }
         .chat-message.user .message-timestamp { text-align: right; }
         .message-thinking-indicator { background: var(--white); display: flex; align-items: center; padding: 0.7rem 1rem; border-radius: 16px; box-shadow: var(--shadow-sm); border: 1px solid #eef2f7; width: fit-content; border-bottom-left-radius: 5px;}
@@ -225,6 +257,18 @@
         .chat-controls button { background:none; border:none; color: var(--text-muted); cursor:pointer; font-size: 0.9em; padding: 2px 5px; margin-left: 8px; transition: color 0.2s ease; }
         .chat-controls button:hover { color: var(--primary); }
         #send-board-answer-btn { display: none !important; } /* Hide send board answer button */
+
+        /* --- TTS Button Style --- */
+        .tts-listen-btn {
+            background: none; border: none; color: var(--text-secondary); cursor: pointer;
+            padding: 0.2rem 0.4rem; margin-left: 0.5rem; font-size: 0.9em; opacity: 0.6;
+            transition: opacity 0.2s ease, color 0.2s ease; vertical-align: middle;
+        }
+        .tts-listen-btn:hover { opacity: 1; color: var(--primary); }
+        .tts-listen-btn i { pointer-events: none; } /* Prevent icon from capturing click */
+        .whiteboard-chunk .tts-listen-btn { /* Position button for whiteboard */
+            position: absolute; top: 0; right: 0;
+        }
 
         /* --- Common Elements & Responsiveness --- (No changes) */
         .btn { display: inline-flex; align-items: center; justify-content: center; padding: 0.7rem 1.4rem; border-radius: 8px; font-weight: 500; font-size: 0.9rem; text-decoration: none; transition: all 0.25s ease; cursor: pointer; border: none; gap: 0.5rem; line-height: 1.5; }
@@ -410,6 +454,9 @@
                      <a href="/dashboard/procvicovani/main.html" class="btn btn-secondary">
                          <i class="fas fa-times"></i> Ukončit výuku
                      </a>
+                     <button id="stop-speech-btn" class="btn btn-warning btn-tooltip" title="Zastavit aktuální čtení textu">
+                         <i class="fas fa-stop-circle"></i> Zastavit řeč
+                     </button>
                 </div>
             </div>
         </div>
@@ -452,7 +499,7 @@
                                  <div class="empty-state">
                                      <i class="fas fa-chalkboard-teacher"></i>
                                      <h3>Vítejte!</h3>
-                                     <p>AI Tutor bude vysvětlovat zde v chatu a na tabuli vedle.</p>
+                                     <p>AI Tutor bude vysvětlovat zde v chatu a na tabuli vedle. Kliknutím na <i class="fas fa-volume-up"></i> si můžete nechat text přečíst.</p>
                                  </div>
                              </div>
                              <div class="chat-input-area">
@@ -490,12 +537,13 @@
                 userAvatar: document.getElementById('user-avatar'), userName: document.getElementById('user-name'),
                 mobileMenuToggle: document.getElementById('mobile-menu-toggle'), sidebar: document.getElementById('sidebar'),
                 sidebarOverlay: document.getElementById('sidebar-overlay'), currentTopicDisplay: document.getElementById('current-topic-display'),
-                whiteboardContainer: document.getElementById('whiteboard-container'), // Changed from excalidrawContainer
-                whiteboardContent: document.getElementById('whiteboard-content'), // Div inside container for content
+                whiteboardContainer: document.getElementById('whiteboard-container'), // Changed
+                whiteboardContent: document.getElementById('whiteboard-content'), // Changed
                 chatMessages: document.getElementById('chat-messages'), chatInput: document.getElementById('chat-input'),
                 sendButton: document.getElementById('send-button'), saveChatBtn: document.getElementById('save-chat-btn'),
                 clearChatBtn: document.getElementById('clear-chat-btn'), continueBtn: document.getElementById('continue-btn'),
                 markCompleteBtn: document.getElementById('mark-complete-btn'), clearBoardBtn: document.getElementById('clear-board-btn'),
+                stopSpeechBtn: document.getElementById('stop-speech-btn'), // Added
                 toast: document.getElementById('toast'), toastMessage: document.getElementById('toast-message'),
                 learningInterface: document.querySelector('.call-interface'), chatPanel: document.querySelector('.interaction-panel'),
                 aiPresenterArea: document.querySelector('.ai-presenter-area'),
@@ -513,7 +561,9 @@
                 thinkingIndicatorId: null, // ID of the "typing" indicator
                 topicLoadInProgress: false, // Flag for topic loading
                 isDarkMode: window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches, // Current theme
-                boardContentHistory: [] // Store chunks of markdown for the board
+                boardContentHistory: [], // Store chunks of markdown for the board
+                speechSynthesisSupported: ('speechSynthesis' in window), // Check TTS support
+                czechVoice: null // To store the Czech voice object
             };
 
             // --- Utility Functions ---
@@ -532,13 +582,70 @@
             // Safe access to value, similar to ??
             const fallback = (value, def) => (value !== null && value !== undefined) ? value : def;
 
+            // --- TTS Functions ---
+            const loadVoices = () => {
+                if (!state.speechSynthesisSupported) return;
+                const voices = window.speechSynthesis.getVoices();
+                state.czechVoice = voices.find(voice => voice.lang === 'cs-CZ');
+                if (!state.czechVoice) {
+                    // Fallback to any voice if Czech is not available
+                    state.czechVoice = voices.find(voice => voice.lang.startsWith('cs')) || voices[0];
+                }
+                console.log("Voices loaded. Selected Czech voice:", state.czechVoice?.name);
+            };
+
+            const speakText = (text) => {
+                if (!state.speechSynthesisSupported) {
+                    showToast("Syntéza řeči není podporována v tomto prohlížeči.", "warning");
+                    return;
+                }
+                if (!text) {
+                    console.warn("TTS: No text provided to speak.");
+                    return;
+                }
+
+                // Clean text for speech (remove markdown, maybe simplify math?)
+                // Basic cleaning: remove markdown formatting characters
+                const plainText = text
+                    .replace(/[`*#_~[\]()]/g, '') // Remove common markdown chars
+                    .replace(/\$\$(.*?)\$\$/g, 'matematický vzorec') // Replace display math
+                    .replace(/\$(.*?)\$/g, 'vzorec'); // Replace inline math
+
+                window.speechSynthesis.cancel(); // Stop any previous speech
+
+                const utterance = new SpeechSynthesisUtterance(plainText);
+                utterance.lang = 'cs-CZ';
+
+                if (state.czechVoice) {
+                    utterance.voice = state.czechVoice;
+                } else {
+                    console.warn("Czech voice not found, using default.");
+                }
+
+                utterance.onerror = (event) => {
+                    console.error('SpeechSynthesisUtterance.onerror', event);
+                    showToast(`Chyba při čtení: ${event.error}`, 'error');
+                };
+
+                window.speechSynthesis.speak(utterance);
+            };
+
+            const stopSpeech = () => {
+                if (state.speechSynthesisSupported) {
+                    window.speechSynthesis.cancel();
+                    console.log("Speech cancelled.");
+                }
+            };
+
             // --- Initialization ---
             const initializeSupabase = () => { /* ... (no changes) ... */ try { if (!window.supabase) throw new Error("Supabase library not loaded."); state.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); if (!state.supabase) throw new Error("Client creation failed."); console.log("Supabase initialized."); return true; } catch (error) { console.error("Supabase init failed:", error); showToast("Chyba DB.", "error", 10000); return false; } };
-            const initializeUI = () => { try { // No Excalidraw init needed
+            const initializeUI = () => { try { // No Excalidraw/Canvas init needed
  setupEventListeners(); initTooltips(); // Ensure only chat tab is visible/active
  if(uiElements.chatTabButton) uiElements.chatTabButton.classList.add('active'); if(uiElements.chatTabContent) uiElements.chatTabContent.classList.add('active'); if(uiElements.chatTabButton) uiElements.chatTabButton.style.flex = 'none'; // Make chat tab take full width if it's the only one
  updateTheme(); // Set initial theme for whiteboard div
- manageUIState('initial'); return true; } catch(error) { console.error("UI Init failed:", error); showToast(`Chyba UI: ${error.message}`, "error", 10000); return false; }};
+ // Load voices for TTS
+ if (state.speechSynthesisSupported) { loadVoices(); // Initial load
+ if (window.speechSynthesis.onvoiceschanged !== undefined) { window.speechSynthesis.onvoiceschanged = loadVoices; } } else { console.warn("Speech Synthesis not supported."); } manageUIState('initial'); return true; } catch(error) { console.error("UI Init failed:", error); showToast(`Chyba UI: ${error.message}`, "error", 10000); return false; }};
             const initializeApp = async () => { /* ... (no changes) ... */ console.log("DOM Loaded. Initializing Board Tutor..."); if (!initializeSupabase()) return; if (!initializeUI()) return; manageUIState('loadingUser'); try { await loadUserProfile(); if (state.currentUser) { await loadNextUncompletedTopic(); } else { handleLoggedOutUser(); } } catch (error) { console.error("App initialization error:", error); manageUIState('error'); showToast("Chyba při startu aplikace.", "error"); }};
 
             // --- UI State & Button Management ---
@@ -565,14 +672,33 @@
 
             const appendToWhiteboard = (markdownContent) => {
                 if (!uiElements.whiteboardContent || !uiElements.whiteboardContainer) return;
+                const chunkDiv = document.createElement('div');
+                chunkDiv.className = 'whiteboard-chunk'; // Add a class for potential future styling/separation
+
+                // Create content div
                 const contentDiv = document.createElement('div');
-                contentDiv.className = 'whiteboard-chunk'; // Add a class for potential future styling/separation
-                renderMarkdown(contentDiv, markdownContent); // Render the markdown into the new div
-                uiElements.whiteboardContent.appendChild(contentDiv); // Append the new content
+                renderMarkdown(contentDiv, markdownContent); // Render markdown into the content div
+
+                // Create TTS button
+                const ttsButton = document.createElement('button');
+                ttsButton.className = 'tts-listen-btn btn-tooltip';
+                ttsButton.title = 'Poslechnout text'; // Tooltip text
+                ttsButton.innerHTML = '<i class="fas fa-volume-up"></i>';
+                ttsButton.dataset.textToSpeak = markdownContent; // Store raw markdown for speech
+
+                // Append content and button to the chunk div
+                chunkDiv.appendChild(contentDiv);
+                if (state.speechSynthesisSupported) { // Only add button if supported
+                    chunkDiv.appendChild(ttsButton);
+                }
+
+                uiElements.whiteboardContent.appendChild(chunkDiv); // Append the new chunk
                 state.boardContentHistory.push(markdownContent); // Store the chunk
+
                 // Scroll to the bottom of the whiteboard container
                 uiElements.whiteboardContainer.scrollTop = uiElements.whiteboardContainer.scrollHeight;
                 console.log("Appended content to whiteboard.");
+                initTooltips(); // Re-initialize tooltips for the new button
             };
 
 
@@ -581,10 +707,58 @@
             const updateUserInfoUI = () => { if (uiElements.userName && uiElements.userAvatar) { if (state.currentUser) { const email = state.currentUser.email; const initials = getInitials(state.currentProfile, email); const name = `${state.currentProfile?.first_name || ''} ${state.currentProfile?.last_name || ''}`.trim() || state.currentProfile?.username || email?.split('@')[0] || 'Uživatel'; uiElements.userName.textContent = name; uiElements.userAvatar.innerHTML = state.currentProfile?.avatar_url ? `<img src="${state.currentProfile.avatar_url}" alt="${initials}">` : initials; } else { uiElements.userName.textContent = 'Nepřihlášen'; uiElements.userAvatar.innerHTML = '?'; } } };
             const handleLoggedOutUser = () => { console.warn("User not logged in."); if (uiElements.currentTopicDisplay) uiElements.currentTopicDisplay.innerHTML = '<span class="placeholder">Nejste přihlášeni</span>'; showToast("Prosím, přihlaste se.", "warning"); manageUIState('loggedOut'); };
 
-            // --- Event Listeners Setup --- (Removed board answer listener)
-            const setupEventListeners = () => { console.log("Setting up event listeners..."); if (uiElements.mobileMenuToggle) uiElements.mobileMenuToggle.addEventListener('click', (e) => { e.stopPropagation(); uiElements.sidebar?.classList.toggle('active'); uiElements.sidebarOverlay?.classList.toggle('active'); }); if (uiElements.sidebarOverlay) uiElements.sidebarOverlay.addEventListener('click', () => { uiElements.sidebar?.classList.remove('active'); uiElements.sidebarOverlay?.classList.remove('active'); }); if (uiElements.chatInput) uiElements.chatInput.addEventListener('input', autoResizeTextarea); if (uiElements.sendButton) uiElements.sendButton.addEventListener('click', handleSendMessage); if (uiElements.chatInput) uiElements.chatInput.addEventListener('keypress', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(); } }); if (uiElements.clearChatBtn) uiElements.clearChatBtn.addEventListener('click', confirmClearChat); if (uiElements.saveChatBtn) uiElements.saveChatBtn.addEventListener('click', saveChatToPDF); if (uiElements.continueBtn) uiElements.continueBtn.addEventListener('click', requestContinue); if (uiElements.markCompleteBtn) uiElements.markCompleteBtn.addEventListener('click', handleMarkTopicComplete); if (uiElements.clearBoardBtn) uiElements.clearBoardBtn.addEventListener('click', () => clearWhiteboard(true)); // Use new clear function
- window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => { state.isDarkMode = event.matches; console.log("Theme changed, isDarkMode:", state.isDarkMode); updateTheme(); // Update whiteboard theme
- }); window.addEventListener('resize', () => { if (window.innerWidth > 992) { uiElements.sidebar?.classList.remove('active'); uiElements.sidebarOverlay?.classList.remove('active'); } }); };
+            // --- Event Listeners Setup --- (Added TTS listeners)
+            const setupEventListeners = () => {
+                 console.log("Setting up event listeners...");
+                 if (uiElements.mobileMenuToggle) uiElements.mobileMenuToggle.addEventListener('click', (e) => { e.stopPropagation(); uiElements.sidebar?.classList.toggle('active'); uiElements.sidebarOverlay?.classList.toggle('active'); });
+                 if (uiElements.sidebarOverlay) uiElements.sidebarOverlay.addEventListener('click', () => { uiElements.sidebar?.classList.remove('active'); uiElements.sidebarOverlay?.classList.remove('active'); });
+                 if (uiElements.chatInput) uiElements.chatInput.addEventListener('input', autoResizeTextarea);
+                 if (uiElements.sendButton) uiElements.sendButton.addEventListener('click', handleSendMessage);
+                 if (uiElements.chatInput) uiElements.chatInput.addEventListener('keypress', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(); } });
+                 if (uiElements.clearChatBtn) uiElements.clearChatBtn.addEventListener('click', confirmClearChat);
+                 if (uiElements.saveChatBtn) uiElements.saveChatBtn.addEventListener('click', saveChatToPDF);
+                 if (uiElements.continueBtn) uiElements.continueBtn.addEventListener('click', requestContinue);
+                 if (uiElements.markCompleteBtn) uiElements.markCompleteBtn.addEventListener('click', handleMarkTopicComplete);
+                 if (uiElements.clearBoardBtn) uiElements.clearBoardBtn.addEventListener('click', () => clearWhiteboard(true));
+                 if (uiElements.stopSpeechBtn) uiElements.stopSpeechBtn.addEventListener('click', stopSpeech); // Listener for global stop button
+
+                 // Event delegation for TTS buttons in chat
+                 if (uiElements.chatMessages) {
+                     uiElements.chatMessages.addEventListener('click', (event) => {
+                         if (event.target.closest('.tts-listen-btn')) {
+                             const button = event.target.closest('.tts-listen-btn');
+                             const text = button.dataset.textToSpeak;
+                             if (text) {
+                                 speakText(text);
+                             } else {
+                                 console.warn("No text found for TTS button in chat.");
+                             }
+                         }
+                     });
+                 }
+                 // Event delegation for TTS buttons on whiteboard
+                 if (uiElements.whiteboardContent) {
+                     uiElements.whiteboardContent.addEventListener('click', (event) => {
+                         if (event.target.closest('.tts-listen-btn')) {
+                             const button = event.target.closest('.tts-listen-btn');
+                             const text = button.dataset.textToSpeak;
+                             if (text) {
+                                 speakText(text);
+                             } else {
+                                 console.warn("No text found for TTS button on whiteboard.");
+                             }
+                         }
+                     });
+                 }
+
+
+                 window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+                     state.isDarkMode = event.matches;
+                     console.log("Theme changed, isDarkMode:", state.isDarkMode);
+                     updateTheme(); // Update whiteboard theme
+                 });
+                 window.addEventListener('resize', () => { if (window.innerWidth > 992) { uiElements.sidebar?.classList.remove('active'); uiElements.sidebarOverlay?.classList.remove('active'); } });
+             };
             const initTooltips = () => { /* ... (no changes) ... */ try { if (window.jQuery?.fn.tooltipster) { window.jQuery('.btn-tooltip:not(.tooltipstered)').tooltipster({ theme: 'tooltipster-shadow', animation: 'fade', delay: 100, side: 'top' }); } } catch (e) { console.error("Tooltipster error:", e); } };
 
              // --- Topic Loading and Progress --- (No changes)
@@ -593,17 +767,80 @@
             const handleMarkTopicComplete = async () => { /* ... (no changes) ... */ if (!state.currentTopic || !state.supabase || state.topicLoadInProgress) return; state.topicLoadInProgress = true; manageButtonStates(); try { await state.supabase.from('plan_activities').update({ completed: true, updated_at: new Date().toISOString() }).eq('id', state.currentTopic.activity_id); showToast(`Téma "${state.currentTopic.name}" dokončeno.`, "success"); await loadNextUncompletedTopic(); } catch (error) { console.error(`Error marking complete:`, error); showToast("Chyba při označování tématu.", "error"); state.topicLoadInProgress = false; manageButtonStates(); } };
 
             // --- Learning Session & Chat --- (Simplified prompts)
-            const startLearningSession = async () => { if (!state.currentTopic) return; state.currentSessionId = generateSessionId(); manageUIState('requestingExplanation'); const prompt = `Jako AI Tutor vysvětli ZÁKLADY tématu "${state.currentTopic.name}". Vysvětlení napiš jako Markdown text, který se zobrazí na virtuální tabuli. Začni stručným úvodem.`; // Updated prompt
+            const startLearningSession = async () => { if (!state.currentTopic) return; state.currentSessionId = generateSessionId(); manageUIState('requestingExplanation'); const prompt = `Jako AI Tutor vysvětli ZÁKLADY tématu "${state.currentTopic.name}". Vysvětlení napiš jako Markdown text, který se zobrazí na virtuální tabuli. Začni stručným úvodem. Používej nadpisy, seznamy, zvýraznění a matematické vzorce (v LaTeXu mezi $$...$$ nebo $...$). Odpovídej pouze Markdown textem pro tabuli.`; // Updated prompt
  await sendToGemini(prompt); };
-            const requestContinue = async () => { if (state.geminiIsThinking || !state.currentTopic) return; const prompt = `Pokračuj ve vysvětlování tématu "${state.currentTopic.name}". Naváž na předchozí vysvětlení na tabuli. Nový text napiš jako Markdown.`; // Updated prompt
+            const requestContinue = async () => { if (state.geminiIsThinking || !state.currentTopic) return; const prompt = `Pokračuj ve vysvětlování tématu "${state.currentTopic.name}". Naváž na předchozí vysvětlení na tabuli (poslední část je na konci historie). Nový text napiš jako Markdown pro tabuli. Odpovídej pouze Markdown textem pro tabuli.`; // Updated prompt
  await sendToGemini(prompt); };
-            const addChatMessage = async (message, sender, saveToDb = true, timestamp = new Date()) => { /* ... (no changes) ... */ if (!uiElements.chatMessages) return; const id = `msg-${Date.now()}`; const avatar = sender === 'user' ? getInitials(state.currentProfile, state.currentUser?.email) : 'AI'; const div = document.createElement('div'); div.className = `chat-message ${sender === 'gemini' ? 'model' : sender}`; div.id = id; const avatarDiv = `<div class="message-avatar">${avatar}</div>`; const bubbleDiv = document.createElement('div'); bubbleDiv.className = 'message-bubble'; renderMarkdown(bubbleDiv, message); // Use renderMarkdown for formatting support
- if (window.MathJax && typeof window.MathJax.typesetPromise === 'function') { setTimeout(() => { window.MathJax.typesetPromise([bubbleDiv]).catch(e => console.error("MathJax error in message:", e)); }, 0); } const timeDiv = `<div class="message-timestamp">${formatTimestamp(timestamp)}</div>`; div.innerHTML = avatarDiv + bubbleDiv.outerHTML + timeDiv; const empty = uiElements.chatMessages.querySelector('.empty-state'); if(empty) empty.remove(); uiElements.chatMessages.appendChild(div); div.scrollIntoView({ behavior: 'smooth', block: 'end' }); if (saveToDb && state.supabase && state.currentUser && state.currentTopic && state.currentSessionId) { try { await state.supabase.from('chat_history').insert({ user_id: state.currentUser.id, session_id: state.currentSessionId, topic_id: state.currentTopic.topic_id, topic_name: state.currentTopic.name, role: sender === 'gemini' ? 'model' : 'user', content: message }); } catch (e) { console.error("Chat save error:", e); showToast("Chyba ukládání chatu.", "error");} } };
+            // Updated addChatMessage to include TTS button
+            const addChatMessage = async (message, sender, saveToDb = true, timestamp = new Date()) => {
+                 if (!uiElements.chatMessages) return;
+                 const id = `msg-${Date.now()}`;
+                 const avatar = sender === 'user' ? getInitials(state.currentProfile, state.currentUser?.email) : 'AI';
+                 const div = document.createElement('div');
+                 div.className = `chat-message ${sender === 'gemini' ? 'model' : sender}`;
+                 div.id = id;
+
+                 const avatarDiv = `<div class="message-avatar">${avatar}</div>`;
+                 const bubbleDiv = document.createElement('div');
+                 bubbleDiv.className = 'message-bubble';
+
+                 // Create content wrapper
+                 const bubbleContentDiv = document.createElement('div');
+                 bubbleContentDiv.className = 'message-bubble-content';
+
+                 // Create text content span
+                 const textContentSpan = document.createElement('span');
+                 textContentSpan.className = 'message-text-content';
+                 renderMarkdown(textContentSpan, message); // Render markdown here
+
+                 // Append text content
+                 bubbleContentDiv.appendChild(textContentSpan);
+
+                 // Add TTS button only for AI messages and if supported
+                 if (sender === 'gemini' && state.speechSynthesisSupported) {
+                     const ttsButton = document.createElement('button');
+                     ttsButton.className = 'tts-listen-btn btn-tooltip';
+                     ttsButton.title = 'Poslechnout zprávu'; // Tooltip text
+                     ttsButton.innerHTML = '<i class="fas fa-volume-up"></i>';
+                     ttsButton.dataset.textToSpeak = message; // Store raw message for speech
+                     bubbleContentDiv.appendChild(ttsButton); // Append button next to text
+                 }
+
+                 bubbleDiv.appendChild(bubbleContentDiv); // Add wrapper to bubble
+
+                 // Add timestamp
+                 const timeDiv = `<div class="message-timestamp">${formatTimestamp(timestamp)}</div>`;
+
+                 div.innerHTML = avatarDiv + bubbleDiv.outerHTML + timeDiv;
+
+                 const empty = uiElements.chatMessages.querySelector('.empty-state');
+                 if(empty) empty.remove();
+                 uiElements.chatMessages.appendChild(div);
+                 div.scrollIntoView({ behavior: 'smooth', block: 'end' });
+                 initTooltips(); // Re-initialize tooltips for the new button
+
+                 // Database saving logic (unchanged)
+                 if (saveToDb && state.supabase && state.currentUser && state.currentTopic && state.currentSessionId) {
+                     try {
+                         await state.supabase.from('chat_history').insert({
+                             user_id: state.currentUser.id,
+                             session_id: state.currentSessionId,
+                             topic_id: state.currentTopic.topic_id,
+                             topic_name: state.currentTopic.name,
+                             role: sender === 'gemini' ? 'model' : 'user',
+                             content: message // Save original message
+                         });
+                     } catch (e) {
+                         console.error("Chat save error:", e);
+                         showToast("Chyba ukládání chatu.", "error");
+                     }
+                 }
+            };
             const updateGeminiThinkingState = (isThinking) => { /* ... (no changes) ... */ state.geminiIsThinking = isThinking; manageButtonStates(); if (isThinking) addThinkingIndicator(); else removeThinkingIndicator(); };
             const addThinkingIndicator = () => { /* ... (no changes) ... */ if (state.thinkingIndicatorId || !uiElements.chatMessages) return; const id = `thinking-${Date.now()}`; const div = document.createElement('div'); div.className = 'chat-message model'; div.id = id; div.innerHTML = `<div class="message-avatar">AI</div><div class="message-thinking-indicator"><span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span></div>`; const empty = uiElements.chatMessages.querySelector('.empty-state'); if(empty) empty.remove(); uiElements.chatMessages.appendChild(div); div.scrollIntoView({ behavior: 'smooth', block: 'end' }); state.thinkingIndicatorId = id; };
             const removeThinkingIndicator = () => { /* ... (no changes) ... */ if (state.thinkingIndicatorId) { document.getElementById(state.thinkingIndicatorId)?.remove(); state.thinkingIndicatorId = null; } };
             const handleSendMessage = async () => { /* ... (Simplified prompt) ... */ const text = uiElements.chatInput?.value.trim(); if (!text || state.geminiIsThinking || !state.currentTopic) return; await addChatMessage(text, 'user'); state.geminiChatContext.push({ role: "user", parts: [{ text }] }); if (uiElements.chatInput) { uiElements.chatInput.value = ''; autoResizeTextarea(); uiElements.chatInput.focus(); } manageUIState('chatting'); updateGeminiThinkingState(true); // Ask AI to respond in chat, considering the board content (history)
- const prompt = `Student píše do chatu: "${text}". Odpověz textem v chatu k tématu "${state.currentTopic.name}". Měj na paměti, co už bylo vysvětleno na tabuli (poslední části jsou na konci historie).`; await sendToGemini(prompt); };
+ const prompt = `Student píše do chatu: "${text}". Odpověz textem v chatu k tématu "${state.currentTopic.name}". Měj na paměti, co už bylo vysvětleno na tabuli (poslední části jsou na konci historie). Odpovídej pouze textem do chatu, neposílej žádný Markdown pro tabuli, pokud to není explicitně vyžádáno pro opravu nebo doplnění tabule.`; await sendToGemini(prompt); };
             const confirmClearChat = () => { /* ... (no changes) ... */ if (confirm("Opravdu vymazat chat?")) clearCurrentChatSessionHistory(); };
             const clearCurrentChatSessionHistory = async () => { /* ... (no changes) ... */ if (uiElements.chatMessages) uiElements.chatMessages.innerHTML = '<div class="empty-state"><i class="fas fa-comments"></i><h3>Chat vymazán</h3></div>'; state.geminiChatContext = []; showToast("Historie chatu vymazána.", "info"); if (state.supabase && state.currentUser && state.currentSessionId) { try { await state.supabase.from('chat_history').delete().match({ user_id: state.currentUser.id, session_id: state.currentSessionId }); } catch (e) { console.error("DB clear chat error:", e); } } };
             const saveChatToPDF = async () => { /* ... (no changes) ... */ if (!uiElements.chatMessages || uiElements.chatMessages.children.length === 0) { showToast("Není co uložit.", "warning"); return; } if (typeof html2pdf === 'undefined') { showToast("Chyba: PDF knihovna.", "error"); return; } showToast("Generuji PDF...", "info", 3000); const el = document.createElement('div'); el.style.padding="20mm"; el.innerHTML=`<style>body{font-family:Poppins,sans-serif;font-size:10pt;line-height:1.5;color:#333}.user{margin-left:10%}.model{margin-right:10%}.msg{margin-bottom:10px;max-width:90%;page-break-inside:avoid}.bubble{padding:8px 12px;border-radius:12px;background:#eee;display:inline-block;}.user .bubble{background:#dcf8c6;}.time{font-size:8pt;color:#888;margin-top:3px;display:block;}.user .time{text-align:right;}h1{font-size:16pt;color:#3f37c9;text-align:center;margin-bottom:5px}p{font-size:9pt;color:#6c757d;text-align:center;margin:0 0 10px}hr{border:0;border-top:1px solid #ccc;margin:10px 0}</style><h1>Chat - ${sanitizeHTML(state.currentTopic?.name||'Neznámé')}</h1><p>${new Date().toLocaleString('cs-CZ')}</p><hr>`; Array.from(uiElements.chatMessages.children).forEach(m=>{if(m.classList.contains('chat-message')&&!m.id.startsWith('thinking-')){const c=m.cloneNode(true);c.querySelector('.message-avatar')?.remove();c.classList.add(m.classList.contains('user')?'user':'model','msg');c.querySelector('.message-bubble').classList.add('bubble');c.querySelector('.message-timestamp').classList.add('time');el.appendChild(c);}}); const fn=`chat-${state.currentTopic?.name?.replace(/[^a-z0-9]/gi,'_')||'vyuka'}.pdf`; try{await html2pdf().set({margin:15,filename:fn,jsPDF:{unit:'mm',format:'a4'}}).from(el).save();showToast("Chat uložen!", "success");}catch(e){console.error("PDF Error:",e);showToast("Chyba PDF.", "error");} };
@@ -633,8 +870,8 @@
             // Removed handleSendBoardAnswer function
 
             // --- Prompts and Gemini Calls --- (Simplified)
-            const _buildInitialPrompt = () => { return `Jako AI Tutor vysvětli ZÁKLADY tématu "${state.currentTopic.name}". Vysvětlení napiš jako Markdown text, který se zobrazí na virtuální tabuli. Začni stručným úvodem. Používej nadpisy, seznamy, zvýraznění a matematické vzorce (v LaTeXu mezi $$...$$ nebo $...$).`; }; // Added instruction for Markdown and MathJax
-            const _buildGeminiPayloadContents = (userPrompt) => { const system = `Jsi AI Tutor "Justax". Vyučuješ téma: "${state.currentTopic.name}". Generuj vysvětlení jako Markdown text pro zobrazení na virtuální tabuli. Používej nadpisy, seznamy, zvýraznění a matematické vzorce (v LaTeXu mezi $$...$$ nebo $...$). Odpovídej pouze Markdown textem.`; const history = state.geminiChatContext.slice(-MAX_GEMINI_HISTORY_TURNS * 2); const current = { role: "user", parts: [{ text: userPrompt }] }; const modelAck = { role: "model", parts: [{ text: `Rozumím. Vygeneruji vysvětlení tématu "${state.currentTopic.name}" jako Markdown pro tabuli.` }]}; return [{ role: "user", parts:[{text:system}] }, modelAck, ...history, current]; }; // Updated system prompt
+            const _buildInitialPrompt = () => { return `Jako AI Tutor vysvětli ZÁKLADY tématu "${state.currentTopic.name}". Vysvětlení napiš jako Markdown text, který se zobrazí na virtuální tabuli. Začni stručným úvodem. Používej nadpisy, seznamy, zvýraznění a matematické vzorce (v LaTeXu mezi $$...$$ nebo $...$). Odpovídej pouze Markdown textem pro tabuli.`; };
+            const _buildGeminiPayloadContents = (userPrompt) => { const system = `Jsi AI Tutor "Justax". Vyučuješ téma: "${state.currentTopic.name}". Generuj vysvětlení jako Markdown text pro zobrazení na virtuální tabuli. Používej nadpisy, seznamy, zvýraznění a matematické vzorce (v LaTeXu mezi $$...$$ nebo $...$). Odpovídej pouze Markdown textem pro tabuli.`; const history = state.geminiChatContext.slice(-MAX_GEMINI_HISTORY_TURNS * 2); const current = { role: "user", parts: [{ text: userPrompt }] }; const modelAck = { role: "model", parts: [{ text: `Rozumím. Vygeneruji vysvětlení tématu "${state.currentTopic.name}" jako Markdown pro tabuli.` }]}; return [{ role: "user", parts:[{text:system}] }, modelAck, ...history, current]; };
             const sendToGemini = async (prompt) => { if (!GEMINI_API_KEY || GEMINI_API_KEY.startsWith('YOUR_')) {showToast("Chyba: AI Key.", "error"); updateGeminiThinkingState(false); return;} if (!state.currentTopic) {showToast("Chyba: Není téma.", "error"); updateGeminiThinkingState(false); return;} if (!navigator.onLine) {showToast("Chyba: Offline.", "error"); updateGeminiThinkingState(false); return;} console.log(`Sending: "${prompt.substring(0, 100)}..."`); const timestamp = new Date(); updateGeminiThinkingState(true); const contents = _buildGeminiPayloadContents(prompt); const body = { contents, generationConfig: { temperature: 0.7, topP: 0.95, topK: 40, maxOutputTokens: 4096 }, safetySettings: [{ category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" }, { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" }, { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" }, { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" }] }; try { const response = await fetch(GEMINI_API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }); if (!response.ok) { let errorText = `API Chyba (${response.status})`; try { const errData = await response.json(); errorText += `: ${errData?.error?.message || 'Neznámá'}`; } catch (e) { errorText += `: ${await response.text()}`; } throw new Error(errorText); } const data = await response.json(); const candidate = data.candidates?.[0]; if (data.promptFeedback?.blockReason) throw new Error(`Blokováno: ${data.promptFeedback.blockReason}.`); if (!candidate) throw new Error('Chybná odpověď AI.'); if (candidate.finishReason && !["STOP", "MAX_TOKENS"].includes(candidate.finishReason)) { if(candidate.finishReason === 'SAFETY') throw new Error('Blokováno filtrem AI.'); console.warn(`Gemini finishReason: ${candidate.finishReason}.`); } const text = candidate.content?.parts?.[0]?.text; if (!text) { if (candidate.finishReason === 'MAX_TOKENS') throw new Error('Max. délka odpovědi.'); else throw new Error('Prázdná odpověď AI.'); } // Store user prompt and AI response (which is now board content)
  state.geminiChatContext.push({ role: "user", parts: [{ text: prompt }] }); state.geminiChatContext.push({ role: "model", parts: [{ text }] }); if (state.geminiChatContext.length > MAX_GEMINI_HISTORY_TURNS * 2) state.geminiChatContext.splice(0, state.geminiChatContext.length - MAX_GEMINI_HISTORY_TURNS * 2); processGeminiResponse(text, timestamp); } catch (error) { console.error('Gemini Chyba:', error); showToast(`Chyba AI: ${error.message}`, "error"); handleGeminiError(error.message, timestamp); } finally { updateGeminiThinkingState(false); // Always remove thinking indicator after processing
  } };
