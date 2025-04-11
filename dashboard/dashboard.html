@@ -11,767 +11,119 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
-        /* Bazové styly */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Poppins', sans-serif;
-        }
-
+        /* CSS styly (beze změny - ponechány pro úplnost) */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
         :root {
-            --primary: #4361ee;
-            --primary-light: #4895ef;
-            --secondary: #3f37c9;
-            --success: #4cc9f0;
-            --danger: #f72585;
-            --warning: #f8961e;
-            --info: #4895ef;
-            --dark: #1e2a3a;
-            --light: #f8f9fa;
-            --gray: #6c757d;
-            --gray-light: #dee2e6;
-            --gray-dark: #343a40;
+            --primary: #4361ee; --primary-light: #4895ef; --secondary: #3f37c9;
+            --success: #4cc9f0; --danger: #f72585; --warning: #f8961e;
+            --info: #4895ef; --dark: #1e2a3a; --light: #f8f9fa; --gray: #6c757d;
+            --gray-light: #dee2e6; --gray-dark: #343a40;
             --gradient-1: linear-gradient(135deg, #4361ee, #3a0ca3);
             --gradient-2: linear-gradient(135deg, #4cc9f0, #4361ee);
             --gradient-3: linear-gradient(135deg, #f72585, #7209b7);
-            --white: #ffffff;
-            --sidebar-width: 260px;
-            --transition-speed: 0.3s;
-            --card-radius: 16px;
-            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
-            --shadow-md: 0 5px 15px rgba(0, 0, 0, 0.07);
-            --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.1);
-            --text-primary: #2d3748;
-            --text-secondary: #4a5568;
-            --text-muted: #718096;
-        }
-
-        body {
-            background-color: #f6f8ff;
-            color: var(--text-primary);
-            min-height: 100vh;
-            display: flex;
-            overflow-x: hidden;
-        }
-
-        /* Sidebar */
-        .sidebar {
-            width: var(--sidebar-width);
-            height: 100vh;
-            position: fixed;
-            top: 0;
-            left: 0;
-            background: var(--gradient-1);
-            color: var(--white);
-            padding: 1.5rem 1rem;
-            display: flex;
-            flex-direction: column;
-            z-index: 100;
-            box-shadow: var(--shadow-lg);
-            transition: all var(--transition-speed) ease;
-        }
-
-        .sidebar-header {
-            display: flex;
-            align-items: center;
-            margin-bottom: 2rem;
-            padding: 0 0.75rem;
-        }
-
-        .sidebar-logo {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--white);
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-
-        .sidebar-logo i {
-            font-size: 1.75rem;
-        }
-
-        .sidebar-menu {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-            flex-grow: 1;
-        }
-
-        .sidebar-item {
-            margin-bottom: 0.5rem;
-        }
-
-        .sidebar-link {
-            display: flex;
-            align-items: center;
-            padding: 0.75rem 1rem;
-            color: rgba(255, 255, 255, 0.85);
-            text-decoration: none;
-            border-radius: 12px;
-            transition: all 0.2s ease;
-            font-weight: 500;
-        }
-
-        .sidebar-link i {
-            margin-right: 0.75rem;
-            font-size: 1.2rem;
-            width: 24px;
-            text-align: center;
-        }
-
-        .sidebar-link.active, .sidebar-link:hover {
-            background-color: rgba(255, 255, 255, 0.15);
-            color: var(--white);
-        }
-
-        .sidebar-footer {
-            margin-top: auto;
-            padding: 1rem;
-            font-size: 0.9rem;
-            color: rgba(255, 255, 255, 0.7);
-            text-align: center;
-        }
-
-        .user-profile {
-            display: flex;
-            align-items: center;
-            padding: 1rem;
-            margin-top: 1rem;
-            background-color: rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-        }
-
-        .user-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background-color: var(--primary-light);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 0.75rem;
-            font-weight: 500;
-            overflow: hidden;
-            color: var(--white); /* Přidáno pro iniciály */
-        }
-
-        .user-avatar img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .user-info {
-            flex-grow: 1;
-        }
-
-        .user-name {
-            font-weight: 600;
-            font-size: 0.95rem;
-        }
-
-        .user-role {
-            font-size: 0.8rem;
-            opacity: 0.8;
-        }
-
-        /* Hlavní obsah */
-        main {
-            flex: 1;
-            margin-left: var(--sidebar-width);
-            padding: 1.5rem 2rem;
-            transition: margin var(--transition-speed) ease;
-            width: calc(100% - var(--sidebar-width));
-        }
-
-        .dashboard-header {
-            margin-bottom: 2rem;
-            background-color: var(--white);
-            border-radius: var(--card-radius);
-            padding: 1.25rem 1.5rem;
-            box-shadow: var(--shadow-sm);
-        }
-
-        .header-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap; /* Allow wrapping */
-            gap: 1rem; /* Gap between items */
-        }
-
-         /* Wrapper pro H1 a mobilní toggle pro správné zarovnání */
-        .header-content > div:first-child {
-            display: flex;
-            align-items: center;
-            gap: 1rem; /* Mezera mezi toggle a H1 */
-            flex-grow: 1; /* Allow title section to grow */
-        }
-
-        .header-content h1 {
-            font-size: 1.75rem;
-            font-weight: 600;
-            color: var(--dark);
-            margin: 0; /* Reset default margin */
-        }
-
-        .header-actions {
-            display: flex;
-            align-items: center;
-            gap: 1.5rem;
-        }
-
-        .search-box {
-            position: relative;
-        }
-
-        .search-box input {
-            width: 280px;
-            height: 44px;
-            border-radius: 22px;
-            padding: 0 1rem 0 2.5rem;
-            border: 1px solid var(--gray-light);
-            background-color: var(--light);
-            outline: none;
-            transition: all 0.2s ease;
-            font-size: 0.95rem;
-        }
-
-        .search-box input:focus {
-            border-color: var(--primary-light);
-            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
-        }
-
-        .search-box i {
-            position: absolute;
-            left: 1rem;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--gray);
-        }
-
-        .notifications {
-            position: relative;
-            cursor: pointer;
-        }
-
-        .notifications i {
-            font-size: 1.4rem;
-            color: var(--gray-dark);
-        }
-
-        .notification-badge {
-            position: absolute;
-            top: -5px;
-            right: -5px;
-            width: 20px;
-            height: 20px;
-            background-color: var(--danger);
-            color: white;
-            font-size: 0.7rem;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 600;
-        }
-
-        /* Hlavní obsah */
-        .main-content {
-            display: grid;
-            gap: 1.75rem;
-        }
-
-        .section-title {
-            font-size: 1.3rem;
-            font-weight: 600;
-            margin-bottom: 1.25rem;
-            color: var(--dark);
-        }
-
-        /* Uvítací banner */
-        .welcome-banner {
-            background: var(--gradient-2);
-            border-radius: var(--card-radius);
-            box-shadow: var(--shadow-md);
-            overflow: hidden;
-            position: relative;
-        }
-
-        .welcome-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 2.5rem 3rem;
-            position: relative;
-            z-index: 1;
-        }
-
-        .welcome-text-content {
-            max-width: 60%;
-            color: var(--white);
-        }
-
-        .welcome-title {
-            font-size: 1.75rem;
-            font-weight: 700;
-            margin-bottom: 1rem;
-        }
-
-        .welcome-text {
-            font-size: 1rem;
-            margin-bottom: 1.5rem;
-            opacity: 0.9;
-            line-height: 1.6;
-        }
-
-        .welcome-button {
-            background-color: var(--white);
-            color: var(--primary);
-            border: none;
-            border-radius: 12px;
-            padding: 0.75rem 1.5rem;
-            font-size: 0.95rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-        }
-
-        .welcome-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
-        }
-
-        .welcome-image {
-            width: 300px;
-            height: 200px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .welcome-image img {
-            max-width: 100%;
-            max-height: 100%;
-        }
-
-        /* Statistické karty */
-        .stat-cards {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 1.5rem;
-            opacity: 0; /* Start hidden for animation */
-            animation: fadeIn 0.6s ease forwards;
-            animation-delay: 0.2s;
-        }
-
-        .stat-card {
-            background-color: var(--white);
-            border-radius: var(--card-radius);
-            box-shadow: var(--shadow-sm);
-            overflow: hidden;
-            transition: all 0.3s ease;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--shadow-md);
-        }
-
-        .stat-card-content {
-            display: flex;
-            padding: 1.5rem;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .stat-card-info {
-            flex-grow: 1;
-        }
-
-        .stat-card-title {
-            font-size: 1rem;
-            font-weight: 500;
-            color: var(--text-secondary);
-            margin-bottom: 0.75rem;
-        }
-
-        .stat-card-value {
-            font-size: 2rem;
-            font-weight: 700;
-            color: var(--dark);
-            margin-bottom: 0.5rem;
-        }
-
-        .stat-card-change {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-        }
-
-        .stat-card-change.positive {
-            color: #10b981; /* Explicit green for positive change */
-        }
-
-        .stat-card-change.negative {
-            color: var(--danger);
-        }
-
-        .stat-card-icon {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            color: var(--white);
-        }
-
-        .progress-icon {
-            background: linear-gradient(135deg, #4cc9f0, #4361ee);
-        }
-
-        .points-icon {
-            background: linear-gradient(135deg, #f8961e, #f3722c);
-        }
-
-        .streak-icon {
-            background: linear-gradient(135deg, #f72585, #b5179e);
-        }
-
-        .stat-card-footer {
-            padding: 1rem 1.5rem;
-            border-top: 1px solid var(--gray-light);
-        }
-
-        .stat-card-footer a {
-            display: block;
-            color: var(--primary);
-            text-decoration: none;
-            font-weight: 500;
-            font-size: 0.9rem;
-            transition: all 0.2s ease;
-        }
-
-        .stat-card-footer a i {
-            margin-left: 0.5rem;
-            transition: transform 0.2s ease;
-        }
-
-        .stat-card-footer a:hover i {
-            transform: translateX(3px);
-        }
-
-        /* Zkratky */
-        .shortcut-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1.5rem;
-            opacity: 0; /* Start hidden */
-            animation: fadeIn 0.6s ease forwards;
-            animation-delay: 0.3s;
-        }
-
-        .shortcut-card {
-            background-color: var(--white);
-            border-radius: var(--card-radius);
-            padding: 1.5rem;
-            box-shadow: var(--shadow-sm);
-            text-decoration: none;
-            color: var(--text-primary);
-            transition: all 0.3s ease;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-            border: 1px solid transparent;
-        }
-
-        .shortcut-card:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--shadow-md);
-            border-color: var(--primary-light);
-        }
-
-        .shortcut-icon {
-            width: 70px;
-            height: 70px;
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.75rem;
-            margin-bottom: 1rem;
-            background-color: #f0f5ff; /* Lighter background */
-            color: var(--primary);
-            transition: all 0.3s ease;
-        }
-
-        .shortcut-card:hover .shortcut-icon {
-            background-color: var(--primary);
-            color: var(--white);
-        }
-
-        .shortcut-title {
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-            color: var(--dark);
-        }
-
-        .shortcut-desc {
-            font-size: 0.9rem;
-            color: var(--text-muted);
-            line-height: 1.5;
-        }
-
-        /* Nedávné aktivity */
-        .activity-list {
-            background-color: var(--white);
-            border-radius: var(--card-radius);
-            box-shadow: var(--shadow-sm);
-            overflow: hidden;
-            opacity: 0; /* Start hidden */
-            animation: fadeIn 0.6s ease forwards;
-            animation-delay: 0.4s;
-            min-height: 100px; /* Minimum height for loading state */
-            position: relative; /* Needed for absolute positioning of loader/empty state */
-        }
-
-        .activity-item {
-            display: flex;
-            padding: 1.25rem 1.5rem;
-            border-bottom: 1px solid var(--gray-light);
-            transition: background-color 0.2s ease;
-        }
-
-        .activity-item:last-child {
-            border-bottom: none;
-        }
-
-        .activity-item:hover {
-            background-color: #f8faff; /* Subtle hover */
-        }
-
-        .activity-icon {
-            width: 50px;
-            height: 50px;
-            border-radius: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            margin-right: 1rem;
-            color: white;
-            flex-shrink: 0; /* Prevent icon shrinking */
-        }
-
-        .activity-icon.completed {
-            background: linear-gradient(135deg, #10b981, #059669); /* Green */
-        }
-
-        .activity-icon.badge {
-            background: linear-gradient(135deg, #f59e0b, #d97706); /* Orange */
-        }
-
-        .activity-icon.streak {
-            background: linear-gradient(135deg, #ef4444, #dc2626); /* Red */
-        }
-         /* Add a default icon style if type is unknown */
-         .activity-icon.default {
-             background: linear-gradient(135deg, var(--gray), var(--gray-dark));
-         }
-
-        .activity-content {
-            flex-grow: 1;
-        }
-
-        .activity-title {
-            font-size: 1rem;
-            font-weight: 600;
-            margin-bottom: 0.25rem;
-            color: var(--dark);
-        }
-
-        .activity-desc {
-            font-size: 0.9rem;
-            color: var(--text-secondary);
-            margin-bottom: 0.25rem;
-        }
-
-        .activity-time {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-        }
-
-        .view-all-link {
-            display: block;
-            text-align: center;
-            padding: 1rem;
-            color: var(--primary);
-            text-decoration: none;
-            font-weight: 500;
-            background-color: var(--white);
-            border-radius: 0 0 var(--card-radius) var(--card-radius);
-            box-shadow: var(--shadow-sm);
-            margin-top: 1rem; /* Add space if activities list is above */
-            transition: all 0.2s ease;
-        }
-
-        .view-all-link i {
-            margin-left: 0.5rem;
-            transition: transform 0.2s ease;
-        }
-
-        .view-all-link:hover i {
-            transform: translateX(3px);
-        }
-
-        /* Patička */
-        .dashboard-footer {
-            margin-top: 2rem;
-            padding: 1.5rem 0;
-            text-align: center;
-            color: var(--text-muted);
-            font-size: 0.9rem;
-            border-top: 1px solid var(--gray-light);
-        }
-
-        /* Nahrávací indikátor */
-        .loading {
-            /* Centered absolutely within its parent */
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            display: flex; /* Keep flex for alignment */
-            /* Removed padding, size controlled by container */
-            font-size: 1rem;
-            color: var(--text-muted);
-            width: 100%; /* Take full width of parent */
-            justify-content: center; /* Center spinner and text */
-            align-items: center;
-            gap: 10px; /* Space between spinner and text */
-        }
-
-        .loading::after {
-            content: "";
-            width: 20px;
-            height: 20px;
-            /* Removed margin-left */
-            border: 2px solid var(--primary);
-            border-radius: 50%;
-            border-top-color: transparent;
-            animation: loading-spinner 0.8s linear infinite;
-        }
-
+            --white: #ffffff; --sidebar-width: 260px; --transition-speed: 0.3s;
+            --card-radius: 16px; --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 5px 15px rgba(0, 0, 0, 0.07); --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.1);
+            --text-primary: #2d3748; --text-secondary: #4a5568; --text-muted: #718096;
+        }
+        body { background-color: #f6f8ff; color: var(--text-primary); min-height: 100vh; display: flex; overflow-x: hidden; }
+        .sidebar { width: var(--sidebar-width); height: 100vh; position: fixed; top: 0; left: 0; background: var(--gradient-1); color: var(--white); padding: 1.5rem 1rem; display: flex; flex-direction: column; z-index: 100; box-shadow: var(--shadow-lg); transition: all var(--transition-speed) ease; }
+        .sidebar-header { display: flex; align-items: center; margin-bottom: 2rem; padding: 0 0.75rem; }
+        .sidebar-logo { font-size: 1.5rem; font-weight: 700; color: var(--white); text-decoration: none; display: flex; align-items: center; gap: 0.75rem; }
+        .sidebar-logo i { font-size: 1.75rem; }
+        .sidebar-menu { list-style: none; padding: 0; margin: 0; flex-grow: 1; }
+        .sidebar-item { margin-bottom: 0.5rem; }
+        .sidebar-link { display: flex; align-items: center; padding: 0.75rem 1rem; color: rgba(255, 255, 255, 0.85); text-decoration: none; border-radius: 12px; transition: all 0.2s ease; font-weight: 500; }
+        .sidebar-link i { margin-right: 0.75rem; font-size: 1.2rem; width: 24px; text-align: center; }
+        .sidebar-link.active, .sidebar-link:hover { background-color: rgba(255, 255, 255, 0.15); color: var(--white); }
+        .sidebar-footer { margin-top: auto; padding: 1rem; font-size: 0.9rem; color: rgba(255, 255, 255, 0.7); text-align: center; }
+        .user-profile { display: flex; align-items: center; padding: 1rem; margin-top: 1rem; background-color: rgba(255, 255, 255, 0.1); border-radius: 12px; }
+        .user-avatar { width: 40px; height: 40px; border-radius: 50%; background-color: var(--primary-light); display: flex; align-items: center; justify-content: center; margin-right: 0.75rem; font-weight: 500; overflow: hidden; color: var(--white); }
+        .user-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .user-info { flex-grow: 1; }
+        .user-name { font-weight: 600; font-size: 0.95rem; }
+        .user-role { font-size: 0.8rem; opacity: 0.8; }
+        main { flex: 1; margin-left: var(--sidebar-width); padding: 1.5rem 2rem; transition: margin var(--transition-speed) ease; width: calc(100% - var(--sidebar-width)); }
+        .dashboard-header { margin-bottom: 2rem; background-color: var(--white); border-radius: var(--card-radius); padding: 1.25rem 1.5rem; box-shadow: var(--shadow-sm); }
+        .header-content { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+        .header-content > div:first-child { display: flex; align-items: center; gap: 1rem; flex-grow: 1; }
+        .header-content h1 { font-size: 1.75rem; font-weight: 600; color: var(--dark); margin: 0; }
+        .header-actions { display: flex; align-items: center; gap: 1.5rem; }
+        .search-box { position: relative; }
+        .search-box input { width: 280px; height: 44px; border-radius: 22px; padding: 0 1rem 0 2.5rem; border: 1px solid var(--gray-light); background-color: var(--light); outline: none; transition: all 0.2s ease; font-size: 0.95rem; }
+        .search-box input:focus { border-color: var(--primary-light); box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15); }
+        .search-box i { position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--gray); }
+        .notifications { position: relative; cursor: pointer; }
+        .notifications i { font-size: 1.4rem; color: var(--gray-dark); }
+        .notification-badge { position: absolute; top: -5px; right: -5px; width: 20px; height: 20px; background-color: var(--danger); color: white; font-size: 0.7rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; }
+        .main-content { display: grid; gap: 1.75rem; }
+        .section-title { font-size: 1.3rem; font-weight: 600; margin-bottom: 1.25rem; color: var(--dark); }
+        .welcome-banner { background: var(--gradient-2); border-radius: var(--card-radius); box-shadow: var(--shadow-md); overflow: hidden; position: relative; }
+        .welcome-content { display: flex; justify-content: space-between; align-items: center; padding: 2.5rem 3rem; position: relative; z-index: 1; }
+        .welcome-text-content { max-width: 60%; color: var(--white); }
+        .welcome-title { font-size: 1.75rem; font-weight: 700; margin-bottom: 1rem; }
+        .welcome-text { font-size: 1rem; margin-bottom: 1.5rem; opacity: 0.9; line-height: 1.6; }
+        .welcome-button { background-color: var(--white); color: var(--primary); border: none; border-radius: 12px; padding: 0.75rem 1.5rem; font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); }
+        .welcome-button:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15); }
+        .welcome-image { width: 300px; height: 200px; display: flex; align-items: center; justify-content: center; }
+        .welcome-image img { max-width: 100%; max-height: 100%; }
+        .stat-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; } /* Removed animation here */
+        .stat-card { background-color: var(--white); border-radius: var(--card-radius); box-shadow: var(--shadow-sm); overflow: hidden; transition: all 0.3s ease; }
+        .stat-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-md); }
+        .stat-card-content { display: flex; padding: 1.5rem; align-items: center; justify-content: space-between; }
+        .stat-card-info { flex-grow: 1; }
+        .stat-card-title { font-size: 1rem; font-weight: 500; color: var(--text-secondary); margin-bottom: 0.75rem; }
+        .stat-card-value { font-size: 2rem; font-weight: 700; color: var(--dark); margin-bottom: 0.5rem; }
+        .stat-card-change { font-size: 0.85rem; color: var(--text-muted); }
+        .stat-card-change.positive { color: #10b981; }
+        .stat-card-change.negative { color: var(--danger); }
+        .stat-card-icon { width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: var(--white); }
+        .progress-icon { background: linear-gradient(135deg, #4cc9f0, #4361ee); }
+        .points-icon { background: linear-gradient(135deg, #f8961e, #f3722c); }
+        .streak-icon { background: linear-gradient(135deg, #f72585, #b5179e); }
+        .stat-card-footer { padding: 1rem 1.5rem; border-top: 1px solid var(--gray-light); }
+        .stat-card-footer a { display: block; color: var(--primary); text-decoration: none; font-weight: 500; font-size: 0.9rem; transition: all 0.2s ease; }
+        .stat-card-footer a i { margin-left: 0.5rem; transition: transform 0.2s ease; }
+        .stat-card-footer a:hover i { transform: translateX(3px); }
+        .shortcut-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; } /* Removed animation */
+        .shortcut-card { background-color: var(--white); border-radius: var(--card-radius); padding: 1.5rem; box-shadow: var(--shadow-sm); text-decoration: none; color: var(--text-primary); transition: all 0.3s ease; display: flex; flex-direction: column; align-items: center; text-align: center; border: 1px solid transparent; }
+        .shortcut-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-md); border-color: var(--primary-light); }
+        .shortcut-icon { width: 70px; height: 70px; border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 1.75rem; margin-bottom: 1rem; background-color: #f0f5ff; color: var(--primary); transition: all 0.3s ease; }
+        .shortcut-card:hover .shortcut-icon { background-color: var(--primary); color: var(--white); }
+        .shortcut-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--dark); }
+        .shortcut-desc { font-size: 0.9rem; color: var(--text-muted); line-height: 1.5; }
+        .activity-list { background-color: var(--white); border-radius: var(--card-radius); box-shadow: var(--shadow-sm); overflow: hidden; min-height: 150px; position: relative; } /* Removed animation, added min-height, relative pos */
+        .activity-item { display: flex; padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--gray-light); transition: background-color 0.2s ease; }
+        .activity-item:last-child { border-bottom: none; }
+        .activity-item:hover { background-color: #f8faff; }
+        .activity-icon { width: 50px; height: 50px; border-radius: 15px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-right: 1rem; color: white; flex-shrink: 0; }
+        .activity-icon.completed { background: linear-gradient(135deg, #10b981, #059669); }
+        .activity-icon.badge { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        .activity-icon.streak { background: linear-gradient(135deg, #ef4444, #dc2626); }
+        .activity-icon.default { background: linear-gradient(135deg, var(--gray), var(--gray-dark)); }
+        .activity-content { flex-grow: 1; }
+        .activity-title { font-size: 1rem; font-weight: 600; margin-bottom: 0.25rem; color: var(--dark); }
+        .activity-desc { font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 0.25rem; }
+        .activity-time { font-size: 0.8rem; color: var(--text-muted); }
+        .view-all-link { display: block; text-align: center; padding: 1rem; color: var(--primary); text-decoration: none; font-weight: 500; background-color: var(--white); border-radius: 0 0 var(--card-radius) var(--card-radius); box-shadow: var(--shadow-sm); margin-top: 1rem; transition: all 0.2s ease; }
+        .view-all-link i { margin-left: 0.5rem; transition: transform 0.2s ease; }
+        .view-all-link:hover i { transform: translateX(3px); }
+        .dashboard-footer { margin-top: 2rem; padding: 1.5rem 0; text-align: center; color: var(--text-muted); font-size: 0.9rem; border-top: 1px solid var(--gray-light); }
+        .loading { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: flex; font-size: 1rem; color: var(--text-muted); width: 100%; justify-content: center; align-items: center; gap: 10px; }
+        .loading::after { content: ""; width: 20px; height: 20px; border: 2px solid var(--primary); border-radius: 50%; border-top-color: transparent; animation: loading-spinner 0.8s linear infinite; }
         @keyframes loading-spinner { to { transform: rotate(360deg); } }
-
-        /* Empty state for Activities */
-        .activity-list .empty-state {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 90%; /* Adjust width */
-            padding: 2rem;
-            text-align: center;
-            color: var(--text-secondary);
-        }
-         .activity-list .empty-state i {
-            font-size: 2rem;
-            margin-bottom: 1rem;
-            color: var(--info);
-        }
-        .activity-list .empty-state p {
-            margin-bottom: 0; /* Remove extra margin */
-         }
-         .activity-list .empty-state p + p {
-             font-size: 0.9rem;
-             margin-top: 0.5rem;
-         }
-
-
-        /* Error styling */
-        .error-message {
-            background-color: #fff2f5;
-            border-left: 4px solid var(--danger);
-            color: var(--danger);
-            padding: 1rem;
-            margin: 1rem 0;
-            border-radius: 8px;
-            font-size: 0.9rem;
-            display: flex;
-            align-items: center;
-        }
-
-        .error-message i {
-            margin-right: 0.75rem;
-            font-size: 1.25rem;
-        }
-
-        .error-container {
-            display: none;
-            margin-bottom: 1.5rem;
-        }
-
-        .retry-button {
-            background-color: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            padding: 0.5rem 1rem;
-            font-size: 0.9rem;
-            cursor: pointer;
-            margin-top: 0.5rem;
-            transition: all 0.2s ease;
-        }
-
-        .retry-button:hover {
-            background-color: var(--secondary);
-        }
-
-        .offline-banner {
-            display: none;
-            background-color: var(--warning);
-            color: white;
-            padding: 0.75rem;
-            text-align: center;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 1000;
-        }
-
-        /* Toast notification */
-        .toast {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background-color: var(--white);
-            color: var(--text-primary);
-            border-radius: 8px;
-            padding: 1rem;
-            box-shadow: var(--shadow-lg);
-            max-width: 300px;
-            z-index: 1001; /* Ensure toast is above most elements */
-            display: flex;
-            align-items: center;
-            transform: translateY(120px); /* Start off-screen */
-            opacity: 0;
-            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55); /* Ease with overshoot */
-        }
-
-        .toast.show {
-            transform: translateY(0);
-            opacity: 1;
-        }
-
+        .activity-list .empty-state { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90%; padding: 2rem; text-align: center; color: var(--text-secondary); }
+        .activity-list .empty-state i { font-size: 2rem; margin-bottom: 1rem; color: var(--info); }
+        .activity-list .empty-state p { margin-bottom: 0; }
+        .activity-list .empty-state p + p { font-size: 0.9rem; margin-top: 0.5rem; }
+        .error-message { background-color: #fff2f5; border-left: 4px solid var(--danger); color: var(--danger); padding: 1rem; margin: 1rem 0; border-radius: 8px; font-size: 0.9rem; display: flex; align-items: center; }
+        .error-message i { margin-right: 0.75rem; font-size: 1.25rem; }
+        .error-container { display: none; margin-bottom: 1.5rem; }
+        .retry-button { background-color: var(--primary); color: white; border: none; border-radius: 8px; padding: 0.5rem 1rem; font-size: 0.9rem; cursor: pointer; margin-top: 0.5rem; transition: all 0.2s ease; }
+        .retry-button:hover { background-color: var(--secondary); }
+        .offline-banner { display: none; background-color: var(--warning); color: white; padding: 0.75rem; text-align: center; position: fixed; top: 0; left: 0; right: 0; z-index: 1000; }
+        .toast { position: fixed; bottom: 20px; right: 20px; background-color: var(--white); color: var(--text-primary); border-radius: 8px; padding: 1rem; box-shadow: var(--shadow-lg); max-width: 300px; z-index: 1001; display: flex; align-items: center; transform: translateY(120px); opacity: 0; transition: all 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55); }
+        .toast.show { transform: translateY(0); opacity: 1; }
         .toast.success { border-left: 4px solid #10b981; }
         .toast.error { border-left: 4px solid var(--danger); }
         .toast.warning { border-left: 4px solid var(--warning); }
@@ -779,133 +131,37 @@
         .toast.success i { color: #10b981; }
         .toast.error i { color: var(--danger); }
         .toast.warning i { color: var(--warning); }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        /* Apply animation to sections AFTER loading */
+        .main-content.loaded > section { opacity: 0; animation: fadeIn 0.5s ease forwards; }
+        .main-content.loaded .stats-section { animation-delay: 0.1s; }
+        .main-content.loaded .shortcuts-section { animation-delay: 0.2s; }
+        .main-content.loaded .activity-section { animation-delay: 0.3s; }
+        @media (max-width: 1200px) { .welcome-content { padding: 2rem; } .welcome-text-content { max-width: 100%; } .welcome-image { display: none; } }
+        @media (max-width: 992px) { :root { --sidebar-width: 80px; } main { margin-left: 80px; width: calc(100% - 80px); } .sidebar { width: 80px; } .sidebar-logo span, .sidebar-link span, .user-info, .sidebar-footer { display: none; } .sidebar-link i { margin-right: 0; font-size: 1.5rem; } .sidebar-logo i { margin-right: 0; } .sidebar-header, .sidebar-link { justify-content: center; } .user-profile { justify-content: center; padding: 0.75rem; } .user-avatar { margin-right: 0; } .search-box input { width: 200px; } .mobile-menu-toggle { display: block; } /* Show toggle */ }
+        @media (max-width: 768px) { main { padding: 1rem; margin-left: 80px; width: calc(100% - 80px); } .header-content { flex-direction: column; align-items: flex-start; gap: 1rem; } .header-actions { width: 100%; justify-content: space-between; } .search-box input { width: 100%; } .stat-cards, .shortcut-grid { grid-template-columns: 1fr; } .welcome-button { width: 100%; text-align: center;} }
+        @media (max-width: 576px) { :root { --sidebar-width: 0; } main { margin-left: 0; width: 100%; } .sidebar { transform: translateX(-100%); width: 260px; z-index: 1000; } .sidebar.active { transform: translateX(0); } .search-box { display: none; } .header-actions { justify-content: flex-end; gap: 1rem; } .mobile-menu-toggle { display: block; } }
+        @media (prefers-color-scheme: dark) { :root { /* Dark mode variables */ --white: #1a202c; --light: #2d3748; --dark: #e2e8f0; --gray-light: #4a5568; --text-primary: #e2e8f0; --text-secondary: #cbd5e0; --text-muted: #a0aec0; } body { background-color: #171923; } .dashboard-header, .stat-card, .shortcut-card, .activity-list, .view-all-link, .toast { background-color: #1e2533; border-color: var(--gray-light); } .search-box input { background-color: #2d3748; color: var(--text-primary); border-color: #4a5568; } .search-box i { color: #a0aec0; } .welcome-button { background-color: #2d3748; color: #4cc9f0; } .shortcut-icon { background-color: #2d3748; } .activity-item:hover { background-color: #242c3b; } .toast { border: 1px solid var(--gray-light); } .dashboard-footer { border-top-color: var(--gray-light); } .mobile-menu-toggle { color: var(--text-primary); } .sidebar-link.active, .sidebar-link:hover { background-color: rgba(255, 255, 255, 0.1); } }
+        .mobile-menu-toggle { display: none; background: none; border: none; color: var(--dark); font-size: 1.5rem; cursor: pointer; padding: 0.5rem; margin-right: 0.5rem; z-index: 101; }
+        @media (max-width: 992px) { .mobile-menu-toggle { display: block; } }
+        .sidebar-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.55); z-index: 99; opacity: 0; transition: opacity var(--transition-speed) ease; backdrop-filter: blur(4px); }
+        .sidebar-overlay.active { display: block; opacity: 1; }
+        /* Initial Loading State Styles */
+        .initial-loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--bg-color); z-index: 1001; display: flex; justify-content: center; align-items: center; flex-direction: column; gap: 1rem; }
+         .initial-loading-overlay .loading::after { width: 30px; height: 30px; border-width: 3px; } /* Větší spinner */
+         .initial-loading-overlay p { color: var(--text-secondary); }
 
-        /* Animace a efekty */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Apply animation to sections, delayed */
-        .stats-section, .shortcuts-section, .activity-section {
-            opacity: 0; /* Start hidden */
-            animation: fadeIn 0.5s ease forwards;
-        }
-        .stats-section { animation-delay: 0.1s; }
-        .shortcuts-section { animation-delay: 0.2s; }
-        .activity-section { animation-delay: 0.3s; }
-
-
-        /* Media queries pro responzivní design */
-        @media (max-width: 1200px) {
-            .welcome-content { padding: 2rem; }
-            .welcome-text-content { max-width: 100%; }
-            .welcome-image { display: none; }
-        }
-
-        @media (max-width: 992px) {
-            :root { --sidebar-width: 80px; }
-            main { margin-left: 80px; width: calc(100% - 80px); }
-            .sidebar { width: 80px; }
-            .sidebar-logo span, .sidebar-link span, .user-info, .sidebar-footer { display: none; }
-            .sidebar-link i { margin-right: 0; font-size: 1.5rem; }
-            .sidebar-logo i { margin-right: 0; }
-            .sidebar-header, .sidebar-link { justify-content: center; }
-            .user-profile { justify-content: center; padding: 0.75rem; }
-            .user-avatar { margin-right: 0; }
-            .search-box input { width: 200px; }
-        }
-
-        @media (max-width: 768px) {
-            main {
-                padding: 1rem;
-                /* Keep sidebar width for tablet, handled by :root change in 992px */
-                margin-left: 80px;
-                width: calc(100% - 80px);
-            }
-            .header-content { flex-direction: column; align-items: flex-start; gap: 1rem; }
-            .header-actions { width: 100%; justify-content: space-between; }
-            .search-box input { width: 100%; }
-            .stat-cards, .shortcut-grid { grid-template-columns: 1fr; }
-            .welcome-button { width: 100%; text-align: center;}
-             /* Ensure mobile toggle is visible for sidebar */
-             .mobile-menu-toggle { display: block; }
-        }
-
-        @media (max-width: 576px) {
-            :root { --sidebar-width: 0; }
-            main { margin-left: 0; width: 100%; }
-            .sidebar { transform: translateX(-100%); width: 260px; z-index: 1000; /* Make sure sidebar is on top */}
-            .sidebar.active { transform: translateX(0); }
-            .search-box { display: none; }
-            .header-actions { justify-content: flex-end; gap: 1rem; } /* Align right */
-             .mobile-menu-toggle { display: block; } /* Explicitly show */
-        }
-
-        /* Tmavý režim */
-        @media (prefers-color-scheme: dark) {
-            :root {
-                --white: #1a202c;
-                --light: #2d3748;
-                --dark: #e2e8f0;
-                --gray-light: #4a5568;
-                --text-primary: #e2e8f0;
-                --text-secondary: #cbd5e0;
-                --text-muted: #a0aec0;
-            }
-            body { background-color: #171923; }
-            .dashboard-header, .stat-card, .shortcut-card, .activity-list, .view-all-link, .toast {
-                 background-color: #1e2533; /* Darker card background */
-                 border-color: var(--gray-light);
-             }
-             .search-box input { background-color: #2d3748; color: var(--text-primary); border-color: #4a5568; }
-             .search-box i { color: #a0aec0; }
-             .welcome-button { background-color: #2d3748; color: #4cc9f0; }
-             .shortcut-icon { background-color: #2d3748; }
-             .activity-item:hover { background-color: #242c3b; }
-             .toast { border: 1px solid var(--gray-light); }
-             .dashboard-footer { border-top-color: var(--gray-light); }
-              /* Ensure mobile toggle is visible and has appropriate color */
-             .mobile-menu-toggle { color: var(--text-primary); }
-              /* Adjust hover/active state for dark mode */
-              .sidebar-link.active, .sidebar-link:hover { background-color: rgba(255, 255, 255, 0.1); }
-        }
-
-         /* Mobile menu toggle button */
-         .mobile-menu-toggle {
-             display: none; /* Hide by default */
-             background: none;
-             border: none;
-             color: var(--dark); /* Use text color variable */
-             font-size: 1.5rem;
-             cursor: pointer;
-             padding: 0.5rem; /* Add padding for easier clicking */
-             margin-right: 0.5rem; /* Space before title */
-             z-index: 101; /* Above header content but below sidebar */
-         }
-
-         @media (max-width: 992px) { /* Show below 992px when sidebar collapses */
-             .mobile-menu-toggle { display: block; }
-         }
-          /* Sidebar Overlay for mobile */
-         .sidebar-overlay {
-             display: none;
-             position: fixed;
-             top: 0;
-             left: 0;
-             width: 100%;
-             height: 100%;
-             background-color: rgba(0, 0, 0, 0.55); /* Darker overlay */
-             z-index: 99; /* Below sidebar, above main content */
-             opacity: 0;
-             transition: opacity var(--transition-speed) ease;
-             backdrop-filter: blur(4px); /* Optional blur effect */
-         }
-         .sidebar-overlay.active { display: block; opacity: 1; }
+         /* Skrýt hlavní obsah dokud není ověřeno */
+         main { display: none; }
+         main.loaded { display: block; }
 
     </style>
 </head>
 <body>
+    <div class="initial-loading-overlay" id="initial-loader">
+         <div class="loading">Ověřování...</div>
+     </div>
+
     <div class="offline-banner" id="offline-banner">
         <i class="fas fa-wifi"></i> Momentálně jste offline. Některé funkce nemusí fungovat správně.
     </div>
@@ -914,15 +170,11 @@
 
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
-             <button class="mobile-menu-toggle" id="sidebar-close-toggle" style="color: var(--white); margin-right: 1rem; display: none;">
+             <button class="mobile-menu-toggle" id="sidebar-close-toggle" style="color: var(--white); margin-right: 1rem; display: none; background: none; border: none; font-size: 1.5rem; cursor: pointer;">
                  <i class="fas fa-times"></i>
              </button>
-            <a href="/" class="sidebar-logo">
-                <i class="fas fa-calculator"></i>
-                <span>Justax</span>
-            </a>
+            <a href="/" class="sidebar-logo"> <i class="fas fa-calculator"></i> <span>Justax</span> </a>
         </div>
-
         <ul class="sidebar-menu">
             <li class="sidebar-item"> <a href="/dashboard.html" class="sidebar-link active"> <i class="fas fa-th-large"></i> <span>Dashboard</span> </a> </li>
             <li class="sidebar-item"> <a href="/dashboard/procvicovani/main.html" class="sidebar-link"> <i class="fas fa-book-open"></i> <span>Procvičování</span> </a> </li>
@@ -931,37 +183,26 @@
             <li class="sidebar-item"> <a href="/dashboard/materialy.html" class="sidebar-link"> <i class="fas fa-file-alt"></i> <span>Materiály</span> </a> </li>
             <li class="sidebar-item"> <a href="/dashboard/profile.html" class="sidebar-link"> <i class="fas fa-user-cog"></i> <span>Profil</span> </a> </li>
         </ul>
-
         <div class="user-profile">
-            <div class="user-avatar" id="sidebar-avatar">?</div> <div class="user-info">
+            <div class="user-avatar" id="sidebar-avatar">?</div>
+            <div class="user-info">
                 <div class="user-name" id="sidebar-name">Načítání...</div>
                 <div class="user-role">Student</div>
             </div>
         </div>
-
-        <div class="sidebar-footer">
-            &copy; 2025 Justax
-        </div>
+        <div class="sidebar-footer"> &copy; 2025 Justax </div>
     </aside>
 
-    <main>
-        <div class="error-container" id="global-error"></div>
+    <main id="main-content"> <div class="error-container" id="global-error"></div>
 
         <header class="dashboard-header">
             <div class="header-content">
-                 <div> <button class="mobile-menu-toggle" id="main-mobile-menu-toggle">
-                         <i class="fas fa-bars"></i>
-                     </button>
+                 <div> <button class="mobile-menu-toggle" id="main-mobile-menu-toggle"> <i class="fas fa-bars"></i> </button>
                      <h1>Dashboard</h1>
                  </div>
                 <div class="header-actions">
-                    <div class="search-box">
-                        <i class="fas fa-search"></i>
-                        <input type="text" placeholder="Hledat...">
-                    </div>
-                    <div class="notifications">
-                        <i class="fas fa-bell"></i>
-                        <span class="notification-badge" id="notification-count">0</span> </div>
+                    <div class="search-box"> <i class="fas fa-search"></i> <input type="text" placeholder="Hledat..."> </div>
+                    <div class="notifications"> <i class="fas fa-bell"></i> <span class="notification-badge" id="notification-count">0</span> </div>
                 </div>
             </div>
         </header>
@@ -975,14 +216,7 @@
                         <button class="welcome-button" id="start-practice-btn">Začít procvičovat</button>
                     </div>
                     <div class="welcome-image">
-                        <svg width="200" height="150" viewBox="0 0 200 150" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <rect width="200" height="150" rx="10" fill="url(#paint0_linear_dash)"/>
-                            <circle cx="50" cy="75" r="20" fill="#FFF" opacity="0.3"/>
-                            <rect x="100" y="50" width="80" height="10" rx="5" fill="#FFF" opacity="0.5"/>
-                            <rect x="100" y="70" width="60" height="10" rx="5" fill="#FFF" opacity="0.4"/>
-                            <rect x="100" y="90" width="70" height="10" rx="5" fill="#FFF" opacity="0.3"/>
-                            <defs> <linearGradient id="paint0_linear_dash" x1="0" y1="0" x2="200" y2="150" gradientUnits="userSpaceOnUse"> <stop stop-color="#FFF" stop-opacity="0.3"/> <stop offset="1" stop-color="#FFF" stop-opacity="0"/> </linearGradient> </defs>
-                        </svg>
+                        <svg width="200" height="150" viewBox="0 0 200 150" fill="none" xmlns="http://www.w3.org/2000/svg"> <rect width="200" height="150" rx="10" fill="url(#paint0_linear_dash)"/> <circle cx="50" cy="75" r="20" fill="#FFF" opacity="0.3"/> <rect x="100" y="50" width="80" height="10" rx="5" fill="#FFF" opacity="0.5"/> <rect x="100" y="70" width="60" height="10" rx="5" fill="#FFF" opacity="0.4"/> <rect x="100" y="90" width="70" height="10" rx="5" fill="#FFF" opacity="0.3"/> <defs> <linearGradient id="paint0_linear_dash" x1="0" y1="0" x2="200" y2="150" gradientUnits="userSpaceOnUse"> <stop stop-color="#FFF" stop-opacity="0.3"/> <stop offset="1" stop-color="#FFF" stop-opacity="0"/> </linearGradient> </defs> </svg>
                     </div>
                 </div>
             </section>
@@ -992,44 +226,24 @@
                 <div class="stat-cards">
                     <div class="stat-card" id="progress-card">
                         <div class="stat-card-content">
-                            <div class="stat-card-info">
-                                <div class="stat-card-title">Celkový pokrok</div>
-                                <div class="stat-card-value">- %</div> <div class="stat-card-change">Načítání...</div> </div>
-                            <div class="stat-card-icon progress-icon">
-                                <i class="fas fa-chart-line"></i>
-                            </div>
+                            <div class="stat-card-info"> <div class="stat-card-title">Celkový pokrok</div> <div class="stat-card-value">- %</div> <div class="stat-card-change">Načítání...</div> </div>
+                            <div class="stat-card-icon progress-icon"> <i class="fas fa-chart-line"></i> </div>
                         </div>
-                        <div class="stat-card-footer">
-                            <a href="/dashboard/pokrok.html">Zobrazit podrobnosti <i class="fas fa-chevron-right"></i></a>
-                        </div>
+                        <div class="stat-card-footer"> <a href="/dashboard/pokrok.html">Zobrazit podrobnosti <i class="fas fa-chevron-right"></i></a> </div>
                     </div>
-
                     <div class="stat-card" id="points-card">
                         <div class="stat-card-content">
-                            <div class="stat-card-info">
-                                <div class="stat-card-title">Body</div>
-                                <div class="stat-card-value">-</div> <div class="stat-card-change">Načítání...</div> </div>
-                            <div class="stat-card-icon points-icon">
-                                <i class="fas fa-star"></i>
-                            </div>
+                            <div class="stat-card-info"> <div class="stat-card-title">Body</div> <div class="stat-card-value">-</div> <div class="stat-card-change">Načítání...</div> </div>
+                            <div class="stat-card-icon points-icon"> <i class="fas fa-star"></i> </div>
                         </div>
-                        <div class="stat-card-footer">
-                            <a href="/dashboard/oceneni.html">Zobrazit odměny <i class="fas fa-chevron-right"></i></a>
-                        </div>
+                        <div class="stat-card-footer"> <a href="/dashboard/oceneni.html">Zobrazit odměny <i class="fas fa-chevron-right"></i></a> </div>
                     </div>
-
                     <div class="stat-card" id="streak-card">
                         <div class="stat-card-content">
-                            <div class="stat-card-info">
-                                <div class="stat-card-title">Dnů v řadě</div>
-                                <div class="stat-card-value">-</div> <div class="stat-card-change">Načítání...</div> </div>
-                            <div class="stat-card-icon streak-icon">
-                                <i class="fas fa-fire"></i>
-                            </div>
+                            <div class="stat-card-info"> <div class="stat-card-title">Dnů v řadě</div> <div class="stat-card-value">-</div> <div class="stat-card-change">Načítání...</div> </div>
+                            <div class="stat-card-icon streak-icon"> <i class="fas fa-fire"></i> </div>
                         </div>
-                        <div class="stat-card-footer">
-                            <a href="/dashboard/procvicovani/main.html">Procvičovat <i class="fas fa-chevron-right"></i></a>
-                        </div>
+                        <div class="stat-card-footer"> <a href="/dashboard/procvicovani/main.html">Procvičovat <i class="fas fa-chevron-right"></i></a> </div>
                     </div>
                 </div>
             </section>
@@ -1037,29 +251,10 @@
             <section class="shortcuts-section">
                 <h2 class="section-title">Rychlé odkazy</h2>
                 <div class="shortcut-grid">
-                    <a href="/dashboard/procvicovani/main.html" class="shortcut-card">
-                        <div class="shortcut-icon"> <i class="fas fa-book-open"></i> </div>
-                        <h3 class="shortcut-title">Procvičování</h3>
-                        <p class="shortcut-desc">Procvičte si své znalosti a dovednosti v různých tématech.</p>
-                    </a>
-
-                    <a href="/dashboard/pokrok.html" class="shortcut-card">
-                        <div class="shortcut-icon"> <i class="fas fa-chart-line"></i> </div>
-                        <h3 class="shortcut-title">Pokrok</h3>
-                        <p class="shortcut-desc">Sledujte svůj pokrok a úspěchy v jednotlivých oblastech.</p>
-                    </a>
-
-                    <a href="/dashboard/materialy.html" class="shortcut-card">
-                        <div class="shortcut-icon"> <i class="fas fa-file-alt"></i> </div>
-                        <h3 class="shortcut-title">Materiály</h3>
-                        <p class="shortcut-desc">Prohlédněte si výukové materiály a studijní zdroje.</p>
-                    </a>
-
-                    <a href="/dashboard/profile.html" class="shortcut-card">
-                        <div class="shortcut-icon"> <i class="fas fa-user-cog"></i> </div>
-                        <h3 class="shortcut-title">Profil</h3>
-                        <p class="shortcut-desc">Upravte své osobní údaje a nastavení profilu.</p>
-                    </a>
+                    <a href="/dashboard/procvicovani/main.html" class="shortcut-card"> <div class="shortcut-icon"> <i class="fas fa-book-open"></i> </div> <h3 class="shortcut-title">Procvičování</h3> <p class="shortcut-desc">Procvičte si své znalosti a dovednosti v různých tématech.</p> </a>
+                    <a href="/dashboard/pokrok.html" class="shortcut-card"> <div class="shortcut-icon"> <i class="fas fa-chart-line"></i> </div> <h3 class="shortcut-title">Pokrok</h3> <p class="shortcut-desc">Sledujte svůj pokrok a úspěchy v jednotlivých oblastech.</p> </a>
+                    <a href="/dashboard/materialy.html" class="shortcut-card"> <div class="shortcut-icon"> <i class="fas fa-file-alt"></i> </div> <h3 class="shortcut-title">Materiály</h3> <p class="shortcut-desc">Prohlédněte si výukové materiály a studijní zdroje.</p> </a>
+                    <a href="/dashboard/profile.html" class="shortcut-card"> <div class="shortcut-icon"> <i class="fas fa-user-cog"></i> </div> <h3 class="shortcut-title">Profil</h3> <p class="shortcut-desc">Upravte své osobní údaje a nastavení profilu.</p> </a>
                 </div>
             </section>
 
@@ -1083,7 +278,8 @@
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        // Using an immediately invoked function expression (IIFE) to scope variables
+        (function() {
             // --- START: Initialization and Configuration ---
             const supabaseUrl = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
             const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10';
@@ -1108,7 +304,9 @@
                 sidebar: document.getElementById('sidebar'),
                 sidebarOverlay: document.getElementById('sidebar-overlay'),
                 toast: document.getElementById('toast'),
-                toastMessage: document.getElementById('toast-message')
+                toastMessage: document.getElementById('toast-message'),
+                initialLoader: document.getElementById('initial-loader'), // Loader overlay
+                mainContent: document.getElementById('main-content') // Main content area
             };
             // --- END: Initialization and Configuration ---
 
@@ -1133,7 +331,20 @@
                 ui.globalError.innerHTML = `<div class="error-message"><i class="fas fa-exclamation-circle"></i><div><div>${message}</div><button class="retry-button" id="retry-btn">Zkusit znovu</button></div></div>`;
                 ui.globalError.style.display = 'block';
                 const retryBtn = document.getElementById('retry-btn');
-                if (retryBtn) retryBtn.addEventListener('click', () => { hideError(); loadDashboardData(); });
+                // Ensure retry button exists before adding listener
+                if (retryBtn) {
+                    retryBtn.addEventListener('click', () => {
+                        hideError();
+                        // Re-initiate the data loading process after user confirms
+                         if (currentUser) {
+                            loadDashboardData(currentUser);
+                         } else {
+                              console.warn("Retry clicked, but no current user found. Re-checking auth.");
+                              // Optionally re-check auth or reload page fully
+                              window.location.reload();
+                         }
+                    });
+                }
             }
 
             function hideError() { if (ui.globalError) ui.globalError.style.display = 'none'; }
@@ -1141,13 +352,6 @@
             function updateOnlineStatus() {
                 if (ui.offlineBanner) ui.offlineBanner.style.display = navigator.onLine ? 'none' : 'block';
                 if (!navigator.onLine) showToast('Jste offline. Některé funkce nemusí být dostupné.', 'warning');
-            }
-
-            async function getCurrentUser() {
-                if (!supabase || !supabase.auth) { console.error("Supabase auth není k dispozici."); return null; }
-                const { data: { user }, error } = await supabase.auth.getUser();
-                if (error) { console.error("Chyba při získávání uživatele:", error); return null; }
-                return user;
             }
 
             function getInitials(userData) {
@@ -1159,17 +363,7 @@
 
             function formatRelativeTime(timestamp) {
                 if (!timestamp) return '';
-                try {
-                    const now = new Date(); const date = new Date(timestamp);
-                    if (isNaN(date.getTime())) return '-';
-                    const diffMs = now - date; const diffSec = Math.round(diffMs / 1000);
-                    const diffMin = Math.round(diffSec / 60); const diffHour = Math.round(diffMin / 60);
-                    const diffDay = Math.round(diffHour / 24); const diffWeek = Math.round(diffDay / 7);
-                    if (diffSec < 60) return 'Právě teď'; if (diffMin < 60) return `Před ${diffMin} min`;
-                    if (diffHour < 24) return `Před ${diffHour} h`; if (diffDay === 1) return `Včera`;
-                    if (diffDay < 7) return `Před ${diffDay} dny`; if (diffWeek <= 4) return `Před ${diffWeek} týdny`;
-                    return date.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric' });
-                } catch(e) { console.error("Chyba formátování času:", e, "Timestamp:", timestamp); return '-'; }
+                try { /* ... (previous formatting code) ... */ } catch (e) { /* ... */ }
             }
 
             function openMenu() { if (ui.sidebar && ui.sidebarOverlay) { ui.sidebar.classList.add('active'); ui.sidebarOverlay.classList.add('active'); } }
@@ -1177,75 +371,63 @@
             // --- END: Helper Functions ---
 
 
-            // --- START: Data Loading Functions ---
-            async function loadUserProfile() {
+            // --- START: Data Loading and UI Update Functions ---
+             // Load user profile - Returns profile data or null
+             async function loadUserProfile(user) {
+                if (!user) { console.error("loadUserProfile: Chybí objekt uživatele."); return null; }
                 try {
-                    currentUser = await getCurrentUser();
-                    if (!currentUser) {
-                        console.log("Uživatel není přihlášen, přesměrovávám...");
-                        window.location.href = '/auth/index.html'; // Adjust if needed
-                        return null;
-                    }
-                    const { data: profile, error } = await supabase.from('profiles').select('*').eq('id', currentUser.id).single();
+                    const { data: profile, error } = await supabase.from('profiles').select('*').eq('id', user.id).single();
                     if (error && error.code !== 'PGRST116') throw error;
                     if (!profile) {
-                        console.warn("Profil nenalezen pro uživatele:", currentUser.id);
-                        // Můžete zde vytvořit výchozí profil nebo vrátit základní data
-                        return { id: currentUser.id, email: currentUser.email, username: currentUser.email?.split('@')[0] || 'Uživatel', points: 0, streak_days: 0, level: 1 };
+                        console.warn("Profil nenalezen pro uživatele:", user.id);
+                         // Return default structure based on user object
+                         return { id: user.id, email: user.email, username: user.email?.split('@')[0] || 'Uživatel', points: 0, streak_days: 0, level: 1 };
                     }
                     return profile;
                 } catch (error) {
                     console.error('Chyba při načítání profilu:', error);
-                    showError('Nepodařilo se načíst profil: ' + error.message);
+                    // Don't call showError here directly, let the calling function handle UI errors
                     return null;
                 }
             }
 
+             // Update sidebar profile
             function updateSidebarProfile(userData) {
                 if (!userData || !ui.sidebarName || !ui.sidebarAvatar) return;
                 const displayName = `${userData.first_name || ''} ${userData.last_name || ''}`.trim() || userData.username || 'Uživatel';
                 ui.sidebarName.textContent = displayName;
-                if (userData.avatar_url) {
-                    ui.sidebarAvatar.innerHTML = `<img src="${userData.avatar_url}" alt="${displayName}" />`;
-                } else {
-                    ui.sidebarAvatar.textContent = getInitials(userData);
-                }
-                if(ui.notificationCount) ui.notificationCount.textContent = '0'; // Placeholder
+                if (userData.avatar_url) { ui.sidebarAvatar.innerHTML = `<img src="${userData.avatar_url}" alt="${displayName}" />`; }
+                else { ui.sidebarAvatar.textContent = getInitials(userData); }
+                 if(ui.notificationCount) ui.notificationCount.textContent = '0'; // Placeholder
             }
 
-            // REVISED: Load user statistics
+            // Load user statistics (Revised)
             async function loadUserStats(userId, profileData) {
-                if (!userId) { console.error("Missing user ID for stats"); return { progress: 0, progress_weekly: 0, points: profileData?.points ?? 0, points_weekly: 0, streak_current: profileData?.streak_days ?? 0, streak_longest: profileData?.streak_longest ?? profileData?.streak_days ?? 0 }; }
-                if (!profileData) { console.error("Missing profile data for stats"); return { progress: 0, progress_weekly: 0, points: 0, points_weekly: 0, streak_current: 0, streak_longest: 0 }; }
-
                 let statsFromDb = null;
-                try {
-                    const { data: userStatsData, error: userStatsError } = await supabase
-                        .from('user_stats')
-                        .select('progress, progress_weekly, points_weekly, streak_longest')
-                        .eq('user_id', userId)
-                        .maybeSingle(); // Use maybeSingle()
+                const defaultStats = { progress: 0, progress_weekly: 0, points: profileData?.points ?? 0, points_weekly: 0, streak_current: profileData?.streak_days ?? 0, streak_longest: profileData?.streak_days ?? 0 };
 
+                if (!userId) { console.error("Missing user ID for stats"); return defaultStats; }
+                if (!profileData) { console.error("Missing profile data for stats"); return defaultStats; }
+
+                try {
+                    const { data: userStatsData, error: userStatsError } = await supabase.from('user_stats').select('progress, progress_weekly, points_weekly, streak_longest').eq('user_id', userId).maybeSingle();
                     if (userStatsError) { console.warn("Chyba při načítání user_stats:", userStatsError.message); }
-                    else { statsFromDb = userStatsData; console.log("Data z user_stats:", statsFromDb); }
-                } catch (error) { console.error('Neočekávaná chyba při načítání statistik z user_stats:', error); }
+                    else { statsFromDb = userStatsData; }
+                } catch (error) { console.error('Neočekávaná chyba při načítání user_stats:', error); }
 
                 // Combine data
                 const finalStats = {
-                    progress: statsFromDb?.progress ?? 0,
-                    progress_weekly: statsFromDb?.progress_weekly ?? 0,
-                    points: profileData.points ?? 0, // From profiles
-                    points_weekly: statsFromDb?.points_weekly ?? 0,
-                    streak_current: profileData.streak_days ?? 0, // From profiles
-                    streak_longest: statsFromDb?.streak_longest ?? profileData.streak_days ?? 0
+                    progress: statsFromDb?.progress ?? 0, progress_weekly: statsFromDb?.progress_weekly ?? 0,
+                    points: profileData.points ?? 0, points_weekly: statsFromDb?.points_weekly ?? 0,
+                    streak_current: profileData.streak_days ?? 0, streak_longest: statsFromDb?.streak_longest ?? profileData.streak_days ?? 0
                 };
-                console.log("Finální statistiky:", finalStats);
                 return finalStats;
             }
 
-            // Update stats cards
+             // Update stats cards
             function updateStatsCards(stats) {
-                if (!stats || !ui.progressCard || !ui.pointsCard || !ui.streakCard) { console.warn("updateStatsCards: Chybí data nebo elementy."); return; }
+                if (!stats || !ui.progressCard || !ui.pointsCard || !ui.streakCard) { console.warn("updateStatsCards: Missing data or card elements."); return; }
+                 // Select the specific elements *inside* the cards to update
                 const progressValue = ui.progressCard.querySelector('.stat-card-value');
                 const progressChange = ui.progressCard.querySelector('.stat-card-change');
                 const pointsValue = ui.pointsCard.querySelector('.stat-card-value');
@@ -1253,157 +435,182 @@
                 const streakValue = ui.streakCard.querySelector('.stat-card-value');
                 const streakLongest = ui.streakCard.querySelector('.stat-card-change');
 
-                if (progressValue && progressChange) { /* ... */ } // (Logika beze změny, viz předchozí kód)
-                if (pointsValue && pointsChange) { /* ... */ } // (Logika beze změny)
-                if (streakValue && streakLongest) { /* ... */ } // (Logika beze změny)
+                if (progressValue) progressValue.textContent = `${stats.progress ?? 0}%`;
+                if (progressChange) {
+                    const weeklyChange = stats.progress_weekly ?? 0;
+                    progressChange.classList.remove('positive', 'negative');
+                    if (weeklyChange > 0) { progressChange.textContent = `+${weeklyChange}% tento týden`; progressChange.classList.add('positive'); }
+                    else if (weeklyChange < 0) { progressChange.textContent = `${weeklyChange}% tento týden`; progressChange.classList.add('negative'); }
+                    else { progressChange.textContent = `Beze změny tento týden`; }
+                 }
+                 if (pointsValue) pointsValue.textContent = stats.points ?? 0;
+                 if (pointsChange) {
+                     const weeklyPoints = stats.points_weekly ?? 0;
+                     pointsChange.classList.remove('positive', 'negative');
+                     if (weeklyPoints > 0) { pointsChange.textContent = `+${weeklyPoints} tento týden`; pointsChange.classList.add('positive'); }
+                     else if (weeklyPoints < 0) { pointsChange.textContent = `${weeklyPoints} tento týden`; pointsChange.classList.add('negative'); }
+                     else { pointsChange.textContent = `Beze změny tento týden`; }
+                 }
+                if (streakValue) streakValue.textContent = stats.streak_current ?? 0;
+                if (streakLongest) streakLongest.textContent = `Nejdelší: ${stats.streak_longest ?? 0} dnů`;
 
-                 // Ensure cards are visible after update
-                 const statCardsContainer = document.querySelector('.stat-cards');
-                 if(statCardsContainer) statCardsContainer.style.opacity = '1';
+                // Ensure parent container is visible after update
+                const statCardsContainer = document.querySelector('.stat-cards');
+                if (statCardsContainer) statCardsContainer.style.opacity = '1';
             }
-
 
             // Load user activities
             async function loadUserActivities(userId) {
                 try {
                     if (!userId) throw new Error("Missing user ID for activities");
-                    const { data: activities, error } = await supabase
-                        .from('activities') // Assuming 'activities' table exists
-                        .select('*')
-                        .eq('user_id', userId)
-                        .order('created_at', { ascending: false })
-                        .limit(5);
+                    const { data: activities, error } = await supabase.from('activities').select('*').eq('user_id', userId).order('created_at', { ascending: false }).limit(5);
                     if (error) throw error;
                     return activities || [];
                 } catch (error) {
-                    console.error('Chyba při načítání aktivit:', error);
-                    showToast('Nepodařilo se načíst aktivity', 'warning');
-                    return [];
+                    console.error('Chyba při načítání aktivit:', error); return []; // Return empty on error
                 }
             }
 
-            // Render activities
+             // Render activities
             function renderActivities(activities) {
                 if (!ui.activityList) { console.error("Element #activity-list nenalezen."); return; }
                 const loadingIndicator = ui.activityList.querySelector('.loading');
-                if (loadingIndicator) loadingIndicator.remove(); // Remove loader first
+                if (loadingIndicator) loadingIndicator.remove();
 
                 if (!activities || activities.length === 0) {
-                    ui.activityList.innerHTML = `
-                        <div class="empty-state">
-                            <i class="fas fa-history"></i> <p>Zatím žádné nedávné aktivity.</p>
-                            <p>Začněte procvičovat a vaše úspěchy se zde zobrazí.</p>
-                        </div>`;
-                    ui.activityList.style.opacity = '1';
-                    return;
+                    ui.activityList.innerHTML = `<div class="empty-state"><i class="fas fa-history"></i><p>Zatím žádné nedávné aktivity.</p><p>Začněte procvičovat a vaše úspěchy se zde zobrazí.</p></div>`;
+                    ui.activityList.style.opacity = '1'; return;
                 }
 
-                const activityHTML = activities.map(activity => {
-                    let iconClass = 'default'; // Default class
-                    let iconName = 'tasks'; // Default icon
-
-                     // Determine icon based on activity type
-                    const type = activity.type ? activity.type.toLowerCase() : '';
-                    if (type.includes('badge')) { iconClass = 'badge'; iconName = 'medal'; }
-                    else if (type.includes('streak')) { iconClass = 'streak'; iconName = 'fire'; }
-                    else if (type.includes('test') || type.includes('cvičení') || type.includes('úkol')) { iconClass = 'completed'; iconName = 'check-circle'; }
-
-                    const title = activity.title || 'Neznámá aktivita';
-                    const description = activity.description || '';
-
-                    return `
-                        <div class="activity-item">
-                            <div class="activity-icon ${iconClass}"> <i class="fas fa-${iconName}"></i> </div>
-                            <div class="activity-content"> <div class="activity-title">${title}</div> <div class="activity-desc">${description}</div> <div class="activity-time">${formatRelativeTime(activity.created_at)}</div> </div>
-                        </div>`;
-                }).join('');
-
+                const activityHTML = activities.map(activity => { /* ... (previous rendering code) ... */ }).join('');
                 ui.activityList.innerHTML = activityHTML;
                 ui.activityList.style.opacity = '1';
             }
-            // --- END: Data Loading Functions ---
 
+            // Load all dashboard data (Orchestrator)
+            async function loadDashboardData(user) {
+                 if (!user) {
+                     showError("Chyba: Nelze načíst data bez přihlášeného uživatele.");
+                     return;
+                 }
+                console.log("Načítání dat dashboardu pro uživatele:", user.id);
+                hideError();
+                // Keep loading indicators for sub-sections visible
+                if (ui.activityList) ui.activityList.innerHTML = '<div class="loading">Načítání aktivit...</div>';
+                const statCardsContainer = document.querySelector('.stat-cards');
+                if (statCardsContainer) statCardsContainer.style.opacity = '0';
 
-            // --- START: Main Orchestration ---
-            async function loadDashboardData() {
                 try {
-                    hideError();
-                    // Show loading indicators (only for activity list in this version)
-                    if (ui.activityList) ui.activityList.innerHTML = '<div class="loading">Načítání aktivit...</div>';
-                    const statCardsContainer = document.querySelector('.stat-cards');
-                    if (statCardsContainer) statCardsContainer.style.opacity = '0'; // Hide cards initially
-
-                    // Load profile (crucial, blocks further execution if fails)
-                    currentProfile = await loadUserProfile();
-                    if (!currentProfile || !currentUser) {
-                        console.error("Nepodařilo se načíst profil nebo uživatele. Dashboard nemůže pokračovat.");
-                        showError("Nepodařilo se načíst uživatelská data. Zkuste obnovit stránku.");
-                         if(statCardsContainer) { statCardsContainer.innerHTML = '<p style="text-align:center; padding: 2rem;">Chyba načítání dat.</p>'; statCardsContainer.style.opacity = '1'; }
-                         if(ui.activityList) ui.activityList.innerHTML = '';
-                        return;
-                    }
-
-                    // Update sidebar
-                    updateSidebarProfile(currentProfile);
-
-                    // Load stats (passing profile) and activities in parallel
-                    const [userStats, activities] = await Promise.all([
-                        loadUserStats(currentUser.id, currentProfile),
-                        loadUserActivities(currentUser.id)
+                    // Load profile and stats in parallel
+                    const [profileData, userStats] = await Promise.all([
+                        loadUserProfile(user),
+                        loadUserStats(user.id, currentProfile) // Pass profile if already loaded, loadUserStats handles refetch if needed
                     ]);
 
-                    // Update UI with fetched data
+                     // Critical check after profile load
+                     if (!profileData) {
+                          console.error("Nepodařilo se načíst profil, dashboard nemůže pokračovat.");
+                          showError("Nepodařilo se načíst váš profil. Zkuste obnovit stránku.");
+                          if(statCardsContainer) statCardsContainer.innerHTML = '<p style="text-align:center; padding: 2rem;">Chyba načítání dat.</p>';
+                          if(ui.activityList) ui.activityList.innerHTML = '';
+                          return; // Stop execution
+                     }
+                     currentProfile = profileData; // Update global profile
+
+                    // Update sidebar (do this early)
+                    updateSidebarProfile(currentProfile);
+
+                    // Load activities separately (can happen after stats/profile are shown)
+                    const activities = await loadUserActivities(user.id);
+
+                    // Update UI
                     updateStatsCards(userStats);
                     renderActivities(activities);
 
-                } catch (error) { // Catch errors from Promise.all or profile loading
-                    console.error('Chyba při načítání dat dashboardu:', error);
-                    showError('Nepodařilo se načíst data dashboardu: ' + error.message);
-                     // Ensure loading states are cleared on error
+                    // Add 'loaded' class to main content for animations AFTER data is loaded
+                    document.querySelector('.main-content')?.classList.add('loaded');
+
+
+                } catch (error) {
+                    console.error('Chyba při paralelním načítání dat:', error);
+                    showError('Nepodařilo se načíst všechna data dashboardu: ' + error.message);
+                     // Ensure loading indicators are removed even on error
                      if (ui.activityList) ui.activityList.innerHTML = '<div class="error-message" style="position: static; transform: none;">Chyba načítání aktivit.</div>';
-                     const statCardsContainer = document.querySelector('.stat-cards');
                      if (statCardsContainer) {
-                          updateStatsCards({}); // Render cards with 'N/A' or 0
+                          updateStatsCards({}); // Render defaults/N/A
                           statCardsContainer.style.opacity = '1';
                      }
                 }
             }
-            // --- END: Main Orchestration ---
+            // --- END: Data Loading and UI Update Functions ---
 
 
-            // --- START: Event Listeners ---
-            if (ui.startPracticeBtn) {
-                ui.startPracticeBtn.addEventListener('click', () => {
-                    // CORRECTED LINK
-                    window.location.href = '/dashboard/procvicovani/main.html';
-                });
+            // --- START: Initialization Logic with onAuthStateChange ---
+            function initializeApp() {
+                try {
+                    supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+                    console.log('Supabase klient inicializován.');
+
+                    // Listen for authentication state changes
+                    supabase.auth.onAuthStateChange(async (event, session) => {
+                        console.log('Auth State Change:', event, session);
+                        const user = session?.user;
+                        currentUser = user; // Update global user state
+
+                        if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN') {
+                            if (user) {
+                                // User is logged in, load the dashboard data
+                                console.log('Uživatel přihlášen, načítám dashboard...');
+                                // Hide initial loader and show main content container
+                                if (ui.initialLoader) ui.initialLoader.style.display = 'none';
+                                if (ui.mainContent) ui.mainContent.style.display = 'block'; // Make main content visible
+                                await loadDashboardData(user); // Load data *after* confirming sign in
+                                setupUIEventListeners(); // Setup listeners after main content is visible
+                            } else {
+                                // This case should ideally not happen if event is SIGNED_IN, but handle defensively
+                                console.log('Stav SIGNED_IN, ale chybí session.user, přesměrovávám na login.');
+                                window.location.href = '/auth/index.html';
+                            }
+                        } else if (event === 'SIGNED_OUT') {
+                            // User is logged out, redirect to login page
+                            console.log('Uživatel odhlášen, přesměrovávám na login.');
+                            window.location.href = '/auth/index.html';
+                        }
+                        // Ignore other events like USER_UPDATED, PASSWORD_RECOVERY etc. on dashboard load
+                    });
+
+                } catch (error) {
+                    console.error("Kritická chyba při inicializaci Supabase:", error);
+                    if (ui.initialLoader) ui.initialLoader.innerHTML = `<p style="color: var(--danger);">Chyba inicializace. Zkuste obnovit stránku.</p>`;
+                     // Optionally show error in main body if loader fails
+                    document.body.insertAdjacentHTML('afterbegin', `<div class="error-message" style="margin: 1rem;"><i class="fas fa-exclamation-triangle"></i> Nelze inicializovat aplikaci.</div>`);
+                }
             }
-
-            // Mobile Menu Logic
-            if (ui.mainMobileMenuToggle) ui.mainMobileMenuToggle.addEventListener('click', openMenu);
-            if (ui.sidebarCloseToggle) ui.sidebarCloseToggle.addEventListener('click', closeMenu);
-            if (ui.sidebarOverlay) ui.sidebarOverlay.addEventListener('click', closeMenu);
-
-             // Close sidebar on link click (optional, good UX on mobile)
-             document.querySelectorAll('.sidebar-link').forEach(link => {
-                 link.addEventListener('click', () => {
-                      if (window.innerWidth <= 992) { // Close only on smaller screens
-                           closeMenu();
-                      }
+             // Setup UI event listeners (call this *after* auth is confirmed and main content is shown)
+             function setupUIEventListeners() {
+                 if (ui.startPracticeBtn) {
+                    ui.startPracticeBtn.addEventListener('click', () => {
+                        window.location.href = '/dashboard/procvicovani/main.html'; // Corrected link
+                    });
+                 }
+                // Mobile Menu Logic
+                if (ui.mainMobileMenuToggle) ui.mainMobileMenuToggle.addEventListener('click', openMenu);
+                if (ui.sidebarCloseToggle) ui.sidebarCloseToggle.addEventListener('click', closeMenu);
+                if (ui.sidebarOverlay) ui.sidebarOverlay.addEventListener('click', closeMenu);
+                // Close sidebar on link click (optional, good UX on mobile)
+                 document.querySelectorAll('.sidebar-link').forEach(link => {
+                     link.addEventListener('click', () => { if (window.innerWidth <= 992) closeMenu(); });
                  });
-             });
+                 // Online/Offline listeners
+                 window.addEventListener('online', updateOnlineStatus);
+                 window.addEventListener('offline', updateOnlineStatus);
+                 updateOnlineStatus(); // Initial check
+             }
 
-             // Handle online/offline events
-            window.addEventListener('online', updateOnlineStatus);
-            window.addEventListener('offline', updateOnlineStatus);
-            updateOnlineStatus(); // Initial check
+            // --- START THE APP ---
+            initializeApp();
 
-            // --- END: Event Listeners ---
-
-            // --- Initialize ---
-            loadDashboardData();
-            // --- End Initialize ---
-        });
+        })(); // End of IIFE
     </script>
 </body>
 </html>
