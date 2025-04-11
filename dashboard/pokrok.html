@@ -15,35 +15,37 @@
     <script src="https://cdn.jsdelivr.net/npm/date-fns/locale/cs/cdn.min.js"></script>
 
     <style>
-        /* CSS (Další vylepšení UI/Designu pro Pokrok) */
+        /* CSS (Finální vylepšení UI/Designu pro Pokrok) */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
         :root {
-            --primary: #4361ee; --primary-light: #8096f8; --primary-dark: #3a0ca3;
-            --secondary: #4cc9f0; --secondary-light: #a7e9ff; --secondary-dark: #00a6fb;
-            --success: #10b981; --success-light: #a7f3d0; --success-bg: #f0fdf4;
+            --primary: #4f46e5; /* Trochu jiná fialová */ --primary-light: #a5b4fc; --primary-dark: #4338ca;
+            --secondary: #10b981; /* Zelená jako sekundární */ --secondary-light: #a7f3d0; --secondary-dark: #059669;
+            --success: var(--secondary); --success-light: var(--secondary-light); --success-bg: #f0fdf4;
             --danger: #ef4444; --danger-light: #fecaca; --danger-bg: #fef2f2;
             --warning: #f59e0b; --warning-light: #fed7aa; --warning-bg: #fffbeb;
             --info: #3b82f6; --info-light: #bfdbfe; --info-bg: #eff6ff;
             --dark: #111827; --light: #f9fafb; --gray: #6b7280;
             --gray-light: #e5e7eb; --gray-medium: #9ca3af; --gray-dark: #374151;
-            --white: #ffffff; --sidebar-width: 260px; --transition-speed: 0.3s;
-            --card-radius: 12px; --shadow-sm: 0 1px 3px 0 rgba(0,0,0, 0.05), 0 1px 2px -1px rgba(0,0,0, 0.05);
-            --shadow-md: 0 4px 6px -1px rgba(0,0,0, 0.07), 0 2px 4px -2px rgba(0,0,0, 0.07);
-            --shadow-lg: 0 10px 15px -3px rgba(0,0,0, 0.07), 0 4px 6px -4px rgba(0,0,0, 0.07);
+            --white: #ffffff; --sidebar-width: 260px; --transition-speed: 0.25s; /* Mírně rychlejší */
+            --card-radius: 10px; /* Jemnější radius */ --shadow-sm: 0 1px 2px 0 rgba(0,0,0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0, 0.06), 0 2px 4px -2px rgba(0,0,0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0,0,0, 0.06), 0 4px 6px -4px rgba(0,0,0, 0.07);
             --text-primary: var(--dark); --text-secondary: var(--gray); --text-muted: var(--gray-medium);
             --body-bg: var(--light); --card-bg: var(--white); --border-color: var(--gray-light);
             --skeleton-bg: #f3f4f6; --skeleton-highlight: #e5e7eb;
         }
+        @keyframes skeleton-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+        .skeleton { animation: skeleton-pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite; background-color: var(--skeleton-bg); border-radius: 6px; }
         body { background-color: var(--body-bg); color: var(--text-primary); min-height: 100vh; display: flex; overflow-x: hidden; line-height: 1.6; font-size: 15px; }
         /* --- Sidebar --- */
-        .sidebar { width: var(--sidebar-width); height: 100vh; position: fixed; top: 0; left: 0; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: var(--white); padding: 1.5rem 1rem; display: flex; flex-direction: column; z-index: 100; box-shadow: var(--shadow-lg); transition: all var(--transition-speed) ease; }
+        .sidebar { width: var(--sidebar-width); height: 100vh; position: fixed; top: 0; left: 0; background: linear-gradient(135deg, var(--primary-dark), var(--primary)); color: var(--white); padding: 1.5rem 1rem; display: flex; flex-direction: column; z-index: 100; box-shadow: var(--shadow-lg); transition: all var(--transition-speed) ease; }
          .sidebar-header { display: flex; align-items: center; margin-bottom: 2rem; padding: 0 0.75rem; }
          .sidebar-logo { font-size: 1.5rem; font-weight: 700; color: var(--white); text-decoration: none; display: flex; align-items: center; gap: 0.75rem; }
          .sidebar-logo i { font-size: 1.75rem; }
          .sidebar-menu { list-style: none; padding: 0; margin: 0; flex-grow: 1; overflow-y: auto; }
          .sidebar-item { margin-bottom: 0.5rem; }
          .sidebar-link { display: flex; align-items: center; padding: 0.8rem 1rem; color: rgba(255, 255, 255, 0.85); text-decoration: none; border-radius: 8px; transition: all 0.2s ease; font-weight: 500; }
-         .sidebar-link i { margin-right: 0.8rem; /* Slightly more space */ font-size: 1.1rem; width: 24px; text-align: center; }
+         .sidebar-link i { margin-right: 0.8rem; font-size: 1.1rem; width: 24px; text-align: center; }
          .sidebar-link.active, .sidebar-link:hover { background-color: rgba(255, 255, 255, 0.1); color: var(--white); }
          .sidebar-link.active { font-weight: 600; background-color: rgba(255, 255, 255, 0.15); }
          .sidebar-footer { margin-top: auto; padding: 1rem; font-size: 0.85rem; color: rgba(255, 255, 255, 0.6); text-align: center; }
@@ -55,21 +57,19 @@
          .user-role { font-size: 0.8rem; opacity: 0.8; }
 
         /* --- Main Content --- */
-        main { flex: 1; margin-left: var(--sidebar-width); padding: 2rem; /* More padding */ transition: margin var(--transition-speed) ease; width: calc(100% - var(--sidebar-width)); display: none; }
+        main { flex: 1; margin-left: var(--sidebar-width); padding: 2rem; transition: margin var(--transition-speed) ease; width: calc(100% - var(--sidebar-width)); display: none; }
         main.loaded { display: block; animation: fadeInMain 0.5s ease-out forwards; }
         @keyframes fadeInMain { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-        .dashboard-header { margin-bottom: 2.5rem; background-color: var(--card-bg); border-radius: var(--card-radius); padding: 1.5rem 2rem; /* More padding */ box-shadow: var(--shadow-md); border: 1px solid var(--border-color); }
+        .dashboard-header { margin-bottom: 2.5rem; background-color: var(--card-bg); border-radius: var(--card-radius); padding: 1.25rem 1.75rem; box-shadow: var(--shadow-md); border: 1px solid var(--border-color); }
         .header-content { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
         .header-content > div:first-child { display: flex; align-items: center; gap: 1rem; flex-grow: 1; }
-        .header-content h1 { font-size: 2rem; /* Larger title */ font-weight: 700; color: var(--text-primary); margin: 0; line-height: 1.2; }
+        .header-content h1 { font-size: 2rem; font-weight: 700; color: var(--text-primary); margin: 0; line-height: 1.2; }
         .header-actions { display: flex; align-items: center; gap: 0.75rem; }
         /* Search, Refresh, Notifications - Copied & Adjusted */
-        .refresh-btn { background: none; border: 1px solid var(--border-color); color: var(--text-secondary); font-size: 0.9rem; cursor: pointer; padding: 0.4rem 0.8rem; border-radius: 8px; transition: all 0.2s; display: flex; align-items: center; gap: 0.4em; }
-        .refresh-btn:hover { background-color: var(--body-bg); color: var(--primary); border-color: var(--primary-light); } .refresh-btn.loading i { animation: spin 1s linear infinite; } .refresh-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .refresh-btn { background: none; border: 1px solid var(--border-color); color: var(--text-secondary); font-size: 0.9rem; cursor: pointer; padding: 0.4rem 0.8rem; border-radius: 8px; transition: all 0.2s; display: flex; align-items: center; gap: 0.4em; } .refresh-btn:hover { background-color: var(--body-bg); color: var(--primary); border-color: var(--primary-light); } .refresh-btn.loading i { animation: spin 1s linear infinite; } .refresh-btn:disabled { opacity: 0.6; cursor: not-allowed; }
         @keyframes spin { to { transform: rotate(360deg); } }
         .search-box { position: relative; }
-        .search-box input { width: 240px; height: 38px; border-radius: 8px; padding: 0 0.8rem 0 2.2rem; border: 1px solid var(--border-color); background-color: var(--card-bg); outline: none; transition: all 0.2s ease; font-size: 0.9rem; color: var(--text-primary);}
-        .search-box input::placeholder { color: var(--text-muted); } .search-box input:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(67, 97, 238, 0.2); } .search-box i { position: absolute; left: 0.8rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 0.9rem; }
+        .search-box input { width: 240px; height: 38px; border-radius: 8px; padding: 0 0.8rem 0 2.2rem; border: 1px solid var(--border-color); background-color: var(--card-bg); outline: none; transition: all 0.2s ease; font-size: 0.9rem; color: var(--text-primary);} .search-box input::placeholder { color: var(--text-muted); } .search-box input:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2); } .search-box i { position: absolute; left: 0.8rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 0.9rem; }
         .notifications { position: relative; } .notification-bell { cursor: pointer; padding: 0.5rem; position: relative; display: inline-block; border-radius: 8px; transition: background-color 0.2s;} .notification-bell:hover { background-color: var(--body-bg); }
         .notification-bell i { font-size: 1.3rem; color: var(--text-secondary); transition: color 0.2s; } .notification-bell:hover i { color: var(--primary); }
         .notification-badge { position: absolute; top: 2px; right: 2px; width: 16px; height: 16px; background-color: var(--danger); color: white; font-size: 0.6rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; border: 1px solid var(--card-bg); pointer-events: none; opacity: 0; transform: scale(0.5); transition: opacity 0.2s, transform 0.2s; } .notification-badge.visible { opacity: 1; transform: scale(1); }
@@ -83,14 +83,14 @@
         .notifications-footer { padding: 0.75rem 1.25rem; border-top: 1px solid var(--border-color); text-align: center; background-color: var(--light); border-radius: 0 0 12px 12px; } .view-all-notifications-link { font-size: 0.9rem; color: var(--primary); text-decoration: none; font-weight: 500; } .view-all-notifications-link:hover { text-decoration: underline; } #no-notifications-msg { padding: 2.5rem 1rem; text-align: center; color: var(--text-muted); font-size: 0.9rem; display: none; }
 
         /* --- Content Layout --- */
-        .main-content { display: grid; gap: 2.5rem; /* Increased gap */ }
-        .section { background-color: var(--card-bg); border-radius: var(--card-radius); box-shadow: var(--shadow-md); /* Slightly stronger shadow */ padding: 2rem; /* More padding */ border: 1px solid var(--border-color); animation: fadeIn 0.5s ease forwards; }
-        .section-title { font-size: 1.5rem; /* Larger */ font-weight: 600; margin-bottom: 1.75rem; color: var(--text-primary); padding-bottom: 0.75rem; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; gap: 0.7rem; }
+        .main-content { display: grid; gap: 2.5rem; }
+        .section { background-color: var(--card-bg); border-radius: var(--card-radius); box-shadow: var(--shadow-md); padding: 2rem; border: 1px solid var(--border-color); animation: fadeIn 0.5s ease forwards; }
+        .section-title { font-size: 1.5rem; font-weight: 600; margin-bottom: 1.75rem; color: var(--text-primary); padding-bottom: 0.75rem; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; gap: 0.7rem; }
         .section-title i { font-size: 1em; color: var(--primary); }
 
-        /* Stats Grid (Pokrok Page Specific) */
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); /* Adjusted minmax */ gap: 1.75rem; margin-bottom: 2.5rem; }
-        .stats-card { background-color: var(--card-bg); border-radius: var(--card-radius); box-shadow: var(--shadow-sm); padding: 1.75rem; /* More padding */ transition: all 0.3s ease; display: flex; flex-direction: column; border: 1px solid var(--border-color); position: relative; min-height: 170px; /* Adjusted */ }
+        /* Stats Grid */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.75rem; margin-bottom: 2.5rem; }
+        .stats-card { background-color: var(--card-bg); border-radius: var(--card-radius); box-shadow: var(--shadow-sm); padding: 1.75rem; transition: all 0.3s ease; display: flex; flex-direction: column; border: 1px solid transparent; /* Transparent border initially */ position: relative; min-height: 170px; }
         .stats-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); border-color: var(--primary-light); }
         .stats-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; }
         .stats-card-title { font-size: 1rem; font-weight: 500; color: var(--text-secondary); display: flex; align-items: center; gap: 0.5rem; }
@@ -100,62 +100,59 @@
         .stats-card-value .unit { font-size: 0.5em; font-weight: 500; color: var(--text-muted); margin-left: 0.2em; }
         .stats-card-description { font-size: 0.9rem; color: var(--text-muted); }
         /* Skeleton for Stats Cards */
-        .stats-card .loading-skeleton { position: absolute; top: 0; left: 0; right: 0; bottom: 0; padding: 1.75rem; display: flex; flex-direction: column; visibility: hidden; /* Controlled by .loading class */ }
-        .stats-card.loading .loading-skeleton { visibility: visible; }
-        .stats-card.loading .stats-card-content { visibility: hidden; }
-        .stats-card .loading-skeleton .skeleton.title { height: 18px; width: 70%; margin-bottom: 1.5rem; }
-        .stats-card .loading-skeleton .skeleton.value { height: 40px; width: 50%; margin-bottom: 0.75rem; }
-        .stats-card .loading-skeleton .skeleton.text { height: 15px; width: 85%; }
+        .stats-card .loading-skeleton { position: absolute; top: 0; left: 0; right: 0; bottom: 0; padding: 1.75rem; display: flex; flex-direction: column; visibility: hidden; }
+        .stats-card.loading .loading-skeleton { visibility: visible; } .stats-card.loading .stats-card-content { visibility: hidden; }
+        .stats-card .loading-skeleton .skeleton.title { height: 18px; width: 70%; margin-bottom: 1.5rem; } .stats-card .loading-skeleton .skeleton.value { height: 40px; width: 50%; margin-bottom: 0.75rem; } .stats-card .loading-skeleton .skeleton.text { height: 15px; width: 85%; }
 
         /* Chart Section */
         .chart-section { position: relative; }
         .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem; }
         .chart-title { font-size: 1.3rem; font-weight: 600; color: var(--text-primary); margin: 0; }
-        .chart-container { height: 380px; position: relative; }
+        .chart-container { height: 400px; /* Taller chart */ position: relative; }
         .chart-container canvas { background-color: transparent; }
         .loading-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(255, 255, 255, 0.7); display: flex; justify-content: center; align-items: center; z-index: 10; border-radius: var(--card-radius); transition: opacity 0.3s ease-out; opacity: 1;}
         .loading-overlay.hidden { opacity: 0; pointer-events: none; }
-        .loading-spinner { width: 32px; /* Larger */ height: 32px; border: 4px solid var(--primary); border-radius: 50%; border-top-color: transparent; animation: loading-spinner 0.8s linear infinite; }
+        .loading-spinner { width: 32px; height: 32px; border: 4px solid var(--primary); border-radius: 50%; border-top-color: transparent; animation: loading-spinner 0.8s linear infinite; }
         @keyframes loading-spinner { to { transform: rotate(360deg); } }
 
         /* Data Table Section */
         .data-table-section { position: relative; }
         .data-table-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem; }
         .data-table-title { font-size: 1.3rem; font-weight: 600; color: var(--text-primary); margin: 0; }
-        .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; border: 1px solid var(--border-color); border-radius: 10px; }
+        .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; border: 1px solid var(--border-color); border-radius: 10px; background-color: var(--card-bg); }
         .data-table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
-        .data-table thead { background-color: var(--body-bg); }
-        .data-table th { text-align: left; padding: 0.9rem 1.1rem; color: var(--text-secondary); font-weight: 600; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid var(--border-color); }
-        .data-table td { padding: 1rem 1.1rem; color: var(--text-primary); background-color: var(--card-bg); border-bottom: 1px solid var(--border-color); }
+        .data-table thead { /* Lighter header */ }
+        .data-table th { text-align: left; padding: 1rem 1.2rem; color: var(--text-secondary); font-weight: 600; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.8px; border-bottom: 2px solid var(--border-color); }
+        .data-table td { padding: 1rem 1.2rem; color: var(--text-primary); border-bottom: 1px solid var(--border-color); }
         .data-table tbody tr:last-child td { border-bottom: none; }
         .data-table tbody tr { transition: background-color 0.2s ease; }
-        .data-table tbody tr:hover td { background-color: #f8faff; }
+        .data-table tbody tr:hover td { background-color: var(--body-bg); }
         /* Status Badge */
         .status-badge { padding: 0.3rem 0.8rem; border-radius: 6px; font-size: 0.8rem; font-weight: 500; display: inline-flex; align-items: center; gap: 0.4em; }
-        .status-badge.completed { background-color: var(--success-bg); color: var(--success); }
+        .status-badge.completed { background-color: var(--success-bg); color: var(--success-dark, var(--success)); } /* Use darker success if defined */
         .status-badge.in-progress { background-color: var(--info-bg); color: var(--info); }
         .status-badge.failed { background-color: var(--danger-bg); color: var(--danger); }
+         .positive-change { color: var(--success); font-weight: 500;}
+         .negative-change { color: var(--danger); font-weight: 500;}
 
         /* Buttons */
         .btn { display: inline-flex; align-items: center; justify-content: center; padding: 0.6rem 1.2rem; border-radius: 8px; font-weight: 500; font-size: 0.9rem; text-decoration: none; transition: all 0.3s ease; cursor: pointer; border: none; gap: 0.5rem; }
-        .btn-primary { background: var(--primary); color: white; box-shadow: var(--shadow-sm); }
-        .btn-primary:hover { background: var(--secondary); transform: translateY(-1px); box-shadow: var(--shadow-md); }
-        .btn-secondary { background-color: var(--card-bg); color: var(--text-secondary); border: 1px solid var(--border-color); }
-        .btn-secondary:hover { background-color: var(--body-bg); border-color: var(--gray-medium); }
+        .btn-primary { background: var(--primary); color: white; box-shadow: var(--shadow-sm); } .btn-primary:hover { background: var(--primary-dark); transform: translateY(-1px); box-shadow: var(--shadow-md); }
+        .btn-secondary { background-color: var(--card-bg); color: var(--text-secondary); border: 1px solid var(--border-color); } .btn-secondary:hover { background-color: var(--body-bg); border-color: var(--gray-medium); }
         .btn-sm { padding: 0.4rem 0.8rem; font-size: 0.8rem; }
         .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
 
-        /* Skeleton Loader */
+        /* Skeleton Loader (general) */
         .skeleton { background-color: var(--skeleton-bg); border-radius: 6px; position: relative; overflow: hidden; }
-        .skeleton::after { content: ''; position: absolute; top: 0; left: -150%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, var(--skeleton-highlight), transparent); animation: skeleton-loading 1.5s infinite linear; }
-        @keyframes skeleton-loading { 0% { left: -150%; } 100% { left: 150%; } }
-        .skeleton-table td { padding: 1rem 1.1rem; } .skeleton-table .skeleton { height: 20px; } .skeleton-table .skeleton.w-60 { width: 60%; } .skeleton-table .skeleton.w-40 { width: 40%; } .skeleton-table .skeleton.w-30 { width: 30%; } .skeleton-table .skeleton.w-20 { width: 20%; }
+        .skeleton::after { content: ''; position: absolute; top: 0; left: -150%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, var(--skeleton-highlight), transparent); animation: skeleton-loading 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        /* Skeleton for Table */
+        .skeleton-table td { padding: 1rem 1.2rem; } .skeleton-table .skeleton { height: 20px; } .skeleton-table .skeleton.w-60 { width: 60%; } .skeleton-table .skeleton.w-40 { width: 40%; } .skeleton-table .skeleton.w-30 { width: 30%; } .skeleton-table .skeleton.w-20 { width: 20%; }
 
         /* Error & Empty States */
         .error-message { background-color: var(--danger-bg); border-left: 4px solid var(--danger); color: var(--danger); padding: 1rem; margin: 1rem 0; border-radius: 8px; font-size: 0.9rem; display: flex; align-items: center; } .error-message i { margin-right: 0.75rem; font-size: 1.25rem; }
         .error-container { display: none; margin-bottom: 1.5rem; } .error-container .error-message { margin: 0; }
         .retry-button { background-color: var(--primary); color: white; border: none; border-radius: 8px; padding: 0.5rem 1rem; font-size: 0.9rem; cursor: pointer; margin-top: 0.5rem; transition: all 0.2s ease; margin-left: auto; } .retry-button:hover { background-color: var(--secondary); }
-        .empty-state { padding: 3rem 2rem; text-align: center; background-color: var(--card-bg); border-radius: var(--card-radius); box-shadow: none; border: 1px dashed var(--border-color); margin-top: 1rem; /* Add margin when table is hidden */ }
+        .empty-state { padding: 3rem 2rem; text-align: center; background-color: transparent; /* Transparent background for empty table */ border-radius: var(--card-radius); box-shadow: none; border: none; margin-top: 1rem; }
         .empty-state i { font-size: 2.5rem; color: var(--gray-medium); margin-bottom: 1rem; } .empty-state h3 { font-size: 1.1rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.75rem; } .empty-state p { font-size: 0.95rem; color: var(--text-secondary); max-width: 500px; margin: 0 auto; line-height: 1.6; }
         .card-error-state { color: var(--danger); font-size: 0.9rem; padding: 2rem 1.5rem; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; } .card-error-state i { font-size: 1.5rem; margin-bottom: 0.75rem; }
         .list-error-state { padding: 3rem 1rem; text-align: center; color: var(--danger); font-size: 0.9rem; } .list-error-state i { font-size: 2rem; margin-bottom: 1rem; }
@@ -175,7 +172,7 @@
         @media (max-width: 768px) { main { padding: 1rem; margin-left: 0; width: 100%; } .sidebar { transform: translateX(-100%); width: 260px; z-index: 1000; } .sidebar.active { transform: translateX(0); } .sidebar.active .sidebar-logo span, .sidebar.active .sidebar-link span, .sidebar.active .user-info, .sidebar.active .sidebar-footer { display: block; } .sidebar.active .sidebar-link i { margin-right: 0.75rem; font-size: 1.2rem; } .sidebar.active .sidebar-header, .sidebar.active .sidebar-link { justify-content: flex-start; } .sidebar.active .user-profile { justify-content: flex-start; padding: 1rem; } .sidebar.active .user-avatar { margin-right: 0.75rem; } .header-content { flex-direction: column; align-items: flex-start; gap: 1rem; } .header-actions { width: 100%; justify-content: space-between; } .search-box input { width: 100%; } .stats-grid { grid-template-columns: 1fr; } .chart-header { flex-direction: column; align-items: flex-start; gap: 0.5rem;} }
         @media (max-width: 576px) { .search-box { display: none; } .header-actions { justify-content: flex-end; gap: 0.5rem; } .refresh-btn { padding: 0.5rem; } .refresh-btn span { display: none; } .notifications { margin-right: 0.5rem; } .data-table { font-size: 0.9rem; } .data-table th, .data-table td { padding: 0.7rem 0.6rem; } .notifications-dropdown-wrapper { width: calc(100vw - 2rem); max-width: 360px; } }
         /* Dark mode */
-        @media (prefers-color-scheme: dark) { :root { --white: #1f2937; /* Tmavší bílá */ --light: #374151; --dark: #f3f4f6; --gray-light: #4b5563; --text-primary: #f3f4f6; --text-secondary: #d1d5db; --text-muted: #9ca3af; --body-bg: #111827; --card-bg: #1f2937; --border-color: #374151; --skeleton-bg: #374151; --skeleton-highlight: #4b5563; --success-bg: rgba(16, 185, 129, 0.1); --danger-bg: rgba(239, 68, 68, 0.1); --warning-bg: rgba(245, 158, 11, 0.1); --info-bg: rgba(59, 130, 246, 0.1);} body { background-color: var(--body-bg); } .dashboard-header, .stats-card, .chart-section, .data-table-section, .toast, .notifications-dropdown-wrapper, .empty-state, .shortcut-card { background-color: var(--card-bg); border-color: var(--border-color); } .search-box input { background-color: #374151; color: var(--text-primary); border-color: var(--border-color); } .search-box input::placeholder { color: var(--text-muted); } .search-box i { color: #a0aec0; } .toast { border: 1px solid var(--border-color); } .dashboard-footer { border-top-color: var(--border-color); } .mobile-menu-toggle { color: var(--text-primary); } .sidebar-link.active, .sidebar-link:hover { background-color: rgba(255, 255, 255, 0.1); } .error-message { background-color: rgba(239, 68, 68, 0.1); border-left-color: var(--danger); } .initial-loading-overlay { background-color: var(--body-bg); } .loading-overlay { background-color: rgba(31, 41, 55, 0.8); } .notifications-footer { background-color: #111827; } .refresh-btn { border-color: var(--border-color); } .refresh-btn:hover { background-color: #374151; border-color: var(--primary-light); } .notification-bell:hover { background-color: #374151; } .data-table thead { background-color: #111827; } .data-table td { background-color: var(--card-bg); border-color: var(--border-color); } .data-table tbody tr:hover td { background-color: #2b3648; } .btn-secondary { background-color: var(--light); color: var(--text-secondary); border: 1px solid var(--border-color); } .btn-secondary:hover { background-color: var(--border-color); } .shortcut-card:hover { background-color: #2b3648; } .activity-item:hover { background-color: #2b3648; } }
+        @media (prefers-color-scheme: dark) { :root { --white: #1f2937; --light: #374151; --dark: #f3f4f6; --gray-light: #4b5563; --text-primary: #f3f4f6; --text-secondary: #d1d5db; --text-muted: #9ca3af; --body-bg: #111827; --card-bg: #1f2937; --border-color: #374151; --skeleton-bg: #374151; --skeleton-highlight: #4b5563; --success-bg: rgba(16, 185, 129, 0.1); --danger-bg: rgba(239, 68, 68, 0.1); --warning-bg: rgba(245, 158, 11, 0.1); --info-bg: rgba(59, 130, 246, 0.1);} body { background-color: var(--body-bg); } .dashboard-header, .stats-card, .chart-section, .data-table-section, .toast, .notifications-dropdown-wrapper, .empty-state, .shortcut-card { background-color: var(--card-bg); border-color: var(--border-color); } .search-box input { background-color: #374151; color: var(--text-primary); border-color: var(--border-color); } .search-box input::placeholder { color: var(--text-muted); } .search-box i { color: #a0aec0; } .toast { border: 1px solid var(--border-color); } .dashboard-footer { border-top-color: var(--border-color); } .mobile-menu-toggle { color: var(--text-primary); } .sidebar-link.active, .sidebar-link:hover { background-color: rgba(255, 255, 255, 0.1); } .error-message { background-color: rgba(239, 68, 68, 0.1); border-left-color: var(--danger); } .initial-loading-overlay { background-color: var(--body-bg); } .loading-overlay { background-color: rgba(31, 41, 55, 0.8); } .notifications-footer { background-color: #111827; } .refresh-btn { border-color: var(--border-color); } .refresh-btn:hover { background-color: #374151; border-color: var(--primary-light); } .notification-bell:hover { background-color: #374151; } .data-table thead { background-color: #111827; } .data-table td { background-color: var(--card-bg); border-color: var(--border-color); } .data-table tbody tr:hover td { background-color: #2b3648; } .btn-secondary { background-color: var(--light); color: var(--text-secondary); border: 1px solid var(--border-color); } .btn-secondary:hover { background-color: var(--border-color); } }
         .mobile-menu-toggle { display: none; background: none; border: none; color: var(--text-primary); font-size: 1.5rem; cursor: pointer; padding: 0.5rem; margin-right: 0.5rem; z-index: 101; }
         @media (max-width: 992px) { .mobile-menu-toggle { display: block; } }
         .sidebar-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.55); z-index: 99; opacity: 0; transition: opacity var(--transition-speed) ease; backdrop-filter: blur(4px); }
@@ -228,14 +225,7 @@
                              <div class="notifications-header"> <span class="notifications-title">Oznámení</span> <button class="mark-all-read-btn" id="mark-all-read" disabled>Označit vše jako přečtené</button> </div>
                              <div id="notifications-list">
                                   <div id="no-notifications-msg">Žádná nová oznámení.</div>
-                                  <div class="notification-item-skeleton" style="display: none; padding: 1rem 1.25rem; gap: 1rem; border-bottom: 1px solid var(--border-color);">
-                                       <div class="skeleton activity-icon-placeholder" style="border-radius: 50%; width:38px; height: 38px;"></div>
-                                       <div style="flex-grow: 1;">
-                                            <div class="skeleton activity-line" style="width: 60%; height: 16px; margin-bottom: 0.5rem;"></div>
-                                            <div class="skeleton activity-line" style="width: 90%; height: 14px; margin-bottom: 0.4rem;"></div>
-                                            <div class="skeleton activity-line-short" style="width: 40%; height: 12px;"></div>
-                                       </div>
-                                  </div>
+                                  <div class="notification-item-skeleton" style="display: none; padding: 1rem 1.25rem; gap: 1rem; border-bottom: 1px solid var(--border-color);"> <div class="skeleton activity-icon-placeholder" style="border-radius: 50%; width:38px; height: 38px;"></div> <div style="flex-grow: 1;"> <div class="skeleton activity-line" style="width: 60%; height: 16px; margin-bottom: 0.5rem;"></div> <div class="skeleton activity-line" style="width: 90%; height: 14px; margin-bottom: 0.4rem;"></div> <div class="skeleton activity-line-short" style="width: 40%; height: 12px;"></div> </div> </div>
                              </div>
                              <div class="notifications-footer"> <a href="#" class="view-all-notifications-link">Zobrazit všechna oznámení</a> </div>
                         </div>
@@ -248,19 +238,19 @@
             <section class="stats-section">
                  <h2 class="section-title" style="border: none; margin-bottom: 1rem;"><i class="fas fa-tachometer-alt"></i>Aktuální stav</h2>
                 <div class="stats-grid" id="stats-grid">
-                    <div class="stats-card loading" id="progress-card">
+                    <div class="stats-card loading" id="progress-card" data-title="Celkový Pokrok" data-icon="fas fa-tasks">
                          <div class="loading-skeleton"> <div class="skeleton title"></div> <div class="skeleton value"></div> <div class="skeleton text"></div> </div>
                          <div class="stats-card-content"> <div class="stats-card-info"> <div class="stats-card-title"><i class="fas fa-tasks"></i>Celkový Pokrok</div> <div class="stats-card-value">-<span class="unit">%</span></div> <div class="stats-card-description">Průměrná úspěšnost</div> </div> </div>
                     </div>
-                    <div class="stats-card loading" id="avg-score-card">
+                    <div class="stats-card loading" id="avg-score-card" data-title="Prům. Skóre" data-icon="fas fa-star-half-alt">
                          <div class="loading-skeleton"> <div class="skeleton title"></div> <div class="skeleton value"></div> <div class="skeleton text"></div> </div>
                          <div class="stats-card-content"> <div class="stats-card-info"> <div class="stats-card-title"><i class="fas fa-star-half-alt"></i>Prům. Skóre</div> <div class="stats-card-value">-<span class="unit">%</span></div> <div class="stats-card-description">Průměr z testů</div> </div> </div>
                     </div>
-                    <div class="stats-card loading" id="exercises-card">
+                    <div class="stats-card loading" id="exercises-card" data-title="Dokonč. Cvičení" data-icon="fas fa-pencil-alt">
                          <div class="loading-skeleton"> <div class="skeleton title"></div> <div class="skeleton value"></div> <div class="skeleton text"></div> </div>
                          <div class="stats-card-content"> <div class="stats-card-info"> <div class="stats-card-title"><i class="fas fa-pencil-alt"></i>Dokonč. Cvičení</div> <div class="stats-card-value">-</div> <div class="stats-card-description">Počet úkolů</div> </div> </div>
                     </div>
-                     <div class="stats-card loading" id="streak-card">
+                     <div class="stats-card loading" id="streak-card" data-title="Série Dnů" data-icon="fas fa-fire">
                          <div class="loading-skeleton"> <div class="skeleton title"></div> <div class="skeleton value"></div> <div class="skeleton text"></div> </div>
                          <div class="stats-card-content"> <div class="stats-card-info"> <div class="stats-card-title"><i class="fas fa-fire"></i>Série Dnů</div> <div class="stats-card-value">-</div> <div class="stats-card-description">Aktuální série studia</div> </div> </div>
                     </div>
@@ -277,7 +267,8 @@
                          <option value="year">Poslední rok</option>
                      </select>
                  </div>
-                 <div class="chart-container" id="chart-container-parent"> <div class="loading-overlay hidden" id="chart-loading"><div class="loading-spinner"></div></div>
+                 <div class="chart-container" id="chart-container-parent">
+                     <div class="loading-overlay hidden" id="chart-loading"><div class="loading-spinner"></div></div>
                      <canvas id="progressChart"></canvas>
                  </div>
              </section>
@@ -326,16 +317,17 @@
             // --- START: Initialization and Configuration ---
             const supabaseUrl = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
             const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10';
+            const SUPABASE_FETCH_TIMEOUT = 15000; // 15 sekund timeout pro dotazy
             let supabase = null;
             let currentUser = null;
             let currentProfile = null;
             let isLoadingData = false;
             let progressChart = null;
             let lastLoadedPeriod = 'month';
-            let chartDataCache = {}; // Cache for chart data
+            let chartDataCache = {};
 
             // DOM Elements Cache
-            const ui = {
+            const ui = { /* ... (cache all relevant elements like previous version) ... */
                 sidebarAvatar: document.getElementById('sidebar-avatar'), sidebarName: document.getElementById('sidebar-name'),
                 offlineBanner: document.getElementById('offline-banner'), globalError: document.getElementById('global-error'),
                 mainMobileMenuToggle: document.getElementById('main-mobile-menu-toggle'), sidebarCloseToggle: document.getElementById('sidebar-close-toggle'),
@@ -351,119 +343,165 @@
                 chartLoading: document.getElementById('chart-loading'), chartPeriodSelect: document.getElementById('chart-period'),
                 activitiesTable: document.getElementById('activities-table'), activitiesBody: document.getElementById('activities-body'),
                 noActivities: document.getElementById('no-activities'), exportBtn: document.getElementById('export-btn'),
-                chartContainerParent: document.getElementById('chart-container-parent') // Added
-            };
+                chartContainerParent: document.getElementById('chart-container-parent')
+             };
             // --- END: Initialization and Configuration ---
 
             // --- START: Helper Functions ---
-             function showToast(message, type = 'success') { /* ... implementation ... */ if (!ui.toast || !ui.toastMessage) return; ui.toastMessage.textContent = message; const icon = ui.toast.querySelector('i'); const colors = { success: 'var(--success)', error: 'var(--danger)', warning: 'var(--warning)', info: 'var(--info)' }; if (icon) { icon.className = `fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle'}`; icon.style.color = colors[type] || colors.info; } ui.toast.className = `toast ${type}`; ui.toast.classList.add('show'); setTimeout(() => { if (ui.toast) ui.toast.classList.remove('show'); }, 5000); }
-             function showError(message) { /* ... implementation with retry ... */ if (!ui.globalError) return; ui.globalError.innerHTML = `<div class="error-message"><i class="fas fa-exclamation-circle"></i><div><div>${message}</div><button class="retry-button" id="retry-btn">Zkusit znovu</button></div></div>`; ui.globalError.style.display = 'block'; const retryBtn = document.getElementById('retry-btn'); if (retryBtn) { retryBtn.addEventListener('click', handleRetry); } }
+             function showToast(message, type = 'success') { /* ... standard implementation ... */ if (!ui.toast || !ui.toastMessage) return; ui.toastMessage.textContent = message; const icon = ui.toast.querySelector('i'); const colors = { success: 'var(--success)', error: 'var(--danger)', warning: 'var(--warning)', info: 'var(--info)' }; if (icon) { icon.className = `fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle'}`; icon.style.color = colors[type] || colors.info; } ui.toast.className = `toast ${type}`; ui.toast.classList.add('show'); setTimeout(() => { if (ui.toast) ui.toast.classList.remove('show'); }, 5000); }
+             function showError(message) { /* ... standard implementation ... */ if (!ui.globalError) return; ui.globalError.innerHTML = `<div class="error-message"><i class="fas fa-exclamation-circle"></i><div><div>${message}</div><button class="retry-button" id="retry-btn">Zkusit znovu</button></div></div>`; ui.globalError.style.display = 'block'; const retryBtn = document.getElementById('retry-btn'); if (retryBtn) { retryBtn.addEventListener('click', handleRetry); } }
              function hideError() { if (ui.globalError) ui.globalError.style.display = 'none'; }
-             function updateOnlineStatus() { /* ... implementation ... */ if (ui.offlineBanner) ui.offlineBanner.style.display = navigator.onLine ? 'none' : 'block'; if (!navigator.onLine) showToast('Jste offline. Některé funkce nemusí být dostupné.', 'warning'); }
-             function getInitials(userData) { /* ... implementation ... */ if (!userData) return '?'; const first = userData.first_name?.[0] || ''; const last = userData.last_name?.[0] || ''; const usernameInitial = userData.username?.[0] || ''; const emailInitial = userData.email?.[0] || ''; return (first + last).toUpperCase() || usernameInitial.toUpperCase() || emailInitial.toUpperCase() || '?'; }
-             function formatRelativeTime(timestamp) { /* ... implementation ... */ if (!timestamp) return ''; try { const now = new Date(); const date = new Date(timestamp); if (isNaN(date.getTime())) return '-'; const diffMs = now - date; const diffSec = Math.round(diffMs / 1000); const diffMin = Math.round(diffSec / 60); const diffHour = Math.round(diffMin / 60); const diffDay = Math.round(diffHour / 24); const diffWeek = Math.round(diffDay / 7); if (diffSec < 60) return 'Právě teď'; if (diffMin < 60) return `Před ${diffMin} min`; if (diffHour < 24) return `Před ${diffHour} h`; if (diffDay === 1) return `Včera`; if (diffDay < 7) return `Před ${diffDay} dny`; if (diffWeek <= 4) return `Před ${diffWeek} týdny`; return date.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric' }); } catch(e) { console.error("Chyba formátování času:", e, "Timestamp:", timestamp); return '-'; } }
+             function updateOnlineStatus() { /* ... standard implementation ... */ if (ui.offlineBanner) ui.offlineBanner.style.display = navigator.onLine ? 'none' : 'block'; if (!navigator.onLine) showToast('Jste offline. Některé funkce nemusí být dostupné.', 'warning'); }
+             function getInitials(userData) { /* ... standard implementation ... */ if (!userData) return '?'; const first = userData.first_name?.[0] || ''; const last = userData.last_name?.[0] || ''; const usernameInitial = userData.username?.[0] || ''; const emailInitial = userData.email?.[0] || ''; return (first + last).toUpperCase() || usernameInitial.toUpperCase() || emailInitial.toUpperCase() || '?'; }
+             function formatRelativeTime(timestamp) { /* ... standard implementation ... */ if (!timestamp) return ''; try { const now = new Date(); const date = new Date(timestamp); if (isNaN(date.getTime())) return '-'; const diffMs = now - date; const diffSec = Math.round(diffMs / 1000); const diffMin = Math.round(diffSec / 60); const diffHour = Math.round(diffMin / 60); const diffDay = Math.round(diffHour / 24); const diffWeek = Math.round(diffDay / 7); if (diffSec < 60) return 'Právě teď'; if (diffMin < 60) return `Před ${diffMin} min`; if (diffHour < 24) return `Před ${diffHour} h`; if (diffDay === 1) return `Včera`; if (diffDay < 7) return `Před ${diffDay} dny`; if (diffWeek <= 4) return `Před ${diffWeek} týdny`; return date.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric' }); } catch(e) { console.error("Chyba formátování času:", e, "Timestamp:", timestamp); return '-'; } }
              function openMenu() { if (ui.sidebar && ui.sidebarOverlay) { ui.sidebar.classList.add('active'); ui.sidebarOverlay.classList.add('active'); } }
              function closeMenu() { if (ui.sidebar && ui.sidebarOverlay) { ui.sidebar.classList.remove('active'); ui.sidebarOverlay.classList.remove('active'); } }
              function sanitizeHTML(str) { const temp = document.createElement('div'); temp.textContent = str || ''; return temp.innerHTML; }
-             function hexToRgb(hex) { /* ... implementation ... */ let result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex); return result ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : null; }
+             function hexToRgb(hex) { /* ... standard implementation ... */ let result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex); return result ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : null; }
             // --- END: Helper Functions ---
 
             // --- START: Loading State Functions ---
-             function showLoadingState(section) { console.log(`[Loading] Show for: ${section}`); switch(section) { case 'stats': ['progressCard', 'avgScoreCard', 'exercisesCard', 'streakCard'].forEach(id => ui[id]?.classList.add('loading')); break; case 'chart': if(ui.chartLoading) ui.chartLoading.classList.remove('hidden'); if(ui.progressChartCanvas) ui.progressChartCanvas.style.opacity = '0.3'; break; case 'table': if(ui.activitiesTable) ui.activitiesTable.style.display = 'none'; if(ui.noActivities) ui.noActivities.style.display = 'none'; renderTableSkeleton(5); break; case 'notifications': /* Optional: Show spinner in dropdown */ break; } }
-             function hideLoadingState(section) { console.log(`[Loading] Hide for: ${section}`); switch(section) { case 'stats': ['progressCard', 'avgScoreCard', 'exercisesCard', 'streakCard'].forEach(id => ui[id]?.classList.remove('loading')); break; case 'chart': if(ui.chartLoading) ui.chartLoading.classList.add('hidden'); if(ui.progressChartCanvas) ui.progressChartCanvas.style.opacity = '1'; break; case 'table': if (ui.activitiesBody) ui.activitiesBody.querySelectorAll('.skeleton-table').forEach(row => row.remove()); break; case 'notifications': /* Optional: Hide spinner */ break; } }
-             function renderTableSkeleton(rowCount) { if (!ui.activitiesBody) return; ui.activitiesBody.innerHTML = ''; for (let i = 0; i < rowCount; i++) { const row = ui.activitiesBody.insertRow(); row.classList.add('skeleton-table'); row.innerHTML = `<td><div class="skeleton w-40"></div></td><td><div class="skeleton w-60"></div></td><td><div class="skeleton w-30"></div></td><td><div class="skeleton w-20"></div></td><td><div class="skeleton w-30"></div></td>`; } if (ui.activitiesTable) ui.activitiesTable.style.display = 'table'; if (ui.noActivities) ui.noActivities.style.display = 'none'; }
+             function showLoadingState(section) { /* ... implementation ... */ console.log(`[Loading] Show for: ${section}`); switch(section) { case 'stats': ['progressCard', 'avgScoreCard', 'exercisesCard', 'streakCard'].forEach(id => ui[id]?.classList.add('loading')); break; case 'chart': if(ui.chartLoading) ui.chartLoading.classList.remove('hidden'); if(ui.progressChartCanvas) ui.progressChartCanvas.style.opacity = '0.3'; break; case 'table': if(ui.activitiesTable) ui.activitiesTable.style.display = 'none'; if(ui.noActivities) ui.noActivities.style.display = 'none'; renderTableSkeleton(5); break; case 'notifications': if (ui.notificationsList) { const skeleton = ui.notificationsList.querySelector('.notification-item-skeleton'); if (skeleton) skeleton.style.display = 'flex'; } break;} }
+             function hideLoadingState(section) { /* ... implementation ... */ console.log(`[Loading] Hide for: ${section}`); switch(section) { case 'stats': ['progressCard', 'avgScoreCard', 'exercisesCard', 'streakCard'].forEach(id => ui[id]?.classList.remove('loading')); break; case 'chart': if(ui.chartLoading) ui.chartLoading.classList.add('hidden'); if(ui.progressChartCanvas) ui.progressChartCanvas.style.opacity = '1'; break; case 'table': if (ui.activitiesBody) ui.activitiesBody.querySelectorAll('.skeleton-table').forEach(row => row.remove()); break; case 'notifications': if (ui.notificationsList) { const skeleton = ui.notificationsList.querySelector('.notification-item-skeleton'); if (skeleton) skeleton.style.display = 'none'; } break;} }
+             function renderTableSkeleton(rowCount) { /* ... implementation ... */ if (!ui.activitiesBody) return; ui.activitiesBody.innerHTML = ''; for (let i = 0; i < rowCount; i++) { const row = ui.activitiesBody.insertRow(); row.classList.add('skeleton-table'); row.innerHTML = `<td><div class="skeleton w-40"></div></td><td><div class="skeleton w-60"></div></td><td><div class="skeleton w-30"></div></td><td><div class="skeleton w-20"></div></td><td><div class="skeleton w-30"></div></td>`; } if (ui.activitiesTable) ui.activitiesTable.style.display = 'table'; if (ui.noActivities) ui.noActivities.style.display = 'none'; }
             // --- END: Loading State Functions ---
 
             // --- START: Data Loading Functions ---
+
+            // ** NEW: Function to wrap Supabase calls with timeout **
+             async function fetchWithTimeout(queryPromise, timeoutMs = SUPABASE_FETCH_TIMEOUT) {
+                 const timeoutPromise = new Promise((_, reject) =>
+                     setTimeout(() => reject(new Error(`Request timed out after ${timeoutMs}ms`)), timeoutMs)
+                 );
+                 return Promise.race([queryPromise, timeoutPromise]);
+             }
+
             async function loadUserProfile(user) {
                 console.log("[FUNC] loadUserProfile: Start");
                 if (!user) { console.error("[FUNC] loadUserProfile: Missing user object."); return null; }
                 try {
                     console.log("[FUNC] loadUserProfile: Selecting specific profile columns...");
-                    const { data: profile, error } = await supabase
+                    const query = supabase
                         .from('profiles')
-                        // *** OPTIMIZATION: Select only absolutely needed columns ***
                         .select('id, email, username, first_name, last_name, avatar_url, points, streak_days, level, completed_exercises, average_score')
                         .eq('id', user.id)
                         .single();
+
+                    // Wrap the query with timeout
+                    const { data: profile, error } = await fetchWithTimeout(query);
+
                     console.log("[FUNC] loadUserProfile: Supabase returned - Error:", error, "Data:", profile);
-                    if (error && error.code !== 'PGRST116') { throw error; }
+                    if (error && error.code !== 'PGRST116') { throw error; } // Re-throw actual errors
                     if (!profile) { console.warn("[FUNC] loadUserProfile: Profile not found, returning default."); return { id: user.id, email: user.email, username: user.email?.split('@')[0] || 'Uživatel', points: 0, streak_days: 0, level: 1, completed_exercises: 0, average_score: 0 }; }
                     console.log("[FUNC] loadUserProfile: Success.");
                     return profile;
-                } catch (error) { console.error('[FUNC] loadUserProfile: Caught exception:', error); showToast('Chyba profilu', `Nepodařilo se načíst profil: ${error.message}`, 'error'); return null; }
+                } catch (error) {
+                    console.error('[FUNC] loadUserProfile: Caught exception:', error);
+                    // Display error within stats cards as profile data is crucial for them
+                    updateStatsCards(null); // Pass null to trigger error state rendering
+                    showToast('Chyba profilu', `Nepodařilo se načíst profil: ${error.message}`, 'error');
+                    return null; // Indicate failure
+                }
             }
 
             async function loadProgressSnapshots(userId, period = 'month') {
-                 console.log(`[FUNC] loadProgressSnapshots: Start for user: ${userId}, period: ${period}`);
-                 if (!userId) { console.error("[FUNC] loadProgressSnapshots: Missing user ID."); return []; }
+                console.log(`[FUNC] loadProgressSnapshots: Start for user: ${userId}, period: ${period}`);
+                if (!userId) { console.error("[FUNC] loadProgressSnapshots: Missing user ID."); return []; }
+                const cacheKey = `${userId}-${period}`;
+                if (chartDataCache[cacheKey]) { console.log(`[FUNC] loadProgressSnapshots: Returning cached data.`); return chartDataCache[cacheKey]; }
 
-                 // Check cache first
-                 const cacheKey = `${userId}-${period}`;
-                 if (chartDataCache[cacheKey]) {
-                      console.log(`[FUNC] loadProgressSnapshots: Returning cached data for ${cacheKey}`);
-                      return chartDataCache[cacheKey];
-                 }
+                try {
+                    const endDate = new Date(); let startDate = new Date();
+                    if (typeof dateFns === 'undefined') { throw new Error("date-fns library not loaded"); }
+                    switch (period) { case 'week': startDate = dateFns.subDays(endDate, 7); break; case 'month': startDate = dateFns.subMonths(endDate, 1); break; case '3month': startDate = dateFns.subMonths(endDate, 3); break; case 'year': startDate = dateFns.subYears(endDate, 1); break; default: startDate = dateFns.subMonths(endDate, 1); }
+                    const startDateString = dateFns.formatISO(startDate, { representation: 'date' });
+                    const endDateString = dateFns.formatISO(endDate, { representation: 'date' });
+                    console.log(`[FUNC] loadProgressSnapshots: Date range: ${startDateString} to ${endDateString}`);
 
-                 try {
-                     const endDate = new Date();
-                     let startDate = new Date();
-                      if (typeof dateFns === 'undefined') { throw new Error("date-fns library not loaded"); } // Check if library is loaded
-                     switch (period) {
-                         case 'week': startDate = dateFns.subDays(endDate, 7); break;
-                         case 'month': startDate = dateFns.subMonths(endDate, 1); break;
-                         case '3month': startDate = dateFns.subMonths(endDate, 3); break;
-                         case 'year': startDate = dateFns.subYears(endDate, 1); break;
-                         default: startDate = dateFns.subMonths(endDate, 1);
-                     }
-                     const startDateString = dateFns.formatISO(startDate, { representation: 'date' });
-                     const endDateString = dateFns.formatISO(endDate, { representation: 'date' });
-                     console.log(`[FUNC] loadProgressSnapshots: Date range: ${startDateString} to ${endDateString}`);
+                    const query = supabase
+                        .from('progress_snapshots')
+                        .select('snapshot_date, overall_progress')
+                        .eq('user_id', userId)
+                        .gte('snapshot_date', startDateString)
+                        .lte('snapshot_date', endDateString)
+                        .order('snapshot_date', { ascending: true });
 
-                     console.log("[FUNC] loadProgressSnapshots: Calling Supabase progress_snapshots select...");
-                     // *** OPTIMIZATION: Select only needed columns & ensure index on (user_id, snapshot_date) ***
-                     const { data, error } = await supabase
-                         .from('progress_snapshots')
-                         .select('snapshot_date, overall_progress') // Only need these for the main chart
-                         .eq('user_id', userId)
-                         .gte('snapshot_date', startDateString)
-                         .lte('snapshot_date', endDateString)
-                         .order('snapshot_date', { ascending: true });
+                    // Wrap with timeout
+                    const { data, error } = await fetchWithTimeout(query);
 
-                     console.log("[FUNC] loadProgressSnapshots: Supabase returned - Error:", error, "Data:", data);
-                     if (error) throw error;
-                     const snapshots = data || [];
-                      console.log(`[FUNC] loadProgressSnapshots: Success, ${snapshots.length} snapshots found.`);
-                     // Store in cache
-                     chartDataCache[cacheKey] = snapshots;
-                     return snapshots;
-                 } catch (error) { console.error('[FUNC] loadProgressSnapshots: Caught exception:', error); showToast('Chyba historie pokroku', `Nepodařilo se načíst data pro graf: ${error.message}`, 'error'); return []; }
-             }
+                    console.log("[FUNC] loadProgressSnapshots: Supabase returned - Error:", error, "Data:", data);
+                    if (error) throw error;
+                    const snapshots = data || [];
+                    console.log(`[FUNC] loadProgressSnapshots: Success, ${snapshots.length} snapshots found.`);
+                    chartDataCache[cacheKey] = snapshots; // Cache result
+                    return snapshots;
+                } catch (error) {
+                    console.error('[FUNC] loadProgressSnapshots: Caught exception:', error);
+                    showToast('Chyba historie pokroku', `Nepodařilo se načíst data pro graf: ${error.message}`, 'error');
+                    updateChart(null); // Render chart error state
+                    return []; // Return empty on error
+                }
+            }
 
             async function loadRecentActivities(userId) {
-                 console.log("[FUNC] loadRecentActivities: Start for user:", userId);
-                 if (!userId) { console.error("[FUNC] loadRecentActivities: Missing user ID."); return []; }
-                 try {
-                     console.log("[FUNC] loadRecentActivities: Calling Supabase select (snapshots)...");
-                     // *** Using snapshots table for demo, adjust if you have a better activity source ***
-                     // *** OPTIMIZATION: Select only needed columns & ensure index on (user_id, snapshot_date) ***
-                     const { data, error } = await supabase
-                         .from('progress_snapshots')
-                         .select('snapshot_date, overall_progress, points_total') // Fetch relevant snapshot data
-                         .eq('user_id', userId)
-                         .order('snapshot_date', { ascending: false })
-                         .limit(10);
-                     console.log("[FUNC] loadRecentActivities: Supabase returned - Error:", error, "Data:", data);
-                     if (error) throw error;
-                     return data || [];
-                 } catch (error) { console.error('[FUNC] loadRecentActivities: Caught exception:', error); showToast('Chyba aktivit', `Nepodařilo se načíst nedávné záznamy: ${error.message}`, 'error'); return []; }
-             }
+                console.log("[FUNC] loadRecentActivities: Start for user:", userId);
+                if (!userId) { console.error("[FUNC] loadRecentActivities: Missing user ID."); return []; }
+                try {
+                    console.log("[FUNC] loadRecentActivities: Calling Supabase select (snapshots)...");
+                    const query = supabase
+                        .from('progress_snapshots') // Using snapshots for table demo
+                        .select('snapshot_date, overall_progress, points_total, created_at')
+                        .eq('user_id', userId)
+                        .order('snapshot_date', { ascending: false })
+                        .limit(10);
 
-            // --- Notification Functions (Same as dashboard.html) ---
-            async function loadNotifications(userId) { /* ... implementation ... */ console.log("[FUNC] loadNotifications: Start for user:", userId); if (!userId) { console.error("[FUNC] loadNotifications: Missing user ID."); return { unreadCount: 0, notifications: [] }; } try { console.log("[FUNC] loadNotifications: Calling Supabase user_notifications select (specific cols)..."); const { data, error } = await supabase .from('user_notifications') .select('id, title, message, icon, type, is_read, created_at, link', { count: 'exact' }) .eq('user_id', userId) .order('created_at', { ascending: false }) .limit(10); const { count: unreadCount, error: countError } = await supabase .from('user_notifications') .select('*', { count: 'exact', head: true }) .eq('user_id', userId) .eq('is_read', false); console.log("[FUNC] loadNotifications: Supabase returned - Error:", error, "Data:", data, "Unread Count:", unreadCount); if (error || countError) throw error || countError; if (!data || data.length === 0) { console.log("[FUNC] loadNotifications: No notifications found, adding welcome message."); return { unreadCount: 1, notifications: [ { id: 'welcome', title: 'Vítejte v Justax!', message: 'Toto jsou vaše statistiky pokroku.', icon: 'fa-chart-line', type: 'info', is_read: false, created_at: new Date().toISOString(), link: null } ] }; } return { unreadCount: unreadCount ?? 0, notifications: data || [] }; } catch (error) { console.error("[FUNC] loadNotifications: Caught exception:", error); showToast('Chyba oznámení', `Nepodařilo se načíst oznámení: ${error.message}`, 'error'); return { unreadCount: 0, notifications: [] }; } }
-            function renderNotifications(count, notifications) { /* ... implementation ... */ console.log("[FUNC] renderNotifications: Start, Count:", count, "Notifications:", notifications); if (!ui.notificationCount || !ui.notificationsList || !ui.noNotificationsMsg || !ui.markAllReadBtn) { console.error("[FUNC] renderNotifications: Missing UI elements."); return; } ui.notificationCount.textContent = count > 9 ? '9+' : count; ui.notificationCount.classList.toggle('visible', count > 0); ui.markAllReadBtn.disabled = (count === 0); const skeleton = ui.notificationsList.querySelector('.notification-item-skeleton'); if (skeleton) skeleton.style.display = 'none'; if (notifications && notifications.length > 0) { ui.notificationsList.innerHTML = notifications.map(n => { const iconClass = n.icon || 'fa-info-circle'; const typeClass = n.type || 'info'; const isReadClass = n.is_read ? 'is-read' : ''; const linkAttr = n.link ? `data-link="${sanitizeHTML(n.link)}"` : ''; return `<div class="notification-item ${isReadClass}" data-id="${n.id}" ${linkAttr} title="${n.is_read ? 'Přečteno' : 'Nepřečteno'} - ${sanitizeHTML(n.message)}"> ${!n.is_read ? '<span class="unread-dot"></span>' : ''} <div class="notification-icon ${typeClass}"> <i class="fas ${iconClass}"></i> </div> <div class="notification-content"> <div class="notification-title">${sanitizeHTML(n.title)}</div> <div class="notification-message">${sanitizeHTML(n.message)}</div> <div class="notification-time">${formatRelativeTime(n.created_at)}</div> </div> </div>`; }).join(''); ui.noNotificationsMsg.style.display = 'none'; ui.notificationsList.style.display = 'block'; } else { ui.notificationsList.innerHTML = ''; ui.noNotificationsMsg.style.display = 'block'; ui.notificationsList.style.display = 'none'; } console.log("[FUNC] renderNotifications: Success"); }
-            async function markNotificationRead(notificationId) { /* ... implementation ... */ console.log("[FUNC] markNotificationRead: Marking ID:", notificationId); if (!currentUser || !notificationId || notificationId === 'welcome') return false; try { const { error } = await supabase .from('user_notifications') .update({ is_read: true }) .eq('user_id', currentUser.id) .eq('id', notificationId); if (error) throw error; console.log("[FUNC] markNotificationRead: Success for ID:", notificationId); return true; } catch (error) { console.error("[FUNC] markNotificationRead: Error:", error); showToast('Chyba', 'Nepodařilo se označit oznámení jako přečtené.', 'error'); return false; } }
-            async function markAllNotificationsRead() { /* ... implementation ... */ console.log("[FUNC] markAllNotificationsRead: Start for user:", currentUser?.id); if (!currentUser) return; ui.markAllReadBtn.disabled = true; ui.markAllReadBtn.textContent = 'Označuji...'; try { const { error } = await supabase .from('user_notifications') .update({ is_read: true }) .eq('user_id', currentUser.id) .eq('is_read', false); if (error) throw error; console.log("[FUNC] markAllNotificationsRead: Success"); const { unreadCount, notifications } = await loadNotifications(currentUser.id); renderNotifications(unreadCount, notifications); showToast('Oznámení označena', 'Všechna oznámení byla označena jako přečtená.', 'success'); } catch (error) { console.error("[FUNC] markAllNotificationsRead: Error:", error); showToast('Chyba', 'Nepodařilo se označit všechna oznámení.', 'error'); } finally { ui.markAllReadBtn.disabled = false; ui.markAllReadBtn.textContent = 'Označit vše jako přečtené'; } }
+                    // Wrap with timeout
+                    const { data, error } = await fetchWithTimeout(query);
+
+                    console.log("[FUNC] loadRecentActivities: Supabase returned - Error:", error, "Data:", data);
+                    if (error) throw error;
+                    return data || [];
+                } catch (error) {
+                    console.error('[FUNC] loadRecentActivities: Caught exception:', error);
+                    showToast('Chyba aktivit', `Nepodařilo se načíst nedávné záznamy: ${error.message}`, 'error');
+                    renderActivityHistory(null); // Render table error state
+                    return [];
+                }
+            }
+
+            // --- Notification Functions (Copied & Adapted from dashboard.html) ---
+            async function loadNotifications(userId) {
+                 console.log("[FUNC] loadNotifications: Start for user:", userId);
+                 if (!userId) { console.error("[FUNC] loadNotifications: Missing user ID."); return { unreadCount: 0, notifications: [] }; }
+                 try {
+                     console.log("[FUNC] loadNotifications: Calling Supabase user_notifications select...");
+                      const query = supabase
+                         .from('user_notifications')
+                         .select('id, title, message, icon, type, is_read, created_at, link', { count: 'exact' })
+                         .eq('user_id', userId)
+                         .order('created_at', { ascending: false })
+                         .limit(10);
+                      const countQuery = supabase
+                          .from('user_notifications')
+                          .select('*', { count: 'exact', head: true })
+                          .eq('user_id', userId)
+                          .eq('is_read', false);
+
+                      // Fetch with timeout
+                      const [ { data, error, count }, { count: unreadCount, error: countError } ] = await Promise.all([
+                           fetchWithTimeout(query),
+                           fetchWithTimeout(countQuery)
+                      ]);
+
+                     console.log("[FUNC] loadNotifications: Supabase returned - Error:", error, "Data:", data, "Unread Count:", unreadCount);
+                     if (error || countError) throw error || countError;
+                     if (!data || data.length === 0) { console.log("[FUNC] loadNotifications: No notifications found, adding welcome message."); return { unreadCount: 1, notifications: [{ id: 'welcome', title: 'Vítejte v sekci Pokrok!', message: 'Sledujte zde své úspěchy a vývoj v čase.', icon: 'fa-chart-line', type: 'info', is_read: false, created_at: new Date().toISOString(), link: null }] }; }
+                     return { unreadCount: unreadCount ?? 0, notifications: data || [] };
+                 } catch (error) { console.error("[FUNC] loadNotifications: Caught exception:", error); showToast('Chyba oznámení', `Nepodařilo se načíst oznámení: ${error.message}`, 'error'); return { unreadCount: 0, notifications: [] }; }
+             }
+            function renderNotifications(count, notifications) { /* ... implementation (same as dashboard) ... */ console.log("[FUNC] renderNotifications: Start, Count:", count, "Notifications:", notifications); if (!ui.notificationCount || !ui.notificationsList || !ui.noNotificationsMsg || !ui.markAllReadBtn) { console.error("[FUNC] renderNotifications: Missing UI elements."); return; } const skeleton = ui.notificationsList.querySelector('.notification-item-skeleton'); if(skeleton) skeleton.style.display = 'none'; ui.notificationCount.textContent = count > 9 ? '9+' : count; ui.notificationCount.classList.toggle('visible', count > 0); ui.markAllReadBtn.disabled = (count === 0); if (notifications && notifications.length > 0) { ui.notificationsList.innerHTML = notifications.map(n => { const iconClass = n.icon || 'fa-info-circle'; const typeClass = n.type || 'info'; const isReadClass = n.is_read ? 'is-read' : ''; const linkAttr = n.link ? `data-link="${sanitizeHTML(n.link)}"` : ''; return `<div class="notification-item ${isReadClass}" data-id="${n.id}" ${linkAttr} title="${n.is_read ? 'Přečteno' : 'Nepřečteno'} - ${sanitizeHTML(n.message)}"> ${!n.is_read ? '<span class="unread-dot"></span>' : ''} <div class="notification-icon ${typeClass}"> <i class="fas ${iconClass}"></i> </div> <div class="notification-content"> <div class="notification-title">${sanitizeHTML(n.title)}</div> <div class="notification-message">${sanitizeHTML(n.message)}</div> <div class="notification-time">${formatRelativeTime(n.created_at)}</div> </div> </div>`; }).join(''); ui.noNotificationsMsg.style.display = 'none'; ui.notificationsList.style.display = 'block'; } else { ui.notificationsList.innerHTML = ''; ui.noNotificationsMsg.style.display = 'block'; ui.notificationsList.style.display = 'none'; } console.log("[FUNC] renderNotifications: Success"); }
+            async function markNotificationRead(notificationId) { /* ... implementation (same as dashboard) ... */ console.log("[FUNC] markNotificationRead: Marking ID:", notificationId); if (!currentUser || !notificationId || notificationId === 'welcome') return false; try { const { error } = await supabase .from('user_notifications') .update({ is_read: true }) .eq('user_id', currentUser.id) .eq('id', notificationId); if (error) throw error; console.log("[FUNC] markNotificationRead: Success for ID:", notificationId); return true; } catch (error) { console.error("[FUNC] markNotificationRead: Error:", error); showToast('Chyba', 'Nepodařilo se označit oznámení jako přečtené.', 'error'); return false; } }
+            async function markAllNotificationsRead() { /* ... implementation (same as dashboard) ... */ console.log("[FUNC] markAllNotificationsRead: Start for user:", currentUser?.id); if (!currentUser) return; ui.markAllReadBtn.disabled = true; ui.markAllReadBtn.textContent = 'Označuji...'; try { const { error } = await supabase .from('user_notifications') .update({ is_read: true }) .eq('user_id', currentUser.id) .eq('is_read', false); if (error) throw error; console.log("[FUNC] markAllNotificationsRead: Success"); const { unreadCount, notifications } = await loadNotifications(currentUser.id); renderNotifications(unreadCount, notifications); showToast('Oznámení označena', 'Všechna oznámení byla označena jako přečtená.', 'success'); } catch (error) { console.error("[FUNC] markAllNotificationsRead: Error:", error); showToast('Chyba', 'Nepodařilo se označit všechna oznámení.', 'error'); } finally { ui.markAllReadBtn.disabled = false; ui.markAllReadBtn.textContent = 'Označit vše jako přečtené'; } }
             // --- END: Notification Functions ---
             // --- END: Data Loading Functions ---
 
@@ -471,44 +509,38 @@
             function updateSidebarProfile(userData) { /* ... implementation ... */ console.log("[FUNC] updateSidebarProfile: Start, data:", userData); if (!userData || !ui.sidebarName || !ui.sidebarAvatar) { console.warn("[FUNC] updateSidebarProfile: Missing elements or data."); if(ui.sidebarName) ui.sidebarName.textContent = "Uživatel"; if(ui.sidebarAvatar) ui.sidebarAvatar.textContent = "?"; return; } const displayName = `${userData.first_name || ''} ${userData.last_name || ''}`.trim() || userData.username || 'Uživatel'; ui.sidebarName.textContent = displayName; if (userData.avatar_url) { ui.sidebarAvatar.innerHTML = `<img src="${userData.avatar_url}" alt="${displayName}" />`; } else { ui.sidebarAvatar.textContent = getInitials(userData); } }
 
             function updateStatsCards(profileData) {
-                 console.log("[FUNC] updateStatsCards: Start, profileData:", profileData);
-                 const cards = { progress: ui.progressCard, avgScore: ui.avgScoreCard, exercises: ui.exercisesCard, streak: ui.streakCard };
+                console.log("[FUNC] updateStatsCards: Start, profileData:", profileData);
+                const cards = { progress: ui.progressCard, avgScore: ui.avgScoreCard, exercises: ui.exercisesCard, streak: ui.streakCard };
 
-                 const renderCard = (card, value, unit, description, error = false) => {
-                     if (!card) return;
-                     card.classList.remove('loading');
-                     const contentEl = card.querySelector('.stats-card-content');
-                     const skeletonEl = card.querySelector('.loading-skeleton');
-                     if (skeletonEl) skeletonEl.style.display = 'none';
-                     if (contentEl) {
-                         contentEl.style.visibility = 'visible'; // Make sure content is visible
-                         if (error) { contentEl.innerHTML = `<div class="card-error-state"><i class="fas fa-exclamation-triangle"></i>Chyba</div>`; }
-                         else {
-                              // Restore original content structure if it was replaced by error message
-                              if (!contentEl.querySelector('.stats-card-info')) {
-                                   contentEl.innerHTML = `
-                                        <div class="stats-card-info">
-                                             <div class="stats-card-title"><i class="${card.dataset.icon || 'fas fa-question-circle'}"></i>${card.dataset.title || ''}</div>
-                                             <div class="stats-card-value">-<span class="unit"></span></div>
-                                             <div class="stats-card-description"></div>
-                                        </div>`;
-                              }
-                              const valueEl = contentEl.querySelector('.stats-card-value');
-                              const descEl = contentEl.querySelector('.stats-card-description');
-                              if (valueEl) valueEl.innerHTML = `${value ?? '-'}${unit ? `<span class="unit">${unit}</span>` : ''}`;
-                              if (descEl) descEl.textContent = description ?? '';
-                         }
-                     }
-                 };
+                const renderCard = (card, value, unit, description, error = false) => {
+                    if (!card) return;
+                    card.classList.remove('loading');
+                    const contentEl = card.querySelector('.stats-card-content');
+                    const skeletonEl = card.querySelector('.loading-skeleton');
+                    if (skeletonEl) skeletonEl.style.display = 'none';
+                    if (contentEl) {
+                        contentEl.style.visibility = 'visible';
+                        if (error) { contentEl.innerHTML = `<div class="card-error-state"><i class="fas fa-exclamation-triangle"></i>Chyba</div>`; }
+                        else {
+                            // Restore original content if needed
+                            if (!contentEl.querySelector('.stats-card-info')) { contentEl.innerHTML = `<div class="stats-card-info"><div class="stats-card-title"><i class="${card.dataset.icon || 'fas fa-question-circle'}"></i>${card.dataset.title || ''}</div><div class="stats-card-value">-<span class="unit"></span></div><div class="stats-card-description"></div></div>`; }
+                            const valueEl = contentEl.querySelector('.stats-card-value');
+                            const descEl = contentEl.querySelector('.stats-card-description');
+                            if (valueEl) valueEl.innerHTML = `${value ?? '-'}${unit ? `<span class="unit">${unit}</span>` : ''}`;
+                            if (descEl) descEl.textContent = description ?? '';
+                        }
+                    }
+                };
 
-                 if (!profileData) { console.warn("[FUNC] updateStatsCards: No profile data, rendering error state."); renderCard(ui.progressCard, null, null, null, true); renderCard(ui.avgScoreCard, null, null, null, true); renderCard(ui.exercisesCard, null, null, null, true); renderCard(ui.streakCard, null, null, null, true); return; }
+                if (!profileData) { console.warn("[FUNC] updateStatsCards: No profile data, rendering error state."); renderCard(ui.progressCard, null, null, null, true); renderCard(ui.avgScoreCard, null, null, null, true); renderCard(ui.exercisesCard, null, null, null, true); renderCard(ui.streakCard, null, null, null, true); return; }
 
-                 // Assign dataset attributes for error recovery
-                 if(ui.progressCard) { ui.progressCard.dataset.icon = 'fas fa-tasks'; ui.progressCard.dataset.title = 'Celkový Pokrok'; }
-                 if(ui.avgScoreCard) { ui.avgScoreCard.dataset.icon = 'fas fa-star-half-alt'; ui.avgScoreCard.dataset.title = 'Prům. Skóre'; }
-                 if(ui.exercisesCard) { ui.exercisesCard.dataset.icon = 'fas fa-pencil-alt'; ui.exercisesCard.dataset.title = 'Dokonč. Cvičení'; }
-                 if(ui.streakCard) { ui.streakCard.dataset.icon = 'fas fa-fire'; ui.streakCard.dataset.title = 'Série Dnů'; }
+                // Assign dataset attributes if not present
+                if(ui.progressCard && !ui.progressCard.dataset.title) { ui.progressCard.dataset.icon = 'fas fa-tasks'; ui.progressCard.dataset.title = 'Celkový Pokrok'; }
+                if(ui.avgScoreCard && !ui.avgScoreCard.dataset.title) { ui.avgScoreCard.dataset.icon = 'fas fa-star-half-alt'; ui.avgScoreCard.dataset.title = 'Prům. Skóre'; }
+                if(ui.exercisesCard && !ui.exercisesCard.dataset.title) { ui.exercisesCard.dataset.icon = 'fas fa-pencil-alt'; ui.exercisesCard.dataset.title = 'Dokonč. Cvičení'; }
+                if(ui.streakCard && !ui.streakCard.dataset.title) { ui.streakCard.dataset.icon = 'fas fa-fire'; ui.streakCard.dataset.title = 'Série Dnů'; }
 
+                 // Use profileData directly for current values where available
                  renderCard(ui.progressCard, profileData.overall_progress ?? 0, '%', 'Celková úspěšnost');
                  renderCard(ui.avgScoreCard, profileData.average_score ?? 0, '%', 'Průměr z testů');
                  renderCard(ui.exercisesCard, profileData.completed_exercises ?? 0, '', 'Dokončených cvičení');
@@ -519,37 +551,31 @@
 
             function updateChart(snapshots) {
                  console.log("[FUNC] updateChart: Start, snapshots count:", snapshots?.length);
-                 if (!ui.progressChartCanvas) { console.error("Canvas element #progressChart not found."); hideLoadingState('chart'); return; }
-                 const container = ui.chartContainerParent;
-                 if (!container) { console.error("Parent container #chart-container-parent not found."); hideLoadingState('chart'); return; }
-
-                 // Always hide loader first
+                 if (!ui.progressChartCanvas || !ui.chartContainerParent) { console.error("Chart elements not found."); hideLoadingState('chart'); return; }
                  hideLoadingState('chart');
-
-                 // Remove previous empty/error state if exists
-                 const existingMessage = container.querySelector('.empty-state, .card-error-state');
+                 const existingMessage = ui.chartContainerParent.querySelector('.empty-state, .card-error-state');
                  if (existingMessage) existingMessage.remove();
-                 // Ensure canvas is visible
                  ui.progressChartCanvas.style.display = 'block';
 
-
-                 if (!snapshots || snapshots.length < 2) {
+                 if (!snapshots) { // Handle error case (null passed)
+                      console.log("[FUNC] updateChart: Rendering error state.");
+                      if (progressChart) { progressChart.destroy(); progressChart = null; }
+                      ui.progressChartCanvas.style.display = 'none';
+                      ui.chartContainerParent.insertAdjacentHTML('beforeend', '<div class="card-error-state"><i class="fas fa-exclamation-triangle"></i>Chyba načítání dat grafu.</div>');
+                      return;
+                 }
+                 if (snapshots.length < 2) {
                      console.log("[FUNC] updateChart: Not enough data for chart.");
                      if (progressChart) { progressChart.destroy(); progressChart = null; }
-                     // Show empty state message INSTEAD of the canvas
-                     ui.progressChartCanvas.style.display = 'none'; // Hide canvas
-                     container.insertAdjacentHTML('beforeend', '<div class="empty-state"><i class="fas fa-chart-line"></i><h3>Nedostatek dat</h3><p>Nemáme dostatek historie pro zobrazení grafu.</p></div>');
+                     ui.progressChartCanvas.style.display = 'none';
+                     ui.chartContainerParent.insertAdjacentHTML('beforeend', '<div class="empty-state"><i class="fas fa-chart-line"></i><h3>Nedostatek dat</h3><p>Nemáme dostatek historie pro zobrazení grafu.</p></div>');
                      return;
                  }
 
                  // Prepare data
-                 const labels = snapshots.map(s => {
-                     try { return dateFns.format(dateFns.parseISO(s.snapshot_date), 'd.M', { locale: dateFns.locale.cs }); }
-                     catch(e) { console.warn("Date parsing error:", e); return '?';}
-                 });
+                 const labels = snapshots.map(s => { try { return dateFns.format(dateFns.parseISO(s.snapshot_date), 'd.M', { locale: dateFns.locale.cs }); } catch(e) { console.warn("Date parsing error:", e); return '?';} });
                  const progressData = snapshots.map(s => s.overall_progress ?? null);
-
-                 const chartData = { labels: labels, datasets: [{ label: 'Celkový Pokrok (%)', data: progressData, borderColor: 'var(--primary)', backgroundColor: `rgba(${hexToRgb(getComputedStyle(document.documentElement).getPropertyValue('--primary').trim())}, 0.1)`, fill: true, tension: 0.3, borderWidth: 2.5, pointBackgroundColor: 'var(--primary)', pointBorderColor: 'var(--card-bg)', pointBorderWidth: 2, pointRadius: 4, pointHoverRadius: 6, spanGaps: true }] };
+                 const chartData = { labels: labels, datasets: [{ label: 'Celkový Pokrok (%)', data: progressData, borderColor: 'var(--primary)', backgroundColor: `rgba(${hexToRgb(getComputedStyle(document.documentElement).getPropertyValue('--primary').trim())}, 0.1)`, fill: true, tension: 0.3, borderWidth: 2.5, pointBackgroundColor: 'var(--primary)', pointBorderColor: 'var(--card-bg)', pointBorderWidth: 2, pointRadius: 4, pointHoverRadius: 6, pointHoverBackgroundColor: 'var(--primary-dark)', pointHoverBorderColor: 'var(--card-bg)', spanGaps: true }] };
 
                  // Config
                  const isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -558,7 +584,7 @@
                  const tooltipBg = isDarkMode ? '#374151' : '#ffffff';
                  const tooltipText = isDarkMode ? '#e5e7eb' : '#1f2937';
 
-                 const config = { type: 'line', data: chartData, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { mode: 'index', intersect: false, backgroundColor: tooltipBg, titleColor: tooltipText, bodyColor: tooltipText, borderColor: 'var(--border-color)', borderWidth: 1, padding: 10, boxPadding: 4, usePointStyle: true, callbacks: { label: (context) => `Pokrok: ${context.parsed.y ?? 'N/A'}%` } } }, scales: { y: { beginAtZero: true, max: 100, grid: { color: gridColor }, ticks: { color: textColor, padding: 10, callback: (value) => `${value}%` } }, x: { grid: { display: false }, ticks: { color: textColor, maxRotation: 45, minRotation: 45, padding: 10 } } }, interaction: { mode: 'nearest', axis: 'x', intersect: false }, elements: { line: { segment: { borderDash: (ctx) => ctx.p0.skip || ctx.p1.skip ? [6, 6] : undefined, } } } } };
+                 const config = { type: 'line', data: chartData, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { mode: 'index', intersect: false, backgroundColor: tooltipBg, titleColor: tooltipText, bodyColor: tooltipText, borderColor: 'var(--border-color)', borderWidth: 1, padding: 10, boxPadding: 4, usePointStyle: true, callbacks: { label: (context) => `Pokrok: ${context.parsed.y ?? 'N/A'}%` } } }, scales: { y: { beginAtZero: true, max: 100, grid: { color: gridColor, drawBorder: false }, ticks: { color: textColor, padding: 10, callback: (value) => `${value}%` } }, x: { grid: { display: false }, ticks: { color: textColor, maxRotation: 45, minRotation: 45, padding: 10 } } }, interaction: { mode: 'nearest', axis: 'x', intersect: false }, elements: { line: { segment: { borderDash: (ctx) => ctx.p0.skip || ctx.p1.skip ? [6, 6] : undefined, } } } } };
 
                  // Create or update chart
                  if (progressChart) { progressChart.data = chartData; progressChart.options.scales.x.ticks.color = textColor; progressChart.options.scales.y.ticks.color = textColor; progressChart.options.scales.y.grid.color = gridColor; progressChart.options.plugins.tooltip.backgroundColor = tooltipBg; progressChart.options.plugins.tooltip.titleColor = tooltipText; progressChart.options.plugins.tooltip.bodyColor = tooltipText; progressChart.update(); }
@@ -566,65 +592,50 @@
                  console.log("[FUNC] updateChart: Success");
             }
 
-             function renderActivityHistory(activities) {
-                 console.log("[FUNC] renderActivityHistory: Start, activities count:", activities?.length);
+            function renderActivityHistory(activities) {
+                console.log("[FUNC] renderActivityHistory: Start, activities count:", activities?.length);
                  if (!ui.activitiesBody || !ui.activitiesTable || !ui.noActivities) return;
                  hideLoadingState('table'); // Hides skeleton here
-                 ui.activitiesBody.innerHTML = ''; // Clear previous content
+                 ui.activitiesBody.innerHTML = '';
 
-                 if (!activities) { // Handle null case (error during fetch)
-                      ui.activitiesTable.style.display = 'none';
-                      ui.noActivities.style.display = 'flex'; // Use flex for alignment
+                 if (!activities) { // Handle error case (null passed)
+                      ui.activitiesTable.style.display = 'none'; ui.noActivities.style.display = 'block';
                       ui.noActivities.innerHTML = `<div class="list-error-state"><i class="fas fa-exclamation-triangle"></i>Chyba načítání historie.</div>`;
-                      console.log("[FUNC] renderActivityHistory: Rendering error state (null data).");
-                      if(ui.exportBtn) ui.exportBtn.disabled = true;
-                      return;
+                      console.log("[FUNC] renderActivityHistory: Rendering error state (null data)."); if(ui.exportBtn) ui.exportBtn.disabled = true; return;
                  }
-                 if (activities.length === 0) { // Handle empty array case
-                     ui.activitiesTable.style.display = 'none';
-                     ui.noActivities.style.display = 'flex';
-                     ui.noActivities.innerHTML = `<i class="fas fa-folder-open"></i><h3>Žádná historie pokroku</h3><p>Zatím nemáme zaznamenány žádné údaje.</p>`; // Restore original empty state message
-                     console.log("[FUNC] renderActivityHistory: No activities found, showing empty state.");
-                     if(ui.exportBtn) ui.exportBtn.disabled = true;
-                     return;
+                 if (activities.length === 0) { // Handle empty array
+                     ui.activitiesTable.style.display = 'none'; ui.noActivities.style.display = 'block';
+                     ui.noActivities.innerHTML = `<i class="fas fa-folder-open"></i><h3>Žádná historie pokroku</h3><p>Zatím nemáme zaznamenány žádné údaje.</p>`;
+                     console.log("[FUNC] renderActivityHistory: Rendering empty state."); if(ui.exportBtn) ui.exportBtn.disabled = true; return;
                  }
 
-                 ui.activitiesTable.style.display = 'table';
-                 ui.noActivities.style.display = 'none';
-                 if(ui.exportBtn) ui.exportBtn.disabled = false;
+                 ui.activitiesTable.style.display = 'table'; ui.noActivities.style.display = 'none'; if(ui.exportBtn) ui.exportBtn.disabled = false;
 
-                 let previousProgress = activities[activities.length - 1]?.overall_progress ?? null; // Start comparison from the oldest fetched record
+                 let previousProgress = null; // Initialize outside loop for correct comparison
 
-                 activities.slice().reverse().forEach((activity) => { // Iterate from oldest to newest to calculate change correctly
-                     const row = ui.activitiesBody.insertRow(0); // Insert at the top to maintain descending order visually
-                     const formattedDate = activity.snapshot_date ? dateFns.format(dateFns.parseISO(activity.snapshot_date), 'd. M. yyyy', { locale: dateFns.locale.cs }) : '-';
+                 // Iterate from oldest to newest to calculate change correctly, then insert at top
+                 const sortedActivities = [...activities].sort((a, b) => new Date(a.snapshot_date) - new Date(b.snapshot_date));
+                 previousProgress = sortedActivities[0]?.overall_progress ?? null; // Initialize with the oldest available progress
 
-                     let progressChangeText = '-';
-                     let progressChangeClass = '';
-                     if (previousProgress !== null && activity.overall_progress !== null) {
-                         const change = activity.overall_progress - previousProgress;
-                         if (change !== 0) { // Show change only if it's non-zero
-                              progressChangeText = `${change > 0 ? '+' : ''}${change}%`;
-                              progressChangeClass = change > 0 ? 'positive' : 'negative';
-                         } else {
-                              progressChangeText = `0%`; // Explicitly show 0% change
-                         }
-                     }
-                     previousProgress = activity.overall_progress; // Update previous progress for the next (older) item
+                 sortedActivities.forEach((activity, index) => {
+                      const formattedDate = activity.snapshot_date ? dateFns.format(dateFns.parseISO(activity.snapshot_date), 'd. M. yyyy', { locale: dateFns.locale.cs }) : '-';
+                      let progressChangeText = '-'; let progressChangeClass = '';
+                      // Calculate change based on the *actual* previous day's data in the sorted list
+                      const prevActivityProgress = index > 0 ? sortedActivities[index-1].overall_progress : null;
+                      if (prevActivityProgress !== null && activity.overall_progress !== null) {
+                           const change = activity.overall_progress - prevActivityProgress;
+                           if (change !== 0) { progressChangeText = `${change > 0 ? '+' : ''}${change}%`; progressChangeClass = change > 0 ? 'positive-change' : 'negative-change'; }
+                           else { progressChangeText = `0%`; }
+                      }
 
-                     const description = `Denní snímek pokroku`;
-                     let statusText = 'Zaznamenáno';
-                     let statusClass = 'in-progress';
+                      const description = `Denní snímek pokroku`;
+                      let statusText = 'Zaznamenáno'; let statusClass = 'in-progress';
                       if (activity.overall_progress !== null && activity.overall_progress >= 95) { statusText = 'Vynikající'; statusClass = 'completed'; }
                       else if (activity.overall_progress !== null && activity.overall_progress < 30) { statusText = 'Nutné zlepšení'; statusClass = 'failed'; }
 
-                     row.innerHTML = `
-                         <td>${formattedDate}</td>
-                         <td>${description}</td>
-                         <td class="${progressChangeClass}">${progressChangeText}</td>
-                         <td>${activity.points_total ?? '-'}</td>
-                         <td><span class="status-badge ${statusClass}">${statusText}</span></td>
-                     `;
+                       // Insert rows in reverse order visually (newest first)
+                       const row = ui.activitiesBody.insertRow(0);
+                       row.innerHTML = `<td>${formattedDate}</td><td>${description}</td><td class="${progressChangeClass}">${progressChangeText}</td><td>${activity.points_total ?? '-'}</td><td><span class="status-badge ${statusClass}">${statusText}</span></td>`;
                  });
                  console.log("[FUNC] renderActivityHistory: Success");
              }
@@ -632,93 +643,87 @@
 
             // --- START: Main Orchestration ---
             async function loadPageData(period = 'month') {
-                if (isLoadingData) { console.warn("[MAIN] loadPageData: Already loading."); return; }
-                isLoadingData = true;
-                lastLoadedPeriod = period;
-                if (!currentUser) { showError("Chyba: Nelze načíst data bez přihlášeného uživatele."); isLoadingData = false; return; }
-                console.log(`[MAIN] loadPageData: Start for user: ${currentUser.id}, period: ${period}`);
-                hideError();
-                showLoadingState('stats'); showLoadingState('chart'); showLoadingState('table');
-                if(ui.refreshDataBtn) ui.refreshDataBtn.classList.add('loading');
-                if(ui.exportBtn) ui.exportBtn.disabled = true;
+                 if (isLoadingData) { console.warn("[MAIN] loadPageData: Already loading."); return; }
+                 isLoadingData = true; lastLoadedPeriod = period;
+                 if (!currentUser) { showError("Chyba: Nelze načíst data bez přihlášeného uživatele."); isLoadingData = false; return; }
+                 console.log(`[MAIN] loadPageData: Start for user: ${currentUser.id}, period: ${period}`);
+                 hideError(); showLoadingState('stats'); showLoadingState('chart'); showLoadingState('table'); showLoadingState('notifications');
+                 if(ui.refreshDataBtn) ui.refreshDataBtn.classList.add('loading'); ui.refreshDataBtn.disabled = true;
+                 if(ui.exportBtn) ui.exportBtn.disabled = true;
 
-                try {
-                    console.log("[MAIN] loadPageData: Loading profile...");
-                    currentProfile = await loadUserProfile(currentUser);
-                    if (!currentProfile) { throw new Error("Nepodařilo se načíst profil."); }
-                    updateSidebarProfile(currentProfile);
-                    updateStatsCards(currentProfile); // Update stats immediately with profile data
+                 try {
+                     console.log("[MAIN] loadPageData: Loading profile...");
+                     currentProfile = await loadUserProfile(currentUser);
+                     if (!currentProfile) { throw new Error("Nepodařilo se načíst profil."); }
+                     updateSidebarProfile(currentProfile);
+                     updateStatsCards(currentProfile); // Update current stats from profile
 
-                    console.log("[MAIN] loadPageData: Loading snapshots and recent activities...");
-                    const [snapshots, recentActivities, notificationsResult] = await Promise.all([
-                         loadProgressSnapshots(currentUser.id, period).catch(err => { console.error("Error loading snapshots:", err); return null; }),
-                         loadRecentActivities(currentUser.id).catch(err => { console.error("Error loading recent activities:", err); return null; }),
-                         loadNotifications(currentUser.id).catch(err => { console.error("Error loading notifications:", err); return { unreadCount: 0, notifications: [] }; })
-                    ]);
-                    console.log("[MAIN] loadPageData: Fetched data - Snapshots:", snapshots?.length, "Activities:", recentActivities?.length, "Notifications:", notificationsResult?.unreadCount);
+                     console.log("[MAIN] loadPageData: Loading historical data & notifications...");
+                     // Fetch historical data and notifications concurrently
+                     const [snapshots, recentActivities, notificationsResult] = await Promise.all([
+                          loadProgressSnapshots(currentUser.id, period),
+                          loadRecentActivities(currentUser.id), // Still using snapshots for table demo
+                          loadNotifications(currentUser.id)
+                     ]);
+                     console.log("[MAIN] loadPageData: Fetched historical/notifications data.");
 
-                    updateChart(snapshots);
-                    renderActivityHistory(recentActivities);
-                    renderNotifications(notificationsResult.unreadCount, notificationsResult.notifications);
+                     // Render components with fetched data
+                     updateChart(snapshots);
+                     renderActivityHistory(recentActivities);
+                     renderNotifications(notificationsResult.unreadCount, notificationsResult.notifications);
 
-                } catch (error) {
+                 } catch (error) {
                      console.error('[MAIN] loadPageData: Caught main error:', error);
                      showError('Nepodařilo se kompletně načíst data pokroku: ' + error.message);
-                     updateStatsCards(null); updateChart(null); renderActivityHistory(null); renderNotifications(0, []); // Render error/empty states
-                } finally {
-                     hideLoadingState('stats'); hideLoadingState('chart'); hideLoadingState('table');
+                     // Ensure components show error state
+                     updateStatsCards(null); updateChart(null); renderActivityHistory(null); renderNotifications(0, []);
+                 } finally {
+                      hideLoadingState('stats'); hideLoadingState('chart'); hideLoadingState('table'); hideLoadingState('notifications');
                      if(ui.refreshDataBtn) { ui.refreshDataBtn.classList.remove('loading'); ui.refreshDataBtn.disabled = false; }
-                      // Re-enable export only if table has data and no error state shown
-                      const hasTableData = ui.activitiesBody?.children.length > 0 && !ui.activitiesBody.querySelector('.list-error-state');
+                     const hasTableData = ui.activitiesBody?.children.length > 0 && !ui.activitiesBody.querySelector('.skeleton-table') && !ui.activitiesBody.querySelector('.list-error-state');
                      if(ui.exportBtn) ui.exportBtn.disabled = !hasTableData;
-                     isLoadingData = false;
-                     console.log("[MAIN] loadPageData: Finished.");
-                }
+                     isLoadingData = false; console.log("[MAIN] loadPageData: Finished.");
+                 }
             }
             // --- END: Main Orchestration ---
 
             // --- START: Event Listeners Setup ---
-             function setupUIEventListeners() { /* ... (implementation including notification listeners) ... */ console.log("[SETUP] setupUIEventListeners: Setting up listeners."); if (ui.mainMobileMenuToggle && ui.mainMobileMenuToggle.dataset.listenerAttached === 'true') { console.log("[SETUP] Listeners already attached, skipping."); return; } if (ui.mainMobileMenuToggle) ui.mainMobileMenuToggle.addEventListener('click', openMenu); if (ui.sidebarCloseToggle) ui.sidebarCloseToggle.addEventListener('click', closeMenu); if (ui.sidebarOverlay) ui.sidebarOverlay.addEventListener('click', closeMenu); document.querySelectorAll('.sidebar-link').forEach(link => { link.addEventListener('click', () => { if (window.innerWidth <= 992) closeMenu(); }); }); window.addEventListener('online', updateOnlineStatus); window.addEventListener('offline', updateOnlineStatus); updateOnlineStatus(); if (ui.refreshDataBtn) ui.refreshDataBtn.addEventListener('click', handleRetry); if (ui.chartPeriodSelect) { ui.chartPeriodSelect.addEventListener('change', (event) => { if (!isLoadingData) { loadPageData(event.target.value); } else { showToast("Počkejte prosím", "Data se stále načítají.", "info"); event.target.value = lastLoadedPeriod; } }); } if (ui.exportBtn) ui.exportBtn.addEventListener('click', exportTableToCSV); if(ui.notificationBell) { ui.notificationBell.addEventListener('click', (event) => { event.stopPropagation(); ui.notificationsDropdown?.classList.toggle('active'); }); } if(ui.markAllReadBtn) { ui.markAllReadBtn.addEventListener('click', markAllNotificationsRead); } if(ui.notificationsList) { ui.notificationsList.addEventListener('click', async (event) => { const item = event.target.closest('.notification-item'); if (item && !item.classList.contains('is-read')) { const notificationId = item.dataset.id; const link = item.dataset.link; const success = await markNotificationRead(notificationId); if (success) { item.classList.add('is-read'); const currentCount = parseInt(ui.notificationCount.textContent.replace('+','')) || 0; const newCount = Math.max(0, currentCount - 1); ui.notificationCount.textContent = newCount > 9 ? '9+' : newCount; ui.notificationCount.classList.toggle('visible', newCount > 0); item.querySelector('.unread-dot')?.remove(); ui.markAllReadBtn.disabled = (newCount === 0); if (link) window.location.href = link; } } else if (item && item.dataset.link) { window.location.href = item.dataset.link; } }); } document.addEventListener('click', (event) => { if (ui.notificationsDropdown?.classList.contains('active') && !ui.notificationsDropdown.contains(event.target) && !ui.notificationBell.contains(event.target)) { ui.notificationsDropdown.classList.remove('active'); } }); if (ui.mainMobileMenuToggle) ui.mainMobileMenuToggle.dataset.listenerAttached = 'true'; console.log("[SETUP] setupUIEventListeners: Listeners set."); }
+             function setupUIEventListeners() { /* ... (implementation including chartPeriodSelect, exportBtn, notifications) ... */ console.log("[SETUP] setupUIEventListeners: Setting up listeners."); if (ui.mainMobileMenuToggle && ui.mainMobileMenuToggle.dataset.listenerAttached === 'true') { console.log("[SETUP] Listeners already attached, skipping."); return; } if (ui.mainMobileMenuToggle) ui.mainMobileMenuToggle.addEventListener('click', openMenu); if (ui.sidebarCloseToggle) ui.sidebarCloseToggle.addEventListener('click', closeMenu); if (ui.sidebarOverlay) ui.sidebarOverlay.addEventListener('click', closeMenu); document.querySelectorAll('.sidebar-link').forEach(link => { link.addEventListener('click', () => { if (window.innerWidth <= 992) closeMenu(); }); }); window.addEventListener('online', updateOnlineStatus); window.addEventListener('offline', updateOnlineStatus); updateOnlineStatus(); if (ui.refreshDataBtn) ui.refreshDataBtn.addEventListener('click', handleRetry); if (ui.chartPeriodSelect) { ui.chartPeriodSelect.addEventListener('change', (event) => { if (!isLoadingData) { loadPageData(event.target.value); } else { showToast("Počkejte prosím", "Data se stále načítají.", "info"); event.target.value = lastLoadedPeriod; } }); } if (ui.exportBtn) ui.exportBtn.addEventListener('click', exportTableToCSV); if(ui.notificationBell) { ui.notificationBell.addEventListener('click', (event) => { event.stopPropagation(); ui.notificationsDropdown?.classList.toggle('active'); }); } if(ui.markAllReadBtn) { ui.markAllReadBtn.addEventListener('click', markAllNotificationsRead); } if(ui.notificationsList) { ui.notificationsList.addEventListener('click', async (event) => { const item = event.target.closest('.notification-item'); if (item && !item.classList.contains('is-read')) { const notificationId = item.dataset.id; const link = item.dataset.link; const success = await markNotificationRead(notificationId); if (success) { item.classList.add('is-read'); const currentCount = parseInt(ui.notificationCount.textContent.replace('+','')) || 0; const newCount = Math.max(0, currentCount - 1); ui.notificationCount.textContent = newCount > 9 ? '9+' : newCount; ui.notificationCount.classList.toggle('visible', newCount > 0); item.querySelector('.unread-dot')?.remove(); ui.markAllReadBtn.disabled = (newCount === 0); if (link) window.location.href = link; } } else if (item && item.dataset.link) { window.location.href = item.dataset.link; } }); } document.addEventListener('click', (event) => { if (ui.notificationsDropdown?.classList.contains('active') && !ui.notificationsDropdown.contains(event.target) && !ui.notificationBell.contains(event.target)) { ui.notificationsDropdown.classList.remove('active'); } }); if (ui.mainMobileMenuToggle) ui.mainMobileMenuToggle.dataset.listenerAttached = 'true'; console.log("[SETUP] setupUIEventListeners: Listeners set."); }
              function handleRetry() { /* ... (implementation) ... */ if (currentUser && !isLoadingData) { hideError(); const btn = ui.refreshDataBtn; const icon = btn?.querySelector('i'); const text = btn?.querySelector('.refresh-text'); if(btn) btn.disabled = true; if(icon) icon.classList.add('fa-spin'); if(text) text.textContent = 'Obnovuji...'; loadPageData(lastLoadedPeriod) .then(() => showToast("Data aktualizována", "Přehled pokroku byl obnoven.", "success")) .catch(() => {/* Error already handled by showError */}) .finally(() => { if(btn) btn.disabled = false; if(icon) icon.classList.remove('fa-spin'); if(text) text.textContent = 'Obnovit'; }); } else if (isLoadingData) { showToast("Počkejte prosím", "Data se již načítají.", "info"); } else { showToast("Chyba", "Nelze obnovit, uživatel není přihlášen.", "error"); } }
-             function exportTableToCSV() { /* ... (implementation) ... */ console.log("[FUNC] exportTableToCSV: Start"); if (!ui.activitiesTable || !ui.activitiesBody) { showToast('Chyba exportu', 'Tabulka nebyla nalezena.', 'error'); return; } const rows = ui.activitiesBody.querySelectorAll('tr'); if (rows.length === 0 || ui.activitiesBody.querySelector('.skeleton-table') || ui.activitiesBody.querySelector('.list-error-state')) { showToast('Žádná data', 'Není co exportovat.', 'warning'); return; } let csvContent = "Datum,Popis / Aktivita,Změna Pokroku (%),Celkem Bodů,Stav\n"; rows.forEach(row => { const cells = row.querySelectorAll('td'); if (cells.length === 5) { const rowData = [ cells[0].textContent.trim(), cells[1].textContent.trim(), cells[2].textContent.replace('%','').trim(), cells[3].textContent.trim(), cells[4].querySelector('.status-badge')?.textContent.trim() || cells[4].textContent.trim() ]; csvContent += rowData.map(d => `"${d.replace(/"/g, '""')}"`).join(',') + '\n'; } }); const blob = new Blob([`\uFEFF${csvContent}`], { type: 'text/csv;charset=utf-8;' }); const link = document.createElement("a"); const url = URL.createObjectURL(blob); link.setAttribute("href", url); const userPart = currentUser?.email?.split('@')[0] || currentUser?.id?.substring(0, 8) || 'uzivatel'; const datePart = new Date().toISOString().split('T')[0]; link.setAttribute("download", `historie_pokroku_${userPart}_${datePart}.csv`); link.style.visibility = 'hidden'; document.body.appendChild(link); link.click(); document.body.removeChild(link); console.log("[FUNC] exportTableToCSV: Export successful"); showToast('Export dokončen', 'Data byla úspěšně exportována do CSV.', 'success'); }
+             function exportTableToCSV() { /* ... (implementation) ... */ console.log("[FUNC] exportTableToCSV: Start"); if (!ui.activitiesTable || !ui.activitiesBody) { showToast('Chyba exportu', 'Tabulka nebyla nalezena.', 'error'); return; } const rows = ui.activitiesBody.querySelectorAll('tr:not(.skeleton-table)'); if (rows.length === 0) { showToast('Žádná data', 'Není co exportovat.', 'warning'); return; } let csvContent = "Datum,Popis / Aktivita,Změna Pokroku (%),Celkem Bodů,Stav\n"; rows.forEach(row => { const cells = row.querySelectorAll('td'); if (cells.length === 5) { const rowData = [ cells[0].textContent.trim(), cells[1].textContent.trim(), cells[2].textContent.replace('%','').trim(), cells[3].textContent.trim(), cells[4].querySelector('.status-badge')?.textContent.trim() || cells[4].textContent.trim() ]; csvContent += rowData.map(d => `"${d.replace(/"/g, '""')}"`).join(',') + '\n'; } }); const blob = new Blob([`\uFEFF${csvContent}`], { type: 'text/csv;charset=utf-8;' }); const link = document.createElement("a"); const url = URL.createObjectURL(blob); link.setAttribute("href", url); const userPart = currentUser?.email?.split('@')[0] || currentUser?.id?.substring(0, 8) || 'uzivatel'; const datePart = new Date().toISOString().split('T')[0]; link.setAttribute("download", `historie_pokroku_${userPart}_${datePart}.csv`); link.style.visibility = 'hidden'; document.body.appendChild(link); link.click(); document.body.removeChild(link); console.log("[FUNC] exportTableToCSV: Export successful"); showToast('Export dokončen', 'Data byla úspěšně exportována do CSV.', 'success'); }
             // --- END: Event Listeners Setup ---
 
             // --- START: Initialization Logic ---
-            function initializeApp() {
-                 console.log("[INIT] initializeApp: Start");
-                 try {
-                      if (typeof window.supabase === 'undefined' || typeof window.supabase.createClient !== 'function') { throw new Error("Supabase library not loaded correctly."); }
-                      supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
-                     console.log('[INIT] initializeApp: Supabase client initialized.');
-
-                     supabase.auth.onAuthStateChange(async (event, session) => {
-                         console.log('[INIT] Auth State Change Event:', event);
-                         currentUser = session?.user ?? null;
-
-                         if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN') {
-                             if (currentUser) {
-                                 console.log('[INIT] User authenticated (ID:', currentUser.id, '), loading page data...');
-                                 if (ui.initialLoader) { ui.initialLoader.classList.add('hidden'); setTimeout(() => { if (ui.initialLoader) ui.initialLoader.style.display = 'none'; }, 500); }
-                                 if (ui.mainContent) ui.mainContent.style.display = 'block';
-                                 setupUIEventListeners(); // Setup listeners early
-                                 await loadPageData(lastLoadedPeriod); // Load data
-                             } else { console.log('[INIT] No user in session during INITIAL_SESSION/SIGNED_IN, redirecting.'); window.location.href = '/auth/index.html'; }
-                         } else if (event === 'SIGNED_OUT') { console.log('[INIT] User signed out, redirecting.'); window.location.href = '/auth/index.html'; }
-                         else if (event === 'INITIAL_SESSION' && !currentUser) { console.log('[INIT] Initial session processed, no user, redirecting.'); window.location.href = '/auth/index.html'; }
-                     });
-                 } catch (error) { console.error("[INIT] Critical initialization error:", error); if (ui.initialLoader) { ui.initialLoader.innerHTML = `<p style="color: var(--danger);">Chyba inicializace (${error.message}). Zkuste obnovit stránku.</p>`; ui.initialLoader.classList.remove('hidden'); ui.initialLoader.style.display = 'flex'; } if (ui.mainContent) ui.mainContent.style.display = 'none'; }
-             }
+            function initializeApp() { /* ... (implementation - calls loadPageData, setupUIListeners) ... */ console.log("[INIT] initializeApp: Start"); try { if (typeof window.supabase === 'undefined' || typeof window.supabase.createClient !== 'function') { throw new Error("Supabase library not loaded correctly."); } supabase = window.supabase.createClient(supabaseUrl, supabaseKey); console.log('[INIT] initializeApp: Supabase client initialized.'); supabase.auth.onAuthStateChange(async (event, session) => { console.log('[INIT] Auth State Change Event:', event); currentUser = session?.user ?? null; if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN') { if (currentUser) { console.log('[INIT] User authenticated (ID:', currentUser.id, '), loading page data...'); if (ui.initialLoader) { ui.initialLoader.classList.add('hidden'); setTimeout(() => { if (ui.initialLoader) ui.initialLoader.style.display = 'none'; }, 500); } if (ui.mainContent) ui.mainContent.style.display = 'block'; setupUIEventListeners(); // Setup listeners first await loadPageData(lastLoadedPeriod); // Then load data } else { console.log('[INIT] No user in session during INITIAL_SESSION/SIGNED_IN, redirecting.'); window.location.href = '/auth/index.html'; } } else if (event === 'SIGNED_OUT') { console.log('[INIT] User signed out, redirecting.'); window.location.href = '/auth/index.html'; } else if (event === 'INITIAL_SESSION' && !currentUser) { console.log('[INIT] Initial session processed, no user, redirecting.'); window.location.href = '/auth/index.html'; } }); } catch (error) { console.error("[INIT] Critical initialization error:", error); if (ui.initialLoader) { ui.initialLoader.innerHTML = `<p style="color: var(--danger);">Chyba inicializace (${error.message}). Zkuste obnovit stránku.</p>`; ui.initialLoader.classList.remove('hidden'); ui.initialLoader.style.display = 'flex'; } if (ui.mainContent) ui.mainContent.style.display = 'none'; } }
             // --- END: Initialization Logic ---
 
             // --- START THE APP ---
             initializeApp();
 
-             // ** Developer Reminders (MOST IMPORTANT) **
-             // 1. RLS: CHECK `progress_snapshots` RLS policy for SELECT: `(auth.uid() = user_id)` must be ENABLED.
-             // 2. Indexes: Ensure DB index on `progress_snapshots(user_id, snapshot_date DESC)`.
-             // 3. Table/Columns: Verify `progress_snapshots` table and columns (`snapshot_date`, `overall_progress`, `points_total`) EXIST and match names.
-             // 4. Data: Ensure data EXISTS in `progress_snapshots` for the test user ID. Check Network tab for failed requests.
-             // 5. date-fns: Confirm the library is loaded correctly (check console for errors like "dateFns is not defined").
+             // ** ================================================== **
+             // ** !!! DŮLEŽITÉ PRO VÝVOJÁŘE !!!             **
+             // ** ================================================== **
+             // ** Pokud načítání stále selhává nebo trvá dlouho:    **
+             // ** 1. RLS Policy: Zkontroluj politiky pro tabulky   **
+             // ** `profiles`, `progress_snapshots`,             **
+             // ** `user_notifications` v Supabase. Musí být     **
+             // ** POVOLENÉ (Enabled) a musí umožňovat SELECT     **
+             // ** pro `auth.uid() = user_id` (nebo `id` u       **
+             // ** `profiles`).                                  **
+             // ** 2. Indexy: Ujisti se, že máš v DB indexy na      **
+             // ** `progress_snapshots(user_id, snapshot_date)`. **
+             // ** 3. Existence: Ověř, že tabulka `progress_snapshots`**
+             // ** a její sloupce (`snapshot_date`,              **
+             // ** `overall_progress`) existují PŘESNĚ podle SQL.**
+             // ** 4. Data: Existují v tabulce `progress_snapshots` **
+             // ** nějaké záznamy pro testovacího `user_id`?      **
+             // ** Vlož nějaká testovací data manuálně.          **
+             // ** 5. Network Tab: Sleduj v prohlížeči (F12) síťové **
+             // ** požadavky na Supabase a jejich odpovědi/chyby.**
+             // ** 6. Automatizace: Nezapomeň nastavit automatické  **
+             // ** vkládání dat do `progress_snapshots` (denní   **
+             // ** Edge Function nebo DB trigger).               **
+             // ** ================================================== **
 
         })(); // End of IIFE
     </script>
