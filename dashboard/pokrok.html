@@ -14,20 +14,18 @@
     <script src="https://cdn.jsdelivr.net/npm/date-fns@2/cdn.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/date-fns/locale/cs/cdn.min.js"></script>
 
-
     <style>
-        /* CSS (Vylepšený design pro stránku Pokrok) */
+        /* CSS (Další vylepšení UI/Designu pro Pokrok) */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
         :root {
-            --primary: #4361ee; --primary-light: #4895ef; --secondary: #3f37c9;
+            --primary: #4361ee; --primary-light: #8096f8; --primary-dark: #3a0ca3;
+            --secondary: #4cc9f0; --secondary-light: #a7e9ff; --secondary-dark: #00a6fb;
             --success: #10b981; --success-light: #a7f3d0; --success-bg: #f0fdf4;
-            --danger: #f72585; --danger-light: #fecdd3; --danger-bg: #fff1f2;
-            --warning: #f8961e; --warning-light: #fed7aa; --warning-bg: #fffbeb;
-            --info: #4895ef; --info-light: #bfdbfe; --info-bg: #eff6ff;
+            --danger: #ef4444; --danger-light: #fecaca; --danger-bg: #fef2f2;
+            --warning: #f59e0b; --warning-light: #fed7aa; --warning-bg: #fffbeb;
+            --info: #3b82f6; --info-light: #bfdbfe; --info-bg: #eff6ff;
             --dark: #111827; --light: #f9fafb; --gray: #6b7280;
             --gray-light: #e5e7eb; --gray-medium: #9ca3af; --gray-dark: #374151;
-            --gradient-1: linear-gradient(135deg, #4361ee, #3a0ca3);
-            --gradient-2: linear-gradient(135deg, #4cc9f0, #4361ee);
             --white: #ffffff; --sidebar-width: 260px; --transition-speed: 0.3s;
             --card-radius: 12px; --shadow-sm: 0 1px 3px 0 rgba(0,0,0, 0.05), 0 1px 2px -1px rgba(0,0,0, 0.05);
             --shadow-md: 0 4px 6px -1px rgba(0,0,0, 0.07), 0 2px 4px -2px rgba(0,0,0, 0.07);
@@ -36,159 +34,134 @@
             --body-bg: var(--light); --card-bg: var(--white); --border-color: var(--gray-light);
             --skeleton-bg: #f3f4f6; --skeleton-highlight: #e5e7eb;
         }
-        body { background-color: var(--body-bg); color: var(--text-primary); min-height: 100vh; display: flex; overflow-x: hidden; line-height: 1.6; }
-        /* Sidebar (stejný jako v dashboard.html) */
-        .sidebar { width: var(--sidebar-width); height: 100vh; position: fixed; top: 0; left: 0; background: var(--gradient-1); color: var(--white); padding: 1.5rem 1rem; display: flex; flex-direction: column; z-index: 100; box-shadow: var(--shadow-lg); transition: all var(--transition-speed) ease; }
+        body { background-color: var(--body-bg); color: var(--text-primary); min-height: 100vh; display: flex; overflow-x: hidden; line-height: 1.6; font-size: 15px; }
+        /* --- Sidebar --- */
+        .sidebar { width: var(--sidebar-width); height: 100vh; position: fixed; top: 0; left: 0; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: var(--white); padding: 1.5rem 1rem; display: flex; flex-direction: column; z-index: 100; box-shadow: var(--shadow-lg); transition: all var(--transition-speed) ease; }
          .sidebar-header { display: flex; align-items: center; margin-bottom: 2rem; padding: 0 0.75rem; }
          .sidebar-logo { font-size: 1.5rem; font-weight: 700; color: var(--white); text-decoration: none; display: flex; align-items: center; gap: 0.75rem; }
          .sidebar-logo i { font-size: 1.75rem; }
          .sidebar-menu { list-style: none; padding: 0; margin: 0; flex-grow: 1; overflow-y: auto; }
          .sidebar-item { margin-bottom: 0.5rem; }
-         .sidebar-link { display: flex; align-items: center; padding: 0.8rem 1rem; color: rgba(255, 255, 255, 0.85); text-decoration: none; border-radius: 10px; transition: all 0.2s ease; font-weight: 500; }
-         .sidebar-link i { margin-right: 0.75rem; font-size: 1.2rem; width: 24px; text-align: center; }
-         .sidebar-link.active, .sidebar-link:hover { background-color: rgba(255, 255, 255, 0.15); color: var(--white); }
-         .sidebar-footer { margin-top: auto; padding: 1rem; font-size: 0.9rem; color: rgba(255, 255, 255, 0.7); text-align: center; }
-         .user-profile { display: flex; align-items: center; padding: 1rem; margin-top: 1rem; background-color: rgba(255, 255, 255, 0.1); border-radius: 12px; }
-         .user-avatar { width: 40px; height: 40px; border-radius: 50%; background-color: var(--primary-light); display: flex; align-items: center; justify-content: center; margin-right: 0.75rem; font-weight: 500; overflow: hidden; color: var(--white); flex-shrink: 0; }
+         .sidebar-link { display: flex; align-items: center; padding: 0.8rem 1rem; color: rgba(255, 255, 255, 0.85); text-decoration: none; border-radius: 8px; transition: all 0.2s ease; font-weight: 500; }
+         .sidebar-link i { margin-right: 0.8rem; /* Slightly more space */ font-size: 1.1rem; width: 24px; text-align: center; }
+         .sidebar-link.active, .sidebar-link:hover { background-color: rgba(255, 255, 255, 0.1); color: var(--white); }
+         .sidebar-link.active { font-weight: 600; background-color: rgba(255, 255, 255, 0.15); }
+         .sidebar-footer { margin-top: auto; padding: 1rem; font-size: 0.85rem; color: rgba(255, 255, 255, 0.6); text-align: center; }
+         .user-profile { display: flex; align-items: center; padding: 1rem; margin-top: 1rem; background-color: rgba(0, 0, 0, 0.15); border-radius: 10px; }
+         .user-avatar { width: 40px; height: 40px; border-radius: 50%; background-color: var(--primary-light); display: flex; align-items: center; justify-content: center; margin-right: 0.75rem; font-weight: 500; overflow: hidden; color: var(--white); flex-shrink: 0; border: 2px solid rgba(255,255,255,0.3); }
          .user-avatar img { width: 100%; height: 100%; object-fit: cover; }
-         .user-info { flex-grow: 1; }
-         .user-name { font-weight: 600; font-size: 0.95rem; }
+         .user-info { flex-grow: 1; overflow: hidden; }
+         .user-name { font-weight: 600; font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
          .user-role { font-size: 0.8rem; opacity: 0.8; }
 
-        main { flex: 1; margin-left: var(--sidebar-width); padding: 1.5rem 2rem; transition: margin var(--transition-speed) ease; width: calc(100% - var(--sidebar-width)); display: none; }
+        /* --- Main Content --- */
+        main { flex: 1; margin-left: var(--sidebar-width); padding: 2rem; /* More padding */ transition: margin var(--transition-speed) ease; width: calc(100% - var(--sidebar-width)); display: none; }
         main.loaded { display: block; animation: fadeInMain 0.5s ease-out forwards; }
-        @keyframes fadeInMain { from { opacity: 0; } to { opacity: 1; } }
-        .dashboard-header { margin-bottom: 2rem; background-color: var(--card-bg); border-radius: var(--card-radius); padding: 1.25rem 1.75rem; box-shadow: var(--shadow-sm); border: 1px solid var(--border-color); }
+        @keyframes fadeInMain { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .dashboard-header { margin-bottom: 2.5rem; background-color: var(--card-bg); border-radius: var(--card-radius); padding: 1.5rem 2rem; /* More padding */ box-shadow: var(--shadow-md); border: 1px solid var(--border-color); }
         .header-content { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
         .header-content > div:first-child { display: flex; align-items: center; gap: 1rem; flex-grow: 1; }
-        .header-content h1 { font-size: 1.85rem; font-weight: 600; color: var(--text-primary); margin: 0; }
+        .header-content h1 { font-size: 2rem; /* Larger title */ font-weight: 700; color: var(--text-primary); margin: 0; line-height: 1.2; }
         .header-actions { display: flex; align-items: center; gap: 0.75rem; }
-        /* Styly pro refresh, search, notifications - zkopírováno z dashboard.html */
+        /* Search, Refresh, Notifications - Copied & Adjusted */
         .refresh-btn { background: none; border: 1px solid var(--border-color); color: var(--text-secondary); font-size: 0.9rem; cursor: pointer; padding: 0.4rem 0.8rem; border-radius: 8px; transition: all 0.2s; display: flex; align-items: center; gap: 0.4em; }
-        .refresh-btn:hover { background-color: var(--body-bg); color: var(--primary); border-color: var(--primary-light); }
-        .refresh-btn.loading i { animation: spin 1s linear infinite; }
-        .refresh-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .refresh-btn:hover { background-color: var(--body-bg); color: var(--primary); border-color: var(--primary-light); } .refresh-btn.loading i { animation: spin 1s linear infinite; } .refresh-btn:disabled { opacity: 0.6; cursor: not-allowed; }
         @keyframes spin { to { transform: rotate(360deg); } }
         .search-box { position: relative; }
         .search-box input { width: 240px; height: 38px; border-radius: 8px; padding: 0 0.8rem 0 2.2rem; border: 1px solid var(--border-color); background-color: var(--card-bg); outline: none; transition: all 0.2s ease; font-size: 0.9rem; color: var(--text-primary);}
-        .search-box input::placeholder { color: var(--text-muted); }
-        .search-box input:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(67, 97, 238, 0.2); }
-        .search-box i { position: absolute; left: 0.8rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 0.9rem; }
-        .notifications { position: relative; }
-        .notification-bell { cursor: pointer; padding: 0.5rem; position: relative; display: inline-block; border-radius: 8px; transition: background-color 0.2s;}
-        .notification-bell:hover { background-color: var(--body-bg); }
-        .notification-bell i { font-size: 1.3rem; color: var(--text-secondary); transition: color 0.2s; }
-        .notification-bell:hover i { color: var(--primary); }
-        .notification-badge { position: absolute; top: 2px; right: 2px; width: 16px; height: 16px; background-color: var(--danger); color: white; font-size: 0.6rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; border: 1px solid var(--card-bg); pointer-events: none; opacity: 0; transform: scale(0.5); transition: opacity 0.2s, transform 0.2s; }
-        .notification-badge.visible { opacity: 1; transform: scale(1); }
-        .notifications-dropdown-wrapper { position: absolute; top: calc(100% + 10px); right: 0; width: 360px; background-color: var(--card-bg); border-radius: 12px; box-shadow: var(--shadow-lg); border: 1px solid var(--border-color); z-index: 101; opacity: 0; visibility: hidden; transform: translateY(10px); transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s; }
-        .notifications-dropdown-wrapper.active { opacity: 1; visibility: visible; transform: translateY(0); }
-        .notifications-header { padding: 0.8rem 1.25rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
-        .notifications-title { font-size: 1rem; font-weight: 600; color: var(--text-primary); }
-        .mark-all-read-btn { font-size: 0.8rem; color: var(--primary); background: none; border: none; cursor: pointer; font-weight: 500; padding: 0.25rem 0; }
-        .mark-all-read-btn:hover { text-decoration: underline; }
-        .mark-all-read-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-        #notifications-list { max-height: 350px; overflow-y: auto; padding: 0; }
-         #notifications-list::-webkit-scrollbar { width: 5px; } #notifications-list::-webkit-scrollbar-track { background: transparent; } #notifications-list::-webkit-scrollbar-thumb { background-color: var(--gray-light); border-radius: 3px; }
-        .notification-item { display: flex; padding: 1rem 1.25rem; gap: 1rem; border-bottom: 1px solid var(--border-color); transition: background-color 0.2s ease; cursor: pointer; position: relative; }
-        .notification-item:last-child { border-bottom: none; } .notification-item:hover { background-color: var(--body-bg); } .notification-item.is-read { background-color: transparent; } .notification-item.is-read .notification-title, .notification-item.is-read .notification-message, .notification-item.is-read .notification-time { color: var(--text-muted); } .notification-item.is-read .notification-icon { opacity: 0.6; } .notification-item.is-read .unread-dot { display: none; }
-        .notification-icon { width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 1rem; }
-        .notification-icon.info { background-color: var(--info-light); color: var(--info); } .notification-icon.success { background-color: var(--success-light); color: var(--success); } .notification-icon.warning { background-color: var(--warning-light); color: var(--warning); } .notification-icon.danger { background-color: var(--danger-light); color: var(--danger); }
+        .search-box input::placeholder { color: var(--text-muted); } .search-box input:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(67, 97, 238, 0.2); } .search-box i { position: absolute; left: 0.8rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 0.9rem; }
+        .notifications { position: relative; } .notification-bell { cursor: pointer; padding: 0.5rem; position: relative; display: inline-block; border-radius: 8px; transition: background-color 0.2s;} .notification-bell:hover { background-color: var(--body-bg); }
+        .notification-bell i { font-size: 1.3rem; color: var(--text-secondary); transition: color 0.2s; } .notification-bell:hover i { color: var(--primary); }
+        .notification-badge { position: absolute; top: 2px; right: 2px; width: 16px; height: 16px; background-color: var(--danger); color: white; font-size: 0.6rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; border: 1px solid var(--card-bg); pointer-events: none; opacity: 0; transform: scale(0.5); transition: opacity 0.2s, transform 0.2s; } .notification-badge.visible { opacity: 1; transform: scale(1); }
+        .notifications-dropdown-wrapper { position: absolute; top: calc(100% + 10px); right: 0; width: 360px; background-color: var(--card-bg); border-radius: 12px; box-shadow: var(--shadow-lg); border: 1px solid var(--border-color); z-index: 101; opacity: 0; visibility: hidden; transform: translateY(10px); transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s; } .notifications-dropdown-wrapper.active { opacity: 1; visibility: visible; transform: translateY(0); }
+        .notifications-header { padding: 0.8rem 1.25rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; } .notifications-title { font-size: 1rem; font-weight: 600; color: var(--text-primary); } .mark-all-read-btn { font-size: 0.8rem; color: var(--primary); background: none; border: none; cursor: pointer; font-weight: 500; padding: 0.25rem 0; } .mark-all-read-btn:hover { text-decoration: underline; } .mark-all-read-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        #notifications-list { max-height: 350px; overflow-y: auto; padding: 0; } #notifications-list::-webkit-scrollbar { width: 5px; } #notifications-list::-webkit-scrollbar-track { background: transparent; } #notifications-list::-webkit-scrollbar-thumb { background-color: var(--gray-light); border-radius: 3px; }
+        .notification-item { display: flex; padding: 1rem 1.25rem; gap: 1rem; border-bottom: 1px solid var(--border-color); transition: background-color 0.2s ease; cursor: pointer; position: relative; } .notification-item:last-child { border-bottom: none; } .notification-item:hover { background-color: var(--body-bg); } .notification-item.is-read { background-color: transparent; } .notification-item.is-read .notification-title, .notification-item.is-read .notification-message, .notification-item.is-read .notification-time { color: var(--text-muted); } .notification-item.is-read .notification-icon { opacity: 0.6; } .notification-item.is-read .unread-dot { display: none; }
+        .notification-icon { width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 1rem; } .notification-icon.info { background-color: var(--info-light); color: var(--info); } .notification-icon.success { background-color: var(--success-light); color: var(--success); } .notification-icon.warning { background-color: var(--warning-light); color: var(--warning); } .notification-icon.danger { background-color: var(--danger-light); color: var(--danger); }
         .notification-content { flex-grow: 1; } .notification-title { font-weight: 600; color: var(--text-primary); margin-bottom: 0.25rem; font-size: 0.95rem; } .notification-message { font-size: 0.9rem; color: var(--text-secondary); line-height: 1.4; margin-bottom: 0.3rem; } .notification-time { font-size: 0.8rem; color: var(--text-muted); }
         .unread-dot { position: absolute; top: 1rem; left: 0.5rem; width: 6px; height: 6px; background-color: var(--primary); border-radius: 50%; }
-        .notifications-footer { padding: 0.75rem 1.25rem; border-top: 1px solid var(--border-color); text-align: center; background-color: var(--light); border-radius: 0 0 12px 12px; }
-        .view-all-notifications-link { font-size: 0.9rem; color: var(--primary); text-decoration: none; font-weight: 500; } .view-all-notifications-link:hover { text-decoration: underline; }
-        #no-notifications-msg { padding: 2.5rem 1rem; text-align: center; color: var(--text-muted); font-size: 0.9rem; display: none; }
+        .notifications-footer { padding: 0.75rem 1.25rem; border-top: 1px solid var(--border-color); text-align: center; background-color: var(--light); border-radius: 0 0 12px 12px; } .view-all-notifications-link { font-size: 0.9rem; color: var(--primary); text-decoration: none; font-weight: 500; } .view-all-notifications-link:hover { text-decoration: underline; } #no-notifications-msg { padding: 2.5rem 1rem; text-align: center; color: var(--text-muted); font-size: 0.9rem; display: none; }
 
-        .main-content { display: grid; gap: 2rem; }
-        .section { background-color: var(--card-bg); border-radius: var(--card-radius); box-shadow: var(--shadow-sm); padding: 1.75rem; border: 1px solid var(--border-color); animation: fadeIn 0.5s ease forwards; }
-        .section-title { font-size: 1.4rem; font-weight: 600; margin-bottom: 1.5rem; color: var(--text-primary); padding-bottom: 0.75rem; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; gap: 0.6rem; }
-        .section-title i { font-size: 0.9em; color: var(--primary); }
+        /* --- Content Layout --- */
+        .main-content { display: grid; gap: 2.5rem; /* Increased gap */ }
+        .section { background-color: var(--card-bg); border-radius: var(--card-radius); box-shadow: var(--shadow-md); /* Slightly stronger shadow */ padding: 2rem; /* More padding */ border: 1px solid var(--border-color); animation: fadeIn 0.5s ease forwards; }
+        .section-title { font-size: 1.5rem; /* Larger */ font-weight: 600; margin-bottom: 1.75rem; color: var(--text-primary); padding-bottom: 0.75rem; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; gap: 0.7rem; }
+        .section-title i { font-size: 1em; color: var(--primary); }
 
         /* Stats Grid (Pokrok Page Specific) */
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
-        .stats-card { background-color: var(--card-bg); border-radius: var(--card-radius); box-shadow: var(--shadow-sm); padding: 1.5rem; transition: all 0.3s ease; display: flex; flex-direction: column; border: 1px solid var(--border-color); position: relative; min-height: 180px; }
-        .stats-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); /* Adjusted minmax */ gap: 1.75rem; margin-bottom: 2.5rem; }
+        .stats-card { background-color: var(--card-bg); border-radius: var(--card-radius); box-shadow: var(--shadow-sm); padding: 1.75rem; /* More padding */ transition: all 0.3s ease; display: flex; flex-direction: column; border: 1px solid var(--border-color); position: relative; min-height: 170px; /* Adjusted */ }
+        .stats-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); border-color: var(--primary-light); }
         .stats-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; }
         .stats-card-title { font-size: 1rem; font-weight: 500; color: var(--text-secondary); display: flex; align-items: center; gap: 0.5rem; }
-        .stats-card-title i { font-size: 1.1em; }
+        .stats-card-title i { font-size: 1.2em; color: var(--text-muted); }
         .stats-card-content { flex-grow: 1; }
-        .stats-card-value { font-size: 2.4rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.5rem; line-height: 1.1; }
-        .stats-card-value .unit { font-size: 0.6em; font-weight: 500; color: var(--text-muted); margin-left: 0.2em; }
+        .stats-card-value { font-size: 2.5rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.5rem; line-height: 1.1; }
+        .stats-card-value .unit { font-size: 0.5em; font-weight: 500; color: var(--text-muted); margin-left: 0.2em; }
         .stats-card-description { font-size: 0.9rem; color: var(--text-muted); }
         /* Skeleton for Stats Cards */
-        .stats-card .loading-skeleton { position: absolute; top: 0; left: 0; right: 0; bottom: 0; padding: 1.5rem; display: flex; flex-direction: column; }
-        .stats-card .loading-skeleton .skeleton.title { height: 18px; width: 60%; margin-bottom: 1.5rem; }
-        .stats-card .loading-skeleton .skeleton.value { height: 38px; width: 45%; margin-bottom: 0.75rem; }
-        .stats-card .loading-skeleton .skeleton.text { height: 15px; width: 80%; }
+        .stats-card .loading-skeleton { position: absolute; top: 0; left: 0; right: 0; bottom: 0; padding: 1.75rem; display: flex; flex-direction: column; visibility: hidden; /* Controlled by .loading class */ }
+        .stats-card.loading .loading-skeleton { visibility: visible; }
+        .stats-card.loading .stats-card-content { visibility: hidden; }
+        .stats-card .loading-skeleton .skeleton.title { height: 18px; width: 70%; margin-bottom: 1.5rem; }
+        .stats-card .loading-skeleton .skeleton.value { height: 40px; width: 50%; margin-bottom: 0.75rem; }
+        .stats-card .loading-skeleton .skeleton.text { height: 15px; width: 85%; }
 
         /* Chart Section */
-        .chart-section { position: relative; } /* For loader positioning */
+        .chart-section { position: relative; }
         .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem; }
         .chart-title { font-size: 1.3rem; font-weight: 600; color: var(--text-primary); margin: 0; }
-        .chart-container { height: 380px; /* Taller chart */ position: relative; }
+        .chart-container { height: 380px; position: relative; }
         .chart-container canvas { background-color: transparent; }
         .loading-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(255, 255, 255, 0.7); display: flex; justify-content: center; align-items: center; z-index: 10; border-radius: var(--card-radius); transition: opacity 0.3s ease-out; opacity: 1;}
         .loading-overlay.hidden { opacity: 0; pointer-events: none; }
-        .loading-spinner { width: 28px; height: 28px; border: 3px solid var(--primary); border-radius: 50%; border-top-color: transparent; animation: loading-spinner 0.8s linear infinite; }
+        .loading-spinner { width: 32px; /* Larger */ height: 32px; border: 4px solid var(--primary); border-radius: 50%; border-top-color: transparent; animation: loading-spinner 0.8s linear infinite; }
         @keyframes loading-spinner { to { transform: rotate(360deg); } }
 
         /* Data Table Section */
         .data-table-section { position: relative; }
         .data-table-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem; }
         .data-table-title { font-size: 1.3rem; font-weight: 600; color: var(--text-primary); margin: 0; }
-        /* Style for table wrapper to handle overflow */
-        .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-        .data-table { width: 100%; border-collapse: separate; /* Use separate for spacing */ border-spacing: 0 0.5rem; /* Vertical spacing between rows */ font-size: 0.95rem; }
+        .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; border: 1px solid var(--border-color); border-radius: 10px; }
+        .data-table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
         .data-table thead { background-color: var(--body-bg); }
-        .data-table th { text-align: left; padding: 0.8rem 1rem; color: var(--text-secondary); font-weight: 600; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid var(--border-color); }
-        .data-table td { padding: 1rem 1rem; color: var(--text-primary); background-color: var(--card-bg); }
-        .data-table tbody tr { transition: background-color 0.2s ease, box-shadow 0.2s ease; }
+        .data-table th { text-align: left; padding: 0.9rem 1.1rem; color: var(--text-secondary); font-weight: 600; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid var(--border-color); }
+        .data-table td { padding: 1rem 1.1rem; color: var(--text-primary); background-color: var(--card-bg); border-bottom: 1px solid var(--border-color); }
+        .data-table tbody tr:last-child td { border-bottom: none; }
+        .data-table tbody tr { transition: background-color 0.2s ease; }
         .data-table tbody tr:hover td { background-color: #f8faff; }
-         /* Add rounding to first and last cells */
-         .data-table td:first-child { border-top-left-radius: 8px; border-bottom-left-radius: 8px; }
-         .data-table td:last-child { border-top-right-radius: 8px; border-bottom-right-radius: 8px; }
-         .data-table th:first-child { border-top-left-radius: 8px; }
-         .data-table th:last-child { border-top-right-radius: 8px; }
-
         /* Status Badge */
-        .status-badge { padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.8rem; font-weight: 500; display: inline-flex; align-items: center; gap: 0.3em; }
+        .status-badge { padding: 0.3rem 0.8rem; border-radius: 6px; font-size: 0.8rem; font-weight: 500; display: inline-flex; align-items: center; gap: 0.4em; }
         .status-badge.completed { background-color: var(--success-bg); color: var(--success); }
         .status-badge.in-progress { background-color: var(--info-bg); color: var(--info); }
         .status-badge.failed { background-color: var(--danger-bg); color: var(--danger); }
 
         /* Buttons */
         .btn { display: inline-flex; align-items: center; justify-content: center; padding: 0.6rem 1.2rem; border-radius: 8px; font-weight: 500; font-size: 0.9rem; text-decoration: none; transition: all 0.3s ease; cursor: pointer; border: none; gap: 0.5rem; }
-        .btn-primary { background: var(--gradient-1); color: white; box-shadow: var(--shadow-sm); }
-        .btn-primary:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); background: linear-gradient(135deg, var(--primary-light), var(--secondary)); }
+        .btn-primary { background: var(--primary); color: white; box-shadow: var(--shadow-sm); }
+        .btn-primary:hover { background: var(--secondary); transform: translateY(-1px); box-shadow: var(--shadow-md); }
         .btn-secondary { background-color: var(--card-bg); color: var(--text-secondary); border: 1px solid var(--border-color); }
         .btn-secondary:hover { background-color: var(--body-bg); border-color: var(--gray-medium); }
         .btn-sm { padding: 0.4rem 0.8rem; font-size: 0.8rem; }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
 
-        /* Skeleton Loader (general) */
+        /* Skeleton Loader */
         .skeleton { background-color: var(--skeleton-bg); border-radius: 6px; position: relative; overflow: hidden; }
         .skeleton::after { content: ''; position: absolute; top: 0; left: -150%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, var(--skeleton-highlight), transparent); animation: skeleton-loading 1.5s infinite linear; }
         @keyframes skeleton-loading { 0% { left: -150%; } 100% { left: 150%; } }
-        /* Skeleton for Table */
-        .skeleton-table td { padding: 1rem 1rem; }
-        .skeleton-table .skeleton { height: 20px; }
-        .skeleton-table .skeleton.w-60 { width: 60%; }
-        .skeleton-table .skeleton.w-40 { width: 40%; }
-        .skeleton-table .skeleton.w-30 { width: 30%; }
-        .skeleton-table .skeleton.w-20 { width: 20%; }
+        .skeleton-table td { padding: 1rem 1.1rem; } .skeleton-table .skeleton { height: 20px; } .skeleton-table .skeleton.w-60 { width: 60%; } .skeleton-table .skeleton.w-40 { width: 40%; } .skeleton-table .skeleton.w-30 { width: 30%; } .skeleton-table .skeleton.w-20 { width: 20%; }
 
-        /* Error messages & Empty States */
-        .error-message { background-color: var(--danger-light); border-left: 4px solid var(--danger); color: var(--danger); padding: 1rem; margin: 1rem 0; border-radius: 8px; font-size: 0.9rem; display: flex; align-items: center; }
-        .error-message i { margin-right: 0.75rem; font-size: 1.25rem; }
+        /* Error & Empty States */
+        .error-message { background-color: var(--danger-bg); border-left: 4px solid var(--danger); color: var(--danger); padding: 1rem; margin: 1rem 0; border-radius: 8px; font-size: 0.9rem; display: flex; align-items: center; } .error-message i { margin-right: 0.75rem; font-size: 1.25rem; }
         .error-container { display: none; margin-bottom: 1.5rem; } .error-container .error-message { margin: 0; }
         .retry-button { background-color: var(--primary); color: white; border: none; border-radius: 8px; padding: 0.5rem 1rem; font-size: 0.9rem; cursor: pointer; margin-top: 0.5rem; transition: all 0.2s ease; margin-left: auto; } .retry-button:hover { background-color: var(--secondary); }
-        .empty-state { padding: 3rem 2rem; text-align: center; background-color: var(--card-bg); border-radius: var(--card-radius); box-shadow: var(--shadow-sm); border: 1px dashed var(--border-color); }
-        .empty-state i { font-size: 2.5rem; color: var(--gray-medium); margin-bottom: 1rem; }
-        .empty-state h3 { font-size: 1.1rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.75rem; }
-        .empty-state p { font-size: 0.95rem; color: var(--text-secondary); max-width: 500px; margin: 0 auto; line-height: 1.6; }
+        .empty-state { padding: 3rem 2rem; text-align: center; background-color: var(--card-bg); border-radius: var(--card-radius); box-shadow: none; border: 1px dashed var(--border-color); margin-top: 1rem; /* Add margin when table is hidden */ }
+        .empty-state i { font-size: 2.5rem; color: var(--gray-medium); margin-bottom: 1rem; } .empty-state h3 { font-size: 1.1rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.75rem; } .empty-state p { font-size: 0.95rem; color: var(--text-secondary); max-width: 500px; margin: 0 auto; line-height: 1.6; }
+        .card-error-state { color: var(--danger); font-size: 0.9rem; padding: 2rem 1.5rem; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; } .card-error-state i { font-size: 1.5rem; margin-bottom: 0.75rem; }
+        .list-error-state { padding: 3rem 1rem; text-align: center; color: var(--danger); font-size: 0.9rem; } .list-error-state i { font-size: 2rem; margin-bottom: 1rem; }
 
-        /* Toast & Offline Banner (from dashboard.html) */
-        .toast { position: fixed; bottom: 20px; right: 20px; background-color: var(--card-bg); color: var(--text-primary); border-radius: 8px; padding: 1rem; box-shadow: var(--shadow-lg); max-width: 300px; z-index: 1001; display: flex; align-items: center; transform: translateY(120px); opacity: 0; transition: all 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55); }
+        /* Toast & Offline Banner */
+        .toast { position: fixed; bottom: 20px; right: 20px; background-color: var(--card-bg); color: var(--text-primary); border-radius: 8px; padding: 1rem; box-shadow: var(--shadow-lg); max-width: 300px; z-index: 1001; display: flex; align-items: center; transform: translateY(120px); opacity: 0; transition: all 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55); border: 1px solid var(--border-color);}
         .toast.show { transform: translateY(0); opacity: 1; } .toast.success { border-left: 4px solid var(--success); } .toast.error { border-left: 4px solid var(--danger); } .toast.warning { border-left: 4px solid var(--warning); }
         .toast i { margin-right: 0.75rem; font-size: 1.25rem; } .toast.success i { color: var(--success); } .toast.error i { color: var(--danger); } .toast.warning i { color: var(--warning); } .toast.info i { color: var(--info); }
         .offline-banner { display: none; background-color: var(--warning); color: white; padding: 0.75rem; text-align: center; position: fixed; top: 0; left: 0; right: 0; z-index: 1000; }
@@ -197,12 +170,12 @@
         .initial-loading-overlay .loading-spinner { width: 35px; height: 35px; border-width: 4px; }
         .initial-loading-overlay p { color: var(--text-secondary); font-size: 1.1rem;}
 
-        /* Media Queries (adaptace z dashboard.html) */
+        /* Media Queries */
         @media (max-width: 992px) { :root { --sidebar-width: 80px; } main { margin-left: 80px; width: calc(100% - 80px); } .sidebar { width: 80px; } .sidebar-logo span, .sidebar-link span, .user-info, .sidebar-footer { display: none; } .sidebar-link i { margin-right: 0; font-size: 1.5rem; } .sidebar-logo i { margin-right: 0; } .sidebar-header, .sidebar-link { justify-content: center; } .user-profile { justify-content: center; padding: 0.75rem; } .user-avatar { margin-right: 0; } .search-box input { width: 200px; } .mobile-menu-toggle { display: block; } .stats-grid { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); } }
         @media (max-width: 768px) { main { padding: 1rem; margin-left: 0; width: 100%; } .sidebar { transform: translateX(-100%); width: 260px; z-index: 1000; } .sidebar.active { transform: translateX(0); } .sidebar.active .sidebar-logo span, .sidebar.active .sidebar-link span, .sidebar.active .user-info, .sidebar.active .sidebar-footer { display: block; } .sidebar.active .sidebar-link i { margin-right: 0.75rem; font-size: 1.2rem; } .sidebar.active .sidebar-header, .sidebar.active .sidebar-link { justify-content: flex-start; } .sidebar.active .user-profile { justify-content: flex-start; padding: 1rem; } .sidebar.active .user-avatar { margin-right: 0.75rem; } .header-content { flex-direction: column; align-items: flex-start; gap: 1rem; } .header-actions { width: 100%; justify-content: space-between; } .search-box input { width: 100%; } .stats-grid { grid-template-columns: 1fr; } .chart-header { flex-direction: column; align-items: flex-start; gap: 0.5rem;} }
-        @media (max-width: 576px) { .search-box { display: none; } .header-actions { justify-content: flex-end; gap: 0.5rem; } .refresh-btn { padding: 0.5rem; } .refresh-btn span { display: none; } .notifications { margin-right: 0.5rem; } .data-table { font-size: 0.9rem; } .data-table th, .data-table td { padding: 0.6rem 0.5rem; } }
+        @media (max-width: 576px) { .search-box { display: none; } .header-actions { justify-content: flex-end; gap: 0.5rem; } .refresh-btn { padding: 0.5rem; } .refresh-btn span { display: none; } .notifications { margin-right: 0.5rem; } .data-table { font-size: 0.9rem; } .data-table th, .data-table td { padding: 0.7rem 0.6rem; } .notifications-dropdown-wrapper { width: calc(100vw - 2rem); max-width: 360px; } }
         /* Dark mode */
-        @media (prefers-color-scheme: dark) { :root { --white: #1a202c; --light: #2d3748; --dark: #e2e8f0; --gray-light: #4a5568; --text-primary: #e2e8f0; --text-secondary: #cbd5e0; --text-muted: #a0aec0; --body-bg: #111827; --card-bg: #1f2937; --border-color: #374151; --skeleton-bg: #374151; --skeleton-highlight: #4b5563;} body { background-color: var(--body-bg); } .dashboard-header, .stats-card, .chart-section, .data-table-section, .toast, .notifications-dropdown-wrapper, .empty-state, .shortcut-card { background-color: var(--card-bg); border-color: var(--border-color); } .search-box input { background-color: #374151; color: var(--text-primary); border-color: var(--border-color); } .search-box input::placeholder { color: var(--text-muted); } .search-box i { color: #a0aec0; } .toast { border: 1px solid var(--border-color); } .dashboard-footer { border-top-color: var(--border-color); } .mobile-menu-toggle { color: var(--text-primary); } .sidebar-link.active, .sidebar-link:hover { background-color: rgba(255, 255, 255, 0.1); } .error-message { background-color: rgba(247, 37, 133, 0.1); border-left-color: var(--danger); } .initial-loading-overlay { background-color: var(--body-bg); } .loading-overlay { background-color: rgba(31, 41, 55, 0.8); } .notifications-footer { background-color: #111827; } .refresh-btn { border-color: var(--border-color); } .refresh-btn:hover { background-color: #374151; border-color: var(--primary-light); } .notification-bell:hover { background-color: #374151; } .data-table thead { background-color: #111827; /* Darker header */ } .data-table td { background-color: var(--card-bg); } .data-table tbody tr:hover td { background-color: #2b3648; } .btn-secondary { background-color: var(--light); color: var(--text-secondary); border: 1px solid var(--border-color); } .btn-secondary:hover { background-color: var(--border-color); } }
+        @media (prefers-color-scheme: dark) { :root { --white: #1f2937; /* Tmavší bílá */ --light: #374151; --dark: #f3f4f6; --gray-light: #4b5563; --text-primary: #f3f4f6; --text-secondary: #d1d5db; --text-muted: #9ca3af; --body-bg: #111827; --card-bg: #1f2937; --border-color: #374151; --skeleton-bg: #374151; --skeleton-highlight: #4b5563; --success-bg: rgba(16, 185, 129, 0.1); --danger-bg: rgba(239, 68, 68, 0.1); --warning-bg: rgba(245, 158, 11, 0.1); --info-bg: rgba(59, 130, 246, 0.1);} body { background-color: var(--body-bg); } .dashboard-header, .stats-card, .chart-section, .data-table-section, .toast, .notifications-dropdown-wrapper, .empty-state, .shortcut-card { background-color: var(--card-bg); border-color: var(--border-color); } .search-box input { background-color: #374151; color: var(--text-primary); border-color: var(--border-color); } .search-box input::placeholder { color: var(--text-muted); } .search-box i { color: #a0aec0; } .toast { border: 1px solid var(--border-color); } .dashboard-footer { border-top-color: var(--border-color); } .mobile-menu-toggle { color: var(--text-primary); } .sidebar-link.active, .sidebar-link:hover { background-color: rgba(255, 255, 255, 0.1); } .error-message { background-color: rgba(239, 68, 68, 0.1); border-left-color: var(--danger); } .initial-loading-overlay { background-color: var(--body-bg); } .loading-overlay { background-color: rgba(31, 41, 55, 0.8); } .notifications-footer { background-color: #111827; } .refresh-btn { border-color: var(--border-color); } .refresh-btn:hover { background-color: #374151; border-color: var(--primary-light); } .notification-bell:hover { background-color: #374151; } .data-table thead { background-color: #111827; } .data-table td { background-color: var(--card-bg); border-color: var(--border-color); } .data-table tbody tr:hover td { background-color: #2b3648; } .btn-secondary { background-color: var(--light); color: var(--text-secondary); border: 1px solid var(--border-color); } .btn-secondary:hover { background-color: var(--border-color); } .shortcut-card:hover { background-color: #2b3648; } .activity-item:hover { background-color: #2b3648; } }
         .mobile-menu-toggle { display: none; background: none; border: none; color: var(--text-primary); font-size: 1.5rem; cursor: pointer; padding: 0.5rem; margin-right: 0.5rem; z-index: 101; }
         @media (max-width: 992px) { .mobile-menu-toggle { display: block; } }
         .sidebar-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.55); z-index: 99; opacity: 0; transition: opacity var(--transition-speed) ease; backdrop-filter: blur(4px); }
@@ -223,10 +196,10 @@
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
              <button class="mobile-menu-toggle" id="sidebar-close-toggle" style="color: var(--white); margin-right: 1rem; display: none; background: none; border: none; font-size: 1.5rem; cursor: pointer;"> <i class="fas fa-times"></i> </button>
-            <a href="/" class="sidebar-logo"> <i class="fas fa-calculator"></i> <span>Justax</span> </a>
+            <a href="/dashboard/dashboard.html" class="sidebar-logo"> <i class="fas fa-calculator"></i> <span>Justax</span> </a>
         </div>
         <ul class="sidebar-menu">
-            <li class="sidebar-item"> <a href="/dashboard.html" class="sidebar-link"> <i class="fas fa-th-large"></i> <span>Dashboard</span> </a> </li>
+            <li class="sidebar-item"> <a href="/dashboard/dashboard.html" class="sidebar-link"> <i class="fas fa-th-large"></i> <span>Dashboard</span> </a> </li>
             <li class="sidebar-item"> <a href="/dashboard/procvicovani/main.html" class="sidebar-link"> <i class="fas fa-book-open"></i> <span>Procvičování</span> </a> </li>
             <li class="sidebar-item"> <a href="/dashboard/pokrok.html" class="sidebar-link active"> <i class="fas fa-chart-line"></i> <span>Pokrok</span> </a> </li>
             <li class="sidebar-item"> <a href="/dashboard/oceneni.html" class="sidebar-link"> <i class="fas fa-medal"></i> <span>Ocenění</span> </a> </li>
@@ -253,7 +226,17 @@
                         <div class="notification-bell" id="notification-bell" title="Oznámení"> <i class="far fa-bell"></i> <span class="notification-badge" id="notification-count">0</span> </div>
                         <div class="notifications-dropdown-wrapper" id="notifications-dropdown">
                              <div class="notifications-header"> <span class="notifications-title">Oznámení</span> <button class="mark-all-read-btn" id="mark-all-read" disabled>Označit vše jako přečtené</button> </div>
-                             <div id="notifications-list"> <div id="no-notifications-msg">Žádná nová oznámení.</div> </div>
+                             <div id="notifications-list">
+                                  <div id="no-notifications-msg">Žádná nová oznámení.</div>
+                                  <div class="notification-item-skeleton" style="display: none; padding: 1rem 1.25rem; gap: 1rem; border-bottom: 1px solid var(--border-color);">
+                                       <div class="skeleton activity-icon-placeholder" style="border-radius: 50%; width:38px; height: 38px;"></div>
+                                       <div style="flex-grow: 1;">
+                                            <div class="skeleton activity-line" style="width: 60%; height: 16px; margin-bottom: 0.5rem;"></div>
+                                            <div class="skeleton activity-line" style="width: 90%; height: 14px; margin-bottom: 0.4rem;"></div>
+                                            <div class="skeleton activity-line-short" style="width: 40%; height: 12px;"></div>
+                                       </div>
+                                  </div>
+                             </div>
                              <div class="notifications-footer"> <a href="#" class="view-all-notifications-link">Zobrazit všechna oznámení</a> </div>
                         </div>
                      </div>
@@ -263,21 +246,22 @@
 
         <div class="main-content">
             <section class="stats-section">
+                 <h2 class="section-title" style="border: none; margin-bottom: 1rem;"><i class="fas fa-tachometer-alt"></i>Aktuální stav</h2>
                 <div class="stats-grid" id="stats-grid">
                     <div class="stats-card loading" id="progress-card">
-                         <div class="loading-skeleton"> <div class="skeleton title" style="width: 70%;"></div> <div class="skeleton value" style="width: 40%;"></div> <div class="skeleton text" style="width: 90%;"></div> </div>
-                         <div class="stats-card-content"> <div class="stats-card-info"> <div class="stats-card-title"><i class="fas fa-chart-line"></i>Celkový Pokrok</div> <div class="stats-card-value">-<span class="unit">%</span></div> <div class="stats-card-description">Průměrná úspěšnost</div> </div> </div>
+                         <div class="loading-skeleton"> <div class="skeleton title"></div> <div class="skeleton value"></div> <div class="skeleton text"></div> </div>
+                         <div class="stats-card-content"> <div class="stats-card-info"> <div class="stats-card-title"><i class="fas fa-tasks"></i>Celkový Pokrok</div> <div class="stats-card-value">-<span class="unit">%</span></div> <div class="stats-card-description">Průměrná úspěšnost</div> </div> </div>
                     </div>
                     <div class="stats-card loading" id="avg-score-card">
-                         <div class="loading-skeleton"> <div class="skeleton title" style="width: 65%;"></div> <div class="skeleton value" style="width: 35%;"></div> <div class="skeleton text" style="width: 85%;"></div> </div>
+                         <div class="loading-skeleton"> <div class="skeleton title"></div> <div class="skeleton value"></div> <div class="skeleton text"></div> </div>
                          <div class="stats-card-content"> <div class="stats-card-info"> <div class="stats-card-title"><i class="fas fa-star-half-alt"></i>Prům. Skóre</div> <div class="stats-card-value">-<span class="unit">%</span></div> <div class="stats-card-description">Průměr z testů</div> </div> </div>
                     </div>
                     <div class="stats-card loading" id="exercises-card">
-                         <div class="loading-skeleton"> <div class="skeleton title" style="width: 80%;"></div> <div class="skeleton value" style="width: 30%;"></div> <div class="skeleton text" style="width: 70%;"></div> </div>
+                         <div class="loading-skeleton"> <div class="skeleton title"></div> <div class="skeleton value"></div> <div class="skeleton text"></div> </div>
                          <div class="stats-card-content"> <div class="stats-card-info"> <div class="stats-card-title"><i class="fas fa-pencil-alt"></i>Dokonč. Cvičení</div> <div class="stats-card-value">-</div> <div class="stats-card-description">Počet úkolů</div> </div> </div>
                     </div>
                      <div class="stats-card loading" id="streak-card">
-                         <div class="loading-skeleton"> <div class="skeleton title" style="width: 50%;"></div> <div class="skeleton value" style="width: 25%;"></div> <div class="skeleton text" style="width: 75%;"></div> </div>
+                         <div class="loading-skeleton"> <div class="skeleton title"></div> <div class="skeleton value"></div> <div class="skeleton text"></div> </div>
                          <div class="stats-card-content"> <div class="stats-card-info"> <div class="stats-card-title"><i class="fas fa-fire"></i>Série Dnů</div> <div class="stats-card-value">-</div> <div class="stats-card-description">Aktuální série studia</div> </div> </div>
                     </div>
                 </div>
@@ -293,8 +277,7 @@
                          <option value="year">Poslední rok</option>
                      </select>
                  </div>
-                 <div class="chart-container">
-                     <div class="loading-overlay hidden" id="chart-loading"><div class="loading-spinner"></div></div>
+                 <div class="chart-container" id="chart-container-parent"> <div class="loading-overlay hidden" id="chart-loading"><div class="loading-spinner"></div></div>
                      <canvas id="progressChart"></canvas>
                  </div>
              </section>
@@ -311,15 +294,12 @@
                                   <th>Datum</th>
                                   <th>Popis / Aktivita</th>
                                   <th>Změna Pokroku</th>
-                                  <th>Získané Body</th>
+                                  <th>Celkem Bodů</th>
                                   <th>Stav</th>
                               </tr>
                           </thead>
                           <tbody id="activities-body">
-                               <tr class="skeleton-table"><td><div class="skeleton w-40"></div></td><td><div class="skeleton w-60"></div></td><td><div class="skeleton w-30"></div></td><td><div class="skeleton w-20"></div></td><td><div class="skeleton w-30"></div></td></tr>
-                               <tr class="skeleton-table"><td><div class="skeleton w-40"></div></td><td><div class="skeleton w-70"></div></td><td><div class="skeleton w-30"></div></td><td><div class="skeleton w-20"></div></td><td><div class="skeleton w-30"></div></td></tr>
-                               <tr class="skeleton-table"><td><div class="skeleton w-40"></div></td><td><div class="skeleton w-50"></div></td><td><div class="skeleton w-30"></div></td><td><div class="skeleton w-20"></div></td><td><div class="skeleton w-30"></div></td></tr>
-                          </tbody>
+                               </tbody>
                       </table>
                  </div>
                  <div class="empty-state" id="no-activities" style="display: none;">
@@ -350,164 +330,101 @@
             let currentUser = null;
             let currentProfile = null;
             let isLoadingData = false;
-            let progressChart = null; // Chart instance
-            let lastLoadedPeriod = 'month'; // Default period for chart
+            let progressChart = null;
+            let lastLoadedPeriod = 'month';
+            let chartDataCache = {}; // Cache for chart data
 
             // DOM Elements Cache
             const ui = {
-                // Sidebar & General
-                sidebarAvatar: document.getElementById('sidebar-avatar'),
-                sidebarName: document.getElementById('sidebar-name'),
-                offlineBanner: document.getElementById('offline-banner'),
-                globalError: document.getElementById('global-error'),
-                mainMobileMenuToggle: document.getElementById('main-mobile-menu-toggle'),
-                sidebarCloseToggle: document.getElementById('sidebar-close-toggle'),
-                sidebar: document.getElementById('sidebar'),
-                sidebarOverlay: document.getElementById('sidebar-overlay'),
-                toast: document.getElementById('toast'),
-                toastMessage: document.getElementById('toast-message'),
-                initialLoader: document.getElementById('initial-loader'),
-                mainContent: document.getElementById('main-content'),
-                 // Header
-                refreshDataBtn: document.getElementById('refresh-data-btn'),
-                notificationBell: document.getElementById('notification-bell'),
-                notificationCount: document.getElementById('notification-count'),
-                notificationsDropdown: document.getElementById('notifications-dropdown'),
-                notificationsList: document.getElementById('notifications-list'),
-                noNotificationsMsg: document.getElementById('no-notifications-msg'),
-                markAllReadBtn: document.getElementById('mark-all-read'),
-                // Stats Cards
-                progressCard: document.getElementById('progress-card'),
-                avgScoreCard: document.getElementById('avg-score-card'),
-                exercisesCard: document.getElementById('exercises-card'),
-                streakCard: document.getElementById('streak-card'),
-                // Chart
-                progressChartCanvas: document.getElementById('progressChart'),
-                chartLoading: document.getElementById('chart-loading'),
-                chartPeriodSelect: document.getElementById('chart-period'),
-                // Table
-                activitiesTable: document.getElementById('activities-table'),
-                activitiesBody: document.getElementById('activities-body'),
-                tableLoading: document.getElementById('table-loading'), // Assuming you might add a table loader
-                noActivities: document.getElementById('no-activities'),
-                exportBtn: document.getElementById('export-btn')
+                sidebarAvatar: document.getElementById('sidebar-avatar'), sidebarName: document.getElementById('sidebar-name'),
+                offlineBanner: document.getElementById('offline-banner'), globalError: document.getElementById('global-error'),
+                mainMobileMenuToggle: document.getElementById('main-mobile-menu-toggle'), sidebarCloseToggle: document.getElementById('sidebar-close-toggle'),
+                sidebar: document.getElementById('sidebar'), sidebarOverlay: document.getElementById('sidebar-overlay'),
+                toast: document.getElementById('toast'), toastMessage: document.getElementById('toast-message'),
+                initialLoader: document.getElementById('initial-loader'), mainContent: document.getElementById('main-content'),
+                refreshDataBtn: document.getElementById('refresh-data-btn'), notificationBell: document.getElementById('notification-bell'),
+                notificationCount: document.getElementById('notification-count'), notificationsDropdown: document.getElementById('notifications-dropdown'),
+                notificationsList: document.getElementById('notifications-list'), noNotificationsMsg: document.getElementById('no-notifications-msg'),
+                markAllReadBtn: document.getElementById('mark-all-read'), progressCard: document.getElementById('progress-card'),
+                avgScoreCard: document.getElementById('avg-score-card'), exercisesCard: document.getElementById('exercises-card'),
+                streakCard: document.getElementById('streak-card'), progressChartCanvas: document.getElementById('progressChart'),
+                chartLoading: document.getElementById('chart-loading'), chartPeriodSelect: document.getElementById('chart-period'),
+                activitiesTable: document.getElementById('activities-table'), activitiesBody: document.getElementById('activities-body'),
+                noActivities: document.getElementById('no-activities'), exportBtn: document.getElementById('export-btn'),
+                chartContainerParent: document.getElementById('chart-container-parent') // Added
             };
             // --- END: Initialization and Configuration ---
 
             // --- START: Helper Functions ---
-             function showToast(message, type = 'success') { /* ... (standard implementation) ... */ if (!ui.toast || !ui.toastMessage) return; ui.toastMessage.textContent = message; const icon = ui.toast.querySelector('i'); const colors = { success: 'var(--success)', error: 'var(--danger)', warning: 'var(--warning)', info: 'var(--info)' }; if (icon) { icon.className = `fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle'}`; icon.style.color = colors[type] || colors.info; } ui.toast.className = `toast ${type}`; ui.toast.classList.add('show'); setTimeout(() => { if (ui.toast) ui.toast.classList.remove('show'); }, 5000); }
-             function showError(message) { /* ... (standard implementation with retry) ... */ if (!ui.globalError) return; ui.globalError.innerHTML = `<div class="error-message"><i class="fas fa-exclamation-circle"></i><div><div>${message}</div><button class="retry-button" id="retry-btn">Zkusit znovu</button></div></div>`; ui.globalError.style.display = 'block'; const retryBtn = document.getElementById('retry-btn'); if (retryBtn) { retryBtn.addEventListener('click', handleRetry); } }
+             function showToast(message, type = 'success') { /* ... implementation ... */ if (!ui.toast || !ui.toastMessage) return; ui.toastMessage.textContent = message; const icon = ui.toast.querySelector('i'); const colors = { success: 'var(--success)', error: 'var(--danger)', warning: 'var(--warning)', info: 'var(--info)' }; if (icon) { icon.className = `fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle'}`; icon.style.color = colors[type] || colors.info; } ui.toast.className = `toast ${type}`; ui.toast.classList.add('show'); setTimeout(() => { if (ui.toast) ui.toast.classList.remove('show'); }, 5000); }
+             function showError(message) { /* ... implementation with retry ... */ if (!ui.globalError) return; ui.globalError.innerHTML = `<div class="error-message"><i class="fas fa-exclamation-circle"></i><div><div>${message}</div><button class="retry-button" id="retry-btn">Zkusit znovu</button></div></div>`; ui.globalError.style.display = 'block'; const retryBtn = document.getElementById('retry-btn'); if (retryBtn) { retryBtn.addEventListener('click', handleRetry); } }
              function hideError() { if (ui.globalError) ui.globalError.style.display = 'none'; }
-             function updateOnlineStatus() { /* ... (standard implementation) ... */ if (ui.offlineBanner) ui.offlineBanner.style.display = navigator.onLine ? 'none' : 'block'; if (!navigator.onLine) showToast('Jste offline. Některé funkce nemusí být dostupné.', 'warning'); }
-             function getInitials(userData) { /* ... (standard implementation) ... */ if (!userData) return '?'; const first = userData.first_name?.[0] || ''; const last = userData.last_name?.[0] || ''; const usernameInitial = userData.username?.[0] || ''; const emailInitial = userData.email?.[0] || ''; return (first + last).toUpperCase() || usernameInitial.toUpperCase() || emailInitial.toUpperCase() || '?'; }
-             function formatRelativeTime(timestamp) { /* ... (standard implementation) ... */ if (!timestamp) return ''; try { const now = new Date(); const date = new Date(timestamp); if (isNaN(date.getTime())) return '-'; const diffMs = now - date; const diffSec = Math.round(diffMs / 1000); const diffMin = Math.round(diffSec / 60); const diffHour = Math.round(diffMin / 60); const diffDay = Math.round(diffHour / 24); const diffWeek = Math.round(diffDay / 7); if (diffSec < 60) return 'Právě teď'; if (diffMin < 60) return `Před ${diffMin} min`; if (diffHour < 24) return `Před ${diffHour} h`; if (diffDay === 1) return `Včera`; if (diffDay < 7) return `Před ${diffDay} dny`; if (diffWeek <= 4) return `Před ${diffWeek} týdny`; return date.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric' }); } catch(e) { console.error("Chyba formátování času:", e, "Timestamp:", timestamp); return '-'; } }
+             function updateOnlineStatus() { /* ... implementation ... */ if (ui.offlineBanner) ui.offlineBanner.style.display = navigator.onLine ? 'none' : 'block'; if (!navigator.onLine) showToast('Jste offline. Některé funkce nemusí být dostupné.', 'warning'); }
+             function getInitials(userData) { /* ... implementation ... */ if (!userData) return '?'; const first = userData.first_name?.[0] || ''; const last = userData.last_name?.[0] || ''; const usernameInitial = userData.username?.[0] || ''; const emailInitial = userData.email?.[0] || ''; return (first + last).toUpperCase() || usernameInitial.toUpperCase() || emailInitial.toUpperCase() || '?'; }
+             function formatRelativeTime(timestamp) { /* ... implementation ... */ if (!timestamp) return ''; try { const now = new Date(); const date = new Date(timestamp); if (isNaN(date.getTime())) return '-'; const diffMs = now - date; const diffSec = Math.round(diffMs / 1000); const diffMin = Math.round(diffSec / 60); const diffHour = Math.round(diffMin / 60); const diffDay = Math.round(diffHour / 24); const diffWeek = Math.round(diffDay / 7); if (diffSec < 60) return 'Právě teď'; if (diffMin < 60) return `Před ${diffMin} min`; if (diffHour < 24) return `Před ${diffHour} h`; if (diffDay === 1) return `Včera`; if (diffDay < 7) return `Před ${diffDay} dny`; if (diffWeek <= 4) return `Před ${diffWeek} týdny`; return date.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric' }); } catch(e) { console.error("Chyba formátování času:", e, "Timestamp:", timestamp); return '-'; } }
              function openMenu() { if (ui.sidebar && ui.sidebarOverlay) { ui.sidebar.classList.add('active'); ui.sidebarOverlay.classList.add('active'); } }
              function closeMenu() { if (ui.sidebar && ui.sidebarOverlay) { ui.sidebar.classList.remove('active'); ui.sidebarOverlay.classList.remove('active'); } }
              function sanitizeHTML(str) { const temp = document.createElement('div'); temp.textContent = str || ''; return temp.innerHTML; }
-             function hexToRgb(hex) { let result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex); return result ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : null; }
-             // --- END: Helper Functions ---
+             function hexToRgb(hex) { /* ... implementation ... */ let result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex); return result ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : null; }
+            // --- END: Helper Functions ---
 
             // --- START: Loading State Functions ---
-            function showLoadingState(section) {
-                 switch(section) {
-                      case 'stats':
-                           if(ui.progressCard) ui.progressCard.classList.add('loading');
-                           if(ui.avgScoreCard) ui.avgScoreCard.classList.add('loading');
-                           if(ui.exercisesCard) ui.exercisesCard.classList.add('loading');
-                           if(ui.streakCard) ui.streakCard.classList.add('loading');
-                           break;
-                      case 'chart':
-                           if(ui.chartLoading) ui.chartLoading.classList.remove('hidden');
-                           if(ui.progressChartCanvas) ui.progressChartCanvas.style.opacity = '0.3';
-                           break;
-                      case 'table':
-                            if (ui.activitiesTable) ui.activitiesTable.style.display = 'none';
-                            if (ui.noActivities) ui.noActivities.style.display = 'none';
-                            // Show skeleton rows instead of a generic loader
-                            renderTableSkeleton(5); // Render 5 skeleton rows
-                            break;
-                 }
-            }
-            function hideLoadingState(section) {
-                  switch(section) {
-                      case 'stats':
-                            if(ui.progressCard) ui.progressCard.classList.remove('loading');
-                            if(ui.avgScoreCard) ui.avgScoreCard.classList.remove('loading');
-                            if(ui.exercisesCard) ui.exercisesCard.classList.remove('loading');
-                            if(ui.streakCard) ui.streakCard.classList.remove('loading');
-                            break;
-                      case 'chart':
-                            if(ui.chartLoading) ui.chartLoading.classList.add('hidden');
-                            if(ui.progressChartCanvas) ui.progressChartCanvas.style.opacity = '1';
-                            break;
-                      case 'table':
-                            if (ui.activitiesBody) ui.activitiesBody.querySelectorAll('.skeleton-table').forEach(row => row.remove()); // Remove skeletons
-                            // Visibility of table/empty state handled by render function
-                            break;
-                 }
-            }
-             function renderTableSkeleton(rowCount) {
-                 if (!ui.activitiesBody) return;
-                 ui.activitiesBody.innerHTML = ''; // Clear previous content
-                 for (let i = 0; i < rowCount; i++) {
-                     const row = ui.activitiesBody.insertRow();
-                     row.classList.add('skeleton-table');
-                     row.innerHTML = `
-                         <td><div class="skeleton w-40"></div></td>
-                         <td><div class="skeleton w-60"></div></td>
-                         <td><div class="skeleton w-30"></div></td>
-                         <td><div class="skeleton w-20"></div></td>
-                         <td><div class="skeleton w-30"></div></td>
-                     `;
-                 }
-                 if (ui.activitiesTable) ui.activitiesTable.style.display = 'table'; // Show table containing skeletons
-                 if (ui.noActivities) ui.noActivities.style.display = 'none';
-            }
+             function showLoadingState(section) { console.log(`[Loading] Show for: ${section}`); switch(section) { case 'stats': ['progressCard', 'avgScoreCard', 'exercisesCard', 'streakCard'].forEach(id => ui[id]?.classList.add('loading')); break; case 'chart': if(ui.chartLoading) ui.chartLoading.classList.remove('hidden'); if(ui.progressChartCanvas) ui.progressChartCanvas.style.opacity = '0.3'; break; case 'table': if(ui.activitiesTable) ui.activitiesTable.style.display = 'none'; if(ui.noActivities) ui.noActivities.style.display = 'none'; renderTableSkeleton(5); break; case 'notifications': /* Optional: Show spinner in dropdown */ break; } }
+             function hideLoadingState(section) { console.log(`[Loading] Hide for: ${section}`); switch(section) { case 'stats': ['progressCard', 'avgScoreCard', 'exercisesCard', 'streakCard'].forEach(id => ui[id]?.classList.remove('loading')); break; case 'chart': if(ui.chartLoading) ui.chartLoading.classList.add('hidden'); if(ui.progressChartCanvas) ui.progressChartCanvas.style.opacity = '1'; break; case 'table': if (ui.activitiesBody) ui.activitiesBody.querySelectorAll('.skeleton-table').forEach(row => row.remove()); break; case 'notifications': /* Optional: Hide spinner */ break; } }
+             function renderTableSkeleton(rowCount) { if (!ui.activitiesBody) return; ui.activitiesBody.innerHTML = ''; for (let i = 0; i < rowCount; i++) { const row = ui.activitiesBody.insertRow(); row.classList.add('skeleton-table'); row.innerHTML = `<td><div class="skeleton w-40"></div></td><td><div class="skeleton w-60"></div></td><td><div class="skeleton w-30"></div></td><td><div class="skeleton w-20"></div></td><td><div class="skeleton w-30"></div></td>`; } if (ui.activitiesTable) ui.activitiesTable.style.display = 'table'; if (ui.noActivities) ui.noActivities.style.display = 'none'; }
             // --- END: Loading State Functions ---
 
             // --- START: Data Loading Functions ---
             async function loadUserProfile(user) {
-                 console.log("[FUNC] loadUserProfile: Start");
-                 if (!user) { console.error("[FUNC] loadUserProfile: Missing user object."); return null; }
-                 try {
-                      console.log("[FUNC] loadUserProfile: Selecting profile columns...");
-                      const { data: profile, error } = await supabase
-                         .from('profiles')
-                         .select('id, email, username, first_name, last_name, avatar_url, points, streak_days, level, completed_exercises, average_score') // Include avg score if available
-                         .eq('id', user.id)
-                         .single();
-                      console.log("[FUNC] loadUserProfile: Supabase returned - Error:", error, "Data:", profile);
-                     if (error && error.code !== 'PGRST116') { throw error; }
-                     if (!profile) { console.warn("[FUNC] loadUserProfile: Profile not found, returning default."); return { id: user.id, email: user.email, username: user.email?.split('@')[0] || 'Uživatel', points: 0, streak_days: 0, level: 1, completed_exercises: 0, average_score: 0 }; }
-                     console.log("[FUNC] loadUserProfile: Success.");
-                     return profile;
-                 } catch (error) { console.error('[FUNC] loadUserProfile: Caught exception:', error); showToast('Chyba profilu', `Nepodařilo se načíst profil: ${error.message}`, 'error'); return null; }
-             }
+                console.log("[FUNC] loadUserProfile: Start");
+                if (!user) { console.error("[FUNC] loadUserProfile: Missing user object."); return null; }
+                try {
+                    console.log("[FUNC] loadUserProfile: Selecting specific profile columns...");
+                    const { data: profile, error } = await supabase
+                        .from('profiles')
+                        // *** OPTIMIZATION: Select only absolutely needed columns ***
+                        .select('id, email, username, first_name, last_name, avatar_url, points, streak_days, level, completed_exercises, average_score')
+                        .eq('id', user.id)
+                        .single();
+                    console.log("[FUNC] loadUserProfile: Supabase returned - Error:", error, "Data:", profile);
+                    if (error && error.code !== 'PGRST116') { throw error; }
+                    if (!profile) { console.warn("[FUNC] loadUserProfile: Profile not found, returning default."); return { id: user.id, email: user.email, username: user.email?.split('@')[0] || 'Uživatel', points: 0, streak_days: 0, level: 1, completed_exercises: 0, average_score: 0 }; }
+                    console.log("[FUNC] loadUserProfile: Success.");
+                    return profile;
+                } catch (error) { console.error('[FUNC] loadUserProfile: Caught exception:', error); showToast('Chyba profilu', `Nepodařilo se načíst profil: ${error.message}`, 'error'); return null; }
+            }
 
-             async function loadProgressSnapshots(userId, period = 'month') {
+            async function loadProgressSnapshots(userId, period = 'month') {
                  console.log(`[FUNC] loadProgressSnapshots: Start for user: ${userId}, period: ${period}`);
                  if (!userId) { console.error("[FUNC] loadProgressSnapshots: Missing user ID."); return []; }
+
+                 // Check cache first
+                 const cacheKey = `${userId}-${period}`;
+                 if (chartDataCache[cacheKey]) {
+                      console.log(`[FUNC] loadProgressSnapshots: Returning cached data for ${cacheKey}`);
+                      return chartDataCache[cacheKey];
+                 }
+
                  try {
-                     // Calculate start date based on period
                      const endDate = new Date();
                      let startDate = new Date();
+                      if (typeof dateFns === 'undefined') { throw new Error("date-fns library not loaded"); } // Check if library is loaded
                      switch (period) {
-                         case 'week': startDate.setDate(endDate.getDate() - 7); break;
-                         case 'month': startDate.setMonth(endDate.getMonth() - 1); break;
-                         case '3month': startDate.setMonth(endDate.getMonth() - 3); break;
-                         case 'year': startDate.setFullYear(endDate.getFullYear() - 1); break;
-                         default: startDate.setMonth(endDate.getMonth() - 1); // Default to month
+                         case 'week': startDate = dateFns.subDays(endDate, 7); break;
+                         case 'month': startDate = dateFns.subMonths(endDate, 1); break;
+                         case '3month': startDate = dateFns.subMonths(endDate, 3); break;
+                         case 'year': startDate = dateFns.subYears(endDate, 1); break;
+                         default: startDate = dateFns.subMonths(endDate, 1);
                      }
-                     const startDateString = startDate.toISOString().split('T')[0];
-                     const endDateString = endDate.toISOString().split('T')[0];
+                     const startDateString = dateFns.formatISO(startDate, { representation: 'date' });
+                     const endDateString = dateFns.formatISO(endDate, { representation: 'date' });
                      console.log(`[FUNC] loadProgressSnapshots: Date range: ${startDateString} to ${endDateString}`);
 
                      console.log("[FUNC] loadProgressSnapshots: Calling Supabase progress_snapshots select...");
-                     // **POSSIBLE ISSUE**: Does 'progress_snapshots' table exist and have RLS?
-                     // **OPTIMIZATION**: Select only needed columns. Ensure index on (user_id, snapshot_date)
+                     // *** OPTIMIZATION: Select only needed columns & ensure index on (user_id, snapshot_date) ***
                      const { data, error } = await supabase
                          .from('progress_snapshots')
-                         .select('snapshot_date, overall_progress, points_total') // Select columns needed for chart
+                         .select('snapshot_date, overall_progress') // Only need these for the main chart
                          .eq('user_id', userId)
                          .gte('snapshot_date', startDateString)
                          .lte('snapshot_date', endDateString)
@@ -515,58 +432,48 @@
 
                      console.log("[FUNC] loadProgressSnapshots: Supabase returned - Error:", error, "Data:", data);
                      if (error) throw error;
-                     console.log(`[FUNC] loadProgressSnapshots: Success, ${data?.length ?? 0} snapshots found.`);
-                     return data || [];
-                 } catch (error) {
-                     console.error('[FUNC] loadProgressSnapshots: Caught exception:', error);
-                     showToast('Chyba historie pokroku', `Nepodařilo se načíst data pro graf: ${error.message}`, 'error');
-                     return []; // Return empty on error
-                 }
+                     const snapshots = data || [];
+                      console.log(`[FUNC] loadProgressSnapshots: Success, ${snapshots.length} snapshots found.`);
+                     // Store in cache
+                     chartDataCache[cacheKey] = snapshots;
+                     return snapshots;
+                 } catch (error) { console.error('[FUNC] loadProgressSnapshots: Caught exception:', error); showToast('Chyba historie pokroku', `Nepodařilo se načíst data pro graf: ${error.message}`, 'error'); return []; }
              }
 
-             async function loadRecentActivities(userId) {
+            async function loadRecentActivities(userId) {
                  console.log("[FUNC] loadRecentActivities: Start for user:", userId);
-                  if (!userId) { console.error("[FUNC] loadRecentActivities: Missing user ID."); return []; }
+                 if (!userId) { console.error("[FUNC] loadRecentActivities: Missing user ID."); return []; }
                  try {
-                      console.log("[FUNC] loadRecentActivities: Calling Supabase select...");
-                     // **POSSIBLE ISSUE**: Does 'activities' or maybe 'test_results'/'user_badges' make more sense here?
-                     // Let's assume 'progress_snapshots' might also represent daily/weekly milestones
+                     console.log("[FUNC] loadRecentActivities: Calling Supabase select (snapshots)...");
+                     // *** Using snapshots table for demo, adjust if you have a better activity source ***
+                     // *** OPTIMIZATION: Select only needed columns & ensure index on (user_id, snapshot_date) ***
                      const { data, error } = await supabase
-                         .from('progress_snapshots') // Fetching from snapshots for table demo
-                         .select('snapshot_date, overall_progress, points_total, created_at')
+                         .from('progress_snapshots')
+                         .select('snapshot_date, overall_progress, points_total') // Fetch relevant snapshot data
                          .eq('user_id', userId)
                          .order('snapshot_date', { ascending: false })
-                         .limit(10); // Limit for recent items
+                         .limit(10);
                      console.log("[FUNC] loadRecentActivities: Supabase returned - Error:", error, "Data:", data);
                      if (error) throw error;
                      return data || [];
-                 } catch (error) {
-                     console.error('[FUNC] loadRecentActivities: Caught exception:', error);
-                     showToast('Chyba aktivit', `Nepodařilo se načíst nedávné záznamy: ${error.message}`, 'error');
-                     return [];
-                 }
+                 } catch (error) { console.error('[FUNC] loadRecentActivities: Caught exception:', error); showToast('Chyba aktivit', `Nepodařilo se načíst nedávné záznamy: ${error.message}`, 'error'); return []; }
              }
 
-             // --- Notification Functions (Copied from dashboard.html) ---
-             async function loadNotifications(userId) { /* ... implementation ... */ console.log("[FUNC] loadNotifications: Start for user:", userId); if (!userId) { console.error("[FUNC] loadNotifications: Missing user ID."); return { unreadCount: 0, notifications: [] }; } try { console.log("[FUNC] loadNotifications: Calling Supabase user_notifications select (specific cols)..."); const { data, error } = await supabase .from('user_notifications') .select('id, title, message, icon, type, is_read, created_at, link', { count: 'exact' }) .eq('user_id', userId) .order('created_at', { ascending: false }) .limit(10); const { count: unreadCount, error: countError } = await supabase .from('user_notifications') .select('*', { count: 'exact', head: true }) .eq('user_id', userId) .eq('is_read', false); console.log("[FUNC] loadNotifications: Supabase returned - Error:", error, "Data:", data, "Unread Count:", unreadCount); if (error || countError) throw error || countError; if (!data || data.length === 0) { console.log("[FUNC] loadNotifications: No notifications found, adding welcome message."); return { unreadCount: 1, notifications: [ { id: 'welcome', title: 'Vítejte v Justax!', message: 'Jsme rádi, že jste se připojili. Prozkoumejte možnosti platformy.', icon: 'fa-hands-helping', type: 'info', is_read: false, created_at: new Date().toISOString(), link: '/dashboard/procvicovani/main.html' } ] }; } return { unreadCount: unreadCount ?? 0, notifications: data || [] }; } catch (error) { console.error("[FUNC] loadNotifications: Caught exception:", error); showToast('Chyba oznámení', `Nepodařilo se načíst oznámení: ${error.message}`, 'error'); return { unreadCount: 0, notifications: [] }; } }
-             function renderNotifications(count, notifications) { /* ... implementation ... */ console.log("[FUNC] renderNotifications: Start, Count:", count, "Notifications:", notifications); if (!ui.notificationCount || !ui.notificationsList || !ui.noNotificationsMsg || !ui.markAllReadBtn) { console.error("[FUNC] renderNotifications: Missing UI elements."); return; } ui.notificationCount.textContent = count > 9 ? '9+' : count; ui.notificationCount.classList.toggle('visible', count > 0); ui.markAllReadBtn.disabled = (count === 0); if (notifications && notifications.length > 0) { ui.notificationsList.innerHTML = notifications.map(n => { const iconClass = n.icon || 'fa-info-circle'; const typeClass = n.type || 'info'; const isReadClass = n.is_read ? 'is-read' : ''; const linkAttr = n.link ? `data-link="${sanitizeHTML(n.link)}"` : ''; return `<div class="notification-item ${isReadClass}" data-id="${n.id}" ${linkAttr} title="${n.is_read ? 'Přečteno' : 'Nepřečteno'} - ${sanitizeHTML(n.message)}"> ${!n.is_read ? '<span class="unread-dot"></span>' : ''} <div class="notification-icon ${typeClass}"> <i class="fas ${iconClass}"></i> </div> <div class="notification-content"> <div class="notification-title">${sanitizeHTML(n.title)}</div> <div class="notification-message">${sanitizeHTML(n.message)}</div> <div class="notification-time">${formatRelativeTime(n.created_at)}</div> </div> </div>`; }).join(''); ui.noNotificationsMsg.style.display = 'none'; ui.notificationsList.style.display = 'block'; } else { ui.notificationsList.innerHTML = ''; ui.noNotificationsMsg.style.display = 'block'; ui.notificationsList.style.display = 'none'; } console.log("[FUNC] renderNotifications: Success"); }
-             async function markNotificationRead(notificationId) { /* ... implementation ... */ console.log("[FUNC] markNotificationRead: Marking ID:", notificationId); if (!currentUser || !notificationId || notificationId === 'welcome') return false; try { const { error } = await supabase .from('user_notifications') .update({ is_read: true }) .eq('user_id', currentUser.id) .eq('id', notificationId); if (error) throw error; console.log("[FUNC] markNotificationRead: Success for ID:", notificationId); return true; } catch (error) { console.error("[FUNC] markNotificationRead: Error:", error); showToast('Chyba', 'Nepodařilo se označit oznámení jako přečtené.', 'error'); return false; } }
-             async function markAllNotificationsRead() { /* ... implementation ... */ console.log("[FUNC] markAllNotificationsRead: Start for user:", currentUser?.id); if (!currentUser) return; ui.markAllReadBtn.disabled = true; ui.markAllReadBtn.textContent = 'Označuji...'; try { const { error } = await supabase .from('user_notifications') .update({ is_read: true }) .eq('user_id', currentUser.id) .eq('is_read', false); if (error) throw error; console.log("[FUNC] markAllNotificationsRead: Success"); const { unreadCount, notifications } = await loadNotifications(currentUser.id); renderNotifications(unreadCount, notifications); showToast('Oznámení označena', 'Všechna oznámení byla označena jako přečtená.', 'success'); } catch (error) { console.error("[FUNC] markAllNotificationsRead: Error:", error); showToast('Chyba', 'Nepodařilo se označit všechna oznámení.', 'error'); } finally { ui.markAllReadBtn.disabled = false; ui.markAllReadBtn.textContent = 'Označit vše jako přečtené'; } }
-             // --- END: Notification Functions ---
+            // --- Notification Functions (Same as dashboard.html) ---
+            async function loadNotifications(userId) { /* ... implementation ... */ console.log("[FUNC] loadNotifications: Start for user:", userId); if (!userId) { console.error("[FUNC] loadNotifications: Missing user ID."); return { unreadCount: 0, notifications: [] }; } try { console.log("[FUNC] loadNotifications: Calling Supabase user_notifications select (specific cols)..."); const { data, error } = await supabase .from('user_notifications') .select('id, title, message, icon, type, is_read, created_at, link', { count: 'exact' }) .eq('user_id', userId) .order('created_at', { ascending: false }) .limit(10); const { count: unreadCount, error: countError } = await supabase .from('user_notifications') .select('*', { count: 'exact', head: true }) .eq('user_id', userId) .eq('is_read', false); console.log("[FUNC] loadNotifications: Supabase returned - Error:", error, "Data:", data, "Unread Count:", unreadCount); if (error || countError) throw error || countError; if (!data || data.length === 0) { console.log("[FUNC] loadNotifications: No notifications found, adding welcome message."); return { unreadCount: 1, notifications: [ { id: 'welcome', title: 'Vítejte v Justax!', message: 'Toto jsou vaše statistiky pokroku.', icon: 'fa-chart-line', type: 'info', is_read: false, created_at: new Date().toISOString(), link: null } ] }; } return { unreadCount: unreadCount ?? 0, notifications: data || [] }; } catch (error) { console.error("[FUNC] loadNotifications: Caught exception:", error); showToast('Chyba oznámení', `Nepodařilo se načíst oznámení: ${error.message}`, 'error'); return { unreadCount: 0, notifications: [] }; } }
+            function renderNotifications(count, notifications) { /* ... implementation ... */ console.log("[FUNC] renderNotifications: Start, Count:", count, "Notifications:", notifications); if (!ui.notificationCount || !ui.notificationsList || !ui.noNotificationsMsg || !ui.markAllReadBtn) { console.error("[FUNC] renderNotifications: Missing UI elements."); return; } ui.notificationCount.textContent = count > 9 ? '9+' : count; ui.notificationCount.classList.toggle('visible', count > 0); ui.markAllReadBtn.disabled = (count === 0); const skeleton = ui.notificationsList.querySelector('.notification-item-skeleton'); if (skeleton) skeleton.style.display = 'none'; if (notifications && notifications.length > 0) { ui.notificationsList.innerHTML = notifications.map(n => { const iconClass = n.icon || 'fa-info-circle'; const typeClass = n.type || 'info'; const isReadClass = n.is_read ? 'is-read' : ''; const linkAttr = n.link ? `data-link="${sanitizeHTML(n.link)}"` : ''; return `<div class="notification-item ${isReadClass}" data-id="${n.id}" ${linkAttr} title="${n.is_read ? 'Přečteno' : 'Nepřečteno'} - ${sanitizeHTML(n.message)}"> ${!n.is_read ? '<span class="unread-dot"></span>' : ''} <div class="notification-icon ${typeClass}"> <i class="fas ${iconClass}"></i> </div> <div class="notification-content"> <div class="notification-title">${sanitizeHTML(n.title)}</div> <div class="notification-message">${sanitizeHTML(n.message)}</div> <div class="notification-time">${formatRelativeTime(n.created_at)}</div> </div> </div>`; }).join(''); ui.noNotificationsMsg.style.display = 'none'; ui.notificationsList.style.display = 'block'; } else { ui.notificationsList.innerHTML = ''; ui.noNotificationsMsg.style.display = 'block'; ui.notificationsList.style.display = 'none'; } console.log("[FUNC] renderNotifications: Success"); }
+            async function markNotificationRead(notificationId) { /* ... implementation ... */ console.log("[FUNC] markNotificationRead: Marking ID:", notificationId); if (!currentUser || !notificationId || notificationId === 'welcome') return false; try { const { error } = await supabase .from('user_notifications') .update({ is_read: true }) .eq('user_id', currentUser.id) .eq('id', notificationId); if (error) throw error; console.log("[FUNC] markNotificationRead: Success for ID:", notificationId); return true; } catch (error) { console.error("[FUNC] markNotificationRead: Error:", error); showToast('Chyba', 'Nepodařilo se označit oznámení jako přečtené.', 'error'); return false; } }
+            async function markAllNotificationsRead() { /* ... implementation ... */ console.log("[FUNC] markAllNotificationsRead: Start for user:", currentUser?.id); if (!currentUser) return; ui.markAllReadBtn.disabled = true; ui.markAllReadBtn.textContent = 'Označuji...'; try { const { error } = await supabase .from('user_notifications') .update({ is_read: true }) .eq('user_id', currentUser.id) .eq('is_read', false); if (error) throw error; console.log("[FUNC] markAllNotificationsRead: Success"); const { unreadCount, notifications } = await loadNotifications(currentUser.id); renderNotifications(unreadCount, notifications); showToast('Oznámení označena', 'Všechna oznámení byla označena jako přečtená.', 'success'); } catch (error) { console.error("[FUNC] markAllNotificationsRead: Error:", error); showToast('Chyba', 'Nepodařilo se označit všechna oznámení.', 'error'); } finally { ui.markAllReadBtn.disabled = false; ui.markAllReadBtn.textContent = 'Označit vše jako přečtené'; } }
+            // --- END: Notification Functions ---
+            // --- END: Data Loading Functions ---
 
             // --- START: UI Update Functions ---
-            function updateSidebarProfile(userData) { /* ... (implementation from previous version) ... */ console.log("[FUNC] updateSidebarProfile: Start, data:", userData); if (!userData || !ui.sidebarName || !ui.sidebarAvatar) { console.warn("[FUNC] updateSidebarProfile: Missing elements or data."); if(ui.sidebarName) ui.sidebarName.textContent = "Uživatel"; if(ui.sidebarAvatar) ui.sidebarAvatar.textContent = "?"; return; } const displayName = `${userData.first_name || ''} ${userData.last_name || ''}`.trim() || userData.username || 'Uživatel'; ui.sidebarName.textContent = displayName; if (userData.avatar_url) { ui.sidebarAvatar.innerHTML = `<img src="${userData.avatar_url}" alt="${displayName}" />`; } else { ui.sidebarAvatar.textContent = getInitials(userData); } }
+            function updateSidebarProfile(userData) { /* ... implementation ... */ console.log("[FUNC] updateSidebarProfile: Start, data:", userData); if (!userData || !ui.sidebarName || !ui.sidebarAvatar) { console.warn("[FUNC] updateSidebarProfile: Missing elements or data."); if(ui.sidebarName) ui.sidebarName.textContent = "Uživatel"; if(ui.sidebarAvatar) ui.sidebarAvatar.textContent = "?"; return; } const displayName = `${userData.first_name || ''} ${userData.last_name || ''}`.trim() || userData.username || 'Uživatel'; ui.sidebarName.textContent = displayName; if (userData.avatar_url) { ui.sidebarAvatar.innerHTML = `<img src="${userData.avatar_url}" alt="${displayName}" />`; } else { ui.sidebarAvatar.textContent = getInitials(userData); } }
 
             function updateStatsCards(profileData) {
-                console.log("[FUNC] updateStatsCards: Start, profileData:", profileData);
-                const cards = {
-                    progress: ui.progressCard,
-                    avgScore: ui.avgScoreCard,
-                    exercises: ui.exercisesCard,
-                    streak: ui.streakCard
-                };
+                 console.log("[FUNC] updateStatsCards: Start, profileData:", profileData);
+                 const cards = { progress: ui.progressCard, avgScore: ui.avgScoreCard, exercises: ui.exercisesCard, streak: ui.streakCard };
 
-                 // Function to render a card's content or its error state
                  const renderCard = (card, value, unit, description, error = false) => {
                      if (!card) return;
                      card.classList.remove('loading');
@@ -574,188 +481,142 @@
                      const skeletonEl = card.querySelector('.loading-skeleton');
                      if (skeletonEl) skeletonEl.style.display = 'none';
                      if (contentEl) {
-                         contentEl.style.visibility = 'visible';
-                         if (error) {
-                             contentEl.innerHTML = `<div class="card-error-state"><i class="fas fa-exclamation-triangle"></i>Chyba</div>`;
-                         } else {
-                             const valueEl = contentEl.querySelector('.stats-card-value');
-                             const descEl = contentEl.querySelector('.stats-card-description');
-                             if (valueEl) valueEl.innerHTML = `${value ?? '-'}${unit ? `<span class="unit">${unit}</span>` : ''}`;
-                             if (descEl) descEl.textContent = description ?? '';
+                         contentEl.style.visibility = 'visible'; // Make sure content is visible
+                         if (error) { contentEl.innerHTML = `<div class="card-error-state"><i class="fas fa-exclamation-triangle"></i>Chyba</div>`; }
+                         else {
+                              // Restore original content structure if it was replaced by error message
+                              if (!contentEl.querySelector('.stats-card-info')) {
+                                   contentEl.innerHTML = `
+                                        <div class="stats-card-info">
+                                             <div class="stats-card-title"><i class="${card.dataset.icon || 'fas fa-question-circle'}"></i>${card.dataset.title || ''}</div>
+                                             <div class="stats-card-value">-<span class="unit"></span></div>
+                                             <div class="stats-card-description"></div>
+                                        </div>`;
+                              }
+                              const valueEl = contentEl.querySelector('.stats-card-value');
+                              const descEl = contentEl.querySelector('.stats-card-description');
+                              if (valueEl) valueEl.innerHTML = `${value ?? '-'}${unit ? `<span class="unit">${unit}</span>` : ''}`;
+                              if (descEl) descEl.textContent = description ?? '';
                          }
                      }
                  };
 
-                 if (!profileData) {
-                     console.warn("[FUNC] updateStatsCards: No profile data, rendering error state for all cards.");
-                     renderCard(ui.progressCard, null, null, null, true);
-                     renderCard(ui.avgScoreCard, null, null, null, true);
-                     renderCard(ui.exercisesCard, null, null, null, true);
-                     renderCard(ui.streakCard, null, null, null, true);
-                     return;
-                 }
+                 if (!profileData) { console.warn("[FUNC] updateStatsCards: No profile data, rendering error state."); renderCard(ui.progressCard, null, null, null, true); renderCard(ui.avgScoreCard, null, null, null, true); renderCard(ui.exercisesCard, null, null, null, true); renderCard(ui.streakCard, null, null, null, true); return; }
 
-                // Use profileData directly for current values
+                 // Assign dataset attributes for error recovery
+                 if(ui.progressCard) { ui.progressCard.dataset.icon = 'fas fa-tasks'; ui.progressCard.dataset.title = 'Celkový Pokrok'; }
+                 if(ui.avgScoreCard) { ui.avgScoreCard.dataset.icon = 'fas fa-star-half-alt'; ui.avgScoreCard.dataset.title = 'Prům. Skóre'; }
+                 if(ui.exercisesCard) { ui.exercisesCard.dataset.icon = 'fas fa-pencil-alt'; ui.exercisesCard.dataset.title = 'Dokonč. Cvičení'; }
+                 if(ui.streakCard) { ui.streakCard.dataset.icon = 'fas fa-fire'; ui.streakCard.dataset.title = 'Série Dnů'; }
+
                  renderCard(ui.progressCard, profileData.overall_progress ?? 0, '%', 'Celková úspěšnost');
                  renderCard(ui.avgScoreCard, profileData.average_score ?? 0, '%', 'Průměr z testů');
                  renderCard(ui.exercisesCard, profileData.completed_exercises ?? 0, '', 'Dokončených cvičení');
-                 renderCard(ui.streakCard, profileData.streak_days ?? 0, '', 'Aktuální série');
+                 renderCard(ui.streakCard, profileData.streak_days ?? 0, '', 'Aktuální série studia');
 
                  console.log("[FUNC] updateStatsCards: Success");
             }
 
             function updateChart(snapshots) {
                  console.log("[FUNC] updateChart: Start, snapshots count:", snapshots?.length);
-                 if (!ui.progressChartCanvas) { console.error("Canvas element not found."); return; }
+                 if (!ui.progressChartCanvas) { console.error("Canvas element #progressChart not found."); hideLoadingState('chart'); return; }
+                 const container = ui.chartContainerParent;
+                 if (!container) { console.error("Parent container #chart-container-parent not found."); hideLoadingState('chart'); return; }
+
+                 // Always hide loader first
                  hideLoadingState('chart');
 
-                 if (!snapshots || snapshots.length < 2) { // Need at least 2 points to draw a meaningful line
-                      console.log("[FUNC] updateChart: Not enough data for chart.");
-                       if (progressChart) progressChart.destroy(); // Destroy previous chart if exists
-                       progressChart = null;
-                       // Show empty state message in chart container
-                       const container = ui.progressChartCanvas.parentNode;
-                       container.innerHTML = '<canvas id="progressChart"></canvas><div class="empty-state" style="position: absolute; top:0; left:0; right:0; bottom: 0; background: var(--card-bg); border-radius: var(--card-radius); display: flex; flex-direction: column; justify-content: center; align-items: center;"><i class="fas fa-chart-line"></i><h3>Nedostatek dat</h3><p>Nemáme dostatek historie pro zobrazení grafu.</p></div>';
-                       return;
+                 // Remove previous empty/error state if exists
+                 const existingMessage = container.querySelector('.empty-state, .card-error-state');
+                 if (existingMessage) existingMessage.remove();
+                 // Ensure canvas is visible
+                 ui.progressChartCanvas.style.display = 'block';
+
+
+                 if (!snapshots || snapshots.length < 2) {
+                     console.log("[FUNC] updateChart: Not enough data for chart.");
+                     if (progressChart) { progressChart.destroy(); progressChart = null; }
+                     // Show empty state message INSTEAD of the canvas
+                     ui.progressChartCanvas.style.display = 'none'; // Hide canvas
+                     container.insertAdjacentHTML('beforeend', '<div class="empty-state"><i class="fas fa-chart-line"></i><h3>Nedostatek dat</h3><p>Nemáme dostatek historie pro zobrazení grafu.</p></div>');
+                     return;
                  }
 
-                 // Ensure canvas exists if it was replaced by empty state
-                  if (!document.getElementById('progressChart')) {
-                       const container = document.getElementById('chart-container'); // Assuming chart-container ID exists
-                       if(container) container.innerHTML = '<canvas id="progressChart"></canvas>';
-                       ui.progressChartCanvas = document.getElementById('progressChart');
-                       if(!ui.progressChartCanvas) { console.error("Failed to recreate canvas."); return; }
-                  }
+                 // Prepare data
+                 const labels = snapshots.map(s => {
+                     try { return dateFns.format(dateFns.parseISO(s.snapshot_date), 'd.M', { locale: dateFns.locale.cs }); }
+                     catch(e) { console.warn("Date parsing error:", e); return '?';}
+                 });
+                 const progressData = snapshots.map(s => s.overall_progress ?? null);
 
+                 const chartData = { labels: labels, datasets: [{ label: 'Celkový Pokrok (%)', data: progressData, borderColor: 'var(--primary)', backgroundColor: `rgba(${hexToRgb(getComputedStyle(document.documentElement).getPropertyValue('--primary').trim())}, 0.1)`, fill: true, tension: 0.3, borderWidth: 2.5, pointBackgroundColor: 'var(--primary)', pointBorderColor: 'var(--card-bg)', pointBorderWidth: 2, pointRadius: 4, pointHoverRadius: 6, spanGaps: true }] };
 
-                 // Prepare data for Chart.js
-                  const labels = snapshots.map(s => {
-                       try { return dateFns.format(dateFns.parseISO(s.snapshot_date), 'd.M', { locale: dateFns.locale.cs }); }
-                       catch(e) { console.warn("Date parsing error:", e); return '?';}
-                  });
-                 const progressData = snapshots.map(s => s.overall_progress ?? null); // Use null for missing data points
-
-                 const chartData = {
-                     labels: labels,
-                     datasets: [{
-                         label: 'Celkový Pokrok (%)',
-                         data: progressData,
-                         borderColor: 'var(--primary)',
-                         backgroundColor: `rgba(${hexToRgb(getComputedStyle(document.documentElement).getPropertyValue('--primary').trim())}, 0.1)`,
-                         fill: true,
-                         tension: 0.3,
-                         borderWidth: 2.5, // Thicker line
-                         pointBackgroundColor: 'var(--primary)',
-                         pointBorderColor: 'var(--card-bg)', // Match card background
-                         pointBorderWidth: 2,
-                         pointRadius: 4,
-                         pointHoverRadius: 6,
-                         spanGaps: true // Connect points across null values
-                     }]
-                 };
-
-                 // Chart.js configuration
+                 // Config
                  const isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-                 const gridColor = isDarkMode ? 'rgba(75, 85, 99, 0.3)' : 'rgba(229, 231, 235, 0.7)'; // Adjust grid color for dark/light
+                 const gridColor = isDarkMode ? 'rgba(75, 85, 99, 0.2)' : 'rgba(229, 231, 235, 0.5)';
                  const textColor = isDarkMode ? 'var(--text-muted)' : 'var(--text-secondary)';
                  const tooltipBg = isDarkMode ? '#374151' : '#ffffff';
                  const tooltipText = isDarkMode ? '#e5e7eb' : '#1f2937';
 
-                 const config = {
-                     type: 'line',
-                     data: chartData,
-                     options: {
-                         responsive: true,
-                         maintainAspectRatio: false,
-                         plugins: {
-                             legend: { display: false },
-                             tooltip: {
-                                 mode: 'index', intersect: false,
-                                 backgroundColor: tooltipBg, titleColor: tooltipText, bodyColor: tooltipText,
-                                 borderColor: 'var(--border-color)', borderWidth: 1, padding: 10,
-                                 boxPadding: 4, usePointStyle: true,
-                                 callbacks: { label: (context) => `Pokrok: ${context.parsed.y ?? 'N/A'}%` }
-                             }
-                         },
-                         scales: {
-                             y: { beginAtZero: true, max: 100, grid: { color: gridColor }, ticks: { color: textColor, padding: 10, callback: (value) => `${value}%` } },
-                             x: { grid: { display: false }, ticks: { color: textColor, maxRotation: 45, minRotation: 45, padding: 10 } }
-                         },
-                         interaction: { mode: 'nearest', axis: 'x', intersect: false },
-                         elements: { line: { segment: { borderDash: (ctx) => ctx.p0.skip || ctx.p1.skip ? [6, 6] : undefined, } } } // Dashed line for gaps
-                     }
-                 };
+                 const config = { type: 'line', data: chartData, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { mode: 'index', intersect: false, backgroundColor: tooltipBg, titleColor: tooltipText, bodyColor: tooltipText, borderColor: 'var(--border-color)', borderWidth: 1, padding: 10, boxPadding: 4, usePointStyle: true, callbacks: { label: (context) => `Pokrok: ${context.parsed.y ?? 'N/A'}%` } } }, scales: { y: { beginAtZero: true, max: 100, grid: { color: gridColor }, ticks: { color: textColor, padding: 10, callback: (value) => `${value}%` } }, x: { grid: { display: false }, ticks: { color: textColor, maxRotation: 45, minRotation: 45, padding: 10 } } }, interaction: { mode: 'nearest', axis: 'x', intersect: false }, elements: { line: { segment: { borderDash: (ctx) => ctx.p0.skip || ctx.p1.skip ? [6, 6] : undefined, } } } } };
 
                  // Create or update chart
-                 if (progressChart) {
-                     progressChart.data.labels = labels;
-                     progressChart.data.datasets[0].data = progressData;
-                     progressChart.options.scales.x.ticks.color = textColor; // Update colors on redraw
-                     progressChart.options.scales.y.ticks.color = textColor;
-                     progressChart.options.scales.y.grid.color = gridColor;
-                     progressChart.options.plugins.tooltip.backgroundColor = tooltipBg;
-                     progressChart.options.plugins.tooltip.titleColor = tooltipText;
-                     progressChart.options.plugins.tooltip.bodyColor = tooltipText;
-                     progressChart.update();
-                 } else {
-                     if (ui.progressChartCanvas) {
-                          progressChart = new Chart(ui.progressChartCanvas.getContext('2d'), config);
-                     }
-                 }
-                  console.log("[FUNC] updateChart: Success");
+                 if (progressChart) { progressChart.data = chartData; progressChart.options.scales.x.ticks.color = textColor; progressChart.options.scales.y.ticks.color = textColor; progressChart.options.scales.y.grid.color = gridColor; progressChart.options.plugins.tooltip.backgroundColor = tooltipBg; progressChart.options.plugins.tooltip.titleColor = tooltipText; progressChart.options.plugins.tooltip.bodyColor = tooltipText; progressChart.update(); }
+                 else { if (ui.progressChartCanvas) { progressChart = new Chart(ui.progressChartCanvas.getContext('2d'), config); } }
+                 console.log("[FUNC] updateChart: Success");
             }
 
-            function renderActivityHistory(activities) {
+             function renderActivityHistory(activities) {
                  console.log("[FUNC] renderActivityHistory: Start, activities count:", activities?.length);
                  if (!ui.activitiesBody || !ui.activitiesTable || !ui.noActivities) return;
                  hideLoadingState('table'); // Hides skeleton here
                  ui.activitiesBody.innerHTML = ''; // Clear previous content
 
-                 if (!activities || activities.length === 0) {
+                 if (!activities) { // Handle null case (error during fetch)
+                      ui.activitiesTable.style.display = 'none';
+                      ui.noActivities.style.display = 'flex'; // Use flex for alignment
+                      ui.noActivities.innerHTML = `<div class="list-error-state"><i class="fas fa-exclamation-triangle"></i>Chyba načítání historie.</div>`;
+                      console.log("[FUNC] renderActivityHistory: Rendering error state (null data).");
+                      if(ui.exportBtn) ui.exportBtn.disabled = true;
+                      return;
+                 }
+                 if (activities.length === 0) { // Handle empty array case
                      ui.activitiesTable.style.display = 'none';
-                     ui.noActivities.style.display = 'flex'; // Show empty state message
+                     ui.noActivities.style.display = 'flex';
+                     ui.noActivities.innerHTML = `<i class="fas fa-folder-open"></i><h3>Žádná historie pokroku</h3><p>Zatím nemáme zaznamenány žádné údaje.</p>`; // Restore original empty state message
                      console.log("[FUNC] renderActivityHistory: No activities found, showing empty state.");
-                     if(ui.exportBtn) ui.exportBtn.disabled = true; // Disable export if no data
+                     if(ui.exportBtn) ui.exportBtn.disabled = true;
                      return;
                  }
 
-                 ui.activitiesTable.style.display = 'table'; // Show table
-                 ui.noActivities.style.display = 'none'; // Hide empty state
-                 if(ui.exportBtn) ui.exportBtn.disabled = false; // Enable export
+                 ui.activitiesTable.style.display = 'table';
+                 ui.noActivities.style.display = 'none';
+                 if(ui.exportBtn) ui.exportBtn.disabled = false;
 
-                 let previousProgress = null; // To calculate difference
+                 let previousProgress = activities[activities.length - 1]?.overall_progress ?? null; // Start comparison from the oldest fetched record
 
-                 activities.forEach((activity, index) => {
-                     const row = ui.activitiesBody.insertRow();
+                 activities.slice().reverse().forEach((activity) => { // Iterate from oldest to newest to calculate change correctly
+                     const row = ui.activitiesBody.insertRow(0); // Insert at the top to maintain descending order visually
                      const formattedDate = activity.snapshot_date ? dateFns.format(dateFns.parseISO(activity.snapshot_date), 'd. M. yyyy', { locale: dateFns.locale.cs }) : '-';
 
                      let progressChangeText = '-';
                      let progressChangeClass = '';
                      if (previousProgress !== null && activity.overall_progress !== null) {
                          const change = activity.overall_progress - previousProgress;
-                         if (change > 0) {
-                             progressChangeText = `+${change}%`;
-                             progressChangeClass = 'positive';
-                         } else if (change < 0) {
-                             progressChangeText = `${change}%`;
-                             progressChangeClass = 'negative';
+                         if (change !== 0) { // Show change only if it's non-zero
+                              progressChangeText = `${change > 0 ? '+' : ''}${change}%`;
+                              progressChangeClass = change > 0 ? 'positive' : 'negative';
                          } else {
-                              progressChangeText = `0%`;
+                              progressChangeText = `0%`; // Explicitly show 0% change
                          }
                      }
-                     previousProgress = activity.overall_progress; // Update for next iteration
+                     previousProgress = activity.overall_progress; // Update previous progress for the next (older) item
 
-                     // Simple description based on snapshot data
                      const description = `Denní snímek pokroku`;
-
-                     // Status based on progress
                      let statusText = 'Zaznamenáno';
                      let statusClass = 'in-progress';
-                     if (activity.overall_progress !== null && activity.overall_progress >= 95) {
-                         statusText = 'Vynikající'; statusClass = 'completed';
-                     } else if (activity.overall_progress !== null && activity.overall_progress < 30) {
-                         statusText = 'Nutné zlepšení'; statusClass = 'failed';
-                     }
+                      if (activity.overall_progress !== null && activity.overall_progress >= 95) { statusText = 'Vynikající'; statusClass = 'completed'; }
+                      else if (activity.overall_progress !== null && activity.overall_progress < 30) { statusText = 'Nutné zlepšení'; statusClass = 'failed'; }
 
                      row.innerHTML = `
                          <td>${formattedDate}</td>
@@ -773,158 +634,53 @@
             async function loadPageData(period = 'month') {
                 if (isLoadingData) { console.warn("[MAIN] loadPageData: Already loading."); return; }
                 isLoadingData = true;
-                lastLoadedPeriod = period; // Store the period for refresh
+                lastLoadedPeriod = period;
                 if (!currentUser) { showError("Chyba: Nelze načíst data bez přihlášeného uživatele."); isLoadingData = false; return; }
                 console.log(`[MAIN] loadPageData: Start for user: ${currentUser.id}, period: ${period}`);
                 hideError();
-                showLoadingState('stats');
-                showLoadingState('chart');
-                showLoadingState('table');
+                showLoadingState('stats'); showLoadingState('chart'); showLoadingState('table');
                 if(ui.refreshDataBtn) ui.refreshDataBtn.classList.add('loading');
-                if(ui.exportBtn) ui.exportBtn.disabled = true; // Disable export during load
+                if(ui.exportBtn) ui.exportBtn.disabled = true;
 
                 try {
-                    // Load profile first (needed for stats fallbacks)
+                    console.log("[MAIN] loadPageData: Loading profile...");
                     currentProfile = await loadUserProfile(currentUser);
                     if (!currentProfile) { throw new Error("Nepodařilo se načíst profil."); }
-                    updateSidebarProfile(currentProfile); // Update sidebar ASAP
-                    updateStatsCards(currentProfile); // Update stats cards with current profile data
+                    updateSidebarProfile(currentProfile);
+                    updateStatsCards(currentProfile); // Update stats immediately with profile data
 
-                    // Load historical data and recent activities
-                    const [snapshots, recentActivities] = await Promise.all([
-                         loadProgressSnapshots(currentUser.id, period).catch(err => { console.error("Error loading snapshots:", err); return null; }), // Handle error
-                         loadRecentActivities(currentUser.id).catch(err => { console.error("Error loading recent activities:", err); return null; }) // Handle error
+                    console.log("[MAIN] loadPageData: Loading snapshots and recent activities...");
+                    const [snapshots, recentActivities, notificationsResult] = await Promise.all([
+                         loadProgressSnapshots(currentUser.id, period).catch(err => { console.error("Error loading snapshots:", err); return null; }),
+                         loadRecentActivities(currentUser.id).catch(err => { console.error("Error loading recent activities:", err); return null; }),
+                         loadNotifications(currentUser.id).catch(err => { console.error("Error loading notifications:", err); return { unreadCount: 0, notifications: [] }; })
                     ]);
+                    console.log("[MAIN] loadPageData: Fetched data - Snapshots:", snapshots?.length, "Activities:", recentActivities?.length, "Notifications:", notificationsResult?.unreadCount);
 
-                     console.log("[MAIN] loadPageData: Snapshots and Activities loaded/handled.");
-
-                     // Update UI components
-                     updateChart(snapshots); // Handles null/empty internally
-                     renderActivityHistory(recentActivities); // Handles null/empty internally
+                    updateChart(snapshots);
+                    renderActivityHistory(recentActivities);
+                    renderNotifications(notificationsResult.unreadCount, notificationsResult.notifications);
 
                 } catch (error) {
-                    console.error('[MAIN] loadPageData: Caught main error:', error);
-                    showError('Nepodařilo se kompletně načíst data pokroku: ' + error.message);
-                    // Ensure loading states are hidden even on error
-                    updateStatsCards(null); // Render error state
-                    updateChart(null); // Render error/empty state
-                    renderActivityHistory(null); // Render error/empty state
+                     console.error('[MAIN] loadPageData: Caught main error:', error);
+                     showError('Nepodařilo se kompletně načíst data pokroku: ' + error.message);
+                     updateStatsCards(null); updateChart(null); renderActivityHistory(null); renderNotifications(0, []); // Render error/empty states
                 } finally {
-                    hideLoadingState('stats');
-                    hideLoadingState('chart');
-                    hideLoadingState('table');
-                    if(ui.refreshDataBtn) { ui.refreshDataBtn.classList.remove('loading'); ui.refreshDataBtn.disabled = false; }
-                     // Re-enable export only if table has data
-                     if(ui.activitiesBody?.children.length > 0 && !ui.activitiesBody.querySelector('.skeleton-table') && !ui.activitiesBody.querySelector('.list-error-state') && !ui.noActivities?.style.display?.includes('flex') ) {
-                           if(ui.exportBtn) ui.exportBtn.disabled = false;
-                     }
-                    isLoadingData = false;
-                    console.log("[MAIN] loadPageData: Finished.");
+                     hideLoadingState('stats'); hideLoadingState('chart'); hideLoadingState('table');
+                     if(ui.refreshDataBtn) { ui.refreshDataBtn.classList.remove('loading'); ui.refreshDataBtn.disabled = false; }
+                      // Re-enable export only if table has data and no error state shown
+                      const hasTableData = ui.activitiesBody?.children.length > 0 && !ui.activitiesBody.querySelector('.list-error-state');
+                     if(ui.exportBtn) ui.exportBtn.disabled = !hasTableData;
+                     isLoadingData = false;
+                     console.log("[MAIN] loadPageData: Finished.");
                 }
             }
             // --- END: Main Orchestration ---
 
             // --- START: Event Listeners Setup ---
-             function setupUIEventListeners() {
-                 console.log("[SETUP] setupUIEventListeners: Setting up listeners.");
-                 // Check if listeners already attached
-                  if (ui.mainMobileMenuToggle && ui.mainMobileMenuToggle.dataset.listenerAttached === 'true') {
-                       console.log("[SETUP] Listeners already attached, skipping.");
-                       return;
-                  }
-
-                 if (ui.mainMobileMenuToggle) ui.mainMobileMenuToggle.addEventListener('click', openMenu);
-                 if (ui.sidebarCloseToggle) ui.sidebarCloseToggle.addEventListener('click', closeMenu);
-                 if (ui.sidebarOverlay) ui.sidebarOverlay.addEventListener('click', closeMenu);
-                 document.querySelectorAll('.sidebar-link').forEach(link => { link.addEventListener('click', () => { if (window.innerWidth <= 992) closeMenu(); }); });
-                 window.addEventListener('online', updateOnlineStatus);
-                 window.addEventListener('offline', updateOnlineStatus);
-                 updateOnlineStatus(); // Initial check
-
-                 // Refresh button listener
-                 if (ui.refreshDataBtn) ui.refreshDataBtn.addEventListener('click', handleRetry);
-
-                 // Chart period selector
-                 if (ui.chartPeriodSelect) {
-                     ui.chartPeriodSelect.addEventListener('change', (event) => {
-                         if (!isLoadingData) { loadPageData(event.target.value); }
-                         else { showToast("Počkejte prosím", "Data se stále načítají.", "info"); event.target.value = lastLoadedPeriod; } // Revert selection if loading
-                     });
-                 }
-
-                 // Export button listener
-                 if (ui.exportBtn) ui.exportBtn.addEventListener('click', exportTableToCSV);
-
-                 // Notification Listeners (Copied/adapted from dashboard.html)
-                 if(ui.notificationBell) { ui.notificationBell.addEventListener('click', (event) => { event.stopPropagation(); ui.notificationsDropdown?.classList.toggle('active'); }); }
-                 if(ui.markAllReadBtn) { ui.markAllReadBtn.addEventListener('click', markAllNotificationsRead); }
-                 if(ui.notificationsList) { ui.notificationsList.addEventListener('click', async (event) => { const item = event.target.closest('.notification-item'); if (item && !item.classList.contains('is-read')) { const notificationId = item.dataset.id; const link = item.dataset.link; const success = await markNotificationRead(notificationId); if (success) { item.classList.add('is-read'); const currentCount = parseInt(ui.notificationCount.textContent.replace('+','')) || 0; const newCount = Math.max(0, currentCount - 1); ui.notificationCount.textContent = newCount > 9 ? '9+' : newCount; ui.notificationCount.classList.toggle('visible', newCount > 0); item.querySelector('.unread-dot')?.remove(); if (link) window.location.href = link; } } else if (item && item.dataset.link) { window.location.href = item.dataset.link; } }); }
-                 document.addEventListener('click', (event) => { if (ui.notificationsDropdown?.classList.contains('active') && !ui.notificationsDropdown.contains(event.target) && !ui.notificationBell.contains(event.target)) { ui.notificationsDropdown.classList.remove('active'); } });
-
-                  // Mark listener as attached
-                  if (ui.mainMobileMenuToggle) ui.mainMobileMenuToggle.dataset.listenerAttached = 'true';
-                 console.log("[SETUP] setupUIEventListeners: Listeners set.");
-             }
-
-             // Handler for Retry and Refresh button
-             function handleRetry() {
-                 if (currentUser && !isLoadingData) {
-                     hideError();
-                     const btn = ui.refreshDataBtn;
-                     const icon = btn?.querySelector('i');
-                     const text = btn?.querySelector('.refresh-text');
-                     if(btn) btn.disabled = true;
-                     if(icon) icon.classList.add('fa-spin');
-                     if(text) text.textContent = 'Obnovuji...';
-
-                     loadPageData(lastLoadedPeriod) // Reload with last selected period
-                        .then(() => showToast("Data aktualizována", "Přehled pokroku byl obnoven.", "success"))
-                        .catch(() => {/* Error already handled by showError */})
-                        .finally(() => {
-                             if(btn) btn.disabled = false;
-                             if(icon) icon.classList.remove('fa-spin');
-                             if(text) text.textContent = 'Obnovit';
-                        });
-                 } else if (isLoadingData) { showToast("Počkejte prosím", "Data se již načítají.", "info"); }
-                 else { showToast("Chyba", "Nelze obnovit, uživatel není přihlášen.", "error"); }
-             }
-
-            // Export Functionality
-            function exportTableToCSV() {
-                 console.log("[FUNC] exportTableToCSV: Start");
-                 if (!ui.activitiesTable || !ui.activitiesBody) { showToast('Chyba exportu', 'Tabulka nebyla nalezena.', 'error'); return; }
-                 const rows = ui.activitiesBody.querySelectorAll('tr');
-                 if (rows.length === 0) { showToast('Žádná data', 'Není co exportovat.', 'warning'); return; }
-
-                 let csvContent = "Datum,Popis / Aktivita,Změna Pokroku (%),Získané Body,Stav\n"; // Headers
-                 rows.forEach(row => {
-                      const cells = row.querySelectorAll('td');
-                      if (cells.length === 5) { // Ensure correct number of cells
-                           const rowData = [
-                                cells[0].textContent.trim(), // Datum
-                                cells[1].textContent.trim(), // Popis
-                                cells[2].textContent.replace('%','').trim(), // Změna Pokroku (jen číslo)
-                                cells[3].textContent.trim(), // Body
-                                cells[4].querySelector('.status-badge')?.textContent.trim() || cells[4].textContent.trim() // Stav
-                           ];
-                           csvContent += rowData.map(d => `"${d.replace(/"/g, '""')}"`).join(',') + '\n';
-                      }
-                 });
-
-                 const blob = new Blob([`\uFEFF${csvContent}`], { type: 'text/csv;charset=utf-8;' }); // Add BOM for Excel compatibility
-                 const link = document.createElement("a");
-                 const url = URL.createObjectURL(blob);
-                 link.setAttribute("href", url);
-                 const userPart = currentUser?.email?.split('@')[0] || currentUser?.id?.substring(0, 8) || 'uzivatel';
-                 const datePart = new Date().toISOString().split('T')[0];
-                 link.setAttribute("download", `pokrok_${userPart}_${datePart}.csv`);
-                 link.style.visibility = 'hidden';
-                 document.body.appendChild(link);
-                 link.click();
-                 document.body.removeChild(link);
-                 console.log("[FUNC] exportTableToCSV: Export successful");
-                 showToast('Export dokončen', 'Data byla úspěšně exportována do CSV.', 'success');
-            }
+             function setupUIEventListeners() { /* ... (implementation including notification listeners) ... */ console.log("[SETUP] setupUIEventListeners: Setting up listeners."); if (ui.mainMobileMenuToggle && ui.mainMobileMenuToggle.dataset.listenerAttached === 'true') { console.log("[SETUP] Listeners already attached, skipping."); return; } if (ui.mainMobileMenuToggle) ui.mainMobileMenuToggle.addEventListener('click', openMenu); if (ui.sidebarCloseToggle) ui.sidebarCloseToggle.addEventListener('click', closeMenu); if (ui.sidebarOverlay) ui.sidebarOverlay.addEventListener('click', closeMenu); document.querySelectorAll('.sidebar-link').forEach(link => { link.addEventListener('click', () => { if (window.innerWidth <= 992) closeMenu(); }); }); window.addEventListener('online', updateOnlineStatus); window.addEventListener('offline', updateOnlineStatus); updateOnlineStatus(); if (ui.refreshDataBtn) ui.refreshDataBtn.addEventListener('click', handleRetry); if (ui.chartPeriodSelect) { ui.chartPeriodSelect.addEventListener('change', (event) => { if (!isLoadingData) { loadPageData(event.target.value); } else { showToast("Počkejte prosím", "Data se stále načítají.", "info"); event.target.value = lastLoadedPeriod; } }); } if (ui.exportBtn) ui.exportBtn.addEventListener('click', exportTableToCSV); if(ui.notificationBell) { ui.notificationBell.addEventListener('click', (event) => { event.stopPropagation(); ui.notificationsDropdown?.classList.toggle('active'); }); } if(ui.markAllReadBtn) { ui.markAllReadBtn.addEventListener('click', markAllNotificationsRead); } if(ui.notificationsList) { ui.notificationsList.addEventListener('click', async (event) => { const item = event.target.closest('.notification-item'); if (item && !item.classList.contains('is-read')) { const notificationId = item.dataset.id; const link = item.dataset.link; const success = await markNotificationRead(notificationId); if (success) { item.classList.add('is-read'); const currentCount = parseInt(ui.notificationCount.textContent.replace('+','')) || 0; const newCount = Math.max(0, currentCount - 1); ui.notificationCount.textContent = newCount > 9 ? '9+' : newCount; ui.notificationCount.classList.toggle('visible', newCount > 0); item.querySelector('.unread-dot')?.remove(); ui.markAllReadBtn.disabled = (newCount === 0); if (link) window.location.href = link; } } else if (item && item.dataset.link) { window.location.href = item.dataset.link; } }); } document.addEventListener('click', (event) => { if (ui.notificationsDropdown?.classList.contains('active') && !ui.notificationsDropdown.contains(event.target) && !ui.notificationBell.contains(event.target)) { ui.notificationsDropdown.classList.remove('active'); } }); if (ui.mainMobileMenuToggle) ui.mainMobileMenuToggle.dataset.listenerAttached = 'true'; console.log("[SETUP] setupUIEventListeners: Listeners set."); }
+             function handleRetry() { /* ... (implementation) ... */ if (currentUser && !isLoadingData) { hideError(); const btn = ui.refreshDataBtn; const icon = btn?.querySelector('i'); const text = btn?.querySelector('.refresh-text'); if(btn) btn.disabled = true; if(icon) icon.classList.add('fa-spin'); if(text) text.textContent = 'Obnovuji...'; loadPageData(lastLoadedPeriod) .then(() => showToast("Data aktualizována", "Přehled pokroku byl obnoven.", "success")) .catch(() => {/* Error already handled by showError */}) .finally(() => { if(btn) btn.disabled = false; if(icon) icon.classList.remove('fa-spin'); if(text) text.textContent = 'Obnovit'; }); } else if (isLoadingData) { showToast("Počkejte prosím", "Data se již načítají.", "info"); } else { showToast("Chyba", "Nelze obnovit, uživatel není přihlášen.", "error"); } }
+             function exportTableToCSV() { /* ... (implementation) ... */ console.log("[FUNC] exportTableToCSV: Start"); if (!ui.activitiesTable || !ui.activitiesBody) { showToast('Chyba exportu', 'Tabulka nebyla nalezena.', 'error'); return; } const rows = ui.activitiesBody.querySelectorAll('tr'); if (rows.length === 0 || ui.activitiesBody.querySelector('.skeleton-table') || ui.activitiesBody.querySelector('.list-error-state')) { showToast('Žádná data', 'Není co exportovat.', 'warning'); return; } let csvContent = "Datum,Popis / Aktivita,Změna Pokroku (%),Celkem Bodů,Stav\n"; rows.forEach(row => { const cells = row.querySelectorAll('td'); if (cells.length === 5) { const rowData = [ cells[0].textContent.trim(), cells[1].textContent.trim(), cells[2].textContent.replace('%','').trim(), cells[3].textContent.trim(), cells[4].querySelector('.status-badge')?.textContent.trim() || cells[4].textContent.trim() ]; csvContent += rowData.map(d => `"${d.replace(/"/g, '""')}"`).join(',') + '\n'; } }); const blob = new Blob([`\uFEFF${csvContent}`], { type: 'text/csv;charset=utf-8;' }); const link = document.createElement("a"); const url = URL.createObjectURL(blob); link.setAttribute("href", url); const userPart = currentUser?.email?.split('@')[0] || currentUser?.id?.substring(0, 8) || 'uzivatel'; const datePart = new Date().toISOString().split('T')[0]; link.setAttribute("download", `historie_pokroku_${userPart}_${datePart}.csv`); link.style.visibility = 'hidden'; document.body.appendChild(link); link.click(); document.body.removeChild(link); console.log("[FUNC] exportTableToCSV: Export successful"); showToast('Export dokončen', 'Data byla úspěšně exportována do CSV.', 'success'); }
             // --- END: Event Listeners Setup ---
 
             // --- START: Initialization Logic ---
@@ -944,9 +700,8 @@
                                  console.log('[INIT] User authenticated (ID:', currentUser.id, '), loading page data...');
                                  if (ui.initialLoader) { ui.initialLoader.classList.add('hidden'); setTimeout(() => { if (ui.initialLoader) ui.initialLoader.style.display = 'none'; }, 500); }
                                  if (ui.mainContent) ui.mainContent.style.display = 'block';
-                                 await loadPageData(lastLoadedPeriod); // Load data with default period
-                                 setupUIEventListeners(); // Setup listeners only AFTER initial load
-                                 loadNotifications(currentUser.id).then(({ unreadCount, notifications }) => renderNotifications(unreadCount, notifications)); // Load notifications in parallel after auth
+                                 setupUIEventListeners(); // Setup listeners early
+                                 await loadPageData(lastLoadedPeriod); // Load data
                              } else { console.log('[INIT] No user in session during INITIAL_SESSION/SIGNED_IN, redirecting.'); window.location.href = '/auth/index.html'; }
                          } else if (event === 'SIGNED_OUT') { console.log('[INIT] User signed out, redirecting.'); window.location.href = '/auth/index.html'; }
                          else if (event === 'INITIAL_SESSION' && !currentUser) { console.log('[INIT] Initial session processed, no user, redirecting.'); window.location.href = '/auth/index.html'; }
@@ -958,12 +713,12 @@
             // --- START THE APP ---
             initializeApp();
 
-             // ** Developer Reminders **
-             // 1. Check Supabase RLS policies for 'profiles', 'user_stats', 'progress_snapshots', 'user_notifications'.
-             // 2. Ensure Indexes are created, especially on `(user_id, snapshot_date)` in `progress_snapshots`.
-             // 3. Verify table/column names.
-             // 4. Check Network Tab for Supabase request details.
-             // 5. Set up automated insertion into `progress_snapshots` (e.g., daily Edge Function).
+             // ** Developer Reminders (MOST IMPORTANT) **
+             // 1. RLS: CHECK `progress_snapshots` RLS policy for SELECT: `(auth.uid() = user_id)` must be ENABLED.
+             // 2. Indexes: Ensure DB index on `progress_snapshots(user_id, snapshot_date DESC)`.
+             // 3. Table/Columns: Verify `progress_snapshots` table and columns (`snapshot_date`, `overall_progress`, `points_total`) EXIST and match names.
+             // 4. Data: Ensure data EXISTS in `progress_snapshots` for the test user ID. Check Network tab for failed requests.
+             // 5. date-fns: Confirm the library is loaded correctly (check console for errors like "dateFns is not defined").
 
         })(); // End of IIFE
     </script>
