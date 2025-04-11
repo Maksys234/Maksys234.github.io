@@ -11,7 +11,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
-        /* CSS styly (beze změny - ponechány pro úplnost) */
+        /* CSS (Stejné jako předtím, přidány skeleton styly) */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
         :root {
             --primary: #4361ee; --primary-light: #4895ef; --secondary: #3f37c9;
@@ -25,6 +25,7 @@
             --card-radius: 16px; --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
             --shadow-md: 0 5px 15px rgba(0, 0, 0, 0.07); --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.1);
             --text-primary: #2d3748; --text-secondary: #4a5568; --text-muted: #718096;
+            --skeleton-bg: #e0e0e0; /* Barva pro skeleton */
         }
         body { background-color: #f6f8ff; color: var(--text-primary); min-height: 100vh; display: flex; overflow-x: hidden; }
         .sidebar { width: var(--sidebar-width); height: 100vh; position: fixed; top: 0; left: 0; background: var(--gradient-1); color: var(--white); padding: 1.5rem 1rem; display: flex; flex-direction: column; z-index: 100; box-shadow: var(--shadow-lg); transition: all var(--transition-speed) ease; }
@@ -67,32 +68,32 @@
         .welcome-button:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15); }
         .welcome-image { width: 300px; height: 200px; display: flex; align-items: center; justify-content: center; }
         .welcome-image img { max-width: 100%; max-height: 100%; }
-        .stat-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; } /* Removed animation here */
-        .stat-card { background-color: var(--white); border-radius: var(--card-radius); box-shadow: var(--shadow-sm); overflow: hidden; transition: all 0.3s ease; }
+        .stat-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; }
+        .stat-card { background-color: var(--white); border-radius: var(--card-radius); box-shadow: var(--shadow-sm); overflow: hidden; transition: all 0.3s ease; min-height: 190px; /* Min height for skeleton */ position: relative; }
         .stat-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-md); }
         .stat-card-content { display: flex; padding: 1.5rem; align-items: center; justify-content: space-between; }
         .stat-card-info { flex-grow: 1; }
         .stat-card-title { font-size: 1rem; font-weight: 500; color: var(--text-secondary); margin-bottom: 0.75rem; }
-        .stat-card-value { font-size: 2rem; font-weight: 700; color: var(--dark); margin-bottom: 0.5rem; }
-        .stat-card-change { font-size: 0.85rem; color: var(--text-muted); }
+        .stat-card-value { font-size: 2rem; font-weight: 700; color: var(--dark); margin-bottom: 0.5rem; min-height: 36px; /* Prevent layout shift */ }
+        .stat-card-change { font-size: 0.85rem; color: var(--text-muted); min-height: 20px; /* Prevent layout shift */ }
         .stat-card-change.positive { color: #10b981; }
         .stat-card-change.negative { color: var(--danger); }
-        .stat-card-icon { width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: var(--white); }
+        .stat-card-icon { width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: var(--white); flex-shrink: 0; }
         .progress-icon { background: linear-gradient(135deg, #4cc9f0, #4361ee); }
         .points-icon { background: linear-gradient(135deg, #f8961e, #f3722c); }
         .streak-icon { background: linear-gradient(135deg, #f72585, #b5179e); }
-        .stat-card-footer { padding: 1rem 1.5rem; border-top: 1px solid var(--gray-light); }
+        .stat-card-footer { padding: 1rem 1.5rem; border-top: 1px solid var(--gray-light); position: absolute; bottom: 0; left: 0; right: 0; background: var(--white); border-radius: 0 0 var(--card-radius) var(--card-radius); }
         .stat-card-footer a { display: block; color: var(--primary); text-decoration: none; font-weight: 500; font-size: 0.9rem; transition: all 0.2s ease; }
         .stat-card-footer a i { margin-left: 0.5rem; transition: transform 0.2s ease; }
         .stat-card-footer a:hover i { transform: translateX(3px); }
-        .shortcut-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; } /* Removed animation */
+        .shortcut-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; }
         .shortcut-card { background-color: var(--white); border-radius: var(--card-radius); padding: 1.5rem; box-shadow: var(--shadow-sm); text-decoration: none; color: var(--text-primary); transition: all 0.3s ease; display: flex; flex-direction: column; align-items: center; text-align: center; border: 1px solid transparent; }
         .shortcut-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-md); border-color: var(--primary-light); }
         .shortcut-icon { width: 70px; height: 70px; border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 1.75rem; margin-bottom: 1rem; background-color: #f0f5ff; color: var(--primary); transition: all 0.3s ease; }
         .shortcut-card:hover .shortcut-icon { background-color: var(--primary); color: var(--white); }
         .shortcut-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--dark); }
         .shortcut-desc { font-size: 0.9rem; color: var(--text-muted); line-height: 1.5; }
-        .activity-list { background-color: var(--white); border-radius: var(--card-radius); box-shadow: var(--shadow-sm); overflow: hidden; min-height: 150px; position: relative; } /* Removed animation, added min-height, relative pos */
+        .activity-list { background-color: var(--white); border-radius: var(--card-radius); box-shadow: var(--shadow-sm); overflow: hidden; min-height: 200px; position: relative; }
         .activity-item { display: flex; padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--gray-light); transition: background-color 0.2s ease; }
         .activity-item:last-child { border-bottom: none; }
         .activity-item:hover { background-color: #f8faff; }
@@ -132,47 +133,62 @@
         .toast.error i { color: var(--danger); }
         .toast.warning i { color: var(--warning); }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        /* Apply animation to sections AFTER loading */
-        .main-content.loaded > section { opacity: 0; animation: fadeIn 0.5s ease forwards; }
-        .main-content.loaded .stats-section { animation-delay: 0.1s; }
-        .main-content.loaded .shortcuts-section { animation-delay: 0.2s; }
-        .main-content.loaded .activity-section { animation-delay: 0.3s; }
+        /* Skeleton Loader Styles */
+        .skeleton { background-color: var(--skeleton-bg); border-radius: 4px; animation: skeleton-loading 1.5s infinite linear; background-image: linear-gradient(90deg, var(--skeleton-bg) 0px, #f5f5f5 40px, var(--skeleton-bg) 80px); background-size: 600px; }
+        .skeleton.title { height: 20px; width: 60%; margin-bottom: 0.75rem; }
+        .skeleton.value { height: 36px; width: 40%; margin-bottom: 0.5rem; }
+        .skeleton.text { height: 16px; width: 80%; margin-bottom: 0.25rem; }
+        .skeleton.text-short { width: 50%; }
+        .skeleton.icon-placeholder { width: 60px; height: 60px; border-radius: 50%; flex-shrink: 0; }
+        .skeleton.activity-icon-placeholder { width: 50px; height: 50px; border-radius: 15px; margin-right: 1rem; flex-shrink: 0; }
+        .skeleton.activity-line { height: 18px; width: 70%; margin-bottom: 0.5rem; }
+        .skeleton.activity-line-short { width: 40%; margin-top: 0.25rem; height: 14px; }
+        /* Apply skeleton to stat cards during loading */
+        .stat-card.loading .stat-card-content { visibility: hidden; } /* Hide real content */
+        .stat-card.loading::after { /* Skeleton overlay */ content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; padding: 1.5rem; display: flex; justify-content: space-between; align-items: center; }
+        .stat-card.loading::after { background: transparent; /* Make overlay transparent */ } /* Needed to allow skeleton placement */
+        /* Explicit skeleton elements inside the loading card */
+        .stat-card.loading .stat-card-skeleton-content { visibility: visible; position: absolute; top: 0; left: 0; right: 0; bottom: 0; padding: 1.5rem; display: flex; justify-content: space-between; align-items: center; pointer-events: none; }
+        .stat-card.loading .stat-card-skeleton-info { flex-grow: 1; }
+        /* Apply skeleton to activity list during loading */
+        .activity-list.loading { min-height: 200px; /* Ensure space for loader */ }
+        .activity-list.loading .activity-item { display: none; } /* Hide actual items if any */
+        .activity-list.loading .loading-placeholder { /* Container for skeleton items */ display: block; }
+        .activity-list .skeleton-activity-item { display: flex; padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--gray-light); }
+        .activity-list .skeleton-activity-item:last-child { border-bottom: none; }
+
+        /* Media Queries */
         @media (max-width: 1200px) { .welcome-content { padding: 2rem; } .welcome-text-content { max-width: 100%; } .welcome-image { display: none; } }
-        @media (max-width: 992px) { :root { --sidebar-width: 80px; } main { margin-left: 80px; width: calc(100% - 80px); } .sidebar { width: 80px; } .sidebar-logo span, .sidebar-link span, .user-info, .sidebar-footer { display: none; } .sidebar-link i { margin-right: 0; font-size: 1.5rem; } .sidebar-logo i { margin-right: 0; } .sidebar-header, .sidebar-link { justify-content: center; } .user-profile { justify-content: center; padding: 0.75rem; } .user-avatar { margin-right: 0; } .search-box input { width: 200px; } .mobile-menu-toggle { display: block; } /* Show toggle */ }
+        @media (max-width: 992px) { :root { --sidebar-width: 80px; } main { margin-left: 80px; width: calc(100% - 80px); } .sidebar { width: 80px; } .sidebar-logo span, .sidebar-link span, .user-info, .sidebar-footer { display: none; } .sidebar-link i { margin-right: 0; font-size: 1.5rem; } .sidebar-logo i { margin-right: 0; } .sidebar-header, .sidebar-link { justify-content: center; } .user-profile { justify-content: center; padding: 0.75rem; } .user-avatar { margin-right: 0; } .search-box input { width: 200px; } .mobile-menu-toggle { display: block; } }
         @media (max-width: 768px) { main { padding: 1rem; margin-left: 80px; width: calc(100% - 80px); } .header-content { flex-direction: column; align-items: flex-start; gap: 1rem; } .header-actions { width: 100%; justify-content: space-between; } .search-box input { width: 100%; } .stat-cards, .shortcut-grid { grid-template-columns: 1fr; } .welcome-button { width: 100%; text-align: center;} }
         @media (max-width: 576px) { :root { --sidebar-width: 0; } main { margin-left: 0; width: 100%; } .sidebar { transform: translateX(-100%); width: 260px; z-index: 1000; } .sidebar.active { transform: translateX(0); } .search-box { display: none; } .header-actions { justify-content: flex-end; gap: 1rem; } .mobile-menu-toggle { display: block; } }
-        @media (prefers-color-scheme: dark) { :root { /* Dark mode variables */ --white: #1a202c; --light: #2d3748; --dark: #e2e8f0; --gray-light: #4a5568; --text-primary: #e2e8f0; --text-secondary: #cbd5e0; --text-muted: #a0aec0; } body { background-color: #171923; } .dashboard-header, .stat-card, .shortcut-card, .activity-list, .view-all-link, .toast { background-color: #1e2533; border-color: var(--gray-light); } .search-box input { background-color: #2d3748; color: var(--text-primary); border-color: #4a5568; } .search-box i { color: #a0aec0; } .welcome-button { background-color: #2d3748; color: #4cc9f0; } .shortcut-icon { background-color: #2d3748; } .activity-item:hover { background-color: #242c3b; } .toast { border: 1px solid var(--gray-light); } .dashboard-footer { border-top-color: var(--gray-light); } .mobile-menu-toggle { color: var(--text-primary); } .sidebar-link.active, .sidebar-link:hover { background-color: rgba(255, 255, 255, 0.1); } }
+        @media (prefers-color-scheme: dark) { :root { /* Dark mode variables */ --white: #1a202c; --light: #2d3748; --dark: #e2e8f0; --gray-light: #4a5568; --text-primary: #e2e8f0; --text-secondary: #cbd5e0; --text-muted: #a0aec0; --skeleton-bg: #2d3748; } body { background-color: #171923; } .dashboard-header, .stat-card, .shortcut-card, .activity-list, .view-all-link, .toast { background-color: #1e2533; border-color: var(--gray-light); } .search-box input { background-color: #2d3748; color: var(--text-primary); border-color: #4a5568; } .search-box i { color: #a0aec0; } .welcome-button { background-color: #2d3748; color: #4cc9f0; } .shortcut-icon { background-color: #2d3748; } .activity-item:hover { background-color: #242c3b; } .toast { border: 1px solid var(--gray-light); } .dashboard-footer { border-top-color: var(--gray-light); } .mobile-menu-toggle { color: var(--text-primary); } .sidebar-link.active, .sidebar-link:hover { background-color: rgba(255, 255, 255, 0.1); } .error-message { background-color: rgba(247, 37, 133, 0.1); } .stat-card-footer { background-color: #1e2533; } .skeleton { background-image: linear-gradient(90deg, #2d3748 0px, #4a5568 40px, #2d3748 80px); } }
         .mobile-menu-toggle { display: none; background: none; border: none; color: var(--dark); font-size: 1.5rem; cursor: pointer; padding: 0.5rem; margin-right: 0.5rem; z-index: 101; }
         @media (max-width: 992px) { .mobile-menu-toggle { display: block; } }
         .sidebar-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.55); z-index: 99; opacity: 0; transition: opacity var(--transition-speed) ease; backdrop-filter: blur(4px); }
         .sidebar-overlay.active { display: block; opacity: 1; }
-        /* Initial Loading State Styles */
-        .initial-loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--bg-color); z-index: 1001; display: flex; justify-content: center; align-items: center; flex-direction: column; gap: 1rem; }
-         .initial-loading-overlay .loading::after { width: 30px; height: 30px; border-width: 3px; } /* Větší spinner */
-         .initial-loading-overlay p { color: var(--text-secondary); }
-
-         /* Skrýt hlavní obsah dokud není ověřeno */
-         main { display: none; }
-         main.loaded { display: block; }
+        .initial-loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: #f6f8ff; /* Match light body bg */ z-index: 1001; display: flex; justify-content: center; align-items: center; flex-direction: column; gap: 1rem; }
+        @media (prefers-color-scheme: dark) { .initial-loading-overlay { background-color: #171923; /* Match dark body bg */ } }
+        .initial-loading-overlay .loading::after { width: 30px; height: 30px; border-width: 3px; }
+        .initial-loading-overlay p { color: var(--text-secondary); }
+        main { display: none; /* Initially hidden */ }
+        main.loaded { display: block; /* Shown by JS after auth */ }
 
     </style>
 </head>
 <body>
     <div class="initial-loading-overlay" id="initial-loader">
          <div class="loading">Ověřování...</div>
+         <p>Prosím čekejte</p>
      </div>
 
-    <div class="offline-banner" id="offline-banner">
-        <i class="fas fa-wifi"></i> Momentálně jste offline. Některé funkce nemusí fungovat správně.
-    </div>
+    <div class="offline-banner" id="offline-banner"> <i class="fas fa-wifi"></i> Momentálně jste offline. Některé funkce nemusí fungovat správně. </div>
 
     <div class="sidebar-overlay" id="sidebar-overlay"></div>
 
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
-             <button class="mobile-menu-toggle" id="sidebar-close-toggle" style="color: var(--white); margin-right: 1rem; display: none; background: none; border: none; font-size: 1.5rem; cursor: pointer;">
-                 <i class="fas fa-times"></i>
-             </button>
+             <button class="mobile-menu-toggle" id="sidebar-close-toggle" style="color: var(--white); margin-right: 1rem; display: none; background: none; border: none; font-size: 1.5rem; cursor: pointer;"> <i class="fas fa-times"></i> </button>
             <a href="/" class="sidebar-logo"> <i class="fas fa-calculator"></i> <span>Justax</span> </a>
         </div>
         <ul class="sidebar-menu">
@@ -185,10 +201,7 @@
         </ul>
         <div class="user-profile">
             <div class="user-avatar" id="sidebar-avatar">?</div>
-            <div class="user-info">
-                <div class="user-name" id="sidebar-name">Načítání...</div>
-                <div class="user-role">Student</div>
-            </div>
+            <div class="user-info"> <div class="user-name" id="sidebar-name">Načítání...</div> <div class="user-role">Student</div> </div>
         </div>
         <div class="sidebar-footer"> &copy; 2025 Justax </div>
     </aside>
@@ -197,9 +210,7 @@
 
         <header class="dashboard-header">
             <div class="header-content">
-                 <div> <button class="mobile-menu-toggle" id="main-mobile-menu-toggle"> <i class="fas fa-bars"></i> </button>
-                     <h1>Dashboard</h1>
-                 </div>
+                 <div> <button class="mobile-menu-toggle" id="main-mobile-menu-toggle"> <i class="fas fa-bars"></i> </button> <h1>Dashboard</h1> </div>
                 <div class="header-actions">
                     <div class="search-box"> <i class="fas fa-search"></i> <input type="text" placeholder="Hledat..."> </div>
                     <div class="notifications"> <i class="fas fa-bell"></i> <span class="notification-badge" id="notification-count">0</span> </div>
@@ -207,9 +218,7 @@
             </div>
         </header>
 
-        <div class="main-content">
-            <section class="welcome-banner">
-                <div class="welcome-content">
+        <div class="main-content"> <section class="welcome-banner"> <div class="welcome-content">
                     <div class="welcome-text-content">
                         <h2 class="welcome-title">Vítejte ve vašem Dashboardu</h2>
                         <p class="welcome-text">Zde můžete spravovat nastavení profilu, sledovat svůj pokrok a procvičovat své dovednosti.</p>
@@ -224,27 +233,50 @@
             <section class="stats-section">
                 <h2 class="section-title">Váš pokrok</h2>
                 <div class="stat-cards">
-                    <div class="stat-card" id="progress-card">
-                        <div class="stat-card-content">
-                            <div class="stat-card-info"> <div class="stat-card-title">Celkový pokrok</div> <div class="stat-card-value">- %</div> <div class="stat-card-change">Načítání...</div> </div>
-                            <div class="stat-card-icon progress-icon"> <i class="fas fa-chart-line"></i> </div>
-                        </div>
-                        <div class="stat-card-footer"> <a href="/dashboard/pokrok.html">Zobrazit podrobnosti <i class="fas fa-chevron-right"></i></a> </div>
+                    <div class="stat-card loading" id="progress-card">
+                         <div class="stat-card-skeleton-content">
+                              <div class="stat-card-skeleton-info">
+                                   <div class="skeleton title"></div>
+                                   <div class="skeleton value"></div>
+                                   <div class="skeleton text"></div>
+                              </div>
+                              <div class="skeleton icon-placeholder"></div>
+                         </div>
+                         <div class="stat-card-content" style="visibility: hidden;"> <div class="stat-card-info"> <div class="stat-card-title">Celkový pokrok</div> <div class="stat-card-value">- %</div> <div class="stat-card-change">Načítání...</div> </div>
+                              <div class="stat-card-icon progress-icon"> <i class="fas fa-chart-line"></i> </div>
+                         </div>
+                         <div class="stat-card-footer"> <a href="/dashboard/pokrok.html">Zobrazit podrobnosti <i class="fas fa-chevron-right"></i></a> </div>
                     </div>
-                    <div class="stat-card" id="points-card">
-                        <div class="stat-card-content">
-                            <div class="stat-card-info"> <div class="stat-card-title">Body</div> <div class="stat-card-value">-</div> <div class="stat-card-change">Načítání...</div> </div>
-                            <div class="stat-card-icon points-icon"> <i class="fas fa-star"></i> </div>
-                        </div>
-                        <div class="stat-card-footer"> <a href="/dashboard/oceneni.html">Zobrazit odměny <i class="fas fa-chevron-right"></i></a> </div>
-                    </div>
-                    <div class="stat-card" id="streak-card">
-                        <div class="stat-card-content">
-                            <div class="stat-card-info"> <div class="stat-card-title">Dnů v řadě</div> <div class="stat-card-value">-</div> <div class="stat-card-change">Načítání...</div> </div>
-                            <div class="stat-card-icon streak-icon"> <i class="fas fa-fire"></i> </div>
-                        </div>
-                        <div class="stat-card-footer"> <a href="/dashboard/procvicovani/main.html">Procvičovat <i class="fas fa-chevron-right"></i></a> </div>
-                    </div>
+                     <div class="stat-card loading" id="points-card">
+                          <div class="stat-card-skeleton-content">
+                               <div class="stat-card-skeleton-info">
+                                    <div class="skeleton title"></div>
+                                    <div class="skeleton value"></div>
+                                    <div class="skeleton text"></div>
+                               </div>
+                               <div class="skeleton icon-placeholder"></div>
+                          </div>
+                          <div class="stat-card-content" style="visibility: hidden;">
+                               <div class="stat-card-info"> <div class="stat-card-title">Body</div> <div class="stat-card-value">-</div> <div class="stat-card-change">Načítání...</div> </div>
+                               <div class="stat-card-icon points-icon"> <i class="fas fa-star"></i> </div>
+                          </div>
+                          <div class="stat-card-footer"> <a href="/dashboard/oceneni.html">Zobrazit odměny <i class="fas fa-chevron-right"></i></a> </div>
+                     </div>
+                     <div class="stat-card loading" id="streak-card">
+                          <div class="stat-card-skeleton-content">
+                               <div class="stat-card-skeleton-info">
+                                    <div class="skeleton title"></div>
+                                    <div class="skeleton value"></div>
+                                    <div class="skeleton text"></div>
+                               </div>
+                               <div class="skeleton icon-placeholder"></div>
+                          </div>
+                           <div class="stat-card-content" style="visibility: hidden;">
+                               <div class="stat-card-info"> <div class="stat-card-title">Dnů v řadě</div> <div class="stat-card-value">-</div> <div class="stat-card-change">Načítání...</div> </div>
+                               <div class="stat-card-icon streak-icon"> <i class="fas fa-fire"></i> </div>
+                           </div>
+                          <div class="stat-card-footer"> <a href="/dashboard/procvicovani/main.html">Procvičovat <i class="fas fa-chevron-right"></i></a> </div>
+                     </div>
                 </div>
             </section>
 
@@ -260,9 +292,34 @@
 
             <section class="activity-section">
                 <h2 class="section-title">Nedávné aktivity</h2>
-                <div class="activity-list" id="activity-list">
-                    <div class="loading">Načítání aktivit...</div>
-                </div>
+                <div class="activity-list loading" id="activity-list">
+                    <div class="loading-placeholder">
+                         <div class="skeleton-activity-item">
+                             <div class="skeleton activity-icon-placeholder"></div>
+                             <div style="flex-grow: 1;">
+                                 <div class="skeleton activity-line"></div>
+                                 <div class="skeleton activity-line text-short"></div>
+                                 <div class="skeleton activity-line-short"></div>
+                             </div>
+                         </div>
+                          <div class="skeleton-activity-item">
+                             <div class="skeleton activity-icon-placeholder"></div>
+                             <div style="flex-grow: 1;">
+                                 <div class="skeleton activity-line"></div>
+                                 <div class="skeleton activity-line text-short"></div>
+                                 <div class="skeleton activity-line-short"></div>
+                             </div>
+                         </div>
+                          <div class="skeleton-activity-item">
+                             <div class="skeleton activity-icon-placeholder"></div>
+                             <div style="flex-grow: 1;">
+                                 <div class="skeleton activity-line"></div>
+                                 <div class="skeleton activity-line text-short"></div>
+                                 <div class="skeleton activity-line-short"></div>
+                             </div>
+                         </div>
+                     </div>
+                    </div>
                 <a href="/dashboard/pokrok.html" class="view-all-link">Zobrazit všechny aktivity <i class="fas fa-chevron-right"></i></a>
             </section>
         </div>
@@ -305,159 +362,219 @@
                 sidebarOverlay: document.getElementById('sidebar-overlay'),
                 toast: document.getElementById('toast'),
                 toastMessage: document.getElementById('toast-message'),
-                initialLoader: document.getElementById('initial-loader'), // Loader overlay
-                mainContent: document.getElementById('main-content') // Main content area
+                initialLoader: document.getElementById('initial-loader'),
+                mainContent: document.getElementById('main-content'),
+                mainContentContainer: document.querySelector('.main-content') // For adding 'loaded' class
             };
             // --- END: Initialization and Configuration ---
 
 
             // --- START: Helper Functions ---
-            function showToast(message, type = 'success') {
-                if (!ui.toast || !ui.toastMessage) return;
-                ui.toastMessage.textContent = message;
-                const icon = ui.toast.querySelector('i');
-                const colors = { success: '#10b981', error: 'var(--danger)', warning: 'var(--warning)', info: 'var(--info)' };
-                if (icon) {
-                    icon.className = `fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle'}`;
-                    icon.style.color = colors[type] || colors.info;
-                }
-                ui.toast.className = `toast ${type}`;
-                ui.toast.classList.add('show');
-                setTimeout(() => ui.toast.classList.remove('show'), 5000);
-            }
+             function showToast(message, type = 'success') {
+                 if (!ui.toast || !ui.toastMessage) return;
+                 ui.toastMessage.textContent = message;
+                 const icon = ui.toast.querySelector('i');
+                 const colors = { success: '#10b981', error: 'var(--danger)', warning: 'var(--warning)', info: 'var(--info)' };
+                 if (icon) {
+                     icon.className = `fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle'}`;
+                     icon.style.color = colors[type] || colors.info;
+                 }
+                 ui.toast.className = `toast ${type}`;
+                 ui.toast.classList.add('show');
+                 // Automatically hide toast after 5 seconds
+                 setTimeout(() => {
+                     if (ui.toast) ui.toast.classList.remove('show');
+                 }, 5000);
+             }
 
-            function showError(message) {
-                if (!ui.globalError) return;
-                ui.globalError.innerHTML = `<div class="error-message"><i class="fas fa-exclamation-circle"></i><div><div>${message}</div><button class="retry-button" id="retry-btn">Zkusit znovu</button></div></div>`;
-                ui.globalError.style.display = 'block';
-                const retryBtn = document.getElementById('retry-btn');
-                // Ensure retry button exists before adding listener
-                if (retryBtn) {
-                    retryBtn.addEventListener('click', () => {
-                        hideError();
-                        // Re-initiate the data loading process after user confirms
+             function showError(message) {
+                 if (!ui.globalError) return;
+                 ui.globalError.innerHTML = `<div class="error-message"><i class="fas fa-exclamation-circle"></i><div><div>${message}</div><button class="retry-button" id="retry-btn">Zkusit znovu</button></div></div>`;
+                 ui.globalError.style.display = 'block';
+                 const retryBtn = document.getElementById('retry-btn');
+                 if (retryBtn) {
+                     retryBtn.addEventListener('click', () => {
+                         hideError();
+                         // Determine current user state and attempt reload
                          if (currentUser) {
+                            showLoadingIndicators(); // Show loading states again
                             loadDashboardData(currentUser);
                          } else {
                               console.warn("Retry clicked, but no current user found. Re-checking auth.");
-                              // Optionally re-check auth or reload page fully
+                              // Reload the whole page might be safest here if auth state is uncertain
                               window.location.reload();
                          }
-                    });
-                }
-            }
+                     });
+                 }
+             }
 
-            function hideError() { if (ui.globalError) ui.globalError.style.display = 'none'; }
+             function hideError() { if (ui.globalError) ui.globalError.style.display = 'none'; }
 
-            function updateOnlineStatus() {
-                if (ui.offlineBanner) ui.offlineBanner.style.display = navigator.onLine ? 'none' : 'block';
-                if (!navigator.onLine) showToast('Jste offline. Některé funkce nemusí být dostupné.', 'warning');
-            }
+             function updateOnlineStatus() {
+                 if (ui.offlineBanner) ui.offlineBanner.style.display = navigator.onLine ? 'none' : 'block';
+                 if (!navigator.onLine) showToast('Jste offline. Některé funkce nemusí být dostupné.', 'warning');
+             }
 
-            function getInitials(userData) {
-                if (!userData) return '?';
-                const first = userData.first_name?.[0] || ''; const last = userData.last_name?.[0] || '';
-                const usernameInitial = userData.username?.[0] || ''; const emailInitial = userData.email?.[0] || '';
-                return (first + last).toUpperCase() || usernameInitial.toUpperCase() || emailInitial.toUpperCase() || '?';
-            }
+             function getInitials(userData) {
+                 if (!userData) return '?';
+                 const first = userData.first_name?.[0] || ''; const last = userData.last_name?.[0] || '';
+                 const usernameInitial = userData.username?.[0] || ''; const emailInitial = userData.email?.[0] || '';
+                 return (first + last).toUpperCase() || usernameInitial.toUpperCase() || emailInitial.toUpperCase() || '?';
+             }
 
-            function formatRelativeTime(timestamp) {
-                if (!timestamp) return '';
-                try { /* ... (previous formatting code) ... */ } catch (e) { /* ... */ }
-            }
+             function formatRelativeTime(timestamp) {
+                 if (!timestamp) return '';
+                 try {
+                     const now = new Date(); const date = new Date(timestamp);
+                     if (isNaN(date.getTime())) return '-';
+                     const diffMs = now - date; const diffSec = Math.round(diffMs / 1000);
+                     const diffMin = Math.round(diffSec / 60); const diffHour = Math.round(diffMin / 60);
+                     const diffDay = Math.round(diffHour / 24); const diffWeek = Math.round(diffDay / 7);
+                     if (diffSec < 60) return 'Právě teď'; if (diffMin < 60) return `Před ${diffMin} min`;
+                     if (diffHour < 24) return `Před ${diffHour} h`; if (diffDay === 1) return `Včera`;
+                     if (diffDay < 7) return `Před ${diffDay} dny`; if (diffWeek <= 4) return `Před ${diffWeek} týdny`;
+                     return date.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric' });
+                 } catch(e) { console.error("Chyba formátování času:", e, "Timestamp:", timestamp); return '-'; }
+             }
 
-            function openMenu() { if (ui.sidebar && ui.sidebarOverlay) { ui.sidebar.classList.add('active'); ui.sidebarOverlay.classList.add('active'); } }
-            function closeMenu() { if (ui.sidebar && ui.sidebarOverlay) { ui.sidebar.classList.remove('active'); ui.sidebarOverlay.classList.remove('active'); } }
+             function openMenu() { if (ui.sidebar && ui.sidebarOverlay) { ui.sidebar.classList.add('active'); ui.sidebarOverlay.classList.add('active'); } }
+             function closeMenu() { if (ui.sidebar && ui.sidebarOverlay) { ui.sidebar.classList.remove('active'); ui.sidebarOverlay.classList.remove('active'); } }
+
+             // Function to show skeleton loaders
+             function showLoadingIndicators() {
+                 // Stats Cards
+                 if (ui.progressCard) ui.progressCard.classList.add('loading');
+                 if (ui.pointsCard) ui.pointsCard.classList.add('loading');
+                 if (ui.streakCard) ui.streakCard.classList.add('loading');
+
+                 // Activity List
+                 if (ui.activityList) {
+                     ui.activityList.classList.add('loading');
+                     // Ensure skeleton placeholder is visible if it exists
+                     const placeholder = ui.activityList.querySelector('.loading-placeholder');
+                     if (placeholder) placeholder.style.display = 'block';
+                     // Hide any existing items or empty state
+                     ui.activityList.querySelectorAll('.activity-item, .empty-state').forEach(el => el.style.display = 'none');
+                 }
+             }
+
+             // Function to hide skeleton loaders and remove loading classes
+             function hideLoadingIndicators() {
+                  if (ui.progressCard) ui.progressCard.classList.remove('loading');
+                  if (ui.pointsCard) ui.pointsCard.classList.remove('loading');
+                  if (ui.streakCard) ui.streakCard.classList.remove('loading');
+                  if (ui.activityList) {
+                       ui.activityList.classList.remove('loading');
+                       const placeholder = ui.activityList.querySelector('.loading-placeholder');
+                       if (placeholder) placeholder.style.display = 'none'; // Hide skeleton
+                       // Make sure actual content items (if any) are visible
+                        ui.activityList.querySelectorAll('.activity-item').forEach(el => el.style.display = 'flex'); // Use flex for items
+                  }
+             }
             // --- END: Helper Functions ---
 
 
             // --- START: Data Loading and UI Update Functions ---
-             // Load user profile - Returns profile data or null
-             async function loadUserProfile(user) {
-                if (!user) { console.error("loadUserProfile: Chybí objekt uživatele."); return null; }
+            async function loadUserProfile(user) {
+                if (!user) { console.error("loadUserProfile: Missing user object."); return null; }
                 try {
                     const { data: profile, error } = await supabase.from('profiles').select('*').eq('id', user.id).single();
-                    if (error && error.code !== 'PGRST116') throw error;
+                    if (error && error.code !== 'PGRST116') throw error; // Handle profile not found gracefully below
                     if (!profile) {
-                        console.warn("Profil nenalezen pro uživatele:", user.id);
-                         // Return default structure based on user object
-                         return { id: user.id, email: user.email, username: user.email?.split('@')[0] || 'Uživatel', points: 0, streak_days: 0, level: 1 };
+                        console.warn("Profile not found for user:", user.id);
+                         return { id: user.id, email: user.email, username: user.email?.split('@')[0] || 'Uživatel', points: 0, streak_days: 0, level: 1 }; // Return default structure
                     }
+                    console.log("Profil načten:", profile);
                     return profile;
                 } catch (error) {
                     console.error('Chyba při načítání profilu:', error);
-                    // Don't call showError here directly, let the calling function handle UI errors
+                    // Return null to indicate failure, handled by caller
                     return null;
                 }
             }
 
-             // Update sidebar profile
             function updateSidebarProfile(userData) {
                 if (!userData || !ui.sidebarName || !ui.sidebarAvatar) return;
                 const displayName = `${userData.first_name || ''} ${userData.last_name || ''}`.trim() || userData.username || 'Uživatel';
                 ui.sidebarName.textContent = displayName;
                 if (userData.avatar_url) { ui.sidebarAvatar.innerHTML = `<img src="${userData.avatar_url}" alt="${displayName}" />`; }
                 else { ui.sidebarAvatar.textContent = getInitials(userData); }
-                 if(ui.notificationCount) ui.notificationCount.textContent = '0'; // Placeholder
+                if(ui.notificationCount) ui.notificationCount.textContent = '0';
             }
 
-            // Load user statistics (Revised)
-            async function loadUserStats(userId, profileData) {
-                let statsFromDb = null;
-                const defaultStats = { progress: 0, progress_weekly: 0, points: profileData?.points ?? 0, points_weekly: 0, streak_current: profileData?.streak_days ?? 0, streak_longest: profileData?.streak_days ?? 0 };
+             // Load user statistics (REVISED)
+             async function loadUserStats(userId, profileData) {
+                 let statsFromDb = null;
+                 // Ensure profileData exists for fallbacks
+                 const safeProfileData = profileData || { points: 0, streak_days: 0 }; // Provide defaults if profileData is null
+                 const defaultStats = { progress: 0, progress_weekly: 0, points: safeProfileData.points, points_weekly: 0, streak_current: safeProfileData.streak_days, streak_longest: safeProfileData.streak_days };
 
-                if (!userId) { console.error("Missing user ID for stats"); return defaultStats; }
-                if (!profileData) { console.error("Missing profile data for stats"); return defaultStats; }
+                 if (!userId) { console.error("loadUserStats: Missing user ID."); return defaultStats; }
 
-                try {
-                    const { data: userStatsData, error: userStatsError } = await supabase.from('user_stats').select('progress, progress_weekly, points_weekly, streak_longest').eq('user_id', userId).maybeSingle();
-                    if (userStatsError) { console.warn("Chyba při načítání user_stats:", userStatsError.message); }
-                    else { statsFromDb = userStatsData; }
-                } catch (error) { console.error('Neočekávaná chyba při načítání user_stats:', error); }
+                 try {
+                     const { data: userStatsData, error: userStatsError } = await supabase.from('user_stats').select('progress, progress_weekly, points_weekly, streak_longest').eq('user_id', userId).maybeSingle();
+                     if (userStatsError) { console.warn("Chyba při načítání user_stats:", userStatsError.message); }
+                     else { statsFromDb = userStatsData; }
+                 } catch (error) { console.error('Neočekávaná chyba při načítání user_stats:', error); }
 
-                // Combine data
-                const finalStats = {
-                    progress: statsFromDb?.progress ?? 0, progress_weekly: statsFromDb?.progress_weekly ?? 0,
-                    points: profileData.points ?? 0, points_weekly: statsFromDb?.points_weekly ?? 0,
-                    streak_current: profileData.streak_days ?? 0, streak_longest: statsFromDb?.streak_longest ?? profileData.streak_days ?? 0
-                };
-                return finalStats;
-            }
+                 // Combine data - IMPORTANT: Check profileData again *inside* here if it wasn't guaranteed
+                 const finalStats = {
+                     progress: statsFromDb?.progress ?? 0,
+                     progress_weekly: statsFromDb?.progress_weekly ?? 0,
+                     points: safeProfileData.points ?? 0, // Use safeProfileData
+                     points_weekly: statsFromDb?.points_weekly ?? 0,
+                     streak_current: safeProfileData.streak_days ?? 0, // Use safeProfileData
+                     streak_longest: Math.max(statsFromDb?.streak_longest ?? 0, safeProfileData.streak_days ?? 0) // Ensure longest isn't less than current
+                 };
+                 return finalStats;
+             }
 
-             // Update stats cards
-            function updateStatsCards(stats) {
-                if (!stats || !ui.progressCard || !ui.pointsCard || !ui.streakCard) { console.warn("updateStatsCards: Missing data or card elements."); return; }
-                 // Select the specific elements *inside* the cards to update
-                const progressValue = ui.progressCard.querySelector('.stat-card-value');
-                const progressChange = ui.progressCard.querySelector('.stat-card-change');
-                const pointsValue = ui.pointsCard.querySelector('.stat-card-value');
-                const pointsChange = ui.pointsCard.querySelector('.stat-card-change');
-                const streakValue = ui.streakCard.querySelector('.stat-card-value');
-                const streakLongest = ui.streakCard.querySelector('.stat-card-change');
+             // Update stats cards (REVISED - Handles loading state removal)
+             function updateStatsCards(stats) {
+                 // Remove loading class first
+                 if (ui.progressCard) ui.progressCard.classList.remove('loading');
+                 if (ui.pointsCard) ui.pointsCard.classList.remove('loading');
+                 if (ui.streakCard) ui.streakCard.classList.remove('loading');
 
-                if (progressValue) progressValue.textContent = `${stats.progress ?? 0}%`;
-                if (progressChange) {
-                    const weeklyChange = stats.progress_weekly ?? 0;
-                    progressChange.classList.remove('positive', 'negative');
-                    if (weeklyChange > 0) { progressChange.textContent = `+${weeklyChange}% tento týden`; progressChange.classList.add('positive'); }
-                    else if (weeklyChange < 0) { progressChange.textContent = `${weeklyChange}% tento týden`; progressChange.classList.add('negative'); }
-                    else { progressChange.textContent = `Beze změny tento týden`; }
+                 if (!stats || !ui.progressCard || !ui.pointsCard || !ui.streakCard) { console.warn("updateStatsCards: Chybí data nebo elementy."); return; }
+
+                 const progressValue = ui.progressCard.querySelector('.stat-card-value');
+                 const progressChange = ui.progressCard.querySelector('.stat-card-change');
+                 const pointsValue = ui.pointsCard.querySelector('.stat-card-value');
+                 const pointsChange = ui.pointsCard.querySelector('.stat-card-change');
+                 const streakValue = ui.streakCard.querySelector('.stat-card-value');
+                 const streakLongest = ui.streakCard.querySelector('.stat-card-change');
+
+                  // Update Progress card safely
+                  if (progressValue && progressChange) {
+                     progressValue.textContent = `${stats.progress ?? 0}%`;
+                     const weeklyChange = stats.progress_weekly ?? 0;
+                     progressChange.classList.remove('positive', 'negative');
+                     if (weeklyChange > 0) { progressChange.textContent = `+${weeklyChange}% tento týden`; progressChange.classList.add('positive'); }
+                     else if (weeklyChange < 0) { progressChange.textContent = `${weeklyChange}% tento týden`; progressChange.classList.add('negative'); }
+                     else { progressChange.textContent = `Beze změny tento týden`; }
+                     progressCard.querySelector('.stat-card-content').style.visibility = 'visible'; // Make content visible
                  }
-                 if (pointsValue) pointsValue.textContent = stats.points ?? 0;
-                 if (pointsChange) {
+
+                 // Update Points card safely
+                 if (pointsValue && pointsChange) {
+                     pointsValue.textContent = stats.points ?? 0;
                      const weeklyPoints = stats.points_weekly ?? 0;
                      pointsChange.classList.remove('positive', 'negative');
                      if (weeklyPoints > 0) { pointsChange.textContent = `+${weeklyPoints} tento týden`; pointsChange.classList.add('positive'); }
                      else if (weeklyPoints < 0) { pointsChange.textContent = `${weeklyPoints} tento týden`; pointsChange.classList.add('negative'); }
                      else { pointsChange.textContent = `Beze změny tento týden`; }
+                     pointsCard.querySelector('.stat-card-content').style.visibility = 'visible'; // Make content visible
                  }
-                if (streakValue) streakValue.textContent = stats.streak_current ?? 0;
-                if (streakLongest) streakLongest.textContent = `Nejdelší: ${stats.streak_longest ?? 0} dnů`;
 
-                // Ensure parent container is visible after update
-                const statCardsContainer = document.querySelector('.stat-cards');
-                if (statCardsContainer) statCardsContainer.style.opacity = '1';
-            }
+                 // Update Streak card safely
+                 if (streakValue && streakLongest) {
+                     streakValue.textContent = stats.streak_current ?? 0;
+                     streakLongest.textContent = `Nejdelší: ${stats.streak_longest ?? 0} dnů`;
+                     streakLongest.classList.remove('positive', 'negative');
+                      streakCard.querySelector('.stat-card-content').style.visibility = 'visible'; // Make content visible
+                 }
+             }
 
             // Load user activities
             async function loadUserActivities(userId) {
@@ -467,82 +584,78 @@
                     if (error) throw error;
                     return activities || [];
                 } catch (error) {
-                    console.error('Chyba při načítání aktivit:', error); return []; // Return empty on error
+                    console.error('Chyba při načítání aktivit:', error); return [];
                 }
             }
 
-             // Render activities
+            // Render activities (REVISED - Handles loading state removal)
             function renderActivities(activities) {
-                if (!ui.activityList) { console.error("Element #activity-list nenalezen."); return; }
-                const loadingIndicator = ui.activityList.querySelector('.loading');
-                if (loadingIndicator) loadingIndicator.remove();
+                if (!ui.activityList) return;
+                ui.activityList.classList.remove('loading'); // Remove loading class
+                const placeholder = ui.activityList.querySelector('.loading-placeholder');
+                if (placeholder) placeholder.style.display = 'none'; // Hide skeleton
 
                 if (!activities || activities.length === 0) {
                     ui.activityList.innerHTML = `<div class="empty-state"><i class="fas fa-history"></i><p>Zatím žádné nedávné aktivity.</p><p>Začněte procvičovat a vaše úspěchy se zde zobrazí.</p></div>`;
-                    ui.activityList.style.opacity = '1'; return;
+                    return;
                 }
 
-                const activityHTML = activities.map(activity => { /* ... (previous rendering code) ... */ }).join('');
+                const activityHTML = activities.map(activity => {
+                    let iconClass = 'default'; let iconName = 'tasks';
+                    const type = activity.type ? activity.type.toLowerCase() : '';
+                    if (type.includes('badge')) { iconClass = 'badge'; iconName = 'medal'; }
+                    else if (type.includes('streak')) { iconClass = 'streak'; iconName = 'fire'; }
+                    else if (type.includes('test') || type.includes('cvičení') || type.includes('úkol')) { iconClass = 'completed'; iconName = 'check-circle'; }
+                    const title = activity.title || 'Neznámá aktivita'; const description = activity.description || '';
+                    return `<div class="activity-item"><div class="activity-icon ${iconClass}"><i class="fas fa-${iconName}"></i></div><div class="activity-content"><div class="activity-title">${title}</div><div class="activity-desc">${description}</div><div class="activity-time">${formatRelativeTime(activity.created_at)}</div></div></div>`;
+                }).join('');
                 ui.activityList.innerHTML = activityHTML;
-                ui.activityList.style.opacity = '1';
             }
+            // --- END: Data Loading and UI Update Functions ---
 
-            // Load all dashboard data (Orchestrator)
+
+            // --- START: Main Orchestration ---
             async function loadDashboardData(user) {
-                 if (!user) {
-                     showError("Chyba: Nelze načíst data bez přihlášeného uživatele.");
-                     return;
-                 }
+                if (!user) { showError("Chyba: Nelze načíst data bez přihlášeného uživatele."); return; }
                 console.log("Načítání dat dashboardu pro uživatele:", user.id);
                 hideError();
-                // Keep loading indicators for sub-sections visible
-                if (ui.activityList) ui.activityList.innerHTML = '<div class="loading">Načítání aktivit...</div>';
-                const statCardsContainer = document.querySelector('.stat-cards');
-                if (statCardsContainer) statCardsContainer.style.opacity = '0';
+                showLoadingIndicators(); // Show skeletons
 
                 try {
-                    // Load profile and stats in parallel
-                    const [profileData, userStats] = await Promise.all([
-                        loadUserProfile(user),
-                        loadUserStats(user.id, currentProfile) // Pass profile if already loaded, loadUserStats handles refetch if needed
-                    ]);
+                    // Load profile first, it's crucial
+                    const profileData = await loadUserProfile(user);
+                    if (!profileData) {
+                        throw new Error("Nepodařilo se načíst profil uživatele."); // Throw error if profile fails
+                    }
+                    currentProfile = profileData; // Set global profile
 
-                     // Critical check after profile load
-                     if (!profileData) {
-                          console.error("Nepodařilo se načíst profil, dashboard nemůže pokračovat.");
-                          showError("Nepodařilo se načíst váš profil. Zkuste obnovit stránku.");
-                          if(statCardsContainer) statCardsContainer.innerHTML = '<p style="text-align:center; padding: 2rem;">Chyba načítání dat.</p>';
-                          if(ui.activityList) ui.activityList.innerHTML = '';
-                          return; // Stop execution
-                     }
-                     currentProfile = profileData; // Update global profile
-
-                    // Update sidebar (do this early)
+                    // Update sidebar immediately after profile load
                     updateSidebarProfile(currentProfile);
 
-                    // Load activities separately (can happen after stats/profile are shown)
-                    const activities = await loadUserActivities(user.id);
+                    // Load stats and activities (can run in parallel if desired, profile is needed for stats)
+                    const [userStats, activities] = await Promise.all([
+                        loadUserStats(user.id, currentProfile), // Pass loaded profile
+                        loadUserActivities(user.id)
+                    ]);
 
-                    // Update UI
+                    // Update UI with results (hides skeletons automatically)
                     updateStatsCards(userStats);
                     renderActivities(activities);
 
-                    // Add 'loaded' class to main content for animations AFTER data is loaded
-                    document.querySelector('.main-content')?.classList.add('loaded');
-
+                     // Trigger entrance animations after data is rendered
+                     if (ui.mainContentContainer) ui.mainContentContainer.classList.add('loaded');
 
                 } catch (error) {
-                    console.error('Chyba při paralelním načítání dat:', error);
-                    showError('Nepodařilo se načíst všechna data dashboardu: ' + error.message);
-                     // Ensure loading indicators are removed even on error
-                     if (ui.activityList) ui.activityList.innerHTML = '<div class="error-message" style="position: static; transform: none;">Chyba načítání aktivit.</div>';
-                     if (statCardsContainer) {
-                          updateStatsCards({}); // Render defaults/N/A
-                          statCardsContainer.style.opacity = '1';
-                     }
+                    console.error('Chyba při načítání dat dashboardu:', error);
+                    showError('Nepodařilo se načíst data dashboardu: ' + error.message);
+                    // Hide loading indicators even on error, show empty/error state in cards/list
+                    hideLoadingIndicators();
+                    // Optionally render cards with default/error state
+                    updateStatsCards({}); // Render default/N/A state
+                    if (ui.activityList) ui.activityList.innerHTML = '<div class="error-message" style="position: static; transform: none;">Chyba načítání aktivit.</div>';
                 }
             }
-            // --- END: Data Loading and UI Update Functions ---
+            // --- END: Main Orchestration ---
 
 
             // --- START: Initialization Logic with onAuthStateChange ---
@@ -551,60 +664,43 @@
                     supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
                     console.log('Supabase klient inicializován.');
 
-                    // Listen for authentication state changes
                     supabase.auth.onAuthStateChange(async (event, session) => {
                         console.log('Auth State Change:', event, session);
                         const user = session?.user;
-                        currentUser = user; // Update global user state
+                        currentUser = user;
 
                         if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN') {
                             if (user) {
-                                // User is logged in, load the dashboard data
                                 console.log('Uživatel přihlášen, načítám dashboard...');
-                                // Hide initial loader and show main content container
                                 if (ui.initialLoader) ui.initialLoader.style.display = 'none';
-                                if (ui.mainContent) ui.mainContent.style.display = 'block'; // Make main content visible
-                                await loadDashboardData(user); // Load data *after* confirming sign in
-                                setupUIEventListeners(); // Setup listeners after main content is visible
+                                if (ui.mainContent) ui.mainContent.style.display = 'block'; // Zobrazit obsah AŽ po ověření
+                                await loadDashboardData(user);
+                                setupUIEventListeners();
                             } else {
-                                // This case should ideally not happen if event is SIGNED_IN, but handle defensively
-                                console.log('Stav SIGNED_IN, ale chybí session.user, přesměrovávám na login.');
-                                window.location.href = '/auth/index.html';
+                                console.log('Stav SIGNED_IN/INITIAL_SESSION, ale chybí session.user, přesměrovávám na login.');
+                                window.location.href = '/auth/index.html'; // Adjust path if needed
                             }
                         } else if (event === 'SIGNED_OUT') {
-                            // User is logged out, redirect to login page
                             console.log('Uživatel odhlášen, přesměrovávám na login.');
-                            window.location.href = '/auth/index.html';
+                            window.location.href = '/auth/index.html'; // Adjust path if needed
                         }
-                        // Ignore other events like USER_UPDATED, PASSWORD_RECOVERY etc. on dashboard load
                     });
 
                 } catch (error) {
                     console.error("Kritická chyba při inicializaci Supabase:", error);
                     if (ui.initialLoader) ui.initialLoader.innerHTML = `<p style="color: var(--danger);">Chyba inicializace. Zkuste obnovit stránku.</p>`;
-                     // Optionally show error in main body if loader fails
-                    document.body.insertAdjacentHTML('afterbegin', `<div class="error-message" style="margin: 1rem;"><i class="fas fa-exclamation-triangle"></i> Nelze inicializovat aplikaci.</div>`);
                 }
             }
-             // Setup UI event listeners (call this *after* auth is confirmed and main content is shown)
+             // Setup UI event listeners
              function setupUIEventListeners() {
-                 if (ui.startPracticeBtn) {
-                    ui.startPracticeBtn.addEventListener('click', () => {
-                        window.location.href = '/dashboard/procvicovani/main.html'; // Corrected link
-                    });
-                 }
-                // Mobile Menu Logic
-                if (ui.mainMobileMenuToggle) ui.mainMobileMenuToggle.addEventListener('click', openMenu);
-                if (ui.sidebarCloseToggle) ui.sidebarCloseToggle.addEventListener('click', closeMenu);
-                if (ui.sidebarOverlay) ui.sidebarOverlay.addEventListener('click', closeMenu);
-                // Close sidebar on link click (optional, good UX on mobile)
-                 document.querySelectorAll('.sidebar-link').forEach(link => {
-                     link.addEventListener('click', () => { if (window.innerWidth <= 992) closeMenu(); });
-                 });
-                 // Online/Offline listeners
+                 if (ui.startPracticeBtn) { ui.startPracticeBtn.addEventListener('click', () => { window.location.href = '/dashboard/procvicovani/main.html'; }); }
+                 if (ui.mainMobileMenuToggle) ui.mainMobileMenuToggle.addEventListener('click', openMenu);
+                 if (ui.sidebarCloseToggle) ui.sidebarCloseToggle.addEventListener('click', closeMenu); // Assuming close button exists in sidebar HTML
+                 if (ui.sidebarOverlay) ui.sidebarOverlay.addEventListener('click', closeMenu);
+                 document.querySelectorAll('.sidebar-link').forEach(link => { link.addEventListener('click', () => { if (window.innerWidth <= 992) closeMenu(); }); });
                  window.addEventListener('online', updateOnlineStatus);
                  window.addEventListener('offline', updateOnlineStatus);
-                 updateOnlineStatus(); // Initial check
+                 updateOnlineStatus();
              }
 
             // --- START THE APP ---
