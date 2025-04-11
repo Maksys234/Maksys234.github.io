@@ -11,7 +11,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
-        /* CSS (Stejné jako předtím, přidány skeleton styly) */
+        /* CSS (Stejné jako předtím, přidány skeleton styly + UI vylepšení) */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
         :root {
             --primary: #4361ee; --primary-light: #4895ef; --secondary: #3f37c9;
@@ -49,7 +49,7 @@
         .header-content { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
         .header-content > div:first-child { display: flex; align-items: center; gap: 1rem; flex-grow: 1; }
         .header-content h1 { font-size: 1.75rem; font-weight: 600; color: var(--dark); margin: 0; }
-        .header-actions { display: flex; align-items: center; gap: 1.5rem; }
+        .header-actions { display: flex; align-items: center; gap: 1.5rem; /* Increased gap */ }
         .search-box { position: relative; }
         .search-box input { width: 280px; height: 44px; border-radius: 22px; padding: 0 1rem 0 2.5rem; border: 1px solid var(--gray-light); background-color: var(--light); outline: none; transition: all 0.2s ease; font-size: 0.95rem; }
         .search-box input:focus { border-color: var(--primary-light); box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15); }
@@ -57,8 +57,8 @@
         .notifications { position: relative; cursor: pointer; }
         .notifications i { font-size: 1.4rem; color: var(--gray-dark); }
         .notification-badge { position: absolute; top: -5px; right: -5px; width: 20px; height: 20px; background-color: var(--danger); color: white; font-size: 0.7rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; }
-        .main-content { display: grid; gap: 1.75rem; }
-        .section-title { font-size: 1.3rem; font-weight: 600; margin-bottom: 1.25rem; color: var(--dark); }
+        .main-content { display: grid; gap: 2rem; /* Adjusted gap */ }
+        .section-title { font-size: 1.4rem; /* Slightly larger */ font-weight: 600; margin-bottom: 1.5rem; /* More space below */ color: var(--dark); padding-bottom: 0.5rem; /* Add padding */ border-bottom: 1px solid var(--gray-light); /* Underline separator */ display: flex; /* For potential future icons */ align-items: center; gap: 0.5rem; }
         .welcome-banner { background: var(--gradient-2); border-radius: var(--card-radius); box-shadow: var(--shadow-md); overflow: hidden; position: relative; }
         .welcome-content { display: flex; justify-content: space-between; align-items: center; padding: 2.5rem 3rem; position: relative; z-index: 1; }
         .welcome-text-content { max-width: 60%; color: var(--white); }
@@ -67,8 +67,8 @@
         .welcome-button { background-color: var(--white); color: var(--primary); border: none; border-radius: 12px; padding: 0.75rem 1.5rem; font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); }
         .welcome-button:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15); }
         .welcome-image { width: 300px; height: 200px; display: flex; align-items: center; justify-content: center; }
-        .welcome-image img { max-width: 100%; max-height: 100%; }
-        .stat-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; }
+        .welcome-image svg { width: 220px; /* Slightly larger */ height: 160px; opacity: 0.8; /* Make it slightly subtle */ } /* End Welcome Banner SVG */
+        .stat-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.75rem; /* Adjusted gap */ }
         .stat-card { background-color: var(--white); border-radius: var(--card-radius); box-shadow: var(--shadow-sm); overflow: hidden; transition: all 0.3s ease; min-height: 190px; /* Min height for skeleton */ position: relative; }
         .stat-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-md); }
         .stat-card-content { display: flex; padding: 1.5rem; align-items: center; justify-content: space-between; }
@@ -86,14 +86,15 @@
         .stat-card-footer a { display: block; color: var(--primary); text-decoration: none; font-weight: 500; font-size: 0.9rem; transition: all 0.2s ease; }
         .stat-card-footer a i { margin-left: 0.5rem; transition: transform 0.2s ease; }
         .stat-card-footer a:hover i { transform: translateX(3px); }
-        .shortcut-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; }
+        .shortcut-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.75rem; /* Adjusted gap */ }
         .shortcut-card { background-color: var(--white); border-radius: var(--card-radius); padding: 1.5rem; box-shadow: var(--shadow-sm); text-decoration: none; color: var(--text-primary); transition: all 0.3s ease; display: flex; flex-direction: column; align-items: center; text-align: center; border: 1px solid transparent; }
         .shortcut-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-md); border-color: var(--primary-light); }
         .shortcut-icon { width: 70px; height: 70px; border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 1.75rem; margin-bottom: 1rem; background-color: #f0f5ff; color: var(--primary); transition: all 0.3s ease; }
-        .shortcut-card:hover .shortcut-icon { background-color: var(--primary); color: var(--white); }
+        .shortcut-card:hover .shortcut-icon { background-color: var(--primary); color: var(--white); transform: scale(1.1); /* Add a slight scale effect */ } /* End Shortcut Card Icon Hover */
         .shortcut-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--dark); }
         .shortcut-desc { font-size: 0.9rem; color: var(--text-muted); line-height: 1.5; }
-        .activity-list { background-color: var(--white); border-radius: var(--card-radius); box-shadow: var(--shadow-sm); overflow: hidden; min-height: 200px; position: relative; }
+        .activity-list { background-color: var(--white); border-radius: var(--card-radius); box-shadow: var(--shadow-sm); overflow: hidden; min-height: 200px; position: relative; transition: all 0.3s ease; /* Add transition for hover */ }
+        .activity-list:hover { box-shadow: var(--shadow-md); /* Add hover effect to list */ }
         .activity-item { display: flex; padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--gray-light); transition: background-color 0.2s ease; }
         .activity-item:last-child { border-bottom: none; }
         .activity-item:hover { background-color: #f8faff; }
@@ -106,9 +107,10 @@
         .activity-title { font-size: 1rem; font-weight: 600; margin-bottom: 0.25rem; color: var(--dark); }
         .activity-desc { font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 0.25rem; }
         .activity-time { font-size: 0.8rem; color: var(--text-muted); }
-        .view-all-link { display: block; text-align: center; padding: 1rem; color: var(--primary); text-decoration: none; font-weight: 500; background-color: var(--white); border-radius: 0 0 var(--card-radius) var(--card-radius); box-shadow: var(--shadow-sm); margin-top: 1rem; transition: all 0.2s ease; }
+        .view-all-link { display: block; text-align: center; padding: 0.8rem 1rem; /* Adjusted padding */ color: var(--primary); text-decoration: none; font-weight: 500; background-color: #f0f5ff; /* Light background */ border-radius: 10px; /* Rounded corners */ box-shadow: none; /* Remove default shadow */ margin-top: 1.5rem; /* Increased margin */ transition: all 0.2s ease; border: 1px solid transparent; }
+        .view-all-link:hover { background-color: var(--primary-light); color: var(--white); transform: translateY(-2px); box-shadow: var(--shadow-sm); /* Add shadow on hover */ }
         .view-all-link i { margin-left: 0.5rem; transition: transform 0.2s ease; }
-        .view-all-link:hover i { transform: translateX(3px); }
+        .view-all-link:hover i { transform: translateX(4px); /* Increased arrow movement */ } /* End View All Activities Link */
         .dashboard-footer { margin-top: 2rem; padding: 1.5rem 0; text-align: center; color: var(--text-muted); font-size: 0.9rem; border-top: 1px solid var(--gray-light); }
         .loading { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: flex; font-size: 1rem; color: var(--text-muted); width: 100%; justify-content: center; align-items: center; gap: 10px; }
         .loading::after { content: ""; width: 20px; height: 20px; border: 2px solid var(--primary); border-radius: 50%; border-top-color: transparent; animation: loading-spinner 0.8s linear infinite; }
@@ -161,7 +163,7 @@
         @media (max-width: 1200px) { .welcome-content { padding: 2rem; } .welcome-text-content { max-width: 100%; } .welcome-image { display: none; } }
         @media (max-width: 992px) { :root { --sidebar-width: 80px; } main { margin-left: 80px; width: calc(100% - 80px); } .sidebar { width: 80px; } .sidebar-logo span, .sidebar-link span, .user-info, .sidebar-footer { display: none; } .sidebar-link i { margin-right: 0; font-size: 1.5rem; } .sidebar-logo i { margin-right: 0; } .sidebar-header, .sidebar-link { justify-content: center; } .user-profile { justify-content: center; padding: 0.75rem; } .user-avatar { margin-right: 0; } .search-box input { width: 200px; } .mobile-menu-toggle { display: block; } }
         @media (max-width: 768px) { main { padding: 1rem; margin-left: 80px; width: calc(100% - 80px); } .header-content { flex-direction: column; align-items: flex-start; gap: 1rem; } .header-actions { width: 100%; justify-content: space-between; } .search-box input { width: 100%; } .stat-cards, .shortcut-grid { grid-template-columns: 1fr; } .welcome-button { width: 100%; text-align: center;} }
-        @media (max-width: 576px) { :root { --sidebar-width: 0; } main { margin-left: 0; width: 100%; } .sidebar { transform: translateX(-100%); width: 260px; z-index: 1000; } .sidebar.active { transform: translateX(0); } .search-box { display: none; } .header-actions { justify-content: flex-end; gap: 1rem; } .mobile-menu-toggle { display: block; } }
+        @media (max-width: 576px) { :root { --sidebar-width: 0; } main { margin-left: 0; width: 100%; } .sidebar { transform: translateX(-100%); width: 260px; z-index: 1000; } .sidebar.active { transform: translateX(0); .sidebar-logo span, .sidebar-link span, .user-info, .sidebar-footer { display: block; } .sidebar-link i { margin-right: 0.75rem; font-size: 1.2rem; } .sidebar-header, .sidebar-link { justify-content: flex-start; } .user-profile { justify-content: flex-start; padding: 1rem; } .user-avatar { margin-right: 0.75rem; } } .search-box { display: none; } .header-actions { justify-content: flex-end; gap: 1rem; } .mobile-menu-toggle { display: block; } }
         @media (prefers-color-scheme: dark) { :root { /* Dark mode variables */ --white: #1a202c; --light: #2d3748; --dark: #e2e8f0; --gray-light: #4a5568; --text-primary: #e2e8f0; --text-secondary: #cbd5e0; --text-muted: #a0aec0; --skeleton-bg: #2d3748; } body { background-color: #171923; } .dashboard-header, .stat-card, .shortcut-card, .activity-list, .view-all-link, .toast { background-color: #1e2533; border-color: var(--gray-light); } .search-box input { background-color: #2d3748; color: var(--text-primary); border-color: #4a5568; } .search-box i { color: #a0aec0; } .welcome-button { background-color: #2d3748; color: #4cc9f0; } .shortcut-icon { background-color: #2d3748; } .activity-item:hover { background-color: #242c3b; } .toast { border: 1px solid var(--gray-light); } .dashboard-footer { border-top-color: var(--gray-light); } .mobile-menu-toggle { color: var(--text-primary); } .sidebar-link.active, .sidebar-link:hover { background-color: rgba(255, 255, 255, 0.1); } .error-message { background-color: rgba(247, 37, 133, 0.1); } .stat-card-footer { background-color: #1e2533; } .skeleton { background-image: linear-gradient(90deg, #2d3748 0px, #4a5568 40px, #2d3748 80px); } }
         .mobile-menu-toggle { display: none; background: none; border: none; color: var(--dark); font-size: 1.5rem; cursor: pointer; padding: 0.5rem; margin-right: 0.5rem; z-index: 101; }
         @media (max-width: 992px) { .mobile-menu-toggle { display: block; } }
@@ -173,6 +175,15 @@
         .initial-loading-overlay p { color: var(--text-secondary); }
         main { display: none; /* Initially hidden */ }
         main.loaded { display: block; /* Shown by JS after auth */ }
+         /* General Card Hover Effect */
+         .stat-card:hover, .shortcut-card:hover, .activity-list:hover {
+             transform: translateY(-5px);
+             box-shadow: var(--shadow-md);
+         }
+         /* Add transition to base elements */
+         .stat-card, .shortcut-card, .activity-list {
+             transition: all 0.3s ease;
+         }
 
     </style>
 </head>
@@ -206,7 +217,8 @@
         <div class="sidebar-footer"> &copy; 2025 Justax </div>
     </aside>
 
-    <main id="main-content"> <div class="error-container" id="global-error"></div>
+    <main id="main-content">
+        <div class="error-container" id="global-error"></div>
 
         <header class="dashboard-header">
             <div class="header-content">
@@ -218,17 +230,33 @@
             </div>
         </header>
 
-        <div class="main-content"> <section class="welcome-banner"> <div class="welcome-content">
-                    <div class="welcome-text-content">
-                        <h2 class="welcome-title">Vítejte ve vašem Dashboardu</h2>
-                        <p class="welcome-text">Zde můžete spravovat nastavení profilu, sledovat svůj pokrok a procvičovat své dovednosti.</p>
-                        <button class="welcome-button" id="start-practice-btn">Začít procvičovat</button>
-                    </div>
-                    <div class="welcome-image">
-                        <svg width="200" height="150" viewBox="0 0 200 150" fill="none" xmlns="http://www.w3.org/2000/svg"> <rect width="200" height="150" rx="10" fill="url(#paint0_linear_dash)"/> <circle cx="50" cy="75" r="20" fill="#FFF" opacity="0.3"/> <rect x="100" y="50" width="80" height="10" rx="5" fill="#FFF" opacity="0.5"/> <rect x="100" y="70" width="60" height="10" rx="5" fill="#FFF" opacity="0.4"/> <rect x="100" y="90" width="70" height="10" rx="5" fill="#FFF" opacity="0.3"/> <defs> <linearGradient id="paint0_linear_dash" x1="0" y1="0" x2="200" y2="150" gradientUnits="userSpaceOnUse"> <stop stop-color="#FFF" stop-opacity="0.3"/> <stop offset="1" stop-color="#FFF" stop-opacity="0"/> </linearGradient> </defs> </svg>
-                    </div>
-                </div>
-            </section>
+        <div class="main-content">
+             <section class="welcome-banner">
+                 <div class="welcome-content">
+                     <div class="welcome-text-content">
+                         <h2 class="welcome-title">Vítejte ve vašem Dashboardu</h2>
+                         <p class="welcome-text">Zde můžete spravovat nastavení profilu, sledovat svůj pokrok a procvičovat své dovednosti.</p>
+                         <button class="welcome-button" id="start-practice-btn">Začít procvičovat</button>
+                     </div>
+                     <div class="welcome-image">
+                         <svg width="220" height="160" viewBox="0 0 220 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+                         <rect width="220" height="160" rx="12" fill="url(#paint0_linear_dash_upgraded)"/>
+                         <path d="M30 110C30 100 70 60 110 80C150 100 190 40 190 40" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" stroke-opacity="0.6"/>
+                         <circle cx="45" cy="105" r="6" fill="white" fill-opacity="0.7"/>
+                         <circle cx="110" cy="80" r="8" fill="white" fill-opacity="0.8"/>
+                         <circle cx="190" cy="40" r="6" fill="white" fill-opacity="0.7"/>
+                         <rect x="30" y="130" width="160" height="8" rx="4" fill="white" fill-opacity="0.3"/>
+                         <rect x="50" y="120" width="120" height="6" rx="3" fill="white" fill-opacity="0.2"/>
+                         <defs>
+                         <linearGradient id="paint0_linear_dash_upgraded" x1="0" y1="0" x2="220" y2="160" gradientUnits="userSpaceOnUse">
+                         <stop stop-color="white" stop-opacity="0.3"/>
+                         <stop offset="1" stop-color="white" stop-opacity="0"/>
+                         </linearGradient>
+                         </defs>
+                         </svg>
+                     </div>
+                 </div>
+             </section>
 
             <section class="stats-section">
                 <h2 class="section-title">Váš pokrok</h2>
@@ -553,7 +581,7 @@
                      if (weeklyChange > 0) { progressChange.textContent = `+${weeklyChange}% tento týden`; progressChange.classList.add('positive'); }
                      else if (weeklyChange < 0) { progressChange.textContent = `${weeklyChange}% tento týden`; progressChange.classList.add('negative'); }
                      else { progressChange.textContent = `Beze změny tento týden`; }
-                     progressCard.querySelector('.stat-card-content').style.visibility = 'visible'; // Make content visible
+                     ui.progressCard.querySelector('.stat-card-content').style.visibility = 'visible'; // Make content visible
                  }
 
                  // Update Points card safely
@@ -564,7 +592,7 @@
                      if (weeklyPoints > 0) { pointsChange.textContent = `+${weeklyPoints} tento týden`; pointsChange.classList.add('positive'); }
                      else if (weeklyPoints < 0) { pointsChange.textContent = `${weeklyPoints} tento týden`; pointsChange.classList.add('negative'); }
                      else { pointsChange.textContent = `Beze změny tento týden`; }
-                     pointsCard.querySelector('.stat-card-content').style.visibility = 'visible'; // Make content visible
+                     ui.pointsCard.querySelector('.stat-card-content').style.visibility = 'visible'; // Make content visible
                  }
 
                  // Update Streak card safely
@@ -572,7 +600,7 @@
                      streakValue.textContent = stats.streak_current ?? 0;
                      streakLongest.textContent = `Nejdelší: ${stats.streak_longest ?? 0} dnů`;
                      streakLongest.classList.remove('positive', 'negative');
-                      streakCard.querySelector('.stat-card-content').style.visibility = 'visible'; // Make content visible
+                      ui.streakCard.querySelector('.stat-card-content').style.visibility = 'visible'; // Make content visible
                  }
              }
 
@@ -614,48 +642,61 @@
             // --- END: Data Loading and UI Update Functions ---
 
 
-            // --- START: Main Orchestration ---
-            async function loadDashboardData(user) {
-                if (!user) { showError("Chyba: Nelze načíst data bez přihlášeného uživatele."); return; }
-                console.log("Načítání dat dashboardu pro uživatele:", user.id);
-                hideError();
-                showLoadingIndicators(); // Show skeletons
+             // --- START: Main Orchestration ---
+             async function loadDashboardData(user) {
+                 if (!user) {
+                     // *** Use the global error handler ***
+                     showError("Chyba: Nelze načíst data bez přihlášeného uživatele.");
+                     return;
+                 }
+                 console.log("Načítání dat dashboardu pro uživatele:", user.id);
+                 hideError();
+                 showLoadingIndicators(); // Show skeletons
 
-                try {
-                    // Load profile first, it's crucial
-                    const profileData = await loadUserProfile(user);
-                    if (!profileData) {
-                        throw new Error("Nepodařilo se načíst profil uživatele."); // Throw error if profile fails
-                    }
-                    currentProfile = profileData; // Set global profile
+                 try {
+                     // Load profile first, it's crucial
+                     const profileData = await loadUserProfile(user);
+                     if (!profileData) {
+                         // Explicitly throw an error if profile loading fails critically
+                         throw new Error("Nepodařilo se načíst profil uživatele.");
+                     }
+                     currentProfile = profileData; // Set global profile
 
-                    // Update sidebar immediately after profile load
-                    updateSidebarProfile(currentProfile);
+                     // Update sidebar immediately after profile load
+                     updateSidebarProfile(currentProfile);
 
-                    // Load stats and activities (can run in parallel if desired, profile is needed for stats)
-                    const [userStats, activities] = await Promise.all([
-                        loadUserStats(user.id, currentProfile), // Pass loaded profile
-                        loadUserActivities(user.id)
-                    ]);
+                     // Load stats and activities (can run in parallel if desired, profile is needed for stats)
+                     const [userStats, activities] = await Promise.all([
+                         loadUserStats(user.id, currentProfile), // Pass loaded profile
+                         loadUserActivities(user.id)
+                     ]);
 
-                    // Update UI with results (hides skeletons automatically)
-                    updateStatsCards(userStats);
-                    renderActivities(activities);
+                     // Update UI with results (these functions handle hiding their specific skeletons)
+                     updateStatsCards(userStats);
+                     renderActivities(activities);
 
-                     // Trigger entrance animations after data is rendered
-                     if (ui.mainContentContainer) ui.mainContentContainer.classList.add('loaded');
+                      // Trigger entrance animations after data is rendered
+                      if (ui.mainContentContainer) ui.mainContentContainer.classList.add('loaded');
 
-                } catch (error) {
-                    console.error('Chyba při načítání dat dashboardu:', error);
-                    showError('Nepodařilo se načíst data dashboardu: ' + error.message);
-                    // Hide loading indicators even on error, show empty/error state in cards/list
-                    hideLoadingIndicators();
-                    // Optionally render cards with default/error state
-                    updateStatsCards({}); // Render default/N/A state
-                    if (ui.activityList) ui.activityList.innerHTML = '<div class="error-message" style="position: static; transform: none;">Chyba načítání aktivit.</div>';
-                }
-            }
-            // --- END: Main Orchestration ---
+                 } catch (error) {
+                     console.error('Chyba při načítání dat dashboardu:', error);
+                     // *** MODIFIED: Use showError for better visibility ***
+                     showError('Nepodařilo se načíst data dashboardu: ' + error.message);
+
+                     // Hide loading indicators even on error, show empty/error state in cards/list
+                     hideLoadingIndicators(); // Ensure general skeletons are hidden
+
+                     // *** ADDED: Explicitly render cards/list with error/empty state ***
+                     updateStatsCards({}); // Render default/N/A state for stat cards
+                     if (ui.activityList) { // Render error state for activity list
+                          ui.activityList.classList.remove('loading'); // Ensure loading class is removed
+                          const placeholder = ui.activityList.querySelector('.loading-placeholder');
+                          if (placeholder) placeholder.style.display = 'none'; // Hide skeleton
+                          ui.activityList.innerHTML = `<div class="empty-state" style="position: relative; transform: none; padding: 2rem;"><i class="fas fa-exclamation-circle" style="color: var(--danger);"></i><p>Chyba načítání aktivit.</p></div>`;
+                     }
+                 }
+             }
+             // --- END: Main Orchestration ---
 
 
             // --- START: Initialization Logic with onAuthStateChange ---
@@ -684,6 +725,11 @@
                             console.log('Uživatel odhlášen, přesměrovávám na login.');
                             window.location.href = '/auth/index.html'; // Adjust path if needed
                         }
+                         // Handle case where initial session check results in no user (e.g., expired token)
+                         else if (event === 'INITIAL_SESSION' && !user) {
+                            console.log('INITIAL_SESSION bez uživatele, přesměrovávám na login.');
+                            window.location.href = '/auth/index.html'; // Adjust path if needed
+                         }
                     });
 
                 } catch (error) {
