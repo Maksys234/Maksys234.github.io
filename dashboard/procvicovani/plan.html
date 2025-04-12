@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="cs" data-theme="light"> <head>
+<html lang="cs">
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Justax - Studijní plán</title>
@@ -10,413 +11,1082 @@
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/css/tooltipster.bundle.min.css">
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/js/tooltipster.bundle.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-
     <style>
-        /* --- Оригинальные стили из твоего plan.html --- */
+        /* --- Základní CSS STYLES --- */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
-        :root {
-            --primary: #4361ee; --primary-light: #4895ef; --secondary: #3f37c9;
-            --success: #06d6a0; --danger: #f72585; --warning: #f8961e; --info: #4895ef;
-            --dark: #1e2a3a; --light: #f8f9fa; --gray: #6c757d; --gray-light: #dee2e6;
-            --gray-dark: #343a40; --white: #ffffff;
-            /* --- ДОБАВЛЕНЫ/ИЗМЕНЕНЫ ПЕРЕМЕННЫЕ --- */
-            --primary-rgb: 67, 97, 238;
-            --secondary-rgb: 63, 55, 201;
-            --success-rgb: 6, 214, 160;
-            --danger-rgb: 247, 37, 133;
-            --warning-rgb: 248, 150, 30;
-            --info-rgb: 72, 149, 239;
-            --gray-100: #f8f9fa; --gray-200: #e9ecef; --gray-300: #dee2e6;
-            --gray-400: #ced4da; --gray-500: #adb5bd; --gray-600: #6c757d;
-            --gray-700: #495057; --gray-800: #343a40; --gray-900: #212529;
-             --gradient-1: linear-gradient(135deg, #4361ee, #3a0ca3);
-            --gradient-2: linear-gradient(135deg, #4cc9f0, #4361ee);
-            --gradient-3: linear-gradient(135deg, #f72585, #7209b7);
-            --gradient-4: linear-gradient(135deg, #f8961e, #f3722c);
-             /* Sémantické barvy (default light) */
-            --bg-color: #f9fafb;
-            --card-bg-color: var(--white);
-            --card-bg-color-rgb: 255, 255, 255;
-            --text-primary: var(--gray-800);
-            --text-secondary: #4a5568;
-            --text-muted: #718096;
-            --border-color: var(--gray-200);
-            --input-bg: var(--white);
-            --input-border: var(--gray-300);
-            --input-focus-border: var(--primary-light);
-            --input-focus-shadow: rgba(var(--primary-rgb), 0.15);
-            --skeleton-bg: #f3f4f6;
-            --skeleton-highlight: #e5e7eb;
-             /* Размеры и переходы */
-            --sidebar-width: 260px; /* <-- НОВАЯ ШИРИНА */
-            --transition-speed: 0.3s;
-            --transition-bezier: cubic-bezier(0.4, 0, 0.2, 1);
-            --card-radius: 14px;
-            --button-radius: 8px;
-            --form-element-radius: 6px;
-             /* Тени */
-            --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
-            --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
-            --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.06);
-            --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.07);
-        }
-        body { background-color: var(--bg-color); color: var(--text-primary); min-height: 100vh; display: flex; overflow-x: hidden; transition: background-color 0.3s, color 0.3s; }
-
-        /* --- НОВЫЕ/ИЗМЕНЕННЫЕ СТИЛИ ДЛЯ SIDEBAR --- */
-        .sidebar { width: var(--sidebar-width); height: 100vh; position: fixed; top: 0; left: 0; background: var(--gradient-1); color: var(--white); padding: 1.5rem 1rem; display: flex; flex-direction: column; z-index: 1000; box-shadow: var(--shadow-lg); transition: transform var(--transition-speed) var(--transition-bezier), width var(--transition-speed) var(--transition-bezier); }
-        .sidebar-header { display: flex; align-items: center; margin-bottom: 2rem; padding: 0 0.75rem; position: relative; min-height: 40px; }
-        #sidebar-close-toggle { display: none; position: absolute; right: -5px; top: 50%; transform: translateY(-50%); background: none; border: none; color: rgba(255, 255, 255, 0.8); font-size: 1.6rem; cursor: pointer; padding: 0.5rem; line-height: 1; }
+        :root { --primary: #4361ee; --primary-light: #4895ef; --secondary: #3f37c9; --success: #06d6a0; --danger: #f72585; --warning: #f8961e; --info: #4895ef; --dark: #1e2a3a; --light: #f8f9fa; --gray: #6c757d; --gray-light: #dee2e6; --gray-dark: #343a40; --gradient-1: linear-gradient(135deg, #4361ee, #3a0ca3); --gradient-2: linear-gradient(135deg, #4cc9f0, #4361ee); --gradient-3: linear-gradient(135deg, #f72585, #7209b7); --gradient-4: linear-gradient(135deg, #f8961e, #f3722c); --white: #ffffff; --sidebar-width: 260px; --transition-speed: 0.3s; --card-radius: 16px; --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05); --shadow-md: 0 5px 15px rgba(0, 0, 0, 0.07); --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.1); --text-primary: #2d3748; --text-secondary: #4a5568; --text-muted: #718096; }
+        body { background-color: #f6f8ff; color: var(--text-primary); min-height: 100vh; display: flex; overflow-x: hidden; }
+        .sidebar { width: var(--sidebar-width); height: 100vh; position: fixed; top: 0; left: 0; background: var(--gradient-1); color: var(--white); padding: 1.5rem 1rem; display: flex; flex-direction: column; z-index: 100; box-shadow: var(--shadow-lg); transition: transform var(--transition-speed) ease, width var(--transition-speed) ease; }
+        .sidebar-header { display: flex; align-items: center; margin-bottom: 2rem; padding: 0 0.75rem; }
         .sidebar-logo { font-size: 1.5rem; font-weight: 700; color: var(--white); text-decoration: none; display: flex; align-items: center; gap: 0.75rem; }
         .sidebar-logo i { font-size: 1.75rem; }
-        .sidebar-menu { list-style: none; padding: 0; margin: 0; flex-grow: 1; overflow-y: auto; }
-         .sidebar-menu::-webkit-scrollbar { width: 5px; }
-         .sidebar-menu::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.05); border-radius: 3px;}
-         .sidebar-menu::-webkit-scrollbar-thumb { background-color: rgba(255, 255, 255, 0.3); border-radius: 3px; }
-         .sidebar-menu { scrollbar-width: thin; scrollbar-color: rgba(255, 255, 255, 0.3) rgba(255, 255, 255, 0.05); }
+        .sidebar-menu { list-style: none; padding: 0; margin: 0; flex-grow: 1; }
         .sidebar-item { margin-bottom: 0.5rem; }
-        .sidebar-link { display: flex; align-items: center; padding: 0.8rem 1rem; color: rgba(255, 255, 255, 0.85); text-decoration: none; border-radius: var(--button-radius); transition: background-color 0.2s ease, color 0.2s ease; font-weight: 500; position: relative; }
+        .sidebar-link { display: flex; align-items: center; padding: 0.75rem 1rem; color: rgba(255, 255, 255, 0.85); text-decoration: none; border-radius: 12px; transition: all 0.2s ease; font-weight: 500; }
         .sidebar-link i { margin-right: 0.75rem; font-size: 1.2rem; width: 24px; text-align: center; }
         .sidebar-link.active, .sidebar-link:hover { background-color: rgba(255, 255, 255, 0.15); color: var(--white); }
-        .sidebar-link.active::before { content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%); height: 60%; width: 4px; background-color: var(--white); border-radius: 0 3px 3px 0; }
-        .sidebar-footer { margin-top: auto; padding: 1rem; font-size: 0.85rem; color: rgba(255, 255, 255, 0.6); text-align: center; flex-shrink: 0;}
-        .user-profile { display: flex; align-items: center; padding: 1rem; margin-top: 1rem; background-color: rgba(255, 255, 255, 0.08); border-radius: 12px; border: 1px solid rgba(255,255,255, 0.1); flex-shrink: 0;}
-        .user-avatar { width: 40px; height: 40px; border-radius: 50%; background-color: var(--primary-light); display: flex; align-items: center; justify-content: center; margin-right: 0.75rem; font-weight: 500; overflow: hidden; color: var(--white); border: 2px solid rgba(255,255,255, 0.3); flex-shrink: 0;}
+        .sidebar-footer { margin-top: auto; padding: 1rem; font-size: 0.9rem; color: rgba(255, 255, 255, 0.7); text-align: center; }
+        .user-profile { display: flex; align-items: center; padding: 1rem; margin-top: 1rem; background-color: rgba(255, 255, 255, 0.1); border-radius: 12px; backdrop-filter: blur(5px); }
+        .user-avatar { width: 40px; height: 40px; border-radius: 50%; background-color: var(--primary-light); display: flex; align-items: center; justify-content: center; margin-right: 0.75rem; font-weight: 500; overflow: hidden; box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15); }
         .user-avatar img { width: 100%; height: 100%; object-fit: cover; }
-        .user-info { flex-grow: 1; overflow: hidden; }
-        .user-name { font-weight: 600; font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .user-role { font-size: 0.8rem; opacity: 0.8; white-space: nowrap;}
-        /* Мобильное меню и оверлей */
-        .mobile-menu-toggle { display: none; background: none; border: none; cursor: pointer; font-size: 1.5rem; color: var(--text-primary); padding: 0.5rem; }
-        .sidebar-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.55); z-index: 999; opacity: 0; transition: opacity var(--transition-speed) ease; backdrop-filter: blur(4px); }
-        .sidebar-overlay.active { display: block; opacity: 1; }
-         /* --- КОНЕЦ НОВЫХ СТИЛЕЙ SIDEBAR --- */
-
-        /* --- Основной контент (Стили из оригинала + использование новых переменных) --- */
-        main { flex: 1; margin-left: var(--sidebar-width); padding: 1.5rem 2rem; transition: margin var(--transition-speed) var(--transition-bezier); width: calc(100% - var(--sidebar-width)); overflow-y: auto; height: 100vh;} /* Добавлено overflow и height */
-         main:not(.loaded) { opacity: 0; } /* Скрыто до загрузки */
-         main.loaded { opacity: 1; animation: fadeInMain 0.4s ease-out forwards; }
-         @keyframes fadeInMain { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-
-        .dashboard-header { margin-bottom: 2rem; background-color: var(--card-bg-color); border-radius: var(--card-radius); padding: 1rem 1.75rem; box-shadow: var(--shadow-sm); position: sticky; top: 0; z-index: 900; border-bottom: 1px solid transparent; transition: box-shadow 0.2s ease, border-color 0.2s ease, background-color 0.2s ease; }
-         body.scrolled .dashboard-header { box-shadow: var(--shadow-md); border-bottom-color: var(--border-color); background-color: rgba(var(--card-bg-color-rgb), 0.95); }
-        .header-content { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
-        .header-content h1 { font-size: 1.75rem; font-weight: 600; color: var(--text-primary); }
+        .user-info { flex-grow: 1; }
+        .user-name { font-weight: 600; font-size: 0.95rem; }
+        .user-role { font-size: 0.8rem; opacity: 0.8; }
+        main { flex: 1; margin-left: var(--sidebar-width); padding: 1.5rem 2rem; transition: margin var(--transition-speed) ease; width: calc(100% - var(--sidebar-width)); }
+        .dashboard-header { margin-bottom: 2rem; background-color: var(--white); border-radius: var(--card-radius); padding: 1.25rem 1.5rem; box-shadow: var(--shadow-sm); }
+        .header-content { display: flex; justify-content: space-between; align-items: center; }
+        .header-content h1 { font-size: 1.75rem; font-weight: 600; color: var(--dark); }
         .main-content { display: flex; flex-direction: column; gap: 1.75rem; }
-        .section { background-color: var(--card-bg-color); border-radius: var(--card-radius); box-shadow: var(--shadow-sm); padding: 1.75rem; border: 1px solid var(--border-color); }
-         .section.has-tabs { padding-top: 0; }
-         .section.has-tabs > .tab-content-area { padding: 1.75rem; }
-        .section-title { font-size: 1.4rem; font-weight: 600; margin-bottom: 1.5rem; color: var(--text-primary); display: flex; align-items: center; justify-content: space-between; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border-color); }
-        .section-title i { font-size: 0.9em; color: var(--primary); margin-right: 0.6rem; }
-        .section-subtitle { font-size: 1.1rem; font-weight: 500; margin-bottom: 1rem; color: var(--text-primary); }
+        .section { background-color: var(--white); border-radius: var(--card-radius); box-shadow: var(--shadow-sm); padding: 1.5rem; animation: fadeIn 0.5s ease forwards; }
+        .section-title { font-size: 1.3rem; font-weight: 600; margin-bottom: 1.25rem; color: var(--dark); }
+        .section-subtitle { font-size: 1.1rem; font-weight: 500; margin-bottom: 1rem; color: var(--dark); }
         .section-text { font-size: 1rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 1.5rem; }
-        .btn { display: inline-flex; align-items: center; justify-content: center; padding: 0.7rem 1.4rem; border-radius: var(--button-radius); font-weight: 500; font-size: 0.9rem; text-decoration: none; transition: all 0.3s ease; cursor: pointer; border: none; gap: 0.5rem; }
-        .btn-primary { background: var(--gradient-1); color: white; box-shadow: var(--shadow-sm); }
-        .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: var(--shadow-md); background: linear-gradient(135deg, var(--primary-light), var(--secondary)); }
-        .btn-secondary { background-color: var(--card-bg-color); color: var(--text-secondary); border: 1px solid var(--border-color); box-shadow: var(--shadow-xs); }
-        .btn-secondary:hover:not(:disabled) { background-color: var(--gray-100); border-color: var(--gray-medium); }
-        .btn-success { background: linear-gradient(135deg, var(--success), var(--success-dark)); color: white; box-shadow: 0 4px 10px rgba(var(--success-rgb), 0.2); }
-        .btn-success:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(var(--success-rgb), 0.25); }
+        .btn { display: inline-flex; align-items: center; justify-content: center; padding: 0.75rem 1.5rem; border-radius: 8px; font-weight: 500; font-size: 0.95rem; text-decoration: none; transition: all 0.3s ease; cursor: pointer; border: none; gap: 0.5rem; }
+        .btn-primary { background: var(--gradient-1); color: white; box-shadow: 0 4px 10px rgba(67, 97, 238, 0.2); }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(67, 97, 238, 0.25); }
+        .btn-secondary { background-color: var(--light); color: var(--text-secondary); border: 1px solid var(--gray-light); }
+        .btn-secondary:hover { background-color: var(--gray-light); color: var(--dark); }
+        .btn-success { background: linear-gradient(135deg, #4cc9f0, #38b2ac); color: white; box-shadow: 0 4px 10px rgba(76, 201, 240, 0.2); }
+        .btn-success:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(76, 201, 240, 0.25); }
         .btn-lg { padding: 0.75rem 2rem; font-size: 1rem; }
-        .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
-        .btn i { margin-right: 0.4em; }
         .action-buttons { display: flex; flex-wrap: wrap; gap: 1rem; margin: 1.5rem 0; justify-content: center; }
-        .plan-tabs { display: flex; margin-bottom: 0; border-bottom: 1px solid var(--border-color); overflow-x: auto; scrollbar-width: none; background-color: var(--card-bg-color); border-radius: var(--card-radius) var(--card-radius) 0 0; padding: 0 0.75rem; }
-        .plan-tabs::-webkit-scrollbar { display: none; }
-        .plan-tab { padding: 0.9rem 1.75rem; cursor: pointer; font-weight: 600; color: var(--text-secondary); border-bottom: 3px solid transparent; transition: all 0.3s ease; white-space: nowrap; font-size: 0.95rem; }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .ai-loading { display: flex; align-items: center; gap: 1rem; margin: 2rem 0; font-style: italic; color: var(--text-muted); justify-content: center; }
+        .ai-loading-spinner { width: 24px; height: 24px; border: 3px solid rgba(67, 97, 238, 0.2); border-radius: 50%; border-top-color: var(--primary); animation: spin 1s ease-in-out infinite; }
+        .plan-content { margin-top: 1rem; padding: 1.5rem; background-color: #f9f9ff; border-radius: var(--card-radius); border-left: 4px solid var(--primary); line-height: 1.7; }
+        .plan-content h1, .plan-content h2, .plan-content h3, .plan-content h4 { color: var(--primary); margin-bottom: 0.8rem; font-weight: 600; padding-bottom: 0.3rem; border-bottom: 1px solid var(--gray-light); }
+        .plan-content h1 { font-size: 1.6rem; }
+        .plan-content h2 { font-size: 1.4rem; margin-top: 2rem; }
+        .plan-content h3 { font-size: 1.2rem; margin-top: 1.5rem; color: var(--dark); border-bottom: none;}
+        .plan-content h4 { font-size: 1.1rem; margin-top: 1.2rem; color: var(--secondary); border-bottom: none; }
+        .plan-content p { margin-bottom: 1rem; }
+        .plan-content ul, .plan-content ol { margin-left: 1.5rem; margin-bottom: 1rem; padding-left: 1rem; }
+        .plan-content li { margin-bottom: 0.7rem; }
+        .plan-content li::marker { color: var(--primary); }
+        .plan-content strong { color: var(--secondary); font-weight: 600; }
+        .plan-content code { background-color: rgba(67, 97, 238, 0.1); padding: 0.2rem 0.4rem; border-radius: 4px; font-size: 0.9rem; font-family: 'Courier New', Courier, monospace; }
+        .plan-content blockquote { border-left: 3px solid var(--primary-light); padding-left: 1rem; margin: 1rem 0; color: var(--text-secondary); font-style: italic; }
+        .plan-content hr { border: none; border-top: 1px dashed var(--gray-light); margin: 2rem 0; }
+        .plan-content em { font-style: italic; color: var(--text-secondary); }
+        .daily-schedule { /* Používá se nyní pro #dailySchedule kontejner */ }
+        .step-navigation { display: flex; justify-content: space-between; margin-bottom: 1.5rem; }
+        .notest-message { background-color: rgba(255, 214, 102, 0.2); border-left: 4px solid var(--warning); padding: 1.5rem; margin: 2rem 0; border-radius: var(--card-radius); }
+        .notest-message h3 { color: var(--warning); margin-bottom: 0.75rem; font-size: 1.2rem; }
+        .notest-message p { color: var(--text-secondary); margin-bottom: 1rem; line-height: 1.5; }
+        .notest-message.error { background-color: rgba(247, 37, 133, 0.1); border-left-color: var(--danger); }
+        .notest-message.error h3 { color: var(--danger); }
+        .notest-message.info { background-color: rgba(72, 149, 239, 0.1); border-left-color: var(--info); }
+        .notest-message.info h3 { color: var(--info); }
+        .plan-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem; }
+        .plan-meta { display: flex; flex-direction: column; gap: 0.5rem; flex-grow: 1; }
+        .plan-date { font-size: 0.9rem; color: var(--text-muted); }
+        .plan-actions { display: flex; gap: 1rem; flex-shrink: 0; }
+        .activity-checkbox { display: flex; gap: 0.75rem; align-items: flex-start; }
+        .activity-checkbox input[type="checkbox"] { min-width: 18px; height: 18px; margin-top: 3px; cursor: pointer; }
+        .activity-checkbox .activity-content { text-decoration: none; transition: all 0.2s ease; }
+        .activity-checkbox input[type="checkbox"]:checked + .activity-content { text-decoration: line-through; opacity: 0.7; }
+        .plan-history { margin-top: 2rem; }
+        .history-item { background-color: var(--white); border-radius: var(--card-radius); padding: 1.25rem; margin-bottom: 1rem; box-shadow: var(--shadow-sm); display: flex; justify-content: space-between; align-items: center; transition: all 0.2s ease; cursor: pointer; }
+        .history-item:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+        .history-date { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.25rem; }
+        .history-title { font-weight: 600; color: var(--dark); }
+        .history-status { padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.8rem; font-weight: 500; }
+        .history-status.active { background-color: rgba(76, 201, 240, 0.15); color: #4cc9f0; }
+        .history-status.completed { background-color: rgba(67, 97, 238, 0.15); color: var(--primary); }
+        .history-status.inactive { background-color: rgba(108, 117, 125, 0.15); color: var(--gray);}
+        .tooltip-inner { background-color: var(--dark); color: var(--white); border-radius: 4px; padding: 0.5rem 0.75rem; font-size: 0.9rem; max-width: 250px; box-shadow: var(--shadow-md); }
+        .locked-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(26, 32, 44, 0.7); display: flex; flex-direction: column; justify-content: center; align-items: center; border-radius: var(--card-radius); color: white; padding: 2rem; text-align: center; }
+        .locked-icon { font-size: 3rem; margin-bottom: 1rem; opacity: 0.9; }
+        .locked-title { font-size: 1.5rem; font-weight: 600; margin-bottom: 1rem; }
+        .locked-message { font-size: 1rem; margin-bottom: 1.5rem; opacity: 0.9; max-width: 500px; }
+        .timer-container { margin: 1rem 0 2rem; font-size: 1.2rem; font-weight: 600; }
+        .plan-tabs { display: flex; margin-bottom: 2rem; border-bottom: 1px solid var(--gray-light); overflow-x: auto; /* Umožní horizontální posun, pokud se taby nevejdou */ scrollbar-width: none; /* Firefox */ }
+        .plan-tabs::-webkit-scrollbar { display: none; /* Chrome, Safari, Opera */ }
+        .plan-tab { padding: 0.75rem 1.5rem; cursor: pointer; font-weight: 600; color: var(--text-secondary); border-bottom: 3px solid transparent; transition: all 0.3s ease; white-space: nowrap; /* Zabrání zalomení textu v tabech */ }
         .plan-tab:hover { color: var(--primary); }
         .plan-tab.active { color: var(--primary); border-bottom-color: var(--primary); }
-        .tab-pane { display: none; } .tab-pane.active { display: block; }
-        .tab-content-area { /* wrapper */ }
-        .ai-loading { display: flex; align-items: center; gap: 1rem; margin: 2rem 0; font-style: italic; color: var(--text-muted); justify-content: center; }
-        .ai-loading-spinner { width: 24px; height: 24px; border: 3px solid rgba(var(--primary-rgb), 0.2); border-radius: 50%; border-top-color: var(--primary); animation: spin 1s ease-in-out infinite; }
+        .loader-container { display: flex; justify-content: center; align-items: center; min-height: 200px; }
+        .loader { width: 40px; height: 40px; border: 4px solid rgba(67, 97, 238, 0.2); border-radius: 50%; border-top-color: var(--primary); animation: spin 1s linear infinite; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .animated { animation: fadeIn 0.5s ease forwards; }
         @keyframes spin { to { transform: rotate(360deg); } }
-        .plan-content { margin-top: 1rem; padding: 1.75rem; background-color: var(--light); border-radius: var(--card-radius); border: 1px solid var(--border-color); line-height: 1.7; }
-        /* ... (стили для markdown h1, h2, code и т.д. как раньше) ... */
-         .step-navigation { display: flex; justify-content: space-between; margin-bottom: 1.5rem; margin-top: 1rem; }
-         .message-box { background-color: var(--info-bg); border-left: 4px solid var(--info); padding: 1.5rem; margin: 1rem 0; border-radius: var(--button-radius); border: 1px solid var(--info-light); }
-         /* ... (стили для .message-box.warning/error) ... */
-         .plan-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem; }
-         .plan-meta { display: flex; flex-direction: column; gap: 0.5rem; flex-grow: 1; }
-         .plan-date { font-size: 0.9rem; color: var(--text-muted); }
-         .plan-actions { display: flex; gap: 1rem; flex-shrink: 0; }
-         .plan-history { margin-top: 1rem; }
-         .history-item { background-color: var(--card-bg-color); border-radius: var(--button-radius); padding: 1.25rem 1.5rem; margin-bottom: 1rem; box-shadow: var(--shadow-xs); display: flex; justify-content: space-between; align-items: center; transition: all 0.2s ease; cursor: pointer; border: 1px solid var(--border-color); position: relative; min-height: 60px; }
-         /* ... (стили history item и locked overlay) ... */
-         .loader-container { display: flex; justify-content: center; align-items: center; min-height: 200px; padding: 2rem; }
-         .loader { width: 40px; height: 40px; border: 4px solid rgba(var(--primary-rgb), 0.2); border-radius: 50%; border-top-color: var(--primary); animation: spin 1s linear infinite; }
-        /* --- Календарь/Расписание (оригинальные стили) --- */
-        .schedule-section { padding: 0; border: none; box-shadow: none; background: none; position: relative; }
-        .calendar-scroll-container { overflow-x: auto; padding-bottom: 10px; margin-top: 0; border: 1px solid var(--border-color); border-radius: var(--card-radius); background-color: var(--card-bg-color); box-shadow: var(--shadow-sm); min-height: 300px; position: relative; }
-        .calendar-grid { display: grid; grid-template-columns: repeat(7, minmax(180px, 1fr)); min-width: calc(7 * 180px); }
-        .calendar-day-cell { border-left: 1px solid var(--border-color); min-height: 250px; display: flex; flex-direction: column; position: relative; }
-        .calendar-day-cell:first-child { border-left: none; }
-        .calendar-day-header { padding: 0.75rem 0.5rem; font-weight: 600; text-align: center; background-color: var(--gray-100); border-bottom: 1px solid var(--border-color); font-size: 0.9rem; color: var(--text-secondary); position: sticky; top: 0; z-index: 10; }
-        .calendar-day-cell.today .calendar-day-header { background-color: rgba(var(--success-rgb), 0.1); color: var(--success-dark); font-weight: 700; }
-        .calendar-day-cell.today { background-color: rgba(var(--success-rgb), 0.03); }
-        .calendar-activities { padding: 0.75rem; flex-grow: 1; display: flex; flex-direction: column; gap: 0.75rem; overflow-y: auto; }
-        .calendar-activity { background-color: var(--card-bg-color); border: 1px solid var(--border-color); border-left: 4px solid var(--primary); border-radius: var(--form-element-radius); padding: 0.6rem 0.8rem; font-size: 0.85rem; box-shadow: var(--shadow-xs); transition: all 0.2s ease; cursor: pointer; }
-         .calendar-activity:hover { transform: translateY(-2px) scale(1.01); box-shadow: var(--shadow-sm); border-left-color: var(--secondary); }
-        .calendar-activity .activity-checkbox { gap: 0.6rem; align-items: center; display: flex; }
-         .calendar-activity .activity-checkbox input[type="checkbox"] { min-width: 16px; height: 16px; margin-top: 0; cursor: pointer; accent-color: var(--primary); }
-        .calendar-activity .activity-content { flex-grow: 1; }
-        .calendar-activity .activity-title { font-weight: 500; color: var(--text-primary); font-size: 0.9rem; margin-bottom: 2px; line-height: 1.3; }
-         .calendar-activity .activity-time-display { font-weight: 600; color: var(--primary); margin-right: 6px; font-size: 0.85em; }
-        .calendar-activity .activity-desc { font-size: 0.8rem; color: var(--text-secondary); margin-top: 4px; padding-left: calc(16px + 0.6rem); display: none; line-height: 1.4; }
-        .calendar-activity.expanded .activity-desc { display: block; }
-        .calendar-activity .activity-checkbox input:checked + .activity-content .activity-title { text-decoration: line-through; opacity: 0.7; color: var(--text-muted); }
-        /* Skeleton styles */
-        .skeleton { background-color: var(--skeleton-bg); border-radius: 4px; position: relative; overflow: hidden; }
-        .skeleton::after { content: ''; position: absolute; top: 0; left: -150%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, var(--skeleton-highlight), transparent); animation: skeleton-loading 1.5s infinite linear; }
-        @keyframes skeleton-loading { 0% { left: -150%; } 100% { left: 150%; } }
-        .skeleton.title-sm { height: 14px; width: 60%; margin-bottom: 0.6rem; }
-        .skeleton.value-lg { height: 30px; width: 40%; margin-bottom: 0.5rem; border-radius: 6px; }
-        .skeleton.text-sm { height: 12px; width: 70%; }
-        .schedule-day .loading-skeleton { display: none; flex-direction: column; width: 100%; height: 100%; padding: 0.75rem; }
-        .schedule-day.loading .loading-skeleton { display: flex; }
-        .schedule-day.loading > *:not(.loading-skeleton) { visibility: hidden; }
-        .skeleton.activity-icon-placeholder { width: 16px; height: 16px; flex-shrink: 0; background-color: var(--skeleton-bg); border-radius: 3px; }
-        .skeleton.activity-line { width: 80%; height: 14px; margin-bottom: 4px; background-color: var(--skeleton-bg); }
-        .skeleton.activity-line-short { width: 50%; height: 10px; background-color: var(--skeleton-bg); }
-        .skeleton-activity-item { display:flex; gap: 0.75rem; padding: 0.5rem 0; }
-         .history-item .loading-skeleton { display: none; width: 100%; padding: 0.5rem 0;}
-         .history-item.loading .loading-skeleton { display: block; }
-         .history-item.loading > *:not(.loading-skeleton) { visibility: hidden; }
 
-        /* Initial Loading Overlay (НОВЫЙ) */
-        .initial-loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--bg-color); z-index: 1100; display: flex; justify-content: center; align-items: center; flex-direction: column; gap: 1rem; transition: opacity 0.5s ease-out; }
-        .initial-loading-overlay.hidden { opacity: 0; pointer-events: none; }
-        .initial-loading-overlay .loading-spinner { width: 35px; height: 35px; border-width: 4px; border-color: var(--primary); border-top-color: transparent; animation: spin 0.8s linear infinite;}
-        .initial-loading-overlay p { color: var(--text-secondary); font-size: 1.1rem;}
-
-        /* Toast */
-        .toast-container { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 1050; display: flex; flex-direction: column; gap: 0.75rem; max-width: 380px; pointer-events: none; }
-        .toast { /* ... */ }
-        /* Error Message Container */
-         .error-container { display: none; margin-bottom: 1.5rem; }
-         .error-message { /* ... */ }
-
-        /* Responsive styles (объединены/обновлены) */
-        @media (max-width: 992px) { :root { --sidebar-width: 80px; } main { margin-left: 80px; width: calc(100% - 80px); } .sidebar { width: 80px; } .sidebar-logo span, .sidebar-link span, .user-info, .sidebar-footer { display: none; } .sidebar-link i { margin-right: 0; font-size: 1.5rem; } .sidebar-logo i { margin-right: 0; } .sidebar-header, .sidebar-link { justify-content: center; } .user-profile { justify-content: center; padding: 0.75rem; } .user-avatar { margin-right: 0; } .mobile-menu-toggle { display: block; } #sidebar-close-toggle { display: none !important; } /* ... (остальные от 992px) ... */ }
-        @media (max-width: 768px) { /* ... */ }
-        @media (max-width: 576px) { :root { --sidebar-width: 0; } main { margin-left: 0; width: 100%; } .sidebar { transform: translateX(-100%); width: 260px; z-index: 1000;} .sidebar.active { transform: translateX(0); } .sidebar.active .sidebar-logo span, .sidebar.active .sidebar-link span, .sidebar.active .user-info, .sidebar.active .sidebar-footer { display: block; } .sidebar.active .sidebar-link i { margin-right: 0.75rem; } .sidebar.active .sidebar-header, .sidebar.active .sidebar-link { justify-content: flex-start; } .sidebar.active .user-profile { padding: 1rem; } .sidebar.active .user-avatar { margin-right: 0.75rem; } .sidebar.active #sidebar-close-toggle { display: block; } /* ... (остальные от 576px) ... */ }
-
-        /* Dark Mode (с использованием data-theme) */
-        [data-theme="dark"] {
-             --bg-color: #131720; --card-bg-color: #1e2533;
-             /* ... (все переменные для темного режима) ... */
+        /* --- Nové styly pro KALENDÁŘ --- */
+        .calendar-scroll-container {
+            overflow-x: auto; /* Povolí horizontální posuvník */
+            padding-bottom: 10px; /* Místo pro posuvník */
+            margin-top: 1.5rem; /* Odsazení od hlavičky */
+            border: 1px solid var(--gray-light);
+            border-radius: var(--card-radius);
+            background-color: var(--white);
         }
-        [data-theme="dark"] body { /* ... */ }
-        [data-theme="dark"] .section, [data-theme="dark"] .dashboard-header, /* ... */ [data-theme="dark"] .calendar-activity { /* ... */ }
-        /* ... (все остальные переопределения для темного режима) ... */
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, minmax(180px, 1fr)); /* 7 sloupců, min šířka, aby se něco vešlo */
+            /* gap: 0; */ /* Mezery řídí border buněk */
+            min-width: calc(7 * 180px); /* Zajistí minimální šířku pro zobrazení všech dnů */
+        }
+
+        .calendar-day-cell {
+            border-left: 1px solid var(--gray-light);
+            min-height: 250px; /* Větší min výška */
+            display: flex;
+            flex-direction: column;
+            position: relative; /* Pro případné absolutní pozicování uvnitř */
+        }
+        .calendar-day-cell:first-child {
+            border-left: none;
+        }
+
+        .calendar-day-header {
+            padding: 0.75rem 0.5rem;
+            font-weight: 600;
+            text-align: center;
+            background-color: #f8f9fa;
+            border-bottom: 1px solid var(--gray-light);
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            position: sticky; /* Přilepí hlavičku dne nahoře při vertikálním skrolování BUŇKY */
+            top: 0;
+            z-index: 10;
+        }
+
+        .calendar-day-cell.today .calendar-day-header {
+            background-color: rgba(6, 214, 160, 0.15);
+            color: var(--success);
+            font-weight: 700;
+        }
+        .calendar-day-cell.today {
+             background-color: rgba(6, 214, 160, 0.03);
+        }
+
+        .calendar-activities {
+            padding: 0.75rem;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            overflow-y: auto; /* Pokud je v buňce moc aktivit, povolí vertikální skrol */
+        }
+
+        .calendar-activity {
+            background-color: var(--white);
+            border: 1px solid var(--gray-light);
+            border-left: 4px solid var(--primary); /* Silnější levý okraj */
+            border-radius: 6px;
+            padding: 0.6rem 0.8rem;
+            font-size: 0.85rem;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.2s ease;
+            cursor: pointer; /* Naznačuje interaktivitu */
+        }
+         .calendar-activity:hover {
+             transform: translateY(-2px) scale(1.01);
+             box-shadow: var(--shadow-md);
+             border-left-color: var(--secondary);
+         }
+
+        .calendar-activity .activity-checkbox {
+            gap: 0.6rem;
+            align-items: center;
+        }
+         .calendar-activity .activity-checkbox input[type="checkbox"] {
+            margin-top: 0;
+            transform: scale(1.1); /* Trochu větší checkbox */
+        }
+
+        .calendar-activity .activity-title {
+            font-weight: 500;
+            color: var(--dark);
+            font-size: 0.9rem;
+            margin-bottom: 2px;
+            line-height: 1.3;
+        }
+         .calendar-activity .activity-time-display {
+             font-weight: 600;
+             color: var(--primary);
+             margin-right: 6px;
+             font-size: 0.85em;
+        }
+
+        .calendar-activity .activity-desc {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-top: 4px;
+            padding-left: calc(18px + 0.6rem); /* Odsazení pod checkboxem */
+            display: none; /* Skryto */
+            line-height: 1.4;
+        }
+        /* Zobrazit popis po kliknutí na aktivitu (přepínačem třídy) */
+        .calendar-activity.expanded .activity-desc {
+             display: block;
+        }
+
+
+        .calendar-activity .activity-checkbox input:checked + .activity-content .activity-title {
+            text-decoration: line-through;
+            opacity: 0.7;
+        }
+        /* --- Konec stylů pro KALENDÁŘ --- */
+
+
+        /* Responsivní úpravy */
+        @media (max-width: 992px) {
+             :root { --sidebar-width: 80px; } .sidebar { width: 80px; } .sidebar-logo span, .sidebar-link span, .user-info, .sidebar-footer { display: none; } .sidebar-link i { margin-right: 0; font-size: 1.5rem; } .sidebar-logo i { margin-right: 0; } .sidebar-header, .sidebar-link { justify-content: center; } .user-profile { justify-content: center; padding: 0.75rem 0; } .user-avatar { margin-right: 0; }
+             .calendar-grid { grid-template-columns: repeat(7, minmax(160px, 1fr)); min-width: calc(7 * 160px); } /* Trochu užší buňky */
+        }
+        @media (max-width: 768px) {
+             main { padding: 1rem; } .header-content { flex-direction: column; align-items: flex-start; gap: 1rem; } .plan-header { flex-direction: column; gap: 1rem; } .plan-actions { width: 100%; justify-content: center; } .plan-tabs { overflow-x: auto; white-space: nowrap; padding-bottom: 0.5rem; } .plan-tab { padding: 0.75rem 1rem; font-size: 0.9rem; }
+             .calendar-grid { grid-template-columns: repeat(7, minmax(140px, 1fr)); min-width: calc(7 * 140px); } /* Ještě užší */
+        }
+        @media (max-width: 576px) {
+             :root { --sidebar-width: 0; } .sidebar { transform: translateX(-100%); z-index: 1000; width: 260px; } .sidebar.active { transform: translateX(0); } .sidebar.active .sidebar-logo span, .sidebar.active .sidebar-link span, .sidebar.active .user-info, .sidebar.active .sidebar-footer { display: block; } .sidebar.active .sidebar-link i { margin-right: 0.75rem; } .sidebar.active .sidebar-header, .sidebar.active .sidebar-link { justify-content: flex-start; } .sidebar.active .user-profile { justify-content: flex-start; padding: 1rem; } .sidebar.active .user-avatar { margin-right: 0.75rem; } main { margin-left: 0; width: 100%; } .mobile-menu-toggle { display: block; }
+             .calendar-scroll-container { border: none; border-radius: 0; margin-left: -1rem; margin-right: -1rem; } /* Roztáhnout na mobilu */
+             .calendar-grid { display: block; min-width: unset; } /* Změna na blokové zobrazení = pod sebou */
+             .calendar-day-cell { border-left: none; border-bottom: 1px solid var(--gray-light); min-height: auto; border-radius: 0; margin-bottom: 1rem; background-color: var(--white); box-shadow: var(--shadow-sm);}
+             .calendar-day-cell:last-child { border-bottom: none; margin-bottom: 0; }
+        }
+        .mobile-menu-toggle { display: none; background: none; border: none; cursor: pointer; color: var(--dark); font-size: 1.5rem; margin-right: 1rem; }
+        .mobile-menu-visible .sidebar { transform: translateX(0); }
+
+        /* Dark mode úpravy */
+        @media (prefers-color-scheme: dark) {
+             :root { --white: #1a202c; --light: #2d3748; --dark: #e2e8f0; --gray-light: #4a5568; --text-primary: #e2e8f0; --text-secondary: #cbd5e0; --text-muted: #a0aec0; --dark-bg: #1e2533;}
+             body { background-color: #171923; }
+             .section { background-color: var(--dark-bg); }
+             .dashboard-header { background-color: var(--dark-bg); }
+             .plan-content { background-color: #1e2533; }
+             .notest-message { background-color: rgba(255, 214, 102, 0.1); }
+             .history-item { background-color: var(--dark-bg); }
+             .toast { background-color: var(--dark-bg); border-color: var(--gray-light); }
+             .mobile-menu-toggle { color: var(--dark); }
+
+            /* Dark mode pro kalendář */
+             .calendar-scroll-container { background-color: transparent; border-color: var(--gray-light); }
+             .calendar-grid { background-color: transparent; } /* Mřížka je průhledná */
+             .calendar-day-cell { border-left-color: var(--gray-light); background-color: var(--dark-bg); }
+             .calendar-day-header { background-color: var(--light); border-bottom-color: var(--gray-light); color: var(--text-secondary); }
+             .calendar-day-cell.today .calendar-day-header { background-color: rgba(6, 214, 160, 0.2); color: var(--success); }
+             .calendar-day-cell.today { background-color: rgba(6, 214, 160, 0.06); }
+             .calendar-activity { background-color: var(--light); border-color: var(--gray-light); border-left-color: var(--primary); }
+              @media (max-width: 576px) {
+                  .calendar-day-cell { border-bottom-color: var(--gray-light); background-color: var(--dark-bg); }
+             }
+        }
+
+         /* Toast notification */
+         .toast { position: fixed; bottom: 20px; right: 20px; background-color: var(--white); color: var(--text-primary); border-radius: 8px; padding: 1rem; box-shadow: var(--shadow-lg); max-width: 300px; z-index: 1001; display: flex; align-items: center; transform: translateY(120px); opacity: 0; transition: all 0.4s ease-in-out; }
+         .toast.show { transform: translateY(0); opacity: 1; }
+         .toast.success { border-left: 4px solid #10b981; }
+         .toast.error { border-left: 4px solid var(--danger); }
+         .toast.warning { border-left: 4px solid var(--warning); }
+         .toast i { margin-right: 0.75rem; font-size: 1.25rem; }
+         .toast.success i { color: #10b981; }
+         .toast.error i { color: var(--danger); }
+         .toast.warning i { color: var(--warning); }
     </style>
 </head>
 <body>
-    <div class="initial-loading-overlay" id="initial-loader">
-         <div class="loading-spinner"></div>
-         <p>Načítání plánu...</p>
-     </div>
-
-    <div id="sidebar-overlay" class="sidebar-overlay"></div>
-    <aside id="sidebar" class="sidebar">
-        <div class="sidebar-header"> <button class="mobile-menu-toggle" id="sidebar-close-toggle"> <i class="fas fa-times"></i> </button> <a href="/dashboard/dashboard.html" class="sidebar-logo"> <i class="fas fa-calculator"></i> <span>Justax</span> </a> </div>
-        <ul class="sidebar-menu">
-            <li class="sidebar-item"> <a href="/dashboard/dashboard.html" class="sidebar-link"> <i class="fas fa-th-large"></i> <span>Nástěnka</span> </a> </li>
-            <li class="sidebar-item"> <a href="/dashboard/procvicovani/main.html" class="sidebar-link active"> <i class="fas fa-book-open"></i> <span>Procvičování</span> </a> </li>
-            <li class="sidebar-item"> <a href="/dashboard/pokrok.html" class="sidebar-link"> <i class="fas fa-chart-line"></i> <span>Pokrok</span> </a> </li>
-            <li class="sidebar-item"> <a href="/dashboard/oceneni.html" class="sidebar-link"> <i class="fas fa-medal"></i> <span>Ocenění</span> </a> </li>
-            <li class="sidebar-item"> <a href="/dashboard/materialy.html" class="sidebar-link"> <i class="fas fa-file-alt"></i> <span>Materiály</span> </a> </li>
-            <li class="sidebar-item"> <a href="/dashboard/profile.html" class="sidebar-link"> <i class="fas fa-user-cog"></i> <span>Profil</span> </a> </li>
-        </ul>
-        <div class="user-profile"> <div class="user-avatar" id="user-avatar">?</div> <div class="user-info"> <div class="user-name" id="user-name">Načítání...</div> <div class="user-role">Student</div> </div> </div>
+    <aside class="sidebar">
+        <div class="sidebar-header"> <a href="/" class="sidebar-logo"> <i class="fas fa-calculator"></i> <span>Justax</span> </a> </div>
+        <ul class="sidebar-menu"> <li class="sidebar-item"> <a href="/dashboard/dashboard.html" class="sidebar-link"> <i class="fas fa-th-large"></i> <span>Dashboard</span> </a> </li> <li class="sidebar-item"> <a href="/dashboard/procvicovani/main.html" class="sidebar-link active"> <i class="fas fa-book-open"></i> <span>Procvičování</span> </a> </li> <li class="sidebar-item"> <a href="/dashboard/pokrok.html" class="sidebar-link"> <i class="fas fa-chart-line"></i> <span>Pokrok</span> </a> </li> <li class="sidebar-item"> <a href="/dashboard/oceneni.html" class="sidebar-link"> <i class="fas fa-medal"></i> <span>Ocenění</span> </a> </li> <li class="sidebar-item"> <a href="/dashboard/materialy.html" class="sidebar-link"> <i class="fas fa-file-alt"></i> <span>Materiály</span> </a> </li> <li class="sidebar-item"> <a href="/dashboard/profile.html" class="sidebar-link"> <i class="fas fa-user-cog"></i> <span>Profil</span> </a> </li> </ul>
+        <div class="user-profile"> <div class="user-avatar" id="user-avatar">MS</div> <div class="user-info"> <div class="user-name" id="user-name">Načítání...</div> <div class="user-role" id="user-role">Student</div> </div> </div>
         <div class="sidebar-footer"> &copy; 2025 Justax </div>
     </aside>
 
-    <main id="main-content" style="display: none;">
-        <div class="error-container" id="global-error"></div>
-        <header class="dashboard-header"> </header>
-        <div class="main-content">
-            <div class="plan-tabs"> </div>
-            <div class="section current-plan-section" id="currentPlanSection"> </div>
-            <div class="section history-plan-section" id="historyPlanSection" style="display: none;"> </div>
-            <div class="section create-plan-section" id="createPlanSection" style="display: none;"> </div>
-            <div class="section plan-section" id="planSection" style="display: none;"> </div>
-            <div class="section schedule-section" id="scheduleSection" style="display: none;"> </div>
+    <main>
+        <div class="dashboard-header">
+            <div class="header-content">
+                <h1>Personalizovaný studijní plán</h1>
+                <button class="mobile-menu-toggle" id="mobileMenuToggle"> <i class="fas fa-bars"></i> </button>
             </div>
-        <footer class="dashboard-footer"> <p>&copy; 2025 Justax. Všechna práva vyhrazena.</p> </footer>
+        </div>
+
+        <div class="main-content">
+            <div class="plan-tabs">
+                <div class="plan-tab active" data-tab="current">Aktuální plán</div>
+                <div class="plan-tab" data-tab="history">Historie plánů</div>
+                <div class="plan-tab" data-tab="create">Vytvořit nový</div>
+            </div>
+
+            <div class="section current-plan-section" id="currentPlanSection" style="display: none;">
+                <div class="loader-container" id="currentPlanLoader"> <div class="loader"></div> </div>
+                <div id="currentPlanContent">
+                    </div>
+            </div>
+
+            <div class="section history-plan-section" id="historyPlanSection" style="display: none;">
+                <h2 class="section-title">Historie studijních plánů</h2>
+                <div class="loader-container" id="historyLoader"> <div class="loader"></div> </div>
+                <div id="historyPlanContent" class="plan-history">
+                     </div>
+            </div>
+
+            <div class="section create-plan-section" id="createPlanSection" style="display: none;">
+                <div id="planCreateContent">
+                </div>
+            </div>
+
+            <div class="section plan-section" id="planSection" style="display: none;">
+                 <div class="step-navigation">
+                     <button class="btn btn-secondary" id="genericBackBtn"> <i class="fas fa-arrow-left"></i> Zpět </button>
+                 </div>
+                <h2 class="section-title">Detail plánu</h2>
+                <div class="ai-loading" id="planLoading" style="display: none;"> <div class="ai-loading-spinner"></div> <div>Načítám/Generuji...</div> </div>
+                <div class="plan-content" id="planContent" style="display: none;">
+                     </div>
+                <div class="action-buttons" id="planActions" style="display: none;">
+                    </div>
+            </div>
+
+            <div class="section schedule-section" id="scheduleSection" style="display: none;">
+                 <div class="calendar-scroll-container">
+                      <div class="calendar-grid" id="dailySchedule"> </div>
+                 </div>
+                 <div class="step-navigation" style="margin-top: 1.5rem;">
+                     <button class="btn btn-secondary" id="backToTabsBtn"> <i class="fas fa-arrow-left"></i> Zpět na záložky </button>
+                 </div>
+             </div>
+
+            <template id="lockedPlanTemplate">
+                <div style="position: relative; min-height: 300px;"> <div class="locked-overlay"> <div class="locked-icon"> <i class="fas fa-lock"></i> </div> <h3 class="locked-title">Vytvoření nového plánu není dostupné</h3> <p class="locked-message">Nový studijní plán můžete vytvořit jednou týdně, abyste měli dostatek času pracovat na aktuálním. Váš poslední plán byl vytvořen nedávno.</p> <div class="timer-container" id="timerContainer"> Další plán můžete vytvořit za: <span id="nextPlanTimer">počítám...</span> </div> <button class="btn btn-primary" id="viewCurrentPlanBtnLocked"> <i class="fas fa-eye"></i> Zobrazit aktuální plán </button> </div> </div>
+            </template>
+             <template id="createPlanFormTemplate">
+                <h2 class="section-title">Vytvořit nový studijní plán</h2> <div id="diagnosticInfo"> </div> <p class="section-text">Personalizovaný studijní plán bude vytvořen na základě výsledků vašeho posledního diagnostického testu. Zaměří se na vaše slabší oblasti a pomůže vám efektivně se připravit.</p> <div class="action-buttons"> <button class="btn btn-primary btn-lg" id="generatePlanBtn"> <i class="fas fa-magic"></i> Vygenerovat studijní plán </button> </div>
+             </template>
+             <template id="noDiagnosticTemplate">
+                 <div class="notest-message"> <h3><i class="fas fa-exclamation-circle"></i> Nejprve absolvujte diagnostický test</h3> <p>Pro vytvoření personalizovaného studijního plánu je nejprve potřeba dokončit diagnostický test na stránce Procvičování, který nám pomůže identifikovat vaše silné a slabé stránky.</p> <button class="btn btn-primary" id="goToTestBtn"> <i class="fas fa-play"></i> Přejít k testu </button> </div>
+             </template>
+            <template id="historyItemTemplate">
+                <div class="history-item" data-plan-id=""> <div class="history-info"> <div class="history-date">Vytvořeno: -</div> <div class="history-title">Studijní plán</div> </div> <div class="history-meta"> <span class="history-status active">Stav</span> </div> </div>
+            </template>
+            <template id="promptCreatePlanTemplate">
+                <div class="notest-message info"><h3><i class="fas fa-clipboard-check"></i> Diagnostický test dokončen</h3><p>Váš poslední diagnostický test je připraven k analýze. Můžete nyní vygenerovat nový personalizovaný studijní plán.</p><button class="btn btn-primary" id="createNewPlanFromPromptBtn"><i class="fas fa-plus-circle"></i> Vytvořit studijní plán</button></div>
+            </template>
+             <template id="noActivePlanTemplate">
+                 <div class="notest-message info">
+                     <h3><i class="fas fa-info-circle"></i> Žádný aktivní plán</h3>
+                     <p>Momentálně nemáte žádný aktivní studijní plán. Pokud jste již absolvoval/a diagnostický test, můžete si <a href="#" onclick="event.preventDefault(); document.querySelector('.plan-tab[data-tab=\'create\']').click();">vytvořit nový</a>.</p>
+                     <p>Pokud jste test ještě nedělal/a, přejděte prosím na <a href="test1.html">stránku testování</a>.</p>
+                 </div>
+             </template>
+
+        </div>
     </main>
 
-    <div class="toast" id="toast"> </div>
+     <div class="toast" id="toast">
+         <i class="fas fa-check-circle"></i>
+         <div id="toast-message">Operace byla úspěšně dokončena.</div>
+     </div>
+
+    <script
+        src="https://code.jquery.com/jquery-3.7.1.min.js"
+        integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
+        crossorigin="anonymous"
+        defer>
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/js/tooltipster.bundle.min.js" defer></script>
 
     <script>
-        // --- Оригинальный JavaScript из твоего plan.html ---
-        // (Добавлены только: инициализация Supabase, проверка auth,
-        //  загрузка профиля, обновление сайдбара, тема, управление лоадером)
+        // ==============================================
+        //          Inicializace Supabase & Gemini
+        // ==============================================
+        const supabaseUrl = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10';
+        let supabaseClient = null;
+        const GEMINI_API_KEY = 'AIzaSyDQboM6qtC_O2sqqpaKZZffNf2zk6HrhEs'; // <--- ZDE VLOŽTE VÁŠ KLÍČ
+        const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
 
-        // --- START: Добавленные глобальные переменные ---
-        const supabaseUrl_global = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
-        const supabaseKey_global = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10';
-        const GEMINI_API_KEY_global = 'AIzaSyDQboM6qtC_O2sqqpaKZZffNf2zk6HrhEs'; // WARNING: Keep secure
-        const GEMINI_API_URL_global = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY_global}`;
-        let supabaseClient_global = null; // Переименовано, чтобы избежать конфликтов
-        let currentUser_global = null;
-        let currentProfile_global = null;
-        // --- END: Добавленные глобальные переменные ---
+        // ==============================================
+        //          DOM Elementy
+        // ==============================================
+        const currentPlanSection = document.getElementById('currentPlanSection');
+        const historyPlanSection = document.getElementById('historyPlanSection');
+        const createPlanSection = document.getElementById('createPlanSection');
+        const planSection = document.getElementById('planSection'); // Sekce pro detail/generování
+        const scheduleSection = document.getElementById('scheduleSection'); // Sekce pro kalendář
+        const planLoading = document.getElementById('planLoading'); // Loader v planSection
+        const planContent = document.getElementById('planContent'); // Markdown obsah v planSection
+        const dailyScheduleGrid = document.getElementById('dailySchedule'); // Kalendář grid
+        const planActions = document.getElementById('planActions'); // Tlačítka v planSection
+        const currentPlanLoader = document.getElementById('currentPlanLoader'); // Loader v currentPlanSection
+        const currentPlanContent = document.getElementById('currentPlanContent'); // Obsah (výzvy) v currentPlanSection
+        const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+        const planCreateContent = document.getElementById('planCreateContent'); // Obsah v createPlanSection
+        const historyLoader = document.getElementById('historyLoader'); // Loader v historyPlanSection
+        const historyPlanContent = document.getElementById('historyPlanContent'); // Obsah v historyPlanSection
+        const planTabs = document.querySelectorAll('.plan-tab');
+        const userName = document.getElementById('user-name');
+        const userAvatar = document.getElementById('user-avatar');
+        const backToTabsBtn = document.getElementById('backToTabsBtn'); // Tlačítko zpět v scheduleSection
+        const genericBackBtn = document.getElementById('genericBackBtn'); // Tlačítko zpět v planSection
 
-        // --- START: Добавленные Helper Functions ---
-        // (Функции showToast, showError, hideError, sanitizeHTML, getInitials, formatDate, toggleMobileMenu, applyTheme)
-        // Важно: Убедись, что эти функции не конфликтуют с именами в твоем оригинальном коде.
-        // Если конфликтуют, переименуй их здесь и в вызовах.
-         function showToast(message, type = 'info', duration = 4000) { /* ... Реализация ... */ }
-         function showError(message, isGlobal = false) { /* ... Реализация ... */ }
-         function hideError() { /* ... Реализация ... */ }
-         function sanitizeHTML(str) { /* ... Реализация ... */ }
-         function getInitials(profile) { /* ... Реализация ... */ }
-         function formatDate(dateString) { /* ... Реализация ... */ }
-         function toggleMobileMenu() { /* ... Реализация ... */ }
-         function applyTheme(profile) { /* ... Реализация ... */ }
-         function updateUserInfoUI(profileData, userEmail) { // Обновляет ТОЛЬКО НОВЫЙ сайдбар
-            const sidebarUserName = document.getElementById('user-name'); // ID в новом сайдбаре
-            const sidebarUserAvatar = document.getElementById('user-avatar'); // ID в новом сайдбаре
-             if (!sidebarUserName || !sidebarUserAvatar) return;
-             if (currentUser_global && profileData) {
-                 const displayName = `${profileData.first_name || ''} ${profileData.last_name || ''}`.trim() || profileData.username || userEmail?.split('@')[0] || 'Uživatel';
-                 sidebarUserName.textContent = displayName;
-                 const initials = getInitials(profileData);
-                 sidebarUserAvatar.innerHTML = profileData.avatar_url ? `<img src="${profileData.avatar_url}" alt="${initials}">` : initials;
-             } else {
-                 sidebarUserName.textContent = 'Nepřihlášen';
-                 sidebarUserAvatar.textContent = '?';
+        // Vzory
+        const lockedPlanTemplate = document.getElementById('lockedPlanTemplate');
+        const createPlanFormTemplate = document.getElementById('createPlanFormTemplate');
+        const noDiagnosticTemplate = document.getElementById('noDiagnosticTemplate');
+        const historyItemTemplate = document.getElementById('historyItemTemplate');
+        const promptCreatePlanTemplate = document.getElementById('promptCreatePlanTemplate');
+        const noActivePlanTemplate = document.getElementById('noActivePlanTemplate'); // Nová šablona
+
+        // Globální proměnné
+        let currentUser = null; let currentProfile = null; let latestDiagnosticData = null; let currentStudyPlan = null; let previousPlans = []; let planCreateAllowed = false; let nextPlanCreateTime = null; let planTimerInterval = null; let currentTab = 'current';
+        let lastGeneratedMarkdown = null;
+        let lastGeneratedActivitiesJson = null;
+
+        const topicIcons = { "Čísla a aritmetické operace": "fa-calculator", "Algebra": "fa-square-root-alt", "Geometrie": "fa-draw-polygon", "Práce s daty": "fa-chart-bar", "Problémové úlohy": "fa-lightbulb", "Proporce a procenta": "fa-percentage", "Logické úlohy": "fa-brain", "default": "fa-book" };
+        const topicMap = { 1: "Čísla a aritmetické operace", 2: "Algebra", 3: "Geometrie", 4: "Práce s daty", 5: "Problémové úlohy", 6: "Proporce a procenta", 7: "Logické úlohy" };
+
+        // ==============================================
+        //          Pomocné Funkce
+        // ==============================================
+        function formatDate(dateString) { if(!dateString) return '-'; const date = new Date(dateString); return date.toLocaleDateString('cs-CZ', { day: '2-digit', month: '2-digit', year: 'numeric' }); }
+        function showLoader(sectionElement, loaderElement) { if(loaderElement) loaderElement.style.display = 'flex'; const contentElement = sectionElement.querySelector('[id$="Content"], .plan-history, .calendar-grid, .plan-content, .calendar-scroll-container'); if (contentElement) contentElement.style.display = 'none'; }
+        function hideLoader(loaderElement) { if(loaderElement) loaderElement.style.display = 'none'; }
+        function showGlobalError(message) { const errorContainer = document.getElementById('global-error'); if(errorContainer) { errorContainer.innerHTML = `<div class="error-message"><i class="fas fa-exclamation-circle"></i><div>${message}</div></div>`; errorContainer.style.display = 'block';} }
+        function sanitizeHTML(str) { if (str === null || str === undefined) return ''; const temp = document.createElement('div'); temp.textContent = str; return temp.innerHTML; }
+        function getInitials(profileData) { if (!profileData) return 'U'; const first = profileData.first_name?.[0] || ''; const last = profileData.last_name?.[0] || ''; const usernameInitial = profileData.username?.[0] || ''; const emailInitial = profileData.email?.[0] || ''; return (first + last).toUpperCase() || usernameInitial.toUpperCase() || emailInitial.toUpperCase() || 'U'; }
+        function toggleMobileMenu() { const sidebar = document.querySelector('.sidebar'); sidebar?.classList.toggle('active'); const overlay = document.querySelector('.sidebar-overlay'); overlay?.classList.toggle('active'); }
+        function showToast(message, type = 'success', duration = 4000) { const toast = document.getElementById('toast'); const toastMessage = document.getElementById('toast-message'); if (!toast || !toastMessage) return; toastMessage.textContent = message; const icon = toast.querySelector('i'); icon.className = type === 'success' ? 'fas fa-check-circle' : type === 'error' ? 'fas fa-exclamation-circle' : type === 'warning' ? 'fas fa-exclamation-triangle' : 'fas fa-info-circle'; toast.className = 'toast ' + type; toast.classList.add('show'); setTimeout(() => { toast.classList.remove('show'); }, duration); }
+        function initTooltips() { try { if (typeof window.$ !== 'undefined' && window.$.fn.tooltipster) { window.$('.btn-tooltip:not(.tooltipstered)').tooltipster({ theme: 'tooltipster-shadow', animation: 'fade', delay: 100, side: 'top' }); console.log("Tooltips initialized on new elements."); } else { console.warn("Tooltipster nebo jQuery nejsou dostupné pro inicializaci."); } } catch (e) { console.error("Chyba inicializace Tooltipster:", e); } }
+        window.addEventListener('resize', () => { if (window.innerWidth > 992) { document.querySelector('.sidebar')?.classList.remove('active'); document.querySelector('.sidebar-overlay')?.classList.remove('active'); } });
+
+        // ==============================================
+        //          Inicializace a Navigace
+        // ==============================================
+        async function initializeApp() {
+             try {
+                 if (typeof supabase !== 'undefined' && typeof supabase.createClient === 'function') {
+                      const { createClient } = supabase;
+                      supabaseClient = createClient(supabaseUrl, supabaseKey);
+                      console.log("Supabase client initialized.");
+                 } else { throw new Error("Supabase library not loaded correctly."); }
+
+                 showLoader(currentPlanSection, currentPlanLoader); // Zobraz loader pro aktuální plán na začátku
+                 currentUser = await getCurrentSupabaseUser();
+                 if (!currentUser) {
+                     console.warn("Uživatel není přihlášen. Používám placeholder.");
+                     currentUser = { id: 'PLACEHOLDER_USER_ID', email: 'student@example.com' };
+                     currentProfile = { username: 'Testovací Student', email: 'student@example.com', points: 0 };
+                 } else { currentProfile = await fetchUserProfile(currentUser.id); }
+
+                 updateUserInfoUI(currentProfile, currentUser?.email);
+                 setupEventListeners();
+                 await switchTab('current'); // Načti první záložku
+                 initTooltips();
+
+             } catch (error) {
+                 console.error('Chyba při inicializaci aplikace:', error);
+                 showGlobalError('Nepodařilo se inicializovat aplikaci: ' + error.message);
+                 // Zobraz chybu v sekci aktuálního plánu
+                 hideLoader(currentPlanLoader);
+                 if(currentPlanContent) {
+                      currentPlanContent.innerHTML = `<div class="notest-message error"><h3>Chyba inicializace</h3><p>${error.message}</p></div>`;
+                      currentPlanContent.style.display = 'block'; // Zobrazit obsah s chybou
+                 }
+                 if(currentPlanSection) currentPlanSection.style.display = 'block'; // Zobrazit sekci
              }
          }
-         async function fetchUserProfile(userId) { // Новая функция для загрузки профиля
-            if (!supabaseClient_global || !userId) return null;
-            console.log(`[Profile] Fetching profile for user ID: ${userId}`);
-            try {
-                const { data: profile, error } = await supabaseClient_global.from('profiles').select('*').eq('id', userId).single();
-                if (error && error.code !== 'PGRST116') throw error;
-                return profile; // Возвращает профиль или null
-            } catch (error) {
-                console.error('[Profile] Exception fetching profile:', error);
-                showToast('Nepodařilo se načíst data profilu.', 'error');
-                return null;
+        async function getCurrentSupabaseUser() { if (!supabaseClient) throw new Error("Supabase client není inicializován"); const { data: { user }, error } = await supabaseClient.auth.getUser(); if (error) { console.error("Chyba získání uživatele:", error); throw new Error("Nepodařilo se získat informace o uživateli."); } return user; }
+        async function fetchUserProfile(userId) { if (!userId || !supabaseClient) return null; try { const { data: profile, error } = await supabaseClient.from('profiles').select('*').eq('id', userId).single(); if (error && error.code !== 'PGRST116') { throw error; } return profile; } catch (error) { console.error("Chyba načtení profilu:", error); return null; } }
+        function updateUserInfoUI(profileData, userEmail) { const displayName = `${profileData?.first_name || ''} ${profileData?.last_name || ''}`.trim() || profileData?.username || userEmail?.split('@')[0] || 'Student'; if(userName) userName.textContent = displayName; if(userAvatar) { if (profileData?.avatar_url) { userAvatar.innerHTML = `<img src="${profileData.avatar_url}" alt="Avatar">`; } else { const initials = getInitials(profileData || { email: userEmail }); userAvatar.textContent = initials; } } }
+        async function checkExistingDiagnostic(userId) { if (!userId || userId === 'PLACEHOLDER_USER_ID' || !supabaseClient) { console.warn("Kontrola testu přeskočena pro placeholder uživatele nebo neinicializovaný Supabase."); return false; } try { /* ... */ const { data: existingDiagnostic, error } = await supabaseClient.from('user_diagnostics').select('id, completed_at').eq('user_id', userId).limit(1); /* ... */ return existingDiagnostic && existingDiagnostic.length > 0; } catch(err) { /* ... */ return false; } }
+
+        function setupEventListeners() {
+            if (mobileMenuToggle) mobileMenuToggle.addEventListener('click', toggleMobileMenu);
+            planTabs.forEach(tab => {
+                tab.addEventListener('click', () => switchTab(tab.dataset.tab));
+            });
+            // Tlačítko zpět v detailu/generování (planSection)
+            if (genericBackBtn) {
+                 genericBackBtn.addEventListener('click', () => {
+                     // Vrací se na záložku, která byla aktivní PŘED zobrazením detailu/generování
+                     switchTab(currentTab || 'current'); // Fallback na 'current'
+                 });
             }
-         }
-        // --- END: Добавленные Helper Functions ---
-
-
-        // ==============================================
-        //          ТВОЙ ОРИГИНАЛЬНЫЙ КОД JavaScript ИЗ plan.html
-        // ==============================================
-        // (Сюда вставляется ВЕСЬ твой оригинальный JS код)
-        // Важно:
-        // 1. Замени все использования `supabase.createClient(...)` на `supabaseClient_global = supabase.createClient(...)` (если они есть в глобальной области).
-        // 2. Замени все использования `currentUser` на `currentUser_global`, если они есть в глобальной области или передаются как параметры.
-        // 3. Убедись, что твой код не объявляет функции или переменные с такими же именами, как добавленные хелперы (showToast, showError и т.д.), или переименуй конфликтующие.
-
-        // --- Пример интеграции проверки Auth в начало твоего кода ---
-        // Найди место, где ты инициализируешь Supabase в твоем оригинальном коде
-        // или просто добавь это в самое начало твоего скрипта:
-
-        async function initializeOriginalAppLogic() {
-            console.log("Starting ORIGINAL App Logic Initialization");
-
-            // --- START: ДОБАВЛЕННЫЙ КОД АВТОРИЗАЦИИ ---
-            try {
-                 if (typeof supabase === 'undefined' || typeof supabase.createClient !== 'function') {
-                     throw new Error("Supabase library not loaded correctly.");
-                 }
-                 supabaseClient_global = supabase.createClient(supabaseUrl_global, supabaseKey_global);
-                 console.log("Supabase client initialized (within original logic).");
-
-                 const { data: { session }, error: sessionError } = await supabaseClient_global.auth.getSession();
-                 if (sessionError) throw sessionError;
-
-                 if (!session || !session.user) {
-                     console.log('User not logged in (checked in original logic), redirecting...');
-                     window.location.href = '/auth/index.html';
-                     return; // Stop execution
-                 }
-                 currentUser_global = session.user;
-                 console.log("User authenticated (checked in original logic):", currentUser_global.id);
-
-                 currentProfile_global = await fetchUserProfile(currentUser_global.id); // Используем новую функцию
-                 console.log("Profile fetched (within original logic):", currentProfile_global);
-
-                 updateUserInfoUI(currentProfile_global, currentUser_global.email); // Обновляем новый сайдбар
-                 applyTheme(currentProfile_global); // Применяем тему
-
-                 // Добавляем слушатели для нового сайдбара
-                 const mobileMenuToggle = document.getElementById('mobileMenuToggle'); // ID в новом header
-                 const sidebar = document.getElementById('sidebar');
-                 const sidebarOverlay = document.getElementById('sidebar-overlay');
-                 const sidebarCloseToggle = document.getElementById('sidebar-close-toggle'); // Кнопка закрытия в сайдбаре
-
-                 if (mobileMenuToggle) mobileMenuToggle.addEventListener('click', toggleMobileMenu);
-                 if (sidebarOverlay) sidebarOverlay.addEventListener('click', toggleMobileMenu);
-                 if (sidebarCloseToggle) sidebarCloseToggle.addEventListener('click', toggleMobileMenu);
-                 window.addEventListener('resize', () => { if (window.innerWidth > 992 && sidebar?.classList.contains('active')) toggleMobileMenu(); }); // Используем toggleMobileMenu
-
-
-            } catch (error) {
-                 console.error("Critical Auth/Profile error in original logic wrapper:", error);
-                 showError(`Chyba ověření/profilu: ${error.message}`, true);
-                 // Скрыть главный лоадер и показать ошибку, если возможно
-                 const initialLoaderEl = document.getElementById('initial-loader');
-                 const mainContentEl = document.getElementById('main-content');
-                 if (initialLoaderEl) { initialLoaderEl.classList.add('hidden'); initialLoaderEl.style.display = 'none'; }
-                 if (mainContentEl) mainContentEl.style.display = 'block'; // Показать main для ошибки
-                 return; // Остановить выполнение
+            // Tlačítko zpět v harmonogramu (scheduleSection)
+            if (backToTabsBtn) {
+                 backToTabsBtn.addEventListener('click', () => {
+                     // Vždy se vrací na 'current' záložku, ale skryje harmonogram a zobrazí currentPlanSection (s loaderem, který hned zmizí)
+                     scheduleSection.style.display = 'none';
+                     currentPlanSection.style.display = 'block';
+                     switchTab('current'); // Tím se znovu načte stav current záložky
+                 });
             }
-            // --- END: ДОБАВЛЕННЫЙ КОД АВТОРИЗАЦИИ ---
 
-
-            // --- ЗДЕСЬ НАЧИНАЕТСЯ ТВОЯ ОРИГИНАЛЬНАЯ ЛОГИКА ---
-            // (Твои оригинальные объявления переменных, DOM кэш, функции loadCurrentPlan,
-            // loadPlanHistory, generateStudyPlan, setupEventListeners и т.д.)
-
-            // Пример: Если у тебя была функция init()
-             // function init() {
-             //    // ... твой оригинальный код ...
-             //    loadCurrentPlan(); // Вызов твоей функции
-             //    setupEventListeners(); // Вызов твоей функции слушателей
-             // }
-             // init(); // Вызов твоей инициализации
-
-            // --- ДОБАВЛЕНО: Скрытие лоадера и показ контента ---
-            // Этот код должен выполниться ПОСЛЕ того, как твоя основная логика отработает
-            // и подготовит контент к показу (даже если это просто сообщение об ошибке или пустом состоянии)
-            // Помести его в самый конец твоего основного потока выполнения скрипта
-            // или в конец твоей главной инициализирующей функции.
-            console.log("Attempting to hide loader and show main content...");
-            const initialLoaderEl = document.getElementById('initial-loader');
-            const mainContentEl = document.getElementById('main-content');
-            if (initialLoaderEl) {
-                 initialLoaderEl.classList.add('hidden');
-                 setTimeout(() => { if (initialLoaderEl) initialLoaderEl.style.display = 'none'; }, 300);
-                 console.log("Initial loader hidden.");
-            } else { console.warn("Initial loader element not found."); }
-            if (mainContentEl) {
-                 mainContentEl.style.display = 'block';
-                 requestAnimationFrame(() => mainContentEl.classList.add('loaded'));
-                 console.log("Main content shown.");
-            } else { console.error("Main content element not found!"); }
-            // --- КОНЕЦ ДОБАВЛЕННОГО КОДА ---
+             // Delegovaný listener pro kliknutí na aktivitu v kalendáři pro rozbalení popisu
+             const scheduleContainer = document.getElementById('dailySchedule'); // Cílem je grid
+             if (scheduleContainer) {
+                 scheduleContainer.addEventListener('click', (event) => {
+                     const activityElement = event.target.closest('.calendar-activity');
+                     if (activityElement && !event.target.matches('input[type="checkbox"]')) {
+                          // Přepne třídu pro rozbalení/sbalení popisu
+                          activityElement.classList.toggle('expanded');
+                     }
+                 });
+             }
         }
 
-        // Вызов основной логики твоего скрипта (замени на твой реальный вызов)
-        // Если твой скрипт просто выполнялся без функции init, то этот вызов не нужен,
-        // просто убедись, что код скрытия лоадера добавлен в самый конец.
-         // document.addEventListener('DOMContentLoaded', initializeOriginalAppLogic); // Если у тебя был listener
-         initializeOriginalAppLogic(); // Или прямой вызов, если listener'а не было
+        async function switchTab(tabId) {
+            if (!supabaseClient) { showGlobalError("Aplikace není správně inicializována (chybí Supabase)."); return; }
+            // Uložíme si ID tabu, na který přecházíme, PŘED jakýmkoli asynchronním voláním
+            const targetTabId = tabId;
+             currentTab = targetTabId; // Aktualizujeme hned, ať víme, kde jsme
 
+            planTabs.forEach(tab => {
+                tab.classList.toggle('active', tab.dataset.tab === targetTabId);
+            });
+
+            // Skryj VŠECHNY hlavní sekce
+            currentPlanSection.style.display = 'none';
+            historyPlanSection.style.display = 'none';
+            createPlanSection.style.display = 'none';
+            planSection.style.display = 'none'; // Detail/Generování
+            scheduleSection.style.display = 'none'; // Harmonogram
+
+            // Zobraz správnou sekci podle tabId
+            try {
+                if (targetTabId === 'current') {
+                    currentPlanSection.style.display = 'block'; // Zobrazí kontejner pro loader/výzvu
+                    await loadCurrentPlan(); // Tato funkce rozhodne, co se zobrazí
+                } else if (targetTabId === 'history') {
+                    historyPlanSection.style.display = 'block';
+                    await loadPlanHistory();
+                } else if (targetTabId === 'create') {
+                    createPlanSection.style.display = 'block';
+                    await checkPlanCreationAvailability();
+                }
+            } catch (error) {
+                 console.error(`Chyba při přepínání na záložku ${targetTabId}:`, error);
+                 // V případě chyby zobrazíme chybovou zprávu v currentPlanSection jako fallback
+                 hideLoader(currentPlanLoader);
+                 if (currentPlanContent) currentPlanContent.innerHTML = `<div class="notest-message error"><h3>Chyba</h3><p>Nepodařilo se načíst obsah záložky.</p></div>`;
+                 if (currentPlanSection) currentPlanSection.style.display = 'block';
+                 // Zajistit, že ostatní sekce jsou skryté
+                 if (historyPlanSection) historyPlanSection.style.display = 'none';
+                 if (createPlanSection) createPlanSection.style.display = 'none';
+                 if (planSection) planSection.style.display = 'none';
+                 if (scheduleSection) scheduleSection.style.display = 'none';
+            }
+        }
+
+        // ==============================================
+        //          Aktuální Plán (Zobrazuje harmonogram nebo výzvu)
+        // ==============================================
+        async function loadCurrentPlan() {
+            if (!supabaseClient) { /* chyba inicializace */ return; }
+            // Zobraz loader a skryj ostatní sekce PATŘÍCÍ k tomuto tabu
+            showLoader(currentPlanSection, currentPlanLoader);
+            if(currentPlanContent) currentPlanContent.innerHTML = ''; // Vyčistit obsah pro případnou zprávu
+            if(scheduleSection) scheduleSection.style.display = 'none'; // Skrýt harmonogram, pokud byl zobrazen
+             // Skrýt i sekci pro detail/generování, pokud by byla nějak omylem viditelná
+            if (planSection) planSection.style.display = 'none';
+
+            try {
+                if (!currentUser) throw new Error('Uživatel není přihlášen');
+                const { data: plans, error } = await supabaseClient
+                    .from('study_plans')
+                    .select('*')
+                    .eq('user_id', currentUser.id)
+                    .eq('status', 'active')
+                    .order('created_at', { ascending: false })
+                    .limit(1);
+
+                if (error) throw error;
+
+                hideLoader(currentPlanLoader); // Skryjeme loader ZDE, před rozhodováním
+
+                if (plans && plans.length > 0) {
+                    // MÁME AKTIVNÍ PLÁN
+                    currentStudyPlan = plans[0];
+                    currentPlanSection.style.display = 'none'; // Skryjeme sekci s loaderem/výzvou
+                    scheduleSection.style.display = 'block'; // Zobrazíme sekci pro harmonogram
+                    await showFullSchedule(currentStudyPlan); // Zobrazí kalendář v scheduleSection
+                } else {
+                    // NEMÁME AKTIVNÍ PLÁN
+                    currentStudyPlan = null;
+                    currentPlanSection.style.display = 'block'; // Zajistíme, že sekce pro zprávy je viditelná
+                    scheduleSection.style.display = 'none'; // Ujistit se, že harmonogram je skrytý
+                    const diagnostic = await getLatestDiagnostic();
+
+                    if (diagnostic === null) { // Explicitní kontrola null pro případ chyby při načítání
+                         renderNoDiagnosticAvailable(currentPlanContent); // Zobrazí, že test chybí
+                    } else if (diagnostic) { // Pokud máme data diagnostiky
+                        renderPromptCreatePlan(currentPlanContent); // Zobrazí výzvu k vytvoření plánu
+                    } else { // Pokud diagnostic je false (test neabsolvován)
+                         // Zobrazit zprávu, že plán neexistuje a test nebyl absolvován
+                         renderNoActivePlan(currentPlanContent);
+                    }
+                }
+            } catch (error) {
+                console.error('Chyba při načítání aktuálního plánu:', error);
+                hideLoader(currentPlanLoader); // Skryjeme loader i při chybě
+                if(currentPlanContent) currentPlanContent.innerHTML = `<div class="notest-message error"><h3><i class="fas fa-exclamation-circle"></i> Chyba</h3><p>Nepodařilo se načíst aktuální plán.</p></div>`;
+                if(currentPlanContent) currentPlanContent.style.display = 'block'; // Zobrazit obsah s chybou
+                if(currentPlanSection) currentPlanSection.style.display = 'block'; // Zobrazit sekci
+                if(scheduleSection) scheduleSection.style.display = 'none'; // Skrýt harmonogram
+            } finally {
+                 initTooltips();
+            }
+        }
+
+        async function loadAndRenderActivities(planId, /* completedElement - odstraněno */ todayScheduleElement) { /* ... (beze změny) ... */ if (!supabaseClient) return; try { const { data: activities, error } = await supabaseClient .from('plan_activities') .select('*') .eq('plan_id', planId); if (error) throw error; const today = new Date(); const dayOfWeek = today.getDay(); const todayActivities = activities?.filter(a => Number(a.day_of_week) === dayOfWeek) || []; if (todayScheduleElement) { renderDayActivities(todayActivities, todayScheduleElement, planId); } } catch (error) { console.error("Chyba načítání aktivit plánu:", error); if(todayScheduleElement) todayScheduleElement.innerHTML = '<p>Chyba načítání dnešních aktivit.</p>'; } }
+        function renderDayActivities(activities, container, planId) { /* ... (beze změny, ale používá se jen interně v renderWeeklySchedule) ... */ }
+        async function handleActivityCompletionToggle(activityId, isCompleted, planId) { if (!supabaseClient) return; try { const { error: updateError } = await supabaseClient.from('plan_activities').update({ completed: isCompleted, updated_at: new Date().toISOString() }).eq('id', activityId); if (updateError) throw updateError; console.log(`Aktivita ${activityId} označena jako ${isCompleted ? 'dokončená' : 'nedokončená'}`); await updatePlanProgress(planId); } catch (error) { console.error(`Chyba aktualizace stavu aktivity ${activityId}:`, error); showToast('Nepodařilo se aktualizovat stav aktivity', 'error'); const checkbox = document.getElementById(`activity-${activityId}`); if (checkbox) checkbox.checked = !isCompleted; /* Revert checkbox on error */ const checkboxSchedule = document.getElementById(`schedule-activity-${activityId}`); if(checkboxSchedule) checkboxSchedule.checked = !isCompleted; } }
+        async function updatePlanProgress(planId) { if (!planId || !supabaseClient) return; try { const { data: activities, error: activitiesError } = await supabaseClient.from('plan_activities').select('completed').eq('plan_id', planId); if (activitiesError) throw activitiesError; if (!activities || activities.length === 0) return; const completedCount = activities.filter(a => a.completed).length; const progress = Math.round((completedCount / activities.length) * 100); const { error: planUpdateError } = await supabaseClient.from('study_plans').update({ progress: progress, updated_at: new Date().toISOString() }).eq('id', planId); if (planUpdateError) throw planUpdateError; console.log(`Pokrok plánu ${planId} aktualizován na ${progress}%`); if (currentStudyPlan && currentStudyPlan.id === planId) { currentStudyPlan.progress = progress; } } catch (error) { console.error(`Chyba při aktualizaci pokroku plánu ${planId}:`, error); } }
+
+        // Zobrazí detail HISTORICKÉHO plánu (Markdown) v sekci planSection
+         async function showPlanDetail(plan) {
+             if (!plan || !plan.id || !supabaseClient) return;
+             // Skrytí ostatních sekcí
+             currentPlanSection.style.display = 'none';
+             historyPlanSection.style.display = 'none';
+             createPlanSection.style.display = 'none';
+             scheduleSection.style.display = 'none';
+             // Zobrazení sekce pro detail a loader
+             planSection.style.display = 'block';
+             showLoader(planSection, planLoading);
+             if(planActions) planActions.style.display = 'none';
+             if(planContent) planContent.style.display = 'none';
+
+             // Nastavení tlačítka Zpět v planSection
+             if (genericBackBtn) {
+                 genericBackBtn.onclick = () => switchTab('history'); // Vždy zpět do historie
+             }
+
+             try {
+                 // Pokud markdown chybí, načteme ho
+                 if (!plan.plan_content_markdown) {
+                     console.log("Markdown pro historický plán chybí, načítám...");
+                     const { data: fullData, error: fetchError } = await supabaseClient
+                         .from('study_plans')
+                         .select('plan_content_markdown, title, created_at, estimated_completion_date')
+                         .eq('id', plan.id)
+                         .single();
+                     if (fetchError) throw fetchError;
+                     plan = { ...plan, ...fullData }; // Aktualizujeme data plánu
+                 }
+
+                 const planTitleElement = planSection.querySelector('.section-title');
+                 if(planTitleElement) planTitleElement.textContent = plan.title || 'Detail studijního plánu';
+
+                 displayPlanContent(plan.plan_content_markdown || '# Studijní plán\n\nObsah plánu není k dispozici.');
+
+                 if(planActions) {
+                     planActions.innerHTML = `
+                         <button class="btn btn-success btn-tooltip" id="exportDetailPlanBtn" title="Stáhnout detail plánu jako PDF">
+                             <i class="fas fa-file-export"></i> Export PDF
+                         </button>
+                     `;
+                     const exportButton = planActions.querySelector('#exportDetailPlanBtn');
+                     if(exportButton) exportButton.addEventListener('click', () => exportPlanToPDFWithStyle(plan));
+                     planActions.style.display = 'flex';
+                 }
+                 planSection.scrollIntoView({ behavior: 'smooth' });
+                 initTooltips(); // Inicializace tooltipů pro tlačítka
+
+             } catch (error) { console.error("Chyba načítání detailu plánu:", error); if(planContent) {planContent.innerHTML = `<div class="notest-message error"><h3>Chyba</h3><p>Nepodařilo se načíst detail plánu.</p></div>`; planContent.style.display = 'block'; } if(planActions) planActions.innerHTML = '';
+             } finally { hideLoader(planLoading); }
+         }
+
+        // Zobrazí AKTIVNÍ detailní týdenní harmonogram (kalendář) v sekci scheduleSection
+        async function showFullSchedule(plan) {
+            if (!supabaseClient) { /* chyba */ return; }
+            if (!plan || !plan.id) { /* chyba */ return; }
+            console.log(`showFullSchedule: Zobrazuji harmonogram pro Plan ID: ${plan.id}`);
+
+            // Skrytí ostatních sekcí a zobrazení harmonogramu
+            currentPlanSection.style.display = 'none';
+            historyPlanSection.style.display = 'none';
+            createPlanSection.style.display = 'none';
+            planSection.style.display = 'none';
+            scheduleSection.style.display = 'block';
+
+            // Odstranění starého dynamického záhlaví, pokud existuje
+            const oldHeader = scheduleSection.querySelector('.plan-header-dynamic');
+            if (oldHeader) oldHeader.remove();
+
+            // Místo loaderu v #dailyScheduleGrid, zobrazíme loader pro celou sekci (placeholder)
+            // Zde by bylo lepší mít dedikovaný loader element pro scheduleSection, ale pro jednoduchost necháme takto
+            scheduleSection.querySelector('.calendar-scroll-container').style.display = 'none'; // Skryjeme kontejner kalendáře
+            // Zde by se mohl zobrazit loader, pokud bychom ho měli
+
+             // Přidání dynamického záhlaví
+             const headerDiv = document.createElement('div');
+             headerDiv.className = 'plan-header plan-header-dynamic';
+             headerDiv.style.marginBottom = '1.5rem';
+             headerDiv.innerHTML = `
+                 <div class="plan-meta">
+                     <h2 class="section-title" style="margin-bottom: 0.5rem;">${sanitizeHTML(plan.title || 'Týdenní harmonogram')}</h2>
+                     <span class="plan-date">Vytvořeno: ${formatDate(plan.created_at)}</span>
+                     ${plan.estimated_completion_date ? `<br><span class="plan-date">Odhad. dokončení: ${formatDate(plan.estimated_completion_date)}</span>` : ''}
+                 </div>
+                 <div class="plan-actions">
+                      <button class="btn btn-primary btn-tooltip" id="exportSchedulePlanBtnDynamic" title="Stáhnout plán jako PDF">
+                          <i class="fas fa-file-export"></i> Export
+                      </button>
+                 </div>
+             `;
+             // Vložíme záhlaví na začátek scheduleSection
+             scheduleSection.insertBefore(headerDiv, scheduleSection.firstChild);
+
+             const exportButton = headerDiv.querySelector('#exportSchedulePlanBtnDynamic');
+             if (exportButton) {
+                exportButton.addEventListener('click', async () => {
+                    if (!plan.plan_content_markdown) {
+                        try {
+                            console.log("Načítám plný markdown pro export...");
+                            const { data: fullPlanData, error } = await supabaseClient.from('study_plans').select('plan_content_markdown').eq('id', plan.id).single();
+                            if (error) throw error;
+                            plan.plan_content_markdown = fullPlanData.plan_content_markdown;
+                        } catch (fetchError) { console.error("Nepodařilo se načíst markdown pro export:", fetchError); showToast('Chyba: Nepodařilo se načíst data pro export.', 'error'); return; }
+                    }
+                    exportPlanToPDFWithStyle(plan);
+                });
+                initTooltips();
+             }
+
+            // Ověření tlačítka Zpět
+            if (backToTabsBtn) {
+                backToTabsBtn.innerHTML = '<i class="fas fa-arrow-left"></i> Zpět na záložky';
+            } else { console.warn("Tlačítko #backToTabsBtn nebylo nalezeno."); }
+
+            try {
+                console.log(`showFullSchedule: Dotazuji se na aktivity s plan_id = ${plan.id}`);
+                const { data: activities, error, status } = await supabaseClient.from('plan_activities').select('*').eq('plan_id', plan.id).order('day_of_week').order('time_slot');
+                if (error) { console.error(`showFullSchedule: Chyba při načítání aktivit (Status: ${status}):`, error); throw new Error(`Nepodařilo se načíst aktivity: ${error.message}. Zkontrolujte také RLS.`); }
+                console.log(`showFullSchedule: Aktivity získané:`, activities);
+
+                // Zobrazit kontejner kalendáře
+                const scheduleScrollContainer = scheduleSection.querySelector('.calendar-scroll-container');
+                if(scheduleScrollContainer) scheduleScrollContainer.style.display = 'block';
+
+                renderWeeklySchedule(activities || [], plan.id); // Renderuje kalendář v #dailyScheduleGrid
+
+            } catch (error) {
+                console.error("showFullSchedule: Celková chyba:", error);
+                // Zobrazíme chybu v #dailyScheduleGrid kontejneru
+                if(dailyScheduleGrid) dailyScheduleGrid.innerHTML = `<p style="padding: 1rem; text-align: center; grid-column: 1 / -1;"><i>Chyba při načítání nebo zobrazování harmonogramu: ${error.message}</i></p>`;
+                // Zajistit viditelnost chyby
+                const scheduleScrollContainer = scheduleSection.querySelector('.calendar-scroll-container');
+                if(scheduleScrollContainer) scheduleScrollContainer.style.display = 'block'; // Zobrazit kontejner, i když je chyba
+                if(dailyScheduleGrid) dailyScheduleGrid.style.display = 'block'; // Grid jako blok pro chybu
+            } finally {
+                 // Skrytí obecného loaderu (pokud by byl implementován pro scheduleSection)
+                 // hideLoader(scheduleLoader);
+                 initTooltips();
+            }
+        }
+
+        function renderWeeklySchedule(activities, planId) {
+            const days = ['Neděle', 'Pondělí', 'Úterý', 'Středa', 'Čtvrtek', 'Pátek', 'Sobota'];
+            const todayIndex = new Date().getDay();
+
+            const gridContainer = document.getElementById('dailySchedule'); // Cílový grid kontejner
+            if (!gridContainer) { console.error("Grid kontejner #dailySchedule nenalezen!"); return; }
+            gridContainer.innerHTML = ''; // Vyčistíme předchozí obsah
+
+            if (!activities) activities = [];
+            if (!Array.isArray(activities)) { console.error("Data aktivit nejsou pole!", activities); activities = []; }
+
+            for (let i = 0; i < 7; i++) { // Zobrazíme všech 7 dnů
+                const dayIndex = (i === 6) ? 0 : i + 1; // Po=1..Ne=0 (upraveno pro běžné pořadí)
+                const dayName = days[dayIndex];
+                const dayCell = document.createElement('div');
+                dayCell.className = 'calendar-day-cell';
+                if (dayIndex === todayIndex) dayCell.classList.add('today');
+
+                const dayHeader = document.createElement('div');
+                dayHeader.className = 'calendar-day-header';
+                dayHeader.textContent = dayName + (dayIndex === todayIndex ? ' (Dnes)' : '');
+                dayCell.appendChild(dayHeader);
+
+                const activitiesContainer = document.createElement('div');
+                activitiesContainer.className = 'calendar-activities';
+
+                const dayActivities = activities
+                    .filter(a => Number(a.day_of_week) === dayIndex)
+                    .sort((a, b) => (a.time_slot || '').localeCompare(b.time_slot || ''));
+
+                if (dayActivities.length > 0) {
+                    dayActivities.forEach(activity => {
+                        if (!activity.id) { console.error("Chyba: Aktivita nemá ID!", activity); return; }
+                        const activityElement = document.createElement('div');
+                        activityElement.className = 'calendar-activity';
+                        const timeDisplay = activity.time_slot ? `<span class="activity-time-display">${activity.time_slot}</span>` : '';
+                        activityElement.innerHTML = `
+                            <div class="activity-checkbox">
+                                <input type="checkbox" id="schedule-activity-${activity.id}" ${activity.completed ? 'checked' : ''} data-activity-id="${activity.id}" data-plan-id="${planId}">
+                                <div class="activity-content">
+                                    <div class="activity-title">
+                                        ${timeDisplay}
+                                        ${sanitizeHTML(activity.title || 'Nespecifikovaná aktivita')}
+                                    </div>
+                                    <div class="activity-desc">
+                                        ${sanitizeHTML(activity.description || '')}
+                                    </div>
+                                </div>
+                            </div>`;
+                        const checkbox = activityElement.querySelector('input[type="checkbox"]');
+                        if(checkbox) {
+                            checkbox.addEventListener('change', function() {
+                                handleActivityCompletionToggle(this.dataset.activityId, this.checked, this.dataset.planId);
+                            });
+                        }
+                        activitiesContainer.appendChild(activityElement);
+                    });
+                } else {
+                     // Můžeme přidat placeholder, pokud chceme
+                     // activitiesContainer.innerHTML = '<p style="text-align:center; color: var(--text-muted); font-size: 0.85rem; padding-top: 1rem;">Žádné aktivity</p>';
+                }
+
+                dayCell.appendChild(activitiesContainer);
+                gridContainer.appendChild(dayCell);
+            }
+            console.log("Kalendářový harmonogram úspěšně vyrenderován.");
+        }
+
+        // Funkce pro zobrazení výzvy k vytvoření plánu v daném kontejneru
+        function renderPromptCreatePlan(container) {
+            if (!container || !promptCreatePlanTemplate) return;
+            const promptFragment = promptCreatePlanTemplate.content.cloneNode(true);
+            const createBtn = promptFragment.getElementById('createNewPlanFromPromptBtn');
+            if(createBtn) createBtn.addEventListener('click', () => switchTab('create'));
+            container.innerHTML = '';
+            container.appendChild(promptFragment);
+            container.style.display = 'block'; // Zajistit viditelnost
+        }
+
+         // Funkce pro zobrazení zprávy, že není aktivní plán a test nebyl absolvován
+         function renderNoActivePlan(container) {
+             if (!container || !noActivePlanTemplate) return;
+             const templateNode = noActivePlanTemplate.content.cloneNode(true);
+             container.innerHTML = '';
+             container.appendChild(templateNode);
+             container.style.display = 'block'; // Zajistit viditelnost
+         }
+
+
+        // ==============================================
+        //          Historie Plánů
+        // ==============================================
+        async function loadPlanHistory() { if (!supabaseClient) { console.error("Nelze načíst historii..."); return; } showLoader(historyPlanSection, historyLoader); if(historyPlanContent) historyPlanContent.innerHTML = ''; try { if (!currentUser) throw new Error('Uživatel není přihlášen'); const { data: plans, error } = await supabaseClient.from('study_plans').select('id, title, created_at, status, progress').eq('user_id', currentUser.id).order('created_at', { ascending: false }); if (error) throw error; previousPlans = plans || []; renderPlanHistory(previousPlans); } catch (error) { /* chyba */ if(historyPlanContent) historyPlanContent.innerHTML = `<div class="notest-message error"><h3>Chyba</h3><p>Nepodařilo se načíst historii plánů.</p></div>`; } finally { hideLoader(historyLoader); if(historyPlanContent) historyPlanContent.style.display = 'block'; } }
+        function renderPlanHistory(plans) { if(!historyPlanContent) return; historyPlanContent.innerHTML = ''; if (!plans || plans.length === 0) { historyPlanContent.innerHTML = `<div class="notest-message"><h3>Žádná historie</h3><p>Zatím jste nevytvořili žádné studijní plány.</p></div>`; return; } plans.forEach(plan => { const historyFragment = historyItemTemplate.content.cloneNode(true); const historyItem = historyFragment.querySelector('.history-item'); if(historyItem) { historyItem.dataset.planId = plan.id; const dateEl = historyItem.querySelector('.history-date'); const titleEl = historyItem.querySelector('.history-title'); const statusElement = historyItem.querySelector('.history-status'); if(dateEl) dateEl.textContent = `Vytvořeno: ${formatDate(plan.created_at)}`; if(titleEl) titleEl.textContent = plan.title || "Studijní plán"; if(statusElement) { const statusText = plan.status === 'active' ? 'Aktivní' : plan.status === 'completed' ? 'Dokončený' : 'Neaktivní'; statusElement.textContent = statusText; statusElement.className = `history-status ${plan.status || 'inactive'}`; } historyItem.addEventListener('click', () => showPlanDetail(plan)); historyPlanContent.appendChild(historyFragment); } }); }
+
+        // ==============================================
+        //          Vytvoření Nového Plánu
+        // ==============================================
+         async function getLatestDiagnostic() { if (!currentUser || currentUser.id === 'PLACEHOLDER_USER_ID' || !supabaseClient) return null; try { const { data, error } = await supabaseClient.from('user_diagnostics').select('*').eq('user_id', currentUser.id).order('completed_at', { ascending: false }).limit(1); if (error) throw error; return (data && data.length > 0) ? data[0] : null; } catch (error) { console.error("Chyba načítání diagnostiky:", error); return null; } } // Vrátí null při chybě
+         async function checkPlanCreationAvailability() { if (!supabaseClient) { console.error("Nelze zkontrolovat dostupnost..."); return; } if(planCreateContent) planCreateContent.innerHTML = '<div class="loader-container"><div class="loader"></div></div>'; try { if (!currentUser) throw new Error('Uživatel není přihlášen'); latestDiagnosticData = await getLatestDiagnostic(); if (latestDiagnosticData === null || latestDiagnosticData === false) { renderNoDiagnosticAvailable(planCreateContent); return; } const { data: latestPlan, error: planError } = await supabaseClient.from('study_plans').select('created_at').eq('user_id', currentUser.id).order('created_at', { ascending: false }).limit(1); if (planError) throw planError; let canCreate = true; if (latestPlan && latestPlan.length > 0) { const lastPlanDate = new Date(latestPlan[0].created_at); const oneWeekAgo = new Date(); oneWeekAgo.setDate(oneWeekAgo.getDate() - 7); if (lastPlanDate > oneWeekAgo) { canCreate = false; nextPlanCreateTime = new Date(lastPlanDate); nextPlanCreateTime.setDate(nextPlanCreateTime.getDate() + 7); } } if (canCreate) { planCreateAllowed = true; renderPlanCreationForm(); } else { planCreateAllowed = false; renderLockedPlanSection(); } } catch (error) { console.error('Chyba při kontrole dostupnosti vytvoření plánu:', error); if(planCreateContent) planCreateContent.innerHTML = `<div class="notest-message error"><h3>Chyba</h3><p>Nepodařilo se ověřit možnost vytvoření plánu.</p></div>`; } }
+         function renderNoDiagnosticAvailable(container) { if (!container || !noDiagnosticTemplate) return; const noDiagFragment = noDiagnosticTemplate.content.cloneNode(true); const testBtn = noDiagFragment.getElementById('goToTestBtn'); if(testBtn) testBtn.addEventListener('click', () => { window.location.href = 'test1.html'; }); container.innerHTML = ''; container.appendChild(noDiagFragment); }
+         function renderLockedPlanSection() { if(!planCreateContent || !lockedPlanTemplate) return; const lockedFragment = lockedPlanTemplate.content.cloneNode(true); const timerEl = lockedFragment.getElementById('nextPlanTimer'); if(timerEl) updateNextPlanTimer(timerEl); const viewBtn = lockedFragment.getElementById('viewCurrentPlanBtnLocked'); if(viewBtn) viewBtn.addEventListener('click', () => switchTab('current')); planCreateContent.innerHTML = ''; planCreateContent.appendChild(lockedFragment); startPlanTimer(); }
+         function startPlanTimer() { if (planTimerInterval) clearInterval(planTimerInterval); planTimerInterval = setInterval(() => { const timerElement = document.getElementById('nextPlanTimer'); if (timerElement) updateNextPlanTimer(timerElement); else clearInterval(planTimerInterval); }, 1000); }
+         function updateNextPlanTimer(timerElement) { if (!nextPlanCreateTime) return; const now = new Date(); const timeDiff = nextPlanCreateTime - now; if (timeDiff <= 0) { timerElement.textContent = 'Nyní můžete vytvořit nový plán'; clearInterval(planTimerInterval); planCreateAllowed = true; setTimeout(checkPlanCreationAvailability, 1000); return; } const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24)); const hours = Math.floor((timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)); const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60)); const seconds = Math.floor((timeDiff % (1000 * 60)) / 1000); timerElement.textContent = `${days} ${getDeclension(days, 'den', 'dny', 'dní')} ${hours} ${getDeclension(hours, 'hodina', 'hodiny', 'hodin')} ${minutes} ${getDeclension(minutes, 'minuta', 'minuty', 'minut')} ${seconds} ${getDeclension(seconds, 'sekunda', 'sekundy', 'sekund')}`; }
+         function getDeclension(number, singular, plural1, plural2) { number = Math.abs(number); if (number === 1) return singular; if (number >= 2 && number <= 4) return plural1; return plural2; }
+         function renderPlanCreationForm() { if(!planCreateContent || !createPlanFormTemplate || !latestDiagnosticData) return; const formFragment = createPlanFormTemplate.content.cloneNode(true); const diagInfoContainer = formFragment.getElementById('diagnosticInfo'); if(diagInfoContainer) diagInfoContainer.innerHTML = ` <p class="section-text">Plán bude vycházet z vašeho posledního testu ze dne: <strong>${formatDate(latestDiagnosticData.completed_at)}</strong> (Skóre: ${latestDiagnosticData.total_score}/50).</p>`; const generateBtn = formFragment.getElementById('generatePlanBtn'); if(generateBtn) { generateBtn.addEventListener('click', function() { this.disabled = true; this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generuji plán...'; generateStudyPlan(); }); } planCreateContent.innerHTML = ''; planCreateContent.appendChild(formFragment); }
+
+        // ==============================================
+        //          Generování a Ukládání Plánu
+        // ==============================================
+         async function generateStudyPlan() {
+             if (!latestDiagnosticData || !currentUser) { /* chyba */ return; }
+             // Skryj sekci pro vytváření, zobraz sekci pro generování/detail
+             createPlanSection.style.display = 'none';
+             planSection.style.display = 'block';
+             showLoader(planSection, planLoading);
+             if(planActions) planActions.style.display = 'none';
+             if(planContent) planContent.style.display = 'none';
+             lastGeneratedMarkdown = null;
+             lastGeneratedActivitiesJson = null;
+
+             // Nastav tlačítko zpět, aby vedlo k formuláři pro vytvoření
+             if (genericBackBtn) { genericBackBtn.onclick = () => switchTab('create'); }
+
+             try {
+                  const topicsData = Object.entries(latestDiagnosticData.topic_results || {}).map(([topicKey, data]) => ({ name: data.name || topicMap[topicKey] || `Téma ${topicKey}`, questions: data.total || 0, correct: data.correct || 0, percentage: data.score || 0 })).sort((a, b) => a.percentage - b.percentage);
+                  const fullMarkdownResponse = await generatePlanContentWithGemini(latestDiagnosticData, topicsData);
+                  console.log("Full Gemini response:\n", fullMarkdownResponse);
+
+                  const jsonRegex = /```json\s*([\s\S]*?)\s*```/;
+                  const jsonMatch = fullMarkdownResponse.match(jsonRegex);
+                  let activitiesArray = null;
+                  let planMarkdownForStorage = fullMarkdownResponse;
+
+                  if (jsonMatch && jsonMatch[1]) {
+                      const cleanedJsonString = jsonMatch[1].replace(/\u00A0/g, ' ').trim();
+                      try {
+                           activitiesArray = JSON.parse(cleanedJsonString);
+                           planMarkdownForStorage = fullMarkdownResponse.replace(jsonRegex, '').trim();
+                           lastGeneratedActivitiesJson = activitiesArray;
+                           console.log("Extracted activities (JSON):", activitiesArray);
+                      } catch (parseError) { /* chyba */ console.error("Error parsing JSON:", parseError); showToast("Warning: Could not parse activities.", "warning"); lastGeneratedActivitiesJson = null; }
+                  } else { console.warn("JSON activities block not found."); lastGeneratedActivitiesJson = null; }
+
+                  lastGeneratedMarkdown = planMarkdownForStorage;
+                  displayPlanContent(lastGeneratedMarkdown); // Zobrazí vygenerovaný Markdown
+
+                  if(planActions) {
+                      planActions.innerHTML = ` <button class="btn btn-primary" id="saveGeneratedPlanBtn"> <i class="fas fa-save"></i> Uložit tento plán </button> <button class="btn btn-success btn-tooltip" id="exportGeneratedPlanBtn" title="Stáhnout návrh jako PDF"> <i class="fas fa-file-export"></i> Exportovat do PDF </button> <button class="btn btn-secondary" id="regeneratePlanBtn"> <i class="fas fa-sync-alt"></i> Vygenerovat znovu </button> `;
+                      const saveBtn = planActions.querySelector('#saveGeneratedPlanBtn');
+                      const exportBtn = planActions.querySelector('#exportGeneratedPlanBtn');
+                      const regenBtn = planActions.querySelector('#regeneratePlanBtn');
+                      if(saveBtn) saveBtn.addEventListener('click', () => saveGeneratedPlan(lastGeneratedMarkdown, lastGeneratedActivitiesJson, topicsData));
+                      if(exportBtn) exportBtn.addEventListener('click', () => exportPlanToPDFWithStyle({ created_at: new Date(), plan_content_markdown: lastGeneratedMarkdown, title: "Nový návrh plánu" }));
+                      if(regenBtn) regenBtn.addEventListener('click', () => { generateStudyPlan(); });
+                      planActions.style.display = 'flex';
+                  }
+                  initTooltips(); // Tooltip pro export
+
+             } catch (error) { /* chyba generování */
+                console.error('Chyba při generování studijního plánu:', error);
+                if(planContent) { planContent.innerHTML = `<div class="notest-message error"><h3>Chyba generování</h3><p>${error.message}</p></div>`; planContent.style.display = 'block'; }
+                if(planActions) {
+                    planActions.innerHTML = `<button class="btn btn-secondary" id="regeneratePlanBtn"> <i class="fas fa-sync-alt"></i> Vygenerovat znovu </button>`;
+                    const regenBtn = planActions.querySelector('#regeneratePlanBtn');
+                    if(regenBtn) regenBtn.addEventListener('click', () => { generateStudyPlan(); });
+                    planActions.style.display = 'flex';
+                }
+             } finally { hideLoader(planLoading); }
+         }
+
+        async function generatePlanContentWithGemini(testData, topicsData) { if (!GEMINI_API_KEY || GEMINI_API_KEY === 'YOUR_GEMINI_API_KEY') { return `## Chyba konfigurace\n\nNebyl nalezen platný Gemini API klíč.`; } try { const totalScore = testData.total_score || 0; const totalQuestions = testData.total_questions || 1; const analysis = testData.analysis || {}; const overallAssessment = analysis.summary?.overall_assessment || 'N/A'; const strengths = analysis.strengths?.map(s => `${s.topic} (${s.score}%)`).join(', ') || 'Nebyly identifikovány'; const weaknesses = analysis.weaknesses?.map(w => `${w.topic} (${w.score}%)`).join(', ') || 'Nebyly identifikovány'; const recommendations = analysis.recommendations?.join('\n- ') || 'Žádná specifická.'; const prompt = ` Jsi expertní AI tutor specializující se na přípravu na PŘIJÍMACÍ ZKOUŠKY z matematiky pro 9. třídu ZŠ v Česku. Tvým úkolem je vytvořit NÁROČNÝ, DETAILNÍ a KONZISTENTNÍ týdenní studijní plán v ČEŠTINĚ ve formátu Markdown, zaměřený na dosažení co nejlepšího výsledku u zkoušek. Na konci MUSÍŠ vygenerovat JSON pole aktivit pro tento plán, které PŘESNĚ ODRÁŽÍ obsah Markdown plánu pro daný den. # Kontext: Student právě dokončil diagnostický test. # Výsledky diagnostického testu: - Celkové skóre: ${totalScore}/50 bodů - Počet otázek: ${totalQuestions} - Výsledky podle témat (Název tématu: Plně správně/Celkem otázek (Úspěšnost %)): ${topicsData.map(topic => `  - ${topic.name}: ${topic.correct}/${topic.questions} (${topic.percentage}%)`).join('\n')} # Analýza výsledků testu (Shrnutí od AI): - Celkové hodnocení: ${overallAssessment} - Identifikované silné stránky: ${strengths} - Identifikované slabé stránky: ${weaknesses} - Doporučení na základě testu: - ${recommendations} # Oficiální Témata Zkoušky (CERMAT - detailně): 1.  **Čísla a aritmetické operace:** Přirozená čísla (do milionu), nula. Sčítání, odčítání, násobení, dělení (vlastnosti, algoritmy). Zlomky (porovnávání, sčítání/odčítání se stejným jm.). Desetinná čísla, číselná osa. 2.  **Algebra:** Mocniny, odmocniny (základní operace). Lineární rovnice (jedna neznámá, úpravy). Soustavy 2 lineárních rovnic (dosazovací, sčítací metoda). Mnohočleny (sčítání, odčítání, násobení, vytýkání, vzorce (a±b)², a²-b²). Výrazy s proměnnými (dosazování, úpravy). 3.  **Geometrie:** Základní rovinné útvary (čtverec, obdélník, trojúhelník - typy, vlastnosti, věty; kruh/kružnice - části, vlastnosti). Kreslení, náčrty. Kolmost, rovnoběžnost. Obvod, obsah rovinných útvarů. Povrch a objem těles (krychle, kvádr, válec; základy kužele, koule). Pythagorova věta. Základní konstrukční úlohy. 4.  **Práce s daty:** Tabulky, diagramy (čtení, interpretace, jednoduchá tvorba). Aritmetický průměr, modus, medián. Grafy závislostí (čtení, interpretace). 5.  **Problémové úlohy:** Slovní úlohy (převod na matematický model, řešení). Úlohy na poměr, přímá a nepřímá úměrnost, měřítko mapy. Úlohy na pohyb, společnou práci (základní typy). Aplikace matematiky. Strategie řešení. 6.  **Proporce a procenta:** Procento, promile. Procentová část, základ, počet procent. Jednoduché úrokování. Trojčlenka. Poměr (základní úpravy, rozdělení). 7.  **Logické úlohy:** Logické vztahy, jednoduché výroky, číselné řady, vzory, závislosti. # TVŮJ ÚKOL (Vytvoř NÁROČNÝ, DETAILNÍ a KONZISTENTNÍ plán): 1.  Vytvoř DETAILNÍ týdenní studijní plán (Pondělí - Neděle) ve formátu Markdown. Musí být strukturovaný, srozumitelný a zaměřený na VÝRAZNÉ zlepšení. Dbej na přirozené formátování textu, vyhni se slovům nalepeným na sebe bez mezer. 2.  Plán musí pokrývat klíčové oblasti z OFICIÁLNÍCH TÉMAT, klást ZVÝŠENÝ DŮRAZ na slabé stránky (${weaknesses}), ale ZAHRNOVAT i OPAKOVÁNÍ silnějších stránek. 3.  Navrhni RŮZNORODÉ a KONKRÉTNÍ aktivity: * Řešení KONKRÉTNÍCH TYPŮ příkladů s uvedením POČTU. * Procvičování SLOVNÍCH ÚLOH zaměřených na dané téma. * Používej formulace jako 'Opakování [téma/vzorce]' místo 'Opakuj [téma]'. Např.: 'Opakování vzorců pro mnohočleny'. * Analýzu VYSVĚTLENÝCH příkladů (např. "Projdi řešené příklady na ..."). * Doporučení k ANALÝZE minulých chyb. * Zařazení NÁROČNĚJŠÍCH úloh u silnějších témat. 4.  Buď co nejvíce SPECIFICKÝ v popisu úkolů v Markdown i JSON. Místo 'Procvičuj geometrii' uveď 'Výpočet obvodů a obsahů složených rovinných útvarů (3 úlohy)'. 5.  Rozděl denní studium (cca 75-100 minut) do 2-3 INTENZIVNÍCH bloků. Uveď odhadovaný čas. 6.  **DŮLEŽITÉ:** V poli 'description' v JSON bloku **NEUVÁDĚJ KONKRÉTNÍ ROVNICE NEBO ČÍSELNÉ ZADÁNÍ PŘÍKLADŮ**. Místo toho SLOVNĚ popiš TYP úloh, počet a zaměření (např. 'Řešení 5 lineárních rovnic se zlomky', 'Výpočet procentové části ze základu ve 4 slovních úlohách'). 7.  **NAPROSTÁ KONZISTENCE JE KLÍČOVÁ:** JSON \`title\` a \`description\` musí být PŘÍMÝM a VĚRNÝM shrnutím aktivity popsané v odpovídajícím bloku v Markdown textu pro ten samý den a časový úsek. Žádné informace nesmí být v JSON přidány ani vynechány oproti Markdown popisu daného bloku. 8.  NA KONEC celého Markdown textu PŘIDEJ validní JSON blok (\`\`\`json ... \`\`\`) obsahující pole objektů pro VŠECHNY aktivity. Klíče: "day_of_week" (číslo 0-6, Neděle=0), "title" (string, název bloku), "description" (string, SLOVNÍ popis TYPU úkolů, KONZISTENTNÍ s Markdown), "time_slot" (string, čas). # Požadovaný formát výstupu (Markdown + JSON na konci): **Analýza diagnostiky:** * Zaměření na: ${weaknesses} * Udržování: ${strengths} **Hlavní cíle pro tento týden:** * [Použij odrážky] Výrazně zlepšit [Nejslabší téma]. * [Použij odrážky] Upevnit znalosti v [Druhé nejslabší téma]. * [Použij odrážky] Zopakovat a procvičit [Silnější téma]. --- ### Pondělí * **Fokus dne:** [Např. Složitější lineární rovnice a aplikace procent] * **Blok 1 (cca 45 min): Algebra - Rovnice:** Řešení 10 složitějších lineárních rovnic se zlomky a závorkami. Důraz na správné úpravy a zkoušku. * **Blok 2 (cca 40 min): Procenta - Slovní úlohy:** Řešení 5 slovních úloh na výpočet základu a procentové změny (zdražení/sleva). * *Tip dne:* U rovnic si piš mezikroky a ověřuj si je. ### Úterý * **Fokus dne:** [Např. Geometrie - Tělesa a opakování mnohočlenů] * **Blok 1 (cca 50 min): Geometrie - Objem a povrch válce:** Opakování vzorců. Výpočet objemu a povrchu válce ve 4 úlohách (včetně slovních). * **Blok 2 (cca 30 min): Opakování - Mnohočleny:** Opakování vzorců (a±b)², a²-b². Rozklad 10 mnohočlenů na součin pomocí vytýkání a vzorců. * *Tip dne:* Kresli si náčrty těles, pomůže ti to s představivostí. * ... (atd. pro všechny dny) ... --- **Obecné tipy pro maximální efektivitu:** * ... \`\`\`json [   { "day_of_week": 1, "title": "Algebra: Složitější rovnice", "description": "Řešení 10 složitějších lineárních rovnic se zlomky a závorkami. Důraz na správné úpravy a zkoušku.", "time_slot": "45 min" },   { "day_of_week": 1, "title": "Procenta: Slovní úlohy (základ, změna)", "description": "Řešení 5 slovních úloh na výpočet základu a procentové změny (zdražení/sleva).", "time_slot": "40 min" },   { "day_of_week": 2, "title": "Geometrie: Objem a povrch válce", "description": "Opakování vzorců. Výpočet objemu a povrchu válce ve 4 úlohách (včetně slovních).", "time_slot": "50 min" },   { "day_of_week": 2, "title": "Opakování: Rozklad mnohočlenů", "description": "Opakování vzorců (a±b)², a²-b². Rozklad 10 mnohočlenů na součin pomocí vytýkání a vzorců.", "time_slot": "30 min" }   // ... (další aktivity pro všechny dny, KONZISTENTNÍ S MARKDOWNEM) ... ] \`\`\` `; const requestData = { contents: [{ parts: [{ text: prompt }] }], generationConfig: { temperature: 0.6, topK: 40, topP: 0.95, maxOutputTokens: 8192 } }; const response = await fetch(GEMINI_API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(requestData) }); const data = await response.json(); if (!response.ok) { console.error("Chyba Gemini API:", data); throw new Error(data.error?.message || `Chyba při komunikaci s Gemini API (${response.status})`); } const geminiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text; if (!geminiResponse) { throw new Error('Prázdná odpověď od Gemini API'); } return geminiResponse; } catch (error) { console.error('Chyba při generování obsahu plánu:', error); return `... Chyba ...`; } }
+         async function saveGeneratedPlan(markdownContent, activitiesArray, topicsData) { if (!currentUser || !latestDiagnosticData || !markdownContent || !supabaseClient) { alert('Chyba: Chybí data uživatele, diagnostiky, plánu nebo Supabase client pro uložení.'); return; } const saveButton = document.getElementById('saveGeneratedPlanBtn'); if (saveButton) { saveButton.disabled = true; saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ukládám...'; } const priorityTopics = {}; topicsData.forEach((topic, index) => { priorityTopics[topic.name] = { priority: index + 1, performance: topic.percentage, focus_level: topic.percentage < 50 ? 'high' : topic.percentage < 75 ? 'medium' : 'low' }; }); let savedPlanId = null; try { const { error: deactivateError } = await supabaseClient .from('study_plans') .update({ status: 'inactive', updated_at: new Date().toISOString() }) .eq('user_id', currentUser.id) .eq('status', 'active'); if (deactivateError) throw deactivateError; const today = new Date(); const completionDate = new Date(today); completionDate.setDate(completionDate.getDate() + 7); const newPlanData = { user_id: currentUser.id, title: `Studijní plán (${formatDate(today)})`, subject: "Matematika", status: "active", diagnostic_id: latestDiagnosticData.id, plan_content_markdown: markdownContent, priority_topics: priorityTopics, estimated_completion_date: completionDate.toISOString().split('T')[0], progress: 0, is_auto_adjusted: true }; const { data: savedPlan, error: insertPlanError } = await supabaseClient .from('study_plans') .insert(newPlanData) .select('id') .single(); if (insertPlanError) throw insertPlanError; savedPlanId = savedPlan.id; console.log("Nový plán uložen, ID:", savedPlanId); console.log("Проверяем activitiesArray перед вставкой:", activitiesArray); if (activitiesArray && Array.isArray(activitiesArray) && activitiesArray.length > 0) { console.log(`Pokouším se vložit ${activitiesArray.length} aktivit...`); const activitiesToInsert = activitiesArray.map(act => { if (typeof act !== 'object' || act === null) { console.warn("Přeskakuji neplatnou položku v activitiesArray:", act); return null; } const dayOfWeek = typeof act.day_of_week === 'number' ? act.day_of_week : parseInt(act.day_of_week, 10); if (isNaN(dayOfWeek) || dayOfWeek < 0 || dayOfWeek > 6) { console.warn(`Přeskakuji aktivitu s neplatným day_of_week (${act.day_of_week}):`, act); return null; } const activityObject = { plan_id: savedPlanId, day_of_week: dayOfWeek, time_slot: act.time_slot || null, title: act.title || 'Nespecifikováno', description: act.description || null, completed: false, }; return activityObject; }).filter(item => item !== null); console.log("Данные для вставки в plan_activities (после маппинга и фильтрации):", activitiesToInsert); if (activitiesToInsert.length > 0) { const { error: insertActivitiesError } = await supabaseClient .from('plan_activities') .insert(activitiesToInsert); if (insertActivitiesError) { console.error("!!! Ошибка при вставке активностей в Supabase:", insertActivitiesError); showToast('Plán uložen, ale nepodařilo se uložit aktivity pro harmonogram.', 'warning'); } else { console.log("Aktivity úspěšně vloženy do DB."); showToast('Studijní plán a aktivity byly úspěšně uloženy!', 'success'); } } else { console.warn("Po фильтрации не осталось активностей для вставки."); showToast('Plán uložen, ale nebyly nalezeny platné aktivity pro harmonogram.', 'warning'); } } else { console.warn("activitiesArray пустой или не является массивом."); showToast('Studijní plán uložen (bez detailních aktivit v harmonogramu).', 'info'); } currentStudyPlan = { ...newPlanData, id: savedPlanId }; switchTab('current'); } catch (error) { console.error("Chyba při ukládání plánu nebo aktivit:", error); showToast(`Nepodařilo se uložit plán. Chyba: ${error.message || 'Neznámá chyba'}`, 'error'); if (saveButton) { saveButton.disabled = false; saveButton.innerHTML = '<i class="fas fa-save"></i> Uložit tento plán'; } } }
+         function displayPlanContent(markdownContent) { if (!planContent) return; try { const htmlContent = marked.parse(markdownContent || ''); planContent.innerHTML = htmlContent; planContent.style.display = 'block'; if (window.MathJax && typeof window.MathJax.typesetPromise === 'function') { setTimeout(() => { window.MathJax.typesetPromise([planContent]).catch(e => console.error("MathJax chyba:", e)); }, 0); } } catch (e) { console.error("Chyba při renderování Markdown:", e); planContent.innerHTML = "<p>Chyba při zobrazování obsahu plánu.</p>"; planContent.style.display = 'block'; } }
+
+        // ==============================================
+        //          Pomocné UI Funkce (Export PDF)
+        // ==============================================
+        async function exportPlanToPDFWithStyle(plan) {
+             if (!plan) return;
+             // Zajistíme, že máme markdown pro export
+             if (!plan.plan_content_markdown) {
+                 showToast('Načítám data pro PDF...', 'info', 2000);
+                 try {
+                     console.log("Načítám plný markdown pro export...");
+                     const { data: fullPlanData, error } = await supabaseClient
+                         .from('study_plans')
+                         .select('plan_content_markdown, title, created_at, estimated_completion_date') // Načteme vše potřebné
+                         .eq('id', plan.id)
+                         .single();
+                     if (error) throw error;
+                     plan = { ...plan, ...fullPlanData }; // Aktualizujeme data plánu
+                 } catch (fetchError) {
+                     console.error("Nepodařilo se načíst markdown pro export:", fetchError);
+                     showToast('Chyba: Nepodařilo se načíst data pro export.', 'error');
+                     return;
+                 }
+             }
+
+             const exportContainer = document.createElement('div');
+             exportContainer.id = 'pdf-export-content';
+
+             // --- Vylepšené CSS styly pro PDF ---
+             const pdfStyles = `
+             <style>
+                 body { font-family: 'Poppins', Arial, sans-serif; font-size: 10pt; color: #333; line-height: 1.5; }
+                 #pdf-export-content { padding: 18mm 13mm; } /* Mírně menší okraje */
+                 .pdf-header { text-align: center; margin-bottom: 12mm; border-bottom: 1px solid #ccc; padding-bottom: 4mm; }
+                 .pdf-header h1 { color: #4361ee; font-size: 18pt; margin: 0 0 4px 0; font-weight: 600; }
+                 .pdf-header p { color: #6c757d; font-size: 9pt; margin: 0; }
+                 .student-info { background-color: #f8f9fa; padding: 8mm 10mm; border-radius: 8px; border: 1px solid #eee; margin-bottom: 10mm; font-size: 9pt; break-inside: avoid; /* Zabrání rozdělení této sekce */}
+                 .student-info h2 { color: #3f37c9; font-size: 12pt; margin: 0 0 6px 0; padding-bottom: 3px; border-bottom: 1px dotted #ccc; font-weight: 600;}
+                 .student-info p { margin: 0 0 3px 0; line-height: 1.4; }
+                 .student-info strong { font-weight: 600; color: #1e2a3a; }
+
+                 .pdf-content h2, .pdf-content h3, .pdf-content h4 { margin-top: 7mm; margin-bottom: 3mm; padding-bottom: 2px; font-weight: 600; break-after: avoid; /* Zabrání zlomu hned po nadpisu */}
+                 .pdf-content h2 { font-size: 13pt; color: #3f37c9; border-bottom: 1px solid #eee; }
+                 .pdf-content h3 { font-size: 11.5pt; color: #1e2a3a; border-bottom: 1px dotted #ccc; }
+                 .pdf-content h4 { font-size: 10.5pt; color: #4361ee; border-bottom: none; margin-top: 5mm; }
+
+                 .pdf-content p, .pdf-content li { margin-bottom: 2.5mm; color: #333; text-align: left; /* Zarovnání doleva pro lepší čitelnost kódu/seznamů */ }
+                 .pdf-content ul, .pdf-content ol { padding-left: 5mm; margin-left: 3mm; margin-bottom: 4mm; break-inside: avoid;}
+                 .pdf-content li { margin-bottom: 1.5mm; }
+                 .pdf-content strong { font-weight: 600; color: #000; }
+                 .pdf-content em { font-style: italic; color: #555; }
+                 .pdf-content code { font-family: 'Courier New', Courier, monospace; background-color: #f0f0f0; padding: 1px 4px; border-radius: 3px; font-size: 9pt; color: #c7254e; }
+                 .pdf-content pre { background-color: #f8f9fa; border: 1px solid #eee; padding: 3mm; margin: 4mm 0; border-radius: 5px; white-space: pre-wrap; word-wrap: break-word; font-size: 9pt; break-inside: avoid; }
+                 .pdf-content blockquote { border-left: 3px solid #ccc; padding-left: 4mm; margin: 4mm 0 4mm 2mm; color: #555; font-style: italic; break-inside: avoid; }
+                 .pdf-content hr { border: none; border-top: 1px dashed #ccc; margin: 6mm 0; }
+
+                 /* Stylování specifických částí markdownu */
+                 .pdf-content ul > li > strong:first-child { /* Např. "Fokus dne:" nebo "Blok 1:" */
+                      display: inline-block; /* Aby bylo na stejném řádku */
+                      margin-right: 5px;
+                      color: #3f37c9;
+                 }
+                 .pdf-content ul > li em { /* Tip dne */
+                      display: block;
+                      margin-top: 2mm;
+                      padding-left: 5mm;
+                      color: #06a086; /* Zelenkavá pro tipy */
+                      font-size: 9pt;
+                 }
+
+                 .pdf-footer { text-align: center; margin-top: 10mm; padding-top: 5mm; border-top: 1px solid #ccc; color: #888; font-size: 8pt; }
+
+                 /* --- Vylepšené zalamování --- */
+                 .pdf-day-block { /* Třída se přidá v JS k H3 dnů */
+                      break-before: auto; /* Může začít na nové stránce, pokud je málo místa */
+                      break-inside: avoid; /* Zkusí udržet celý blok dne pohromadě */
+                 }
+                 .pdf-content ul { /* Zkusí udržet seznamy pohromadě */
+                     break-inside: avoid;
+                 }
+
+             </style>
+             `;
+             exportContainer.innerHTML = pdfStyles;
+
+             const pdfTitle = plan.title ? plan.title.replace(/\s*\(\d{2}\.\d{2}\.\d{4}\)$/, '').trim() : 'Studijní plán';
+             const headerHTML = `<div class="pdf-header"><h1>${sanitizeHTML(pdfTitle)}</h1><p>Vytvořeno: ${formatDate(plan.created_at)}</p></div>`;
+             exportContainer.innerHTML += headerHTML;
+
+             if (currentUser && userName.textContent) { exportContainer.innerHTML += `<div class="student-info"><h2>Informace o studentovi</h2><p><strong>Student:</strong> ${userName.textContent}</p><p><strong>Datum vytvoření plánu:</strong> ${formatDate(plan.created_at)}</p>${plan.estimated_completion_date ? `<p><strong>Předpokládané dokončení:</strong> ${formatDate(plan.estimated_completion_date)}</p>` : ''}</div>`; }
+
+             const contentDiv = document.createElement('div');
+             contentDiv.className = 'pdf-content';
+             try {
+                 // Parsování Markdownu
+                 const rawHtml = marked.parse(plan.plan_content_markdown || '');
+                 contentDiv.innerHTML = rawHtml;
+
+                 // Přidání třídy k H3 dnů PO PARSOVÁNÍ pro lepší kontrolu zalamování
+                 const daysCzech = ['Pondělí', 'Úterý', 'Středa', 'Čtvrtek', 'Pátek', 'Sobota', 'Neděle'];
+                 contentDiv.querySelectorAll('h3').forEach(h3 => {
+                     const text = h3.textContent.trim();
+                     if (daysCzech.some(day => text.startsWith(day))) {
+                         h3.classList.add('pdf-day-block'); // Přidá třídu
+                         console.log(`PDF: Added class 'pdf-day-block' to ${text}`);
+                     }
+                 });
+
+             } catch (e) { console.error("Chyba při parsování Markdown pro PDF:", e); contentDiv.innerHTML = '<p>Chyba při zpracování obsahu plánu.</p>'; }
+             exportContainer.appendChild(contentDiv);
+
+             exportContainer.innerHTML += `<div class="pdf-footer">&copy; ${new Date().getFullYear()} Justax.space</div>`;
+
+             const options = { margin: [18, 13, 18, 13], filename: `studijni-plan-${formatDate(plan.created_at).replace(/\./g, '-')}.pdf`, image: { type: 'jpeg', quality: 0.95 }, html2canvas: { scale: 2, useCORS: true, logging: false, letterRendering: true }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }, pagebreak: { mode: ['css', 'avoid-all'] } }; // Používáme CSS pro kontrolu zlomů
+
+             if (typeof html2pdf === 'function') {
+                 console.log("Starting PDF generation...");
+                 showToast('Generuji PDF...', 'info', 5000);
+                 html2pdf().set(options).from(exportContainer).save().then(() => { console.log("PDF generation finished."); showToast('PDF bylo úspěšně vygenerováno!', 'success'); }).catch(err => { console.error("Chyba exportu PDF:", err); showToast('Nepodařilo se exportovat PDF.', 'error'); });
+             } else { console.error("html2pdf library is not loaded."); showToast('Chyba: Knihovna pro export PDF není načtena.', 'error'); }
+        }
+
+
+        // ==============================================
+        //          Spuštění Aplikace
+        // ==============================================
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log("DOM fully loaded and parsed, starting application initialization...");
+            initializeApp();
+        });
 
     </script>
-
 </body>
 </html>
