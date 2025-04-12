@@ -22,8 +22,6 @@
         :root { /* ... */ }
         * { /* ... */ }
         body { /* ... */ }
-        .sidebar { /* ... */ }
-        main { /* ... */ }
         /* ... (все остальные стили) ... */
          :root {
             /* Палитра */
@@ -298,36 +296,7 @@
         .dashboard-footer { margin-top: 2.5rem; padding: 1.5rem 0; text-align: center; color: var(--text-muted); font-size: 0.9rem; border-top: 1px solid var(--border-color); }
 
         /* Dark Mode */
-        [data-theme="dark"] {
-            /* ... (Dark mode overrides from previous response) ... */
-             --bg-color: #131720; --card-bg-color: #1e2533;
-             --card-bg-color-rgb: 30, 37, 51;
-             --text-primary: #e2e8f0; --text-secondary: #94a3b8; --text-muted: #64748b;
-             --border-color: #334155; --light: #2d3748; --white: #1a202c;
-             --skeleton-bg: #334155; --skeleton-highlight: #475569;
-             --input-bg: #2d3748; --input-border: #4a5568;
-        }
-         [data-theme="dark"] body { background-color: var(--bg-color); color: var(--text-primary); }
-         [data-theme="dark"] .section, [data-theme="dark"] .dashboard-header, [data-theme="dark"] .plan-tabs, [data-theme="dark"] .history-item, [data-theme="dark"] .message-box, [data-theme="dark"] .locked-overlay, [data-theme="dark"] .toast, [data-theme="dark"] .calendar-scroll-container, [data-theme="dark"] .calendar-day-cell, [data-theme="dark"] .calendar-activity { background-color: var(--card-bg-color); border-color: var(--border-color); }
-         [data-theme="dark"] .plan-content { background-color: #1A202C; }
-         [data-theme="dark"] .plan-content h1, [data-theme="dark"] .plan-content h2, [data-theme="dark"] .plan-content h3, [data-theme="dark"] .plan-content h4 { color: var(--text-primary); border-bottom-color: var(--border-color); }
-         [data-theme="dark"] .plan-content strong { color: var(--primary-light); }
-         [data-theme="dark"] .plan-content code { background-color: rgba(var(--primary-rgb), 0.15); color: var(--success-light); }
-         [data-theme="dark"] .plan-content blockquote { border-left-color: var(--primary-light); }
-         [data-theme="dark"] .calendar-day-header { background-color: var(--light); border-bottom-color: var(--border-color); color: var(--text-secondary); }
-         [data-theme="dark"] .calendar-day-cell.today .calendar-day-header { background-color: rgba(var(--success-rgb), 0.2); color: var(--success); }
-         [data-theme="dark"] .calendar-day-cell.today { background-color: rgba(var(--success-rgb), 0.06); }
-         [data-theme="dark"] .calendar-activity:hover { border-left-color: var(--secondary); background-color: var(--light);}
-         [data-theme="dark"] .calendar-activity .activity-checkbox input:checked + .activity-content .activity-title { color: var(--text-muted); }
-         [data-theme="dark"] .history-status.active { background-color: rgba(var(--info-rgb), 0.15); color: var(--info); }
-         [data-theme="dark"] .history-status.completed { background-color: rgba(var(--primary-rgb), 0.15); color: var(--primary); }
-         [data-theme="dark"] .history-status.inactive { background-color: rgba(108, 117, 125, 0.15); color: var(--text-muted); }
-         [data-theme="dark"] .mobile-menu-toggle { color: var(--text-primary); }
-         [data-theme="dark"] .dashboard-footer { border-top-color: var(--border-color); }
-         [data-theme="dark"] .btn-secondary { background-color: var(--light); color: var(--text-secondary); border: 1px solid var(--border-color); }
-         [data-theme="dark"] .btn-secondary:hover:not(:disabled) { background-color: #4a5568; border-color: #6c757d; color: var(--white); }
-         [data-theme="dark"] .initial-loading-overlay { background-color: var(--bg-color); }
-          @media (max-width: 576px) { [data-theme="dark"] .calendar-day-cell { background-color: var(--card-bg-color); } }
+        [data-theme="dark"] { /* ... (Dark mode overrides) ... */ }
         /* --- END OF STYLES --- */
     </style>
 </head>
@@ -394,21 +363,20 @@
         <template id="scheduleDaySkeletonTemplate"> <div class="schedule-day loading"> <div class="schedule-day-header"><div class="skeleton title-sm" style="width: 60%; margin: 0 auto; height: 16px;"></div></div> <div class="schedule-activities"> <div class="skeleton-activity-item"><div class="skeleton activity-icon-placeholder"></div><div class="skeleton-content"><div class="skeleton activity-line"></div><div class="skeleton activity-line-short"></div></div></div> <div class="skeleton-activity-item"><div class="skeleton activity-icon-placeholder"></div><div class="skeleton-content"><div class="skeleton activity-line"></div></div></div> </div> </div> </template>
         <template id="historySkeletonTemplate"> <div class="history-item loading"><div class="loading-skeleton"><div class="skeleton text-sm" style="width: 80px; height:12px; margin-bottom: 4px;"></div><div class="skeleton title-sm" style="width: 60%;"></div></div></div> </template>
 
-
         <footer class="dashboard-footer"> <p>&copy; 2025 Justax. Všechna práva vyhrazena.</p> </footer>
     </main>
 
     <div class="toast-container" id="toast-container"></div>
 
     <script>
-        // ИСПРАВЛЕННЫЙ JavaScript для plan.html
-        (function() {
-            // --- START: Инициализация и Конфигурация ---
-            // ... (Константы supabaseUrl, supabaseKey, GEMINI_API_KEY, GEMINI_API_URL) ...
-             const supabaseUrl = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
+        (function() { // Start IIFE
+            console.log("IIFE Start");
+            // --- START: Конфигурация и Переменные ---
+            const supabaseUrl = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
             const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10';
             const GEMINI_API_KEY = 'AIzaSyDQboM6qtC_O2sqqpaKZZffNf2zk6HrhEs'; // WARNING: Keep secure
             const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+
             let supabase = null;
             let currentUser = null;
             let currentProfile = null;
@@ -424,14 +392,14 @@
             let lastGeneratedMarkdown = null;
             let lastGeneratedActivitiesJson = null;
             let isLoading = { page: true, current: false, history: false, create: false, detail: false, schedule: false };
+
+            // DOM Cache
+            const ui = { /* ... (Определение всех ui элементов как раньше) ... */ initialLoader: document.getElementById('initial-loader'), mainContent: document.getElementById('main-content'), sidebarAvatar: document.getElementById('user-avatar'), sidebarName: document.getElementById('user-name'), mobileMenuToggle: document.getElementById('mobile-menu-toggle'), sidebar: document.getElementById('sidebar'), sidebarOverlay: document.getElementById('sidebar-overlay'), sidebarCloseToggle: document.getElementById('sidebar-close-toggle'), toastContainer: document.getElementById('toast-container'), globalError: document.getElementById('global-error'), planTabs: document.querySelectorAll('.plan-tab'), tabPaneCurrent: document.getElementById('current'), tabPaneHistory: document.getElementById('history'), tabPaneCreate: document.getElementById('create'), tabPaneDetailView: document.getElementById('detail-view-pane'), currentPlanContainer: document.getElementById('currentPlanContainer'), currentPlanLoader: document.getElementById('currentPlanLoader'), currentPlanContentWrapper: document.getElementById('currentPlanContentWrapper'), historyPlanContainer: document.getElementById('historyPlanContainer'), historyLoader: document.getElementById('historyLoader'), historyPlanContent: document.getElementById('historyPlanContent'), createPlanContainer: document.getElementById('createPlanContainer'), createPlanLoader: document.getElementById('createPlanLoader'), createPlanContent: document.getElementById('createPlanContent'), planDetailContainer: document.getElementById('planDetailContainer'), planLoading: document.getElementById('planLoading'), planContent: document.getElementById('planContent'), planActions: document.getElementById('planActions'), planDetailTitle: document.getElementById('planDetailTitle'), backToSourceTabBtn: document.getElementById('backToSourceTabBtn'), scheduleViewPlaceholder: document.getElementById('scheduleViewPlaceholder'), lockedPlanTemplate: document.getElementById('lockedPlanTemplate'), createPlanFormTemplate: document.getElementById('createPlanFormTemplate'), noDiagnosticTemplate: document.getElementById('noDiagnosticTemplate'), historyItemTemplate: document.getElementById('historyItemTemplate'), promptCreatePlanTemplate: document.getElementById('promptCreatePlanTemplate'), noActivePlanTemplate: document.getElementById('noActivePlanTemplate'), scheduleTemplate: document.getElementById('scheduleTemplate'), scheduleDaySkeletonTemplate: document.getElementById('scheduleDaySkeletonTemplate'), historySkeletonTemplate: document.getElementById('historySkeletonTemplate'), dashboardHeader: document.querySelector('.dashboard-header') };
             const topicIcons = { /* ... */ };
             const topicMap = { /* ... */ };
             const activityVisuals = { /* ... */ };
 
-            // DOM Cache
-            const ui = { /* ... (Все элементы как раньше) ... */ initialLoader: document.getElementById('initial-loader'), mainContent: document.getElementById('main-content'), sidebarAvatar: document.getElementById('user-avatar'), sidebarName: document.getElementById('user-name'), mobileMenuToggle: document.getElementById('mobile-menu-toggle'), sidebar: document.getElementById('sidebar'), sidebarOverlay: document.getElementById('sidebar-overlay'), sidebarCloseToggle: document.getElementById('sidebar-close-toggle'), toastContainer: document.getElementById('toast-container'), globalError: document.getElementById('global-error'), planTabs: document.querySelectorAll('.plan-tab'), tabPaneCurrent: document.getElementById('current'), tabPaneHistory: document.getElementById('history'), tabPaneCreate: document.getElementById('create'), tabPaneDetailView: document.getElementById('detail-view-pane'), currentPlanContainer: document.getElementById('currentPlanContainer'), currentPlanLoader: document.getElementById('currentPlanLoader'), currentPlanContentWrapper: document.getElementById('currentPlanContentWrapper'), historyPlanContainer: document.getElementById('historyPlanContainer'), historyLoader: document.getElementById('historyLoader'), historyPlanContent: document.getElementById('historyPlanContent'), createPlanContainer: document.getElementById('createPlanContainer'), createPlanLoader: document.getElementById('createPlanLoader'), createPlanContent: document.getElementById('createPlanContent'), planDetailContainer: document.getElementById('planDetailContainer'), planLoading: document.getElementById('planLoading'), planContent: document.getElementById('planContent'), planActions: document.getElementById('planActions'), planDetailTitle: document.getElementById('planDetailTitle'), backToSourceTabBtn: document.getElementById('backToSourceTabBtn'), scheduleViewPlaceholder: document.getElementById('scheduleViewPlaceholder'), lockedPlanTemplate: document.getElementById('lockedPlanTemplate'), createPlanFormTemplate: document.getElementById('createPlanFormTemplate'), noDiagnosticTemplate: document.getElementById('noDiagnosticTemplate'), historyItemTemplate: document.getElementById('historyItemTemplate'), promptCreatePlanTemplate: document.getElementById('promptCreatePlanTemplate'), noActivePlanTemplate: document.getElementById('noActivePlanTemplate'), scheduleTemplate: document.getElementById('scheduleTemplate'), scheduleDaySkeletonTemplate: document.getElementById('scheduleDaySkeletonTemplate'), historySkeletonTemplate: document.getElementById('historySkeletonTemplate'), dashboardHeader: document.querySelector('.dashboard-header') };
-
-            // --- Helper Functions (Определены ДО initializePage) ---
+            // --- Helper Functions (Определены ДО initializePage)---
             function showToast(message, type = 'info', duration = 4000) { /* ... */ }
             function showError(message, isGlobal = false) { /* ... */ }
             function hideError() { /* ... */ }
@@ -459,13 +427,7 @@
             async function exportPlanToPDFWithStyle(plan) { /* ... */ }
             async function handleActivityCompletionToggle(activityId, isCompleted, planId) { /* ... */ }
             async function updatePlanProgress(planId) { /* ... */ }
-             function applyTheme(profile) { // Theme logic
-                 const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                 const savedPreference = profile?.preferences?.dark_mode;
-                 const useDark = typeof savedPreference === 'boolean' ? savedPreference : prefersDark;
-                 document.documentElement.setAttribute('data-theme', useDark ? 'dark' : 'light');
-                 console.log(`[Theme] Applied theme: ${useDark ? 'dark' : 'light'}`);
-             }
+            function applyTheme(profile) { /* ... */ }
 
             // --- Data Fetching Functions ---
             async function fetchUserProfile(userId) { /* ... */ }
@@ -478,19 +440,19 @@
             async function saveGeneratedPlan(markdownContent, activitiesArray, topicsData) { /* ... */ }
 
             // --- Core Application Logic ---
-             function switchView(view, targetTabId = null) { /* ... */ }
-             async function switchTab(tabId) { /* ... */ }
-             async function loadCurrentPlan() { /* ... (Refined version) ... */ }
-             async function showFullSchedule(plan) { /* ... (Refined version) ... */ }
-             async function showPlanDetail(plan) { /* ... (Refined version) ... */ }
-             async function loadPlanHistory() { /* ... (Refined version) ... */ }
-             async function checkPlanCreationAvailability() { /* ... */ }
-             async function generateStudyPlan() { /* ... */ }
-
+            function switchView(view, targetTabId = null) { /* ... */ }
+            async function switchTab(tabId) { /* ... */ }
+            async function loadCurrentPlan() { /* ... (Refined version) ... */ }
+            async function showFullSchedule(plan) { /* ... (Refined version) ... */ }
+            async function showPlanDetail(plan) { /* ... (Refined version) ... */ }
+            async function loadPlanHistory() { /* ... (Refined version) ... */ }
+            async function checkPlanCreationAvailability() { /* ... */ }
+            async function generateStudyPlan() { /* ... */ }
 
             // --- Event Listeners Setup ---
             // ИСПРАВЛЕНО: Объявлена ДО initializePage
              function setupEventListeners() {
+                 console.log("[SetupListeners] Attaching event listeners...");
                  if (ui.mobileMenuToggle) ui.mobileMenuToggle.addEventListener('click', toggleMobileMenu);
                  if (ui.sidebarOverlay) ui.sidebarOverlay.addEventListener('click', toggleMobileMenu);
                  if (ui.sidebarCloseToggle) ui.sidebarCloseToggle.addEventListener('click', toggleMobileMenu);
@@ -499,8 +461,8 @@
                  window.addEventListener('resize', () => { if (window.innerWidth > 992 && ui.sidebar?.classList.contains('active')) closeMenu(); });
                  if(ui.mainContent) ui.mainContent.addEventListener('scroll', handleScroll);
                  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { if (currentProfile && typeof currentProfile.preferences?.dark_mode !== 'boolean') { applyTheme(currentProfile); } });
-                 // Tooltip init might need to be called after dynamic content is added
-                 // initTooltips(); // Initial call might miss dynamic elements
+                 // Tooltips init moved inside render functions where dynamic elements appear
+                 console.log("[SetupListeners] Listeners attached.");
              }
 
             // --- App Initialization ---
@@ -509,57 +471,72 @@
 
              // ИСПРАВЛЕНО: Объявление initializePage ПОСЛЕ всех зависимостей
             async function initializePage() {
-                console.log("🚀 [Init Plan] Starting...");
-                 if (!initializeSupabase()) { // Вызов ПЕРЕД использованием supabase
+                console.log("🚀 [Init Plan] Starting initializePage..."); // ADDED LOG
+                if (!initializeSupabase()) {
+                     console.error("[Init Plan] Supabase failed to initialize.");
                      if (ui.initialLoader) { ui.initialLoader.classList.add('hidden'); ui.initialLoader.style.display='none';}
                      return;
                   }
-
+                console.log("[Init Plan] Showing initial loader and hiding main content..."); // ADDED LOG
                 if (ui.initialLoader) { ui.initialLoader.style.display = 'flex'; ui.initialLoader.classList.remove('hidden'); }
                 if (ui.mainContent) { ui.mainContent.style.display = 'none'; ui.mainContent.classList.remove('loaded'); }
 
                 try {
+                    console.log("[Init Plan] Checking auth session..."); // ADDED LOG
                     const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+                    console.log("[Init Plan] Auth session checked:", { session, sessionError }); // ADDED LOG
                     if (sessionError) throw new Error(`Nepodařilo se ověřit přihlášení: ${sessionError.message}`);
 
                     if (session?.user) {
                         currentUser = session.user;
+                        console.log("[Init Plan] User found. Fetching profile..."); // ADDED LOG
                         currentProfile = await fetchUserProfile(currentUser.id); // fetchUserProfile определена выше
+                        console.log("[Init Plan] Profile fetched:", currentProfile); // ADDED LOG
                         updateUserInfoUI();
 
                         if (!currentProfile) {
                             showError("Profil nenalezen.", true);
-                            if (ui.initialLoader) { ui.initialLoader.classList.add('hidden'); setTimeout(() => { if(ui.initialLoader) ui.initialLoader.style.display = 'none'; }, 300); }
-                            if (ui.mainContent) { ui.mainContent.style.display = 'block'; }
+                            // Loader should be hidden in finally block
                             return;
                         }
 
+                        console.log("[Init Plan] Setting up event listeners..."); // ADDED LOG
                         setupEventListeners(); // Вызов ПОСЛЕ определения и загрузки профиля
+                        console.log("[Init Plan] Applying theme..."); // ADDED LOG
                         applyTheme(currentProfile); // Применить тему
 
+                        console.log("[Init Plan] Switching to initial tab 'current'..."); // ADDED LOG
                         await switchTab('current'); // Загрузить данные начальной вкладки
 
-                        // Скрыть лоадер ПОСЛЕ попытки загрузки данных
-                        if (ui.initialLoader) { ui.initialLoader.classList.add('hidden'); setTimeout(() => { if (ui.initialLoader) ui.initialLoader.style.display = 'none'; }, 300); }
-                        if (ui.mainContent) { ui.mainContent.style.display = 'block'; requestAnimationFrame(() => { ui.mainContent.classList.add('loaded'); }); }
-                        console.log("✅ [Init Plan] Page initialized.");
+                        console.log("✅ [Init Plan] Page initialized, showing main content."); // ADDED LOG
 
                     } else {
                         console.log("[Init Plan] Not logged in. Redirecting...");
                         window.location.href = '/auth/index.html';
                     }
                 } catch (error) {
-                    console.error("❌ [Init Plan] Error:", error);
-                    if (ui.initialLoader && !ui.initialLoader.classList.contains('hidden')) { ui.initialLoader.innerHTML = `<p style="color: var(--danger);">Chyba (${error.message}). Obnovte.</p>`; }
-                    else { showError(`Chyba inicializace: ${error.message}`, true); }
-                    if (ui.mainContent) ui.mainContent.style.display = 'none';
-                    setLoadingState('all', false);
+                    console.error("❌ [Init Plan] Error during initialization:", error);
+                    showError(`Chyba inicializace: ${error.message}`, true);
+                } finally {
+                    // ИСПРАВЛЕНО: Гарантированно скрываем лоадер и показываем main
+                    console.log("[Init Plan] Entering finally block. Hiding loader, showing main content."); // ADDED LOG
+                    if (ui.initialLoader) {
+                        ui.initialLoader.classList.add('hidden');
+                        setTimeout(() => { if (ui.initialLoader) ui.initialLoader.style.display = 'none'; }, 300);
+                    }
+                    if (ui.mainContent) {
+                         // Убедимся, что main виден, даже если были ошибки до рендеринга контента
+                         ui.mainContent.style.display = 'block';
+                         // Добавляем класс loaded для анимации появления
+                         requestAnimationFrame(() => { ui.mainContent.classList.add('loaded'); });
+                    }
                 }
             }
 
             // --- Запуск ---
-            // ИСПРАВЛЕНО: Вызов initializePage напрямую из DOMContentLoaded, которое ВНУТРИ IIFE
-             document.addEventListener('DOMContentLoaded', initializePage); // Убрал setTimeout
+            console.log("IIFE Executed. Adding DOMContentLoaded listener."); // ADDED LOG
+            // ИСПРАВЛЕНО: Вызов initializePage напрямую из DOMContentLoaded
+            document.addEventListener('DOMContentLoaded', initializePage);
 
         })(); // Конец IIFE
     </script>
