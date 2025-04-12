@@ -4,13 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Justax - Pokrok (Aktuální stav)</title> <link rel="preconnect" href="https://fonts.googleapis.com">
+    <title>Justax - Pokrok</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
     <style>
-        /* CSS (Pokrok - v10 - Simplified) */
+        /* CSS (Pokrok - v11 - Simplified, Final Polish) */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; scroll-behavior: smooth;}
         :root {
              --primary: #4f46e5; --primary-light: #c7d2fe; --primary-dark: #4338ca;
@@ -70,10 +71,11 @@
         .section { background-color: var(--card-bg); border-radius: var(--card-radius); box-shadow: var(--shadow-md); padding: 2rem; border: 1px solid var(--border-color); animation: fadeInSection 0.6s ease-out forwards; opacity: 0; transform: translateY(10px);}
         @keyframes fadeInSection { to { opacity: 1; transform: translateY(0); } }
         .stats-section { animation-delay: 0.1s; }
+
         .section-title { font-size: 1.5rem; font-weight: 600; margin-bottom: 1.75rem; color: var(--text-primary); padding-bottom: 0.75rem; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; gap: 0.7rem; } .section-title i { font-size: 1em; color: var(--primary); }
 
         /* Stats Grid */
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.75rem; margin-bottom: 1rem; /* Reduced bottom margin */ }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.75rem; margin-bottom: 1rem; }
         .stats-card { background-color: var(--card-bg); border-radius: var(--card-radius); box-shadow: var(--shadow-sm); padding: 1.75rem; transition: all 0.3s ease; display: flex; flex-direction: column; border: 1px solid var(--border-color); position: relative; min-height: 170px; }
         .stats-card:hover { transform: translateY(-4px) scale(1.01); box-shadow: var(--shadow-lg); border-color: var(--primary); }
         .stats-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; } .stats-card-title { font-size: 1rem; font-weight: 500; color: var(--text-secondary); display: flex; align-items: center; gap: 0.5rem; } .stats-card-title i { font-size: 1.2em; color: var(--text-muted); }
@@ -180,7 +182,7 @@
             <section class="stats-section section">
                  <h2 class="section-title" style="border: none; margin-bottom: 1rem;"><i class="fas fa-tachometer-alt"></i>Aktuální stav</h2>
                 <div class="stats-grid" id="stats-grid">
-                    <div class="stats-card loading" id="progress-card" data-title="Orientační úroveň" data-icon="fas fa-graduation-cap">
+                    <div class="stats-card loading" id="progress-card" data-title="Úroveň" data-icon="fas fa-graduation-cap">
                          <div class="loading-skeleton"> <div class="skeleton title"></div> <div class="skeleton value"></div> <div class="skeleton text"></div> </div>
                          <div class="stats-card-content"> <div class="stats-card-info"> <div class="stats-card-title"><i class="fas fa-graduation-cap"></i>Úroveň</div> <div class="stats-card-value">-<span class="unit"></span></div> <div class="stats-card-description">Vaše aktuální úroveň</div> </div> </div>
                     </div>
@@ -199,7 +201,17 @@
                 </div>
             </section>
 
-            </div>
+            <section class="section">
+                 <h2 class="section-title"><i class="fas fa-info-circle"></i>Další informace</h2>
+                 <p>Tato sekce je zjednodušena. Graf historie pokroku a tabulka historie byly dočasně odstraněny pro diagnostiku problémů s načítáním základních dat.</p>
+                  <div class="empty-state">
+                     <i class="fas fa-tools"></i>
+                     <h3>Funkce ve vývoji</h3>
+                     <p>Detailní grafy a přehledy historie pokroku budou dostupné v budoucích aktualizacích.</p>
+                  </div>
+            </section>
+
+        </div>
 
         <footer class="dashboard-footer">
             <p>&copy; 2025 Justax. Všechna práva vyhrazena.</p>
@@ -212,52 +224,52 @@
     </div>
 
     <script>
-        // Immediately Invoked Function Expression (IIFE)
+        // Immediately Invoked Function Expression (IIFE) - v10 Simplified
         (function() {
             // --- START: Initialization and Configuration ---
             console.log("[INIT] Script start - pokrok.html - v10 Simplified");
             const supabaseUrl = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
             const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10';
-            const SUPABASE_FETCH_TIMEOUT = 15000; // 15 seconds
+            const SUPABASE_FETCH_TIMEOUT = 15000;
             let supabase = null;
             let currentUser = null;
             let currentProfile = null;
             let isLoadingData = false;
             let listenersAttached = false;
 
-            // Cache DOM Element IDs (Robust access later)
+            // DOM Elements Cache - Robust access later
             const ui = {};
-            const elementIds = [ 'sidebar-avatar', 'sidebar-name', 'offline-banner', 'global-error', 'main-mobile-menu-toggle', 'sidebar-close-toggle', 'sidebar', 'sidebar-overlay', 'toast', 'toast-message', 'initial-loader', 'main-content', 'refresh-data-btn', 'notification-bell', 'notification-count', 'notifications-dropdown', 'notifications-list', 'no-notifications-msg', 'mark-all-read', 'progress-card', 'exercises-card', 'streak-card', 'points-card']; // Removed chart/table related IDs
-            elementIds.forEach(id => ui[id] = id); // Store ID names
+            const elementIds = [ 'sidebar-avatar', 'sidebar-name', 'offline-banner', 'global-error', 'main-mobile-menu-toggle', 'sidebar-close-toggle', 'sidebar', 'sidebar-overlay', 'toast', 'toast-message', 'initial-loader', 'main-content', 'refresh-data-btn', 'notification-bell', 'notification-count', 'notifications-dropdown', 'notifications-list', 'no-notifications-msg', 'mark-all-read', 'progress-card', 'exercises-card', 'streak-card', 'points-card' ];
+            elementIds.forEach(id => ui[id] = id); // Store IDs
+            const getEl = (idName) => document.getElementById(idName); // Helper
             console.log("[INIT] UI element IDs stored");
-            // Function to safely get element
-            const getEl = (idName) => document.getElementById(idName);
             // --- END: Initialization and Configuration ---
 
             // --- START: Helper Functions ---
-             function showToast(message, type = 'success') { const toastEl = getEl(ui.toast); const msgEl = getEl(ui.toastMessage); if (!toastEl || !msgEl) return; msgEl.textContent = message; const icon = toastEl.querySelector('i'); const colors = { success: 'var(--success)', error: 'var(--danger)', warning: 'var(--warning)', info: 'var(--info)' }; if (icon) { icon.className = `fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle'}`; icon.style.color = colors[type] || colors.info; } toastEl.className = `toast ${type}`; toastEl.classList.add('show'); setTimeout(() => { toastEl.classList.remove('show'); }, 5000); }
-             function showError(message) { const errorContainer = getEl(ui.globalError); if (!errorContainer) return; errorContainer.innerHTML = `<div class="error-message"><i class="fas fa-exclamation-circle"></i><div><div>${message}</div><button class="retry-button" id="retry-btn-global">Zkusit znovu</button></div></div>`; errorContainer.style.display = 'block'; const retryBtn = document.getElementById('retry-btn-global'); if (retryBtn) { retryBtn.removeEventListener('click', handleRetry); retryBtn.addEventListener('click', handleRetry); } }
-             function hideError() { const errorContainer = getEl(ui.globalError); if (errorContainer) errorContainer.style.display = 'none'; }
-             function updateOnlineStatus() { const banner = getEl(ui.offlineBanner); if (banner) banner.style.display = navigator.onLine ? 'none' : 'block'; if (!navigator.onLine) showToast('Jste offline. Některé funkce nemusí být dostupné.', 'warning'); }
-             function getInitials(userData) { if (!userData) return '?'; const first = userData.first_name?.[0] || ''; const last = userData.last_name?.[0] || ''; const usernameInitial = userData.username?.[0] || ''; const emailInitial = userData.email?.[0] || ''; return (first + last).toUpperCase() || usernameInitial.toUpperCase() || emailInitial.toUpperCase() || '?'; }
-             function formatRelativeTime(timestamp) { if (!timestamp) return '-'; try { if (typeof dateFns === 'undefined') { console.warn("date-fns not loaded for formatRelativeTime"); return new Date(timestamp).toLocaleDateString('cs-CZ') || '-'; } const now = new Date(); const date = dateFns.parseISO(timestamp); if (!dateFns.isValid(date)) return '-'; const diffDays = dateFns.differenceInCalendarDays(now, date); if (diffDays === 0) return 'Dnes'; if (diffDays === 1) return 'Včera'; if (diffDays < 7) return `Před ${diffDays} dny`; return dateFns.format(date, 'd.M.yy', { locale: dateFns.locale.cs }); } catch(e) { console.error("Chyba formátování času:", e); return '-'; } }
-             function openMenu() { const sidebarEl = getEl(ui.sidebar); const overlayEl = getEl(ui.sidebarOverlay); if (sidebarEl && overlayEl) { sidebarEl.classList.add('active'); overlayEl.classList.add('active'); } }
-             function closeMenu() { const sidebarEl = getEl(ui.sidebar); const overlayEl = getEl(ui.sidebarOverlay); if (sidebarEl && overlayEl) { sidebarEl.classList.remove('active'); overlayEl.classList.remove('active'); } }
-             function sanitizeHTML(str) { const temp = document.createElement('div'); temp.textContent = str || ''; return temp.innerHTML; }
+             function showToast(message, type = 'success') { const t=getEl(ui.toast), m=getEl(ui.toastMessage); if (!t || !m) return; m.textContent = message; const i = t.querySelector('i'); const c = { success: 'var(--success)', error: 'var(--danger)', warning: 'var(--warning)', info: 'var(--info)' }; if (i) { i.className = `fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle'}`; i.style.color = c[type] || c.info; } t.className = `toast ${type}`; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 5000); }
+             function showError(message) { const c = getEl(ui.globalError); if (!c) return; c.innerHTML = `<div class="error-message"><i class="fas fa-exclamation-circle"></i><div><div>${message}</div><button class="retry-button" id="retry-btn-global">Zkusit znovu</button></div></div>`; c.style.display = 'block'; const b = document.getElementById('retry-btn-global'); if (b) { b.removeEventListener('click', handleRetry); b.addEventListener('click', handleRetry); } }
+             function hideError() { const c = getEl(ui.globalError); if (c) c.style.display = 'none'; }
+             function updateOnlineStatus() { const b = getEl(ui.offlineBanner); if (b) b.style.display = navigator.onLine ? 'none' : 'block'; if (!navigator.onLine) showToast('Jste offline.', 'warning'); }
+             function getInitials(userData) { if (!userData) return '?'; const f = userData.first_name?.[0] || ''; const l = userData.last_name?.[0] || ''; return (f + l).toUpperCase() || userData.username?.[0].toUpperCase() || userData.email?.[0].toUpperCase() || '?'; }
+             function formatRelativeTime(timestamp) { if (!timestamp) return '-'; try { if (typeof dateFns === 'undefined') { console.warn("date-fns not loaded"); return new Date(timestamp).toLocaleDateString('cs-CZ') || '-'; } const n=new Date(); const d=dateFns.parseISO(timestamp); if (!dateFns.isValid(d)) return '-'; const df=dateFns.differenceInCalendarDays(n,d); if (df===0) return 'Dnes'; if (df===1) return 'Včera'; if (df<7) return `Před ${df} dny`; return dateFns.format(d, 'd.M.yy', { locale: dateFns.locale.cs }); } catch(e) { console.error("Chyba formátování času:", e); return '-'; } }
+             function openMenu() { const s=getEl(ui.sidebar), o=getEl(ui.sidebarOverlay); if (s && o) { s.classList.add('active'); o.classList.add('active'); } }
+             function closeMenu() { const s=getEl(ui.sidebar), o=getEl(ui.sidebarOverlay); if (s && o) { s.classList.remove('active'); o.classList.remove('active'); } }
+             function sanitizeHTML(str) { const t = document.createElement('div'); t.textContent = str || ''; return t.innerHTML; }
             // --- END: Helper Functions ---
 
             // --- START: Loading State Functions ---
-             function showLoadingState(section) { console.log(`[Loading] Show for: ${section}`); switch(section) { case 'stats': ['progressCard', 'exercisesCard', 'streakCard', 'pointsCard'].forEach(id => getEl(ui[id])?.classList.add('loading')); break; case 'notifications': const notificationsListEl = getEl(ui.notificationsList); const noMsgEl = getEl(ui.noNotificationsMsg); if (notificationsListEl) { notificationsListEl.innerHTML = ''; const skeletonHTML = `<div class="notification-item-skeleton" style="display: flex; padding: 1rem 1.25rem; gap: 1rem; border-bottom: 1px solid var(--border-color);"> <div class="skeleton activity-icon-placeholder" style="border-radius: 50%; width:38px; height: 38px;"></div> <div style="flex-grow: 1;"> <div class="skeleton activity-line" style="width: 60%; height: 16px; margin-bottom: 0.5rem;"></div> <div class="skeleton activity-line" style="width: 90%; height: 14px; margin-bottom: 0.4rem;"></div> <div class="skeleton activity-line-short" style="width: 40%; height: 12px;"></div> </div> </div>`; for(let i=0; i<3; i++) notificationsListEl.insertAdjacentHTML('beforeend', skeletonHTML); } if (noMsgEl) noMsgEl.style.display = 'none'; break; } }
-             function hideLoadingState(section) { console.log(`[Loading] Hide for: ${section}`); switch(section) { case 'stats': ['progressCard', 'exercisesCard', 'streakCard', 'pointsCard'].forEach(id => getEl(ui[id])?.classList.remove('loading')); break; case 'notifications': const notificationsListEl = getEl(ui.notificationsList); if (notificationsListEl) notificationsListEl.querySelectorAll('.notification-item-skeleton').forEach(el => el.remove()); break; } }
+             function showLoadingState(section) { console.log(`[Loading] Show for: ${section}`); switch(section) { case 'stats': ['progress-card', 'exercises-card', 'streak-card', 'points-card'].forEach(id => getEl(ui[id])?.classList.add('loading')); break; case 'notifications': const listEl = getEl(ui.notificationsList); const noMsgEl = getEl(ui.noNotificationsMsg); if (listEl) { listEl.innerHTML = ''; const skeletonHTML = `<div class="notification-item-skeleton" style="display: flex; padding: 1rem 1.25rem; gap: 1rem; border-bottom: 1px solid var(--border-color);"> <div class="skeleton activity-icon-placeholder" style="border-radius: 50%; width:38px; height: 38px;"></div> <div style="flex-grow: 1;"> <div class="skeleton activity-line" style="width: 60%; height: 16px; margin-bottom: 0.5rem;"></div> <div class="skeleton activity-line" style="width: 90%; height: 14px; margin-bottom: 0.4rem;"></div> <div class="skeleton activity-line-short" style="width: 40%; height: 12px;"></div> </div> </div>`; for(let i=0; i<3; i++) listEl.insertAdjacentHTML('beforeend', skeletonHTML); } if (noMsgEl) noMsgEl.style.display = 'none'; break; } }
+             function hideLoadingState(section) { console.log(`[Loading] Hide for: ${section}`); switch(section) { case 'stats': ['progress-card', 'exercises-card', 'streak-card', 'points-card'].forEach(id => getEl(ui[id])?.classList.remove('loading')); break; case 'notifications': const listEl = getEl(ui.notificationsList); if (listEl) listEl.querySelectorAll('.notification-item-skeleton').forEach(el => el.remove()); break; } }
             // --- END: Loading State Functions ---
 
             // --- START: Data Loading Functions ---
-             async function fetchWithTimeout(queryPromise, timeoutMs = SUPABASE_FETCH_TIMEOUT) { let timeoutHandle; const timeoutPromise = new Promise((_, reject) => { timeoutHandle = setTimeout(() => reject(new Error(`Request timed out (${timeoutMs}ms)`)), timeoutMs); }); try { const result = await Promise.race([queryPromise, timeoutPromise]); clearTimeout(timeoutHandle); return result; } catch (error) { console.warn("Supabase request failed or timed out:", error.message); throw error; } }
+             async function fetchWithTimeout(queryPromise, timeoutMs = SUPABASE_FETCH_TIMEOUT) { let tH; const tP = new Promise((_, r) => { tH = setTimeout(() => r(new Error(`Request timed out (${timeoutMs}ms)`)), timeoutMs); }); try { const res = await Promise.race([queryPromise, tP]); clearTimeout(tH); return res; } catch (e) { console.warn("Supabase request failed or timed out:", e.message); throw e; } }
 
             async function loadUserProfile(user) {
                  console.log("[FUNC] loadUserProfile: Start"); if (!user) { console.error("! Missing user object."); return null; }
                  try {
-                     console.log("... Selecting profile columns (v10 - simplified)");
+                     console.log("... Selecting profile columns (v10 - minimal)");
+                     // ** Select ONLY required columns from profiles **
                      const query = supabase.from('profiles')
                           .select('id, email, username, first_name, last_name, avatar_url, points, streak_days, level, completed_exercises')
                           .eq('id', user.id).single();
@@ -270,19 +282,18 @@
              }
 
             // --- Notification Functions (Consistent) ---
-             async function loadNotifications(userId) { /* ... */ console.log("[FUNC] loadNotifications: Start"); if (!userId) return { unreadCount: 0, notifications: [] }; try { console.log("... Calling Supabase user_notifications select"); const query = supabase .from('user_notifications') .select('id, title, message, icon, type, is_read, created_at, link', { count: 'exact' }) .eq('user_id', userId) .order('created_at', { ascending: false }) .limit(10); const countQuery = supabase .from('user_notifications') .select('*', { count: 'exact', head: true }) .eq('user_id', userId) .eq('is_read', false); const [ { data, error }, { count: unreadCount, error: countError } ] = await Promise.all([ fetchWithTimeout(query), fetchWithTimeout(countQuery) ]); console.log("... Supabase returned - Error:", error, "Data count:", data?.length, "Unread Count:", unreadCount); if (error || countError) throw error || countError; if (!data || data.length === 0) { console.log("... No notifications found, adding welcome."); return { unreadCount: 1, notifications: [{ id: 'welcome', title: 'Vítejte v sekci Pokrok!', message: 'Sledujte zde své úspěchy a vývoj v čase.', icon: 'fa-chart-line', type: 'info', is_read: false, created_at: new Date().toISOString(), link: null }] }; } return { unreadCount: unreadCount ?? 0, notifications: data || [] }; } catch (error) { console.error("[FUNC] loadNotifications: Caught exception:", error); return { unreadCount: 0, notifications: [] }; } }
-             function renderNotifications(result) { /* ... */ console.log("[FUNC] renderNotifications: Start", result); hideLoadingState('notifications'); const countEl = getEl(ui.notificationCount); const listEl = getEl(ui.notificationsList); const noMsgEl = getEl(ui.noNotificationsMsg); const markAllBtn = getEl(ui.markAllReadBtn); if (!countEl || !listEl || !noMsgEl || !markAllBtn) { console.error("! Missing notification UI elements."); return; } const count = result?.unreadCount ?? 0; const notifications = result?.notifications ?? []; countEl.textContent = count > 9 ? '9+' : count; countEl.classList.toggle('visible', count > 0); markAllBtn.disabled = (count === 0); if (notifications && notifications.length > 0) { listEl.innerHTML = notifications.map(n => { const iconClass = sanitizeHTML(n.icon || 'fa-info-circle'); const typeClass = sanitizeHTML(n.type || 'info'); const isReadClass = n.is_read ? 'is-read' : ''; const linkAttr = n.link ? `data-link="${sanitizeHTML(n.link)}"` : ''; const safeTitle = sanitizeHTML(n.title); const safeMessage = sanitizeHTML(n.message); const safeTime = formatRelativeTime(n.created_at); return `<div class="notification-item ${isReadClass}" data-id="${n.id}" ${linkAttr} title="${n.is_read ? 'Přečteno' : 'Nepřečteno'} - ${safeMessage}"> ${!n.is_read ? '<span class="unread-dot"></span>' : ''} <div class="notification-icon ${typeClass}"> <i class="fas ${iconClass}"></i> </div> <div class="notification-content"> <div class="notification-title">${safeTitle}</div> <div class="notification-message">${safeMessage}</div> <div class="notification-time">${safeTime}</div> </div> </div>`; }).join(''); noMsgEl.style.display = 'none'; listEl.style.display = 'block'; } else { listEl.innerHTML = ''; noMsgEl.style.display = 'block'; listEl.style.display = 'none'; } console.log("[FUNC] renderNotifications: Success"); }
-             async function markNotificationRead(notificationId) { /* ... */ console.log("[FUNC] markNotificationRead: ID:", notificationId); if (!currentUser || !notificationId || notificationId === 'welcome') return false; try { const { error } = await supabase .from('user_notifications') .update({ is_read: true }) .eq('user_id', currentUser.id) .eq('id', notificationId); if (error) throw error; console.log("... Success"); return true; } catch (error) { console.error("... Error:", error); showToast('Chyba', 'Nepodařilo se označit oznámení jako přečtené.', 'error'); return false; } }
-             async function markAllNotificationsRead() { /* ... */ console.log("[FUNC] markAllNotificationsRead: Start"); const markAllBtn = getEl(ui.markAllReadBtn); if (!currentUser || !markAllBtn) return; markAllBtn.disabled = true; markAllBtn.textContent = 'Označuji...'; try { const { error } = await supabase .from('user_notifications') .update({ is_read: true }) .eq('user_id', currentUser.id) .eq('is_read', false); if (error) throw error; console.log("... Success"); const result = await loadNotifications(currentUser.id); renderNotifications(result.unreadCount, result.notifications); showToast('Oznámení označena', 'Všechna oznámení byla označena jako přečtená.', 'success'); } catch (error) { console.error("... Error:", error); showToast('Chyba', 'Nepodařilo se označit všechna oznámení.', 'error'); } finally { if(markAllBtn) {markAllBtn.disabled = false; markAllBtn.textContent = 'Označit vše jako přečtené';} } }
+             async function loadNotifications(userId) { console.log("[FUNC] loadNotifications: Start"); if (!userId) return { unreadCount: 0, notifications: [] }; try { console.log("... Calling Supabase user_notifications select"); const query = supabase .from('user_notifications') .select('id, title, message, icon, type, is_read, created_at, link', { count: 'exact' }) .eq('user_id', userId) .order('created_at', { ascending: false }) .limit(10); const countQuery = supabase .from('user_notifications') .select('*', { count: 'exact', head: true }) .eq('user_id', userId) .eq('is_read', false); const [ { data, error }, { count: unreadCount, error: countError } ] = await Promise.all([ fetchWithTimeout(query), fetchWithTimeout(countQuery) ]); console.log("... Supabase returned - Error:", error, "Data count:", data?.length, "Unread Count:", unreadCount); if (error || countError) throw error || countError; if (!data || data.length === 0) { console.log("... No notifications found."); return { unreadCount: 0, notifications: [] }; } return { unreadCount: unreadCount ?? 0, notifications: data || [] }; } catch (error) { console.error("[FUNC] loadNotifications: Caught exception:", error); return { unreadCount: 0, notifications: [] }; } }
+             function renderNotifications(result) { console.log("[FUNC] renderNotifications: Start", result); hideLoadingState('notifications'); const countEl = getEl(ui.notificationCount); const listEl = getEl(ui.notificationsList); const noMsgEl = getEl(ui.noNotificationsMsg); const markAllBtn = getEl(ui.markAllReadBtn); if (!countEl || !listEl || !noMsgEl || !markAllBtn) { console.error("! Missing notification UI elements."); return; } const count = result?.unreadCount ?? 0; const notifications = result?.notifications ?? []; countEl.textContent = count > 9 ? '9+' : count; countEl.classList.toggle('visible', count > 0); markAllBtn.disabled = (count === 0); if (notifications && notifications.length > 0) { listEl.innerHTML = notifications.map(n => { const iconClass = sanitizeHTML(n.icon || 'fa-info-circle'); const typeClass = sanitizeHTML(n.type || 'info'); const isReadClass = n.is_read ? 'is-read' : ''; const linkAttr = n.link ? `data-link="${sanitizeHTML(n.link)}"` : ''; const safeTitle = sanitizeHTML(n.title); const safeMessage = sanitizeHTML(n.message); const safeTime = formatRelativeTime(n.created_at); return `<div class="notification-item ${isReadClass}" data-id="${n.id}" ${linkAttr} title="${n.is_read ? 'Přečteno' : 'Nepřečteno'} - ${safeMessage}"> ${!n.is_read ? '<span class="unread-dot"></span>' : ''} <div class="notification-icon ${typeClass}"> <i class="fas ${iconClass}"></i> </div> <div class="notification-content"> <div class="notification-title">${safeTitle}</div> <div class="notification-message">${safeMessage}</div> <div class="notification-time">${safeTime}</div> </div> </div>`; }).join(''); noMsgEl.style.display = 'none'; listEl.style.display = 'block'; } else { listEl.innerHTML = ''; noMsgEl.style.display = 'block'; listEl.style.display = 'none'; } console.log("[FUNC] renderNotifications: Success"); }
+             async function markNotificationRead(notificationId) { console.log("[FUNC] markNotificationRead: ID:", notificationId); if (!currentUser || !notificationId || notificationId === 'welcome') return false; try { const { error } = await supabase .from('user_notifications') .update({ is_read: true }) .eq('user_id', currentUser.id) .eq('id', notificationId); if (error) throw error; console.log("... Success"); return true; } catch (error) { console.error("... Error:", error); showToast('Chyba', 'Nepodařilo se označit oznámení.', 'error'); return false; } }
+             async function markAllNotificationsRead() { console.log("[FUNC] markAllNotificationsRead: Start"); const markAllBtn = getEl(ui.markAllReadBtn); if (!currentUser || !markAllBtn) return; markAllBtn.disabled = true; markAllBtn.textContent = 'Označuji...'; try { const { error } = await supabase .from('user_notifications') .update({ is_read: true }) .eq('user_id', currentUser.id) .eq('is_read', false); if (error) throw error; console.log("... Success"); const result = await loadNotifications(currentUser.id); renderNotifications(result.unreadCount, result.notifications); showToast('Oznámení označena', 'Všechna nepřečtená oznámení označena.', 'success'); } catch (error) { console.error("... Error:", error); showToast('Chyba', 'Nepodařilo se označit všechna oznámení.', 'error'); } finally { if(markAllBtn) {markAllBtn.disabled = false; markAllBtn.textContent = 'Označit vše jako přečtené';} } }
             // --- END: Data Loading Functions ---
 
             // --- START: UI Update Functions ---
-            function updateSidebarProfile(userData) { /* ... */ console.log("[FUNC] updateSidebarProfile: Start"); const nameEl = getEl(ui.sidebarName); const avatarEl = getEl(ui.sidebarAvatar); if (!userData || !nameEl || !avatarEl) { console.warn("! Missing elements or data for sidebar update."); if(nameEl) nameEl.textContent = "Uživatel"; if(avatarEl) avatarEl.textContent = "?"; return; } const displayName = `${userData.first_name || ''} ${userData.last_name || ''}`.trim() || userData.username || 'Uživatel'; nameEl.textContent = displayName; if (userData.avatar_url) { avatarEl.innerHTML = `<img src="${userData.avatar_url}" alt="${displayName}" />`; } else { avatarEl.textContent = getInitials(userData); } console.log("[FUNC] updateSidebarProfile: Success"); }
+            function updateSidebarProfile(userData) { console.log("[FUNC] updateSidebarProfile: Start"); const nameEl = getEl(ui.sidebarName); const avatarEl = getEl(ui.sidebarAvatar); if (!userData || !nameEl || !avatarEl) { console.warn("! Sidebar elements not found or no user data."); if(nameEl) nameEl.textContent = "Uživatel"; if(avatarEl) avatarEl.textContent = "?"; return; } const displayName = `${userData.first_name || ''} ${userData.last_name || ''}`.trim() || userData.username || 'Uživatel'; nameEl.textContent = displayName; if (userData.avatar_url) { avatarEl.innerHTML = `<img src="${userData.avatar_url}" alt="${displayName}" />`; } else { avatarEl.textContent = getInitials(userData); } console.log("[FUNC] updateSidebarProfile: Success"); }
 
-             // Update Stats Cards (Simplified - uses profileData)
              function updateStatsCards(profileData) {
                  console.log("[FUNC] updateStatsCards: Start, profileData:", !!profileData);
-                 const cardIds = { progress: ui.progressCard, exercises: ui.exercisesCard, streak: ui.streakCard, points: ui.pointsCard };
+                 const cardIds = { progress: 'progress-card', exercises: 'exercises-card', streak: 'streak-card', points: 'points-card' };
 
                  const renderCard = (cardId, value, unit, description, error = false) => {
                      const card = getEl(cardId);
@@ -304,13 +315,11 @@
                      } else { console.warn(`! Missing .stats-card-content in card:`, cardId); card.innerHTML = `<div class="card-error-state"><i class="fas fa-exclamation-triangle"></i>Chyba</div>`; }
                  };
 
-                 // Assign dataset attributes if not present
-                 Object.entries(cardIds).forEach(([key, cardId]) => { const card = getEl(cardId); if (card && !card.dataset.title) { switch(key) { case 'progress': card.dataset.icon = 'fas fa-tasks'; card.dataset.title = 'Celkový Pokrok'; break; case 'exercises': card.dataset.icon = 'fas fa-pencil-alt'; card.dataset.title = 'Dokonč. Cvičení'; break; case 'streak': card.dataset.icon = 'fas fa-fire'; card.dataset.title = 'Série Dnů'; break; case 'points': card.dataset.icon = 'fas fa-star'; card.dataset.title = 'Body'; break; } } });
+                 Object.entries(cardIds).forEach(([key, cardId]) => { const card = getEl(cardId); if (card && !card.dataset.title) { switch(key) { case 'progress': card.dataset.icon = 'fas fa-graduation-cap'; card.dataset.title = 'Úroveň'; break; case 'exercises': card.dataset.icon = 'fas fa-pencil-alt'; card.dataset.title = 'Dokonč. Cvičení'; break; case 'streak': card.dataset.icon = 'fas fa-fire'; card.dataset.title = 'Série Dnů'; break; case 'points': card.dataset.icon = 'fas fa-star'; card.dataset.title = 'Body'; break; } } });
 
                  if (!profileData) { console.warn("[FUNC] updateStatsCards: No profile data, rendering error state."); Object.values(cardIds).forEach(cardId => renderCard(cardId, null, null, null, true)); return; }
 
-                 // Render using profile data
-                 renderCard(cardIds.progress, profileData.level ? (profileData.level * 10 > 100 ? 100 : profileData.level * 10) : 0, '%', 'Orientační úroveň');
+                 renderCard(cardIds.progress, profileData.level ?? 1, '', 'Vaše aktuální úroveň');
                  renderCard(cardIds.exercises, profileData.completed_exercises ?? 0, '', 'Dokončených cvičení');
                  renderCard(cardIds.streak, profileData.streak_days ?? 0, '', 'Aktuální série studia');
                  renderCard(cardIds.points, profileData.points ?? 0, '', 'Celkem získaných bodů');
@@ -329,42 +338,39 @@
                  if(refreshBtnEl) { refreshBtnEl.classList.add('loading'); refreshBtnEl.disabled = true; }
 
                  let profileData = null;
-                 let notificationsResult = { unreadCount: 0, notifications: [] }; // Default
+                 let notificationsResult = { unreadCount: 0, notifications: [] };
 
                  try {
                      console.log("[MAIN] loadPageData: Loading profile & notifications concurrently...");
-                      // Load profile and notifications in parallel
-                      const results = await Promise.allSettled([
+                     const results = await Promise.allSettled([
                           loadUserProfile(currentUser),
                           loadNotifications(currentUser.id)
-                      ]);
+                     ]);
                      console.log("[MAIN] loadPageData: Profile & Notifications results:", results);
 
-                     // Process profile result
-                      if (results[0].status === 'fulfilled' && results[0].value) {
-                          profileData = results[0].value;
-                          updateSidebarProfile(profileData);
-                          updateStatsCards(profileData);
-                      } else {
-                          console.error("! Failed to load profile:", results[0].reason || "No profile data returned");
-                          throw new Error("! Nepodařilo se načíst profil."); // Throw critical error
-                      }
-
-                     // Process notifications result
-                     if (results[1].status === 'fulfilled') {
-                          notificationsResult = results[1].value;
+                     // Process profile first
+                     if (results[0].status === 'fulfilled' && results[0].value) {
+                         profileData = results[0].value;
+                         updateSidebarProfile(profileData);
+                         updateStatsCards(profileData);
                      } else {
-                          console.error("! Failed to load notifications:", results[1].reason);
-                          showToast('Chyba oznámení', 'Nepodařilo se načíst oznámení.', 'error');
+                         console.error("! Failed to load profile:", results[0].reason || "No profile data returned");
+                         updateStatsCards(null); // Show error state for stats
+                         throw new Error("! Nepodařilo se načíst profil."); // Stop further processing
                      }
-                     renderNotifications(notificationsResult.unreadCount, notificationsResult.notifications); // Render notifications or empty state
+
+                     // Process notifications
+                     if (results[1].status === 'fulfilled') { notificationsResult = results[1].value; }
+                     else { console.error("! Failed to load notifications:", results[1].reason); showToast('Chyba oznámení', 'Nepodařilo se načíst oznámení.', 'error'); }
+                     renderNotifications(notificationsResult.unreadCount, notificationsResult.notifications);
 
                  } catch (error) {
                      console.error('[MAIN] loadPageData: Caught critical error:', error);
-                     showError('Nepodařilo se kompletně načíst data: ' + (error.message.includes("timed out") ? "Požadavek na data vypršel. Zkontrolujte RLS a indexy v Supabase." : error.message));
-                     // Show error state for stats if profile load failed
+                     const errorMsg = error.message.includes("timed out") ? "Požadavek na data vypršel. Zkontrolujte RLS a indexy v Supabase." : error.message.includes("Nepodařilo se načíst profil") ? "Nepodařilo se načíst váš profil. Zkuste obnovit stránku." : "Nepodařilo se kompletně načíst data pokroku.";
+                     showError(errorMsg);
+                     // Ensure error states are shown if not already
                      if (!profileData) updateStatsCards(null);
-                      renderNotifications(0, []); // Ensure notifications show empty/error state
+                     renderNotifications(0, []);
                  } finally {
                      hideLoadingState('stats'); hideLoadingState('notifications');
                      if(refreshBtnEl) { refreshBtnEl.classList.remove('loading'); refreshBtnEl.disabled = false; }
@@ -375,9 +381,8 @@
 
             // --- START: Event Listeners Setup ---
              function setupUIEventListeners() {
-                 if (listenersAttached) { console.log("[SETUP] Listeners already attached."); return; }
-                 console.log("[SETUP] setupUIEventListeners: Setting up listeners.");
-                 const mainMobileToggle = getEl(ui.mainMobileMenuToggle); const sidebarCloseToggle = getEl(ui.sidebarCloseToggle); const overlay = getEl(ui.sidebarOverlay); const refreshButton = getEl(ui.refreshDataBtn); const bell = getEl(ui.notificationBell); const markAll = getEl(ui.markAllReadBtn); const notifList = getEl(ui.notificationsList);
+                 if (listenersAttached) return; console.log("[SETUP] Setting up listeners.");
+                 const mainMobileToggle = getEl(ui.mainMobileMenuToggle); const sidebarCloseToggle = getEl(ui.sidebarCloseToggle); const overlay = getEl(ui.sidebarOverlay); const refreshButton = getEl(ui.refreshDataBtn); const bell = getEl(ui.notificationBell); const markAll = getEl(ui.markAllReadBtn); const notifList = getEl(ui.notificationsList); const dropdown = getEl(ui.notificationsDropdown);
 
                  if (mainMobileToggle) mainMobileToggle.addEventListener('click', openMenu);
                  if (sidebarCloseToggle) sidebarCloseToggle.addEventListener('click', closeMenu);
@@ -385,13 +390,13 @@
                  document.querySelectorAll('.sidebar-link').forEach(link => { link.addEventListener('click', () => { if (window.innerWidth <= 992) closeMenu(); }); });
                  window.addEventListener('online', updateOnlineStatus); window.addEventListener('offline', updateOnlineStatus); updateOnlineStatus();
                  if (refreshButton) refreshButton.addEventListener('click', handleRetry);
-                 if(bell) { bell.addEventListener('click', (event) => { event.stopPropagation(); getEl(ui.notificationsDropdown)?.classList.toggle('active'); }); }
-                 if(markAll) { markAll.addEventListener('click', markAllNotificationsRead); }
-                 if(notifList) { notifList.addEventListener('click', async (event) => { const item = event.target.closest('.notification-item'); if (item && !item.classList.contains('is-read')) { const notificationId = item.dataset.id; const link = item.dataset.link; const success = await markNotificationRead(notificationId); if (success) { item.classList.add('is-read'); const countEl = getEl(ui.notificationCount); const markAllBtn = getEl(ui.markAllReadBtn); const currentCount = parseInt(countEl?.textContent.replace('+','')) || 0; const newCount = Math.max(0, currentCount - 1); if(countEl) countEl.textContent = newCount > 9 ? '9+' : newCount; if(countEl) countEl.classList.toggle('visible', newCount > 0); item.querySelector('.unread-dot')?.remove(); if(markAllBtn) markAllBtn.disabled = (newCount === 0); if (link) window.location.href = link; } } else if (item && item.dataset.link) { window.location.href = item.dataset.link; } }); }
-                 document.addEventListener('click', (event) => { const dropdown = getEl(ui.notificationsDropdown); if (dropdown?.classList.contains('active') && !dropdown.contains(event.target) && !getEl(ui.notificationBell)?.contains(event.target)) { dropdown.classList.remove('active'); } });
-                 listenersAttached = true; console.log("[SETUP] setupUIEventListeners: Listeners set.");
+                 if (bell && dropdown) { bell.addEventListener('click', (event) => { event.stopPropagation(); dropdown.classList.toggle('active'); }); }
+                 if (markAll) { markAll.addEventListener('click', markAllNotificationsRead); }
+                 if (notifList) { notifList.addEventListener('click', async (event) => { const item = event.target.closest('.notification-item'); if (item && !item.classList.contains('is-read')) { const notificationId = item.dataset.id; const link = item.dataset.link; const success = await markNotificationRead(notificationId); if (success) { item.classList.add('is-read'); const countEl = getEl(ui.notificationCount); const markAllBtn = getEl(ui.markAllReadBtn); const currentCount = parseInt(countEl?.textContent.replace('+','')) || 0; const newCount = Math.max(0, currentCount - 1); if(countEl) { countEl.textContent = newCount > 9 ? '9+' : newCount; countEl.classList.toggle('visible', newCount > 0); } item.querySelector('.unread-dot')?.remove(); if(markAllBtn) markAllBtn.disabled = (newCount === 0); if (link) window.location.href = link; } } else if (item && item.dataset.link) { window.location.href = item.dataset.link; } }); }
+                 document.addEventListener('click', (event) => { const dropdownEl = getEl(ui.notificationsDropdown); if (dropdownEl?.classList.contains('active') && !dropdownEl.contains(event.target) && !getEl(ui.notificationBell)?.contains(event.target)) { dropdownEl.classList.remove('active'); } });
+                 listenersAttached = true; console.log("[SETUP] Listeners attached.");
              }
-             function handleRetry() { if (currentUser && !isLoadingData) { hideError(); const btn = getEl(ui.refreshDataBtn); const icon = btn?.querySelector('i'); const text = btn?.querySelector('.refresh-text'); if(btn) btn.disabled = true; if(icon) icon.classList.add('fa-spin'); if(text) text.textContent = 'Obnovuji...'; loadPageData() .then(() => showToast("Data aktualizována", "Přehled pokroku byl obnoven.", "success")) .catch(() => {}) .finally(() => { if(btn) btn.disabled = false; if(icon) icon.classList.remove('fa-spin'); if(text) text.textContent = 'Obnovit'; }); } else if (isLoadingData) { showToast("Počkejte prosím", "Data se již načítají.", "info"); } else { showToast("Chyba", "Nelze obnovit, uživatel není přihlášen.", "error"); } }
+             function handleRetry() { if (currentUser && !isLoadingData) { hideError(); const btn = getEl(ui.refreshDataBtn); const icon = btn?.querySelector('i'); const text = btn?.querySelector('.refresh-text'); if(btn) btn.disabled = true; if(icon) icon.classList.add('fa-spin'); if(text) text.textContent = 'Obnovuji...'; loadPageData() .then(() => showToast("Data aktualizována", "Přehled byl obnoven.", "success")) .catch(() => {}) .finally(() => { if(btn) btn.disabled = false; if(icon) icon.classList.remove('fa-spin'); if(text) text.textContent = 'Obnovit'; }); } else if (isLoadingData) { showToast("Počkejte prosím", "Data se již načítají.", "info"); } else { showToast("Chyba", "Nelze obnovit, uživatel není přihlášen.", "error"); } }
             // --- END: Event Listeners Setup ---
 
             // --- START: Initialization Logic ---
@@ -399,6 +404,10 @@
                 console.log("[INIT] Initializing application...");
                 try {
                     if (typeof window.supabase === 'undefined' || typeof window.supabase.createClient !== 'function') { throw new Error("Supabase library not available."); }
+                     // Chart.js and date-fns are NOT needed here anymore
+                    if (typeof window.dateFns === 'undefined') { console.warn("date-fns library not loaded (needed for relative time)."); } // Still needed for time formatting
+
+
                     supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
                     console.log('[INIT] Supabase client initialized.');
 
@@ -407,40 +416,23 @@
                         currentUser = session?.user ?? null;
                         if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN') {
                             if (currentUser) {
-                                console.log('[INIT] User authenticated, loading page data...');
+                                console.log('[INIT] User authenticated, starting page load...');
                                 const loader = getEl(ui.initialLoader); if(loader) { loader.classList.add('hidden'); setTimeout(() => { loader.style.display = 'none'; }, 500); }
                                 const mainEl = getEl(ui.mainContent); if (mainEl) mainEl.style.display = 'block';
-                                if (!listenersAttached) setupUIEventListeners(); // Setup listeners only once
-                                await loadPageData(); // Load data
-                            } else { console.log('[INIT] No user in session, redirecting.'); window.location.href = '/auth/index.html'; }
+                                if (!listenersAttached) setupUIEventListeners(); // Setup listeners only ONCE
+                                await loadPageData(); // Initial data load
+                            } else { console.log('[INIT] No user, redirecting.'); window.location.href = '/auth/index.html'; }
                         } else if (event === 'SIGNED_OUT') { console.log('[INIT] Signed out, redirecting.'); window.location.href = '/auth/index.html'; }
                     });
-                } catch (error) { console.error("[INIT] Critical initialization error:", error); const loader = getEl(ui.initialLoader); if (loader) { loader.innerHTML = `<p style="color: var(--danger);">Chyba (${error.message}). Obnovte stránku.</p>`; loader.classList.remove('hidden'); loader.style.display = 'flex'; } const mainEl = getEl(ui.mainContent); if (mainEl) mainEl.style.display = 'none'; }
+                } catch (error) { console.error("[INIT] Critical initialization error:", error); const loader = getEl(ui.initialLoader); if (loader) { loader.innerHTML = `<p style="color: var(--danger);">Chyba (${error.message}). Obnovte.</p>`; loader.classList.remove('hidden'); loader.style.display = 'flex'; } const mainEl = getEl(ui.mainContent); if (mainEl) mainEl.style.display = 'none'; }
             }
 
-            // Start initialization check when DOM is ready
-             document.addEventListener('DOMContentLoaded', () => {
-                 console.log("[INIT] DOMContentLoaded.");
-                 // Simple check for Supabase, rely on defer for others
-                 let checkInterval = setInterval(() => {
-                     if (typeof window.supabase !== 'undefined' && typeof window.supabase.createClient === 'function') {
-                          clearInterval(checkInterval);
-                          console.log("[INIT] Supabase library confirmed loaded.");
-                          initializeApp();
-                     } else {
-                          console.log("[INIT] Waiting for Supabase library...");
-                     }
-                 }, 100);
-                 // Timeout for the check
-                 setTimeout(() => {
-                      if(supabase === null) { // If still not initialized
-                           clearInterval(checkInterval);
-                           console.error("! Failed to load Supabase library after timeout.");
-                           showError("Chyba načítání: Základní knihovna Supabase se nenahrála správně.");
-                           const loader = getEl(ui.initialLoader); if (loader) loader.style.display = 'none';
-                      }
-                 }, 10000);
-             });
+            // Simplified initialization check
+            if (document.readyState === 'loading') {
+                 document.addEventListener('DOMContentLoaded', initializeApp);
+            } else {
+                 initializeApp();
+            }
             // --- END: Initialization Logic ---
 
         })(); // End of IIFE
