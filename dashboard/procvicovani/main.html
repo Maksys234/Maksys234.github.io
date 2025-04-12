@@ -16,201 +16,100 @@
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
     <style>
-        /* Základní styly */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Poppins', sans-serif;
-        }
-
+        /* --- Стили CSS (Предполагается, что они идентичны или очень похожи на dashboard.html) --- */
+        /* --- Полный блок CSS из твоего файла procvicovani/main.html вставляется сюда --- */
+        /* --- Убедись, что стили для .initial-loading-overlay и .loading-spinner здесь присутствуют --- */
         :root {
-            --primary: #4361ee;
-            --primary-light: #4895ef;
-            --secondary: #3f37c9;
-            --success: #4cc9f0; /* Using a slightly different shade for visual distinction */
-            --success-alt: #06d6a0; /* Alternative success color */
-            --danger: #f72585;
-            --warning: #f8961e;
-            --info: #4895ef;
-            --dark: #1e2a3a;
-            --light: #f8f9fa;
-            --gray: #6c757d;
-            --gray-light: #dee2e6;
-            --gray-dark: #343a40;
+            /* Палитра */
+            --primary-rgb: 67, 97, 238; --primary: #4361ee; --primary-light: #4895ef; --primary-dark: #3a0ca3;
+            --secondary-rgb: 63, 55, 201; --secondary: #3f37c9;
+            --success-rgb: 16, 185, 129; --success: #10b981; --success-light: #a7f3d0; --success-bg: #f0fdf4;
+            --danger-rgb: 247, 37, 133; --danger: #f72585; --danger-light: #fecdd3; --danger-bg: #fff1f2;
+            --warning-rgb: 248, 150, 30; --warning: #f8961e; --warning-light: #fed7aa; --warning-bg: #fffbeb;
+            --info-rgb: 72, 149, 239; --info: #4895ef; --info-light: #bfdbfe; --info-bg: #eff6ff;
+            --dark: #1e2a3a; --light: #f8f9fa; --gray: #6c757d;
+            --gray-light: #dee2e6; --gray-medium: #adb5bd; --gray-dark: #343a40;
+            --white: #ffffff; --black: #000000;
             --gradient-1: linear-gradient(135deg, #4361ee, #3a0ca3);
             --gradient-2: linear-gradient(135deg, #4cc9f0, #4361ee);
             --gradient-3: linear-gradient(135deg, #f72585, #7209b7);
-            --gradient-4: linear-gradient(135deg, #f8961e, #f3722c);
-            --white: #ffffff;
-            --sidebar-width: 260px;
-            --transition-speed: 0.3s;
-            --card-radius: 16px;
-            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
-            --shadow-md: 0 5px 15px rgba(0, 0, 0, 0.07);
-            --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.1);
-            --text-primary: #2d3748;
+
+            /* Семантические цвета */
+            --bg-color: #f9fafb;
+            --card-bg-color: var(--white);
+            --card-bg-color-rgb: 255, 255, 255;
+            --text-primary: var(--dark);
             --text-secondary: #4a5568;
             --text-muted: #718096;
-        }
+            --border-color: var(--gray-light);
+            --input-bg: var(--light);
+            --skeleton-bg: #f3f4f6;
+            --skeleton-highlight: #e5e7eb;
 
-        body {
-            background-color: #f6f8ff;
-            color: var(--text-primary);
-            min-height: 100vh;
-            display: flex;
-            overflow-x: hidden;
-        }
+            /* Размеры и переходы */
+            --sidebar-width: 260px;
+            --transition-speed: 0.3s;
+            --transition-bezier: cubic-bezier(0.4, 0, 0.2, 1);
+            --card-radius: 14px;
+            --button-radius: 8px;
 
-         /* Boční panel */
-         .sidebar {
-            width: var(--sidebar-width);
-            height: 100vh;
-            position: fixed;
-            top: 0;
-            left: 0;
-            background: var(--gradient-1);
-            color: var(--white);
-            padding: 1.5rem 1rem;
-            display: flex;
-            flex-direction: column;
-            z-index: 100;
-            box-shadow: var(--shadow-lg);
-            transition: all var(--transition-speed) ease;
+            /* Тени */
+            --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.07);
         }
+        /* Общие стили */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-primary); min-height: 100vh; display: flex; overflow: hidden; line-height: 1.6; font-size: 15px; }
 
-        .sidebar-header {
-            display: flex;
-            align-items: center;
-            margin-bottom: 2rem;
-            padding: 0 0.75rem;
-        }
+        /* --- Sidebar (Идентичен dashboard.html) --- */
+        .sidebar { width: var(--sidebar-width); height: 100vh; position: fixed; top: 0; left: 0; background: var(--gradient-1); color: var(--white); padding: 1.5rem 1rem; display: flex; flex-direction: column; z-index: 1000; box-shadow: var(--shadow-lg); transition: transform var(--transition-speed) var(--transition-bezier), width var(--transition-speed) var(--transition-bezier); }
+        .sidebar-header { display: flex; align-items: center; margin-bottom: 2rem; padding: 0 0.75rem; position: relative; min-height: 40px; }
+        #sidebar-close-toggle { display: none; position: absolute; right: -5px; top: 50%; transform: translateY(-50%); background: none; border: none; color: rgba(255, 255, 255, 0.8); font-size: 1.6rem; cursor: pointer; padding: 0.5rem; line-height: 1; }
+        .sidebar-logo { font-size: 1.5rem; font-weight: 700; color: var(--white); text-decoration: none; display: flex; align-items: center; gap: 0.75rem; }
+        .sidebar-logo i { font-size: 1.75rem; }
+        .sidebar-menu { list-style: none; padding: 0; margin: 0; flex-grow: 1; overflow-y: auto; }
+         .sidebar-menu::-webkit-scrollbar { width: 5px; }
+         .sidebar-menu::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.05); border-radius: 3px;}
+         .sidebar-menu::-webkit-scrollbar-thumb { background-color: rgba(255, 255, 255, 0.3); border-radius: 3px; }
+         .sidebar-menu { scrollbar-width: thin; scrollbar-color: rgba(255, 255, 255, 0.3) rgba(255, 255, 255, 0.05); }
+        .sidebar-item { margin-bottom: 0.5rem; }
+        .sidebar-link { display: flex; align-items: center; padding: 0.8rem 1rem; color: rgba(255, 255, 255, 0.85); text-decoration: none; border-radius: var(--button-radius); transition: background-color 0.2s ease, color 0.2s ease; font-weight: 500; position: relative; }
+        .sidebar-link i { margin-right: 0.75rem; font-size: 1.2rem; width: 24px; text-align: center; }
+        .sidebar-link.active, .sidebar-link:hover { background-color: rgba(255, 255, 255, 0.15); color: var(--white); }
+        .sidebar-link.active::before { content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%); height: 60%; width: 4px; background-color: var(--white); border-radius: 0 3px 3px 0; }
+        .sidebar-footer { margin-top: auto; padding: 1rem; font-size: 0.85rem; color: rgba(255, 255, 255, 0.6); text-align: center; flex-shrink: 0;}
+        .user-profile { display: flex; align-items: center; padding: 1rem; margin-top: 1rem; background-color: rgba(255, 255, 255, 0.08); border-radius: 12px; border: 1px solid rgba(255,255,255, 0.1); flex-shrink: 0;}
+        .user-avatar { width: 40px; height: 40px; border-radius: 50%; background-color: var(--primary-light); display: flex; align-items: center; justify-content: center; margin-right: 0.75rem; font-weight: 500; overflow: hidden; color: var(--white); border: 2px solid rgba(255,255,255, 0.3); flex-shrink: 0;}
+        .user-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .user-info { flex-grow: 1; overflow: hidden; }
+        .user-name { font-weight: 600; font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .user-role { font-size: 0.8rem; opacity: 0.8; white-space: nowrap; }
+        /* --- Конец Sidebar --- */
 
-        .sidebar-logo {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--white);
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
+        /* --- Основной контент --- */
+        main { flex: 1; margin-left: var(--sidebar-width); padding: 1.5rem 2rem; transition: margin var(--transition-speed) var(--transition-bezier); width: calc(100% - var(--sidebar-width)); overflow-y: auto; height: 100vh; }
+        /* ИЗМЕНЕНИЕ: Добавлено .loaded и @keyframes fadeInMain */
+        main:not(.loaded) { opacity: 0; } /* Скрыть до загрузки */
+        main.loaded { opacity: 1; animation: fadeInMain 0.4s ease-out forwards; }
+        @keyframes fadeInMain { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-        .sidebar-logo i {
-            font-size: 1.75rem;
-        }
 
-        .sidebar-menu {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-            flex-grow: 1;
-        }
-
-        .sidebar-item {
-            margin-bottom: 0.5rem;
-        }
-
-        .sidebar-link {
-            display: flex;
-            align-items: center;
-            padding: 0.75rem 1rem;
-            color: rgba(255, 255, 255, 0.85);
-            text-decoration: none;
-            border-radius: 12px;
-            transition: all 0.2s ease;
-            font-weight: 500;
-        }
-
-        .sidebar-link i {
-            margin-right: 0.75rem;
-            font-size: 1.2rem;
-            width: 24px;
-            text-align: center;
-        }
-
-        .sidebar-link.active, .sidebar-link:hover {
-            background-color: rgba(255, 255, 255, 0.15);
-            color: var(--white);
-        }
-
-        .sidebar-footer {
-            margin-top: auto;
-            padding: 1rem;
-            font-size: 0.9rem;
-            color: rgba(255, 255, 255, 0.7);
-            text-align: center;
-        }
-
-        .user-profile {
-            display: flex;
-            align-items: center;
-            padding: 1rem;
-            margin-top: 1rem;
-            background-color: rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-        }
-
-        .user-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background-color: var(--primary-light);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 0.75rem;
-            font-weight: 500;
-            overflow: hidden;
-        }
-
-        .user-avatar img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .user-info {
-            flex-grow: 1;
-        }
-
-        .user-name {
-            font-weight: 600;
-            font-size: 0.95rem;
-        }
-
-        .user-role {
-            font-size: 0.8rem;
-            opacity: 0.8;
-        }
-
-        /* Hlavní obsah */
-        main {
-            flex: 1;
-            margin-left: var(--sidebar-width);
-            padding: 1.5rem 2rem;
-            transition: margin var(--transition-speed) ease;
-            width: calc(100% - var(--sidebar-width));
-        }
-
-        /* --- UPDATED Header Styles --- */
+        /* --- Заголовок --- */
         .dashboard-header {
             margin-bottom: 2rem;
-            background-color: var(--white);
+            background-color: var(--card-bg-color);
             border-radius: var(--card-radius);
             padding: 1.25rem 1.5rem;
             box-shadow: var(--shadow-sm);
-        }
-
-        .header-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            display: flex; /* Use flexbox */
+            justify-content: space-between; /* Space items */
+            align-items: center; /* Align items vertically */
             flex-wrap: wrap; /* Allow wrapping */
-            gap: 1rem; /* Gap between sections when wrapped */
+            gap: 1rem; /* Gap between items when wrapped */
         }
 
-        .header-title-section { /* Container for toggle and title */
+        .header-content { /* Container for toggle and title */
             display: flex;
             align-items: center;
             gap: 1rem; /* Space between toggle and title */
@@ -220,7 +119,7 @@
         .header-content h1 {
             font-size: 1.75rem;
             font-weight: 600;
-            color: var(--dark);
+            color: var(--text-primary);
             margin: 0; /* Remove default margin */
         }
 
@@ -228,22 +127,21 @@
             display: flex;
             align-items: center;
             gap: 1rem;
-            flex-shrink: 0; /* Prevent buttons shrinking too much */
+            flex-shrink: 0; /* Prevent buttons shrinking */
         }
-        .header-actions .btn span { /* Ensure text is visible by default */
-             display: inline;
-        }
+         /* Ensure text is visible by default */
+        .header-actions .btn span { display: inline; }
 
-        /* Main Content Grid */
+        /* Основной контент */
         .main-content {
             display: grid;
-            grid-template-columns: 1fr;
+            grid-template-columns: 1fr; /* Default to single column */
             gap: 1.75rem;
         }
 
-        /* Section Styling */
+        /* Секции */
         .section {
-            background-color: var(--white);
+            background-color: var(--card-bg-color);
             border-radius: var(--card-radius);
             box-shadow: var(--shadow-sm);
             padding: 1.5rem;
@@ -254,13 +152,12 @@
             font-size: 1.3rem;
             font-weight: 600;
             margin-bottom: 1.25rem;
-            color: var(--dark);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+            color: var(--text-primary);
+            display: flex; /* Added for alignment */
+            align-items: center; /* Added for alignment */
+            justify-content: space-between; /* Added */
         }
-         /* ... other section styles ... */
-        .section-subtitle {
+         .section-subtitle {
             font-size: 1.1rem;
             font-weight: 500;
             margin-bottom: 1rem;
@@ -269,46 +166,111 @@
          .diagnostic-prompt {
             padding: 1rem;
             margin: 1rem 0;
-            background-color: rgba(72, 149, 239, 0.1);
+            background-color: rgba(var(--info-rgb), 0.1); /* Use info color */
             border-left: 4px solid var(--info);
             border-radius: 8px;
-        }
+            color: var(--text-secondary); /* Consistent text color */
+            font-size: 0.95rem; /* Slightly larger text */
+            display: flex; /* Use flex for layout */
+            justify-content: space-between; /* Space out text and button */
+            align-items: center; /* Align vertically */
+            flex-wrap: wrap; /* Allow wrapping */
+            gap: 1rem; /* Add gap */
+         }
+         .diagnostic-prompt p {
+             margin: 0; /* Remove default margin */
+             flex-grow: 1; /* Allow text to take space */
+         }
 
-        /* Dashboard Grid & Cards */
+
+        /* Dashboard Grid & Cards (stats) */
         .dashboard-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* Adjusted minmax */
             gap: 1.5rem;
             margin-bottom: 1.5rem;
         }
-         /* ... other dashboard card styles ... */
          .dashboard-card {
-            background-color: var(--white);
+            background-color: var(--card-bg-color);
             border-radius: var(--card-radius);
             box-shadow: var(--shadow-sm);
             padding: 1.5rem;
             transition: all 0.3s ease;
+            position: relative; /* Needed for loading overlay */
+            min-height: 150px; /* Ensure minimum height */
+            border: 1px solid var(--border-color); /* Subtle border */
+            display: flex; /* Use flex for better control */
+            flex-direction: column; /* Stack content */
         }
          .dashboard-card:hover {
             transform: translateY(-5px);
             box-shadow: var(--shadow-md);
+            border-color: var(--primary-light);
         }
+         .card-header {
+             display: flex;
+             justify-content: space-between;
+             align-items: flex-start; /* Align top */
+             margin-bottom: 0.8rem;
+         }
+         .card-title {
+             font-size: 0.95rem;
+             font-weight: 600;
+             color: var(--text-secondary);
+             display: flex;
+             align-items: center;
+             gap: 0.5rem;
+         }
+         .card-badge {
+             font-size: 0.75rem;
+             font-weight: 500;
+             padding: 0.2rem 0.6rem;
+             border-radius: 10px;
+             background-color: var(--info-bg);
+             color: var(--info);
+         }
+         .card-badge.success { background-color: var(--success-bg); color: var(--success); }
+         .card-content {
+             flex-grow: 1; /* Allow content to fill space */
+             margin-bottom: 1rem; /* Space before footer */
+         }
          .card-value {
-            font-size: 2rem;
+            font-size: 2rem; /* Slightly smaller */
             font-weight: 700;
-            color: var(--primary);
+            color: var(--text-primary); /* Use primary text color */
             margin-bottom: 0.5rem;
+            line-height: 1.2; /* Adjust line height */
+            min-height: 30px; /* Ensure space for value */
         }
+         .progress-info, .card-description {
+             font-size: 0.85rem;
+             color: var(--text-muted);
+             display: flex;
+             justify-content: space-between;
+         }
+         .card-footer {
+             font-size: 0.85rem;
+             color: var(--text-muted);
+             display: flex;
+             align-items: center;
+             gap: 0.5rem;
+             padding-top: 0.8rem;
+             border-top: 1px solid var(--border-color);
+             margin-top: auto; /* Push footer down */
+         }
+         .card-footer.positive { color: var(--success); font-weight: 500; }
+         .card-footer.negative { color: var(--danger); font-weight: 500; }
+         .card-footer i { font-size: 0.9em; }
 
         /* Buttons */
         .btn {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            padding: 0.75rem 1.5rem;
-            border-radius: 12px;
+            padding: 0.7rem 1.4rem; /* Slightly adjusted */
+            border-radius: var(--button-radius);
             font-weight: 500;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             text-decoration: none;
             transition: all 0.3s ease;
             cursor: pointer;
@@ -318,42 +280,50 @@
         .btn-primary {
             background: var(--gradient-1);
             color: white;
-            box-shadow: 0 4px 10px rgba(67, 97, 238, 0.2);
+            box-shadow: var(--shadow-sm);
         }
-        .btn-primary:hover {
+        .btn-primary:hover:not(:disabled) {
             transform: translateY(-2px);
-            box-shadow: 0 6px 15px rgba(67, 97, 238, 0.25);
+            box-shadow: var(--shadow-md);
+             background: linear-gradient(135deg, var(--primary-light), var(--secondary)); /* Gradient on hover */
         }
         .btn-secondary {
-            background-color: var(--light);
+            background-color: var(--card-bg-color); /* Use card background */
             color: var(--text-secondary);
-            border: 1px solid var(--gray-light);
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-xs);
         }
-        .btn-secondary:hover {
-            background-color: var(--gray-light);
+        .btn-secondary:hover:not(:disabled) {
+            background-color: var(--gray-100);
+            border-color: var(--gray-medium);
         }
-        .btn-outline {
+         .btn-outline {
             background: transparent;
             border: 1px solid var(--primary);
             color: var(--primary);
         }
-        .btn-outline:hover {
-            background-color: var(--primary);
-            color: white;
+        .btn-outline:hover:not(:disabled) {
+            background-color: rgba(var(--primary-rgb), 0.05);
+        }
+        .btn:disabled {
+             opacity: 0.6;
+             cursor: not-allowed;
+             transform: none !important;
+             box-shadow: none !important;
         }
 
         /* Progress Bar */
         .progress-container {
             width: 100%;
-            height: 10px;
-            background-color: var(--gray-light);
-            border-radius: 5px;
+            height: 8px; /* Thinner bar */
+            background-color: var(--border-color); /* Use border color for track */
+            border-radius: 4px;
             overflow: hidden;
-            margin: 1rem 0;
+            margin: 0.5rem 0; /* Adjusted margin */
         }
         .progress-bar {
             height: 100%;
-            border-radius: 5px;
+            border-radius: 4px;
             background: var(--gradient-1);
             transition: width 0.5s ease;
         }
@@ -361,48 +331,85 @@
         /* Topic Analysis */
         .topic-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); /* Adjusted minmax */
             gap: 1.5rem;
             margin-top: 1.5rem;
         }
-         /* ... other topic card styles ... */
          .topic-card {
-            background-color: var(--white);
+            background-color: var(--card-bg-color);
             border-radius: var(--card-radius);
             padding: 1.5rem;
             box-shadow: var(--shadow-sm);
             transition: all 0.3s ease;
+            border: 1px solid var(--border-color);
             border-left: 4px solid var(--primary);
+            display: flex; /* Use flex for better layout */
+            flex-direction: column;
         }
         .topic-card:hover {
             transform: translateY(-5px);
             box-shadow: var(--shadow-md);
+            border-color: var(--primary-light);
         }
-        .topic-card.strength { border-left: 4px solid var(--success-alt); }
+        .topic-card.strength { border-left: 4px solid var(--success); }
         .topic-card.weakness { border-left: 4px solid var(--danger); }
         .topic-card.neutral { border-left: 4px solid var(--warning); }
-        .topic-icon {
-            width: 40px; height: 40px; border-radius: 12px;
+         .topic-header {
+             display: flex;
+             align-items: center; /* Align icon and title */
+             gap: 1rem; /* Space between icon and title */
+             margin-bottom: 1rem;
+         }
+         .topic-icon {
+            width: 40px; height: 40px; min-width: 40px; /* Prevent shrinking */
+            border-radius: 12px;
             display: flex; align-items: center; justify-content: center;
             color: var(--white); background: var(--primary); font-size: 1.2rem;
+            flex-shrink: 0;
         }
-        .topic-card.strength .topic-icon { background: var(--success-alt); }
-        .topic-card.weakness .topic-icon { background: var(--danger); }
-        .topic-card.neutral .topic-icon { background: var(--warning); }
+         .topic-card.strength .topic-icon { background: var(--success); }
+         .topic-card.weakness .topic-icon { background: var(--danger); }
+         .topic-card.neutral .topic-icon { background: var(--warning); }
+         .topic-title {
+             font-size: 1.1rem; /* Slightly larger */
+             font-weight: 600;
+             color: var(--text-primary);
+             margin: 0; /* Remove default margin */
+             flex-grow: 1; /* Allow title to take space */
+         }
+         .topic-stats {
+             margin-top: auto; /* Push stats to the bottom */
+             padding-top: 1rem;
+             border-top: 1px dashed var(--border-color); /* Dashed separator */
+         }
+         .topic-stat {
+             display: flex;
+             justify-content: space-between;
+             align-items: center;
+             font-size: 0.9rem;
+             margin-bottom: 0.5rem;
+             color: var(--text-secondary);
+         }
+          .topic-stat:last-child { margin-bottom: 0; }
+          .topic-stat strong { font-weight: 600; color: var(--text-primary); }
+          .topic-stat .accuracy-value.high { color: var(--success); }
+          .topic-stat .accuracy-value.low { color: var(--danger); }
+          .topic-stat .accuracy-value.medium { color: var(--warning); }
 
 
         /* Test Results Tab Specific */
         .test-stats {
             display: flex;
             flex-wrap: wrap;
-            gap: 1rem;
-            margin-bottom: 1.5rem;
+            gap: 1.5rem; /* Increased gap */
+            margin-bottom: 2rem; /* Increased margin */
         }
-         /* ... other test stats styles ... */
-         .stats-card {
-            flex: 1; min-width: 150px; background-color: var(--white);
-            border-radius: var(--card-radius); padding: 1.25rem;
+         .stats-card { /* Reusing dashboard card style for consistency */
+            flex: 1; min-width: 200px; /* Adjusted min-width */
+            background-color: var(--card-bg-color);
+            border-radius: var(--card-radius); padding: 1.5rem; /* Increased padding */
             box-shadow: var(--shadow-sm); text-align: center;
+            border: 1px solid var(--border-color);
         }
          .stats-icon {
              width: 50px; height: 50px; border-radius: 50%; margin: 0 auto 1rem auto;
@@ -414,291 +421,245 @@
          .stats-icon.warning { background: linear-gradient(135deg, #f8961e, #f3722c); }
          .stats-icon.danger { background: linear-gradient(135deg, #f72585, #b5179e); }
          .stats-value {
-             font-size: 1.75rem; font-weight: 700; margin-bottom: 0.25rem;
-             background: var(--gradient-1); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+             font-size: 1.9rem; /* Slightly smaller */
+             font-weight: 700; margin-bottom: 0.3rem; /* Adjusted margin */
+             color: var(--text-primary);
+             line-height: 1.2;
          }
-         .stats-value.success { background: linear-gradient(135deg, #4cc9f0, #38b2ac); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-         .stats-value.warning { background: linear-gradient(135deg, #f8961e, #f3722c); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-         .stats-value.danger { background: linear-gradient(135deg, #f72585, #b5179e); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+         .stats-label {
+             font-size: 0.85rem;
+             color: var(--text-muted);
+             text-transform: uppercase;
+             letter-spacing: 0.5px;
+         }
 
 
         .chart-container { height: 300px; position: relative; margin-bottom: 2rem; }
         .test-result-header {
             display: flex; justify-content: space-between; align-items: center;
-            padding-bottom: 1rem; border-bottom: 1px solid var(--gray-light); margin-bottom: 1.5rem;
+            padding-bottom: 1rem; border-bottom: 1px solid var(--border-color); margin-bottom: 1.5rem;
+            flex-wrap: wrap; gap: 1rem; /* Allow wrapping */
         }
-         /* ... other test result styles ... */
+         .test-result-title h3 { font-size: 1.1rem; margin: 0; }
+         .test-result-meta { font-size: 0.85rem; color: var(--text-muted); }
+         .test-result-score { text-align: right; }
+         .test-result-score-value { font-size: 1.5rem; font-weight: 600; color: var(--primary); }
+         .test-result-score-label { font-size: 0.8rem; color: var(--text-muted); }
+
         .test-list { margin-top: 1.5rem; }
         .test-item {
              display: flex; justify-content: space-between; align-items: center;
-             padding: 1rem 1.5rem; margin-bottom: 0.75rem; background-color: var(--white);
-             border-radius: var(--card-radius); box-shadow: var(--shadow-sm); transition: all 0.3s ease;
+             padding: 1rem 1.5rem; margin-bottom: 0.75rem; background-color: var(--card-bg-color);
+             border-radius: var(--button-radius); /* Match button radius */
+             box-shadow: var(--shadow-xs); /* Lighter shadow */
+             transition: all 0.3s ease;
+             border: 1px solid var(--border-color);
          }
-         .test-item:hover { transform: translateX(5px); box-shadow: var(--shadow-md); }
-         .test-icon { /* Style for test icon */
-             width: 40px; height: 40px; min-width: 40px; border-radius: 8px;
-             background: var(--gradient-1); color: white; display: flex;
-             align-items: center; justify-content: center; font-size: 1.2rem;
+         .test-item:hover {
+             transform: translateX(5px);
+             box-shadow: var(--shadow-sm);
+             border-color: var(--primary-light);
          }
+         .test-info { display: flex; align-items: center; gap: 1rem; flex-grow: 1; overflow: hidden; }
+         .test-icon {
+             width: 38px; height: 38px; min-width: 38px; border-radius: 8px;
+             background: var(--gradient-2); color: white; display: flex;
+             align-items: center; justify-content: center; font-size: 1.1rem;
+             flex-shrink: 0;
+         }
+         .test-details h4 { font-size: 1rem; font-weight: 500; margin: 0 0 0.2rem 0; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
+         .test-meta { font-size: 0.8rem; color: var(--text-muted); display: flex; gap: 0.8rem; flex-wrap: wrap; }
+         .test-meta span { display: inline-flex; align-items: center; gap: 0.3rem; }
+         .test-score { font-size: 1.1rem; font-weight: 600; color: var(--primary); margin-left: 1rem; flex-shrink: 0; }
 
         /* Loading & Empty States */
-        .loading { display: flex; justify-content: center; align-items: center; padding: 2rem; font-size: 1rem; color: var(--text-muted); }
-        .loading::after { content: ""; width: 24px; height: 24px; margin-left: 12px; border: 2px solid var(--primary); border-radius: 50%; border-top-color: transparent; animation: loading-spinner 0.8s linear infinite; }
+        .loading { display: flex; justify-content: center; align-items: center; padding: 2rem; font-size: 1rem; color: var(--text-muted); min-height: 150px; /* Ensure space */ }
+        .loading::after { content: ""; width: 24px; height: 24px; margin-left: 12px; border: 3px solid var(--primary); border-radius: 50%; border-top-color: transparent; animation: loading-spinner 0.8s linear infinite; }
         @keyframes loading-spinner { to { transform: rotate(360deg); } }
-        .empty-state { text-align: center; padding: 3rem 1.5rem; color: var(--text-secondary); }
-        .empty-state i { font-size: 3.5rem; margin-bottom: 1.5rem; color: var(--gray-light); }
-        .empty-state h3 { font-size: 1.2rem; font-weight: 600; margin-bottom: 1rem; color: var(--dark); }
-        .empty-state p { margin-bottom: 1.5rem; max-width: 500px; margin-left: auto; margin-right: auto; }
+
+        .empty-state { text-align: center; padding: 3rem 1.5rem; color: var(--text-secondary); border: 1px dashed var(--border-color); border-radius: var(--card-radius); background-color: rgba(var(--card-bg-color-rgb), 0.5); }
+        .empty-state i { font-size: 3rem; margin-bottom: 1rem; color: var(--gray-medium); }
+        .empty-state h3 { font-size: 1.2rem; font-weight: 600; margin-bottom: 1rem; color: var(--text-primary); }
+        .empty-state p { margin-bottom: 1.5rem; max-width: 500px; margin-left: auto; margin-right: auto; font-size: 0.95rem;}
+        .empty-state .btn i { margin-right: 0.5rem; } /* Ensure icon spacing */
 
         /* Tabs */
-        .content-tabs { display: flex; border-bottom: 1px solid var(--gray-light); margin-bottom: 1.5rem; overflow-x: auto; scrollbar-width: none; }
+        .content-tabs { display: flex; border-bottom: 1px solid var(--border-color); margin-bottom: 1.5rem; overflow-x: auto; scrollbar-width: none; }
         .content-tabs::-webkit-scrollbar { display: none; }
-        .content-tab { padding: 1rem 1.5rem; font-weight: 500; color: var(--text-secondary); cursor: pointer; transition: all 0.3s ease; white-space: nowrap; position: relative; }
-        .content-tab.active { color: var(--primary); }
-        .content-tab.active::after { content: ''; position: absolute; bottom: -1px; left: 0; width: 100%; height: 2px; background-color: var(--primary); }
+        .content-tab { padding: 0.9rem 1.5rem; /* Adjusted padding */ font-weight: 600; color: var(--text-secondary); cursor: pointer; transition: all 0.3s ease; white-space: nowrap; position: relative; border-bottom: 3px solid transparent; font-size: 0.95rem; /* Slightly larger */ }
+        .content-tab.active, .content-tab:hover { color: var(--primary); }
+        .content-tab.active { border-bottom-color: var(--primary); }
         .tab-content { display: none; }
         .tab-content.active { display: block; animation: fadeIn 0.5s ease forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
         /* Mobile Menu & Overlay */
-        .mobile-menu-toggle { display: none; background: none; border: none; cursor: pointer; font-size: 1.5rem; color: var(--dark); padding: 0.5rem; }
-        .sidebar-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); z-index: 999; opacity: 0; transition: opacity 0.3s ease; backdrop-filter: blur(5px); }
+        .mobile-menu-toggle { display: none; background: none; border: none; cursor: pointer; font-size: 1.5rem; color: var(--text-primary); padding: 0.5rem; }
+        .sidebar-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.55); z-index: 999; opacity: 0; transition: opacity var(--transition-speed) ease; backdrop-filter: blur(4px); }
         .sidebar-overlay.active { display: block; opacity: 1; }
 
-        /* --- REDESIGNED Weekly Schedule Styles --- */
-        .main-weekly-schedule {
-            margin-top: 1rem;
-            padding: 0; /* No padding on the main container */
-            background-color: transparent;
-            border-radius: 0;
-            box-shadow: none;
-            border: none;
+        /* Weekly Schedule Styling (from main.html for consistency) */
+         .main-weekly-schedule {
+            margin-top: 1rem; padding: 0; background-color: transparent;
+            border-radius: 0; box-shadow: none; border: none;
         }
-
         .schedule-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); /* Responsive columns */
-            gap: 1.5rem; /* Gap between day cards */
-            margin-top: 1rem;
-            padding: 0; /* No padding on grid */
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1.5rem; margin-top: 1rem; padding: 0;
         }
-
         .schedule-day {
-            background-color: var(--white); /* White card for each day */
-            border-radius: var(--card-radius);
-            box-shadow: var(--shadow-md); /* Clearer shadow */
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            border: none; /* No border on the card */
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            background-color: var(--card-bg-color); border-radius: var(--card-radius);
+            box-shadow: var(--shadow-md); display: flex; flex-direction: column;
+            overflow: hidden; border: none; transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
-        .schedule-day:hover {
-             transform: translateY(-5px);
-             box-shadow: var(--shadow-lg);
-        }
-
+        .schedule-day:hover { transform: translateY(-5px); box-shadow: var(--shadow-lg); }
         .schedule-day-header {
-            padding: 0.8rem 1.2rem;
-            font-weight: 600;
-            font-size: 1.05rem;
-            text-align: center;
-            background: #fff; /* White header */
-            color: var(--primary); /* Primary color text */
-            border-bottom: 1px solid var(--gray-light); /* Separator line */
+            padding: 0.8rem 1.2rem; font-weight: 600; font-size: 1.05rem;
+            text-align: center; background: #fff; color: var(--primary);
+            border-bottom: 1px solid var(--border-color);
         }
-
         .schedule-activities {
-            padding: 1rem 1.2rem; /* Padding inside the card */
-            flex-grow: 1;
-            min-height: 150px; /* Ensure some height */
-            display: flex;
-            flex-direction: column;
-            gap: 0.8rem; /* Gap between activities */
+            padding: 1rem 1.2rem; flex-grow: 1; min-height: 150px;
+            display: flex; flex-direction: column; gap: 0.8rem;
         }
-
         .schedule-activity-item {
-            display: flex;
-            align-items: flex-start; /* Align icon top */
-            gap: 0.75rem; /* Gap between icon and text */
-            background-color: transparent; /* No background for item */
-            border: none;
-            border-left: 3px solid var(--primary-light); /* Subtle indicator */
-            padding: 0.5rem 0 0.5rem 0.75rem; /* Padding for alignment */
-            border-radius: 0;
-            font-size: 0.9rem;
-            transition: border-left-color 0.2s ease; /* Smooth transition */
+            display: flex; align-items: flex-start; gap: 0.75rem;
+            background-color: transparent; border: none;
+            border-left: 3px solid var(--primary-light); padding: 0.5rem 0 0.5rem 0.75rem;
+            border-radius: 0; font-size: 0.9rem; transition: border-left-color 0.2s ease;
         }
-         .schedule-activity-item:hover {
-             border-left-color: var(--secondary); /* Darker border on hover */
-         }
+         .schedule-activity-item:hover { border-left-color: var(--secondary); }
+        .activity-icon { font-size: 1.1rem; color: var(--primary); width: 20px; text-align: center; margin-top: 2px; flex-shrink: 0; }
+        .activity-details { flex-grow: 1; }
+        .schedule-activity-item strong { display: block; font-weight: 500; color: var(--dark); margin-bottom: 2px; line-height: 1.4; }
+        .schedule-activity-item span { font-size: 0.8rem; color: var(--text-secondary); display: block; }
+        .schedule-activity-item.completed { border-left-color: var(--success-alt); opacity: 0.65; }
+         .schedule-activity-item.completed .activity-icon { color: var(--success-alt); }
+        .schedule-activity-item.completed strong { text-decoration: line-through; text-decoration-color: rgba(0,0,0,0.5); color: var(--text-secondary); }
+        .schedule-activities .no-activities-placeholder { text-align: center; font-style: italic; color: var(--text-muted); font-size: 0.85rem; margin: auto; padding: 1rem 0; }
+         .full-plan-link-container { text-align: center; margin-top: 1.5rem; }
 
-        .activity-icon {
-             font-size: 1.1rem; /* Icon size */
-             color: var(--primary);
-             width: 20px; /* Fixed width */
-             text-align: center;
-             margin-top: 2px; /* Align icon slightly */
-             flex-shrink: 0;
-         }
-
-         .activity-details {
-             flex-grow: 1;
-         }
-
-        .schedule-activity-item strong { /* Activity title */
-            display: block;
-            font-weight: 500;
-            color: var(--dark);
-            margin-bottom: 2px;
-            line-height: 1.4;
-        }
-
-        .schedule-activity-item span { /* Optional time/description */
-            font-size: 0.8rem;
-            color: var(--text-secondary);
-            display: block;
-        }
-
-        .schedule-activity-item.completed {
-            border-left-color: var(--success-alt);
-            opacity: 0.65; /* Fade completed items */
-        }
-         .schedule-activity-item.completed .activity-icon {
-              color: var(--success-alt);
-         }
-        .schedule-activity-item.completed strong {
-             text-decoration: line-through;
-             text-decoration-color: rgba(0,0,0,0.5);
-             color: var(--text-secondary); /* Fade text */
-        }
-
-        .schedule-activities .no-activities-placeholder { /* Placeholder style */
-             text-align: center;
-             font-style: italic;
-             color: var(--text-muted);
-             font-size: 0.85rem;
-             margin-top: auto;
-             margin-bottom: auto;
-             padding: 1rem 0;
-         }
-         /* Link below schedule grid */
-         .full-plan-link-container {
-             text-align: center;
-             margin-top: 1.5rem;
-         }
-
-        /* --- End of REDESIGNED Weekly Schedule Styles --- */
-
-
-        /* Responsivní design - Updates */
+        /* Responsive design - Updates */
         @media (max-width: 992px) { /* Collapsed Sidebar */
              :root { --sidebar-width: 80px; }
              main { margin-left: 80px; width: calc(100% - 80px); }
+             .sidebar { width: 80px; }
              .sidebar-logo span, .sidebar-link span, .user-info, .sidebar-footer { display: none; }
-             .sidebar-link i { margin-right: 0; font-size: 1.5rem; }
-             .sidebar-logo i { margin-right: 0; }
+             .sidebar-link i { margin-right: 0; font-size: 1.5rem; } .sidebar-logo i { margin-right: 0; }
              .sidebar-header, .sidebar-link { justify-content: center; }
-             .user-profile { justify-content: center; padding: 0.75rem; }
-             .user-avatar { margin-right: 0; }
-             /* Optional: Hide button text when sidebar is collapsed */
-             /* .header-actions .btn span { display: none; } */
-             /* .header-actions .btn { padding: 0.6rem 0.8rem; } */
+             .user-profile { justify-content: center; padding: 0.75rem; } .user-avatar { margin-right: 0; }
+              .mobile-menu-toggle { display: block; } /* Show toggle */
+             #sidebar-close-toggle { display: none !important; }
+              .header-actions { gap: 0.6rem; } /* Smaller gap in header */
+             .refresh-btn .refresh-text { display: none; } /* Hide text */
+             .refresh-btn { padding: 0.6rem 0.8rem; }
+              .schedule-grid { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); } /* Adjust schedule */
         }
 
         @media (max-width: 768px) { /* Tablet */
             main { padding: 1rem; }
-            .header-content { flex-direction: column; align-items: flex-start; }
-            .header-title-section { width: 100%; justify-content: space-between; }
-             .header-title-section h1 { font-size: 1.6rem; }
-            .header-actions { width: 100%; justify-content: flex-start; margin-top: 0.5rem; }
-             .header-actions .btn { padding: 0.6rem 1.2rem; font-size: 0.9rem; }
-            .dashboard-grid { grid-template-columns: 1fr; }
-            .test-stats { flex-direction: column; }
-            .test-item { flex-direction: column; align-items: flex-start; gap: 0.75rem; }
-            .test-score { margin-top: 0.5rem; width: 100%; text-align: right; }
-            .schedule-grid { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); } /* Adjust min width */
+            .header-content { flex-direction: column; align-items: stretch; } /* Stack header items */
+             .header-content > div:first-child { justify-content: space-between; width: 100%;} /* Space out toggle/title */
+             .header-content h1 { font-size: 1.5rem; }
+            .header-actions { justify-content: flex-end; margin-top: 0.5rem; } /* Actions to the right */
+            .stat-cards { grid-template-columns: 1fr; }
+            .shortcut-grid { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+             .schedule-grid { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); } /* Slightly wider days */
         }
 
         @media (max-width: 576px) { /* Mobile */
             :root { --sidebar-width: 0; }
-            main { margin-left: 0; width: 100%; }
-            .sidebar { transform: translateX(-100%); width: 260px; z-index: 1000; }
-            .sidebar.active {
-                transform: translateX(0);
-                 .sidebar-logo span, .sidebar-link span, .user-info, .sidebar-footer { display: block; }
-                 .sidebar-link i { margin-right: 0.75rem; font-size: 1.2rem;}
-                 .sidebar-header, .sidebar-link { justify-content: flex-start; }
-                 .user-profile { justify-content: flex-start; padding: 1rem;}
-                 .user-avatar { margin-right: 0.75rem; }
-            }
-            .mobile-menu-toggle { display: block; } /* Show toggle */
-             .header-title-section h1 { font-size: 1.4rem; text-align: left; }
-            .test-info { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
-            .schedule-grid { grid-template-columns: 1fr; } /* Stack days */
+            main { margin-left: 0; width: 100%; padding: 0.75rem; }
+             .sidebar { transform: translateX(-100%); width: 260px; z-index: 1000;} /* Sidebar for mobile */
+             .sidebar.active { transform: translateX(0); }
+            /* --- Styles for when sidebar is active on mobile --- */
+             .sidebar.active .sidebar-logo span, .sidebar.active .sidebar-link span, .sidebar.active .user-info, .sidebar.active .sidebar-footer { display: block; }
+             .sidebar.active .sidebar-link i { margin-right: 0.75rem; font-size: 1.2rem; }
+             .sidebar.active .sidebar-header, .sidebar.active .sidebar-link { justify-content: flex-start; }
+             .sidebar.active .user-profile { padding: 1rem; }
+             .sidebar.active .user-avatar { margin-right: 0.75rem; }
+             .sidebar.active #sidebar-close-toggle { display: block; } /* Show close button */
+             /* --- End mobile active sidebar --- */
+             .header-content h1 { font-size: 1.4rem; }
+            .header-actions { gap: 0.5rem; }
+            .refresh-btn { padding: 0.6rem; } /* Icon only */
+             .notifications { margin-right: 0; }
+             .notification-bell { padding: 0.6rem; }
+             .notifications-dropdown-wrapper { width: calc(100vw - 1.5rem); max-width: 340px; }
+             .welcome-content { padding: 1.5rem; flex-direction: column; text-align: center; }
+             .welcome-text-content { max-width: 100%; }
+             .welcome-image { display: none; }
+             .stat-card-value { font-size: 1.9rem; }
+             .shortcut-grid { grid-template-columns: 1fr; }
+             .schedule-grid { grid-template-columns: 1fr; } /* Stack days */
+             .toast-container { bottom: 1rem; right: 1rem; max-width: calc(100% - 1.5rem); }
         }
 
 
-        /* Dark mode - Updates */
+        /* Dark mode */
         @media (prefers-color-scheme: dark) {
             :root {
-                --white: #1a202c; --light: #2d3748; --dark: #e2e8f0;
-                --gray-light: #4a5568; --text-primary: #e2e8f0; --text-secondary: #cbd5e0;
-                --text-muted: #a0aec0; --dark-bg: #1e2533;
+                 --bg-color: #131720; --card-bg-color: #1e2533;
+                 --card-bg-color-rgb: 30, 37, 51;
+                 --text-primary: #e2e8f0; --text-secondary: #94a3b8; --text-muted: #64748b;
+                 --border-color: #334155; --light: #2d3748; --white: #1a202c;
+                 --skeleton-bg: #334155; --skeleton-highlight: #475569;
+                 --input-bg: #2d3748;
             }
-            body { background-color: #171923; }
-            .section, .dashboard-header, .dashboard-card, .topic-card, .test-item, .stats-card {
-                 background-color: var(--dark-bg); border-color: var(--gray-light);
+            /* --- Dark mode adjustments from procvicovani/main.html --- */
+             body { background-color: var(--bg-color); }
+             .section, .dashboard-header, .dashboard-card, .topic-card, .test-item, .stats-card {
+                 background-color: var(--card-bg-color); border-color: var(--border-color);
             }
-            .mobile-menu-toggle { color: var(--dark); }
+            .mobile-menu-toggle { color: var(--text-primary); }
             .empty-state i { color: var(--light); }
-            .test-stats .stats-card { background-color: var(--dark-bg); }
-
-            /* --- Dark mode for REDESIGNED Weekly Schedule --- */
+            .test-stats .stats-card { background-color: var(--card-bg-color); }
              .main-weekly-schedule { background-color: transparent; }
-             .schedule-day {
-                 background-color: var(--dark-bg); /* Use dark background for card */
-                 box-shadow: var(--shadow-md); /* Keep shadow */
-             }
-             .schedule-day-header {
-                 background: var(--dark-bg); /* Match card bg */
-                 color: var(--primary-light); /* Use lighter primary color */
-                 border-bottom-color: var(--gray-light);
-             }
-             .schedule-activity-item {
-                 border-left-color: var(--primary-light);
-             }
-             .activity-icon {
-                 color: var(--primary-light);
-             }
-             .schedule-activity-item strong {
-                 color: var(--dark); /* Light text */
-             }
-             .schedule-activity-item span {
-                 color: var(--text-secondary); /* Lighter secondary text */
-             }
-             .schedule-activity-item.completed {
-                 border-left-color: var(--success-alt);
-                 opacity: 0.6; /* Slightly more fade in dark mode maybe */
-             }
-              .schedule-activity-item.completed .activity-icon {
-                  color: var(--success-alt);
-             }
-              .schedule-activity-item.completed strong {
-                  text-decoration-color: rgba(255,255,255,0.5);
-                  color: var(--text-secondary); /* Match faded text color */
-              }
-              .schedule-activities .no-activities-placeholder {
-                  color: var(--text-muted);
-              }
+             .schedule-day { background-color: var(--card-bg-color); }
+             .schedule-day-header { background: var(--card-bg-color); color: var(--primary-light); border-bottom-color: var(--border-color); }
+             .schedule-activity-item { border-left-color: var(--primary-light); }
+             .activity-icon { color: var(--primary-light); }
+             .schedule-activity-item strong { color: var(--text-primary); }
+             .schedule-activity-item span { color: var(--text-secondary); }
+             .schedule-activity-item.completed { border-left-color: var(--success); }
+              .schedule-activity-item.completed .activity-icon { color: var(--success); }
+              .schedule-activity-item.completed strong { text-decoration-color: rgba(255,255,255,0.5); color: var(--text-secondary); }
+              .schedule-activities .no-activities-placeholder { color: var(--text-muted); }
+              .initial-loading-overlay { background-color: var(--bg-color); }
+              .refresh-btn { color: var(--text-secondary); }
+              .refresh-btn:hover:not(:disabled) { background-color: var(--light); color: var(--primary-light); }
+              .notification-bell i { color: var(--text-secondary); }
+              .notification-bell:hover i { color: var(--primary-light); }
+              .notification-badge { border-color: var(--card-bg-color); }
+              .notifications-dropdown-wrapper { background-color: var(--card-bg-color); border-color: var(--border-color); }
+              .notifications-header, .activity-item { border-bottom-color: var(--border-color); }
+              .mark-all-read-btn { color: var(--primary-light); }
+              .notification-title { color: var(--text-primary); }
+              .notification-message { color: var(--text-secondary); }
+              .notification-time { color: var(--text-muted); }
+              .notifications-footer { background-color: var(--light); border-top-color: var(--border-color); }
+              .view-all-notifications-link { color: var(--primary-light); }
+              .activity-list-container { background-color: var(--card-bg-color); border-color: var(--border-color); }
+              .view-all-link { background-color: var(--light); border-color: var(--border-color); color: var(--primary-light);}
+              .view-all-link:hover { background-color: rgba(var(--primary-rgb), 0.15); border-color: rgba(var(--primary-rgb), 0.3);}
+              .toast { background-color: var(--card-bg-color); color: var(--text-primary); border-color: var(--border-color); }
+              .dashboard-footer { border-top-color: var(--border-color); }
         }
+
+        /* --- END OF STYLES --- */
     </style>
 </head>
 <body>
-    <div id="sidebar-overlay" class="sidebar-overlay"></div>
+    <div class="initial-loading-overlay" id="initial-loader">
+         <div class="loading-spinner"></div>
+         <p>Načítání...</p> </div>
+
+    <div class="offline-banner" id="offline-banner"> <i class="fas fa-wifi"></i> Momentálně jste offline. Některé funkce nemusí fungovat správně. </div>
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
 
     <aside id="sidebar" class="sidebar">
         <div class="sidebar-header">
+            <button class="mobile-menu-toggle" id="sidebar-close-toggle" style="color: var(--white); margin-right: 1rem; display: none; background: none; border: none; font-size: 1.5rem; cursor: pointer;"> <i class="fas fa-times"></i> </button>
             <a href="/" class="sidebar-logo">
                 <i class="fas fa-calculator"></i>
                 <span>Justax</span>
@@ -708,7 +669,7 @@
          <ul class="sidebar-menu">
              <li class="sidebar-item">
                  <a href="/dashboard/dashboard.html" class="sidebar-link"> <i class="fas fa-th-large"></i>
-                     <span>Dashboard</span>
+                     <span>Nástěnka</span>
                  </a>
              </li>
              <li class="sidebar-item">
@@ -740,10 +701,8 @@
          </ul>
 
         <div class="user-profile">
-            <div class="user-avatar" id="user-avatar">MS</div>
-            <div class="user-info">
-                <div class="user-name" id="user-name">Načítání...</div>
-                <div class="user-role">Student</div>
+            <div class="user-avatar" id="user-avatar">?</div> <div class="user-info">
+                <div class="user-name" id="user-name">Načítání...</div> <div class="user-role">Student</div>
             </div>
         </div>
 
@@ -752,7 +711,7 @@
         </div>
     </aside>
 
-    <main>
+    <main id="main-content" style="display: none;">
          <div class="dashboard-header">
              <div class="header-content">
                  <div class="header-title-section">
@@ -778,7 +737,7 @@
                 <h2 class="section-title">Přehled pokroku</h2>
                 <div class="dashboard-grid" id="stats-cards">
                     <div class="loading" id="stats-loading">Načítání statistik...</div>
-                </div>
+                    </div>
             </section>
 
             <section class="section content-section">
@@ -805,10 +764,10 @@
                      </div>
                      <div id="test-results-empty" class="empty-state" style="display: none">
                          <i class="fas fa-clipboard-list"></i>
-                         <h3 id="empty-state-title">Diagnostický test</h3> {/* Updated default title */}
-                         <p id="empty-state-message">Zatím jste nedokončili diagnostický test. Je důležitý pro personalizaci vašeho učení.</p> {/* Updated default message */}
+                         <h3 id="empty-state-title">Diagnostický test</h3>
+                         <p id="empty-state-message">Zatím jste nedokončili diagnostický test. Je důležitý pro personalizaci vašeho učení.</p>
                          <a href="test1.html" class="btn btn-primary" id="start-test-btn"> <i class="fas fa-play"></i>
-                             <span id="empty-state-button-text">Spustit diagnostický test</span> {/* Updated default button text */}
+                             <span id="empty-state-button-text">Spustit diagnostický test</span>
                          </a>
                      </div>
                  </div>
@@ -819,9 +778,8 @@
                          <div class="main-weekly-schedule">
                              <h3 class="section-subtitle">Týdenní přehled aktivit</h3>
                              <div class="schedule-grid" id="main-plan-schedule">
-                                 {/* Content generated by JS */}
-                             </div>
-                             <div class="full-plan-link-container"> {/* Added container class */}
+                                 </div>
+                             <div class="full-plan-link-container">
                                  <a href="plan.html" class="btn btn-primary">
                                      <i class="fas fa-calendar-alt"></i> Zobrazit podrobný plán
                                  </a>
@@ -855,663 +813,214 @@
                 </div>
             </section>
         </div>
+
+         <footer class="dashboard-footer">
+            <p>&copy; 2025 Justax. Všechna práva vyhrazena.</p>
+        </footer>
     </main>
 
+    <div class="toast-container" id="toast-container"></div>
+
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Supabase Init
+        // ИЗМЕНЕНИЕ: Добавлен JS для управления загрузчиком и инициализации
+        // Обертка IIFE для изоляции переменных
+        (function() {
+            // --- START: Инициализация и Конфигурация ---
             const supabaseUrl = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
             const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10';
-            const supabase = window.supabase?.createClient ? window.supabase.createClient(supabaseUrl, supabaseKey) : supabase.createClient(supabaseUrl, supabaseKey);
-
-            // DOM Elements
-            const userAvatar = document.getElementById('user-avatar');
-            const userName = document.getElementById('user-name');
-            const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
-            const sidebar = document.getElementById('sidebar');
-            const sidebarOverlay = document.getElementById('sidebar-overlay');
-            const contentTabs = document.querySelectorAll('.content-tab');
-            const tabContents = document.querySelectorAll('.tab-content');
-            const statsCards = document.getElementById('stats-cards');
-            const statsLoading = document.getElementById('stats-loading');
-
-            // Test Results Tab Elements
-            const testResultsLoading = document.getElementById('test-results-loading');
-            const testResultsContent = document.getElementById('test-results-content');
-            const testResultsEmpty = document.getElementById('test-results-empty');
-            const testStats = document.getElementById('test-stats');
-            const lastTestResult = document.getElementById('last-test-result');
-            const testHistory = document.getElementById('test-history');
-            const diagnosticPromptResults = document.getElementById('diagnostic-prompt-results'); // Keep ref if needed elsewhere
-            const emptyStateTitle = document.getElementById('empty-state-title');
-            const emptyStateMessage = document.getElementById('empty-state-message');
-            const emptyStateButtonText = document.getElementById('empty-state-button-text');
-            const emptyStateButtonLink = document.getElementById('start-test-btn');
-
-            // Study Plan Tab Elements
-            const studyPlanLoading = document.getElementById('study-plan-loading');
-            const studyPlanContent = document.getElementById('study-plan-content');
-            const studyPlanEmpty = document.getElementById('study-plan-empty');
-            const mainPlanScheduleGrid = document.getElementById('main-plan-schedule'); // Ref to new grid
-
-            // Topic Analysis Tab Elements
-            const topicAnalysisLoading = document.getElementById('topic-analysis-loading');
-            const topicAnalysisContent = document.getElementById('topic-analysis-content');
-            const topicAnalysisEmpty = document.getElementById('topic-analysis-empty');
-            const topicGrid = document.getElementById('topic-grid');
-
-            // Global Variables
+            let supabase = null;
             let currentUser = null;
-            let userStats = null;
-            let diagnosticTestResults = []; // Specifically for diagnostic results now
-            let topicProgress = [];
-            let testsChart = null; // Chart instance for test results
+            let currentProfile = null;
+            // Флаги загрузки
+            let isLoading = { stats: false, tests: false, plan: false, topics: false };
 
-            // Topic Icons (keep as is)
-            const topicIcons = { /* ... icons ... */ };
+            // DOM Cache
+            const ui = {
+                 sidebarAvatar: document.getElementById('user-avatar'),
+                 sidebarName: document.getElementById('user-name'),
+                 initialLoader: document.getElementById('initial-loader'), // <<-- Loader DIV
+                 mainContent: document.getElementById('main-content'),    // <<-- Main content DIV
+                 mobileMenuToggle: document.getElementById('mobile-menu-toggle'),
+                 sidebar: document.getElementById('sidebar'),
+                 sidebarOverlay: document.getElementById('sidebar-overlay'),
+                 toastContainer: document.getElementById('toast-container'),
+                 // Добавь остальные элементы со страницы procvicovani...
+                 statsCardsContainer: document.getElementById('stats-cards'),
+                 statsLoading: document.getElementById('stats-loading'),
+                 testResultsLoading: document.getElementById('test-results-loading'),
+                 testResultsContent: document.getElementById('test-results-content'),
+                 testResultsEmpty: document.getElementById('test-results-empty'),
+                 // ... и так далее для study-plan и topic-analysis
+            };
 
-             // Helper function to sanitize HTML
-             function sanitizeHTML(str) {
-                 if (str === null || str === undefined) return '';
-                 const temp = document.createElement('div');
-                 temp.textContent = str;
-                 return temp.innerHTML;
-             }
-             // Helper function to format dates
-              function formatDate(dateString) {
-                 if(!dateString) return '-';
+            // --- START: Helper Functions ---
+            function showToast(message, type = 'success', duration = 4000) {
+                 if (!ui.toastContainer) return;
                  try {
-                     const date = new Date(dateString);
-                      if (isNaN(date.getTime())) return '-'; // Invalid date handling
-                     return date.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
-                 } catch (e) {
-                     console.error("Chyba formátování data:", e);
-                     return '-';
-                 }
-              }
-              // Helper function to get initials
-              function getInitials(profile) {
-                 if (!profile) return 'U';
-                 let initials = '';
-                 if (profile.first_name) initials += profile.first_name[0];
-                 if (profile.last_name) initials += profile.last_name[0];
-                 if (initials) return initials.toUpperCase();
-                 if (profile.username) return profile.username[0].toUpperCase();
-                 if (profile.email) return profile.email[0].toUpperCase();
-                 return 'U';
-              }
-              // Helper function to format time (seconds -> mm:ss)
-              const formatTime = (seconds) => {
-                    if (isNaN(seconds) || seconds < 0) return '00:00';
-                    const m = Math.floor(seconds / 60);
-                    const s = Math.round(seconds % 60);
-                    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-                };
-
-
-            // --- Event Listeners ---
-            // Tab Switching
-            contentTabs.forEach(tab => {
-                tab.addEventListener('click', () => {
-                    contentTabs.forEach(t => t.classList.remove('active'));
-                    tabContents.forEach(c => c.classList.remove('active'));
-                    tab.classList.add('active');
-                    const tabId = tab.getAttribute('data-tab');
-                     const targetContent = document.getElementById(tabId);
-                     if (targetContent) {
-                         targetContent.classList.add('active');
-                     } else {
-                         console.error(`Obsah pro tab ${tabId} nebyl nalezen.`);
-                     }
-                });
-            });
-
-            // Mobile Menu
-             if (mobileMenuToggle && sidebar && sidebarOverlay) {
-                 mobileMenuToggle.addEventListener('click', (e) => {
-                      e.stopPropagation();
-                      sidebar.classList.toggle('active');
-                      sidebarOverlay.classList.toggle('active');
-                 });
-                 sidebarOverlay.addEventListener('click', () => {
-                      sidebar.classList.remove('active');
-                      sidebarOverlay.classList.remove('active');
-                 });
-                  document.querySelector('main').addEventListener('click', () => {
-                       if (sidebar.classList.contains('active')) {
-                            sidebar.classList.remove('active');
-                            sidebarOverlay.classList.remove('active');
-                       }
-                  });
-             } else { console.warn("Mobile menu elements not found."); }
-
-            // Window Resize
-            window.addEventListener('resize', function() {
-                 if (window.innerWidth > 576 && sidebar && sidebarOverlay && sidebar.classList.contains('active')) {
-                      sidebar.classList.remove('active');
-                      sidebarOverlay.classList.remove('active');
-                 }
-            });
-
-
-            // --- Data Loading Functions ---
-            // Initialize App
-            async function init() {
-                try {
-                    await loadUserProfile();
-                    if (!currentUser) {
-                        console.log("No user logged in, stopping init.");
-                        // Optionally show a message or redirect
-                        return;
-                    }
-                    await loadUserStats();
-                    await loadTestResults(); // Focuses on diagnostic now
-                    await loadStudyPlan();   // Shows weekly overview
-                    await loadTopicAnalysis();
-                } catch (error) {
-                    console.error('Chyba při inicializaci stránky:', error);
-                     const mainContentArea = document.querySelector('.main-content');
-                      if(mainContentArea) mainContentArea.innerHTML = `<div class="section error-message"><i class="fas fa-exclamation-triangle"></i> Chyba načítání stránky. Zkuste to prosím znovu. ${sanitizeHTML(error.message)}</div>`;
-                }
-            }
-
-            // Load User Profile
-            async function loadUserProfile() {
-                try {
-                    if (!supabase) throw new Error("Supabase client not initialized");
-                    const { data: { user }, error: userError } = await supabase.auth.getUser();
-                    if (userError) throw userError;
-
-                    if (user) {
-                         currentUser = user;
-                         const { data: profile, error } = await supabase.from('profiles').select('*').eq('id', user.id).single();
-                         if (error && error.code !== 'PGRST116') throw error;
-                         const displayName = profile?.first_name && profile?.last_name ? `${profile.first_name} ${profile.last_name}` : profile?.username || user.email?.split('@')[0] || 'Uživatel';
-                         if(userName) userName.textContent = displayName;
-                         if(userAvatar) {
-                              if (profile?.avatar_url) { userAvatar.innerHTML = `<img src="${profile.avatar_url}" alt="${displayName}" />`; }
-                              else { userAvatar.textContent = getInitials(profile || { email: user.email }); }
-                         }
-                    } else {
-                         console.log("User not logged in.");
-                         currentUser = null;
-                         if(userName) userName.textContent = 'Nepřihlášen';
-                         if(userAvatar) userAvatar.textContent = '?';
-                         // Display message indicating login required?
-                         // const mainContentArea = document.querySelector('.main-content');
-                         // if(mainContentArea) mainContentArea.innerHTML = `<div class="section info-message">Pro zobrazení obsahu se prosím <a href="/login.html">přihlaste</a>.</div>`;
-                    }
-                } catch (error) {
-                     console.error('Chyba při načítání profilu:', error);
-                     if(userName) userName.textContent = 'Chyba';
-                     if(userAvatar) userAvatar.textContent = '?';
-                     currentUser = null;
-                }
-            }
-
-            // Load User Stats
-             async function loadUserStats() {
-                if (!currentUser || !supabase) return;
-                 if (!statsLoading || !statsCards) return; // Check if elements exist
-                statsLoading.style.display = 'flex';
-                statsCards.innerHTML = ''; // Clear previous stats
-                try {
-                    let { data: stats, error } = await supabase.from('user_stats').select('*').eq('user_id', currentUser.id).single();
-                    const { data: profile, error: profileError } = await supabase.from('profiles').select('points, streak_days').eq('id', currentUser.id).single();
-
-                    if (error && error.code === 'PGRST116') { // No stats found
-                        stats = { progress: 0, progress_weekly: 0, completed_tests: 0, total_tests: 0, points: profile?.points || 0, points_weekly: 0, streak_current: profile?.streak_days || 0, last_test_date: null };
-                        console.log("No user_stats found, using default/profile data.");
-                    } else if (error) { throw error; }
-                    else { // Stats found, ensure points/streak fallback if null
-                         stats.points = stats.points ?? profile?.points ?? 0;
-                         stats.streak_current = stats.streak_current ?? profile?.streak_days ?? 0;
-                    }
-                    userStats = stats;
-                    renderStatsCards(stats);
-                } catch (error) {
-                    console.error('Chyba při načítání statistik:', error);
-                    if(statsCards) statsCards.innerHTML = `<div class="error-message">Chyba načítání statistik.</div>`;
-                } finally {
-                    if(statsLoading) statsLoading.style.display = 'none';
-                }
-            }
-            // Render User Stats Cards
-             function renderStatsCards(stats) {
-                 if (!statsCards) return;
-                  // Get last test date string
-                  const lastTestDateStr = getLastTestDateString(stats);
-                 statsCards.innerHTML = `
-                     <div class="dashboard-card"> <div class="card-header"> <h3 class="card-title"> <i class="fas fa-chart-line"></i> Celkový pokrok </h3> <span class="card-badge">Tento měsíc</span> </div> <div class="card-content"> <div class="card-value">${stats.progress || 0}%</div> <div class="progress-container"> <div class="progress-bar" style="width: ${stats.progress || 0}%;"></div> </div> <div class="progress-info"> <span>0%</span> <span>100%</span> </div> </div> <div class="card-footer ${stats.progress_weekly > 0 ? 'positive' : stats.progress_weekly < 0 ? 'negative' : ''}"> <i class="fas ${stats.progress_weekly > 0 ? 'fa-arrow-up' : stats.progress_weekly < 0 ? 'fa-arrow-down' : 'fa-minus'}"></i> <span>${stats.progress_weekly > 0 ? '+' : ''}${stats.progress_weekly || 0}% od minulého měsíce</span> </div> </div>
-                     <div class="dashboard-card"> <div class="card-header"> <h3 class="card-title"> <i class="fas fa-tasks"></i> Dokončené testy </h3> <span class="card-badge">Celkem</span> </div> <div class="card-content"> <div class="card-value">${stats.completed_tests || 0}</div> <div class="card-description">z celkem ${stats.total_tests || 0} dostupných testů</div> </div> <div class="card-footer"> <i class="fas fa-calendar-alt"></i> <span>Poslední test: ${lastTestDateStr}</span> </div> </div>
-                     <div class="dashboard-card"> <div class="card-header"> <h3 class="card-title"> <i class="fas fa-fire"></i> Studijní body </h3> <span class="card-badge success">Aktivní</span> </div> <div class="card-content"> <div class="card-value">${stats.points || 0}</div> <div class="card-description">Dnů v řadě: ${stats.streak_current || 0}</div> </div> <div class="card-footer ${stats.points_weekly > 0 ? 'positive' : stats.points_weekly < 0 ? 'negative' : ''}"> <i class="fas ${stats.points_weekly > 0 ? 'fa-arrow-up' : stats.points_weekly < 0 ? 'fa-arrow-down' : 'fa-minus'}"></i> <span>${stats.points_weekly > 0 ? '+' : ''}${stats.points_weekly || 0} bodů za poslední týden</span> </div> </div>
-                 `;
-             }
-             // Helper for last test date string
-            function getLastTestDateString(stats) {
-                 const now = new Date();
-                 if (!stats.last_test_date) return 'Žádný test';
-                 try {
-                      const lastTest = new Date(stats.last_test_date);
-                      if (isNaN(lastTest.getTime())) return 'Neplatné datum';
-                      const diffTime = now.getTime() - lastTest.getTime();
-                      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-                      const isSameDay = now.toDateString() === lastTest.toDateString();
-                      const yesterday = new Date(now); yesterday.setDate(now.getDate() - 1);
-                      const isYesterday = yesterday.toDateString() === lastTest.toDateString();
-
-                      if (isSameDay) return 'Dnes';
-                      if (isYesterday) return 'Včera';
-                      if (diffDays < 7) return `Před ${diffDays} dny`;
-                      return lastTest.toLocaleDateString('cs-CZ');
-                 } catch (e) { console.error("Chyba formátování data:", e); return 'Chyba data'; }
-            }
-
-
-            // *** UPDATED: Load DIAGNOSTIC Test Results ***
-            async function loadTestResults() {
-                if (!currentUser || !supabase) return;
-                 if (!testResultsLoading || !testResultsContent || !testResultsEmpty) return; // Check elements
-
-                testResultsLoading.style.display = 'flex';
-                testResultsContent.style.display = 'none';
-                testResultsEmpty.style.display = 'none';
-                if(diagnosticPromptResults) diagnosticPromptResults.style.display = 'none';
-
-                try {
-                    console.log("Hledám výsledky diagnostického testu...");
-                    let results;
-                    let queryError;
-
-                    // Attempt 1: Query directly filtering by type='diagnostic'
-                    ({ data: results, error: queryError } = await supabase
-                        .from('test_results')
-                        .select('*, tests ( title, type, subject )')
-                        .eq('user_id', currentUser.id)
-                        .eq('tests.type', 'diagnostic')
-                        .order('created_at', { ascending: false }));
-
-                    // Attempt 2: Fallback if direct join fails (permissions, schema issues)
-                     if (queryError && (queryError.message.includes('permission denied') || queryError.message.includes('relation') || queryError.message.includes('referenced table'))) {
-                        console.warn("Chyba při přímém filtrování testů, zkouším fallback...");
-                        const { data: allResultsFallback, error: fallbackError } = await supabase
-                             .from('test_results')
-                             .select('*, tests (title, type, subject)')
-                             .eq('user_id', currentUser.id)
-                             .order('created_at', { ascending: false });
-
-                        if (fallbackError) {
-                            console.error("Fallback načítání také selhalo:", fallbackError);
-                            throw fallbackError; // Throw the fallback error if it also fails
-                         }
-                         results = (allResultsFallback || []).filter(r => r.tests?.type === 'diagnostic');
-                         console.log("Fallback úspěšný, výsledky filtrovány v JS:", results);
-                     } else if (queryError) {
-                        console.error("Jiná chyba při načítání výsledků testů:", queryError);
-                        throw queryError; // Throw other errors
-                     }
-
-                    diagnosticTestResults = results || [];
-
-                    if (diagnosticTestResults.length > 0) {
-                        console.log("Nalezeny výsledky diagnostického testu:", diagnosticTestResults);
-                        testResultsContent.style.display = 'block';
-                        testResultsEmpty.style.display = 'none';
-
-                        renderTestStats(diagnosticTestResults);
-                        renderTestChart(diagnosticTestResults);
-                        renderLastTestResult(diagnosticTestResults[0]);
-                        renderTestHistory(diagnosticTestResults);
-
-                    } else {
-                        console.log("Nebyly nalezeny žádné výsledky diagnostického testu.");
-                        testResultsContent.style.display = 'none';
-                        testResultsEmpty.style.display = 'block';
-
-                        // Customize empty state for diagnostic test
-                        if(emptyStateTitle) emptyStateTitle.textContent = "Diagnostický test";
-                        if(emptyStateMessage) emptyStateMessage.textContent = "Zatím jste nedokončili diagnostický test. Je důležitý pro personalizaci vašeho učení.";
-                        if(emptyStateButtonText) emptyStateButtonText.textContent = "Spustit diagnostický test";
-                        if(emptyStateButtonLink) emptyStateButtonLink.href = "test1.html";
-                    }
-
-                } catch (error) {
-                    console.error('Celková chyba při načítání výsledků diagnostického testu:', error);
-                    if(testResultsLoading) testResultsLoading.innerHTML = `<div class="error-message">Chyba načítání výsledků.</div>`;
-                    if(testResultsContent) testResultsContent.style.display = 'none';
-                    if(testResultsEmpty) testResultsEmpty.style.display = 'none';
-                } finally {
-                    if(testResultsLoading) testResultsLoading.style.display = 'none';
-                }
-            }
-
-            // Render Test Stats (using provided results)
-             function renderTestStats(resultsToUse) {
-                 if (!testStats) return;
-                 if (!resultsToUse || resultsToUse.length === 0) {
-                     testStats.innerHTML = '<p style="text-align:center; color: var(--text-muted);">Žádná data pro statistiky.</p>';
-                     return;
-                 }
-                 const validResults = resultsToUse.filter(t => typeof t.score === 'number');
-                  if (validResults.length === 0) {
-                       testStats.innerHTML = '<p style="text-align:center; color: var(--text-muted);">Žádná platná data pro statistiky.</p>';
-                       return;
-                  }
-                  const avgScore = validResults.reduce((acc, test) => acc + test.score, 0) / validResults.length;
-                  const bestScore = Math.max(...validResults.map(test => test.score));
-                  const validTimeResults = validResults.filter(t => typeof t.time_spent === 'number' && t.time_spent > 0);
-                  const avgTime = validTimeResults.length > 0 ? validTimeResults.reduce((acc, test) => acc + test.time_spent, 0) / validTimeResults.length : 0;
-
-                  testStats.innerHTML = `
-                      <div class="stats-card"> <div class="stats-icon primary"><i class="fas fa-percentage"></i></div> <div class="stats-value">${Math.round(avgScore)}%</div> <div class="stats-label">Průměrné skóre</div> </div>
-                      <div class="stats-card"> <div class="stats-icon success"><i class="fas fa-trophy"></i></div> <div class="stats-value success">${Math.round(bestScore)}%</div> <div class="stats-label">Nejlepší skóre</div> </div>
-                      ${avgTime > 0 ? `<div class="stats-card"> <div class="stats-icon warning"><i class="fas fa-clock"></i></div> <div class="stats-value warning">${formatTime(avgTime)}</div> <div class="stats-label">Průměrný čas</div> </div>` : ''}
-                  `;
-             }
-
-            // Render Test Chart (using provided results)
-             function renderTestChart(resultsToUse) {
-                 const ctxElement = document.getElementById('testsChart');
-                 if (!ctxElement) { console.error("Canvas #testsChart nenalezen."); return; }
-                 const chartContainer = ctxElement.closest('.chart-container');
-                 if (!chartContainer) { console.error("Kontejner grafu nenalezen."); return; }
-
-                 // Filter for valid data points for the chart
-                 const validChartData = resultsToUse
-                     .filter(r => r.created_at && typeof r.score === 'number')
-                     .sort((a, b) => new Date(a.created_at) - new Date(b.created_at)); // Sort chronologically
-
-                 if (validChartData.length === 0) {
-                     chartContainer.innerHTML = '<p style="text-align:center; color: var(--text-muted); padding-top: 50px;">Nedostatek dat pro graf.</p>';
-                     if (testsChart) { testsChart.destroy(); testsChart = null; }
-                     return;
-                 }
-
-                 // Ensure canvas exists
-                 if (!chartContainer.querySelector('canvas')) {
-                     chartContainer.innerHTML = '<canvas id="testsChart"></canvas>';
-                     const newCtxElement = document.getElementById('testsChart');
-                     if (!newCtxElement) { console.error("Nepodařilo se znovu vytvořit canvas."); return; }
-                      ctx = newCtxElement.getContext('2d');
-                 } else {
-                      ctx = ctxElement.getContext('2d');
-                 }
-
-                 // Prepare data for the last N results
-                 const maxPointsToShow = 7;
-                 const chartDataPoints = validChartData.slice(-maxPointsToShow);
-                 const labels = chartDataPoints.map(result => { const date = new Date(result.created_at); return `${date.getDate()}.${date.getMonth() + 1}.`; });
-                 const scores = chartDataPoints.map(result => result.score);
-
-                 if (testsChart) { // Update existing chart
-                     testsChart.data.labels = labels;
-                     testsChart.data.datasets[0].data = scores;
-                     testsChart.update();
-                 } else { // Create new chart
-                     testsChart = new Chart(ctx, {
-                         type: 'line',
-                         data: {
-                             labels: labels,
-                             datasets: [{
-                                 label: 'Skóre testů (%)', data: scores, fill: true,
-                                 borderColor: 'var(--primary)', backgroundColor: 'rgba(67, 97, 238, 0.1)',
-                                 tension: 0.3, borderWidth: 2, pointBackgroundColor: 'var(--primary)',
-                                 pointRadius: 4, pointHoverRadius: 6
-                             }]
-                         },
-                         options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { mode: 'index', intersect: false, backgroundColor: 'var(--dark)', titleColor: 'var(--white)', bodyColor: 'var(--white)', borderColor: 'var(--primary)', borderWidth: 1, padding: 10, displayColors: false, callbacks: { label: (context) => `Skóre: ${context.parsed.y}%` } } }, scales: { y: { beginAtZero: true, max: 100, ticks: { stepSize: 20, color: 'var(--text-muted)' }, grid: { color: 'rgba(113, 128, 150, 0.1)' } }, x: { ticks: { color: 'var(--text-muted)' }, grid: { display: false } } } }
-                     });
-                 }
-             }
-
-            // Render Last Test Result (using provided result)
-             function renderLastTestResult(lastTest) {
-                 if (!lastTestResult) return;
-                 if (!lastTest) { lastTestResult.innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 1rem;">Žádný poslední test k zobrazení.</p>'; return; }
-                 const formattedDate = formatDate(lastTest.created_at);
-                 const title = lastTest.tests?.title || 'Diagnostický test';
-                 lastTestResult.innerHTML = `<div class="test-result-header"> <div class="test-result-title"> <h3>${sanitizeHTML(title)}</h3> <div class="test-result-meta">Dokončeno ${formattedDate}</div> </div> <div class="test-result-score"> <div class="test-result-score-value">${lastTest.score ?? 'N/A'}%</div> <div class="test-result-score-label">Skóre</div> </div> </div>`;
-             }
-
-            // Render Test History (diagnostic only)
-             function renderTestHistory(results) {
-                 if (!testHistory) return;
-                 if (!results || results.length === 0) {
-                      testHistory.innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 1rem;">Žádná historie diagnostických testů.</p>';
-                      return;
-                 }
-                 let html = '';
-                 results.forEach(test => {
-                     const testDate = new Date(test.created_at);
-                     const formattedDate = testDate.toLocaleDateString('cs-CZ', { day: '2-digit', month: '2-digit', year: 'numeric' });
-                     const formattedTime = testDate.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' });
-                     const iconClass = 'fa-clipboard-check'; // Always diagnostic
-                      const title = test.tests?.title || 'Diagnostický test';
-
-                     html += `
-                         <div class="test-item">
-                              <div class="test-info">
-                                   <div class="test-icon"> <i class="fas ${iconClass}"></i> </div>
-                                   <div class="test-details">
-                                        <h4>${sanitizeHTML(title)}</h4>
-                                        <div class="test-meta">
-                                             <span><i class="far fa-calendar"></i> ${formattedDate}</span>
-                                             <span><i class="far fa-clock"></i> ${formattedTime}</span>
-                                             ${test.tests?.subject ? `<span><i class="fas fa-book"></i> ${sanitizeHTML(test.tests.subject)}</span>` : ''}
-                                        </div>
-                                   </div>
-                              </div>
-                              <div class="test-score">${test.score ?? 'N/A'}%</div>
+                     const toastId = `toast-${Date.now()}`;
+                     const toastElement = document.createElement('div');
+                     toastElement.className = `toast ${type}`;
+                     toastElement.id = toastId;
+                     toastElement.setAttribute('role', 'alert');
+                     toastElement.setAttribute('aria-live', 'assertive');
+                     toastElement.innerHTML = `
+                         <i class="toast-icon"></i>
+                         <div class="toast-content">
+                             <div class="toast-message">${sanitizeHTML(message)}</div>
                          </div>
+                         <button type="button" class="toast-close" aria-label="Zavřít">&times;</button>
                      `;
-                 });
-                 testHistory.innerHTML = html;
-             }
-
-
-            // *** Load Study Plan (Displays Weekly Overview) ***
-             async function loadStudyPlan() {
-                 if (!currentUser || !supabase) return;
-                 if (!studyPlanLoading || !studyPlanContent || !studyPlanEmpty || !mainPlanScheduleGrid) return; // Check elements
-
-                 studyPlanLoading.style.display = 'flex';
-                 studyPlanContent.style.display = 'none';
-                 studyPlanEmpty.style.display = 'none';
-                 mainPlanScheduleGrid.innerHTML = ''; // Clear previous schedule
-
-                 try {
-                     const { data: plans, error } = await supabase
-                         .from('study_plans')
-                         .select('id') // Only need ID
-                         .eq('user_id', currentUser.id)
-                         .eq('status', 'active')
-                         .order('created_at', { ascending: false })
-                         .limit(1);
-
-                     if (error) throw error;
-
-                     if (plans && plans.length > 0) {
-                         const activePlanId = plans[0].id;
-                         console.log("Active plan found, ID:", activePlanId);
-
-                         const { data: activities, error: activityError } = await supabase
-                             .from('plan_activities')
-                             .select('*')
-                             .eq('plan_id', activePlanId)
-                             .order('day_of_week', { ascending: true })
-                             .order('time_slot', { ascending: true });
-
-                         if (activityError) throw activityError;
-
-                         renderMainWeeklySchedule(activities || []); // Render the overview
-
-                         studyPlanContent.style.display = 'block';
-                         studyPlanEmpty.style.display = 'none';
-                     } else {
-                         console.log("No active study plan found.");
-                         studyPlanContent.style.display = 'none';
-                         studyPlanEmpty.style.display = 'block';
-                     }
-                 } catch (error) {
-                     console.error('Chyba při načítání studijního plánu:', error);
-                      if(studyPlanLoading) studyPlanLoading.innerHTML = `<div class="error-message">Chyba načítání plánu.</div>`;
-                     if(studyPlanContent) studyPlanContent.style.display = 'none';
-                     if(studyPlanEmpty) studyPlanEmpty.style.display = 'none';
-                 } finally {
-                     if(studyPlanLoading) studyPlanLoading.style.display = 'none';
-                 }
-             }
-
-            // *** Render Weekly Schedule Overview (Redesigned) ***
-            function renderMainWeeklySchedule(activities) {
-                 if (!mainPlanScheduleGrid) { console.error("Element #main-plan-schedule nebyl nalezen."); return; }
-                 mainPlanScheduleGrid.innerHTML = '';
-
-                 const daysOrder = [1, 2, 3, 4, 5, 6, 0]; // Po-Ne
-                 const dayNames = { 0: 'Neděle', 1: 'Pondělí', 2: 'Úterý', 3: 'Středa', 4: 'Čtvrtek', 5: 'Pátek', 6: 'Sobota' };
-
-                 const activitiesByDay = {};
-                 daysOrder.forEach(dayIndex => activitiesByDay[dayIndex] = []);
-                 activities.forEach(activity => {
-                     if (activitiesByDay[activity.day_of_week] !== undefined) {
-                         activitiesByDay[activity.day_of_week].push(activity);
-                     }
-                 });
-
-                 daysOrder.forEach(dayIndex => {
-                     const dayName = dayNames[dayIndex];
-                     const dayDiv = document.createElement('div');
-                     dayDiv.className = 'schedule-day';
-
-                     const headerDiv = document.createElement('div');
-                     headerDiv.className = 'schedule-day-header';
-                     headerDiv.textContent = dayName;
-                     dayDiv.appendChild(headerDiv);
-
-                     const activitiesDiv = document.createElement('div');
-                     activitiesDiv.className = 'schedule-activities';
-                     activitiesDiv.dataset.day = dayIndex;
-
-                     const dayActivities = activitiesByDay[dayIndex];
-                     if (dayActivities.length > 0) {
-                         dayActivities.forEach(activity => {
-                             const activityItem = document.createElement('div');
-                             const title = sanitizeHTML(activity.title || 'Nespecifikovaná aktivita');
-                             const timeSlot = activity.time_slot ? `<span>${sanitizeHTML(activity.time_slot)}</span>` : '';
-                             activityItem.className = `schedule-activity-item ${activity.completed ? 'completed' : ''}`;
-
-                             let iconClass = 'fa-tasks';
-                             const lowerTitle = title.toLowerCase();
-                             if (lowerTitle.includes('číst') || lowerTitle.includes('materiál') || lowerTitle.includes('teorie')) iconClass = 'fa-book-open';
-                             else if (lowerTitle.includes('řešit') || lowerTitle.includes('příklad') || lowerTitle.includes('úloh') || lowerTitle.includes('procvič')) iconClass = 'fa-pencil-alt';
-                             else if (lowerTitle.includes('opakování') || lowerTitle.includes('review')) iconClass = 'fa-redo-alt';
-                             else if (lowerTitle.includes('test') || lowerTitle.includes('zkouška')) iconClass = 'fa-vial';
-                              else if (lowerTitle.includes('video') || lowerTitle.includes('sledovat')) iconClass = 'fa-play-circle';
-
-                             activityItem.innerHTML = `
-                                 <div class="activity-icon"><i class="fas ${iconClass}"></i></div>
-                                 <div class="activity-details">
-                                     <strong>${title}</strong>
-                                     ${timeSlot}
-                                 </div>
-                             `;
-                             activitiesDiv.appendChild(activityItem);
-                         });
-                     } else {
-                         activitiesDiv.innerHTML = `<p class="no-activities-placeholder">Žádné aktivity</p>`;
-                     }
-
-                     dayDiv.appendChild(activitiesDiv);
-                     mainPlanScheduleGrid.appendChild(dayDiv);
-                 });
-
-                 // Ensure link container is appended correctly
-                 const scheduleContainer = mainPlanScheduleGrid.closest('.main-weekly-schedule');
-                  if (scheduleContainer) {
-                       let linkContainer = scheduleContainer.querySelector('.full-plan-link-container');
-                       if (!linkContainer) { // Add if missing
-                            linkContainer = document.createElement('div');
-                            linkContainer.className = 'full-plan-link-container';
-                            linkContainer.style.textAlign = 'center';
-                            linkContainer.style.marginTop = '1.5rem';
-                            linkContainer.innerHTML = `<a href="plan.html" class="btn btn-primary"><i class="fas fa-calendar-alt"></i> Zobrazit podrobný plán</a>`;
-                            scheduleContainer.appendChild(linkContainer);
-                       }
-                  }
+                     const icon = toastElement.querySelector('.toast-icon');
+                     icon.className = `toast-icon fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle'}`;
+                     toastElement.querySelector('.toast-close').addEventListener('click', () => {
+                         toastElement.classList.remove('show');
+                         setTimeout(() => toastElement.remove(), 400);
+                     });
+                     ui.toastContainer.appendChild(toastElement);
+                     requestAnimationFrame(() => { toastElement.classList.add('show'); });
+                     setTimeout(() => { if (toastElement.parentElement) { toastElement.classList.remove('show'); setTimeout(() => toastElement.remove(), 400); } }, duration);
+                 } catch (e) { console.error("Chyba při zobrazování toastu:", e); }
+              }
+            function sanitizeHTML(str) { const t = document.createElement('div'); t.textContent = str || ''; return t.innerHTML; }
+            function getInitials(profile) { if (!profile) return '?'; const f = profile.first_name?.[0] || ''; const l = profile.last_name?.[0] || ''; const nameInitial = (f + l).toUpperCase(); const usernameInitial = profile.username?.[0].toUpperCase() || ''; const emailInitial = profile.email?.[0].toUpperCase() || ''; return nameInitial || usernameInitial || emailInitial || '?'; }
+            function toggleMobileMenu() { ui.sidebar?.classList.toggle('active'); ui.sidebarOverlay?.classList.toggle('active'); }
+            function updateUserInfoUI() { // <-- Эта функция обновляет sidebar
+                if (!ui.sidebarName || !ui.sidebarAvatar) return;
+                if (currentUser && currentProfile) {
+                    const displayName = `${currentProfile.first_name || ''} ${currentProfile.last_name || ''}`.trim() || currentProfile.username || currentUser.email?.split('@')[0] || 'Uživatel';
+                    ui.sidebarName.textContent = displayName;
+                    const initials = getInitials(currentProfile);
+                    ui.sidebarAvatar.innerHTML = currentProfile.avatar_url ? `<img src="${currentProfile.avatar_url}" alt="${displayName}">` : initials;
+                } else {
+                    ui.sidebarName.textContent = 'Nepřihlášen';
+                    ui.sidebarAvatar.textContent = '?';
+                }
             }
+            // --- END: Helper Functions ---
 
-            // Load Topic Analysis (keep as is)
-             async function loadTopicAnalysis() {
-                 if (!currentUser || !supabase) return;
-                  if (!topicAnalysisLoading || !topicAnalysisContent || !topicAnalysisEmpty || !topicGrid) return; // Check elements
-
-                 topicAnalysisLoading.style.display = 'flex';
-                 topicAnalysisContent.style.display = 'none';
-                 topicAnalysisEmpty.style.display = 'none';
+             // --- START: Инициализация Supabase и страницы ---
+             function initializeSupabase() {
                  try {
-                     const { data: topics, error } = await supabase
-                         .from('user_topic_progress')
-                         .select('*, exam_topics(name, subject)')
-                         .eq('user_id', currentUser.id)
-                         .order('strength', { ascending: true });
-                     if (error) throw error;
-                     topicProgress = topics || [];
-                     if (topicProgress.length > 0) {
-                         topicAnalysisContent.style.display = 'block';
-                         topicAnalysisEmpty.style.display = 'none';
-                         renderTopicCards(topicProgress);
-                     } else {
-                         topicAnalysisContent.style.display = 'none';
-                         topicAnalysisEmpty.style.display = 'block';
-                     }
+                      if (typeof window.supabase === 'undefined' || typeof window.supabase.createClient !== 'function') {
+                         throw new Error("Supabase library not loaded correctly.");
+                      }
+                      supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+                      if (!supabase) throw new Error("Supabase client creation failed.");
+                      console.log('[Supabase] Client initialized successfully.');
+                      return true;
+                  } catch (error) {
+                      console.error('[Supabase] Initialization failed:', error);
+                      showToast("Kritická chyba: Nepodařilo se připojit k databázi.", "error");
+                      if (ui.initialLoader) { ui.initialLoader.innerHTML = `<p style="color: var(--danger);">Chyba připojení. Obnovte stránku.</p>`;}
+                      return false;
+                  }
+             }
+
+             async function fetchUserProfile(userId) {
+                 if (!supabase || !userId) return null;
+                 try {
+                     const { data: profile, error } = await supabase.from('profiles').select('*').eq('id', userId).single();
+                     if (error && error.code !== 'PGRST116') throw error;
+                     return profile; // Returns null if not found, which is handled later
                  } catch (error) {
-                     console.error('Chyba při načítání analýzy témat:', error);
-                     if(topicAnalysisLoading) topicAnalysisLoading.innerHTML = `<div class="error-message">Chyba načítání analýzy.</div>`;
-                     if(topicAnalysisContent) topicAnalysisContent.style.display = 'none';
-                     if(topicAnalysisEmpty) topicAnalysisEmpty.style.display = 'none';
-                 } finally {
-                     if(topicAnalysisLoading) topicAnalysisLoading.style.display = 'none';
+                     console.error('[Profile] Exception fetching profile:', error);
+                     showToast('Nepodařilo se načíst data profilu.', 'error');
+                     return null;
                  }
              }
-            // Render Topic Cards (keep as is)
-             function renderTopicCards(topics) {
-                 if (!topicGrid) return;
-                 if (!topics || topics.length === 0) { topicGrid.innerHTML = '<p style="text-align:center; color: var(--text-muted);">Žádná data pro analýzu.</p>'; return; }
-                 const strengthOrder = { 'weakness': 0, 'neutral': 1, 'strength': 2 };
-                 topics.sort((a, b) => (strengthOrder[a.strength] ?? 1) - (strengthOrder[b.strength] ?? 1));
-                 let html = '';
-                 topics.forEach(topic => {
-                     const topicName = topic.exam_topics?.name || `Téma ID ${topic.topic_id}` || 'Neznámé téma';
-                     const subjectName = topic.exam_topics?.subject || '';
-                     const iconClass = topicIcons[topicName] || topicIcons[subjectName] || topicIcons.default;
-                     const strength = topic.strength || 'neutral';
-                     const questionsAttempted = topic.questions_attempted || 0;
-                     const questionsCorrect = topic.questions_correct || 0;
-                     const accuracy = questionsAttempted > 0 ? Math.round((questionsCorrect / questionsAttempted) * 100) : 0;
-                     const progress = topic.progress || 0;
-                     let descriptionPoints = [];
-                     if (strength === 'strength') descriptionPoints = ['Výborná znalost', 'Konzistentní výsledky', 'Pokračuj v opakování'];
-                     else if (strength === 'weakness') descriptionPoints = ['Potřeba zlepšení', 'Častější chyby', 'Doporučeno procvičování'];
-                     else descriptionPoints = ['Průměrná znalost', 'Občasné chyby', 'Doporučeno opakování'];
-                     html += `
-                         <div class="topic-card ${strength}">
-                              <div class="topic-header">
-                                   <div class="topic-icon"><i class="fas ${iconClass}"></i></div>
-                                   <h3 class="topic-title">${sanitizeHTML(topicName)}</h3>
-                              </div>
-                              <div class="topic-stats">
-                                   <div class="topic-stat" title="Správnost odpovědí"> <i class="fas fa-check-circle"></i> <span>${accuracy}% správně</span> </div>
-                                   <div class="topic-stat" title="Počet zodpovězených otázek"> <i class="fas fa-tasks"></i> <span>${questionsAttempted} otázek</span> </div>
-                              </div>
-                              <div class="progress-container" title="Celkový pokrok v tématu"> <div class="progress-bar" style="width: ${progress}%;"></div> </div>
-                              <div class="topic-content"> <ul> ${descriptionPoints.map(desc => `<li>${sanitizeHTML(desc)}</li>`).join('')} </ul> </div>
-                         </div>`; });
-                 topicGrid.innerHTML = html;
-             }
 
-            // Initialize the app
-            init();
-        });
+             async function initializePage() {
+                 console.log("🚀 [Init Procvičování] Initializing page...");
+                 if (!initializeSupabase()) return;
+
+                 // Показать начальный загрузчик
+                 if (ui.initialLoader) {
+                     ui.initialLoader.classList.remove('hidden');
+                     ui.initialLoader.style.display = 'flex';
+                 }
+                 if (ui.mainContent) { ui.mainContent.style.display = 'none'; } // Скрыть основной контент
+
+                 try {
+                     const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+                     if (sessionError) throw new Error(`Nepodařilo se ověřit přihlášení: ${sessionError.message}`);
+
+                     if (session?.user) {
+                         currentUser = session.user;
+                         currentProfile = await fetchUserProfile(currentUser.id);
+                         // Update sidebar even if profile fetch failed (shows email initial)
+                         updateUserInfoUI();
+
+                         if (!currentProfile) {
+                             console.warn("User profile not found, some features might be limited.");
+                             showToast("Profil nenalezen. Některé funkce nemusí fungovat.", "warning");
+                         }
+
+                         // <<< Загрузка данных для страницы Procvičování >>>
+                         // await loadStats();
+                         // await loadTestResults(); // и так далее...
+                         // <<< Конец загрузки данных >>>
+
+                         // Скрыть загрузчик и показать контент ПОСЛЕ некоторой задержки или завершения загрузки данных
+                         // Пример с задержкой:
+                         setTimeout(() => {
+                             if (ui.initialLoader) {
+                                 ui.initialLoader.classList.add('hidden');
+                                 setTimeout(() => { if (ui.initialLoader) ui.initialLoader.style.display = 'none'; }, 500); // Delay hiding completely
+                             }
+                             if (ui.mainContent) {
+                                 ui.mainContent.style.display = 'block';
+                                 requestAnimationFrame(() => { ui.mainContent.classList.add('loaded'); });
+                             }
+                             console.log("✅ [Init Procvičování] Page displayed.");
+                         }, 500); // Имитация загрузки данных (замени на реальную логику)
+
+
+                     } else {
+                         console.log("[Init Procvičování] User not logged in. Redirecting...");
+                         window.location.href = '/auth/index.html';
+                     }
+                 } catch (error) {
+                     console.error("❌ [Init Procvičování] Critical initialization error:", error);
+                     if (ui.initialLoader && !ui.initialLoader.classList.contains('hidden')) {
+                         ui.initialLoader.innerHTML = `<p style="color: var(--danger);">Chyba (${error.message}). Obnovte stránku.</p>`;
+                     }
+                     if (ui.mainContent) { ui.mainContent.style.display = 'none'; }
+                 }
+             }
+             // --- END: Инициализация Supabase и страницы ---
+
+            // --- START: Event Listeners ---
+            function setupEventListeners() {
+                 if (ui.mobileMenuToggle) { ui.mobileMenuToggle.addEventListener('click', toggleMobileMenu); }
+                 if (ui.sidebarOverlay) { ui.sidebarOverlay.addEventListener('click', toggleMobileMenu); }
+
+                 // Tabs switching logic (from your original procvicovani/main.html)
+                 const contentTabs = document.querySelectorAll('.content-tab');
+                 const tabContents = document.querySelectorAll('.tab-content');
+                 contentTabs.forEach(tab => {
+                     tab.addEventListener('click', () => {
+                         const tabId = tab.dataset.tab;
+                         contentTabs.forEach(t => t.classList.remove('active'));
+                         tabContents.forEach(c => c.classList.remove('active'));
+                         tab.classList.add('active');
+                         const targetContent = document.getElementById(tabId);
+                          if (targetContent) { targetContent.classList.add('active'); }
+                     });
+                 });
+                 // Add other listeners specific to procvicovani/main.html here
+            }
+            // --- END: Event Listeners ---
+
+
+            // --- Запуск приложения ---
+            // Ждем загрузки DOM перед инициализацией скриптов
+            document.addEventListener('DOMContentLoaded', () => {
+                setupEventListeners(); // Настроить базовые слушатели UI
+                initializePage();      // Запустить инициализацию страницы (включая проверку auth)
+            });
+
+        })(); // Конец IIFE
     </script>
+
 </body>
 </html>
