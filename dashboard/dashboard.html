@@ -91,7 +91,7 @@
         .header-content > div:first-child { display: flex; align-items: center; gap: 1rem; flex-grow: 1; }
         .header-content h1 { font-size: 1.7rem; font-weight: 600; color: var(--text-primary); margin: 0; }
         .header-actions { display: flex; align-items: center; gap: 0.8rem; /* Уменьшен gap */ }
-        .search-box { position: relative; display: none; /* Скрыто по умолчанию, можно включить при необходимости */ }
+        .search-box { position: relative; display: none; /* Скрыто по умолчанию */ }
         .search-box input { width: 220px; height: 38px; border-radius: 19px; padding: 0 1rem 0 2.3rem; border: 1px solid var(--border-color); background-color: var(--input-bg); outline: none; transition: all 0.2s ease; font-size: 0.9rem; }
         .search-box input::placeholder { color: var(--text-muted); }
         .search-box input:focus { border-color: var(--primary-light); box-shadow: 0 0 0 3px var(--input-focus-shadow); }
@@ -159,7 +159,7 @@
         .welcome-image { width: 280px; height: auto; display: flex; align-items: center; justify-content: center; }
         .welcome-image svg { width: 100%; height: auto; max-height: 180px; opacity: 0.7; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1)); }
         .stat-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; }
-        .stat-card { background-color: var(--card-bg); border-radius: var(--card-radius); box-shadow: var(--shadow-sm); overflow: hidden; transition: all 0.3s ease; min-height: 180px; position: relative; display: flex; flex-direction: column; border: 1px solid var(--border-color);}
+        .stat-card { background-color: var(--card-bg-color); border-radius: var(--card-radius); box-shadow: var(--shadow-sm); overflow: hidden; transition: all 0.3s ease; min-height: 180px; position: relative; display: flex; flex-direction: column; border: 1px solid var(--border-color);}
         .stat-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); border-color: var(--primary-light); }
         .stat-card-content { display: flex; padding: 1.25rem 1.5rem; align-items: flex-start; justify-content: space-between; flex-grow: 1; }
         .stat-card-info { flex-grow: 1; }
@@ -178,13 +178,13 @@
         .stat-card-footer a i { margin-left: 0.4rem; transition: transform 0.2s ease; font-size: 0.8em;}
         .stat-card-footer a:hover i { transform: translateX(3px); }
         .shortcut-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; }
-        .shortcut-card { background-color: var(--card-bg); border-radius: var(--card-radius); padding: 1.5rem; box-shadow: var(--shadow-sm); text-decoration: none; color: var(--text-primary); transition: all 0.3s ease; display: flex; flex-direction: column; align-items: center; text-align: center; border: 1px solid var(--border-color); }
+        .shortcut-card { background-color: var(--card-bg-color); border-radius: var(--card-radius); padding: 1.5rem; box-shadow: var(--shadow-sm); text-decoration: none; color: var(--text-primary); transition: all 0.3s ease; display: flex; flex-direction: column; align-items: center; text-align: center; border: 1px solid var(--border-color); }
         .shortcut-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-md); border-color: var(--primary-light); background-color: rgba(var(--primary-rgb), 0.03); }
         .shortcut-icon { width: 55px; height: 55px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-bottom: 1rem; background-color: rgba(var(--primary-rgb), 0.1); color: var(--primary); transition: all 0.3s ease; }
         .shortcut-card:hover .shortcut-icon { background-color: var(--primary); color: var(--white); transform: scale(1.1); }
         .shortcut-title { font-size: 1.05rem; font-weight: 600; margin-bottom: 0.4rem; color: var(--text-primary); }
         .shortcut-desc { font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5; }
-        .activity-list-container { background-color: var(--card-bg); border-radius: var(--card-radius); box-shadow: var(--shadow-sm); min-height: 300px; position: relative; transition: all 0.3s ease; border: 1px solid var(--border-color); display: flex; flex-direction: column; }
+        .activity-list-container { background-color: var(--card-bg-color); border-radius: var(--card-radius); box-shadow: var(--shadow-sm); min-height: 300px; position: relative; transition: all 0.3s ease; border: 1px solid var(--border-color); display: flex; flex-direction: column; }
         .activity-list { flex-grow: 1; overflow-y: auto; max-height: 400px; /* Limit height */ padding: 0.5rem 0; }
          .activity-list::-webkit-scrollbar { width: 6px; }
          .activity-list::-webkit-scrollbar-track { background: transparent; }
@@ -215,7 +215,7 @@
         .loading-overlay.hidden { opacity: 0; pointer-events: none; }
         .loading-spinner { width: 28px; height: 28px; border: 3px solid var(--primary); border-radius: 50%; border-top-color: transparent; animation: loading-spinner 0.8s linear infinite; }
         @keyframes loading-spinner { to { transform: rotate(360deg); } }
-        .activity-list-container .empty-state, .card-error-state { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90%; padding: 2rem; text-align: center; color: var(--text-secondary); }
+        .activity-list-container .empty-state, .card-error-state { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90%; padding: 2rem; text-align: center; color: var(--text-secondary); display: none; /* Hide by default */ }
         .activity-list-container .empty-state i, .card-error-state i { font-size: 2rem; margin-bottom: 1rem; color: var(--info); }
         .activity-list-container .empty-state p, .card-error-state p { margin-bottom: 0; font-size: 0.95rem;}
         .card-error-state i { color: var(--danger); }
@@ -257,11 +257,11 @@
         .activity-list .skeleton-activity-item:last-child { border-bottom: none; }
         /* Hide real content when skeleton is visible */
         .stat-card.loading .stat-card-content, .stat-card.loading .stat-card-footer { visibility: hidden; }
-        .stat-card:not(.loading) .loading-skeleton { display: none; }
-        .activity-list .activity-item { display: none; }
-        .activity-list.loading .loading-placeholder { display: block; }
-        .activity-list:not(.loading) .loading-placeholder { display: none; }
-        .activity-list:not(.loading) .activity-item { display: flex; }
+        .stat-card.loading .loading-skeleton { display: flex; } /* Show skeleton */
+        .activity-list-container.loading .activity-list { visibility: hidden; } /* Hide list content area */
+        .activity-list-container.loading .loading-placeholder { display: block; } /* Show skeleton placeholder */
+        .activity-list-container:not(.loading) .loading-placeholder { display: none; }
+        .activity-list-container:not(.loading) .activity-list { visibility: visible; }
 
         /* Media Queries */
         @media (max-width: 1200px) { .welcome-content { padding: 2rem; } .welcome-text-content { max-width: 100%; } .welcome-image { display: none; } }
@@ -306,36 +306,36 @@
         .sidebar-overlay.active { display: block; opacity: 1; }
         .initial-loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--bg-color); z-index: 1100; display: flex; justify-content: center; align-items: center; flex-direction: column; gap: 1rem; transition: opacity 0.5s ease-out; }
         .initial-loading-overlay.hidden { opacity: 0; pointer-events: none; }
-        .initial-loading-overlay .loading-spinner { width: 35px; height: 35px; border-width: 4px; border-color: var(--primary); border-top-color: transparent; }
+        .initial-loading-overlay .loading-spinner { width: 35px; height: 35px; border-width: 4px; border-color: var(--primary); border-top-color: transparent; animation: loading-spinner 0.8s linear infinite;} /* Apply animation here */
         .initial-loading-overlay p { color: var(--text-secondary); font-size: 1.1rem;}
     </style>
 </head>
 <body>
     <div class="initial-loading-overlay" id="initial-loader">
          <div class="loading-spinner"></div>
-         <p>Проверка...</p>
+         <p>Ověřování...</p>
      </div>
 
-    <div class="offline-banner" id="offline-banner"> <i class="fas fa-wifi"></i> В данный момент вы оффлайн. Некоторые функции могут работать некорректно. </div>
+    <div class="offline-banner" id="offline-banner"> <i class="fas fa-wifi"></i> Momentálně jste offline. Některé funkce nemusí fungovat správně. </div>
 
     <div class="sidebar-overlay" id="sidebar-overlay"></div>
 
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
-             <button class="mobile-menu-toggle" id="sidebar-close-toggle"> <i class="fas fa-times"></i> </button>
+             <button class="mobile-menu-toggle" id="sidebar-close-toggle" style="color: var(--white); margin-right: 1rem; display: none; background: none; border: none; font-size: 1.5rem; cursor: pointer;"> <i class="fas fa-times"></i> </button>
             <a href="/" class="sidebar-logo"> <i class="fas fa-calculator"></i> <span>Justax</span> </a>
         </div>
         <ul class="sidebar-menu">
-            <li class="sidebar-item"> <a href="/dashboard.html" class="sidebar-link active"> <i class="fas fa-th-large"></i> <span>Dashboard</span> </a> </li>
-            <li class="sidebar-item"> <a href="/dashboard/procvicovani/main.html" class="sidebar-link"> <i class="fas fa-book-open"></i> <span>Упражнения</span> </a> </li>
-            <li class="sidebar-item"> <a href="/dashboard/pokrok.html" class="sidebar-link"> <i class="fas fa-chart-line"></i> <span>Прогресс</span> </a> </li>
-            <li class="sidebar-item"> <a href="/dashboard/oceneni.html" class="sidebar-link"> <i class="fas fa-medal"></i> <span>Награды</span> </a> </li>
-            <li class="sidebar-item"> <a href="/dashboard/materialy.html" class="sidebar-link"> <i class="fas fa-file-alt"></i> <span>Материалы</span> </a> </li>
-            <li class="sidebar-item"> <a href="/dashboard/profile.html" class="sidebar-link"> <i class="fas fa-user-cog"></i> <span>Профиль</span> </a> </li>
+            <li class="sidebar-item"> <a href="/dashboard.html" class="sidebar-link active"> <i class="fas fa-th-large"></i> <span>Nástěnka</span> </a> </li>
+            <li class="sidebar-item"> <a href="/dashboard/procvicovani/main.html" class="sidebar-link"> <i class="fas fa-book-open"></i> <span>Procvičování</span> </a> </li>
+            <li class="sidebar-item"> <a href="/dashboard/pokrok.html" class="sidebar-link"> <i class="fas fa-chart-line"></i> <span>Pokrok</span> </a> </li>
+            <li class="sidebar-item"> <a href="/dashboard/oceneni.html" class="sidebar-link"> <i class="fas fa-medal"></i> <span>Ocenění</span> </a> </li>
+            <li class="sidebar-item"> <a href="/dashboard/materialy.html" class="sidebar-link"> <i class="fas fa-file-alt"></i> <span>Materiály</span> </a> </li>
+            <li class="sidebar-item"> <a href="/dashboard/profile.html" class="sidebar-link"> <i class="fas fa-user-cog"></i> <span>Profil</span> </a> </li>
         </ul>
         <div class="user-profile">
             <div class="user-avatar" id="sidebar-avatar">?</div>
-            <div class="user-info"> <div class="user-name" id="sidebar-name">Загрузка...</div> <div class="user-role">Студент</div> </div>
+            <div class="user-info"> <div class="user-name" id="sidebar-name">Načítání...</div> <div class="user-role">Student</div> </div>
         </div>
         <div class="sidebar-footer"> &copy; 2025 Justax </div>
     </aside>
@@ -345,19 +345,19 @@
 
         <header class="dashboard-header">
             <div class="header-content">
-                 <div> <button class="mobile-menu-toggle" id="main-mobile-menu-toggle"> <i class="fas fa-bars"></i> </button> <h1 id="dashboard-title">Dashboard</h1> </div>
+                 <div> <button class="mobile-menu-toggle" id="main-mobile-menu-toggle"> <i class="fas fa-bars"></i> </button> <h1 id="dashboard-title">Nástěnka</h1> </div>
                 <div class="header-actions">
-                    <button class="refresh-btn" id="refresh-data-btn" title="Обновить данные"> <i class="fas fa-sync-alt"></i> <span class="refresh-text">Обновить</span> </button>
-                    <div class="search-box"> <i class="fas fa-search"></i> <input type="text" placeholder="Поиск..."> </div>
+                    <button class="refresh-btn" id="refresh-data-btn" title="Obnovit data"> <i class="fas fa-sync-alt"></i> <span class="refresh-text">Obnovit</span> </button>
+                    <div class="search-box"> <i class="fas fa-search"></i> <input type="text" placeholder="Hledat..."> </div>
                     <div class="notifications">
-                        <div class="notification-bell" id="notification-bell" title="Уведомления">
+                        <div class="notification-bell" id="notification-bell" title="Oznámení">
                              <i class="far fa-bell"></i>
                              <span class="notification-badge" id="notification-count">0</span>
                         </div>
                         <div class="notifications-dropdown-wrapper" id="notifications-dropdown">
                              <div class="notifications-header">
-                                 <span class="notifications-title">Уведомления</span>
-                                 <button class="mark-all-read-btn" id="mark-all-read" disabled>Отметить все как прочитанные</button>
+                                 <span class="notifications-title">Oznámení</span>
+                                 <button class="mark-all-read-btn" id="mark-all-read" disabled>Označit vše jako přečtené</button>
                              </div>
                              <div id="notifications-list">
                                  <div class="notification-item skeleton">
@@ -376,10 +376,10 @@
                                          <div class="skeleton" style="height: 10px; width: 50%; margin-top: 6px;"></div>
                                      </div>
                                  </div>
-                                 <div id="no-notifications-msg">Нет новых уведомлений.</div>
+                                 <div id="no-notifications-msg">Žádná nová oznámení.</div>
                              </div>
                              <div class="notifications-footer">
-                                 <a href="#" class="view-all-notifications-link">Посмотреть все уведомления</a>
+                                 <a href="#" class="view-all-notifications-link">Zobrazit všechna oznámení</a>
                              </div>
                         </div>
                      </div>
@@ -391,9 +391,9 @@
              <section class="welcome-banner">
                  <div class="welcome-content">
                      <div class="welcome-text-content">
-                         <h2 class="welcome-title" id="welcome-title">Добро пожаловать!</h2>
-                         <p class="welcome-text">Здесь вы найдете обзор вашего прогресса, быстрые ссылки и последние активности.</p>
-                         <button class="welcome-button" id="start-practice-btn"><i class="fas fa-pencil-alt"></i> Начать упражняться</button>
+                         <h2 class="welcome-title" id="welcome-title">Vítejte!</h2>
+                         <p class="welcome-text">Zde najdete přehled svého pokroku, rychlé odkazy a nejnovější aktivity.</p>
+                         <button class="welcome-button" id="start-practice-btn"><i class="fas fa-pencil-alt"></i> Začít procvičovat</button>
                      </div>
                      <div class="welcome-image">
                           <svg viewBox="0 0 220 160" fill="none" xmlns="http://www.w3.org/2000/svg"> <rect width="220" height="160" rx="12" fill="url(#paint0_linear_dash_db)"/> <path d="M30 110C30 100 70 60 110 80C150 100 190 40 190 40" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" stroke-opacity="0.6"/> <circle cx="45" cy="105" r="6" fill="white" fill-opacity="0.7"/> <circle cx="110" cy="80" r="8" fill="white" fill-opacity="0.8"/> <circle cx="190" cy="40" r="6" fill="white" fill-opacity="0.7"/> <rect x="30" y="130" width="160" height="8" rx="4" fill="white" fill-opacity="0.3"/> <rect x="50" y="120" width="120" height="6" rx="3" fill="white" fill-opacity="0.2"/> <defs> <linearGradient id="paint0_linear_dash_db" x1="0" y1="0" x2="220" y2="160" gradientUnits="userSpaceOnUse"> <stop stop-color="white" stop-opacity="0.3"/> <stop offset="1" stop-color="white" stop-opacity="0"/> </linearGradient> </defs> </svg>
@@ -402,38 +402,38 @@
              </section>
 
             <section class="stats-section">
-                <h2 class="section-title"><i class="fas fa-chart-pie"></i>Ваш прогресс</h2>
+                <h2 class="section-title"><i class="fas fa-chart-pie"></i>Váš pokrok</h2>
                 <div class="stat-cards">
                     <div class="stat-card loading" id="progress-card">
                          <div class="loading-skeleton"> <div class="skeleton-info"> <div class="skeleton title"></div> <div class="skeleton value"></div> <div class="skeleton text text-short"></div> </div> <div class="skeleton icon-placeholder"></div> </div>
-                         <div class="stat-card-content"> <div class="stat-card-info"> <div class="stat-card-title"><i class="fas fa-tasks"></i>Общий прогресс</div> <div class="stat-card-value">- %</div> <div class="stat-card-change"><i class="fas fa-minus"></i> Загрузка...</div> </div> <div class="stat-card-icon-bg progress-icon"><i class="fas fa-chart-line"></i></div> </div>
-                         <div class="stat-card-footer"><a href="/dashboard/pokrok.html">Посмотреть детали <i class="fas fa-chevron-right"></i></a></div>
+                         <div class="stat-card-content"> <div class="stat-card-info"> <div class="stat-card-title"><i class="fas fa-tasks"></i>Celkový pokrok</div> <div class="stat-card-value">- %</div> <div class="stat-card-change"><i class="fas fa-minus"></i> Načítání...</div> </div> <div class="stat-card-icon-bg progress-icon"><i class="fas fa-chart-line"></i></div> </div>
+                         <div class="stat-card-footer"><a href="/dashboard/pokrok.html">Zobrazit podrobnosti <i class="fas fa-chevron-right"></i></a></div>
                     </div>
                      <div class="stat-card loading" id="points-card">
                          <div class="loading-skeleton"> <div class="skeleton-info"> <div class="skeleton title"></div> <div class="skeleton value"></div> <div class="skeleton text text-short"></div> </div> <div class="skeleton icon-placeholder"></div> </div>
-                          <div class="stat-card-content"> <div class="stat-card-info"> <div class="stat-card-title"><i class="fas fa-coins"></i>Баллы</div> <div class="stat-card-value">-</div> <div class="stat-card-change"><i class="fas fa-minus"></i> Загрузка...</div> </div> <div class="stat-card-icon-bg points-icon"><i class="fas fa-star"></i></div> </div>
-                          <div class="stat-card-footer"><a href="/dashboard/oceneni.html">Посмотреть награды <i class="fas fa-chevron-right"></i></a></div>
+                          <div class="stat-card-content"> <div class="stat-card-info"> <div class="stat-card-title"><i class="fas fa-coins"></i>Body</div> <div class="stat-card-value">-</div> <div class="stat-card-change"><i class="fas fa-minus"></i> Načítání...</div> </div> <div class="stat-card-icon-bg points-icon"><i class="fas fa-star"></i></div> </div>
+                          <div class="stat-card-footer"><a href="/dashboard/oceneni.html">Zobrazit odměny <i class="fas fa-chevron-right"></i></a></div>
                      </div>
                      <div class="stat-card loading" id="streak-card">
                          <div class="loading-skeleton"> <div class="skeleton-info"> <div class="skeleton title"></div> <div class="skeleton value"></div> <div class="skeleton text text-short"></div> </div> <div class="skeleton icon-placeholder"></div> </div>
-                           <div class="stat-card-content"> <div class="stat-card-info"> <div class="stat-card-title"><i class="fas fa-calendar-check"></i>Дней подряд</div> <div class="stat-card-value">-</div> <div class="stat-card-change">Лучшая: - дн.</div> </div> <div class="stat-card-icon-bg streak-icon"><i class="fas fa-fire"></i></div> </div>
-                          <div class="stat-card-footer"><a href="/dashboard/procvicovani/main.html">Упражняться <i class="fas fa-chevron-right"></i></a></div>
+                           <div class="stat-card-content"> <div class="stat-card-info"> <div class="stat-card-title"><i class="fas fa-calendar-check"></i>Dnů v řadě</div> <div class="stat-card-value">-</div> <div class="stat-card-change">Nejdelší: - dní</div> </div> <div class="stat-card-icon-bg streak-icon"><i class="fas fa-fire"></i></div> </div>
+                          <div class="stat-card-footer"><a href="/dashboard/procvicovani/main.html">Procvičovat <i class="fas fa-chevron-right"></i></a></div>
                      </div>
                 </div>
             </section>
 
             <section class="shortcuts-section">
-                <h2 class="section-title"><i class="fas fa-bolt"></i>Быстрые ссылки</h2>
+                <h2 class="section-title"><i class="fas fa-bolt"></i>Rychlé odkazy</h2>
                 <div class="shortcut-grid">
-                    <a href="/dashboard/procvicovani/main.html" class="shortcut-card"> <div class="shortcut-icon"> <i class="fas fa-book-open"></i> </div> <h3 class="shortcut-title">Упражнения</h3> <p class="shortcut-desc">Практикуйте свои знания и навыки по различным темам.</p> </a>
-                    <a href="/dashboard/pokrok.html" class="shortcut-card"> <div class="shortcut-icon"> <i class="fas fa-chart-line"></i> </div> <h3 class="shortcut-title">Прогресс</h3> <p class="shortcut-desc">Следите за своим прогрессом и достижениями в учебе.</p> </a>
-                    <a href="/dashboard/materialy.html" class="shortcut-card"> <div class="shortcut-icon"> <i class="fas fa-file-alt"></i> </div> <h3 class="shortcut-title">Материалы</h3> <p class="shortcut-desc">Просмотрите учебные материалы и ресурсы.</p> </a>
-                    <a href="/dashboard/profile.html" class="shortcut-card"> <div class="shortcut-icon"> <i class="fas fa-user-cog"></i> </div> <h3 class="shortcut-title">Профиль</h3> <p class="shortcut-desc">Измените личные данные и настройки.</p> </a>
+                    <a href="/dashboard/procvicovani/main.html" class="shortcut-card"> <div class="shortcut-icon"> <i class="fas fa-book-open"></i> </div> <h3 class="shortcut-title">Procvičování</h3> <p class="shortcut-desc">Procvičte si své znalosti a dovednosti v různých tématech.</p> </a>
+                    <a href="/dashboard/pokrok.html" class="shortcut-card"> <div class="shortcut-icon"> <i class="fas fa-chart-line"></i> </div> <h3 class="shortcut-title">Pokrok</h3> <p class="shortcut-desc">Sledujte svůj pokrok a úspěchy v jednotlivých oblastech.</p> </a>
+                    <a href="/dashboard/materialy.html" class="shortcut-card"> <div class="shortcut-icon"> <i class="fas fa-file-alt"></i> </div> <h3 class="shortcut-title">Materiály</h3> <p class="shortcut-desc">Prohlédněte si výukové materiály a studijní zdroje.</p> </a>
+                    <a href="/dashboard/profile.html" class="shortcut-card"> <div class="shortcut-icon"> <i class="fas fa-user-cog"></i> </div> <h3 class="shortcut-title">Profil</h3> <p class="shortcut-desc">Upravte své osobní údaje a nastavení profilu.</p> </a>
                 </div>
             </section>
 
             <section class="activity-section">
-                <h2 class="section-title"><i class="fas fa-history"></i>Недавние активности</h2>
+                <h2 class="section-title"><i class="fas fa-history"></i>Nedávné aktivity</h2>
                 <div class="activity-list-container loading" id="activity-list-container">
                     <div class="activity-list" id="activity-list">
                         <div class="loading-placeholder">
@@ -442,19 +442,19 @@
                              <div class="skeleton-activity-item"> <div class="skeleton activity-icon-placeholder"></div> <div style="flex-grow: 1;"> <div class="skeleton activity-line"></div> <div class="skeleton activity-line text-short"></div> <div class="skeleton activity-line-short"></div> </div> </div>
                         </div>
                          <div class="empty-state" style="display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90%;">
-                            <i class="fas fa-box-open"></i><p>Нет недавних активностей.</p>
+                            <i class="fas fa-box-open"></i><p>Žádné nedávné aktivity.</p>
                          </div>
                          <div class="card-error-state" style="display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90%;">
-                             <i class="fas fa-exclamation-triangle"></i><p>Не удалось загрузить активности.</p>
+                             <i class="fas fa-exclamation-triangle"></i><p>Nepodařilo se načíst aktivity.</p>
                          </div>
                     </div>
-                     <a href="/dashboard/pokrok.html" class="view-all-link">Посмотреть все активности <i class="fas fa-chevron-right"></i></a>
+                     <a href="/dashboard/pokrok.html" class="view-all-link">Zobrazit všechny aktivity <i class="fas fa-chevron-right"></i></a>
                  </div>
             </section>
         </div>
 
         <footer class="dashboard-footer">
-            <p>&copy; 2025 Justax. Все права защищены.</p>
+            <p>&copy; 2025 Justax. Všechna práva vyhrazena.</p>
         </footer>
     </main>
 
@@ -495,6 +495,7 @@
                 welcomeTitle: document.getElementById('welcome-title'),
                 dashboardTitle: document.getElementById('dashboard-title'),
                 refreshDataBtn: document.getElementById('refresh-data-btn'),
+                // Notification Elements
                 notificationBell: document.getElementById('notification-bell'),
                 notificationCount: document.getElementById('notification-count'),
                 notificationsDropdown: document.getElementById('notifications-dropdown'),
@@ -502,28 +503,74 @@
                 noNotificationsMsg: document.getElementById('no-notifications-msg'),
                 markAllReadBtn: document.getElementById('mark-all-read')
             };
-             // Maps for Activity Types
+             // Mapování typů aktivit pro ikony a třídy (ČESKY)
              const activityVisuals = {
-                test: { name: 'Тест', icon: 'fa-vial', class: 'test' },
-                exercise: { name: 'Упражнение', icon: 'fa-pencil-alt', class: 'exercise' },
-                badge: { name: 'Награда', icon: 'fa-medal', class: 'badge' },
-                diagnostic: { name: 'Диагностика', icon: 'fa-clipboard-check', class: 'diagnostic' },
-                lesson: { name: 'Урок', icon: 'fa-book-open', class: 'lesson' },
-                plan_generated: { name: 'План создан', icon: 'fa-calendar-alt', class: 'plan_generated' },
-                level_up: { name: 'Новый уровень', icon: 'fa-level-up-alt', class: 'level_up' },
-                other: { name: 'Другое', icon: 'fa-info-circle', class: 'other' },
-                default: { name: 'Активность', icon: 'fa-check-circle', class: 'default' }
+                test: { name: 'Test', icon: 'fa-vial', class: 'test' },
+                exercise: { name: 'Cvičení', icon: 'fa-pencil-alt', class: 'exercise' },
+                badge: { name: 'Odznak', icon: 'fa-medal', class: 'badge' },
+                diagnostic: { name: 'Diagnostika', icon: 'fa-clipboard-check', class: 'diagnostic' },
+                lesson: { name: 'Lekce', icon: 'fa-book-open', class: 'lesson' },
+                plan_generated: { name: 'Plán vytvořen', icon: 'fa-calendar-alt', class: 'plan_generated' },
+                level_up: { name: 'Nová úroveň', icon: 'fa-level-up-alt', class: 'level_up' },
+                other: { name: 'Ostatní', icon: 'fa-info-circle', class: 'other' },
+                default: { name: 'Aktivita', icon: 'fa-check-circle', class: 'default' }
              };
             // --- END: Initialization and Configuration ---
 
 
             // --- START: Helper Functions ---
-             function showToast(message, type = 'success', duration = 4000) { /* ... (implementation from pokrok.html) ... */ if (!ui.toastContainer) return; try { const toastId = `toast-${Date.now()}`; const toastElement = document.createElement('div'); toastElement.className = `toast ${type}`; toastElement.id = toastId; toastElement.setAttribute('role', 'alert'); toastElement.setAttribute('aria-live', 'assertive'); toastElement.innerHTML = `<i class="toast-icon"></i><div class="toast-content"><div class="toast-message">${sanitizeHTML(message)}</div></div><button type="button" class="toast-close" aria-label="Закрыть">&times;</button>`; const icon = toastElement.querySelector('.toast-icon'); icon.className = `toast-icon fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle'}`; toastElement.querySelector('.toast-close').addEventListener('click', () => { toastElement.classList.remove('show'); setTimeout(() => toastElement.remove(), 400); }); ui.toastContainer.appendChild(toastElement); requestAnimationFrame(() => { toastElement.classList.add('show'); }); setTimeout(() => { if (toastElement.parentElement) { toastElement.classList.remove('show'); setTimeout(() => toastElement.remove(), 400); } }, duration); } catch (e) { console.error("Ошибка при показе toast:", e); } }
-             function showError(message, isGlobal = false) { /* ... (implementation from pokrok.html) ... */ console.error("Произошла ошибка:", message); if (isGlobal && ui.globalError) { ui.globalError.innerHTML = `<div class="error-message"><i class="fas fa-exclamation-circle"></i><div>${sanitizeHTML(message)}</div><button class="retry-button" id="global-retry-btn">Попробовать снова</button></div>`; ui.globalError.style.display = 'block'; const retryBtn = document.getElementById('global-retry-btn'); if (retryBtn) { retryBtn.addEventListener('click', () => { hideError(); if (currentUser && !isLoadingData) { setLoadingState('all', true); loadDashboardData(currentUser); } else { console.warn("Retry clicked, but no user or already loading."); } }); } } else { showToast(message, 'error', 6000); } }
+             function showToast(message, type = 'success', duration = 4000) {
+                 if (!ui.toastContainer) return;
+                 try {
+                     const toastId = `toast-${Date.now()}`;
+                     const toastElement = document.createElement('div');
+                     toastElement.className = `toast ${type}`;
+                     toastElement.id = toastId;
+                     toastElement.setAttribute('role', 'alert');
+                     toastElement.setAttribute('aria-live', 'assertive');
+                     toastElement.innerHTML = `
+                         <i class="toast-icon"></i>
+                         <div class="toast-content">
+                             <div class="toast-message">${sanitizeHTML(message)}</div>
+                         </div>
+                         <button type="button" class="toast-close" aria-label="Zavřít">&times;</button>
+                     `;
+                     const icon = toastElement.querySelector('.toast-icon');
+                     icon.className = `toast-icon fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle'}`;
+                     toastElement.querySelector('.toast-close').addEventListener('click', () => {
+                         toastElement.classList.remove('show');
+                         setTimeout(() => toastElement.remove(), 400);
+                     });
+                     ui.toastContainer.appendChild(toastElement);
+                     requestAnimationFrame(() => { toastElement.classList.add('show'); });
+                     setTimeout(() => { if (toastElement.parentElement) { toastElement.classList.remove('show'); setTimeout(() => toastElement.remove(), 400); } }, duration);
+                 } catch (e) { console.error("Chyba při zobrazování toastu:", e); }
+              }
+             function showError(message, isGlobal = false) {
+                 console.error("Došlo k chybě:", message);
+                 if (isGlobal && ui.globalError) {
+                     ui.globalError.innerHTML = `<div class="error-message"><i class="fas fa-exclamation-circle"></i><div>${sanitizeHTML(message)}</div><button class="retry-button" id="global-retry-btn">Zkusit znovu</button></div>`;
+                     ui.globalError.style.display = 'block';
+                     const retryBtn = document.getElementById('global-retry-btn');
+                     if (retryBtn) {
+                          retryBtn.addEventListener('click', () => {
+                              hideError();
+                              if (currentUser && !isLoadingData) {
+                                  setLoadingState('all', true);
+                                  loadDashboardData(currentUser);
+                              } else {
+                                  console.warn("Retry clicked, but no user or already loading.");
+                              }
+                          });
+                     }
+                 } else {
+                     showToast(message, 'error', 6000);
+                 }
+             }
              function hideError() { if (ui.globalError) ui.globalError.style.display = 'none'; }
-             function updateOnlineStatus() { /* ... (implementation from pokrok.html) ... */ if (ui.offlineBanner) ui.offlineBanner.style.display = navigator.onLine ? 'none' : 'block'; if (!navigator.onLine) showToast('Вы оффлайн. Некоторые функции могут быть недоступны.', 'warning'); }
-             function getInitials(userData) { /* ... (implementation from pokrok.html) ... */ if (!userData) return '?'; const f = userData.first_name?.[0] || ''; const l = userData.last_name?.[0] || ''; const nameInitial = (f + l).toUpperCase(); const usernameInitial = userData.username?.[0].toUpperCase() || ''; const emailInitial = userData.email?.[0].toUpperCase() || ''; return nameInitial || usernameInitial || emailInitial || '?'; }
-             function formatRelativeTime(timestamp) { /* ... (implementation from pokrok.html) ... */ if (!timestamp) return ''; try { const now = new Date(); const date = new Date(timestamp); if (isNaN(date.getTime())) return '-'; const diffMs = now - date; const diffSec = Math.round(diffMs / 1000); const diffMin = Math.round(diffSec / 60); const diffHour = Math.round(diffMin / 60); const diffDay = Math.round(diffHour / 24); const diffWeek = Math.round(diffDay / 7); if (diffSec < 60) return 'Только что'; if (diffMin < 60) return `${diffMin} мин назад`; if (diffHour < 24) return `${diffHour} ч назад`; if (diffDay === 1) return `Вчера`; if (diffDay < 7) return `${diffDay} дн назад`; if (diffWeek <= 4) return `${diffWeek} нед назад`; return date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'numeric', year: 'numeric' }); } catch (e) { console.error("Ошибка форматирования времени:", e, "Timestamp:", timestamp); return '-'; } }
+             function updateOnlineStatus() { if (ui.offlineBanner) ui.offlineBanner.style.display = navigator.onLine ? 'none' : 'block'; if (!navigator.onLine) showToast('Jste offline. Některé funkce nemusí být dostupné.', 'warning'); }
+             function getInitials(userData) { if (!userData) return '?'; const f = userData.first_name?.[0] || ''; const l = userData.last_name?.[0] || ''; const nameInitial = (f + l).toUpperCase(); const usernameInitial = userData.username?.[0].toUpperCase() || ''; const emailInitial = userData.email?.[0].toUpperCase() || ''; return nameInitial || usernameInitial || emailInitial || '?'; }
+             function formatRelativeTime(timestamp) { if (!timestamp) return ''; try { const now = new Date(); const date = new Date(timestamp); if (isNaN(date.getTime())) return '-'; const diffMs = now - date; const diffSec = Math.round(diffMs / 1000); const diffMin = Math.round(diffSec / 60); const diffHour = Math.round(diffMin / 60); const diffDay = Math.round(diffHour / 24); const diffWeek = Math.round(diffDay / 7); if (diffSec < 60) return 'Právě teď'; if (diffMin < 60) return `Před ${diffMin} min`; if (diffHour < 24) return `Před ${diffHour} hod`; if (diffDay === 1) return `Včera`; if (diffDay < 7) return `Před ${diffDay} dny`; if (diffWeek <= 4) return `Před ${diffWeek} týdny`; return date.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric' }); } catch (e) { console.error("Chyba formátování času:", e, "Timestamp:", timestamp); return '-'; } }
              function openMenu() { if (ui.sidebar && ui.sidebarOverlay) { ui.sidebar.classList.add('active'); ui.sidebarOverlay.classList.add('active'); } }
              function closeMenu() { if (ui.sidebar && ui.sidebarOverlay) { ui.sidebar.classList.remove('active'); ui.sidebarOverlay.classList.remove('active'); } }
              function sanitizeHTML(str) { const temp = document.createElement('div'); temp.textContent = str || ''; return temp.innerHTML; }
@@ -532,7 +579,7 @@
             function setLoadingState(section, isLoadingFlag) {
                  const sections = section === 'all' ? ['stats', 'activities', 'notifications'] : [section];
                  sections.forEach(sec => {
-                     if (isLoading[sec] === isLoadingFlag) return;
+                     if (isLoading[sec] === isLoadingFlag && section !== 'all') return; // Avoid redundant updates unless 'all' forces it
                      isLoading[sec] = isLoadingFlag;
                      console.log(`[setLoadingState] Section: ${sec}, isLoading: ${isLoadingFlag}`);
 
@@ -543,14 +590,17 @@
                      // Handle Activity List
                      else if (sec === 'activities' && ui.activityListContainer) {
                          ui.activityListContainer.classList.toggle('loading', isLoadingFlag);
-                         if(ui.activityListEmptyState) ui.activityListEmptyState.style.display = 'none'; // Hide states while loading
-                         if(ui.activityListErrorState) ui.activityListErrorState.style.display = 'none';
+                         // Hide empty/error states ONLY when starting to load
+                         if (isLoadingFlag) {
+                            if(ui.activityListEmptyState) ui.activityListEmptyState.style.display = 'none';
+                            if(ui.activityListErrorState) ui.activityListErrorState.style.display = 'none';
+                         }
+                         // Visibility after loading is handled by renderActivities
                      }
                      // Handle Notifications (maybe just disable button?)
                      else if (sec === 'notifications' && ui.notificationBell) {
-                         // Optional: Add a visual loading state to the bell or dropdown
                           ui.notificationBell.style.opacity = isLoadingFlag ? 0.5 : 1;
-                          ui.markAllReadBtn.disabled = isLoadingFlag;
+                          ui.markAllReadBtn.disabled = isLoadingFlag || (parseInt(ui.notificationCount?.textContent || '0') === 0);
                      }
                  });
             }
@@ -567,112 +617,110 @@
                  try {
                      console.log("[INIT Dashboard] Checking auth session...");
                      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-                     if (sessionError) throw new Error(`Не удалось проверить сессию: ${sessionError.message}`);
+                     if (sessionError) throw new Error(`Nepodařilo se ověřit sezení: ${sessionError.message}`);
 
                      if (session?.user) {
                          currentUser = session.user;
-                         console.log(`[INIT Dashboard] User authenticated (ID: ${currentUser.id}). Loading dashboard data...`);
+                         console.log(`[INIT Dashboard] Uživatel ověřen (ID: ${currentUser.id}). Načítání dat dashboardu...`);
                          await loadDashboardData(currentUser); // Load all data
                          if (ui.initialLoader) { ui.initialLoader.classList.add('hidden'); setTimeout(() => { if (ui.initialLoader) ui.initialLoader.style.display = 'none'; }, 300); }
                          if (ui.mainContent) { ui.mainContent.style.display = 'block'; requestAnimationFrame(() => ui.mainContent.classList.add('loaded')); }
-                         console.log("✅ [INIT Dashboard] Page fully loaded.");
-                     } else { console.log('[INIT Dashboard] No user in session, redirecting.'); window.location.href = '/auth/index.html'; }
+                         console.log("✅ [INIT Dashboard] Stránka plně načtena.");
+                     } else { console.log('[INIT Dashboard] V sezení není uživatel, přesměrování.'); window.location.href = '/auth/index.html'; }
                  } catch (error) {
-                     console.error("❌ [INIT Dashboard] Critical initialization error:", error);
-                     if (ui.initialLoader && !ui.initialLoader.classList.contains('hidden')) { ui.initialLoader.innerHTML = `<p style="color: var(--danger);">Ошибка (${error.message}). Обновите страницу.</p>`; }
-                     else { showError(`Ошибка инициализации: ${error.message}`, true); }
+                     console.error("❌ [INIT Dashboard] Kritická chyba inicializace:", error);
+                     if (ui.initialLoader && !ui.initialLoader.classList.contains('hidden')) { ui.initialLoader.innerHTML = `<p style="color: var(--danger);">Chyba (${error.message}). Obnovte stránku.</p>`; }
+                     else { showError(`Chyba inicializace: ${error.message}`, true); }
                      if (ui.mainContent) ui.mainContent.style.display = 'none';
                  }
             }
-            function initializeSupabase() { /* ... (same as pokrok.html) ... */ try { if (typeof window.supabase === 'undefined' || typeof window.supabase.createClient !== 'function') { throw new Error("Supabase library not loaded correctly."); } supabase = window.supabase.createClient(supabaseUrl, supabaseKey); if (!supabase) throw new Error("Supabase client creation failed."); console.log('[Supabase] Client initialized successfully.'); return true; } catch (error) { console.error('[Supabase] Initialization failed:', error); showError("Критическая ошибка: Не удалось подключиться к базе данных.", true); return false; } }
-            async function fetchUserProfile(userId) { /* ... (same as pokrok.html) ... */ if (!supabase || !userId) return null; console.log(`[Profile] Fetching profile for user ID: ${userId}`); try { const { data: profile, error } = await supabase.from('profiles').select('*').eq('id', userId).single(); if (error && error.code !== 'PGRST116') { throw error; } if (!profile) { console.warn(`[Profile] Profile not found for user ${userId}.`); return null; } console.log("[Profile] Profile data fetched successfully."); return profile; } catch (error) { console.error('[Profile] Caught exception fetching profile:', error); showToast('Не удалось загрузить данные профиля.', 'error'); return null; } }
+            function initializeSupabase() { /* ... (same as pokrok.html) ... */ try { if (typeof window.supabase === 'undefined' || typeof window.supabase.createClient !== 'function') { throw new Error("Knihovna Supabase nebyla správně načtena."); } supabase = window.supabase.createClient(supabaseUrl, supabaseKey); if (!supabase) throw new Error("Vytvoření klienta Supabase selhalo."); console.log('[Supabase] Klient úspěšně inicializován.'); return true; } catch (error) { console.error('[Supabase] Inicializace selhala:', error); showError("Kritická chyba: Nepodařilo se připojit k databázi.", true); return false; } }
+            async function fetchUserProfile(userId) { /* ... (same as pokrok.html) ... */ if (!supabase || !userId) return null; console.log(`[Profile] Načítání profilu pro uživatele ID: ${userId}`); try { const { data: profile, error } = await supabase.from('profiles').select('*').eq('id', userId).single(); if (error && error.code !== 'PGRST116') { throw error; } if (!profile) { console.warn(`[Profile] Profil nenalezen pro uživatele ${userId}.`); return null; } console.log("[Profile] Data profilu úspěšně načtena."); return profile; } catch (error) { console.error('[Profile] Výjimka při načítání profilu:', error); showToast('Nepodařilo se načíst data profilu.', 'error'); return null; } }
             /** Fetches user statistics, combining profile and user_stats. */
-            async function fetchUserStats(userId, profileData) { /* ... (same as pokrok.html) ... */ if (!supabase || !userId || !profileData) { console.error("[Stats] Missing Supabase client, user ID, or profile data."); return null; } console.log(`[Stats] Fetching stats for user ${userId}...`); let fetchedStats = null; let statsError = null; try { const { data, error } = await supabase.from('user_stats').select('progress, progress_weekly, points_weekly, streak_longest, completed_tests').eq('user_id', userId).maybeSingle(); fetchedStats = data; statsError = error; if (statsError) { console.warn("[Stats] Supabase error fetching user_stats:", statsError.message); } } catch (error) { console.error("[Stats] Unexpected error fetching user_stats:", error); statsError = error; } const finalStats = { progress: fetchedStats?.progress ?? 0, progress_weekly: fetchedStats?.progress_weekly ?? 0, points: profileData.points ?? 0, points_weekly: fetchedStats?.points_weekly ?? 0, streak_current: profileData.streak_days ?? 0, streak_longest: Math.max(fetchedStats?.streak_longest ?? 0, profileData.streak_days ?? 0), completed_exercises: profileData.completed_exercises ?? 0, completed_tests: profileData.completed_tests ?? fetchedStats?.completed_tests ?? 0 }; if (statsError) { console.warn("[Stats] Returning stats based primarily on profile due to fetch error."); } else { console.log("[Stats] Stats fetched/constructed successfully:", finalStats); } return finalStats; }
+            async function fetchUserStats(userId, profileData) { /* ... (same as pokrok.html) ... */ if (!supabase || !userId || !profileData) { console.error("[Stats] Chybí Supabase klient, ID uživatele nebo data profilu."); return null; } console.log(`[Stats] Načítání statistik pro uživatele ${userId}...`); let fetchedStats = null; let statsError = null; try { const { data, error } = await supabase.from('user_stats').select('progress, progress_weekly, points_weekly, streak_longest, completed_tests').eq('user_id', userId).maybeSingle(); fetchedStats = data; statsError = error; if (statsError) { console.warn("[Stats] Chyba Supabase při načítání user_stats:", statsError.message); } } catch (error) { console.error("[Stats] Neočekávaná chyba při načítání user_stats:", error); statsError = error; } const finalStats = { progress: fetchedStats?.progress ?? 0, progress_weekly: fetchedStats?.progress_weekly ?? 0, points: profileData.points ?? 0, points_weekly: fetchedStats?.points_weekly ?? 0, streak_current: profileData.streak_days ?? 0, streak_longest: Math.max(fetchedStats?.streak_longest ?? 0, profileData.streak_days ?? 0), completed_exercises: profileData.completed_exercises ?? 0, completed_tests: profileData.completed_tests ?? fetchedStats?.completed_tests ?? 0 }; if (statsError) { console.warn("[Stats] Vracení statistik primárně z profilu kvůli chybě načítání."); } else { console.log("[Stats] Statistiky úspěšně načteny/sestaveny:", finalStats); } return finalStats; }
             /** Fetches recent activities from the 'activities' table. */
-            async function fetchRecentActivities(userId, limit = 5) { /* ... (fetches from activities table) ... */ if (!supabase || !userId) { console.error("[Activities] Missing Supabase or user ID."); return []; } console.log(`[Activities] Fetching last ${limit} activities for user ${userId}`); try { const { data, error } = await supabase .from('activities') // Table name from txt file
-                        .select('*') .eq('user_id', userId) .order('created_at', { ascending: false }) .limit(limit); if (error) throw error; console.log(`[Activities] Fetched ${data?.length || 0} activities.`); return data || []; } catch (error) { console.error('[Activities] Caught exception fetching activities:', error); showToast('Не удалось загрузить недавние активности.', 'error'); return []; } }
+            async function fetchRecentActivities(userId, limit = 5) { if (!supabase || !userId) { console.error("[Activities] Chybí Supabase nebo ID uživatele."); return []; } console.log(`[Activities] Načítání posledních ${limit} aktivit pro uživatele ${userId}`); try { const { data, error } = await supabase .from('activities') .select('*') .eq('user_id', userId) .order('created_at', { ascending: false }) .limit(limit); if (error) throw error; console.log(`[Activities] Načteno ${data?.length || 0} aktivit.`); return data || []; } catch (error) { console.error('[Activities] Výjimka při načítání aktivit:', error); showToast('Nepodařilo se načíst nedávné aktivity.', 'error'); return []; } }
             /** Fetches unread notifications from 'user_notifications'. */
-            async function fetchNotifications(userId, limit = 5) { /* ... (fetches from user_notifications) ... */ if (!supabase || !userId) { console.error("[Notifications] Missing Supabase or user ID."); return { unreadCount: 0, notifications: [] }; } console.log(`[Notifications] Fetching unread notifications for user ${userId}`); try { const { data, error, count } = await supabase .from('user_notifications') // Table name from txt file
-                        .select('*', { count: 'exact' }) .eq('user_id', userId) .eq('is_read', false) .order('created_at', { ascending: false }) .limit(limit); if (error) throw error; console.log(`[Notifications] Fetched ${data?.length || 0} notifications. Total unread: ${count}`); return { unreadCount: count ?? 0, notifications: data || [] }; } catch (error) { console.error("[Notifications] Caught exception fetching notifications:", error); showToast('Не удалось загрузить уведомления.', 'error'); return { unreadCount: 0, notifications: [] }; } }
+            async function fetchNotifications(userId, limit = 5) { if (!supabase || !userId) { console.error("[Notifications] Chybí Supabase nebo ID uživatele."); return { unreadCount: 0, notifications: [] }; } console.log(`[Notifications] Načítání nepřečtených oznámení pro uživatele ${userId}`); try { const { data, error, count } = await supabase .from('user_notifications') .select('*', { count: 'exact' }) .eq('user_id', userId) .eq('is_read', false) .order('created_at', { ascending: false }) .limit(limit); if (error) throw error; console.log(`[Notifications] Načteno ${data?.length || 0} oznámení. Celkem nepřečtených: ${count}`); return { unreadCount: count ?? 0, notifications: data || [] }; } catch (error) { console.error("[Notifications] Výjimka při načítání oznámení:", error); showToast('Nepodařilo se načíst oznámení.', 'error'); return { unreadCount: 0, notifications: [] }; } }
 
             /** Main data loading orchestrator for the dashboard. */
              async function loadDashboardData(user) {
-                 if (isLoadingData) { console.log("loadDashboardData: Already loading, skipping."); return; }
+                 if (isLoadingData) { console.log("loadDashboardData: Již probíhá načítání, přeskočeno."); return; }
                  isLoadingData = true;
-                 if (!user) { showError("Ошибка: Невозможно загрузить данные без пользователя."); isLoadingData = false; return; }
-                 console.log("[MAIN] loadDashboardData: Start for user:", user.id);
+                 if (!user) { showError("Chyba: Nelze načíst data bez přihlášeného uživatele."); isLoadingData = false; return; }
+                 console.log("[MAIN] loadDashboardData: Start pro uživatele:", user.id);
                  hideError();
                  setLoadingState('all', true); // Start loading for all sections
 
                  try {
-                     console.log("[MAIN] loadDashboardData: Loading profile...");
+                     console.log("[MAIN] loadDashboardData: Načítání profilu...");
                      currentProfile = await fetchUserProfile(user);
-                     if (!currentProfile) { throw new Error("Не удалось загрузить профиль."); }
+                     if (!currentProfile) { throw new Error("Nepodařilo se načíst profil."); }
                       updateSidebarProfile(currentProfile); // Update sidebar immediately
 
-                     console.log("[MAIN] loadDashboardData: Loading stats, activities, notifications concurrently...");
+                     console.log("[MAIN] loadDashboardData: Načítání statistik, aktivit, oznámení souběžně...");
                      const results = await Promise.allSettled([
                          fetchUserStats(user.id, currentProfile),
                          fetchRecentActivities(user.id, 5), // Fetch 5 recent activities
                          fetchNotifications(user.id, 5) // Fetch 5 unread notifications
                      ]);
-                     console.log("[MAIN] loadDashboardData: Concurrent fetches completed:", results);
+                     console.log("[MAIN] loadDashboardData: Souběžné načítání dokončeno:", results);
 
                      // Process Stats
                      if (results[0].status === 'fulfilled') { updateStatsCards(results[0].value || null); }
-                     else { console.error("❌ Error fetching user stats:", results[0].reason); showError("Не удалось загрузить статистику."); updateStatsCards(null); }
+                     else { console.error("❌ Chyba při načítání statistik uživatele:", results[0].reason); showError("Nepodařilo se načíst statistiky."); updateStatsCards(null); }
                      setLoadingState('stats', false);
 
                      // Process Activities
                      if (results[1].status === 'fulfilled') { renderActivities(results[1].value || []); }
-                     else { console.error("❌ Error fetching recent activities:", results[1].reason); showError("Не удалось загрузить недавние активности."); renderActivities(null); }
+                     else { console.error("❌ Chyba při načítání nedávných aktivit:", results[1].reason); showError("Nepodařilo se načíst nedávné aktivity."); renderActivities(null); }
                      setLoadingState('activities', false);
 
                      // Process Notifications
                      if (results[2].status === 'fulfilled') { const { unreadCount, notifications } = results[2].value || { unreadCount: 0, notifications: [] }; renderNotifications(unreadCount, notifications); }
-                     else { console.error("❌ Error fetching notifications:", results[2].reason); showError("Не удалось загрузить уведомления."); renderNotifications(0, []); }
+                     else { console.error("❌ Chyba při načítání oznámení:", results[2].reason); showError("Nepodařilo se načíst oznámení."); renderNotifications(0, []); }
                      setLoadingState('notifications', false);
 
-                     console.log("[MAIN] loadDashboardData: All data processed.");
+                     console.log("[MAIN] loadDashboardData: Všechna data zpracována.");
 
                  } catch (error) {
-                     console.error('[MAIN] loadDashboardData: Caught main error:', error);
-                     showError('Не удалось загрузить данные для Dashboard: ' + error.message);
+                     console.error('[MAIN] loadDashboardData: Zachycena hlavní chyba:', error);
+                     showError('Nepodařilo se kompletně načíst data nástěnky: ' + error.message);
                      setLoadingState('all', false); // Ensure all loading states stop on error
-                     updateStatsCards(null); renderActivities(null); renderNotifications(0, []); // Show error states
+                     updateStatsCards({}); renderActivities(null); renderNotifications(0, []); // Show error states
                  } finally {
                      isLoadingData = false;
-                     console.log("[MAIN] loadDashboardData: Finished.");
+                     console.log("[MAIN] loadDashboardData: Dokončeno.");
                  }
              }
             // --- END: Data Loading and UI Update Functions ---
 
             // --- START: UI Update Functions ---
-            function updateSidebarProfile(profile) { /* ... (same as pokrok.html, updates sidebar and welcome banner) ... */ console.log("[UI Update] Updating sidebar user info..."); if (!ui.sidebarName || !ui.sidebarAvatar) { console.warn("[UI Update] Sidebar elements not found."); return; } if (profile) { const firstName = profile.first_name ?? ''; const lastName = profile.last_name ?? ''; const username = profile.username ?? ''; const emailUsername = currentUser?.email?.split('@')[0] || ''; const displayName = `${firstName} ${lastName}`.trim() || username || emailUsername || 'Пользователь'; ui.sidebarName.textContent = displayName; const initials = getInitials(profile); const avatarUrl = profile.avatar_url; ui.sidebarAvatar.innerHTML = avatarUrl ? `<img src="${avatarUrl}" alt="${initials}">` : initials; // Update Welcome Banner Title
-                 if (ui.welcomeTitle) { ui.welcomeTitle.textContent = `С возвращением, ${firstName || displayName}!`; } // Update Dashboard Title (Optional)
-                 if (ui.dashboardTitle) { ui.dashboardTitle.textContent = `${displayName} - Dashboard`; } console.log("[UI Update] Sidebar & Titles updated."); } else { console.warn("[UI Update] Missing profile data, setting defaults."); ui.sidebarName.textContent = "Пользователь"; ui.sidebarAvatar.textContent = '?'; if (ui.welcomeTitle) { ui.welcomeTitle.textContent = `Добро пожаловать!`; } if (ui.dashboardTitle) { ui.dashboardTitle.textContent = `Dashboard`; } } }
-            function updateStatsCards(stats) { /* ... (same as pokrok.html) ... */ console.log("[UI Update] Updating stats cards with data:", stats); const statElements = { progress: ui.progressCard?.querySelector('.stat-card-value'), progressChange: ui.progressCard?.querySelector('.stat-card-change'), points: ui.pointsCard?.querySelector('.stat-card-value'), pointsChange: ui.pointsCard?.querySelector('.stat-card-change'), streak: ui.streakCard?.querySelector('.stat-card-value'), streakLongest: ui.streakCard?.querySelector('.stat-card-change') }; const cards = [ui.progressCard, ui.pointsCard, ui.streakCard]; // Remove loading first
-                cards.forEach(card => card?.classList.remove('loading')); if (!stats || cards.some(card => !card)) { console.warn("[UI Update] No stats data or elements missing, showing error state."); cards.forEach(card => { if (card) { const content = card.querySelector('.stat-card-content'); const skeleton = card.querySelector('.loading-skeleton'); if (content) content.innerHTML = `<div class="card-error-state" style="text-align: center; color: var(--text-muted); font-size: 0.9rem;">Ошибка</div>`; if (skeleton) skeleton.style.display = 'none'; } }); return; } // Clear skeletons and show content
-                cards.forEach(card => { const skel = card.querySelector('.loading-skeleton'); const cont = card.querySelector('.stat-card-content'); const foot = card.querySelector('.stat-card-footer'); if(skel) skel.style.display = 'none'; if(cont) cont.style.visibility = 'visible'; if(foot) foot.style.visibility = 'visible'; }); if (statElements.progress && statElements.progressChange) { statElements.progress.textContent = `${stats.progress ?? 0}%`; const weeklyChange = stats.progress_weekly ?? 0; statElements.progressChange.classList.remove('positive', 'negative'); statElements.progressChange.innerHTML = weeklyChange >= 0 ? `<i class="fas fa-arrow-up"></i> +${weeklyChange}% за неделю` : `<i class="fas fa-arrow-down"></i> ${weeklyChange}% за неделю`; if (weeklyChange > 0) statElements.progressChange.classList.add('positive'); else if (weeklyChange < 0) statElements.progressChange.classList.add('negative'); else statElements.progressChange.innerHTML = `<i class="fas fa-minus"></i> Без изменений`; } if (statElements.points && statElements.pointsChange) { statElements.points.textContent = stats.points ?? 0; const weeklyPoints = stats.points_weekly ?? 0; statElements.pointsChange.classList.remove('positive', 'negative'); statElements.pointsChange.innerHTML = weeklyPoints >= 0 ? `<i class="fas fa-arrow-up"></i> +${weeklyPoints} за неделю` : `<i class="fas fa-arrow-down"></i> ${weeklyPoints} за неделю`; if (weeklyPoints > 0) statElements.pointsChange.classList.add('positive'); else if (weeklyPoints < 0) statElements.pointsChange.classList.add('negative'); else statElements.pointsChange.innerHTML = `<i class="fas fa-minus"></i> Без изменений`; } if (statElements.streak && statElements.streakLongest) { statElements.streak.textContent = stats.streak_current ?? 0; statElements.streakLongest.textContent = `Лучшая: ${stats.streak_longest ?? 0} дн.`; statElements.streakLongest.classList.remove('positive', 'negative'); } console.log("[UI Update] Stats cards updated."); }
-             function renderActivities(activities) { /* ... (uses activityVisuals map) ... */ if (!ui.activityList || !ui.activityListContainer || !ui.activityListEmptyState || !ui.activityListErrorState) { console.error("[Render Activities] UI elements missing."); setLoadingState('activities', false); return; } ui.activityList.innerHTML = ''; // Clear previous content
-                 ui.activityListEmptyState.style.display = 'none'; ui.activityListErrorState.style.display = 'none'; if (!activities) { ui.activityListErrorState.style.display = 'block'; console.log("[Render Activities] Rendering error state (null data)."); setLoadingState('activities', false); return; } if (activities.length === 0) { ui.activityListEmptyState.style.display = 'block'; console.log("[Render Activities] Rendering empty state."); setLoadingState('activities', false); return; } const fragment = document.createDocumentFragment(); activities.forEach(activity => { const visual = activityVisuals[activity.type?.toLowerCase()] || activityVisuals.default; const title = sanitizeHTML(activity.title || 'Неизвестная активность'); const description = sanitizeHTML(activity.description || ''); const timeAgo = formatRelativeTime(activity.created_at); const item = document.createElement('div'); item.className = 'activity-item'; item.innerHTML = `<div class="activity-icon ${visual.class}"><i class="fas ${visual.icon}"></i></div><div class="activity-content"><div class="activity-title">${title}</div><div class="activity-desc">${description}</div><div class="activity-time"><i class="far fa-clock"></i> ${timeAgo}</div></div>`; fragment.appendChild(item); }); ui.activityList.appendChild(fragment); ui.activityListContainer.classList.remove('loading'); // Remove loading class from container
-                 console.log(`[Render Activities] Rendered ${activities.length} items.`); setLoadingState('activities', false); // Set loading to false
+            function updateSidebarProfile(profile) { /* ... (same as pokrok.html, updates sidebar and welcome banner in Czech) ... */ console.log("[UI Update] Aktualizace informací o uživateli v sidebaru..."); if (!ui.sidebarName || !ui.sidebarAvatar) { console.warn("[UI Update] Elementy sidebaru nenalezeny."); return; } if (profile) { const firstName = profile.first_name ?? ''; const lastName = profile.last_name ?? ''; const username = profile.username ?? ''; const emailUsername = currentUser?.email?.split('@')[0] || ''; const displayName = `${firstName} ${lastName}`.trim() || username || emailUsername || 'Uživatel'; ui.sidebarName.textContent = displayName; const initials = getInitials(profile); const avatarUrl = profile.avatar_url; ui.sidebarAvatar.innerHTML = avatarUrl ? `<img src="${avatarUrl}" alt="${initials}">` : initials; // Update Welcome Banner Title
+                 if (ui.welcomeTitle) { ui.welcomeTitle.textContent = `Vítej zpět, ${firstName || displayName}!`; } // Update Dashboard Title (Optional)
+                 if (ui.dashboardTitle) { ui.dashboardTitle.textContent = `Nástěnka`; } console.log("[UI Update] Sidebar a titulky aktualizovány."); } else { console.warn("[UI Update] Chybí data profilu, nastavení výchozích hodnot."); ui.sidebarName.textContent = "Uživatel"; ui.sidebarAvatar.textContent = '?'; if (ui.welcomeTitle) { ui.welcomeTitle.textContent = `Vítejte!`; } if (ui.dashboardTitle) { ui.dashboardTitle.textContent = `Nástěnka`; } } }
+            function updateStatsCards(stats) { /* ... (same as pokrok.html, in Czech) ... */ console.log("[UI Update] Aktualizace karet statistik daty:", stats); const statElements = { progress: ui.progressCard?.querySelector('.stat-card-value'), progressChange: ui.progressCard?.querySelector('.stat-card-change'), points: ui.pointsCard?.querySelector('.stat-card-value'), pointsChange: ui.pointsCard?.querySelector('.stat-card-change'), streak: ui.streakCard?.querySelector('.stat-card-value'), streakLongest: ui.streakCard?.querySelector('.stat-card-change') }; const cards = [ui.progressCard, ui.pointsCard, ui.streakCard]; // Remove loading first is handled by setLoadingState
+                if (!stats || cards.some(card => !card)) { console.warn("[UI Update] Chybí data statistik nebo elementy, zobrazení chybového stavu."); cards.forEach(card => { if (card) { const content = card.querySelector('.stat-card-content'); const skeleton = card.querySelector('.loading-skeleton'); if (content) content.innerHTML = `<div class="card-error-state" style="text-align: center; color: var(--text-muted); font-size: 0.9rem;">Chyba</div>`; if (skeleton) skeleton.style.display = 'none'; } }); return; } // Clear skeletons and show content
+                cards.forEach(card => { const skel = card.querySelector('.loading-skeleton'); const cont = card.querySelector('.stat-card-content'); const foot = card.querySelector('.stat-card-footer'); if(skel) skel.style.display = 'none'; if(cont) cont.style.visibility = 'visible'; if(foot) foot.style.visibility = 'visible'; }); if (statElements.progress && statElements.progressChange) { statElements.progress.textContent = `${stats.progress ?? 0}%`; const weeklyChange = stats.progress_weekly ?? 0; statElements.progressChange.classList.remove('positive', 'negative'); statElements.progressChange.innerHTML = weeklyChange >= 0 ? `<i class="fas fa-arrow-up"></i> +${weeklyChange}% tento týden` : `<i class="fas fa-arrow-down"></i> ${weeklyChange}% tento týden`; if (weeklyChange > 0) statElements.progressChange.classList.add('positive'); else if (weeklyChange < 0) statElements.progressChange.classList.add('negative'); else statElements.progressChange.innerHTML = `<i class="fas fa-minus"></i> Beze změny`; } if (statElements.points && statElements.pointsChange) { statElements.points.textContent = stats.points ?? 0; const weeklyPoints = stats.points_weekly ?? 0; statElements.pointsChange.classList.remove('positive', 'negative'); statElements.pointsChange.innerHTML = weeklyPoints >= 0 ? `<i class="fas fa-arrow-up"></i> +${weeklyPoints} tento týden` : `<i class="fas fa-arrow-down"></i> ${weeklyPoints} tento týden`; if (weeklyPoints > 0) statElements.pointsChange.classList.add('positive'); else if (weeklyPoints < 0) statElements.pointsChange.classList.add('negative'); else statElements.pointsChange.innerHTML = `<i class="fas fa-minus"></i> Beze změny`; } if (statElements.streak && statElements.streakLongest) { statElements.streak.textContent = stats.streak_current ?? 0; statElements.streakLongest.textContent = `Nejdelší: ${stats.streak_longest ?? 0} dní`; statElements.streakLongest.classList.remove('positive', 'negative'); } console.log("[UI Update] Karty statistik aktualizovány."); }
+             function renderActivities(activities) { /* ... (uses activityVisuals map, Czech relative time) ... */ if (!ui.activityList || !ui.activityListContainer || !ui.activityListEmptyState || !ui.activityListErrorState) { console.error("[Render Activities] Chybí UI elementy."); setLoadingState('activities', false); return; } ui.activityList.innerHTML = ''; // Vyčistit předchozí obsah
+                 ui.activityListEmptyState.style.display = 'none'; ui.activityListErrorState.style.display = 'none'; if (!activities) { ui.activityListErrorState.style.display = 'block'; console.log("[Render Activities] Zobrazení chybového stavu (null data)."); setLoadingState('activities', false); return; } if (activities.length === 0) { ui.activityListEmptyState.style.display = 'block'; console.log("[Render Activities] Zobrazení prázdného stavu."); setLoadingState('activities', false); return; } const fragment = document.createDocumentFragment(); activities.forEach(activity => { const visual = activityVisuals[activity.type?.toLowerCase()] || activityVisuals.default; const title = sanitizeHTML(activity.title || 'Neznámá aktivita'); const description = sanitizeHTML(activity.description || ''); const timeAgo = formatRelativeTime(activity.created_at); const item = document.createElement('div'); item.className = 'activity-item'; item.innerHTML = `<div class="activity-icon ${visual.class}"><i class="fas ${visual.icon}"></i></div><div class="activity-content"><div class="activity-title">${title}</div><div class="activity-desc">${description}</div><div class="activity-time"><i class="far fa-clock"></i> ${timeAgo}</div></div>`; fragment.appendChild(item); }); ui.activityList.appendChild(fragment); ui.activityListContainer.classList.remove('loading'); // Odebrat třídu načítání z kontejneru
+                 console.log(`[Render Activities] Vykresleno ${activities.length} položek.`); setLoadingState('activities', false); // Nastavit načítání na false
              }
-            function renderNotifications(count, notifications) { /* ... (same as oceneni.html) ... */ console.log("[Render Notifications] Start, Count:", count, "Notifications:", notifications); if (!ui.notificationCount || !ui.notificationsList || !ui.noNotificationsMsg) { console.error("[Render Notifications] Missing UI elements."); return; } // Update badge count
+            function renderNotifications(count, notifications) { /* ... (same as oceneni.html, Czech texts) ... */ console.log("[Render Notifications] Start, Počet:", count, "Oznámení:", notifications); if (!ui.notificationCount || !ui.notificationsList || !ui.noNotificationsMsg) { console.error("[Render Notifications] Chybí UI elementy."); return; } // Update badge count
                 ui.notificationCount.textContent = count > 9 ? '9+' : count; ui.notificationCount.classList.toggle('visible', count > 0); // Render list
                 if (notifications && notifications.length > 0) { ui.notificationsList.innerHTML = notifications.map(n => { const iconMap = { info: 'fa-info-circle', success: 'fa-check-circle', warning: 'fa-exclamation-triangle', danger: 'fa-exclamation-circle', badge: 'fa-medal', level_up: 'fa-level-up-alt' }; const iconClass = iconMap[n.type] || 'fa-info-circle'; const typeClass = n.type || 'info'; const isReadClass = n.is_read ? 'is-read' : ''; const linkAttr = n.link ? `data-link="${sanitizeHTML(n.link)}"` : ''; return `<div class="notification-item ${isReadClass}" data-id="${n.id}" ${linkAttr}> ${!n.is_read ? '<span class="unread-dot"></span>' : ''} <div class="notification-icon ${typeClass}"><i class="fas ${iconClass}"></i></div> <div class="notification-content"> <div class="notification-title">${sanitizeHTML(n.title)}</div> <div class="notification-message">${sanitizeHTML(n.message)}</div> <div class="notification-time">${formatRelativeTime(n.created_at)}</div> </div> </div>`; }).join(''); ui.noNotificationsMsg.style.display = 'none'; ui.notificationsList.style.display = 'block'; ui.markAllReadBtn.disabled = count === 0; } else { ui.notificationsList.innerHTML = ''; // Clear list
                     ui.noNotificationsMsg.style.display = 'block'; // Show 'no notifications' message
-                    ui.notificationsList.style.display = 'none'; ui.markAllReadBtn.disabled = true; } console.log("[Render Notifications] Success"); }
+                    ui.notificationsList.style.display = 'none'; ui.markAllReadBtn.disabled = true; } console.log("[Render Notifications] Hotovo"); }
             // --- END: UI Update Functions ---
 
             // --- START: Notification Logic ---
-            async function markNotificationRead(notificationId) { /* ... (same as oceneni.html) ... */ console.log("[FUNC] markNotificationRead: Marking ID:", notificationId); if (!currentUser || !notificationId) return false; try { const { error } = await supabase.from('user_notifications').update({ is_read: true }).eq('user_id', currentUser.id).eq('id', notificationId); if (error) throw error; console.log("[FUNC] markNotificationRead: Success for ID:", notificationId); return true; } catch (error) { console.error("[FUNC] markNotificationRead: Error:", error); showToast('Ошибка', 'Не удалось отметить уведомление как прочитанное.', 'error'); return false; } }
-            async function markAllNotificationsRead() { /* ... (same as oceneni.html) ... */ console.log("[FUNC] markAllNotificationsRead: Start for user:", currentUser?.id); if (!currentUser || !ui.markAllReadBtn) return; ui.markAllReadBtn.disabled = true; ui.markAllReadBtn.textContent = 'Отмечаю...'; try { const { error } = await supabase.from('user_notifications').update({ is_read: true }).eq('user_id', currentUser.id).eq('is_read', false); if (error) throw error; console.log("[FUNC] markAllNotificationsRead: Success"); const { unreadCount, notifications } = await fetchNotifications(currentUser.id, 5); renderNotifications(unreadCount, notifications); showToast('Уведомления отмечены', 'Все уведомления отмечены как прочитанные.', 'success'); } catch (error) { console.error("[FUNC] markAllNotificationsRead: Error:", error); showToast('Ошибка', 'Не удалось отметить все уведомления.', 'error'); } finally { if (ui.markAllReadBtn) { ui.markAllReadBtn.disabled = false; ui.markAllReadBtn.textContent = 'Отметить все как прочитанные'; } } }
+            async function markNotificationRead(notificationId) { /* ... (same as oceneni.html) ... */ console.log("[FUNC] markNotificationRead: Označení ID:", notificationId); if (!currentUser || !notificationId) return false; try { const { error } = await supabase.from('user_notifications').update({ is_read: true }).eq('user_id', currentUser.id).eq('id', notificationId); if (error) throw error; console.log("[FUNC] markNotificationRead: Úspěch pro ID:", notificationId); return true; } catch (error) { console.error("[FUNC] markNotificationRead: Chyba:", error); showToast('Chyba', 'Nepodařilo se označit oznámení jako přečtené.', 'error'); return false; } }
+            async function markAllNotificationsRead() { /* ... (same as oceneni.html) ... */ console.log("[FUNC] markAllNotificationsRead: Start pro uživatele:", currentUser?.id); if (!currentUser || !ui.markAllReadBtn) return; ui.markAllReadBtn.disabled = true; ui.markAllReadBtn.textContent = 'Označuji...'; try { const { error } = await supabase.from('user_notifications').update({ is_read: true }).eq('user_id', currentUser.id).eq('is_read', false); if (error) throw error; console.log("[FUNC] markAllNotificationsRead: Úspěch"); const { unreadCount, notifications } = await fetchNotifications(currentUser.id, 5); renderNotifications(unreadCount, notifications); showToast('Oznámení označena', 'Všechna oznámení byla označena jako přečtená.', 'success'); } catch (error) { console.error("[FUNC] markAllNotificationsRead: Chyba:", error); showToast('Chyba', 'Nepodařilo se označit všechna oznámení.', 'error'); } finally { if (ui.markAllReadBtn) { ui.markAllReadBtn.disabled = false; ui.markAllReadBtn.textContent = 'Označit vše jako přečtené'; } } }
             // --- END: Notification Logic ---
 
             // --- START: Event Listeners Setup ---
             function setupUIEventListeners() {
-                 console.log("[SETUP] setupUIEventListeners: Setting up listeners.");
+                 console.log("[SETUP] setupUIEventListeners: Nastavení posluchačů.");
                  if (ui.startPracticeBtn) ui.startPracticeBtn.addEventListener('click', () => { window.location.href = '/dashboard/procvicovani/main.html'; });
                  if (ui.mainMobileMenuToggle) ui.mainMobileMenuToggle.addEventListener('click', openMenu);
                  if (ui.sidebarCloseToggle) ui.sidebarCloseToggle.addEventListener('click', closeMenu);
@@ -683,16 +731,16 @@
                  updateOnlineStatus(); // Initial check
 
                  // Refresh button
-                 if (ui.refreshDataBtn) { ui.refreshDataBtn.addEventListener('click', async () => { if (!currentUser) { showToast("Ошибка", "Необходимо войти для обновления.", "error"); return; } if (isLoadingData) { showToast("Подождите", "Данные уже загружаются.", "info"); return; } const icon = ui.refreshDataBtn.querySelector('i'); const text = ui.refreshDataBtn.querySelector('.refresh-text'); if (icon) icon.classList.add('fa-spin'); if (text) text.textContent = 'Обновление...'; ui.refreshDataBtn.disabled = true; await loadDashboardData(currentUser); if (icon) icon.classList.remove('fa-spin'); if (text) text.textContent = 'Обновить'; ui.refreshDataBtn.disabled = false; }); }
+                 if (ui.refreshDataBtn) { ui.refreshDataBtn.addEventListener('click', async () => { if (!currentUser) { showToast("Chyba", "Pro obnovení je nutné se přihlásit.", "error"); return; } if (isLoadingData) { showToast("Počkejte prosím", "Data se již načítají.", "info"); return; } const icon = ui.refreshDataBtn.querySelector('i'); const text = ui.refreshDataBtn.querySelector('.refresh-text'); if (icon) icon.classList.add('fa-spin'); if (text) text.textContent = 'Obnovuji...'; ui.refreshDataBtn.disabled = true; await loadDashboardData(currentUser); if (icon) icon.classList.remove('fa-spin'); if (text) text.textContent = 'Obnovit'; ui.refreshDataBtn.disabled = false; }); }
 
-                 // Notification Listeners
+                // --- Notification Listeners ---
                  if(ui.notificationBell) { ui.notificationBell.addEventListener('click', (event) => { event.stopPropagation(); ui.notificationsDropdown?.classList.toggle('active'); }); }
                  if(ui.markAllReadBtn) { ui.markAllReadBtn.addEventListener('click', markAllNotificationsRead); }
-                 if(ui.notificationsList) { ui.notificationsList.addEventListener('click', async (event) => { const item = event.target.closest('.notification-item'); if (item) { const notificationId = item.dataset.id; const link = item.dataset.link; const isRead = item.classList.contains('is-read'); if (!isRead) { const success = await markNotificationRead(notificationId); if (success) { item.classList.add('is-read'); item.querySelector('.unread-dot')?.remove(); const currentCount = parseInt(ui.notificationCount.textContent.replace('+', '')) || 0; const newCount = Math.max(0, currentCount - 1); ui.notificationCount.textContent = newCount > 9 ? '9+' : newCount; ui.notificationCount.classList.toggle('visible', newCount > 0); ui.markAllReadBtn.disabled = newCount === 0; } } if (link) window.location.href = link; else ui.notificationsDropdown?.classList.remove('active'); // Close dropdown if no link } }); }
+                 if(ui.notificationsList) { ui.notificationsList.addEventListener('click', async (event) => { const item = event.target.closest('.notification-item'); if (item) { const notificationId = item.dataset.id; const link = item.dataset.link; const isRead = item.classList.contains('is-read'); if (!isRead && notificationId) { const success = await markNotificationRead(notificationId); if (success) { item.classList.add('is-read'); item.querySelector('.unread-dot')?.remove(); const currentCountText = ui.notificationCount.textContent.replace('+', ''); const currentCount = parseInt(currentCountText) || 0; const newCount = Math.max(0, currentCount - 1); ui.notificationCount.textContent = newCount > 9 ? '9+' : newCount; ui.notificationCount.classList.toggle('visible', newCount > 0); ui.markAllReadBtn.disabled = newCount === 0; } } if (link) window.location.href = link; else ui.notificationsDropdown?.classList.remove('active'); } }); }
                  document.addEventListener('click', (event) => { if (ui.notificationsDropdown?.classList.contains('active') && !ui.notificationsDropdown.contains(event.target) && !ui.notificationBell.contains(event.target)) { ui.notificationsDropdown.classList.remove('active'); } });
 
-                 console.log("[SETUP] setupUIEventListeners: Listeners set.");
-            }
+                 console.log("[SETUP] setupUIEventListeners: Posluchači nastaveni.");
+             }
             // --- END: Event Listeners Setup ---
 
             // --- START THE APP ---
