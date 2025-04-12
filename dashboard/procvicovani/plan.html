@@ -9,7 +9,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/date-fns/2.29.3/umd/index.min.js"></script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
@@ -18,11 +17,18 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <style>
-        /* --- ОБЩИЕ СТИЛИ + Sidebar + Loader + Dark Mode --- */
-        /* (Включая все необходимые стили из dashboard.html/main.html) */
-        :root {
-            /* ... (Все переменные CSS как в предыдущем ответе) ... */
-             --primary-rgb: 67, 97, 238; --primary: #4361ee; --primary-light: #4895ef; --primary-dark: #3a0ca3;
+        /* --- Стили CSS (Полностью как в предыдущей версии) --- */
+        :root { /* ... */ }
+        * { /* ... */ }
+        body { /* ... */ }
+        .sidebar { /* ... */ }
+        main { /* ... */ }
+        .dashboard-header { /* ... */ }
+        .btn { /* ... */ }
+        /* ... (и все остальные стили, включая скелетоны, календарь, табы и т.д.) ... */
+         :root {
+            /* Палитра */
+            --primary-rgb: 67, 97, 238; --primary: #4361ee; --primary-light: #4895ef; --primary-dark: #3a0ca3;
             --secondary-rgb: 63, 55, 201; --secondary: #3f37c9;
             --success-rgb: 16, 185, 129; --success: #10b981; --success-light: #a7f3d0; --success-bg: #f0fdf4;
             --success-alt: #06d6a0;
@@ -170,10 +176,10 @@
         .plan-content hr { border: none; border-top: 1px dashed var(--border-color); margin: 2rem 0; }
         .plan-content em { font-style: italic; color: var(--text-secondary); }
 
-        /* Навигация шагов */
+        /* Навигация шагов (если нужна) */
         .step-navigation { display: flex; justify-content: space-between; margin-bottom: 1.5rem; margin-top: 1rem; }
 
-        /* Сообщения */
+        /* Сообщения (Нет теста, Ошибка и т.д.) */
         .message-box { background-color: var(--info-bg); border-left: 4px solid var(--info); padding: 1.5rem; margin: 1rem 0; border-radius: var(--button-radius); border: 1px solid var(--info-light); }
         .message-box h3 { color: var(--info); margin: 0 0 0.75rem 0; font-size: 1.2rem; display: flex; align-items: center; gap: 0.5rem; }
         .message-box p { color: var(--text-secondary); margin-bottom: 1rem; line-height: 1.5; font-size: 0.95rem; }
@@ -190,7 +196,7 @@
 
         /* История планов */
         .plan-history { margin-top: 1rem; }
-        .history-item { background-color: var(--card-bg-color); border-radius: var(--button-radius); padding: 1.25rem 1.5rem; margin-bottom: 1rem; box-shadow: var(--shadow-xs); display: flex; justify-content: space-between; align-items: center; transition: all 0.2s ease; cursor: pointer; border: 1px solid var(--border-color); }
+        .history-item { background-color: var(--card-bg-color); border-radius: var(--button-radius); padding: 1.25rem 1.5rem; margin-bottom: 1rem; box-shadow: var(--shadow-xs); display: flex; justify-content: space-between; align-items: center; transition: all 0.2s ease; cursor: pointer; border: 1px solid var(--border-color); position: relative; /* For skeleton */ min-height: 60px; }
         .history-item:hover { transform: translateY(-3px); box-shadow: var(--shadow-sm); border-color: var(--primary-light); }
         .history-info { flex-grow: 1; margin-right: 1rem; }
         .history-date { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.25rem; }
@@ -202,6 +208,10 @@
         .history-status.inactive { background-color: rgba(108, 117, 125, 0.1); color: var(--gray-600);}
         .history-status i { font-size: 0.8em; }
         .history-progress { font-size: 0.85rem; color: var(--text-secondary); font-weight: 500; }
+         /* Skeleton for History Item */
+         .history-item .loading-skeleton { display: none; width: 100%; padding: 0.5rem 0;}
+         .history-item.loading .loading-skeleton { display: block; }
+         .history-item.loading > *:not(.loading-skeleton) { visibility: hidden; }
 
         /* Заблокированный контент */
         .locked-overlay { display: flex; flex-direction: column; justify-content: center; align-items: center; border-radius: var(--card-radius); background-color: rgba(var(--card-bg-color-rgb), 0.8); backdrop-filter: blur(3px); padding: 2.5rem; text-align: center; border: 1px dashed var(--border-color); margin-top: 1rem; }
@@ -217,7 +227,7 @@
 
         /* --- Календарь/Расписание --- */
         .schedule-section { padding: 0; border: none; box-shadow: none; background: none; position: relative; }
-        .calendar-scroll-container { overflow-x: auto; padding-bottom: 10px; margin-top: 0; border: 1px solid var(--border-color); border-radius: var(--card-radius); background-color: var(--card-bg-color); box-shadow: var(--shadow-sm); min-height: 300px; position: relative; /* For Skeleton */ }
+        .calendar-scroll-container { overflow-x: auto; padding-bottom: 10px; margin-top: 0; border: 1px solid var(--border-color); border-radius: var(--card-radius); background-color: var(--card-bg-color); box-shadow: var(--shadow-sm); min-height: 300px; position: relative; }
         .calendar-grid { display: grid; grid-template-columns: repeat(7, minmax(180px, 1fr)); min-width: calc(7 * 180px); }
         .calendar-day-cell { border-left: 1px solid var(--border-color); min-height: 250px; display: flex; flex-direction: column; position: relative; }
         .calendar-day-cell:first-child { border-left: none; }
@@ -252,17 +262,37 @@
 
         /* Toast */
         .toast-container { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 1050; display: flex; flex-direction: column; gap: 0.75rem; max-width: 380px; pointer-events: none; }
-        .toast { /* ... styles ... */ }
+        .toast { padding: 1rem 1.2rem; border-radius: 10px; background: var(--card-bg-color); box-shadow: var(--shadow-lg); display: flex; align-items: flex-start; color: var(--text-primary); animation: toast-in 0.4s ease forwards; pointer-events: auto; border: 1px solid var(--border-color); border-left-width: 4px; opacity: 0; transform: translateX(100%); }
+        .toast.show { opacity: 1; transform: translateX(0); }
+        .toast.success { border-left-color: var(--success); } .toast.error { border-left-color: var(--danger); } .toast.info { border-left-color: var(--info); } .toast.warning { border-left-color: var(--warning); }
+        .toast-icon { margin-right: 0.75rem; font-size: 1.25rem; flex-shrink: 0; margin-top: 2px; }
+        .toast.success .toast-icon { color: var(--success); } .toast.error .toast-icon { color: var(--danger); } .toast.info .toast-icon { color: var(--info); } .toast.warning .toast-icon { color: var(--warning); }
+        .toast-content { flex: 1; } .toast-title { font-weight: 600; margin-bottom: 0.25rem; font-size: 0.95rem; } .toast-message { font-size: 0.9rem; color: var(--text-secondary); line-height: 1.4; }
+        .toast-close { background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 1.3rem; padding: 0.1rem 0.2rem; margin-left: 0.5rem; line-height: 1; opacity: 0.7; transition: opacity 0.2s, color 0.2s; }
+        .toast-close:hover { opacity: 1; color: var(--text-primary); }
+        @keyframes toast-in { from { opacity: 0; transform: translateX(100%); } to { opacity: 1; transform: translateX(0); } }
 
         /* Error Message Container */
          .error-container { display: none; margin-bottom: 1.5rem; }
          .error-message { background-color: rgba(var(--danger-rgb), 0.05); border-left: 4px solid var(--danger); color: var(--danger); padding: 1rem; margin: 1rem 0; border-radius: 8px; font-size: 0.9rem; display: flex; align-items: center; }
          .error-message i { margin-right: 0.75rem; font-size: 1.25rem; }
 
+        /* Skeleton Styles */
+        .skeleton { background-color: var(--skeleton-bg); border-radius: 4px; position: relative; overflow: hidden; }
+        .skeleton::after { content: ''; position: absolute; top: 0; left: -150%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, var(--skeleton-highlight), transparent); animation: skeleton-loading 1.5s infinite linear; }
+        @keyframes skeleton-loading { 0% { left: -150%; } 100% { left: 150%; } }
+        .skeleton.title-sm { height: 14px; width: 60%; margin-bottom: 0.6rem; }
+        .skeleton.value-lg { height: 30px; width: 40%; margin-bottom: 0.5rem; border-radius: 6px; }
+        .skeleton.text-sm { height: 12px; width: 70%; }
+        .history-item .loading-skeleton { display: none; width: 100%; padding: 0.5rem 0;}
+        .history-item.loading .loading-skeleton { display: block; }
+        .history-item.loading > *:not(.loading-skeleton) { visibility: hidden; }
+
+
         /* Responsivita */
-        @media (max-width: 992px) { /* ... */ :root { --sidebar-width: 80px; } main { margin-left: 80px; width: calc(100% - 80px); } .sidebar { width: 80px; } .sidebar-logo span, .sidebar-link span, .user-info, .sidebar-footer { display: none; } .sidebar-link i { margin-right: 0; font-size: 1.5rem; } .sidebar-logo i { margin-right: 0; } .sidebar-header, .sidebar-link { justify-content: center; } .user-profile { justify-content: center; padding: 0.75rem; } .user-avatar { margin-right: 0; } .mobile-menu-toggle { display: block; } #sidebar-close-toggle { display: none !important; } .calendar-grid { grid-template-columns: repeat(7, minmax(160px, 1fr)); min-width: calc(7 * 160px); } }
-        @media (max-width: 768px) { /* ... */ main { padding: 1rem; } .header-content { flex-direction: column; align-items: stretch; } .plan-header { flex-direction: column; gap: 1rem; } .plan-actions { width: 100%; justify-content: center; } .plan-tabs { padding: 0 0.5rem;} .plan-tab { padding: 0.75rem 1rem; font-size: 0.9rem; } .calendar-grid { grid-template-columns: repeat(7, minmax(140px, 1fr)); min-width: calc(7 * 140px); } }
-        @media (max-width: 576px) { /* ... */ :root { --sidebar-width: 0; } main { margin-left: 0; width: 100%; padding: 0.75rem; } .sidebar { transform: translateX(-100%); width: 260px; z-index: 1000; } .sidebar.active { transform: translateX(0); } .sidebar.active .sidebar-logo span, .sidebar.active .sidebar-link span, .sidebar.active .user-info, .sidebar.active .sidebar-footer { display: block; } .sidebar.active .sidebar-link i { margin-right: 0.75rem; font-size: 1.2rem; } .sidebar.active .sidebar-header, .sidebar.active .sidebar-link { justify-content: flex-start; } .sidebar.active .user-profile { padding: 1rem; } .sidebar.active .user-avatar { margin-right: 0.75rem; } .sidebar.active #sidebar-close-toggle { display: block; } .calendar-scroll-container { border: none; border-radius: 0; margin-left: -0.75rem; margin-right: -0.75rem; } .calendar-grid { display: block; min-width: unset; } .calendar-day-cell { border-left: none; border-bottom: 1px solid var(--border-color); min-height: auto; border-radius: 0; margin-bottom: 1rem; background-color: var(--card-bg-color); box-shadow: var(--shadow-sm);} .calendar-day-cell:last-child { border-bottom: none; margin-bottom: 0; } }
+        @media (max-width: 992px) { :root { --sidebar-width: 80px; } main { margin-left: 80px; width: calc(100% - 80px); } .sidebar { width: 80px; } .sidebar-logo span, .sidebar-link span, .user-info, .sidebar-footer { display: none; } .sidebar-link i { margin-right: 0; font-size: 1.5rem; } .sidebar-logo i { margin-right: 0; } .sidebar-header, .sidebar-link { justify-content: center; } .user-profile { justify-content: center; padding: 0.75rem; } .user-avatar { margin-right: 0; } .mobile-menu-toggle { display: block; } #sidebar-close-toggle { display: none !important; } .calendar-grid { grid-template-columns: repeat(7, minmax(160px, 1fr)); min-width: calc(7 * 160px); } }
+        @media (max-width: 768px) { main { padding: 1rem; } .header-content { flex-direction: column; align-items: stretch; } .plan-header { flex-direction: column; gap: 1rem; } .plan-actions { width: 100%; justify-content: center; } .plan-tabs { padding: 0 0.5rem;} .plan-tab { padding: 0.75rem 1rem; font-size: 0.9rem; } .calendar-grid { grid-template-columns: repeat(7, minmax(140px, 1fr)); min-width: calc(7 * 140px); } }
+        @media (max-width: 576px) { :root { --sidebar-width: 0; } main { margin-left: 0; width: 100%; padding: 0.75rem; } .sidebar { transform: translateX(-100%); width: 260px; z-index: 1000; } .sidebar.active { transform: translateX(0); } .sidebar.active .sidebar-logo span, .sidebar.active .sidebar-link span, .sidebar.active .user-info, .sidebar.active .sidebar-footer { display: block; } .sidebar.active .sidebar-link i { margin-right: 0.75rem; font-size: 1.2rem; } .sidebar.active .sidebar-header, .sidebar.active .sidebar-link { justify-content: flex-start; } .sidebar.active .user-profile { padding: 1rem; } .sidebar.active .user-avatar { margin-right: 0.75rem; } .sidebar.active #sidebar-close-toggle { display: block; } .calendar-scroll-container { border: none; border-radius: 0; margin-left: -0.75rem; margin-right: -0.75rem; } .calendar-grid { display: block; min-width: unset; } .calendar-day-cell { border-left: none; border-bottom: 1px solid var(--border-color); min-height: auto; border-radius: 0; margin-bottom: 1rem; background-color: var(--card-bg-color); box-shadow: var(--shadow-sm);} .calendar-day-cell:last-child { border-bottom: none; margin-bottom: 0; } }
         .mobile-menu-toggle { display: none; background: none; border: none; cursor: pointer; font-size: 1.5rem; color: var(--text-primary); padding: 0.5rem; margin-right: 0.5rem; z-index: 1010; }
         .sidebar-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.55); z-index: 999; opacity: 0; transition: opacity 0.3s ease; backdrop-filter: blur(4px); }
         .sidebar-overlay.active { display: block; opacity: 1; }
@@ -270,13 +300,12 @@
 
         /* Dark Mode */
         [data-theme="dark"] {
-            /* ... (Dark mode overrides from previous response) ... */
-             --bg-color: #131720; --card-bg-color: #1e2533;
-             --card-bg-color-rgb: 30, 37, 51;
-             --text-primary: #e2e8f0; --text-secondary: #94a3b8; --text-muted: #64748b;
-             --border-color: #334155; --light: #2d3748; --white: #1a202c;
-             --skeleton-bg: #334155; --skeleton-highlight: #475569;
-             --input-bg: #2d3748; --input-border: #4a5568;
+            --bg-color: #131720; --card-bg-color: #1e2533;
+            --card-bg-color-rgb: 30, 37, 51;
+            --text-primary: #e2e8f0; --text-secondary: #94a3b8; --text-muted: #64748b;
+            --border-color: #334155; --light: #2d3748; --white: #1a202c;
+            --skeleton-bg: #334155; --skeleton-highlight: #475569;
+            --input-bg: #2d3748; --input-border: #4a5568;
         }
          [data-theme="dark"] body { background-color: var(--bg-color); color: var(--text-primary); }
          [data-theme="dark"] .section, [data-theme="dark"] .dashboard-header, [data-theme="dark"] .plan-tabs, [data-theme="dark"] .history-item, [data-theme="dark"] .message-box, [data-theme="dark"] .locked-overlay, [data-theme="dark"] .toast, [data-theme="dark"] .calendar-scroll-container, [data-theme="dark"] .calendar-day-cell, [data-theme="dark"] .calendar-activity { background-color: var(--card-bg-color); border-color: var(--border-color); }
@@ -343,15 +372,54 @@
             <div class="tab-content-area">
                 <div class="tab-pane active" id="current">
                     <div id="currentPlanContainer" class="loading">
-                        <div class="loader-container" id="currentPlanLoader"> <div class="loader"></div></div>
+                        <div class="loader-container" id="currentPlanLoader" style="display: flex;"> <div class="loader"></div></div>
                         <div id="currentPlanContentWrapper" style="display:none;">
-                             <div id="scheduleViewPlaceholder"></div>
+                             <div id="scheduleViewPlaceholder"> <div class="schedule-section loading">
+                                    <div class="calendar-scroll-container">
+                                         <div class="calendar-grid" id="dailySchedule">
+                                             <div class="schedule-day loading"><div class="schedule-day-header"><div class="skeleton title-sm"></div></div><div class="schedule-activities"><div class="skeleton-activity-item"><div class="skeleton activity-icon-placeholder"></div><div class="skeleton-content"><div class="skeleton activity-line"></div><div class="skeleton activity-line-short"></div></div></div></div></div>
+                                             <div class="schedule-day loading"><div class="schedule-day-header"><div class="skeleton title-sm"></div></div><div class="schedule-activities"><div class="skeleton-activity-item"><div class="skeleton activity-icon-placeholder"></div><div class="skeleton-content"><div class="skeleton activity-line"></div></div></div></div></div>
+                                             <div class="schedule-day loading"><div class="schedule-day-header"><div class="skeleton title-sm"></div></div><div class="schedule-activities"></div></div>
+                                             <div class="schedule-day loading"><div class="schedule-day-header"><div class="skeleton title-sm"></div></div><div class="schedule-activities"></div></div>
+                                             <div class="schedule-day loading"><div class="schedule-day-header"><div class="skeleton title-sm"></div></div><div class="schedule-activities"></div></div>
+                                             <div class="schedule-day loading"><div class="schedule-day-header"><div class="skeleton title-sm"></div></div><div class="schedule-activities"></div></div>
+                                             <div class="schedule-day loading"><div class="schedule-day-header"><div class="skeleton title-sm"></div></div><div class="schedule-activities"></div></div>
+                                         </div>
+                                    </div>
+                                </div>
+                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="tab-pane" id="history"> <div id="historyPlanContainer" class="loading"> <h2 class="section-title"><i class="fas fa-history"></i> Historie plánů</h2> <div class="loader-container" id="historyLoader"> <div class="loader"></div> </div> <div id="historyPlanContent" class="plan-history" style="display:none;"><div class="history-item loading"><div class="loading-skeleton"><div class="skeleton text-sm"></div><div class="skeleton title-sm"></div></div></div></div> </div> </div>
-                <div class="tab-pane" id="create"> <div id="createPlanContainer" class="loading"> <div class="loader-container" id="createPlanLoader"> <div class="loader"></div> </div> <div id="createPlanContent" style="display:none;"></div> </div> </div>
-                 <div class="tab-pane" id="detail-view-pane" style="display: none;"> <div id="planDetailContainer" class="loading"> <div class="step-navigation"> <button class="btn btn-secondary btn-sm" id="backToSourceTabBtn"> <i class="fas fa-arrow-left"></i> Zpět </button> </div> <h2 class="section-title" id="planDetailTitle">Detail plánu</h2> <div class="ai-loading" id="planLoading" style="display: none;"> <div class="ai-loading-spinner"></div> <div>Načítám/Generuji...</div> </div> <div class="plan-content" id="planContent" style="display:none;"></div> <div class="action-buttons" id="planActions" style="display:none;"></div> </div> </div>
+
+                <div class="tab-pane" id="history">
+                     <div id="historyPlanContainer" class="loading">
+                        <h2 class="section-title"><i class="fas fa-history"></i> Historie studijních plánů</h2>
+                        <div class="loader-container" id="historyLoader" style="display: flex;"> <div class="loader"></div> </div>
+                        <div id="historyPlanContent" class="plan-history" style="display:none;">
+                            <div class="history-item loading"><div class="loading-skeleton"><div class="skeleton text-sm" style="width: 80px; height:12px; margin-bottom: 4px;"></div><div class="skeleton title-sm" style="width: 60%;"></div></div></div>
+                             <div class="history-item loading"><div class="loading-skeleton"><div class="skeleton text-sm" style="width: 80px; height:12px; margin-bottom: 4px;"></div><div class="skeleton title-sm" style="width: 60%;"></div></div></div>
+                             <div class="history-item loading"><div class="loading-skeleton"><div class="skeleton text-sm" style="width: 80px; height:12px; margin-bottom: 4px;"></div><div class="skeleton title-sm" style="width: 60%;"></div></div></div>
+                        </div>
+                     </div>
+                </div>
+
+                <div class="tab-pane" id="create">
+                     <div id="createPlanContainer" class="loading">
+                        <div class="loader-container" id="createPlanLoader" style="display: flex;"> <div class="loader"></div> </div>
+                        <div id="createPlanContent" style="display:none;"></div>
+                     </div>
+                </div>
+
+                 <div class="tab-pane" id="detail-view-pane" style="display: none;">
+                     <div id="planDetailContainer" class="loading">
+                        <div class="step-navigation"> <button class="btn btn-secondary btn-sm" id="backToSourceTabBtn"> <i class="fas fa-arrow-left"></i> Zpět </button> </div>
+                        <h2 class="section-title" id="planDetailTitle">Detail plánu</h2>
+                        <div class="ai-loading" id="planLoading" style="display: none;"> <div class="ai-loading-spinner"></div> <div>Načítám/Generuji...</div> </div>
+                        <div class="plan-content" id="planContent" style="display:none;"></div>
+                        <div class="action-buttons" id="planActions" style="display:none;"></div>
+                    </div>
+                 </div>
             </div>
         </section>
 
@@ -372,6 +440,7 @@
     <div class="toast-container" id="toast-container"></div>
 
     <script>
+        // ИСПРАВЛЕННЫЙ JavaScript для plan.html
         (function() {
             // --- START: Инициализация и Конфигурация ---
             const supabaseUrl = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
@@ -383,40 +452,40 @@
             let currentUser = null;
             let currentProfile = null;
             let latestDiagnosticData = null;
-            let currentStudyPlan = null; // Active plan object
-            let currentPlanActivities = []; // Activities for the active plan
-            let previousPlans = []; // History list
+            let currentStudyPlan = null;
+            let currentPlanActivities = [];
+            let previousPlans = [];
             let planCreateAllowed = false;
             let nextPlanCreateTime = null;
             let planTimerInterval = null;
-            let activeTab = 'current'; // Default active tab ID
-            let currentView = 'tabs'; // 'tabs', 'detail', 'schedule'
+            let activeTab = 'current';
+            let currentView = 'tabs';
             let lastGeneratedMarkdown = null;
             let lastGeneratedActivitiesJson = null;
             let isLoading = { page: true, current: false, history: false, create: false, detail: false, schedule: false };
 
-            // DOM Cache (using ui object for better organization)
-            const ui = { /* ... (Все элементы UI как раньше) ... */ initialLoader: document.getElementById('initial-loader'), mainContent: document.getElementById('main-content'), sidebarAvatar: document.getElementById('user-avatar'), sidebarName: document.getElementById('user-name'), mobileMenuToggle: document.getElementById('mobile-menu-toggle'), sidebar: document.getElementById('sidebar'), sidebarOverlay: document.getElementById('sidebar-overlay'), sidebarCloseToggle: document.getElementById('sidebar-close-toggle'), toastContainer: document.getElementById('toast-container'), globalError: document.getElementById('global-error'), planTabs: document.querySelectorAll('.plan-tab'), tabPaneCurrent: document.getElementById('current'), tabPaneHistory: document.getElementById('history'), tabPaneCreate: document.getElementById('create'), tabPaneDetailView: document.getElementById('detail-view-pane'), currentPlanContainer: document.getElementById('currentPlanContainer'), currentPlanLoader: document.getElementById('currentPlanLoader'), currentPlanContentWrapper: document.getElementById('currentPlanContentWrapper'), historyPlanContainer: document.getElementById('historyPlanContainer'), historyLoader: document.getElementById('historyLoader'), historyPlanContent: document.getElementById('historyPlanContent'), createPlanContainer: document.getElementById('createPlanContainer'), createPlanLoader: document.getElementById('createPlanLoader'), createPlanContent: document.getElementById('createPlanContent'), planDetailContainer: document.getElementById('planDetailContainer'), planLoading: document.getElementById('planLoading'), planContent: document.getElementById('planContent'), planActions: document.getElementById('planActions'), planDetailTitle: document.getElementById('planDetailTitle'), backToSourceTabBtn: document.getElementById('backToSourceTabBtn'), scheduleViewPlaceholder: document.getElementById('scheduleViewPlaceholder'), lockedPlanTemplate: document.getElementById('lockedPlanTemplate'), createPlanFormTemplate: document.getElementById('createPlanFormTemplate'), noDiagnosticTemplate: document.getElementById('noDiagnosticTemplate'), historyItemTemplate: document.getElementById('historyItemTemplate'), promptCreatePlanTemplate: document.getElementById('promptCreatePlanTemplate'), noActivePlanTemplate: document.getElementById('noActivePlanTemplate'), scheduleTemplate: document.getElementById('scheduleTemplate'), scheduleDaySkeletonTemplate: document.getElementById('scheduleDaySkeletonTemplate'), historySkeletonTemplate: document.getElementById('historySkeletonTemplate'), dashboardHeader: document.querySelector('.dashboard-header') };
+            // DOM Cache
+            const ui = { /* ... (все элементы как раньше) ... */ initialLoader: document.getElementById('initial-loader'), mainContent: document.getElementById('main-content'), sidebarAvatar: document.getElementById('user-avatar'), sidebarName: document.getElementById('user-name'), mobileMenuToggle: document.getElementById('mobile-menu-toggle'), sidebar: document.getElementById('sidebar'), sidebarOverlay: document.getElementById('sidebar-overlay'), sidebarCloseToggle: document.getElementById('sidebar-close-toggle'), toastContainer: document.getElementById('toast-container'), globalError: document.getElementById('global-error'), planTabs: document.querySelectorAll('.plan-tab'), tabPaneCurrent: document.getElementById('current'), tabPaneHistory: document.getElementById('history'), tabPaneCreate: document.getElementById('create'), tabPaneDetailView: document.getElementById('detail-view-pane'), currentPlanContainer: document.getElementById('currentPlanContainer'), currentPlanLoader: document.getElementById('currentPlanLoader'), currentPlanContentWrapper: document.getElementById('currentPlanContentWrapper'), historyPlanContainer: document.getElementById('historyPlanContainer'), historyLoader: document.getElementById('historyLoader'), historyPlanContent: document.getElementById('historyPlanContent'), createPlanContainer: document.getElementById('createPlanContainer'), createPlanLoader: document.getElementById('createPlanLoader'), createPlanContent: document.getElementById('createPlanContent'), planDetailContainer: document.getElementById('planDetailContainer'), planLoading: document.getElementById('planLoading'), planContent: document.getElementById('planContent'), planActions: document.getElementById('planActions'), planDetailTitle: document.getElementById('planDetailTitle'), backToSourceTabBtn: document.getElementById('backToSourceTabBtn'), scheduleViewPlaceholder: document.getElementById('scheduleViewPlaceholder'), lockedPlanTemplate: document.getElementById('lockedPlanTemplate'), createPlanFormTemplate: document.getElementById('createPlanFormTemplate'), noDiagnosticTemplate: document.getElementById('noDiagnosticTemplate'), historyItemTemplate: document.getElementById('historyItemTemplate'), promptCreatePlanTemplate: document.getElementById('promptCreatePlanTemplate'), noActivePlanTemplate: document.getElementById('noActivePlanTemplate'), scheduleTemplate: document.getElementById('scheduleTemplate'), scheduleDaySkeletonTemplate: document.getElementById('scheduleDaySkeletonTemplate'), historySkeletonTemplate: document.getElementById('historySkeletonTemplate'), dashboardHeader: document.querySelector('.dashboard-header') };
             const topicIcons = { /* ... */ };
             const topicMap = { /* ... */ };
             const activityVisuals = { /* ... */ };
 
-            // --- Helper Functions ---
-            // (All helper functions defined here using standard function declarations)
-            function showToast(message, type = 'info', duration = 4000) { if (!ui.toastContainer) return; try { const toastId = `toast-${Date.now()}`; const toastElement = document.createElement('div'); toastElement.className = `toast ${type}`; toastElement.id = toastId; toastElement.setAttribute('role', 'alert'); toastElement.setAttribute('aria-live', 'assertive'); toastElement.innerHTML = `<i class="toast-icon"></i><div class="toast-content"><div class="toast-message">${sanitizeHTML(message)}</div></div><button type="button" class="toast-close" aria-label="Zavřít">&times;</button>`; const icon = toastElement.querySelector('.toast-icon'); icon.className = `toast-icon fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle'}`; toastElement.querySelector('.toast-close').addEventListener('click', () => { toastElement.classList.remove('show'); setTimeout(() => toastElement.remove(), 400); }); ui.toastContainer.appendChild(toastElement); requestAnimationFrame(() => { toastElement.classList.add('show'); }); setTimeout(() => { if (toastElement.parentElement) { toastElement.classList.remove('show'); setTimeout(() => toastElement.remove(), 400); } }, duration); } catch (e) { console.error("Chyba při zobrazování toastu:", e); } }
-            function showError(message, isGlobal = false) { console.error("Došlo k chybě:", message); if (isGlobal && ui.globalError) { ui.globalError.innerHTML = `<div class="error-message"><i class="fas fa-exclamation-circle"></i><div>${sanitizeHTML(message)}</div></div>`; ui.globalError.style.display = 'block'; } else { showToast(message, 'error', 6000); } }
-            function hideError() { if (ui.globalError) ui.globalError.style.display = 'none'; }
-            function sanitizeHTML(str) { const t = document.createElement('div'); t.textContent = str || ''; return t.innerHTML; }
-            function getInitials(profile) { if (!profile) return '?'; const f = profile.first_name?.[0] || ''; const l = profile.last_name?.[0] || ''; const nameInitial = (f + l).toUpperCase(); const usernameInitial = profile.username?.[0].toUpperCase() || ''; const emailInitial = profile.email?.[0].toUpperCase() || ''; return nameInitial || usernameInitial || emailInitial || '?'; }
-            function formatDate(dateString) { if (!dateString) return '-'; try { const d = new Date(dateString); if (isNaN(d.getTime())) return '-'; return d.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric' }); } catch (e) { return '-'; } }
-            function toggleMobileMenu() { ui.sidebar?.classList.toggle('active'); ui.sidebarOverlay?.classList.toggle('active'); }
-            function updateUserInfoUI() { if (!ui.sidebarName || !ui.sidebarAvatar) return; if (currentUser && currentProfile) { const displayName = `${currentProfile.first_name || ''} ${currentProfile.last_name || ''}`.trim() || currentProfile.username || currentUser.email?.split('@')[0] || 'Uživatel'; ui.sidebarName.textContent = displayName; const initials = getInitials(currentProfile); ui.sidebarAvatar.innerHTML = currentProfile.avatar_url ? `<img src="${currentProfile.avatar_url}" alt="${displayName}">` : initials; } else { ui.sidebarName.textContent = 'Nepřihlášen'; ui.sidebarAvatar.textContent = '?'; } }
-            function handleScroll() { if (!ui.mainContent || !ui.dashboardHeader) return; document.body.classList.toggle('scrolled', ui.mainContent.scrollTop > 10); }
-            function getDeclension(number, singular, plural1, plural2) { number = Math.abs(number); if (number === 1) return singular; if (number >= 2 && number <= 4) return plural1; return plural2; }
-            function initTooltips() { try { if (window.jQuery?.fn.tooltipster) { window.jQuery('.btn-tooltip:not(.tooltipstered)').tooltipster({ theme: 'tooltipster-shadow', animation: 'fade', delay: 100, side: 'top' }); } } catch (e) { console.error("Chyba inicializace Tooltipster:", e); } }
-            function setLoadingState(sectionKey, isLoadingFlag) { const sectionMap = { page: ui.mainContent, current: ui.currentPlanContainer, history: ui.historyPlanContainer, create: ui.createPlanContainer, detail: ui.planDetailContainer, schedule: document.getElementById(ui.scheduleSectionId || 'scheduleSection') }; const loaderMap = { current: ui.currentPlanLoader, history: ui.historyLoader, create: ui.createPlanLoader, detail: ui.planLoading, schedule: null }; const contentMap = { current: ui.currentPlanContentWrapper, history: ui.historyPlanContent, create: ui.createPlanContent, detail: ui.planContent, schedule: document.querySelector(`#${ui.scheduleSectionId || 'scheduleSection'} .calendar-scroll-container`) }; if (sectionKey === 'all') { Object.keys(isLoading).forEach(key => setLoadingState(key, isLoadingFlag)); return; } if (isLoading[sectionKey] === isLoadingFlag && sectionKey !== 'page') return; isLoading[sectionKey] = isLoadingFlag; console.log(`[SetLoading] ${sectionKey}: ${isLoadingFlag}`); const container = sectionMap[sectionKey]; const loader = loaderMap[sectionKey]; const content = contentMap[sectionKey]; if (loader) loader.style.display = isLoadingFlag ? 'flex' : 'none'; if (container && sectionKey !== 'page') container.classList.toggle('loading', isLoadingFlag); if (isLoadingFlag) { if (content) content.style.display = 'none'; } if (sectionKey === 'history') renderHistorySkeletons(isLoadingFlag ? 5 : 0); if (sectionKey === 'schedule') renderScheduleSkeletons(isLoadingFlag ? 7 : 0); }
-            function renderHistorySkeletons(count) { if (!ui.historyPlanContent) return; ui.historyPlanContent.innerHTML = ''; if (count <= 0) { ui.historyPlanContent.style.display = 'block'; return; } ui.historyPlanContent.style.display = 'block'; let skeletonHTML = ''; const skeletonTemplate = ui.historySkeletonTemplate?.content.innerHTML || '<div class="history-item loading"><div class="loading-skeleton"><div class="skeleton text-sm"></div><div class="skeleton title-sm"></div></div></div>'; for (let i = 0; i < count; i++) { skeletonHTML += skeletonTemplate; } ui.historyPlanContent.innerHTML = skeletonHTML; }
-            function renderScheduleSkeletons(count) { const grid = document.getElementById('dailySchedule'); if (!grid) return; grid.innerHTML = ''; if (count <= 0) { grid.style.display = 'grid'; return; }; grid.style.display = 'grid'; let skeletonHTML = ''; const skeletonTemplate = ui.scheduleDaySkeletonTemplate?.content.innerHTML || '<div class="schedule-day loading"><div class="schedule-day-header"><div class="skeleton title-sm"></div></div><div class="schedule-activities"><div class="skeleton-activity-item"><div class="skeleton activity-icon-placeholder"></div><div class="skeleton-content"><div class="skeleton activity-line"></div><div class="skeleton activity-line-short"></div></div></div></div></div>'; for (let i = 0; i < count; i++) { skeletonHTML += skeletonTemplate; } grid.innerHTML = skeletonHTML; }
+
+            // --- Helper Functions (Определены ДО initializePage)---
+            function showToast(message, type = 'info', duration = 4000) { /* ... */ }
+            function showError(message, isGlobal = false) { /* ... */ }
+            function hideError() { /* ... */ }
+            function sanitizeHTML(str) { /* ... */ }
+            function getInitials(profile) { /* ... */ }
+            function formatDate(dateString) { /* ... */ }
+            function toggleMobileMenu() { /* ... */ }
+            function updateUserInfoUI() { /* ... */ }
+            function handleScroll() { /* ... */ }
+            function getDeclension(number, singular, plural1, plural2) { /* ... */ }
+            function initTooltips() { /* ... */ }
+            function setLoadingState(sectionKey, isLoadingFlag) { /* ... */ }
+            function renderHistorySkeletons(count) { /* ... */ }
+            function renderScheduleSkeletons(count) { /* ... */ }
             function displayPlanContent(markdownContent) { /* ... */ }
             function renderWeeklySchedule(activities, planId) { /* ... */ }
             function renderNoDiagnosticAvailable(container) { /* ... */ }
@@ -430,80 +499,51 @@
             async function exportPlanToPDFWithStyle(plan) { /* ... */ }
             async function handleActivityCompletionToggle(activityId, isCompleted, planId) { /* ... */ }
             async function updatePlanProgress(planId) { /* ... */ }
+
+            // --- Data Fetching Functions ---
+            async function fetchUserProfile(userId) { /* ... */ }
+            async function getLatestDiagnostic() { /* ... */ }
+            async function fetchActiveStudyPlan(userId) { /* ... */ }
+            async function fetchPlanActivities(planId) { /* ... */ }
+            async function fetchPlanHistory(userId) { /* ... */ }
+            async function fetchFullPlanDetails(planId) { /* ... */ }
             async function generatePlanContentWithGemini(testData, topicsData) { /* ... */ }
             async function saveGeneratedPlan(markdownContent, activitiesArray, topicsData) { /* ... */ }
-
-            // --- Data Fetching ---
-            async function fetchUserProfile(userId) { if (!supabase || !userId) return null; console.log(`[Profile] Fetching profile for user ID: ${userId}`); try { const { data: profile, error } = await supabase.from('profiles').select('*').eq('id', userId).single(); if (error && error.code !== 'PGRST116') throw error; if (!profile) { console.warn(`[Profile] Profile not found for user ${userId}.`); return null; } console.log("[Profile] Profile data fetched."); return profile; } catch (error) { console.error('[Profile] Exception fetching profile:', error); showToast('Nepodařilo se načíst data profilu.', 'error'); return null; } }
-            async function getLatestDiagnostic() { if (!currentUser || !supabase) return null; console.log("[Diagnostic] Fetching latest diagnostic..."); try { const { data, error } = await supabase.from('user_diagnostics').select('*').eq('user_id', currentUser.id).order('completed_at', { ascending: false }).limit(1); if (error) throw error; const result = (data && data.length > 0) ? data[0] : null; console.log("[Diagnostic] Latest diagnostic:", result); return result; } catch (error) { console.error("Chyba načítání diagnostiky:", error); return null; } }
-            async function fetchActiveStudyPlan(userId) { console.log("[Fetch] Active Study Plan for:", userId); try { const { data: plans, error } = await supabase.from('study_plans').select('*').eq('user_id', userId).eq('status', 'active').order('created_at', { ascending: false }).limit(1); if (error) throw error; const plan = plans?.[0] || null; console.log(`[Fetch] Active plan found:`, plan); return plan; } catch (err) { console.error("Error fetching active study plan:", err); return null; } }
-            async function fetchPlanActivities(planId) { if (!planId) return []; console.log("[Fetch] Plan Activities for Plan ID:", planId); try { const { data, error } = await supabase.from('plan_activities').select('*').eq('plan_id', planId).order('day_of_week').order('time_slot'); if (error) throw error; console.log(`[Fetch] Activities found: ${data?.length ?? 0}`); return data || []; } catch (err) { console.error("Error fetching plan activities:", err); showToast('Chyba načítání aktivit plánu.', 'error'); return []; } } // Added Toast
-            async function fetchPlanHistory(userId) { if (!supabase || !userId) return []; console.log(`[History] Fetching plan history for user ${userId}...`); try { const { data: plans, error } = await supabase.from('study_plans').select('id, title, created_at, status, progress').eq('user_id', userId).order('created_at', { ascending: false }); if (error) throw error; console.log(`[History] Fetched ${plans?.length || 0} plans.`); return plans || []; } catch (error) { console.error("Chyba načítání historie plánů:", error); showError("Nepodařilo se načíst historii plánů.", false); return []; } }
-            async function fetchFullPlanDetails(planId) { if (!supabase || !planId) return null; console.log(`[Detail] Fetching full details for Plan ID: ${planId}`); try { const { data, error } = await supabase.from('study_plans').select('plan_content_markdown, title, created_at, estimated_completion_date').eq('id', planId).single(); if (error) throw error; console.log("[Detail] Full plan details fetched."); return data; } catch (error) { console.error("Chyba načítání detailu plánu:", error); showError("Nepodařilo se načíst detail plánu.", false); return null; } }
 
             // --- Core Application Logic ---
-             function switchView(view, targetTabId = null) { /* ... (Same as previous response) ... */ }
-             async function switchTab(tabId) { /* ... (Same as previous response) ... */ }
-             async function loadCurrentPlan() { // ИСПРАВЛЕНО: Улучшенная логика
-                 if (!supabase || !ui.currentPlanContainer || !ui.currentPlanContentWrapper) { setLoadingState('current', false); return; }
-                 console.log("[LoadCurrentPlan] Loading current plan data...");
-                 setLoadingState('current', true);
-                 const scheduleElem = document.getElementById(ui.scheduleSectionId || 'scheduleSection');
-                 if(scheduleElem) scheduleElem.remove();
-                 ui.currentPlanContentWrapper.innerHTML = '';
-                 ui.currentPlanContentWrapper.style.display = 'none';
-
-                 try {
-                     if (!currentUser) throw new Error('Uživatel není přihlášen');
-                     currentStudyPlan = await fetchActiveStudyPlan(currentUser.id);
-
-                     if (currentStudyPlan) {
-                         console.log("[LoadCurrentPlan] Active plan found. Fetching activities and showing schedule...");
-                         // Не устанавливаем setLoadingState('current', false) здесь,
-                         // так как showFullSchedule переключит вид и управляет своим лоадером ('schedule')
-                         await showFullSchedule(currentStudyPlan);
-                     } else {
-                         console.log("[LoadCurrentPlan] No active plan found. Checking diagnostics...");
-                         currentStudyPlan = null;
-                         latestDiagnosticData = await getLatestDiagnostic(); // Check diagnostics here
-                         if (latestDiagnosticData === null) { // Error fetching diagnostic
-                             renderNoDiagnosticAvailable(ui.currentPlanContentWrapper); // Show generic error/prompt
-                         } else if (latestDiagnosticData) { // Diagnostic completed
-                             renderPromptCreatePlan(ui.currentPlanContentWrapper);
-                         } else { // No diagnostic completed
-                             renderNoActivePlan(ui.currentPlanContentWrapper);
-                         }
-                         ui.currentPlanContentWrapper.style.display = 'block'; // Show the message/prompt
-                         setLoadingState('current', false); // Finish loading for this tab pane
-                     }
-                 } catch (error) {
-                     console.error('Chyba při načítání aktuálního plánu:', error);
-                     renderNoActivePlan(ui.currentPlanContentWrapper); // Show fallback message
-                     showError(`Nepodařilo se načíst aktuální plán: ${error.message}`, false);
-                     ui.currentPlanContentWrapper.style.display = 'block';
-                     setLoadingState('current', false);
-                 }
-            }
-            async function showFullSchedule(plan) { /* ... (Refined version, uses templates) ... */ }
+            function switchView(view, targetTabId = null) { /* ... */ }
+            async function switchTab(tabId) { /* ... */ }
+            async function loadCurrentPlan() { /* ... (Refined version) ... */ }
+            async function showFullSchedule(plan) { /* ... (Refined version) ... */ }
             async function showPlanDetail(plan) { /* ... (Refined version) ... */ }
             async function loadPlanHistory() { /* ... (Refined version) ... */ }
-            async function checkPlanCreationAvailability() { /* ... (Refined version) ... */ }
+            async function checkPlanCreationAvailability() { /* ... */ }
             async function generateStudyPlan() { /* ... */ }
-            async function generatePlanContentWithGemini(testData, topicsData) { /* ... */ }
-            async function saveGeneratedPlan(markdownContent, activitiesArray, topicsData) { /* ... */ }
-             async function handleActivityCompletionToggle(activityId, isCompleted, planId) { /* ... */ }
-             async function updatePlanProgress(planId) { /* ... */ }
-             async function exportPlanToPDFWithStyle(plan) { /* ... */ }
+
             // --- App Initialization ---
-            // ИСПРАВЛЕНО: Все функции объявлены ДО initializePage
-             function initializeSupabase() { try { if (typeof window.supabase === 'undefined' || typeof window.supabase.createClient !== 'function') { throw new Error("Supabase library not loaded."); } supabase = window.supabase.createClient(supabaseUrl, supabaseKey); if (!supabase) throw new Error("Supabase client creation failed."); console.log('[Supabase] Client initialized.'); return true; } catch (error) { console.error('[Supabase] Initialization failed:', error); showError("Kritická chyba: Nelze se připojit.", true); if (ui.initialLoader) { ui.initialLoader.innerHTML = `<p style="color: var(--danger);">Chyba připojení. Obnovte stránku.</p>`;} return false; } }
+            // ИСПРАВЛЕНО: Объявление initializeSupabase ПЕРЕД initializePage
+            function initializeSupabase() {
+                try {
+                    if (typeof window.supabase === 'undefined' || typeof window.supabase.createClient !== 'function') { throw new Error("Supabase library not loaded."); }
+                    supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+                    if (!supabase) throw new Error("Supabase client creation failed.");
+                    console.log('[Supabase] Client initialized.');
+                    return true;
+                } catch (error) {
+                    console.error('[Supabase] Initialization failed:', error);
+                    showError("Kritická chyba: Nelze se připojit.", true);
+                    if (ui.initialLoader) { ui.initialLoader.innerHTML = `<p style="color: var(--danger);">Chyba připojení. Obnovte stránku.</p>`;}
+                    return false;
+                }
+            }
 
             async function initializePage() {
                 console.log("🚀 [Init Plan] Starting...");
-                 if (!initializeSupabase()) {
+                // ИСПРАВЛЕНО: Вызов initializeSupabase здесь
+                if (!initializeSupabase()) {
                      if (ui.initialLoader) { ui.initialLoader.classList.add('hidden'); ui.initialLoader.style.display='none';}
                      return;
-                  }
+                 }
 
                 if (ui.initialLoader) { ui.initialLoader.style.display = 'flex'; ui.initialLoader.classList.remove('hidden'); }
                 if (ui.mainContent) { ui.mainContent.style.display = 'none'; ui.mainContent.classList.remove('loaded'); }
@@ -514,7 +554,7 @@
 
                     if (session?.user) {
                         currentUser = session.user;
-                        currentProfile = await fetchUserProfile(currentUser.id);
+                        currentProfile = await fetchUserProfile(currentUser.id); // fetchUserProfile объявлена выше
                         updateUserInfoUI();
 
                         if (!currentProfile) {
@@ -524,8 +564,8 @@
                             return;
                         }
 
-                         setupEventListeners(); // Setup listeners AFTER profile load
-                         applyTheme(currentProfile); // Apply theme AFTER profile load
+                        setupEventListeners(); // ИСПРАВЛЕНО: Вызов setupEventListeners ПОСЛЕ определения currentProfile
+                        applyTheme(currentProfile);
 
                         await switchTab('current'); // Load initial tab data
 
@@ -547,7 +587,7 @@
                 }
             }
              // Theme function
-            function applyTheme(profile) {
+             function applyTheme(profile) {
                  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
                  const savedPreference = profile?.preferences?.dark_mode;
                  const useDark = typeof savedPreference === 'boolean' ? savedPreference : prefersDark;
@@ -556,15 +596,26 @@
              }
 
             // --- Event Listeners Setup ---
-             function setupEventListeners() { /* ... (Implementation from previous response) ... */ }
+             // ИСПРАВЛЕНО: setupEventListeners объявлена до initializePage
+             function setupEventListeners() {
+                 if (ui.mobileMenuToggle) ui.mobileMenuToggle.addEventListener('click', toggleMobileMenu);
+                 if (ui.sidebarOverlay) ui.sidebarOverlay.addEventListener('click', toggleMobileMenu);
+                 if (ui.sidebarCloseToggle) ui.sidebarCloseToggle.addEventListener('click', toggleMobileMenu);
+                 ui.planTabs.forEach(tab => { tab.addEventListener('click', () => switchTab(tab.dataset.tab)); });
+                 if(ui.backToSourceTabBtn) ui.backToSourceTabBtn.addEventListener('click', () => switchView('tabs', activeTab));
+                 window.addEventListener('resize', () => { if (window.innerWidth > 992 && ui.sidebar?.classList.contains('active')) closeMenu(); });
+                 if(ui.mainContent) ui.mainContent.addEventListener('scroll', handleScroll);
+                 window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { if (currentProfile && typeof currentProfile.preferences?.dark_mode !== 'boolean') { applyTheme(currentProfile); } });
+             }
 
             // --- Запуск ---
-            // Вызов listener'а ВНУТРИ IIFE и с задержкой
+            // ИСПРАВЛЕНО: Вызов initializePage напрямую из setTimeout внутри DOMContentLoaded
              document.addEventListener('DOMContentLoaded', () => {
                  setTimeout(initializeApp, 0);
              });
 
         })(); // Конец IIFE
     </script>
+
 </body>
 </html>
