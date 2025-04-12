@@ -8,20 +8,24 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script> <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script> <script src="https://cdn.jsdelivr.net/npm/date-fns@2.29.3/index.min.js"></script> <script src="https://cdn.jsdelivr.net/npm/date-fns/locale/cs/index.js"></script> <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/date-fns@2.29.3/index.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/css/tooltipster.bundle.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/js/tooltipster.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
     <style>
-        /* --- Общие стили (из dashboard.html) --- */
+        /* --- Общие стили (из dashboard.html / предыдущей версии) --- */
         :root {
             /* Палитра */
             --primary-rgb: 67, 97, 238; --primary: #4361ee; --primary-light: #4895ef; --primary-dark: #3a0ca3;
             --secondary-rgb: 63, 55, 201; --secondary: #3f37c9;
             --success-rgb: 16, 185, 129; --success: #10b981; --success-light: #a7f3d0; --success-bg: #f0fdf4;
-            --success-alt: #06d6a0; /* Alternative success color */
+            --success-alt: #06d6a0;
             --danger-rgb: 247, 37, 133; --danger: #f72585; --danger-light: #fecdd3; --danger-bg: #fff1f2;
             --warning-rgb: 248, 150, 30; --warning: #f8961e; --warning-light: #fed7aa; --warning-bg: #fffbeb;
             --info-rgb: 72, 149, 239; --info: #4895ef; --info-light: #bfdbfe; --info-bg: #eff6ff;
@@ -42,7 +46,7 @@
             --text-primary: var(--gray-800);
             --text-secondary: #4a5568;
             --text-muted: #718096;
-            --border-color: var(--gray-200); /* Changed from gray-light */
+            --border-color: var(--gray-200);
             --input-bg: var(--white);
             --input-border: var(--gray-300);
             --skeleton-bg: #f3f4f6;
@@ -64,7 +68,7 @@
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
         body { background-color: var(--bg-color); color: var(--text-primary); min-height: 100vh; display: flex; overflow: hidden; line-height: 1.6; font-size: 15px; }
 
-        /* --- Sidebar (Идентичен dashboard.html) --- */
+        /* --- Sidebar --- */
         .sidebar { width: var(--sidebar-width); height: 100vh; position: fixed; top: 0; left: 0; background: var(--gradient-1); color: var(--white); padding: 1.5rem 1rem; display: flex; flex-direction: column; z-index: 1000; box-shadow: var(--shadow-lg); transition: transform var(--transition-speed) var(--transition-bezier), width var(--transition-speed) var(--transition-bezier); }
         .sidebar-header { display: flex; align-items: center; margin-bottom: 2rem; padding: 0 0.75rem; position: relative; min-height: 40px; }
         #sidebar-close-toggle { display: none; position: absolute; right: -5px; top: 50%; transform: translateY(-50%); background: none; border: none; color: rgba(255, 255, 255, 0.8); font-size: 1.6rem; cursor: pointer; padding: 0.5rem; line-height: 1; }
@@ -88,20 +92,14 @@
         .user-name { font-weight: 600; font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .user-role { font-size: 0.8rem; opacity: 0.8; white-space: nowrap;}
 
-        /* Основной контент */
+        /* --- Основной контент --- */
         main { flex: 1; margin-left: var(--sidebar-width); padding: 1.5rem 2rem; transition: margin var(--transition-speed) ease; width: calc(100% - var(--sidebar-width)); overflow-y: auto; height: 100vh; }
         main:not(.loaded) { opacity: 0; }
         main.loaded { opacity: 1; animation: fadeInMain 0.4s ease-out forwards; }
         @keyframes fadeInMain { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Заголовок */
-        .dashboard-header {
-            margin-bottom: 2rem; background-color: rgba(var(--card-bg-color-rgb), 0.8);
-            backdrop-filter: blur(8px); border-radius: var(--card-radius);
-            padding: 1rem 1.75rem; box-shadow: none; display: flex; justify-content: space-between;
-            align-items: center; flex-wrap: wrap; gap: 1rem; position: sticky; top: 0; z-index: 900;
-            border-bottom: 1px solid transparent; transition: box-shadow 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
-        }
+        /* --- Заголовок --- */
+        .dashboard-header { margin-bottom: 2rem; background-color: rgba(var(--card-bg-color-rgb), 0.8); backdrop-filter: blur(8px); border-radius: var(--card-radius); padding: 1rem 1.75rem; box-shadow: none; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; position: sticky; top: 0; z-index: 900; border-bottom: 1px solid transparent; transition: box-shadow 0.2s ease, border-color 0.2s ease, background-color 0.2s ease; }
          body.scrolled .dashboard-header { box-shadow: var(--shadow-md); border-bottom-color: var(--border-color); background-color: rgba(var(--card-bg-color-rgb), 0.95); }
         .header-content { display: flex; align-items: center; gap: 1rem; flex-grow: 1; }
         .header-content h1 { font-size: 1.75rem; font-weight: 600; color: var(--text-primary); margin: 0; }
@@ -112,13 +110,12 @@
         .main-content { display: grid; grid-template-columns: 1fr; gap: 1.75rem; }
 
         /* Секции */
-        .section { background-color: var(--card-bg-color); border-radius: var(--card-radius); box-shadow: var(--shadow-sm); padding: 1.75rem; /* Increased padding */ animation: fadeIn 0.5s ease forwards; border: 1px solid var(--border-color); }
+        .section { background-color: var(--card-bg-color); border-radius: var(--card-radius); box-shadow: var(--shadow-sm); padding: 1.75rem; animation: fadeIn 0.5s ease forwards; border: 1px solid var(--border-color); }
         .section-title { font-size: 1.4rem; font-weight: 600; margin-bottom: 1.5rem; color: var(--text-primary); display: flex; align-items: center; justify-content: space-between; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border-color); }
         .section-title i { font-size: 0.9em; color: var(--primary); margin-right: 0.6rem; }
         .section-subtitle { font-size: 1.1rem; font-weight: 500; margin-bottom: 1.2rem; color: var(--text-primary); }
-         .diagnostic-prompt { /* ... (unchanged) ... */ padding: 1rem; margin: 1rem 0; background-color: rgba(var(--info-rgb), 0.1); border-left: 4px solid var(--info); border-radius: 8px; color: var(--text-secondary); font-size: 0.95rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+         .diagnostic-prompt { padding: 1rem; margin: 1rem 0; background-color: rgba(var(--info-rgb), 0.1); border-left: 4px solid var(--info); border-radius: 8px; color: var(--text-secondary); font-size: 0.95rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
          .diagnostic-prompt p { margin: 0; flex-grow: 1; }
-
 
         /* Карточки статистики */
         .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem; }
@@ -129,7 +126,7 @@
          .card-badge { font-size: 0.75rem; font-weight: 500; padding: 0.2rem 0.6rem; border-radius: 10px; background-color: var(--info-bg); color: var(--info); }
          .card-badge.success { background-color: var(--success-bg); color: var(--success); }
          .card-content { flex-grow: 1; margin-bottom: 1rem; }
-         .card-value { font-size: 2.2rem; /* Increased */ font-weight: 700; color: var(--text-primary); margin-bottom: 0.5rem; line-height: 1.1; min-height: 36px; }
+         .card-value { font-size: 2.2rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.5rem; line-height: 1.1; min-height: 36px; }
          .progress-info, .card-description { font-size: 0.85rem; color: var(--text-muted); display: flex; justify-content: space-between; align-items: center; }
          .card-footer { font-size: 0.85rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.5rem; padding-top: 0.8rem; border-top: 1px solid var(--border-color); margin-top: auto; }
          .card-footer.positive { color: var(--success); font-weight: 500; }
@@ -171,10 +168,9 @@
           .topic-stat .accuracy-value.low { color: var(--danger); }
           .topic-stat .accuracy-value.medium { color: var(--warning); }
 
-
         /* Результаты Тестов */
         .test-stats { display: flex; flex-wrap: wrap; gap: 1.5rem; margin-bottom: 2rem; }
-         .stats-card { /* Reusing style */ flex: 1; min-width: 200px; background-color: var(--card-bg-color); border-radius: var(--card-radius); padding: 1.5rem; box-shadow: var(--shadow-sm); text-align: center; border: 1px solid var(--border-color); }
+         .stats-card { flex: 1; min-width: 200px; background-color: var(--card-bg-color); border-radius: var(--card-radius); padding: 1.5rem; box-shadow: var(--shadow-sm); text-align: center; border: 1px solid var(--border-color); }
          .stats-icon { width: 50px; height: 50px; border-radius: 50%; margin: 0 auto 1rem auto; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: white; }
          .stats-icon.primary { background: var(--gradient-1); }
          .stats-icon.success { background: linear-gradient(135deg, #4cc9f0, #38b2ac); }
@@ -199,7 +195,7 @@
          .test-meta span { display: inline-flex; align-items: center; gap: 0.3rem; }
          .test-score { font-size: 1.1rem; font-weight: 600; color: var(--primary); margin-left: 1rem; flex-shrink: 0; }
 
-        /* Загрузка и пустые состояния */
+        /* Состояния загрузки и пустые */
         .loading { display: flex; justify-content: center; align-items: center; padding: 2rem; font-size: 1rem; color: var(--text-muted); min-height: 150px; }
         .loading::after { content: ""; width: 24px; height: 24px; margin-left: 12px; border: 3px solid var(--primary); border-radius: 50%; border-top-color: transparent; animation: loading-spinner 0.8s linear infinite; }
         @keyframes loading-spinner { to { transform: rotate(360deg); } }
@@ -251,18 +247,21 @@
         .skeleton.value-lg { height: 30px; width: 40%; margin-bottom: 0.5rem; border-radius: 6px; }
         .skeleton.text-md { height: 16px; width: 80%; margin-bottom: 0.4rem; }
         .skeleton.text-sm { height: 12px; width: 70%; }
-        .dashboard-card .loading-skeleton { display: none; padding: 1.5rem; width: 100%; position: absolute; top:0; left:0; right:0; bottom: 0; pointer-events: none;}
-        .dashboard-card.loading .loading-skeleton { display: flex; flex-direction: column; }
-        .dashboard-card.loading > *:not(.loading-skeleton) { visibility: hidden; }
-        .skeleton.activity-icon-placeholder { width: 38px; height: 38px; border-radius: 10px; flex-shrink: 0; }
-        .skeleton.activity-line { height: 16px; width: 70%; margin-bottom: 0.4rem; }
-        .skeleton.activity-line-short { width: 40%; margin-top: 0.35rem; height: 12px; }
-        .activity-list .loading-placeholder { padding: 0.5rem 0; display: none; }
-        .activity-list .skeleton-activity-item { display: flex; padding: 0.9rem 1.5rem; border-bottom: 1px solid var(--border-color); align-items: flex-start; gap: 1rem; }
-        .activity-list .skeleton-activity-item:last-child { border-bottom: none; }
-        .activity-list-container.loading .activity-list { visibility: hidden; }
-        .activity-list-container.loading .loading-placeholder { display: block; }
-        .activity-list-container:not(.loading) .activity-item { display: flex; }
+        /* Specific skeletons */
+         .dashboard-card .loading-skeleton { display: none; padding: 1.5rem; width: 100%; position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; background: var(--card-bg-color); /* Ensure background */ }
+         .dashboard-card.loading .loading-skeleton { display: flex; flex-direction: column; }
+         .dashboard-card.loading > *:not(.loading-skeleton) { visibility: hidden; }
+         .skeleton.topic-icon { width: 40px; height: 40px; border-radius: 12px; flex-shrink: 0; }
+         .skeleton.topic-title { height: 20px; width: 70%; flex-grow: 1; }
+         .topic-card .loading-skeleton { display: none; flex-direction: column; width: 100%; height: 100%; padding: 1.5rem; }
+         .topic-card.loading .loading-skeleton { display: flex; }
+         .topic-card.loading > *:not(.loading-skeleton) { visibility: hidden; }
+         .schedule-day .loading-skeleton { /* Skeleton inside day card */ }
+         .schedule-day.loading .schedule-activities { visibility: hidden; } /* Hide real activities */
+         .schedule-day.loading .schedule-day-header > div { visibility: visible; } /* Show skeleton header */
+         .stats-card .loading-skeleton { /* Skeleton for test stats */ display: none; flex-direction: column; align-items: center; justify-content: center; position: absolute; top: 0; left: 0; right: 0; bottom: 0; padding: 1.5rem; }
+         .stats-card.loading .loading-skeleton { display: flex; }
+         .stats-card.loading > *:not(.loading-skeleton) { visibility: hidden; }
 
         /* Initial Loading Overlay */
         .initial-loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--bg-color); z-index: 1100; display: flex; justify-content: center; align-items: center; flex-direction: column; gap: 1rem; transition: opacity 0.5s ease-out; }
@@ -281,12 +280,12 @@
          @keyframes toast-in { from { opacity: 0; transform: translateX(100%); } to { opacity: 1; transform: translateX(0); } }
 
 
-        /* Responsivita */
+        /* --- Responsivita --- */
         @media (max-width: 992px) { :root { --sidebar-width: 80px; } main { margin-left: 80px; width: calc(100% - 80px); } .sidebar { width: 80px; } .sidebar-logo span, .sidebar-link span, .user-info, .sidebar-footer { display: none; } .sidebar-link i { margin-right: 0; font-size: 1.5rem; } .sidebar-logo i { margin-right: 0; } .sidebar-header, .sidebar-link { justify-content: center; } .user-profile { justify-content: center; padding: 0.75rem; } .user-avatar { margin-right: 0; } .mobile-menu-toggle { display: block; } #sidebar-close-toggle { display: none !important; } .header-actions { gap: 0.6rem; } .header-actions .btn span { display: none; } .header-actions .btn { padding: 0.6rem 0.8rem; } .schedule-grid { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); } }
         @media (max-width: 768px) { main { padding: 1rem; } .header-content { flex-direction: column; align-items: stretch; } .header-content > div:first-child { justify-content: space-between; width: 100%;} .header-content h1 { font-size: 1.5rem; } .header-actions { justify-content: flex-end; margin-top: 0.5rem; } .dashboard-grid { grid-template-columns: 1fr; } .test-stats { flex-direction: column; } .test-item { flex-direction: column; align-items: flex-start; gap: 0.75rem; } .test-score { margin-top: 0.5rem; width: 100%; text-align: right; } .schedule-grid { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); } }
         @media (max-width: 576px) { :root { --sidebar-width: 0; } main { margin-left: 0; width: 100%; padding: 0.75rem; } .sidebar { transform: translateX(-100%); width: 260px; z-index: 1000;} .sidebar.active { transform: translateX(0); } .sidebar.active .sidebar-logo span, .sidebar.active .sidebar-link span, .sidebar.active .user-info, .sidebar.active .sidebar-footer { display: block; } .sidebar.active .sidebar-link i { margin-right: 0.75rem; } .sidebar.active .sidebar-header, .sidebar.active .sidebar-link { justify-content: flex-start; } .sidebar.active .user-profile { padding: 1rem; } .sidebar.active .user-avatar { margin-right: 0.75rem; } .sidebar.active #sidebar-close-toggle { display: block; } .header-content h1 { font-size: 1.4rem; text-align: left; } .header-actions { gap: 0.5rem; } .header-actions .btn { padding: 0.6rem; } .schedule-grid { grid-template-columns: 1fr; } .toast-container { bottom: 1rem; right: 1rem; max-width: calc(100% - 1.5rem); } }
 
-        /* Dark Mode */
+        /* --- Dark Mode --- */
         @media (prefers-color-scheme: dark) {
             :root {
                  --bg-color: #131720; --card-bg-color: #1e2533;
@@ -297,11 +296,11 @@
                  --input-bg: #2d3748;
                  --danger-rgb: 247, 37, 133;
             }
-            body { background-color: var(--bg-color); }
-            .section, .dashboard-header, .dashboard-card, .topic-card, .test-item, .stats-card, .shortcut-card, .activity-list-container, .view-all-link, .toast, .notifications-dropdown-wrapper, .main-weekly-schedule, .schedule-day, .chart-container, .test-result-header, .test-list { background-color: var(--card-bg-color); border-color: var(--border-color); }
-            .mobile-menu-toggle { color: var(--text-primary); }
-            .empty-state i { color: var(--light); }
-            .test-stats .stats-card { background-color: var(--card-bg-color); }
+             body { background-color: var(--bg-color); }
+             .section, .dashboard-header, .dashboard-card, .topic-card, .test-item, .stats-card, .shortcut-card, .activity-list-container, .view-all-link, .toast, .notifications-dropdown-wrapper, .main-weekly-schedule, .schedule-day, .chart-container, .test-result-header, .test-list { background-color: var(--card-bg-color); border-color: var(--border-color); }
+             .mobile-menu-toggle { color: var(--text-primary); }
+             .empty-state i { color: var(--light); }
+             .test-stats .stats-card { background-color: var(--card-bg-color); }
              .schedule-day-header { background: var(--card-bg-color); color: var(--primary-light); border-bottom-color: var(--border-color); }
              .schedule-activity-item { border-left-color: var(--primary-light); }
              .activity-icon { color: var(--primary-light); }
@@ -314,6 +313,10 @@
              .initial-loading-overlay { background-color: var(--bg-color); }
              .toast { border: 1px solid var(--border-color); color: var(--text-primary);}
              .dashboard-footer { border-top-color: var(--border-color); }
+              /* Adjust chart colors if needed */
+              .chart-container { background-color: var(--card-bg-color); }
+              .test-result-header { border-bottom-color: var(--border-color); }
+              .test-item { border-color: var(--border-color); }
         }
         /* --- END OF STYLES --- */
     </style>
@@ -332,24 +335,12 @@
             <a href="/dashboard/dashboard.html" class="sidebar-logo"> <i class="fas fa-calculator"></i> <span>Justax</span> </a>
         </div>
         <ul class="sidebar-menu">
-             <li class="sidebar-item">
-                 <a href="/dashboard/dashboard.html" class="sidebar-link"> <i class="fas fa-th-large"></i> <span>Nástěnka</span> </a>
-             </li>
-             <li class="sidebar-item">
-                 <a href="/dashboard/procvicovani/main.html" class="sidebar-link active"> <i class="fas fa-book-open"></i> <span>Procvičování</span> </a>
-             </li>
-             <li class="sidebar-item">
-                 <a href="/dashboard/pokrok.html" class="sidebar-link"> <i class="fas fa-chart-line"></i> <span>Pokrok</span> </a>
-             </li>
-             <li class="sidebar-item">
-                 <a href="/dashboard/oceneni.html" class="sidebar-link"> <i class="fas fa-medal"></i> <span>Ocenění</span> </a>
-             </li>
-             <li class="sidebar-item">
-                 <a href="/dashboard/materialy.html" class="sidebar-link"> <i class="fas fa-file-alt"></i> <span>Materiály</span> </a>
-             </li>
-             <li class="sidebar-item">
-                 <a href="/dashboard/profile.html" class="sidebar-link"> <i class="fas fa-user-cog"></i> <span>Profil</span> </a>
-             </li>
+             <li class="sidebar-item"> <a href="/dashboard/dashboard.html" class="sidebar-link"> <i class="fas fa-th-large"></i> <span>Nástěnka</span> </a> </li>
+             <li class="sidebar-item"> <a href="/dashboard/procvicovani/main.html" class="sidebar-link active"> <i class="fas fa-book-open"></i> <span>Procvičování</span> </a> </li>
+             <li class="sidebar-item"> <a href="/dashboard/pokrok.html" class="sidebar-link"> <i class="fas fa-chart-line"></i> <span>Pokrok</span> </a> </li>
+             <li class="sidebar-item"> <a href="/dashboard/oceneni.html" class="sidebar-link"> <i class="fas fa-medal"></i> <span>Ocenění</span> </a> </li>
+             <li class="sidebar-item"> <a href="/dashboard/materialy.html" class="sidebar-link"> <i class="fas fa-file-alt"></i> <span>Materiály</span> </a> </li>
+             <li class="sidebar-item"> <a href="/dashboard/profile.html" class="sidebar-link"> <i class="fas fa-user-cog"></i> <span>Profil</span> </a> </li>
         </ul>
         <div class="user-profile">
             <div class="user-avatar" id="user-avatar">?</div>
@@ -366,7 +357,8 @@
 
          <header class="dashboard-header">
              <div class="header-content">
-                 <div class="header-title-section"> <button class="mobile-menu-toggle" id="mobile-menu-toggle"> <i class="fas fa-bars"></i> </button>
+                 <div class="header-title-section">
+                     <button class="mobile-menu-toggle" id="mobile-menu-toggle"> <i class="fas fa-bars"></i> </button>
                      <h1>Procvičování</h1>
                  </div>
                  <div class="header-actions">
@@ -381,26 +373,42 @@
                 <h2 class="section-title"><i class="fas fa-tachometer-alt"></i> Přehled pokroku</h2>
                 <div class="dashboard-grid" id="stats-cards">
                     <div class="dashboard-card loading">
-                        <div class="loading-skeleton"> <div class="skeleton title-sm"></div> <div class="skeleton value-lg"></div> <div class="skeleton text-md"></div> <div class="skeleton text-sm" style="margin-top: auto; border-top: 1px solid transparent; padding-top: 0.8rem;"></div> </div>
-                        <div class="card-header"> <h3 class="card-title">Pokrok</h3> <span class="card-badge">Celkem</span> </div>
+                        <div class="loading-skeleton">
+                           <div style="margin-bottom: 0.8rem;"><div class="skeleton title-sm" style="width: 50%;"></div></div>
+                           <div class="skeleton value-lg" style="width: 40%;"></div>
+                           <div style="margin-top: auto; padding-top: 0.8rem;"><div class="skeleton text-sm" style="width: 60%;"></div></div>
+                        </div>
+                        <div class="card-header"> <h3 class="card-title">Pokrok</h3> </div>
                         <div class="card-content"> <div class="card-value" id="stats-progress">-%</div> </div>
                         <div class="card-footer" id="stats-progress-change"><i class="fas fa-minus"></i> Načítání...</div>
                     </div>
                      <div class="dashboard-card loading">
-                        <div class="loading-skeleton"> <div class="skeleton title-sm"></div> <div class="skeleton value-lg"></div> <div class="skeleton text-md"></div> <div class="skeleton text-sm" style="margin-top: auto; border-top: 1px solid transparent; padding-top: 0.8rem;"></div> </div>
-                        <div class="card-header"> <h3 class="card-title">Testy</h3> <span class="card-badge success">Dokončeno</span> </div>
+                         <div class="loading-skeleton">
+                           <div style="margin-bottom: 0.8rem;"><div class="skeleton title-sm" style="width: 40%;"></div></div>
+                           <div class="skeleton value-lg" style="width: 30%;"></div>
+                           <div style="margin-top: auto; padding-top: 0.8rem;"><div class="skeleton text-sm" style="width: 70%;"></div></div>
+                        </div>
+                        <div class="card-header"> <h3 class="card-title">Testy</h3> </div>
                         <div class="card-content"> <div class="card-value" id="stats-tests">0</div> </div>
                         <div class="card-footer" id="stats-tests-avg">Prům. skóre: -%</div>
                     </div>
                      <div class="dashboard-card loading">
-                        <div class="loading-skeleton"> <div class="skeleton title-sm"></div> <div class="skeleton value-lg"></div> <div class="skeleton text-md"></div> <div class="skeleton text-sm" style="margin-top: auto; border-top: 1px solid transparent; padding-top: 0.8rem;"></div> </div>
-                        <div class="card-header"> <h3 class="card-title">Body</h3> <span class="card-badge warning">Celkem</span> </div>
+                        <div class="loading-skeleton">
+                           <div style="margin-bottom: 0.8rem;"><div class="skeleton title-sm" style="width: 45%;"></div></div>
+                           <div class="skeleton value-lg" style="width: 35%;"></div>
+                           <div style="margin-top: auto; padding-top: 0.8rem;"><div class="skeleton text-sm" style="width: 65%;"></div></div>
+                        </div>
+                        <div class="card-header"> <h3 class="card-title">Body</h3> </div>
                         <div class="card-content"> <div class="card-value" id="stats-points">0</div> </div>
                         <div class="card-footer" id="stats-points-change"><i class="fas fa-minus"></i> Načítání...</div>
                     </div>
                      <div class="dashboard-card loading">
-                         <div class="loading-skeleton"> <div class="skeleton title-sm"></div> <div class="skeleton value-lg"></div> <div class="skeleton text-md"></div> <div class="skeleton text-sm" style="margin-top: auto; border-top: 1px solid transparent; padding-top: 0.8rem;"></div> </div>
-                         <div class="card-header"> <h3 class="card-title">Série</h3> <span class="card-badge danger">Dní v řadě</span> </div>
+                         <div class="loading-skeleton">
+                           <div style="margin-bottom: 0.8rem;"><div class="skeleton title-sm" style="width: 55%;"></div></div>
+                           <div class="skeleton value-lg" style="width: 25%;"></div>
+                           <div style="margin-top: auto; padding-top: 0.8rem;"><div class="skeleton text-sm" style="width: 60%;"></div></div>
+                        </div>
+                         <div class="card-header"> <h3 class="card-title">Série</h3> </div>
                          <div class="card-content"> <div class="card-value" id="stats-streak">0</div> </div>
                          <div class="card-footer" id="stats-streak-longest">Nejdelší: 0 dní</div>
                     </div>
@@ -415,71 +423,66 @@
                 </div>
 
                  <div class="tab-content active" id="test-results">
-                    <div id="test-results-loading" class="loading">Načítání výsledků testů...</div>
-                    <div id="test-results-content" style="display: none">
-                         <div class="test-stats" id="test-stats">
-                            <div class="stats-card loading"> <div class="loading-skeleton"><div class="skeleton value-lg"></div><div class="skeleton text-sm"></div></div> <div class="stats-icon primary"><i class="fas fa-percentage"></i></div> <div class="stats-value" id="test-avg-score">- %</div> <div class="stats-label">Prům. Skóre</div> </div>
-                            <div class="stats-card loading"> <div class="loading-skeleton"><div class="skeleton value-lg"></div><div class="skeleton text-sm"></div></div> <div class="stats-icon success"><i class="fas fa-trophy"></i></div> <div class="stats-value" id="test-best-score">- %</div> <div class="stats-label">Nejlepší Skóre</div> </div>
-                            <div class="stats-card loading"> <div class="loading-skeleton"><div class="skeleton value-lg"></div><div class="skeleton text-sm"></div></div> <div class="stats-icon warning"><i class="fas fa-clock"></i></div> <div class="stats-value" id="test-avg-time">--:--</div> <div class="stats-label">Prům. Čas</div> </div>
+                    <div id="test-results-container">
+                        <div id="test-results-loading" class="loading" style="display: none;">Načítání výsledků testů...</div>
+                        <div id="test-results-content" style="display: none">
+                             <div class="test-stats" id="test-stats">
+                                <div class="stats-card loading"> <div class="loading-skeleton"><div class="skeleton value-lg" style="margin: 0 auto 1rem;"></div><div class="skeleton text-sm" style="margin: 0 auto;"></div></div> <div class="stats-icon primary"><i class="fas fa-percentage"></i></div> <div class="stats-value" id="test-avg-score">- %</div> <div class="stats-label">Prům. Skóre</div> </div>
+                                <div class="stats-card loading"> <div class="loading-skeleton"><div class="skeleton value-lg" style="margin: 0 auto 1rem;"></div><div class="skeleton text-sm" style="margin: 0 auto;"></div></div> <div class="stats-icon success"><i class="fas fa-trophy"></i></div> <div class="stats-value" id="test-best-score">- %</div> <div class="stats-label">Nejlepší Skóre</div> </div>
+                                <div class="stats-card loading"> <div class="loading-skeleton"><div class="skeleton value-lg" style="margin: 0 auto 1rem;"></div><div class="skeleton text-sm" style="margin: 0 auto;"></div></div> <div class="stats-icon warning"><i class="fas fa-clock"></i></div> <div class="stats-value" id="test-avg-time">--:--</div> <div class="stats-label">Prům. Čas</div> </div>
+                             </div>
+                             <div class="chart-container"><canvas id="testsChart"></canvas></div>
+                             <h3 class="section-subtitle">Poslední výsledek diagnostického testu</h3>
+                             <div id="last-test-result"><div class="loading">Načítání...</div></div>
+                             <h3 class="section-subtitle">Historie diagnostických testů</h3>
+                             <div class="test-list" id="test-history"><div class="loading">Načítání...</div></div>
                          </div>
-                         <div class="chart-container"><canvas id="testsChart"></canvas></div>
-                         <h3 class="section-subtitle">Poslední výsledek diagnostického testu</h3>
-                         <div id="last-test-result"><div class="loading">Načítání...</div></div>
-                         <h3 class="section-subtitle">Historie diagnostických testů</h3>
-                         <div class="test-list" id="test-history"><div class="loading">Načítání...</div></div>
-                     </div>
-                     <div id="test-results-empty" class="empty-state" style="display: none;">
-                         <i class="fas fa-clipboard-list"></i>
-                         <h3 id="empty-state-title">Diagnostický test</h3>
-                         <p id="empty-state-message">Zatím jste nedokončili diagnostický test...</p>
-                         <a href="test1.html" class="btn btn-primary" id="start-test-btn"><i class="fas fa-play"></i> <span id="empty-state-button-text">Spustit test</span></a>
-                     </div>
+                         <div id="test-results-empty" class="empty-state" style="display: none;">
+                             <i class="fas fa-clipboard-list"></i>
+                             <h3 id="empty-state-title">Diagnostický test</h3>
+                             <p id="empty-state-message">Zatím jste nedokončili diagnostický test...</p>
+                             <a href="test1.html" class="btn btn-primary" id="start-test-btn"><i class="fas fa-play"></i> <span id="empty-state-button-text">Spustit test</span></a>
+                         </div>
+                    </div>
                  </div>
 
                  <div class="tab-content" id="study-plan">
-                     <div id="study-plan-loading" class="loading">Načítání studijního plánu...</div>
-                     <div id="study-plan-content" style="display: none">
-                         <div class="main-weekly-schedule">
-                             <h3 class="section-subtitle">Týdenní přehled aktivit</h3>
-                             <div class="schedule-grid" id="main-plan-schedule">
-                                 <div class="schedule-day loading">
-                                     <div class="schedule-day-header"><div class="skeleton title-sm" style="width: 60%; margin: 0 auto;"></div></div>
-                                     <div class="schedule-activities">
-                                         <div class="skeleton-activity-item"> <div class="skeleton activity-icon-placeholder"></div> <div style="flex-grow: 1;"> <div class="skeleton activity-line"></div> <div class="skeleton activity-line-short"></div></div> </div>
-                                         <div class="skeleton-activity-item"> <div class="skeleton activity-icon-placeholder"></div> <div style="flex-grow: 1;"> <div class="skeleton activity-line"></div> <div class="skeleton activity-line-short"></div></div> </div>
+                    <div id="study-plan-container">
+                         <div id="study-plan-loading" class="loading" style="display: none;">Načítání studijního plánu...</div>
+                         <div id="study-plan-content" style="display: none">
+                             <div class="main-weekly-schedule">
+                                 <h3 class="section-subtitle">Týdenní přehled aktivit</h3>
+                                 <div class="schedule-grid" id="main-plan-schedule">
+                                     <div class="schedule-day loading"> <div class="schedule-day-header"><div class="skeleton title-sm" style="width: 60%; margin: 0 auto; height: 16px;"></div></div> <div class="schedule-activities"> <div class="skeleton-activity-item" style="display:flex; gap: 0.75rem; padding: 0.5rem 0;"> <div class="skeleton activity-icon-placeholder" style="width: 20px; height: 20px; flex-shrink: 0;"></div> <div style="flex-grow: 1;"> <div class="skeleton activity-line" style="width: 80%; height: 14px;"></div> <div class="skeleton activity-line-short" style="width: 50%; height: 10px; margin-top: 4px;"></div></div> </div> <div class="skeleton-activity-item" style="display:flex; gap: 0.75rem; padding: 0.5rem 0;"> <div class="skeleton activity-icon-placeholder" style="width: 20px; height: 20px; flex-shrink: 0;"></div> <div style="flex-grow: 1;"> <div class="skeleton activity-line" style="width: 70%; height: 14px;"></div> </div> </div> </div> </div>
                                      </div>
-                                 </div>
-                                  </div>
-                             <div class="full-plan-link-container"> <a href="plan.html" class="btn btn-primary"> <i class="fas fa-calendar-alt"></i> Zobrazit podrobný plán </a> </div>
+                                 <div class="full-plan-link-container"> <a href="plan.html" class="btn btn-primary"> <i class="fas fa-calendar-alt"></i> Zobrazit podrobný plán </a> </div>
+                             </div>
                          </div>
-                     </div>
-                     <div id="study-plan-empty" class="empty-state" style="display: none;">
-                         <i class="fas fa-calendar-times"></i>
-                         <h3>Žádný aktivní plán</h3>
-                         <p>Vytvořte si plán na základě diagnostického testu.</p>
-                         <a href="test1.html" class="btn btn-primary" id="create-plan-btn"> <i class="fas fa-clipboard-check"></i> Absolvovat test </a>
-                     </div>
+                         <div id="study-plan-empty" class="empty-state" style="display: none;">
+                             <i class="fas fa-calendar-times"></i>
+                             <h3>Žádný aktivní plán</h3>
+                             <p>Vytvořte si plán na základě diagnostického testu.</p>
+                             <a href="test1.html" class="btn btn-primary" id="create-plan-btn"> <i class="fas fa-clipboard-check"></i> Absolvovat test </a>
+                         </div>
+                    </div>
                  </div>
 
                  <div class="tab-content" id="topic-analysis">
-                    <div id="topic-analysis-loading" class="loading">Načítání analýzy témat...</div>
-                    <div id="topic-analysis-content" style="display: none">
-                        <div class="topic-grid" id="topic-grid">
-                            <div class="topic-card loading">
-                                <div class="loading-skeleton">
-                                     <div class="topic-header"> <div class="skeleton topic-icon"></div> <div class="skeleton topic-title" style="height: 20px; width: 70%;"></div> </div>
-                                     <div class="topic-stats" style="margin-top: 1rem;"> <div class="skeleton text-sm" style="width: 80%; margin-bottom: 0.5rem;"></div> <div class="skeleton text-sm" style="width: 60%;"></div> </div>
+                    <div id="topic-analysis-container">
+                        <div id="topic-analysis-loading" class="loading" style="display: none;">Načítání analýzy témat...</div>
+                        <div id="topic-analysis-content" style="display: none">
+                            <div class="topic-grid" id="topic-grid">
+                                <div class="topic-card loading"> <div class="loading-skeleton" style="display: flex; flex-direction: column; width: 100%; height: 100%; padding: 1.5rem;"> <div class="topic-header"> <div class="skeleton topic-icon" style="width: 40px; height: 40px; border-radius: 12px; flex-shrink: 0;"></div> <div class="skeleton topic-title" style="height: 20px; width: 70%; flex-grow: 1;"></div> </div> <div class="topic-stats" style="margin-top: auto; padding-top: 1rem;"> <div class="skeleton text-sm" style="width: 80%; margin-bottom: 0.5rem;"></div><div class="skeleton text-sm" style="width: 60%;"></div><div class="skeleton progress-container" style="height: 8px; margin-top: 0.5rem;"></div></div> </div> </div>
                                 </div>
-                            </div>
-                            </div>
+                        </div>
+                        <div id="topic-analysis-empty" class="empty-state" style="display: none;">
+                            <i class="fas fa-chart-pie"></i>
+                            <h3>Žádná analýza témat</h3>
+                            <p>Dokončete diagnostický test pro zobrazení analýzy.</p>
+                            <a href="test1.html" class="btn btn-primary" id="start-analysis-test-btn"> <i class="fas fa-vial"></i> Spustit test </a>
+                        </div>
                     </div>
-                    <div id="topic-analysis-empty" class="empty-state" style="display: none;">
-                        <i class="fas fa-chart-pie"></i>
-                        <h3>Žádná analýza témat</h3>
-                        <p>Dokončete diagnostický test pro zobrazení analýzy.</p>
-                        <a href="test1.html" class="btn btn-primary" id="start-analysis-test-btn"> <i class="fas fa-vial"></i> Spustit test </a>
-                    </div>
-                </div>
+                 </div>
             </section>
         </div>
 
@@ -491,7 +494,7 @@
     <div class="toast-container" id="toast-container"></div>
 
     <script>
-        // Обновленный JavaScript с загрузкой данных
+        // Обновленный JavaScript с исправленными ошибками и загрузкой данных
         (function() {
             // --- START: Инициализация и Конфигурация ---
             const supabaseUrl = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
@@ -499,13 +502,16 @@
             let supabase = null;
             let currentUser = null;
             let currentProfile = null;
-            let userStatsData = null; // Store combined stats
-            let testResultsData = [];
+            let userStatsData = null;
+            let diagnosticResultsData = [];
             let testsChartInstance = null;
             let topicProgressData = [];
             let studyPlanData = null;
             let planActivitiesData = [];
             let isLoading = { stats: false, tests: false, plan: false, topics: false };
+            // Иконки для тем
+            const topicIcons = { "Algebra": "fa-square-root-alt", "Aritmetika": "fa-calculator", "Geometrie": "fa-draw-polygon", "Logika": "fa-brain", "Logické úlohy": "fa-brain", "Statistika": "fa-chart-bar", "Čísla a aritmetické operace": "fa-calculator", "Práce s daty": "fa-chart-bar", "Problémové úlohy": "fa-lightbulb", "Proporce a procenta": "fa-percentage", "default": "fa-book" };
+
 
             // DOM Cache
             const ui = {
@@ -516,7 +522,7 @@
                 mobileMenuToggle: document.getElementById('mobile-menu-toggle'),
                 sidebar: document.getElementById('sidebar'),
                 sidebarOverlay: document.getElementById('sidebar-overlay'),
-                sidebarCloseToggle: document.getElementById('sidebar-close-toggle'), // Added
+                sidebarCloseToggle: document.getElementById('sidebar-close-toggle'),
                 toastContainer: document.getElementById('toast-container'),
                 globalError: document.getElementById('global-error'),
                 // Stats Cards
@@ -530,6 +536,7 @@
                 statsStreak: document.getElementById('stats-streak'),
                 statsStreakLongest: document.getElementById('stats-streak-longest'),
                 // Test Results Tab
+                testResultsContainer: document.getElementById('test-results-container'), // Added container
                 testResultsLoading: document.getElementById('test-results-loading'),
                 testResultsContent: document.getElementById('test-results-content'),
                 testResultsEmpty: document.getElementById('test-results-empty'),
@@ -545,11 +552,13 @@
                 emptyStateButtonText: document.getElementById('empty-state-button-text'),
                 emptyStateButtonLink: document.getElementById('start-test-btn'),
                 // Study Plan Tab
+                studyPlanContainer: document.getElementById('study-plan-container'), // Added container
                 studyPlanLoading: document.getElementById('study-plan-loading'),
                 studyPlanContent: document.getElementById('study-plan-content'),
                 studyPlanEmpty: document.getElementById('study-plan-empty'),
                 mainPlanScheduleGrid: document.getElementById('main-plan-schedule'),
                 // Topic Analysis Tab
+                topicAnalysisContainer: document.getElementById('topic-analysis-container'), // Added container
                 topicAnalysisLoading: document.getElementById('topic-analysis-loading'),
                 topicAnalysisContent: document.getElementById('topic-analysis-content'),
                 topicAnalysisEmpty: document.getElementById('topic-analysis-empty'),
@@ -558,12 +567,8 @@
                 dashboardHeader: document.querySelector('.dashboard-header')
             };
 
-             // Mapování typů aktivit (остается без изменений)
-             const activityVisuals = { /* ... */ };
-             const topicIcons = { /* ... */ }; // (из dashboard.html)
-
             // --- START: Helper Functions ---
-            function showToast(message, type = 'info', duration = 4000) { if (!ui.toastContainer) return; try { const toastId = `toast-${Date.now()}`; const toastElement = document.createElement('div'); toastElement.className = `toast ${type}`; toastElement.id = toastId; toastElement.setAttribute('role', 'alert'); toastElement.setAttribute('aria-live', 'assertive'); toastElement.innerHTML = `<i class="toast-icon"></i><div class="toast-content"><div class="toast-message">${sanitizeHTML(message)}</div></div><button type="button" class="toast-close" aria-label="Zavřít">&times;</button>`; const icon = toastElement.querySelector('.toast-icon'); icon.className = `toast-icon fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle'}`; toastElement.querySelector('.toast-close').addEventListener('click', () => { toastElement.classList.remove('show'); setTimeout(() => toastElement.remove(), 400); }); ui.toastContainer.appendChild(toastElement); requestAnimationFrame(() => { toastElement.classList.add('show'); }); setTimeout(() => { if (toastElement.parentElement) { toastElement.classList.remove('show'); setTimeout(() => toastElement.remove(), 400); } }, duration); } catch (e) { console.error("Chyba při zobrazování toastu:", e); } }
+             function showToast(message, type = 'info', duration = 4000) { if (!ui.toastContainer) return; try { const toastId = `toast-${Date.now()}`; const toastElement = document.createElement('div'); toastElement.className = `toast ${type}`; toastElement.id = toastId; toastElement.setAttribute('role', 'alert'); toastElement.setAttribute('aria-live', 'assertive'); toastElement.innerHTML = `<i class="toast-icon"></i><div class="toast-content"><div class="toast-message">${sanitizeHTML(message)}</div></div><button type="button" class="toast-close" aria-label="Zavřít">&times;</button>`; const icon = toastElement.querySelector('.toast-icon'); icon.className = `toast-icon fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle'}`; toastElement.querySelector('.toast-close').addEventListener('click', () => { toastElement.classList.remove('show'); setTimeout(() => toastElement.remove(), 400); }); ui.toastContainer.appendChild(toastElement); requestAnimationFrame(() => { toastElement.classList.add('show'); }); setTimeout(() => { if (toastElement.parentElement) { toastElement.classList.remove('show'); setTimeout(() => toastElement.remove(), 400); } }, duration); } catch (e) { console.error("Chyba při zobrazování toastu:", e); } }
             function showError(message, isGlobal = false) { console.error("Došlo k chybě:", message); if (isGlobal && ui.globalError) { ui.globalError.innerHTML = `<div class="error-message"><i class="fas fa-exclamation-circle"></i><div>${sanitizeHTML(message)}</div></div>`; ui.globalError.style.display = 'block'; } else { showToast(message, 'error', 6000); } }
             function hideError() { if (ui.globalError) ui.globalError.style.display = 'none'; }
             function sanitizeHTML(str) { const t = document.createElement('div'); t.textContent = str || ''; return t.innerHTML; }
@@ -571,22 +576,27 @@
             function formatDate(dateString) { if (!dateString) return '-'; try { const d = new Date(dateString); if (isNaN(d.getTime())) return '-'; return d.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric' }); } catch (e) { return '-'; } }
             function formatTime(seconds) { if (isNaN(seconds) || seconds < 0) return '--:--'; const m = Math.floor(seconds / 60); const s = Math.round(seconds % 60); return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`; }
             function toggleMobileMenu() { ui.sidebar?.classList.toggle('active'); ui.sidebarOverlay?.classList.toggle('active'); }
-            function updateUserInfoUI() { /* ... (implementace из dashboard.html) ... */ if (!ui.sidebarName || !ui.sidebarAvatar) return; if (currentUser && currentProfile) { const displayName = `${currentProfile.first_name || ''} ${currentProfile.last_name || ''}`.trim() || currentProfile.username || currentUser.email?.split('@')[0] || 'Uživatel'; ui.sidebarName.textContent = displayName; const initials = getInitials(currentProfile); ui.sidebarAvatar.innerHTML = currentProfile.avatar_url ? `<img src="${currentProfile.avatar_url}" alt="${displayName}">` : initials; } else { ui.sidebarName.textContent = 'Nepřihlášen'; ui.sidebarAvatar.textContent = '?'; } }
+            function updateUserInfoUI() { if (!ui.sidebarName || !ui.sidebarAvatar) return; if (currentUser && currentProfile) { const displayName = `${currentProfile.first_name || ''} ${currentProfile.last_name || ''}`.trim() || currentProfile.username || currentUser.email?.split('@')[0] || 'Uživatel'; ui.sidebarName.textContent = displayName; const initials = getInitials(currentProfile); ui.sidebarAvatar.innerHTML = currentProfile.avatar_url ? `<img src="${currentProfile.avatar_url}" alt="${displayName}">` : initials; } else { ui.sidebarName.textContent = 'Nepřihlášen'; ui.sidebarAvatar.textContent = '?'; } }
             function handleScroll() { if (!ui.mainContent || !ui.dashboardHeader) return; document.body.classList.toggle('scrolled', ui.mainContent.scrollTop > 10); }
 
-            /** Manages loading states and skeleton visibility. */
+            /** Manages loading states and skeleton visibility for specific sections. */
             function setLoadingState(sectionKey, isLoadingFlag) {
                  const sectionMap = {
                      stats: ui.statsCardsContainer,
-                     tests: ui.testResultsContent,
-                     plan: ui.studyPlanContent,
-                     topics: ui.topicAnalysisContent
+                     tests: ui.testResultsContainer,
+                     plan: ui.studyPlanContainer,
+                     topics: ui.topicAnalysisContainer
                  };
                  const loadingMap = {
-                     stats: ui.statsLoading,
+                     stats: ui.statsLoading, // Uses card .loading class
                      tests: ui.testResultsLoading,
                      plan: ui.studyPlanLoading,
                      topics: ui.topicAnalysisLoading
+                 };
+                 const contentMap = {
+                      tests: ui.testResultsContent,
+                      plan: ui.studyPlanContent,
+                      topics: ui.topicAnalysisContent
                  };
                  const emptyMap = {
                      tests: ui.testResultsEmpty,
@@ -598,462 +608,104 @@
                      Object.keys(isLoading).forEach(key => setLoadingState(key, isLoadingFlag));
                      return;
                  }
-
                  if (isLoading[sectionKey] === isLoadingFlag) return;
                  isLoading[sectionKey] = isLoadingFlag;
                  console.log(`[SetLoading] ${sectionKey}: ${isLoadingFlag}`);
 
-                 const container = sectionMap[sectionKey];
-                 const loader = loadingMap[sectionKey];
-                 const emptyState = emptyMap[sectionKey];
+                 const container = sectionMap[sectionKey]; // Main container for the section/tab
+                 const loader = loadingMap[sectionKey]; // Specific loader element (if exists)
+                 const content = contentMap[sectionKey]; // Content div
+                 const emptyState = emptyMap[sectionKey]; // Empty state div
 
                  if (loader) loader.style.display = isLoadingFlag ? 'flex' : 'none';
-                 if (container) container.style.display = isLoadingFlag ? 'none' : 'block'; // Hide content when loading
-                 if (emptyState) emptyState.style.display = 'none'; // Always hide empty state when loading
+                 if (content) content.style.display = 'none'; // Always hide content initially when state changes
+                 if (emptyState) emptyState.style.display = 'none'; // Always hide empty state initially
 
-                 // Handle specific skeleton toggling
-                 if (sectionKey === 'stats' && ui.statsCardsContainer) {
+                 // Toggle loading class on parent container for skeletons
+                 if (container) container.classList.toggle('loading', isLoadingFlag);
+
+                 // Specific skeleton rendering (adjust as needed)
+                 if(sectionKey === 'stats' && ui.statsCardsContainer) {
                      ui.statsCardsContainer.querySelectorAll('.dashboard-card').forEach(card => card.classList.toggle('loading', isLoadingFlag));
                  } else if (sectionKey === 'topics' && ui.topicGrid) {
-                     ui.topicGrid.classList.toggle('loading', isLoadingFlag); // Assuming a .loading class hides real cards and shows skeletons
-                     renderTopicSkeletons(isLoadingFlag ? 6 : 0); // Show/hide skeletons
+                      renderTopicSkeletons(isLoadingFlag ? 6 : 0);
                  } else if (sectionKey === 'plan' && ui.mainPlanScheduleGrid) {
-                     renderScheduleSkeletons(isLoadingFlag ? 7 : 0);
-                     if (isLoadingFlag) ui.mainPlanScheduleGrid.style.display = 'grid'; // Ensure grid is visible for skeletons
+                      renderScheduleSkeletons(isLoadingFlag ? 7 : 0);
                  } else if (sectionKey === 'tests' && ui.testStatsContainer) {
-                      ui.testStatsContainer.querySelectorAll('.stats-card').forEach(card => card.classList.toggle('loading', isLoadingFlag));
-                      // Add skeleton logic for chart, last test, history if desired
+                     ui.testStatsContainer.querySelectorAll('.stats-card').forEach(card => card.classList.toggle('loading', isLoadingFlag));
+                     // Add skeleton logic for chart, last test, history if desired
                  }
             }
-             function renderTopicSkeletons(count) {
-                if (!ui.topicGrid) return;
-                if (count === 0) {
-                    ui.topicGrid.querySelectorAll('.topic-card.loading').forEach(sk => sk.remove());
-                    return;
-                }
-                let skeletonHTML = '';
-                for (let i = 0; i < count; i++) {
-                    skeletonHTML += `
-                        <div class="topic-card loading">
-                            <div class="loading-skeleton" style="display: flex; flex-direction: column; width: 100%; height: 100%;">
-                                <div class="topic-header"> <div class="skeleton topic-icon" style="width: 40px; height: 40px; border-radius: 12px; flex-shrink: 0;"></div> <div class="skeleton topic-title" style="height: 20px; width: 70%; flex-grow: 1;"></div> </div>
-                                <div class="topic-stats" style="margin-top: auto; padding-top: 1rem;"> <div class="skeleton text-sm" style="width: 80%; margin-bottom: 0.5rem;"></div><div class="skeleton text-sm" style="width: 60%;"></div><div class="skeleton progress-container" style="height: 8px; margin-top: 0.5rem;"></div></div>
-                            </div>
-                        </div>`;
-                }
-                ui.topicGrid.innerHTML = skeletonHTML;
-             }
-             function renderScheduleSkeletons(count) {
-                 if (!ui.mainPlanScheduleGrid) return;
-                 if (count === 0) {
-                     ui.mainPlanScheduleGrid.querySelectorAll('.schedule-day.loading').forEach(sk => sk.remove());
-                     return;
-                 }
-                 let skeletonHTML = '';
-                 for (let i = 0; i < count; i++) {
-                     skeletonHTML += `
-                         <div class="schedule-day loading">
-                             <div class="schedule-day-header"><div class="skeleton title-sm" style="width: 60%; margin: 0 auto; height: 16px;"></div></div>
-                             <div class="schedule-activities">
-                                 <div class="skeleton-activity-item" style="display:flex; gap: 0.75rem; padding: 0.5rem 0;"> <div class="skeleton activity-icon-placeholder" style="width: 20px; height: 20px; flex-shrink: 0;"></div> <div style="flex-grow: 1;"> <div class="skeleton activity-line" style="width: 80%; height: 14px;"></div> <div class="skeleton activity-line-short" style="width: 50%; height: 10px; margin-top: 4px;"></div></div> </div>
-                                 <div class="skeleton-activity-item" style="display:flex; gap: 0.75rem; padding: 0.5rem 0;"> <div class="skeleton activity-icon-placeholder" style="width: 20px; height: 20px; flex-shrink: 0;"></div> <div style="flex-grow: 1;"> <div class="skeleton activity-line" style="width: 70%; height: 14px;"></div> </div> </div>
-                             </div>
-                         </div>`;
-                 }
-                 ui.mainPlanScheduleGrid.innerHTML = skeletonHTML;
-             }
+            // --- Skeletons (Functions to render placeholders) ---
+             function renderTopicSkeletons(count) { /* ... (same as previous) ... */ if (!ui.topicGrid) return; ui.topicGrid.innerHTML = ''; if (count === 0) return; let skeletonHTML = ''; for (let i = 0; i < count; i++) { skeletonHTML += `<div class="topic-card loading"><div class="loading-skeleton" style="display: flex; flex-direction: column; width: 100%; height: 100%; padding: 1.5rem;"><div class="topic-header"> <div class="skeleton topic-icon" style="width: 40px; height: 40px; border-radius: 12px; flex-shrink: 0;"></div> <div class="skeleton topic-title" style="height: 20px; width: 70%; flex-grow: 1;"></div> </div> <div class="topic-stats" style="margin-top: auto; padding-top: 1rem;"> <div class="skeleton text-sm" style="width: 80%; margin-bottom: 0.5rem;"></div><div class="skeleton text-sm" style="width: 60%;"></div><div class="skeleton progress-container" style="height: 8px; margin-top: 0.5rem;"></div></div></div></div>`; } ui.topicGrid.innerHTML = skeletonHTML; }
+             function renderScheduleSkeletons(count) { /* ... (same as previous) ... */ if (!ui.mainPlanScheduleGrid) return; ui.mainPlanScheduleGrid.innerHTML = ''; if (count === 0) return; let skeletonHTML = ''; for (let i = 0; i < count; i++) { skeletonHTML += `<div class="schedule-day loading"><div class="schedule-day-header"><div class="skeleton title-sm" style="width: 60%; margin: 0 auto; height: 16px;"></div></div><div class="schedule-activities"><div class="skeleton-activity-item" style="display:flex; gap: 0.75rem; padding: 0.5rem 0;"> <div class="skeleton activity-icon-placeholder" style="width: 20px; height: 20px; flex-shrink: 0;"></div> <div style="flex-grow: 1;"> <div class="skeleton activity-line" style="width: 80%; height: 14px;"></div> <div class="skeleton activity-line-short" style="width: 50%; height: 10px; margin-top: 4px;"></div></div> </div><div class="skeleton-activity-item" style="display:flex; gap: 0.75rem; padding: 0.5rem 0;"> <div class="skeleton activity-icon-placeholder" style="width: 20px; height: 20px; flex-shrink: 0;"></div> <div style="flex-grow: 1;"> <div class="skeleton activity-line" style="width: 70%; height: 14px;"></div> </div> </div></div></div>`; } ui.mainPlanScheduleGrid.innerHTML = skeletonHTML; }
             // --- END: Helper Functions ---
 
             // --- START: Data Fetching ---
-            async function fetchDashboardStats(userId, profileData) {
-                if (!profileData) return null; // Need profile for base stats
-                let baseStats = {
-                    progress: 0, points: profileData.points ?? 0, streak_current: profileData.streak_days ?? 0,
-                    progress_weekly: 0, points_weekly: 0, streak_longest: profileData.streak_days ?? 0,
-                    completed_tests: 0, completed_exercises: profileData.completed_exercises ?? 0
-                };
-                try {
-                    const { data: statsData, error } = await supabase
-                        .from('user_stats')
-                        .select('progress, progress_weekly, points_weekly, streak_longest, completed_tests')
-                        .eq('user_id', userId)
-                        .maybeSingle();
-                    if (error) console.warn("Error fetching user_stats:", error.message);
-                    if (statsData) {
-                        baseStats.progress = statsData.progress ?? baseStats.progress;
-                        baseStats.progress_weekly = statsData.progress_weekly ?? baseStats.progress_weekly;
-                        baseStats.points_weekly = statsData.points_weekly ?? baseStats.points_weekly;
-                        baseStats.streak_longest = Math.max(baseStats.streak_longest, statsData.streak_longest ?? 0);
-                        baseStats.completed_tests = statsData.completed_tests ?? baseStats.completed_tests;
-                    }
-                } catch (err) { console.error("Exception fetching user_stats:", err); }
-                 // Calculate total completed for the card
-                baseStats.total_completed = baseStats.completed_tests + baseStats.completed_exercises;
-                console.log("[Fetch] Stats fetched:", baseStats);
-                return baseStats;
-            }
-            async function fetchDiagnosticResults(userId) {
-                console.log("[Fetch] Diagnostic Results for:", userId);
-                try {
-                    // Fetch only the latest completed diagnostic
-                    const { data, error } = await supabase
-                        .from('user_diagnostics')
-                        .select('*') // Select all needed fields
-                        .eq('user_id', userId)
-                        .order('completed_at', { ascending: false });
-                       // .limit(10); // Fetch history as well
-
-                    if (error) throw error;
-                    console.log(`[Fetch] Diagnostics found:`, data);
-                    return data || [];
-                } catch (err) { console.error("Error fetching diagnostic results:", err); return []; }
-            }
-            async function fetchProgressChartData(userId) {
-                 console.log("[Fetch] Progress Chart Data for:", userId);
-                 try {
-                      const { data, error } = await supabase
-                          .from('progress_snapshots')
-                          .select('snapshot_date, overall_progress')
-                          .eq('user_id', userId)
-                          .order('snapshot_date', { ascending: true });
-                      if (error) throw error;
-                      if (!data || data.length === 0) return { labels: [], data: [] };
-                      const labels = data.map(item => new Date(item.snapshot_date + 'T00:00:00Z'));
-                      const progressData = data.map(item => item.overall_progress ?? 0);
-                      console.log(`[Fetch] Progress snapshots found: ${data.length}`);
-                      return { labels, data: progressData };
-                  } catch (err) { console.error("Error fetching progress snapshots:", err); return { labels: [], data: [] }; }
-            }
-            async function fetchActiveStudyPlan(userId) {
-                 console.log("[Fetch] Active Study Plan for:", userId);
-                try {
-                    const { data: plans, error } = await supabase
-                        .from('study_plans')
-                        .select('id, title, created_at') // Only fetch needed fields for overview
-                        .eq('user_id', userId)
-                        .eq('status', 'active')
-                        .order('created_at', { ascending: false })
-                        .limit(1);
-                    if (error) throw error;
-                    const plan = plans && plans.length > 0 ? plans[0] : null;
-                    console.log(`[Fetch] Active plan found:`, plan);
-                    return plan;
-                 } catch (err) { console.error("Error fetching active study plan:", err); return null; }
-            }
-            async function fetchPlanActivities(planId) {
-                 if (!planId) return [];
-                 console.log("[Fetch] Plan Activities for Plan ID:", planId);
-                 try {
-                     const { data, error } = await supabase
-                         .from('plan_activities')
-                         .select('id, title, day_of_week, time_slot, completed')
-                         .eq('plan_id', planId)
-                         .order('day_of_week')
-                         .order('time_slot');
-                     if (error) throw error;
-                     console.log(`[Fetch] Activities found: ${data?.length ?? 0}`);
-                     return data || [];
-                  } catch (err) { console.error("Error fetching plan activities:", err); return []; }
-            }
-            async function fetchTopicProgress(userId) {
-                 console.log("[Fetch] Topic Progress for:", userId);
-                 try {
-                     // We need topic name, join with exam_topics
-                     const { data, error } = await supabase
-                         .from('user_topic_progress')
-                         .select(`
-                             topic_id,
-                             progress,
-                             strength,
-                             questions_attempted,
-                             questions_correct,
-                             topic:exam_topics ( name, subject )
-                         `)
-                         .eq('user_id', userId);
-                     if (error) throw error;
-                      console.log(`[Fetch] Topic progress found: ${data?.length ?? 0}`);
-                     return data || [];
-                  } catch (err) { console.error("Error fetching topic progress:", err); return []; }
-            }
+             async function fetchDashboardStats(userId, profileData) { /* ... (copied from previous response) ... */ if (!profileData) return null; let baseStats = { progress: 0, points: profileData.points ?? 0, streak_current: profileData.streak_days ?? 0, progress_weekly: 0, points_weekly: 0, streak_longest: profileData.streak_days ?? 0, completed_tests: 0, completed_exercises: profileData.completed_exercises ?? 0 }; try { const { data: statsData, error } = await supabase .from('user_stats') .select('progress, progress_weekly, points_weekly, streak_longest, completed_tests') .eq('user_id', userId) .maybeSingle(); if (error) console.warn("Error fetching user_stats:", error.message); if (statsData) { baseStats.progress = statsData.progress ?? baseStats.progress; baseStats.progress_weekly = statsData.progress_weekly ?? baseStats.progress_weekly; baseStats.points_weekly = statsData.points_weekly ?? baseStats.points_weekly; baseStats.streak_longest = Math.max(baseStats.streak_longest, statsData.streak_longest ?? 0); baseStats.completed_tests = statsData.completed_tests ?? baseStats.completed_tests; } } catch (err) { console.error("Exception fetching user_stats:", err); } baseStats.total_completed = baseStats.completed_tests + baseStats.completed_exercises; console.log("[Fetch] Stats fetched:", baseStats); return baseStats; }
+             async function fetchDiagnosticResults(userId) { /* ... (copied from previous response) ... */ console.log("[Fetch] Diagnostic Results for:", userId); try { const { data, error } = await supabase .from('user_diagnostics') .select('id, completed_at, total_score, total_questions, time_spent') // Added time_spent
+                        .eq('user_id', userId) .order('completed_at', { ascending: false }); if (error) throw error; console.log(`[Fetch] Diagnostics found:`, data); return data || []; } catch (err) { console.error("Error fetching diagnostic results:", err); return []; } }
+             async function fetchProgressChartData(userId) { /* ... (copied from previous response) ... */ console.log("[Fetch] Progress Chart Data for:", userId); try { const { data, error } = await supabase .from('progress_snapshots') .select('snapshot_date, overall_progress') .eq('user_id', userId) .order('snapshot_date', { ascending: true }); if (error) throw error; if (!data || data.length === 0) return { labels: [], data: [] }; const labels = data.map(item => new Date(item.snapshot_date + 'T00:00:00Z')); const progressData = data.map(item => item.overall_progress ?? 0); console.log(`[Fetch] Progress snapshots found: ${data.length}`); return { labels, data: progressData }; } catch (err) { console.error("Error fetching progress snapshots:", err); return { labels: [], data: [] }; } }
+             async function fetchActiveStudyPlan(userId) { /* ... (copied from previous response) ... */ console.log("[Fetch] Active Study Plan for:", userId); try { const { data: plans, error } = await supabase .from('study_plans') .select('id, title, created_at') .eq('user_id', userId) .eq('status', 'active') .order('created_at', { ascending: false }) .limit(1); if (error) throw error; const plan = plans && plans.length > 0 ? plans[0] : null; console.log(`[Fetch] Active plan found:`, plan); return plan; } catch (err) { console.error("Error fetching active study plan:", err); return null; } }
+             async function fetchPlanActivities(planId) { /* ... (copied from previous response) ... */ if (!planId) return []; console.log("[Fetch] Plan Activities for Plan ID:", planId); try { const { data, error } = await supabase .from('plan_activities') .select('id, title, day_of_week, time_slot, completed') .eq('plan_id', planId) .order('day_of_week') .order('time_slot'); if (error) throw error; console.log(`[Fetch] Activities found: ${data?.length ?? 0}`); return data || []; } catch (err) { console.error("Error fetching plan activities:", err); return []; } }
+             async function fetchTopicProgress(userId) { /* ... (copied from previous response) ... */ console.log("[Fetch] Topic Progress for:", userId); try { const { data, error } = await supabase .from('user_topic_progress') .select(` topic_id, progress, strength, questions_attempted, questions_correct, topic:exam_topics ( name, subject ) `) .eq('user_id', userId); if (error) throw error; console.log(`[Fetch] Topic progress found: ${data?.length ?? 0}`); return data || []; } catch (err) { console.error("Error fetching topic progress:", err); return []; } }
             // --- END: Data Fetching ---
 
             // --- START: UI Rendering ---
-             function renderStatsCards(stats) {
-                 setLoadingState('stats', false); // Mark as loaded (or failed)
-                 if (!stats) { // Handle error state
-                    ui.statsCardsContainer.querySelectorAll('.dashboard-card').forEach(card => card.classList.add('error')); // Add error class maybe
-                    return;
-                 }
-                 if(ui.statsProgress) ui.statsProgress.textContent = `${stats.progress ?? 0}%`;
-                 if(ui.statsProgressChange) { const change = stats.progress_weekly ?? 0; ui.statsProgressChange.innerHTML = change > 0 ? `<i class="fas fa-arrow-up"></i> +${change}%` : change < 0 ? `<i class="fas fa-arrow-down"></i> ${change}%` : `<i class="fas fa-minus"></i> Beze změny`; ui.statsProgressChange.className = `card-footer ${change > 0 ? 'positive' : change < 0 ? 'negative' : ''}`; }
-                 if(ui.statsTests) ui.statsTests.textContent = stats.completed_tests ?? 0;
-                 // Avg score needs test results data - calculate later or pass here
-                 if(ui.statsTestsAvg) ui.statsTestsAvg.textContent = `Prům. skóre: ${calculateAverageScore(testResultsData)}%`; // Calculate from testResultsData
-                 if(ui.statsPoints) ui.statsPoints.textContent = stats.points ?? 0;
-                 if(ui.statsPointsChange) { const change = stats.points_weekly ?? 0; ui.statsPointsChange.innerHTML = change > 0 ? `<i class="fas fa-arrow-up"></i> +${change} b.` : change < 0 ? `<i class="fas fa-arrow-down"></i> ${change} b.` : `<i class="fas fa-minus"></i> Beze změny`; ui.statsPointsChange.className = `card-footer ${change > 0 ? 'positive' : change < 0 ? 'negative' : ''}`; }
-                 if(ui.statsStreak) ui.statsStreak.textContent = stats.streak_current ?? 0;
-                 if(ui.statsStreakLongest) ui.statsStreakLongest.textContent = `Nejdelší: ${stats.streak_longest ?? 0} dní`;
+            function renderStatsCards(stats) { /* ... (copied + adapted from previous response) ... */ setLoadingState('stats', false); const cards = [ui.statsProgress, ui.statsTests, ui.statsPoints, ui.statsStreak]; const containers = cards.map(el => el?.closest('.dashboard-card')); if (!stats || cards.some(el => !el)) { console.warn("[Render Stats] No stats data or elements missing."); containers.forEach(c => { if(c) { c.classList.remove('loading'); c.innerHTML = `<div class="card-error-state" style="text-align: center; color: var(--text-muted); font-size: 0.9rem;">Chyba načítání</div>`; } }); return; } containers.forEach(c => c?.classList.remove('loading')); // Remove loading from valid cards
+                if(ui.statsProgress) ui.statsProgress.textContent = `${stats.progress ?? 0}%`;
+                if(ui.statsProgressChange) { const change = stats.progress_weekly ?? 0; ui.statsProgressChange.innerHTML = change > 0 ? `<i class="fas fa-arrow-up"></i> +${change}%` : change < 0 ? `<i class="fas fa-arrow-down"></i> ${change}%` : `<i class="fas fa-minus"></i> Beze změny`; ui.statsProgressChange.className = `card-footer ${change > 0 ? 'positive' : change < 0 ? 'negative' : ''}`; }
+                if(ui.statsTests) ui.statsTests.textContent = stats.completed_tests ?? 0;
+                if(ui.statsTestsAvg) ui.statsTestsAvg.textContent = `Prům. skóre: ${calculateAverageScore(diagnosticResultsData)}%`; // Note dependency on diagnosticResultsData
+                if(ui.statsPoints) ui.statsPoints.textContent = stats.points ?? 0;
+                if(ui.statsPointsChange) { const change = stats.points_weekly ?? 0; ui.statsPointsChange.innerHTML = change > 0 ? `<i class="fas fa-arrow-up"></i> +${change} b.` : change < 0 ? `<i class="fas fa-arrow-down"></i> ${change} b.` : `<i class="fas fa-minus"></i> Beze změny`; ui.statsPointsChange.className = `card-footer ${change > 0 ? 'positive' : change < 0 ? 'negative' : ''}`; }
+                if(ui.statsStreak) ui.statsStreak.textContent = stats.streak_current ?? 0;
+                if(ui.statsStreakLongest) ui.statsStreakLongest.textContent = `Nejdelší: ${stats.streak_longest ?? 0} dní`;
+                console.log("[Render] Stats cards updated.");
              }
-             function calculateAverageScore(results) {
-                 if (!results || results.length === 0) return '-';
-                 const validScores = results.filter(r => typeof r.total_score === 'number');
-                 if (validScores.length === 0) return '-';
-                 // Assuming total_score is out of 50 as per test1.html structure
-                 const avgOutOf50 = validScores.reduce((sum, r) => sum + r.total_score, 0) / validScores.length;
-                 return Math.round((avgOutOf50 / 50) * 100); // Convert to percentage
-             }
-             function renderTestResults(results) {
-                 setLoadingState('tests', false);
-                 if (!ui.testResultsContent || !ui.testResultsEmpty) return;
-
-                 if (!results || results.length === 0) {
-                     ui.testResultsContent.style.display = 'none';
-                     ui.testResultsEmpty.style.display = 'block';
-                     return;
-                 }
-                 ui.testResultsContent.style.display = 'block';
-                 ui.testResultsEmpty.style.display = 'none';
-
+             function calculateAverageScore(results) { /* ... (copied from previous response) ... */ if (!results || results.length === 0) return '-'; const validScores = results.filter(r => typeof r.total_score === 'number' && typeof r.total_questions === 'number' && r.total_questions > 0); if (validScores.length === 0) return '-'; const avgPercentage = validScores.reduce((sum, r) => sum + (r.total_score / r.total_questions) * 100, 0) / validScores.length; return Math.round(avgPercentage); }
+            function renderTestResults(results) { /* ... (copied + adapted from previous response) ... */ setLoadingState('tests', false); if (!ui.testResultsContainer || !ui.testResultsContent || !ui.testResultsEmpty) return; if (!results || results.length === 0) { ui.testResultsContent.style.display = 'none'; ui.testResultsEmpty.style.display = 'block'; ui.testResultsContainer.classList.remove('loading'); return; } ui.testResultsContent.style.display = 'block'; ui.testResultsEmpty.style.display = 'none'; ui.testResultsContainer.classList.remove('loading');
                  // Stats within the tab
-                 const validScores = results.filter(r => typeof r.total_score === 'number');
-                 const avgScore = calculateAverageScore(results);
-                 const bestScore = validScores.length > 0 ? Math.round((Math.max(...validScores.map(r => r.total_score)) / 50) * 100) : '-';
+                const avgScore = calculateAverageScore(results);
+                const validScores = results.filter(r => typeof r.total_score === 'number' && typeof r.total_questions === 'number' && r.total_questions > 0);
+                const bestScore = validScores.length > 0 ? Math.round(Math.max(...validScores.map(r => (r.total_score / r.total_questions) * 100))) : '-';
                  const validTimes = results.filter(r => typeof r.time_spent === 'number' && r.time_spent > 0);
                  const avgTime = validTimes.length > 0 ? formatTime(validTimes.reduce((sum, r) => sum + r.time_spent, 0) / validTimes.length) : '--:--';
-
                  if(ui.testAvgScore) ui.testAvgScore.textContent = `${avgScore}%`;
                  if(ui.testBestScore) ui.testBestScore.textContent = `${bestScore}%`;
                  if(ui.testAvgTime) ui.testAvgTime.textContent = avgTime;
-                 ui.testStatsContainer.querySelectorAll('.stats-card').forEach(c => c.classList.remove('loading')); // Remove skeleton class
+                 ui.testStatsContainer.querySelectorAll('.stats-card').forEach(c => c.classList.remove('loading'));
 
-                 // Chart (using snapshots, fetched separately if needed, or derived if results have dates)
-                 // If using snapshots: call renderTestChart(snapshotData)
-                 // If deriving from results:
-                 const chartDataPoints = results
-                    .filter(r => r.completed_at && typeof r.total_score === 'number')
-                    .sort((a, b) => new Date(a.completed_at) - new Date(b.completed_at))
-                    .map(r => ({ date: new Date(r.completed_at + 'T00:00:00Z'), score: Math.round((r.total_score / 50) * 100) }));
-
+                 // Chart (Derive from results)
+                 const chartDataPoints = results.filter(r => r.completed_at && typeof r.total_score === 'number' && typeof r.total_questions === 'number' && r.total_questions > 0).sort((a, b) => new Date(a.completed_at) - new Date(b.completed_at)).map(r => ({ date: new Date(r.completed_at + 'T00:00:00Z'), score: Math.round((r.total_score / r.total_questions) * 100) }));
                  renderTestChart({ labels: chartDataPoints.map(p => p.date), data: chartDataPoints.map(p => p.score) });
 
-
                  // Last result
-                 if(ui.lastTestResultContainer && results[0]) {
-                     const lastTest = results[0];
-                     const scorePercent = Math.round((lastTest.total_score / 50) * 100);
-                     ui.lastTestResultContainer.innerHTML = `
-                         <div class="test-result-header">
-                             <div class="test-result-title">
-                                 <h3>Diagnostický Test</h3>
-                                 <div class="test-result-meta">Dokončeno ${formatDate(lastTest.completed_at)}</div>
-                             </div>
-                             <div class="test-result-score">
-                                 <div class="test-result-score-value">${scorePercent}%</div>
-                                 <div class="test-result-score-label">(${lastTest.total_score}/50 bodů)</div>
-                             </div>
-                         </div>
-                         `;
-                 } else if(ui.lastTestResultContainer) {
-                      ui.lastTestResultContainer.innerHTML = `<p>Žádný výsledek.</p>`;
-                 }
+                 if(ui.lastTestResultContainer && results[0]) { const lastTest = results[0]; const scorePercent = calculateAverageScore([lastTest]); ui.lastTestResultContainer.innerHTML = `<div class="test-result-header"><div class="test-result-title"><h3>Diagnostický Test</h3><div class="test-result-meta">Dokončeno ${formatDate(lastTest.completed_at)}</div></div><div class="test-result-score"><div class="test-result-score-value">${scorePercent}%</div><div class="test-result-score-label">(${lastTest.total_score}/${lastTest.total_questions})</div></div></div>`; } else if(ui.lastTestResultContainer) { ui.lastTestResultContainer.innerHTML = `<p>Žádný výsledek.</p>`; }
 
                  // History
-                 if(ui.testHistoryContainer) {
-                     if (results.length > 1) { // Show history only if more than one test
-                         ui.testHistoryContainer.innerHTML = results.slice(1).map(test => { // Start from the second test
-                             const scorePercentHist = Math.round((test.total_score / 50) * 100);
-                             return `
-                             <div class="test-item">
-                                  <div class="test-info">
-                                       <div class="test-icon"> <i class="fas fa-clipboard-check"></i> </div>
-                                       <div class="test-details">
-                                            <h4>Diagnostický Test</h4>
-                                            <div class="test-meta">
-                                                 <span><i class="far fa-calendar"></i> ${formatDate(test.completed_at)}</span>
-                                                 <span><i class="far fa-clock"></i> ${formatTime(test.time_spent || 0)}</span>
-                                            </div>
-                                       </div>
-                                  </div>
-                                  <div class="test-score">${scorePercentHist}%</div>
-                             </div>`;
-                         }).join('');
-                     } else {
-                          ui.testHistoryContainer.innerHTML = `<p style="text-align: center; color: var(--text-muted); padding: 1rem;">Žádná další historie.</p>`;
-                     }
-                 }
+                 if(ui.testHistoryContainer) { if (results.length > 1) { ui.testHistoryContainer.innerHTML = results.slice(1).map(test => { const scorePercentHist = calculateAverageScore([test]); return `<div class="test-item"><div class="test-info"><div class="test-icon"><i class="fas fa-clipboard-check"></i></div><div class="test-details"><h4>Diagnostický Test</h4><div class="test-meta"><span><i class="far fa-calendar"></i> ${formatDate(test.completed_at)}</span><span><i class="far fa-clock"></i> ${formatTime(test.time_spent || 0)}</span></div></div></div><div class="test-score">${scorePercentHist}%</div></div>`; }).join(''); } else { ui.testHistoryContainer.innerHTML = `<p style="text-align: center; color: var(--text-muted); padding: 1rem;">Žádná další historie.</p>`; } }
+                 console.log("[Render] Test results tab updated.");
              }
-             function renderTestChart(chartData) { // Uses Chart.js 3.x
-                 if (!ui.testsChartCanvas) return;
-                 const ctx = ui.testsChartCanvas.getContext('2d');
-                 if (testsChartInstance) testsChartInstance.destroy(); // Destroy old chart
-
-                 if (!chartData || chartData.labels.length < 2) { // Need at least 2 points
-                     ui.testsChartCanvas.style.display = 'none';
-                     // Show empty message if needed
-                     return;
-                 }
-                 ui.testsChartCanvas.style.display = 'block';
-
-                 const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                 const gridColor = isDarkMode ? 'rgba(51, 65, 85, 0.4)' : 'rgba(var(--primary-rgb), 0.08)';
-                 const textColor = isDarkMode ? '#94a3b8' : 'var(--text-muted)';
-
-                 testsChartInstance = new Chart(ctx, {
-                     type: 'line',
-                     data: {
-                         labels: chartData.labels,
-                         datasets: [{
-                             label: 'Skóre (%)', data: chartData.data, fill: true,
-                             borderColor: 'rgba(var(--primary-rgb), 0.8)',
-                             backgroundColor: 'rgba(var(--primary-rgb), 0.1)',
-                             tension: 0.3, borderWidth: 2, pointBackgroundColor: 'rgba(var(--primary-rgb), 1)',
-                             pointRadius: 3, pointHoverRadius: 5
-                         }]
-                     },
-                     options: {
-                         responsive: true, maintainAspectRatio: false,
-                         plugins: { legend: { display: false }, tooltip: { /* ... tooltip options ... */ } },
-                         scales: {
-                             x: {
-                                 type: 'time', adapters: { date: { locale: dateFns.locale.cs } },
-                                 time: { unit: 'day', tooltipFormat: 'P', displayFormats: { day: 'd.M.' } },
-                                 ticks: { color: textColor, maxRotation: 0, autoSkipPadding: 15 },
-                                 grid: { display: false }
-                             },
-                             y: {
-                                 beginAtZero: true, max: 100,
-                                 ticks: { stepSize: 25, color: textColor, callback: (v) => v + '%' },
-                                 grid: { color: gridColor }
-                             }
-                         }
-                     }
-                 });
-             }
-            function renderStudyPlanOverview(plan, activities) {
-                setLoadingState('plan', false);
-                if (!ui.studyPlanContent || !ui.studyPlanEmpty || !ui.mainPlanScheduleGrid) return;
-
-                if (!plan || !activities || activities.length === 0) {
-                    ui.studyPlanContent.style.display = 'none';
-                    ui.studyPlanEmpty.style.display = 'block';
-                    return;
-                }
-                ui.studyPlanContent.style.display = 'block';
-                ui.studyPlanEmpty.style.display = 'none';
-
-                // --- Render the Weekly Schedule Grid ---
-                ui.mainPlanScheduleGrid.innerHTML = ''; // Clear skeletons or old content
-                const daysOrder = [1, 2, 3, 4, 5, 6, 0]; // Po-Ne
-                const dayNames = { 0: 'Neděle', 1: 'Pondělí', 2: 'Úterý', 3: 'Středa', 4: 'Čtvrtek', 5: 'Pátek', 6: 'Sobota' };
-                const activitiesByDay = {};
-                daysOrder.forEach(dayIndex => activitiesByDay[dayIndex] = []);
-                activities.forEach(activity => {
-                    if (activitiesByDay[activity.day_of_week] !== undefined) { activitiesByDay[activity.day_of_week].push(activity); }
-                });
-
-                daysOrder.forEach(dayIndex => {
-                    const dayName = dayNames[dayIndex];
-                    const dayDiv = document.createElement('div');
-                    dayDiv.className = 'schedule-day';
-                    const headerDiv = document.createElement('div');
-                    headerDiv.className = 'schedule-day-header';
-                    headerDiv.textContent = dayName;
-                    dayDiv.appendChild(headerDiv);
-                    const activitiesDiv = document.createElement('div');
-                    activitiesDiv.className = 'schedule-activities';
-                    const dayActivities = activitiesByDay[dayIndex].sort((a, b) => (a.time_slot || '').localeCompare(b.time_slot || '')); // Sort by time slot
-                    if (dayActivities.length > 0) {
-                        dayActivities.forEach(activity => {
-                             const visual = activityVisuals[activity.type?.toLowerCase()] || activityVisuals.default; // Get visual based on activity type if available
-                             const title = sanitizeHTML(activity.title || 'Nespecifikovaná aktivita');
-                             const timeSlot = activity.time_slot ? `<span>${sanitizeHTML(activity.time_slot)}</span>` : '';
-                             const activityItem = document.createElement('div');
-                             activityItem.className = `schedule-activity-item ${activity.completed ? 'completed' : ''}`;
-                             activityItem.innerHTML = `
-                                 <div class="activity-icon ${visual.class}" style="${visual.gradient ? `background: ${visual.gradient}; color: white;` : ''}"><i class="fas ${visual.icon}"></i></div>
-                                 <div class="activity-details">
-                                     <strong>${title}</strong>
-                                     ${timeSlot}
-                                 </div>
-                             `;
-                             activitiesDiv.appendChild(activityItem);
-                         });
-                    } else { activitiesDiv.innerHTML = `<p class="no-activities-placeholder">Žádné aktivity</p>`; }
-                    dayDiv.appendChild(activitiesDiv);
-                    ui.mainPlanScheduleGrid.appendChild(dayDiv);
-                });
-            }
-            function renderTopicAnalysis(topics) {
-                setLoadingState('topics', false);
-                if (!ui.topicGrid || !ui.topicAnalysisContent || !ui.topicAnalysisEmpty) return;
-
-                if (!topics || topics.length === 0) {
-                    ui.topicAnalysisContent.style.display = 'none';
-                    ui.topicAnalysisEmpty.style.display = 'block';
-                    return;
-                }
-                ui.topicAnalysisContent.style.display = 'block';
-                ui.topicAnalysisEmpty.style.display = 'none';
-
-                ui.topicGrid.innerHTML = ''; // Clear skeletons or old content
-                const fragment = document.createDocumentFragment();
-                 topics.sort((a, b) => { // Sort by strength: weakness > neutral > strength
-                     const order = { 'weakness': 0, 'neutral': 1, 'strength': 2 };
-                     return (order[a.strength] ?? 1) - (order[b.strength] ?? 1);
-                 });
-
-                topics.forEach(topic => {
-                    const topicName = topic.topic?.name || `Téma ${topic.topic_id}` || 'Neznámé téma';
-                    const subjectName = topic.topic?.subject || ''; // Assuming subject is in joined data
-                    const iconClass = topicIcons[topicName] || topicIcons[subjectName] || topicIcons.default || 'fa-book'; // Fallback icon
-                    const strength = topic.strength || 'neutral';
-                    const progress = topic.progress || 0;
-                    const attempted = topic.questions_attempted || 0;
-                    const correct = topic.questions_correct || 0;
-                    const accuracy = attempted > 0 ? Math.round((correct / attempted) * 100) : 0;
-                    const accuracyClass = accuracy >= 75 ? 'high' : accuracy < 50 ? 'low' : 'medium';
-
-                    const card = document.createElement('div');
-                    card.className = `topic-card ${strength}`;
-                    card.innerHTML = `
-                        <div class="topic-header">
-                            <div class="topic-icon"><i class="fas ${iconClass}"></i></div>
-                            <h3 class="topic-title">${sanitizeHTML(topicName)}</h3>
-                        </div>
-                        <div class="progress-container" title="Celkový pokrok: ${progress}%">
-                            <div class="progress-bar" style="width: ${progress}%;"></div>
-                        </div>
-                        <div class="topic-stats">
-                            <div class="topic-stat">
-                                <span>Správnost:</span>
-                                <strong class="accuracy-value ${accuracyClass}">${accuracy}%</strong>
-                            </div>
-                            <div class="topic-stat">
-                                <span>Otázky:</span>
-                                <strong>${correct}/${attempted}</strong>
-                            </div>
-                        </div>
-                    `;
-                    fragment.appendChild(card);
-                });
-                ui.topicGrid.appendChild(fragment);
-            }
+             function renderTestChart(chartData) { /* ... (copied from previous response, ensure it uses ui.testsChartCanvas) ... */ if (!ui.testsChartCanvas) { console.error("[Chart] Canvas element not found."); return; } const ctx = ui.testsChartCanvas.getContext('2d'); if (testsChartInstance) testsChartInstance.destroy(); if (!chartData || chartData.labels.length < 2) { ui.testsChartCanvas.style.display = 'none'; return; } ui.testsChartCanvas.style.display = 'block'; const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches; const gridColor = isDarkMode ? 'rgba(51, 65, 85, 0.4)' : 'rgba(var(--primary-rgb), 0.08)'; const textColor = isDarkMode ? '#94a3b8' : 'var(--text-muted)'; testsChartInstance = new Chart(ctx, { type: 'line', data: { labels: chartData.labels, datasets: [{ label: 'Skóre (%)', data: chartData.data, fill: true, borderColor: 'rgba(var(--primary-rgb), 0.8)', backgroundColor: 'rgba(var(--primary-rgb), 0.1)', tension: 0.3, borderWidth: 2.5, pointBackgroundColor: 'rgba(var(--primary-rgb), 1)', pointRadius: 3, pointHoverRadius: 5 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { /* ... */ } }, scales: { x: { type: 'time', adapters: { date: { locale: dateFns.locale.cs } }, time: { unit: 'day', tooltipFormat: 'P', displayFormats: { day: 'd.M.' } }, ticks: { color: textColor, maxRotation: 0, autoSkipPadding: 15 }, grid: { display: false } }, y: { beginAtZero: true, max: 100, ticks: { stepSize: 25, color: textColor, callback: (v) => v + '%' }, grid: { color: gridColor } } } } }); }
+             function renderStudyPlanOverview(plan, activities) { /* ... (copied + adapted from previous response) ... */ setLoadingState('plan', false); if (!ui.studyPlanContainer || !ui.studyPlanContent || !ui.studyPlanEmpty || !ui.mainPlanScheduleGrid) return; if (!plan) { ui.studyPlanContent.style.display = 'none'; ui.studyPlanEmpty.style.display = 'block'; ui.studyPlanContainer.classList.remove('loading'); return; } ui.studyPlanContent.style.display = 'block'; ui.studyPlanEmpty.style.display = 'none'; ui.studyPlanContainer.classList.remove('loading'); ui.mainPlanScheduleGrid.innerHTML = ''; const daysOrder = [1, 2, 3, 4, 5, 6, 0]; const dayNames = { 0: 'Neděle', 1: 'Pondělí', 2: 'Úterý', 3: 'Středa', 4: 'Čtvrtek', 5: 'Pátek', 6: 'Sobota' }; const activitiesByDay = {}; daysOrder.forEach(dayIndex => activitiesByDay[dayIndex] = []); (activities || []).forEach(activity => { if (activitiesByDay[activity.day_of_week] !== undefined) activitiesByDay[activity.day_of_week].push(activity); }); daysOrder.forEach(dayIndex => { const dayName = dayNames[dayIndex]; const dayDiv = document.createElement('div'); dayDiv.className = 'schedule-day'; const headerDiv = document.createElement('div'); headerDiv.className = 'schedule-day-header'; headerDiv.textContent = dayName; dayDiv.appendChild(headerDiv); const activitiesDiv = document.createElement('div'); activitiesDiv.className = 'schedule-activities'; const dayActivities = activitiesByDay[dayIndex].sort((a, b) => (a.time_slot || '').localeCompare(b.time_slot || '')); if (dayActivities.length > 0) { dayActivities.forEach(activity => { const visual = activityVisuals[activity.type?.toLowerCase()] || activityVisuals.default; const title = sanitizeHTML(activity.title || 'Nespecifikovaná aktivita'); const timeSlot = activity.time_slot ? `<span>${sanitizeHTML(activity.time_slot)}</span>` : ''; const activityItem = document.createElement('div'); activityItem.className = `schedule-activity-item ${activity.completed ? 'completed' : ''}`; activityItem.innerHTML = `<div class="activity-icon ${visual.class}" style="${visual.gradient ? `background: ${visual.gradient}; color: white;` : ''}"><i class="fas ${visual.icon || 'fa-check-circle'}"></i></div><div class="activity-details"><strong>${title}</strong>${timeSlot}</div>`; activitiesDiv.appendChild(activityItem); }); } else { activitiesDiv.innerHTML = `<p class="no-activities-placeholder">Žádné aktivity</p>`; } dayDiv.appendChild(activitiesDiv); ui.mainPlanScheduleGrid.appendChild(dayDiv); }); console.log("[Render] Study plan overview updated."); }
+             function renderTopicAnalysis(topics) { /* ... (copied + adapted from previous response) ... */ setLoadingState('topics', false); if (!ui.topicAnalysisContainer || !ui.topicAnalysisContent || !ui.topicAnalysisEmpty || !ui.topicGrid) return; if (!topics || topics.length === 0) { ui.topicAnalysisContent.style.display = 'none'; ui.topicAnalysisEmpty.style.display = 'block'; ui.topicAnalysisContainer.classList.remove('loading'); return; } ui.topicAnalysisContent.style.display = 'block'; ui.topicAnalysisEmpty.style.display = 'none'; ui.topicAnalysisContainer.classList.remove('loading'); ui.topicGrid.innerHTML = ''; const fragment = document.createDocumentFragment(); topics.sort((a, b) => { const order = { 'weakness': 0, 'neutral': 1, 'strength': 2 }; return (order[a.strength] ?? 1) - (order[b.strength] ?? 1); }); topics.forEach(topic => { const topicName = topic.topic?.name || `Téma ${topic.topic_id}` || 'Neznámé téma'; const subjectName = topic.topic?.subject || ''; const iconClass = topicIcons[topicName] || topicIcons.default || 'fa-book'; const strength = topic.strength || 'neutral'; const progress = topic.progress || 0; const attempted = topic.questions_attempted || 0; const correct = topic.questions_correct || 0; const accuracy = attempted > 0 ? Math.round((correct / attempted) * 100) : 0; const accuracyClass = accuracy >= 75 ? 'high' : accuracy < 50 ? 'low' : 'medium'; const card = document.createElement('div'); card.className = `topic-card ${strength}`; card.innerHTML = `<div class="topic-header"><div class="topic-icon"><i class="fas ${iconClass}"></i></div><h3 class="topic-title">${sanitizeHTML(topicName)}</h3></div><div class="progress-container" title="Celkový pokrok: ${progress}%"><div class="progress-bar" style="width: ${progress}%;"></div></div><div class="topic-stats"><div class="topic-stat"><span>Správnost:</span><strong class="accuracy-value ${accuracyClass}">${accuracy}%</strong></div><div class="topic-stat"><span>Otázky:</span><strong>${correct}/${attempted}</strong></div></div>`; fragment.appendChild(card); }); ui.topicGrid.appendChild(fragment); console.log("[Render] Topic analysis updated."); }
             // --- END: UI Rendering ---
 
             // --- START: Data Loading Orchestrator ---
-             async function loadAllPageData() {
-                if (!currentUser) { showError("Chybí uživatelská data.", true); return; }
-                console.log("🔄 [LoadAll] Starting full data fetch for Procvičování...");
-                setLoadingState('all', true); // Set all sections to loading initially
-                hideError();
+            async function loadAllPageData() {
+                 if (!currentUser) { showError("Chybí uživatelská data.", true); return; }
+                 console.log("🔄 [LoadAll] Starting full data fetch for Procvičování...");
+                 setLoadingState('all', true); // Set all sections to loading initially
+                 hideError();
 
-                try {
+                 try {
                      const results = await Promise.allSettled([
-                         fetchDashboardStats(currentUser.id, currentProfile), // Use shared stats function
-                         fetchDiagnosticResults(currentUser.id), // Fetch diagnostic results
-                         fetchProgressChartData(currentUser.id), // Fetch chart data (if using snapshots)
-                         fetchActiveStudyPlan(currentUser.id), // Fetch active plan ID
-                         fetchTopicProgress(currentUser.id) // Fetch topic analysis data
+                         fetchDashboardStats(currentUser.id, currentProfile),
+                         fetchDiagnosticResults(currentUser.id),
+                         // fetchProgressChartData(currentUser.id), // Chart data derived from diagnostics now
+                         fetchActiveStudyPlan(currentUser.id),
+                         fetchTopicProgress(currentUser.id)
                      ]);
                      console.log("[LoadAll] Promise results:", results);
 
@@ -1063,43 +715,39 @@
                      setLoadingState('stats', false);
 
                      // Process Diagnostic Results & Chart
-                     if (results[1].status === 'fulfilled') { testResultsData = results[1].value || []; renderTestResults(testResultsData); } // Use results for tab content
+                     if (results[1].status === 'fulfilled') { diagnosticResultsData = results[1].value || []; renderTestResults(diagnosticResultsData); }
                      else { console.error("Error fetching test results:", results[1].reason); renderTestResults(null); }
                      setLoadingState('tests', false);
-                      // Note: renderTestResults now handles rendering the chart based on testResultsData if snapshot data isn't fetched separately
 
-                      // Process Study Plan Overview
-                      if (results[3].status === 'fulfilled') {
-                          studyPlanData = results[3].value;
-                          if (studyPlanData && studyPlanData.id) {
-                              // Fetch activities only if a plan exists
-                              try {
-                                   planActivitiesData = await fetchPlanActivities(studyPlanData.id);
-                                   renderStudyPlanOverview(studyPlanData, planActivitiesData);
-                              } catch(activityError){
-                                   console.error("Error fetching plan activities:", activityError);
-                                   renderStudyPlanOverview(null, null); // Show error/empty state
-                              }
-                          } else { renderStudyPlanOverview(null, null); } // No active plan
-                      } else { console.error("Error fetching study plan:", results[3].reason); renderStudyPlanOverview(null, null); }
-                      setLoadingState('plan', false);
+                     // Process Study Plan Overview
+                     if (results[2].status === 'fulfilled') { // Index changed to 2 (plan)
+                         studyPlanData = results[2].value;
+                         if (studyPlanData && studyPlanData.id) {
+                             try {
+                                  planActivitiesData = await fetchPlanActivities(studyPlanData.id);
+                                  renderStudyPlanOverview(studyPlanData, planActivitiesData);
+                             } catch(activityError){ renderStudyPlanOverview(null, null); }
+                         } else { renderStudyPlanOverview(null, null); }
+                     } else { console.error("Error fetching study plan:", results[2].reason); renderStudyPlanOverview(null, null); }
+                     setLoadingState('plan', false);
 
-                      // Process Topic Analysis
-                      if (results[4].status === 'fulfilled') { topicProgressData = results[4].value || []; renderTopicAnalysis(topicProgressData); }
-                      else { console.error("Error fetching topic progress:", results[4].reason); renderTopicAnalysis(null); }
-                      setLoadingState('topics', false);
+                     // Process Topic Analysis
+                     if (results[3].status === 'fulfilled') { // Index changed to 3 (topics)
+                          topicProgressData = results[3].value || [];
+                          renderTopicAnalysis(topicProgressData);
+                     } else { console.error("Error fetching topic progress:", results[3].reason); renderTopicAnalysis(null); }
+                     setLoadingState('topics', false);
 
                  } catch(error) {
                      console.error("❌ [LoadAll] Unexpected error:", error);
                      showError(`Nepodařilo se načíst všechna data: ${error.message}`, true);
-                      setLoadingState('all', false); // Ensure all loaders stop on major error
+                     setLoadingState('all', false);
                  }
-             }
+            }
             // --- END: Data Loading Orchestrator ---
 
             // --- START: Event Listeners Setup ---
             function setupEventListeners() {
-                 // Mobile Menu
                  if (ui.mobileMenuToggle) ui.mobileMenuToggle.addEventListener('click', toggleMobileMenu);
                  if (ui.sidebarOverlay) ui.sidebarOverlay.addEventListener('click', toggleMobileMenu);
                  if (ui.sidebarCloseToggle) ui.sidebarCloseToggle.addEventListener('click', toggleMobileMenu);
@@ -1115,20 +763,20 @@
                          tab.classList.add('active');
                          const targetContent = document.getElementById(tabId);
                          if (targetContent) targetContent.classList.add('active');
-                         // Optionally trigger data reload for the selected tab if needed
+                         // Lazy loading data for tabs could be implemented here if needed
                      });
                  });
-
-                 // Window resize for menu
-                 window.addEventListener('resize', () => { if (window.innerWidth > 992 && ui.sidebar?.classList.contains('active')) closeMenu(); });
-
-                  // Add listener for body scroll to handle sticky header effect
+                 // Scroll listener
                  if (ui.mainContent) { ui.mainContent.addEventListener('scroll', handleScroll); }
-             }
+                 // Window resize
+                 window.addEventListener('resize', () => { if (window.innerWidth > 992 && ui.sidebar?.classList.contains('active')) closeMenu(); });
+                 // Tooltips (if used)
+                 if (typeof $ !== 'undefined' && $.fn.tooltipster) { $('.btn-tooltip').tooltipster({ theme: 'tooltipster-shadow', animation: 'fade', delay: 100 }); }
+            }
             // --- END: Event Listeners Setup ---
 
             // --- App Initialization ---
-            document.addEventListener('DOMContentLoaded', initializePage);
+            document.addEventListener('DOMContentLoaded', initializeApp);
 
         })(); // End IIFE
     </script>
