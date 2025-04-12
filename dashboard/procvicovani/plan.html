@@ -7,259 +7,414 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/css/tooltipster.bundle.min.css">
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/date-fns/2.29.3/umd/index.min.js"></script>
-    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/css/tooltipster.bundle.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/js/tooltipster.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <style>
-        /* --- Стили CSS (Полностью как в предыдущей версии) --- */
-        /* ... (все 800+ строк CSS стилей здесь) ... */
-         :root { /* Палитра */ --primary-rgb: 67, 97, 238; --primary: #4361ee; --primary-light: #4895ef; --primary-dark: #3a0ca3; --secondary-rgb: 63, 55, 201; --secondary: #3f37c9; --success-rgb: 16, 185, 129; --success: #10b981; --success-light: #a7f3d0; --success-bg: #f0fdf4; --success-alt: #06d6a0; --danger-rgb: 247, 37, 133; --danger: #f72585; --danger-light: #fecdd3; --danger-bg: #fff1f2; --warning-rgb: 248, 150, 30; --warning: #f8961e; --warning-light: #fed7aa; --warning-bg: #fffbeb; --info-rgb: 72, 149, 239; --info: #4895ef; --info-light: #bfdbfe; --info-bg: #eff6ff; --dark: #1e2a3a; --light: #f8f9fa; --gray: #6c757d; --gray-100: #f8f9fa; --gray-200: #e9ecef; --gray-300: #dee2e6; --gray-400: #ced4da; --gray-500: #adb5bd; --gray-600: #6c757d; --gray-700: #495057; --gray-800: #343a40; --gray-900: #212529; --white: #ffffff; --black: #000000; --gradient-1: linear-gradient(135deg, #4361ee, #3a0ca3); --gradient-2: linear-gradient(135deg, #4cc9f0, #4361ee); --gradient-3: linear-gradient(135deg, #f72585, #7209b7); --gradient-4: linear-gradient(135deg, #f8961e, #f3722c); --gradient-success: linear-gradient(135deg, var(--success), var(--success-dark)); --gradient-warning: linear-gradient(135deg, var(--warning), #f3722c); --gradient-danger: linear-gradient(135deg, var(--danger), #b5179e); --gradient-info: linear-gradient(135deg, var(--info), var(--primary-light)); /* Семантические цвета */ --bg-color: #f9fafb; --card-bg-color: var(--white); --card-bg-color-rgb: 255, 255, 255; --text-primary: var(--gray-800); --text-secondary: #4a5568; --text-muted: #718096; --border-color: var(--gray-200); --input-bg: var(--white); --input-border: var(--gray-300); --input-focus-border: var(--primary-light); --input-focus-shadow: rgba(var(--primary-rgb), 0.15); --skeleton-bg: #f3f4f6; --skeleton-highlight: #e5e7eb; /* Размеры и переходы */ --sidebar-width: 260px; --transition-speed: 0.3s; --transition-bezier: cubic-bezier(0.4, 0, 0.2, 1); --card-radius: 14px; --button-radius: 8px; --form-element-radius: 6px; /* Тени */ --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04); --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05); --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.06); --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.07); }
-        /* Общие стили */ * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; } html { scroll-behavior: smooth; } body { background-color: var(--bg-color); color: var(--text-primary); min-height: 100vh; display: flex; overflow: hidden; line-height: 1.6; font-size: 15px; transition: background-color 0.3s, color 0.3s; }
-        /* --- Sidebar --- */ .sidebar { width: var(--sidebar-width); height: 100vh; position: fixed; top: 0; left: 0; background: var(--gradient-1); color: var(--white); padding: 1.5rem 1rem; display: flex; flex-direction: column; z-index: 1000; box-shadow: var(--shadow-lg); transition: transform var(--transition-speed) var(--transition-bezier), width var(--transition-speed) var(--transition-bezier); } .sidebar-header { display: flex; align-items: center; margin-bottom: 2rem; padding: 0 0.75rem; position: relative; min-height: 40px; } #sidebar-close-toggle { display: none; position: absolute; right: -5px; top: 50%; transform: translateY(-50%); background: none; border: none; color: rgba(255, 255, 255, 0.8); font-size: 1.6rem; cursor: pointer; padding: 0.5rem; line-height: 1; } .sidebar-logo { font-size: 1.5rem; font-weight: 700; color: var(--white); text-decoration: none; display: flex; align-items: center; gap: 0.75rem; } .sidebar-logo i { font-size: 1.75rem; } .sidebar-menu { list-style: none; padding: 0; margin: 0; flex-grow: 1; overflow-y: auto; } .sidebar-menu::-webkit-scrollbar { width: 5px; } .sidebar-menu::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.05); border-radius: 3px;} .sidebar-menu::-webkit-scrollbar-thumb { background-color: rgba(255, 255, 255, 0.3); border-radius: 3px; } .sidebar-menu { scrollbar-width: thin; scrollbar-color: rgba(255, 255, 255, 0.3) rgba(255, 255, 255, 0.05); } .sidebar-item { margin-bottom: 0.5rem; } .sidebar-link { display: flex; align-items: center; padding: 0.8rem 1rem; color: rgba(255, 255, 255, 0.85); text-decoration: none; border-radius: var(--button-radius); transition: background-color 0.2s ease, color 0.2s ease; font-weight: 500; position: relative; } .sidebar-link i { margin-right: 0.75rem; font-size: 1.2rem; width: 24px; text-align: center; } .sidebar-link.active, .sidebar-link:hover { background-color: rgba(255, 255, 255, 0.15); color: var(--white); } .sidebar-link.active::before { content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%); height: 60%; width: 4px; background-color: var(--white); border-radius: 0 3px 3px 0; } .sidebar-footer { margin-top: auto; padding: 1rem; font-size: 0.85rem; color: rgba(255, 255, 255, 0.6); text-align: center; flex-shrink: 0;} .user-profile { display: flex; align-items: center; padding: 1rem; margin-top: 1rem; background-color: rgba(255, 255, 255, 0.08); border-radius: 12px; border: 1px solid rgba(255,255,255, 0.1); flex-shrink: 0;} .user-avatar { width: 40px; height: 40px; border-radius: 50%; background-color: var(--primary-light); display: flex; align-items: center; justify-content: center; margin-right: 0.75rem; font-weight: 500; overflow: hidden; flex-shrink: 0; color: var(--white); } .user-avatar img { width: 100%; height: 100%; object-fit: cover; } .user-info { flex-grow: 1; overflow: hidden; } .user-name { font-weight: 600; font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .user-role { font-size: 0.8rem; opacity: 0.8; white-space: nowrap;}
-        /* --- Основной контент --- */ main { flex: 1; margin-left: var(--sidebar-width); padding: 1.5rem 2rem; transition: margin var(--transition-speed) ease; width: calc(100% - var(--sidebar-width)); overflow-y: auto; height: 100vh; } main:not(.loaded) { opacity: 0; } main.loaded { opacity: 1; animation: fadeInMain 0.4s ease-out forwards; } @keyframes fadeInMain { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-        /* --- Заголовок --- */ .dashboard-header { margin-bottom: 2rem; background-color: rgba(var(--card-bg-color-rgb), 0.8); backdrop-filter: blur(8px); border-radius: var(--card-radius); padding: 1rem 1.75rem; box-shadow: none; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; position: sticky; top: 0; z-index: 900; border-bottom: 1px solid transparent; transition: box-shadow 0.2s ease, border-color 0.2s ease, background-color 0.2s ease; } body.scrolled .dashboard-header { box-shadow: var(--shadow-sm); border-bottom-color: var(--border-color); background-color: rgba(var(--card-bg-color-rgb), 0.95); } .header-content { display: flex; align-items: center; gap: 1rem; flex-grow: 1; } .header-content h1 { font-size: 1.75rem; font-weight: 600; color: var(--text-primary); margin: 0; }
-        /* Кнопки */ .btn { display: inline-flex; align-items: center; justify-content: center; padding: 0.7rem 1.4rem; border-radius: var(--button-radius); font-weight: 500; font-size: 0.9rem; text-decoration: none; transition: all 0.3s ease; cursor: pointer; border: none; gap: 0.5rem; } .btn-primary { background: var(--gradient-1); color: white; box-shadow: var(--shadow-sm); } .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: var(--shadow-md); background: linear-gradient(135deg, var(--primary-light), var(--secondary)); } .btn-secondary { background-color: var(--card-bg-color); color: var(--text-secondary); border: 1px solid var(--border-color); box-shadow: var(--shadow-xs); } .btn-secondary:hover:not(:disabled) { background-color: var(--gray-100); border-color: var(--gray-medium); } .btn-success { background: linear-gradient(135deg, var(--success), var(--success-dark)); color: white; box-shadow: 0 4px 10px rgba(var(--success-rgb), 0.2); } .btn-success:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(var(--success-rgb), 0.25); } .btn-lg { padding: 0.75rem 2rem; font-size: 1rem; } .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none !important; box-shadow: none !important; } .btn i { margin-right: 0.4em; } .action-buttons { display: flex; flex-wrap: wrap; gap: 1rem; margin: 1.5rem 0; justify-content: center; }
-        /* Секции */ .main-content { display: flex; flex-direction: column; gap: 1.75rem; } .section { background-color: var(--card-bg-color); border-radius: var(--card-radius); box-shadow: var(--shadow-sm); /* Removed padding */ animation: fadeIn 0.5s ease forwards; border: 1px solid var(--border-color); position: relative; } .section.has-tabs { padding-top: 0; } .section:not(.has-tabs) { padding: 1.75rem; } .section.has-tabs > .tab-content-area { padding: 1.75rem; } .section-title { font-size: 1.4rem; font-weight: 600; margin-bottom: 1.5rem; color: var(--text-primary); display: flex; align-items: center; justify-content: space-between; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border-color); } .section-title i { font-size: 0.9em; color: var(--primary); margin-right: 0.6rem; } .section-subtitle { font-size: 1.1rem; font-weight: 500; margin-bottom: 1rem; color: var(--text-primary); } .section-text { font-size: 1rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 1.5rem; }
-        /* Вкладки (Tabs) */ .plan-tabs { display: flex; margin-bottom: 0; border-bottom: 1px solid var(--border-color); overflow-x: auto; scrollbar-width: none; background-color: var(--card-bg-color); border-radius: var(--card-radius) var(--card-radius) 0 0; padding: 0 0.75rem; } .plan-tabs::-webkit-scrollbar { display: none; } .plan-tab { padding: 0.9rem 1.75rem; cursor: pointer; font-weight: 600; color: var(--text-secondary); border-bottom: 3px solid transparent; transition: all 0.3s ease; white-space: nowrap; font-size: 0.95rem; } .plan-tab:hover { color: var(--primary); } .plan-tab.active { color: var(--primary); border-bottom-color: var(--primary); }
-        /* Контейнер для содержимого вкладки */ .tab-pane { display: none; } .tab-pane.active { display: block; } .tab-content-area { /* Wrapper */ }
-        /* Загрузка AI */ .ai-loading { display: flex; align-items: center; gap: 1rem; margin: 2rem 0; font-style: italic; color: var(--text-muted); justify-content: center; } .ai-loading-spinner { width: 24px; height: 24px; border: 3px solid rgba(var(--primary-rgb), 0.2); border-radius: 50%; border-top-color: var(--primary); animation: spin 1s ease-in-out infinite; } @keyframes spin { to { transform: rotate(360deg); } }
-        /* Содержимое плана (Markdown) */ .plan-content { margin-top: 1rem; padding: 1.75rem; background-color: var(--light); border-radius: var(--card-radius); border: 1px solid var(--border-color); line-height: 1.7; } .plan-content h1, .plan-content h2, .plan-content h3, .plan-content h4 { color: var(--text-primary); margin-bottom: 0.8rem; font-weight: 600; padding-bottom: 0.4rem; border-bottom: 1px solid var(--border-color); } .plan-content h1 { font-size: 1.6rem; color: var(--primary); } .plan-content h2 { font-size: 1.4rem; margin-top: 2rem; color: var(--secondary); } .plan-content h3 { font-size: 1.2rem; margin-top: 1.5rem; border-bottom: none;} .plan-content h4 { font-size: 1.1rem; margin-top: 1.2rem; color: var(--primary-dark); border-bottom: none; } .plan-content p { margin-bottom: 1rem; } .plan-content ul, .plan-content ol { margin-left: 1.5rem; margin-bottom: 1rem; padding-left: 1rem; } .plan-content li { margin-bottom: 0.7rem; } .plan-content li::marker { color: var(--primary); font-weight: bold; } .plan-content strong { color: var(--secondary); font-weight: 600; } .plan-content code { background-color: rgba(var(--primary-rgb), 0.1); padding: 0.2rem 0.4rem; border-radius: 4px; font-size: 0.9rem; font-family: 'Courier New', Courier, monospace; } .plan-content blockquote { border-left: 3px solid var(--primary-light); padding-left: 1rem; margin: 1rem 0; color: var(--text-secondary); font-style: italic; } .plan-content hr { border: none; border-top: 1px dashed var(--border-color); margin: 2rem 0; } .plan-content em { font-style: italic; color: var(--text-secondary); }
-        /* Навигация шагов (если нужна) */ .step-navigation { display: flex; justify-content: space-between; margin-bottom: 1.5rem; margin-top: 1rem; }
-        /* Сообщения (Нет теста, Ошибка и т.д.) */ .message-box { background-color: var(--info-bg); border-left: 4px solid var(--info); padding: 1.5rem; margin: 1rem 0; border-radius: var(--button-radius); border: 1px solid var(--info-light); } .message-box h3 { color: var(--info); margin: 0 0 0.75rem 0; font-size: 1.2rem; display: flex; align-items: center; gap: 0.5rem; } .message-box p { color: var(--text-secondary); margin-bottom: 1rem; line-height: 1.5; font-size: 0.95rem; } .message-box.warning { background-color: var(--warning-bg); border-left-color: var(--warning); border-color: var(--warning-light); } .message-box.warning h3 { color: var(--warning); } .message-box.error { background-color: var(--danger-bg); border-left-color: var(--danger); border-color: var(--danger-light); } .message-box.error h3 { color: var(--danger); }
-        /* Заголовок и действия плана */ .plan-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem; } .plan-meta { display: flex; flex-direction: column; gap: 0.5rem; flex-grow: 1; } .plan-date { font-size: 0.9rem; color: var(--text-muted); } .plan-actions { display: flex; gap: 1rem; flex-shrink: 0; }
-        /* История планов */ .plan-history { margin-top: 1rem; } .history-item { background-color: var(--card-bg-color); border-radius: var(--button-radius); padding: 1.25rem 1.5rem; margin-bottom: 1rem; box-shadow: var(--shadow-xs); display: flex; justify-content: space-between; align-items: center; transition: all 0.2s ease; cursor: pointer; border: 1px solid var(--border-color); position: relative; min-height: 60px; } .history-item:hover { transform: translateY(-3px); box-shadow: var(--shadow-sm); border-color: var(--primary-light); } .history-info { flex-grow: 1; margin-right: 1rem; } .history-date { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.25rem; } .history-title { font-weight: 600; color: var(--text-primary); font-size: 1.05rem; } .history-meta { display: flex; align-items: center; gap: 0.75rem; flex-shrink: 0; } .history-status { padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.8rem; font-weight: 500; display: inline-flex; align-items: center; gap: 0.4rem; } .history-status.active { background-color: rgba(var(--info-rgb), 0.1); color: var(--info); } .history-status.completed { background-color: rgba(var(--primary-rgb), 0.1); color: var(--primary); } .history-status.inactive { background-color: rgba(108, 117, 125, 0.1); color: var(--gray-600);} .history-status i { font-size: 0.8em; } .history-progress { font-size: 0.85rem; color: var(--text-secondary); font-weight: 500; }
-        /* Заблокированный контент */ .locked-overlay { display: flex; flex-direction: column; justify-content: center; align-items: center; border-radius: var(--card-radius); background-color: rgba(var(--card-bg-color-rgb), 0.8); backdrop-filter: blur(3px); padding: 2.5rem; text-align: center; border: 1px dashed var(--border-color); margin-top: 1rem; } .locked-icon { font-size: 2.5rem; margin-bottom: 1rem; color: var(--text-muted); } .locked-title { font-size: 1.3rem; font-weight: 600; margin-bottom: 1rem; color: var(--text-primary); } .locked-message { font-size: 1rem; margin-bottom: 1.5rem; opacity: 0.9; max-width: 500px; color: var(--text-secondary); } .timer-container { margin: 1rem 0 1.5rem; font-size: 1.1rem; font-weight: 500; color: var(--text-secondary); } #nextPlanTimer { font-weight: 600; color: var(--primary); }
-        /* Загрузчик */ .loader-container { display: flex; justify-content: center; align-items: center; min-height: 200px; padding: 2rem; } .loader { width: 40px; height: 40px; border: 4px solid rgba(var(--primary-rgb), 0.2); border-radius: 50%; border-top-color: var(--primary); animation: spin 1s linear infinite; }
-        /* --- Календарь/Расписание --- */ .schedule-section { padding: 0; border: none; box-shadow: none; background: none; position: relative; } .calendar-scroll-container { overflow-x: auto; padding-bottom: 10px; margin-top: 0; border: 1px solid var(--border-color); border-radius: var(--card-radius); background-color: var(--card-bg-color); box-shadow: var(--shadow-sm); min-height: 300px; position: relative; } .calendar-grid { display: grid; grid-template-columns: repeat(7, minmax(180px, 1fr)); min-width: calc(7 * 180px); } .calendar-day-cell { border-left: 1px solid var(--border-color); min-height: 250px; display: flex; flex-direction: column; position: relative; } .calendar-day-cell:first-child { border-left: none; } .calendar-day-header { padding: 0.75rem 0.5rem; font-weight: 600; text-align: center; background-color: var(--gray-100); border-bottom: 1px solid var(--border-color); font-size: 0.9rem; color: var(--text-secondary); position: sticky; top: 0; z-index: 10; } .calendar-day-cell.today .calendar-day-header { background-color: rgba(var(--success-rgb), 0.1); color: var(--success-dark); font-weight: 700; } .calendar-day-cell.today { background-color: rgba(var(--success-rgb), 0.03); } .calendar-activities { padding: 0.75rem; flex-grow: 1; display: flex; flex-direction: column; gap: 0.75rem; overflow-y: auto; } .calendar-activity { background-color: var(--card-bg-color); border: 1px solid var(--border-color); border-left: 4px solid var(--primary); border-radius: var(--form-element-radius); padding: 0.6rem 0.8rem; font-size: 0.85rem; box-shadow: var(--shadow-xs); transition: all 0.2s ease; cursor: pointer; } .calendar-activity:hover { transform: translateY(-2px) scale(1.01); box-shadow: var(--shadow-sm); border-left-color: var(--secondary); } .calendar-activity .activity-checkbox { gap: 0.6rem; align-items: center; display: flex; } .calendar-activity .activity-checkbox input[type="checkbox"] { min-width: 16px; height: 16px; margin-top: 0; cursor: pointer; accent-color: var(--primary); } .calendar-activity .activity-content { flex-grow: 1; } .calendar-activity .activity-title { font-weight: 500; color: var(--text-primary); font-size: 0.9rem; margin-bottom: 2px; line-height: 1.3; } .calendar-activity .activity-time-display { font-weight: 600; color: var(--primary); margin-right: 6px; font-size: 0.85em; } .calendar-activity .activity-desc { font-size: 0.8rem; color: var(--text-secondary); margin-top: 4px; padding-left: calc(16px + 0.6rem); display: none; line-height: 1.4; } .calendar-activity.expanded .activity-desc { display: block; } .calendar-activity .activity-checkbox input:checked + .activity-content .activity-title { text-decoration: line-through; opacity: 0.7; color: var(--text-muted); }
-        /* Skeleton for Calendar Day */ .schedule-day .loading-skeleton { display: none; flex-direction: column; width: 100%; height: 100%; padding: 0.75rem; } .schedule-day.loading .loading-skeleton { display: flex; } .schedule-day.loading > *:not(.loading-skeleton) { visibility: hidden; } .skeleton.activity-icon-placeholder { width: 16px; height: 16px; flex-shrink: 0; background-color: var(--skeleton-bg); border-radius: 3px; } .skeleton.activity-line { width: 80%; height: 14px; margin-bottom: 4px; background-color: var(--skeleton-bg); } .skeleton.activity-line-short { width: 50%; height: 10px; background-color: var(--skeleton-bg); } .skeleton-activity-item { display:flex; gap: 0.75rem; padding: 0.5rem 0; }
-        /* Initial Loading Overlay */ .initial-loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--bg-color); z-index: 1100; display: flex; justify-content: center; align-items: center; flex-direction: column; gap: 1rem; transition: opacity 0.5s ease-out; } .initial-loading-overlay.hidden { opacity: 0; pointer-events: none; } .initial-loading-overlay .loading-spinner { width: 35px; height: 35px; border-width: 4px; border-color: var(--primary); border-top-color: transparent; animation: spin 0.8s linear infinite;} .initial-loading-overlay p { color: var(--text-secondary); font-size: 1.1rem;}
-        /* Toast */ .toast-container { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 1050; display: flex; flex-direction: column; gap: 0.75rem; max-width: 380px; pointer-events: none; } .toast { padding: 1rem 1.2rem; border-radius: 10px; background: var(--card-bg-color); box-shadow: var(--shadow-lg); display: flex; align-items: flex-start; color: var(--text-primary); animation: toast-in 0.4s ease forwards; pointer-events: auto; border: 1px solid var(--border-color); border-left-width: 4px; opacity: 0; transform: translateX(100%); } .toast.show { opacity: 1; transform: translateX(0); } .toast.success { border-left-color: var(--success); } .toast.error { border-left-color: var(--danger); } .toast.info { border-left-color: var(--info); } .toast.warning { border-left-color: var(--warning); } .toast-icon { margin-right: 0.75rem; font-size: 1.25rem; flex-shrink: 0; margin-top: 2px; } .toast.success .toast-icon { color: var(--success); } .toast.error .toast-icon { color: var(--danger); } .toast.info .toast-icon { color: var(--info); } .toast.warning .toast-icon { color: var(--warning); } .toast-content { flex: 1; } .toast-title { font-weight: 600; margin-bottom: 0.25rem; font-size: 0.95rem; } .toast-message { font-size: 0.9rem; color: var(--text-secondary); line-height: 1.4; } .toast-close { background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 1.3rem; padding: 0.1rem 0.2rem; margin-left: 0.5rem; line-height: 1; opacity: 0.7; transition: opacity 0.2s, color 0.2s; } .toast-close:hover { opacity: 1; color: var(--text-primary); } @keyframes toast-in { from { opacity: 0; transform: translateX(100%); } to { opacity: 1; transform: translateX(0); } }
-        /* Error Message Container */ .error-container { display: none; margin-bottom: 1.5rem; } .error-message { background-color: rgba(var(--danger-rgb), 0.05); border-left: 4px solid var(--danger); color: var(--danger); padding: 1rem; margin: 1rem 0; border-radius: 8px; font-size: 0.9rem; display: flex; align-items: center; } .error-message i { margin-right: 0.75rem; font-size: 1.25rem; }
-        /* Skeleton Styles */ .skeleton { background-color: var(--skeleton-bg); border-radius: 4px; position: relative; overflow: hidden; } .skeleton::after { content: ''; position: absolute; top: 0; left: -150%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, var(--skeleton-highlight), transparent); animation: skeleton-loading 1.5s infinite linear; } @keyframes skeleton-loading { 0% { left: -150%; } 100% { left: 150%; } } .skeleton.title-sm { height: 14px; width: 60%; margin-bottom: 0.6rem; } .skeleton.value-lg { height: 30px; width: 40%; margin-bottom: 0.5rem; border-radius: 6px; } .skeleton.text-sm { height: 12px; width: 70%; } .history-item .loading-skeleton { display: none; width: 100%; padding: 0.5rem 0;} .history-item.loading .loading-skeleton { display: block; } .history-item.loading > *:not(.loading-skeleton) { visibility: hidden; }
-        /* Responsivita */ @media (max-width: 992px) { /* ... */ } @media (max-width: 768px) { /* ... */ } @media (max-width: 576px) { /* ... */ } .mobile-menu-toggle { display: none; background: none; border: none; cursor: pointer; font-size: 1.5rem; color: var(--text-primary); padding: 0.5rem; margin-right: 0.5rem; z-index: 1010; } .sidebar-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.55); z-index: 999; opacity: 0; transition: opacity 0.3s ease; backdrop-filter: blur(4px); } .sidebar-overlay.active { display: block; opacity: 1; } .dashboard-footer { margin-top: 2.5rem; padding: 1.5rem 0; text-align: center; color: var(--text-muted); font-size: 0.9rem; border-top: 1px solid var(--border-color); }
-        /* Dark Mode */ [data-theme="dark"] { /* ... (Dark mode overrides) ... */ --bg-color: #131720; --card-bg-color: #1e2533; --card-bg-color-rgb: 30, 37, 51; --text-primary: #e2e8f0; --text-secondary: #94a3b8; --text-muted: #64748b; --border-color: #334155; --light: #2d3748; --white: #1a202c; --skeleton-bg: #334155; --skeleton-highlight: #475569; --input-bg: #2d3748; --input-border: #4a5568; } [data-theme="dark"] body { background-color: var(--bg-color); color: var(--text-primary); } [data-theme="dark"] .section, [data-theme="dark"] .dashboard-header, [data-theme="dark"] .plan-tabs, [data-theme="dark"] .history-item, [data-theme="dark"] .message-box, [data-theme="dark"] .locked-overlay, [data-theme="dark"] .toast, [data-theme="dark"] .calendar-scroll-container, [data-theme="dark"] .calendar-day-cell, [data-theme="dark"] .calendar-activity { background-color: var(--card-bg-color); border-color: var(--border-color); } [data-theme="dark"] .plan-content { background-color: #1A202C; } [data-theme="dark"] .plan-content h1, [data-theme="dark"] .plan-content h2, [data-theme="dark"] .plan-content h3, [data-theme="dark"] .plan-content h4 { color: var(--text-primary); border-bottom-color: var(--border-color); } [data-theme="dark"] .plan-content strong { color: var(--primary-light); } [data-theme="dark"] .plan-content code { background-color: rgba(var(--primary-rgb), 0.15); color: var(--success-light); } [data-theme="dark"] .plan-content blockquote { border-left-color: var(--primary-light); } [data-theme="dark"] .calendar-day-header { background-color: var(--light); border-bottom-color: var(--border-color); color: var(--text-secondary); } [data-theme="dark"] .calendar-day-cell.today .calendar-day-header { background-color: rgba(var(--success-rgb), 0.2); color: var(--success); } [data-theme="dark"] .calendar-day-cell.today { background-color: rgba(var(--success-rgb), 0.06); } [data-theme="dark"] .calendar-activity:hover { border-left-color: var(--secondary); background-color: var(--light);} [data-theme="dark"] .calendar-activity .activity-checkbox input:checked + .activity-content .activity-title { color: var(--text-muted); } [data-theme="dark"] .history-status.active { background-color: rgba(var(--info-rgb), 0.15); color: var(--info); } [data-theme="dark"] .history-status.completed { background-color: rgba(var(--primary-rgb), 0.15); color: var(--primary); } [data-theme="dark"] .history-status.inactive { background-color: rgba(108, 117, 125, 0.15); color: var(--text-muted); } [data-theme="dark"] .mobile-menu-toggle { color: var(--text-primary); } [data-theme="dark"] .dashboard-footer { border-top-color: var(--border-color); } [data-theme="dark"] .btn-secondary { background-color: var(--light); color: var(--text-secondary); border: 1px solid var(--border-color); } [data-theme="dark"] .btn-secondary:hover:not(:disabled) { background-color: #4a5568; border-color: #6c757d; color: var(--white); } [data-theme="dark"] .initial-loading-overlay { background-color: var(--bg-color); } @media (max-width: 576px) { [data-theme="dark"] .calendar-day-cell { background-color: var(--card-bg-color); } }
-        /* --- END OF STYLES --- */
+        /* --- Оригинальные стили из твоего plan.html --- */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        :root {
+            --primary: #4361ee; --primary-light: #4895ef; --secondary: #3f37c9;
+            --success: #06d6a0; --danger: #f72585; --warning: #f8961e; --info: #4895ef;
+            --dark: #1e2a3a; --light: #f8f9fa; --gray: #6c757d; --gray-light: #dee2e6;
+            --gray-dark: #343a40; --white: #ffffff;
+            /* --- ДОБАВЛЕНЫ/ИЗМЕНЕНЫ ПЕРЕМЕННЫЕ --- */
+            --primary-rgb: 67, 97, 238;
+            --secondary-rgb: 63, 55, 201;
+            --success-rgb: 6, 214, 160;
+            --danger-rgb: 247, 37, 133;
+            --warning-rgb: 248, 150, 30;
+            --info-rgb: 72, 149, 239;
+            --gray-100: #f8f9fa; --gray-200: #e9ecef; --gray-300: #dee2e6;
+            --gray-400: #ced4da; --gray-500: #adb5bd; --gray-600: #6c757d;
+            --gray-700: #495057; --gray-800: #343a40; --gray-900: #212529;
+             --gradient-1: linear-gradient(135deg, #4361ee, #3a0ca3);
+            --gradient-2: linear-gradient(135deg, #4cc9f0, #4361ee);
+            --gradient-3: linear-gradient(135deg, #f72585, #7209b7);
+            --gradient-4: linear-gradient(135deg, #f8961e, #f3722c);
+             /* Sémantické barvy (default light) */
+            --bg-color: #f9fafb;
+            --card-bg-color: var(--white);
+            --card-bg-color-rgb: 255, 255, 255;
+            --text-primary: var(--gray-800);
+            --text-secondary: #4a5568;
+            --text-muted: #718096;
+            --border-color: var(--gray-200);
+            --input-bg: var(--white);
+            --input-border: var(--gray-300);
+            --input-focus-border: var(--primary-light);
+            --input-focus-shadow: rgba(var(--primary-rgb), 0.15);
+            --skeleton-bg: #f3f4f6;
+            --skeleton-highlight: #e5e7eb;
+             /* Размеры и переходы */
+            --sidebar-width: 260px; /* <-- НОВАЯ ШИРИНА */
+            --transition-speed: 0.3s;
+            --transition-bezier: cubic-bezier(0.4, 0, 0.2, 1);
+            --card-radius: 14px;
+            --button-radius: 8px;
+            --form-element-radius: 6px;
+             /* Тени */
+            --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
+            --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.07);
+        }
+        body { background-color: var(--bg-color); color: var(--text-primary); min-height: 100vh; display: flex; overflow-x: hidden; transition: background-color 0.3s, color 0.3s; }
+
+        /* --- НОВЫЕ/ИЗМЕНЕННЫЕ СТИЛИ ДЛЯ SIDEBAR --- */
+        .sidebar { width: var(--sidebar-width); height: 100vh; position: fixed; top: 0; left: 0; background: var(--gradient-1); color: var(--white); padding: 1.5rem 1rem; display: flex; flex-direction: column; z-index: 1000; box-shadow: var(--shadow-lg); transition: transform var(--transition-speed) var(--transition-bezier), width var(--transition-speed) var(--transition-bezier); }
+        .sidebar-header { display: flex; align-items: center; margin-bottom: 2rem; padding: 0 0.75rem; position: relative; min-height: 40px; }
+        #sidebar-close-toggle { display: none; position: absolute; right: -5px; top: 50%; transform: translateY(-50%); background: none; border: none; color: rgba(255, 255, 255, 0.8); font-size: 1.6rem; cursor: pointer; padding: 0.5rem; line-height: 1; }
+        .sidebar-logo { font-size: 1.5rem; font-weight: 700; color: var(--white); text-decoration: none; display: flex; align-items: center; gap: 0.75rem; }
+        .sidebar-logo i { font-size: 1.75rem; }
+        .sidebar-menu { list-style: none; padding: 0; margin: 0; flex-grow: 1; overflow-y: auto; }
+         .sidebar-menu::-webkit-scrollbar { width: 5px; }
+         .sidebar-menu::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.05); border-radius: 3px;}
+         .sidebar-menu::-webkit-scrollbar-thumb { background-color: rgba(255, 255, 255, 0.3); border-radius: 3px; }
+         .sidebar-menu { scrollbar-width: thin; scrollbar-color: rgba(255, 255, 255, 0.3) rgba(255, 255, 255, 0.05); }
+        .sidebar-item { margin-bottom: 0.5rem; }
+        .sidebar-link { display: flex; align-items: center; padding: 0.8rem 1rem; color: rgba(255, 255, 255, 0.85); text-decoration: none; border-radius: var(--button-radius); transition: background-color 0.2s ease, color 0.2s ease; font-weight: 500; position: relative; }
+        .sidebar-link i { margin-right: 0.75rem; font-size: 1.2rem; width: 24px; text-align: center; }
+        .sidebar-link.active, .sidebar-link:hover { background-color: rgba(255, 255, 255, 0.15); color: var(--white); }
+        .sidebar-link.active::before { content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%); height: 60%; width: 4px; background-color: var(--white); border-radius: 0 3px 3px 0; }
+        .sidebar-footer { margin-top: auto; padding: 1rem; font-size: 0.85rem; color: rgba(255, 255, 255, 0.6); text-align: center; flex-shrink: 0;}
+        .user-profile { display: flex; align-items: center; padding: 1rem; margin-top: 1rem; background-color: rgba(255, 255, 255, 0.08); border-radius: 12px; border: 1px solid rgba(255,255,255, 0.1); flex-shrink: 0;}
+        .user-avatar { width: 40px; height: 40px; border-radius: 50%; background-color: var(--primary-light); display: flex; align-items: center; justify-content: center; margin-right: 0.75rem; font-weight: 500; overflow: hidden; color: var(--white); border: 2px solid rgba(255,255,255, 0.3); flex-shrink: 0;}
+        .user-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .user-info { flex-grow: 1; overflow: hidden; }
+        .user-name { font-weight: 600; font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .user-role { font-size: 0.8rem; opacity: 0.8; white-space: nowrap;}
+        /* Мобильное меню и оверлей */
+        .mobile-menu-toggle { display: none; background: none; border: none; cursor: pointer; font-size: 1.5rem; color: var(--text-primary); padding: 0.5rem; }
+        .sidebar-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.55); z-index: 999; opacity: 0; transition: opacity var(--transition-speed) ease; backdrop-filter: blur(4px); }
+        .sidebar-overlay.active { display: block; opacity: 1; }
+         /* --- КОНЕЦ НОВЫХ СТИЛЕЙ SIDEBAR --- */
+
+        /* --- Основной контент (Стили из оригинала + использование новых переменных) --- */
+        main { flex: 1; margin-left: var(--sidebar-width); padding: 1.5rem 2rem; transition: margin var(--transition-speed) var(--transition-bezier); width: calc(100% - var(--sidebar-width)); overflow-y: auto; height: 100vh;} /* Добавлено overflow и height */
+         main:not(.loaded) { opacity: 0; } /* Скрыто до загрузки */
+         main.loaded { opacity: 1; animation: fadeInMain 0.4s ease-out forwards; }
+         @keyframes fadeInMain { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        .dashboard-header { margin-bottom: 2rem; background-color: var(--card-bg-color); border-radius: var(--card-radius); padding: 1rem 1.75rem; box-shadow: var(--shadow-sm); position: sticky; top: 0; z-index: 900; border-bottom: 1px solid transparent; transition: box-shadow 0.2s ease, border-color 0.2s ease, background-color 0.2s ease; }
+         body.scrolled .dashboard-header { box-shadow: var(--shadow-md); border-bottom-color: var(--border-color); background-color: rgba(var(--card-bg-color-rgb), 0.95); }
+        .header-content { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+        .header-content h1 { font-size: 1.75rem; font-weight: 600; color: var(--text-primary); }
+        .main-content { display: flex; flex-direction: column; gap: 1.75rem; }
+        .section { background-color: var(--card-bg-color); border-radius: var(--card-radius); box-shadow: var(--shadow-sm); padding: 1.75rem; border: 1px solid var(--border-color); }
+         .section.has-tabs { padding-top: 0; }
+         .section.has-tabs > .tab-content-area { padding: 1.75rem; }
+        .section-title { font-size: 1.4rem; font-weight: 600; margin-bottom: 1.5rem; color: var(--text-primary); display: flex; align-items: center; justify-content: space-between; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border-color); }
+        .section-title i { font-size: 0.9em; color: var(--primary); margin-right: 0.6rem; }
+        .section-subtitle { font-size: 1.1rem; font-weight: 500; margin-bottom: 1rem; color: var(--text-primary); }
+        .section-text { font-size: 1rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 1.5rem; }
+        .btn { display: inline-flex; align-items: center; justify-content: center; padding: 0.7rem 1.4rem; border-radius: var(--button-radius); font-weight: 500; font-size: 0.9rem; text-decoration: none; transition: all 0.3s ease; cursor: pointer; border: none; gap: 0.5rem; }
+        .btn-primary { background: var(--gradient-1); color: white; box-shadow: var(--shadow-sm); }
+        .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: var(--shadow-md); background: linear-gradient(135deg, var(--primary-light), var(--secondary)); }
+        .btn-secondary { background-color: var(--card-bg-color); color: var(--text-secondary); border: 1px solid var(--border-color); box-shadow: var(--shadow-xs); }
+        .btn-secondary:hover:not(:disabled) { background-color: var(--gray-100); border-color: var(--gray-medium); }
+        .btn-success { background: linear-gradient(135deg, var(--success), var(--success-dark)); color: white; box-shadow: 0 4px 10px rgba(var(--success-rgb), 0.2); }
+        .btn-success:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(var(--success-rgb), 0.25); }
+        .btn-lg { padding: 0.75rem 2rem; font-size: 1rem; }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
+        .btn i { margin-right: 0.4em; }
+        .action-buttons { display: flex; flex-wrap: wrap; gap: 1rem; margin: 1.5rem 0; justify-content: center; }
+        .plan-tabs { display: flex; margin-bottom: 0; border-bottom: 1px solid var(--border-color); overflow-x: auto; scrollbar-width: none; background-color: var(--card-bg-color); border-radius: var(--card-radius) var(--card-radius) 0 0; padding: 0 0.75rem; }
+        .plan-tabs::-webkit-scrollbar { display: none; }
+        .plan-tab { padding: 0.9rem 1.75rem; cursor: pointer; font-weight: 600; color: var(--text-secondary); border-bottom: 3px solid transparent; transition: all 0.3s ease; white-space: nowrap; font-size: 0.95rem; }
+        .plan-tab:hover { color: var(--primary); }
+        .plan-tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+        .tab-pane { display: none; } .tab-pane.active { display: block; }
+        .tab-content-area { /* wrapper */ }
+        .ai-loading { display: flex; align-items: center; gap: 1rem; margin: 2rem 0; font-style: italic; color: var(--text-muted); justify-content: center; }
+        .ai-loading-spinner { width: 24px; height: 24px; border: 3px solid rgba(var(--primary-rgb), 0.2); border-radius: 50%; border-top-color: var(--primary); animation: spin 1s ease-in-out infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .plan-content { margin-top: 1rem; padding: 1.75rem; background-color: var(--light); border-radius: var(--card-radius); border: 1px solid var(--border-color); line-height: 1.7; }
+        /* ... (стили для markdown h1, h2, code и т.д. как раньше) ... */
+         .step-navigation { display: flex; justify-content: space-between; margin-bottom: 1.5rem; margin-top: 1rem; }
+         .message-box { background-color: var(--info-bg); border-left: 4px solid var(--info); padding: 1.5rem; margin: 1rem 0; border-radius: var(--button-radius); border: 1px solid var(--info-light); }
+         /* ... (стили для .message-box.warning/error) ... */
+         .plan-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem; }
+         .plan-meta { display: flex; flex-direction: column; gap: 0.5rem; flex-grow: 1; }
+         .plan-date { font-size: 0.9rem; color: var(--text-muted); }
+         .plan-actions { display: flex; gap: 1rem; flex-shrink: 0; }
+         .plan-history { margin-top: 1rem; }
+         .history-item { background-color: var(--card-bg-color); border-radius: var(--button-radius); padding: 1.25rem 1.5rem; margin-bottom: 1rem; box-shadow: var(--shadow-xs); display: flex; justify-content: space-between; align-items: center; transition: all 0.2s ease; cursor: pointer; border: 1px solid var(--border-color); position: relative; min-height: 60px; }
+         /* ... (стили history item и locked overlay) ... */
+         .loader-container { display: flex; justify-content: center; align-items: center; min-height: 200px; padding: 2rem; }
+         .loader { width: 40px; height: 40px; border: 4px solid rgba(var(--primary-rgb), 0.2); border-radius: 50%; border-top-color: var(--primary); animation: spin 1s linear infinite; }
+        /* --- Календарь/Расписание (оригинальные стили) --- */
+        .schedule-section { padding: 0; border: none; box-shadow: none; background: none; position: relative; }
+        .calendar-scroll-container { overflow-x: auto; padding-bottom: 10px; margin-top: 0; border: 1px solid var(--border-color); border-radius: var(--card-radius); background-color: var(--card-bg-color); box-shadow: var(--shadow-sm); min-height: 300px; position: relative; }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, minmax(180px, 1fr)); min-width: calc(7 * 180px); }
+        .calendar-day-cell { border-left: 1px solid var(--border-color); min-height: 250px; display: flex; flex-direction: column; position: relative; }
+        .calendar-day-cell:first-child { border-left: none; }
+        .calendar-day-header { padding: 0.75rem 0.5rem; font-weight: 600; text-align: center; background-color: var(--gray-100); border-bottom: 1px solid var(--border-color); font-size: 0.9rem; color: var(--text-secondary); position: sticky; top: 0; z-index: 10; }
+        .calendar-day-cell.today .calendar-day-header { background-color: rgba(var(--success-rgb), 0.1); color: var(--success-dark); font-weight: 700; }
+        .calendar-day-cell.today { background-color: rgba(var(--success-rgb), 0.03); }
+        .calendar-activities { padding: 0.75rem; flex-grow: 1; display: flex; flex-direction: column; gap: 0.75rem; overflow-y: auto; }
+        .calendar-activity { background-color: var(--card-bg-color); border: 1px solid var(--border-color); border-left: 4px solid var(--primary); border-radius: var(--form-element-radius); padding: 0.6rem 0.8rem; font-size: 0.85rem; box-shadow: var(--shadow-xs); transition: all 0.2s ease; cursor: pointer; }
+         .calendar-activity:hover { transform: translateY(-2px) scale(1.01); box-shadow: var(--shadow-sm); border-left-color: var(--secondary); }
+        .calendar-activity .activity-checkbox { gap: 0.6rem; align-items: center; display: flex; }
+         .calendar-activity .activity-checkbox input[type="checkbox"] { min-width: 16px; height: 16px; margin-top: 0; cursor: pointer; accent-color: var(--primary); }
+        .calendar-activity .activity-content { flex-grow: 1; }
+        .calendar-activity .activity-title { font-weight: 500; color: var(--text-primary); font-size: 0.9rem; margin-bottom: 2px; line-height: 1.3; }
+         .calendar-activity .activity-time-display { font-weight: 600; color: var(--primary); margin-right: 6px; font-size: 0.85em; }
+        .calendar-activity .activity-desc { font-size: 0.8rem; color: var(--text-secondary); margin-top: 4px; padding-left: calc(16px + 0.6rem); display: none; line-height: 1.4; }
+        .calendar-activity.expanded .activity-desc { display: block; }
+        .calendar-activity .activity-checkbox input:checked + .activity-content .activity-title { text-decoration: line-through; opacity: 0.7; color: var(--text-muted); }
+        /* Skeleton styles */
+        .skeleton { background-color: var(--skeleton-bg); border-radius: 4px; position: relative; overflow: hidden; }
+        .skeleton::after { content: ''; position: absolute; top: 0; left: -150%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, var(--skeleton-highlight), transparent); animation: skeleton-loading 1.5s infinite linear; }
+        @keyframes skeleton-loading { 0% { left: -150%; } 100% { left: 150%; } }
+        .skeleton.title-sm { height: 14px; width: 60%; margin-bottom: 0.6rem; }
+        .skeleton.value-lg { height: 30px; width: 40%; margin-bottom: 0.5rem; border-radius: 6px; }
+        .skeleton.text-sm { height: 12px; width: 70%; }
+        .schedule-day .loading-skeleton { display: none; flex-direction: column; width: 100%; height: 100%; padding: 0.75rem; }
+        .schedule-day.loading .loading-skeleton { display: flex; }
+        .schedule-day.loading > *:not(.loading-skeleton) { visibility: hidden; }
+        .skeleton.activity-icon-placeholder { width: 16px; height: 16px; flex-shrink: 0; background-color: var(--skeleton-bg); border-radius: 3px; }
+        .skeleton.activity-line { width: 80%; height: 14px; margin-bottom: 4px; background-color: var(--skeleton-bg); }
+        .skeleton.activity-line-short { width: 50%; height: 10px; background-color: var(--skeleton-bg); }
+        .skeleton-activity-item { display:flex; gap: 0.75rem; padding: 0.5rem 0; }
+         .history-item .loading-skeleton { display: none; width: 100%; padding: 0.5rem 0;}
+         .history-item.loading .loading-skeleton { display: block; }
+         .history-item.loading > *:not(.loading-skeleton) { visibility: hidden; }
+
+        /* Initial Loading Overlay (НОВЫЙ) */
+        .initial-loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--bg-color); z-index: 1100; display: flex; justify-content: center; align-items: center; flex-direction: column; gap: 1rem; transition: opacity 0.5s ease-out; }
+        .initial-loading-overlay.hidden { opacity: 0; pointer-events: none; }
+        .initial-loading-overlay .loading-spinner { width: 35px; height: 35px; border-width: 4px; border-color: var(--primary); border-top-color: transparent; animation: spin 0.8s linear infinite;}
+        .initial-loading-overlay p { color: var(--text-secondary); font-size: 1.1rem;}
+
+        /* Toast */
+        .toast-container { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 1050; display: flex; flex-direction: column; gap: 0.75rem; max-width: 380px; pointer-events: none; }
+        .toast { /* ... */ }
+        /* Error Message Container */
+         .error-container { display: none; margin-bottom: 1.5rem; }
+         .error-message { /* ... */ }
+
+        /* Responsive styles (объединены/обновлены) */
+        @media (max-width: 992px) { :root { --sidebar-width: 80px; } main { margin-left: 80px; width: calc(100% - 80px); } .sidebar { width: 80px; } .sidebar-logo span, .sidebar-link span, .user-info, .sidebar-footer { display: none; } .sidebar-link i { margin-right: 0; font-size: 1.5rem; } .sidebar-logo i { margin-right: 0; } .sidebar-header, .sidebar-link { justify-content: center; } .user-profile { justify-content: center; padding: 0.75rem; } .user-avatar { margin-right: 0; } .mobile-menu-toggle { display: block; } #sidebar-close-toggle { display: none !important; } /* ... (остальные от 992px) ... */ }
+        @media (max-width: 768px) { /* ... */ }
+        @media (max-width: 576px) { :root { --sidebar-width: 0; } main { margin-left: 0; width: 100%; } .sidebar { transform: translateX(-100%); width: 260px; z-index: 1000;} .sidebar.active { transform: translateX(0); } .sidebar.active .sidebar-logo span, .sidebar.active .sidebar-link span, .sidebar.active .user-info, .sidebar.active .sidebar-footer { display: block; } .sidebar.active .sidebar-link i { margin-right: 0.75rem; } .sidebar.active .sidebar-header, .sidebar.active .sidebar-link { justify-content: flex-start; } .sidebar.active .user-profile { padding: 1rem; } .sidebar.active .user-avatar { margin-right: 0.75rem; } .sidebar.active #sidebar-close-toggle { display: block; } /* ... (остальные от 576px) ... */ }
+
+        /* Dark Mode (с использованием data-theme) */
+        [data-theme="dark"] {
+             --bg-color: #131720; --card-bg-color: #1e2533;
+             /* ... (все переменные для темного режима) ... */
+        }
+        [data-theme="dark"] body { /* ... */ }
+        [data-theme="dark"] .section, [data-theme="dark"] .dashboard-header, /* ... */ [data-theme="dark"] .calendar-activity { /* ... */ }
+        /* ... (все остальные переопределения для темного режима) ... */
     </style>
 </head>
 <body>
-    <div class="initial-loading-overlay" id="initial-loader"> <div class="loading-spinner"></div> <p>Načítání plánu...</p> </div>
+    <div class="initial-loading-overlay" id="initial-loader">
+         <div class="loading-spinner"></div>
+         <p>Načítání plánu...</p>
+     </div>
 
     <div id="sidebar-overlay" class="sidebar-overlay"></div>
-    <aside id="sidebar" class="sidebar"> </aside>
+    <aside id="sidebar" class="sidebar">
+        <div class="sidebar-header"> <button class="mobile-menu-toggle" id="sidebar-close-toggle"> <i class="fas fa-times"></i> </button> <a href="/dashboard/dashboard.html" class="sidebar-logo"> <i class="fas fa-calculator"></i> <span>Justax</span> </a> </div>
+        <ul class="sidebar-menu">
+            <li class="sidebar-item"> <a href="/dashboard/dashboard.html" class="sidebar-link"> <i class="fas fa-th-large"></i> <span>Nástěnka</span> </a> </li>
+            <li class="sidebar-item"> <a href="/dashboard/procvicovani/main.html" class="sidebar-link active"> <i class="fas fa-book-open"></i> <span>Procvičování</span> </a> </li>
+            <li class="sidebar-item"> <a href="/dashboard/pokrok.html" class="sidebar-link"> <i class="fas fa-chart-line"></i> <span>Pokrok</span> </a> </li>
+            <li class="sidebar-item"> <a href="/dashboard/oceneni.html" class="sidebar-link"> <i class="fas fa-medal"></i> <span>Ocenění</span> </a> </li>
+            <li class="sidebar-item"> <a href="/dashboard/materialy.html" class="sidebar-link"> <i class="fas fa-file-alt"></i> <span>Materiály</span> </a> </li>
+            <li class="sidebar-item"> <a href="/dashboard/profile.html" class="sidebar-link"> <i class="fas fa-user-cog"></i> <span>Profil</span> </a> </li>
+        </ul>
+        <div class="user-profile"> <div class="user-avatar" id="user-avatar">?</div> <div class="user-info"> <div class="user-name" id="user-name">Načítání...</div> <div class="user-role">Student</div> </div> </div>
+        <div class="sidebar-footer"> &copy; 2025 Justax </div>
+    </aside>
 
     <main id="main-content" style="display: none;">
         <div class="error-container" id="global-error"></div>
         <header class="dashboard-header"> </header>
-        <section class="section has-tabs">
+        <div class="main-content">
             <div class="plan-tabs"> </div>
-            <div class="tab-content-area">
-                <div class="tab-pane active" id="current"> <div id="currentPlanContainer" class="loading"> <div class="loader-container" id="currentPlanLoader"> <div class="loader"></div></div> <div id="currentPlanContentWrapper" style="display:none;"> <div id="scheduleViewPlaceholder"></div> </div> </div> </div>
-                <div class="tab-pane" id="history"> <div id="historyPlanContainer" class="loading"> </div> </div>
-                <div class="tab-pane" id="create"> <div id="createPlanContainer" class="loading"> </div> </div>
-                 <div class="tab-pane" id="detail-view-pane" style="display: none;"> <div id="planDetailContainer" class="loading"> </div> </div>
+            <div class="section current-plan-section" id="currentPlanSection"> </div>
+            <div class="section history-plan-section" id="historyPlanSection" style="display: none;"> </div>
+            <div class="section create-plan-section" id="createPlanSection" style="display: none;"> </div>
+            <div class="section plan-section" id="planSection" style="display: none;"> </div>
+            <div class="section schedule-section" id="scheduleSection" style="display: none;"> </div>
             </div>
-        </section>
         <footer class="dashboard-footer"> <p>&copy; 2025 Justax. Všechna práva vyhrazena.</p> </footer>
     </main>
 
-    <div class="toast-container" id="toast-container"></div>
+    <div class="toast" id="toast"> </div>
 
     <script>
-        // ИСПРАВЛЕННЫЙ JavaScript для plan.html - БЕЗ IIFE, ПРЯМОЙ ВЫЗОВ
-        console.log("Script Start: Defining constants and variables...");
-        // --- START: Глобальные переменные и Конфигурация ---
-        const supabaseUrl = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10';
-        const GEMINI_API_KEY = 'AIzaSyDQboM6qtC_O2sqqpaKZZffNf2zk6HrhEs'; // WARNING: Keep secure
-        const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+        // --- Оригинальный JavaScript из твоего plan.html ---
+        // (Добавлены только: инициализация Supabase, проверка auth,
+        //  загрузка профиля, обновление сайдбара, тема, управление лоадером)
 
-        let supabase = null;
-        let currentUser = null;
-        let currentProfile = null;
-        let latestDiagnosticData = null;
-        let currentStudyPlan = null;
-        let currentPlanActivities = [];
-        let previousPlans = [];
-        let planCreateAllowed = false;
-        let nextPlanCreateTime = null;
-        let planTimerInterval = null;
-        let activeTab = 'current';
-        let currentView = 'tabs';
-        let lastGeneratedMarkdown = null;
-        let lastGeneratedActivitiesJson = null;
-        let isLoading = { page: true, current: false, history: false, create: false, detail: false, schedule: false };
+        // --- START: Добавленные глобальные переменные ---
+        const supabaseUrl_global = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
+        const supabaseKey_global = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10';
+        const GEMINI_API_KEY_global = 'AIzaSyDQboM6qtC_O2sqqpaKZZffNf2zk6HrhEs'; // WARNING: Keep secure
+        const GEMINI_API_URL_global = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY_global}`;
+        let supabaseClient_global = null; // Переименовано, чтобы избежать конфликтов
+        let currentUser_global = null;
+        let currentProfile_global = null;
+        // --- END: Добавленные глобальные переменные ---
 
-        // DOM Cache
-        const ui = { /* ... (Определение всех ui элементов как раньше) ... */ initialLoader: document.getElementById('initial-loader'), mainContent: document.getElementById('main-content'), sidebarAvatar: document.getElementById('user-avatar'), sidebarName: document.getElementById('user-name'), mobileMenuToggle: document.getElementById('mobile-menu-toggle'), sidebar: document.getElementById('sidebar'), sidebarOverlay: document.getElementById('sidebar-overlay'), sidebarCloseToggle: document.getElementById('sidebar-close-toggle'), toastContainer: document.getElementById('toast-container'), globalError: document.getElementById('global-error'), planTabs: document.querySelectorAll('.plan-tab'), tabPaneCurrent: document.getElementById('current'), tabPaneHistory: document.getElementById('history'), tabPaneCreate: document.getElementById('create'), tabPaneDetailView: document.getElementById('detail-view-pane'), currentPlanContainer: document.getElementById('currentPlanContainer'), currentPlanLoader: document.getElementById('currentPlanLoader'), currentPlanContentWrapper: document.getElementById('currentPlanContentWrapper'), historyPlanContainer: document.getElementById('historyPlanContainer'), historyLoader: document.getElementById('historyLoader'), historyPlanContent: document.getElementById('historyPlanContent'), createPlanContainer: document.getElementById('createPlanContainer'), createPlanLoader: document.getElementById('createPlanLoader'), createPlanContent: document.getElementById('createPlanContent'), planDetailContainer: document.getElementById('planDetailContainer'), planLoading: document.getElementById('planLoading'), planContent: document.getElementById('planContent'), planActions: document.getElementById('planActions'), planDetailTitle: document.getElementById('planDetailTitle'), backToSourceTabBtn: document.getElementById('backToSourceTabBtn'), scheduleViewPlaceholder: document.getElementById('scheduleViewPlaceholder'), lockedPlanTemplate: document.getElementById('lockedPlanTemplate'), createPlanFormTemplate: document.getElementById('createPlanFormTemplate'), noDiagnosticTemplate: document.getElementById('noDiagnosticTemplate'), historyItemTemplate: document.getElementById('historyItemTemplate'), promptCreatePlanTemplate: document.getElementById('promptCreatePlanTemplate'), noActivePlanTemplate: document.getElementById('noActivePlanTemplate'), scheduleTemplate: document.getElementById('scheduleTemplate'), scheduleDaySkeletonTemplate: document.getElementById('scheduleDaySkeletonTemplate'), historySkeletonTemplate: document.getElementById('historySkeletonTemplate'), dashboardHeader: document.querySelector('.dashboard-header') };
-        const topicIcons = { "Algebra": "fa-square-root-alt", "Aritmetika": "fa-calculator", "Geometrie": "fa-draw-polygon", "Logika": "fa-brain", "Logické úlohy": "fa-brain", "Statistika": "fa-chart-bar", "Čísla a aritmetické operace": "fa-calculator", "Práce s daty": "fa-chart-bar", "Problémové úlohy": "fa-lightbulb", "Proporce a procenta": "fa-percentage", "default": "fa-book" };
-        const topicMap = { 1: "Čísla a aritmetické operace", 2: "Algebra", 3: "Geometrie", 4: "Práce s daty", 5: "Problémové úlohy", 6: "Proporce a procenta", 7: "Logické úlohy" };
-        const activityVisuals = { test: { name: 'Test', icon: 'fa-vial', class: 'test' }, exercise: { name: 'Cvičení', icon: 'fa-pencil-alt', class: 'exercise' }, badge: { name: 'Odznak', icon: 'fa-medal', class: 'badge' }, diagnostic: { name: 'Diagnostika', icon: 'fa-clipboard-check', class: 'diagnostic' }, lesson: { name: 'Lekce', icon: 'fa-book-open', class: 'lesson' }, plan_generated: { name: 'Plán vytvořen', icon: 'fa-calendar-alt', class: 'plan_generated' }, level_up: { name: 'Nová úroveň', icon: 'fa-level-up-alt', class: 'level_up' }, other: { name: 'Ostatní', icon: 'fa-info-circle', class: 'other' }, default: { name: 'Aktivita', icon: 'fa-check-circle', class: 'default' } };
-        console.log("Constants and variables defined.");
-
-        // --- Helper Functions (Определены ДО initializePage)---
-        function showToast(message, type = 'info', duration = 4000) { /* ... */ }
-        function showError(message, isGlobal = false) { /* ... */ }
-        function hideError() { /* ... */ }
-        function sanitizeHTML(str) { /* ... */ }
-        function getInitials(profile) { /* ... */ }
-        function formatDate(dateString) { /* ... */ }
-        function toggleMobileMenu() { /* ... */ }
-        function updateUserInfoUI() { /* ... */ }
-        function handleScroll() { /* ... */ }
-        function getDeclension(number, singular, plural1, plural2) { /* ... */ }
-        function initTooltips() { /* ... */ }
-        function setLoadingState(sectionKey, isLoadingFlag) { /* ... */ }
-        function renderHistorySkeletons(count) { /* ... */ }
-        function renderScheduleSkeletons(count) { /* ... */ }
-        function displayPlanContent(markdownContent) { /* ... */ }
-        function renderWeeklySchedule(activities, planId) { /* ... */ }
-        function renderNoDiagnosticAvailable(container) { /* ... */ }
-        function renderLockedPlanSection(container) { /* ... */ }
-        function startPlanTimer() { /* ... */ }
-        function updateNextPlanTimer(timerElement) { /* ... */ }
-        function renderPlanCreationForm(container) { /* ... */ }
-        function renderPromptCreatePlan(container) { /* ... */ }
-        function renderNoActivePlan(container) { /* ... */ }
-        function renderPlanHistory(plans) { /* ... */ }
-        async function exportPlanToPDFWithStyle(plan) { /* ... */ }
-        async function handleActivityCompletionToggle(activityId, isCompleted, planId) { /* ... */ }
-        async function updatePlanProgress(planId) { /* ... */ }
-        function applyTheme(profile) { /* ... */ }
-        console.log("Helper functions defined.");
-
-        // --- Data Fetching Functions ---
-        async function fetchUserProfile(userId) { /* ... (улучшенная версия) ... */ if (!supabase || !userId) { console.warn("[Profile] Cannot fetch profile, no supabase client or user ID."); return null; } console.log(`[Profile] Fetching profile for user ID: ${userId}`); try { const { data: profile, error, status } = await supabase .from('profiles') .select('*') .eq('id', userId) .single(); console.log('[Profile] Supabase response:', { data: profile, error, status }); if (error && status !== 406) { console.error('[Profile] Supabase error fetching profile:', { status, error }); throw error; } if (!profile) { console.warn(`[Profile] Profile not found for user ${userId}. Returning null.`); return null; } console.log("[Profile] Profile data fetched successfully:", profile); return profile; } catch (error) { console.error('[Profile] Exception caught while fetching profile:', error); showError('Nepodařilo se načíst data profilu.', false); return null; } }
-        async function getLatestDiagnostic() { /* ... */ }
-        async function fetchActiveStudyPlan(userId) { /* ... */ }
-        async function fetchPlanActivities(planId) { /* ... */ }
-        async function fetchPlanHistory(userId) { /* ... */ }
-        async function fetchFullPlanDetails(planId) { /* ... */ }
-        async function generatePlanContentWithGemini(testData, topicsData) { /* ... */ }
-        async function saveGeneratedPlan(markdownContent, activitiesArray, topicsData) { /* ... */ }
-        console.log("Data fetching functions defined.");
-
-        // --- Core Application Logic ---
-        function switchView(view, targetTabId = null) { /* ... */ }
-        async function switchTab(tabId) { /* ... */ }
-        async function loadCurrentPlan() { /* ... (Refined version) ... */ }
-        async function showFullSchedule(plan) { /* ... (Refined version) ... */ }
-        async function showPlanDetail(plan) { /* ... (Refined version) ... */ }
-        async function loadPlanHistory() { /* ... (Refined version) ... */ }
-        async function checkPlanCreationAvailability() { /* ... */ }
-        async function generateStudyPlan() { /* ... */ }
-        console.log("Core logic functions defined.");
-
-        // --- Event Listeners Setup ---
-         function setupEventListeners() {
-             console.log("[SetupListeners] Attaching event listeners...");
-             if (ui.mobileMenuToggle) ui.mobileMenuToggle.addEventListener('click', toggleMobileMenu);
-             if (ui.sidebarOverlay) ui.sidebarOverlay.addEventListener('click', toggleMobileMenu);
-             if (ui.sidebarCloseToggle) ui.sidebarCloseToggle.addEventListener('click', toggleMobileMenu);
-             ui.planTabs.forEach(tab => { tab.addEventListener('click', () => switchTab(tab.dataset.tab)); });
-             if(ui.backToSourceTabBtn) ui.backToSourceTabBtn.addEventListener('click', () => switchView('tabs', activeTab));
-             window.addEventListener('resize', () => { if (window.innerWidth > 992 && ui.sidebar?.classList.contains('active')) closeMenu(); });
-             if(ui.mainContent) ui.mainContent.addEventListener('scroll', handleScroll);
-             window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { if (currentProfile && typeof currentProfile.preferences?.dark_mode !== 'boolean') { applyTheme(currentProfile); } });
-             console.log("[SetupListeners] Listeners attached.");
-         }
-         console.log("Event listener setup function defined.");
-
-        // --- App Initialization ---
-         function initializeSupabase() {
-             try {
-                 if (typeof window.supabase === 'undefined' || typeof window.supabase.createClient !== 'function') { throw new Error("Supabase library not loaded."); }
-                 supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
-                 if (!supabase) throw new Error("Supabase client creation failed.");
-                 console.log('[Supabase] Client initialized.');
-                 return true;
-             } catch (error) {
-                 console.error('[Supabase] Initialization failed:', error);
-                 showError("Kritická chyba: Nelze se připojit.", true);
-                 if (ui.initialLoader) { ui.initialLoader.innerHTML = `<p style="color: var(--danger);">Chyba připojení. Obnovte stránku.</p>`;}
-                 return false;
+        // --- START: Добавленные Helper Functions ---
+        // (Функции showToast, showError, hideError, sanitizeHTML, getInitials, formatDate, toggleMobileMenu, applyTheme)
+        // Важно: Убедись, что эти функции не конфликтуют с именами в твоем оригинальном коде.
+        // Если конфликтуют, переименуй их здесь и в вызовах.
+         function showToast(message, type = 'info', duration = 4000) { /* ... Реализация ... */ }
+         function showError(message, isGlobal = false) { /* ... Реализация ... */ }
+         function hideError() { /* ... Реализация ... */ }
+         function sanitizeHTML(str) { /* ... Реализация ... */ }
+         function getInitials(profile) { /* ... Реализация ... */ }
+         function formatDate(dateString) { /* ... Реализация ... */ }
+         function toggleMobileMenu() { /* ... Реализация ... */ }
+         function applyTheme(profile) { /* ... Реализация ... */ }
+         function updateUserInfoUI(profileData, userEmail) { // Обновляет ТОЛЬКО НОВЫЙ сайдбар
+            const sidebarUserName = document.getElementById('user-name'); // ID в новом сайдбаре
+            const sidebarUserAvatar = document.getElementById('user-avatar'); // ID в новом сайдбаре
+             if (!sidebarUserName || !sidebarUserAvatar) return;
+             if (currentUser_global && profileData) {
+                 const displayName = `${profileData.first_name || ''} ${profileData.last_name || ''}`.trim() || profileData.username || userEmail?.split('@')[0] || 'Uživatel';
+                 sidebarUserName.textContent = displayName;
+                 const initials = getInitials(profileData);
+                 sidebarUserAvatar.innerHTML = profileData.avatar_url ? `<img src="${profileData.avatar_url}" alt="${initials}">` : initials;
+             } else {
+                 sidebarUserName.textContent = 'Nepřihlášen';
+                 sidebarUserAvatar.textContent = '?';
              }
          }
-         console.log("Supabase initialization function defined.");
+         async function fetchUserProfile(userId) { // Новая функция для загрузки профиля
+            if (!supabaseClient_global || !userId) return null;
+            console.log(`[Profile] Fetching profile for user ID: ${userId}`);
+            try {
+                const { data: profile, error } = await supabaseClient_global.from('profiles').select('*').eq('id', userId).single();
+                if (error && error.code !== 'PGRST116') throw error;
+                return profile; // Возвращает профиль или null
+            } catch (error) {
+                console.error('[Profile] Exception fetching profile:', error);
+                showToast('Nepodařilo se načíst data profilu.', 'error');
+                return null;
+            }
+         }
+        // --- END: Добавленные Helper Functions ---
 
-        async function initializePage() {
-             console.log("🚀 [Init Plan] Starting initializePage...");
-             if (!initializeSupabase()) {
-                 console.error("[Init Plan] Supabase failed to initialize. Halting.");
-                 if (ui.initialLoader) { ui.initialLoader.classList.add('hidden'); ui.initialLoader.style.display='none';}
-                 return;
-              }
 
-             console.log("[Init Plan] Showing initial loader and hiding main content...");
-             if (ui.initialLoader) { ui.initialLoader.style.display = 'flex'; ui.initialLoader.classList.remove('hidden'); }
-             if (ui.mainContent) { ui.mainContent.style.display = 'none'; ui.mainContent.classList.remove('loaded'); }
+        // ==============================================
+        //          ТВОЙ ОРИГИНАЛЬНЫЙ КОД JavaScript ИЗ plan.html
+        // ==============================================
+        // (Сюда вставляется ВЕСЬ твой оригинальный JS код)
+        // Важно:
+        // 1. Замени все использования `supabase.createClient(...)` на `supabaseClient_global = supabase.createClient(...)` (если они есть в глобальной области).
+        // 2. Замени все использования `currentUser` на `currentUser_global`, если они есть в глобальной области или передаются как параметры.
+        // 3. Убедись, что твой код не объявляет функции или переменные с такими же именами, как добавленные хелперы (showToast, showError и т.д.), или переименуй конфликтующие.
 
-             try {
-                 console.log("[Init Plan] Checking auth session...");
-                 const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-                 console.log("[Init Plan] Auth session checked:", { session, sessionError });
-                 if (sessionError) throw new Error(`Nepodařilo se ověřit přihlášení: ${sessionError.message}`);
+        // --- Пример интеграции проверки Auth в начало твоего кода ---
+        // Найди место, где ты инициализируешь Supabase в твоем оригинальном коде
+        // или просто добавь это в самое начало твоего скрипта:
 
-                 if (session?.user) {
-                     currentUser = session.user;
-                     console.log("[Init Plan] User found. Fetching profile...");
-                     currentProfile = await fetchUserProfile(currentUser.id);
-                     console.log("[Init Plan] Profile fetched (result):", currentProfile);
+        async function initializeOriginalAppLogic() {
+            console.log("Starting ORIGINAL App Logic Initialization");
 
-                     // Даже если профиль null, обновим UI дефолтными значениями
-                     updateUserInfoUI(); // Использует currentProfile (может быть null) и currentUser
-                     applyTheme(currentProfile); // Использует currentProfile (может быть null)
+            // --- START: ДОБАВЛЕННЫЙ КОД АВТОРИЗАЦИИ ---
+            try {
+                 if (typeof supabase === 'undefined' || typeof supabase.createClient !== 'function') {
+                     throw new Error("Supabase library not loaded correctly.");
+                 }
+                 supabaseClient_global = supabase.createClient(supabaseUrl_global, supabaseKey_global);
+                 console.log("Supabase client initialized (within original logic).");
 
-                     if (currentProfile === null) {
-                          console.warn("[Init Plan] Profile not found or error fetching profile. Showing error message.");
-                          showError("Profil nenalezen nebo chyba načítání. Některé funkce nemusí být dostupné.", false);
-                          // Не будем загружать данные плана, если нет профиля
-                     } else {
-                          // Профиль есть, настроим слушатели и загрузим данные
-                          setupEventListeners(); // Вызов ПОСЛЕ определения и загрузки профиля
-                          console.log("[Init Plan] Switching to initial tab 'current'...");
-                          await switchTab('current'); // Загрузить данные начальной вкладки
-                     }
+                 const { data: { session }, error: sessionError } = await supabaseClient_global.auth.getSession();
+                 if (sessionError) throw sessionError;
 
-                     console.log("✅ [Init Plan] Page initialized logic finished.");
-
-                 } else {
-                     console.log("[Init Plan] Not logged in. Redirecting...");
+                 if (!session || !session.user) {
+                     console.log('User not logged in (checked in original logic), redirecting...');
                      window.location.href = '/auth/index.html';
-                     return; // Prevent finally block from running if redirecting
+                     return; // Stop execution
                  }
-             } catch (error) {
-                 console.error("❌ [Init Plan] Error during initialization:", error);
-                 showError(`Chyba inicializace: ${error.message}`, true);
-             } finally {
-                 // ИСПРАВЛЕНО: Гарантированно скрываем лоадер и показываем main
-                 // Этот блок выполнится всегда после try/catch (кроме случаев return или редиректа)
-                 console.log("[Init Plan] Entering finally block. Hiding loader, showing main content.");
-                 if (ui.initialLoader) {
-                     ui.initialLoader.classList.add('hidden');
-                     setTimeout(() => { if (ui.initialLoader) ui.initialLoader.style.display = 'none'; }, 300);
-                 }
-                 if (ui.mainContent) {
-                     ui.mainContent.style.display = 'block';
-                     requestAnimationFrame(() => { ui.mainContent.classList.add('loaded'); });
-                     console.log("[Init Plan] Main content display set to block.");
-                 } else {
-                      console.error("[Init Plan] Main content element not found in finally block!");
-                 }
-             }
-         }
-         console.log("Main initialization function defined.");
+                 currentUser_global = session.user;
+                 console.log("User authenticated (checked in original logic):", currentUser_global.id);
 
-        // --- Запуск ---
-        console.log("Script end reached. Calling initializePage...");
-        // ИСПРАВЛЕНО: Прямой вызов без DOMContentLoaded listener'а
-        initializeApp();
+                 currentProfile_global = await fetchUserProfile(currentUser_global.id); // Используем новую функцию
+                 console.log("Profile fetched (within original logic):", currentProfile_global);
+
+                 updateUserInfoUI(currentProfile_global, currentUser_global.email); // Обновляем новый сайдбар
+                 applyTheme(currentProfile_global); // Применяем тему
+
+                 // Добавляем слушатели для нового сайдбара
+                 const mobileMenuToggle = document.getElementById('mobileMenuToggle'); // ID в новом header
+                 const sidebar = document.getElementById('sidebar');
+                 const sidebarOverlay = document.getElementById('sidebar-overlay');
+                 const sidebarCloseToggle = document.getElementById('sidebar-close-toggle'); // Кнопка закрытия в сайдбаре
+
+                 if (mobileMenuToggle) mobileMenuToggle.addEventListener('click', toggleMobileMenu);
+                 if (sidebarOverlay) sidebarOverlay.addEventListener('click', toggleMobileMenu);
+                 if (sidebarCloseToggle) sidebarCloseToggle.addEventListener('click', toggleMobileMenu);
+                 window.addEventListener('resize', () => { if (window.innerWidth > 992 && sidebar?.classList.contains('active')) toggleMobileMenu(); }); // Используем toggleMobileMenu
+
+
+            } catch (error) {
+                 console.error("Critical Auth/Profile error in original logic wrapper:", error);
+                 showError(`Chyba ověření/profilu: ${error.message}`, true);
+                 // Скрыть главный лоадер и показать ошибку, если возможно
+                 const initialLoaderEl = document.getElementById('initial-loader');
+                 const mainContentEl = document.getElementById('main-content');
+                 if (initialLoaderEl) { initialLoaderEl.classList.add('hidden'); initialLoaderEl.style.display = 'none'; }
+                 if (mainContentEl) mainContentEl.style.display = 'block'; // Показать main для ошибки
+                 return; // Остановить выполнение
+            }
+            // --- END: ДОБАВЛЕННЫЙ КОД АВТОРИЗАЦИИ ---
+
+
+            // --- ЗДЕСЬ НАЧИНАЕТСЯ ТВОЯ ОРИГИНАЛЬНАЯ ЛОГИКА ---
+            // (Твои оригинальные объявления переменных, DOM кэш, функции loadCurrentPlan,
+            // loadPlanHistory, generateStudyPlan, setupEventListeners и т.д.)
+
+            // Пример: Если у тебя была функция init()
+             // function init() {
+             //    // ... твой оригинальный код ...
+             //    loadCurrentPlan(); // Вызов твоей функции
+             //    setupEventListeners(); // Вызов твоей функции слушателей
+             // }
+             // init(); // Вызов твоей инициализации
+
+            // --- ДОБАВЛЕНО: Скрытие лоадера и показ контента ---
+            // Этот код должен выполниться ПОСЛЕ того, как твоя основная логика отработает
+            // и подготовит контент к показу (даже если это просто сообщение об ошибке или пустом состоянии)
+            // Помести его в самый конец твоего основного потока выполнения скрипта
+            // или в конец твоей главной инициализирующей функции.
+            console.log("Attempting to hide loader and show main content...");
+            const initialLoaderEl = document.getElementById('initial-loader');
+            const mainContentEl = document.getElementById('main-content');
+            if (initialLoaderEl) {
+                 initialLoaderEl.classList.add('hidden');
+                 setTimeout(() => { if (initialLoaderEl) initialLoaderEl.style.display = 'none'; }, 300);
+                 console.log("Initial loader hidden.");
+            } else { console.warn("Initial loader element not found."); }
+            if (mainContentEl) {
+                 mainContentEl.style.display = 'block';
+                 requestAnimationFrame(() => mainContentEl.classList.add('loaded'));
+                 console.log("Main content shown.");
+            } else { console.error("Main content element not found!"); }
+            // --- КОНЕЦ ДОБАВЛЕННОГО КОДА ---
+        }
+
+        // Вызов основной логики твоего скрипта (замени на твой реальный вызов)
+        // Если твой скрипт просто выполнялся без функции init, то этот вызов не нужен,
+        // просто убедись, что код скрытия лоадера добавлен в самый конец.
+         // document.addEventListener('DOMContentLoaded', initializeOriginalAppLogic); // Если у тебя был listener
+         initializeOriginalAppLogic(); // Или прямой вызов, если listener'а не было
+
 
     </script>
 
