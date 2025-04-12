@@ -234,6 +234,7 @@
         /* Toast notifications */
         .toast-container { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 1050; display: flex; flex-direction: column; gap: 0.75rem; max-width: 380px; pointer-events: none; }
         .toast { padding: 1rem 1.2rem; border-radius: 10px; background: var(--card-bg-color); box-shadow: var(--shadow-lg); display: flex; align-items: flex-start; color: var(--text-primary); animation: toast-in 0.4s ease forwards; pointer-events: auto; border: 1px solid var(--border-color); border-left-width: 4px; }
+        .toast.show { opacity: 1; transform: translateX(0); } /* Přidáno pro zobrazení */
         .toast.success { border-left-color: var(--success); } .toast.error { border-left-color: var(--danger); } .toast.info { border-left-color: var(--info); }
         .toast-icon { margin-right: 0.75rem; font-size: 1.25rem; flex-shrink: 0; margin-top: 2px; }
         .toast.success .toast-icon { color: var(--success); } .toast.error .toast-icon { color: var(--danger); } .toast.info .toast-icon { color: var(--info); }
@@ -270,6 +271,7 @@
                  --input-focus-shadow: rgba(72, 149, 239, 0.2);
                  --danger-rgb: 247, 37, 133;
             }
+             body { background-color: var(--bg-color); }
              .dashboard-header { background-color: rgba(30, 37, 51, 0.85); border-bottom-color: var(--border-color); }
              body.scrolled .dashboard-header { background-color: rgba(30, 37, 51, 0.98); }
              .stats-card { background-color: var(--card-bg-color); border-color: var(--border-color); }
@@ -371,6 +373,9 @@
             </div>
             <div class="chart-container">
                 <canvas id="progressChart"></canvas>
+                 <div class="empty-state empty-chart-message" style="display: none; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: var(--card-bg-color); border-radius: var(--card-radius); align-items: center; justify-content: center;">
+                     <i class="fas fa-chart-line"></i><p>Nedostatek dat pro zobrazení grafu.</p>
+                 </div>
             </div>
         </div>
 
@@ -408,7 +413,12 @@
                          </tr>
                      </thead>
                      <tbody id="activities-body">
-                         </tbody>
+                         <tr class="skeleton-row"><td colspan="5"><div class="skeleton text-md"></div></td></tr>
+                         <tr class="skeleton-row"><td colspan="5"><div class="skeleton text-md"></div></td></tr>
+                         <tr class="skeleton-row"><td colspan="5"><div class="skeleton text-md"></div></td></tr>
+                         <tr class="skeleton-row"><td colspan="5"><div class="skeleton text-md"></div></td></tr>
+                         <tr class="skeleton-row"><td colspan="5"><div class="skeleton text-md"></div></td></tr>
+                     </tbody>
                  </table>
             </div>
              <div class="empty-state" id="activities-empty-state" style="display: none;">
@@ -496,48 +506,48 @@
 
 
             // --- START: Pomocné Funkce ---
-             function showToast(message, type = 'success', duration = 4000) {
-                 if (!ui.toastContainer) return;
-                 try {
-                     const toastId = `toast-${Date.now()}`;
-                     const toastElement = document.createElement('div');
-                     toastElement.className = `toast ${type}`;
-                     toastElement.id = toastId;
-                     toastElement.setAttribute('role', 'alert');
-                     toastElement.setAttribute('aria-live', 'assertive');
-                     toastElement.innerHTML = `
-                         <i class="toast-icon"></i>
-                         <div class="toast-content">
-                             <div class="toast-message">${sanitizeHTML(message)}</div>
-                         </div>
-                         <button type="button" class="toast-close" aria-label="Zavřít">&times;</button>
-                     `;
-                     const icon = toastElement.querySelector('.toast-icon');
-                     icon.className = `toast-icon fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle'}`;
+            function showToast(message, type = 'success', duration = 4000) {
+                if (!ui.toastContainer) return;
+                try {
+                    const toastId = `toast-${Date.now()}`;
+                    const toastElement = document.createElement('div');
+                    toastElement.className = `toast ${type}`;
+                    toastElement.id = toastId;
+                    toastElement.setAttribute('role', 'alert');
+                    toastElement.setAttribute('aria-live', 'assertive');
+                    toastElement.innerHTML = `
+                        <i class="toast-icon"></i>
+                        <div class="toast-content">
+                            <div class="toast-message">${sanitizeHTML(message)}</div>
+                        </div>
+                        <button type="button" class="toast-close" aria-label="Zavřít">&times;</button>
+                    `;
+                    const icon = toastElement.querySelector('.toast-icon');
+                    icon.className = `toast-icon fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle'}`;
 
-                     toastElement.querySelector('.toast-close').addEventListener('click', () => {
-                         toastElement.classList.remove('show');
-                         setTimeout(() => toastElement.remove(), 400);
-                     });
+                    toastElement.querySelector('.toast-close').addEventListener('click', () => {
+                        toastElement.classList.remove('show');
+                        setTimeout(() => toastElement.remove(), 400);
+                    });
 
-                     ui.toastContainer.appendChild(toastElement);
-                     requestAnimationFrame(() => {
-                         toastElement.classList.add('show');
-                     });
+                    ui.toastContainer.appendChild(toastElement);
+                    requestAnimationFrame(() => {
+                        toastElement.classList.add('show');
+                    });
 
-                     setTimeout(() => {
-                         toastElement.classList.remove('show');
-                         setTimeout(() => toastElement.remove(), 400);
-                     }, duration);
-                 } catch (e) { console.error("Chyba při zobrazování toastu:", e); }
-             }
-             function showError(message, isGlobal = false) {
+                    setTimeout(() => {
+                        toastElement.classList.remove('show');
+                        setTimeout(() => toastElement.remove(), 400);
+                    }, duration);
+                } catch (e) { console.error("Chyba při zobrazování toastu:", e); }
+            }
+            function showError(message, isGlobal = false) {
                 console.error("Došlo k chybě:", message);
                 if (isGlobal && ui.globalError) {
                     ui.globalError.innerHTML = `<div class="error-message"><i class="fas fa-exclamation-circle"></i><div>${sanitizeHTML(message)}</div></div>`;
                     ui.globalError.style.display = 'block';
                 } else { showToast(message, 'error', 6000); }
-             }
+            }
             function hideGlobalError() { if (ui.globalError) ui.globalError.style.display = 'none'; }
             function sanitizeHTML(str) { const t = document.createElement('div'); t.textContent = str || ''; return t.innerHTML; }
             function getInitials(userData) { if (!userData) return '?'; const f=userData.first_name?.[0]||''; const l=userData.last_name?.[0]||''; const nameInitial = (f+l).toUpperCase(); const usernameInitial = userData.username?.[0].toUpperCase() || ''; const emailInitial = userData.email?.[0].toUpperCase() || ''; return nameInitial || usernameInitial || emailInitial || '?';}
@@ -545,14 +555,13 @@
             function updateCurrentTime() { if (ui.currentTime) ui.currentTime.textContent = new Date().toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' }); }
             function toggleMobileMenu() { ui.sidebar?.classList.toggle('active'); ui.sidebarOverlay?.classList.toggle('active'); }
             function handleScroll() { if (!ui.mainElement || !ui.dashboardHeader) return; ui.dashboardHeader.classList.toggle('scrolled', ui.mainElement.scrollTop > 10); }
-             function setLoadingState(section, isLoadingFlag) {
-                if (isLoading[section] === isLoadingFlag && !isLoadingFlag) return; // Prevent hiding multiple times
+            function setLoadingState(section, isLoadingFlag) {
+                if (isLoading[section] === isLoadingFlag && !isLoadingFlag) return;
                 isLoading[section] = isLoadingFlag;
                 console.log(`[setLoadingState] Section: ${section}, isLoading: ${isLoadingFlag}`);
 
                 const overlayMap = { chart: ui.chartLoadingOverlay, activities: ui.tableLoadingOverlay };
                 const skeletonMap = { stats: ui.statsGrid, activities: ui.activitiesBody };
-                const contentMap = { chart: ui.progressChartCanvas, activities: ui.activitiesTable };
 
                 // Handle overlays
                 if (overlayMap[section]) {
@@ -610,10 +619,10 @@
 
             // --- START: Načítání Dat ---
              async function initializeApp() {
-                console.log("Inicializace Pokrok stránky v6 (finální oprava)...");
+                console.log("Inicializace Pokrok stránky v7 (final fix attempt)...");
                  if (!initializeSupabase()) return;
                  updateCurrentTime(); setInterval(updateCurrentTime, 60000);
-                 setupEventListeners(); // Nastavení listenerů hned na začátku
+                 setupEventListeners();
 
                  if (ui.initialLoader) { ui.initialLoader.classList.remove('hidden'); ui.initialLoader.style.display = 'flex'; }
                  if (ui.mainElement) ui.mainElement.style.display = 'none';
@@ -626,35 +635,23 @@
                      if (session?.user) {
                          currentUser = session.user;
                          console.log("[Init] Uživatel ověřen (ID:", currentUser.id, "), načítám profil...");
+                         currentProfile = await fetchUserProfile(currentUser.id);
 
-                         // Kritický blok: Získání profilu
-                         try {
-                             currentProfile = await fetchUserProfile(currentUser.id);
-                             if (!currentProfile) {
-                                 // Tato chyba by měla být specifická pro fetchUserProfile
-                                 throw new Error("Uživatelský profil nebyl nalezen ani vytvořen.");
-                             }
-                             console.log("[Init] Profil načten/vytvořen:", currentProfile);
-                         } catch (profileError) {
-                              console.error("[Init] Chyba při fetchUserProfile:", profileError);
-                              showError("Nepodařilo se načíst váš profil. Zkuste obnovit stránku nebo kontaktujte podporu. (" + profileError.message + ")", true);
-                              // Zastavit další načítání a nechat loader nebo zobrazit chybovou stránku
-                              if (ui.initialLoader) { ui.initialLoader.innerHTML = `<p style="color: var(--danger);">Chyba profilu. Obnovte stránku.</p>`; }
-                              return; // Zastavit další vykonávání
-                         }
+                         if (!currentProfile) throw new Error("Nepodařilo se načíst nebo vytvořit profil.");
+                         console.log("[Init] Profil načten/vytvořen:", currentProfile);
 
-                         // Profil je načten, můžeme aktualizovat UI a pokračovat
+                         // ----> ZDE JE KLÍČOVÁ ZMĚNA: Aktualizujeme UI *hned* po načtení profilu <----
                          updateUserInfoUI();
 
                          if (ui.initialLoader) { ui.initialLoader.classList.add('hidden'); setTimeout(() => { if(ui.initialLoader) ui.initialLoader.style.display = 'none'; }, 300); }
                          if (ui.mainElement) { ui.mainElement.style.display = 'block'; requestAnimationFrame(() => ui.mainElement.classList.add('loaded')); }
 
                          console.log("[Init] Profil zobrazen, načítám data pokroku...");
-                         await loadAllData(); // Načte statistiky, graf, tabulku
+                         await loadAllData();
 
                      } else {
                          console.log("[Init] Uživatel není přihlášen, přesměrovávám...");
-                         window.location.href = '/auth/index.html'; // Zajistit správnou cestu
+                         window.location.href = '/auth/index.html';
                      }
                  } catch (error) {
                      console.error("[Init] Kritická chyba:", error);
@@ -673,244 +670,439 @@
                      return true;
                  } catch (error) {
                      console.error("Chyba inicializace Supabase:", error);
-                     // Zobrazit chybu přímo v body, pokud selže úplně základní krok
                      document.body.innerHTML = `<div style="padding: 2rem; text-align: center; color: red;">Kritická chyba aplikace: Nepodařilo se připojit k databázi. Zkuste obnovit stránku. (${error.message})</div>`;
                      return false;
                  }
              }
 
-            // Používáme ověřenou verzi fetchUserProfile
-             async function fetchUserProfile(userId) {
-                if (!supabase || !userId) { console.error("[fetchUserProfile] Missing Supabase client or userId"); return null; }
-                console.log(`[fetchUserProfile] Fetching profile for ${userId}`);
+            async function fetchUserProfile(userId) {
+                if (!supabase || !userId) { console.error("[fetchUserProfile] Chybí Supabase klient nebo userId"); return null; }
+                console.log(`[fetchUserProfile] Načítám profil pro ${userId}`);
                 try {
-                    // 1. Pokus o načtení existujícího profilu
                     let { data: profile, error: fetchError } = await supabase.from('profiles').select('*').eq('id', userId).single();
 
-                    if (fetchError && fetchError.code !== 'PGRST116') { // PGRST116 = no rows found
-                        console.error('[fetchUserProfile] Supabase fetch error:', fetchError);
-                        throw fetchError; // Jiná chyba než "nenalezeno"
+                    if (fetchError && fetchError.code !== 'PGRST116') {
+                        console.error('[fetchUserProfile] Chyba při načítání profilu (ne PGRST116):', fetchError);
+                        throw fetchError;
                     }
 
-                    // 2. Pokud profil neexistuje (fetchError.code === 'PGRST116' nebo profile je null)
                     if (!profile) {
-                        console.warn(`[fetchUserProfile] Profile not found for ${userId}, attempting to create default...`);
-                        // Získat email z Auth
+                        console.warn(`[fetchUserProfile] Profil nenalezen pro ${userId}, vytvářím výchozí...`);
                         const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
                         if (authError || !authUser?.email) {
-                             console.error("[fetchUserProfile] Failed to get auth user email:", authError);
-                             // Zkusit získat data ze session jako fallback
-                             const { data: { session } } = await supabase.auth.getSession();
-                             const userEmailFallback = session?.user?.email;
-                             if (!userEmailFallback) {
-                                 throw new Error("Nelze získat email uživatele pro vytvoření profilu.");
-                             }
-                              authUser = { email: userEmailFallback }; // Použít email ze session
-                         }
+                             console.error("[fetchUserProfile] Nepodařilo se získat auth email:", authError);
+                             throw new Error("Nelze získat email pro výchozí profil.");
+                        }
 
-                        const defaultProfileData = {
-                            id: userId,
-                            email: authUser.email, // Použít získaný email
-                            username: authUser.email.split('@')[0] || `user_${userId.substring(0, 6)}`,
-                            created_at: new Date().toISOString(),
-                            updated_at: new Date().toISOString(),
-                            points: 0, level: 1, streak_days: 0, badges_count: 0,
-                            preferences: { dark_mode: false, language: 'cs', sound_effects: true }, // Sensible defaults
-                            notifications: { email: true, study_tips: true, content_updates: true, practice_reminders: true }
-                        };
-                        console.log("[fetchUserProfile] Default profile data to insert:", defaultProfileData);
+                        const defaultProfile = { id: userId, email: authUser.email, username: authUser.email.split('@')[0] || `user_${userId.substring(0, 6)}`, updated_at: new Date().toISOString() /* Ostatní sloupce budou null nebo mít DB default */ };
+                        console.log("[fetchUserProfile] Data pro vložení výchozího profilu:", defaultProfile);
 
-                        // Vložit nový profil
-                        const { data: newProfile, error: insertError } = await supabase
-                            .from('profiles')
-                            .insert(defaultProfileData)
-                            .select()
-                            .single();
+                        const { data: newProfile, error: insertError } = await supabase.from('profiles').insert(defaultProfile).select().single();
 
                         if (insertError) {
-                            console.error('[fetchUserProfile] Error inserting default profile:', insertError);
-                             // Zkusit znovu načíst, pokud došlo ke kolizi (např. profil byl vytvořen mezi select a insert)
-                             if (insertError.code === '23505') { // Unique violation
-                                 console.warn("[fetchUserProfile] Profile likely created concurrently, retrying fetch...");
-                                 await new Promise(resolve => setTimeout(resolve, 250)); // Krátká pauza
-                                 return await fetchUserProfile(userId); // Rekurzivní volání pro opětovné načtení
-                             }
-                             throw insertError; // Jiná chyba při vkládání
+                            console.error('[fetchUserProfile] Chyba při vkládání výchozího profilu:', insertError);
+                            if (insertError.code === '23505') {
+                                 console.warn("[fetchUserProfile] Profil pravděpodobně vytvořen souběžně, zkouším znovu načíst...");
+                                 await new Promise(resolve => setTimeout(resolve, 250));
+                                 return await fetchUserProfile(userId);
+                            }
+                            throw insertError;
                         }
-                        console.log("[fetchUserProfile] Default profile created successfully:", newProfile);
-                        return newProfile; // Vrátit nově vytvořený profil
+                        console.log("[fetchUserProfile] Výchozí profil vytvořen:", newProfile);
+                        // Důležité: Vrátit i nově vytvořený profil
+                        return newProfile;
                     }
-
-                    // 3. Profil byl nalezen
-                    console.log("[fetchUserProfile] Profile found:", profile);
+                    console.log("[fetchUserProfile] Profil nalezen:", profile);
                     return profile;
                 } catch (error) {
-                    console.error("[fetchUserProfile] General error:", error);
-                    // Nechceme zobrazovat toast zde, chyba se zpracuje výše v initializeApp
-                    return null; // Vrátit null při jakékoliv neošetřené chybě
+                    console.error("[fetchUserProfile] Obecná chyba:", error);
+                    // Vracíme null, chyba se zpracuje v initializeApp
+                    return null;
                 }
             }
 
-            // Kompletní definice pro loadAllData s lepším error handlingem
             async function loadAllData() {
-                 if (!currentUser || !supabase) { showError("Nelze načíst data: Chybí uživatel nebo spojení.", true); return; }
-                 if (Object.values(isLoading).some(s => s)) { console.log("Přeskakuji loadAllData - již probíhá načítání."); return; }
-                 console.log("Spouštím loadAllData...");
-                 hideGlobalError();
-                 setLoadingState('stats', true);
-                 setLoadingState('chart', true);
-                 setLoadingState('activities', true);
+                if (!currentUser || !supabase || !currentProfile) {
+                    showError("Nelze načíst data: Chybí uživatel, profil nebo spojení.", true);
+                    // Nastavit UI do chybového/prázdného stavu
+                    updateStatsCards(null);
+                    renderProgressChart(null);
+                    renderActivitiesTable([]);
+                    updatePaginationUI();
+                    setLoadingState('stats', false);
+                    setLoadingState('chart', false);
+                    setLoadingState('activities', false);
+                    return;
+                }
+                if (Object.values(isLoading).some(s => s)) { console.log("Přeskakuji loadAllData - již probíhá načítání."); return; }
+                console.log("Spouštím loadAllData...");
+                hideGlobalError();
+                setLoadingState('stats', true);
+                setLoadingState('chart', true);
+                setLoadingState('activities', true);
 
-                 let stats = null, chartData = null, activityResult = { data: [], count: 0 }; // Výchozí hodnoty
+                let stats = null, chartData = null, activityResult = { data: [], count: 0 };
 
-                 try {
-                     const results = await Promise.allSettled([ // Použijeme allSettled pro zpracování i částečných selhání
-                         fetchUserStats(currentUser.id),
-                         fetchProgressHistory(currentUser.id, ui.chartPeriodSelect?.value || 'month'),
-                         fetchRecentActivities(currentUser.id, currentActivitiesPage, activitiesPerPage, currentSort.column, currentSort.direction === 'asc', currentFilter)
-                     ]);
-                      console.log("Paralelní načítání dokončeno (Promise.allSettled). Výsledky:", results);
+                try {
+                    const results = await Promise.allSettled([
+                        fetchUserStats(currentUser.id, currentProfile), // Předáme i profil pro aktuální data
+                        fetchProgressHistory(currentUser.id, ui.chartPeriodSelect?.value || 'month'),
+                        fetchRecentActivities(currentUser.id, currentActivitiesPage, activitiesPerPage, currentSort.column, currentSort.direction === 'asc', currentFilter)
+                    ]);
+                    console.log("Promise.allSettled výsledky:", results);
 
-                     // Zpracování výsledků Promise.allSettled
-                     if (results[0].status === 'fulfilled') {
-                         stats = results[0].value;
-                     } else { console.error("Chyba fetchUserStats:", results[0].reason); }
+                    if (results[0].status === 'fulfilled') { stats = results[0].value; }
+                    else { console.error("Chyba fetchUserStats:", results[0].reason); }
 
-                     if (results[1].status === 'fulfilled') {
-                         chartData = results[1].value;
-                     } else { console.error("Chyba fetchProgressHistory:", results[1].reason); }
+                    if (results[1].status === 'fulfilled') { chartData = results[1].value; }
+                    else { console.error("Chyba fetchProgressHistory:", results[1].reason); }
 
-                     if (results[2].status === 'fulfilled') {
-                         activityResult = results[2].value || { data: [], count: 0 };
-                     } else { console.error("Chyba fetchRecentActivities:", results[2].reason); }
+                    if (results[2].status === 'fulfilled') { activityResult = results[2].value || { data: [], count: 0 }; }
+                    else { console.error("Chyba fetchRecentActivities:", results[2].reason); }
 
-                     // Aktualizace UI - voláme vždy, funkce si poradí s null/chybami
-                     updateStatsCards(stats);
-                     renderProgressChart(chartData);
-                     allActivities = activityResult.data || [];
-                     totalActivitiesCount = activityResult.count || 0;
-                     renderActivitiesTable(allActivities);
-                     updatePaginationUI();
+                    updateStatsCards(stats); // Zobrazí data nebo fallback stav
+                    renderProgressChart(chartData); // Zobrazí graf nebo empty state
+                    allActivities = activityResult.data || [];
+                    totalActivitiesCount = activityResult.count || 0;
+                    renderActivitiesTable(allActivities);
+                    updatePaginationUI();
 
-                 } catch (error) { // Tato chyba by neměla nastat díky allSettled, ale pro jistotu
-                     console.error("Neočekávaná chyba v loadAllData:", error);
-                     showError("Nastala neočekávaná chyba při načítání dat: " + error.message, true);
-                     updateStatsCards(null); renderProgressChart(null); renderActivitiesTable(null); updatePaginationUI();
-                 } finally {
-                     console.log("Ukončuji loadAllData a skrývám loadery.");
-                     setLoadingState('stats', false);
-                     setLoadingState('chart', false);
-                     setLoadingState('activities', false);
-                 }
-             }
+                } catch (error) {
+                    console.error("Neočekávaná chyba v loadAllData:", error);
+                    showError("Nastala neočekávaná chyba při načítání dat: " + error.message, true);
+                    updateStatsCards(null); renderProgressChart(null); renderActivitiesTable(null); updatePaginationUI();
+                } finally {
+                    console.log("Ukončuji loadAllData a skrývám loadery.");
+                    setLoadingState('stats', false);
+                    setLoadingState('chart', false);
+                    setLoadingState('activities', false);
+                }
+            }
 
-            // Kompletní definice pro fetchUserStats
-            async function fetchUserStats(userId) {
-                 if (!supabase || !userId) return null;
+             // Upraveno pro opravu chyby 400 a lepší fallback
+            async function fetchUserStats(userId, profileData) { // Přidán profileData parametr
+                 if (!supabase || !userId || !profileData) return null; // Potřebujeme profil pro body/streak
                  console.log(`[fetchUserStats] Fetching for ${userId}`);
                  try {
-                      // Promise.all pro paralelní dotazy
-                      const [statsResult, profileResult] = await Promise.all([
-                           supabase.from('user_stats').select('progress, progress_weekly, points_weekly, streak_longest, completed_tests, completed_exercises').eq('user_id', userId).maybeSingle(),
-                           supabase.from('profiles').select('points, streak_days').eq('id', userId).single() // Předpokládáme, že profil už existuje díky initializeApp
-                      ]);
+                      // Dotaz na user_stats - POUZE OVĚŘENÉ SLOUPCE
+                      const { data: stats, error: statsError } = await supabase
+                         .from('user_stats')
+                          // Zde vyber POUZE sloupce, které 100% existují v user_stats!
+                          // Např.: 'progress, progress_weekly, points_weekly, streak_longest'
+                          // ODSTRANIL JSEM completed_tests a completed_exercises
+                         .select('progress, progress_weekly, points_weekly, streak_longest')
+                         .eq('user_id', userId)
+                         .maybeSingle(); // Použij maybeSingle, pokud záznam nemusí existovat
 
-                      const { data: stats, error: statsError } = statsResult;
-                      const { data: profile, error: profileError } = profileResult;
+                      if (statsError) {
+                           console.warn("[fetchUserStats] Chyba načítání user_stats:", statsError);
+                           // Nezastavujeme, použijeme data z profilu a výchozí
+                      }
 
-                      // Chyby jsou nyní závažnější, protože profil by měl existovat
-                      if (statsError) console.warn("[fetchUserStats] Chyba načítání user_stats:", statsError);
-                      if (profileError) { console.error("[fetchUserStats] Kritická chyba načítání profilu (měl by existovat):", profileError); throw profileError; }
-
+                      // Sloučení dat
                       const finalStats = {
-                          progress: stats?.progress ?? 0,
+                          progress: stats?.progress ?? 0, // Vezmi z user_stats, pokud existuje, jinak 0
                           progress_weekly: stats?.progress_weekly ?? 0,
-                          points: profile?.points ?? 0, // Bereme aktuální body z profilu
+                          points: profileData.points ?? 0, // VŽDY z profilu
                           points_weekly: stats?.points_weekly ?? 0,
-                          streak_current: profile?.streak_days ?? 0, // Bereme aktuální sérii z profilu
-                          streak_longest: Math.max(stats?.streak_longest ?? 0, profile?.streak_days ?? 0),
-                          completed_tests: stats?.completed_tests ?? 0,
-                          completed_exercises: stats?.completed_exercises ?? 0
+                          streak_current: profileData.streak_days ?? 0, // VŽDY z profilu
+                          streak_longest: Math.max(stats?.streak_longest ?? 0, profileData.streak_days ?? 0),
+                          // Zde PŘEDPOKLÁDÁME, že nemáme data o testech/cvičeních v user_stats
+                          completed_tests: 0, // Nebo načti z jiné tabulky, pokud je potřeba
+                          completed_exercises: 0 // Nebo načti z jiné tabulky
                       };
                       console.log("[fetchUserStats] Úspěch, final stats:", finalStats);
                       return finalStats;
                  } catch (error) {
                      console.error("Neočekávaná chyba ve fetchUserStats:", error);
                      showToast("Nepodařilo se načíst statistiky.", 'error');
-                      // Vrátit null, aby updateStatsCards zobrazilo chybu
-                      return null;
+                     return null; // Vrací null při vážnější chybě
                  }
             }
-             // Kompletní definice pro fetchProgressHistory (stále dummy)
+             // Funkce zůstává s dummy daty - NUTNO IMPLEMENTOVAT!
              async function fetchProgressHistory(userId, period = 'month') {
-                 console.warn(`WorkspaceProgressHistory: Používám dummy data pro období: ${period}`);
-                 await new Promise(resolve => setTimeout(resolve, 400)); // Simulace
-                 // --- ZDE PATŘÍ REÁLNÝ SUPABASE DOTAZ ---
-                 // Např. SELECT date, progress_value FROM progress_history WHERE user_id = $1 AND date >= $2 ORDER BY date ASC;
-                 // --- KONEC REÁLNÉHO DOTAZU ---
+                 console.warn(`WorkspaceProgressHistory: Používám dummy data pro období: ${period}. Nahraďte skutečným dotazem!`);
+                 // --- Začátek Dummy Implementace ---
+                 await new Promise(resolve => setTimeout(resolve, 400));
                  const today = new Date(); const labels = []; const data = []; let daysToFetch;
                  switch (period) { case 'week': daysToFetch = 7; break; case 'month': daysToFetch = 30; break; case '3months': daysToFetch = 90; break; case 'all': daysToFetch = 180; break; default: daysToFetch = 30; }
                  let currentProgress = Math.random() * 30 + 50;
                  for (let i = daysToFetch - 1; i >= 0; i--) { const date = new Date(today); date.setDate(today.getDate() - i); labels.push(date); currentProgress += (Math.random() - 0.45) * 2; currentProgress = Math.max(0, Math.min(100, currentProgress)); data.push(currentProgress); }
                  return { labels, data };
-             }
-             // Kompletní definice pro fetchRecentActivities
-             async function fetchRecentActivities(userId, page = 1, limit = 10, sortBy = 'created_at', ascending = false, filterType = 'all') {
-                 if (!supabase || !userId) return { data: [], count: 0 };
-                 const offset = (page - 1) * limit;
-                 console.log(`Načítám aktivity: page=${page}, limit=${limit}, sortBy=${sortBy}, asc=${ascending}, filter=${filterType}, offset=${offset}`);
+                  // --- Konec Dummy Implementace ---
+
+                 /* --- PŘÍKLAD SKUTEČNÉ IMPLEMENTACE (odkomentuj a uprav) ---
                  try {
-                     let query = supabase
-                         .from('activities')
-                         .select('*', { count: 'exact' })
-                         .eq('user_id', userId);
+                     const endDate = new Date();
+                     const startDate = new Date();
+                     let groupByUnit = 'day'; // Default grouping unit
 
-                     // Přidání filtru
-                     if (filterType !== 'all') {
-                         query = query.eq('type', filterType);
+                     switch (period) {
+                         case 'week': startDate.setDate(endDate.getDate() - 7); break;
+                         case 'month': startDate.setMonth(endDate.getMonth() - 1); break;
+                         case '3months': startDate.setMonth(endDate.getMonth() - 3); groupByUnit = 'week'; break;
+                         case 'all': startDate.setFullYear(endDate.getFullYear() - 1); groupByUnit = 'month'; break; // Např. poslední rok
+                         default: startDate.setMonth(endDate.getMonth() - 1);
                      }
-                     // Přidání řazení a paginace
-                     query = query.order(sortBy, { ascending: ascending }).range(offset, offset + limit - 1);
 
-                     const { data, error, count } = await query;
-                     if (error) {
-                         console.error("Supabase chyba při načítání aktivit:", error);
-                         throw error; // Předat chybu dál
-                     }
-                     console.log(`Načteno ${data?.length || 0} aktivit z celkových ${count}.`);
-                     return { data: data || [], count: count || 0 };
+                     // Možnost 1: Pokud máš tabulku 'progress_history' s denními záznamy
+                      const { data: history, error } = await supabase
+                         .from('progress_history') // Název tvé tabulky
+                         .select('date, progress_value') // Sloupce s datem a hodnotou pokroku
+                         .eq('user_id', userId)
+                         .gte('date', startDate.toISOString())
+                         .lte('date', endDate.toISOString())
+                         .order('date', { ascending: true });
+
+                     // Možnost 2: Pokud pokrok počítáš z 'activities' (složitější)
+                     // const { data: activities, error } = await supabase
+                     //     .from('activities')
+                     //     .select('created_at, points_earned') // Nebo jiné relevantní sloupce
+                     //     .eq('user_id', userId)
+                     //     .gte('created_at', startDate.toISOString())
+                     //     .lte('created_at', endDate.toISOString())
+                     //     .order('created_at', { ascending: true });
+                     // Zde by následovala agregace dat podle data (např. průměrné skóre za den/týden/měsíc)
+
+                     if (error) throw error;
+
+                     // Zpracování načtených dat (pro Možnost 1)
+                     if (!history || history.length === 0) return { labels: [], data: [] };
+
+                     // Pokud potřebuješ agregovat (např. pro 3months/all)
+                     // Zde by byla logika pro seskupení dat podle `groupByUnit`
+
+                     return {
+                         labels: history.map(h => new Date(h.date)), // Vrať Date objekty
+                         data: history.map(h => h.progress_value)
+                     };
+
                  } catch (error) {
-                     console.error("Chyba fetchRecentActivities:", error);
-                     showToast('Nepodařilo se načíst nedávné aktivity.', 'error');
-                     return { data: [], count: 0 };
+                      console.error("Chyba fetchProgressHistory (reálný dotaz):", error);
+                      showToast('Nepodařilo se načíst historii pokroku pro graf.', 'error');
+                      return null; // Vrátit null při chybě
                  }
+                 --- KONEC PŘÍKLADU SKUTEČNÉ IMPLEMENTACE --- */
              }
+
+            async function fetchRecentActivities(userId, page = 1, limit = 10, sortBy = 'created_at', ascending = false, filterType = 'all') {
+                if (!supabase || !userId) return { data: [], count: 0 };
+                const offset = (page - 1) * limit;
+                console.log(`Načítám aktivity: page=${page}, limit=${limit}, sortBy=${sortBy}, asc=${ascending}, filter=${filterType}, offset=${offset}`);
+                try {
+                    let query = supabase
+                        .from('activities') // !! OVĚŘ NÁZEV TABULKY !!
+                         // !! OVĚŘ NÁZVY SLOUPCŮ !!
+                        .select('created_at, type, title, description, points_earned, status', { count: 'exact' })
+                        .eq('user_id', userId);
+
+                    if (filterType !== 'all') {
+                        query = query.eq('type', filterType);
+                    }
+                    query = query.order(sortBy, { ascending: ascending }).range(offset, offset + limit - 1);
+
+                    const { data, error, count } = await query;
+                    if (error) {
+                        console.error("Supabase chyba při načítání aktivit:", error);
+                        // Zkusit zjistit, zda je to RLS problém
+                        if (error.message.includes("security policies")) {
+                             throw new Error("Chyba oprávnění (RLS) při načítání aktivit.");
+                        } else if (error.message.includes("does not exist")) {
+                             throw new Error("Chyba schématu: Tabulka 'activities' nebo některý sloupec neexistuje.");
+                        }
+                        throw error; // Předat jinou chybu
+                    }
+                    console.log(`Načteno ${data?.length || 0} aktivit z celkových ${count}.`);
+                    return { data: data || [], count: count || 0 };
+                } catch (error) {
+                    console.error("Chyba fetchRecentActivities:", error);
+                    showToast(`Nepodařilo se načíst aktivity: ${error.message}`, 'error');
+                    return { data: [], count: 0 };
+                }
+            }
             // --- KONEC: Načítání Dat ---
 
 
             // --- START: Aktualizace UI ---
             // Kompletní definice pro updateUserInfoUI
-            function updateUserInfoUI() { /* ... (implementace z minulé odpovědi) ... */ }
-            // Kompletní definice pro updateStatsCards
-            function updateStatsCards(stats) { /* ... (implementace z minulé odpovědi) ... */ }
+             function updateUserInfoUI() {
+                 console.log("[updateUserInfoUI] Aktualizuji UI s profilem:", currentProfile);
+                 if (!ui.sidebarName || !ui.sidebarAvatar) {
+                     console.warn("[updateUserInfoUI] Sidebar elementy nenalezeny.");
+                     return;
+                 }
+                 if (currentUser && currentProfile) {
+                     const firstName = currentProfile.first_name ?? '';
+                     const lastName = currentProfile.last_name ?? '';
+                     const username = currentProfile.username ?? '';
+                     const emailUsername = currentUser.email?.split('@')[0] || '';
+                     const displayName = `${firstName} ${lastName}`.trim() || username || emailUsername || 'Uživatel';
+                     ui.sidebarName.textContent = displayName;
+                     const initials = getInitials(currentProfile);
+                     const avatarUrl = currentProfile.avatar_url;
+                     ui.sidebarAvatar.innerHTML = avatarUrl ? `<img src="${avatarUrl}" alt="${initials}">` : initials;
+                     console.log("[updateUserInfoUI] Sidebar aktualizován.");
+                 } else {
+                     console.warn("[updateUserInfoUI] Chybí currentUser nebo currentProfile, nastavuji výchozí.");
+                     ui.sidebarName.textContent = "Nepřihlášen";
+                     ui.sidebarAvatar.textContent = '?';
+                 }
+             }
+             // Kompletní definice pro updateStatsCards
+            function updateStatsCards(stats) {
+                 console.log("[updateStatsCards] Aktualizuji karty statistik:", stats);
+                 const cards = [ui.overallProgressValue, ui.totalPointsValue, ui.streakValue, ui.completedCountValue];
+                  const footers = [ui.overallProgressFooter, ui.totalPointsFooter, ui.streakFooter, ui.completedCountFooter];
+                  const descriptions = [ui.overallProgressDesc, ui.totalPointsDesc, ui.streakDesc, ui.completedCountDesc];
+
+                  // Odstranit loading třídu z rodičovských karet
+                  ui.statsGrid?.querySelectorAll('.stats-card').forEach(card => card.classList.remove('loading'));
+
+                 if (!stats) {
+                     console.warn("[updateStatsCards] Chybí data statistik, zobrazuji fallback.");
+                     cards.forEach(el => { if(el) el.textContent = '-'; });
+                     descriptions.forEach(el => { if(el) el.textContent = 'Data nejsou dostupná'; });
+                     footers.forEach(el => { if(el) el.innerHTML = '<i class="fas fa-exclamation-circle"></i> Chyba načítání'; });
+                     return;
+                 }
+
+                 if (ui.overallProgressValue) ui.overallProgressValue.textContent = `${stats.progress ?? 0}%`;
+                 if (ui.overallProgressDesc) ui.overallProgressDesc.textContent = "Průměrný pokrok";
+                 if (ui.overallProgressFooter) {
+                     const change = stats.progress_weekly ?? 0;
+                     const icon = change > 0 ? 'fa-arrow-up' : change < 0 ? 'fa-arrow-down' : 'fa-minus';
+                     const sign = change > 0 ? '+' : '';
+                     ui.overallProgressFooter.className = `stats-card-footer ${change > 0 ? 'positive' : change < 0 ? 'negative' : ''}`;
+                     ui.overallProgressFooter.innerHTML = `<i class="fas ${icon}"></i> ${sign}${change}% tento týden`;
+                 }
+
+                 if (ui.totalPointsValue) ui.totalPointsValue.textContent = stats.points ?? 0;
+                 if (ui.totalPointsDesc) ui.totalPointsDesc.textContent = "Celkem získaných bodů";
+                 if (ui.totalPointsFooter) {
+                     const change = stats.points_weekly ?? 0;
+                     const icon = change > 0 ? 'fa-arrow-up' : change < 0 ? 'fa-arrow-down' : 'fa-minus';
+                     const sign = change > 0 ? '+' : '';
+                      ui.totalPointsFooter.className = `stats-card-footer ${change > 0 ? 'positive' : change < 0 ? 'negative' : ''}`;
+                      ui.totalPointsFooter.innerHTML = `<i class="fas ${icon}"></i> ${sign}${change} bodů tento týden`;
+                 }
+
+                 if (ui.streakValue) ui.streakValue.textContent = stats.streak_current ?? 0;
+                 if (ui.streakDesc) ui.streakDesc.textContent = `Aktuální série dnů`;
+                 if (ui.streakFooter) ui.streakFooter.innerHTML = `<i class="fas fa-medal"></i> Nejdelší: ${stats.streak_longest ?? 0} dnů`;
+
+                 // !!! Ověř, zda máš tato data v 'stats' objektu z fetchUserStats !!!
+                 const completedTotal = (stats.completed_tests || 0) + (stats.completed_exercises || 0);
+                 if (ui.completedCountValue) ui.completedCountValue.textContent = completedTotal;
+                 if (ui.completedCountDesc) ui.completedCountDesc.textContent = `Dokončeno testů/cvičení`;
+                 if (ui.completedCountFooter) ui.completedCountFooter.innerHTML = `<i class="fas fa-tasks"></i> Celkový počet`;
+            }
             // Kompletní definice pro renderProgressChart
-            function renderProgressChart(chartData) { /* ... (implementace z minulé odpovědi) ... */ }
+            function renderProgressChart(chartData) {
+                 if (!ui.progressChartCanvas) { console.error("Canvas element pro graf nenalezen."); return; }
+                 const ctx = ui.progressChartCanvas.getContext('2d');
+                 if (!ctx) { console.error("Nepodařilo se získat 2D context pro canvas."); return; }
+
+                 if (progressChartInstance) { progressChartInstance.destroy(); progressChartInstance = null; }
+
+                 const container = ui.progressChartCanvas.parentElement;
+                 let msgElement = container?.querySelector('.empty-chart-message');
+                 if (msgElement) msgElement.remove(); // Odebrat starou zprávu
+
+                 if (!chartData || !chartData.labels || !chartData.data || chartData.labels.length === 0) {
+                      ui.progressChartCanvas.style.display = 'none';
+                      if (!msgElement) { msgElement = document.createElement('div'); msgElement.className = 'empty-state empty-chart-message'; container?.appendChild(msgElement); }
+                      msgElement.innerHTML = '<i class="fas fa-chart-line"></i><p>Nedostatek dat pro graf.</p>';
+                      msgElement.style.display = 'block';
+                      return;
+                 }
+
+                 ui.progressChartCanvas.style.display = 'block';
+
+                 const isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+                 const gridColor = isDarkMode ? 'rgba(51, 65, 85, 0.4)' : 'rgba(229, 231, 235, 0.6)';
+                 const textColor = isDarkMode ? '#94a3b8' : '#6b7280';
+                 const pointColor = isDarkMode ? 'rgba(var(--info-rgb), 0.8)' : 'rgba(var(--primary-rgb), 0.9)';
+                 const lineColor = pointColor;
+                 const areaColor = isDarkMode ? 'rgba(var(--info-rgb), 0.1)' : 'rgba(var(--primary-rgb), 0.08)';
+
+                 progressChartInstance = new Chart(ctx, {
+                     type: 'line',
+                     data: { labels: chartData.labels, datasets: [{ label: 'Celkový pokrok (%)', data: chartData.data, borderColor: lineColor, backgroundColor: areaColor, fill: true, tension: 0.4, borderWidth: 2.5, pointRadius: 0, pointHoverRadius: 5, pointHoverBackgroundColor: pointColor, pointHitRadius: 15 }] },
+                     options: {
+                         responsive: true, maintainAspectRatio: false,
+                         scales: {
+                             y: { beginAtZero: true, max: 100, ticks: { stepSize: 20, color: textColor, callback: value => value + '%' }, grid: { color: gridColor, drawBorder: false } },
+                             x: { type: 'time', time: { unit: determineChartUnit(chartData.labels), tooltipFormat: 'dd.MM.yyyy', displayFormats: { day: 'd.M', week: 'd.M', month: 'MMM yy' } }, ticks: { color: textColor, maxRotation: 0, autoSkipPadding: 20, source: 'auto' }, grid: { display: false } }
+                         },
+                         plugins: { legend: { display: false }, tooltip: { mode: 'index', intersect: false, backgroundColor: isDarkMode ? '#1e2a3a' : '#343a40', titleColor: '#ffffff', bodyColor: '#ffffff', borderColor: isDarkMode ? 'rgba(71, 85, 105, 0.5)' : 'rgba(0,0,0,0.1)', borderWidth: 1, padding: 12, displayColors: false, callbacks: { label: context => `Pokrok: ${context.parsed.y.toFixed(1)}%` } } },
+                         interaction: { mode: 'nearest', axis: 'x', intersect: false }
+                     }
+                 });
+             }
              // Kompletní definice pro determineChartUnit
              function determineChartUnit(labels) { /* ... (implementace z minulé odpovědi) ... */ }
-            // Kompletní definice pro renderActivitiesTable
-            function renderActivitiesTable(activities) { /* ... (implementace z minulé odpovědi) ... */ }
+             // Kompletní definice pro renderActivitiesTable
+             function renderActivitiesTable(activities) {
+                if (!ui.activitiesBody || !ui.activitiesTable) return;
+                const wasLoading = ui.activitiesBody.classList.contains('loading');
+
+                ui.activitiesBody.innerHTML = ''; // Clear previous content first
+
+                if (!activities || activities.length === 0) {
+                    ui.activitiesTable.style.display = 'none';
+                    ui.activitiesEmptyState.style.display = 'block';
+                     ui.paginationControls.style.display = 'none';
+                } else {
+                    ui.activitiesTable.style.display = 'table';
+                    ui.activitiesEmptyState.style.display = 'none';
+                    ui.paginationControls.style.display = totalActivitiesCount > activitiesPerPage ? 'flex' : 'none';
+
+                    activities.forEach(activity => {
+                        const row = ui.activitiesBody.insertRow();
+                        // Použijeme ?? operátor pro bezpečný fallback
+                        const typeInfo = activityTypeMap[activity.type?.toLowerCase()] ?? activityTypeMap.default;
+                        const statusInfo = activityStatusMap[activity.status?.toLowerCase()] ?? { name: activity.status || '-', class: 'pending', icon: 'fa-question-circle'};
+                        const pointsEarned = (activity.points_earned !== null && activity.points_earned !== undefined) ? activity.points_earned : '-';
+
+                        row.innerHTML = `
+                            <td>${formatDate(activity.created_at, true)}</td>
+                            <td><i class="fas ${typeInfo.icon}" style="margin-right: 5px; color: var(--text-muted);" title="${typeInfo.name}"></i> ${typeInfo.name}</td>
+                            <td>${sanitizeHTML(activity.title || activity.description || '-')}</td>
+                            <td class="points-value">${pointsEarned}</td>
+                            <td><span class="status-badge ${statusInfo.class}" title="${statusInfo.name}"><i class="fas ${statusInfo.icon}"></i> ${statusInfo.name}</span></td>
+                        `;
+                    });
+                }
+                 // Remove loading class AFTER potential rendering
+                 ui.activitiesBody.classList.remove('loading');
+                 setLoadingState('activities', false); // Explicitly hide overlay/skeletons
+                 updatePaginationUI();
+            }
             // Kompletní definice pro updatePaginationUI
-            function updatePaginationUI() { /* ... (implementace z minulé odpovědi) ... */ }
+            function updatePaginationUI() {
+                if (!ui.paginationControls || !ui.pageInfo || !ui.prevPageBtn || !ui.nextPageBtn) return;
+
+                if (totalActivitiesCount <= activitiesPerPage) {
+                     ui.paginationControls.style.display = 'none';
+                     return;
+                }
+
+                ui.paginationControls.style.display = 'flex';
+                const totalPages = Math.ceil(totalActivitiesCount / activitiesPerPage);
+                ui.pageInfo.textContent = `Strana ${currentActivitiesPage} z ${totalPages}`;
+                ui.prevPageBtn.disabled = currentActivitiesPage === 1;
+                ui.nextPageBtn.disabled = currentActivitiesPage === totalPages;
+            }
             // --- KONEC: Aktualizace UI ---
 
 
             // --- START: Event Listenery a Handlery ---
-             // Kompletní definice pro setupEventListeners
-            function setupEventListeners() {
+            // Kompletní definice pro setupEventListeners
+             function setupEventListeners() {
                  ui.refreshBtn?.addEventListener('click', async () => {
                      if (Object.values(isLoading).some(s => s)) {
-                          showToast("Data se již načítají...", "info");
-                          return;
+                         showToast("Data se již načítají...", "info");
+                         return;
                      }
                      console.log("Manuální refresh spuštěn...");
                      const icon = ui.refreshBtn.querySelector('i');
@@ -926,7 +1118,7 @@
                  });
                  ui.mobileMenuToggle?.addEventListener('click', toggleMobileMenu);
                  ui.sidebarOverlay?.addEventListener('click', toggleMobileMenu);
-                 ui.sidebarCloseToggle?.addEventListener('click', toggleMobileMenu);
+                 ui.sidebarCloseToggle?.addEventListener('click', toggleMobileMenu); // Zavírací křížek
                  ui.chartPeriodSelect?.addEventListener('change', handlePeriodChange);
                  ui.activityTypeFilter?.addEventListener('change', handleActivityFilterChange);
                  ui.exportTableBtn?.addEventListener('click', exportTableToCSV);
@@ -935,6 +1127,8 @@
                  ui.nextPageBtn?.addEventListener('click', () => changeActivitiesPage(1));
                  ui.mainElement?.addEventListener('scroll', handleScroll, { passive: true });
                  if (window.jQuery && window.jQuery.fn.tooltipster) {
+                     // Odstranit staré instance před inicializací nových
+                     window.jQuery('.btn-tooltip').tooltipster('destroy');
                      window.jQuery('.btn-tooltip').tooltipster({ theme: 'tooltipster-shadow', animation: 'fade', delay: 150, distance: 6 });
                  }
              }
@@ -953,7 +1147,7 @@
              async function handleSortChange(event) {
                  const header = event.currentTarget;
                  const newSortColumn = header.dataset.sort;
-                 if (!newSortColumn || isLoading.activities) return; // Ignorovat, pokud se načítá
+                 if (!newSortColumn || isLoading.activities) return;
 
                  let newDirection = 'desc';
                  if (currentSort.column === newSortColumn) {
@@ -966,12 +1160,12 @@
                  // Aktualizovat vizuální indikátory
                  ui.tableHeaders?.forEach(th => {
                      th.classList.remove('sort-asc', 'sort-desc');
-                     const icon = th.querySelector('i.fa-sort'); // Cílíme jen na sort ikonu
+                     const icon = th.querySelector('i.fa-sort, i.fa-sort-up, i.fa-sort-down'); // Najít jakoukoliv sort ikonu
                      if(icon) icon.className = 'fas fa-sort'; // Reset na základní ikonu
                  });
                  header.classList.add(newDirection === 'asc' ? 'sort-asc' : 'sort-desc');
                   const icon = header.querySelector('i.fa-sort');
-                  if(icon) icon.className = `fas ${newDirection === 'asc' ? 'fa-sort-up' : 'fa-sort-down'}`; // Nastavit správnou ikonu
+                  if(icon) icon.className = `fas ${newDirection === 'asc' ? 'fa-sort-up' : 'fa-sort-down'}`;
 
                  await reloadActivities();
              }
@@ -988,23 +1182,23 @@
             async function reloadActivities() {
                  if (!currentUser || isLoading.activities) return;
                  console.log(`Znovunačítám aktivity: page=${currentActivitiesPage}, sort=${currentSort.column} ${currentSort.direction}, filter=${currentFilter}`);
-                 setLoadingState('activities', true);
+                 setLoadingState('activities', true); // Zobrazí skeletony
                  try {
                       const activityResult = await fetchRecentActivities(
                           currentUser.id, currentActivitiesPage, activitiesPerPage,
                           currentSort.column, currentSort.direction === 'asc', currentFilter
                       );
-                      // Nepřepisujeme allActivities zde, jen renderujeme aktuální stránku
+                      // renderActivitiesTable nyní sama skrývá skeletony po vykreslení
                       renderActivitiesTable(activityResult.data || []);
                       totalActivitiesCount = activityResult.count || 0;
                       updatePaginationUI();
                  } catch (error) {
                       showError("Nepodařilo se znovu načíst aktivity.", false);
-                      renderActivitiesTable(null);
+                      renderActivitiesTable(null); // Zobrazí empty state nebo chybu
                       updatePaginationUI();
-                 } finally {
-                      setLoadingState('activities', false);
+                      setLoadingState('activities', false); // Skrýt loader i při chybě
                  }
+                 // finally blok není nutný, setLoadingState(false) je v renderActivitiesTable
             }
              // Kompletní definice pro reloadChartData
              async function reloadChartData() {
@@ -1014,7 +1208,7 @@
                  setLoadingState('chart', true);
                  try {
                      const chartData = await fetchProgressHistory(currentUser.id, selectedPeriod);
-                     renderProgressChart(chartData);
+                     renderProgressChart(chartData); // Funkce si poradí s null/prázdnými daty
                  } catch (error) {
                      showError("Nepodařilo se načíst data pro graf.", false);
                      renderProgressChart(null);
@@ -1026,36 +1220,28 @@
              function exportTableToCSV() {
                  if (isLoading.activities) { showToast("Počkejte na dokončení načítání.", "warning"); return; }
 
-                 // Získat aktuálně zobrazená data z tabulky (robustnější metoda)
-                 const tableRows = ui.activitiesBody?.querySelectorAll('tr:not(.skeleton-row)');
-                 if (!tableRows || tableRows.length === 0) {
+                 // Získat aktuálně zobrazená data (z proměnné `allActivities`, pokud obsahuje data aktuální stránky)
+                 // NEBO ideálně udělat nový dotaz pro VŠECHNY filtrované/řazené záznamy
+                 // Pro zjednodušení exportujeme jen data z `allActivities` (aktuální stránka)
+                 if (!allActivities || allActivities.length === 0) {
                      showToast("Není co exportovat.", "warning");
                      return;
                  }
 
                  const headers = ["Datum", "Typ", "Název/Popis", "Body", "Stav"];
-                 const rows = Array.from(tableRows).map(row => {
-                     const cells = row.querySelectorAll('td');
-                     // Extrahovat text a ošetřit případné chyby nebo chybějící buňky
-                     const rowData = Array.from(cells).map((cell, index) => {
-                         let text = cell.textContent?.trim() || '';
-                         // Speciální ošetření pro status badge (vezmeme text, ne ikonu)
-                         if (index === 4) { // Index sloupce Stav
-                            const badge = cell.querySelector('.status-badge');
-                            text = badge ? badge.textContent.trim() : text;
-                         }
-                         // Ošetření uvozovek v textu
-                         text = text.replace(/"/g, '""');
-                         return `"${text}"`; // Uzavřít do uvozovek pro CSV
-                     });
-                     return rowData.join(',');
+                 const rows = allActivities.map(activity => {
+                    const typeInfo = activityTypeMap[activity.type?.toLowerCase()] ?? activityTypeMap.default;
+                    const statusInfo = activityStatusMap[activity.status?.toLowerCase()] ?? { name: activity.status || '-'};
+                    return [
+                         `"${formatDate(activity.created_at, true)}"`,
+                         `"${typeInfo.name}"`,
+                         `"${sanitizeHTML(activity.title || activity.description || '-').replace(/"/g, '""')}"`,
+                         activity.points_earned ?? '',
+                         `"${statusInfo.name}"`
+                    ].join(',');
                  });
 
-                 if (rows.length === 0) { showToast("Nebylo možné extrahovat data pro export.", "warning"); return; }
-
-                 const csvContent = "data:text/csv;charset=utf-8,"
-                     + headers.join(',') + "\n"
-                     + rows.join("\n");
+                 const csvContent = "data:text/csv;charset=utf-8," + headers.join(',') + "\n" + rows.join("\n");
 
                  try {
                     const encodedUri = encodeURI(csvContent);
