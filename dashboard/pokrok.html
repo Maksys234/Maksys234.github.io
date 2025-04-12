@@ -4,8 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Justax - Pokrok</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <title>Justax - Přehled Pokroku</title> <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -15,7 +14,7 @@
     <script src="https://cdn.jsdelivr.net/npm/date-fns/locale/cs/cdn.min.js" defer></script>
 
     <style>
-        /* CSS (Pokrok - Final v5 - Cleaned & Refined) */
+        /* CSS (Pokrok - v6 - Library Load Fix + Final UI) */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; scroll-behavior: smooth;}
         :root {
              --primary: #4f46e5; --primary-light: #c7d2fe; --primary-dark: #4338ca;
@@ -28,7 +27,7 @@
              --gray-light: #e5e7eb; --gray-medium: #9ca3af; --gray-dark: #4b5563;
              --gradient-1: linear-gradient(135deg, #4f46e5, #4338ca);
              --white: #ffffff; --sidebar-width: 260px; --transition-speed: 0.25s;
-             --card-radius: 10px; --shadow-sm: 0 1px 2px 0 rgba(0,0,0, 0.05);
+             --card-radius: 12px; --shadow-sm: 0 1px 2px 0 rgba(0,0,0, 0.05);
              --shadow-md: 0 4px 6px -1px rgba(0,0,0, 0.06), 0 2px 4px -2px rgba(0,0,0, 0.06);
              --shadow-lg: 0 10px 15px -3px rgba(0,0,0, 0.06), 0 4px 6px -4px rgba(0,0,0, 0.07);
              --text-primary: var(--dark); --text-secondary: var(--gray); --text-muted: var(--gray-medium);
@@ -51,7 +50,8 @@
 
         /* --- Main Content --- */
         main { flex: 1; margin-left: var(--sidebar-width); padding: 2rem; transition: margin var(--transition-speed) ease; width: calc(100% - var(--sidebar-width)); display: none; }
-        main.loaded { display: block; animation: fadeInMain 0.5s ease-out forwards; } @keyframes fadeInMain { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        main.loaded { display: block; animation: fadeInMain 0.6s ease-out forwards; } /* Slower fade-in */
+        @keyframes fadeInMain { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
         .dashboard-header { margin-bottom: 2.5rem; background-color: var(--card-bg); border-radius: var(--card-radius); padding: 1.25rem 1.75rem; box-shadow: var(--shadow-md); border: 1px solid var(--border-color); }
         .header-content { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; } .header-content > div:first-child { display: flex; align-items: center; gap: 1rem; flex-grow: 1; } .header-content h1 { font-size: 2rem; font-weight: 700; color: var(--text-primary); margin: 0; line-height: 1.2; } .header-actions { display: flex; align-items: center; gap: 0.75rem; }
         /* Header Actions - Consistent Style */
@@ -72,13 +72,19 @@
 
         /* --- Content Layout --- */
         .main-content { display: grid; gap: 2.5rem; }
-        .section { background-color: var(--card-bg); border-radius: var(--card-radius); box-shadow: var(--shadow-md); padding: 2rem; border: 1px solid var(--border-color); animation: fadeIn 0.5s ease forwards; }
+        .section { background-color: var(--card-bg); border-radius: var(--card-radius); box-shadow: var(--shadow-md); padding: 2rem; border: 1px solid var(--border-color); animation: fadeInSection 0.6s ease-out forwards; opacity: 0; transform: translateY(10px);}
+        @keyframes fadeInSection { to { opacity: 1; transform: translateY(0); } }
+        /* Add delays for staggered loading */
+        .stats-section { animation-delay: 0.1s; }
+        .chart-section { animation-delay: 0.2s; }
+        .data-table-section { animation-delay: 0.3s; }
+
         .section-title { font-size: 1.5rem; font-weight: 600; margin-bottom: 1.75rem; color: var(--text-primary); padding-bottom: 0.75rem; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; gap: 0.7rem; } .section-title i { font-size: 1em; color: var(--primary); }
 
         /* Stats Grid */
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.75rem; margin-bottom: 2.5rem; }
         .stats-card { background-color: var(--card-bg); border-radius: var(--card-radius); box-shadow: var(--shadow-sm); padding: 1.75rem; transition: all 0.3s ease; display: flex; flex-direction: column; border: 1px solid var(--border-color); position: relative; min-height: 170px; }
-        .stats-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); border-color: var(--primary); }
+        .stats-card:hover { transform: translateY(-4px) scale(1.01); box-shadow: var(--shadow-lg); border-color: var(--primary); }
         .stats-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; } .stats-card-title { font-size: 1rem; font-weight: 500; color: var(--text-secondary); display: flex; align-items: center; gap: 0.5rem; } .stats-card-title i { font-size: 1.2em; color: var(--text-muted); }
         .stats-card-content { flex-grow: 1; visibility: hidden; transition: visibility 0s linear 0.3s; } .stats-card-value { font-size: 2.5rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.5rem; line-height: 1.1; } .stats-card-value .unit { font-size: 0.5em; font-weight: 500; color: var(--text-muted); margin-left: 0.2em; } .stats-card-description { font-size: 0.9rem; color: var(--text-muted); }
         /* Skeleton for Stats Cards */
@@ -99,7 +105,7 @@
         .data-table { width: 100%; border-collapse: collapse; font-size: 0.95rem; } .data-table thead { background-color: var(--body-bg); }
         .data-table th { text-align: left; padding: 0.9rem 1.2rem; color: var(--text-secondary); font-weight: 600; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.8px; border-bottom: 2px solid var(--border-color); white-space: nowrap; }
         .data-table td { padding: 1rem 1.2rem; color: var(--text-primary); border-bottom: 1px solid var(--border-color); vertical-align: middle; } .data-table tbody tr:last-child td { border-bottom: none; }
-        .data-table tbody tr { transition: background-color 0.2s ease; } .data-table tbody tr:hover td { background-color: var(--body-bg); }
+        .data-table tbody tr { transition: background-color 0.2s ease; } .data-table tbody tr:hover td { background-color: #f8faff; }
         /* Status Badge */
         .status-badge { padding: 0.3rem 0.8rem; border-radius: 6px; font-size: 0.8rem; font-weight: 500; display: inline-flex; align-items: center; gap: 0.4em; border: 1px solid transparent; } .status-badge.completed { background-color: var(--success-bg); color: var(--secondary-dark); border-color: var(--success-light); } .status-badge.in-progress { background-color: var(--info-bg); color: var(--info); border-color: var(--info-light); } .status-badge.failed { background-color: var(--danger-bg); color: var(--danger); border-color: var(--danger-light); }
         .positive-change { color: var(--success); font-weight: 500;} .negative-change { color: var(--danger); font-weight: 500;}
@@ -107,7 +113,7 @@
         /* Buttons */
         .btn { display: inline-flex; align-items: center; justify-content: center; padding: 0.6rem 1.2rem; border-radius: 8px; font-weight: 500; font-size: 0.9rem; text-decoration: none; transition: all 0.3s ease; cursor: pointer; border: none; gap: 0.5rem; outline-offset: 3px; }
         .btn-primary { background: var(--primary); color: white; box-shadow: var(--shadow-sm); } .btn-primary:hover { background: var(--primary-dark); transform: translateY(-1px); box-shadow: var(--shadow-md); } .btn-primary:active { transform: translateY(0); box-shadow: var(--shadow-sm); }
-        .btn-secondary { background-color: var(--card-bg); color: var(--text-secondary); border: 1px solid var(--border-color); box-shadow: var(--shadow-sm);} .btn-secondary:hover { background-color: var(--body-bg); border-color: var(--gray-medium); color: var(--text-primary); box-shadow: var(--shadow-md);}
+        .btn-secondary { background-color: var(--card-bg); color: var(--text-secondary); border: 1px solid var(--border-color); box-shadow: var(--shadow-sm); } .btn-secondary:hover { background-color: var(--body-bg); border-color: var(--gray-medium); color: var(--text-primary); box-shadow: var(--shadow-md);}
         .btn-sm { padding: 0.4rem 0.8rem; font-size: 0.8rem; } .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
         .btn:focus-visible, select.btn:focus-visible { outline: 3px solid var(--primary-light); box-shadow: 0 0 0 3px var(--primary-light); } /* Clearer focus */
 
@@ -120,7 +126,7 @@
         .error-container { display: none; margin-bottom: 1.5rem; } .error-container .error-message { margin: 0; }
         .retry-button { background-color: var(--primary); color: white; border: none; border-radius: 8px; padding: 0.5rem 1rem; font-size: 0.9rem; cursor: pointer; margin-top: 0.5rem; transition: all 0.2s ease; margin-left: auto; } .retry-button:hover { background-color: var(--primary-dark); }
         .empty-state { padding: 3rem 2rem; text-align: center; background-color: transparent; border-radius: var(--card-radius); box-shadow: none; border: none; margin-top: 1rem; }
-        .empty-state i { font-size: 2.5rem; color: var(--gray-medium); margin-bottom: 1rem; } .empty-state h3 { font-size: 1.1rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.75rem; } .empty-state p { font-size: 0.95rem; color: var(--text-secondary); max-width: 500px; margin: 0 auto 1.5rem auto; line-height: 1.6; }
+        .empty-state i { font-size: 2.8rem; /* Larger icon */ color: var(--gray-medium); margin-bottom: 1rem; } .empty-state h3 { font-size: 1.2rem; /* Larger title */ font-weight: 600; color: var(--text-primary); margin-bottom: 0.75rem; } .empty-state p { font-size: 1rem; color: var(--text-secondary); max-width: 500px; margin: 0 auto 1.5rem auto; line-height: 1.6; }
         .empty-state .btn { margin-top: 1rem; }
         .card-error-state { color: var(--danger); font-size: 0.9rem; padding: 2rem 1.5rem; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; } .card-error-state i { font-size: 1.5rem; margin-bottom: 0.75rem; }
         .list-error-state { padding: 3rem 1rem; text-align: center; color: var(--danger); font-size: 0.9rem; } .list-error-state i { font-size: 2rem; margin-bottom: 1rem; }
@@ -193,8 +199,7 @@
                              <div class="notifications-header"> <span class="notifications-title">Oznámení</span> <button class="mark-all-read-btn" id="mark-all-read" disabled>Označit vše jako přečtené</button> </div>
                              <div id="notifications-list">
                                   <div id="no-notifications-msg">Žádná nová oznámení.</div>
-                                  <div class="notification-item-skeleton" style="display: none; padding: 1rem 1.25rem; gap: 1rem; border-bottom: 1px solid var(--border-color);"> <div class="skeleton activity-icon-placeholder" style="border-radius: 50%; width:38px; height: 38px;"></div> <div style="flex-grow: 1;"> <div class="skeleton activity-line" style="width: 60%; height: 16px; margin-bottom: 0.5rem;"></div> <div class="skeleton activity-line" style="width: 90%; height: 14px; margin-bottom: 0.4rem;"></div> <div class="skeleton activity-line-short" style="width: 40%; height: 12px;"></div> </div> </div>
-                             </div>
+                                  </div>
                              <div class="notifications-footer"> <a href="#" class="view-all-notifications-link">Zobrazit všechna oznámení</a> </div>
                         </div>
                      </div>
@@ -206,19 +211,19 @@
             <section class="stats-section">
                  <h2 class="section-title" style="border: none; margin-bottom: 1rem;"><i class="fas fa-tachometer-alt"></i>Aktuální stav</h2>
                 <div class="stats-grid" id="stats-grid">
-                    <div class="stats-card loading" id="progress-card" data-title="Celkový Pokrok" data-icon="fas fa-tasks">
+                     <div class="stats-card loading" id="progress-card" data-title="Celkový Pokrok" data-icon="fas fa-tasks">
                          <div class="loading-skeleton"> <div class="skeleton title"></div> <div class="skeleton value"></div> <div class="skeleton text"></div> </div>
                          <div class="stats-card-content"> <div class="stats-card-info"> <div class="stats-card-title"><i class="fas fa-tasks"></i>Celkový Pokrok</div> <div class="stats-card-value">-<span class="unit">%</span></div> <div class="stats-card-description">Průměrná úspěšnost</div> </div> </div>
-                    </div>
-                    <div class="stats-card loading" id="exercises-card" data-title="Dokonč. Cvičení" data-icon="fas fa-pencil-alt">
+                     </div>
+                     <div class="stats-card loading" id="exercises-card" data-title="Dokonč. Cvičení" data-icon="fas fa-pencil-alt">
                          <div class="loading-skeleton"> <div class="skeleton title"></div> <div class="skeleton value"></div> <div class="skeleton text"></div> </div>
                          <div class="stats-card-content"> <div class="stats-card-info"> <div class="stats-card-title"><i class="fas fa-pencil-alt"></i>Dokonč. Cvičení</div> <div class="stats-card-value">-</div> <div class="stats-card-description">Počet úkolů</div> </div> </div>
-                    </div>
-                    <div class="stats-card loading" id="streak-card" data-title="Série Dnů" data-icon="fas fa-fire">
+                     </div>
+                     <div class="stats-card loading" id="streak-card" data-title="Série Dnů" data-icon="fas fa-fire">
                          <div class="loading-skeleton"> <div class="skeleton title"></div> <div class="skeleton value"></div> <div class="skeleton text"></div> </div>
                          <div class="stats-card-content"> <div class="stats-card-info"> <div class="stats-card-title"><i class="fas fa-fire"></i>Série Dnů</div> <div class="stats-card-value">-</div> <div class="stats-card-description">Aktuální série studia</div> </div> </div>
-                    </div>
-                    <div class="stats-card loading" id="points-card" data-title="Body" data-icon="fas fa-star">
+                     </div>
+                     <div class="stats-card loading" id="points-card" data-title="Body" data-icon="fas fa-star">
                          <div class="loading-skeleton"> <div class="skeleton title"></div> <div class="skeleton value"></div> <div class="skeleton text"></div> </div>
                           <div class="stats-card-content"> <div class="stats-card-info"> <div class="stats-card-title"><i class="fas fa-star"></i>Body</div> <div class="stats-card-value">-</div> <div class="stats-card-description">Celkem získaných bodů</div> </div> </div>
                      </div>
@@ -281,10 +286,10 @@
         // Using an immediately invoked function expression (IIFE)
         (function() {
             // --- START: Initialization and Configuration ---
-            console.log("[INIT] Script start - pokrok.html - v5 Final");
+            console.log("[INIT] Script start - pokrok.html - v6 Final Fix");
             const supabaseUrl = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
             const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10';
-            const SUPABASE_FETCH_TIMEOUT = 15000;
+            const SUPABASE_FETCH_TIMEOUT = 15000; // 15 seconds timeout
             let supabase = null;
             let currentUser = null;
             let currentProfile = null;
@@ -294,13 +299,14 @@
             let chartDataCache = {};
             let listenersAttached = false; // Flag to prevent duplicate listeners
 
-            const ui = {};
-            const elementIds = [ 'sidebar-avatar', 'sidebar-name', 'offline-banner', 'global-error', 'main-mobile-menu-toggle', 'sidebar-close-toggle', 'sidebar', 'sidebar-overlay', 'toast', 'toast-message', 'initial-loader', 'main-content', 'refresh-data-btn', 'notification-bell', 'notification-count', 'notifications-dropdown', 'notifications-list', 'no-notifications-msg', 'mark-all-read', 'progress-card', /*'avg-score-card', REMOVED */ 'exercises-card', 'streak-card', 'points-card', 'progressChart', 'chart-loading', 'chart-period', 'activities-table', 'activities-body', 'no-activities', 'export-btn', 'chart-container-parent', 'table-skeleton-container', 'table-error-state', 'table-wrapper', 'activities-body-skeleton' ];
+            // DOM Elements Cache
+             const ui = {};
+             const elementIds = [ 'sidebar-avatar', 'sidebar-name', 'offline-banner', 'global-error', 'main-mobile-menu-toggle', 'sidebar-close-toggle', 'sidebar', 'sidebar-overlay', 'toast', 'toast-message', 'initial-loader', 'main-content', 'refresh-data-btn', 'notification-bell', 'notification-count', 'notifications-dropdown', 'notifications-list', 'no-notifications-msg', 'mark-all-read', 'progress-card', /*'avg-score-card', REMOVED */ 'exercises-card', 'streak-card', 'points-card', /* ADDED */ 'progressChart', 'chart-loading', 'chart-period', 'activities-table', 'activities-body', 'no-activities', 'export-btn', 'chart-container-parent', 'table-skeleton-container', 'table-error-state', 'table-wrapper', 'activities-body-skeleton' ];
             elementIds.forEach(id => ui[id] = document.getElementById(id));
             console.log("[INIT] UI elements cached");
             // --- END: Initialization and Configuration ---
 
-             // --- START: Helper Functions ---
+            // --- START: Helper Functions ---
              function showToast(message, type = 'success') { if (!ui.toast || !ui.toastMessage) return; ui.toastMessage.textContent = message; const icon = ui.toast.querySelector('i'); const colors = { success: 'var(--success)', error: 'var(--danger)', warning: 'var(--warning)', info: 'var(--info)' }; if (icon) { icon.className = `fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle'}`; icon.style.color = colors[type] || colors.info; } ui.toast.className = `toast ${type}`; ui.toast.classList.add('show'); setTimeout(() => { if (ui.toast) ui.toast.classList.remove('show'); }, 5000); }
              function showError(message) { if (!ui.globalError) return; ui.globalError.innerHTML = `<div class="error-message"><i class="fas fa-exclamation-circle"></i><div><div>${message}</div><button class="retry-button" id="retry-btn">Zkusit znovu</button></div></div>`; ui.globalError.style.display = 'block'; const retryBtn = document.getElementById('retry-btn'); if (retryBtn) { retryBtn.removeEventListener('click', handleRetry); retryBtn.addEventListener('click', handleRetry); } }
              function hideError() { if (ui.globalError) ui.globalError.style.display = 'none'; }
@@ -320,46 +326,46 @@
             // --- END: Loading State Functions ---
 
             // --- START: Data Loading Functions ---
-             async function fetchWithTimeout(queryPromise, timeoutMs = SUPABASE_FETCH_TIMEOUT) { /* ... */ let timeoutHandle; const timeoutPromise = new Promise((_, reject) => { timeoutHandle = setTimeout(() => reject(new Error(`Request timed out (${timeoutMs}ms)`)), timeoutMs); }); try { const result = await Promise.race([queryPromise, timeoutPromise]); clearTimeout(timeoutHandle); return result; } catch (error) { console.warn("Supabase request failed or timed out:", error.message); throw error; } }
+             async function fetchWithTimeout(queryPromise, timeoutMs = SUPABASE_FETCH_TIMEOUT) { /* ... implementation ... */ let timeoutHandle; const timeoutPromise = new Promise((_, reject) => { timeoutHandle = setTimeout(() => reject(new Error(`Request timed out (${timeoutMs}ms)`)), timeoutMs); }); try { const result = await Promise.race([queryPromise, timeoutPromise]); clearTimeout(timeoutHandle); return result; } catch (error) { console.warn("Supabase request failed or timed out:", error.message); throw error; } }
 
             async function loadUserProfile(user) {
                  console.log("[FUNC] loadUserProfile: Start"); if (!user) { console.error("! Missing user object."); return null; }
                  try {
-                     console.log("... Selecting profile columns (v5 - no avg_score)");
+                     console.log("... Selecting profile columns (v6)");
                      const query = supabase.from('profiles')
-                          // Select only columns needed for this page's stats cards + sidebar
-                          .select('id, email, username, first_name, last_name, avatar_url, points, streak_days, level, completed_exercises')
+                          .select('id, email, username, first_name, last_name, avatar_url, points, streak_days, level, completed_exercises') // Removed average_score
                           .eq('id', user.id).single();
                      const { data: profile, error } = await fetchWithTimeout(query);
-                     console.log("... Supabase profiles returned - Error:", error, "Data:", !!profile); // Log less data
-                     if (error && error.code !== 'PGRST116') { throw error; } // Throw real errors
+                     console.log("... Supabase profiles returned - Error:", error, "Data:", !!profile);
+                     if (error && error.code !== 'PGRST116') { throw error; }
                      if (!profile) { console.warn("... Profile not found, using default."); return { id: user.id, email: user.email, username: user.email?.split('@')[0] || 'Uživatel', points: 0, streak_days: 0, level: 1, completed_exercises: 0 }; }
                      console.log("[FUNC] loadUserProfile: Success."); return profile;
-                 } catch (error) { console.error('[FUNC] loadUserProfile: Caught exception:', error); return null; } // Return null, caller handles UI
+                 } catch (error) { console.error('[FUNC] loadUserProfile: Caught exception:', error); return null; }
              }
 
-             async function loadProgressSnapshots(userId, period = 'month') { /* ... implementation ... */ console.log(`[FUNC] loadProgressSnapshots: Start - user: ${userId}, period: ${period}`); if (!userId) { console.error("! Missing user ID."); return null; } const cacheKey = `${userId}-${period}`; if (chartDataCache[cacheKey]) { console.log("... Returning cached chart data"); return chartDataCache[cacheKey]; } try { if (typeof dateFns === 'undefined') throw new Error("date-fns library not loaded"); const endDate = new Date(); let startDate = new Date(); switch (period) { case 'week': startDate = dateFns.subDays(endDate, 6); break; case 'month': startDate = dateFns.subDays(endDate, 29); break; case '3month': startDate = dateFns.subMonths(endDate, 3); startDate.setDate(startDate.getDate() + 1); break; case 'year': startDate = dateFns.subYears(endDate, 1); startDate.setDate(startDate.getDate() + 1); break; default: startDate = dateFns.subDays(endDate, 29); } const startDateString = dateFns.formatISO(startDate, { representation: 'date' }); const endDateString = dateFns.formatISO(endDate, { representation: 'date' }); console.log(`... Date range: ${startDateString} to ${endDateString}`); console.log("... Calling Supabase progress_snapshots select"); const query = supabase.from('progress_snapshots').select('snapshot_date, overall_progress').eq('user_id', userId).gte('snapshot_date', startDateString).lte('snapshot_date', endDateString).order('snapshot_date', { ascending: true }); const { data, error } = await fetchWithTimeout(query); console.log("... Supabase returned - Error:", error, "Data count:", data?.length); if (error) throw error; const snapshots = data || []; chartDataCache[cacheKey] = snapshots; console.log(`[FUNC] loadProgressSnapshots: Success.`); return snapshots; } catch (error) { console.error('[FUNC] loadProgressSnapshots: Caught exception:', error); return null; } }
+            async function loadProgressSnapshots(userId, period = 'month') { /* ... implementation ... */ console.log(`[FUNC] loadProgressSnapshots: Start - user: ${userId}, period: ${period}`); if (!userId) { console.error("! Missing user ID."); return null; } const cacheKey = `<span class="math-inline">\{userId\}\-</span>{period}`; if (chartDataCache[cacheKey]) { console.log("... Returning cached chart data"); return chartDataCache[cacheKey]; } try { if (typeof dateFns === 'undefined') throw new Error("date-fns library not loaded"); const endDate = new Date(); let startDate = new Date(); switch (period) { case 'week': startDate = dateFns.subDays(endDate, 6); break; case 'month': startDate = dateFns.subDays(endDate, 29); break; case '3month': startDate = dateFns.subMonths(endDate, 3); startDate.setDate(startDate.getDate() + 1); break; case 'year': startDate = dateFns.subYears(endDate, 1); startDate.setDate(startDate.getDate() + 1); break; default: startDate = dateFns.subDays(endDate, 29); } const startDateString = dateFns.formatISO(startDate, { representation: 'date' }); const endDateString = dateFns.formatISO(endDate, { representation: 'date' }); console.log(`... Date range: ${startDateString} to ${endDateString}`); console.log("... Calling Supabase progress_snapshots select"); const query = supabase.from('progress_snapshots').select('snapshot_date, overall_progress').eq('user_id', userId).gte('snapshot_date', startDateString).lte('snapshot_date', endDateString).order('snapshot_date', { ascending: true }); const { data, error } = await fetchWithTimeout(query); console.log("... Supabase returned - Error:", error, "Data count:", data?.length); if (error) throw error; const snapshots = data || []; chartDataCache[cacheKey] = snapshots; console.log(`[FUNC] loadProgressSnapshots: Success.`); return snapshots; } catch (error) { console.error('[FUNC] loadProgressSnapshots: Caught exception:', error); return null; } }
 
              async function loadRecentActivities(userId) { /* ... implementation ... */ console.log("[FUNC] loadRecentActivities: Start for user:", userId); if (!userId) { console.error("! Missing user ID."); return null; } try { console.log("... Calling Supabase select (snapshots for table)..."); const query = supabase.from('progress_snapshots').select('snapshot_date, overall_progress, points_total').eq('user_id', userId).order('snapshot_date', { ascending: false }).limit(10); const { data, error } = await fetchWithTimeout(query); console.log("... Supabase returned - Error:", error, "Data count:", data?.length); if (error) throw error; return data || []; } catch (error) { console.error('[FUNC] loadRecentActivities: Caught exception:', error); return null; } }
 
-             async function loadNotifications(userId) { /* ... implementation ... */ console.log("[FUNC] loadNotifications: Start"); if (!userId) return { unreadCount: 0, notifications: [] }; try { console.log("... Calling Supabase user_notifications select"); const query = supabase .from('user_notifications') .select('id, title, message, icon, type, is_read, created_at, link', { count: 'exact' }) .eq('user_id', userId) .order('created_at', { ascending: false }) .limit(10); const countQuery = supabase .from('user_notifications') .select('*', { count: 'exact', head: true }) .eq('user_id', userId) .eq('is_read', false); const [ { data, error }, { count: unreadCount, error: countError } ] = await Promise.all([ fetchWithTimeout(query), fetchWithTimeout(countQuery) ]); console.log("... Supabase returned - Error:", error, "Data count:", data?.length, "Unread Count:", unreadCount); if (error || countError) throw error || countError; if (!data || data.length === 0) { console.log("... No notifications found, adding welcome."); return { unreadCount: 1, notifications: [{ id: 'welcome', title: 'Vítejte v sekci Pokrok!', message: 'Sledujte zde své úspěchy a vývoj v čase.', icon: 'fa-chart-line', type: 'info', is_read: false, created_at: new Date().toISOString(), link: null }] }; } return { unreadCount: unreadCount ?? 0, notifications: data || [] }; } catch (error) { console.error("[FUNC] loadNotifications: Caught exception:", error); return { unreadCount: 0, notifications: [] }; } }
-             function renderNotifications(result) { /* ... implementation ... */ console.log("[FUNC] renderNotifications: Start", result); hideLoadingState('notifications'); if (!ui.notificationCount || !ui.notificationsList || !ui.noNotificationsMsg || !ui.markAllReadBtn) { console.error("! Missing notification UI elements."); return; } const count = result?.unreadCount ?? 0; const notifications = result?.notifications ?? []; ui.notificationCount.textContent = count > 9 ? '9+' : count; ui.notificationCount.classList.toggle('visible', count > 0); ui.markAllReadBtn.disabled = (count === 0); if (notifications && notifications.length > 0) { ui.notificationsList.innerHTML = notifications.map(n => { const iconClass = n.icon || 'fa-info-circle'; const typeClass = n.type || 'info'; const isReadClass = n.is_read ? 'is-read' : ''; const linkAttr = n.link ? `data-link="${sanitizeHTML(n.link)}"` : ''; return `<div class="notification-item ${isReadClass}" data-id="${n.id}" ${linkAttr} title="${n.is_read ? 'Přečteno' : 'Nepřečteno'} - ${sanitizeHTML(n.message)}"> ${!n.is_read ? '<span class="unread-dot"></span>' : ''} <div class="notification-icon ${typeClass}"> <i class="fas ${iconClass}"></i> </div> <div class="notification-content"> <div class="notification-title">${sanitizeHTML(n.title)}</div> <div class="notification-message">${sanitizeHTML(n.message)}</div> <div class="notification-time">${formatRelativeTime(n.created_at)}</div> </div> </div>`; }).join(''); ui.noNotificationsMsg.style.display = 'none'; ui.notificationsList.style.display = 'block'; } else { ui.notificationsList.innerHTML = ''; ui.noNotificationsMsg.style.display = 'block'; ui.notificationsList.style.display = 'none'; } console.log("[FUNC] renderNotifications: Success"); }
+            // --- Notification Functions (Consistent with dashboard.html) ---
+            async function loadNotifications(userId) { /* ... implementation ... */ console.log("[FUNC] loadNotifications: Start"); if (!userId) return { unreadCount: 0, notifications: [] }; try { console.log("... Calling Supabase user_notifications select"); const query = supabase .from('user_notifications') .select('id, title, message, icon, type, is_read, created_at, link', { count: 'exact' }) .eq('user_id', userId) .order('created_at', { ascending: false }) .limit(10); const countQuery = supabase .from('user_notifications') .select('*', { count: 'exact', head: true }) .eq('user_id', userId) .eq('is_read', false); const [ { data, error }, { count: unreadCount, error: countError } ] = await Promise.all([ fetchWithTimeout(query), fetchWithTimeout(countQuery) ]); console.log("... Supabase returned - Error:", error, "Data count:", data?.length, "Unread Count:", unreadCount); if (error || countError) throw error || countError; if (!data || data.length === 0) { console.log("... No notifications found, adding welcome."); return { unreadCount: 1, notifications: [{ id: 'welcome', title: 'Vítejte v sekci Pokrok!', message: 'Sledujte zde své úspěchy a vývoj v čase.', icon: 'fa-chart-line', type: 'info', is_read: false, created_at: new Date().toISOString(), link: null }] }; } return { unreadCount: unreadCount ?? 0, notifications: data || [] }; } catch (error) { console.error("[FUNC] loadNotifications: Caught exception:", error); return { unreadCount: 0, notifications: [] }; } }
+             function renderNotifications(result) { /* ... implementation ... */ console.log("[FUNC] renderNotifications: Start", result); hideLoadingState('notifications'); if (!ui.notificationCount || !ui.notificationsList || !ui.noNotificationsMsg || !ui.markAllReadBtn) { console.error("! Missing notification UI elements."); return; } const count = result?.unreadCount ?? 0; const notifications = result?.notifications ?? []; ui.notificationCount.textContent = count > 9 ? '9+' : count; ui.notificationCount.classList.toggle('visible', count > 0); ui.markAllReadBtn.disabled = (count === 0); if (notifications && notifications.length > 0) { ui.notificationsList.innerHTML = notifications.map(n => { const iconClass = n.icon || 'fa-info-circle'; const typeClass = n.type || 'info'; const isReadClass = n.is_read ? 'is-read' : ''; const linkAttr = n.link ? `data-link="${sanitizeHTML(n.link)}"` : ''; return `<div class="notification-item <span class="math-inline">\{isReadClass\}" data\-id\="</span>{n.id}" <span class="math-inline">\{linkAttr\} title\="</span>{n.is_read ? 'Přečteno' : 'Nepřečteno'} - ${sanitizeHTML(n.message)}"> ${!n.is_read ? '<span class="unread-dot"></span>' : ''} <div class="notification-icon ${typeClass}"> <i class="fas <span class="math-inline">\{iconClass\}"\></i\> </div\> <div class\="notification\-content"\> <div class\="notification\-title"\></span>{sanitizeHTML(n.title)}</div> <div class="notification-message"><span class="math-inline">\{sanitizeHTML\(n\.message\)\}</div\> <div class\="notification\-time"\></span>{formatRelativeTime(n.created_at)}</div> </div> </div>`; }).join(''); ui.noNotificationsMsg.style.display = 'none'; ui.notificationsList.style.display = 'block'; } else { ui.notificationsList.innerHTML = ''; ui.noNotificationsMsg.style.display = 'block'; ui.notificationsList.style.display = 'none'; } console.log("[FUNC] renderNotifications: Success"); }
              async function markNotificationRead(notificationId) { /* ... implementation ... */ console.log("[FUNC] markNotificationRead: ID:", notificationId); if (!currentUser || !notificationId || notificationId === 'welcome') return false; try { const { error } = await supabase .from('user_notifications') .update({ is_read: true }) .eq('user_id', currentUser.id) .eq('id', notificationId); if (error) throw error; console.log("... Success"); return true; } catch (error) { console.error("... Error:", error); showToast('Chyba', 'Nepodařilo se označit oznámení jako přečtené.', 'error'); return false; } }
              async function markAllNotificationsRead() { /* ... implementation ... */ console.log("[FUNC] markAllNotificationsRead: Start"); if (!currentUser || !ui.markAllReadBtn) return; ui.markAllReadBtn.disabled = true; ui.markAllReadBtn.textContent = 'Označuji...'; try { const { error } = await supabase .from('user_notifications') .update({ is_read: true }) .eq('user_id', currentUser.id) .eq('is_read', false); if (error) throw error; console.log("... Success"); const result = await loadNotifications(currentUser.id); renderNotifications(result.unreadCount, result.notifications); showToast('Oznámení označena', 'Všechna oznámení byla označena jako přečtená.', 'success'); } catch (error) { console.error("... Error:", error); showToast('Chyba', 'Nepodařilo se označit všechna oznámení.', 'error'); } finally { if(ui.markAllReadBtn) {ui.markAllReadBtn.disabled = false; ui.markAllReadBtn.textContent = 'Označit vše jako přečtené';} } }
             // --- END: Data Loading Functions ---
 
             // --- START: UI Update Functions ---
-            function updateSidebarProfile(userData) { /* ... implementation ... */ console.log("[FUNC] updateSidebarProfile: Start"); if (!userData || !ui.sidebarName || !ui.sidebarAvatar) { console.warn("! Missing elements or data."); if(ui.sidebarName) ui.sidebarName.textContent = "Uživatel"; if(ui.sidebarAvatar) ui.sidebarAvatar.textContent = "?"; return; } const displayName = `${userData.first_name || ''} ${userData.last_name || ''}`.trim() || userData.username || 'Uživatel'; ui.sidebarName.textContent = displayName; if (userData.avatar_url) { ui.sidebarAvatar.innerHTML = `<img src="${userData.avatar_url}" alt="${displayName}" />`; } else { ui.sidebarAvatar.textContent = getInitials(userData); } console.log("[FUNC] updateSidebarProfile: Success"); }
+            function updateSidebarProfile(userData) { /* ... implementation ... */ console.log("[FUNC] updateSidebarProfile: Start"); if (!userData || !ui.sidebarName || !ui.sidebarAvatar) { console.warn("! Missing elements or data."); if(ui.sidebarName) ui.sidebarName.textContent = "Uživatel"; if(ui.sidebarAvatar) ui.sidebarAvatar.textContent = "?"; return; } const displayName = `${userData.first_name || ''} ${userData.last_name || ''}`.trim() || userData.username || 'Uživatel'; ui.sidebarName.textContent = displayName; if (userData.avatar_url) { ui.sidebarAvatar.innerHTML = `<img src="<span class="math-inline">\{userData\.avatar\_url\}" alt\="</span>{displayName}" />`; } else { ui.sidebarAvatar.textContent = getInitials(userData); } console.log("[FUNC] updateSidebarProfile: Success"); }
 
-            // FIX: Corrected updateStatsCards to handle ReferenceError
+            // FIX: Corrected updateStatsCards - uses 'cards' correctly now
             function updateStatsCards(profileData) {
-                console.log("[FUNC] updateStatsCards: Start, profileData:", profileData);
-                // Define cards map *outside* the conditional logic
-                const cards = {
-                     progress: ui.progressCard,
-                     exercises: ui.exercisesCard,
-                     streak: ui.streakCard,
-                     points: ui.pointsCard
+                 console.log("[FUNC] updateStatsCards: Start, profileData:", profileData);
+                 // Define cards map *outside* the conditional logic
+                 const cards = {
+                      progress: ui.progressCard,
+                      exercises: ui.exercisesCard,
+                      streak: ui.streakCard,
+                      points: ui.pointsCard
                  };
 
                  const renderCard = (card, value, unit, description, error = false) => {
@@ -367,30 +373,24 @@
                      card.classList.remove('loading'); // Ensure loading class is removed
                      const contentEl = card.querySelector('.stats-card-content');
                      const skeletonEl = card.querySelector('.loading-skeleton');
-                     if (skeletonEl) skeletonEl.style.display = 'none'; // Always hide skeleton after trying to render
+                     if (skeletonEl) skeletonEl.style.display = 'none'; // Always hide skeleton
 
                      if (contentEl) {
-                         contentEl.style.visibility = 'visible'; // Make content area visible
+                         contentEl.style.visibility = 'visible';
                          if (error) {
                              contentEl.innerHTML = `<div class="card-error-state"><i class="fas fa-exclamation-triangle"></i>Chyba</div>`;
                              console.log(`[FUNC] updateStatsCards: Rendered error state for card ${card.id}`);
                          } else {
-                              // Restore structure if it was replaced by error state
-                              if (!contentEl.querySelector('.stats-card-info')) {
-                                   contentEl.innerHTML = `<div class="stats-card-info"><div class="stats-card-title"><i class="${card.dataset.icon || 'fas fa-question-circle'}"></i>${card.dataset.title || ''}</div><div class="stats-card-value">-<span class="unit"></span></div><div class="stats-card-description"></div></div>`;
-                              }
+                              if (!contentEl.querySelector('.stats-card-info')) { contentEl.innerHTML = `<div class="stats-card-info"><div class="stats-card-title"><i class="<span class="math-inline">\{card\.dataset\.icon \|\| 'fas fa\-question\-circle'\}"\></i\></span>{card.dataset.title || ''}</div><div class="stats-card-value">-<span class="unit"></span></div><div class="stats-card-description"></div></div>`; }
                               const valueEl = contentEl.querySelector('.stats-card-value');
                               const descEl = contentEl.querySelector('.stats-card-description');
-                              if (valueEl) valueEl.innerHTML = `${value ?? '-'}${unit ? `<span class="unit">${unit}</span>` : ''}`;
+                              if (valueEl) valueEl.innerHTML = `<span class="math-inline">\{value ?? '\-'\}</span>{unit ? `<span class="unit">${unit}</span>` : ''}`;
                               if (descEl) descEl.textContent = description ?? '';
                          }
-                     } else {
-                          console.warn(`! Missing .stats-card-content in card:`, card.id);
-                          card.innerHTML = `<div class="card-error-state"><i class="fas fa-exclamation-triangle"></i>Chyba struktury</div>`; // Error directly in card
-                     }
+                     } else { console.warn(`! Missing .stats-card-content in card:`, card.id); card.innerHTML = `<div class="card-error-state"><i class="fas fa-exclamation-triangle"></i>Chyba struktury</div>`; }
                  };
 
-                 // Assign dataset attributes if not present (helps error recovery)
+                 // Assign dataset attributes if not present
                  Object.entries(cards).forEach(([key, card]) => {
                      if (card && !card.dataset.title) {
                           switch(key) {
@@ -402,26 +402,25 @@
                      }
                  });
 
-                 // Render cards based on profileData validity
+                 // Use the *outer* 'cards' object here when profileData is null
                  if (!profileData) {
-                     console.warn("[FUNC] updateStatsCards: No profile data, rendering error state for all cards.");
-                     Object.values(cards).forEach(card => renderCard(card, null, null, null, true));
+                     console.warn("[FUNC] updateStatsCards: No profile data, rendering error state.");
+                     Object.values(cards).forEach(card => renderCard(card, null, null, null, true)); // Use the defined 'cards'
                      return;
                  }
 
-                 // Render normal data
+                 // Render normal data using profileData
                  renderCard(cards.progress, profileData.overall_progress ?? profileData.level * 10 ?? 0, '%', 'Celková úspěšnost');
                  renderCard(cards.exercises, profileData.completed_exercises ?? 0, '', 'Dokončených cvičení');
                  renderCard(cards.streak, profileData.streak_days ?? 0, '', 'Aktuální série studia');
                  renderCard(cards.points, profileData.points ?? 0, '', 'Celkem získaných bodů');
 
                  console.log("[FUNC] updateStatsCards: Success");
-            }
+             }
 
+            function updateChart(snapshots) { /* ... implementation (improved error/empty state, gradient) ... */ console.log("[FUNC] updateChart: Start, snapshots count:", snapshots?.length); if (!ui.progressChartCanvas || !ui.chartContainerParent) { console.error("! Chart elements not found."); hideLoadingState('chart'); return; } hideLoadingState('chart'); const existingMessage = ui.chartContainerParent.querySelector('.empty-state, .card-error-state'); if (existingMessage) existingMessage.remove(); ui.progressChartCanvas.style.display = 'block'; if (!snapshots) { console.log("[FUNC] updateChart: Rendering error state (null data)."); if (progressChart) { progressChart.destroy(); progressChart = null; } ui.progressChartCanvas.style.display = 'none'; ui.chartContainerParent.insertAdjacentHTML('beforeend', '<div class="card-error-state" style="height: 400px;"><i class="fas fa-exclamation-triangle"></i>Chyba načítání dat grafu. Zkuste obnovit stránku.</div>'); return; } if (snapshots.length < 2) { console.log("[FUNC] updateChart: Not enough data."); if (progressChart) { progressChart.destroy(); progressChart = null; } ui.progressChartCanvas.style.display = 'none'; ui.chartContainerParent.insertAdjacentHTML('beforeend', '<div class="empty-state" style="height: 400px;"><i class="fas fa-chart-line"></i><h3>Nedostatek dat</h3><p>Nemáme dostatek historie pro zobrazení grafu.</p></div>'); return; } const labels = snapshots.map(s => { try { if (typeof dateFns === 'undefined') throw Error('date-fns missing'); return dateFns.format(dateFns.parseISO(s.snapshot_date), 'd.M', { locale: dateFns.locale.cs }); } catch(e) { console.warn("Date parsing error:", e); return '?';} }); const progressData = snapshots.map(s => s.overall_progress ?? null); const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim() || '#4f46e5'; const ctx = ui.progressChartCanvas.getContext('2d'); const gradient = ctx.createLinearGradient(0, 0, 0, 400); const primaryRgb = hexToRgb(primaryColor); gradient.addColorStop(0, `rgba(${primaryRgb}, 0.3)`); gradient.addColorStop(1, `rgba(${primaryRgb}, 0)`); const chartData = { labels: labels, datasets: [{ label: 'Celkový Pokrok (%)', data: progressData, borderColor: primaryColor, backgroundColor: gradient, fill: true, tension: 0.4, borderWidth: 3, pointBackgroundColor: primaryColor, pointBorderColor: 'var(--card-bg)', pointBorderWidth: 2, pointRadius: 4, pointHoverRadius: 7, pointHoverBackgroundColor: 'var(--primary-dark)', pointHoverBorderColor: 'var(--card-bg)', spanGaps: true, pointStyle: 'circle' }] }; const isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches; const gridColor = isDarkMode ? 'rgba(75, 85, 99, 0.1)' : 'rgba(229, 231, 235, 0.3)'; const textColor = isDarkMode ? 'var(--text-muted)' : 'var(--text-secondary)'; const tooltipBg = isDarkMode ? '#374151' : '#ffffff'; const tooltipText = isDarkMode ? '#e5e7eb' : '#1f2937'; const config = { type: 'line', data: chartData, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { mode: 'index', intersect: false, backgroundColor: tooltipBg, titleColor: tooltipText, bodyColor: tooltipText, borderColor: 'var(--border-color)', borderWidth: 1, padding: 12, boxPadding: 4, usePointStyle: true, callbacks: { label: (context) => `Pokrok: ${context.parsed.y ?? 'N/A'}%` } } }, scales: { y: { beginAtZero: true, max: 100, grid: { color: gridColor, drawBorder: false }, ticks: { color: textColor, padding: 10, callback: (value) => `${value}%` } }, x: { grid: { display: false }, ticks: { color: textColor, maxRotation: 45, minRotation: 45, padding: 10 } } }, interaction: { mode: 'nearest', axis: 'x', intersect: false }, elements: { line: { segment: { borderDash: (ctx) => ctx.p0.skip || ctx.p1.skip ? [5, 5] : undefined, } } } } }; if (progressChart) { progressChart.data = chartData; progressChart.options.scales.x.ticks.color = textColor; progressChart.options.scales.y.ticks.color = textColor; progressChart.options.scales.y.grid.color = gridColor; progressChart.options.plugins.tooltip.backgroundColor = tooltipBg; progressChart.options.plugins.tooltip.titleColor = tooltipText; progressChart.options.plugins.tooltip.bodyColor = tooltipText; progressChart.update('none'); } else { if (ui.progressChartCanvas) { progressChart = new Chart(ctx, config); } } console.log("[FUNC] updateChart: Success"); }
 
-            function updateChart(snapshots) { /* ... implementation (improved error/empty state) ... */ console.log("[FUNC] updateChart: Start, snapshots count:", snapshots?.length); if (!ui.progressChartCanvas || !ui.chartContainerParent) { console.error("! Chart elements not found."); hideLoadingState('chart'); return; } hideLoadingState('chart'); const existingMessage = ui.chartContainerParent.querySelector('.empty-state, .card-error-state'); if (existingMessage) existingMessage.remove(); ui.progressChartCanvas.style.display = 'block'; if (!snapshots) { console.log("[FUNC] updateChart: Rendering error state (null data)."); if (progressChart) { progressChart.destroy(); progressChart = null; } ui.progressChartCanvas.style.display = 'none'; ui.chartContainerParent.insertAdjacentHTML('beforeend', '<div class="card-error-state" style="height: 400px;"><i class="fas fa-exclamation-triangle"></i>Chyba načítání dat grafu. Zkuste obnovit stránku.</div>'); return; } if (snapshots.length < 2) { console.log("[FUNC] updateChart: Not enough data."); if (progressChart) { progressChart.destroy(); progressChart = null; } ui.progressChartCanvas.style.display = 'none'; ui.chartContainerParent.insertAdjacentHTML('beforeend', '<div class="empty-state" style="height: 400px;"><i class="fas fa-chart-line"></i><h3>Nedostatek dat</h3><p>Nemáme dostatek historie pro zobrazení grafu.</p></div>'); return; } const labels = snapshots.map(s => { try { if (typeof dateFns === 'undefined') throw Error('date-fns missing'); return dateFns.format(dateFns.parseISO(s.snapshot_date), 'd.M', { locale: dateFns.locale.cs }); } catch(e) { console.warn("Date parsing error:", e); return '?';} }); const progressData = snapshots.map(s => s.overall_progress ?? null); const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim() || '#4f46e5'; const ctx = ui.progressChartCanvas.getContext('2d'); const gradient = ctx.createLinearGradient(0, 0, 0, 400); const primaryRgb = hexToRgb(primaryColor); gradient.addColorStop(0, `rgba(${primaryRgb}, 0.3)`); gradient.addColorStop(1, `rgba(${primaryRgb}, 0)`); const chartData = { labels: labels, datasets: [{ label: 'Celkový Pokrok (%)', data: progressData, borderColor: primaryColor, backgroundColor: gradient, fill: true, tension: 0.4, borderWidth: 3, pointBackgroundColor: primaryColor, pointBorderColor: 'var(--card-bg)', pointBorderWidth: 2, pointRadius: 4, pointHoverRadius: 7, pointHoverBackgroundColor: 'var(--primary-dark)', pointHoverBorderColor: 'var(--card-bg)', spanGaps: true, pointStyle: 'circle' }] }; const isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches; const gridColor = isDarkMode ? 'rgba(75, 85, 99, 0.1)' : 'rgba(229, 231, 235, 0.3)'; const textColor = isDarkMode ? 'var(--text-muted)' : 'var(--text-secondary)'; const tooltipBg = isDarkMode ? '#374151' : '#ffffff'; const tooltipText = isDarkMode ? '#e5e7eb' : '#1f2937'; const config = { type: 'line', data: chartData, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { mode: 'index', intersect: false, backgroundColor: tooltipBg, titleColor: tooltipText, bodyColor: tooltipText, borderColor: 'var(--border-color)', borderWidth: 1, padding: 12, boxPadding: 4, usePointStyle: true, callbacks: { label: (context) => `Pokrok: ${context.parsed.y ?? 'N/A'}%` } } }, scales: { y: { beginAtZero: true, max: 100, grid: { color: gridColor, drawBorder: false }, ticks: { color: textColor, padding: 10, callback: (value) => `${value}%` } }, x: { grid: { display: false }, ticks: { color: textColor, maxRotation: 45, minRotation: 45, padding: 10 } } }, interaction: { mode: 'nearest', axis: 'x', intersect: false }, elements: { line: { segment: { borderDash: (ctx) => ctx.p0.skip || ctx.p1.skip ? [5, 5] : undefined, } } } } }; if (progressChart) { progressChart.data = chartData; progressChart.options.scales.x.ticks.color = textColor; progressChart.options.scales.y.ticks.color = textColor; progressChart.options.scales.y.grid.color = gridColor; progressChart.options.plugins.tooltip.backgroundColor = tooltipBg; progressChart.options.plugins.tooltip.titleColor = tooltipText; progressChart.options.plugins.tooltip.bodyColor = tooltipText; progressChart.update('none'); } else { if (ui.progressChartCanvas) { progressChart = new Chart(ctx, config); } } console.log("[FUNC] updateChart: Success"); }
-
-             function renderActivityHistory(activities) { /* ... implementation (improved error/empty state) ... */ console.log("[FUNC] renderActivityHistory: Start, activities count:", activities?.length); if (!ui.activitiesBody || !ui.activitiesTable || !ui.noActivities || !ui.tableErrorState || !ui.tableWrapper) return; hideLoadingState('table'); ui.activitiesBody.innerHTML = ''; ui.tableErrorState.style.display = 'none'; ui.noActivities.style.display = 'none'; ui.tableWrapper.style.display = 'none'; if (!activities) { ui.tableErrorState.style.display = 'block'; console.log("[FUNC] renderActivityHistory: Rendering error state (null data)."); if(ui.exportBtn) ui.exportBtn.disabled = true; return; } if (activities.length === 0) { ui.noActivities.style.display = 'block'; console.log("[FUNC] renderActivityHistory: Rendering empty state."); if(ui.exportBtn) ui.exportBtn.disabled = true; return; } ui.tableWrapper.style.display = 'block'; ui.activitiesTable.style.display = 'table'; if(ui.exportBtn) ui.exportBtn.disabled = false; let previousProgress = null; const sortedActivities = [...activities].sort((a, b) => new Date(a.snapshot_date) - new Date(b.snapshot_date)); previousProgress = sortedActivities[0]?.overall_progress ?? null; sortedActivities.forEach((activity, index) => { const formattedDate = activity.snapshot_date ? dateFns.format(dateFns.parseISO(activity.snapshot_date), 'd. M. yy', { locale: dateFns.locale.cs }) : '-'; let progressChangeText = '-'; let progressChangeClass = ''; const prevActivityProgress = index > 0 ? sortedActivities[index-1].overall_progress : null; if (prevActivityProgress !== null && activity.overall_progress !== null) { const change = activity.overall_progress - prevActivityProgress; if (change !== 0) { progressChangeText = `${change > 0 ? '+' : ''}${change}%`; progressChangeClass = change > 0 ? 'positive-change' : 'negative-change'; } else { progressChangeText = `±0%`; } } const description = `Denní snímek`; let statusText = 'Zaznamenáno'; let statusClass = 'in-progress'; if (activity.overall_progress !== null && activity.overall_progress >= 95) { statusText = 'Vynikající'; statusClass = 'completed'; } else if (activity.overall_progress !== null && activity.overall_progress < 30) { statusText = 'Nutné zlepšení'; statusClass = 'failed'; } const row = ui.activitiesBody.insertRow(0); row.innerHTML = `<td>${formattedDate}</td><td>${description}</td><td class="${progressChangeClass}">${progressChangeText}</td><td>${activity.points_total ?? '-'}</td><td><span class="status-badge ${statusClass}">${statusText}</span></td>`; }); console.log("[FUNC] renderActivityHistory: Success"); }
+            function renderActivityHistory(activities) { /* ... implementation (improved error/empty state) ... */ console.log("[FUNC] renderActivityHistory: Start, activities count:", activities?.length); if (!ui.activitiesBody || !ui.activitiesTable || !ui.noActivities || !ui.tableErrorState || !ui.tableWrapper) return; hideLoadingState('table'); ui.activitiesBody.innerHTML = ''; ui.tableErrorState.style.display = 'none'; ui.noActivities.style.display = 'none'; ui.tableWrapper.style.display = 'none'; if (!activities) { ui.tableErrorState.style.display = 'block'; console.log("[FUNC] renderActivityHistory: Rendering error state (null data)."); if(ui.exportBtn) ui.exportBtn.disabled = true; return; } if (activities.length === 0) { ui.noActivities.style.display = 'block'; console.log("[FUNC] renderActivityHistory: Rendering empty state."); if(ui.exportBtn) ui.exportBtn.disabled = true; return; } ui.tableWrapper.style.display = 'block'; ui.activitiesTable.style.display = 'table'; if(ui.exportBtn) ui.exportBtn.disabled = false; let previousProgress = null; const sortedActivities = [...activities].sort((a, b) => new Date(a.snapshot_date) - new Date(b.snapshot_date)); previousProgress = sortedActivities[0]?.overall_progress ?? null; sortedActivities.forEach((activity, index) => { const formattedDate = activity.snapshot_date ? dateFns.format(dateFns.parseISO(activity.snapshot_date), 'd. M. yy', { locale: dateFns.locale.cs }) : '-'; let progressChangeText = '-'; let progressChangeClass = ''; const prevActivityProgress = index > 0 ? sortedActivities[index-1].overall_progress : null; if (prevActivityProgress !== null && activity.overall_progress !== null) { const change = activity.overall_progress - prevActivityProgress; if (change !== 0) { progressChangeText = `<span class="math-inline">\{change \> 0 ? '\+' \: ''\}</span>{change}%`; progressChangeClass = change > 0 ? 'positive-change' : 'negative-change'; } else { progressChangeText = `±0%`; } } const description = `Denní snímek`; let statusText = 'Zaznamenáno'; let statusClass = 'in-progress'; if (activity.overall_progress !== null && activity.overall_progress >= 95) { statusText = 'Vynikající'; statusClass = 'completed'; } else if (activity.overall_progress !== null && activity.overall_progress < 30) { statusText = 'Nutné zlepšení'; statusClass = 'failed'; } const row = ui.activitiesBody.insertRow(0); row.innerHTML = `<td><span class="math-inline">\{formattedDate\}</td\><td\></span>{description}</td><td class="<span class="math-inline">\{progressChangeClass\}"\></span>{progressChangeText}</td><td>${activity.points_total ?? '-'}</td><td><span class="status-badge <span class="math-inline">\{statusClass\}"\></span>{statusText}</span></td>`; }); console.log("[FUNC] renderActivityHistory: Success"); }
             // --- END: UI Update Functions ---
 
             // --- START: Main Orchestration ---
@@ -434,16 +433,17 @@
                  if(ui.refreshDataBtn) { ui.refreshDataBtn.classList.add('loading'); ui.refreshDataBtn.disabled = true; }
                  if(ui.exportBtn) ui.exportBtn.disabled = true;
 
-                 let profileData = null; // Reset before loading
+                 let profileData = null;
 
                  try {
                      console.log("[MAIN] loadPageData: Loading profile...");
                      profileData = await loadUserProfile(currentUser);
-                     if (!profileData) { throw new Error("! Nepodařilo se načíst profil."); } // Critical failure
+                     if (!profileData) { throw new Error("! Nepodařilo se načíst profil."); }
                      updateSidebarProfile(profileData);
-                     updateStatsCards(profileData); // Update based on profile
+                     updateStatsCards(profileData); // Update STATS first
 
                      console.log("[MAIN] loadPageData: Loading secondary data...");
+                     // Load remaining data concurrently
                      const results = await Promise.allSettled([
                           loadProgressSnapshots(currentUser.id, period),
                           loadRecentActivities(currentUser.id),
@@ -451,22 +451,22 @@
                      ]);
                      console.log("[MAIN] loadPageData: Promise.allSettled results:", results);
 
+                     // Process results individually, updating UI or showing specific errors
                      const snapshots = results[0].status === 'fulfilled' ? results[0].value : null;
                      const recentActivities = results[1].status === 'fulfilled' ? results[1].value : null;
-                     const notificationsResult = results[2].status === 'fulfilled' ? results[2].value : { unreadCount: 0, notifications: [] };
+                     const notificationsResult = results[2].status === 'fulfilled' ? results[2].value : { unreadCount: 0, notifications: [] }; // Default on failure
 
-                     // Log errors and update UI for each part
                      if (results[0].status === 'rejected') { console.error("! Failed to load snapshots:", results[0].reason); showToast('Chyba grafu', 'Nepodařilo se načíst historii pro graf.', 'error'); updateChart(null); } else { updateChart(snapshots); }
                      if (results[1].status === 'rejected') { console.error("! Failed to load recent activities:", results[1].reason); showToast('Chyba historie', 'Nepodařilo se načíst historii aktivit.', 'error'); renderActivityHistory(null); } else { renderActivityHistory(recentActivities); }
                      if (results[2].status === 'rejected') { console.error("! Failed to load notifications:", results[2].reason); showToast('Chyba oznámení', 'Nepodařilo se načíst oznámení.', 'error'); renderNotifications({ unreadCount: 0, notifications: [] }); } else { renderNotifications(notificationsResult.unreadCount, notificationsResult.notifications); }
 
                  } catch (error) {
                      console.error('[MAIN] loadPageData: Caught critical error (likely profile):', error);
-                     showError('Nepodařilo se kompletně načíst data pokroku: ' + (error.message.includes("timed out") ? "Požadavek na data vypršel. Zkontrolujte připojení nebo zkuste později." : error.message));
-                     // Ensure all components show error state
-                     updateStatsCards(null); updateChart(null); renderActivityHistory(null); renderNotifications(0, []);
+                     showError('Nepodařilo se kompletně načíst data pokroku: ' + (error.message.includes("timed out") ? "Požadavek na data vypršel. Zkontrolujte připojení, RLS nebo indexy v Supabase." : error.message));
+                      // Ensure all components show error state if profile load failed
+                      updateStatsCards(null); updateChart(null); renderActivityHistory(null); renderNotifications(0, []);
                  } finally {
-                     // Hide loading states AFTER results are processed (or error shown)
+                     // Hide all loading states AFTER results/errors are processed
                      hideLoadingState('stats'); hideLoadingState('chart'); hideLoadingState('table'); hideLoadingState('notifications');
                      if(ui.refreshDataBtn) { ui.refreshDataBtn.classList.remove('loading'); ui.refreshDataBtn.disabled = false; }
                      const hasTableData = ui.activitiesTable?.style.display === 'table';
@@ -477,97 +477,59 @@
             // --- END: Main Orchestration ---
 
             // --- START: Event Listeners Setup ---
-             function setupUIEventListeners() {
-                 if (listenersAttached) { console.log("[SETUP] Listeners already attached."); return; } // Prevent duplicate listeners
-                 console.log("[SETUP] setupUIEventListeners: Setting up listeners.");
-                 if (ui.mainMobileMenuToggle) ui.mainMobileMenuToggle.addEventListener('click', openMenu);
-                 if (ui.sidebarCloseToggle) ui.sidebarCloseToggle.addEventListener('click', closeMenu);
-                 if (ui.sidebarOverlay) ui.sidebarOverlay.addEventListener('click', closeMenu);
-                 document.querySelectorAll('.sidebar-link').forEach(link => { link.addEventListener('click', () => { if (window.innerWidth <= 992) closeMenu(); }); });
-                 window.addEventListener('online', updateOnlineStatus);
-                 window.addEventListener('offline', updateOnlineStatus);
-                 updateOnlineStatus();
-                 if (ui.refreshDataBtn) ui.refreshDataBtn.addEventListener('click', handleRetry);
-                 if (ui.chartPeriodSelect) { ui.chartPeriodSelect.addEventListener('change', (event) => { if (!isLoadingData) { chartDataCache = {}; loadPageData(event.target.value); } else { showToast("Počkejte prosím", "Data se stále načítají.", "info"); event.target.value = lastLoadedPeriod; } }); }
-                 if (ui.exportBtn) ui.exportBtn.addEventListener('click', exportTableToCSV);
-                 if(ui.notificationBell) { ui.notificationBell.addEventListener('click', (event) => { event.stopPropagation(); ui.notificationsDropdown?.classList.toggle('active'); }); }
-                 if(ui.markAllReadBtn) { ui.markAllReadBtn.addEventListener('click', markAllNotificationsRead); }
-                 if(ui.notificationsList) { ui.notificationsList.addEventListener('click', async (event) => { const item = event.target.closest('.notification-item'); if (item && !item.classList.contains('is-read')) { const notificationId = item.dataset.id; const link = item.dataset.link; const success = await markNotificationRead(notificationId); if (success) { item.classList.add('is-read'); const currentCount = parseInt(ui.notificationCount.textContent.replace('+','')) || 0; const newCount = Math.max(0, currentCount - 1); ui.notificationCount.textContent = newCount > 9 ? '9+' : newCount; ui.notificationCount.classList.toggle('visible', newCount > 0); item.querySelector('.unread-dot')?.remove(); ui.markAllReadBtn.disabled = (newCount === 0); if (link) window.location.href = link; } } else if (item && item.dataset.link) { window.location.href = item.dataset.link; } }); }
-                 document.addEventListener('click', (event) => { if (ui.notificationsDropdown?.classList.contains('active') && !ui.notificationsDropdown.contains(event.target) && !ui.notificationBell.contains(event.target)) { ui.notificationsDropdown.classList.remove('active'); } });
-                 listenersAttached = true; // Set flag
-                 console.log("[SETUP] setupUIEventListeners: Listeners set.");
-             }
-
-             function handleRetry() { if (currentUser && !isLoadingData) { hideError(); const btn = ui.refreshDataBtn; const icon = btn?.querySelector('i'); const text = btn?.querySelector('.refresh-text'); if(btn) btn.disabled = true; if(icon) icon.classList.add('fa-spin'); if(text) text.textContent = 'Obnovuji...'; chartDataCache = {}; loadPageData(lastLoadedPeriod) .then(() => showToast("Data aktualizována", "Přehled pokroku byl obnoven.", "success")) .catch(() => {}) .finally(() => { if(btn) btn.disabled = false; if(icon) icon.classList.remove('fa-spin'); if(text) text.textContent = 'Obnovit'; }); } else if (isLoadingData) { showToast("Počkejte prosím", "Data se již načítají.", "info"); } else { showToast("Chyba", "Nelze obnovit, uživatel není přihlášen.", "error"); } }
-
-             // Cleaned exportTableToCSV - Syntax Checked
-             function exportTableToCSV() {
-                  console.log("[FUNC] exportTableToCSV: Start");
-                  if (!ui.activitiesTable || !ui.activitiesBody) { showToast('Chyba exportu', 'Tabulka nebyla nalezena.', 'error'); return; }
-                  const rows = ui.activitiesBody.querySelectorAll('tr');
-                  if (rows.length === 0 || ui.tableErrorState?.style.display === 'block' || ui.noActivities?.style.display === 'block') { showToast('Žádná data', 'Není co exportovat.', 'warning'); return; }
-                  let csvContent = "Datum,Popis / Aktivita,Změna Pokroku (%),Celkem Bodů,Stav\n";
-                  rows.forEach(row => {
-                      const cells = row.querySelectorAll('td');
-                      if (cells.length === 5) {
-                           let statusText = cells[4].textContent?.trim() ?? '';
-                           const statusBadge = cells[4].querySelector('.status-badge');
-                           if (statusBadge) { statusText = statusBadge.textContent?.trim() ?? ''; }
-                           const rowData = [
-                                cells[0].textContent?.trim() ?? '',
-                                cells[1].textContent?.trim() ?? '',
-                                cells[2].textContent?.replace('%','').trim() ?? '',
-                                cells[3].textContent?.trim() ?? '',
-                                statusText
-                           ];
-                           csvContent += rowData.map(d => `"${String(d).replace(/"/g, '""')}"`).join(',') + '\n';
-                      }
-                  }); // End of forEach loop - ensure correct parenthesis
-                  try { const blob = new Blob([`\uFEFF${csvContent}`], { type: 'text/csv;charset=utf-8;' }); const link = document.createElement("a"); const url = URL.createObjectURL(blob); link.setAttribute("href", url); const userPart = currentUser?.email?.split('@')[0] || currentUser?.id?.substring(0, 8) || 'uzivatel'; const datePart = new Date().toISOString().split('T')[0]; link.setAttribute("download", `historie_pokroku_${userPart}_${datePart}.csv`); link.style.visibility = 'hidden'; document.body.appendChild(link); link.click(); document.body.removeChild(link); URL.revokeObjectURL(url); console.log("[FUNC] exportTableToCSV: Export successful"); showToast('Export dokončen', 'Data byla úspěšně exportována.', 'success'); } catch (e) { console.error("Error during CSV export:", e); showToast('Chyba exportu', 'Nepodařilo se vytvořit soubor.', 'error'); }
-             } // End of exportTableToCSV function
+             function setupUIEventListeners() { /* ... (implementation including notifications) ... */ if (listenersAttached) { console.log("[SETUP] Listeners already attached."); return; } console.log("[SETUP] setupUIEventListeners: Setting up listeners."); if (ui.mainMobileMenuToggle) ui.mainMobileMenuToggle.addEventListener('click', openMenu); if (ui.sidebarCloseToggle) ui.sidebarCloseToggle.addEventListener('click', closeMenu); if (ui.sidebarOverlay) ui.sidebarOverlay.addEventListener('click', closeMenu); document.querySelectorAll('.sidebar-link').forEach(link => { link.addEventListener('click', () => { if (window.innerWidth <= 992) closeMenu(); }); }); window.addEventListener('online', updateOnlineStatus); window.addEventListener('offline', updateOnlineStatus); updateOnlineStatus(); if (ui.refreshDataBtn) ui.refreshDataBtn.addEventListener('click', handleRetry); if (ui.chartPeriodSelect) { ui.chartPeriodSelect.addEventListener('change', (event) => { if (!isLoadingData) { chartDataCache = {}; loadPageData(event.target.value); } else { showToast("Počkejte prosím", "Data se stále načítají.", "info"); event.target.value = lastLoadedPeriod; } }); } if (ui.exportBtn) ui.exportBtn.addEventListener('click', exportTableToCSV); if(ui.notificationBell) { ui.notificationBell.addEventListener('click', (event) => { event.stopPropagation(); ui.notificationsDropdown?.classList.toggle('active'); }); } if(ui.markAllReadBtn) { ui.markAllReadBtn.addEventListener('click', markAllNotificationsRead); } if(ui.notificationsList) { ui.notificationsList.addEventListener('click', async (event) => { const item = event.target.closest('.notification-item'); if (item && !item.classList.contains('is-read')) { const notificationId = item.dataset.id; const link = item.dataset.link; const success = await markNotificationRead(notificationId); if (success) { item.classList.add('is-read'); const currentCount = parseInt(ui.notificationCount.textContent.replace('+','')) || 0; const newCount = Math.max(0, currentCount - 1); ui.notificationCount.textContent = newCount > 9 ? '9+' : newCount; ui.notificationCount.classList.toggle('visible', newCount > 0); item.querySelector('.unread-dot')?.remove(); ui.markAllReadBtn.disabled = (newCount === 0); if (link) window.location.href = link; } } else if (item && item.dataset.link) { window.location.href = item.dataset.link; } }); } document.addEventListener('click', (event) => { if (ui.notificationsDropdown?.classList.contains('active') && !ui.notificationsDropdown.contains(event.target) && !ui.notificationBell.contains(event.target)) { ui.notificationsDropdown.classList.remove('active'); } }); listenersAttached = true; console.log("[SETUP] setupUIEventListeners: Listeners set."); }
+             function handleRetry() { /* ... (implementation) ... */ if (currentUser && !isLoadingData) { hideError(); const btn = ui.refreshDataBtn; const icon = btn?.querySelector('i'); const text = btn?.querySelector('.refresh-text'); if(btn) btn.disabled = true; if(icon) icon.classList.add('fa-spin'); if(text) text.textContent = 'Obnovuji...'; chartDataCache = {}; loadPageData(lastLoadedPeriod) .then(() => showToast("Data aktualizována", "Přehled pokroku byl obnoven.", "success")) .catch(() => {}) .finally(() => { if(btn) btn.disabled = false; if(icon) icon.classList.remove('fa-spin'); if(text) text.textContent = 'Obnovit'; }); } else if (isLoadingData) { showToast("Počkejte prosím", "Data se již načítají.", "info"); } else { showToast("Chyba", "Nelze obnovit, uživatel není přihlášen.", "error"); } }
+             // Corrected exportTableToCSV
+             function exportTableToCSV() { console.log("[FUNC] exportTableToCSV: Start"); if (!ui.activitiesTable || !ui.activitiesBody) { showToast('Chyba exportu', 'Tabulka nebyla nalezena.', 'error'); return; } const rows = ui.activitiesBody.querySelectorAll('tr'); if (rows.length === 0 || ui.tableErrorState?.style.display === 'block' || ui.noActivities?.style.display === 'block') { showToast('Žádná data', 'Není co exportovat.', 'warning'); return; } let csvContent = "Datum,Popis / Aktivita,Změna Pokroku (%),Celkem Bodů,Stav\n"; rows.forEach(row => { const cells = row.querySelectorAll('td'); if (cells.length === 5) { let statusText = cells[4].textContent?.trim() ?? ''; const statusBadge = cells[4].querySelector('.status-badge'); if (statusBadge) { statusText = statusBadge.textContent?.trim() ?? ''; } const rowData = [ cells[0].textContent?.trim() ?? '', cells[1].textContent?.trim() ?? '', cells[2].textContent?.replace('%','').trim() ?? '', cells[3].textContent?.trim() ?? '', statusText ]; csvContent += rowData.map(d => `"${String(d).replace(/"/g, '""')}"`).join(',') + '\n'; } }); try { const blob = new Blob([`\uFEFF${csvContent}`], { type: 'text/csv;charset=utf-8;' }); const link = document.createElement("a"); const url = URL.createObjectURL(blob); link.setAttribute("href", url); const userPart = currentUser?.email?.split('@')[0] || currentUser?.id?.substring(0, 8) || 'uzivatel'; const datePart = new Date().toISOString().split('T')[0]; link.setAttribute("download", `historie_pokroku_${userPart}_${datePart}.csv`); link.style.visibility = 'hidden'; document.body.appendChild(link); link.click(); document.body.removeChild(link); URL.revokeObjectURL(url); console.log("[FUNC] exportTableToCSV: Export successful"); showToast('Export dokončen', 'Data byla úspěšně exportována.', 'success'); } catch (e) { console.error("Error during CSV export:", e); showToast('Chyba exportu', 'Nepodařilo se vytvořit soubor.', 'error'); } }
             // --- END: Event Listeners Setup ---
 
             // --- START: Initialization Logic ---
              document.addEventListener('DOMContentLoaded', () => {
                  console.log("[INIT] DOMContentLoaded event fired.");
                  try {
-                      // Initialize Supabase
-                      if (typeof window.supabase === 'undefined' || typeof window.supabase.createClient !== 'function') { throw new Error("Supabase library not available."); }
-                      supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+                     // Check if Supabase constructor is available
+                     if (typeof window.supabase === 'undefined' || typeof window.supabase.createClient !== 'function') {
+                         throw new Error("Supabase library not available or not loaded correctly.");
+                     }
+                     supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
                      console.log('[INIT] Supabase client initialized.');
 
-                     // Setup Auth Listener
+                     // Setup Auth Listener immediately
                      supabase.auth.onAuthStateChange(async (event, session) => {
                          console.log('[INIT] Auth State Change Event:', event, session ? `User: ${session.user?.id}` : "No session");
                          currentUser = session?.user ?? null;
+
                          if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN') {
                              if (currentUser) {
-                                 console.log('[INIT] User authenticated, loading page data...');
+                                 console.log('[INIT] User authenticated, starting page load...');
                                  if (ui.initialLoader) { ui.initialLoader.classList.add('hidden'); setTimeout(() => { if (ui.initialLoader) ui.initialLoader.style.display = 'none'; }, 500); }
                                  if (ui.mainContent) ui.mainContent.style.display = 'block';
-                                 setupUIEventListeners(); // Setup listeners here
-                                 await loadPageData(lastLoadedPeriod); // Initial data load
-                             } else { console.log('[INIT] No user in session, redirecting.'); window.location.href = '/auth/index.html'; }
-                         } else if (event === 'SIGNED_OUT') { console.log('[INIT] User signed out, redirecting.'); window.location.href = '/auth/index.html'; }
-                         else if (event === 'INITIAL_SESSION' && !currentUser) { console.log('[INIT] Initial session, no user, redirecting.'); window.location.href = '/auth/index.html'; }
+                                 // Load libraries check before loading data
+                                  if (typeof Chart !== 'undefined' && typeof dateFns !== 'undefined') {
+                                       console.log("[INIT] Libraries seem available, proceeding.");
+                                       setupUIEventListeners(); // Setup listeners here
+                                       await loadPageData(lastLoadedPeriod); // Initial data load
+                                  } else {
+                                       console.error("! Libraries (Chart.js or date-fns) not loaded on auth confirmation.");
+                                       showError("Chyba načítání stránky: Potřebné skripty se nenahrály.");
+                                  }
+                             } else {
+                                 console.log('[INIT] No user in session, redirecting.');
+                                 window.location.href = '/auth/index.html'; // Redirect if no user
+                             }
+                         } else if (event === 'SIGNED_OUT') {
+                             console.log('[INIT] User signed out, redirecting.');
+                             window.location.href = '/auth/index.html';
+                         }
                      });
-                 } catch (error) { console.error("[INIT] Critical initialization error:", error); if (ui.initialLoader) { ui.initialLoader.innerHTML = `<p style="color: var(--danger);">Chyba inicializace (${error.message}). Zkuste obnovit stránku.</p>`; ui.initialLoader.classList.remove('hidden'); ui.initialLoader.style.display = 'flex'; } if (ui.mainContent) ui.mainContent.style.display = 'none'; }
+
+                 } catch (error) {
+                     console.error("[INIT] Critical initialization error:", error);
+                     if (ui.initialLoader) { ui.initialLoader.innerHTML = `<p style="color: var(--danger);">Chyba inicializace (${error.message}). Zkuste obnovit stránku.</p>`; ui.initialLoader.classList.remove('hidden'); ui.initialLoader.style.display = 'flex'; }
+                     if (ui.mainContent) ui.mainContent.style.display = 'none';
+                 }
              });
             // --- END: Initialization Logic ---
-
-            // ** ================================================== **
-            // ** !!! KONTROLA SUPABASE !!!              **
-            // ** ================================================== **
-            // ** 1. RLS Policy:** Zkontroluj ZAPNUTÉ SELECT politiky
-            // ** pro `profiles`, `progress_snapshots`,
-            // ** `user_notifications`. Podmínka `auth.uid() = ...`
-            // ** 2. INDEXY:** Máš index na
-            // ** `progress_snapshots(user_id, snapshot_date)`?
-            // ** 3. TABULKY/SLOUPCE:** Existují PŘESNĚ? (`snapshot_date`,...)
-            // ** 4. DATA:** Máš testovací data v `progress_snapshots`?
-            // ** 5. NETWORK TAB (F12):** Sleduj Supabase requesty. Status? Odpověď? Timeout?
-            // ** 6. SUPABASE LOGY:** Zkontroluj logy databáze.
-            // ** ================================================== **
 
         })(); // End of IIFE
     </script>
