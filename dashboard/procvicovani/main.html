@@ -16,14 +16,14 @@
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
     <style>
-        /* --- Стили CSS (Предполагается, что они идентичны или очень похожи на dashboard.html) --- */
-        /* --- Полный блок CSS из твоего файла procvicovani/main.html вставляется сюда --- */
-        /* --- Убедись, что стили для .initial-loading-overlay и .loading-spinner здесь присутствуют --- */
+        /* --- Стили CSS (Взяты из твоего procvicovani/main.html, они должны включать стили для .initial-loading-overlay) --- */
         :root {
             /* Палитра */
             --primary-rgb: 67, 97, 238; --primary: #4361ee; --primary-light: #4895ef; --primary-dark: #3a0ca3;
             --secondary-rgb: 63, 55, 201; --secondary: #3f37c9;
             --success-rgb: 16, 185, 129; --success: #10b981; --success-light: #a7f3d0; --success-bg: #f0fdf4;
+             /* Slightly different success shade for visual distinction */
+             --success-alt: #06d6a0;
             --danger-rgb: 247, 37, 133; --danger: #f72585; --danger-light: #fecdd3; --danger-bg: #fff1f2;
             --warning-rgb: 248, 150, 30; --warning: #f8961e; --warning-light: #fed7aa; --warning-bg: #fffbeb;
             --info-rgb: 72, 149, 239; --info: #4895ef; --info-light: #bfdbfe; --info-bg: #eff6ff;
@@ -33,6 +33,7 @@
             --gradient-1: linear-gradient(135deg, #4361ee, #3a0ca3);
             --gradient-2: linear-gradient(135deg, #4cc9f0, #4361ee);
             --gradient-3: linear-gradient(135deg, #f72585, #7209b7);
+            --gradient-4: linear-gradient(135deg, #f8961e, #f3722c);
 
             /* Семантические цвета */
             --bg-color: #f9fafb;
@@ -50,7 +51,7 @@
             --sidebar-width: 260px;
             --transition-speed: 0.3s;
             --transition-bezier: cubic-bezier(0.4, 0, 0.2, 1);
-            --card-radius: 14px;
+            --card-radius: 14px; /* Slightly less rounded than 16px */
             --button-radius: 8px;
 
             /* Тени */
@@ -58,84 +59,109 @@
             --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.06);
             --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.07);
         }
-        /* Общие стили */
+
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
         body { background-color: var(--bg-color); color: var(--text-primary); min-height: 100vh; display: flex; overflow: hidden; line-height: 1.6; font-size: 15px; }
 
-        /* --- Sidebar (Идентичен dashboard.html) --- */
-        .sidebar { width: var(--sidebar-width); height: 100vh; position: fixed; top: 0; left: 0; background: var(--gradient-1); color: var(--white); padding: 1.5rem 1rem; display: flex; flex-direction: column; z-index: 1000; box-shadow: var(--shadow-lg); transition: transform var(--transition-speed) var(--transition-bezier), width var(--transition-speed) var(--transition-bezier); }
-        .sidebar-header { display: flex; align-items: center; margin-bottom: 2rem; padding: 0 0.75rem; position: relative; min-height: 40px; }
-        #sidebar-close-toggle { display: none; position: absolute; right: -5px; top: 50%; transform: translateY(-50%); background: none; border: none; color: rgba(255, 255, 255, 0.8); font-size: 1.6rem; cursor: pointer; padding: 0.5rem; line-height: 1; }
+         /* Boční panel (Sidebar) - должен быть идентичен dashboard.html */
+         .sidebar {
+            width: var(--sidebar-width);
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background: var(--gradient-1);
+            color: var(--white);
+            padding: 1.5rem 1rem;
+            display: flex;
+            flex-direction: column;
+            z-index: 1000; /* Increased z-index */
+            box-shadow: var(--shadow-lg);
+            transition: all var(--transition-speed) ease;
+        }
+        .sidebar-header { display: flex; align-items: center; margin-bottom: 2rem; padding: 0 0.75rem; }
         .sidebar-logo { font-size: 1.5rem; font-weight: 700; color: var(--white); text-decoration: none; display: flex; align-items: center; gap: 0.75rem; }
         .sidebar-logo i { font-size: 1.75rem; }
-        .sidebar-menu { list-style: none; padding: 0; margin: 0; flex-grow: 1; overflow-y: auto; }
-         .sidebar-menu::-webkit-scrollbar { width: 5px; }
-         .sidebar-menu::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.05); border-radius: 3px;}
-         .sidebar-menu::-webkit-scrollbar-thumb { background-color: rgba(255, 255, 255, 0.3); border-radius: 3px; }
-         .sidebar-menu { scrollbar-width: thin; scrollbar-color: rgba(255, 255, 255, 0.3) rgba(255, 255, 255, 0.05); }
+        .sidebar-menu { list-style: none; padding: 0; margin: 0; flex-grow: 1; }
         .sidebar-item { margin-bottom: 0.5rem; }
-        .sidebar-link { display: flex; align-items: center; padding: 0.8rem 1rem; color: rgba(255, 255, 255, 0.85); text-decoration: none; border-radius: var(--button-radius); transition: background-color 0.2s ease, color 0.2s ease; font-weight: 500; position: relative; }
+        .sidebar-link { display: flex; align-items: center; padding: 0.75rem 1rem; color: rgba(255, 255, 255, 0.85); text-decoration: none; border-radius: var(--button-radius); transition: all 0.2s ease; font-weight: 500; }
         .sidebar-link i { margin-right: 0.75rem; font-size: 1.2rem; width: 24px; text-align: center; }
         .sidebar-link.active, .sidebar-link:hover { background-color: rgba(255, 255, 255, 0.15); color: var(--white); }
-        .sidebar-link.active::before { content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%); height: 60%; width: 4px; background-color: var(--white); border-radius: 0 3px 3px 0; }
-        .sidebar-footer { margin-top: auto; padding: 1rem; font-size: 0.85rem; color: rgba(255, 255, 255, 0.6); text-align: center; flex-shrink: 0;}
-        .user-profile { display: flex; align-items: center; padding: 1rem; margin-top: 1rem; background-color: rgba(255, 255, 255, 0.08); border-radius: 12px; border: 1px solid rgba(255,255,255, 0.1); flex-shrink: 0;}
-        .user-avatar { width: 40px; height: 40px; border-radius: 50%; background-color: var(--primary-light); display: flex; align-items: center; justify-content: center; margin-right: 0.75rem; font-weight: 500; overflow: hidden; color: var(--white); border: 2px solid rgba(255,255,255, 0.3); flex-shrink: 0;}
+        .sidebar-footer { margin-top: auto; padding: 1rem; font-size: 0.9rem; color: rgba(255, 255, 255, 0.7); text-align: center; flex-shrink: 0; }
+        .user-profile { display: flex; align-items: center; padding: 1rem; margin-top: 1rem; background-color: rgba(255, 255, 255, 0.1); border-radius: 12px; flex-shrink: 0;}
+        .user-avatar { width: 40px; height: 40px; border-radius: 50%; background-color: var(--primary-light); display: flex; align-items: center; justify-content: center; margin-right: 0.75rem; font-weight: 500; overflow: hidden; flex-shrink: 0; color: var(--white); }
         .user-avatar img { width: 100%; height: 100%; object-fit: cover; }
         .user-info { flex-grow: 1; overflow: hidden; }
         .user-name { font-weight: 600; font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .user-role { font-size: 0.8rem; opacity: 0.8; white-space: nowrap; }
-        /* --- Конец Sidebar --- */
+        .user-role { font-size: 0.8rem; opacity: 0.8; white-space: nowrap;}
 
-        /* --- Основной контент --- */
-        main { flex: 1; margin-left: var(--sidebar-width); padding: 1.5rem 2rem; transition: margin var(--transition-speed) var(--transition-bezier); width: calc(100% - var(--sidebar-width)); overflow-y: auto; height: 100vh; }
-        /* ИЗМЕНЕНИЕ: Добавлено .loaded и @keyframes fadeInMain */
-        main:not(.loaded) { opacity: 0; } /* Скрыть до загрузки */
+        /* Основной контент */
+        main {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            padding: 1.5rem 2rem;
+            transition: margin var(--transition-speed) ease;
+            width: calc(100% - var(--sidebar-width));
+            overflow-y: auto; /* Allow scrolling */
+            height: 100vh; /* Take full height */
+        }
+        /* Fade-in animation */
+        main:not(.loaded) { opacity: 0; }
         main.loaded { opacity: 1; animation: fadeInMain 0.4s ease-out forwards; }
         @keyframes fadeInMain { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
 
-        /* --- Заголовок --- */
+        /* Заголовок */
         .dashboard-header {
             margin-bottom: 2rem;
             background-color: var(--card-bg-color);
             border-radius: var(--card-radius);
             padding: 1.25rem 1.5rem;
             box-shadow: var(--shadow-sm);
-            display: flex; /* Use flexbox */
-            justify-content: space-between; /* Space items */
-            align-items: center; /* Align items vertically */
-            flex-wrap: wrap; /* Allow wrapping */
-            gap: 1rem; /* Gap between items when wrapped */
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+             position: sticky; /* Make header sticky */
+             top: 0; /* Stick to top */
+             z-index: 900; /* Ensure above content */
+             border-bottom: 1px solid transparent; /* Add border for scroll effect */
+             transition: box-shadow 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
         }
+         body.scrolled .dashboard-header {
+             box-shadow: var(--shadow-md); /* Add shadow on scroll */
+             border-bottom-color: var(--border-color); /* Show border */
+             background-color: rgba(var(--card-bg-color-rgb), 0.95); /* Slightly opaque */
+             backdrop-filter: blur(5px);
+         }
 
         .header-content { /* Container for toggle and title */
             display: flex;
             align-items: center;
-            gap: 1rem; /* Space between toggle and title */
-            flex-grow: 1; /* Allow this section to grow */
+            gap: 1rem;
+            flex-grow: 1;
         }
 
         .header-content h1 {
             font-size: 1.75rem;
             font-weight: 600;
             color: var(--text-primary);
-            margin: 0; /* Remove default margin */
+            margin: 0;
         }
 
         .header-actions { /* Container for buttons */
             display: flex;
             align-items: center;
             gap: 1rem;
-            flex-shrink: 0; /* Prevent buttons shrinking */
+            flex-shrink: 0;
         }
-         /* Ensure text is visible by default */
         .header-actions .btn span { display: inline; }
 
-        /* Основной контент */
+        /* Основной контент сетка */
         .main-content {
             display: grid;
-            grid-template-columns: 1fr; /* Default to single column */
+            grid-template-columns: 1fr;
             gap: 1.75rem;
         }
 
@@ -146,6 +172,7 @@
             box-shadow: var(--shadow-sm);
             padding: 1.5rem;
             animation: fadeIn 0.5s ease forwards;
+            border: 1px solid var(--border-color); /* Add border */
         }
 
         .section-title {
@@ -153,40 +180,39 @@
             font-weight: 600;
             margin-bottom: 1.25rem;
             color: var(--text-primary);
-            display: flex; /* Added for alignment */
-            align-items: center; /* Added for alignment */
-            justify-content: space-between; /* Added */
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+             padding-bottom: 0.75rem; /* Add padding */
+             border-bottom: 1px solid var(--border-color); /* Add border */
         }
-         .section-subtitle {
+        .section-subtitle {
             font-size: 1.1rem;
             font-weight: 500;
             margin-bottom: 1rem;
-            color: var(--dark);
+            color: var(--dark); /* Keep dark color? */
         }
          .diagnostic-prompt {
             padding: 1rem;
             margin: 1rem 0;
-            background-color: rgba(var(--info-rgb), 0.1); /* Use info color */
+            background-color: rgba(var(--info-rgb), 0.1);
             border-left: 4px solid var(--info);
             border-radius: 8px;
-            color: var(--text-secondary); /* Consistent text color */
-            font-size: 0.95rem; /* Slightly larger text */
-            display: flex; /* Use flex for layout */
-            justify-content: space-between; /* Space out text and button */
-            align-items: center; /* Align vertically */
-            flex-wrap: wrap; /* Allow wrapping */
-            gap: 1rem; /* Add gap */
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
          }
-         .diagnostic-prompt p {
-             margin: 0; /* Remove default margin */
-             flex-grow: 1; /* Allow text to take space */
-         }
+         .diagnostic-prompt p { margin: 0; flex-grow: 1; }
 
 
-        /* Dashboard Grid & Cards (stats) */
+        /* Карточки статистики */
         .dashboard-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* Adjusted minmax */
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 1.5rem;
             margin-bottom: 1.5rem;
         }
@@ -196,200 +222,58 @@
             box-shadow: var(--shadow-sm);
             padding: 1.5rem;
             transition: all 0.3s ease;
-            position: relative; /* Needed for loading overlay */
-            min-height: 150px; /* Ensure minimum height */
-            border: 1px solid var(--border-color); /* Subtle border */
-            display: flex; /* Use flex for better control */
-            flex-direction: column; /* Stack content */
+            position: relative;
+            min-height: 150px;
+            border: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
         }
          .dashboard-card:hover {
             transform: translateY(-5px);
             box-shadow: var(--shadow-md);
             border-color: var(--primary-light);
         }
-         .card-header {
-             display: flex;
-             justify-content: space-between;
-             align-items: flex-start; /* Align top */
-             margin-bottom: 0.8rem;
-         }
-         .card-title {
-             font-size: 0.95rem;
-             font-weight: 600;
-             color: var(--text-secondary);
-             display: flex;
-             align-items: center;
-             gap: 0.5rem;
-         }
-         .card-badge {
-             font-size: 0.75rem;
-             font-weight: 500;
-             padding: 0.2rem 0.6rem;
-             border-radius: 10px;
-             background-color: var(--info-bg);
-             color: var(--info);
-         }
+         .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.8rem; }
+         .card-title { font-size: 0.95rem; font-weight: 600; color: var(--text-secondary); display: flex; align-items: center; gap: 0.5rem; }
+         .card-badge { font-size: 0.75rem; font-weight: 500; padding: 0.2rem 0.6rem; border-radius: 10px; background-color: var(--info-bg); color: var(--info); }
          .card-badge.success { background-color: var(--success-bg); color: var(--success); }
-         .card-content {
-             flex-grow: 1; /* Allow content to fill space */
-             margin-bottom: 1rem; /* Space before footer */
-         }
-         .card-value {
-            font-size: 2rem; /* Slightly smaller */
-            font-weight: 700;
-            color: var(--text-primary); /* Use primary text color */
-            margin-bottom: 0.5rem;
-            line-height: 1.2; /* Adjust line height */
-            min-height: 30px; /* Ensure space for value */
-        }
-         .progress-info, .card-description {
-             font-size: 0.85rem;
-             color: var(--text-muted);
-             display: flex;
-             justify-content: space-between;
-         }
-         .card-footer {
-             font-size: 0.85rem;
-             color: var(--text-muted);
-             display: flex;
-             align-items: center;
-             gap: 0.5rem;
-             padding-top: 0.8rem;
-             border-top: 1px solid var(--border-color);
-             margin-top: auto; /* Push footer down */
-         }
+         .card-content { flex-grow: 1; margin-bottom: 1rem; }
+         .card-value { font-size: 2rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.5rem; line-height: 1.2; min-height: 30px; }
+         .progress-info, .card-description { font-size: 0.85rem; color: var(--text-muted); display: flex; justify-content: space-between; }
+         .card-footer { font-size: 0.85rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.5rem; padding-top: 0.8rem; border-top: 1px solid var(--border-color); margin-top: auto; }
          .card-footer.positive { color: var(--success); font-weight: 500; }
          .card-footer.negative { color: var(--danger); font-weight: 500; }
          .card-footer i { font-size: 0.9em; }
 
-        /* Buttons */
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0.7rem 1.4rem; /* Slightly adjusted */
-            border-radius: var(--button-radius);
-            font-weight: 500;
-            font-size: 0.9rem;
-            text-decoration: none;
-            transition: all 0.3s ease;
-            cursor: pointer;
-            border: none;
-            gap: 0.5rem;
-        }
-        .btn-primary {
-            background: var(--gradient-1);
-            color: white;
-            box-shadow: var(--shadow-sm);
-        }
-        .btn-primary:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-md);
-             background: linear-gradient(135deg, var(--primary-light), var(--secondary)); /* Gradient on hover */
-        }
-        .btn-secondary {
-            background-color: var(--card-bg-color); /* Use card background */
-            color: var(--text-secondary);
-            border: 1px solid var(--border-color);
-            box-shadow: var(--shadow-xs);
-        }
-        .btn-secondary:hover:not(:disabled) {
-            background-color: var(--gray-100);
-            border-color: var(--gray-medium);
-        }
-         .btn-outline {
-            background: transparent;
-            border: 1px solid var(--primary);
-            color: var(--primary);
-        }
-        .btn-outline:hover:not(:disabled) {
-            background-color: rgba(var(--primary-rgb), 0.05);
-        }
-        .btn:disabled {
-             opacity: 0.6;
-             cursor: not-allowed;
-             transform: none !important;
-             box-shadow: none !important;
-        }
+        /* Кнопки */
+        .btn { display: inline-flex; align-items: center; justify-content: center; padding: 0.7rem 1.4rem; border-radius: var(--button-radius); font-weight: 500; font-size: 0.9rem; text-decoration: none; transition: all 0.3s ease; cursor: pointer; border: none; gap: 0.5rem; }
+        .btn-primary { background: var(--gradient-1); color: white; box-shadow: var(--shadow-sm); }
+        .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: var(--shadow-md); background: linear-gradient(135deg, var(--primary-light), var(--secondary)); }
+        .btn-secondary { background-color: var(--card-bg-color); color: var(--text-secondary); border: 1px solid var(--border-color); box-shadow: var(--shadow-xs); }
+        .btn-secondary:hover:not(:disabled) { background-color: var(--gray-100); border-color: var(--gray-medium); }
+         .btn-outline { background: transparent; border: 1px solid var(--primary); color: var(--primary); }
+         .btn-outline:hover:not(:disabled) { background-color: rgba(var(--primary-rgb), 0.05); }
+         .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
 
-        /* Progress Bar */
-        .progress-container {
-            width: 100%;
-            height: 8px; /* Thinner bar */
-            background-color: var(--border-color); /* Use border color for track */
-            border-radius: 4px;
-            overflow: hidden;
-            margin: 0.5rem 0; /* Adjusted margin */
-        }
-        .progress-bar {
-            height: 100%;
-            border-radius: 4px;
-            background: var(--gradient-1);
-            transition: width 0.5s ease;
-        }
+        /* Прогресс бар */
+        .progress-container { width: 100%; height: 8px; background-color: var(--border-color); border-radius: 4px; overflow: hidden; margin: 0.5rem 0; }
+        .progress-bar { height: 100%; border-radius: 4px; background: var(--gradient-1); transition: width 0.5s ease; }
 
-        /* Topic Analysis */
-        .topic-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); /* Adjusted minmax */
-            gap: 1.5rem;
-            margin-top: 1.5rem;
-        }
-         .topic-card {
-            background-color: var(--card-bg-color);
-            border-radius: var(--card-radius);
-            padding: 1.5rem;
-            box-shadow: var(--shadow-sm);
-            transition: all 0.3s ease;
-            border: 1px solid var(--border-color);
-            border-left: 4px solid var(--primary);
-            display: flex; /* Use flex for better layout */
-            flex-direction: column;
-        }
-        .topic-card:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--shadow-md);
-            border-color: var(--primary-light);
-        }
-        .topic-card.strength { border-left: 4px solid var(--success); }
+        /* Анализ тем */
+        .topic-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; margin-top: 1.5rem; }
+         .topic-card { background-color: var(--card-bg-color); border-radius: var(--card-radius); padding: 1.5rem; box-shadow: var(--shadow-sm); transition: all 0.3s ease; border: 1px solid var(--border-color); border-left: 4px solid var(--primary); display: flex; flex-direction: column; }
+        .topic-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-md); border-color: var(--primary-light); }
+        .topic-card.strength { border-left: 4px solid var(--success-alt); }
         .topic-card.weakness { border-left: 4px solid var(--danger); }
         .topic-card.neutral { border-left: 4px solid var(--warning); }
-         .topic-header {
-             display: flex;
-             align-items: center; /* Align icon and title */
-             gap: 1rem; /* Space between icon and title */
-             margin-bottom: 1rem;
-         }
-         .topic-icon {
-            width: 40px; height: 40px; min-width: 40px; /* Prevent shrinking */
-            border-radius: 12px;
-            display: flex; align-items: center; justify-content: center;
-            color: var(--white); background: var(--primary); font-size: 1.2rem;
-            flex-shrink: 0;
-        }
-         .topic-card.strength .topic-icon { background: var(--success); }
+         .topic-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; }
+         .topic-icon { width: 40px; height: 40px; min-width: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--white); background: var(--primary); font-size: 1.2rem; flex-shrink: 0; }
+         .topic-card.strength .topic-icon { background: var(--success-alt); }
          .topic-card.weakness .topic-icon { background: var(--danger); }
          .topic-card.neutral .topic-icon { background: var(--warning); }
-         .topic-title {
-             font-size: 1.1rem; /* Slightly larger */
-             font-weight: 600;
-             color: var(--text-primary);
-             margin: 0; /* Remove default margin */
-             flex-grow: 1; /* Allow title to take space */
-         }
-         .topic-stats {
-             margin-top: auto; /* Push stats to the bottom */
-             padding-top: 1rem;
-             border-top: 1px dashed var(--border-color); /* Dashed separator */
-         }
-         .topic-stat {
-             display: flex;
-             justify-content: space-between;
-             align-items: center;
-             font-size: 0.9rem;
-             margin-bottom: 0.5rem;
-             color: var(--text-secondary);
-         }
+         .topic-title { font-size: 1.1rem; font-weight: 600; color: var(--text-primary); margin: 0; flex-grow: 1; }
+         .topic-stats { margin-top: auto; padding-top: 1rem; border-top: 1px dashed var(--border-color); }
+         .topic-stat { display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; margin-bottom: 0.5rem; color: var(--text-secondary); }
           .topic-stat:last-child { margin-bottom: 0; }
           .topic-stat strong { font-weight: 600; color: var(--text-primary); }
           .topic-stat .accuracy-value.high { color: var(--success); }
@@ -397,150 +281,108 @@
           .topic-stat .accuracy-value.medium { color: var(--warning); }
 
 
-        /* Test Results Tab Specific */
-        .test-stats {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 1.5rem; /* Increased gap */
-            margin-bottom: 2rem; /* Increased margin */
-        }
-         .stats-card { /* Reusing dashboard card style for consistency */
-            flex: 1; min-width: 200px; /* Adjusted min-width */
-            background-color: var(--card-bg-color);
-            border-radius: var(--card-radius); padding: 1.5rem; /* Increased padding */
-            box-shadow: var(--shadow-sm); text-align: center;
-            border: 1px solid var(--border-color);
-        }
-         .stats-icon {
-             width: 50px; height: 50px; border-radius: 50%; margin: 0 auto 1rem auto;
-             display: flex; align-items: center; justify-content: center;
-             font-size: 1.5rem; color: white;
-         }
+        /* Специфично для вкладки Результаты Тестов */
+        .test-stats { display: flex; flex-wrap: wrap; gap: 1.5rem; margin-bottom: 2rem; }
+         .stats-card { /* Reusing style */ flex: 1; min-width: 200px; background-color: var(--card-bg-color); border-radius: var(--card-radius); padding: 1.5rem; box-shadow: var(--shadow-sm); text-align: center; border: 1px solid var(--border-color); }
+         .stats-icon { width: 50px; height: 50px; border-radius: 50%; margin: 0 auto 1rem auto; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: white; }
          .stats-icon.primary { background: var(--gradient-1); }
          .stats-icon.success { background: linear-gradient(135deg, #4cc9f0, #38b2ac); }
          .stats-icon.warning { background: linear-gradient(135deg, #f8961e, #f3722c); }
          .stats-icon.danger { background: linear-gradient(135deg, #f72585, #b5179e); }
-         .stats-value {
-             font-size: 1.9rem; /* Slightly smaller */
-             font-weight: 700; margin-bottom: 0.3rem; /* Adjusted margin */
-             color: var(--text-primary);
-             line-height: 1.2;
-         }
-         .stats-label {
-             font-size: 0.85rem;
-             color: var(--text-muted);
-             text-transform: uppercase;
-             letter-spacing: 0.5px;
-         }
-
-
+         .stats-value { font-size: 1.9rem; font-weight: 700; margin-bottom: 0.3rem; color: var(--text-primary); line-height: 1.2; }
+         .stats-label { font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
         .chart-container { height: 300px; position: relative; margin-bottom: 2rem; }
-        .test-result-header {
-            display: flex; justify-content: space-between; align-items: center;
-            padding-bottom: 1rem; border-bottom: 1px solid var(--border-color); margin-bottom: 1.5rem;
-            flex-wrap: wrap; gap: 1rem; /* Allow wrapping */
-        }
+        .test-result-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color); margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem; }
          .test-result-title h3 { font-size: 1.1rem; margin: 0; }
          .test-result-meta { font-size: 0.85rem; color: var(--text-muted); }
          .test-result-score { text-align: right; }
          .test-result-score-value { font-size: 1.5rem; font-weight: 600; color: var(--primary); }
          .test-result-score-label { font-size: 0.8rem; color: var(--text-muted); }
-
         .test-list { margin-top: 1.5rem; }
-        .test-item {
-             display: flex; justify-content: space-between; align-items: center;
-             padding: 1rem 1.5rem; margin-bottom: 0.75rem; background-color: var(--card-bg-color);
-             border-radius: var(--button-radius); /* Match button radius */
-             box-shadow: var(--shadow-xs); /* Lighter shadow */
-             transition: all 0.3s ease;
-             border: 1px solid var(--border-color);
-         }
-         .test-item:hover {
-             transform: translateX(5px);
-             box-shadow: var(--shadow-sm);
-             border-color: var(--primary-light);
-         }
+        .test-item { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.5rem; margin-bottom: 0.75rem; background-color: var(--card-bg-color); border-radius: var(--button-radius); box-shadow: var(--shadow-xs); transition: all 0.3s ease; border: 1px solid var(--border-color); }
+         .test-item:hover { transform: translateX(5px); box-shadow: var(--shadow-sm); border-color: var(--primary-light); }
          .test-info { display: flex; align-items: center; gap: 1rem; flex-grow: 1; overflow: hidden; }
-         .test-icon {
-             width: 38px; height: 38px; min-width: 38px; border-radius: 8px;
-             background: var(--gradient-2); color: white; display: flex;
-             align-items: center; justify-content: center; font-size: 1.1rem;
-             flex-shrink: 0;
-         }
+         .test-icon { width: 38px; height: 38px; min-width: 38px; border-radius: 8px; background: var(--gradient-2); color: white; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0; }
          .test-details h4 { font-size: 1rem; font-weight: 500; margin: 0 0 0.2rem 0; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
          .test-meta { font-size: 0.8rem; color: var(--text-muted); display: flex; gap: 0.8rem; flex-wrap: wrap; }
          .test-meta span { display: inline-flex; align-items: center; gap: 0.3rem; }
          .test-score { font-size: 1.1rem; font-weight: 600; color: var(--primary); margin-left: 1rem; flex-shrink: 0; }
 
-        /* Loading & Empty States */
-        .loading { display: flex; justify-content: center; align-items: center; padding: 2rem; font-size: 1rem; color: var(--text-muted); min-height: 150px; /* Ensure space */ }
+        /* Состояния загрузки и пустые */
+        .loading { display: flex; justify-content: center; align-items: center; padding: 2rem; font-size: 1rem; color: var(--text-muted); min-height: 150px; }
         .loading::after { content: ""; width: 24px; height: 24px; margin-left: 12px; border: 3px solid var(--primary); border-radius: 50%; border-top-color: transparent; animation: loading-spinner 0.8s linear infinite; }
         @keyframes loading-spinner { to { transform: rotate(360deg); } }
-
         .empty-state { text-align: center; padding: 3rem 1.5rem; color: var(--text-secondary); border: 1px dashed var(--border-color); border-radius: var(--card-radius); background-color: rgba(var(--card-bg-color-rgb), 0.5); }
         .empty-state i { font-size: 3rem; margin-bottom: 1rem; color: var(--gray-medium); }
         .empty-state h3 { font-size: 1.2rem; font-weight: 600; margin-bottom: 1rem; color: var(--text-primary); }
         .empty-state p { margin-bottom: 1.5rem; max-width: 500px; margin-left: auto; margin-right: auto; font-size: 0.95rem;}
-        .empty-state .btn i { margin-right: 0.5rem; } /* Ensure icon spacing */
+        .empty-state .btn i { margin-right: 0.5rem; }
 
-        /* Tabs */
+        /* Вкладки */
         .content-tabs { display: flex; border-bottom: 1px solid var(--border-color); margin-bottom: 1.5rem; overflow-x: auto; scrollbar-width: none; }
         .content-tabs::-webkit-scrollbar { display: none; }
-        .content-tab { padding: 0.9rem 1.5rem; /* Adjusted padding */ font-weight: 600; color: var(--text-secondary); cursor: pointer; transition: all 0.3s ease; white-space: nowrap; position: relative; border-bottom: 3px solid transparent; font-size: 0.95rem; /* Slightly larger */ }
+        .content-tab { padding: 0.9rem 1.5rem; font-weight: 600; color: var(--text-secondary); cursor: pointer; transition: all 0.3s ease; white-space: nowrap; position: relative; border-bottom: 3px solid transparent; font-size: 0.95rem; }
         .content-tab.active, .content-tab:hover { color: var(--primary); }
         .content-tab.active { border-bottom-color: var(--primary); }
         .tab-content { display: none; }
         .tab-content.active { display: block; animation: fadeIn 0.5s ease forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Mobile Menu & Overlay */
+        /* Мобильное меню и оверлей */
         .mobile-menu-toggle { display: none; background: none; border: none; cursor: pointer; font-size: 1.5rem; color: var(--text-primary); padding: 0.5rem; }
         .sidebar-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.55); z-index: 999; opacity: 0; transition: opacity var(--transition-speed) ease; backdrop-filter: blur(4px); }
         .sidebar-overlay.active { display: block; opacity: 1; }
 
-        /* Weekly Schedule Styling (from main.html for consistency) */
-         .main-weekly-schedule {
-            margin-top: 1rem; padding: 0; background-color: transparent;
-            border-radius: 0; box-shadow: none; border: none;
-        }
-        .schedule-grid {
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 1.5rem; margin-top: 1rem; padding: 0;
-        }
-        .schedule-day {
-            background-color: var(--card-bg-color); border-radius: var(--card-radius);
-            box-shadow: var(--shadow-md); display: flex; flex-direction: column;
-            overflow: hidden; border: none; transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
+        /* Недельное расписание (Weekly Schedule) */
+        .main-weekly-schedule { margin-top: 1rem; padding: 0; background-color: transparent; border-radius: 0; box-shadow: none; border: none; }
+        .schedule-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; margin-top: 1rem; padding: 0; }
+        .schedule-day { background-color: var(--card-bg-color); border-radius: var(--card-radius); box-shadow: var(--shadow-md); display: flex; flex-direction: column; overflow: hidden; border: none; transition: transform 0.3s ease, box-shadow 0.3s ease; }
         .schedule-day:hover { transform: translateY(-5px); box-shadow: var(--shadow-lg); }
-        .schedule-day-header {
-            padding: 0.8rem 1.2rem; font-weight: 600; font-size: 1.05rem;
-            text-align: center; background: #fff; color: var(--primary);
-            border-bottom: 1px solid var(--border-color);
-        }
-        .schedule-activities {
-            padding: 1rem 1.2rem; flex-grow: 1; min-height: 150px;
-            display: flex; flex-direction: column; gap: 0.8rem;
-        }
-        .schedule-activity-item {
-            display: flex; align-items: flex-start; gap: 0.75rem;
-            background-color: transparent; border: none;
-            border-left: 3px solid var(--primary-light); padding: 0.5rem 0 0.5rem 0.75rem;
-            border-radius: 0; font-size: 0.9rem; transition: border-left-color 0.2s ease;
-        }
-         .schedule-activity-item:hover { border-left-color: var(--secondary); }
+        .schedule-day-header { padding: 0.8rem 1.2rem; font-weight: 600; font-size: 1.05rem; text-align: center; background: var(--card-bg-color); /* Match card bg */ color: var(--primary); border-bottom: 1px solid var(--border-color); }
+        .schedule-activities { padding: 1rem 1.2rem; flex-grow: 1; min-height: 150px; display: flex; flex-direction: column; gap: 0.8rem; }
+        .schedule-activity-item { display: flex; align-items: flex-start; gap: 0.75rem; background-color: transparent; border: none; border-left: 3px solid var(--primary-light); padding: 0.5rem 0 0.5rem 0.75rem; border-radius: 0; font-size: 0.9rem; transition: border-left-color 0.2s ease; }
+        .schedule-activity-item:hover { border-left-color: var(--secondary); }
         .activity-icon { font-size: 1.1rem; color: var(--primary); width: 20px; text-align: center; margin-top: 2px; flex-shrink: 0; }
         .activity-details { flex-grow: 1; }
-        .schedule-activity-item strong { display: block; font-weight: 500; color: var(--dark); margin-bottom: 2px; line-height: 1.4; }
+        .schedule-activity-item strong { display: block; font-weight: 500; color: var(--text-primary); margin-bottom: 2px; line-height: 1.4; }
         .schedule-activity-item span { font-size: 0.8rem; color: var(--text-secondary); display: block; }
         .schedule-activity-item.completed { border-left-color: var(--success-alt); opacity: 0.65; }
-         .schedule-activity-item.completed .activity-icon { color: var(--success-alt); }
+        .schedule-activity-item.completed .activity-icon { color: var(--success-alt); }
         .schedule-activity-item.completed strong { text-decoration: line-through; text-decoration-color: rgba(0,0,0,0.5); color: var(--text-secondary); }
         .schedule-activities .no-activities-placeholder { text-align: center; font-style: italic; color: var(--text-muted); font-size: 0.85rem; margin: auto; padding: 1rem 0; }
-         .full-plan-link-container { text-align: center; margin-top: 1.5rem; }
+        .full-plan-link-container { text-align: center; margin-top: 1.5rem; }
 
-        /* Responsive design - Updates */
-        @media (max-width: 992px) { /* Collapsed Sidebar */
+        /* Skeleton Loader Styles */
+        .skeleton { background-color: var(--skeleton-bg); border-radius: 4px; position: relative; overflow: hidden; }
+        .skeleton::after { content: ''; position: absolute; top: 0; left: -150%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, var(--skeleton-highlight), transparent); animation: skeleton-loading 1.5s infinite linear; }
+        @keyframes skeleton-loading { 0% { left: -150%; } 100% { left: 150%; } }
+        .skeleton.title-sm { height: 14px; width: 60%; margin-bottom: 0.6rem; }
+        .skeleton.value-lg { height: 30px; width: 40%; margin-bottom: 0.5rem; border-radius: 6px; }
+        .skeleton.text-md { height: 16px; width: 80%; margin-bottom: 0.4rem; }
+        .skeleton.text-sm { height: 12px; width: 70%; }
+        .dashboard-card .loading-skeleton { display: none; padding: 1.5rem; width: 100%; position: absolute; top:0; left:0; right:0; bottom: 0; pointer-events: none;}
+        .dashboard-card.loading .loading-skeleton { display: flex; flex-direction: column; }
+        .dashboard-card.loading > *:not(.loading-skeleton) { visibility: hidden; } /* Hide real content */
+        .skeleton.activity-icon-placeholder { width: 38px; height: 38px; border-radius: 10px; flex-shrink: 0; }
+        .skeleton.activity-line { height: 16px; width: 70%; margin-bottom: 0.4rem; }
+        .skeleton.activity-line-short { width: 40%; margin-top: 0.35rem; height: 12px; }
+        .activity-list .loading-placeholder { padding: 0.5rem 0; display: none; }
+        .activity-list .skeleton-activity-item { display: flex; padding: 0.9rem 1.5rem; border-bottom: 1px solid var(--border-color); align-items: flex-start; gap: 1rem; }
+        .activity-list .skeleton-activity-item:last-child { border-bottom: none; }
+        .activity-list-container.loading .activity-list { visibility: hidden; }
+        .activity-list-container.loading .loading-placeholder { display: block; }
+        .activity-list-container:not(.loading) .activity-item { display: flex; }
+
+        /* Initial Loading Overlay */
+        .initial-loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--bg-color); z-index: 1100; display: flex; justify-content: center; align-items: center; flex-direction: column; gap: 1rem; transition: opacity 0.5s ease-out; }
+        .initial-loading-overlay.hidden { opacity: 0; pointer-events: none; }
+        .initial-loading-overlay .loading-spinner { width: 35px; height: 35px; border-width: 4px; border-color: var(--primary); border-top-color: transparent; animation: loading-spinner 0.8s linear infinite;}
+        .initial-loading-overlay p { color: var(--text-secondary); font-size: 1.1rem;}
+        .toast-container { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 1050; display: flex; flex-direction: column; gap: 0.75rem; max-width: 380px; pointer-events: none; }
+
+
+        /* --- Responsivita --- */
+        @media (max-width: 992px) {
              :root { --sidebar-width: 80px; }
              main { margin-left: 80px; width: calc(100% - 80px); }
              .sidebar { width: 80px; }
@@ -548,187 +390,133 @@
              .sidebar-link i { margin-right: 0; font-size: 1.5rem; } .sidebar-logo i { margin-right: 0; }
              .sidebar-header, .sidebar-link { justify-content: center; }
              .user-profile { justify-content: center; padding: 0.75rem; } .user-avatar { margin-right: 0; }
-              .mobile-menu-toggle { display: block; } /* Show toggle */
+              .mobile-menu-toggle { display: block; }
              #sidebar-close-toggle { display: none !important; }
-              .header-actions { gap: 0.6rem; } /* Smaller gap in header */
-             .refresh-btn .refresh-text { display: none; } /* Hide text */
-             .refresh-btn { padding: 0.6rem 0.8rem; }
-              .schedule-grid { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); } /* Adjust schedule */
+             .header-actions { gap: 0.6rem; }
+             .header-actions .btn span { display: none; }
+             .header-actions .btn { padding: 0.6rem 0.8rem; }
+             .schedule-grid { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
         }
 
-        @media (max-width: 768px) { /* Tablet */
+        @media (max-width: 768px) {
             main { padding: 1rem; }
-            .header-content { flex-direction: column; align-items: stretch; } /* Stack header items */
-             .header-content > div:first-child { justify-content: space-between; width: 100%;} /* Space out toggle/title */
+            .header-content { flex-direction: column; align-items: stretch; }
+            .header-content > div:first-child { justify-content: space-between; width: 100%;}
              .header-content h1 { font-size: 1.5rem; }
-            .header-actions { justify-content: flex-end; margin-top: 0.5rem; } /* Actions to the right */
-            .stat-cards { grid-template-columns: 1fr; }
-            .shortcut-grid { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
-             .schedule-grid { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); } /* Slightly wider days */
+            .header-actions { justify-content: flex-end; margin-top: 0.5rem; }
+            .dashboard-grid { grid-template-columns: 1fr; }
+            .test-stats { flex-direction: column; }
+            .test-item { flex-direction: column; align-items: flex-start; gap: 0.75rem; }
+            .test-score { margin-top: 0.5rem; width: 100%; text-align: right; }
+            .schedule-grid { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
         }
 
-        @media (max-width: 576px) { /* Mobile */
+        @media (max-width: 576px) {
             :root { --sidebar-width: 0; }
             main { margin-left: 0; width: 100%; padding: 0.75rem; }
-             .sidebar { transform: translateX(-100%); width: 260px; z-index: 1000;} /* Sidebar for mobile */
+             .sidebar { transform: translateX(-100%); width: 260px; z-index: 1000;}
              .sidebar.active { transform: translateX(0); }
-            /* --- Styles for when sidebar is active on mobile --- */
              .sidebar.active .sidebar-logo span, .sidebar.active .sidebar-link span, .sidebar.active .user-info, .sidebar.active .sidebar-footer { display: block; }
              .sidebar.active .sidebar-link i { margin-right: 0.75rem; font-size: 1.2rem; }
              .sidebar.active .sidebar-header, .sidebar.active .sidebar-link { justify-content: flex-start; }
              .sidebar.active .user-profile { padding: 1rem; }
              .sidebar.active .user-avatar { margin-right: 0.75rem; }
-             .sidebar.active #sidebar-close-toggle { display: block; } /* Show close button */
-             /* --- End mobile active sidebar --- */
-             .header-content h1 { font-size: 1.4rem; }
+             .sidebar.active #sidebar-close-toggle { display: block; }
+             .header-content h1 { font-size: 1.4rem; text-align: left; }
             .header-actions { gap: 0.5rem; }
-            .refresh-btn { padding: 0.6rem; } /* Icon only */
-             .notifications { margin-right: 0; }
-             .notification-bell { padding: 0.6rem; }
-             .notifications-dropdown-wrapper { width: calc(100vw - 1.5rem); max-width: 340px; }
-             .welcome-content { padding: 1.5rem; flex-direction: column; text-align: center; }
-             .welcome-text-content { max-width: 100%; }
-             .welcome-image { display: none; }
-             .stat-card-value { font-size: 1.9rem; }
-             .shortcut-grid { grid-template-columns: 1fr; }
-             .schedule-grid { grid-template-columns: 1fr; } /* Stack days */
+             .header-actions .btn { padding: 0.6rem; } /* Icon only */
+             .schedule-grid { grid-template-columns: 1fr; }
              .toast-container { bottom: 1rem; right: 1rem; max-width: calc(100% - 1.5rem); }
         }
 
-
-        /* Dark mode */
+        /* --- Dark Mode --- */
         @media (prefers-color-scheme: dark) {
             :root {
-                 --bg-color: #131720; --card-bg-color: #1e2533;
-                 --card-bg-color-rgb: 30, 37, 51;
-                 --text-primary: #e2e8f0; --text-secondary: #94a3b8; --text-muted: #64748b;
-                 --border-color: #334155; --light: #2d3748; --white: #1a202c;
-                 --skeleton-bg: #334155; --skeleton-highlight: #475569;
-                 --input-bg: #2d3748;
+                --bg-color: #131720; --card-bg-color: #1e2533;
+                --card-bg-color-rgb: 30, 37, 51;
+                --text-primary: #e2e8f0; --text-secondary: #94a3b8; --text-muted: #64748b;
+                --border-color: #334155; --light: #2d3748; --white: #1a202c;
+                --skeleton-bg: #334155; --skeleton-highlight: #475569;
+                --input-bg: #2d3748;
+                 --danger-rgb: 247, 37, 133;
             }
-            /* --- Dark mode adjustments from procvicovani/main.html --- */
-             body { background-color: var(--bg-color); }
-             .section, .dashboard-header, .dashboard-card, .topic-card, .test-item, .stats-card {
+            body { background-color: var(--bg-color); }
+            .section, .dashboard-header, .dashboard-card, .topic-card, .test-item, .stats-card, .shortcut-card, .activity-list-container, .view-all-link, .toast, .notifications-dropdown-wrapper, .main-weekly-schedule, .schedule-day {
                  background-color: var(--card-bg-color); border-color: var(--border-color);
             }
-            .mobile-menu-toggle { color: var(--text-primary); }
-            .empty-state i { color: var(--light); }
-            .test-stats .stats-card { background-color: var(--card-bg-color); }
-             .main-weekly-schedule { background-color: transparent; }
-             .schedule-day { background-color: var(--card-bg-color); }
              .schedule-day-header { background: var(--card-bg-color); color: var(--primary-light); border-bottom-color: var(--border-color); }
              .schedule-activity-item { border-left-color: var(--primary-light); }
              .activity-icon { color: var(--primary-light); }
              .schedule-activity-item strong { color: var(--text-primary); }
              .schedule-activity-item span { color: var(--text-secondary); }
              .schedule-activity-item.completed { border-left-color: var(--success); }
-              .schedule-activity-item.completed .activity-icon { color: var(--success); }
-              .schedule-activity-item.completed strong { text-decoration-color: rgba(255,255,255,0.5); color: var(--text-secondary); }
-              .schedule-activities .no-activities-placeholder { color: var(--text-muted); }
-              .initial-loading-overlay { background-color: var(--bg-color); }
-              .refresh-btn { color: var(--text-secondary); }
-              .refresh-btn:hover:not(:disabled) { background-color: var(--light); color: var(--primary-light); }
-              .notification-bell i { color: var(--text-secondary); }
-              .notification-bell:hover i { color: var(--primary-light); }
-              .notification-badge { border-color: var(--card-bg-color); }
-              .notifications-dropdown-wrapper { background-color: var(--card-bg-color); border-color: var(--border-color); }
-              .notifications-header, .activity-item { border-bottom-color: var(--border-color); }
-              .mark-all-read-btn { color: var(--primary-light); }
-              .notification-title { color: var(--text-primary); }
-              .notification-message { color: var(--text-secondary); }
-              .notification-time { color: var(--text-muted); }
-              .notifications-footer { background-color: var(--light); border-top-color: var(--border-color); }
-              .view-all-notifications-link { color: var(--primary-light); }
-              .activity-list-container { background-color: var(--card-bg-color); border-color: var(--border-color); }
-              .view-all-link { background-color: var(--light); border-color: var(--border-color); color: var(--primary-light);}
-              .view-all-link:hover { background-color: rgba(var(--primary-rgb), 0.15); border-color: rgba(var(--primary-rgb), 0.3);}
-              .toast { background-color: var(--card-bg-color); color: var(--text-primary); border-color: var(--border-color); }
-              .dashboard-footer { border-top-color: var(--border-color); }
+             .schedule-activity-item.completed .activity-icon { color: var(--success); }
+             .schedule-activity-item.completed strong { text-decoration-color: rgba(255,255,255,0.5); color: var(--text-secondary); }
+             .schedule-activities .no-activities-placeholder { color: var(--text-muted); }
+             .mobile-menu-toggle { color: var(--text-primary); }
+             .empty-state i { color: var(--light); }
+             .test-stats .stats-card { background-color: var(--card-bg-color); }
+             .initial-loading-overlay { background-color: var(--bg-color); }
+             .toast { border: 1px solid var(--border-color); color: var(--text-primary);}
+             .dashboard-footer { border-top-color: var(--border-color); }
         }
-
         /* --- END OF STYLES --- */
     </style>
 </head>
 <body>
     <div class="initial-loading-overlay" id="initial-loader">
          <div class="loading-spinner"></div>
-         <p>Načítání...</p> </div>
+         <p>Načítání...</p>
+     </div>
 
     <div class="offline-banner" id="offline-banner"> <i class="fas fa-wifi"></i> Momentálně jste offline. Některé funkce nemusí fungovat správně. </div>
     <div class="sidebar-overlay" id="sidebar-overlay"></div>
 
     <aside id="sidebar" class="sidebar">
         <div class="sidebar-header">
-            <button class="mobile-menu-toggle" id="sidebar-close-toggle" style="color: var(--white); margin-right: 1rem; display: none; background: none; border: none; font-size: 1.5rem; cursor: pointer;"> <i class="fas fa-times"></i> </button>
-            <a href="/" class="sidebar-logo">
-                <i class="fas fa-calculator"></i>
-                <span>Justax</span>
-            </a>
+             <button class="mobile-menu-toggle" id="sidebar-close-toggle" style="color: var(--white); margin-right: 1rem; display: none; background: none; border: none; font-size: 1.5rem; cursor: pointer;"> <i class="fas fa-times"></i> </button>
+            <a href="/dashboard/dashboard.html" class="sidebar-logo"> <i class="fas fa-calculator"></i> <span>Justax</span> </a>
         </div>
-
-         <ul class="sidebar-menu">
+        <ul class="sidebar-menu">
              <li class="sidebar-item">
-                 <a href="/dashboard/dashboard.html" class="sidebar-link"> <i class="fas fa-th-large"></i>
-                     <span>Nástěnka</span>
-                 </a>
+                 <a href="/dashboard/dashboard.html" class="sidebar-link"> <i class="fas fa-th-large"></i> <span>Nástěnka</span> </a>
              </li>
              <li class="sidebar-item">
-                 <a href="/dashboard/procvicovani/main.html" class="sidebar-link active">
-                     <i class="fas fa-book-open"></i>
-                     <span>Procvičování</span>
-                 </a>
+                 <a href="/dashboard/procvicovani/main.html" class="sidebar-link active"> <i class="fas fa-book-open"></i> <span>Procvičování</span> </a>
              </li>
              <li class="sidebar-item">
-                 <a href="/dashboard/pokrok.html" class="sidebar-link"> <i class="fas fa-chart-line"></i>
-                     <span>Pokrok</span>
-                 </a>
+                 <a href="/dashboard/pokrok.html" class="sidebar-link"> <i class="fas fa-chart-line"></i> <span>Pokrok</span> </a>
              </li>
              <li class="sidebar-item">
-                 <a href="/dashboard/oceneni.html" class="sidebar-link"> <i class="fas fa-medal"></i>
-                     <span>Ocenění</span>
-                 </a>
+                 <a href="/dashboard/oceneni.html" class="sidebar-link"> <i class="fas fa-medal"></i> <span>Ocenění</span> </a>
              </li>
              <li class="sidebar-item">
-                 <a href="/dashboard/materialy.html" class="sidebar-link"> <i class="fas fa-file-alt"></i>
-                     <span>Materiály</span>
-                 </a>
+                 <a href="/dashboard/materialy.html" class="sidebar-link"> <i class="fas fa-file-alt"></i> <span>Materiály</span> </a>
              </li>
              <li class="sidebar-item">
-                 <a href="/dashboard/profile.html" class="sidebar-link"> <i class="fas fa-user-cog"></i>
-                     <span>Profil</span>
-                 </a>
+                 <a href="/dashboard/profile.html" class="sidebar-link"> <i class="fas fa-user-cog"></i> <span>Profil</span> </a>
              </li>
-         </ul>
-
+        </ul>
         <div class="user-profile">
-            <div class="user-avatar" id="user-avatar">?</div> <div class="user-info">
-                <div class="user-name" id="user-name">Načítání...</div> <div class="user-role">Student</div>
+            <div class="user-avatar" id="user-avatar">?</div>
+            <div class="user-info">
+                <div class="user-name" id="user-name">Načítání...</div>
+                <div class="user-role">Student</div>
             </div>
         </div>
-
-        <div class="sidebar-footer">
-            &copy; 2025 Justax
-        </div>
+        <div class="sidebar-footer"> &copy; 2025 Justax </div>
     </aside>
 
     <main id="main-content" style="display: none;">
          <div class="dashboard-header">
              <div class="header-content">
                  <div class="header-title-section">
-                     <button class="mobile-menu-toggle" id="mobile-menu-toggle">
-                         <i class="fas fa-bars"></i>
-                     </button>
+                     <button class="mobile-menu-toggle" id="mobile-menu-toggle"> <i class="fas fa-bars"></i> </button>
                      <h1>Procvičování</h1>
                  </div>
                  <div class="header-actions">
-                     <a href="/dashboard/procvicovani/vyuka.html" class="btn btn-secondary">
-                         <i class="fas fa-graduation-cap"></i>
-                         <span>Výuka</span>
-                     </a>
-                     <a href="test1.html" class="btn btn-primary">
-                         <i class="fas fa-vial"></i>
-                         <span>Diagnostický Test</span>
-                     </a>
+                     <a href="/dashboard/procvicovani/vyuka.html" class="btn btn-secondary"> <i class="fas fa-graduation-cap"></i> <span>Výuka</span> </a>
+                     <a href="test1.html" class="btn btn-primary"> <i class="fas fa-vial"></i> <span>Diagnostický Test</span> </a>
                  </div>
              </div>
          </div>
@@ -750,25 +538,18 @@
                  <div class="tab-content active" id="test-results">
                      <div id="test-results-loading" class="loading">Načítání výsledků testů...</div>
                      <div id="test-results-content" style="display: none">
-                         <div class="test-stats" id="test-stats">
-                             </div>
-                         <div class="chart-container">
-                             <canvas id="testsChart"></canvas>
-                         </div>
+                         <div class="test-stats" id="test-stats"></div>
+                         <div class="chart-container"> <canvas id="testsChart"></canvas> </div>
                          <h3 class="section-subtitle">Poslední výsledek diagnostického testu</h3>
-                         <div id="last-test-result">
-                             </div>
+                         <div id="last-test-result"></div>
                          <h3 class="section-subtitle">Historie diagnostických testů</h3>
-                         <div class="test-list" id="test-history">
-                             </div>
+                         <div class="test-list" id="test-history"></div>
                      </div>
                      <div id="test-results-empty" class="empty-state" style="display: none">
                          <i class="fas fa-clipboard-list"></i>
                          <h3 id="empty-state-title">Diagnostický test</h3>
                          <p id="empty-state-message">Zatím jste nedokončili diagnostický test. Je důležitý pro personalizaci vašeho učení.</p>
-                         <a href="test1.html" class="btn btn-primary" id="start-test-btn"> <i class="fas fa-play"></i>
-                             <span id="empty-state-button-text">Spustit diagnostický test</span>
-                         </a>
+                         <a href="test1.html" class="btn btn-primary" id="start-test-btn"> <i class="fas fa-play"></i> <span id="empty-state-button-text">Spustit diagnostický test</span> </a>
                      </div>
                  </div>
 
@@ -777,38 +558,28 @@
                      <div id="study-plan-content" style="display: none">
                          <div class="main-weekly-schedule">
                              <h3 class="section-subtitle">Týdenní přehled aktivit</h3>
-                             <div class="schedule-grid" id="main-plan-schedule">
-                                 </div>
-                             <div class="full-plan-link-container">
-                                 <a href="plan.html" class="btn btn-primary">
-                                     <i class="fas fa-calendar-alt"></i> Zobrazit podrobný plán
-                                 </a>
-                             </div>
+                             <div class="schedule-grid" id="main-plan-schedule"></div>
+                             <div class="full-plan-link-container"> <a href="plan.html" class="btn btn-primary"> <i class="fas fa-calendar-alt"></i> Zobrazit podrobný plán </a> </div>
                          </div>
                      </div>
                      <div id="study-plan-empty" class="empty-state" style="display: none">
                          <i class="fas fa-calendar-alt"></i>
                          <h3>Žádný studijní plán</h3>
                          <p>Zatím nemáte vytvořený personalizovaný studijní plán. Projděte diagnostickým testem pro vytvoření plánu.</p>
-                         <a href="test1.html" class="btn btn-primary" id="create-plan-btn"> <i class="fas fa-clipboard-check"></i>
-                             Projít diagnostickým testem
-                         </a>
+                         <a href="test1.html" class="btn btn-primary" id="create-plan-btn"> <i class="fas fa-clipboard-check"></i> Projít diagnostickým testem </a>
                      </div>
                  </div>
 
                 <div class="tab-content" id="topic-analysis">
                     <div id="topic-analysis-loading" class="loading">Načítání analýzy témat...</div>
                     <div id="topic-analysis-content" style="display: none">
-                        <div class="topic-grid" id="topic-grid">
-                            </div>
+                        <div class="topic-grid" id="topic-grid"></div>
                     </div>
                     <div id="topic-analysis-empty" class="empty-state" style="display: none">
                         <i class="fas fa-chart-pie"></i>
                         <h3>Žádná analýza témat</h3>
                         <p>Zatím nemáte žádná data pro analýzu témat. Procvičujte více příkladů pro získání přehledu o vašich silných a slabých stránkách.</p>
-                        <a href="test1.html" class="btn btn-primary" id="start-practice-btn"> <i class="fas fa-play"></i>
-                            Začít procvičovat
-                        </a>
+                        <a href="test1.html" class="btn btn-primary" id="start-practice-btn"> <i class="fas fa-play"></i> Začít procvičovat </a>
                     </div>
                 </div>
             </section>
@@ -822,8 +593,7 @@
     <div class="toast-container" id="toast-container"></div>
 
     <script>
-        // ИЗМЕНЕНИЕ: Добавлен JS для управления загрузчиком и инициализации
-        // Обертка IIFE для изоляции переменных
+        // ДОБАВЛЕНО/ИЗМЕНЕНО: JavaScript для инициализации и управления загрузкой
         (function() {
             // --- START: Инициализация и Конфигурация ---
             const supabaseUrl = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
@@ -831,89 +601,57 @@
             let supabase = null;
             let currentUser = null;
             let currentProfile = null;
-            // Флаги загрузки
-            let isLoading = { stats: false, tests: false, plan: false, topics: false };
+            let isLoading = { stats: false, tests: false, plan: false, topics: false }; // Флаги загрузки
 
             // DOM Cache
             const ui = {
-                 sidebarAvatar: document.getElementById('user-avatar'),
-                 sidebarName: document.getElementById('user-name'),
-                 initialLoader: document.getElementById('initial-loader'), // <<-- Loader DIV
-                 mainContent: document.getElementById('main-content'),    // <<-- Main content DIV
-                 mobileMenuToggle: document.getElementById('mobile-menu-toggle'),
-                 sidebar: document.getElementById('sidebar'),
-                 sidebarOverlay: document.getElementById('sidebar-overlay'),
-                 toastContainer: document.getElementById('toast-container'),
-                 // Добавь остальные элементы со страницы procvicovani...
-                 statsCardsContainer: document.getElementById('stats-cards'),
-                 statsLoading: document.getElementById('stats-loading'),
-                 testResultsLoading: document.getElementById('test-results-loading'),
-                 testResultsContent: document.getElementById('test-results-content'),
-                 testResultsEmpty: document.getElementById('test-results-empty'),
-                 // ... и так далее для study-plan и topic-analysis
+                sidebarAvatar: document.getElementById('user-avatar'),
+                sidebarName: document.getElementById('user-name'),
+                initialLoader: document.getElementById('initial-loader'), // <-- Загрузчик
+                mainContent: document.getElementById('main-content'),    // <-- Основной контент
+                mobileMenuToggle: document.getElementById('mobile-menu-toggle'), // Главный toggle
+                sidebarCloseToggle: document.getElementById('sidebar-close-toggle'), // Toggle в sidebar
+                sidebar: document.getElementById('sidebar'),
+                sidebarOverlay: document.getElementById('sidebar-overlay'),
+                toastContainer: document.getElementById('toast-container'),
+                statsCardsContainer: document.getElementById('stats-cards'),
+                statsLoading: document.getElementById('stats-loading'),
+                testResultsLoading: document.getElementById('test-results-loading'),
+                testResultsContent: document.getElementById('test-results-content'),
+                testResultsEmpty: document.getElementById('test-results-empty'),
+                studyPlanLoading: document.getElementById('study-plan-loading'),
+                studyPlanContent: document.getElementById('study-plan-content'),
+                studyPlanEmpty: document.getElementById('study-plan-empty'),
+                topicAnalysisLoading: document.getElementById('topic-analysis-loading'),
+                topicAnalysisContent: document.getElementById('topic-analysis-content'),
+                topicAnalysisEmpty: document.getElementById('topic-analysis-empty'),
+                // Добавь другие нужные элементы
             };
 
             // --- START: Helper Functions ---
-            function showToast(message, type = 'success', duration = 4000) {
-                 if (!ui.toastContainer) return;
-                 try {
-                     const toastId = `toast-${Date.now()}`;
-                     const toastElement = document.createElement('div');
-                     toastElement.className = `toast ${type}`;
-                     toastElement.id = toastId;
-                     toastElement.setAttribute('role', 'alert');
-                     toastElement.setAttribute('aria-live', 'assertive');
-                     toastElement.innerHTML = `
-                         <i class="toast-icon"></i>
-                         <div class="toast-content">
-                             <div class="toast-message">${sanitizeHTML(message)}</div>
-                         </div>
-                         <button type="button" class="toast-close" aria-label="Zavřít">&times;</button>
-                     `;
-                     const icon = toastElement.querySelector('.toast-icon');
-                     icon.className = `toast-icon fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle'}`;
-                     toastElement.querySelector('.toast-close').addEventListener('click', () => {
-                         toastElement.classList.remove('show');
-                         setTimeout(() => toastElement.remove(), 400);
-                     });
-                     ui.toastContainer.appendChild(toastElement);
-                     requestAnimationFrame(() => { toastElement.classList.add('show'); });
-                     setTimeout(() => { if (toastElement.parentElement) { toastElement.classList.remove('show'); setTimeout(() => toastElement.remove(), 400); } }, duration);
-                 } catch (e) { console.error("Chyba při zobrazování toastu:", e); }
-              }
+            // (Добавь сюда функции showToast, sanitizeHTML, getInitials, toggleMobileMenu, updateUserInfoUI из предыдущего ответа)
+            function showToast(message, type = 'success', duration = 4000) { if (!ui.toastContainer) return; try { const toastId = `toast-${Date.now()}`; const toastElement = document.createElement('div'); toastElement.className = `toast ${type}`; toastElement.id = toastId; toastElement.setAttribute('role', 'alert'); toastElement.setAttribute('aria-live', 'assertive'); toastElement.innerHTML = `<i class="toast-icon"></i><div class="toast-content"><div class="toast-message">${sanitizeHTML(message)}</div></div><button type="button" class="toast-close" aria-label="Zavřít">&times;</button>`; const icon = toastElement.querySelector('.toast-icon'); icon.className = `toast-icon fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle'}`; toastElement.querySelector('.toast-close').addEventListener('click', () => { toastElement.classList.remove('show'); setTimeout(() => toastElement.remove(), 400); }); ui.toastContainer.appendChild(toastElement); requestAnimationFrame(() => { toastElement.classList.add('show'); }); setTimeout(() => { if (toastElement.parentElement) { toastElement.classList.remove('show'); setTimeout(() => toastElement.remove(), 400); } }, duration); } catch (e) { console.error("Chyba při zobrazování toastu:", e); } }
             function sanitizeHTML(str) { const t = document.createElement('div'); t.textContent = str || ''; return t.innerHTML; }
             function getInitials(profile) { if (!profile) return '?'; const f = profile.first_name?.[0] || ''; const l = profile.last_name?.[0] || ''; const nameInitial = (f + l).toUpperCase(); const usernameInitial = profile.username?.[0].toUpperCase() || ''; const emailInitial = profile.email?.[0].toUpperCase() || ''; return nameInitial || usernameInitial || emailInitial || '?'; }
             function toggleMobileMenu() { ui.sidebar?.classList.toggle('active'); ui.sidebarOverlay?.classList.toggle('active'); }
-            function updateUserInfoUI() { // <-- Эта функция обновляет sidebar
-                if (!ui.sidebarName || !ui.sidebarAvatar) return;
-                if (currentUser && currentProfile) {
-                    const displayName = `${currentProfile.first_name || ''} ${currentProfile.last_name || ''}`.trim() || currentProfile.username || currentUser.email?.split('@')[0] || 'Uživatel';
-                    ui.sidebarName.textContent = displayName;
-                    const initials = getInitials(currentProfile);
-                    ui.sidebarAvatar.innerHTML = currentProfile.avatar_url ? `<img src="${currentProfile.avatar_url}" alt="${displayName}">` : initials;
-                } else {
-                    ui.sidebarName.textContent = 'Nepřihlášen';
-                    ui.sidebarAvatar.textContent = '?';
-                }
-            }
+            function updateUserInfoUI() { if (!ui.sidebarName || !ui.sidebarAvatar) return; if (currentUser && currentProfile) { const displayName = `${currentProfile.first_name || ''} ${currentProfile.last_name || ''}`.trim() || currentProfile.username || currentUser.email?.split('@')[0] || 'Uživatel'; ui.sidebarName.textContent = displayName; const initials = getInitials(currentProfile); ui.sidebarAvatar.innerHTML = currentProfile.avatar_url ? `<img src="${currentProfile.avatar_url}" alt="${displayName}">` : initials; } else { ui.sidebarName.textContent = 'Nepřihlášen'; ui.sidebarAvatar.textContent = '?'; } }
             // --- END: Helper Functions ---
+
 
              // --- START: Инициализация Supabase и страницы ---
              function initializeSupabase() {
                  try {
-                      if (typeof window.supabase === 'undefined' || typeof window.supabase.createClient !== 'function') {
-                         throw new Error("Supabase library not loaded correctly.");
-                      }
-                      supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
-                      if (!supabase) throw new Error("Supabase client creation failed.");
-                      console.log('[Supabase] Client initialized successfully.');
-                      return true;
-                  } catch (error) {
-                      console.error('[Supabase] Initialization failed:', error);
-                      showToast("Kritická chyba: Nepodařilo se připojit k databázi.", "error");
-                      if (ui.initialLoader) { ui.initialLoader.innerHTML = `<p style="color: var(--danger);">Chyba připojení. Obnovte stránku.</p>`;}
-                      return false;
-                  }
+                     if (typeof window.supabase === 'undefined' || typeof window.supabase.createClient !== 'function') { throw new Error("Supabase library not loaded."); }
+                     supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+                     if (!supabase) throw new Error("Supabase client creation failed.");
+                     console.log('[Supabase] Client initialized.');
+                     return true;
+                 } catch (error) {
+                     console.error('[Supabase] Initialization failed:', error);
+                     showToast("Kritická chyba: Nelze se připojit.", "error");
+                     if (ui.initialLoader) { ui.initialLoader.innerHTML = `<p style="color: var(--danger);">Chyba připojení. Obnovte stránku.</p>`; }
+                     return false;
+                 }
              }
 
              async function fetchUserProfile(userId) {
@@ -921,80 +659,77 @@
                  try {
                      const { data: profile, error } = await supabase.from('profiles').select('*').eq('id', userId).single();
                      if (error && error.code !== 'PGRST116') throw error;
-                     return profile; // Returns null if not found, which is handled later
+                     return profile;
                  } catch (error) {
-                     console.error('[Profile] Exception fetching profile:', error);
-                     showToast('Nepodařilo se načíst data profilu.', 'error');
+                     console.error('[Profile] Fetch error:', error);
+                     showToast('Nepodařilo se načíst profil.', 'error');
                      return null;
                  }
              }
 
-             async function initializePage() {
-                 console.log("🚀 [Init Procvičování] Initializing page...");
-                 if (!initializeSupabase()) return;
+            // --- Основная функция инициализации ---
+            async function initializePage() {
+                console.log("🚀 [Init Procvičování] Starting...");
+                if (!initializeSupabase()) return;
 
-                 // Показать начальный загрузчик
-                 if (ui.initialLoader) {
-                     ui.initialLoader.classList.remove('hidden');
+                // Показать загрузчик
+                if (ui.initialLoader) {
                      ui.initialLoader.style.display = 'flex';
-                 }
-                 if (ui.mainContent) { ui.mainContent.style.display = 'none'; } // Скрыть основной контент
+                     ui.initialLoader.classList.remove('hidden');
+                }
+                 if (ui.mainContent) { ui.mainContent.style.display = 'none'; ui.mainContent.classList.remove('loaded');}
 
-                 try {
-                     const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-                     if (sessionError) throw new Error(`Nepodařilo se ověřit přihlášení: ${sessionError.message}`);
+                try {
+                    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+                    if (sessionError) throw sessionError;
 
-                     if (session?.user) {
-                         currentUser = session.user;
-                         currentProfile = await fetchUserProfile(currentUser.id);
-                         // Update sidebar even if profile fetch failed (shows email initial)
-                         updateUserInfoUI();
+                    if (session?.user) {
+                        currentUser = session.user;
+                        currentProfile = await fetchUserProfile(currentUser.id);
+                        updateUserInfoUI(); // Обновить sidebar
 
-                         if (!currentProfile) {
-                             console.warn("User profile not found, some features might be limited.");
-                             showToast("Profil nenalezen. Některé funkce nemusí fungovat.", "warning");
-                         }
+                        // <<< Здесь должна быть логика загрузки данных ДЛЯ ЭТОЙ СТРАНИЦЫ >>>
+                        // Например, вызов функций loadStats(), loadTestResults() и т.д.
+                        // Имитируем загрузку небольшой задержкой:
+                        await new Promise(resolve => setTimeout(resolve, 700)); // Убери это в реальном коде
+                        // <<< Конец логики загрузки данных >>>
 
-                         // <<< Загрузка данных для страницы Procvičování >>>
-                         // await loadStats();
-                         // await loadTestResults(); // и так далее...
-                         // <<< Конец загрузки данных >>>
+                        // Скрыть загрузчик и показать контент
+                        if (ui.initialLoader) {
+                            ui.initialLoader.classList.add('hidden');
+                            setTimeout(() => { if(ui.initialLoader) ui.initialLoader.style.display = 'none'; }, 500); // Задержка для анимации
+                        }
+                        if (ui.mainContent) {
+                            ui.mainContent.style.display = 'block'; // Сначала показать
+                             requestAnimationFrame(() => { // Потом добавить класс для анимации
+                                if(ui.mainContent) ui.mainContent.classList.add('loaded');
+                             });
+                        }
+                        console.log("✅ [Init Procvičování] Page loaded.");
 
-                         // Скрыть загрузчик и показать контент ПОСЛЕ некоторой задержки или завершения загрузки данных
-                         // Пример с задержкой:
-                         setTimeout(() => {
-                             if (ui.initialLoader) {
-                                 ui.initialLoader.classList.add('hidden');
-                                 setTimeout(() => { if (ui.initialLoader) ui.initialLoader.style.display = 'none'; }, 500); // Delay hiding completely
-                             }
-                             if (ui.mainContent) {
-                                 ui.mainContent.style.display = 'block';
-                                 requestAnimationFrame(() => { ui.mainContent.classList.add('loaded'); });
-                             }
-                             console.log("✅ [Init Procvičování] Page displayed.");
-                         }, 500); // Имитация загрузки данных (замени на реальную логику)
-
-
-                     } else {
-                         console.log("[Init Procvičování] User not logged in. Redirecting...");
-                         window.location.href = '/auth/index.html';
-                     }
-                 } catch (error) {
-                     console.error("❌ [Init Procvičování] Critical initialization error:", error);
-                     if (ui.initialLoader && !ui.initialLoader.classList.contains('hidden')) {
-                         ui.initialLoader.innerHTML = `<p style="color: var(--danger);">Chyba (${error.message}). Obnovte stránku.</p>`;
-                     }
-                     if (ui.mainContent) { ui.mainContent.style.display = 'none'; }
-                 }
-             }
-             // --- END: Инициализация Supabase и страницы ---
+                    } else {
+                        console.log("[Init Procvičování] Not logged in. Redirecting...");
+                        window.location.href = '/auth/index.html'; // Перенаправить на логин
+                    }
+                } catch (error) {
+                    console.error("❌ [Init Procvičování] Error:", error);
+                    if (ui.initialLoader && !ui.initialLoader.classList.contains('hidden')) {
+                         ui.initialLoader.innerHTML = `<p style="color: var(--danger);">Chyba (${error.message}). Obnovte.</p>`;
+                    } else if (ui.mainContent) {
+                        ui.mainContent.innerHTML = `<div class="section error-message"><i class="fas fa-exclamation-triangle"></i> Chyba: ${sanitizeHTML(error.message)}</div>`;
+                        ui.mainContent.style.display = 'block'; // Показать ошибку в main
+                    }
+                }
+            }
+            // --- END: Инициализация Supabase и страницы ---
 
             // --- START: Event Listeners ---
             function setupEventListeners() {
                  if (ui.mobileMenuToggle) { ui.mobileMenuToggle.addEventListener('click', toggleMobileMenu); }
                  if (ui.sidebarOverlay) { ui.sidebarOverlay.addEventListener('click', toggleMobileMenu); }
+                 if (ui.sidebarCloseToggle) { ui.sidebarCloseToggle.addEventListener('click', toggleMobileMenu); } // Listener for close button
 
-                 // Tabs switching logic (from your original procvicovani/main.html)
+                 // Переключение вкладок (Tabs)
                  const contentTabs = document.querySelectorAll('.content-tab');
                  const tabContents = document.querySelectorAll('.tab-content');
                  contentTabs.forEach(tab => {
@@ -1005,22 +740,32 @@
                          tab.classList.add('active');
                          const targetContent = document.getElementById(tabId);
                           if (targetContent) { targetContent.classList.add('active'); }
+                         // Возможно, здесь нужно будет перезагрузить данные для активной вкладки, если они не грузятся все сразу
+                         // например: if (tabId === 'test-results') loadTestResults();
                      });
                  });
-                 // Add other listeners specific to procvicovani/main.html here
+
+                 // Listener для изменения размера окна (для скрытия мобильного меню)
+                 window.addEventListener('resize', () => {
+                      if (window.innerWidth > 992 && ui.sidebar?.classList.contains('active')) {
+                          closeMenu();
+                      }
+                 });
+
+                 // Tooltip инициализация (если используется)
+                 if (typeof $ !== 'undefined' && $.fn.tooltipster) {
+                     $('.btn-tooltip').tooltipster({ theme: 'tooltipster-shadow', animation: 'fade', delay: 100 });
+                 }
             }
             // --- END: Event Listeners ---
 
-
-            // --- Запуск приложения ---
-            // Ждем загрузки DOM перед инициализацией скриптов
+            // --- Запуск ---
             document.addEventListener('DOMContentLoaded', () => {
-                setupEventListeners(); // Настроить базовые слушатели UI
-                initializePage();      // Запустить инициализацию страницы (включая проверку auth)
-            });
+                 setupEventListeners();
+                 initializePage(); // Запуск инициализации
+             });
 
         })(); // Конец IIFE
     </script>
-
 </body>
 </html>
