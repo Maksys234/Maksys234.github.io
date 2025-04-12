@@ -13,13 +13,13 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/date-fns@2.29.3/index.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/css/tooltipster.bundle.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/date-fns/locale/cs/index.js"></script> <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/css/tooltipster.bundle.min.css">
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/js/tooltipster.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <style>
-        /* --- CSS STYLES (Kompletní, finální verze) --- */
+        /* --- CSS STYLES (Kompletní, finální verze - beze změny) --- */
          :root {
             /* Paleta barev */
             --primary-rgb: 67, 97, 238; --primary: #4361ee; --primary-light: #4895ef; --primary-dark: #3a0ca3;
@@ -162,7 +162,9 @@
         .chart-actions select:hover { border-color: var(--gray-400); }
         .chart-actions select:focus { outline: none; border-color: var(--input-focus-border); box-shadow: 0 0 0 2px var(--input-focus-shadow); }
         .chart-container { height: 350px; position: relative; }
-        .empty-chart-message { display: none; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: var(--card-bg-color); border-radius: var(--card-radius); align-items: center; justify-content: center; flex-direction: column; }
+        .empty-chart-message { display: none; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: var(--card-bg-color); border-radius: var(--card-radius); align-items: center; justify-content: center; flex-direction: column; text-align: center; } /* Added text-align */
+        .empty-chart-message i { font-size: 2.5rem; margin-bottom: 1rem; color: var(--gray-medium); }
+        .empty-chart-message p { margin: 0; font-size: 1rem; color: var(--text-muted); }
 
         /* Sekce tabulky aktivit */
         .data-table-section { background-color: var(--card-bg-color); border-radius: var(--card-radius); box-shadow: var(--shadow-sm); padding: 1.75rem; margin-bottom: 2rem; position: relative; min-height: 300px; overflow: hidden; border: 1px solid var(--border-color); }
@@ -194,6 +196,16 @@
         .status-badge.failed { background-color: rgba(var(--danger-rgb), 0.1); color: var(--danger); }
         .status-badge.earned { background-color: rgba(var(--warning-rgb), 0.15); color: var(--warning); } /* Style for earned badges */
         .status-badge.generated { background-color: rgba(var(--secondary-rgb), 0.1); color: var(--secondary); } /* Style for generated plans */
+        .status-badge.test, .status-badge.diagnostic { background-color: rgba(var(--secondary-rgb), 0.1); color: var(--secondary); } /* For tests */
+        .status-badge.exercise { background-color: rgba(var(--success-rgb), 0.1); color: var(--success-dark); } /* For exercises */
+        .status-badge.lesson { background-color: rgba(var(--info-rgb), 0.1); color: var(--info); } /* For lessons */
+        .status-badge.badge { background-color: rgba(var(--warning-rgb), 0.15); color: var(--warning); } /* For badges */
+        .status-badge.plan_generated { background-color: rgba(var(--secondary-rgb), 0.1); color: var(--secondary); } /* For plan generation */
+        .status-badge.level_up { background-color: rgba(var(--primary-rgb), 0.1); color: var(--primary); } /* For level up */
+        .status-badge.other, .status-badge.default { background-color: rgba(108, 117, 125, 0.1); color: var(--gray-600); } /* For other/default */
+        .status-badge.skipped { background-color: rgba(108, 117, 125, 0.1); color: var(--gray-600); } /* For skipped (test results) */
+
+
         .points-value { font-weight: 600; color: var(--secondary); }
         .table-activity-title { max-width: 300px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: inline-block; vertical-align: middle; }
 
@@ -291,15 +303,26 @@
              .mobile-menu-toggle { color: var(--text-primary); }
              .loading-overlay { background-color: rgba(var(--card-bg-color-rgb), 0.85); }
              .error-message { background-color: rgba(var(--danger-rgb), 0.1); border-left-color: var(--danger); }
-             .toast { background-color: var(--card-bg-color); border-color: var(--border-color); box-shadow: var(--shadow-lg); }
+             .toast { background-color: var(--card-bg-color); border-color: var(--border-color); box-shadow: var(--shadow-lg); color: var(--text-primary); }
              .dashboard-footer { border-top-color: var(--border-color); }
               .status-badge.completed { background-color: rgba(var(--success-rgb), 0.15); color: var(--success); }
               .status-badge.in-progress { background-color: rgba(var(--warning-rgb), 0.15); color: var(--warning); }
               .status-badge.pending { background-color: rgba(var(--info-rgb), 0.15); color: var(--info); }
               .status-badge.failed { background-color: rgba(var(--danger-rgb), 0.15); color: var(--danger); }
+              .status-badge.earned, .status-badge.badge { background-color: rgba(var(--warning-rgb), 0.2); color: var(--warning); }
+              .status-badge.generated, .status-badge.plan_generated, .status-badge.test, .status-badge.diagnostic { background-color: rgba(var(--secondary-rgb), 0.15); color: var(--secondary); }
+              .status-badge.exercise { background-color: rgba(var(--success-rgb), 0.15); color: var(--success); }
+              .status-badge.lesson { background-color: rgba(var(--info-rgb), 0.15); color: var(--info); }
+              .status-badge.level_up { background-color: rgba(var(--primary-rgb), 0.15); color: var(--primary); }
+              .status-badge.other, .status-badge.default, .status-badge.skipped { background-color: rgba(148, 163, 184, 0.15); color: var(--text-muted); }
               .tooltipster-shadow { background: #1e2a3a; color: #e2e8f0; border-color: #334155; }
+              .pagination-controls .btn { background-color: var(--card-bg-color); border-color: var(--border-color); color: var(--text-secondary); }
+              .pagination-controls .btn:hover:not(:disabled) { background-color: var(--light); }
+              .pagination-controls .btn:disabled { background-color: transparent; border-color: var(--border-color); color: var(--gray-600); opacity: 0.7; }
+              .empty-chart-message { background: var(--card-bg-color); }
+              .empty-state { color: var(--text-muted); }
               /* Graf v tmavém režimu */
-              Chart.defaults.color = '#94a3b8'; Chart.defaults.borderColor = 'rgba(71, 85, 105, 0.3)'; Chart.defaults.scale.grid.color = 'rgba(51, 65, 85, 0.4)';
+              /* Tyto hodnoty se nastavují v JS, takže zde není potřeba */
         }
 
         /* Responsive design */
@@ -394,13 +417,13 @@
                      <select id="activity-type-filter" class="btn-sm btn-secondary" aria-label="Filtrovat typ aktivity">
                          <option value="all">Všechny typy</option>
                          <option value="test">Testy</option>
-                          <option value="diagnostic">Diagnostika</option>
+                         <option value="diagnostic">Diagnostika</option>
                          <option value="exercise">Cvičení</option>
-                          <option value="lesson">Lekce</option>
+                         <option value="lesson">Lekce</option>
                          <option value="badge">Odznaky</option>
-                          <option value="plan_generated">Plány</option>
-                          <option value="level_up">Postup</option>
-                          <option value="other">Jiné</option>
+                         <option value="plan_generated">Plány</option>
+                         <option value="level_up">Postup</option>
+                         <option value="other">Jiné</option>
                      </select>
                 </div>
             </div>
@@ -477,7 +500,7 @@
                  progressChartSection: document.getElementById('progress-chart-section'),
                  chartLoadingOverlay: document.getElementById('chart-loading-overlay'),
                  progressChartCanvas: document.getElementById('progressChart'),
-                 chartEmptyState: document.getElementById('chart-empty-state'), // Added
+                 chartEmptyState: document.getElementById('chart-empty-state'),
                  chartPeriodSelect: document.getElementById('chart-period-select'),
                  activitiesSection: document.getElementById('activities-section'),
                  tableLoadingOverlay: document.getElementById('table-loading-overlay'),
@@ -496,7 +519,7 @@
                  sidebar: document.getElementById('sidebar'),
                  sidebarOverlay: document.getElementById('sidebar-overlay'),
                  sidebarCloseToggle: document.getElementById('sidebar-close-toggle'),
-                 mainElement: document.getElementById('main-content'), // Changed ID from original code
+                 mainElement: document.getElementById('main-content'),
                  dashboardHeader: document.querySelector('.dashboard-header'),
                  initialLoader: document.getElementById('initial-loader')
             };
@@ -520,7 +543,7 @@
                 failed: { name: 'Neúspěch', class: 'failed', icon: 'fa-times-circle' },
                 earned: { name: 'Získáno', class: 'earned', icon: 'fa-medal' },
                 generated: { name: 'Vygenerováno', class: 'generated', icon: 'fa-magic' },
-                skipped: { name: 'Přeskočeno', class: 'skipped', icon: 'fa-forward' }, // Example for skipped
+                skipped: { name: 'Přeskočeno', class: 'skipped', icon: 'fa-forward' },
                 default: { name: 'Neznámý', class: 'default', icon: 'fa-question-circle' }
              };
             // --- KONEC: Inicializace a Konfigurace ---
@@ -573,11 +596,8 @@
 
              /**
              * Manages loading states for different sections.
-             * @param {'stats' | 'chart' | 'activities'} section - The section to update.
-             * @param {boolean} isLoadingFlag - True if loading, false otherwise.
              */
              function setLoadingState(section, isLoadingFlag) {
-                 // Only update if the state actually changes
                  if (isLoading[section] === isLoadingFlag) return;
                  isLoading[section] = isLoadingFlag;
                  console.log(`[setLoadingState] Section: ${section}, isLoading: ${isLoadingFlag}`);
@@ -596,17 +616,14 @@
                      overlayMap[section].classList.toggle('hidden', !isLoadingFlag);
                  }
 
-                 if (contentMap[section]) {
-                     contentMap[section].style.display = isLoadingFlag ? 'none' : 'table'; // Show table when not loading
-                     contentMap[section].style.visibility = isLoadingFlag ? 'hidden' : 'visible';
-                 }
-
-                 if (emptyStateMap[section]) {
-                     // Hide empty state when loading starts
-                     if(isLoadingFlag) {
-                        emptyStateMap[section].style.display = 'none';
-                     }
-                     // Empty state visibility will be handled by rendering functions after data load
+                 // Handle visibility of main content vs. empty state
+                 if (contentMap[section] && emptyStateMap[section]) {
+                      if (isLoadingFlag) {
+                          contentMap[section].style.display = 'none'; // Hide content while loading
+                          emptyStateMap[section].style.display = 'none'; // Hide empty state while loading
+                      } else {
+                          // Visibility is determined by rendering functions after data load
+                      }
                  }
 
                  // Activities Table Specific: Render skeletons when loading starts
@@ -761,11 +778,11 @@
                     }
 
                     if (!profile) {
-                        console.warn(`[Profile] Profile not found for user ${userId}. Creating default.`);
-                        // Consider creating a default profile here if needed, or just return null/default object
-                        // For now, just return null as stats depend on profiles data being present
+                        console.warn(`[Profile] Profile not found for user ${userId}. Returning null.`);
+                        // Based on schema, a profile *should* exist if the user exists in auth.users
+                        // If it doesn't, there's likely an issue with registration or data consistency.
+                        // Returning null is safer than creating a potentially incomplete default profile here.
                          return null;
-                        // Example: return { id: userId, email: currentUser.email, points: 0, streak_days: 0, completed_exercises: 0 /* etc */ };
                     }
 
                     console.log("[Profile] Profile data fetched successfully.");
@@ -781,13 +798,11 @@
             async function loadAllData() {
                  if (!currentUser || !supabase || !currentProfile) {
                      showError("Nelze načíst data: Chybí informace o uživateli nebo spojení.", true);
-                     // Set loading states to false to prevent infinite loading UI
                      setLoadingState('stats', false);
                      setLoadingState('chart', false);
                      setLoadingState('activities', false);
                      return;
                  }
-                 // Prevent concurrent loading
                  if (isLoading.stats || isLoading.chart || isLoading.activities) {
                      console.log("[LoadAllData] Skipping - already loading.");
                      return;
@@ -802,7 +817,7 @@
 
                  try {
                      const results = await Promise.allSettled([
-                         fetchUserStats(currentUser.id, currentProfile), // Pass profile data
+                         fetchUserStats(currentUser.id, currentProfile),
                          fetchProgressHistory(currentUser.id, ui.chartPeriodSelect?.value || 'month'),
                          fetchRecentActivities(currentUser.id, currentActivitiesPage, activitiesPerPage, currentSort.column, currentSort.direction === 'asc', currentFilter)
                      ]);
@@ -812,19 +827,23 @@
                      if (results[0].status === 'fulfilled') {
                          stats = results[0].value;
                          updateStatsCards(stats);
+                         setLoadingState('stats', false); // Stats loaded
                      } else {
                          console.error("❌ Error fetching user stats:", results[0].reason);
                          showError("Nepodařilo se načíst statistiky pokroku.", false);
                          updateStatsCards(null); // Show error state in cards
+                         setLoadingState('stats', false); // Stop loading on error
                      }
 
                      if (results[1].status === 'fulfilled') {
                          chartData = results[1].value;
                          renderProgressChart(chartData);
+                         setLoadingState('chart', false); // Chart loaded
                      } else {
                          console.error("❌ Error fetching progress history:", results[1].reason);
                          showError("Nepodařilo se načíst historii pro graf.", false);
                          renderProgressChart(null); // Show empty/error state in chart
+                         setLoadingState('chart', false); // Stop loading on error
                      }
 
                      if (results[2].status === 'fulfilled') {
@@ -833,6 +852,7 @@
                          totalActivitiesCount = activityResult.count;
                          renderActivitiesTable(allActivitiesData); // Pass fetched data
                          updatePaginationUI();
+                         setLoadingState('activities', false); // Activities loaded
                      } else {
                          console.error("❌ Error fetching recent activities:", results[2].reason);
                          showError("Nepodařilo se načíst historii aktivit.", false);
@@ -840,43 +860,42 @@
                          totalActivitiesCount = 0;
                          renderActivitiesTable(null); // Show error/empty state in table
                          updatePaginationUI();
+                         setLoadingState('activities', false); // Stop loading on error
                      }
 
-                     initializeTooltips(); // Initialize tooltips after content is potentially updated
+                     initializeTooltips();
 
                  } catch (error) { // Catch unexpected errors during Promise.allSettled or processing
                      console.error("❌ Unexpected error in loadAllData:", error);
                      showError(`Nastala neočekávaná chyba: ${error.message}`, true);
                      // Reset UI states on unexpected error
-                     updateStatsCards(null);
-                     renderProgressChart(null);
-                     renderActivitiesTable(null);
+                     updateStatsCards(null); setLoadingState('stats', false);
+                     renderProgressChart(null); setLoadingState('chart', false);
+                     renderActivitiesTable(null); setLoadingState('activities', false);
                      updatePaginationUI();
                  } finally {
                      console.log("🏁 [LoadAllData] Finished data fetch and processing.");
-                     setLoadingState('stats', false);
-                     setLoadingState('chart', false);
-                     setLoadingState('activities', false);
+                     // Loading states are now set individually after each promise settles
                  }
              }
 
             /** Fetches user statistics, combining profile and user_stats table data. */
             async function fetchUserStats(userId, profileData) {
-                if (!supabase || !userId) { console.error("[Stats] Missing Supabase client or user ID."); return null; }
-                // Ensure profileData is valid before proceeding
-                 if (!profileData) { console.error("[Stats] Missing essential profile data."); return null; }
-
+                if (!supabase || !userId || !profileData) {
+                    console.error("[Stats] Missing Supabase client, user ID, or profile data.");
+                    return null;
+                }
                 console.log(`[Stats] Fetching stats for user ${userId}...`);
                 let fetchedStats = null;
                 let statsError = null;
 
                 try {
-                    // Fetch data from user_stats table - ONLY select columns confirmed to exist
+                    // Fetch data from user_stats table
                     const { data, error } = await supabase
-                        .from('user_stats') // CONFIRM TABLE NAME
-                        .select('progress, progress_weekly, points_weekly, streak_longest') // CONFIRM COLUMN NAMES
+                        .from('user_stats') // Table name from your file
+                        .select('progress, progress_weekly, points_weekly, streak_longest, completed_tests') // Select relevant columns
                         .eq('user_id', userId)
-                        .maybeSingle(); // Use maybeSingle to handle cases where no row exists yet
+                        .maybeSingle(); // Handles if no row exists yet
 
                     fetchedStats = data;
                     statsError = error;
@@ -884,21 +903,21 @@
 
                 } catch (error) {
                     console.error("[Stats] Unexpected error fetching user_stats:", error);
-                    statsError = error; // Store error to indicate failure
+                    statsError = error;
                 }
 
-                // Construct the final stats object, preferring profile data for core stats
-                // and user_stats for calculated/derived ones. Use fallbacks.
+                // Construct the final stats object using profile and user_stats data
                 const finalStats = {
-                    progress: fetchedStats?.progress ?? 0, // Default to 0 if not found
-                    progress_weekly: fetchedStats?.progress_weekly ?? 0, // Default to 0
-                    points: profileData.points ?? 0, // Get from profile, fallback 0
-                    points_weekly: fetchedStats?.points_weekly ?? 0, // Default to 0
-                    streak_current: profileData.streak_days ?? 0, // Get from profile, fallback 0
-                    streak_longest: Math.max(fetchedStats?.streak_longest ?? 0, profileData.streak_days ?? 0), // Longest is max of stored and current
-                    completed_exercises: profileData.completed_exercises ?? 0, // Get from profile, fallback 0
-                    completed_tests: profileData.completed_tests ?? 0 // Get from profile (assuming it exists), fallback 0
-                    // Note: completed_tests might not exist in user_stats, adjust if needed
+                    progress: fetchedStats?.progress ?? 0,
+                    progress_weekly: fetchedStats?.progress_weekly ?? 0,
+                    points: profileData.points ?? 0, // Primarily from profiles
+                    points_weekly: fetchedStats?.points_weekly ?? 0,
+                    streak_current: profileData.streak_days ?? 0, // Primarily from profiles
+                    // Ensure streak_longest considers both sources and is at least current streak
+                    streak_longest: Math.max(fetchedStats?.streak_longest ?? 0, profileData.streak_days ?? 0),
+                    // Completed exercises/tests seem to be in profiles, fallback to user_stats if needed
+                    completed_exercises: profileData.completed_exercises ?? 0,
+                    completed_tests: profileData.completed_tests ?? fetchedStats?.completed_tests ?? 0 // Example fallback
                 };
 
                 if (statsError) {
@@ -909,33 +928,56 @@
                 return finalStats;
             }
 
-            /** Fetches progress history data for the chart (DUMMY IMPLEMENTATION). */
+            /** Fetches progress history data for the chart from `progress_snapshots`. */
             async function fetchProgressHistory(userId, period = 'month') {
-                 console.warn(`🚧 [Chart] Using DUMMY data for period: ${period}. Replace with actual Supabase query!`);
-                 await new Promise(resolve => setTimeout(resolve, 300)); // Simulate network delay
-                 const today = new Date(); const labels = []; const data = []; let daysToFetch;
-                 switch (period) { case 'week': daysToFetch = 7; break; case 'month': daysToFetch = 30; break; case '3months': daysToFetch = 90; break; case 'all': daysToFetch = 180; break; default: daysToFetch = 30; }
+                 if (!supabase || !userId) { console.error("[ChartData] Missing Supabase or user ID."); return null; }
+                 console.log(`[ChartData] Fetching progress snapshots for user ${userId}, period: ${period}`);
 
-                 // Simulate some progress data
-                 if (daysToFetch > 0) {
-                      let currentProgress = Math.random() * 30 + 50; // Start between 50-80
-                      for (let i = daysToFetch - 1; i >= 0; i--) {
-                          const date = new Date(today);
-                          date.setDate(today.getDate() - i);
-                          labels.push(date); // Push Date object
-                          currentProgress += (Math.random() - 0.48) * 2.5; // Simulate small daily changes
-                          currentProgress = Math.max(0, Math.min(100, currentProgress)); // Clamp between 0-100
-                          data.push(currentProgress);
-                      }
+                 const today = new Date();
+                 let startDate;
+
+                 switch (period) {
+                     case 'week': startDate = dateFns.subDays(today, 7); break;
+                     case 'month': startDate = dateFns.subMonths(today, 1); break;
+                     case '3months': startDate = dateFns.subMonths(today, 3); break;
+                     case 'all': startDate = null; break; // Fetch all data if 'all'
+                     default: startDate = dateFns.subMonths(today, 1); // Default to month
                  }
 
-                 // Simulate no data scenario randomly
-                 if (Math.random() < 0.15 && period !== 'all') {
-                     console.warn("[Chart] Simulating no data for chart.");
-                     return { labels: [], data: [] }; // Return empty arrays for no data
+                 let query = supabase
+                     .from('progress_snapshots') // Table name from your file
+                     .select('snapshot_date, overall_progress') // Select relevant columns
+                     .eq('user_id', userId);
+
+                 if (startDate) {
+                      // Ensure date is formatted correctly for Supabase (YYYY-MM-DD)
+                     const formattedStartDate = dateFns.formatISO(startDate, { representation: 'date' });
+                     query = query.gte('snapshot_date', formattedStartDate);
+                     console.log(`[ChartData] Filtering from date: ${formattedStartDate}`);
                  }
 
-                 return { labels, data };
+                 query = query.order('snapshot_date', { ascending: true }); // Order chronologically
+
+                 try {
+                     const { data, error } = await query;
+                     if (error) { console.error("[ChartData] Supabase error fetching snapshots:", error); throw error; }
+
+                     console.log(`[ChartData] Fetched ${data?.length || 0} snapshots.`);
+                     if (!data || data.length === 0) {
+                         return { labels: [], data: [] }; // Return empty if no data
+                     }
+
+                     // Prepare data for Chart.js (use date objects for labels)
+                     const labels = data.map(item => new Date(item.snapshot_date + 'T00:00:00Z')); // Ensure date parsing handles potential timezone issues
+                     const progressData = data.map(item => item.overall_progress ?? 0); // Use 0 if progress is null
+
+                     return { labels, data: progressData };
+
+                 } catch (error) {
+                     console.error('[ChartData] Caught exception fetching snapshots:', error);
+                     showToast('Nepodařilo se načíst data pro graf.', 'error');
+                     return null; // Return null on error
+                 }
             }
 
             /** Fetches recent activities with pagination, sorting, and filtering. */
@@ -945,17 +987,23 @@
 
                 const offset = (page - 1) * limit;
                 let query = supabase
-                    .from('activities') // CONFIRM TABLE NAME
+                    .from('activities') // Table name from your file
                     .select('*', { count: 'exact' }) // Fetch count along with data
                     .eq('user_id', userId);
 
                 // Apply filter if not 'all'
                 if (filterType !== 'all') {
-                    query = query.eq('type', filterType); // CONFIRM 'type' COLUMN NAME
+                    query = query.eq('type', filterType); // Column name from your file
                 }
 
-                // Apply sorting
-                query = query.order(sortBy, { ascending: ascending });
+                // Apply sorting (use column names from your file)
+                // Map frontend sort keys to actual DB columns if necessary
+                const dbSortColumn = sortBy === 'points_earned' ? 'points_earned' : // Assuming 'points_earned' exists
+                                     sortBy === 'status' ? 'status' : // Assuming 'status' exists
+                                     sortBy === 'title' ? 'title' :
+                                     sortBy === 'type' ? 'type' :
+                                     'created_at'; // Default sort
+                query = query.order(dbSortColumn, { ascending: ascending });
 
                 // Apply pagination
                 query = query.range(offset, offset + limit - 1);
@@ -1007,8 +1055,8 @@
             /** Updates the statistics cards with fetched data. */
             function updateStatsCards(stats) {
                  console.log("[UI Update] Updating stats cards with data:", stats);
-                 // Remove loading class from all cards first
-                 ui.statsGrid?.querySelectorAll('.stats-card').forEach(card => card.classList.remove('loading'));
+                 // Remove loading class from all cards first (will be done by setLoadingState)
+                 // ui.statsGrid?.querySelectorAll('.stats-card').forEach(card => card.classList.remove('loading'));
 
                  const statElements = {
                      progress: { value: ui.overallProgressValue, desc: ui.overallProgressDesc, footer: ui.overallProgressFooter },
@@ -1017,21 +1065,24 @@
                      completed: { value: ui.completedCountValue, desc: ui.completedCountDesc, footer: ui.completedCountFooter }
                  };
 
+                 // Handle potential errors or null data
                  if (!stats) {
-                     console.warn("[UI Update] No stats data provided, displaying error state.");
+                     console.warn("[UI Update] No stats data provided, displaying error state in cards.");
                      Object.values(statElements).forEach(els => {
-                         if(els.value) els.value.textContent = '-';
-                         if(els.desc) els.desc.textContent = 'Data nedostupná';
-                         if(els.footer) els.footer.innerHTML = '<i class="fas fa-exclamation-circle"></i> Chyba';
+                          const card = els.value?.closest('.stats-card');
+                          if(card) card.classList.remove('loading'); // Ensure loading stops
+                          if(els.value) els.value.textContent = '-';
+                          if(els.desc) els.desc.textContent = 'Data nedostupná';
+                          if(els.footer) els.footer.innerHTML = '<i class="fas fa-exclamation-circle" style="color:var(--danger);"></i> Chyba';
                      });
                      return;
                  }
 
                  // Overall Progress
-                 if (statElements.progress.value) statElements.progress.value.textContent = `${stats.progress || 0}%`;
+                 if (statElements.progress.value) statElements.progress.value.textContent = `${stats.progress ?? 0}%`;
                  if (statElements.progress.desc) statElements.progress.desc.textContent = "Průměrný pokrok";
                  if (statElements.progress.footer) {
-                     const change = stats.progress_weekly || 0;
+                     const change = stats.progress_weekly ?? 0;
                      const icon = change > 0 ? 'fa-arrow-up' : change < 0 ? 'fa-arrow-down' : 'fa-minus';
                      const sign = change > 0 ? '+' : '';
                      statElements.progress.footer.className = `stats-card-footer ${change > 0 ? 'positive' : change < 0 ? 'negative' : ''}`;
@@ -1039,10 +1090,10 @@
                  }
 
                  // Total Points
-                 if (statElements.points.value) statElements.points.value.textContent = stats.points || 0;
+                 if (statElements.points.value) statElements.points.value.textContent = stats.points ?? 0;
                  if (statElements.points.desc) statElements.points.desc.textContent = "Celkem získaných bodů";
                  if (statElements.points.footer) {
-                     const change = stats.points_weekly || 0;
+                     const change = stats.points_weekly ?? 0;
                      const icon = change > 0 ? 'fa-arrow-up' : change < 0 ? 'fa-arrow-down' : 'fa-minus';
                      const sign = change > 0 ? '+' : '';
                       statElements.points.footer.className = `stats-card-footer ${change > 0 ? 'positive' : change < 0 ? 'negative' : ''}`;
@@ -1050,11 +1101,11 @@
                  }
 
                  // Study Streak
-                 if (statElements.streak.value) statElements.streak.value.textContent = stats.streak_current || 0;
+                 if (statElements.streak.value) statElements.streak.value.textContent = stats.streak_current ?? 0;
                  if (statElements.streak.desc) statElements.streak.desc.textContent = `Aktuální série dnů`;
-                 if (statElements.streak.footer) statElements.streak.footer.innerHTML = `<i class="fas fa-medal"></i> Nejdelší: ${stats.streak_longest || 0} dnů`;
+                 if (statElements.streak.footer) statElements.streak.footer.innerHTML = `<i class="fas fa-medal"></i> Nejdelší: ${stats.streak_longest ?? 0} dnů`;
 
-                 // Completed Activities
+                 // Completed Activities (assuming data comes from 'profiles' and 'user_stats')
                  const completedTotal = (stats.completed_exercises || 0) + (stats.completed_tests || 0);
                  if (statElements.completed.value) statElements.completed.value.textContent = completedTotal;
                  if (statElements.completed.desc) statElements.completed.desc.textContent = `Cvičení: ${stats.completed_exercises || 0}, Testů: ${stats.completed_tests || 0}`;
@@ -1065,9 +1116,9 @@
 
             /** Renders the progress chart using Chart.js. */
             function renderProgressChart(chartData) {
-                 if (!ui.progressChartCanvas) { console.error("[Chart] Canvas element not found."); return; }
+                 if (!ui.progressChartCanvas) { console.error("[Chart] Canvas element not found."); setLoadingState('chart', false); return; }
                  const ctx = ui.progressChartCanvas.getContext('2d');
-                 if (!ctx) { console.error("[Chart] Failed to get canvas context."); return; }
+                 if (!ctx) { console.error("[Chart] Failed to get canvas context."); setLoadingState('chart', false); return; }
 
                  // Destroy previous instance if exists
                  if (progressChartInstance) {
@@ -1081,6 +1132,7 @@
                      console.warn("[Chart] No valid data to render chart.");
                      if (ui.progressChartCanvas) ui.progressChartCanvas.style.display = 'none'; // Hide canvas
                      if (ui.chartEmptyState) ui.chartEmptyState.style.display = 'flex'; // Show empty state
+                     setLoadingState('chart', false); // Stop loading for chart
                      return;
                  }
 
@@ -1089,7 +1141,21 @@
                  if (ui.chartEmptyState) ui.chartEmptyState.style.display = 'none';
 
                  console.log("[Chart] Rendering chart with data:", chartData);
+
+                 // Set Chart.js defaults for dark mode if needed
+                 const isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+                 if (isDarkMode) {
+                     Chart.defaults.color = '#94a3b8';
+                     Chart.defaults.borderColor = 'rgba(71, 85, 105, 0.3)';
+                     Chart.defaults.scale.grid.color = 'rgba(51, 65, 85, 0.4)';
+                 } else {
+                      Chart.defaults.color = '#6c757d'; // Default light mode color
+                      Chart.defaults.borderColor = 'rgba(0,0,0,0.1)';
+                      Chart.defaults.scale.grid.color = 'rgba(0,0,0,0.1)';
+                 }
+
                  const chartUnit = determineChartUnit(chartData.labels);
+                 const locale = dateFns.locale.cs || dateFns.locale.enUS; // Fallback to English if Czech locale isn't loaded
 
                  progressChartInstance = new Chart(ctx, {
                      type: 'line',
@@ -1104,7 +1170,7 @@
                              pointBackgroundColor: 'rgba(var(--primary-rgb), 1)',
                              pointRadius: 4,
                              pointHoverRadius: 6,
-                             tension: 0.3, // Smoother curve
+                             tension: 0.3,
                              fill: true
                          }]
                      },
@@ -1114,13 +1180,14 @@
                          scales: {
                              x: {
                                  type: 'time',
+                                 adapters: { date: { locale: locale } }, // Set locale for date-fns adapter
                                  time: {
                                      unit: chartUnit,
-                                     tooltipFormat: 'dd.MM.yyyy', // Format for tooltip
+                                     tooltipFormat: 'P', // Date-fns format for full date (e.g., 12.04.2025)
                                      displayFormats: { // Display formats for different units
-                                         day: 'dd.MM',
-                                         week: 'dd.MM',
-                                         month: 'MMMM yyyy',
+                                         day: 'd.M.',
+                                         week: 'PP', // Localized week format (e.g., 10. dub - 16. dub 2025)
+                                         month: 'LLLL yyyy', // Full month name and year (e.g., duben 2025)
                                          year: 'yyyy'
                                      }
                                  },
@@ -1135,7 +1202,7 @@
                                      color: 'var(--text-muted)',
                                      callback: function(value) { return value + '%'; }
                                  },
-                                 grid: { color: 'rgba(var(--primary-rgb), 0.08)' }
+                                 grid: { color: isDarkMode ? 'rgba(51, 65, 85, 0.4)' : 'rgba(var(--primary-rgb), 0.08)' }
                              }
                          },
                          plugins: {
@@ -1143,9 +1210,9 @@
                              tooltip: {
                                  mode: 'index',
                                  intersect: false,
-                                 backgroundColor: 'rgba(var(--dark), 0.9)', // Darker tooltip
-                                 titleColor: 'var(--white)',
-                                 bodyColor: 'var(--white)',
+                                 backgroundColor: isDarkMode ? 'rgba(30, 41, 59, 0.9)' : 'rgba(var(--dark), 0.9)', // Darker tooltip
+                                 titleColor: isDarkMode ? '#e2e8f0' : '#ffffff',
+                                 bodyColor: isDarkMode ? '#cbd5e0' : '#ffffff',
                                  borderColor: 'rgba(var(--primary-rgb), 0.5)',
                                  borderWidth: 1,
                                  padding: 10,
@@ -1153,7 +1220,7 @@
                                  callbacks: {
                                      title: function(tooltipItems) {
                                          const date = new Date(tooltipItems[0].parsed.x);
-                                         return date.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
+                                         return dateFns.format(date, 'PPP', { locale: locale }); // Format date with locale
                                      },
                                      label: function(context) {
                                          return `Pokrok: ${context.parsed.y.toFixed(1)}%`;
@@ -1174,8 +1241,11 @@
             /** Determines the optimal time unit for the chart's x-axis. */
             function determineChartUnit(labels) {
                  if (!labels || labels.length < 2) return 'day';
-                 const firstDate = new Date(labels[0]);
-                 const lastDate = new Date(labels[labels.length - 1]);
+                 const firstDate = labels[0]; // Already date objects
+                 const lastDate = labels[labels.length - 1];
+                 if (!(firstDate instanceof Date) || !(lastDate instanceof Date)) {
+                     console.warn("[ChartUnit] Invalid date objects in labels."); return 'day';
+                 }
                  const diffDays = dateFns.differenceInDays(lastDate, firstDate);
 
                  if (diffDays <= 10) return 'day';
@@ -1188,6 +1258,7 @@
              function renderActivitiesTable(activities) {
                  if (!ui.activitiesBody || !ui.activitiesTable || !ui.activitiesEmptyState) {
                      console.error("[ActivitiesTable] Table elements not found.");
+                     setLoadingState('activities', false); // Stop loading even if elements missing
                      return;
                  }
                  ui.activitiesBody.innerHTML = ''; // Clear previous content
@@ -1195,7 +1266,8 @@
                  if (!activities || activities.length === 0) {
                      console.log("[ActivitiesTable] No activities to display.");
                      ui.activitiesTable.style.display = 'none'; // Hide table
-                     ui.activitiesEmptyState.style.display = 'block'; // Show empty state
+                     ui.activitiesEmptyState.style.display = 'flex'; // Show empty state (use flex for centering)
+                     setLoadingState('activities', false); // Stop loading
                      return;
                  }
 
@@ -1206,18 +1278,25 @@
                  const fragment = document.createDocumentFragment();
                  activities.forEach(activity => {
                      const tr = document.createElement('tr');
-                     const activityTypeInfo = activityTypeMap[activity.type?.toLowerCase()] || activityTypeMap.default;
-                     const activityStatusInfo = activityStatusMap[activity.status?.toLowerCase()] || activityStatusMap.default;
+                     // Use DB values directly for type/status, handle null/undefined
+                     const typeKey = activity.type?.toLowerCase() || 'default';
+                     const statusKey = activity.status?.toLowerCase() || 'default'; // Assuming 'status' column exists
+
+                     const activityTypeInfo = activityTypeMap[typeKey] || activityTypeMap.default;
+                     const activityStatusInfo = activityStatusMap[statusKey] || activityStatusMap.default;
+
+                     // Safely access points_earned
+                     const pointsEarned = activity.points_earned != null ? activity.points_earned : '-';
 
                      tr.innerHTML = `
                          <td>${formatDate(activity.created_at, true)}</td>
                          <td>
-                             <span class="status-badge ${activityTypeInfo.class || activity.type?.toLowerCase()}">
+                             <span class="status-badge ${activityTypeInfo.class || typeKey}">
                                  <i class="fas ${activityTypeInfo.icon}"></i> ${activityTypeInfo.name}
                              </span>
                          </td>
                          <td><span class="table-activity-title" title="${sanitizeHTML(activity.title || activity.description || '')}">${sanitizeHTML(activity.title || activity.description || '-')}</span></td>
-                         <td class="points-value">${activity.points_earned != null ? activity.points_earned : '-'}</td>
+                         <td class="points-value">${pointsEarned}</td>
                          <td>
                              <span class="status-badge ${activityStatusInfo.class}">
                                  <i class="fas ${activityStatusInfo.icon}"></i> ${activityStatusInfo.name}
@@ -1228,6 +1307,7 @@
                  });
                  ui.activitiesBody.appendChild(fragment);
                  console.log("[ActivitiesTable] Table rendered.");
+                 setLoadingState('activities', false); // Stop loading after rendering
              }
 
             /** Updates the pagination controls UI. */
@@ -1345,8 +1425,6 @@
                          if(i.classList.contains('fa-sort') || i.classList.contains('fa-sort-up') || i.classList.contains('fa-sort-down')) {
                               i.className = 'fas fa-sort';
                          }
-                         // Make filter icon active if this header is the filter column (might need adjustment based on filter implementation)
-                         // Currently only type filter exists via dropdown
                      }
                  });
                  header.classList.add(newDirection === 'asc' ? 'sort-asc' : 'sort-desc');
@@ -1451,7 +1529,9 @@
                 const encodedUri = encodeURI(csvContent);
                 const link = document.createElement("a");
                 link.setAttribute("href", encodedUri);
-                link.setAttribute("download", `historie_aktivit_${formatDate(new Date()).replace(/\./g, '-')}.csv`);
+                const now = new Date();
+                const timestamp = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+                link.setAttribute("download", `historie_aktivit_${timestamp}.csv`);
                 document.body.appendChild(link); // Required for Firefox
                 link.click();
                 document.body.removeChild(link);
