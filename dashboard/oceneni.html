@@ -4,1346 +4,426 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Justax - Ocenění</title>
-    <!-- Připojení fontů -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Font Awesome CDN -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Supabase JS client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
-    <style>
-        /* Bazové styly */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Poppins', sans-serif;
-        }
 
+    <style>
+        /* --- START: VYLEPŠENÉ CSS STYLY --- */
         :root {
-            --primary: #4361ee;
-            --primary-light: #4895ef;
-            --secondary: #3f37c9;
-            --success: #4cc9f0;
-            --danger: #f72585;
-            --warning: #f8961e;
-            --info: #4895ef;
-            --dark: #1e2a3a;
-            --light: #f8f9fa;
-            --gray: #6c757d;
-            --gray-light: #dee2e6;
-            --gray-dark: #343a40;
+            /* Paleta barev */
+            --primary-rgb: 67, 97, 238; --primary: #4361ee; --primary-light: #4895ef; --primary-dark: #3a0ca3;
+            --secondary-rgb: 63, 55, 201; --secondary: #3f37c9;
+            --success-rgb: 6, 214, 160; --success: #06d6a0; --success-dark: #04a77e;
+            --danger-rgb: 247, 37, 133; --danger: #f72585;
+            --warning-rgb: 248, 150, 30; --warning: #f8961e;
+            --info-rgb: 76, 201, 240; --info: #4cc9f0;
+            --dark: #1e2a3a; --light: #f8f9fa; --white: #ffffff;
+            --gray-100: #f8f9fa; --gray-200: #e9ecef; --gray-300: #dee2e6;
+            --gray-400: #ced4da; --gray-500: #adb5bd; --gray-600: #6c757d;
+            --gray-700: #495057; --gray-800: #343a40; --gray-900: #212529;
             --gradient-1: linear-gradient(135deg, #4361ee, #3a0ca3);
-            --gradient-2: linear-gradient(135deg, #4cc9f0, #4361ee);
-            --gradient-3: linear-gradient(135deg, #f72585, #7209b7);
-            --gradient-4: linear-gradient(135deg, #f8961e, #f3722c);
-            --white: #ffffff;
+            --gradient-success: linear-gradient(135deg, var(--success), var(--success-dark));
+            --gradient-warning: linear-gradient(135deg, var(--warning), #f3722c);
+            --gradient-danger: linear-gradient(135deg, var(--danger), #b5179e);
+            --gradient-info: linear-gradient(135deg, var(--info), var(--primary-light));
+             /* Badge/Icon Specific Gradients */
+             --gradient-math: linear-gradient(135deg, #4cc9f0, #4361ee);
+             --gradient-lang: linear-gradient(135deg, #f72585, #b5179e);
+             --gradient-special: linear-gradient(135deg, #f8961e, #f3722c);
+             --gradient-streak: linear-gradient(135deg, #0077b6, #0096c7);
+             --gradient-locked: linear-gradient(135deg, #cbd5e0, #a0aec0);
+
+            /* Sémantické barvy - Světlý režim */
+            --bg-color: #f4f7fc;
+            --card-bg-color: var(--white);
+            --card-bg-color-rgb: 255, 255, 255;
+            --text-primary: var(--gray-800);
+            --text-secondary: var(--gray-600);
+            --text-muted: var(--gray-500);
+            --border-color: var(--gray-200);
+            --input-bg: var(--white);
+            --input-border: var(--gray-300);
+            --input-focus-border: var(--primary-light);
+            --input-focus-shadow: rgba(var(--primary-rgb), 0.15);
+            --skeleton-bg: var(--gray-100);
+            --skeleton-highlight: var(--gray-200);
+
+            /* Rozměry a přechody */
             --sidebar-width: 260px;
             --transition-speed: 0.3s;
-            --card-radius: 16px;
-            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
-            --shadow-md: 0 5px 15px rgba(0, 0, 0, 0.07);
-            --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.1);
-            --text-primary: #2d3748;
-            --text-secondary: #4a5568;
-            --text-muted: #718096;
+            --transition-bezier: cubic-bezier(0.4, 0, 0.2, 1);
+            --card-radius: 14px;
+            --button-radius: 8px;
+            --form-element-radius: 6px;
+
+            /* Stíny */
+            --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
+            --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.07);
         }
 
-        body {
-            background-color: #f6f8ff;
-            color: var(--text-primary);
-            min-height: 100vh;
-            display: flex;
-            overflow-x: hidden;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        html { scroll-behavior: smooth; }
+        body { background-color: var(--bg-color); color: var(--text-primary); min-height: 100vh; display: flex; overflow: hidden; line-height: 1.6; font-size: 15px; }
 
-        /* Sidebar */
-        .sidebar {
-            width: var(--sidebar-width);
-            height: 100vh;
-            position: fixed;
-            top: 0;
-            left: 0;
-            background: var(--gradient-1);
-            color: var(--white);
-            padding: 1.5rem 1rem;
-            display: flex;
-            flex-direction: column;
-            z-index: 100;
-            box-shadow: var(--shadow-lg);
-            transition: all var(--transition-speed) ease;
-        }
+        /* --- Sidebar (Vizuálně konzistentní) --- */
+        .sidebar { width: var(--sidebar-width); height: 100vh; position: fixed; top: 0; left: 0; background: var(--gradient-1); color: var(--white); padding: 1.5rem 1rem; display: flex; flex-direction: column; z-index: 1000; box-shadow: var(--shadow-lg); transition: transform var(--transition-speed) var(--transition-bezier), width var(--transition-speed) var(--transition-bezier); }
+        .sidebar-header { display: flex; align-items: center; margin-bottom: 2rem; padding: 0 0.75rem; position: relative; min-height: 40px; }
+        #sidebar-close-toggle { display: none; position: absolute; right: -5px; top: 50%; transform: translateY(-50%); background: none; border: none; color: rgba(255, 255, 255, 0.8); font-size: 1.6rem; cursor: pointer; padding: 0.5rem; line-height: 1; }
+        #sidebar-close-toggle:hover { color: var(--white); }
+        .sidebar-logo { font-size: 1.5rem; font-weight: 700; color: var(--white); text-decoration: none; display: flex; align-items: center; gap: 0.75rem; }
+        .sidebar-logo i { font-size: 1.75rem; }
+        .sidebar-menu { list-style: none; padding: 0; margin: 0; flex-grow: 1; overflow-y: auto; }
+         .sidebar-menu::-webkit-scrollbar { width: 5px; }
+         .sidebar-menu::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.05); border-radius: 3px;}
+         .sidebar-menu::-webkit-scrollbar-thumb { background-color: rgba(255, 255, 255, 0.3); border-radius: 3px; }
+         .sidebar-menu::-webkit-scrollbar-thumb:hover { background-color: rgba(255, 255, 255, 0.5); }
+         .sidebar-menu { scrollbar-width: thin; scrollbar-color: rgba(255, 255, 255, 0.3) rgba(255, 255, 255, 0.05); }
+        .sidebar-item { margin-bottom: 0.5rem; }
+        .sidebar-link { display: flex; align-items: center; padding: 0.8rem 1rem; color: rgba(255, 255, 255, 0.85); text-decoration: none; border-radius: var(--button-radius); transition: background-color 0.2s ease, color 0.2s ease; font-weight: 500; position: relative; }
+        .sidebar-link i { margin-right: 0.75rem; font-size: 1.2rem; width: 24px; text-align: center; transition: transform 0.2s ease; }
+        .sidebar-link.active, .sidebar-link:hover { background-color: rgba(255, 255, 255, 0.15); color: var(--white); }
+        .sidebar-link:hover i { transform: scale(1.1); }
+        .sidebar-link.active::before { content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%); height: 60%; width: 4px; background-color: var(--white); border-radius: 0 3px 3px 0; }
+        .sidebar-footer { margin-top: auto; padding: 1rem; font-size: 0.85rem; color: rgba(255, 255, 255, 0.6); text-align: center; flex-shrink: 0;}
+        .user-profile { display: flex; align-items: center; padding: 1rem; margin-top: 1rem; background-color: rgba(255, 255, 255, 0.08); border-radius: 12px; border: 1px solid rgba(255,255,255, 0.1); transition: background-color 0.2s ease; flex-shrink: 0;}
+        .user-profile:hover { background-color: rgba(255, 255, 255, 0.15); }
+        .user-avatar { width: 40px; height: 40px; border-radius: 50%; background-color: var(--primary-light); display: flex; align-items: center; justify-content: center; margin-right: 0.75rem; font-weight: 500; overflow: hidden; color: var(--white); border: 2px solid rgba(255,255,255, 0.3); flex-shrink: 0;}
+        .user-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .user-info { flex-grow: 1; overflow: hidden; }
+        .user-name { font-weight: 600; font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .user-role { font-size: 0.8rem; opacity: 0.8; white-space: nowrap; }
+        /* --- Konec Sidebar --- */
 
-        .sidebar-header {
-            display: flex;
-            align-items: center;
-            margin-bottom: 2rem;
-            padding: 0 0.75rem;
-        }
+        /* --- Hlavní obsah --- */
+        main { flex: 1; margin-left: var(--sidebar-width); padding: 1.5rem 2rem; transition: margin var(--transition-speed) var(--transition-bezier); width: calc(100% - var(--sidebar-width)); overflow-y: auto; height: 100vh; display: none; /* Skryto defaultně */ }
+        main.loaded { display: block; animation: fadeInMain 0.4s ease-out forwards; }
+        @keyframes fadeInMain { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-        .sidebar-logo {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--white);
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
+        .dashboard-header { margin-bottom: 2rem; background-color: rgba(var(--card-bg-color-rgb), 0.8); backdrop-filter: blur(8px); border-radius: var(--card-radius); padding: 1rem 1.75rem; box-shadow: none; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; position: sticky; top: 0; z-index: 900; border-bottom: 1px solid transparent; transition: box-shadow 0.2s ease, border-color 0.2s ease, background-color 0.2s ease; }
+        body.scrolled .dashboard-header { box-shadow: var(--shadow-sm); border-bottom-color: var(--border-color); background-color: rgba(var(--card-bg-color-rgb), 0.95); }
+        .header-title { display: flex; align-items: center; gap: 1rem; flex-grow: 1; }
+        .header-title h1 { font-size: 1.6rem; font-weight: 600; color: var(--text-primary); margin: 0; }
+        .header-actions { display: flex; align-items: center; gap: 0.75rem; }
+        /* ... (search, notifications - lze zkopírovat z dashboard.html nebo profile.html, pokud je třeba) ... */
 
-        .sidebar-logo i {
-            font-size: 1.75rem;
-        }
+        /* Tlačítka - Konfigurace */
+        .btn { display: inline-flex; align-items: center; justify-content: center; padding: 0.65rem 1.3rem; border-radius: var(--button-radius); font-weight: 500; font-size: 0.9rem; text-decoration: none; transition: all 0.2s var(--transition-bezier); cursor: pointer; border: none; gap: 0.5rem; line-height: 1.4; }
+        .btn-primary { background: var(--primary); color: white; box-shadow: var(--shadow-xs), 0 0 0 1px transparent; }
+        .btn-primary:hover:not(:disabled) { background: var(--primary-dark); transform: translateY(-1px); box-shadow: var(--shadow-sm); }
+        .btn-secondary { background-color: var(--card-bg-color); color: var(--text-secondary); border: 1px solid var(--border-color); box-shadow: var(--shadow-xs); }
+        .btn-secondary:hover:not(:disabled) { background-color: var(--gray-100); border-color: var(--gray-300); color: var(--text-primary); }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
+        .btn i { font-size: 1em; }
 
-        .sidebar-menu {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-            flex-grow: 1;
-        }
+        /* Titulek sekce */
+        .section-title { font-size: 1.4rem; font-weight: 600; margin-bottom: 1.5rem; color: var(--text-primary); padding-bottom: 0.6rem; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; gap: 0.6rem; }
+        .section-title i { font-size: 0.9em; color: var(--primary); }
 
-        .sidebar-item {
-            margin-bottom: 0.5rem;
-        }
-
-        .sidebar-link {
-            display: flex;
-            align-items: center;
-            padding: 0.75rem 1rem;
-            color: rgba(255, 255, 255, 0.85);
-            text-decoration: none;
-            border-radius: 12px;
-            transition: all 0.2s ease;
-            font-weight: 500;
-        }
-
-        .sidebar-link i {
-            margin-right: 0.75rem;
-            font-size: 1.2rem;
-            width: 24px;
-            text-align: center;
-        }
-
-        .sidebar-link.active, .sidebar-link:hover {
-            background-color: rgba(255, 255, 255, 0.15);
-            color: var(--white);
-        }
-
-        .sidebar-footer {
-            margin-top: auto;
-            padding: 1rem;
-            font-size: 0.9rem;
-            color: rgba(255, 255, 255, 0.7);
-            text-align: center;
-        }
-
-        .user-profile {
-            display: flex;
-            align-items: center;
-            padding: 1rem;
-            margin-top: 1rem;
-            background-color: rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-        }
-
-        .user-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background-color: var(--primary-light);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 0.75rem;
-            font-weight: 500;
-            overflow: hidden;
-        }
-
-        .user-avatar img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .user-info {
-            flex-grow: 1;
-        }
-
-        .user-name {
-            font-weight: 600;
-            font-size: 0.95rem;
-        }
-
-        .user-role {
-            font-size: 0.8rem;
-            opacity: 0.8;
-        }
-
-        /* Hlavní obsah */
-        main {
-            flex: 1;
-            margin-left: var(--sidebar-width);
-            padding: 1.5rem 2rem;
-            transition: margin var(--transition-speed) ease;
-            width: calc(100% - var(--sidebar-width));
-        }
-
-        .dashboard-header {
-            margin-bottom: 2rem;
-            background-color: var(--white);
-            border-radius: var(--card-radius);
-            padding: 1.25rem 1.5rem;
-            box-shadow: var(--shadow-sm);
-        }
-
-        .header-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .header-content h1 {
-            font-size: 1.75rem;
-            font-weight: 600;
-            color: var(--dark);
-        }
-
-        .header-actions {
-            display: flex;
-            align-items: center;
-            gap: 1.5rem;
-        }
-
-        .search-box {
-            position: relative;
-        }
-
-        .search-box input {
-            width: 280px;
-            height: 44px;
-            border-radius: 22px;
-            padding: 0 1rem 0 2.5rem;
-            border: 1px solid var(--gray-light);
-            background-color: var(--light);
-            outline: none;
-            transition: all 0.2s ease;
-            font-size: 0.95rem;
-        }
-
-        .search-box input:focus {
-            border-color: var(--primary-light);
-            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
-        }
-
-        .search-box i {
-            position: absolute;
-            left: 1rem;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--gray);
-        }
-
-        .notifications {
-            position: relative;
-            cursor: pointer;
-        }
-
-        .notifications i {
-            font-size: 1.4rem;
-            color: var(--gray-dark);
-        }
-
-        .notification-badge {
-            position: absolute;
-            top: -5px;
-            right: -5px;
-            width: 20px;
-            height: 20px;
-            background-color: var(--danger);
-            color: white;
-            font-size: 0.7rem;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 600;
-        }
-
-        /* Hlavní obsah */
-        .main-content {
-            display: grid;
-            gap: 1.75rem;
-        }
-
-        .section-title {
-            font-size: 1.3rem;
-            font-weight: 600;
-            margin-bottom: 1.25rem;
-            color: var(--dark);
-        }
-
-        /* Sekce statistik */
-        .achievement-stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .stat-card {
-            background-color: var(--white);
-            border-radius: var(--card-radius);
-            box-shadow: var(--shadow-sm);
-            overflow: hidden;
-            transition: all 0.3s ease;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--shadow-md);
-        }
-
-        .stat-card-content {
-            display: flex;
-            padding: 1.5rem;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .stat-card-info {
-            flex-grow: 1;
-        }
-
-        .stat-card-title {
-            font-size: 1rem;
-            font-weight: 500;
-            color: var(--text-secondary);
-            margin-bottom: 0.75rem;
-        }
-
-        .stat-card-value {
-            font-size: 2rem;
-            font-weight: 700;
-            color: var(--dark);
-            margin-bottom: 0.5rem;
-        }
-
-        .stat-card-change {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-        }
-
-        .stat-card-change.positive {
-            color: #10b981;
-        }
-
-        .stat-card-change.negative {
-            color: var(--danger);
-        }
-
-        .stat-card-icon {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            color: var(--white);
-        }
-
-        .badges-icon {
-            background: linear-gradient(135deg, #4cc9f0, #4361ee);
-        }
-
-        .rank-icon {
-            background: linear-gradient(135deg, #f72585, #b5179e);
-        }
-
-        .points-icon {
-            background: linear-gradient(135deg, #f8961e, #f3722c);
-        }
-
-        .streak-icon {
-            background: linear-gradient(135deg, #0077b6, #0096c7);
-        }
+        /* Mřížka statistik */
+        .achievement-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; margin-bottom: 2.5rem; }
+        .stat-card { background-color: var(--card-bg-color); border-radius: var(--card-radius); box-shadow: var(--shadow-sm); padding: 1.5rem; transition: transform 0.2s var(--transition-bezier), box-shadow 0.2s var(--transition-bezier), border-color 0.2s var(--transition-bezier); display: flex; flex-direction: column; position: relative; min-height: 150px; overflow: hidden; border: 1px solid var(--border-color); }
+        .stat-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); border-color: rgba(var(--primary-rgb), 0.3); }
+        .stat-card-content { display: flex; align-items: center; justify-content: space-between; flex-grow: 1; gap: 1rem; }
+        .stat-card-info { flex-grow: 1; }
+        .stat-card-title { font-size: 0.9rem; font-weight: 500; color: var(--text-secondary); margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.5px; }
+        .stat-card-value { font-size: 2rem; font-weight: 700; color: var(--text-primary); line-height: 1.2; min-height: 32px; }
+        .stat-card-change { font-size: 0.85rem; color: var(--text-muted); margin-top: 0.5rem; min-height: 18px; }
+        .stat-card-change.positive { color: var(--success-dark); font-weight: 500; } .stat-card-change.negative { color: var(--danger); font-weight: 500; }
+        .stat-card-icon { width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: var(--white); flex-shrink: 0; }
+        .badges-icon { background: var(--gradient-info); } .points-icon { background: var(--gradient-warning); } .streak-icon { background: var(--gradient-danger); } .rank-icon { background: var(--gradient-3); } /* Example */
+        /* Skeleton for Stats */
+        .stat-card .loading-skeleton { display: none; padding: 1.5rem; width: 100%; position: absolute; top:0; left:0; right:0; bottom: 0; pointer-events: none; }
+        .stat-card.loading .loading-skeleton { display: block; }
+        .stat-card.loading .stat-card-content { visibility: hidden; }
 
         /* Sekce odznaků */
-        .badges-section {
-            margin-bottom: 2rem;
-        }
+        .badges-section { margin-bottom: 2.5rem; }
+        .badge-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 1.5rem; }
+        .badge-card { background-color: var(--card-bg-color); border-radius: var(--card-radius); padding: 1.5rem 1rem; box-shadow: var(--shadow-sm); display: flex; flex-direction: column; align-items: center; text-align: center; transition: all 0.2s var(--transition-bezier); position: relative; overflow: hidden; border: 1px solid var(--border-color); }
+        .badge-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-md); border-color: rgba(var(--primary-rgb), 0.3); }
+        .badge-card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: var(--gradient-2); opacity: 0; transition: opacity 0.3s ease; }
+        .badge-card:hover::before { opacity: 1; }
+        .badge-icon { width: 65px; height: 65px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.7rem; margin-bottom: 1rem; color: var(--white); position: relative; background: var(--gradient-locked); } /* Default locked */
+        .badge-icon.math { background: var(--gradient-math); } .badge-icon.lang { background: var(--gradient-lang); } .badge-icon.special { background: var(--gradient-special); } .badge-icon.streak { background: var(--gradient-streak); }
+        .badge-icon::after { content: ''; position: absolute; top: -4px; right: -4px; bottom: -4px; left: -4px; border-radius: 50%; background: inherit; filter: blur(6px); opacity: 0.4; z-index: -1; transition: opacity 0.3s ease; }
+        .badge-card:hover .badge-icon::after { opacity: 0.6; }
+        .badge-title { font-size: 0.95rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.3rem; }
+        .badge-desc { font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.75rem; flex-grow: 1; /* Push date down */}
+        .badge-date { font-size: 0.75rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.4rem; margin-top: auto; }
+        .badge-date i { font-size: 0.8em; }
+        /* Skeleton for Badge Card */
+        .badge-card .loading-skeleton { display: none; flex-direction: column; align-items: center; padding: 1.5rem 1rem; width: 100%; position: absolute; top:0; left:0; right:0; bottom: 0; pointer-events: none; }
+        .badge-card.loading .loading-skeleton { display: flex; }
+        .badge-card.loading > *:not(.loading-skeleton) { visibility: hidden; } /* Hide real content */
+        .skeleton.badge-icon-placeholder { width: 65px; height: 65px; border-radius: 50%; margin-bottom: 1rem; }
+        .skeleton.badge-title-placeholder { height: 16px; width: 70%; margin-bottom: 0.5rem; }
+        .skeleton.badge-desc-placeholder { height: 12px; width: 90%; margin-bottom: 0.3rem; }
+        .skeleton.badge-desc-placeholder:last-of-type { width: 60%; margin-bottom: 0.8rem; }
+        .skeleton.badge-date-placeholder { height: 10px; width: 50%; margin-top: auto; }
 
-        .badge-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            gap: 1.5rem;
-        }
-
-        .badge-card {
-            background-color: var(--white);
-            border-radius: var(--card-radius);
-            padding: 1.5rem 1rem;
-            box-shadow: var(--shadow-sm);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .badge-card:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--shadow-md);
-        }
-
-        .badge-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 4px;
-            background: var(--gradient-2);
-            z-index: 1;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .badge-card:hover::before {
-            opacity: 1;
-        }
-
-        .badge-icon {
-            width: 70px;
-            height: 70px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.75rem;
-            margin-bottom: 1rem;
-            color: var(--white);
-            position: relative;
-        }
-
-        .badge-icon::after {
-            content: '';
-            position: absolute;
-            top: -5px;
-            right: -5px;
-            bottom: -5px;
-            left: -5px;
-            border-radius: 50%;
-            background: inherit;
-            filter: blur(8px);
-            opacity: 0.3;
-            z-index: -1;
-            transition: opacity 0.3s ease;
-        }
-
-        .badge-card:hover .badge-icon::after {
-            opacity: 0.5;
-        }
-
-        .badge-icon.math {
-            background: linear-gradient(135deg, #4cc9f0, #4361ee);
-        }
-
-        .badge-icon.lang {
-            background: linear-gradient(135deg, #f72585, #b5179e);
-        }
-
-        .badge-icon.special {
-            background: linear-gradient(135deg, #f8961e, #f3722c);
-        }
-
-        .badge-icon.streak {
-            background: linear-gradient(135deg, #0077b6, #0096c7);
-        }
-
-        .badge-title {
-            font-size: 0.95rem;
-            font-weight: 600;
-            color: var(--dark);
-            margin-bottom: 0.5rem;
-        }
-
-        .badge-desc {
-            font-size: 0.8rem;
-            color: var(--text-secondary);
-            margin-bottom: 0.75rem;
-        }
-
-        .badge-date {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .badge-date i {
-            font-size: 0.7rem;
-        }
 
         /* Sekce dostupných odznaků */
-        .available-achievements {
-            margin-bottom: 2rem;
-        }
+        .available-achievements { margin-bottom: 2.5rem; }
+        .achievement-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; }
+        .achievement-card { background-color: var(--card-bg-color); border-radius: var(--card-radius); padding: 1.5rem; box-shadow: var(--shadow-sm); display: flex; align-items: center; gap: 1.25rem; transition: all 0.2s var(--transition-bezier); border: 1px solid var(--border-color); opacity: 0.7; /* Slightly faded when locked */ }
+        .achievement-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); border-color: rgba(var(--primary-rgb), 0.2); opacity: 1; }
+        .achievement-icon { width: 55px; height: 55px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: var(--white); flex-shrink: 0; background: var(--gradient-locked); } /* Locked icon default */
+        .achievement-icon.math { background: var(--gradient-math); } .achievement-icon.lang { background: var(--gradient-lang); } .achievement-icon.special { background: var(--gradient-special); } .achievement-icon.streak { background: var(--gradient-streak); }
+        .achievement-content { flex-grow: 1; }
+        .achievement-title { font-size: 1.05rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.3rem; }
+        .achievement-desc { font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.75rem; line-height: 1.4; }
+        .progress-container { margin-top: 0.5rem; }
+        .progress-bar { height: 6px; background-color: var(--gray-200); border-radius: 3px; overflow: hidden; margin-bottom: 0.3rem; }
+        .progress-fill { height: 100%; border-radius: 3px; transition: width 0.6s ease-out; background: var(--gradient-success); }
+        .progress-stats { font-size: 0.8rem; color: var(--text-muted); font-weight: 500; }
+        /* Skeleton for Achievement Card */
+        .achievement-card .loading-skeleton { display: none; align-items: center; gap: 1.25rem; padding: 1.5rem; width: 100%; position: absolute; top:0; left:0; right:0; bottom: 0; pointer-events: none; }
+        .achievement-card.loading .loading-skeleton { display: flex; }
+        .achievement-card.loading > *:not(.loading-skeleton) { visibility: hidden; }
+        .skeleton.achievement-icon-placeholder { width: 55px; height: 55px; border-radius: 14px; flex-shrink: 0; }
+        .skeleton.achievement-content-placeholder { flex-grow: 1; }
+        .skeleton.achievement-title-placeholder { height: 18px; width: 60%; margin-bottom: 0.5rem; }
+        .skeleton.achievement-desc-placeholder { height: 14px; width: 95%; margin-bottom: 0.3rem; }
+        .skeleton.achievement-desc-placeholder:last-of-type { width: 75%; margin-bottom: 0.8rem; }
+        .skeleton.achievement-progress-placeholder { height: 12px; width: 40%; }
 
-        .achievement-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 1.5rem;
-        }
+        /* Sekce žebříčku */
+        .leaderboard-section { margin-bottom: 2.5rem; }
+        .leaderboard { background-color: var(--card-bg-color); border-radius: var(--card-radius); box-shadow: var(--shadow-sm); overflow: hidden; border: 1px solid var(--border-color); }
+        .leaderboard-header { padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); flex-wrap: wrap; gap: 1rem;}
+        .leaderboard-title { font-size: 1.2rem; font-weight: 600; color: var(--text-primary); display: flex; align-items: center; gap: 0.6rem;}
+        .leaderboard-title i { color: var(--secondary); }
+        .leaderboard-filter { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+        .filter-btn { padding: 0.45rem 0.9rem; background-color: var(--card-bg-color); border: 1px solid var(--border-color); border-radius: var(--button-radius); font-size: 0.8rem; font-weight: 500; color: var(--text-secondary); cursor: pointer; transition: all 0.2s ease; }
+        .filter-btn:hover { background-color: var(--gray-100); border-color: var(--gray-300); }
+        .filter-btn.active { background-color: var(--primary); color: var(--white); border-color: var(--primary); }
+        .leaderboard-table-container { max-height: 400px; overflow-y: auto; }
+         .leaderboard-table-container::-webkit-scrollbar { width: 6px; }
+         .leaderboard-table-container::-webkit-scrollbar-track { background: transparent; }
+         .leaderboard-table-container::-webkit-scrollbar-thumb { background-color: var(--gray-300); border-radius: 3px; }
+        .leaderboard-table { width: 100%; border-collapse: collapse; }
+        .leaderboard-table th { padding: 0.9rem 1.5rem; text-align: left; color: var(--text-secondary); font-weight: 600; font-size: 0.85rem; border-bottom: 1px solid var(--border-color); background-color: var(--gray-100); text-transform: uppercase; letter-spacing: 0.5px; position: sticky; top: 0; z-index: 10; white-space: nowrap;}
+        .leaderboard-table td { padding: 0.9rem 1.5rem; border-bottom: 1px solid var(--border-color); font-size: 0.95rem; vertical-align: middle;}
+        .leaderboard-table tr:last-child td { border-bottom: none; }
+        .leaderboard-table tbody tr:hover { background-color: rgba(var(--primary-rgb), 0.03); }
+        .rank-cell { font-weight: 700; color: var(--text-primary); width: 50px; text-align: center;}
+        .user-cell { display: flex; align-items: center; gap: 0.9rem; min-width: 200px; }
+        .user-avatar-sm { width: 32px; height: 32px; border-radius: 50%; background-color: var(--primary-light); display: flex; align-items: center; justify-content: center; color: var(--white); font-weight: 500; font-size: 0.85rem; overflow: hidden; flex-shrink: 0;}
+        .user-avatar-sm img { width: 100%; height: 100%; object-fit: cover; }
+        .user-info-sm { display: flex; flex-direction: column; overflow: hidden; }
+        .user-name-sm { font-weight: 500; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .user-level { font-size: 0.8rem; color: var(--text-muted); }
+        .score-cell { font-weight: 600; color: var(--primary); text-align: right; }
+        .badge-count-cell { color: var(--text-secondary); text-align: right; }
+        .highlight-row { background-color: rgba(var(--primary-rgb), 0.05); font-weight: 600; }
+        .highlight-row:hover { background-color: rgba(var(--primary-rgb), 0.08) !important; }
+        .highlight-row .rank-cell { color: var(--primary); }
+        /* Skeleton for Leaderboard */
+        .leaderboard-table .loading-skeleton { display: none; width: 100%; position: absolute; top:0; left:0; right:0; bottom: 0; padding: 1.5rem; pointer-events: none;}
+        .leaderboard.loading .loading-skeleton { display: block; }
+        .leaderboard.loading .leaderboard-table { visibility: hidden; }
+        .skeleton.leaderboard-row { display: flex; align-items: center; gap: 1.5rem; padding: 0.9rem 0; border-bottom: 1px solid var(--border-color); }
+        .skeleton.rank-placeholder { width: 30px; height: 20px; flex-shrink: 0; }
+        .skeleton.avatar-placeholder { width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0; }
+        .skeleton.name-placeholder { width: 120px; height: 16px; }
+        .skeleton.score-placeholder { width: 50px; height: 18px; margin-left: auto; }
 
-        .achievement-card {
-            background-color: var(--white);
-            border-radius: var(--card-radius);
-            padding: 1.5rem;
-            box-shadow: var(--shadow-sm);
-            display: flex;
-            align-items: center;
-            gap: 1.25rem;
-            transition: all 0.3s ease;
-        }
-
-        .achievement-card:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--shadow-md);
-        }
-
-        .achievement-card.locked {
-            opacity: 0.7;
-        }
-
-        .achievement-card.locked:hover {
-            opacity: 0.9;
-        }
-
-        .achievement-icon {
-            width: 60px;
-            height: 60px;
-            border-radius: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            color: var(--white);
-            flex-shrink: 0;
-        }
-
-        .achievement-card.locked .achievement-icon {
-            background: linear-gradient(135deg, #cbd5e0, #a0aec0);
-        }
-
-        .achievement-content {
-            flex-grow: 1;
-        }
-
-        .achievement-title {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: var(--dark);
-            margin-bottom: 0.5rem;
-        }
-
-        .achievement-desc {
-            font-size: 0.9rem;
-            color: var(--text-secondary);
-            margin-bottom: 0.75rem;
-        }
-
-        .progress-bar {
-            height: 8px;
-            background-color: #f0f0f0;
-            border-radius: 4px;
-            overflow: hidden;
-            margin-bottom: 0.5rem;
-        }
-
-        .progress-fill {
-            height: 100%;
-            border-radius: 4px;
-            transition: width 1s ease;
-        }
-
-        .progress-fill.math {
-            background: linear-gradient(to right, #4cc9f0, #4361ee);
-        }
-
-        .progress-fill.lang {
-            background: linear-gradient(to right, #f72585, #b5179e);
-        }
-
-        .progress-fill.special {
-            background: linear-gradient(to right, #f8961e, #f3722c);
-        }
-
-        .progress-fill.streak {
-            background: linear-gradient(to right, #0077b6, #0096c7);
-        }
-
-        .progress-stats {
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-        }
-
-        /* Tabulka porovnání */
-        .leaderboard-section {
-            margin-bottom: 2rem;
-        }
-
-        .leaderboard {
-            background-color: var(--white);
-            border-radius: var(--card-radius);
-            box-shadow: var(--shadow-sm);
-            overflow: hidden;
-        }
-
-        .leaderboard-header {
-            padding: 1.25rem 1.5rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid var(--gray-light);
-        }
-
-        .leaderboard-title {
-            font-size: 1.2rem;
-            font-weight: 600;
-            color: var(--dark);
-        }
-
-        .leaderboard-filter {
-            display: flex;
-            gap: 0.75rem;
-        }
-
-        .filter-btn {
-            padding: 0.5rem 1rem;
-            background-color: var(--light);
-            border: 1px solid var(--gray-light);
-            border-radius: 8px;
-            font-size: 0.85rem;
-            font-weight: 500;
-            color: var(--text-secondary);
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .filter-btn:hover {
-            background-color: var(--primary-light);
-            color: var(--white);
-            border-color: var(--primary-light);
-        }
-
-        .filter-btn.active {
-            background-color: var(--primary);
-            color: var(--white);
-            border-color: var(--primary);
-        }
-
-        .leaderboard-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .leaderboard-table th {
-            padding: 1rem 1.5rem;
-            text-align: left;
-            color: var(--text-secondary);
-            font-weight: 500;
-            font-size: 0.9rem;
-            border-bottom: 1px solid var(--gray-light);
-        }
-
-        .leaderboard-table td {
-            padding: 1rem 1.5rem;
-            border-bottom: 1px solid var(--gray-light);
-            font-size: 0.95rem;
-        }
-
-        .leaderboard-table tr:last-child td {
-            border-bottom: none;
-        }
-
-        .leaderboard-table tr:hover {
-            background-color: #f8faff;
-        }
-
-        .rank-cell {
-            font-weight: 600;
-            color: var(--dark);
-            width: 60px;
-        }
-
-        .user-cell {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            width: 40%;
-        }
-
-        .user-avatar-sm {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            background-color: var(--primary-light);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--white);
-            font-weight: 500;
-            font-size: 0.9rem;
-            overflow: hidden;
-        }
-
-        .user-avatar-sm img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .user-info-sm {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .user-name-sm {
-            font-weight: 500;
-            color: var(--dark);
-        }
-
-        .user-level {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-        }
-
-        .score-cell {
-            font-weight: 600;
-            color: var(--primary);
-        }
-
-        .badge-count-cell {
-            color: var(--text-secondary);
-        }
-
-        .highlight-row {
-            background-color: rgba(67, 97, 238, 0.05);
-        }
-
-        .highlight-row:hover {
-            background-color: rgba(67, 97, 238, 0.1) !important;
-        }
-
-        .rank-indicator {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .rank-indicator i {
-            font-size: 0.85rem;
-        }
-
-        .rank-up {
-            color: #10b981;
-        }
-
-        .rank-down {
-            color: var(--danger);
-        }
-
-        .rank-same {
-            color: var(--gray);
-        }
-
-        /* Nedávné odznaky */
-        .recent-achievements {
-            background-color: var(--white);
-            border-radius: var(--card-radius);
-            box-shadow: var(--shadow-sm);
-            padding: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .achievements-list {
-            margin-top: 1.25rem;
-        }
-
-        .achievement-item {
-            display: flex;
-            align-items: flex-start;
-            padding: 1rem 0;
-            border-bottom: 1px solid var(--gray-light);
-            animation: fadeIn 0.5s ease forwards;
-            opacity: 0;
-        }
-
-        .achievement-item:last-child {
-            border-bottom: none;
-        }
-
-        .achievement-item-icon {
-            width: 45px;
-            height: 45px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.25rem;
-            color: var(--white);
-            margin-right: 1rem;
-            flex-shrink: 0;
-        }
-
-        .achievement-item-content {
-            flex-grow: 1;
-        }
-
-        .achievement-item-title {
-            font-size: 1rem;
-            font-weight: 500;
-            color: var(--dark);
-            margin-bottom: 0.25rem;
-        }
-
-        .achievement-item-desc {
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-            margin-bottom: 0.25rem;
-        }
-
-        .achievement-item-time {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
+        /* Nedávné odznaky (již existují styly) */
+        .recent-achievements { margin-bottom: 2.5rem; background-color: var(--card-bg-color); border-radius: var(--card-radius); box-shadow: var(--shadow-sm); padding: 1.5rem; border: 1px solid var(--border-color); }
+        .achievements-list { margin-top: 1rem; max-height: 350px; overflow-y: auto; padding-right: 5px;}
+         .achievements-list::-webkit-scrollbar { width: 6px; }
+         .achievements-list::-webkit-scrollbar-track { background: transparent; }
+         .achievements-list::-webkit-scrollbar-thumb { background-color: var(--gray-300); border-radius: 3px; }
+        .achievement-item { display: flex; align-items: flex-start; padding: 1rem 0; border-bottom: 1px solid var(--border-color); animation: fadeIn 0.5s ease forwards; opacity: 0; gap: 1rem;}
+        .achievement-item:last-child { border-bottom: none; }
+        .achievement-item-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; color: var(--white); flex-shrink: 0; }
+        .achievement-item-content { flex-grow: 1; }
+        .achievement-item-title { font-size: 1rem; font-weight: 500; color: var(--text-primary); margin-bottom: 0.2rem; }
+        .achievement-item-desc { font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.25rem; line-height: 1.4; }
+        .achievement-item-time { font-size: 0.8rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.4rem; }
+        /* Skeleton for Recent Achievements */
+        .recent-achievements .loading-skeleton { display: none; padding: 1.5rem; }
+        .recent-achievements.loading .loading-skeleton { display: block; }
+        .recent-achievements.loading .achievements-list { display: none; }
+        .skeleton.recent-item { display: flex; align-items: flex-start; gap: 1rem; padding: 1rem 0; border-bottom: 1px solid var(--border-color); }
+        .skeleton.recent-icon-placeholder { width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0; }
+        .skeleton.recent-content-placeholder { flex-grow: 1; }
+        .skeleton.recent-title-placeholder { height: 16px; width: 70%; margin-bottom: 0.4rem; }
+        .skeleton.recent-desc-placeholder { height: 12px; width: 90%; margin-bottom: 0.3rem; }
+        .skeleton.recent-time-placeholder { height: 10px; width: 50%; margin-top: 0.4rem; }
 
         /* Patička */
-        .dashboard-footer {
-            margin-top: 2rem;
-            padding: 1.5rem 0;
-            text-align: center;
-            color: var(--text-muted);
-            font-size: 0.9rem;
-        }
+        .dashboard-footer { margin-top: 2.5rem; padding: 1.5rem 0; text-align: center; color: var(--text-muted); font-size: 0.9rem; border-top: 1px solid var(--border-color); }
 
-        /* Indikátor načítání */
-        .loading {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 2rem;
-            font-size: 1rem;
-            color: var(--text-muted);
-        }
+        /* Error/Empty States */
+        .error-message { display: flex; align-items: center; background-color: rgba(var(--danger-rgb), 0.05); color: var(--danger); padding: 1rem 1.25rem; border-radius: 8px; margin: 1rem 0; box-shadow: var(--shadow-xs); border-left: 4px solid var(--danger); font-size: 0.9rem; }
+        .error-message i { font-size: 1.25rem; margin-right: 0.75rem; }
+        .error-container { display: none; margin-bottom: 1.5rem; }
+        .retry-button { background-color: var(--primary); color: white; border: none; border-radius: var(--button-radius); padding: 0.5rem 1rem; font-size: 0.9rem; cursor: pointer; margin-top: 0.5rem; transition: all 0.2s ease; }
+        .retry-button:hover { background-color: var(--secondary); }
+        .empty-state { padding: 3rem 2rem; text-align: center; color: var(--text-muted); display: none; /* Default hidden */ background-color: var(--card-bg-color); border-radius: var(--card-radius); border: 1px dashed var(--border-color); margin-top: 1rem;}
+        .empty-state i { font-size: 2.5rem; margin-bottom: 1rem; color: var(--gray-medium); }
+        .empty-state h3 { font-size: 1.1rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.75rem; }
+        .empty-state p { margin: 0 auto 1rem auto; font-size: 0.9rem; max-width: 450px; }
+        .empty-state-action { display: inline-flex; align-items: center; gap: 0.5rem;} /* Button is now a .btn */
 
-        .loading::after {
-            content: "";
-            width: 20px;
-            height: 20px;
-            margin-left: 15px;
-            border: 2px solid var(--primary);
-            border-radius: 50%;
-            border-top-color: transparent;
-            animation: loading-spinner 0.8s linear infinite;
-        }
+        /* Loading Spinner */
+        .loading { display: flex; justify-content: center; align-items: center; padding: 3rem 1rem; font-size: 1rem; color: var(--text-muted); }
+        .loading::after { content: ""; width: 24px; height: 24px; margin-left: 12px; border: 3px solid var(--primary); border-radius: 50%; border-top-color: transparent; animation: loading-spinner 0.8s linear infinite; }
+        @keyframes loading-spinner { to { transform: rotate(360deg); } }
 
-        @keyframes loading-spinner {
-            to {
-                transform: rotate(360deg);
-            }
-        }
+        /* Toast container */
+        .toast-container { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 1050; display: flex; flex-direction: column; gap: 0.75rem; max-width: 380px; pointer-events: none; }
 
-        /* Chybové hlášky */
-        .error-message {
-            background-color: #fff2f5;
-            border-left: 4px solid var(--danger);
-            color: var(--danger);
-            padding: 1rem;
-            margin: 1rem 0;
-            border-radius: 8px;
-            font-size: 0.9rem;
-            display: flex;
-            align-items: center;
-        }
-
-        .error-message i {
-            margin-right: 0.75rem;
-            font-size: 1.25rem;
-        }
-
-        .error-container {
-            display: none;
-            margin-bottom: 1.5rem;
-        }
-
-        .retry-button {
-            background-color: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            padding: 0.5rem 1rem;
-            font-size: 0.9rem;
-            cursor: pointer;
-            margin-top: 0.5rem;
-            transition: all 0.2s ease;
-        }
-
-        .retry-button:hover {
-            background-color: var(--secondary);
-        }
-
-        /* Prázdný stav */
-        .empty-state {
-            padding: 3rem 2rem;
-            text-align: center;
-            background-color: var(--white);
-            border-radius: var(--card-radius);
-            box-shadow: var(--shadow-sm);
-        }
-
-        .empty-state-icon {
-            font-size: 3rem;
-            color: var(--gray-light);
-            margin-bottom: 1.5rem;
-        }
-
-        .empty-state-title {
-            font-size: 1.2rem;
-            font-weight: 600;
-            color: var(--dark);
-            margin-bottom: 0.75rem;
-        }
-
-        .empty-state-desc {
-            font-size: 0.95rem;
-            color: var(--text-secondary);
-            max-width: 500px;
-            margin: 0 auto 1.5rem auto;
-            line-height: 1.6;
-        }
-
-        .empty-state-action {
-            display: inline-block;
-            padding: 0.75rem 1.5rem;
-            background: var(--gradient-1);
-            color: var(--white);
-            font-weight: 500;
-            border-radius: 10px;
-            text-decoration: none;
-            transition: all 0.3s ease;
-            box-shadow: var(--shadow-sm);
-        }
-
-        .empty-state-action:hover {
-            transform: translateY(-3px);
-            box-shadow: var(--shadow-md);
-        }
-
-        /* Media queries pro responzivní design */
-        @media (max-width: 1200px) {
-            .achievement-stats {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            
-            .badge-grid {
-                grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-            }
-        }
-
-        @media (max-width: 992px) {
-            :root {
-                --sidebar-width: 80px;
-            }
-            
-            .sidebar-logo span, .sidebar-link span, .user-info, .sidebar-footer {
-                display: none;
-            }
-            
-            .sidebar-link i {
-                margin-right: 0;
-                font-size: 1.5rem;
-            }
-            
-            .sidebar-logo i {
-                margin-right: 0;
-            }
-            
-            .sidebar-header, .sidebar-link {
-                justify-content: center;
-            }
-            
-            .user-profile {
-                justify-content: center;
-                padding: 0.75rem;
-            }
-            
-            .user-avatar {
-                margin-right: 0;
-            }
-            
-            .search-box input {
-                width: 200px;
-            }
-            
-            .leaderboard-table .user-level,
-            .leaderboard-table .badge-count-cell {
-                display: none;
-            }
-        }
-
-        @media (max-width: 768px) {
-            main {
-                padding: 1rem;
-            }
-            
-            .header-content {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 1rem;
-            }
-            
-            .header-actions {
-                width: 100%;
-                justify-content: space-between;
-            }
-            
-            .search-box input {
-                width: 100%;
-            }
-            
-            .achievement-stats {
-                grid-template-columns: 1fr;
-            }
-            
-            .achievement-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .leaderboard-header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 1rem;
-            }
-            
-            .leaderboard-filter {
-                width: 100%;
-                justify-content: space-between;
-            }
-            
-            .leaderboard-table th:nth-child(4),
-            .leaderboard-table td:nth-child(4) {
-                display: none;
-            }
-        }
-
-        @media (max-width: 576px) {
-            :root {
-                --sidebar-width: 0;
-            }
-            
-            .sidebar {
-                transform: translateX(-100%);
-            }
-            
-            main {
-                margin-left: 0;
-                width: 100%;
-            }
-            
-            .search-box {
-                display: none;
-            }
-            
-            .mobile-menu-toggle {
-                display: block;
-            }
-            
-            .badge-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            
-            .user-cell {
-                width: 60%;
-            }
-        }
+        /* Mobile Menu Toggle */
+        .mobile-menu-toggle { display: none; background: none; border: none; cursor: pointer; font-size: 1.5rem; color: var(--text-primary); padding: 0.5rem; margin-right: 0.5rem; z-index: 1010; }
 
         /* Animace */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        .animated { animation: fadeIn 0.5s ease-out forwards; opacity: 0; } /* Start hidden */
+        .delay-1 { animation-delay: 0.1s; } .delay-2 { animation-delay: 0.2s; } .delay-3 { animation-delay: 0.3s; } .delay-4 { animation-delay: 0.4s; }
 
-        .animated {
-            animation: fadeIn 0.5s ease forwards;
-        }
+        /* Responzivní design (podobné jako v pokrok.html) */
+        @media (max-width: 992px) { /* Collapsed Sidebar */ :root { --sidebar-width: 80px; } main { margin-left: 80px; width: calc(100% - 80px); } .sidebar { width: 80px; } .sidebar-logo span, .sidebar-link span, .user-info, .sidebar-footer { display: none; } .sidebar-link i { margin-right: 0; font-size: 1.5rem; } .sidebar-logo i { margin-right: 0; } .sidebar-header, .sidebar-link { justify-content: center; } .user-profile { justify-content: center; padding: 0.75rem; } .user-avatar { margin-right: 0; } #sidebar-close-toggle { display: none !important; } .mobile-menu-toggle { display: block; } .achievement-stats { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); } .badge-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); } .achievement-grid { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); } }
+        @media (max-width: 768px) { /* Tablet */ main { padding: 1rem; } .dashboard-header { padding: 1rem 1.25rem; top: 0; } .header-title { gap: 0.5rem; } .header-title h1 { font-size: 1.5rem; } .achievement-stats, .achievement-grid { grid-template-columns: 1fr; gap: 1.25rem; } .leaderboard-header { flex-direction: column; align-items: flex-start; gap: 0.75rem; margin-bottom: 1.25rem; } .leaderboard-filter { width: 100%; justify-content: flex-start; flex-wrap: wrap; } .leaderboard-table th:nth-child(4), .leaderboard-table td:nth-child(4) { display: none; } /* Hide badge count */ .dashboard-footer { margin-top: 1.5rem; padding-top: 1rem;} }
+        @media (max-width: 576px) { /* Mobile */ :root { --sidebar-width: 0; } main { margin-left: 0; width: 100%; padding: 0.75rem; } .sidebar { transform: translateX(-100%); z-index: 1100; width: 260px; } .sidebar.active { transform: translateX(0); } .sidebar.active .sidebar-logo span, .sidebar.active .sidebar-link span, .sidebar.active .user-info, .sidebar.active .sidebar-footer { display: block; } .sidebar.active .sidebar-link i { margin-right: 0.75rem; font-size: 1.2rem; } .sidebar.active .sidebar-header, .sidebar.active .sidebar-link { justify-content: flex-start; } .sidebar.active .user-profile { justify-content: flex-start; padding: 1rem; } .sidebar.active .user-avatar { margin-right: 0.75rem; } .sidebar.active #sidebar-close-toggle { display: block; } .header-title h1 { font-size: 1.3rem; } .header-actions { gap: 0.5rem; } .btn { padding: 0.6rem 1rem; font-size: 0.85rem; } .badge-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 1rem; } .badge-card { padding: 1rem 0.75rem; } .badge-icon { width: 55px; height: 55px; font-size: 1.5rem; margin-bottom: 0.8rem; } .achievement-card { flex-direction: column; align-items: center; text-align: center; } .achievement-icon { margin-bottom: 1rem; } .leaderboard-table td { padding: 0.75rem 1rem; } .user-cell { flex-direction: column; align-items: center; text-align: center; gap: 0.5rem; } .user-avatar-sm { margin-bottom: 0.25rem;} .toast-container { bottom: 1rem; right: 1rem; max-width: calc(100% - 2rem); } }
 
-        .delay-1 {
-            animation-delay: 0.1s;
-        }
-
-        .delay-2 {
-            animation-delay: 0.2s;
-        }
-
-        .delay-3 {
-            animation-delay: 0.3s;
-        }
-
-        .delay-4 {
-            animation-delay: 0.4s;
-        }
-
-        /* Temný režim */
+        /* Dark Mode */
         @media (prefers-color-scheme: dark) {
             :root {
-                --white: #1a202c;
-                --light: #2d3748;
-                --dark: #e2e8f0;
-                --gray-light: #4a5568;
-                --text-primary: #e2e8f0;
-                --text-secondary: #cbd5e0;
-                --text-muted: #a0aec0;
+                 --bg-color: #131720; --card-bg-color: #1e2533;
+                 --card-bg-color-rgb: 30, 37, 51;
+                 --text-primary: #e2e8f0; --text-secondary: #94a3b8; --text-muted: #64748b;
+                 --border-color: #334155; --light: #2d3748; --white: #1a202c;
+                 --skeleton-bg: #334155; --skeleton-highlight: #475569;
+                 --danger-rgb: 247, 37, 133;
             }
-            
-            body {
-                background-color: #171923;
-            }
-            
-            .search-box input {
-                background-color: #2d3748;
-                color: var(--text-primary);
-                border-color: #4a5568;
-            }
-            
-            .search-box i {
-                color: #a0aec0;
-            }
-            
-            .leaderboard-table tr:hover {
-                background-color: #1e2533;
-            }
-            
-            .progress-bar {
-                background-color: #2d3748;
-            }
-            
-            .empty-state-icon {
-                color: #4a5568;
-            }
+             body { background-color: var(--bg-color); }
+             .dashboard-header { background-color: rgba(30, 37, 51, 0.85); border-bottom-color: var(--border-color); }
+             body.scrolled .dashboard-header { background-color: rgba(30, 37, 51, 0.98); }
+             .stat-card, .badge-card, .achievement-card, .leaderboard, .recent-achievements, .empty-state { background-color: var(--card-bg-color); border-color: var(--border-color); }
+             .leaderboard-table th { background-color: #2d3748; border-bottom-color: var(--border-color); }
+             .leaderboard-table td { border-bottom-color: var(--border-color); }
+             .leaderboard-table tbody tr:hover { background-color: #283141; }
+             .filter-btn { background-color: var(--card-bg-color); border-color: var(--border-color); color: var(--text-secondary); }
+             .filter-btn:hover { background-color: #4a5568; border-color: #6c757d; }
+             .filter-btn.active { background-color: var(--primary); border-color: var(--primary); color: var(--white); }
+             .progress-bar { background-color: #4a5568; }
+             .highlight-row { background-color: rgba(var(--primary-rgb), 0.1); }
+             .highlight-row:hover { background-color: rgba(var(--primary-rgb), 0.15) !important; }
+             .achievement-item { border-bottom-color: var(--border-color); }
+             .error-message { background-color: rgba(var(--danger-rgb), 0.1); border-left-color: var(--danger); }
+             .dashboard-footer { border-top-color: var(--border-color); }
+              .initial-loading-overlay { background-color: #131720; }
+             /* Adjust badge/icon gradients if needed for better dark mode visibility */
         }
+        /* --- END: VYLEPŠENÉ CSS STYLY --- */
     </style>
 </head>
 <body>
-    <!-- Sidebar -->
-    <aside class="sidebar">
+    <div class="initial-loading-overlay" id="initial-loader">
+        <div class="loading-spinner"></div>
+        <p>Ověřování...</p>
+    </div>
+
+    <div class="toast-container" id="toast-container"></div>
+    <div id="sidebar-overlay" class="sidebar-overlay"></div>
+
+    <aside id="sidebar" class="sidebar">
         <div class="sidebar-header">
-            <a href="/" class="sidebar-logo">
-                <i class="fas fa-calculator"></i>
-                <span>Justax</span>
-            </a>
+            <button class="mobile-menu-toggle" id="sidebar-close-toggle"> <i class="fas fa-times"></i> </button>
+            <a href="/dashboard/dashboard.html" class="sidebar-logo"> <i class="fas fa-calculator"></i> <span>Justax</span> </a>
         </div>
-        
         <ul class="sidebar-menu">
-            <li class="sidebar-item">
-                <a href="/dashboard/dashboard.html" class="sidebar-link" id="dashboard-link">
-                    <i class="fas fa-th-large"></i>
-                    <span>Dashboard</span>
-                </a>
-            </li>
-            <li class="sidebar-item">
-                <a href="/dashboard/procvicovani/main" class="sidebar-link">
-                    <i class="fas fa-book-open"></i>
-                    <span>Procvičování</span>
-                </a>
-            </li>
-            <li class="sidebar-item">
-                <a href="/dashboard/pokrok.html" class="sidebar-link">
-                    <i class="fas fa-chart-line"></i>
-                    <span>Pokrok</span>
-                </a>
-            </li>
-            <li class="sidebar-item">
-                <a href="/dashboard/oceneni.html" class="sidebar-link active">
-                    <i class="fas fa-medal"></i>
-                    <span>Ocenění</span>
-                </a>
-            </li>
-            <li class="sidebar-item">
-                <a href="/dashboard/materialy.html" class="sidebar-link">
-                    <i class="fas fa-file-alt"></i>
-                    <span>Materiály</span>
-                </a>
-            </li>
-            <li class="sidebar-item">
-                <a href="/dashboard/profile.html" class="sidebar-link">
-                    <i class="fas fa-user-cog"></i>
-                    <span>Profil</span>
-                </a>
-            </li>
+            <li class="sidebar-item"> <a href="/dashboard/dashboard.html" class="sidebar-link"> <i class="fas fa-th-large"></i> <span>Dashboard</span> </a> </li>
+            <li class="sidebar-item"> <a href="/dashboard/procvicovani/main.html" class="sidebar-link"> <i class="fas fa-book-open"></i> <span>Procvičování</span> </a> </li>
+            <li class="sidebar-item"> <a href="/dashboard/pokrok.html" class="sidebar-link"> <i class="fas fa-chart-line"></i> <span>Pokrok</span> </a> </li>
+            <li class="sidebar-item"> <a href="/dashboard/oceneni.html" class="sidebar-link active"> <i class="fas fa-medal"></i> <span>Ocenění</span> </a> </li>
+            <li class="sidebar-item"> <a href="/dashboard/materialy.html" class="sidebar-link"> <i class="fas fa-file-alt"></i> <span>Materiály</span> </a> </li>
+            <li class="sidebar-item"> <a href="/dashboard/profile.html" class="sidebar-link"> <i class="fas fa-user-cog"></i> <span>Profil</span> </a> </li>
         </ul>
-        
         <div class="user-profile">
-            <div class="user-avatar" id="sidebar-user-avatar">MS</div>
-            <div class="user-info">
-                <div class="user-name" id="sidebar-user-name">Načítání...</div>
-                <div class="user-role" id="sidebar-user-role">Student</div>
-            </div>
+            <div class="user-avatar" id="user-avatar">?</div>
+            <div class="user-info"> <div class="user-name" id="user-name">Načítání...</div> <div class="user-role">Student</div> </div>
         </div>
-        
-        <div class="sidebar-footer">
-            &copy; 2025 Justax
-        </div>
+        <div class="sidebar-footer"> &copy; 2025 Justax </div>
     </aside>
-    
-    <main>
-        <!-- Globální chybový kontejner -->
-        <div class="error-container" id="global-error">
-            <div class="error-message">
-                <i class="fas fa-exclamation-circle"></i>
-                <div>
-                    <div id="global-error-message">Došlo k chybě při načítání dat.</div>
-                    <button class="retry-button" id="global-retry-btn">Zkusit znovu</button>
-                </div>
-            </div>
-        </div>
+
+    <main id="main-content">
+        <div class="error-container" id="global-error"></div>
 
         <header class="dashboard-header">
-            <div class="header-content">
+            <div class="header-title">
+                <button class="mobile-menu-toggle" id="mobile-menu-toggle"> <i class="fas fa-bars"></i> </button>
                 <h1>Ocenění a odznaky</h1>
-                <div class="header-actions">
-                    <div class="search-box">
-                        <i class="fas fa-search"></i>
-                        <input type="text" placeholder="Hledat odznaky...">
-                    </div>
-                    <div class="notifications">
-                        <i class="fas fa-bell"></i>
-                        <span class="notification-badge" id="notification-count">0</span>
-                    </div>
-                </div>
             </div>
-        </header>
-        
-        <!-- Načítací indikátor -->
-        <div id="achievements-loading" class="loading">Načítání ocenění a odznaků</div>
-        
-        <!-- Hlavní obsah -->
-        <div id="achievements-content" style="display: none;">
+            </header>
+
+        <div id="achievements-content">
             <section class="main-content">
-                <!-- Statistiky odznaků -->
-                <div class="achievement-stats animated delay-1">
-                    <div class="stat-card">
-                        <div class="stat-card-content">
-                            <div class="stat-card-info">
-                                <div class="stat-card-title">Získané odznaky</div>
-                                <div class="stat-card-value" id="badges-count">0</div>
-                                <div class="stat-card-change positive" id="badges-change">+0 za posledních 30 dní</div>
-                            </div>
-                            <div class="stat-card-icon badges-icon">
-                                <i class="fas fa-medal"></i>
-                            </div>
-                        </div>
+                <div class="achievement-stats" id="achievement-stats">
+                    <div class="stat-card loading">
+                         <div class="loading-skeleton"> <div class="skeleton icon-placeholder"></div> <div style="flex-grow: 1;"><div class="skeleton title-sm"></div> <div class="skeleton value-lg"></div> <div class="skeleton text-sm"></div></div> </div>
+                        <div class="stat-card-content"> <div class="stat-card-info"> <div class="stat-card-title">Získané odznaky</div> <div class="stat-card-value" id="badges-count">0</div> <div class="stat-card-change positive" id="badges-change"> <i class="fas fa-plus"></i> 0 tento měsíc</div> </div> <div class="stat-card-icon badges-icon"><i class="fas fa-medal"></i></div> </div>
                     </div>
-                    
-                    <div class="stat-card">
-                        <div class="stat-card-content">
-                            <div class="stat-card-info">
-                                <div class="stat-card-title">Bodový zisk</div>
-                                <div class="stat-card-value" id="points-count">0</div>
-                                <div class="stat-card-change positive" id="points-change">+0 za posledních 30 dní</div>
-                            </div>
-                            <div class="stat-card-icon points-icon">
-                                <i class="fas fa-star"></i>
-                            </div>
-                        </div>
+                    <div class="stat-card loading">
+                         <div class="loading-skeleton"> <div class="skeleton icon-placeholder"></div> <div style="flex-grow: 1;"><div class="skeleton title-sm"></div> <div class="skeleton value-lg"></div> <div class="skeleton text-sm"></div></div> </div>
+                        <div class="stat-card-content"> <div class="stat-card-info"> <div class="stat-card-title">Bodový zisk</div> <div class="stat-card-value" id="points-count">0</div> <div class="stat-card-change positive" id="points-change"><i class="fas fa-arrow-up"></i> +0 tento týden</div> </div> <div class="stat-card-icon points-icon"><i class="fas fa-star"></i></div> </div>
                     </div>
-                    
-                    <div class="stat-card">
-                        <div class="stat-card-content">
-                            <div class="stat-card-info">
-                                <div class="stat-card-title">Série dnů</div>
-                                <div class="stat-card-value" id="streak-days">0</div>
-                                <div class="stat-card-change" id="streak-change">Nejdelší série: 0 dnů</div>
-                            </div>
-                            <div class="stat-card-icon streak-icon">
-                                <i class="fas fa-fire"></i>
-                            </div>
-                        </div>
+                    <div class="stat-card loading">
+                         <div class="loading-skeleton"> <div class="skeleton icon-placeholder"></div> <div style="flex-grow: 1;"><div class="skeleton title-sm"></div> <div class="skeleton value-lg"></div> <div class="skeleton text-sm"></div></div> </div>
+                        <div class="stat-card-content"> <div class="stat-card-info"> <div class="stat-card-title">Studijní série</div> <div class="stat-card-value" id="streak-days">0</div> <div class="stat-card-change" id="streak-change">Nejdelší: 0 dnů</div> </div> <div class="stat-card-icon streak-icon"><i class="fas fa-fire"></i></div> </div>
                     </div>
-                    
-                    <div class="stat-card">
-                        <div class="stat-card-content">
-                            <div class="stat-card-info">
-                                <div class="stat-card-title">Pořadí</div>
-                                <div class="stat-card-value" id="rank-value">-</div>
-                                <div class="stat-card-change" id="rank-change">Z celkových <span id="total-users">0</span> uživatelů</div>
-                            </div>
-                            <div class="stat-card-icon rank-icon">
-                                <i class="fas fa-trophy"></i>
-                            </div>
-                        </div>
+                    <div class="stat-card loading">
+                         <div class="loading-skeleton"> <div class="skeleton icon-placeholder"></div> <div style="flex-grow: 1;"><div class="skeleton title-sm"></div> <div class="skeleton value-lg"></div> <div class="skeleton text-sm"></div></div> </div>
+                        <div class="stat-card-content"> <div class="stat-card-info"> <div class="stat-card-title">Pořadí v žebříčku</div> <div class="stat-card-value" id="rank-value">-</div> <div class="stat-card-change" id="rank-change"><i class="fas fa-users"></i> z <span id="total-users">0</span> uživatelů</div> </div> <div class="stat-card-icon rank-icon"><i class="fas fa-trophy"></i></div> </div>
                     </div>
                 </div>
-                
-                <!-- Sekce odznaků -->
-                <section class="badges-section animated delay-2">
-                    <h2 class="section-title">Vaše odznaky</h2>
-                    
+
+                <section class="badges-section">
+                    <h2 class="section-title"><i class="fas fa-award"></i>Vaše odznaky</h2>
                     <div id="user-badges-container">
-                        <!-- Prázdný stav - bude skrytý, pokud jsou odznaky -->
-                        <div class="empty-state" id="empty-badges" style="display: none;">
-                            <div class="empty-state-icon">
-                                <i class="fas fa-medal"></i>
-                            </div>
-                            <h3 class="empty-state-title">Zatím nemáte žádné odznaky</h3>
-                            <p class="empty-state-desc">
-                                Začněte procvičovat a plnit zadané úkoly, abyste získali své první odznaky.
-                                Odznaky jsou udělovány za dokončení cvičení, pravidelné procvičování a dosažení výsledků.
-                            </p>
-                            <a href="/dashboard/procvicovani/main" class="empty-state-action">
-                                <i class="fas fa-book-open"></i> Začít procvičovat
-                            </a>
-                        </div>
-                        
-                        <!-- Grid s odznaky -->
                         <div class="badge-grid" id="badge-grid">
-                            <!-- Zde budou dynamicky načtené odznaky uživatele -->
+                             <div class="badge-card loading"> <div class="loading-skeleton"> <div class="skeleton badge-icon-placeholder"></div> <div class="skeleton badge-title-placeholder"></div> <div class="skeleton badge-desc-placeholder"></div> <div class="skeleton badge-desc-placeholder"></div> <div class="skeleton badge-date-placeholder"></div> </div> </div>
+                             <div class="badge-card loading"> <div class="loading-skeleton"> <div class="skeleton badge-icon-placeholder"></div> <div class="skeleton badge-title-placeholder"></div> <div class="skeleton badge-desc-placeholder"></div> <div class="skeleton badge-desc-placeholder"></div> <div class="skeleton badge-date-placeholder"></div> </div> </div>
+                             <div class="badge-card loading"> <div class="loading-skeleton"> <div class="skeleton badge-icon-placeholder"></div> <div class="skeleton badge-title-placeholder"></div> <div class="skeleton badge-desc-placeholder"></div> <div class="skeleton badge-desc-placeholder"></div> <div class="skeleton badge-date-placeholder"></div> </div> </div>
+                             </div>
+                        <div class="empty-state" id="empty-badges" style="display: none;">
+                            <i class="fas fa-box-open empty-state-icon"></i>
+                            <h3 class="empty-state-title">Zatím žádné odznaky</h3>
+                            <p class="empty-state-desc"> Plňte úkoly a procvičujte, abyste získali svá první ocenění! </p>
+                            <a href="/dashboard/procvicovani/main.html" class="btn btn-primary empty-state-action"> <i class="fas fa-book-open"></i> Začít procvičovat </a>
                         </div>
                     </div>
                 </section>
-                
-                <!-- Dostupné odznaky -->
-                <section class="available-achievements animated delay-3">
-                    <h2 class="section-title">Dostupné odznaky</h2>
-                    
+
+                <section class="available-achievements">
+                    <h2 class="section-title"><i class="fas fa-tasks"></i>Dostupné odznaky</h2>
                     <div class="achievement-grid" id="available-badges-grid">
-                        <!-- Zde budou dynamicky načtené dostupné odznaky -->
-                    </div>
+                         <div class="achievement-card loading"> <div class="loading-skeleton"> <div class="skeleton achievement-icon-placeholder"></div> <div class="skeleton achievement-content-placeholder"> <div class="skeleton achievement-title-placeholder"></div> <div class="skeleton achievement-desc-placeholder"></div> <div class="skeleton achievement-desc-placeholder"></div> <div class="skeleton achievement-progress-placeholder"></div> </div> </div> </div>
+                        <div class="achievement-card loading"> <div class="loading-skeleton"> <div class="skeleton achievement-icon-placeholder"></div> <div class="skeleton achievement-content-placeholder"> <div class="skeleton achievement-title-placeholder"></div> <div class="skeleton achievement-desc-placeholder"></div> <div class="skeleton achievement-desc-placeholder"></div> <div class="skeleton achievement-progress-placeholder"></div> </div> </div> </div>
+                         </div>
+                     <div class="empty-state" id="empty-available-badges" style="display: none;">
+                         <i class="fas fa-check-circle empty-state-icon" style="color: var(--success);"></i>
+                         <h3 class="empty-state-title">Všechny odznaky získány!</h3>
+                         <p class="empty-state-desc"> Gratulujeme, získali jste všechna dostupná ocenění. Brzy přidáme nové výzvy! </p>
+                     </div>
                 </section>
-                
-                <!-- Nedávno získané odznaky -->
-                <section class="recent-achievements animated delay-4" id="recent-achievements-section">
-                    <h2 class="section-title">Nedávno získané odznaky</h2>
-                    
-                    <div class="achievements-list" id="recent-achievements-list">
-                        <!-- Zde budou dynamicky načtené nedávno získané odznaky -->
-                    </div>
-                </section>
-                
-                <!-- Tabulka uživatelů -->
-                <section class="leaderboard-section animated delay-4">
-                    <h2 class="section-title">Žebříček uživatelů</h2>
-                    
-                    <div class="leaderboard">
+
+                <section class="leaderboard-section">
+                     <h2 class="section-title"><i class="fas fa-trophy"></i>Žebříček</h2>
+                    <div class="leaderboard loading" id="leaderboard-container">
+                         <div class="loading-skeleton">
+                             <div class="skeleton leaderboard-row"> <div class="skeleton rank-placeholder"></div> <div class="skeleton avatar-placeholder"></div> <div class="skeleton name-placeholder"></div> <div class="skeleton score-placeholder"></div> </div>
+                             <div class="skeleton leaderboard-row"> <div class="skeleton rank-placeholder"></div> <div class="skeleton avatar-placeholder"></div> <div class="skeleton name-placeholder"></div> <div class="skeleton score-placeholder"></div> </div>
+                             <div class="skeleton leaderboard-row"> <div class="skeleton rank-placeholder"></div> <div class="skeleton avatar-placeholder"></div> <div class="skeleton name-placeholder"></div> <div class="skeleton score-placeholder"></div> </div>
+                             <div class="skeleton leaderboard-row"> <div class="skeleton rank-placeholder"></div> <div class="skeleton avatar-placeholder"></div> <div class="skeleton name-placeholder"></div> <div class="skeleton score-placeholder"></div> </div>
+                         </div>
                         <div class="leaderboard-header">
                             <div class="leaderboard-title">Nejlepší uživatelé</div>
                             <div class="leaderboard-filter">
@@ -1352,604 +432,312 @@
                                 <button class="filter-btn" data-filter="streak">Série</button>
                             </div>
                         </div>
-                        
-                        <table class="leaderboard-table">
-                            <thead>
-                                <tr>
-                                    <th>Pořadí</th>
-                                    <th>Uživatel</th>
-                                    <th id="score-header">Body</th>
-                                    <th>Odznaky</th>
-                                </tr>
-                            </thead>
-                            <tbody id="leaderboard-body">
-                                <!-- Zde budou dynamicky načtení uživatelé z leaderboardu -->
-                            </tbody>
-                        </table>
+                        <div class="leaderboard-table-container">
+                            <table class="leaderboard-table">
+                                <thead> <tr> <th>#</th> <th>Uživatel</th> <th id="score-header">Body</th> <th>Odznaky</th> </tr> </thead>
+                                <tbody id="leaderboard-body"></tbody>
+                            </table>
+                        </div>
+                        <div class="empty-state" id="leaderboard-empty" style="display: none; padding: 2rem;">
+                            <i class="fas fa-users empty-state-icon"></i>
+                            <p>Žádná data k zobrazení v žebříčku.</p>
+                        </div>
                     </div>
                 </section>
-            </section>
-        </div>
-        
+
+                 <section class="recent-achievements loading" id="recent-achievements-section" style="display: none;">
+                     <h2 class="section-title"><i class="fas fa-history"></i>Nedávné úspěchy</h2>
+                     <div class="loading-skeleton">
+                         <div class="skeleton recent-item"> <div class="skeleton recent-icon-placeholder"></div> <div class="skeleton recent-content-placeholder"> <div class="skeleton recent-title-placeholder"></div> <div class="skeleton recent-desc-placeholder"></div> <div class="skeleton recent-time-placeholder"></div> </div> </div>
+                         <div class="skeleton recent-item"> <div class="skeleton recent-icon-placeholder"></div> <div class="skeleton recent-content-placeholder"> <div class="skeleton recent-title-placeholder"></div> <div class="skeleton recent-desc-placeholder"></div> <div class="skeleton recent-time-placeholder"></div> </div> </div>
+                         </div>
+                     <div class="achievements-list" id="recent-achievements-list"></div>
+                 </section>
+
+            </section> </div>
+
         <footer class="dashboard-footer">
             <p>&copy; 2025 Justax. Všechna práva vyhrazena.</p>
         </footer>
     </main>
-    
+
     <script>
-        // Konfigurace Supabase
-        const SUPABASE_URL = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10';
-        
-        // Inicializace Supabase klienta - SPRÁVNĚ!
-        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        
-        // Globální proměnné
-        let currentUser = null;
-        let userProfile = null;
-        let userBadges = [];
-        let allBadges = [];
-        let leaderboardData = {
-            points: [],
-            badges: [],
-            streak: []
-        };
-        let currentLeaderboardFilter = 'points';
-        
-        // Pomocné funkce
-        function showError(message) {
-            const errorContainer = document.getElementById('global-error');
-            const errorMessage = document.getElementById('global-error-message');
-            errorMessage.textContent = message;
-            errorContainer.style.display = 'block';
-        }
-        
-        function hideError() {
-            const errorContainer = document.getElementById('global-error');
-            errorContainer.style.display = 'none';
-        }
-        
-        function showLoading() {
-            document.getElementById('achievements-loading').style.display = 'flex';
-            document.getElementById('achievements-content').style.display = 'none';
-        }
-        
-        function hideLoading() {
-            document.getElementById('achievements-loading').style.display = 'none';
-            document.getElementById('achievements-content').style.display = 'block';
-        }
-        
-        function getInitials(firstName, lastName) {
-            if (!firstName && !lastName) return '?';
-            
-            let initials = '';
-            if (firstName) initials += firstName.charAt(0).toUpperCase();
-            if (lastName) initials += lastName.charAt(0).toUpperCase();
-            
-            return initials;
-        }
-        
-        function formatDate(dateString) {
-            if (!dateString) return '';
-            
-            const date = new Date(dateString);
-            const day = date.getDate().toString().padStart(2, '0');
-            const month = (date.getMonth() + 1).toString().padStart(2, '0');
-            const year = date.getFullYear();
-            
-            return `${day}.${month}.${year}`;
-        }
-        
-        function getIconClass(type) {
-            switch (type) {
-                case 'math': return 'fas fa-square-root-alt';
-                case 'language': return 'fas fa-language';
-                case 'streak': return 'fas fa-fire';
-                case 'special': return 'fas fa-star';
-                default: return 'fas fa-medal';
+        // Obálka IIFE
+        (function() {
+            // --- START: Inicializace a Konfigurace ---
+            const SUPABASE_URL = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
+            const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10';
+            let supabase = null;
+            let currentUser = null;
+            let userProfile = null; // Profil + statistiky pro progress
+            let userBadges = []; // Pole ID získaných odznaků
+            let allBadges = []; // Všechny možné odznaky z DB
+            let leaderboardData = { points: [], badges: [], streak: [] };
+            let currentLeaderboardFilter = 'points';
+            let isLoading = { stats: false, badges: false, available: false, leaderboard: false, recent: false };
+
+            // DOM Cache
+            const ui = {
+                sidebarAvatar: document.getElementById('user-avatar'),
+                sidebarName: document.getElementById('user-name'),
+                globalError: document.getElementById('global-error'),
+                globalRetryBtn: document.getElementById('global-retry-btn'),
+                achievementsContent: document.getElementById('achievements-content'),
+                // Stats
+                achievementStatsContainer: document.getElementById('achievement-stats'),
+                badgesCount: document.getElementById('badges-count'),
+                badgesChange: document.getElementById('badges-change'),
+                pointsCount: document.getElementById('points-count'),
+                pointsChange: document.getElementById('points-change'),
+                streakDays: document.getElementById('streak-days'),
+                streakChange: document.getElementById('streak-change'),
+                rankValue: document.getElementById('rank-value'),
+                rankChange: document.getElementById('rank-change'),
+                totalUsers: document.getElementById('total-users'),
+                // Earned Badges
+                userBadgesContainer: document.getElementById('user-badges-container'),
+                badgeGrid: document.getElementById('badge-grid'),
+                emptyBadges: document.getElementById('empty-badges'),
+                // Available Badges
+                availableBadgesContainer: document.querySelector('.available-achievements'), // Container for the whole section
+                availableBadgesGrid: document.getElementById('available-badges-grid'),
+                emptyAvailableBadges: document.getElementById('empty-available-badges'),
+                // Leaderboard
+                leaderboardContainer: document.getElementById('leaderboard-container'),
+                leaderboardBody: document.getElementById('leaderboard-body'),
+                leaderboardEmpty: document.getElementById('leaderboard-empty'),
+                scoreHeader: document.getElementById('score-header'),
+                filterButtons: document.querySelectorAll('.filter-btn'),
+                // Recent Badges
+                recentAchievementsSection: document.getElementById('recent-achievements-section'),
+                recentAchievementsList: document.getElementById('recent-achievements-list'),
+                // General UI
+                mobileMenuToggle: document.getElementById('mobile-menu-toggle'),
+                sidebar: document.getElementById('sidebar'),
+                sidebarOverlay: document.getElementById('sidebar-overlay'),
+                sidebarCloseToggle: document.getElementById('sidebar-close-toggle'),
+                mainElement: document.getElementById('main-content'),
+                initialLoader: document.getElementById('initial-loader'),
+                toastContainer: document.getElementById('toast-container')
+            };
+
+            // Ikony a třídy (můžeme rozšířit)
+             const badgeVisuals = {
+                 math: { icon: 'fa-square-root-alt', gradient: 'var(--gradient-math)' },
+                 language: { icon: 'fa-language', gradient: 'var(--gradient-lang)' },
+                 streak: { icon: 'fa-fire', gradient: 'var(--gradient-streak)' },
+                 special: { icon: 'fa-star', gradient: 'var(--gradient-special)' },
+                 points: { icon: 'fa-coins', gradient: 'var(--gradient-warning)' }, // Příklad pro body
+                 exercises: { icon: 'fa-pencil-alt', gradient: 'var(--gradient-success)' }, // Příklad pro cvičení
+                 test: { icon: 'fa-vial', gradient: 'var(--gradient-info)' }, // Příklad pro testy
+                 default: { icon: 'fa-medal', gradient: 'var(--gradient-1)' }
+             };
+
+            // --- START: Pomocné Funkce ---
+            function showToast(message, type = 'success', duration = 4000) { /* ... (implementace z pokrok.html) ... */ if (!ui.toastContainer) return; try { const toastId = `toast-${Date.now()}`; const toastElement = document.createElement('div'); toastElement.className = `toast ${type}`; toastElement.id = toastId; toastElement.setAttribute('role', 'alert'); toastElement.setAttribute('aria-live', 'assertive'); toastElement.innerHTML = `<i class="toast-icon"></i><div class="toast-content"><div class="toast-message">${sanitizeHTML(message)}</div></div><button type="button" class="toast-close" aria-label="Zavřít">&times;</button>`; const icon = toastElement.querySelector('.toast-icon'); icon.className = `toast-icon fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle'}`; toastElement.querySelector('.toast-close').addEventListener('click', () => { toastElement.classList.remove('show'); setTimeout(() => toastElement.remove(), 400); }); ui.toastContainer.appendChild(toastElement); requestAnimationFrame(() => { toastElement.classList.add('show'); }); setTimeout(() => { if (toastElement.parentElement) { toastElement.classList.remove('show'); setTimeout(() => toastElement.remove(), 400); } }, duration); } catch (e) { console.error("Chyba při zobrazování toastu:", e); } }
+            function showError(message, isGlobal = true) { /* ... (implementace z pokrok.html) ... */ console.error("Došlo k chybě:", message); if (isGlobal && ui.globalError) { ui.globalError.innerHTML = `<div class="error-message"><i class="fas fa-exclamation-circle"></i><div>${sanitizeHTML(message)}</div></div>`; ui.globalError.style.display = 'block'; const retryBtn = ui.globalError.querySelector('#global-retry-btn'); if (retryBtn) { retryBtn.style.display = 'block'; } } else { showToast(message, 'error', 6000); } }
+            function hideError() { if (ui.globalError) ui.globalError.style.display = 'none'; }
+            function sanitizeHTML(str) { const t = document.createElement('div'); t.textContent = str || ''; return t.innerHTML; }
+            function getInitials(userData) { /* ... (implementace z pokrok.html) ... */ if (!userData) return '?'; const f=userData.first_name?.[0]||''; const l=userData.last_name?.[0]||''; const nameInitial = (f+l).toUpperCase(); const usernameInitial = userData.username?.[0].toUpperCase() || ''; const emailInitial = userData.email?.[0].toUpperCase() || ''; return nameInitial || usernameInitial || emailInitial || '?'; }
+            function formatDate(dateString) { /* ... (implementace z pokrok.html) ... */ if (!dateString) return '-'; try { const d = new Date(dateString); if (isNaN(d.getTime())) return '-'; const optionsDate = { day: 'numeric', month: 'numeric', year: 'numeric' }; return d.toLocaleDateString('cs-CZ', optionsDate); } catch (e) { console.error("Chyba formátování data:", dateString, e); return '-'; } }
+            function toggleMobileMenu() { ui.sidebar?.classList.toggle('active'); ui.sidebarOverlay?.classList.toggle('active'); }
+            /**
+             * Manages loading states for different sections using CSS classes.
+             * @param {'stats' | 'badges' | 'available' | 'leaderboard' | 'recent'} section
+             * @param {boolean} isLoadingFlag
+             */
+            function setLoadingState(section, isLoadingFlag) {
+                 if (isLoading[section] === isLoadingFlag) return;
+                 isLoading[section] = isLoadingFlag;
+                 console.log(`[setLoadingState] Section: ${section}, isLoading: ${isLoadingFlag}`);
+
+                 const sectionMap = {
+                     stats: ui.achievementStatsContainer,
+                     badges: ui.userBadgesContainer,
+                     available: ui.availableBadgesContainer,
+                     leaderboard: ui.leaderboardContainer,
+                     recent: ui.recentAchievementsSection
+                 };
+
+                 const container = sectionMap[section];
+                 if (container) {
+                      // Directly add/remove 'loading' class to the container
+                      container.classList.toggle('loading', isLoadingFlag);
+                 } else {
+                      console.warn(`setLoadingState: Container for section "${section}" not found.`);
+                 }
             }
-        }
-        
-        function getBadgeClass(type) {
-            switch (type) {
-                case 'math': return 'math';
-                case 'language': return 'lang';
-                case 'streak': return 'streak';
-                case 'special': return 'special';
-                default: return 'math';
-            }
-        }
-        
-        // Kontrola přihlášení a načtení dat
-        async function checkAuth() {
-            try {
-                const { data: { user }, error } = await supabaseClient.auth.getUser();
-                
-                if (error) throw error;
-                
-                if (user) {
-                    currentUser = user;
-                    await loadUserProfile();
-                    await loadBadges();
-                    await loadUserBadges();
-                    await loadLeaderboard();
-                    updateUI();
-                } else {
-                    // Uživatel není přihlášen, přesměrovat na přihlášení
-                    window.location.href = '/login.html';
-                }
-            } catch (error) {
-                console.error('Chyba při kontrole přihlášení:', error);
-                showError('Nepodařilo se ověřit přihlášení. Prosím, zkuste to znovu.');
-                hideLoading();
-            }
-        }
-        
-        // Načtení profilu uživatele
-        async function loadUserProfile() {
-            try {
-                const { data, error } = await supabaseClient
-                    .from('profiles')
-                    .select('*')
-                    .eq('id', currentUser.id)
-                    .single();
-                
-                if (error) throw error;
-                
-                if (data) {
-                    userProfile = data;
-                    updateProfileData();
-                } else {
-                    throw new Error('Profil nenalezen');
-                }
-            } catch (error) {
-                console.error('Chyba při načítání profilu:', error);
-                showError('Nepodařilo se načíst uživatelský profil. Prosím, zkuste to znovu.');
-            }
-        }
-        
-        // Načtení všech odznaků
-        async function loadBadges() {
-            try {
-                const { data, error } = await supabaseClient
-                    .from('badges')
-                    .select('*')
-                    .order('id', { ascending: true });
-                
-                if (error) throw error;
-                
-                if (data) {
-                    allBadges = data;
-                } else {
-                    allBadges = [];
-                }
-            } catch (error) {
-                console.error('Chyba při načítání odznaků:', error);
-                showError('Nepodařilo se načíst seznam odznaků. Prosím, zkuste to znovu.');
-            }
-        }
-        
-        // Načtení odznaků uživatele
-        async function loadUserBadges() {
-            try {
-                const { data, error } = await supabaseClient
-                    .from('user_badges')
-                    .select('*, badge:badge_id(*)')
-                    .eq('user_id', currentUser.id)
-                    .order('earned_at', { ascending: false });
-                
-                if (error) throw error;
-                
-                if (data) {
-                    userBadges = data;
-                } else {
-                    userBadges = [];
-                }
-            } catch (error) {
-                console.error('Chyba při načítání odznaků uživatele:', error);
-                showError('Nepodařilo se načíst vaše odznaky. Prosím, zkuste to znovu.');
-            }
-        }
-        
-        // Načtení žebříčku uživatelů
-        async function loadLeaderboard() {
-            try {
-                // Načtení uživatelů seřazených podle bodů
-                const { data: pointsData, error: pointsError } = await supabaseClient
-                    .from('profiles')
-                    .select('id, first_name, last_name, username, avatar_url, level, points, badges_count')
-                    .order('points', { ascending: false })
-                    .limit(10);
-                
-                if (pointsError) throw pointsError;
-                
-                // Načtení uživatelů seřazených podle odznaků
-                const { data: badgesData, error: badgesError } = await supabaseClient
-                    .from('profiles')
-                    .select('id, first_name, last_name, username, avatar_url, level, points, badges_count')
-                    .order('badges_count', { ascending: false })
-                    .limit(10);
-                
-                if (badgesError) throw badgesError;
-                
-                // Načtení uživatelů seřazených podle série dnů
-                const { data: streakData, error: streakError } = await supabaseClient
-                    .from('profiles')
-                    .select('id, first_name, last_name, username, avatar_url, level, points, badges_count, streak_days')
-                    .order('streak_days', { ascending: false })
-                    .limit(10);
-                
-                if (streakError) throw streakError;
-                
-                leaderboardData = {
-                    points: pointsData || [],
-                    badges: badgesData || [],
-                    streak: streakData || []
-                };
-                
-            } catch (error) {
-                console.error('Chyba při načítání žebříčku:', error);
-                showError('Nepodařilo se načíst žebříček uživatelů. Prosím, zkuste to znovu.');
-            }
-        }
-        
-        // Aktualizace dat profilu v UI
-        function updateProfileData() {
-            // Sidebar
-            const initials = getInitials(userProfile.first_name, userProfile.last_name);
-            document.getElementById('sidebar-user-avatar').textContent = initials;
-            document.getElementById('sidebar-user-name').textContent = `${userProfile.first_name || ''} ${userProfile.last_name || ''}`.trim() || 'Uživatel';
-            document.getElementById('sidebar-user-role').textContent = 'Student';
-            
-            // Statistiky
-            document.getElementById('badges-count').textContent = userProfile.badges_count || 0;
-            document.getElementById('points-count').textContent = userProfile.points || 0;
-            document.getElementById('streak-days').textContent = userProfile.streak_days || 0;
-            
-            // Počet oznámení
-            document.getElementById('notification-count').textContent = '0';
-            
-            // Najít pořadí uživatele v žebříčku
-            const userRank = leaderboardData.points.findIndex(user => user.id === currentUser.id) + 1;
-            document.getElementById('rank-value').textContent = userRank > 0 ? userRank : '-';
-            document.getElementById('total-users').textContent = leaderboardData.points.length;
-        }
-        
-        // Zobrazení odznaků uživatele
-        function renderUserBadges() {
-            const badgeGrid = document.getElementById('badge-grid');
-            const emptyBadges = document.getElementById('empty-badges');
-            
-            // Vymazání obsahu
-            badgeGrid.innerHTML = '';
-            
-            if (userBadges.length === 0) {
-                // Zobrazení prázdného stavu
-                emptyBadges.style.display = 'block';
-                badgeGrid.style.display = 'none';
-                return;
-            }
-            
-            // Skrýt prázdný stav a zobrazit grid
-            emptyBadges.style.display = 'none';
-            badgeGrid.style.display = 'grid';
-            
-            // Vykreslení odznaků
-            userBadges.forEach(userBadge => {
-                const badge = userBadge.badge;
-                const badgeClass = getBadgeClass(badge.type);
-                const iconClass = getIconClass(badge.type);
-                
-                const badgeElement = document.createElement('div');
-                badgeElement.className = 'badge-card';
-                badgeElement.innerHTML = `
-                    <div class="badge-icon ${badgeClass}">
-                        <i class="${iconClass}"></i>
-                    </div>
-                    <h3 class="badge-title">${badge.title}</h3>
-                    <p class="badge-desc">${badge.description}</p>
-                    <div class="badge-date">
-                        <i class="far fa-calendar"></i>
-                        Získáno: ${formatDate(userBadge.earned_at)}
-                    </div>
-                `;
-                
-                badgeGrid.appendChild(badgeElement);
-            });
-        }
-        
-        // Zobrazení dostupných odznaků
-        function renderAvailableBadges() {
-            const availableBadgesGrid = document.getElementById('available-badges-grid');
-            
-            // Vymazání obsahu
-            availableBadgesGrid.innerHTML = '';
-            
-            // Filtrování získaných odznaků
-            const earnedBadgeIds = userBadges.map(userBadge => userBadge.badge_id);
-            
-            // Výběr pouze odznaků, které uživatel ještě nemá
-            const availableBadges = allBadges.filter(badge => !earnedBadgeIds.includes(badge.id));
-            
-            if (availableBadges.length === 0) {
-                const noAvailableBadges = document.createElement('div');
-                noAvailableBadges.className = 'empty-state';
-                noAvailableBadges.innerHTML = `
-                    <div class="empty-state-icon">
-                        <i class="fas fa-check-circle"></i>
-                    </div>
-                    <h3 class="empty-state-title">Získali jste všechny dostupné odznaky!</h3>
-                    <p class="empty-state-desc">
-                        Gratulujeme! Získali jste všechny dostupné odznaky v systému.
-                        Pravidelně přidáváme nové odznaky, takže se nezapomeňte vracet.
-                    </p>
-                `;
-                availableBadgesGrid.appendChild(noAvailableBadges);
-                return;
-            }
-            
-            // Vykreslení dostupných odznaků
-            availableBadges.forEach(badge => {
-                const badgeClass = getBadgeClass(badge.type);
-                const iconClass = getIconClass(badge.type);
-                
-                // Vytvoření náhodného progresu pro demonstraci
-                const progress = Math.floor(Math.random() * 80); // 0-80%
-                
-                const badgeElement = document.createElement('div');
-                badgeElement.className = 'achievement-card locked';
-                badgeElement.innerHTML = `
-                    <div class="achievement-icon ${badgeClass}">
-                        <i class="${iconClass}"></i>
-                    </div>
-                    <div class="achievement-content">
-                        <h3 class="achievement-title">${badge.title}</h3>
-                        <p class="achievement-desc">${badge.description}</p>
-                        <div class="progress-bar">
-                            <div class="progress-fill ${badgeClass}" style="width: ${progress}%"></div>
-                        </div>
-                        <div class="progress-stats">${progress}% splněno</div>
-                    </div>
-                `;
-                
-                availableBadgesGrid.appendChild(badgeElement);
-            });
-        }
-        
-        // Zobrazení nedávno získaných odznaků
-        function renderRecentBadges() {
-            const recentBadgesList = document.getElementById('recent-achievements-list');
-            const recentBadgesSection = document.getElementById('recent-achievements-section');
-            
-            // Vymazání obsahu
-            recentBadgesList.innerHTML = '';
-            
-            // Výběr posledních 5 odznaků
-            const recentBadges = userBadges.slice(0, 5);
-            
-            if (recentBadges.length === 0) {
-                // Skrýt sekci, pokud nejsou žádné nedávné odznaky
-                recentBadgesSection.style.display = 'none';
-                return;
-            }
-            
-            // Zobrazit sekci
-            recentBadgesSection.style.display = 'block';
-            
-            // Vykreslení nedávných odznaků
-            recentBadges.forEach((userBadge, index) => {
-                const badge = userBadge.badge;
-                const badgeClass = getBadgeClass(badge.type);
-                const iconClass = getIconClass(badge.type);
-                
-                const badgeElement = document.createElement('div');
-                badgeElement.className = `achievement-item delay-${index + 1}`;
-                badgeElement.innerHTML = `
-                    <div class="achievement-item-icon ${badgeClass}">
-                        <i class="${iconClass}"></i>
-                    </div>
-                    <div class="achievement-item-content">
-                        <h3 class="achievement-item-title">${badge.title}</h3>
-                        <p class="achievement-item-desc">${badge.description}</p>
-                        <div class="achievement-item-time">
-                            <i class="far fa-calendar"></i>
-                            Získáno: ${formatDate(userBadge.earned_at)}
-                        </div>
-                    </div>
-                `;
-                
-                recentBadgesList.appendChild(badgeElement);
-            });
-        }
-        
-        // Zobrazení žebříčku uživatelů
-        function renderLeaderboard() {
-            const leaderboardBody = document.getElementById('leaderboard-body');
-            const scoreHeader = document.getElementById('score-header');
-            
-            // Vymazání obsahu
-            leaderboardBody.innerHTML = '';
-            
-            // Nastavení záhlaví podle filtru
-            switch (currentLeaderboardFilter) {
-                case 'points':
-                    scoreHeader.textContent = 'Body';
-                    break;
-                case 'badges':
-                    scoreHeader.textContent = 'Odznaky';
-                    break;
-                case 'streak':
-                    scoreHeader.textContent = 'Série';
-                    break;
-            }
-            
-            // Získání dat podle filtru
-            const data = leaderboardData[currentLeaderboardFilter];
-            
-            // Vykreslení řádků tabulky
-            data.forEach((user, index) => {
-                                const rank = index + 1;
-                const isCurrentUser = user.id === currentUser.id;
-                const displayName = user.username ? 
-                    `@${user.username}` : 
-                    `${user.first_name || ''} ${user.last_name || ''}`.trim() || 'Uživatel';
-                const initials = getInitials(user.first_name, user.last_name);
-                
-                // Hodnota podle aktuálního filtru
-                let scoreValue;
-                switch (currentLeaderboardFilter) {
-                    case 'points':
-                        scoreValue = user.points || 0;
-                        break;
-                    case 'badges':
-                        scoreValue = user.badges_count || 0;
-                        break;
-                    case 'streak':
-                        scoreValue = user.streak_days || 0;
-                        break;
-                }
-                
-                // Vytvoření řádku tabulky
-                const rowElement = document.createElement('tr');
-                if (isCurrentUser) {
-                    rowElement.className = 'highlight-row';
-                }
-                
-                rowElement.innerHTML = `
-                    <td class="rank-cell">${rank}</td>
-                    <td class="user-cell">
-                        <div class="user-avatar-sm">
-                            ${user.avatar_url ? `<img src="${user.avatar_url}" alt="${displayName}">` : initials}
-                        </div>
-                        <div class="user-info-sm">
-                            <div class="user-name-sm">${displayName}</div>
-                            <div class="user-level">Úroveň ${user.level || 1}</div>
-                        </div>
-                    </td>
-                    <td class="score-cell">${scoreValue}</td>
-                    <td class="badge-count-cell">${user.badges_count || 0}</td>
-                `;
-                
-                leaderboardBody.appendChild(rowElement);
-            });
-        }
-        
-        // Aktualizace kompletního UI
-        function updateUI() {
-            updateProfileData();
-            renderUserBadges();
-            renderAvailableBadges();
-            renderRecentBadges();
-            renderLeaderboard();
-            hideLoading();
-        }
-        
-        // Přepínání filtrů žebříčku
-        function setupLeaderboardFilters() {
-            const filterButtons = document.querySelectorAll('.filter-btn');
-            
-            filterButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    // Odstranění aktivní třídy ze všech tlačítek
-                    filterButtons.forEach(btn => btn.classList.remove('active'));
-                    
-                    // Přidání aktivní třídy kliknutému tlačítku
-                    this.classList.add('active');
-                    
-                    // Nastavení filtru a překreslení žebříčku
-                    currentLeaderboardFilter = this.getAttribute('data-filter');
-                    renderLeaderboard();
-                });
-            });
-        }
-        
-        // Globální hledání pomocí search boxu
-        function setupSearch() {
-            const searchInput = document.querySelector('.search-box input');
-            
-            searchInput.addEventListener('input', function() {
-                const searchTerm = this.value.toLowerCase().trim();
-                
-                // Pokud je vyhledávací pole prázdné, obnovit původní seznam
-                if (!searchTerm) {
-                    renderUserBadges();
-                    renderAvailableBadges();
-                    return;
-                }
-                
-                // Filtrování odznaků uživatele
-                const filteredUserBadges = userBadges.filter(userBadge => {
-                    const badge = userBadge.badge;
-                    return badge.title.toLowerCase().includes(searchTerm) || 
-                           badge.description.toLowerCase().includes(searchTerm) ||
-                           badge.type.toLowerCase().includes(searchTerm);
-                });
-                
-                // Filtrování dostupných odznaků
-                const earnedBadgeIds = userBadges.map(userBadge => userBadge.badge_id);
-                const filteredAvailableBadges = allBadges.filter(badge => {
-                    const isAvailable = !earnedBadgeIds.includes(badge.id);
-                    const matchesSearch = badge.title.toLowerCase().includes(searchTerm) || 
-                                         badge.description.toLowerCase().includes(searchTerm) ||
-                                         badge.type.toLowerCase().includes(searchTerm);
-                    return isAvailable && matchesSearch;
-                });
-                
-                // Dočasná úprava globálních proměnných pro vykreslení
-                const originalUserBadges = [...userBadges];
-                const originalAllBadges = [...allBadges];
-                
-                userBadges = filteredUserBadges;
-                allBadges = filteredAvailableBadges.concat(originalAllBadges.filter(badge => earnedBadgeIds.includes(badge.id)));
-                
-                // Překreslení odznaků
-                renderUserBadges();
-                renderAvailableBadges();
-                
-                // Obnovení původních dat
-                userBadges = originalUserBadges;
-                allBadges = originalAllBadges;
-            });
-        }
-        
-        // Handler pro opakovaný pokus při chybě
-        function setupRetryButton() {
-            document.getElementById('global-retry-btn').addEventListener('click', async function() {
-                hideError();
-                showLoading();
+            // --- KONEC: Pomocné Funkce ---
+
+            // --- START: Načítání Dat ---
+            async function initializeApp() {
+                console.log("🚀 [Init Oceneni] Initializing Awards Page...");
+                if (!initializeSupabase()) return;
+
+                setupEventListeners(); // Basic listeners
+
+                if (ui.initialLoader) { ui.initialLoader.classList.remove('hidden'); ui.initialLoader.style.display = 'flex'; }
+                if (ui.mainElement) ui.mainElement.style.display = 'none';
+
                 try {
-                    await loadUserProfile();
-                    await loadBadges();
-                    await loadUserBadges();
-                    await loadLeaderboard();
-                    updateUI();
+                    console.log("[Init Oceneni] Checking auth session...");
+                    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+                    if (sessionError) throw new Error(`Nepodařilo se ověřit přihlášení: ${sessionError.message}`);
+
+                    if (session?.user) {
+                        currentUser = session.user;
+                        console.log(`[Init Oceneni] User authenticated (ID: ${currentUser.id}). Loading data...`);
+
+                        // Load profile first, it contains stats needed for badge progress
+                        currentProfile = await fetchUserProfile(currentUser.id);
+                        if (!currentProfile) throw new Error("Nepodařilo se načíst profil.");
+                         updateSidebarProfile(currentProfile); // Update sidebar immediately
+
+                        // Hide loader, show content
+                        if (ui.initialLoader) { ui.initialLoader.classList.add('hidden'); setTimeout(() => { if (ui.initialLoader) ui.initialLoader.style.display = 'none'; }, 300); }
+                        if (ui.mainElement) { ui.mainElement.style.display = 'block'; requestAnimationFrame(() => ui.mainElement.classList.add('loaded')); }
+
+                        await loadAllAwardData(); // Load remaining data
+                        console.log("✅ [Init Oceneni] Page fully loaded and initialized.");
+
+                    } else {
+                        console.log("[Init Oceneni] User not logged in. Redirecting...");
+                        window.location.href = '/auth/index.html';
+                    }
                 } catch (error) {
-                    console.error('Chyba při opakovaném pokusu:', error);
-                    showError('Nepodařilo se načíst data. Prosím, zkuste to znovu později.');
-                    hideLoading();
+                    console.error("❌ [Init Oceneni] Critical initialization error:", error);
+                    if (ui.initialLoader && !ui.initialLoader.classList.contains('hidden')) {
+                        ui.initialLoader.innerHTML = `<p style="color: var(--danger);">Chyba (${error.message}). Obnovte stránku.</p>`;
+                    } else { showError(`Chyba při inicializaci: ${error.message}`, true); }
+                    if (ui.mainElement) ui.mainElement.style.display = 'none';
                 }
-            });
-        }
-        
-        // Inicializace stránky
-        async function initPage() {
-            showLoading();
-            hideError();
-            
-            try {
-                await checkAuth();
-                setupLeaderboardFilters();
-                setupSearch();
-                setupRetryButton();
-            } catch (error) {
-                console.error('Chyba při inicializaci stránky:', error);
-                showError('Došlo k neočekávané chybě. Prosím, obnovte stránku.');
-                hideLoading();
             }
-        }
-        
-        // Spuštění inicializace po načtení stránky
-        document.addEventListener('DOMContentLoaded', initPage);
+            function initializeSupabase() { /* ... (stejné jako v pokrok.html) ... */ try { if (typeof window.supabase === 'undefined' || typeof window.supabase.createClient !== 'function') { throw new Error("Supabase library not loaded correctly."); } supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY); if (!supabase) throw new Error("Supabase client creation failed."); console.log('[Supabase] Client initialized successfully.'); return true; } catch (error) { console.error('[Supabase] Initialization failed:', error); showError("Kritická chyba: Nepodařilo se připojit k databázi.", true); return false; } }
+            async function fetchUserProfile(userId) { /* ... (stejné jako v pokrok.html, ale vybíráme i sloupce pro progress) ... */ if (!supabase || !userId) return null; console.log(`[Profile] Fetching profile for user ID: ${userId}`); try { const { data: profile, error } = await supabase .from('profiles') .select('*, points, streak_days, badges_count, level, completed_exercises') // Přidány sloupce pro progress
+                        .eq('id', userId) .single(); if (error && error.code !== 'PGRST116') { throw error; } if (!profile) { console.warn(`[Profile] Profile not found for user ${userId}.`); return null; } console.log("[Profile] Profile data fetched successfully."); return profile; } catch (error) { console.error('[Profile] Caught exception fetching profile:', error); showToast('Nepodařilo se načíst data profilu.', 'error'); return null; } }
+
+            /** Loads all data for the awards page concurrently. */
+            async function loadAllAwardData() {
+                if (!currentUser || !supabase || !currentProfile) { showError("Nelze načíst data: Chybí informace o uživateli nebo spojení.", true); return; }
+                console.log("🔄 [LoadAwards] Starting data fetch...");
+                hideError();
+                setLoadingState('stats', true); setLoadingState('badges', true); setLoadingState('available', true); setLoadingState('leaderboard', true); setLoadingState('recent', true);
+
+                try {
+                    const results = await Promise.allSettled([
+                        fetchUserStats(currentUser.id, currentProfile), // Uses profile data
+                        fetchAllBadgesDefinition(),
+                        fetchUserEarnedBadges(currentUser.id),
+                        fetchLeaderboardData(currentLeaderboardFilter)
+                    ]);
+                    console.log("[LoadAwards] Fetch results (settled):", results);
+
+                    let stats = null, fetchedAllBadges = null, fetchedUserBadges = null, fetchedLeaderboard = null;
+
+                    // Process Stats
+                    if (results[0].status === 'fulfilled') { stats = results[0].value; updateStatsCards(stats); }
+                    else { console.error("❌ Error fetching stats:", results[0].reason); showError("Nepodařilo se načíst statistiky."); updateStatsCards(null); }
+                    setLoadingState('stats', false);
+
+                    // Process All Badges Definition
+                    if (results[1].status === 'fulfilled') { fetchedAllBadges = results[1].value; allBadges = fetchedAllBadges || []; }
+                    else { console.error("❌ Error fetching all badges:", results[1].reason); showError("Nepodařilo se načíst definice odznaků."); allBadges = []; }
+                    // Available badges depend on both all badges and user badges
+
+                    // Process User Earned Badges
+                    if (results[2].status === 'fulfilled') { fetchedUserBadges = results[2].value; userBadges = fetchedUserBadges || []; renderUserBadges(userBadges); renderRecentBadges(userBadges); }
+                    else { console.error("❌ Error fetching user badges:", results[2].reason); showError("Nepodařilo se načíst získané odznaky."); userBadges = []; renderUserBadges([]); renderRecentBadges([]); }
+                    setLoadingState('badges', false);
+                    setLoadingState('recent', false);
+
+                    // Render Available Badges (needs both allBadges and userBadges)
+                    renderAvailableBadges(allBadges, userBadges, currentProfile); // Pass profile for progress calculation
+                    setLoadingState('available', false);
+
+                    // Process Leaderboard
+                    if (results[3].status === 'fulfilled') { fetchedLeaderboard = results[3].value; leaderboardData[currentLeaderboardFilter] = fetchedLeaderboard || []; renderLeaderboard(leaderboardData[currentLeaderboardFilter]); }
+                    else { console.error("❌ Error fetching leaderboard:", results[3].reason); showError("Nepodařilo se načíst žebříček."); leaderboardData[currentLeaderboardFilter] = []; renderLeaderboard([]); }
+                    setLoadingState('leaderboard', false);
+
+                    // Update derived stats (rank) after leaderboard is loaded
+                    updateDerivedStats(stats);
+
+                    initializeTooltips();
+
+                } catch (error) {
+                    console.error("❌ Unexpected error in loadAllAwardData:", error);
+                    showError(`Nastala neočekávaná chyba: ${error.message}`, true);
+                    setLoadingState('stats', false); setLoadingState('badges', false); setLoadingState('available', false); setLoadingState('leaderboard', false); setLoadingState('recent', false);
+                } finally {
+                    console.log("🏁 [LoadAwards] Finished data fetch and processing.");
+                }
+            }
+
+            async function fetchUserStats(userId, profileData) { /* ... (stejné jako v pokrok.html) ... */ if (!supabase || !userId || !profileData) { console.error("[Stats] Missing Supabase client, user ID, or profile data."); return null; } console.log(`[Stats] Fetching stats for user ${userId}...`); let fetchedStats = null; let statsError = null; try { const { data, error } = await supabase .from('user_stats') .select('progress, progress_weekly, points_weekly, streak_longest, completed_tests') .eq('user_id', userId) .maybeSingle(); fetchedStats = data; statsError = error; if (statsError) { console.warn("[Stats] Supabase error fetching user_stats:", statsError.message); } } catch (error) { console.error("[Stats] Unexpected error fetching user_stats:", error); statsError = error; } const finalStats = { progress: fetchedStats?.progress ?? 0, progress_weekly: fetchedStats?.progress_weekly ?? 0, points: profileData.points ?? 0, points_weekly: fetchedStats?.points_weekly ?? 0, streak_current: profileData.streak_days ?? 0, streak_longest: Math.max(fetchedStats?.streak_longest ?? 0, profileData.streak_days ?? 0), completed_exercises: profileData.completed_exercises ?? 0, completed_tests: profileData.completed_tests ?? fetchedStats?.completed_tests ?? 0 }; if (statsError) { console.warn("[Stats] Returning stats based primarily on profile due to fetch error."); } else { console.log("[Stats] Stats fetched/constructed successfully:", finalStats); } return finalStats; }
+            async function fetchAllBadgesDefinition() { /* ... (Načte všechny z `badges`) ... */ console.log("[Badges] Fetching all badge definitions..."); if (!supabase) return []; try { const { data, error } = await supabase.from('badges').select('*').order('id'); if (error) throw error; console.log(`[Badges] Fetched ${data?.length || 0} badge definitions.`); return data || []; } catch (error) { console.error("[Badges] Error fetching definitions:", error); showError("Nepodařilo se načíst definice odznaků."); return []; } }
+            async function fetchUserEarnedBadges(userId) { /* ... (Načte uživatelovy z `user_badges` + JOIN `badges`) ... */ console.log(`[UserBadges] Fetching earned badges for user ${userId}...`); if (!supabase || !userId) return []; try { const { data, error } = await supabase .from('user_badges') .select('badge_id, earned_at, badge:badges!inner(*)') // INNER JOIN to get badge details
+                         .eq('user_id', userId) .order('earned_at', { ascending: false }); if (error) throw error; console.log(`[UserBadges] Fetched ${data?.length || 0} earned badges.`); return data || []; } catch (error) { console.error("[UserBadges] Error fetching earned badges:", error); showError("Nepodařilo se načíst získané odznaky."); return []; } }
+            async function fetchLeaderboardData(filter = 'points') { /* ... (Načte data z `leaderboard` tabulky) ... */ console.log(`[Leaderboard] Fetching data for filter: ${filter}...`); if (!supabase) return []; const period = 'daily'; // Nebo jiný definovaný period, např. 'weekly'
+                try { const { data, error } = await supabase .from('leaderboard') .select('rank, user_id, points, badges_count, profile:profiles(first_name, last_name, username, avatar_url, level, streak_days)') // JOIN profiles
+                        .eq('period', period) .order('rank', { ascending: true }) .limit(10); if (error) throw error; console.log(`[Leaderboard] Fetched ${data?.length || 0} entries for period '${period}'.`); // Logika pro seřazení podle badges/streak by se dělala v DB funkci/triggeru, který plní leaderboard
+                    return data || []; } catch (error) { console.error(`[Leaderboard] Error fetching leaderboard data (filter: ${filter}, period: ${period}):`, error); showError("Nepodařilo se načíst žebříček."); return []; } }
+            // --- KONEC: Načítání Dat ---
+
+            // --- START: Aktualizace UI ---
+            function updateSidebarProfile(profile) { /* ... (stejné jako v pokrok.html) ... */ console.log("[UI Update] Updating sidebar user info..."); if (!ui.sidebarName || !ui.sidebarAvatar) { console.warn("[UI Update] Sidebar elements not found."); return; } if (profile) { const firstName = profile.first_name ?? ''; const lastName = profile.last_name ?? ''; const username = profile.username ?? ''; const emailUsername = currentUser?.email?.split('@')[0] || ''; const displayName = `${firstName} ${lastName}`.trim() || username || emailUsername || 'Uživatel'; ui.sidebarName.textContent = displayName; const initials = getInitials(profile); const avatarUrl = profile.avatar_url; ui.sidebarAvatar.innerHTML = avatarUrl ? `<img src="${avatarUrl}" alt="${initials}">` : initials; console.log("[UI Update] Sidebar UI updated."); } else { console.warn("[UI Update] Missing profile data, setting defaults."); ui.sidebarName.textContent = "Uživatel"; ui.sidebarAvatar.textContent = '?'; } }
+            function updateStatsCards(stats) { /* ... (používá data z fetchUserStats) ... */ console.log("[UI Update] Updating stats cards with data:", stats); const cards = [ui.badgesCount, ui.pointsCount, ui.streakDays, ui.rankValue]; const containers = [ui.badgesCount?.closest('.stat-card'), ui.pointsCount?.closest('.stat-card'), ui.streakDays?.closest('.stat-card'), ui.rankValue?.closest('.stat-card')]; containers.forEach(c => c?.classList.remove('loading')); if (!stats || cards.some(el => !el)) { console.warn("[UI Update] No stats data or elements missing, showing error state."); containers.forEach(c => { if(c) { const content = c.querySelector('.stat-card-content'); const skeleton = c.querySelector('.loading-skeleton'); if(content) content.innerHTML = `<div class="card-error-state" style="text-align: center; color: var(--text-muted); font-size: 0.9rem;">Chyba</div>`; if(skeleton) skeleton.style.display = 'none'; } }); return; } ui.badgesCount.textContent = stats.badges_count ?? userProfile?.badges_count ?? 0; ui.pointsCount.textContent = stats.points ?? userProfile?.points ?? 0; ui.streakDays.textContent = stats.streak_current ?? userProfile?.streak_days ?? 0; ui.streakChange.textContent = `Nejdelší: ${stats.streak_longest ?? userProfile?.streak_days ?? 0} dnů`; // Placeholder for rank update updateDerivedStats(stats); // Update rank separately after leaderboard loads
+                console.log("[UI Update] Stats cards updated (rank pending)."); }
+            function updateDerivedStats(stats) { // Update rank after leaderboard is loaded
+                const userEntry = leaderboardData[currentLeaderboardFilter]?.find(u => u.user_id === currentUser?.id);
+                const rank = userEntry?.rank ?? '-';
+                const total = leaderboardData[currentLeaderboardFilter]?.length || 0; // Or fetch total users count if needed
+                 if(ui.rankValue) ui.rankValue.textContent = rank;
+                 if(ui.rankChange) ui.rankChange.innerHTML = `<i class="fas fa-users"></i> z ${total > 0 ? total : '?'} uživatelů`; // Show total from leaderboard if available
+                 console.log(`[UI Update] Rank updated to: ${rank}`);
+            }
+            function renderUserBadges(earnedBadges) { /* ... (zobrazí získané odznaky) ... */ if (!ui.badgeGrid || !ui.emptyBadges) return; ui.badgeGrid.innerHTML = ''; // Clear previous
+                 if (!earnedBadges || earnedBadges.length === 0) { ui.emptyBadges.style.display = 'block'; ui.badgeGrid.style.display = 'none'; return; } ui.emptyBadges.style.display = 'none'; ui.badgeGrid.style.display = 'grid'; const fragment = document.createDocumentFragment(); earnedBadges.forEach(ub => { const badge = ub.badge; // Badge details are nested
+                     if (!badge) { console.warn("Missing badge details for user badge:", ub); return; } const visual = badgeVisuals[badge.type?.toLowerCase()] || badgeVisuals.default; const badgeElement = document.createElement('div'); badgeElement.className = 'badge-card animated'; badgeElement.innerHTML = `<div class="badge-icon" style="background: ${visual.gradient};"><i class="fas ${visual.icon}"></i></div><h3 class="badge-title">${sanitizeHTML(badge.title)}</h3><p class="badge-desc">${sanitizeHTML(badge.description || '')}</p><div class="badge-date"><i class="far fa-calendar-alt"></i> ${formatDate(ub.earned_at)}</div>`; fragment.appendChild(badgeElement); }); ui.badgeGrid.appendChild(fragment); console.log(`[Render] Rendered ${earnedBadges.length} earned badges.`); }
+            function renderAvailableBadges(allBadgesDef, userEarnedBadges, userProfileData) { /* ... (zobrazí dostupné + progress) ... */ if (!ui.availableBadgesGrid || !ui.emptyAvailableBadges) return; ui.availableBadgesGrid.innerHTML = ''; const earnedIds = new Set(userEarnedBadges.map(ub => ub.badge_id)); const available = allBadgesDef.filter(b => !earnedIds.has(b.id)); if (available.length === 0) { ui.emptyAvailableBadges.style.display = 'block'; ui.availableBadgesGrid.style.display = 'none'; return; } ui.emptyAvailableBadges.style.display = 'none'; ui.availableBadgesGrid.style.display = 'grid'; const fragment = document.createDocumentFragment(); available.forEach(badge => { const visual = badgeVisuals[badge.type?.toLowerCase()] || badgeVisuals.default; let progress = 0; let progressText = '0/???'; // Default progress text
+                     // --- Calculate Progress based on Requirements ---
+                     if (badge.requirements && typeof badge.requirements === 'object' && userProfileData) { const req = badge.requirements; let current = 0; let target = parseInt(req.target, 10) || 1; // Default target to 1 to avoid division by zero
+                         try { switch (req.type) { case 'points_earned': current = userProfileData.points || 0; progressText = `${current}/${target} bodů`; break; case 'streak_days': current = userProfileData.streak_days || 0; progressText = `${current}/${target} dní`; break; case 'exercises_completed': current = userProfileData.completed_exercises || 0; progressText = `${current}/${target} cv.`; break; case 'level_reached': current = userProfileData.level || 1; progressText = `${current}/${target} úr.`; break; // Add more cases as needed based on your requirements structure
+                             default: console.warn(`Unknown badge requirement type: ${req.type}`); } if (target > 0) { progress = Math.min(100, Math.max(0, Math.round((current / target) * 100))); } } catch(e) { console.error("Error calculating badge progress:", e, "Badge:", badge, "Profile:", userProfileData); } } // --- End Progress Calculation ---
+                     const badgeElement = document.createElement('div'); badgeElement.className = 'achievement-card animated'; // Already faded by default 'locked' style
+                     badgeElement.innerHTML = `<div class="achievement-icon" style="background: ${visual.gradient};"><i class="fas ${visual.icon}"></i></div><div class="achievement-content"><h3 class="achievement-title">${sanitizeHTML(badge.title)}</h3><p class="achievement-desc">${sanitizeHTML(badge.description || '')}</p><div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: ${progress}%; background: ${visual.gradient};"></div></div><div class="progress-stats">${progress}% (${progressText})</div></div></div>`; fragment.appendChild(badgeElement); }); ui.availableBadgesGrid.appendChild(fragment); console.log(`[Render] Rendered ${available.length} available badges.`); }
+            function renderLeaderboard(data) { /* ... (zobrazí data z `leaderboard` tabulky) ... */ if (!ui.leaderboardBody || !ui.leaderboardEmpty || !ui.scoreHeader) return; ui.leaderboardBody.innerHTML = ''; // Clear previous
+                 const filterMap = { points: 'Body', badges: 'Odznaky', streak: 'Série' }; ui.scoreHeader.textContent = filterMap[currentLeaderboardFilter] || 'Skóre'; if (!data || data.length === 0) { ui.leaderboardEmpty.style.display = 'block'; ui.leaderboardBody.style.display = 'none'; // Hide tbody if empty
+                     return; } ui.leaderboardEmpty.style.display = 'none'; ui.leaderboardBody.style.display = ''; // Show tbody
+                 const fragment = document.createDocumentFragment(); data.forEach((entry, index) => { const user = entry.profile || {}; // User data might be nested under 'profile' due to join
+                     const rank = entry.rank || (index + 1); const isCurrentUser = entry.user_id === currentUser?.id; const displayName = user.username ? `@${user.username}` : `${user.first_name || ''} ${user.last_name || ''}`.trim() || `Uživatel ${entry.user_id.substring(0, 4)}`; const initials = getInitials(user); let scoreValue; switch (currentLeaderboardFilter) { case 'points': scoreValue = entry.points || 0; break; case 'badges': scoreValue = entry.badges_count || 0; break; case 'streak': scoreValue = user.streak_days || 0; break; // Assuming streak is in profile join
+                         default: scoreValue = entry.points || 0; } const badgesCount = entry.badges_count || 0; const rowElement = document.createElement('tr'); if (isCurrentUser) rowElement.classList.add('highlight-row'); rowElement.innerHTML = `<td class="rank-cell">${rank}</td><td class="user-cell"><div class="user-avatar-sm">${user.avatar_url ? `<img src="${user.avatar_url}" alt="${displayName}">` : initials}</div><div class="user-info-sm"><div class="user-name-sm">${sanitizeHTML(displayName)}</div><div class="user-level">Úroveň ${user.level || 1}</div></div></td><td class="score-cell">${scoreValue}</td><td class="badge-count-cell">${badgesCount}</td>`; fragment.appendChild(rowElement); }); ui.leaderboardBody.appendChild(fragment); console.log(`[Render] Rendered ${data.length} leaderboard entries.`); }
+            function renderRecentBadges(earnedBadges) { /* ... (zobrazí max 5 posledních získaných) ... */ if (!ui.recentAchievementsList || !ui.recentAchievementsSection) return; ui.recentAchievementsList.innerHTML = ''; const recent = earnedBadges.slice(0, 5); // Already sorted desc by API
+                if (recent.length === 0) { ui.recentAchievementsSection.style.display = 'none'; return; } ui.recentAchievementsSection.style.display = 'block'; const fragment = document.createDocumentFragment(); recent.forEach((ub, index) => { const badge = ub.badge; if (!badge) return; const visual = badgeVisuals[badge.type?.toLowerCase()] || badgeVisuals.default; const badgeElement = document.createElement('div'); badgeElement.className = `achievement-item animated delay-${index + 1}`; badgeElement.style.opacity = '0'; // Start hidden for animation
+                    badgeElement.innerHTML = `<div class="achievement-item-icon" style="background: ${visual.gradient};"><i class="fas ${visual.icon}"></i></div><div class="achievement-item-content"><h3 class="achievement-item-title">${sanitizeHTML(badge.title)}</h3><p class="achievement-item-desc">${sanitizeHTML(badge.description || '')}</p><div class="achievement-item-time"><i class="far fa-calendar-alt"></i> ${formatDate(ub.earned_at)}</div></div>`; fragment.appendChild(badgeElement); }); ui.recentAchievementsList.appendChild(fragment); console.log(`[Render] Rendered ${recent.length} recent badges.`); }
+            // --- KONEC: Aktualizace UI ---
+
+            // --- START: Event Listenery a Handlery ---
+            function setupEventListeners() {
+                console.log("[Events] Setting up event listeners...");
+                // Mobile Menu
+                ui.mobileMenuToggle?.addEventListener('click', toggleMobileMenu);
+                ui.sidebarOverlay?.addEventListener('click', toggleMobileMenu);
+                ui.sidebarCloseToggle?.addEventListener('click', toggleMobileMenu);
+                // Leaderboard Filters
+                ui.filterButtons?.forEach(button => { button.addEventListener('click', handleFilterChange); });
+                // Global Retry Button
+                ui.globalRetryBtn?.addEventListener('click', handleGlobalRetry);
+                console.log("[Events] Event listeners set up.");
+            }
+            async function handleFilterChange(event) { /* ... (změní filtr a znovu načte leaderboard) ... */ const newFilter = event.target.dataset.filter; if (!newFilter || newFilter === currentLeaderboardFilter || isLoading.leaderboard) return; ui.filterButtons.forEach(btn => btn.classList.remove('active')); event.target.classList.add('active'); currentLeaderboardFilter = newFilter; console.log(`[Filter] Leaderboard filter changed to: ${currentLeaderboardFilter}. Reloading...`); setLoadingState('leaderboard', true); try { const data = await fetchLeaderboardData(currentLeaderboardFilter); leaderboardData[currentLeaderboardFilter] = data || []; renderLeaderboard(leaderboardData[currentLeaderboardFilter]); updateDerivedStats(userProfile); // Update rank possibly
+                } catch (error) { showError("Nepodařilo se načíst data žebříčku pro tento filtr."); renderLeaderboard([]); } finally { setLoadingState('leaderboard', false); } }
+            async function handleGlobalRetry() { /* ... (znovu načte všechna data) ... */ console.log("🔄 Global retry triggered..."); hideError(); await loadAllAwardData(); }
+            // --- KONEC: Event Listenery a Handlery ---
+
+            // --- Spuštění Aplikace ---
+            document.addEventListener('DOMContentLoaded', initializeApp);
+
+        })(); // Konec IIFE
     </script>
 </body>
 </html>
