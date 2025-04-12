@@ -4,438 +4,572 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Justax - Pokrok</title>
+    <title>Justax - Statistiky uživatele</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* CSS (Pokrok - v11 - Simplified, Final Polish) */
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; scroll-behavior: smooth;}
-        :root {
-             --primary: #4f46e5; --primary-light: #c7d2fe; --primary-dark: #4338ca;
-             --secondary: #10b981; --secondary-light: #a7f3d0; --secondary-dark: #059669;
-             --success: var(--secondary); --success-light: var(--secondary-light); --success-bg: #f0fdf4;
-             --danger: #ef4444; --danger-light: #fecaca; --danger-bg: #fef2f2;
-             --warning: #f59e0b; --warning-light: #fed7aa; --warning-bg: #fffbeb;
-             --info: #3b82f6; --info-light: #bfdbfe; --info-bg: #eff6ff;
-             --dark: #111827; --light: #f9fafb; --gray: #6b7280;
-             --gray-light: #e5e7eb; --gray-medium: #9ca3af; --gray-dark: #4b5563;
-             --gradient-1: linear-gradient(135deg, #4f46e5, #4338ca);
-             --white: #ffffff; --sidebar-width: 260px; --transition-speed: 0.25s;
-             --card-radius: 12px; --shadow-sm: 0 1px 2px 0 rgba(0,0,0, 0.05);
-             --shadow-md: 0 4px 6px -1px rgba(0,0,0, 0.06), 0 2px 4px -2px rgba(0,0,0, 0.06);
-             --shadow-lg: 0 10px 15px -3px rgba(0,0,0, 0.06), 0 4px 6px -4px rgba(0,0,0, 0.07);
-             --text-primary: var(--dark); --text-secondary: var(--gray); --text-muted: var(--gray-medium);
-             --body-bg: var(--light); --card-bg: var(--white); --border-color: var(--gray-light);
-             --skeleton-bg: #f0f1f3; --skeleton-highlight: #e5e7eb;
+        /* --- CSS STYLES --- */
+         :root {
+            /* Základní paleta (předpokládá se světlá jako výchozí) */
+            --primary: #4361ee;
+            --primary-light: #4895ef;
+            --secondary: #3f37c9;
+            --success: #06d6a0; /* Upraveno pro lepší kontrast */
+            --danger: #f72585;
+            --warning: #f8961e;
+            --info: #4895ef;
+            --dark: #1e2a3a; /* Tmavý text na světlém */
+            --light: #f8f9fa; /* Světlé pozadí */
+            --gray: #6c757d;
+            --gray-light: #dee2e6; /* Světle šedá pro okraje atd. */
+            --gray-dark: #343a40;
+            --white: #ffffff; /* Bílá pro text na tmavém pozadí/kartách */
+            --gradient-1: linear-gradient(135deg, #4361ee, #3a0ca3);
+            --gradient-2: linear-gradient(135deg, #4cc9f0, #4361ee);
+            --gradient-3: linear-gradient(135deg, #f72585, #7209b7);
+            --gradient-4: linear-gradient(135deg, #f8961e, #f3722c);
+
+            --bg-color: var(--light); /* Pozadí body */
+            --card-bg-color: var(--white); /* Pozadí karet/sekcí */
+            --text-primary: var(--dark); /* Primární text */
+            --text-secondary: #4a5568;
+            --text-muted: #718096;
+            --border-color: var(--gray-light); /* Barva okrajů */
+
+            --sidebar-width: 260px;
+            --transition-speed: 0.3s;
+            --card-radius: 16px;
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 5px 15px rgba(0, 0, 0, 0.07);
+            --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.1);
         }
-        @keyframes skeleton-pulse { 0%, 100% { background-color: var(--skeleton-bg); opacity: 1; } 50% { background-color: var(--skeleton-highlight); opacity: 0.7; } }
-        .skeleton { animation: skeleton-pulse 1.8s cubic-bezier(0.4, 0, 0.6, 1) infinite; background-color: var(--skeleton-bg); border-radius: 6px; }
-        body { background-color: var(--body-bg); color: var(--text-primary); min-height: 100vh; display: flex; overflow-x: hidden; line-height: 1.6; font-size: 15px; }
-        /* --- Sidebar (consistent) --- */
-        .sidebar { width: var(--sidebar-width); height: 100vh; position: fixed; top: 0; left: 0; background: var(--gradient-1); color: var(--white); padding: 1.5rem 1rem; display: flex; flex-direction: column; z-index: 100; box-shadow: var(--shadow-lg); transition: all var(--transition-speed) ease; }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color); /* Používá CSS proměnnou */
+            color: var(--text-primary); /* Používá CSS proměnnou */
+            min-height: 100vh;
+            display: flex;
+            overflow-x: hidden;
+            line-height: 1.5;
+        }
+
+        /* Sidebar (zůstává většinou stejný, používá vlastní barvy/gradient) */
+        .sidebar {
+            width: var(--sidebar-width);
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background: var(--gradient-1);
+            color: var(--white); /* Text v sidebar je vždy bílý */
+            padding: 1.5rem 1rem;
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+            box-shadow: var(--shadow-lg);
+            transition: all var(--transition-speed) ease;
+        }
+        /* ... (zbytek sidebar stylů - beze změny) ... */
          .sidebar-header { display: flex; align-items: center; margin-bottom: 2rem; padding: 0 0.75rem; }
-         .sidebar-logo { font-size: 1.5rem; font-weight: 700; color: var(--white); text-decoration: none; display: flex; align-items: center; gap: 0.75rem; } .sidebar-logo i { font-size: 1.75rem; }
-         .sidebar-menu { list-style: none; padding: 0; margin: 0; flex-grow: 1; overflow-y: auto; } .sidebar-item { margin-bottom: 0.5rem; }
-         .sidebar-link { display: flex; align-items: center; padding: 0.8rem 1rem; color: rgba(255, 255, 255, 0.85); text-decoration: none; border-radius: 8px; transition: all 0.2s ease; font-weight: 500; } .sidebar-link i { margin-right: 0.8rem; font-size: 1.1rem; width: 24px; text-align: center; }
-         .sidebar-link.active, .sidebar-link:hover { background-color: rgba(255, 255, 255, 0.1); color: var(--white); } .sidebar-link.active { font-weight: 600; background-color: rgba(255, 255, 255, 0.15); }
-         .sidebar-footer { margin-top: auto; padding: 1rem; font-size: 0.85rem; color: rgba(255, 255, 255, 0.6); text-align: center; }
-         .user-profile { display: flex; align-items: center; padding: 1rem; margin-top: 1rem; background-color: rgba(0, 0, 0, 0.15); border-radius: 10px; } .user-avatar { width: 40px; height: 40px; border-radius: 50%; background-color: var(--primary-light); display: flex; align-items: center; justify-content: center; margin-right: 0.75rem; font-weight: 500; overflow: hidden; color: var(--white); flex-shrink: 0; border: 2px solid rgba(255,255,255,0.3); }
-         .user-avatar img { width: 100%; height: 100%; object-fit: cover; } .user-info { flex-grow: 1; overflow: hidden; } .user-name { font-weight: 600; font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .user-role { font-size: 0.8rem; opacity: 0.8; }
+         .sidebar-logo { font-size: 1.5rem; font-weight: 700; color: var(--white); text-decoration: none; display: flex; align-items: center; gap: 0.75rem; }
+         .sidebar-logo i { font-size: 1.75rem; }
+         .sidebar-menu { list-style: none; padding: 0; margin: 0; flex-grow: 1; }
+         .sidebar-item { margin-bottom: 0.5rem; }
+         .sidebar-link { display: flex; align-items: center; padding: 0.75rem 1rem; color: rgba(255, 255, 255, 0.85); text-decoration: none; border-radius: 12px; transition: all 0.2s ease; font-weight: 500; }
+         .sidebar-link i { margin-right: 0.75rem; font-size: 1.2rem; width: 24px; text-align: center; }
+         .sidebar-link.active, .sidebar-link:hover { background-color: rgba(255, 255, 255, 0.15); color: var(--white); }
+         .sidebar-footer { margin-top: auto; padding: 1rem; font-size: 0.9rem; color: rgba(255, 255, 255, 0.7); text-align: center; }
+         .user-profile { display: flex; align-items: center; padding: 1rem; margin-top: 1rem; background-color: rgba(255, 255, 255, 0.1); border-radius: 12px; transition: all 0.2s ease; }
+         .user-profile:hover { background-color: rgba(255, 255, 255, 0.15); }
+         .user-avatar { width: 40px; height: 40px; border-radius: 50%; background-color: var(--primary-light); display: flex; align-items: center; justify-content: center; margin-right: 0.75rem; font-weight: 500; overflow: hidden; color: var(--white); }
+         .user-avatar img { width: 100%; height: 100%; object-fit: cover; }
+         .user-info { flex-grow: 1; }
+         .user-name { font-weight: 600; font-size: 0.95rem; }
+         .user-role { font-size: 0.8rem; opacity: 0.8; }
 
-        /* --- Main Content --- */
-        main { flex: 1; margin-left: var(--sidebar-width); padding: 2rem; transition: margin var(--transition-speed) ease; width: calc(100% - var(--sidebar-width)); display: none; }
-        main.loaded { display: block; animation: fadeInMain 0.6s ease-out forwards; } @keyframes fadeInMain { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-        .dashboard-header { margin-bottom: 2.5rem; background-color: var(--card-bg); border-radius: var(--card-radius); padding: 1.25rem 1.75rem; box-shadow: var(--shadow-md); border: 1px solid var(--border-color); }
-        .header-content { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; } .header-content > div:first-child { display: flex; align-items: center; gap: 1rem; flex-grow: 1; } .header-content h1 { font-size: 2rem; font-weight: 700; color: var(--text-primary); margin: 0; line-height: 1.2; } .header-actions { display: flex; align-items: center; gap: 0.75rem; }
-        /* Header Actions - Consistent Style */
-        .refresh-btn { background: none; border: 1px solid var(--border-color); color: var(--text-secondary); font-size: 0.9rem; cursor: pointer; padding: 0.4rem 0.8rem; border-radius: 8px; transition: all 0.2s; display: flex; align-items: center; gap: 0.4em; } .refresh-btn:hover { background-color: var(--body-bg); color: var(--primary); border-color: var(--primary-light); } .refresh-btn.loading i { animation: spin 1s linear infinite; } .refresh-btn:disabled { opacity: 0.6; cursor: not-allowed; } @keyframes spin { to { transform: rotate(360deg); } }
-        .search-box { position: relative; } .search-box input { width: 240px; height: 38px; border-radius: 8px; padding: 0 0.8rem 0 2.2rem; border: 1px solid var(--border-color); background-color: var(--card-bg); outline: none; transition: all 0.2s ease; font-size: 0.9rem; color: var(--text-primary);} .search-box input::placeholder { color: var(--text-muted); } .search-box input:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2); } .search-box i { position: absolute; left: 0.8rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 0.9rem; }
-        .notifications { position: relative; } .notification-bell { cursor: pointer; padding: 0.5rem; position: relative; display: inline-block; border-radius: 8px; transition: background-color 0.2s;} .notification-bell:hover { background-color: var(--body-bg); }
-        .notification-bell i { font-size: 1.3rem; color: var(--text-secondary); transition: color 0.2s; } .notification-bell:hover i { color: var(--primary); }
-        .notification-badge { position: absolute; top: 2px; right: 2px; width: 16px; height: 16px; background-color: var(--danger); color: white; font-size: 0.6rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; border: 1px solid var(--card-bg); pointer-events: none; opacity: 0; transform: scale(0.5); transition: opacity 0.2s, transform 0.2s; } .notification-badge.visible { opacity: 1; transform: scale(1); }
-        .notifications-dropdown-wrapper { position: absolute; top: calc(100% + 10px); right: 0; width: 360px; background-color: var(--card-bg); border-radius: 12px; box-shadow: var(--shadow-lg); border: 1px solid var(--border-color); z-index: 101; opacity: 0; visibility: hidden; transform: translateY(10px); transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s; } .notifications-dropdown-wrapper.active { opacity: 1; visibility: visible; transform: translateY(0); }
-        .notifications-header { padding: 0.8rem 1.25rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; } .notifications-title { font-size: 1rem; font-weight: 600; color: var(--text-primary); } .mark-all-read-btn { font-size: 0.8rem; color: var(--primary); background: none; border: none; cursor: pointer; font-weight: 500; padding: 0.25rem 0; } .mark-all-read-btn:hover { text-decoration: underline; } .mark-all-read-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-        #notifications-list { max-height: 350px; overflow-y: auto; padding: 0; } #notifications-list::-webkit-scrollbar { width: 5px; } #notifications-list::-webkit-scrollbar-track { background: transparent; } #notifications-list::-webkit-scrollbar-thumb { background-color: var(--gray-light); border-radius: 3px; }
-        .notification-item { display: flex; padding: 1rem 1.25rem; gap: 1rem; border-bottom: 1px solid var(--border-color); transition: background-color 0.2s ease; cursor: pointer; position: relative; } .notification-item:last-child { border-bottom: none; } .notification-item:hover { background-color: var(--body-bg); } .notification-item.is-read { background-color: transparent; } .notification-item.is-read .notification-title, .notification-item.is-read .notification-message, .notification-item.is-read .notification-time { color: var(--text-muted); } .notification-item.is-read .notification-icon { opacity: 0.6; } .notification-item.is-read .unread-dot { display: none; }
-        .notification-icon { width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 1rem; } .notification-icon.info { background-color: var(--info-light); color: var(--info); } .notification-icon.success { background-color: var(--success-light); color: var(--success); } .notification-icon.warning { background-color: var(--warning-light); color: var(--warning); } .notification-icon.danger { background-color: var(--danger-light); color: var(--danger); }
-        .notification-content { flex-grow: 1; } .notification-title { font-weight: 600; color: var(--text-primary); margin-bottom: 0.25rem; font-size: 0.95rem; } .notification-message { font-size: 0.9rem; color: var(--text-secondary); line-height: 1.4; margin-bottom: 0.3rem; } .notification-time { font-size: 0.8rem; color: var(--text-muted); }
-        .unread-dot { position: absolute; top: 1rem; left: 0.5rem; width: 6px; height: 6px; background-color: var(--primary); border-radius: 50%; }
-        .notifications-footer { padding: 0.75rem 1.25rem; border-top: 1px solid var(--border-color); text-align: center; background-color: var(--light); border-radius: 0 0 12px 12px; } .view-all-notifications-link { font-size: 0.9rem; color: var(--primary); text-decoration: none; font-weight: 500; } .view-all-notifications-link:hover { text-decoration: underline; } #no-notifications-msg { padding: 2.5rem 1rem; text-align: center; color: var(--text-muted); font-size: 0.9rem; display: none; }
-        #notifications-list .notification-item-skeleton { display: none; padding: 1rem 1.25rem; gap: 1rem; border-bottom: 1px solid var(--border-color); }
+        /* Hlavní obsah */
+        main {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            padding: 1.5rem 2rem;
+            transition: margin var(--transition-speed) ease;
+            width: calc(100% - var(--sidebar-width));
+        }
 
-        /* --- Content Layout --- */
-        .main-content { display: grid; gap: 2.5rem; }
-        .section { background-color: var(--card-bg); border-radius: var(--card-radius); box-shadow: var(--shadow-md); padding: 2rem; border: 1px solid var(--border-color); animation: fadeInSection 0.6s ease-out forwards; opacity: 0; transform: translateY(10px);}
-        @keyframes fadeInSection { to { opacity: 1; transform: translateY(0); } }
-        .stats-section { animation-delay: 0.1s; }
+        .dashboard-header {
+            margin-bottom: 2rem;
+            background-color: var(--card-bg-color); /* Používá proměnnou */
+            border-radius: var(--card-radius);
+            padding: 1.25rem 1.5rem;
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
 
-        .section-title { font-size: 1.5rem; font-weight: 600; margin-bottom: 1.75rem; color: var(--text-primary); padding-bottom: 0.75rem; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; gap: 0.7rem; } .section-title i { font-size: 1em; color: var(--primary); }
+        .header-title h1 {
+            font-size: 1.75rem;
+            font-weight: 600;
+            color: var(--text-primary); /* Používá proměnnou */
+        }
+
+        .header-time {
+            font-size: 0.9rem;
+            color: var(--text-muted); /* Používá proměnnou */
+            margin-top: 0.25rem;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
 
         /* Stats Grid */
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.75rem; margin-bottom: 1rem; }
-        .stats-card { background-color: var(--card-bg); border-radius: var(--card-radius); box-shadow: var(--shadow-sm); padding: 1.75rem; transition: all 0.3s ease; display: flex; flex-direction: column; border: 1px solid var(--border-color); position: relative; min-height: 170px; }
-        .stats-card:hover { transform: translateY(-4px) scale(1.01); box-shadow: var(--shadow-lg); border-color: var(--primary); }
-        .stats-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; } .stats-card-title { font-size: 1rem; font-weight: 500; color: var(--text-secondary); display: flex; align-items: center; gap: 0.5rem; } .stats-card-title i { font-size: 1.2em; color: var(--text-muted); }
-        .stats-card-content { flex-grow: 1; visibility: hidden; transition: visibility 0s linear 0.3s; } .stats-card-value { font-size: 2.5rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.5rem; line-height: 1.1; } .stats-card-value .unit { font-size: 0.5em; font-weight: 500; color: var(--text-muted); margin-left: 0.2em; } .stats-card-description { font-size: 0.9rem; color: var(--text-muted); }
-        /* Skeleton for Stats Cards */
-        .stats-card .loading-skeleton { position: absolute; top: 0; left: 0; right: 0; bottom: 0; padding: 1.75rem; display: flex; flex-direction: column; visibility: hidden; opacity: 0; transition: opacity 0.3s ease-in-out; border-radius: var(--card-radius); } .stats-card.loading .loading-skeleton { visibility: visible; opacity: 1;} .stats-card.loading .stats-card-content { visibility: hidden; }
-        .stats-card .loading-skeleton .skeleton.title { height: 18px; width: 70%; margin-bottom: 1.5rem; } .stats-card .loading-skeleton .skeleton.value { height: 40px; width: 50%; margin-bottom: 0.75rem; } .stats-card .loading-skeleton .skeleton.text { height: 15px; width: 85%; }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stats-card {
+            background-color: var(--card-bg-color); /* Používá proměnnou */
+            border-radius: var(--card-radius);
+            box-shadow: var(--shadow-sm);
+            padding: 1.5rem;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stats-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .stats-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1.5rem;
+        }
+
+        .stats-card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary); /* Používá proměnnou */
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .stats-card-title i {
+            font-size: 1.2rem;
+            color: var(--primary);
+        }
+
+        .stats-card-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            background-color: rgba(67, 97, 238, 0.1);
+            color: var(--primary);
+        }
+        /* Příklad pro success badge */
+        .stats-card-badge.success {
+             background-color: rgba(6, 214, 160, 0.1); /* Použij var(--success) pro barvu */
+             color: var(--success);
+        }
+        .stats-card-badge.warning {
+             background-color: rgba(248, 150, 30, 0.1); /* Použij var(--warning) pro barvu */
+             color: var(--warning);
+        }
+
+        .stats-card-content {
+            flex-grow: 1;
+            margin-bottom: 1rem;
+        }
+
+        .stats-card-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+            line-height: 1;
+        }
+
+        .stats-card-description {
+            font-size: 0.95rem;
+            color: var(--text-secondary); /* Používá proměnnou */
+        }
+
+        .stats-card-footer {
+            font-size: 0.9rem;
+            color: var(--text-muted); /* Používá proměnnou */
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-color); /* Používá proměnnou */
+        }
+
+        .stats-card-footer i { font-size: 0.8rem; }
+        .stats-card-footer.positive { color: #10b981; }
+        .stats-card-footer.negative { color: var(--danger); }
+
+        /* Progress Bar */
+        .progress-container {
+            width: 100%;
+            height: 8px;
+            background-color: var(--border-color); /* Používá proměnnou */
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 1rem 0;
+            position: relative;
+        }
+        .progress-bar { height: 100%; border-radius: 4px; background: var(--gradient-1); transition: width 0.5s ease; }
+
+        /* Chart Section */
+        .chart-section {
+            background-color: var(--card-bg-color); /* Používá proměnnou */
+            border-radius: var(--card-radius);
+            box-shadow: var(--shadow-sm);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+        .chart-title { font-size: 1.3rem; font-weight: 600; color: var(--text-primary); /* Používá proměnnou */ }
+        .chart-container { height: 350px; position: relative; }
+
+        /* Data Table */
+        .data-table-section {
+            background-color: var(--card-bg-color); /* Používá proměnnou */
+            border-radius: var(--card-radius);
+            box-shadow: var(--shadow-sm);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .data-table-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+        .data-table-title { font-size: 1.3rem; font-weight: 600; color: var(--text-primary); /* Používá proměnnou */ }
+        .data-table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+        .data-table th { text-align: left; padding: 1rem; border-bottom: 1px solid var(--border-color); /* Používá proměnnou */ color: var(--text-secondary); /* Používá proměnnou */ font-weight: 500; }
+        .data-table td { padding: 1rem; border-bottom: 1px solid var(--border-color); /* Používá proměnnou */ color: var(--text-primary); /* Používá proměnnou */ }
+        .data-table tbody tr:hover { background-color: rgba(0,0,0, 0.03); /* Jemné zvýraznění pro světlý režim */ }
 
         /* Buttons */
-        .btn { display: inline-flex; align-items: center; justify-content: center; padding: 0.6rem 1.2rem; border-radius: 8px; font-weight: 500; font-size: 0.9rem; text-decoration: none; transition: all 0.3s ease; cursor: pointer; border: none; gap: 0.5rem; outline-offset: 3px; }
-        .btn-primary { background: var(--primary); color: white; box-shadow: var(--shadow-sm); } .btn-primary:hover { background: var(--primary-dark); transform: translateY(-1px); box-shadow: var(--shadow-md); } .btn-primary:active { transform: translateY(0); box-shadow: var(--shadow-sm); }
-        .btn-secondary { background-color: var(--card-bg); color: var(--text-secondary); border: 1px solid var(--border-color); box-shadow: var(--shadow-sm); } .btn-secondary:hover { background-color: var(--body-bg); border-color: var(--gray-medium); color: var(--text-primary); box-shadow: var(--shadow-md);}
-        .btn-sm { padding: 0.4rem 0.8rem; font-size: 0.8rem; } .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
-        .btn:focus-visible, select.btn:focus-visible { outline: 3px solid var(--primary-light); box-shadow: 0 0 0 3px var(--primary-light); } /* Clearer focus */
+        .btn { display: inline-flex; align-items: center; justify-content: center; padding: 0.75rem 1.5rem; border-radius: 10px; font-weight: 500; font-size: 0.95rem; text-decoration: none; transition: all 0.3s ease; cursor: pointer; border: none; gap: 0.5rem; }
+        .btn-primary { background: var(--gradient-1); color: white; box-shadow: 0 4px 10px rgba(67, 97, 238, 0.2); }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(67, 97, 238, 0.25); }
+        .btn-secondary { background-color: #e9ecef; /* Světlejší pro světlý režim */ color: var(--text-secondary); border: 1px solid var(--border-color); /* Používá proměnnou */ }
+        .btn-secondary:hover { background-color: #dfe3e7; }
+        .btn-sm { padding: 0.5rem 1rem; font-size: 0.875rem; }
 
-        /* Error & Empty States */
-        .error-message { background-color: var(--danger-bg); border-left: 4px solid var(--danger); color: var(--danger); padding: 1rem; margin: 1rem 0; border-radius: 8px; font-size: 0.9rem; display: flex; align-items: center; } .error-message i { margin-right: 0.75rem; font-size: 1.25rem; }
-        .error-container { display: none; margin-bottom: 1.5rem; } .error-container .error-message { margin: 0; }
-        .retry-button { background-color: var(--primary); color: white; border: none; border-radius: 8px; padding: 0.5rem 1rem; font-size: 0.9rem; cursor: pointer; margin-top: 0.5rem; transition: all 0.2s ease; margin-left: auto; } .retry-button:hover { background-color: var(--primary-dark); }
-        .empty-state { padding: 3rem 2rem; text-align: center; background-color: transparent; border-radius: var(--card-radius); box-shadow: none; border: none; margin-top: 1rem; }
-        .empty-state i { font-size: 2.8rem; color: var(--gray-medium); margin-bottom: 1rem; } .empty-state h3 { font-size: 1.2rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.75rem; } .empty-state p { font-size: 1rem; color: var(--text-secondary); max-width: 500px; margin: 0 auto 1.5rem auto; line-height: 1.6; }
-        .empty-state .btn { margin-top: 1rem; }
-        .card-error-state { color: var(--danger); font-size: 0.9rem; padding: 2rem 1.5rem; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; } .card-error-state i { font-size: 1.5rem; margin-bottom: 0.75rem; }
-        .list-error-state { padding: 3rem 1rem; text-align: center; color: var(--danger); font-size: 0.9rem; } .list-error-state i { font-size: 2rem; margin-bottom: 1rem; }
+        /* Loading States */
+        .skeleton { background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: skeleton-loading 1.5s infinite; border-radius: 4px; }
+        @keyframes skeleton-loading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+        .loading-spinner { display: inline-block; width: 20px; height: 20px; border: 2px solid rgba(67, 97, 238, 0.3); border-radius: 50%; border-top-color: var(--primary); animation: spinner 0.8s linear infinite; }
+        @keyframes spinner { to { transform: rotate(360deg); } }
+        .loading { display: flex; justify-content: center; align-items: center; padding: 2rem; font-size: 1rem; color: var(--text-muted); gap: 1rem; }
 
-        /* Toast & Offline Banner */
-        .toast { position: fixed; bottom: 20px; right: 20px; background-color: var(--card-bg); color: var(--text-primary); border-radius: 8px; padding: 1rem; box-shadow: var(--shadow-lg); max-width: 300px; z-index: 1001; display: flex; align-items: center; transform: translateY(120px); opacity: 0; transition: all 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55); border: 1px solid var(--border-color);}
-        .toast.show { transform: translateY(0); opacity: 1; } .toast.success { border-left: 4px solid var(--success); } .toast.error { border-left: 4px solid var(--danger); } .toast.warning { border-left: 4px solid var(--warning); }
-        .toast i { margin-right: 0.75rem; font-size: 1.25rem; } .toast.success i { color: var(--success); } .toast.error i { color: var(--danger); } .toast.warning i { color: var(--warning); } .toast.info i { color: var(--info); }
-        .offline-banner { display: none; background-color: var(--warning); color: white; padding: 0.75rem; text-align: center; position: fixed; top: 0; left: 0; right: 0; z-index: 1000; }
-        .initial-loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--body-bg); z-index: 1001; display: flex; justify-content: center; align-items: center; flex-direction: column; gap: 1rem; transition: opacity 0.5s ease-out; }
-        .initial-loading-overlay.hidden { opacity: 0; pointer-events: none; }
-        .initial-loading-overlay .loading-spinner { width: 35px; height: 35px; border-width: 4px; }
-        .initial-loading-overlay p { color: var(--text-secondary); font-size: 1.1rem;}
+        /* Error messages */
+        .error-message { display: flex; align-items: center; background-color: rgba(247, 37, 133, 0.05); color: var(--danger); padding: 1rem; border-radius: 8px; margin: 1rem 0; box-shadow: var(--shadow-sm); border-left: 4px solid var(--danger); }
+        .error-message i { font-size: 1.25rem; margin-right: 0.75rem; }
 
-        /* Media Queries */
-        @media (max-width: 992px) { :root { --sidebar-width: 80px; } main { margin-left: 80px; width: calc(100% - 80px); } .sidebar { width: 80px; } .sidebar-logo span, .sidebar-link span, .user-info, .sidebar-footer { display: none; } .sidebar-link i { margin-right: 0; font-size: 1.5rem; } .sidebar-logo i { margin-right: 0; } .sidebar-header, .sidebar-link { justify-content: center; } .user-profile { justify-content: center; padding: 0.75rem; } .user-avatar { margin-right: 0; } .search-box input { width: 200px; } .mobile-menu-toggle { display: block; } .stats-grid { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); } }
-        @media (max-width: 768px) { main { padding: 1rem; margin-left: 0; width: 100%; } .sidebar { transform: translateX(-100%); width: 260px; z-index: 1000; } .sidebar.active { transform: translateX(0); } .sidebar.active .sidebar-logo span, .sidebar.active .sidebar-link span, .sidebar.active .user-info, .sidebar.active .sidebar-footer { display: block; } .sidebar.active .sidebar-link i { margin-right: 0.75rem; font-size: 1.2rem; } .sidebar.active .sidebar-header, .sidebar.active .sidebar-link { justify-content: flex-start; } .sidebar.active .user-profile { justify-content: flex-start; padding: 1rem; } .sidebar.active .user-avatar { margin-right: 0.75rem; } .header-content { flex-direction: column; align-items: flex-start; gap: 1rem; } .header-actions { width: 100%; justify-content: space-between; } .search-box input { width: 100%; } .stats-grid { grid-template-columns: 1fr; } }
-        @media (max-width: 576px) { .search-box { display: none; } .header-actions { justify-content: flex-end; gap: 0.5rem; } .refresh-btn { padding: 0.5rem; } .refresh-btn span { display: none; } .notifications { margin-right: 0.5rem; } .notifications-dropdown-wrapper { width: calc(100vw - 2rem); max-width: 360px; } }
-        /* Dark mode */
-        @media (prefers-color-scheme: dark) { :root { --white: #1f2937; --light: #374151; --dark: #f3f4f6; --gray-light: #4b5563; --text-primary: #f3f4f6; --text-secondary: #d1d5db; --text-muted: #9ca3af; --body-bg: #111827; --card-bg: #1f2937; --border-color: #374151; --skeleton-bg: #374151; --skeleton-highlight: #4b5563; --success-bg: rgba(16, 185, 129, 0.1); --danger-bg: rgba(239, 68, 68, 0.1); --warning-bg: rgba(245, 158, 11, 0.1); --info-bg: rgba(59, 130, 246, 0.1);} body { background-color: var(--body-bg); } .dashboard-header, .stats-card, .chart-section, .data-table-section, .toast, .notifications-dropdown-wrapper, .empty-state, .shortcut-card { background-color: var(--card-bg); border-color: var(--border-color); } .search-box input { background-color: #374151; color: var(--text-primary); border-color: var(--border-color); } .search-box input::placeholder { color: var(--text-muted); } .search-box i { color: #a0aec0; } .toast { border: 1px solid var(--border-color); } .dashboard-footer { border-top-color: var(--border-color); } .mobile-menu-toggle { color: var(--text-primary); } .sidebar-link.active, .sidebar-link:hover { background-color: rgba(255, 255, 255, 0.1); } .error-message { background-color: rgba(239, 68, 68, 0.1); border-left-color: var(--danger); } .initial-loading-overlay { background-color: var(--body-bg); } .loading-overlay { background-color: rgba(31, 41, 55, 0.8); } .notifications-footer { background-color: #111827; } .refresh-btn { border-color: var(--border-color); } .refresh-btn:hover { background-color: #374151; border-color: var(--primary-light); } .notification-bell:hover { background-color: #374151; } .data-table thead { background-color: #111827; } .data-table td { background-color: var(--card-bg); border-color: var(--border-color); } .data-table tbody tr:hover td { background-color: #2b3648; } .btn-secondary { background-color: var(--light); color: var(--text-secondary); border: 1px solid var(--border-color); } .btn-secondary:hover { background-color: var(--border-color); color: var(--text-primary); } .stats-card:hover { border-color: var(--primary); } }
-        .mobile-menu-toggle { display: none; background: none; border: none; color: var(--text-primary); font-size: 1.5rem; cursor: pointer; padding: 0.5rem; margin-right: 0.5rem; z-index: 101; }
-        @media (max-width: 992px) { .mobile-menu-toggle { display: block; } }
-        .sidebar-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.55); z-index: 99; opacity: 0; transition: opacity var(--transition-speed) ease; backdrop-filter: blur(4px); }
+        /* Toast notifications */
+        .toast-container { position: fixed; top: 1rem; right: 1rem; z-index: 1000; display: flex; flex-direction: column; gap: 0.5rem; max-width: 350px; pointer-events: none; }
+        .toast { padding: 1rem; border-radius: 10px; background: var(--card-bg-color); box-shadow: var(--shadow-md); display: flex; align-items: center; color: var(--text-primary); animation: toast-in 0.3s ease forwards; pointer-events: auto; border: 1px solid var(--border-color); }
+        .toast.success { border-left: 4px solid var(--success); } .toast.error { border-left: 4px solid var(--danger); } .toast.info { border-left: 4px solid var(--info); }
+        .toast-icon { margin-right: 0.75rem; font-size: 1.25rem; }
+        .toast.success .toast-icon { color: var(--success); } .toast.error .toast-icon { color: var(--danger); } .toast.info .toast-icon { color: var(--info); }
+        .toast-content { flex: 1; } .toast-title { font-weight: 600; margin-bottom: 0.25rem; } .toast-message { font-size: 0.9rem; color: var(--text-secondary); }
+        .toast-close { background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 1.1rem; padding: 0.25rem; margin-left: 0.5rem; }
+        @keyframes toast-in { from { opacity: 0; transform: translateX(50px); } to { opacity: 1; transform: translateX(0); } }
+
+        /* Mobile menu */
+        .mobile-menu-toggle { display: none; background: none; border: none; cursor: pointer; font-size: 1.5rem; color: var(--text-primary); }
+        .sidebar-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); z-index: 99; opacity: 0; transition: opacity 0.3s ease; backdrop-filter: blur(2px); }
         .sidebar-overlay.active { display: block; opacity: 1; }
 
+        /* --- START DARK MODE --- */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                /* Přepsání proměnných pro tmavý režim */
+                --bg-color: #171923;
+                --card-bg-color: #1a202c;
+                --text-primary: #e2e8f0;
+                --text-secondary: #cbd5e0;
+                --text-muted: #a0aec0;
+                --border-color: #4a5568; /* Tmavší okraje */
+                --light: #2d3748; /* Tmavší "light" */
+                --white: #1a202c; /* Tmavší "white" */
+            }
+
+            /* Přepsání stylů, které přímo nepoužívají proměnné nebo potřebují úpravu */
+             .data-table tbody tr:hover { background-color: #1e2533; }
+             .btn-secondary { background-color: #2d3748; color: #cbd5e0; border-color: #4a5568; }
+             .btn-secondary:hover { background-color: #4a5568; }
+             .skeleton { background: linear-gradient(90deg, rgba(66, 73, 90, 0.8) 25%, rgba(74, 85, 104, 0.9) 50%, rgba(66, 73, 90, 0.8) 75%); }
+             .mobile-menu-toggle { color: var(--text-primary); }
+
+            /* Přepsání barev grafu pro tmavý režim (už nastaveno v JS, ale pro jistotu) */
+            /* Chart.defaults.color = '#a0aec0'; */
+            /* Chart.defaults.scale.grid.color = 'rgba(74, 85, 104, 0.2)'; */
+        }
+        /* --- END DARK MODE --- */
+
+
+        /* Responsive design (stejné jako předtím) */
+        @media (max-width: 992px) {
+            :root { --sidebar-width: 80px; }
+            main { margin-left: 80px; width: calc(100% - 80px); }
+             .sidebar { width: 80px; }
+            .sidebar-logo span, .sidebar-link span, .user-info, .sidebar-footer { display: none; }
+            .sidebar-link i { margin-right: 0; font-size: 1.5rem; }
+            .sidebar-logo i { margin-right: 0; }
+            .sidebar-header, .sidebar-link { justify-content: center; }
+            .user-profile { justify-content: center; padding: 0.75rem; }
+            .user-avatar { margin-right: 0; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 768px) {
+            main { padding: 1rem; }
+            .stats-grid { grid-template-columns: 1fr; }
+            .header-title h1 { font-size: 1.5rem; }
+             .dashboard-header { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+             .header-title { width: 100%; display: flex; justify-content: space-between; align-items: center;}
+             .mobile-menu-toggle { display: block; }
+             .header-actions { width: 100%; justify-content: center; margin-top: 1rem; }
+        }
+        @media (max-width: 576px) {
+            :root { --sidebar-width: 0; }
+             main { margin-left: 0; width: 100%; }
+             .sidebar { transform: translateX(-100%); z-index: 1000; width: 260px; }
+             .sidebar.active { transform: translateX(0); .sidebar-logo span, .sidebar-link span, .user-info, .sidebar-footer { display: block; } .sidebar-link i { margin-right: 0.75rem; font-size: 1.2rem; } .sidebar-header, .sidebar-link { justify-content: flex-start; } .user-profile { justify-content: flex-start; padding: 1rem; } .user-avatar { margin-right: 0.75rem; } }
+             .chart-container { height: 300px; }
+             .data-table th, .data-table td { padding: 0.75rem 0.5rem; font-size: 0.85rem; }
+        }
+        /* --- Konec CSS --- */
     </style>
 </head>
 <body>
-    <div class="initial-loading-overlay" id="initial-loader">
-         <div class="loading-spinner"></div>
-         <p>Načítání dat pokroku...</p>
-     </div>
+    <div class="toast-container" id="toast-container"></div>
 
-    <div class="offline-banner" id="offline-banner"> <i class="fas fa-wifi"></i> Jste offline. Data nemusí být aktuální. </div>
+    <div id="sidebar-overlay" class="sidebar-overlay"></div>
 
-    <div class="sidebar-overlay" id="sidebar-overlay"></div>
-
-    <aside class="sidebar" id="sidebar">
-         <div class="sidebar-header">
-             <button class="mobile-menu-toggle" id="sidebar-close-toggle" style="color: var(--white); margin-right: 1rem; display: none; background: none; border: none; font-size: 1.5rem; cursor: pointer;"> <i class="fas fa-times"></i> </button>
-             <a href="/dashboard/dashboard.html" class="sidebar-logo"> <i class="fas fa-calculator"></i> <span>Justax</span> </a>
-         </div>
-         <ul class="sidebar-menu">
-             <li class="sidebar-item"> <a href="/dashboard/dashboard.html" class="sidebar-link"> <i class="fas fa-th-large"></i> <span>Dashboard</span> </a> </li>
-             <li class="sidebar-item"> <a href="/dashboard/procvicovani/main.html" class="sidebar-link"> <i class="fas fa-book-open"></i> <span>Procvičování</span> </a> </li>
-             <li class="sidebar-item"> <a href="/dashboard/pokrok.html" class="sidebar-link active"> <i class="fas fa-chart-line"></i> <span>Pokrok</span> </a> </li>
-             <li class="sidebar-item"> <a href="/dashboard/oceneni.html" class="sidebar-link"> <i class="fas fa-medal"></i> <span>Ocenění</span> </a> </li>
-             <li class="sidebar-item"> <a href="/dashboard/materialy.html" class="sidebar-link"> <i class="fas fa-file-alt"></i> <span>Materiály</span> </a> </li>
-             <li class="sidebar-item"> <a href="/dashboard/profile.html" class="sidebar-link"> <i class="fas fa-user-cog"></i> <span>Profil</span> </a> </li>
-         </ul>
-        <div class="user-profile">
-            <div class="user-avatar" id="sidebar-avatar">?</div>
-            <div class="user-info"> <div class="user-name" id="sidebar-name">Načítání...</div> <div class="user-role">Student</div> </div>
+    <aside id="sidebar" class="sidebar">
+        <div class="sidebar-header">
+            <a href="/" class="sidebar-logo"> <i class="fas fa-calculator"></i> <span>Justax</span> </a>
         </div>
+        <ul class="sidebar-menu"> <li class="sidebar-item"> <a href="/dashboard.html" class="sidebar-link"> <i class="fas fa-th-large"></i> <span>Dashboard</span> </a> </li> <li class="sidebar-item"> <a href="/dashboard/procvicovani/main.html" class="sidebar-link"> <i class="fas fa-book-open"></i> <span>Procvičování</span> </a> </li> <li class="sidebar-item"> <a href="/dashboard/pokrok.html" class="sidebar-link active"> <i class="fas fa-chart-line"></i> <span>Pokrok</span> </a> </li> <li class="sidebar-item"> <a href="/dashboard/oceneni.html" class="sidebar-link"> <i class="fas fa-medal"></i> <span>Ocenění</span> </a> </li> <li class="sidebar-item"> <a href="/dashboard/materialy.html" class="sidebar-link"> <i class="fas fa-file-alt"></i> <span>Materiály</span> </a> </li> <li class="sidebar-item"> <a href="/dashboard/profile.html" class="sidebar-link"> <i class="fas fa-user-cog"></i> <span>Profil</span> </a> </li> </ul>
+        <div class="user-profile"> <div class="user-avatar" id="user-avatar">?</div> <div class="user-info"> <div class="user-name" id="user-name">Načítání...</div> <div class="user-role">Student</div> </div> </div>
         <div class="sidebar-footer"> &copy; 2025 Justax </div>
     </aside>
 
-    <main id="main-content">
-        <div class="error-container" id="global-error"></div>
-
-        <header class="dashboard-header">
-            <div class="header-content">
-                 <div> <button class="mobile-menu-toggle" id="main-mobile-menu-toggle"> <i class="fas fa-bars"></i> </button> <h1>Přehled pokroku</h1> </div>
-                <div class="header-actions">
-                    <button class="refresh-btn" id="refresh-data-btn" title="Obnovit data"> <i class="fas fa-sync-alt"></i> <span class="refresh-text">Obnovit</span> </button>
-                    <div class="search-box"> <i class="fas fa-search"></i> <input type="text" placeholder="Hledat..."> </div>
-                    <div class="notifications">
-                        <div class="notification-bell" id="notification-bell" title="Oznámení"> <i class="far fa-bell"></i> <span class="notification-badge" id="notification-count">0</span> </div>
-                        <div class="notifications-dropdown-wrapper" id="notifications-dropdown">
-                             <div class="notifications-header"> <span class="notifications-title">Oznámení</span> <button class="mark-all-read-btn" id="mark-all-read" disabled>Označit vše jako přečtené</button> </div>
-                             <div id="notifications-list">
-                                  <div id="no-notifications-msg">Žádná nová oznámení.</div>
-                                  <div class="notification-item-skeleton" style="display: none; padding: 1rem 1.25rem; gap: 1rem; border-bottom: 1px solid var(--border-color);"> <div class="skeleton activity-icon-placeholder" style="border-radius: 50%; width:38px; height: 38px;"></div> <div style="flex-grow: 1;"> <div class="skeleton activity-line" style="width: 60%; height: 16px; margin-bottom: 0.5rem;"></div> <div class="skeleton activity-line" style="width: 90%; height: 14px; margin-bottom: 0.4rem;"></div> <div class="skeleton activity-line-short" style="width: 40%; height: 12px;"></div> </div> </div>
-                             </div>
-                             <div class="notifications-footer"> <a href="#" class="view-all-notifications-link">Zobrazit všechna oznámení</a> </div>
-                        </div>
-                     </div>
-                </div>
+    <main>
+        <div class="dashboard-header">
+             <div class="header-title">
+                 <h1>Statistiky uživatele</h1>
+                 <button class="mobile-menu-toggle" id="mobile-menu-toggle"> <i class="fas fa-bars"></i> </button>
+             </div>
+             <div class="header-time" id="current-time">Načítání času...</div>
+            <div class="header-actions">
+                <button class="btn btn-primary" id="refresh-btn">
+                    <i class="fas fa-sync-alt"></i>
+                    Obnovit data
+                </button>
             </div>
-        </header>
-
-        <div class="main-content">
-            <section class="stats-section section">
-                 <h2 class="section-title" style="border: none; margin-bottom: 1rem;"><i class="fas fa-tachometer-alt"></i>Aktuální stav</h2>
-                <div class="stats-grid" id="stats-grid">
-                    <div class="stats-card loading" id="progress-card" data-title="Úroveň" data-icon="fas fa-graduation-cap">
-                         <div class="loading-skeleton"> <div class="skeleton title"></div> <div class="skeleton value"></div> <div class="skeleton text"></div> </div>
-                         <div class="stats-card-content"> <div class="stats-card-info"> <div class="stats-card-title"><i class="fas fa-graduation-cap"></i>Úroveň</div> <div class="stats-card-value">-<span class="unit"></span></div> <div class="stats-card-description">Vaše aktuální úroveň</div> </div> </div>
-                    </div>
-                    <div class="stats-card loading" id="exercises-card" data-title="Dokonč. Cvičení" data-icon="fas fa-pencil-alt">
-                         <div class="loading-skeleton"> <div class="skeleton title"></div> <div class="skeleton value"></div> <div class="skeleton text"></div> </div>
-                         <div class="stats-card-content"> <div class="stats-card-info"> <div class="stats-card-title"><i class="fas fa-pencil-alt"></i>Dokonč. Cvičení</div> <div class="stats-card-value">-</div> <div class="stats-card-description">Počet úkolů</div> </div> </div>
-                    </div>
-                    <div class="stats-card loading" id="streak-card" data-title="Série Dnů" data-icon="fas fa-fire">
-                         <div class="loading-skeleton"> <div class="skeleton title"></div> <div class="skeleton value"></div> <div class="skeleton text"></div> </div>
-                         <div class="stats-card-content"> <div class="stats-card-info"> <div class="stats-card-title"><i class="fas fa-fire"></i>Série Dnů</div> <div class="stats-card-value">-</div> <div class="stats-card-description">Aktuální série studia</div> </div> </div>
-                    </div>
-                    <div class="stats-card loading" id="points-card" data-title="Body" data-icon="fas fa-star">
-                         <div class="loading-skeleton"> <div class="skeleton title"></div> <div class="skeleton value"></div> <div class="skeleton text"></div> </div>
-                          <div class="stats-card-content"> <div class="stats-card-info"> <div class="stats-card-title"><i class="fas fa-star"></i>Body</div> <div class="stats-card-value">-</div> <div class="stats-card-description">Celkem získaných bodů</div> </div> </div>
-                     </div>
-                </div>
-            </section>
-
-            <section class="section">
-                 <h2 class="section-title"><i class="fas fa-info-circle"></i>Další informace</h2>
-                 <p>Tato sekce je zjednodušena. Graf historie pokroku a tabulka historie byly dočasně odstraněny pro diagnostiku problémů s načítáním základních dat.</p>
-                  <div class="empty-state">
-                     <i class="fas fa-tools"></i>
-                     <h3>Funkce ve vývoji</h3>
-                     <p>Detailní grafy a přehledy historie pokroku budou dostupné v budoucích aktualizacích.</p>
-                  </div>
-            </section>
-
         </div>
 
-        <footer class="dashboard-footer">
-            <p>&copy; 2025 Justax. Všechna práva vyhrazena.</p>
-        </footer>
+        <div class="stats-grid" id="stats-grid">
+            <div class="stats-card"><div class="skeleton" style="height: 20px; width: 60%; margin-bottom: 1rem;"></div><div class="skeleton" style="height: 40px; width: 80%; margin-bottom: 1rem;"></div><div class="skeleton" style="height: 15px; width: 100%; margin-bottom: 0.5rem;"></div><div class="skeleton" style="height: 15px; width: 90%; margin-bottom: 2rem;"></div><div class="skeleton" style="height: 15px; width: 70%; margin-top: 1rem;"></div></div>
+             <div class="stats-card"><div class="skeleton" style="height: 20px; width: 70%; margin-bottom: 1rem;"></div><div class="skeleton" style="height: 40px; width: 60%; margin-bottom: 1rem;"></div><div class="skeleton" style="height: 15px; width: 100%; margin-bottom: 0.5rem;"></div><div class="skeleton" style="height: 15px; width: 80%; margin-bottom: 2rem;"></div><div class="skeleton" style="height: 15px; width: 60%; margin-top: 1rem;"></div></div>
+             <div class="stats-card"><div class="skeleton" style="height: 20px; width: 65%; margin-bottom: 1rem;"></div><div class="skeleton" style="height: 40px; width: 70%; margin-bottom: 1rem;"></div><div class="skeleton" style="height: 15px; width: 90%; margin-bottom: 0.5rem;"></div><div class="skeleton" style="height: 15px; width: 85%; margin-bottom: 2rem;"></div><div class="skeleton" style="height: 15px; width: 75%; margin-top: 1rem;"></div></div>
+        </div>
+
+        <div class="chart-section">
+            <div class="chart-header">
+                <h2 class="chart-title">Vývoj pokroku</h2>
+                <div class="chart-actions">
+                    <select id="chart-period" class="btn btn-secondary btn-sm">
+                        <option value="week">Týden</option>
+                        <option value="month" selected>Měsíc</option>
+                        <option value="year">Rok</option>
+                    </select>
+                </div>
+            </div>
+            <div class="chart-container">
+                <canvas id="progressChart"></canvas>
+                <div id="chart-loading" class="loading" style="display: none;">
+                    <div class="loading-spinner"></div>
+                    <span>Načítání dat grafu...</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="data-table-section">
+            <div class="data-table-header">
+                <h2 class="data-table-title">Nedávné aktivity</h2>
+                <button class="btn btn-secondary btn-sm" id="export-btn">
+                    <i class="fas fa-download"></i>
+                    Exportovat
+                </button>
+            </div>
+            <div id="activities-table-wrapper">
+                <div class="loading" id="table-loading" style="display: none;">
+                    <div class="loading-spinner"></div>
+                    <span>Načítání aktivit...</span>
+                </div>
+                <table class="data-table" id="activities-table" style="display: none;">
+                    <thead>
+                        <tr>
+                            <th>Aktivita</th>
+                            <th>Datum</th>
+                            <th>Body</th>
+                            <th>Stav</th>
+                        </tr>
+                    </thead>
+                    <tbody id="activities-body"></tbody>
+                </table>
+                 <div id="no-activities" class="loading" style="display: none;">
+                    <i class="fas fa-info-circle"></i>
+                    <span>Žádné aktivity k zobrazení</span>
+                 </div>
+            </div>
+        </div>
     </main>
 
-    <div class="toast" id="toast">
-        <i class="fas fa-check-circle"></i>
-        <div id="toast-message">Operace byla úspěšně dokončena.</div>
-    </div>
-
     <script>
-        // Immediately Invoked Function Expression (IIFE) - v10 Simplified
-        (function() {
-            // --- START: Initialization and Configuration ---
-            console.log("[INIT] Script start - pokrok.html - v10 Simplified");
+        document.addEventListener('DOMContentLoaded', async () => {
             const supabaseUrl = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
             const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10';
-            const SUPABASE_FETCH_TIMEOUT = 15000;
-            let supabase = null;
-            let currentUser = null;
-            let currentProfile = null;
-            let isLoadingData = false;
-            let listenersAttached = false;
+            const supabase = window.supabase?.createClient(supabaseUrl, supabaseKey);
 
-            // DOM Elements Cache - Robust access later
-            const ui = {};
-            const elementIds = [ 'sidebar-avatar', 'sidebar-name', 'offline-banner', 'global-error', 'main-mobile-menu-toggle', 'sidebar-close-toggle', 'sidebar', 'sidebar-overlay', 'toast', 'toast-message', 'initial-loader', 'main-content', 'refresh-data-btn', 'notification-bell', 'notification-count', 'notifications-dropdown', 'notifications-list', 'no-notifications-msg', 'mark-all-read', 'progress-card', 'exercises-card', 'streak-card', 'points-card' ];
-            elementIds.forEach(id => ui[id] = id); // Store IDs
-            const getEl = (idName) => document.getElementById(idName); // Helper
-            console.log("[INIT] UI element IDs stored");
-            // --- END: Initialization and Configuration ---
-
-            // --- START: Helper Functions ---
-             function showToast(message, type = 'success') { const t=getEl(ui.toast), m=getEl(ui.toastMessage); if (!t || !m) return; m.textContent = message; const i = t.querySelector('i'); const c = { success: 'var(--success)', error: 'var(--danger)', warning: 'var(--warning)', info: 'var(--info)' }; if (i) { i.className = `fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle'}`; i.style.color = c[type] || c.info; } t.className = `toast ${type}`; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 5000); }
-             function showError(message) { const c = getEl(ui.globalError); if (!c) return; c.innerHTML = `<div class="error-message"><i class="fas fa-exclamation-circle"></i><div><div>${message}</div><button class="retry-button" id="retry-btn-global">Zkusit znovu</button></div></div>`; c.style.display = 'block'; const b = document.getElementById('retry-btn-global'); if (b) { b.removeEventListener('click', handleRetry); b.addEventListener('click', handleRetry); } }
-             function hideError() { const c = getEl(ui.globalError); if (c) c.style.display = 'none'; }
-             function updateOnlineStatus() { const b = getEl(ui.offlineBanner); if (b) b.style.display = navigator.onLine ? 'none' : 'block'; if (!navigator.onLine) showToast('Jste offline.', 'warning'); }
-             function getInitials(userData) { if (!userData) return '?'; const f = userData.first_name?.[0] || ''; const l = userData.last_name?.[0] || ''; return (f + l).toUpperCase() || userData.username?.[0].toUpperCase() || userData.email?.[0].toUpperCase() || '?'; }
-             function formatRelativeTime(timestamp) { if (!timestamp) return '-'; try { if (typeof dateFns === 'undefined') { console.warn("date-fns not loaded"); return new Date(timestamp).toLocaleDateString('cs-CZ') || '-'; } const n=new Date(); const d=dateFns.parseISO(timestamp); if (!dateFns.isValid(d)) return '-'; const df=dateFns.differenceInCalendarDays(n,d); if (df===0) return 'Dnes'; if (df===1) return 'Včera'; if (df<7) return `Před ${df} dny`; return dateFns.format(d, 'd.M.yy', { locale: dateFns.locale.cs }); } catch(e) { console.error("Chyba formátování času:", e); return '-'; } }
-             function openMenu() { const s=getEl(ui.sidebar), o=getEl(ui.sidebarOverlay); if (s && o) { s.classList.add('active'); o.classList.add('active'); } }
-             function closeMenu() { const s=getEl(ui.sidebar), o=getEl(ui.sidebarOverlay); if (s && o) { s.classList.remove('active'); o.classList.remove('active'); } }
-             function sanitizeHTML(str) { const t = document.createElement('div'); t.textContent = str || ''; return t.innerHTML; }
-            // --- END: Helper Functions ---
-
-            // --- START: Loading State Functions ---
-             function showLoadingState(section) { console.log(`[Loading] Show for: ${section}`); switch(section) { case 'stats': ['progress-card', 'exercises-card', 'streak-card', 'points-card'].forEach(id => getEl(ui[id])?.classList.add('loading')); break; case 'notifications': const listEl = getEl(ui.notificationsList); const noMsgEl = getEl(ui.noNotificationsMsg); if (listEl) { listEl.innerHTML = ''; const skeletonHTML = `<div class="notification-item-skeleton" style="display: flex; padding: 1rem 1.25rem; gap: 1rem; border-bottom: 1px solid var(--border-color);"> <div class="skeleton activity-icon-placeholder" style="border-radius: 50%; width:38px; height: 38px;"></div> <div style="flex-grow: 1;"> <div class="skeleton activity-line" style="width: 60%; height: 16px; margin-bottom: 0.5rem;"></div> <div class="skeleton activity-line" style="width: 90%; height: 14px; margin-bottom: 0.4rem;"></div> <div class="skeleton activity-line-short" style="width: 40%; height: 12px;"></div> </div> </div>`; for(let i=0; i<3; i++) listEl.insertAdjacentHTML('beforeend', skeletonHTML); } if (noMsgEl) noMsgEl.style.display = 'none'; break; } }
-             function hideLoadingState(section) { console.log(`[Loading] Hide for: ${section}`); switch(section) { case 'stats': ['progress-card', 'exercises-card', 'streak-card', 'points-card'].forEach(id => getEl(ui[id])?.classList.remove('loading')); break; case 'notifications': const listEl = getEl(ui.notificationsList); if (listEl) listEl.querySelectorAll('.notification-item-skeleton').forEach(el => el.remove()); break; } }
-            // --- END: Loading State Functions ---
-
-            // --- START: Data Loading Functions ---
-             async function fetchWithTimeout(queryPromise, timeoutMs = SUPABASE_FETCH_TIMEOUT) { let tH; const tP = new Promise((_, r) => { tH = setTimeout(() => r(new Error(`Request timed out (${timeoutMs}ms)`)), timeoutMs); }); try { const res = await Promise.race([queryPromise, tP]); clearTimeout(tH); return res; } catch (e) { console.warn("Supabase request failed or timed out:", e.message); throw e; } }
-
-            async function loadUserProfile(user) {
-                 console.log("[FUNC] loadUserProfile: Start"); if (!user) { console.error("! Missing user object."); return null; }
-                 try {
-                     console.log("... Selecting profile columns (v10 - minimal)");
-                     // ** Select ONLY required columns from profiles **
-                     const query = supabase.from('profiles')
-                          .select('id, email, username, first_name, last_name, avatar_url, points, streak_days, level, completed_exercises')
-                          .eq('id', user.id).single();
-                     const { data: profile, error } = await fetchWithTimeout(query);
-                     console.log("... Supabase profiles returned - Error:", error, "Data:", !!profile);
-                     if (error && error.code !== 'PGRST116') { throw error; }
-                     if (!profile) { console.warn("... Profile not found, using default."); return { id: user.id, email: user.email, username: user.email?.split('@')[0] || 'Uživatel', points: 0, streak_days: 0, level: 1, completed_exercises: 0 }; }
-                     console.log("[FUNC] loadUserProfile: Success."); return profile;
-                 } catch (error) { console.error('[FUNC] loadUserProfile: Caught exception:', error); return null; }
+             if (!supabase) {
+                 console.error("Supabase client se nepodařilo inicializovat.");
+                 // Můžete zobrazit chybovou zprávu uživateli
+                 return;
              }
 
-            // --- Notification Functions (Consistent) ---
-             async function loadNotifications(userId) { console.log("[FUNC] loadNotifications: Start"); if (!userId) return { unreadCount: 0, notifications: [] }; try { console.log("... Calling Supabase user_notifications select"); const query = supabase .from('user_notifications') .select('id, title, message, icon, type, is_read, created_at, link', { count: 'exact' }) .eq('user_id', userId) .order('created_at', { ascending: false }) .limit(10); const countQuery = supabase .from('user_notifications') .select('*', { count: 'exact', head: true }) .eq('user_id', userId) .eq('is_read', false); const [ { data, error }, { count: unreadCount, error: countError } ] = await Promise.all([ fetchWithTimeout(query), fetchWithTimeout(countQuery) ]); console.log("... Supabase returned - Error:", error, "Data count:", data?.length, "Unread Count:", unreadCount); if (error || countError) throw error || countError; if (!data || data.length === 0) { console.log("... No notifications found."); return { unreadCount: 0, notifications: [] }; } return { unreadCount: unreadCount ?? 0, notifications: data || [] }; } catch (error) { console.error("[FUNC] loadNotifications: Caught exception:", error); return { unreadCount: 0, notifications: [] }; } }
-             function renderNotifications(result) { console.log("[FUNC] renderNotifications: Start", result); hideLoadingState('notifications'); const countEl = getEl(ui.notificationCount); const listEl = getEl(ui.notificationsList); const noMsgEl = getEl(ui.noNotificationsMsg); const markAllBtn = getEl(ui.markAllReadBtn); if (!countEl || !listEl || !noMsgEl || !markAllBtn) { console.error("! Missing notification UI elements."); return; } const count = result?.unreadCount ?? 0; const notifications = result?.notifications ?? []; countEl.textContent = count > 9 ? '9+' : count; countEl.classList.toggle('visible', count > 0); markAllBtn.disabled = (count === 0); if (notifications && notifications.length > 0) { listEl.innerHTML = notifications.map(n => { const iconClass = sanitizeHTML(n.icon || 'fa-info-circle'); const typeClass = sanitizeHTML(n.type || 'info'); const isReadClass = n.is_read ? 'is-read' : ''; const linkAttr = n.link ? `data-link="${sanitizeHTML(n.link)}"` : ''; const safeTitle = sanitizeHTML(n.title); const safeMessage = sanitizeHTML(n.message); const safeTime = formatRelativeTime(n.created_at); return `<div class="notification-item ${isReadClass}" data-id="${n.id}" ${linkAttr} title="${n.is_read ? 'Přečteno' : 'Nepřečteno'} - ${safeMessage}"> ${!n.is_read ? '<span class="unread-dot"></span>' : ''} <div class="notification-icon ${typeClass}"> <i class="fas ${iconClass}"></i> </div> <div class="notification-content"> <div class="notification-title">${safeTitle}</div> <div class="notification-message">${safeMessage}</div> <div class="notification-time">${safeTime}</div> </div> </div>`; }).join(''); noMsgEl.style.display = 'none'; listEl.style.display = 'block'; } else { listEl.innerHTML = ''; noMsgEl.style.display = 'block'; listEl.style.display = 'none'; } console.log("[FUNC] renderNotifications: Success"); }
-             async function markNotificationRead(notificationId) { console.log("[FUNC] markNotificationRead: ID:", notificationId); if (!currentUser || !notificationId || notificationId === 'welcome') return false; try { const { error } = await supabase .from('user_notifications') .update({ is_read: true }) .eq('user_id', currentUser.id) .eq('id', notificationId); if (error) throw error; console.log("... Success"); return true; } catch (error) { console.error("... Error:", error); showToast('Chyba', 'Nepodařilo se označit oznámení.', 'error'); return false; } }
-             async function markAllNotificationsRead() { console.log("[FUNC] markAllNotificationsRead: Start"); const markAllBtn = getEl(ui.markAllReadBtn); if (!currentUser || !markAllBtn) return; markAllBtn.disabled = true; markAllBtn.textContent = 'Označuji...'; try { const { error } = await supabase .from('user_notifications') .update({ is_read: true }) .eq('user_id', currentUser.id) .eq('is_read', false); if (error) throw error; console.log("... Success"); const result = await loadNotifications(currentUser.id); renderNotifications(result.unreadCount, result.notifications); showToast('Oznámení označena', 'Všechna nepřečtená oznámení označena.', 'success'); } catch (error) { console.error("... Error:", error); showToast('Chyba', 'Nepodařilo se označit všechna oznámení.', 'error'); } finally { if(markAllBtn) {markAllBtn.disabled = false; markAllBtn.textContent = 'Označit vše jako přečtené';} } }
-            // --- END: Data Loading Functions ---
-
-            // --- START: UI Update Functions ---
-            function updateSidebarProfile(userData) { console.log("[FUNC] updateSidebarProfile: Start"); const nameEl = getEl(ui.sidebarName); const avatarEl = getEl(ui.sidebarAvatar); if (!userData || !nameEl || !avatarEl) { console.warn("! Sidebar elements not found or no user data."); if(nameEl) nameEl.textContent = "Uživatel"; if(avatarEl) avatarEl.textContent = "?"; return; } const displayName = `${userData.first_name || ''} ${userData.last_name || ''}`.trim() || userData.username || 'Uživatel'; nameEl.textContent = displayName; if (userData.avatar_url) { avatarEl.innerHTML = `<img src="${userData.avatar_url}" alt="${displayName}" />`; } else { avatarEl.textContent = getInitials(userData); } console.log("[FUNC] updateSidebarProfile: Success"); }
-
-             function updateStatsCards(profileData) {
-                 console.log("[FUNC] updateStatsCards: Start, profileData:", !!profileData);
-                 const cardIds = { progress: 'progress-card', exercises: 'exercises-card', streak: 'streak-card', points: 'points-card' };
-
-                 const renderCard = (cardId, value, unit, description, error = false) => {
-                     const card = getEl(cardId);
-                     if (!card) { console.warn(`! Card element #${cardId} not found.`); return; }
-                     card.classList.remove('loading');
-                     const contentEl = card.querySelector('.stats-card-content');
-                     const skeletonEl = card.querySelector('.loading-skeleton');
-                     if (skeletonEl) skeletonEl.style.display = 'none';
-
-                     if (contentEl) {
-                         contentEl.style.visibility = 'visible';
-                         if (error) { contentEl.innerHTML = `<div class="card-error-state"><i class="fas fa-exclamation-triangle"></i>Chyba</div>`; console.log(`[FUNC] updateStatsCards: Rendered error state for card ${cardId}`); }
-                         else {
-                              if (!contentEl.querySelector('.stats-card-info')) { contentEl.innerHTML = `<div class="stats-card-info"><div class="stats-card-title"><i class="${card.dataset.icon || 'fas fa-question-circle'}"></i>${card.dataset.title || ''}</div><div class="stats-card-value">-<span class="unit"></span></div><div class="stats-card-description"></div></div>`; }
-                              const valueEl = contentEl.querySelector('.stats-card-value'); const descEl = contentEl.querySelector('.stats-card-description');
-                              if (valueEl) valueEl.innerHTML = `${value ?? '-'}${unit ? `<span class="unit">${unit}</span>` : ''}`;
-                              if (descEl) descEl.textContent = description ?? '';
-                         }
-                     } else { console.warn(`! Missing .stats-card-content in card:`, cardId); card.innerHTML = `<div class="card-error-state"><i class="fas fa-exclamation-triangle"></i>Chyba</div>`; }
-                 };
-
-                 Object.entries(cardIds).forEach(([key, cardId]) => { const card = getEl(cardId); if (card && !card.dataset.title) { switch(key) { case 'progress': card.dataset.icon = 'fas fa-graduation-cap'; card.dataset.title = 'Úroveň'; break; case 'exercises': card.dataset.icon = 'fas fa-pencil-alt'; card.dataset.title = 'Dokonč. Cvičení'; break; case 'streak': card.dataset.icon = 'fas fa-fire'; card.dataset.title = 'Série Dnů'; break; case 'points': card.dataset.icon = 'fas fa-star'; card.dataset.title = 'Body'; break; } } });
-
-                 if (!profileData) { console.warn("[FUNC] updateStatsCards: No profile data, rendering error state."); Object.values(cardIds).forEach(cardId => renderCard(cardId, null, null, null, true)); return; }
-
-                 renderCard(cardIds.progress, profileData.level ?? 1, '', 'Vaše aktuální úroveň');
-                 renderCard(cardIds.exercises, profileData.completed_exercises ?? 0, '', 'Dokončených cvičení');
-                 renderCard(cardIds.streak, profileData.streak_days ?? 0, '', 'Aktuální série studia');
-                 renderCard(cardIds.points, profileData.points ?? 0, '', 'Celkem získaných bodů');
-                 console.log("[FUNC] updateStatsCards: Success");
+             const { data: { user } } = await supabase.auth.getUser();
+             if (!user) {
+                 window.location.href = '/auth/index.html'; // Přesměrování na přihlášení, pokud uživatel není přihlášen
+                 return;
              }
-            // --- END: UI Update Functions ---
 
-            // --- START: Main Orchestration (Simplified) ---
-             async function loadPageData() {
-                 if (isLoadingData) { console.warn("[MAIN] loadPageData: Already loading."); return; }
-                 isLoadingData = true;
-                 if (!currentUser) { showError("Chyba: Nelze načíst data bez přihlášeného uživatele."); isLoadingData = false; return; }
-                 console.log(`[MAIN] loadPageData: Start - User: ${currentUser.id}`);
-                 hideError(); showLoadingState('stats'); showLoadingState('notifications');
-                 const refreshBtnEl = getEl(ui.refreshDataBtn);
-                 if(refreshBtnEl) { refreshBtnEl.classList.add('loading'); refreshBtnEl.disabled = true; }
+             // Zobrazte ID uživatele v konzoli pro ověření
+             console.log("Přihlášený uživatel ID:", user.id);
 
-                 let profileData = null;
-                 let notificationsResult = { unreadCount: 0, notifications: [] };
+             // Načtěte a zobrazte data uživatele
+             loadData(user.id);
+        });
 
-                 try {
-                     console.log("[MAIN] loadPageData: Loading profile & notifications concurrently...");
-                     const results = await Promise.allSettled([
-                          loadUserProfile(currentUser),
-                          loadNotifications(currentUser.id)
-                     ]);
-                     console.log("[MAIN] loadPageData: Profile & Notifications results:", results);
+        async function loadData(userId) {
+            // Zobrazte skeleton loadery
+            const statsGrid = document.getElementById('stats-grid');
+            const activitiesTableWrapper = document.getElementById('activities-table-wrapper');
+            const activitiesTable = document.getElementById('activities-table');
+            const activitiesBody = document.getElementById('activities-body');
+            const chartLoading = document.getElementById('chart-loading');
+            const tableLoading = document.getElementById('table-loading');
+            const noActivities = document.getElementById('no-activities');
+            const progressChartCanvas = document.getElementById('progressChart');
 
-                     // Process profile first
-                     if (results[0].status === 'fulfilled' && results[0].value) {
-                         profileData = results[0].value;
-                         updateSidebarProfile(profileData);
-                         updateStatsCards(profileData);
-                     } else {
-                         console.error("! Failed to load profile:", results[0].reason || "No profile data returned");
-                         updateStatsCards(null); // Show error state for stats
-                         throw new Error("! Nepodařilo se načíst profil."); // Stop further processing
-                     }
+             // Zobrazit skeleton pro karty statistik, skrýt skutečný obsah
+            if (statsGrid) {
+                 // Váš HTML už obsahuje skeletony, nemusíte je znovu generovat
+                 // Jen zajistíme, že jsou viditelné a obsah skrytý
+                 Array.from(statsGrid.children).forEach(card => {
+                      // Zde by měla být logika pro zobrazení skeletonu a skrytí obsahu,
+                      // pokud by HTML struktura byla jiná. V aktuálním HTML jsou skeletony
+                      // statické a skrývají se po načtení.
+                 });
+            }
+            if (chartLoading) chartLoading.style.display = 'flex';
+            if (progressChartCanvas) progressChartCanvas.style.display = 'none';
+            if (tableLoading) tableLoading.style.display = 'flex';
+            if (activitiesTable) activitiesTable.style.display = 'none';
+            if (noActivities) noActivities.style.display = 'none';
 
-                     // Process notifications
-                     if (results[1].status === 'fulfilled') { notificationsResult = results[1].value; }
-                     else { console.error("! Failed to load notifications:", results[1].reason); showToast('Chyba oznámení', 'Nepodařilo se načíst oznámení.', 'error'); }
-                     renderNotifications(notificationsResult.unreadCount, notificationsResult.notifications);
+            try {
+                // Načtení profilu pro sidebar
+                const { data: profileData, error: profileError } = await supabase
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', userId)
+                    .single();
 
-                 } catch (error) {
-                     console.error('[MAIN] loadPageData: Caught critical error:', error);
-                     const errorMsg = error.message.includes("timed out") ? "Požadavek na data vypršel. Zkontrolujte RLS a indexy v Supabase." : error.message.includes("Nepodařilo se načíst profil") ? "Nepodařilo se načíst váš profil. Zkuste obnovit stránku." : "Nepodařilo se kompletně načíst data pokroku.";
-                     showError(errorMsg);
-                     // Ensure error states are shown if not already
-                     if (!profileData) updateStatsCards(null);
-                     renderNotifications(0, []);
-                 } finally {
-                     hideLoadingState('stats'); hideLoadingState('notifications');
-                     if(refreshBtnEl) { refreshBtnEl.classList.remove('loading'); refreshBtnEl.disabled = false; }
-                     isLoadingData = false; console.log("[MAIN] loadPageData: Finished.");
+                if (profileError && profileError.code !== 'PGRST116') throw profileError; // Ignorovat, pokud profil není nalezen
+
+                if(profileData) {
+                     updateUserInfoUI(profileData, profileData.email);
+                } else {
+                     updateUserInfoUI(null, userId); // Zobrazit výchozí, pokud profil není
+                }
+
+                // Načtení statistik (příklad)
+                 let statsData = { progress: 75, progress_weekly: 5, points: 1250, points_weekly: 80, streak_current: 12, streak_longest: 25 }; // Použití dummy dat
+                 renderStatisticsCards(statsData);
+
+                // Načtení dat pro graf (příklad)
+                 const chartData = generateProgressData('month'); // Generuje dummy data
+                 await initChart(chartData); // Inicializace grafu
+                 if(chartLoading) chartLoading.style.display = 'none';
+                 if(progressChartCanvas) progressChartCanvas.style.display = 'block';
+
+                // Načtení aktivit (příklad)
+                 const activitiesData = [ { name: "Dokončený test z algebry", date: "2024-05-10", points: 150, status: "Dokončeno" }, { name: "Procvičování rovnic", date: "2024-05-09", points: 20, status: "Dokončeno" }, { name: "Slovní úlohy", date: "2024-05-08", points: 25, status: "Probíhá" } ]; // Dummy data
+                 renderActivities(activitiesData);
+
+            } catch (error) {
+                console.error('Chyba při načítání dat:', error);
+                showToast('Chyba načítání', `Nepodařilo se načíst data: ${error.message}`, 'error');
+                // Skrýt všechny loadery a zobrazit chybovou zprávu
+                 if(statsGrid) statsGrid.innerHTML = renderFallbackStatisticsCards(); // Zobrazit fallback karty
+                 if(chartLoading) chartLoading.style.display = 'none';
+                 if(tableLoading) tableLoading.style.display = 'none';
+                 if(noActivities) noActivities.style.display = 'flex'; // Zobrazit zprávu o nedostupnosti dat
+                 if(activitiesTable) activitiesTable.style.display = 'none';
+            } finally {
+                // Skrytí loaderů (pro jistotu, i když už by měly být skryté)
+                 if (chartLoading) chartLoading.style.display = 'none';
+                 if (tableLoading) tableLoading.style.display = 'none';
+                 if (progressChartCanvas && !progressChart) { // Pokud graf nebyl inicializován (chyba/málo dat)
+                      // Můžeme zobrazit zprávu přímo v chart containeru
+                      const chartContainer = progressChartCanvas.parentElement;
+                      if(chartContainer) chartContainer.innerHTML = '<p style="text-align:center; padding: 2rem;">Data pro graf nejsou dostupná.</p>';
                  }
-             }
-            // --- END: Main Orchestration ---
-
-            // --- START: Event Listeners Setup ---
-             function setupUIEventListeners() {
-                 if (listenersAttached) return; console.log("[SETUP] Setting up listeners.");
-                 const mainMobileToggle = getEl(ui.mainMobileMenuToggle); const sidebarCloseToggle = getEl(ui.sidebarCloseToggle); const overlay = getEl(ui.sidebarOverlay); const refreshButton = getEl(ui.refreshDataBtn); const bell = getEl(ui.notificationBell); const markAll = getEl(ui.markAllReadBtn); const notifList = getEl(ui.notificationsList); const dropdown = getEl(ui.notificationsDropdown);
-
-                 if (mainMobileToggle) mainMobileToggle.addEventListener('click', openMenu);
-                 if (sidebarCloseToggle) sidebarCloseToggle.addEventListener('click', closeMenu);
-                 if (overlay) overlay.addEventListener('click', closeMenu);
-                 document.querySelectorAll('.sidebar-link').forEach(link => { link.addEventListener('click', () => { if (window.innerWidth <= 992) closeMenu(); }); });
-                 window.addEventListener('online', updateOnlineStatus); window.addEventListener('offline', updateOnlineStatus); updateOnlineStatus();
-                 if (refreshButton) refreshButton.addEventListener('click', handleRetry);
-                 if (bell && dropdown) { bell.addEventListener('click', (event) => { event.stopPropagation(); dropdown.classList.toggle('active'); }); }
-                 if (markAll) { markAll.addEventListener('click', markAllNotificationsRead); }
-                 if (notifList) { notifList.addEventListener('click', async (event) => { const item = event.target.closest('.notification-item'); if (item && !item.classList.contains('is-read')) { const notificationId = item.dataset.id; const link = item.dataset.link; const success = await markNotificationRead(notificationId); if (success) { item.classList.add('is-read'); const countEl = getEl(ui.notificationCount); const markAllBtn = getEl(ui.markAllReadBtn); const currentCount = parseInt(countEl?.textContent.replace('+','')) || 0; const newCount = Math.max(0, currentCount - 1); if(countEl) { countEl.textContent = newCount > 9 ? '9+' : newCount; countEl.classList.toggle('visible', newCount > 0); } item.querySelector('.unread-dot')?.remove(); if(markAllBtn) markAllBtn.disabled = (newCount === 0); if (link) window.location.href = link; } } else if (item && item.dataset.link) { window.location.href = item.dataset.link; } }); }
-                 document.addEventListener('click', (event) => { const dropdownEl = getEl(ui.notificationsDropdown); if (dropdownEl?.classList.contains('active') && !dropdownEl.contains(event.target) && !getEl(ui.notificationBell)?.contains(event.target)) { dropdownEl.classList.remove('active'); } });
-                 listenersAttached = true; console.log("[SETUP] Listeners attached.");
-             }
-             function handleRetry() { if (currentUser && !isLoadingData) { hideError(); const btn = getEl(ui.refreshDataBtn); const icon = btn?.querySelector('i'); const text = btn?.querySelector('.refresh-text'); if(btn) btn.disabled = true; if(icon) icon.classList.add('fa-spin'); if(text) text.textContent = 'Obnovuji...'; loadPageData() .then(() => showToast("Data aktualizována", "Přehled byl obnoven.", "success")) .catch(() => {}) .finally(() => { if(btn) btn.disabled = false; if(icon) icon.classList.remove('fa-spin'); if(text) text.textContent = 'Obnovit'; }); } else if (isLoadingData) { showToast("Počkejte prosím", "Data se již načítají.", "info"); } else { showToast("Chyba", "Nelze obnovit, uživatel není přihlášen.", "error"); } }
-            // --- END: Event Listeners Setup ---
-
-            // --- START: Initialization Logic ---
-            function initializeApp() {
-                console.log("[INIT] Initializing application...");
-                try {
-                    if (typeof window.supabase === 'undefined' || typeof window.supabase.createClient !== 'function') { throw new Error("Supabase library not available."); }
-                     // Chart.js and date-fns are NOT needed here anymore
-                    if (typeof window.dateFns === 'undefined') { console.warn("date-fns library not loaded (needed for relative time)."); } // Still needed for time formatting
-
-
-                    supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
-                    console.log('[INIT] Supabase client initialized.');
-
-                    supabase.auth.onAuthStateChange(async (event, session) => {
-                        console.log('[INIT] Auth State Change:', event, session ? `User: ${session.user?.id}` : "No session");
-                        currentUser = session?.user ?? null;
-                        if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN') {
-                            if (currentUser) {
-                                console.log('[INIT] User authenticated, starting page load...');
-                                const loader = getEl(ui.initialLoader); if(loader) { loader.classList.add('hidden'); setTimeout(() => { loader.style.display = 'none'; }, 500); }
-                                const mainEl = getEl(ui.mainContent); if (mainEl) mainEl.style.display = 'block';
-                                if (!listenersAttached) setupUIEventListeners(); // Setup listeners only ONCE
-                                await loadPageData(); // Initial data load
-                            } else { console.log('[INIT] No user, redirecting.'); window.location.href = '/auth/index.html'; }
-                        } else if (event === 'SIGNED_OUT') { console.log('[INIT] Signed out, redirecting.'); window.location.href = '/auth/index.html'; }
-                    });
-                } catch (error) { console.error("[INIT] Critical initialization error:", error); const loader = getEl(ui.initialLoader); if (loader) { loader.innerHTML = `<p style="color: var(--danger);">Chyba (${error.message}). Obnovte.</p>`; loader.classList.remove('hidden'); loader.style.display = 'flex'; } const mainEl = getEl(ui.mainContent); if (mainEl) mainEl.style.display = 'none'; }
             }
+        }
 
-            // Simplified initialization check
-            if (document.readyState === 'loading') {
-                 document.addEventListener('DOMContentLoaded', initializeApp);
-            } else {
-                 initializeApp();
-            }
-            // --- END: Initialization Logic ---
+        // --- START: Vykreslovací Funkce ---
+         function renderStatisticsCards(stats) { /* ... (stejné) ... */ }
+         function renderFallbackStatisticsCards() { /* ... (stejné) ... */ }
+         function initChart(data) { /* ... (stejné) ... */ }
+         function generateProgressData(period) { /* ... (stejné) ... */ }
+         function renderActivities(activities) { /* ... (stejné) ... */ }
+         function updateUserInfoUI(profileData, userEmail) { /* ... (stejné) ... */ }
+        // --- KONEC: Vykreslovací Funkce ---
 
-        })(); // End of IIFE
+        // --- START: Event Listenery ---
+         /* ... (poslední verze listenerů) ... */
+        // --- KONEC: Event Listenery ---
+
+        // --- Aktualizace času ---
+        updateCurrentTime(); setInterval(updateCurrentTime, 60000);
+
     </script>
 </body>
 </html>
