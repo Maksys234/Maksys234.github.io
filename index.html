@@ -1,80 +1,70 @@
 <!DOCTYPE html>
-<html lang="cs" class="dark">
-<head>
+<html lang="cs"> <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Justax | Hackni Své Zkoušky s AI</title> <link rel="preconnect" href="https://fonts.googleapis.com">
+    <title>Justax | Odemkněte Svůj Potenciál s AI</title> <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
-        /* --- Палитра и Переменные (v12 - Recharged Cyberpunk) --- */
+        /* --- Палитра и Переменные (v13 - Lumin - Light Theme) --- */
         :root {
-            /* Основные темные тона */
-            --bg-color: #060412;            /* Почти черный */
-            --bg-secondary: #0d0a24;       /* Темно-индиго */
-            --card-bg: rgba(16, 10, 45, 0.8);  /* Полупрозрачный индиго */
-            --card-solid: #110c30;         /* Сплошной темный */
-            --interface-bg: rgba(8, 5, 26, 0.85);
+            /* Основные светлые тона */
+            --bg-color: #f8f9fe;             /* Очень светлый, почти белый */
+            --bg-secondary: #ffffff;        /* Чистый белый для карт */
+            --card-bg: rgba(255, 255, 255, 0.9); /* Полупрозрачный белый */
+            --interface-bg: rgba(245, 247, 254, 0.95); /* Фон интерфейса */
 
-            /* Акценты - Яркий Циан как основной, Фиолетовый/Розовый как вторичные */
-            --accent-primary: #00f0ff;     /* Электрический Циан */
-            --accent-primary-rgb: 0, 240, 255;
-            --accent-secondary: #9d00ff;   /* Глубокий Фиолетовый */
-            --accent-secondary-rgb: 157, 0, 255;
-            --accent-pink: #ff00ff;        /* Фуксия */
-            --accent-pink-rgb: 255, 0, 255;
-            --accent-lime: #39ff14;        /* Кислотный лайм для статусов */
-            --accent-lime-rgb: 57, 255, 20;
-            --accent-glow: rgba(var(--accent-primary-rgb), 0.5); /* Циановое свечение */
-            --accent-border-glow: rgba(var(--accent-primary-rgb), 0.7);
+            /* Акценты - Яркие градиенты + Основной синий */
+            --accent-primary: #4a7fff;      /* Яркий синий */
+            --accent-primary-rgb: 74, 127, 255;
+            --accent-secondary: #8a5cf5;    /* Фиолетовый */
+            --accent-secondary-rgb: 138, 92, 245;
+            --accent-pink: #f72585;
+            --accent-orange: #ff9f1c;
+            --accent-cyan: #00e0ff;
+
+            /* Градиентные акценты */
+            --gradient-primary: linear-gradient(135deg, var(--accent-secondary) 0%, var(--accent-primary) 100%);
+            --gradient-secondary: linear-gradient(135deg, var(--accent-pink) 0%, var(--accent-secondary) 100%);
+            --gradient-tertiary: linear-gradient(135deg, var(--accent-orange) 0%, var(--accent-pink) 100%);
+            --gradient-sky: linear-gradient(135deg, var(--accent-cyan) 0%, var(--accent-primary) 100%);
+            --gradient-full: linear-gradient(135deg, var(--accent-secondary), var(--accent-primary), var(--accent-cyan), var(--accent-pink), var(--accent-orange));
+
 
             /* Текст */
-            --text-light: #e8eaf6;
-            --text-medium: #b0b8d0;
-            --text-muted: #8892b0;
-            --text-heading: #ffffff;
+            --text-dark: #1a1c3a;         /* Темно-синий для заголовков */
+            --text-medium: #5a618a;       /* Серый для основного текста */
+            --text-muted: #9098b8;        /* Светло-серый */
+            --text-light: #ffffff;        /* Для темных кнопок */
             --text-link: var(--accent-primary);
-            --text-link-hover: #ffffff;
-            --text-fixed-dark: #060412; /* Для светлых кнопок */
+            --text-link-hover: var(--accent-secondary);
 
             /* Границы */
-            --border-color-light: rgba(157, 0, 255, 0.2); /* Фиолетовый */
-            --border-color-medium: rgba(157, 0, 255, 0.4);
-            --border-color-strong: rgba(0, 240, 255, 0.5); /* Циан */
+            --border-color: #e8eafc;       /* Светлая граница */
+            --border-color-medium: #d8dcf4;
             --border-interactive: var(--accent-primary);
-            --border-glow-gradient: linear-gradient(90deg, transparent, var(--accent-primary), transparent);
 
-            /* Градиенты */
-            --gradient-header: linear-gradient(180deg, rgba(6, 4, 18, 0.95) 0%, rgba(6, 4, 18, 0.8) 100%);
-            --gradient-border-anim: linear-gradient(90deg, var(--accent-secondary), var(--accent-primary), var(--accent-pink), var(--accent-primary), var(--accent-secondary));
-            --gradient-button: linear-gradient(100deg, var(--accent-secondary) 0%, var(--accent-primary) 100%);
-            --gradient-button-hover: linear-gradient(100deg, var(--accent-primary) 0%, var(--accent-pink) 100%);
-            --gradient-hero-bg: radial-gradient(ellipse at 5% 5%, rgba(var(--accent-primary-rgb), 0.15), transparent 50%),
-                                 radial-gradient(ellipse at 95% 95%, rgba(var(--accent-secondary-rgb), 0.12), transparent 60%),
-                                 var(--bg-color);
-            --gradient-card-hover: linear-gradient(145deg, rgba(var(--accent-primary-rgb), 0.1), rgba(var(--accent-secondary-rgb), 0.1));
+            /* Тени (Неоморфизм - очень легкий) */
+            --shadow-neumorphic-light: -4px -4px 8px rgba(255, 255, 255, 0.8), 4px 4px 8px rgba(180, 190, 230, 0.3);
+            --shadow-neumorphic-light-inset: inset -3px -3px 6px rgba(255, 255, 255, 0.7), inset 3px 3px 6px rgba(180, 190, 230, 0.25);
+            --shadow-card: 0 10px 25px rgba(180, 190, 230, 0.2); /* Обычная тень */
+            --shadow-interactive: 0 5px 15px rgba(var(--accent-primary-rgb), 0.15);
+            --shadow-interactive-hover: 0 7px 20px rgba(var(--accent-secondary-rgb), 0.2);
 
             /* Шрифты */
             --font-primary: 'Inter', sans-serif;
             --font-secondary: 'Poppins', sans-serif;
             --font-mono: 'Roboto Mono', monospace;
 
-            /* Тени */
-            --shadow-glow: 0 0 18px var(--accent-glow);
-            --shadow-card: 0 10px 30px rgba(0, 0, 0, 0.3);
-            --shadow-interactive: 0 6px 18px rgba(var(--accent-primary-rgb), 0.3);
-            --shadow-interactive-hover: 0 8px 25px rgba(var(--accent-pink-rgb), 0.35);
-
             /* Размеры и переходы */
-            --card-radius: 12px;
-            --btn-radius: 8px; /* Острее кнопки */
-            --section-padding-y: clamp(6rem, 12vh, 9rem);
-            --container-width: 1400px;
+            --card-radius: 20px; /* Более скругленные */
+            --btn-radius: 30px; /* Очень скругленные */
+            --section-padding-y: clamp(6rem, 13vh, 9rem);
+            --container-width: 1360px;
             --transition-fast: all 0.2s ease-out;
             --transition-medium: all 0.35s ease-out;
             --transition-long: all 0.5s cubic-bezier(0.165, 0.84, 0.44, 1);
-            --transition-glitchy: all 0.1s linear; /* Для глитч эффектов */
         }
 
         /* --- Базовые стили --- */
@@ -84,275 +74,288 @@
             background-color: var(--bg-color); color: var(--text-medium);
             font-family: var(--font-primary); line-height: 1.7;
             overflow-x: hidden; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
-            min-height: 100vh; position: relative; background-attachment: fixed;
+            min-height: 100vh; position: relative;
         }
-        body::before { /* Фоновая сетка (снова) */
-            content: ""; position: fixed; inset: 0; width: 100%; height: 100%; z-index: -2;
-            background-image:
-                linear-gradient(rgba(157, 0, 255, 0.07) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(157, 0, 255, 0.07) 1px, transparent 1px);
-            background-size: 40px 40px; opacity: 0.8;
-            animation: bg-grid-pan 120s linear infinite;
+        /* Мягкий градиентный фон */
+        body::before {
+            content: ""; position: fixed; inset: -50% -50% 0 -50%; /* Больше чтобы покрыть */
+            z-index: -2;
+            background: radial-gradient(ellipse at center, rgba(var(--accent-secondary-rgb), 0.05) 0%, transparent 60%),
+                        radial-gradient(ellipse at top left, rgba(var(--accent-primary-rgb), 0.08) 0%, transparent 55%),
+                        radial-gradient(ellipse at bottom right, rgba(var(--accent-pink-rgb), 0.06) 0%, transparent 50%);
+            background-size: 200% 200%;
+            animation: bg-gradient-shift 40s ease infinite alternate;
+            filter: blur(50px);
+            opacity: 0.8;
         }
-        @keyframes bg-grid-pan { 0% { background-position: 0 0; } 100% { background-position: 1200px 600px; } }
+        @keyframes bg-gradient-shift {
+            0% { transform: translate(0%, 0%) rotate(0deg); }
+            100% { transform: translate(10%, 5%) rotate(10deg); }
+        }
 
         /* --- Типография --- */
-        h1, h2, h3, h4, h5, h6 { font-family: var(--font-secondary); font-weight: 700; color: var(--text-heading); line-height: 1.3; margin-bottom: 1.3em; text-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-        h1 { font-size: clamp(3rem, 8vw, 5.4rem); letter-spacing: -1.5px; font-weight: 800; }
-        h2 { font-size: clamp(2rem, 5.5vw, 3.1rem); font-weight: 700; }
-        h3 { font-size: clamp(1.4rem, 4vw, 1.8rem); font-weight: 600; }
-        p { margin-bottom: 1.6rem; font-size: clamp(1rem, 2.5vw, 1.1rem); max-width: 700px; opacity: 0.9; }
-        a { color: var(--text-link); text-decoration: none; transition: color var(--transition-fast), text-shadow 0.3s ease; }
-        a:hover { color: var(--text-light); text-shadow: 0 0 8px var(--accent-glow); }
-        .section-title { text-align: center; margin-bottom: 1.5rem; position: relative; padding-bottom: 1rem; }
-        .section-title span { /* Градиент для заголовков */
-            color: transparent;
-            background: linear-gradient(90deg, var(--text-light), var(--accent-primary), var(--accent-cyan-glow));
-            -webkit-background-clip: text; background-clip: text;
-            filter: drop-shadow(0 0 10px var(--accent-glow));
-        }
-        .section-title::after { /* Animated underline */
-            content: ''; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
-            width: 70px; height: 3px; border-radius: 2px;
-            background: var(--gradient-border-anim); background-size: 300% 100%;
-            animation: gradient-move 4s linear infinite;
-        }
-        @keyframes gradient-move { 0% { background-position: 150% 0; } 100% { background-position: -150% 0; } }
-        .section-subtitle { font-size: clamp(1rem, 3vw, 1.2rem); text-align: center; max-width: 800px; margin: -1rem auto 4rem auto; color: var(--text-medium); }
+        h1, h2, h3, h4, h5, h6 { font-family: var(--font-secondary); font-weight: 600; color: var(--text-dark); line-height: 1.3; margin-bottom: 1.2em; }
+        h1 { font-size: clamp(3rem, 7.5vw, 4.8rem); letter-spacing: -0.5px; font-weight: 700; }
+        h2 { font-size: clamp(1.9rem, 5vw, 2.8rem); font-weight: 700; }
+        h3 { font-size: clamp(1.3rem, 3.5vw, 1.6rem); font-weight: 600; }
+        p { margin-bottom: 1.5rem; font-size: clamp(1rem, 2.5vw, 1.05rem); max-width: 650px; }
+        a { color: var(--text-link); text-decoration: none; font-weight: 500; transition: color var(--transition-fast); }
+        a:hover { color: var(--accent-secondary); }
+        .section-title { text-align: center; margin-bottom: 1.5rem; position: relative; padding-bottom: 0.5rem; }
+        .section-title span { /* Highlight with primary color */ color: var(--accent-primary); }
+        .section-title::after { display: none; } /* No underline */
+        .section-subtitle { font-size: clamp(1rem, 3vw, 1.15rem); text-align: center; max-width: 750px; margin: -1rem auto 4rem auto; color: var(--text-medium); }
 
         /* --- Общие элементы --- */
         .container { width: 100%; max-width: var(--container-width); margin: 0 auto; padding: 0 2rem; }
         section { padding: var(--section-padding-y) 0; position: relative; overflow: hidden; }
         .visually-hidden { /* ... */ }
 
-        /* --- Кнопки (v12 - Cyberpunk Edge) --- */
+        /* --- Кнопки (v13 - Soft Neumorphic Influence) --- */
         .btn {
-            display: inline-block; padding: 0.85rem 2.2rem;
-            background: transparent; color: var(--accent-primary);
-            border: 2px solid var(--accent-primary); border-radius: var(--btn-radius);
-            font-family: var(--font-secondary); font-weight: 600; font-size: 0.9rem;
-            text-align: center; text-transform: uppercase; letter-spacing: 1.2px; /* Wider spacing */
+            display: inline-block; padding: 0.9rem 2.3rem;
+            background: var(--gradient-primary); color: var(--text-light);
+            border: none; border-radius: var(--btn-radius);
+            font-family: var(--font-secondary); font-weight: 600; font-size: 0.95rem;
+            text-align: center; text-transform: uppercase; letter-spacing: 1px;
             cursor: pointer; transition: all var(--transition-medium);
-            position: relative; overflow: hidden; z-index: 1;
-            box-shadow: 0 0 12px -2px var(--accent-glow), inset 0 0 8px -4px var(--accent-glow);
-        }
-        .btn::before { /* Fill effect */
-            content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
-            background: var(--gradient-button); transition: left 0.35s ease-in-out; z-index: -1;
+            position: relative; z-index: 1;
+            box-shadow: var(--shadow-interactive);
         }
         .btn:hover {
-            color: var(--text-fixed-dark); border-color: var(--accent-pink);
-            box-shadow: 0 0 25px 0px var(--accent-pink-glow), inset 0 0 10px 0px rgba(0, 0, 0, 0.1);
-            transform: translateY(-3px);
+            box-shadow: var(--shadow-interactive-hover);
+            transform: translateY(-3px); filter: brightness(1.1);
         }
-        .btn:hover::before { left: 0; }
+        .btn:active { transform: translateY(0px) scale(0.97); filter: brightness(0.95); box-shadow: var(--shadow-neumorphic-light-inset); }
         .btn-outline {
-            border-color: var(--accent-pink); color: var(--accent-pink);
-            box-shadow: 0 0 12px -2px var(--accent-pink-glow), inset 0 0 8px -4px var(--accent-pink-glow);
+            background: transparent; color: var(--accent-primary);
+            border: 2px solid var(--border-color-medium); box-shadow: none;
         }
-        .btn-outline::before { background: var(--gradient-button-hover); } /* Use hover gradient for outline */
-        .btn-outline:hover { border-color: var(--accent-secondary); }
+        .btn-outline:hover { background: rgba(var(--accent-primary-rgb), 0.05); border-color: var(--accent-primary); color: var(--accent-primary); }
 
-        /* --- Хедер (v12 - Tech Glass) --- */
+        /* --- Хедер (v13 - Clean & Light) --- */
         header {
-            padding: 0.9rem 0; position: fixed; top: 0; left: 0; width: 100%; z-index: 1000;
+            padding: 1rem 0; position: fixed; top: 0; left: 0; width: 100%; z-index: 1000;
             background: transparent; border-bottom: 1px solid transparent;
             transition: background-color 0.3s ease, padding 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, backdrop-filter 0.3s ease;
         }
         header.scrolled {
-            padding: 0.7rem 0;
-            background: rgba(8, 5, 26, 0.8); /* Darker */
+            padding: 0.75rem 0;
+            background: rgba(248, 249, 254, 0.85); /* Light glass */
             backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-            border-bottom: 1px solid var(--border-color-light);
-            box-shadow: 0 6px 25px rgba(0, 0, 0, 0.2);
+            border-bottom: 1px solid var(--border-color);
+            box-shadow: 0 4px 15px rgba(180, 190, 230, 0.15);
         }
-        .nav-links a::before { /* Line indicator */
-            content: ''; position: absolute; bottom: -4px; left: 0; width: 0; height: 2px;
-            background: var(--accent-primary); transition: width 0.3s ease-out;
-            box-shadow: 0 0 5px var(--accent-glow);
-        }
-        .nav-links a:hover::before, .nav-links a.active::before { width: 70%; }
-        .nav-links a.active::before { background: var(--accent-cyan); box-shadow: 0 0 8px var(--accent-cyan-glow); }
-        /* ... other header styles similar to v10/v11 ... */
+        .nav-container { /* ... */ }
+        .logo { color: var(--text-dark); }
+        .logo i { color: var(--accent-primary); }
+        .logo:hover { filter: none; }
+        .nav-links a { color: var(--text-medium); font-weight: 500; }
+        .nav-links a:hover, .nav-links a.active { color: var(--text-dark); }
+        .nav-links a::before { /* Dot indicator */ background: var(--accent-primary); box-shadow: 0 0 6px var(--accent-primary); }
+        .hamburger span { background-color: var(--text-dark); } /* Dark lines for hamburger */
+        .hamburger.active span { background-color: var(--accent-primary); } /* Accent color when active */
+        .auth-link { /* Button styles apply */ }
 
-        /* --- Герой секция (v12 - Dynamic & Bold) --- */
+        /* --- Герой секция (v13 - Bright & Aspirational) --- */
         .hero {
-            padding: clamp(11rem, 28vh, 16rem) 0 clamp(8rem, 20vh, 10rem);
-            background: var(--gradient-hero-bg); background-size: 180% 180%;
-            animation: gradientBG 20s ease infinite alternate;
-            text-align: center; overflow: hidden; min-height: 100vh;
-            display: flex; align-items: center; justify-content: center; position: relative;
+            padding: clamp(10rem, 25vh, 15rem) 0 clamp(8rem, 20vh, 10rem);
+            background: transparent; /* Use body gradient */
+            text-align: center; overflow: visible; /* Allow potential overflow */
+            min-height: 90vh; display: flex; align-items: center; justify-content: center; position: relative;
         }
-        .hero .container { position: relative; z-index: 1; max-width: 1150px; }
+        /* Add decorative gradient blobs */
+        .hero::before, .hero::after {
+             content: ''; position: absolute; z-index: -1; border-radius: 50%;
+             filter: blur(80px); opacity: 0.4; pointer-events: none;
+             animation: blob-drift 30s infinite alternate ease-in-out;
+        }
+        .hero::before { width: clamp(300px, 50vw, 600px); height: clamp(300px, 50vw, 600px); background: var(--gradient-primary); top: 10%; left: 5%; animation-delay: 0s;}
+        .hero::after { width: clamp(250px, 40vw, 500px); height: clamp(250px, 40vw, 500px); background: var(--gradient-secondary); bottom: 15%; right: 10%; animation-delay: -15s;}
+        @keyframes blob-drift {
+             0% { transform: translate(0, 0) scale(1); }
+             100% { transform: translate(10%, -5%) scale(1.1); }
+        }
+        .hero .container { position: relative; z-index: 1; max-width: 950px; }
         .hero h1 {
-            font-size: clamp(3.2rem, 8.5vw, 6rem); margin-bottom: 1.8rem; line-height: 1.15;
-            font-weight: 800; color: var(--text-heading);
-            text-shadow: 0 0 10px var(--accent-glow), 0 0 25px var(--accent-glow), 0 0 40px var(--accent-secondary);
-            animation: text-flicker 4s linear infinite alternate;
+            font-size: clamp(3rem, 7.5vw, 5rem); margin-bottom: 1.2rem; line-height: 1.15;
+            font-weight: 700; color: var(--text-dark); text-shadow: none;
         }
-        @keyframes text-flicker { /* Subtle flicker */
-             0%, 100% { opacity: 1; text-shadow: 0 0 10px var(--accent-glow), 0 0 25px var(--accent-glow), 0 0 40px var(--accent-secondary); }
-             50% { opacity: 0.95; text-shadow: 0 0 8px var(--accent-glow), 0 0 20px var(--accent-glow), 0 0 35px var(--accent-secondary); }
+        .hero h1 .highlight { /* Gradient highlight */
+             background: var(--gradient-primary);
+             -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+             padding: 0 0.1em;
         }
-        .hero p { font-size: clamp(1.1rem, 3vw, 1.3rem); margin-bottom: 3.2rem; max-width: 850px; margin-left: auto; margin-right: auto; color: var(--text-light); opacity: 0.9; }
-        .hero-buttons { display: flex; gap: 1.2rem; justify-content: center; flex-wrap: wrap; }
-        .hero-buttons .btn { padding: 0.9rem 2.3rem; } /* Slightly larger hero buttons */
+        .hero p { font-size: clamp(1.1rem, 3vw, 1.3rem); margin-bottom: 2.8rem; max-width: 700px; margin-left: auto; margin-right: auto; color: var(--text-medium); opacity: 1; }
+        .hero-buttons { /* ... */ }
 
-
-        /* --- AI Interface (HUD Style) --- */
-        .ai-interface-section { background: var(--bg-secondary); padding-bottom: calc(var(--section-padding-y) + 2rem); border-top: 1px solid var(--border-color-light); }
-        .ai-interface-wrapper {
-            background: var(--interface-bg); border: 1px solid var(--border-color-medium);
-            border-radius: var(--card-radius); padding: 1.5rem;
-            box-shadow: var(--shadow-card), 0 0 50px rgba(var(--accent-secondary-rgb), 0.1) inset;
-            position: relative; max-width: 1050px; margin: 2rem auto 0; display: flex; flex-direction: column;
-            min-height: 480px; backdrop-filter: blur(5px);
-            /* Add corner elements for HUD feel */
+        /* --- Knowledge Flow Visualizer Section --- */
+        .knowledge-flow-section {
+            background: var(--bg-secondary); /* White background */
+            padding: var(--section-padding-y) 0; position: relative;
+            border-top: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color);
         }
-        .ai-interface-wrapper::before, .ai-interface-wrapper::after { /* Corner brackets */
-            content: ''; position: absolute; width: 25px; height: 25px;
-            border-color: var(--accent-primary); border-style: solid; opacity: 0.7;
+        .knowledge-flow-wrapper {
+            max-width: 900px; margin: 0 auto; position: relative;
+            min-height: 400px; /* Ensure space */
+            display: flex; align-items: center; justify-content: center;
         }
-        .ai-interface-wrapper::before { top: 15px; left: 15px; border-width: 2px 0 0 2px; }
-        .ai-interface-wrapper::after { bottom: 15px; right: 15px; border-width: 0 2px 2px 0; }
-        .ai-interface-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding-bottom: 0.8rem; border-bottom: 1px solid var(--border-color-light); flex-wrap: wrap; gap: 0.5rem; }
-        .ai-interface-title { font-size: 1.1rem; font-weight: 500; color: var(--accent-primary); display: flex; align-items: center; gap: 0.6rem; font-family: var(--font-mono); text-shadow: 0 0 5px var(--accent-glow); }
-        .ai-interface-title i { font-size: 1.2rem; animation: pulse-icon 2s infinite ease-in-out; }
-        .ai-status-indicator { /* ... */ }
-        .ai-content-area { display: flex; flex-direction: column; flex-grow: 1; overflow: hidden; }
-        .ai-log-window { flex-grow: 1; background-color: rgba(4, 2, 10, 0.6); border-radius: 8px; padding: 1rem; overflow-y: auto; font-family: var(--font-mono); font-size: 0.8rem; line-height: 1.6; color: var(--text-medium); border: 1px solid var(--border-color-light); margin-top: 1rem; }
-        .ai-log-window::-webkit-scrollbar { width: 5px; }
-        .ai-log-window::-webkit-scrollbar-thumb { background-color: var(--accent-primary); border-radius: 3px; }
-        /* ... Log line styles remain similar to v10 (ai-demo-line etc) ... */
-        .ai-progress-bar-container { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border-color-light); }
-        .ai-progress-bar-label { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.3rem; text-transform: uppercase; letter-spacing: 0.5px; }
-        .ai-progress-bar { height: 6px; background-color: var(--border-color-light); border-radius: 3px; overflow: hidden; }
-        .ai-progress-bar-inner { height: 100%; width: 0%; background: var(--gradient-button); border-radius: 3px; transition: width 0.5s ease-out; box-shadow: 0 0 8px var(--accent-glow); }
+        .knowledge-flow-svg { width: 100%; height: auto; max-height: 400px; overflow: visible; }
+        .knowledge-flow-svg .node { fill: var(--accent-primary); transition: all 0.3s ease; filter: drop-shadow(0 2px 5px var(--accent-highlight)); }
+        .knowledge-flow-svg .node:hover { fill: var(--accent-secondary); transform: scale(1.1); }
+        .knowledge-flow-svg .link { stroke: var(--border-color-medium); stroke-width: 1px; opacity: 0.6; }
+        .knowledge-flow-svg .flow { stroke: url(#flow-gradient); stroke-width: 2px; stroke-dasharray: 10 5; animation: flow-anim 1s linear infinite; }
+        @keyframes flow-anim { to { stroke-dashoffset: -15; } }
 
-        /* --- Секция Функций (v12 - Sharp Cards) --- */
-        .features { background: var(--bg-secondary); border-top: 1px solid var(--border-color-light); }
-        .features-grid { /* ... */ }
+        /* --- Секция Функций (v13 - Light & Clean) --- */
+        .features { background: transparent; } /* Use body bg */
+        .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 2.5rem; }
         .feature-card {
-            background: var(--card-solid); border: 1px solid var(--border-color-light);
-            border-radius: var(--card-radius); padding: 2rem 1.8rem;
+            background: var(--bg-secondary); /* White cards */
+            border: 1px solid var(--border-color);
+            border-radius: var(--card-radius); padding: 2rem 1.8rem; text-align: center; /* Center align */
             transition: all var(--transition-medium); position: relative;
-            overflow: hidden; /* Needed for pseudo-element */
+            box-shadow: var(--shadow-card);
         }
-        .feature-card::before { /* Top glow border */
-            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
-            background: var(--border-glow-gradient); background-size: 200% 100%;
-            animation: gradient-move 3s linear infinite; opacity: 0; transition: opacity 0.3s ease;
+        .feature-card:hover { transform: translateY(-8px); box-shadow: 0 15px 30px rgba(180, 190, 230, 0.3); }
+        .feature-icon-wrapper {
+             width: 65px; height: 65px; margin: 0 auto 1.5rem auto;
+             border-radius: 18px; display: flex; align-items: center; justify-content: center;
+             background: var(--gradient-sky); color: var(--white); font-size: 1.8rem;
+             box-shadow: 0 5px 15px rgba(var(--accent-primary-rgb), 0.2);
+             transition: all var(--transition-medium);
         }
-        .feature-card:hover { transform: translateY(-7px); border-color: var(--border-color-medium); box-shadow: var(--shadow-card); background: var(--card-highlight-bg); }
-        .feature-card:hover::before { opacity: 0.8; }
-        .feature-icon {
-            width: 45px; height: 45px; border-radius: 10px; font-size: 1.5rem;
-            background: var(--accent-primary); color: var(--bg-color); box-shadow: 0 0 10px var(--accent-glow);
-        }
-        .feature-card:hover .feature-icon { background: var(--accent-pink); }
-        /* ... rest of feature styles */
+        .feature-card:hover .feature-icon-wrapper { transform: scale(1.1); box-shadow: 0 8px 20px rgba(var(--accent-primary-rgb), 0.3); }
+        .feature-card h3 { font-size: 1.3rem; color: var(--text-dark); margin-bottom: 0.6rem; }
+        .feature-card p { font-size: 0.95rem; color: var(--text-medium); }
 
-        /* --- Как это работает (v12 - Cyber Steps) --- */
-        .how-it-works { background: var(--bg-color); border-top: 1px solid var(--border-color-light); }
-        .timeline-container::before { /* Brighter line */
-            left: 20px; background: linear-gradient(to bottom, var(--accent-primary), var(--accent-secondary));
-            width: 2px; opacity: 0.5; box-shadow: 0 0 8px var(--accent-glow);
+        /* --- Как это работает (v13 - Simplified Vertical) --- */
+        .how-it-works { background: var(--bg-secondary); border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); }
+        .timeline-container { max-width: 800px; margin-top: 3rem; }
+        .timeline-container::before { /* Very subtle line */
+            background: var(--border-color); width: 1px; left: 25px; box-shadow: none; opacity: 0.8;
         }
-        .timeline-item { padding-left: 60px; }
+        .timeline-item { position: relative; padding-left: 70px; margin-bottom: 2.5rem; }
         .timeline-icon {
-            width: 40px; height: 40px; left: 20px;
-            background: var(--card-bg); backdrop-filter: blur(3px);
-            border: 1px solid var(--border-color-strong);
-            color: var(--accent-primary); font-size: 1.2rem;
-            box-shadow: 0 0 12px var(--accent-glow);
+            width: 50px; height: 50px; left: 25px; top: -5px;
+            background: var(--gradient-primary); color: var(--white);
+            border: none; box-shadow: var(--shadow-interactive); font-size: 1.5rem;
         }
-        .timeline-item:hover .timeline-icon { border-color: var(--accent-pink); color: var(--accent-pink); box-shadow: 0 0 18px var(--accent-pink-glow); transform: translateX(-50%) scale(1.08); }
-        /* ... rest of timeline styles */
+        .timeline-item:hover .timeline-icon { transform: translateX(-50%) scale(1.05); box-shadow: var(--shadow-interactive-hover); }
+        .timeline-content h3 { font-size: 1.35rem; color: var(--text-dark); }
+        .timeline-content p { font-size: 1rem; color: var(--text-medium); }
 
-        /* --- Отзывы (v12 - Tech Quote) --- */
-        .testimonials { background: var(--bg-secondary); border-top: 1px solid var(--border-color-light); }
+        /* --- Отзывы (v13 - Light & Airy) --- */
+        .testimonials { background: transparent; }
+        .testimonials-grid { gap: 2rem; }
         .testimonial-card {
-            background: var(--card-bg); backdrop-filter: blur(8px);
-            border: 1px solid var(--border-color-light); border-radius: var(--card-radius);
-            padding: 2rem; position: relative;
+            background: var(--bg-secondary); border: 1px solid var(--border-color);
+            padding: 2rem; box-shadow: var(--shadow-card); transition: var(--transition-medium);
         }
-        .testimonial-card::before { /* Quote icon */
-             content: '\f10d'; font-family: "Font Awesome 6 Free"; font-weight: 900;
-             position: absolute; top: 1.5rem; left: 1.5rem; font-size: 1.8rem;
-             color: var(--accent-primary); opacity: 0.15;
-        }
-        .testimonial-card:hover { border-color: var(--border-color-medium); background: var(--card-solid); box-shadow: var(--shadow-card); }
-        .testimonial-rating { color: var(--accent-primary); }
-        .testimonial-text { border-left: none; padding-left: 0; margin-top: 1rem; font-size: 0.95rem; }
-        .testimonial-avatar { border-color: var(--accent-primary); box-shadow: 0 0 8px var(--accent-glow);}
+        .testimonial-card:hover { transform: translateY(-6px); box-shadow: 0 15px 30px rgba(180, 190, 230, 0.3); }
+        .testimonial-rating { color: var(--accent-orange); } /* Orange stars */
+        .testimonial-text { border-left: 3px solid var(--accent-primary); padding-left: 1.5rem; font-size: 1rem; color: var(--text-medium); }
+        .testimonial-author { border-top-color: var(--border-color); }
+        .testimonial-avatar { width: 50px; height: 50px; border: 2px solid var(--accent-primary); }
+        .testimonial-name { color: var(--text-dark); }
+        .testimonial-role { color: var(--text-muted); }
 
-        /* --- Тарифы (v12 - Glowing Focus) --- */
-         .pricing { background: var(--bg-color); border-top: 1px solid var(--border-color-light); }
+        /* --- Тарифы (v13 - Clean & Clear) --- */
+         .pricing { background: var(--bg-secondary); border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); }
+         .pricing-grid { gap: 2rem; }
          .pricing-card {
-             background: var(--card-solid); border: 1px solid var(--border-color-light);
-             transition: all var(--transition-medium); box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+             background: var(--bg-secondary); border: 1px solid var(--border-color);
+             box-shadow: var(--shadow-card);
          }
-         .pricing-card:hover { border-color: var(--border-color-medium); transform: translateY(-6px); box-shadow: 0 12px 35px rgba(0,0,0,0.25); }
-         .pricing-card.popular {
-             border: 2px solid transparent; /* Transparent border for gradient */
-             background: linear-gradient(var(--card-solid), var(--card-solid)) padding-box,
-                         var(--gradient-border-anim) border-box; /* Animated gradient border */
-             background-size: 300% 100%; /* For gradient animation */
-             animation: gradient-move 4s linear infinite;
-             transform: scale(1.03); box-shadow: 0 10px 35px rgba(0,0,0,0.3), 0 0 25px var(--accent-glow);
-         }
-         .popular-badge { background: var(--accent-primary); }
-         .pricing-icon { color: var(--accent-primary); filter: drop-shadow(0 0 8px var(--accent-glow)); }
-         .pricing-card.popular .pricing-icon { color: var(--accent-cyan); filter: drop-shadow(0 0 10px var(--accent-cyan-glow));}
-         .pricing-feature i { color: var(--accent-lime); }
+         .pricing-card:hover { border-color: var(--border-color-medium); box-shadow: 0 12px 35px rgba(180, 190, 230, 0.25); }
+         .pricing-card.popular { border: 2px solid var(--accent-primary); transform: scale(1.03); box-shadow: 0 15px 40px rgba(180, 190, 230, 0.3), 0 0 15px var(--accent-highlight); }
+         .popular-badge { background: var(--accent-primary); color: var(--white); }
+         .pricing-icon { color: var(--accent-primary); }
+         .pricing-card.popular .pricing-icon { color: var(--accent-secondary); }
+         .pricing-price { color: var(--text-dark); }
+         .pricing-period { color: var(--text-muted); }
+         .pricing-feature { border-bottom-color: var(--border-color); color: var(--text-medium); }
+         .pricing-feature i { color: var(--accent-primary); }
+         .pricing-feature.disabled { color: var(--text-muted); opacity: 0.7; }
+         .pricing-card .btn { /* Primary button style */ }
+         .pricing-card .btn-outline { /* Outline button style */ }
 
-        /* --- CTA (v12 - Energetic) --- */
-        .cta { background: var(--gradient-button); } /* Use primary button gradient */
+        /* --- CTA (v13 - Simple & Direct) --- */
+        .cta { background: var(--gradient-primary); color: var(--white); }
+        .cta h2 { color: var(--white); }
+        .cta p { color: rgba(255, 255, 255, 0.95); }
+        .cta .btn { background: var(--white); color: var(--accent-primary); box-shadow: 0 5px 15px rgba(var(--white-rgb, 255, 255, 255), 0.2); }
+        .cta .btn:hover { background: var(--bg-color); color: var(--accent-primary); }
 
-        /* --- Футер (v12) --- */
-        /* ... Footer styles refined slightly ... */
+        /* --- Футер (v13) --- */
+        footer { background: var(--bg-color); border-top: 1px solid var(--border-color); color: var(--text-medium); }
+        .footer-column h3 { color: var(--text-dark); border-bottom-color: var(--border-color); }
+        .social-link { border: 1px solid var(--border-color); color: var(--text-muted); }
+        .social-link:hover { background: var(--accent-primary); color: var(--white); border-color: var(--accent-primary); }
+        .footer-links a { color: var(--text-medium); font-weight: 400; }
+        .footer-links a:hover { color: var(--accent-primary); }
+        .copyright { color: var(--text-muted); border-top-color: var(--border-color); }
+        .copyright a { color: var(--accent-secondary); }
+        .copyright i.fa-heart { color: var(--accent-pink); }
 
-        /* --- Адаптивность (v12) --- */
-        /* ... (Проверить и скорректировать медиа-запросы) ... */
+        /* --- Адаптивность (v13) --- */
+        @media (max-width: 1024px) { html { font-size: 15.5px; } .container { padding: 0 1.5rem; } }
         @media (max-width: 768px) {
-             .ai-interface-wrapper { padding: 1.2rem; min-height: 400px; }
-             .ai-log-window { font-size: 0.75rem; }
-             /* ... other adjustments ... */
+             html { font-size: 15px; }
+             .container { padding: 0 1.2rem; }
+             .nav-links { /* Mobile Menu Styles (Needs dark bg for contrast) */
+                 background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px);
+                 box-shadow: -5px 0 20px rgba(180, 190, 230, 0.3);
+             }
+             .nav-links a { color: var(--text-medium); }
+             .nav-links a:hover, .nav-links a.active { color: var(--text-dark); }
+             .hamburger { display: flex; }
+             .desktop-auth-link { display: none; }
+             .mobile-auth-link { display: block; }
+             .knowledge-flow-wrapper { min-height: 300px; height: 300px; }
+             section { --section-padding-y: clamp(5rem, 10vh, 7rem); }
         }
         @media (max-width: 576px) {
-            /* ... */
-            .hero h1 { font-size: 2.3rem; }
-            .ai-interface-wrapper { padding: 1rem; }
+             .container { padding: 0 1rem; }
+             .hero h1 { font-size: 2.2rem; }
+             .hero p { font-size: 1rem; }
+             .knowledge-flow-wrapper { min-height: 250px; height: 250px; }
+             .pricing-card { padding: 2rem 1.2rem; }
+             .btn { padding: 0.8rem 1.8rem; font-size: 0.9rem; }
+             .footer-grid { grid-template-columns: 1fr; text-align: center; }
+             .footer-column h3::after { display: none; } /* No underline needed */
+             .social-links { justify-content: center; }
         }
 
-        /* --- Анимации появления (v12 - Sharp) --- */
-        [data-animate] { opacity: 0; transform: translateY(30px); transition: opacity 0.6s ease-out, transform 0.6s ease-out; }
+        /* --- Анимации появления (v13 - Gentle Fade Up) --- */
+        [data-animate] { opacity: 0; transform: translateY(20px); transition: opacity 0.7s ease-out, transform 0.7s ease-out; }
         [data-animate].animated { opacity: 1; transform: translateY(0); }
         /* ... Stagger delays ... */
 
-        /* --- Оверлей меню (v12) --- */
-        .menu-overlay { /* ... */ }
+        /* --- Оверлей меню (v13) --- */
+        .menu-overlay { background-color: rgba(5, 8, 24, 0.6); backdrop-filter: blur(4px); } /* Dark overlay */
         body.menu-open { overflow: hidden; }
 
     </style>
 </head>
-<body class="dark">
-
-    <header id="header">
+<body > <header id="header">
         <div class="container nav-container">
             <a href="#" class="logo">
                 <i class="fas fa-atom"></i> <span>Justax</span>
             </a>
             <nav class="nav-links" id="navLinks">
                 <a href="#features" class="nav-item">Výhody</a>
-                <a href="#ai-demo" class="nav-item">AI v Akci</a>
+                <a href="#ai-demo" class="nav-item">Ukázka AI</a>
                 <a href="#how-it-works" class="nav-item">Jak Začít</a>
                 <a href="#pricing" class="nav-item">Ceník</a>
                 <a href="#testimonials" class="nav-item">Reference</a>
                 <a href="#contact" class="nav-item">Kontakt</a>
-                <a href="auth/index.html" class="btn auth-link mobile-auth-link">Start Zdarma</a> </nav>
+                <a href="auth/index.html" class="btn btn-primary auth-link mobile-auth-link">Začít Zdarma</a>
+            </nav>
             <div class="header-actions">
-                <a href="auth/index.html" class="btn auth-link desktop-auth-link">Start Zdarma</a> <button class="hamburger" id="hamburger" aria-label="Menu" aria-expanded="false" aria-controls="navLinks">
+                <a href="auth/index.html" class="btn btn-primary auth-link desktop-auth-link">Začít Zdarma</a>
+                <button class="hamburger" id="hamburger" aria-label="Menu" aria-expanded="false" aria-controls="navLinks">
                     <span></span><span></span><span></span>
                 </button>
             </div>
@@ -364,119 +367,116 @@
     <main>
         <section class="hero">
             <div class="container">
-                <h1 data-animate>Hackni Své Zkoušky <span class="highlight">s AI Tutorem</span></h1> <p data-animate>Přestaň plýtvat časem. Justax je tvůj osobní AI parťák, který tě provede džunglí učení k nejlepším výsledkům.</p>
+                <h1 data-animate>Dosáhněte <span class="highlight">Nejlepších Výsledků</span> u Zkoušek</h1>
+                <p data-animate>Inteligentní AI platforma Justax vytváří vaši osobní cestu k úspěchu. Učte se efektivněji, ne déle.</p>
                 <div class="hero-buttons" data-animate>
-                    <a href="auth/index.html" class="btn auth-link">Aktivovat AI ZDARMA</a> <a href="#ai-demo" class="btn btn-outline">Sledovat Demo</a>
+                    <a href="auth/index.html" class="btn btn-primary auth-link">Vyzkoušejte Justax Zdarma</a>
+                    <a href="#features" class="btn btn-outline">Zjistit Více</a>
                 </div>
             </div>
         </section>
 
         <section class="features" id="features">
-            <div class="container">
-                <h2 class="section-title" data-animate><span>Proč Tě Justax Vystřelí Dopředu?</span></h2>
-                <p class="section-subtitle" data-animate>Zapomeň na průměr. Naše technologie je navržena pro maximální efektivitu a skutečné pochopení.</p>
+             <div class="container">
+                <h2 class="section-title" data-animate><span>Proč Studenti Milují Justax?</span></h2>
+                <p class="section-subtitle" data-animate>Naše AI není jen nástroj, je to váš osobní průvodce světem znalostí, navržený pro váš úspěch.</p>
                 <div class="features-grid">
                     <div class="feature-card" data-animate style="--animation-order: 1;">
-                         <div class="feature-card-header">
-                             <div class="feature-icon"><i class="fas fa-brain"></i></div>
-                             <h3>Adaptivní Mozek</h3>
-                         </div>
-                         <p>AI se přizpůsobí tvému tempu a stylu, žádné zbytečné opakování.</p>
+                         <div class="feature-icon-wrapper"><i class="fas fa-brain"></i></div>
+                         <h3>Učení Vám na Míru</h3>
+                         <p>Systém, který se adaptuje vašemu tempu a stylu.</p>
                      </div>
-                     <div class="feature-card" data-animate style="--animation-order: 2;">
-                         <div class="feature-card-header">
-                            <div class="feature-icon"><i class="fas fa-route"></i></div>
-                            <h3>Efektivní Trasa</h3>
-                        </div>
-                        <p>Zaměř se jen na to podstatné. Optimalizovaný plán šetří tvůj čas.</p>
+                    <div class="feature-card" data-animate style="--animation-order: 2;">
+                         <div class="feature-icon-wrapper"><i class="fas fa-route"></i></div>
+                         <h3>Efektivní Příprava</h3>
+                        <p>Zaměřte se na to podstatné a ušetřete drahocenný čas.</p>
                     </div>
                      <div class="feature-card" data-animate style="--animation-order: 3;">
-                         <div class="feature-card-header">
-                            <div class="feature-icon"><i class="fas fa-bullseye"></i></div>
-                            <h3>Reálné Scénáře</h3>
-                        </div>
-                        <p>Trénuj na úlohách, které tě potkají u CERMAT testů. Bez překvapení.</p>
+                         <div class="feature-icon-wrapper"><i class="fas fa-bullseye"></i></div>
+                         <h3>Reálné Testové Úlohy</h3>
+                        <p>Trénujte na úlohách, které vás čekají u CERMAT testů.</p>
                     </div>
                      <div class="feature-card" data-animate style="--animation-order: 4;">
-                         <div class="feature-card-header">
-                            <div class="feature-icon"><i class="fas fa-chalkboard-teacher"></i></div>
-                            <h3>Jasno v Hlavě</h3>
-                        </div>
-                        <p>Složitosti vysvětlené jednoduše. Konečně pochopíš "proč".</p>
+                         <div class="feature-icon-wrapper"><i class="fas fa-chalkboard-teacher"></i></div>
+                         <h3>Srozumitelná Vysvětlení</h3>
+                        <p>AI rozkládá složité koncepty na jednoduché kroky.</p>
                     </div>
                      <div class="feature-card" data-animate style="--animation-order: 5;">
-                         <div class="feature-card-header">
-                            <div class="feature-icon"><i class="fas fa-lightbulb"></i></div>
-                            <h3>Chyby = Pokrok</h3>
-                        </div>
-                        <p>AI najde tvé slabiny a pomůže ti je systematicky odstranit.</p>
+                         <div class="feature-icon-wrapper"><i class="fas fa-lightbulb"></i></div>
+                         <h3>Odhalení Slabin</h3>
+                        <p>Identifikujte a procvičujte oblasti, kde potřebujete zlepšení.</p>
                     </div>
                      <div class="feature-card" data-animate style="--animation-order: 6;">
-                         <div class="feature-card-header">
-                            <div class="far fa-clock"></i></div>
-                            <h3>Nonstop Podpora</h3>
-                        </div>
-                        <p>Uč se kdykoliv, kdekoliv. Tvůj AI tutor je vždy připraven.</p>
+                         <div class="feature-icon-wrapper"><i class="far fa-clock"></i></div>
+                         <h3>Učení Kdykoliv</h3>
+                        <p>Platforma je vám k dispozici 24/7, kdykoli máte čas.</p>
                     </div>
                 </div>
             </div>
         </section>
 
-        <section class="ai-interface-section" id="ai-demo">
+         <section class="knowledge-flow-section" id="ai-demo">
              <div class="container">
-                 <h2 class="section-title" data-animate><span>AI v Reálném Čase</span></h2>
-                 <p class="section-subtitle" data-animate>Sleduj simulaci Justax AI Core při práci: analýza, adaptace, vysvětlení.</p>
-
-                 <div class="ai-interface-wrapper" data-animate>
-                     <div class="ai-interface-header">
-                         <div class="ai-interface-title"><i class="fas fa-atom"></i> Justax AI Core [ONLINE]</div>
-                         <div class="ai-status-indicator">Active</div>
-                     </div>
-                     <div class="ai-content-area">
-                         <div class="ai-log-window" id="ai-demo-output">
-                             </div>
-                         <div class="ai-progress-bar-container">
-                             <div class="ai-progress-bar-label">Analýza Pokroku Studenta</div>
-                             <div class="ai-progress-bar">
-                                 <div class="ai-progress-bar-inner" id="ai-progress-bar"></div>
-                             </div>
-                         </div>
-                     </div>
+                 <h2 class="section-title" data-animate><span>Vaše Unikátní Mapa Znalostí</span></h2>
+                 <p class="section-subtitle" data-animate>Justax nejen testuje, ale vizualizuje propojení mezi tématy a vaši cestu k jejich ovládnutí.</p>
+                 <div class="knowledge-flow-wrapper" data-animate>
+                     <svg class="knowledge-flow-svg" viewBox="0 0 400 200" preserveAspectRatio="xMidYMid meet">
+                         <defs>
+                             <linearGradient id="flow-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                 <stop offset="0%" style="stop-color: var(--accent-secondary); stop-opacity: 0.1"/>
+                                 <stop offset="50%" style="stop-color: var(--accent-primary); stop-opacity: 1"/>
+                                 <stop offset="100%" style="stop-color: var(--accent-secondary); stop-opacity: 0.1"/>
+                             </linearGradient>
+                         </defs>
+                         <circle class="node" cx="50" cy="100" r="5" />
+                         <circle class="node" cx="150" cy="50" r="6" />
+                         <circle class="node" cx="150" cy="150" r="4" />
+                         <circle class="node" cx="250" cy="100" r="7" />
+                         <circle class="node" cx="350" cy="50" r="5" />
+                         <circle class="node" cx="350" cy="150" r="6" />
+                         <path class="link" d="M 50 100 Q 100 75, 150 50" stroke-dasharray="3 3" />
+                         <path class="link" d="M 50 100 Q 100 125, 150 150" />
+                         <path class="link" d="M 150 50 L 250 100" />
+                         <path class="link" d="M 150 150 L 250 100" />
+                         <path class="link" d="M 250 100 Q 300 75, 350 50" />
+                         <path class="link" d="M 250 100 Q 300 125, 350 150" />
+                         <path class="flow" d="M 50 100 C 150 60, 200 140, 250 100 S 350 80, 350 50" fill="none"/>
+                     </svg>
                  </div>
              </div>
-         </section>
+        </section>
 
         <section class="how-it-works" id="how-it-works">
             <div class="container">
-                <h2 class="section-title" data-animate><span>Start za Pár Kliknutí</span></h2>
-                <p class="section-subtitle" data-animate>Začni svou cestu k lepším výsledkům rychle a jednoduše.</p>
+                <h2 class="section-title" data-animate><span>Snadná Cesta k Lepším Známkám</span></h2>
+                <p class="section-subtitle" data-animate>Začněte využívat sílu AI ve čtyřech jednoduchých krocích.</p>
                 <div class="timeline-container">
                      <div class="timeline-item" data-animate style="--animation-order: 1;">
                         <div class="timeline-icon">1</div>
                         <div class="timeline-content">
                             <h3>Registrace</h3>
-                            <p>Rychlé vytvoření účtu a nastavení cílů.</p>
+                            <p>Vytvořte si účet a nastavte své studijní cíle během okamžiku.</p>
                         </div>
                     </div>
                     <div class="timeline-item" data-animate style="--animation-order: 2;">
                         <div class="timeline-icon">2</div>
                         <div class="timeline-content">
                             <h3>Diagnostika</h3>
-                            <p>AI test zjistí tvé silné a slabé stránky.</p>
+                            <p>Inteligentní test rychle zmapuje vaše znalosti a identifikuje mezery.</p>
                         </div>
                     </div>
                     <div class="timeline-item" data-animate style="--animation-order: 3;">
                         <div class="timeline-icon">3</div>
                         <div class="timeline-content">
                             <h3>Personalizace</h3>
-                            <p>Unikátní plán zaměřený na tvé potřeby.</p>
+                            <p>AI sestaví unikátní studijní plán zaměřený na vaše potřeby.</p>
                         </div>
                     </div>
                     <div class="timeline-item" data-animate style="--animation-order: 4;">
                         <div class="timeline-icon">4</div>
                         <div class="timeline-content">
-                            <h3>Trénink</h3>
-                            <p>Adaptivní cvičení a zpětná vazba od AI.</p>
+                            <h3>Trénink & Růst</h3>
+                            <p>Řešte úlohy, získávejte zpětnou vazbu a sledujte svůj pokrok.</p>
                         </div>
                     </div>
                 </div>
@@ -484,38 +484,38 @@
         </section>
 
         <section class="testimonials" id="testimonials">
-            <div class="container">
-                <h2 class="section-title" data-animate><span>Co Říkají Studenti?</span></h2>
-                <p class="section-subtitle" data-animate>Nejsme to my, kdo mluví – poslechni si reálné zkušenosti.</p>
+             <div class="container">
+                <h2 class="section-title" data-animate><span>Skutečné Výsledky Našich Studentů</span></h2>
+                <p class="section-subtitle" data-animate>Poslechněte si ty, kteří již prošli transformací a dosáhli svých cílů s Justax.</p>
                 <div class="testimonials-grid">
                     <div class="testimonial-card" data-animate style="--animation-order: 1;">
                         <div class="testimonial-content">
                             <div class="testimonial-rating"> <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i> </div>
-                           <p class="testimonial-text">"Konečně něco, co funguje! Vysvětlení jsou super srozumitelná a vidím reálný pokrok. Přijímačky v kapse!"</p>
+                           <p class="testimonial-text">"Platforma mi konečně pomohla pochopit témata, se kterými jsem dlouho bojoval. Vysvětlení od AI bylo mnohem jasnější než ve škole. Výsledek? Přijat!"</p>
                        </div>
                        <div class="testimonial-author">
                            <div class="testimonial-avatar"></div>
-                           <div class="testimonial-author-info"> <div class="testimonial-name">David P.</div> <div class="testimonial-role">Student, Brno</div> </div>
+                           <div class="testimonial-author-info"> <div class="testimonial-name">Petr N.</div> <div class="testimonial-role">Gymnázium, Ostrava</div> </div>
                        </div>
                    </div>
                    <div class="testimonial-card" data-animate style="--animation-order: 2;">
                        <div class="testimonial-content">
                            <div class="testimonial-rating"> <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i> </div>
-                           <p class="testimonial-text">"Ušetřilo mi to tolik stresu před maturitou. Justax se zaměřil přesně na moje slabiny a já se nemusela učit zbytečnosti."</p>
+                           <p class="testimonial-text">"Justax mi ušetřil hodiny času. Nemusela jsem hledat materiály, vše bylo přizpůsobeno mně. Ta analýza chyb je geniální."</p>
                         </div>
                        <div class="testimonial-author">
                            <div class="testimonial-avatar"></div>
-                           <div class="testimonial-author-info"> <div class="testimonial-name">Veronika K.</div> <div class="testimonial-role">Maturantka, Praha</div> </div>
+                           <div class="testimonial-author-info"> <div class="testimonial-name">Aneta D.</div> <div class="testimonial-role">Budoucí maturantka</div> </div>
                        </div>
                    </div>
                    <div class="testimonial-card" data-animate style="--animation-order: 3;">
                         <div class="testimonial-content">
                             <div class="testimonial-rating"> <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i> </div>
-                           <p class="testimonial-text">"Pro našeho syna to byla nejlepší investice do vzdělání. Zlepšení bylo vidět téměř okamžitě."</p>
+                           <p class="testimonial-text">"Synovi se výrazně zlepšily výsledky v matematice. Líbí se mi, že vidím jeho pokrok a plán je opravdu personalizovaný. Stojí to za to."</p>
                         </div>
                        <div class="testimonial-author">
                            <div class="testimonial-avatar"></div>
-                           <div class="testimonial-author-info"> <div class="testimonial-name">Martin J.</div> <div class="testimonial-role">Rodič</div> </div>
+                           <div class="testimonial-author-info"> <div class="testimonial-name">Tomáš S.</div> <div class="testimonial-role">Rodič, Plzeň</div> </div>
                        </div>
                    </div>
                 </div>
@@ -524,8 +524,8 @@
 
         <section class="pricing" id="pricing">
             <div class="container">
-                <h2 class="section-title" data-animate><span>Investuj do Sebe</span></h2>
-                <p class="section-subtitle" data-animate>Žádné skryté poplatky, jen čistý výkon. Vyber si svůj level a začni zdarma.</p>
+                <h2 class="section-title" data-animate><span>Investice, Která se Vyplatí</span></h2>
+                <p class="section-subtitle" data-animate>Vyberte si úroveň podpory, která nejlépe odpovídá vašim cílům a potřebám. Začněte zdarma.</p>
                 <div class="pricing-grid">
                      <div class="pricing-card" data-animate style="--animation-order: 1;">
                          <div class="pricing-icon"><i class="fas fa-rocket"></i></div>
@@ -541,7 +541,8 @@
                         <a href="auth/index.html" class="btn btn-outline auth-link">Začít Start</a>
                     </div>
                     <div class="pricing-card popular" data-animate style="--animation-order: 2;">
-                        <div class="popular-badge">Nejlepší Hodnota</div> <div class="pricing-icon"><i class="fas fa-brain"></i></div>
+                        <div class="popular-badge">Doporučeno</div>
+                        <div class="pricing-icon"><i class="fas fa-brain"></i></div>
                         <h3>Progres</h3>
                         <div class="pricing-price">999 Kč<span class="pricing-period"> / měsíc</span></div>
                         <div class="pricing-features">
@@ -552,7 +553,8 @@
                             <div class="pricing-feature"><i class="fas fa-check"></i><span>Hloubková analýza chyb</span></div>
                             <div class="pricing-feature"><i class="fas fa-check"></i><span>Dynamický studijní plán</span></div>
                         </div>
-                        <a href="auth/index.html" class="btn auth-link">Zvolit Progres</a> </div>
+                        <a href="auth/index.html" class="btn btn-primary auth-link">Zvolit Progres</a>
+                    </div>
                     <div class="pricing-card" data-animate style="--animation-order: 3;">
                          <div class="pricing-icon"><i class="fas fa-infinity"></i></div>
                         <h3>Maximum</h3>
@@ -568,19 +570,21 @@
                         <a href="auth/index.html" class="btn btn-outline auth-link">Dosáhnout Maxima</a>
                     </div>
                 </div>
+                 <p style="text-align: center; margin-top: 3rem; font-size: 0.9rem; color: var(--text-muted);" data-animate>Máte otázky? <a href="#contact">Napište nám</a>.</p>
             </div>
         </section>
 
         <section class="cta" id="cta">
-            <div class="container">
-                <h2 data-animate>Jsi Připraven Zničit Zkoušky?</h2> <p data-animate>Přestaň doufat, začni konat. Aktivuj svého AI tutora a ovládni učivo ještě dnes.</p>
-                <a href="auth/index.html" class="btn auth-link" data-animate>Chci Nejlepší Výsledky!</a>
+             <div class="container">
+                <h2 data-animate>Jste Připraveni Změnit Své Učení?</h2>
+                <p data-animate>Využijte sílu AI a dosáhněte výsledků, o kterých jste snili. Začněte zdarma ještě dnes.</p>
+                <a href="auth/index.html" class="btn btn-primary auth-link" data-animate>Ano, Chci Uspět!</a>
             </div>
         </section>
     </main>
 
     <footer id="contact">
-        <div class="container">
+         <div class="container">
             <div class="footer-grid">
                  <div class="footer-column" data-animate style="--animation-order: 1;">
                      <a href="#" class="logo"> <i class="fas fa-atom"></i> <span>Justax</span> </a>
@@ -596,7 +600,7 @@
                     <h3>Navigace</h3>
                     <ul class="footer-links">
                         <li><a href="#features">Výhody</a></li>
-                        <li><a href="#ai-demo">AI v Akci</a></li>
+                        <li><a href="#ai-demo">AI Ukázka</a></li>
                         <li><a href="#how-it-works">Jak Začít</a></li>
                         <li><a href="#pricing">Ceník</a></li>
                          <li><a href="#">Blog</a></li>
@@ -626,17 +630,15 @@
     </footer>
 
     <script>
-       // --- START: JavaScript for v12 ---
+       // --- START: JavaScript for v13 (Lumin Theme) ---
        document.addEventListener('DOMContentLoaded', function() {
-            // --- Variable Definitions ---
             const header = document.getElementById('header');
             const hamburger = document.getElementById('hamburger');
             const navLinks = document.getElementById('navLinks');
             const menuOverlay = document.getElementById('menuOverlay');
             const navItems = navLinks?.querySelectorAll('a.nav-item');
             const body = document.body;
-            const aiDemoOutput = document.getElementById('ai-demo-output');
-            const aiProgressBar = document.getElementById('ai-progress-bar');
+            // Note: AI Demo JS is removed as the interface is now CSS/SVG based placeholder
 
             // --- Mobile Menu ---
             const toggleMenu = (forceClose = false) => {
@@ -663,14 +665,14 @@
             let lastScrollY = window.scrollY;
             const scrollHandler = () => {
                 const currentScrollY = window.scrollY;
-                if (header) header.classList.toggle('scrolled', currentScrollY > 25);
+                if (header) header.classList.toggle('scrolled', currentScrollY > 30);
                 lastScrollY = currentScrollY;
             };
             window.addEventListener('scroll', scrollHandler, { passive: true });
             scrollHandler();
 
             // --- Intersection Observer Animations ---
-            const animatedElements = document.querySelectorAll('[data-animate]');
+             const animatedElements = document.querySelectorAll('[data-animate]');
              if ('IntersectionObserver' in window) {
                  const observer = new IntersectionObserver((entries, observerInstance) => {
                      entries.forEach(entry => {
@@ -699,11 +701,11 @@
                              const targetElement = document.querySelector(href);
                              if (targetElement) {
                                  e.preventDefault();
-                                 const headerOffset = header?.classList.contains('scrolled') ? (header?.offsetHeight ?? 55) : (header?.offsetHeight ?? 75);
+                                 const headerOffset = header?.classList.contains('scrolled') ? (header?.offsetHeight ?? 60) : (header?.offsetHeight ?? 80);
                                  const elementPosition = targetElement.getBoundingClientRect().top;
                                  const offsetPosition = elementPosition + window.pageYOffset - headerOffset - 20; // Adjusted offset
                                  window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
-                                 // Close mobile menu handled in its own click listener
+                                 // Mobile menu close handled in its own listener
                              }
                          } catch (error) { console.warn(`Smooth scroll target not found: ${href}`); }
                      }
@@ -715,138 +717,44 @@
             if (currentYearSpan) currentYearSpan.textContent = new Date().getFullYear();
 
             // --- Active Nav Link on Scroll ---
-            const sections = document.querySelectorAll('section[id]');
-            let navUpdateTimeout;
-            const updateActiveNav = () => { /* ... без изменений ... */ };
-            const debouncedNavUpdate = () => { clearTimeout(navUpdateTimeout); navUpdateTimeout = setTimeout(updateActiveNav, 55); }; // Slightly faster debounce
-            window.addEventListener('scroll', debouncedNavUpdate, { passive: true });
-            window.addEventListener('resize', debouncedNavUpdate);
-            updateActiveNav();
+             const sections = document.querySelectorAll('section[id]');
+             let navUpdateTimeout;
+             const updateActiveNav = () => {
+                 if (!sections || sections.length === 0 || !navItems) return;
+                 let currentSectionId = '';
+                 const scrollY = window.pageYOffset;
+                 const headerHeight = header?.offsetHeight ?? 70;
+                 const offset = headerHeight + 120; // Adjust offset as needed
 
-            // --- AI Interface v3 Logic ---
-            if (aiDemoOutput && aiProgressBar) {
-                 const demoSteps = [
-                     { text: { type: 'ai', content: 'Systém Justax AI Core v12 aktivován.'}, delay: 300 },
-                     { text: { type: 'user', content: 'Problém: 3(x + 2) = 2(x + 7)'}, delay: 1200 },
-                     { progress: 20, delay: 300 },
-                     { text: { type: 'analysis', content: 'Typ: Lineární rovnice | Cíl: Najít x'}, delay: 500 },
-                     { progress: 40, delay: 300 },
-                     { text: { type: 'ai', content: 'Roznásobíme závorky: 3x + 6 = 2x + 14', typing: true }, delay: 1200 },
-                     { progress: 60, delay: 300 },
-                     { text: { type: 'ai', content: 'Převedeme x na jednu stranu: 3x - 2x = 14 - 6', typing: true }, delay: 1300 },
-                     { progress: 80, delay: 300 },
-                     { text: { type: 'analysis', content: 'Zjednodušení rovnice...'}, delay: 400 },
-                     { text: { type: 'ai', content: 'Výsledek: x = 8', typing: true }, delay: 800 },
-                     { progress: 100, delay: 300 },
-                     { text: { type: 'ai', content: 'Chceš zkusit podobný nebo těžší příklad?'}, delay: 1500 },
-                     { progress: 0, delay: 2000 } // Reset for loop
-                 ];
-                 let currentStepIndex = 0;
-                 let charIndex = 0;
-                 let typeInterval;
-                 let sequenceTimeout;
-
-                 function typeWriter(lineElement, text, speed = 40) {
-                      if (!lineElement) return;
-                      const textContainer = lineElement.querySelector('.text-content') || lineElement;
-                      if (charIndex < text.length) {
-                          textContainer.innerHTML = text.substring(0, charIndex + 1) + '<span class="typing-cursor"></span>';
-                          charIndex++;
-                          typeInterval = setTimeout(() => typeWriter(lineElement, text, speed), speed);
-                      } else {
-                          textContainer.innerHTML = text; // Remove cursor
-                          clearTimeout(typeInterval);
-                          scheduleNextStep();
+                 sections.forEach(section => {
+                     const sectionTop = section.offsetTop - offset;
+                     const sectionBottom = sectionTop + section.offsetHeight;
+                      if (scrollY >= sectionTop && scrollY < sectionBottom) {
+                         currentSectionId = section.getAttribute('id');
                       }
-                  }
-
-                 function addDemoLine(lineData) {
-                     const lineElement = document.createElement('div');
-                     lineElement.className = `ai-demo-line ${lineData.type}`;
-                     lineElement.style.opacity = '0';
-                     lineElement.innerHTML = `<span class="text-content"></span>`; // Container
-
-                     if (lineData.typing) {
-                         lineElement.querySelector('.text-content').innerHTML = '<span class="typing-cursor"></span>';
-                         aiDemoOutput.appendChild(lineElement);
-                         aiDemoOutput.scrollTop = aiDemoOutput.scrollHeight;
-                         requestAnimationFrame(() => lineElement.style.opacity = '1');
-                         charIndex = 0;
-                         setTimeout(() => typeWriter(lineElement, lineData.content), 100); // Faster start
-                     } else {
-                         lineElement.querySelector('.text-content').textContent = lineData.content;
-                         aiDemoOutput.appendChild(lineElement);
-                         aiDemoOutput.scrollTop = aiDemoOutput.scrollHeight;
-                         requestAnimationFrame(() => lineElement.style.opacity = '1');
-                         scheduleNextStep();
-                     }
+                 });
+                  if ((window.innerHeight + scrollY + 100) >= document.body.offsetHeight ) {
+                     currentSectionId = 'contact';
                  }
 
-                 function updateProgressBar(percentage) {
-                     if(aiProgressBar) {
-                         aiProgressBar.style.width = `${percentage}%`;
+                 navItems.forEach(link => {
+                     const linkHref = link.getAttribute('href');
+                     link.classList.remove('active');
+                     if (currentSectionId && linkHref === `#${currentSectionId}`) {
+                         link.classList.add('active');
                      }
-                 }
-
-                 function runNextStep() {
-                     if (currentStepIndex >= demoSteps.length) {
-                         sequenceTimeout = setTimeout(() => { // Restart
-                             if(aiDemoOutput) aiDemoOutput.innerHTML = '';
-                             updateProgressBar(0);
-                             currentStepIndex = 0;
-                             runNextStep();
-                         }, 4000); // Shorter restart pause
-                         return;
-                     }
-
-                     const step = demoSteps[currentStepIndex];
-                     let blockExecution = false;
-
-                     if (step.progress !== undefined) { // Handle progress update
-                         updateProgressBar(step.progress);
-                     }
-
-                     if (step.text) { // Handle text output
-                         addDemoLine(step.text);
-                         blockExecution = step.text.typing; // Wait if typing
-                     }
-
-                     currentStepIndex++;
-
-                     if (!blockExecution) { // If not waiting for typing, schedule next step
-                         scheduleNextStep();
-                     }
-                 }
-
-                  function scheduleNextStep() {
-                      if (currentStepIndex < demoSteps.length) {
-                          const nextStepDelay = demoSteps[currentStepIndex]?.delay || 250; // Faster default delay
-                          clearTimeout(sequenceTimeout);
-                          sequenceTimeout = setTimeout(runNextStep, nextStepDelay);
-                      } else {
-                           // Handle end of sequence (restart)
-                           clearTimeout(sequenceTimeout);
-                           sequenceTimeout = setTimeout(() => {
-                                if(aiDemoOutput) aiDemoOutput.innerHTML = '';
-                                updateProgressBar(0);
-                                currentStepIndex = 0;
-                                runNextStep();
-                           }, 4000);
-                      }
-                  }
-
-                 // Start the AI Demo
-                 if(aiDemoOutput && aiProgressBar) {
-                     aiDemoOutput.innerHTML = '';
-                     updateProgressBar(0);
-                     currentStepIndex = 0;
-                     runNextStep();
-                 }
+                 });
              }
-             // --- End AI Interface Logic ---
+             const debouncedNavUpdate = () => { clearTimeout(navUpdateTimeout); navUpdateTimeout = setTimeout(updateActiveNav, 50); };
+             window.addEventListener('scroll', debouncedNavUpdate, { passive: true });
+             window.addEventListener('resize', debouncedNavUpdate);
+             updateActiveNav(); // Initial check
 
-            // Utility to sanitize HTML (prevent XSS if text were dynamic)
-             function sanitizeHTML(str) { /* ... */ }
+             // --- Knowledge Flow SVG Animation (Minimal example) ---
+             // A more complex version would require an SVG animation library or more intricate JS
+             const flowLine = document.querySelector('.knowledge-flow-svg .flow');
+             // JS logic could potentially change the path 'd' attribute or other properties for animation
+             // For now, the animation is handled by CSS 'stroke-dasharray' animation.
 
        });
        // --- END: JavaScript ---
