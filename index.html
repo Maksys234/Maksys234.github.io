@@ -1,8 +1,10 @@
 <!DOCTYPE html>
-<html lang="cs" class="dark"> <head>
+<html lang="cs" class="dark">
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Justax - AI Budoucnost Vzdělávání</title> <link rel="preconnect" href="https://fonts.googleapis.com">
+    <title>Justax - AI Budoucnost Vzdělávání</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
@@ -61,34 +63,9 @@
             --transition-smooth: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1); /* Плавный ease */
         }
 
-        /* Стили для светлой темы (если раскомментировать .light) */
+        /* Стили для светлой темы (если раскомментировать .light) - сейчас не используется */
         /*
-        .light {
-            --dark-space: #f8f9fa;
-            --dark-purple: #e9ecef;
-            --dark-blue: #dee2e6;
-            --neon-cyan: #118ab2;
-            --neon-magenta: #ef476f;
-            --neon-blue: #073b4c;
-            --light-accent: #6a0dad;
-            --text-light: #212529;
-            --text-medium: #495057;
-            --text-dark: #6c757d;
-
-            --body-bg: linear-gradient(180deg, #ffffff 0%, #f1f3f5 100%);
-            --card-bg: rgba(255, 255, 255, 0.8);
-            --card-bg-solid: #ffffff;
-            --text-primary: var(--text-light);
-            --text-secondary: var(--text-medium);
-            --text-muted: var(--text-dark);
-            --border-color: rgba(106, 13, 173, 0.1);
-            --border-color-strong: rgba(106, 13, 173, 0.3);
-
-            --shadow-glow-sm: 0 2px 10px rgba(17, 138, 178, 0.2);
-            --shadow-glow-md: 0 4px 15px rgba(7, 59, 76, 0.2);
-            --shadow-glow-lg: 0 6px 25px rgba(239, 71, 111, 0.3);
-            --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.1);
-        }
+        .light { ... }
         */
 
         /* --- Базовые стили --- */
@@ -115,19 +92,10 @@
         }
 
         /* Кастомный скроллбар (Webkit) */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: var(--dark-purple);
-        }
-        ::-webkit-scrollbar-thumb {
-            background: var(--light-accent);
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--neon-cyan);
-        }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--dark-purple); }
+        ::-webkit-scrollbar-thumb { background: var(--light-accent); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--neon-cyan); }
 
         img { max-width: 100%; height: auto; display: block; }
         a { color: var(--neon-cyan); text-decoration: none; transition: var(--transition-fast); }
@@ -189,6 +157,7 @@
             -webkit-text-fill-color: transparent;
             background-clip: text;
             color: transparent;
+            position: relative;
         }
 
         .section-subtitle {
@@ -283,8 +252,11 @@
             align-items: center;
             gap: 0.7rem;
             font-family: var(--font-secondary);
+            transition: transform 0.3s ease;
         }
-        .logo i { color: var(--neon-cyan); font-size: 1.6rem; } /* Иконка в лого */
+         .logo:hover { transform: scale(1.05); }
+        .logo i { color: var(--neon-cyan); font-size: 1.6rem; transition: transform 0.3s ease; }
+         .logo:hover i { transform: rotate(-15deg); }
 
         .nav-links { display: flex; gap: 3rem; }
         .nav-links a {
@@ -370,23 +342,15 @@
 
         .hero-buttons { display: flex; gap: 1.5rem; justify-content: center; flex-wrap: wrap; }
 
-        /* --- Общие стили для секций с изгибом --- */
-        .curved-section {
+        /* --- Общие стили для секций с "жестким" переходом фона --- */
+        .solid-bg-section {
             background: var(--card-bg-solid);
-            padding-top: calc(var(--section-padding) + 50px); /* Компенсация кривой */
-            margin-top: -100px; /* Поднять секцию */
-            position: relative;
-            z-index: 5;
-            border-radius: 60px 60px 0 0; /* Более плавный изгиб */
-            border: 1px solid var(--border-color);
-            border-bottom: none;
-            box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.2);
+            /* Убраны скругления и тени для резкого перехода */
         }
 
         /* --- Секция функций (Glassmorphism) --- */
         .features {
             background: transparent; /* Наследует фон */
-            padding-top: var(--section-padding);
             /* Не нужна кривая, используем карточки */
         }
 
@@ -428,7 +392,7 @@
         .feature-card:hover {
             transform: translateY(-10px) scale(1.03);
             background: rgba(36, 36, 62, 0.75); /* Чуть плотнее фон */
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25), var(--shadow-glow-sm); /* Добавим свечение */
         }
         .feature-card:hover::before {
             opacity: 1;
@@ -458,8 +422,8 @@
 
         /* --- Секция "Jak to funguje" (Вертикальная) --- */
         .how-it-works {
-             background: var(--card-bg-solid); /* Непрозрачный фон */
-             /* Добавлен класс curved-section в HTML */
+             /* Использует класс solid-bg-section */
+             /* Убрал curved-section */
         }
 
         .steps-container {
@@ -501,11 +465,13 @@
             font-family: var(--font-secondary); color: var(--dark-space);
             position: absolute; /* Позиционируем на линии */
             left: 0; top: 0; /* Выравниваем по верху */
-            transform: translateX(-50%); /* Центрируем на линии */
+            transform: translateX(0); /* Сдвиг к линии */
+            left: 40px; /* Поместить на линию */
+            transform: translateX(-50%); /* Центрировать на линии */
             box-shadow: var(--shadow-glow-md);
             flex-shrink: 0;
             transition: var(--transition-smooth);
-            border: 4px solid var(--card-bg-solid);
+            border: 4px solid var(--card-bg-solid); /* Рамка фоном секции */
         }
         .step:hover .step-number {
              transform: translateX(-50%) scale(1.15);
@@ -521,7 +487,7 @@
         /* --- Секция отзывов (Glassmorphism) --- */
         .testimonials {
              background: transparent; /* Наследует фон */
-             padding-top: var(--section-padding);
+             /* Убрал padding-top, т.к. нет кривой */
         }
 
         .testimonials-grid {
@@ -550,7 +516,7 @@
          .testimonial-card:hover {
              transform: translateY(-10px) scale(1.03);
              background: rgba(36, 36, 62, 0.75);
-             box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+             box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25), var(--shadow-glow-sm); /* Добавим свечение */
          }
          .testimonial-card:hover::before { opacity: 1; }
 
@@ -580,14 +546,15 @@
             box-shadow: 0 0 10px rgba(0, 245, 212, 0.4);
         }
         .testimonial-avatar img { width: 100%; height: 100%; object-fit: cover; }
-        .testimonial-avatar:not(:has(img)) { background: var(--gradient-aurora); }
+        .testimonial-avatar:not(:has(img)) { background: var(--gradient-aurora); } /* Placeholder */
+        .testimonial-author-info { flex-grow: 1; }
         .testimonial-name { font-weight: 600; margin-bottom: 0.1rem; color: var(--text-light); font-size: 1rem; }
         .testimonial-role { font-size: 0.875rem; color: var(--text-muted); }
 
         /* --- Секция тарифов --- */
         .pricing {
-             background: var(--card-bg-solid); /* Непрозрачный фон */
-             /* Добавлен класс curved-section в HTML */
+             /* Использует класс solid-bg-section */
+             /* Убрал curved-section */
         }
 
         .pricing-grid {
@@ -610,7 +577,7 @@
             border: 2px solid transparent; /* Граница будет градиентной */
             background: linear-gradient(var(--dark-purple), var(--dark-purple)) padding-box,
                         var(--gradient-card-border) border-box;
-            box-shadow: 0 10px 50px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 10px 50px rgba(0, 0, 0, 0.3), var(--shadow-glow-md); /* Добавим свечение */
             z-index: 2;
         }
 
@@ -621,7 +588,7 @@
         }
         .pricing-card.popular:hover {
             transform: scale(1.07) translateY(-5px);
-             box-shadow: 0 15px 60px rgba(0, 0, 0, 0.35);
+             box-shadow: 0 15px 60px rgba(0, 0, 0, 0.35), var(--shadow-glow-lg);
         }
 
         .popular-badge {
@@ -717,7 +684,12 @@
         .footer-column h3 {
             color: var(--text-light); font-size: 1.3rem; margin-bottom: 1.5rem;
             font-weight: 600; font-family: var(--font-secondary);
+            position: relative; padding-bottom: 0.5rem;
         }
+         .footer-column h3::after { /* Underline effect */
+             content: ''; position: absolute; bottom: 0; left: 0;
+             width: 40px; height: 2px; background: var(--neon-cyan);
+         }
         .footer-column .logo { margin-bottom: 1.5rem; }
         .footer-column p { color: var(--text-medium); font-size: 0.95rem; }
 
@@ -736,14 +708,15 @@
 
         .footer-links { list-style: none; }
         .footer-links li { margin-bottom: 0.8rem; }
-        .footer-links a { color: var(--text-medium); transition: var(--transition-fast); font-size: 0.95rem; }
+        .footer-links a { color: var(--text-medium); transition: var(--transition-fast); font-size: 0.95rem; display: flex; align-items: center; gap: 0.6em; }
         .footer-links a:hover { color: var(--neon-cyan); padding-left: 5px; }
          .footer-links i { /* Иконки в футере */
-             margin-right: 0.6em;
              color: var(--light-accent); /* Фиолетовый акцент */
              width: 18px; /* Выровнять иконки */
              text-align: center;
+             transition: color 0.2s ease;
          }
+         .footer-links a:hover i { color: var(--neon-magenta); }
 
         .copyright {
             text-align: center; padding-top: 3rem;
@@ -752,7 +725,15 @@
         }
         .copyright a { color: var(--text-muted); text-decoration: underline; }
         .copyright a:hover { color: var(--neon-cyan); }
-        .copyright i { color: var(--neon-magenta); } /* Сердечко */
+        .copyright i.fa-heart { color: var(--neon-magenta); animation: heartbeat 1.5s ease-in-out infinite; }
+
+        @keyframes heartbeat {
+            0%, 100% { transform: scale(1); }
+            10%, 30% { transform: scale(0.9); }
+            20%, 40%, 60%, 80% { transform: scale(1.1); }
+            50%, 70%, 90% { transform: scale(1); }
+        }
+
 
         /* --- Адаптивность --- */
         @media (max-width: 1024px) {
@@ -763,7 +744,7 @@
              .section-title { font-size: 2.5rem; }
              .steps-container::before { left: 30px; } /* Сдвинуть линию левее */
              .step { padding-left: 70px; gap: 1.5rem; }
-             .step-number { width: 60px; height: 60px; font-size: 1.5rem; }
+             .step-number { width: 60px; height: 60px; font-size: 1.5rem; left: 30px; }
         }
 
         @media (max-width: 768px) {
@@ -787,8 +768,8 @@
             .nav-links a { margin: 0.5rem 0; font-size: 1.2rem; padding-bottom: 0.5rem; }
             .nav-links a::after { height: 2px; }
             .hamburger { display: flex; z-index: 1002; }
-            .header-actions .btn { display: none; }
-            .nav-links .btn { display: block; margin-top: 2.5rem; width: 90%; }
+            .header-actions .btn.auth-link { display: none; } /* Скрыть кнопку в хедере */
+            .nav-links .btn.auth-link { display: block; margin-top: 2.5rem; width: 90%; } /* Показать кнопку в меню */
 
             .hero { padding: 10rem 0 6rem; }
             .hero h1 { font-size: 2.8rem; }
@@ -801,7 +782,7 @@
             .steps-container { margin-top: 2rem; }
             .steps-container::before { left: 20px; } /* Еще левее */
             .step { padding-left: 55px; gap: 1rem; margin-bottom: 2.5rem; }
-            .step-number { width: 40px; height: 40px; font-size: 1.2rem; border-width: 3px; }
+            .step-number { width: 40px; height: 40px; font-size: 1.2rem; border-width: 3px; left: 20px; }
             .step-content h3 { font-size: 1.3rem; }
             .step-content p { font-size: 0.95rem; }
 
@@ -832,38 +813,44 @@
             transition: opacity 0.8s cubic-bezier(0.165, 0.84, 0.44, 1), transform 0.8s cubic-bezier(0.165, 0.84, 0.44, 1);
         }
         [data-animate].animated { opacity: 1; transform: translateY(0); }
-        .delay-1 { transition-delay: 0.1s !important; }
-        .delay-2 { transition-delay: 0.2s !important; }
-        .delay-3 { transition-delay: 0.3s !important; }
-        .delay-4 { transition-delay: 0.4s !important; }
-        .delay-5 { transition-delay: 0.5s !important; }
 
         /* Оверлей для мобильного меню */
         .menu-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background-color: rgba(15, 12, 41, 0.7); /* Темный фон */
             z-index: 1000; opacity: 0; visibility: hidden;
-            transition: opacity 0.4s ease, visibility 0.4s ease;
+            transition: opacity 0.4s ease, visibility 0s 0.4s; /* Changed visibility transition */
+            visibility: hidden; /* Start hidden */
         }
-        .menu-overlay.active { opacity: 1; visibility: visible; }
+        .menu-overlay.active {
+             opacity: 1;
+             visibility: visible; /* Make visible when active */
+             transition: opacity 0.4s ease, visibility 0s 0s;
+        }
 
+        /* Предотвратить прокрутку body при открытом меню */
+        body.menu-open {
+            overflow: hidden;
+        }
     </style>
 </head>
-<body class="dark"> <header id="header">
+<body class="dark">
+
+    <header id="header">
         <div class="container nav-container">
             <a href="#" class="logo">
                 <i class="fas fa-atom"></i> <span>Justax</span>
             </a>
             <nav class="nav-links" id="navLinks">
-                <a href="#features">Klíčové vlastnosti</a>
-                <a href="#how-it-works">Jak to funguje</a>
-                <a href="#pricing">Ceník</a>
-                <a href="#testimonials">Ohlasy</a>
-                <a href="#contact">Kontakt</a>
-                 <a href="auth/index.html" class="btn auth-link">Vyzkoušet zdarma</a>
+                <a href="#features" class="nav-item">Klíčové vlastnosti</a>
+                <a href="#how-it-works" class="nav-item">Jak to funguje</a>
+                <a href="#pricing" class="nav-item">Ceník</a>
+                <a href="#testimonials" class="nav-item">Ohlasy</a>
+                <a href="#contact" class="nav-item">Kontakt</a>
+                <a href="auth/index.html" class="btn auth-link mobile-auth-link">Vyzkoušet zdarma</a>
             </nav>
             <div class="header-actions">
-                <a href="auth/index.html" class="btn auth-link">Vyzkoušet zdarma</a>
+                <a href="auth/index.html" class="btn auth-link desktop-auth-link">Vyzkoušet zdarma</a>
                 <button class="hamburger" id="hamburger" aria-label="Menu" aria-expanded="false" aria-controls="navLinks">
                     <span></span>
                     <span></span>
@@ -875,249 +862,260 @@
 
     <div class="menu-overlay" id="menuOverlay"></div>
 
-    <section class="hero">
-        <div class="container">
-            <h1 data-animate>Revoluce ve studiu: Váš osobní AI lektor Justax</h1>
-            <p data-animate class="delay-1">Přestaňte se trápit s přípravou na přijímačky sami. Justax přináší budoucnost vzdělávání přímo k vám – inteligentní AI systém, který se učí s vámi a pro vás.</p>
-            <div class="hero-buttons" data-animate class="delay-2">
-                <a href="auth/index.html" class="btn auth-link">Objevte budoucnost učení</a>
-                <a href="#how-it-works" class="btn btn-outline">Jak to funguje?</a>
-            </div>
-        </div>
-    </section>
-
-    <section class="features" id="features">
-        <div class="container">
-            <h2 class="section-title">Proč je Justax unikátní?</h2>
-            <p class="section-subtitle">Kombinujeme špičkovou umělou inteligenci s osvědčenými metodami výuky, abychom vám poskytli nástroj, který skutečně funguje.</p>
-
-            <div class="features-grid">
-                <div class="feature-card" data-animate>
-                     <div class="feature-icon"><i class="fas fa-brain"></i></div>
-                     <h3>Adaptivní AI Jádro</h3>
-                     <p>Naše AI (založená na modelech jako Gemini a GPT) se neustále učí a přizpůsobuje vašemu tempu a stylu učení.</p>
-                 </div>
-                 <div class="feature-card" data-animate data-delay="1">
-                    <div class="feature-icon"><i class="fas fa-route"></i></div>
-                    <h3>Personalizovaná Cesta</h3>
-                    <p>Zapomeňte na obecné plány. Justax vytváří unikátní studijní mapu přímo pro vás a aktualizuje ji dle vašeho pokroku.</p>
+    <main>
+        <section class="hero">
+            <div class="container">
+                <h1 data-animate>Revoluce ve studiu: Váš osobní AI lektor Justax</h1>
+                <p data-animate>Přestaňte se trápit s přípravou na přijímačky sami. Justax přináší budoucnost vzdělávání přímo k vám – inteligentní AI systém, který se učí s vámi a pro vás.</p>
+                <div class="hero-buttons" data-animate>
+                    <a href="auth/index.html" class="btn auth-link">Objevte budoucnost učení</a>
+                    <a href="#how-it-works" class="btn btn-outline">Jak to funguje?</a>
                 </div>
-                <div class="feature-card" data-animate data-delay="2">
-                   <div class="feature-icon"><i class="fas fa-tasks-alt"></i></div>
-                   <h3>CERMAT Validované Úlohy</h3>
-                   <p>Trénujte na úlohách, které odpovídají reálným přijímacím zkouškám CERMAT. Připravte se na to, co vás skutečně čeká.</p>
-               </div>
-               <div class="feature-card" data-animate data-delay="3">
-                  <div class="feature-icon"><i class="fas fa-comments"></i></div>
-                  <h3>Interaktivní Vysvětlení</h3>
-                  <p>Nejen odpovědi, ale i podrobné vysvětlení každého kroku. Ptejte se AI, dokud všemu neporozumíte.</p>
-              </div>
-              <div class="feature-card" data-animate data-delay="4">
-                 <div class="feature-icon"><i class="fas fa-chart-line"></i></div>
-                 <h3>Analýza Chyb</h3>
-                 <p>AI identifikuje vaše slabá místa a navrhuje cílené procvičování, abyste efektivně eliminovali chyby.</p>
-             </div>
-             <div class="feature-card" data-animate data-delay="5">
-                 <div class="feature-icon"><i class="fas fa-infinity"></i></div>
-                 <h3>Neomezený Přístup 24/7</h3>
-                 <p>Váš AI lektor je vám k dispozici kdykoliv a kdekoliv. Učte se bez omezení, podle vašeho rozvrhu.</p>
-             </div>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <section class="how-it-works curved-section" id="how-it-works">
-        <div class="container">
-            <h2 class="section-title">Vaše cesta k úspěchu</h2>
-            <p class="section-subtitle">Stačí pár jednoduchých kroků a můžete začít transformovat své studijní výsledky s Justax.</p>
+        <section class="features" id="features">
+            <div class="container">
+                <h2 class="section-title">Proč je Justax unikátní?</h2>
+                <p class="section-subtitle">Kombinujeme špičkovou umělou inteligenci s osvědčenými metodami výuky, abychom vám poskytli nástroj, který skutečně funguje.</p>
 
-            <div class="steps-container">
-                <div class="step" data-animate>
-                    <div class="step-number">1</div>
-                    <div class="step-content">
-                         <h3>Registrace & Profil</h3>
-                         <p>Vytvořte si účet a řekněte nám něco o svých cílech (přijímačky na SŠ, maturita).</p>
+                <div class="features-grid">
+                    <div class="feature-card" data-animate>
+                        <div class="feature-icon"><i class="fas fa-brain"></i></div>
+                        <h3>Adaptivní AI Jádro</h3>
+                        <p>Naše AI (založená na modelech jako Gemini a GPT) se neustále učí a přizpůsobuje vašemu tempu a stylu učení.</p>
+                    </div>
+                    <div class="feature-card" data-animate>
+                        <div class="feature-icon"><i class="fas fa-route"></i></div>
+                        <h3>Personalizovaná Cesta</h3>
+                        <p>Zapomeňte na obecné plány. Justax vytváří unikátní studijní mapu přímo pro vás a aktualizuje ji dle vašeho pokroku.</p>
+                    </div>
+                    <div class="feature-card" data-animate>
+                    <div class="feature-icon"><i class="fas fa-tasks-alt"></i></div>
+                    <h3>CERMAT Validované Úlohy</h3>
+                    <p>Trénujte na úlohách, které odpovídají reálným přijímacím zkouškám CERMAT. Připravte se na to, co vás skutečně čeká.</p>
+                    </div>
+                    <div class="feature-card" data-animate>
+                    <div class="feature-icon"><i class="fas fa-comments"></i></div>
+                    <h3>Interaktivní Vysvětlení</h3>
+                    <p>Nejen odpovědi, ale i podrobné vysvětlení každého kroku. Ptejte se AI, dokud všemu neporozumíte.</p>
+                    </div>
+                    <div class="feature-card" data-animate>
+                    <div class="feature-icon"><i class="fas fa-chart-line"></i></div>
+                    <h3>Analýza Chyb</h3>
+                    <p>AI identifikuje vaše slabá místa a navrhuje cílené procvičování, abyste efektivně eliminovali chyby.</p>
+                    </div>
+                    <div class="feature-card" data-animate>
+                        <div class="feature-icon"><i class="fas fa-infinity"></i></div>
+                        <h3>Neomezený Přístup 24/7</h3>
+                        <p>Váš AI lektor je vám k dispozici kdykoliv a kdekoliv. Učte se bez omezení, podle vašeho rozvrhu.</p>
                     </div>
                 </div>
-                <div class="step" data-animate data-delay="1">
-                    <div class="step-number">2</div>
-                     <div class="step-content">
-                         <h3>Vstupní Diagnostika</h3>
-                         <p>AI vyhodnotí vaše aktuální znalosti pomocí krátkého adaptivního testu.</p>
+            </div>
+        </section>
+
+        <section class="how-it-works solid-bg-section" id="how-it-works">
+            <div class="container">
+                <h2 class="section-title">Vaše cesta k úspěchu</h2>
+                <p class="section-subtitle">Stačí pár jednoduchých kroků a můžete začít transformovat své studijní výsledky s Justax.</p>
+
+                <div class="steps-container">
+                    <div class="step" data-animate>
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <h3>Registrace & Profil</h3>
+                            <p>Vytvořte si účet a řekněte nám něco o svých cílech (přijímačky na SŠ, maturita).</p>
+                        </div>
+                    </div>
+                    <div class="step" data-animate>
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <h3>Vstupní Diagnostika</h3>
+                            <p>AI vyhodnotí vaše aktuální znalosti pomocí krátkého adaptivního testu.</p>
+                        </div>
+                    </div>
+                    <div class="step" data-animate>
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <h3>Start Osobního Plánu</h3>
+                            <p>Na základě diagnostiky získáte první personalizovaný studijní plán a úkoly.</p>
+                        </div>
+                    </div>
+                    <div class="step" data-animate>
+                        <div class="step-number">4</div>
+                        <div class="step-content">
+                            <h3>Učení a Adaptace</h3>
+                            <p>Začněte řešit úlohy, získávejte zpětnou vazbu a sledujte, jak se váš plán přizpůsobuje vašemu pokroku.</p>
+                        </div>
                     </div>
                 </div>
-                 <div class="step" data-animate data-delay="2">
-                    <div class="step-number">3</div>
-                     <div class="step-content">
-                         <h3>Start Osobního Plánu</h3>
-                         <p>Na základě diagnostiky získáte první personalizovaný studijní plán a úkoly.</p>
-                     </div>
-                </div>
-                 <div class="step" data-animate data-delay="3">
-                    <div class="step-number">4</div>
-                     <div class="step-content">
-                         <h3>Učení a Adaptace</h3>
-                         <p>Začněte řešit úlohy, získávejte zpětnou vazbu a sledujte, jak se váš plán přizpůsobuje vašemu pokroku.</p>
-                     </div>
-                </div>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <section class="testimonials" id="testimonials">
-        <div class="container">
-            <h2 class="section-title">Příběhy našich studentů</h2>
-            <p class="section-subtitle">Poslechněte si ty, kteří již objevili sílu učení s umělou inteligencí Justax.</p>
+        <section class="testimonials" id="testimonials">
+            <div class="container">
+                <h2 class="section-title">Příběhy našich studentů</h2>
+                <p class="section-subtitle">Poslechněte si ty, kteří již objevili sílu učení s umělou inteligencí Justax.</p>
 
-            <div class="testimonials-grid">
+                <div class="testimonials-grid">
+                    <div class="testimonial-card" data-animate>
+                        <div class="testimonial-content">
+                            <div class="testimonial-rating">
+                                <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                            </div>
+                        <p class="testimonial-text">"Justax mi změnil pohled na matiku. Konečně chápu i složitější věci a AI mi to vysvětlí líp než kdokoliv jiný. Na přijímačky se teď cítím mnohem líp připravený."</p>
+                    </div>
+                    <div class="testimonial-author">
+                        <div class="testimonial-avatar">
+                            </div>
+                        <div class="testimonial-author-info">
+                            <div class="testimonial-name">Petr N.</div>
+                            <div class="testimonial-role">Student 9. třídy, Plzeň</div>
+                        </div>
+                    </div>
+                </div>
                 <div class="testimonial-card" data-animate>
                     <div class="testimonial-content">
                         <div class="testimonial-rating">
-                            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i>
                         </div>
-                       <p class="testimonial-text">"Justax mi změnil pohled na matiku. Konečně chápu i složitější věci a AI mi to vysvětlí líp než kdokoliv jiný. Na přijímačky se teď cítím mnohem líp připravený."</p>
-                   </div>
-                   <div class="testimonial-author">
-                       <div class="testimonial-avatar"> </div>
-                       <div>
-                           <div class="testimonial-name">Petr N.</div>
-                           <div class="testimonial-role">Student 9. třídy, Plzeň</div>
-                       </div>
-                   </div>
-               </div>
-               <div class="testimonial-card" data-animate data-delay="1">
-                   <div class="testimonial-content">
-                       <div class="testimonial-rating">
-                            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i>
-                       </div>
-                       <p class="testimonial-text">"Bojovala jsem s českým pravopisem, ale Justax mi pomohl najít systém. Líbí se mi, jak AI hned pozná, kde dělám chyby, a dá mi cvičení přímo na to. Super aplikace!"</p>
-                    </div>
-                   <div class="testimonial-author">
-                       <div class="testimonial-avatar"> </div>
-                       <div>
-                           <div class="testimonial-name">Eva D.</div>
-                           <div class="testimonial-role">Studentka 9. třídy, Ostrava</div>
-                       </div>
-                   </div>
-               </div>
-               <div class="testimonial-card" data-animate data-delay="2">
-                    <div class="testimonial-content">
-                        <div class="testimonial-rating">
-                            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                        <p class="testimonial-text">"Bojovala jsem s českým pravopisem, ale Justax mi pomohl najít systém. Líbí se mi, jak AI hned pozná, kde dělám chyby, a dá mi cvičení přímo na to. Super aplikace!"</p>
                         </div>
-                       <p class="testimonial-text">"Jako rodič oceňuji hlavně flexibilitu a cenu. Syn se může učit kdykoliv a vidím jeho pokrok. Je to mnohem efektivnější než drahé doučování. Doporučuji!"</p>
+                    <div class="testimonial-author">
+                        <div class="testimonial-avatar">
+                             </div>
+                        <div class="testimonial-author-info">
+                            <div class="testimonial-name">Eva D.</div>
+                            <div class="testimonial-role">Studentka 9. třídy, Ostrava</div>
+                        </div>
                     </div>
-                   <div class="testimonial-author">
-                       <div class="testimonial-avatar"> </div>
-                       <div>
-                           <div class="testimonial-name">Tomáš S.</div>
-                           <div class="testimonial-role">Rodič, Liberec</div>
-                       </div>
-                   </div>
-               </div>
-            </div>
-        </div>
-    </section>
-
-    <section class="pricing curved-section" id="pricing">
-        <div class="container">
-            <h2 class="section-title">Investujte do své budoucnosti</h2>
-            <p class="section-subtitle">Vyberte si plán, který nejlépe odpovídá vašim potřebám a začněte dosahovat svých studijních cílů s Justax.</p>
-
-            <div class="pricing-grid">
-                <div class="pricing-card" data-animate>
-                    <h3>Start</h3> <div class="pricing-price">499 Kč<span class="pricing-period"> / měsíc</span></div>
-                    <div class="pricing-features">
-                        <div class="pricing-feature"><i class="fas fa-check"></i><span>Adaptivní AI jádro</span></div>
-                        <div class="pricing-feature"><i class="fas fa-check"></i><span>5 AI lekcí / měsíc</span></div>
-                        <div class="pricing-feature"><i class="fas fa-check"></i><span>Základní databáze úloh</span></div>
-                        <div class="pricing-feature"><i class="fas fa-check"></i><span>Základní diagnostika</span></div>
-                        <div class="pricing-feature disabled"><i class="fas fa-times"></i><span>Analýza chyb</span></div>
-                        <div class="pricing-feature disabled"><i class="fas fa-times"></i><span>Simulace zkoušek</span></div>
-                    </div>
-                    <a href="auth/index.html" class="btn btn-outline auth-link">Začít Start</a>
                 </div>
-                <div class="pricing-card popular" data-animate data-delay="1">
-                    <div class="popular-badge">Nejlepší volba</div> <h3>Progres</h3> <div class="pricing-price">999 Kč<span class="pricing-period"> / měsíc</span></div>
-                    <div class="pricing-features">
-                        <div class="pricing-feature"><i class="fas fa-check"></i><span>Pokročilé AI jádro</span></div>
-                        <div class="pricing-feature"><i class="fas fa-check"></i><span>15 AI lekcí / měsíc</span></div>
-                        <div class="pricing-feature"><i class="fas fa-check"></i><span>Plná databáze CERMAT úloh</span></div>
-                        <div class="pricing-feature"><i class="fas fa-check"></i><span>Detailní diagnostika</span></div>
-                        <div class="pricing-feature"><i class="fas fa-check"></i><span>Hloubková analýza chyb</span></div>
-                        <div class="pricing-feature"><i class="fas fa-check"></i><span>Dynamický studijní plán</span></div>
-                        <div class="pricing-feature disabled"><i class="fas fa-times"></i><span>Prioritní podpora</span></div>
+                <div class="testimonial-card" data-animate>
+                        <div class="testimonial-content">
+                            <div class="testimonial-rating">
+                                <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                            </div>
+                        <p class="testimonial-text">"Jako rodič oceňuji hlavně flexibilitu a cenu. Syn se může učit kdykoliv a vidím jeho pokrok. Je to mnohem efektivnější než drahé doučování. Doporučuji!"</p>
+                        </div>
+                    <div class="testimonial-author">
+                        <div class="testimonial-avatar">
+                            </div>
+                        <div class="testimonial-author-info">
+                            <div class="testimonial-name">Tomáš S.</div>
+                            <div class="testimonial-role">Rodič, Liberec</div>
+                        </div>
                     </div>
-                    <a href="auth/index.html" class="btn auth-link">Zvolit Progres</a>
                 </div>
-                <div class="pricing-card" data-animate data-delay="2">
-                    <h3>Maximum</h3> <div class="pricing-price">1499 Kč<span class="pricing-period"> / měsíc</span></div>
-                    <div class="pricing-features">
-                        <div class="pricing-feature"><i class="fas fa-check"></i><span>Nejvyšší AI jádro (vč. GPT-4o+)</span></div>
-                        <div class="pricing-feature"><i class="fas fa-check"></i><span>Neomezené AI lekce</span></div>
-                        <div class="pricing-feature"><i class="fas fa-check"></i><span>Všechny úlohy + extra materiály</span></div>
-                        <div class="pricing-feature"><i class="fas fa-check"></i><span>Komplexní diagnostika a reporting</span></div>
-                        <div class="pricing-feature"><i class="fas fa-check"></i><span>Pokročilá analýza a predikce</span></div>
-                        <div class="pricing-feature"><i class="fas fa-check"></i><span>Realistické simulace zkoušek</span></div>
-                        <div class="pricing-feature"><i class="fas fa-check"></i><span>Prioritní podpora 24/7</span></div>
-                    </div>
-                    <a href="auth/index.html" class="btn btn-outline auth-link">Dosáhnout Maxima</a>
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <section class="cta" id="cta">
-        <div class="container">
-            <h2 data-animate>Připraveni na budoucnost vzdělávání?</h2>
-            <p data-animate data-delay="1">Udělejte první krok k lepším výsledkům a menšímu stresu. Vyzkoušejte Justax zdarma a objevte sílu personalizovaného učení s umělou inteligencí.</p>
-            <a href="auth/index.html" class="btn auth-link" data-animate data-delay="2">Spustit bezplatnou zkoušku</a>
-        </div>
-    </section>
+        <section class="pricing solid-bg-section" id="pricing">
+            <div class="container">
+                <h2 class="section-title">Investujte do své budoucnosti</h2>
+                <p class="section-subtitle">Vyberte si plán, který nejlépe odpovídá vašim potřebám a začněte dosahovat svých studijních cílů s Justax.</p>
+
+                <div class="pricing-grid">
+                    <div class="pricing-card" data-animate>
+                        <h3>Start</h3>
+                        <div class="pricing-price">499 Kč<span class="pricing-period"> / měsíc</span></div>
+                        <div class="pricing-features">
+                            <div class="pricing-feature"><i class="fas fa-check"></i><span>Adaptivní AI jádro</span></div>
+                            <div class="pricing-feature"><i class="fas fa-check"></i><span>5 AI lekcí / měsíc</span></div>
+                            <div class="pricing-feature"><i class="fas fa-check"></i><span>Základní databáze úloh</span></div>
+                            <div class="pricing-feature"><i class="fas fa-check"></i><span>Základní diagnostika</span></div>
+                            <div class="pricing-feature disabled"><i class="fas fa-times"></i><span>Analýza chyb</span></div>
+                            <div class="pricing-feature disabled"><i class="fas fa-times"></i><span>Simulace zkoušek</span></div>
+                        </div>
+                        <a href="auth/index.html" class="btn btn-outline auth-link">Začít Start</a>
+                    </div>
+                    <div class="pricing-card popular" data-animate>
+                        <div class="popular-badge">Nejlepší volba</div>
+                        <h3>Progres</h3>
+                        <div class="pricing-price">999 Kč<span class="pricing-period"> / měsíc</span></div>
+                        <div class="pricing-features">
+                            <div class="pricing-feature"><i class="fas fa-check"></i><span>Pokročilé AI jádro</span></div>
+                            <div class="pricing-feature"><i class="fas fa-check"></i><span>15 AI lekcí / měsíc</span></div>
+                            <div class="pricing-feature"><i class="fas fa-check"></i><span>Plná databáze CERMAT úloh</span></div>
+                            <div class="pricing-feature"><i class="fas fa-check"></i><span>Detailní diagnostika</span></div>
+                            <div class="pricing-feature"><i class="fas fa-check"></i><span>Hloubková analýza chyb</span></div>
+                            <div class="pricing-feature"><i class="fas fa-check"></i><span>Dynamický studijní plán</span></div>
+                            <div class="pricing-feature disabled"><i class="fas fa-times"></i><span>Prioritní podpora</span></div>
+                        </div>
+                        <a href="auth/index.html" class="btn auth-link">Zvolit Progres</a>
+                    </div>
+                    <div class="pricing-card" data-animate>
+                        <h3>Maximum</h3>
+                        <div class="pricing-price">1499 Kč<span class="pricing-period"> / měsíc</span></div>
+                        <div class="pricing-features">
+                            <div class="pricing-feature"><i class="fas fa-check"></i><span>Nejvyšší AI jádro (vč. GPT-4o+)</span></div>
+                            <div class="pricing-feature"><i class="fas fa-check"></i><span>Neomezené AI lekce</span></div>
+                            <div class="pricing-feature"><i class="fas fa-check"></i><span>Všechny úlohy + extra materiály</span></div>
+                            <div class="pricing-feature"><i class="fas fa-check"></i><span>Komplexní diagnostika a reporting</span></div>
+                            <div class="pricing-feature"><i class="fas fa-check"></i><span>Pokročilá analýza a predikce</span></div>
+                            <div class="pricing-feature"><i class="fas fa-check"></i><span>Realistické simulace zkoušek</span></div>
+                            <div class="pricing-feature"><i class="fas fa-check"></i><span>Prioritní podpora 24/7</span></div>
+                        </div>
+                        <a href="auth/index.html" class="btn btn-outline auth-link">Dosáhnout Maxima</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="cta" id="cta">
+            <div class="container">
+                <h2 data-animate>Připraveni na budoucnost vzdělávání?</h2>
+                <p data-animate>Udělejte první krok k lepším výsledkům a menšímu stresu. Vyzkoušejte Justax zdarma a objevte sílu personalizovaného učení s umělou inteligencí.</p>
+                <a href="auth/index.html" class="btn auth-link" data-animate>Spustit bezplatnou zkoušku</a>
+            </div>
+        </section>
+    </main>
 
     <footer id="contact">
         <div class="container">
             <div class="footer-grid">
                 <div class="footer-column">
-                     <a href="#" class="logo"> <i class="fas fa-atom"></i> <span>Justax</span> </a>
+                    <a href="#" class="logo"> <i class="fas fa-atom"></i> <span>Justax</span> </a>
                     <p>Platforma nové generace pro přípravu na přijímací zkoušky a maturitu s využitím AI.</p>
                     <div class="social-links">
                         <a href="#" class="social-link" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
                         <a href="#" class="social-link" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
-                        <a href="#" class="social-link" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a> </div>
+                        <a href="#" class="social-link" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+                    </div>
                 </div>
-                 <div class="footer-column">
+                <div class="footer-column">
                     <h3>Rychlé odkazy</h3>
                     <ul class="footer-links">
-                        <li><a href="#features">Klíčové vlastnosti</a></li>
-                        <li><a href="#how-it-works">Jak to funguje</a></li>
-                        <li><a href="#pricing">Ceník</a></li>
-                        <li><a href="#testimonials">Ohlasy</a></li>
-                         <li><a href="#">Blog</a></li> </ul>
+                        <li><a href="#features"><i class="fas fa-angle-right"></i> Klíčové vlastnosti</a></li>
+                        <li><a href="#how-it-works"><i class="fas fa-angle-right"></i> Jak to funguje</a></li>
+                        <li><a href="#pricing"><i class="fas fa-angle-right"></i> Ceník</a></li>
+                        <li><a href="#testimonials"><i class="fas fa-angle-right"></i> Ohlasy</a></li>
+                        <li><a href="#"><i class="fas fa-angle-right"></i> Blog</a></li>
+                    </ul>
                 </div>
                 <div class="footer-column">
                     <h3>Podporované předměty</h3>
                     <ul class="footer-links">
-                        <li><a href="#">Matematika (SŠ)</a></li>
-                        <li><a href="#">Český jazyk (SŠ)</a></li>
-                        <li><a href="#">Matematika (Maturita)</a></li>
-                         <li><a href="#">Český jazyk (Maturita)</a></li>
-                        <li><a href="#">Anglický jazyk (Brzy)</a></li>
+                        <li><a href="#"><i class="fas fa-graduation-cap"></i> Matematika (SŠ)</a></li>
+                        <li><a href="#"><i class="fas fa-graduation-cap"></i> Český jazyk (SŠ)</a></li>
+                        <li><a href="#"><i class="fas fa-graduation-cap"></i> Matematika (Maturita)</a></li>
+                        <li><a href="#"><i class="fas fa-graduation-cap"></i> Český jazyk (Maturita)</a></li>
+                        <li><a href="#"><i class="fas fa-graduation-cap"></i> Anglický jazyk (Brzy)</a></li>
                     </ul>
                 </div>
                 <div class="footer-column">
                     <h3>Spojte se s námi</h3>
                     <ul class="footer-links">
-                        <li><i class="fas fa-envelope"></i><a href="mailto:podpora@justax.space">podpora@justax.space</a></li>
-                        <li><i class="fas fa-phone"></i><a href="tel:+420123456789">+420 123 456 789</a></li>
-                        <li><i class="fas fa-map-marker-alt"></i>Technologický Park, Praha</li>
+                        <li><a href="mailto:podpora@justax.space"><i class="fas fa-envelope"></i> podpora@justax.space</a></li>
+                        <li><a href="tel:+420123456789"><i class="fas fa-phone"></i> +420 123 456 789</a></li>
+                        <li><a><i class="fas fa-map-marker-alt"></i> Technologický Park, Praha</a></li>
                     </ul>
                 </div>
             </div>
             <div class="copyright">
                 &copy; <span id="currentYear"></span> Justax Technologies s.r.o. Všechna práva vyhrazena.
-                 | <a href="/privacy-policy">Ochrana údajů</a> | <a href="/terms">Podmínky</a>
-                 | Vyrobeno s <i class="fas fa-heart"></i> v ČR.
+                | <a href="/privacy-policy">Ochrana údajů</a> | <a href="/terms">Podmínky</a>
+                | Vyrobeno s <i class="fas fa-heart"></i> v ČR.
             </div>
         </div>
     </footer>
@@ -1128,7 +1126,7 @@
             const hamburger = document.getElementById('hamburger');
             const navLinks = document.getElementById('navLinks');
             const menuOverlay = document.getElementById('menuOverlay');
-            const navItems = navLinks.querySelectorAll('a:not(.btn)');
+            const navItems = navLinks.querySelectorAll('a.nav-item'); // Select only nav items, not the auth button
             const body = document.body;
 
             // --- Мобильное меню ---
@@ -1138,14 +1136,14 @@
                     hamburger.classList.remove('active');
                     navLinks.classList.remove('active');
                     menuOverlay.classList.remove('active');
+                    body.classList.remove('menu-open'); // Allow scrolling
                     hamburger.setAttribute('aria-expanded', 'false');
-                    body.style.overflow = '';
                 } else {
                     hamburger.classList.add('active');
                     navLinks.classList.add('active');
                     menuOverlay.classList.add('active');
+                    body.classList.add('menu-open'); // Prevent scrolling
                     hamburger.setAttribute('aria-expanded', 'true');
-                    body.style.overflow = 'hidden';
                 }
             };
 
@@ -1163,20 +1161,28 @@
             }, { passive: true });
 
             // --- Анимация Intersection Observer ---
-            const animatedElements = document.querySelectorAll('[data-animate]');
-            const observer = new IntersectionObserver((entries, observer) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        const delay = entry.target.dataset.delay || entry.target.style.transitionDelay || '0s';
-                        // Небольшая задержка перед добавлением класса для CSS transition-delay
-                        setTimeout(() => {
-                             entry.target.classList.add('animated');
-                        }, parseFloat(delay) * 1000);
-                        observer.unobserve(entry.target);
-                    }
-                });
-            }, { threshold: 0.1 });
-            animatedElements.forEach(element => observer.observe(element));
+             const animatedElements = document.querySelectorAll('[data-animate]');
+             const observer = new IntersectionObserver((entries, observerInstance) => {
+                 entries.forEach(entry => {
+                     if (entry.isIntersecting) {
+                         const delay = parseFloat(entry.target.dataset.delay || '0') * 1000;
+                         setTimeout(() => {
+                              entry.target.classList.add('animated');
+                         }, delay);
+                         observerInstance.unobserve(entry.target);
+                     }
+                 });
+             }, { threshold: 0.15 }); // Trigger slightly earlier
+             animatedElements.forEach((element, index) => {
+                 // Automatically add staggered delay to direct children of known grids/groups if not set
+                 const parentGrid = element.closest('.features-grid, .testimonials-grid, .pricing-grid, .steps-container, .hero-buttons');
+                 if (parentGrid && !element.dataset.delay) {
+                     const siblings = Array.from(parentGrid.querySelectorAll('[data-animate]'));
+                     const elementIndex = siblings.indexOf(element);
+                     element.dataset.delay = (elementIndex * 0.1).toFixed(1); // Stagger delay by 0.1s
+                 }
+                 observer.observe(element);
+             });
 
              // --- Плавная прокрутка ---
              document.querySelectorAll('a[href^="#"]').forEach(anchor => {
@@ -1190,7 +1196,7 @@
                              const elementPosition = targetElement.getBoundingClientRect().top;
                              const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
                              window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
-                             toggleMenu(true); // Закрыть меню после клика
+                             toggleMenu(true); // Закрыть меню после клика по ссылке в меню
                          }
                      }
                  });
@@ -1200,20 +1206,28 @@
             const currentYearSpan = document.getElementById('currentYear');
             if (currentYearSpan) currentYearSpan.textContent = new Date().getFullYear();
 
-             // Добавить data-delay атрибуты динамически, если нужно для сеток
-             const gridItems = document.querySelectorAll('.features-grid .feature-card, .testimonials-grid .testimonial-card, .pricing-grid .pricing-card');
-             gridItems.forEach((item, index) => {
-                 if (!item.dataset.delay) {
-                     item.setAttribute('data-delay', `${(index % 3) * 0.1}s`);
-                 }
-             });
-             const steps = document.querySelectorAll('.step');
-             steps.forEach((step, index) => {
-                 if (!step.dataset.delay) {
-                      step.setAttribute('data-delay', `${index * 0.15}s`);
-                 }
-             });
+            // --- Активная ссылка в навигации при скролле ---
+             const sections = document.querySelectorAll('section[id]');
+             window.addEventListener('scroll', () => {
+                 let currentSectionId = '';
+                 const scrollY = window.pageYOffset;
+                 const headerHeight = header.offsetHeight || 70;
 
+                 sections.forEach(section => {
+                     const sectionTop = section.offsetTop - headerHeight - 50; // Adjust offset
+                     const sectionHeight = section.offsetHeight;
+                      if (scrollY >= sectionTop && scrollY < sectionTop + sectionHeight) {
+                         currentSectionId = section.getAttribute('id');
+                      }
+                 });
+
+                 navItems.forEach(link => {
+                     link.classList.remove('active');
+                     if (currentSectionId && link.getAttribute('href') === `#${currentSectionId}`) {
+                         link.classList.add('active');
+                     }
+                 });
+             }, { passive: true });
 
         });
     </script>
