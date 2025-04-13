@@ -29,10 +29,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <style>
-        /* --- START: FINÁLNÍ VYLEPŠENÉ CSS STYLY (v6 - Další redesign) --- */
+        /* --- START: FINÁLNÍ VYLEPŠENÉ CSS STYLY (v7 - Class-based visibility) --- */
         :root {
-            /* Палитра */
-            --primary-rgb: 67, 97, 238; --primary: #4361ee; --primary-light: #697ff1; --primary-dark: #3a0ca3;
+            /* ... (Paleta barev, Sémantické barvy, Rozměry, Stíny - stejné jako v6) ... */
+             --primary-rgb: 67, 97, 238; --primary: #4361ee; --primary-light: #697ff1; --primary-dark: #3a0ca3;
             --secondary-rgb: 63, 55, 201; --secondary: #3f37c9;
             --success-rgb: 16, 185, 129; --success: #10b981; --success-light: #a7f3d0; --success-bg: #f0fdf4; --success-dark: #059669;
             --danger-rgb: 247, 37, 133; --danger: #f72585; --danger-light: #fecdd3; --danger-bg: #fff1f2;
@@ -46,7 +46,6 @@
             --gradient-2: linear-gradient(135deg, #4cc9f0, #4361ee);
             --gradient-3: linear-gradient(135deg, #f72585, #7209b7);
             --gradient-4: linear-gradient(135deg, #f8961e, #f3722c);
-            /* Sémantické */
             --bg-color: var(--gray-50);
             --card-bg-color: var(--white);
             --card-bg-color-rgb: 255, 255, 255;
@@ -58,14 +57,12 @@
             --input-border: var(--gray-300);
             --skeleton-bg: var(--gray-100);
             --skeleton-highlight: var(--gray-200);
-            /* Rozměry */
             --sidebar-width: 260px;
             --transition-speed: 0.25s;
             --transition-bezier: cubic-bezier(0.4, 0, 0.2, 1);
             --card-radius: 12px;
             --button-radius: 8px;
             --form-element-radius: 6px;
-            /* Stíny */
             --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.03);
             --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.04);
             --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.05);
@@ -78,6 +75,7 @@
         body { background-color: var(--bg-color); color: var(--text-primary); min-height: 100vh; display: flex; overflow: hidden; line-height: 1.7; font-size: 15px; }
 
         /* --- Sidebar (Konzistentní) --- */
+        /* ... (CSS beze změny) ... */
         .sidebar { width: var(--sidebar-width); height: 100vh; position: fixed; top: 0; left: 0; background: var(--gradient-1); color: var(--white); padding: 1.5rem 1rem; display: flex; flex-direction: column; z-index: 1000; box-shadow: var(--shadow-lg); transition: transform var(--transition-speed) var(--transition-bezier), width var(--transition-speed) var(--transition-bezier); }
         .sidebar-header { display: flex; align-items: center; margin-bottom: 2rem; padding: 0 0.75rem; position: relative; min-height: 40px; }
         #sidebar-close-toggle { display: none; position: absolute; right: -5px; top: 50%; transform: translateY(-50%); background: none; border: none; color: rgba(255, 255, 255, 0.8); font-size: 1.6rem; cursor: pointer; padding: 0.5rem; line-height: 1; }
@@ -119,6 +117,8 @@
         /* --- Všeobecné styly --- */
         .main-content-wrapper { display: flex; flex-direction: column; gap: 2rem; }
         .section { background-color: var(--card-bg-color); border-radius: var(--card-radius); box-shadow: var(--shadow-md); padding: 0; /* Remove padding here */ border: 1px solid var(--border-color); animation: fadeIn 0.5s ease forwards; opacity: 0; position: relative; overflow: hidden; }
+        .section.visible-section { /* Class to show sections */ display: block; opacity: 1; }
+        .section:not(.visible-section) { display: none; } /* Hide sections by default */
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .section-title { font-size: 1.5rem; font-weight: 600; margin: 0; padding: 1.5rem 2.5rem; color: var(--text-primary); border-bottom: 1px solid var(--border-color); display: flex; align-items: center; gap: 0.75rem; background-color: var(--gray-50); border-radius: var(--card-radius) var(--card-radius) 0 0; }
         .section-title i { font-size: 1rem; color: var(--primary); width: 24px; text-align: center;}
@@ -166,17 +166,18 @@
 
 
         /* --- Vertikální Seznam/Timeline Plánu (REDESIGN v6) --- */
-        .vertical-schedule-list { display: flex; flex-direction: column; gap: 0; /* No gap, border handles spacing */ margin: 0; padding: 0; /* Remove padding */ }
-        .day-schedule-card { background-color: var(--card-bg-color); border-radius: 0; /* Remove individual radius */ border: none; /* Remove individual border */ box-shadow: none; /* Remove individual shadow */ border-bottom: 1px solid var(--border-color); /* Add separator */ overflow: visible; /* Allow content to flow */ }
+        .vertical-schedule-list { display: none; /* Hide by default */ flex-direction: column; gap: 0; margin: 0; padding: 0; }
+        .vertical-schedule-list.schedule-visible { display: flex; } /* Show when class is added */
+        .day-schedule-card { background-color: var(--card-bg-color); border-radius: 0; border: none; box-shadow: none; border-bottom: 1px solid var(--border-color); overflow: visible; }
         .day-schedule-card:last-child { border-bottom: none; }
         .day-schedule-card.today { background-color: rgba(var(--success-rgb), 0.03); }
-        .day-header { display: flex; justify-content: space-between; align-items: center; padding: 1.2rem 2.5rem; background-color: transparent; /* Transparent header */ border: none; /* Remove border */ font-size: 1.1rem; font-weight: 600; color: var(--text-primary); cursor: pointer; transition: background-color 0.2s ease; }
+        .day-header { display: flex; justify-content: space-between; align-items: center; padding: 1.2rem 2.5rem; background-color: transparent; border: none; font-size: 1.1rem; font-weight: 600; color: var(--text-primary); cursor: pointer; transition: background-color 0.2s ease; }
         .day-schedule-card.today .day-header { color: var(--success-dark); font-weight: 700; }
         .day-header:hover { background-color: var(--gray-50); }
         .day-header span { font-weight: 500; color: var(--success); font-size: 0.9em; margin-left: 0.5rem; }
-        .activity-list-container { padding: 0; /* No padding on container */ display: flex; flex-direction: column; gap: 0; /* No gap here */ max-height: 0px; /* Start collapsed */ overflow: hidden; transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
-        .day-schedule-card.expanded .activity-list-container { max-height: 1000px; /* Arbitrary large height */ } /* Show activities when expanded */
-        .activity-list-item { border-top: 1px solid var(--border-color); /* Separator between items */ padding: 1.2rem 2.5rem 1.2rem 3.5rem; /* Indent content */ display: flex; gap: 1rem; align-items: flex-start; transition: background-color var(--transition-speed) ease; position: relative; }
+        .activity-list-container { padding: 0; display: flex; flex-direction: column; gap: 0; max-height: 0px; overflow: hidden; transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        .day-schedule-card.expanded .activity-list-container { max-height: 1000px; }
+        .activity-list-item { border-top: 1px solid var(--border-color); padding: 1.2rem 2.5rem 1.2rem 3.5rem; display: flex; gap: 1rem; align-items: flex-start; transition: background-color var(--transition-speed) ease; position: relative; }
         .activity-list-item:hover { background-color: rgba(var(--primary-rgb), 0.02); }
         .activity-list-item.completed { background-color: var(--success-bg); }
         .activity-list-item.completed .activity-title,
@@ -189,7 +190,7 @@
         .activity-list-item .activity-icon { font-size: 1.1rem; color: var(--text-muted); width: 24px; text-align: center; margin-top: 2px; flex-shrink: 0; }
         .activity-list-item .activity-details { flex-grow: 1; }
         .activity-list-item .activity-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.4rem; }
-        .activity-list-item .activity-title-time { display: flex; flex-direction: column; cursor: pointer; /* Title area clickable */ }
+        .activity-list-item .activity-title-time { display: flex; flex-direction: column; cursor: pointer; }
         .activity-list-item .activity-title { font-weight: 600; color: var(--text-primary); font-size: 1rem; line-height: 1.4; }
         .activity-list-item .activity-time-display { font-size: 0.8rem; font-weight: 500; color: var(--primary); margin-top: 3px; }
         .activity-list-item .activity-desc { font-size: 0.9rem; color: var(--text-secondary); margin-top: 0.8rem; max-height: 0; overflow: hidden; line-height: 1.6; padding-top: 0; border-top: 1px dashed transparent; transition: max-height 0.3s ease-out, margin-top 0.3s ease-out, padding-top 0.3s ease-out, border-color 0.3s ease-out; }
@@ -245,11 +246,13 @@
         .plan-meta h2 { margin-bottom: 0.4rem !important; border-bottom: none !important; padding-bottom: 0 !important;}
         .plan-date { font-size: 0.85rem; color: var(--text-muted); }
         .plan-actions { display: flex; gap: 0.75rem; flex-shrink: 0; align-self: flex-start;}
-        .step-navigation { display: flex; justify-content: space-between; margin-top: 2rem; padding: 1.5rem 2.5rem; border-top: 1px solid var(--border-color); background-color: var(--gray-50); margin-bottom: -2rem; /* Align with section padding */ margin-left: -2.5rem; margin-right: -2.5rem; border-radius: 0 0 var(--card-radius) var(--card-radius); }
+        .step-navigation { display: none; /* Hide by default */ justify-content: space-between; margin-top: 2rem; padding: 1.5rem 2.5rem; border-top: 1px solid var(--border-color); background-color: var(--gray-50); margin-bottom: -2rem; /* Align with section padding */ margin-left: -2.5rem; margin-right: -2.5rem; border-radius: 0 0 var(--card-radius) var(--card-radius); }
+        .step-navigation.nav-visible { display: flex; } /* Show when class is added */
 
 
         /* --- Loading & Skeleton States (Konzistentní) --- */
-        .loader-container { display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 250px; text-align: center; color: var(--text-muted); font-size: 1.1rem; padding: 2rem; /* Added padding */}
+        .loader-container { display: none; /* Hide loader by default */ flex-direction: column; justify-content: center; align-items: center; min-height: 250px; text-align: center; color: var(--text-muted); font-size: 1.1rem; padding: 2rem; /* Added padding */}
+        .loader-container.visible-loader { display: flex; } /* Show when class is added */
         .loader { width: 45px; height: 45px; border: 5px solid rgba(var(--primary-rgb), 0.1); border-radius: 50%; border-top-color: var(--primary); animation: spin 1s linear infinite; margin-bottom: 1.2rem; }
         @keyframes spin { to { transform: rotate(360deg); } }
         .skeleton { background-color: var(--skeleton-bg); border-radius: 4px; position: relative; overflow: hidden; }
@@ -404,31 +407,31 @@
                 </div>
             </div>
 
-            <div class="section tab-linked-section" id="currentPlanSection" style="display: block; opacity: 1;">
-                <div class="loader-container" id="currentPlanLoader" style="display: none;"> <div class="loader"></div> </div>
+            <div class="section tab-linked-section visible-section" id="currentPlanSection">
+                <div class="loader-container visible-loader" id="currentPlanLoader"> <div class="loader"></div> </div>
                 <div class="section-content" id="currentPlanContent" style="display: none;">
                     </div>
-                <div id="vertical-schedule-list" class="vertical-schedule-list" style="display: none;">
+                <div id="vertical-schedule-list" class="vertical-schedule-list">
                     </div>
-                 <div class="step-navigation" id="verticalScheduleNav" style="display: none;">
+                 <div class="step-navigation" id="verticalScheduleNav">
                      <button class="btn btn-primary btn-tooltip" id="exportScheduleBtnVertical" title="Stáhnout plán jako PDF"> <i class="fas fa-file-pdf"></i> Exportovat </button>
                  </div>
             </div>
 
-            <div class="section tab-linked-section" id="historyPlanSection" style="display: none;">
+            <div class="section tab-linked-section" id="historyPlanSection">
                  <h2 class="section-title"><i class="fas fa-history"></i> Historie studijních plánů</h2>
-                 <div class="loader-container" id="historyLoader" style="display: none;"> <div class="loader"></div> </div>
+                 <div class="loader-container visible-loader" id="historyLoader"> <div class="loader"></div> </div>
                  <div id="historyPlanContent" class="plan-history section-content" style="display: none;">
                      </div>
             </div>
 
-            <div class="section tab-linked-section" id="createPlanSection" style="display: none;">
-                <div class="loader-container" id="createPlanLoader" style="display: none;"> <div class="loader"></div> </div>
+            <div class="section tab-linked-section" id="createPlanSection">
+                <div class="loader-container visible-loader" id="createPlanLoader"> <div class="loader"></div> </div>
                 <div id="createPlanContent" class="section-content" style="display: none;">
                      </div>
             </div>
 
-            <div class="section" id="planSection" style="display: none;">
+            <div class="section" id="planSection">
                  <div class="plan-header-dynamic section-content">
                      <div class="plan-meta">
                          <h2 id="plan-section-title">Detail / Návrh plánu</h2>
@@ -440,7 +443,7 @@
                       <div class="step-navigation" style="margin: 0 0 1.5rem 0; padding: 0; border-top: none; background: transparent;">
                            <button class="btn btn-secondary btn-sm" id="genericBackBtn"> <i class="fas fa-arrow-left"></i> Zpět </button>
                       </div>
-                      <div class="loader-container" id="planLoading" style="display: none;"> <div class="loader"></div> <div>Generuji/Načítám...</div> </div>
+                      <div class="loader-container visible-loader" id="planLoading"> <div class="loader"></div> <div>Generuji/Načítám...</div> </div>
                       <div class="plan-content" id="planContent" style="display: none; padding:0;"></div>
                  </div>
             </div>
@@ -538,7 +541,7 @@
         const showGlobalError = (message) => { if(ui.globalError) { ui.globalError.innerHTML = `<div class="error-message"><i class="fas fa-exclamation-circle"></i><div>${message}</div></div>`; ui.globalError.style.display = 'block';} };
         const hideGlobalError = () => { if(ui.globalError) ui.globalError.style.display = 'none'; };
 
-        // *** Upravený setLoadingState ***
+        // *** Upravený setLoadingState s třídami ***
         const setLoadingState = (sectionKey, isLoadingFlag) => {
              if (state.isLoading[sectionKey] === isLoadingFlag && sectionKey !== 'all') return;
              if (sectionKey === 'all') { Object.keys(state.isLoading).forEach(key => state.isLoading[key] = isLoadingFlag);
@@ -547,32 +550,33 @@
 
              const loaderMap = { current: ui.currentPlanLoader, history: ui.historyLoader, create: ui.createPlanLoader, detail: ui.planLoading, schedule: ui.currentPlanLoader, generation: ui.planLoading };
              const contentMap = { current: ui.currentPlanContent, history: ui.historyPlanContent, create: ui.createPlanContent, detail: ui.planContent, schedule: ui.verticalScheduleList };
-             const sectionMap = { current: ui.currentPlanSection, history: ui.historyPlanSection, create: ui.createPlanSection, detail: ui.planSection, schedule: ui.currentPlanSection };
+             const navMap = { schedule: ui.verticalScheduleNav }; // Map for navigation elements
+
              const sectionsToUpdate = sectionKey === 'all' ? Object.keys(loaderMap) : [sectionKey];
 
              sectionsToUpdate.forEach(key => {
                  const loader = loaderMap[key];
                  const content = contentMap[key];
-                 // const section = sectionMap[key]; // Not strictly needed for this logic
+                 const nav = navMap[key]; // Get associated nav element
 
-                 if (loader) loader.style.display = isLoadingFlag ? 'flex' : 'none';
+                 if (loader) loader.classList.toggle('visible-loader', isLoadingFlag);
 
                  if (content) {
-                     // Hide main content area ONLY when loading starts
+                     // Hide content area when loading starts
                      if (isLoadingFlag) {
-                         content.style.display = 'none';
-                         // Also hide schedule nav if schedule is loading
-                         if (key === 'schedule' && ui.verticalScheduleNav) {
-                             ui.verticalScheduleNav.style.display = 'none';
-                         }
+                         content.classList.remove('content-visible', 'schedule-visible');
                      }
-                     // Visibility is controlled by rendering functions after loading finishes
+                     // Visibility class is added by rendering functions after loading
+                 }
+                  // Hide navigation when loading starts
+                 if (nav && isLoadingFlag) {
+                     nav.classList.remove('nav-visible');
                  }
 
                  // Special handling for detail/generation view buttons
                  if(key === 'detail' || key === 'generation') {
                      if (ui.planActions) ui.planActions.style.display = isLoadingFlag ? 'none' : 'flex';
-                     if (ui.planContent) ui.planContent.style.display = isLoadingFlag ? 'none' : 'block'; // Markdown area
+                     // Visibility of planContent itself controlled by render functions
                  }
 
                  // Render skeletons when loading starts
@@ -580,6 +584,8 @@
                  if(key === 'schedule') renderVerticalScheduleSkeletons(isLoadingFlag ? 3 : 0);
              });
         };
+
+        // *** Upravený renderMessage s třídou ***
         const renderMessage = (container, type = 'info', title, message, addButtons = []) => {
              if (!container) return;
              const iconMap = { info: 'fa-info-circle', warning: 'fa-exclamation-triangle', error: 'fa-exclamation-circle' };
@@ -588,7 +594,8 @@
                  buttonsHTML += `<button class="btn ${btn.class || 'btn-primary'}" id="${btn.id}">${btn.icon ? `<i class="fas ${btn.icon}"></i> ` : ''}${btn.text}</button>`;
              });
              container.innerHTML = `<div class="notest-message ${type}"><h3><i class="fas ${iconMap[type]}"></i> ${sanitizeHTML(title)}</h3><p>${sanitizeHTML(message)}</p><div class="action-buttons">${buttonsHTML}</div></div>`;
-             container.style.display = 'block'; // <<< ENSURE CONTAINER IS VISIBLE
+             container.classList.add('content-visible'); // <<< ADD VISIBILITY CLASS
+             container.style.display = ''; // <<< Reset direct style if any
              addButtons.forEach(btn => {
                  const btnElement = container.querySelector(`#${btn.id}`);
                  if (btnElement && btn.onClick) {
@@ -596,6 +603,7 @@
                  }
              });
         };
+
 
         // ==============================================
         //          Inicializace a Navigace
@@ -617,34 +625,54 @@
                      const expandButton = event.target.closest('.expand-icon-button');
                      const header = event.target.closest('.day-header');
                      const titleArea = event.target.closest('.activity-title-time');
+                     const checkboxLabel = event.target.closest('.activity-checkbox');
 
-                     // Handle Activity Description Expand/Collapse
-                     if (expandButton) {
-                         const activityElement = expandButton.closest('.activity-list-item');
-                         if (activityElement) {
-                             activityElement.classList.toggle('expanded');
-                         }
+                     // Prevent checkbox click from propagating to expand/collapse
+                     if (checkboxLabel || event.target.tagName === 'INPUT') {
+                          console.log("Checkbox click detected, stopping propagation.");
+                          return;
+                     }
+
+                     // Handle Activity Description Expand/Collapse (via icon or title)
+                     if (expandButton || titleArea) {
+                         const activityElement = (expandButton || titleArea).closest('.activity-list-item');
+                         const descElement = activityElement?.querySelector('.activity-desc');
+                         // Only toggle if description exists
+                          if (activityElement && descElement && descElement.textContent.trim()) {
+                               activityElement.classList.toggle('expanded');
+                               console.log("Toggled activity description for:", activityElement.dataset.activityId);
+                          }
                      }
                      // Handle Day Card Expand/Collapse
                      else if (header) {
                          const dayCard = header.closest('.day-schedule-card');
                          if (dayCard) {
                              dayCard.classList.toggle('expanded');
+                             console.log("Toggled day card:", dayCard.querySelector('.day-header').textContent.trim());
                          }
                      }
-                     // Handle clicking on title area to expand description (if description exists)
-                     else if (titleArea) {
-                          const activityElement = titleArea.closest('.activity-list-item');
-                          const descElement = activityElement?.querySelector('.activity-desc');
-                          if (activityElement && descElement && descElement.textContent.trim()) { // Check if description exists
-                               activityElement.classList.toggle('expanded');
+                 });
+
+                 // Separate listener specifically for checkboxes to avoid interference
+                 scheduleContainer.addEventListener('change', async (event) => {
+                     if (event.target.type === 'checkbox' && event.target.closest('.activity-checkbox')) {
+                          const checkbox = event.target;
+                          const activityId = checkbox.dataset.activityId;
+                          const planId = checkbox.dataset.planId;
+                          const isCompleted = checkbox.checked;
+                          const activityElement = checkbox.closest('.activity-list-item');
+
+                          console.log(`Checkbox changed for activity ${activityId}, completed: ${isCompleted}`);
+                          if (activityElement) {
+                              activityElement.classList.toggle('completed', isCompleted);
                           }
+                          await handleActivityCompletionToggle(activityId, isCompleted, planId);
                      }
                  });
              }
              console.log("[SETUP] Event listeners set up.");
         };
-        const initializeApp = async () => { console.log("🚀 [Init Plan] Starting..."); if (!initializeSupabase()) return; ui.initialLoader.style.display = 'flex'; ui.initialLoader.classList.remove('hidden'); ui.mainContent.style.display = 'none'; ui.mainContent.classList.remove('loaded'); hideGlobalError(); try { const { data: { user }, error } = await supabaseClient.auth.getUser(); if (error) throw new Error("Nepodařilo se ověřit uživatele."); if (!user) { window.location.href = '/auth/index.html'; return; } state.currentUser = user; state.currentProfile = await fetchUserProfile(user.id); updateUserInfoUI(); setupEventListeners(); await switchTab('current'); initTooltips(); ui.mainContent.style.display = 'block'; requestAnimationFrame(() => { ui.mainContent.classList.add('loaded'); }); console.log("✅ [Init Plan] Page Initialized."); } catch (error) { console.error("App initialization error:", error); showGlobalError(`Chyba inicializace: ${error.message}`); ui.mainContent.style.display = 'block'; if(ui.currentPlanSection) ui.currentPlanSection.style.display = 'block'; if(ui.currentPlanContent) { renderMessage(ui.currentPlanContent, 'error', 'Chyba inicializace', error.message); } } finally { ui.initialLoader.classList.add('hidden'); setTimeout(() => { if(ui.initialLoader) ui.initialLoader.style.display = 'none'; }, 500); } };
+        const initializeApp = async () => { console.log("🚀 [Init Plan] Starting..."); if (!initializeSupabase()) return; ui.initialLoader.style.display = 'flex'; ui.initialLoader.classList.remove('hidden'); ui.mainContent.style.display = 'none'; ui.mainContent.classList.remove('loaded'); hideGlobalError(); try { const { data: { user }, error } = await supabaseClient.auth.getUser(); if (error) throw new Error("Nepodařilo se ověřit uživatele."); if (!user) { window.location.href = '/auth/index.html'; return; } state.currentUser = user; state.currentProfile = await fetchUserProfile(user.id); updateUserInfoUI(); setupEventListeners(); await switchTab('current'); initTooltips(); ui.mainContent.style.display = 'block'; requestAnimationFrame(() => { ui.mainContent.classList.add('loaded'); }); console.log("✅ [Init Plan] Page Initialized."); } catch (error) { console.error("App initialization error:", error); showGlobalError(`Chyba inicializace: ${error.message}`); ui.mainContent.style.display = 'block'; if(ui.currentPlanSection) ui.currentPlanSection.classList.add('visible-section'); if(ui.currentPlanContent) { renderMessage(ui.currentPlanContent, 'error', 'Chyba inicializace', error.message); } } finally { ui.initialLoader.classList.add('hidden'); setTimeout(() => { if(ui.initialLoader) ui.initialLoader.style.display = 'none'; }, 500); } };
         const fetchUserProfile = async (userId) => { if (!userId || !supabaseClient) return null; try { const { data, error } = await supabaseClient.from('profiles').select('*').eq('id', userId).single(); if (error && error.code !== 'PGRST116') throw error; return data; } catch (e) { console.error("Profile fetch error:", e); return null; } };
         const updateUserInfoUI = () => { if (ui.userName && ui.userAvatar) { const name = `${state.currentProfile?.first_name || ''} ${state.currentProfile?.last_name || ''}`.trim() || state.currentProfile?.username || state.currentUser?.email?.split('@')[0] || 'Student'; ui.userName.textContent = name; if (state.currentProfile?.avatar_url) { ui.userAvatar.innerHTML = `<img src="${state.currentProfile.avatar_url}" alt="Avatar">`; } else { ui.userAvatar.textContent = getInitials(state.currentProfile, state.currentUser?.email); } } };
 
@@ -655,11 +683,11 @@
             state.currentTab = tabId;
             ui.planTabs.forEach(tab => tab.classList.toggle('active', tab.dataset.tab === tabId));
 
-            // Hide all major content sections
-            ui.currentPlanSection.style.display = 'none';
-            ui.historyPlanSection.style.display = 'none';
-            ui.createPlanSection.style.display = 'none';
-            ui.planSection.style.display = 'none'; // Hide detail/generation section
+            // Hide all major content sections using class
+            ui.currentPlanSection.classList.remove('visible-section');
+            ui.historyPlanSection.classList.remove('visible-section');
+            ui.createPlanSection.classList.remove('visible-section');
+            ui.planSection.classList.remove('visible-section'); // Hide detail/generation section
 
             hideGlobalError();
 
@@ -667,17 +695,17 @@
                 let targetSection;
                 if (tabId === 'current') {
                     targetSection = ui.currentPlanSection;
-                    targetSection.style.display = 'block'; // Show the section container
+                    targetSection.classList.add('visible-section'); // Show the section container
                     console.log("[NAV] Loading current plan...");
                     await loadCurrentPlan();
                 } else if (tabId === 'history') {
                     targetSection = ui.historyPlanSection;
-                    targetSection.style.display = 'block';
+                    targetSection.classList.add('visible-section');
                     console.log("[NAV] Loading plan history...");
                     await loadPlanHistory();
                 } else if (tabId === 'create') {
                     targetSection = ui.createPlanSection;
-                    targetSection.style.display = 'block';
+                    targetSection.classList.add('visible-section');
                     console.log("[NAV] Checking plan creation availability...");
                     await checkPlanCreationAvailability();
                 }
@@ -685,11 +713,11 @@
                 console.error(`[NAV] Error loading tab ${tabId}:`, error);
                 showGlobalError(`Nepodařilo se načíst záložku "${tabId}": ${error.message}`);
                 const targetSection = document.getElementById(`${tabId}PlanSection`);
-                const targetContent = targetSection?.querySelector('.section-content') || document.getElementById(`${tabId}PlanContent`); // Prefer section-content
-                const targetLoader = document.getElementById(`${tabId}Loader`);
+                const targetContent = targetSection?.querySelector('.section-content') || document.getElementById(`${tabId}PlanContent`);
+                const targetLoader = targetSection?.querySelector('.loader-container');
 
-                if (targetSection) targetSection.style.display = 'block'; // Ensure section is visible on error
-                if (targetLoader) targetLoader.style.display = 'none'; // Hide loader on error
+                if (targetSection) targetSection.classList.add('visible-section'); // Ensure section is visible on error
+                if (targetLoader) targetLoader.classList.remove('visible-loader'); // Hide loader on error
                 if (targetContent) {
                     renderMessage(targetContent, 'error', 'Chyba', 'Obsah nelze načíst.');
                 }
@@ -702,11 +730,11 @@
         const loadCurrentPlan = async () => {
              if (!supabaseClient || !state.currentUser) return;
              console.log("[CurrentPlan] Loading current plan...");
-             setLoadingState('current', true);
-             if(ui.currentPlanContent) { ui.currentPlanContent.innerHTML = ''; ui.currentPlanContent.style.display = 'none'; }
-             if(ui.verticalScheduleList) ui.verticalScheduleList.style.display = 'none';
-             if(ui.verticalScheduleNav) ui.verticalScheduleNav.style.display = 'none';
-             if(ui.planSection) ui.planSection.style.display = 'none';
+             setLoadingState('current', true); // Shows loader, hides content areas via setLoadingState
+             if (ui.currentPlanContent) ui.currentPlanContent.classList.remove('content-visible');
+             if (ui.verticalScheduleList) ui.verticalScheduleList.classList.remove('schedule-visible');
+             if (ui.verticalScheduleNav) ui.verticalScheduleNav.classList.remove('nav-visible');
+             if (ui.planSection) ui.planSection.classList.remove('visible-section');
 
              try {
                  const { data: plans, error } = await supabaseClient
@@ -723,7 +751,7 @@
                  if (plans && plans.length > 0) {
                      state.currentStudyPlan = plans[0];
                      console.log("[CurrentPlan] Active plan found:", state.currentStudyPlan.id);
-                     await showVerticalSchedule(state.currentStudyPlan);
+                     await showVerticalSchedule(state.currentStudyPlan); // This will handle showing the list/nav
                  } else {
                      state.currentStudyPlan = null;
                      console.log("[CurrentPlan] No active plan found. Checking diagnostic...");
@@ -747,10 +775,32 @@
                  console.log("[CurrentPlan] Loading finished.");
              }
          };
-        const renderPromptCreatePlan = (container) => { if (!container || !ui.promptCreatePlanTemplate) return; const node = ui.promptCreatePlanTemplate.content.cloneNode(true); const btn = node.getElementById('createNewPlanFromPromptBtn'); if(btn) btn.addEventListener('click', () => switchTab('create')); container.innerHTML = ''; container.appendChild(node); container.style.display='block'; };
-        const renderNoActivePlan = (container) => { if (!container || !ui.noActivePlanTemplate) return; const node = ui.noActivePlanTemplate.content.cloneNode(true); const link = node.querySelector('.link-to-create-tab'); if (link) link.addEventListener('click', (e) => { e.preventDefault(); switchTab('create'); }); container.innerHTML = ''; container.appendChild(node); container.style.display = 'block'; };
 
-        // --- NOVÁ FUNKCE pro zobrazení vertikálního harmonogramu ---
+        // *** Upravený renderPromptCreatePlan s třídou ***
+        const renderPromptCreatePlan = (container) => {
+             if (!container || !ui.promptCreatePlanTemplate) return;
+             const node = ui.promptCreatePlanTemplate.content.cloneNode(true);
+             const btn = node.getElementById('createNewPlanFromPromptBtn');
+             if (btn) btn.addEventListener('click', () => switchTab('create'));
+             container.innerHTML = '';
+             container.appendChild(node);
+             container.classList.add('content-visible'); // <<< ADD VISIBILITY CLASS
+             container.style.display = ''; // Reset direct style
+        };
+
+        // *** Upravený renderNoActivePlan s třídou ***
+        const renderNoActivePlan = (container) => {
+             if (!container || !ui.noActivePlanTemplate) return;
+             const node = ui.noActivePlanTemplate.content.cloneNode(true);
+             const link = node.querySelector('.link-to-create-tab');
+             if (link) link.addEventListener('click', (e) => { e.preventDefault(); switchTab('create'); });
+             container.innerHTML = '';
+             container.appendChild(node);
+             container.classList.add('content-visible'); // <<< ADD VISIBILITY CLASS
+             container.style.display = ''; // Reset direct style
+        };
+
+        // --- Upravený showVerticalSchedule s třídami ---
         const showVerticalSchedule = async (plan) => {
              if (!supabaseClient || !plan || !plan.id) {
                   console.error("[ShowVertical] Invalid plan data.");
@@ -758,10 +808,7 @@
                   return;
              }
              console.log(`[ShowVertical] Displaying schedule for Plan ID ${plan.id}`);
-             setLoadingState('schedule', true); // Uses loader in #currentPlanSection
-             if(ui.currentPlanContent) ui.currentPlanContent.style.display = 'none'; // Hide messages
-             if(ui.verticalScheduleList) ui.verticalScheduleList.innerHTML = ''; // Clear previous list
-             if(ui.verticalScheduleNav) ui.verticalScheduleNav.style.display = 'none'; // Hide nav
+             setLoadingState('schedule', true); // Shows loader, hides list/nav via classes
 
              try {
                  const { data: activities, error } = await supabaseClient
@@ -771,28 +818,28 @@
                      .order('day_of_week')
                      .order('time_slot');
                  if (error) throw error;
-                 console.log(`[ShowVertical] Fetched ${activities?.length ?? 0} activities.`);
+                 console.log(`[ShowVertical] Fetched ${activities?.length} activities.`);
 
-                 // Render content AFTER data is fetched
-                 renderVerticalSchedule(activities || [], plan.id); // Call the render function
+                 renderVerticalSchedule(activities || [], plan.id); // Render the HTML
 
-                 // Make list and nav visible AFTER rendering is complete
-                 console.log("[ShowVertical] Rendering complete, showing list and nav.");
-                 if(ui.verticalScheduleList) ui.verticalScheduleList.style.display = 'flex'; // Use flex for column layout
-                 if(ui.verticalScheduleNav) ui.verticalScheduleNav.style.display = 'flex'; // Show navigation
+                 // Show list and nav AFTER rendering is complete using classes
+                 console.log("[ShowVertical] Rendering complete, adding visibility classes.");
+                 if (ui.verticalScheduleList) ui.verticalScheduleList.classList.add('schedule-visible');
+                 if (ui.verticalScheduleNav) ui.verticalScheduleNav.classList.add('nav-visible');
+
 
              } catch (error) {
                  console.error("[ShowVertical] Error fetching activities:", error);
-                 renderMessage(ui.currentPlanContent, 'error', 'Chyba Harmonogramu', 'Nepodařilo se načíst aktivity.'); // Show error in main content area
-                 if(ui.verticalScheduleList) ui.verticalScheduleList.style.display = 'none'; // Ensure list is hidden on error
-                 if(ui.verticalScheduleNav) ui.verticalScheduleNav.style.display = 'none';
+                 renderMessage(ui.currentPlanContent, 'error', 'Chyba Harmonogramu', 'Nepodařilo se načíst aktivity.'); // Show error message in its container
+                 if(ui.verticalScheduleList) ui.verticalScheduleList.classList.remove('schedule-visible'); // Ensure list is hidden on error
+                 if(ui.verticalScheduleNav) ui.verticalScheduleNav.classList.remove('nav-visible');
              } finally {
-                 setLoadingState('schedule', false); // Hide loader in #currentPlanSection
+                 setLoadingState('schedule', false); // Hide loader
                  initTooltips();
              }
          };
 
-        // --- NOVÁ FUNKCE pro renderování vertikálního harmonogramu ---
+        // --- Upravený renderVerticalSchedule bez přímé změny display ---
         const renderVerticalSchedule = (activities, planId) => {
              const days = ['Neděle', 'Pondělí', 'Úterý', 'Středa', 'Čtvrtek', 'Pátek', 'Sobota'];
              const todayIndex = new Date().getDay();
@@ -802,17 +849,12 @@
              listContainer.innerHTML = ''; // Clear previous content
              if (!Array.isArray(activities)) activities = [];
 
-             // Group activities by day
              const activitiesByDay = {};
-             for (let i = 0; i <= 6; i++) { activitiesByDay[i] = []; } // Initialize for all days
-             activities.forEach(act => {
-                 if (activitiesByDay[act.day_of_week] !== undefined) {
-                     activitiesByDay[act.day_of_week].push(act);
-                 }
-             });
+             for (let i = 0; i <= 6; i++) { activitiesByDay[i] = []; }
+             activities.forEach(act => { if (activitiesByDay[act.day_of_week] !== undefined) activitiesByDay[act.day_of_week].push(act); });
              console.log("[RenderVertical] Grouped activities:", activitiesByDay);
 
-             const daysOrder = [1, 2, 3, 4, 5, 6, 0]; // Mon -> Sun order
+             const daysOrder = [1, 2, 3, 4, 5, 6, 0];
              let hasAnyActivity = false;
 
              daysOrder.forEach(dayIndex => {
@@ -822,10 +864,7 @@
 
                  const dayCard = document.createElement('div');
                  dayCard.className = `day-schedule-card ${isToday ? 'today' : ''}`;
-                 // Start expanded if it's today or has activities
-                 if (isToday || dayActivities.length > 0) {
-                     dayCard.classList.add('expanded');
-                 }
+                 if (isToday || dayActivities.length > 0) { dayCard.classList.add('expanded'); }
 
                  const dayHeader = document.createElement('div');
                  dayHeader.className = 'day-header';
@@ -836,45 +875,20 @@
                  activitiesContainer.className = 'activity-list-container';
 
                  if (dayActivities.length > 0) {
-                     hasAnyActivity = true; // Mark that we found at least one activity
-                     dayActivities.forEach(activity => {
-                         if (!activity.id) return;
-                         const activityElement = document.createElement('div');
-                         activityElement.className = `activity-list-item ${activity.completed ? 'completed' : ''}`;
-                         activityElement.dataset.activityId = activity.id;
-
-                         const timeDisplay = activity.time_slot ? `<span class="activity-time-display">${activity.time_slot}</span>` : '';
-                         const iconClass = getActivityIcon(activity.title);
-                         const hasDescription = activity.description && activity.description.trim().length > 0;
-                         const expandIcon = hasDescription ? `<button class="expand-icon-button" aria-label="Rozbalit popis"><i class="fas fa-chevron-down expand-icon"></i></button>` : '';
-
-                         activityElement.innerHTML = `
-                             <label class="activity-checkbox">
-                                 <input type="checkbox" id="vertical-activity-${activity.id}" ${activity.completed ? 'checked' : ''} data-activity-id="${activity.id}" data-plan-id="${planId}">
-                             </label>
-                             <i class="fas ${iconClass} activity-icon"></i>
-                             <div class="activity-details">
-                                 <div class="activity-header">
-                                     <div class="activity-title-time">
-                                         <span class="activity-title">${sanitizeHTML(activity.title || 'Aktivita')}</span>
-                                         ${timeDisplay}
-                                     </div>
-                                     ${expandIcon}
-                                 </div>
-                                 ${hasDescription ? `<div class="activity-desc">${sanitizeHTML(activity.description)}</div>` : ''}
-                             </div>`;
-
-                         const checkbox = activityElement.querySelector('input[type="checkbox"]');
-                         if(checkbox) {
-                             checkbox.addEventListener('change', function(e) {
-                                 e.stopPropagation(); // Prevent triggering header click
-                                 handleActivityCompletionToggle(this.dataset.activityId, this.checked, this.dataset.planId);
-                                 activityElement.classList.toggle('completed', this.checked);
-                             });
-                         }
-                         // Event listener for expand button/title area moved to delegation in setupEventListeners
-                         activitiesContainer.appendChild(activityElement);
-                     });
+                     hasAnyActivity = true;
+                     dayActivities.forEach(activity => { /* ... HTML generation for activity items ... */
+                           if (!activity.id) return;
+                           const activityElement = document.createElement('div');
+                           activityElement.className = `activity-list-item ${activity.completed ? 'completed' : ''}`;
+                           activityElement.dataset.activityId = activity.id;
+                           const timeDisplay = activity.time_slot ? `<span class="activity-time-display">${activity.time_slot}</span>` : '';
+                           const iconClass = getActivityIcon(activity.title);
+                           const hasDescription = activity.description && activity.description.trim().length > 0;
+                           const expandIcon = hasDescription ? `<button class="expand-icon-button" aria-label="Rozbalit popis"><i class="fas fa-chevron-down expand-icon"></i></button>` : '';
+                           activityElement.innerHTML = `<label class="activity-checkbox"><input type="checkbox" id="vertical-activity-${activity.id}" ${activity.completed ? 'checked' : ''} data-activity-id="${activity.id}" data-plan-id="${planId}"></label><i class="fas ${iconClass} activity-icon"></i><div class="activity-details"><div class="activity-header"><div class="activity-title-time"><span class="activity-title">${sanitizeHTML(activity.title || 'Aktivita')}</span>${timeDisplay}</div>${expandIcon}</div>${hasDescription ? `<div class="activity-desc">${sanitizeHTML(activity.description)}</div>` : ''}</div>`;
+                           // Checkbox listener moved to delegation
+                           activitiesContainer.appendChild(activityElement);
+                      });
                  } else {
                      activitiesContainer.innerHTML = `<div class="no-activities-day">Žádné aktivity pro tento den.</div>`;
                  }
@@ -882,46 +896,49 @@
                  listContainer.appendChild(dayCard);
              });
 
-             // If no activities were found for *any* day, show a general message instead of the day list
              if (!hasAnyActivity) {
                   console.log("[RenderVertical] No activities found in the entire plan.");
                   listContainer.innerHTML = '<div class="no-activities-day" style="padding: 2rem; border: none;">Pro tento plán nebyly nalezeny žádné aktivity.</div>';
              }
 
-             listContainer.style.display = 'flex'; // Make the list container visible
-             console.log("[RenderVertical] Vertical schedule rendering complete.");
+             // listContainer.style.display = 'flex'; // <<< REMOVED: Visibility controlled by class now
+             console.log("[RenderVertical] Vertical schedule rendering logic complete.");
          };
         const getActivityIcon = (title = '') => { const lowerTitle = title.toLowerCase(); if (lowerTitle.includes('test')) return 'fa-vial'; if (lowerTitle.includes('cvičení') || lowerTitle.includes('příklad')) return 'fa-pencil-alt'; if (lowerTitle.includes('opakování') || lowerTitle.includes('shrnutí')) return 'fa-history'; if (lowerTitle.includes('geometrie')) return 'fa-draw-polygon'; if (lowerTitle.includes('algebra')) return 'fa-square-root-alt'; if (lowerTitle.includes('procent')) return 'fa-percentage'; return 'fa-tasks'; };
-        const renderVerticalScheduleSkeletons = (count) => { if (!ui.verticalScheduleList) return; ui.verticalScheduleList.innerHTML = ''; ui.verticalScheduleList.style.display = 'flex'; if (count === 0) return; let skeletonHTML = ''; for (let i = 0; i < count; i++) { skeletonHTML += `<div class="skeleton day-card-skeleton"><div class="skeleton day-header-skeleton"></div><div class="skeleton activity-item-skeleton"><div class="skeleton activity-checkbox-skeleton"></div><div class="skeleton activity-content-skeleton"><div class="skeleton activity-title-skeleton"></div><div class="skeleton activity-meta-skeleton"></div></div></div><div class="skeleton activity-item-skeleton"><div class="skeleton activity-checkbox-skeleton"></div><div class="skeleton activity-content-skeleton"><div class="skeleton activity-title-skeleton" style="width: 60%;"></div></div></div></div>`; } ui.verticalScheduleList.innerHTML = skeletonHTML; };
-        const handleActivityCompletionToggle = async (activityId, isCompleted, planId) => { if (!supabaseClient) return; try { const { error } = await supabaseClient.from('plan_activities').update({ completed: isCompleted, updated_at: new Date().toISOString() }).eq('id', activityId); if (error) throw error; console.log(`[ActivityToggle] Aktivita ${activityId} stav: ${isCompleted}`); await updatePlanProgress(planId); } catch (error) { console.error(`[ActivityToggle] Chyba aktualizace aktivity ${activityId}:`, error); showToast('Nepodařilo se aktualizovat stav aktivity.', 'error'); const checkbox = document.getElementById(`vertical-activity-${activityId}`); const activityElement = document.querySelector(`.activity-list-item[data-activity-id="${activityId}"]`); if(checkbox) checkbox.checked = !isCompleted; if(activityElement) activityElement.classList.toggle('completed', !isCompleted); } };
-        const updatePlanProgress = async (planId) => { if (!planId || !supabaseClient) return; console.log(`[PlanProgress] Updating progress for plan ${planId}`); try { const { count: totalCount, error: countError } = await supabaseClient.from('plan_activities').select('id', { count: 'exact', head: true }).eq('plan_id', planId); const { count: completedCount, error: completedError } = await supabaseClient.from('plan_activities').select('id', { count: 'exact', head: true }).eq('plan_id', planId).eq('completed', true); if (countError || completedError) throw countError || completedError; const numTotal = totalCount ?? 0; const numCompleted = completedCount ?? 0; const progress = numTotal > 0 ? Math.round((numCompleted / numTotal) * 100) : 0; console.log(`[PlanProgress] Plan ${planId}: ${numCompleted}/${numTotal} completed (${progress}%)`); const { error: updateError } = await supabaseClient.from('study_plans').update({ progress: progress, updated_at: new Date().toISOString() }).eq('id', planId); if (updateError) throw updateError; console.log(`[PlanProgress] Plan ${planId} progress DB updated to ${progress}%`); if (state.currentStudyPlan?.id === planId) state.currentStudyPlan.progress = progress; } catch (error) { console.error(`[PlanProgress] Error updating plan progress ${planId}:`, error); } };
+        const renderVerticalScheduleSkeletons = (count) => { if (!ui.verticalScheduleList) return; ui.verticalScheduleList.innerHTML = ''; ui.verticalScheduleList.classList.add('schedule-visible'); // Show skeleton container
+ if (count === 0) { ui.verticalScheduleList.classList.remove('schedule-visible'); return; } let skeletonHTML = ''; for (let i = 0; i < count; i++) { skeletonHTML += `<div class="skeleton day-card-skeleton"><div class="skeleton day-header-skeleton"></div><div class="skeleton activity-item-skeleton"><div class="skeleton activity-checkbox-skeleton"></div><div class="skeleton activity-content-skeleton"><div class="skeleton activity-title-skeleton"></div><div class="skeleton activity-meta-skeleton"></div></div></div><div class="skeleton activity-item-skeleton"><div class="skeleton activity-checkbox-skeleton"></div><div class="skeleton activity-content-skeleton"><div class="skeleton activity-title-skeleton" style="width: 60%;"></div></div></div></div>`; } ui.verticalScheduleList.innerHTML = skeletonHTML; };
+        const handleActivityCompletionToggle = async (activityId, isCompleted, planId) => { /* ... (code unchanged) ... */ if (!supabaseClient) return; try { const { error } = await supabaseClient.from('plan_activities').update({ completed: isCompleted, updated_at: new Date().toISOString() }).eq('id', activityId); if (error) throw error; console.log(`[ActivityToggle] Aktivita ${activityId} stav: ${isCompleted}`); await updatePlanProgress(planId); } catch (error) { console.error(`[ActivityToggle] Chyba aktualizace aktivity ${activityId}:`, error); showToast('Nepodařilo se aktualizovat stav aktivity.', 'error'); const checkbox = document.getElementById(`vertical-activity-${activityId}`); const activityElement = document.querySelector(`.activity-list-item[data-activity-id="${activityId}"]`); if(checkbox) checkbox.checked = !isCompleted; if(activityElement) activityElement.classList.toggle('completed', !isCompleted); } };
+        const updatePlanProgress = async (planId) => { /* ... (code unchanged) ... */ if (!planId || !supabaseClient) return; console.log(`[PlanProgress] Updating progress for plan ${planId}`); try { const { count: totalCount, error: countError } = await supabaseClient.from('plan_activities').select('id', { count: 'exact', head: true }).eq('plan_id', planId); const { count: completedCount, error: completedError } = await supabaseClient.from('plan_activities').select('id', { count: 'exact', head: true }).eq('plan_id', planId).eq('completed', true); if (countError || completedError) throw countError || completedError; const numTotal = totalCount ?? 0; const numCompleted = completedCount ?? 0; const progress = numTotal > 0 ? Math.round((numCompleted / numTotal) * 100) : 0; console.log(`[PlanProgress] Plan ${planId}: ${numCompleted}/${numTotal} completed (${progress}%)`); const { error: updateError } = await supabaseClient.from('study_plans').update({ progress: progress, updated_at: new Date().toISOString() }).eq('id', planId); if (updateError) throw updateError; console.log(`[PlanProgress] Plan ${planId} progress DB updated to ${progress}%`); if (state.currentStudyPlan?.id === planId) state.currentStudyPlan.progress = progress; } catch (error) { console.error(`[PlanProgress] Error updating plan progress ${planId}:`, error); } };
 
         // ==============================================
         //          Historie Plánů
         // ==============================================
-        const loadPlanHistory = async () => { /* ... (code unchanged) ... */ if (!supabaseClient || !state.currentUser) return; setLoadingState('history', true); if(ui.historyPlanContent) ui.historyPlanContent.innerHTML = ''; try { const { data: plans, error } = await supabaseClient.from('study_plans').select('id, title, created_at, status, progress').eq('user_id', state.currentUser.id).order('created_at', { ascending: false }); if (error) throw error; state.previousPlans = plans || []; renderPlanHistory(state.previousPlans); } catch (error) { console.error("Chyba načítání historie plánů:", error); renderMessage(ui.historyPlanContent, 'error', 'Chyba', 'Nepodařilo se načíst historii plánů.'); if(ui.historyPlanContent) ui.historyPlanContent.style.display = 'block'; } finally { setLoadingState('history', false); } };
-        const renderPlanHistory = (plans) => { /* ... (code unchanged) ... */ if (!ui.historyPlanContent) return; if (!plans || plans.length === 0) { renderMessage(ui.historyPlanContent, 'info', 'Žádná historie', 'Zatím jste nevytvořili žádné studijní plány.'); ui.historyPlanContent.style.display = 'block'; return; } ui.historyPlanContent.innerHTML = ''; ui.historyPlanContent.style.display = 'grid'; plans.forEach(plan => { const node = ui.historyItemTemplate.content.cloneNode(true); const item = node.querySelector('.history-item'); if(item) { item.dataset.planId = plan.id; item.classList.add(plan.status || 'inactive'); const dateEl = item.querySelector('.history-date'); const titleEl = item.querySelector('.history-title'); const progressEl = item.querySelector('.history-progress'); const statusEl = item.querySelector('.history-status'); if(dateEl) dateEl.textContent = `Vytvořeno: ${formatDate(plan.created_at)}`; if(titleEl) titleEl.textContent = plan.title || "Studijní plán"; if(progressEl) progressEl.innerHTML = `Pokrok: <strong>${plan.progress ?? 0}%</strong>`; if(statusEl) { const statusText = plan.status === 'active' ? 'Aktivní' : plan.status === 'completed' ? 'Dokončený' : 'Neaktivní'; statusEl.textContent = statusText; statusEl.className = `history-status ${plan.status || 'inactive'}`; } item.addEventListener('click', () => showPlanDetail(plan)); ui.historyPlanContent.appendChild(node); } }); };
-        const renderHistorySkeletons = (count) => { /* ... (code unchanged) ... */ if (!ui.historyPlanContent) return; ui.historyPlanContent.innerHTML = ''; ui.historyPlanContent.style.display = 'grid'; if (count === 0) return; let skeletonHTML = ''; for (let i = 0; i < count; i++) { skeletonHTML += `<div class="skeleton history-item-skeleton"><div class="skeleton text-sm" style="width: 40%;"></div><div class="skeleton title-sm" style="width: 80%; height: 16px;"></div><div class="skeleton text-sm" style="width: 50%;"></div></div>`; } ui.historyPlanContent.innerHTML = skeletonHTML; };
-        const showPlanDetail = async (plan) => { /* ... (code unchanged) ... */ if (!plan || !plan.id || !supabaseClient) return; ui.currentPlanSection.style.display = 'none'; ui.historyPlanSection.style.display = 'none'; ui.createPlanSection.style.display = 'none'; if(ui.verticalScheduleList) ui.verticalScheduleList.style.display = 'none'; if(ui.verticalScheduleNav) ui.verticalScheduleNav.style.display = 'none'; ui.planSection.style.display = 'block'; setLoadingState('detail', true); if(ui.planContent) ui.planContent.innerHTML = ''; if(ui.planActions) ui.planActions.innerHTML = ''; if(ui.planSectionTitle) ui.planSectionTitle.textContent = 'Načítání detailu...'; if (ui.genericBackBtn) ui.genericBackBtn.onclick = () => switchTab('history'); try { if (!plan.plan_content_markdown) { console.log("Načítám plný markdown pro detail..."); const { data: fullData, error: fetchError } = await supabaseClient.from('study_plans').select('plan_content_markdown, title, created_at, estimated_completion_date').eq('id', plan.id).single(); if (fetchError) throw fetchError; plan = { ...plan, ...fullData }; } if(ui.planSectionTitle) ui.planSectionTitle.textContent = plan.title || 'Detail studijního plánu'; const metaDateEl = document.getElementById('plan-meta-date'); if (metaDateEl) metaDateEl.textContent = `Vytvořeno: ${formatDate(plan.created_at)}`; displayPlanContent(plan.plan_content_markdown || '# Studijní plán\n\nObsah plánu není k dispozici.'); if(ui.planActions) { ui.planActions.innerHTML = `<button class="btn btn-success btn-tooltip" id="exportDetailPlanBtn" title="Stáhnout plán jako PDF"><i class="fas fa-file-pdf"></i> Export PDF</button>`; const exportButton = ui.planActions.querySelector('#exportDetailPlanBtn'); if(exportButton) exportButton.addEventListener('click', () => exportPlanToPDFWithStyle(plan)); ui.planActions.style.display = 'flex'; } ui.planSection.scrollIntoView({ behavior: 'smooth' }); initTooltips(); } catch (error) { console.error("Chyba načítání detailu plánu:", error); renderMessage(ui.planContent, 'error', 'Chyba', 'Nepodařilo se načíst detail plánu.'); if(ui.planActions) ui.planActions.innerHTML = ''; } finally { setLoadingState('detail', false); } };
+        const loadPlanHistory = async () => { /* ... (code unchanged) ... */ if (!supabaseClient || !state.currentUser) return; setLoadingState('history', true); if(ui.historyPlanContent) ui.historyPlanContent.innerHTML = ''; try { const { data: plans, error } = await supabaseClient.from('study_plans').select('id, title, created_at, status, progress').eq('user_id', state.currentUser.id).order('created_at', { ascending: false }); if (error) throw error; state.previousPlans = plans || []; renderPlanHistory(state.previousPlans); } catch (error) { console.error("Chyba načítání historie plánů:", error); renderMessage(ui.historyPlanContent, 'error', 'Chyba', 'Nepodařilo se načíst historii plánů.'); if(ui.historyPlanContent) ui.historyPlanContent.classList.add('content-visible'); } finally { setLoadingState('history', false); } };
+        const renderPlanHistory = (plans) => { /* ... (code unchanged, uses template) ... */ if (!ui.historyPlanContent) return; if (!plans || plans.length === 0) { renderMessage(ui.historyPlanContent, 'info', 'Žádná historie', 'Zatím jste nevytvořili žádné studijní plány.'); ui.historyPlanContent.classList.add('content-visible'); ui.historyPlanContent.style.display = 'block'; // Keep display:block from renderMessage
+ return; } ui.historyPlanContent.innerHTML = ''; ui.historyPlanContent.style.display = 'grid'; plans.forEach(plan => { const node = ui.historyItemTemplate.content.cloneNode(true); const item = node.querySelector('.history-item'); if(item) { item.dataset.planId = plan.id; item.classList.add(plan.status || 'inactive'); const dateEl = item.querySelector('.history-date'); const titleEl = item.querySelector('.history-title'); const progressEl = item.querySelector('.history-progress'); const statusEl = item.querySelector('.history-status'); if(dateEl) dateEl.textContent = `Vytvořeno: ${formatDate(plan.created_at)}`; if(titleEl) titleEl.textContent = plan.title || "Studijní plán"; if(progressEl) progressEl.innerHTML = `Pokrok: <strong>${plan.progress ?? 0}%</strong>`; if(statusEl) { const statusText = plan.status === 'active' ? 'Aktivní' : plan.status === 'completed' ? 'Dokončený' : 'Neaktivní'; statusEl.textContent = statusText; statusEl.className = `history-status ${plan.status || 'inactive'}`; } item.addEventListener('click', () => showPlanDetail(plan)); ui.historyPlanContent.appendChild(node); } }); ui.historyPlanContent.classList.add('content-visible'); };
+        const renderHistorySkeletons = (count) => { /* ... (code unchanged) ... */ if (!ui.historyPlanContent) return; ui.historyPlanContent.innerHTML = ''; ui.historyPlanContent.style.display = 'grid'; ui.historyPlanContent.classList.add('content-visible'); if (count === 0) return; let skeletonHTML = ''; for (let i = 0; i < count; i++) { skeletonHTML += `<div class="skeleton history-item-skeleton"><div class="skeleton text-sm" style="width: 40%;"></div><div class="skeleton title-sm" style="width: 80%; height: 16px;"></div><div class="skeleton text-sm" style="width: 50%;"></div></div>`; } ui.historyPlanContent.innerHTML = skeletonHTML; };
+        const showPlanDetail = async (plan) => { /* ... (code unchanged) ... */ if (!plan || !plan.id || !supabaseClient) return; ui.currentPlanSection.classList.remove('visible-section'); ui.historyPlanSection.classList.remove('visible-section'); ui.createPlanSection.classList.remove('visible-section'); ui.planSection.classList.add('visible-section'); // Show detail section
+ setLoadingState('detail', true); if(ui.planContent) ui.planContent.innerHTML = ''; if(ui.planActions) ui.planActions.innerHTML = ''; if(ui.planSectionTitle) ui.planSectionTitle.textContent = 'Načítání detailu...'; if (ui.genericBackBtn) ui.genericBackBtn.onclick = () => switchTab('history'); try { if (!plan.plan_content_markdown) { console.log("Načítám plný markdown pro detail..."); const { data: fullData, error: fetchError } = await supabaseClient.from('study_plans').select('plan_content_markdown, title, created_at, estimated_completion_date').eq('id', plan.id).single(); if (fetchError) throw fetchError; plan = { ...plan, ...fullData }; } if(ui.planSectionTitle) ui.planSectionTitle.textContent = plan.title || 'Detail studijního plánu'; const metaDateEl = document.getElementById('plan-meta-date'); if (metaDateEl) metaDateEl.textContent = `Vytvořeno: ${formatDate(plan.created_at)}`; displayPlanContent(plan.plan_content_markdown || '# Studijní plán\n\nObsah plánu není k dispozici.'); if(ui.planActions) { ui.planActions.innerHTML = `<button class="btn btn-success btn-tooltip" id="exportDetailPlanBtn" title="Stáhnout plán jako PDF"><i class="fas fa-file-pdf"></i> Export PDF</button>`; const exportButton = ui.planActions.querySelector('#exportDetailPlanBtn'); if(exportButton) exportButton.addEventListener('click', () => exportPlanToPDFWithStyle(plan)); ui.planActions.style.display = 'flex'; } ui.planSection.scrollIntoView({ behavior: 'smooth' }); initTooltips(); } catch (error) { console.error("Chyba načítání detailu plánu:", error); renderMessage(ui.planContent, 'error', 'Chyba', 'Nepodařilo se načíst detail plánu.'); if(ui.planActions) ui.planActions.innerHTML = ''; } finally { setLoadingState('detail', false); } };
 
 
         // ==============================================
         //          Vytvoření Plánu
         // ==============================================
         const getLatestDiagnostic = async (showLoaderFlag = true) => { /* ... (code unchanged) ... */ if (!state.currentUser || !supabaseClient) return null; if (showLoaderFlag) setLoadingState('create', true); try { const { data, error } = await supabaseClient.from('user_diagnostics').select('id, completed_at, total_score, total_questions, topic_results, analysis').eq('user_id', state.currentUser.id).order('completed_at', { ascending: false }).limit(1); if (error) throw error; return (data && data.length > 0) ? data[0] : null; } catch (error) { console.error("Chyba načítání diagnostiky:", error); return null; } finally { if (showLoaderFlag) setLoadingState('create', false); } };
-        const checkPlanCreationAvailability = async () => { /* ... (code unchanged) ... */ if (!supabaseClient || !state.currentUser) return; setLoadingState('create', true); if(ui.createPlanContent) ui.createPlanContent.innerHTML = ''; try { state.latestDiagnosticData = await getLatestDiagnostic(false); if (state.latestDiagnosticData === null) { renderMessage(ui.createPlanContent, 'error', 'Chyba', 'Nepodařilo se ověřit váš diagnostický test.'); return; } else if (!state.latestDiagnosticData) { renderNoDiagnosticAvailable(ui.createPlanContent); return; } const { data: latestPlan, error: planError } = await supabaseClient.from('study_plans').select('created_at').eq('user_id', state.currentUser.id).order('created_at', { ascending: false }).limit(1); if (planError) throw planError; let canCreate = true; if (latestPlan && latestPlan.length > 0) { const lastPlanDate = new Date(latestPlan[0].created_at); const oneWeekAgo = new Date(); oneWeekAgo.setDate(oneWeekAgo.getDate() - 7); if (lastPlanDate > oneWeekAgo) { canCreate = false; state.nextPlanCreateTime = new Date(lastPlanDate); state.nextPlanCreateTime.setDate(state.nextPlanCreateTime.getDate() + 7); } } state.planCreateAllowed = canCreate; if (canCreate) renderPlanCreationForm(); else renderLockedPlanSection(); } catch (error) { console.error('Chyba při kontrole dostupnosti vytvoření plánu:', error); renderMessage(ui.createPlanContent, 'error', 'Chyba', 'Nepodařilo se ověřit možnost vytvoření plánu.'); } finally { setLoadingState('create', false); if(ui.createPlanContent) ui.createPlanContent.style.display = 'block'; } };
-        const renderNoDiagnosticAvailable = (container) => { /* ... (code unchanged) ... */ if (!container || !ui.noDiagnosticTemplate) return; const node = ui.noDiagnosticTemplate.content.cloneNode(true); const btn = node.getElementById('goToTestBtn'); if(btn) btn.onclick = () => window.location.href = 'test1.html'; container.innerHTML = ''; container.appendChild(node); container.style.display='block'; };
-        const renderLockedPlanSection = () => { /* ... (code unchanged) ... */ if(!ui.createPlanContent || !ui.lockedPlanTemplate) return; const node = ui.lockedPlanTemplate.content.cloneNode(true); const timerEl = node.getElementById('nextPlanTimer'); const viewBtn = node.getElementById('viewCurrentPlanBtnLocked'); if(timerEl) updateNextPlanTimer(timerEl); if(viewBtn) viewBtn.addEventListener('click', () => switchTab('current')); ui.createPlanContent.innerHTML = ''; ui.createPlanContent.appendChild(node); startPlanTimer(); };
+        const checkPlanCreationAvailability = async () => { /* ... (code unchanged, uses renderMessage correctly) ... */ if (!supabaseClient || !state.currentUser) return; setLoadingState('create', true); if(ui.createPlanContent) ui.createPlanContent.innerHTML = ''; try { state.latestDiagnosticData = await getLatestDiagnostic(false); if (state.latestDiagnosticData === null) { renderMessage(ui.createPlanContent, 'error', 'Chyba', 'Nepodařilo se ověřit váš diagnostický test.'); return; } else if (!state.latestDiagnosticData) { renderNoDiagnosticAvailable(ui.createPlanContent); return; } const { data: latestPlan, error: planError } = await supabaseClient.from('study_plans').select('created_at').eq('user_id', state.currentUser.id).order('created_at', { ascending: false }).limit(1); if (planError) throw planError; let canCreate = true; if (latestPlan && latestPlan.length > 0) { const lastPlanDate = new Date(latestPlan[0].created_at); const oneWeekAgo = new Date(); oneWeekAgo.setDate(oneWeekAgo.getDate() - 7); if (lastPlanDate > oneWeekAgo) { canCreate = false; state.nextPlanCreateTime = new Date(lastPlanDate); state.nextPlanCreateTime.setDate(state.nextPlanCreateTime.getDate() + 7); } } state.planCreateAllowed = canCreate; if (canCreate) renderPlanCreationForm(); else renderLockedPlanSection(); } catch (error) { console.error('Chyba při kontrole dostupnosti vytvoření plánu:', error); renderMessage(ui.createPlanContent, 'error', 'Chyba', 'Nepodařilo se ověřit možnost vytvoření plánu.'); } finally { setLoadingState('create', false); if(ui.createPlanContent) ui.createPlanContent.classList.add('content-visible'); } };
+        const renderNoDiagnosticAvailable = (container) => { /* ... (code unchanged, uses template) ... */ if (!container || !ui.noDiagnosticTemplate) return; const node = ui.noDiagnosticTemplate.content.cloneNode(true); const btn = node.getElementById('goToTestBtn'); if(btn) btn.onclick = () => window.location.href = 'test1.html'; container.innerHTML = ''; container.appendChild(node); container.classList.add('content-visible'); container.style.display = ''; };
+        const renderLockedPlanSection = () => { /* ... (code unchanged, uses template) ... */ if(!ui.createPlanContent || !ui.lockedPlanTemplate) return; const node = ui.lockedPlanTemplate.content.cloneNode(true); const timerEl = node.getElementById('nextPlanTimer'); const viewBtn = node.getElementById('viewCurrentPlanBtnLocked'); if(timerEl) updateNextPlanTimer(timerEl); if(viewBtn) viewBtn.addEventListener('click', () => switchTab('current')); ui.createPlanContent.innerHTML = ''; ui.createPlanContent.appendChild(node); ui.createPlanContent.classList.add('content-visible'); ui.createPlanContent.style.display = ''; startPlanTimer(); };
         const startPlanTimer = () => { /* ... (code unchanged) ... */ if (state.planTimerInterval) clearInterval(state.planTimerInterval); state.planTimerInterval = setInterval(() => { const timerEl = document.getElementById('nextPlanTimer'); if (timerEl && document.body.contains(timerEl)) updateNextPlanTimer(timerEl); else clearInterval(state.planTimerInterval); }, 1000); };
         const updateNextPlanTimer = (el) => { /* ... (code unchanged) ... */ if (!state.nextPlanCreateTime || !el) return; const now = new Date(); const diff = state.nextPlanCreateTime - now; if (diff <= 0) { el.textContent = 'Nyní'; clearInterval(state.planTimerInterval); state.planCreateAllowed = true; if(state.currentTab === 'create') setTimeout(checkPlanCreationAvailability, 500); return; } const d = Math.floor(diff/(1000*60*60*24)), h = Math.floor((diff%(1000*60*60*24))/(1000*60*60)), m = Math.floor((diff%(1000*60*60))/(1000*60)), s = Math.floor((diff%(1000*60))/1000); el.textContent = `${d}d ${h}h ${m}m ${s}s`; };
-        const renderPlanCreationForm = () => { /* ... (code unchanged) ... */ if (!ui.createPlanContent || !ui.createPlanFormTemplate || !state.latestDiagnosticData) return; const node = ui.createPlanFormTemplate.content.cloneNode(true); const diagInfo = node.getElementById('diagnosticInfo'); if (diagInfo) { const score = state.latestDiagnosticData.total_score ?? '-'; const maxScore = state.latestDiagnosticData.total_questions ? state.latestDiagnosticData.total_questions * 1 : '50'; diagInfo.innerHTML = `<p>Plán bude vycházet z testu ze dne: <strong>${formatDate(state.latestDiagnosticData.completed_at)}</strong> (Skóre: ${score}/${maxScore})</p>`; } const genBtn = node.getElementById('generatePlanBtn'); if (genBtn) genBtn.addEventListener('click', handleGenerateClick); ui.createPlanContent.innerHTML = ''; ui.createPlanContent.appendChild(node); ui.createPlanContent.style.display = 'block'; };
+        const renderPlanCreationForm = () => { /* ... (code unchanged, uses template) ... */ if (!ui.createPlanContent || !ui.createPlanFormTemplate || !state.latestDiagnosticData) return; const node = ui.createPlanFormTemplate.content.cloneNode(true); const diagInfo = node.getElementById('diagnosticInfo'); if (diagInfo) { const score = state.latestDiagnosticData.total_score ?? '-'; const maxScore = state.latestDiagnosticData.total_questions ? state.latestDiagnosticData.total_questions * 1 : '50'; diagInfo.innerHTML = `<p>Plán bude vycházet z testu ze dne: <strong>${formatDate(state.latestDiagnosticData.completed_at)}</strong> (Skóre: ${score}/${maxScore})</p>`; } const genBtn = node.getElementById('generatePlanBtn'); if (genBtn) genBtn.addEventListener('click', handleGenerateClick); ui.createPlanContent.innerHTML = ''; ui.createPlanContent.appendChild(node); ui.createPlanContent.classList.add('content-visible'); ui.createPlanContent.style.display = ''; };
         const handleGenerateClick = function() { /* ... (code unchanged) ... */ this.disabled = true; this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generuji plán...'; generateStudyPlan(); };
 
 
         // ==============================================
         //          Generování a Ukládání Plánu
         // ==============================================
-        const generateStudyPlan = async () => { /* ... (code unchanged) ... */ if (!state.latestDiagnosticData || !state.currentUser) { showToast('Chybí data pro generování.', 'error'); return; } if (!GEMINI_API_KEY || GEMINI_API_KEY.startsWith('YOUR_')) { showToast('Chyba: Nastavte platný Gemini API klíč v kódu.', 'error'); return; } ui.currentPlanSection.style.display = 'none'; ui.historyPlanSection.style.display = 'none'; ui.createPlanSection.style.display = 'none'; if(ui.verticalScheduleList) ui.verticalScheduleList.style.display='none'; if(ui.verticalScheduleNav) ui.verticalScheduleNav.style.display = 'none'; ui.planSection.style.display = 'block'; setLoadingState('generation', true); if(ui.planContent) ui.planContent.innerHTML = ''; if(ui.planActions) ui.planActions.innerHTML = ''; state.lastGeneratedMarkdown = null; state.lastGeneratedActivitiesJson = null; if (ui.genericBackBtn) ui.genericBackBtn.onclick = () => switchTab('create'); try { const topicsData = Object.entries(state.latestDiagnosticData.topic_results || {}).map(([topicKey, data]) => ({ name: data.name || state.topicMap[topicKey] || `Téma ${topicKey}`, questions: data.total || 0, correct: data.correct || 0, percentage: data.score || 0 })).sort((a, b) => a.percentage - b.percentage); const fullMarkdownResponse = await generatePlanContentWithGemini(state.latestDiagnosticData, topicsData); const jsonRegex = /```json\s*([\s\S]*?)\s*```/; const jsonMatch = fullMarkdownResponse.match(jsonRegex); let activitiesArray = null; let planMarkdownForStorage = fullMarkdownResponse; if (jsonMatch && jsonMatch[1]) { try { activitiesArray = JSON.parse(jsonMatch[1].replace(/\u00A0/g, ' ').trim()); planMarkdownForStorage = fullMarkdownResponse.replace(jsonRegex, '').trim(); state.lastGeneratedActivitiesJson = activitiesArray; } catch (e) { console.error("Chyba parsování JSON aktivit:", e); showToast("Warning: Nepodařilo se zpracovat aktivity z plánu.", "warning"); state.lastGeneratedActivitiesJson = null; } } else { console.warn("JSON blok aktivit nenalezen."); state.lastGeneratedActivitiesJson = null; } state.lastGeneratedMarkdown = planMarkdownForStorage; if(ui.planSectionTitle) ui.planSectionTitle.textContent = 'Návrh studijního plánu'; displayPlanContent(state.lastGeneratedMarkdown); if(ui.planActions) { ui.planActions.innerHTML = `<button class="btn btn-primary" id="saveGeneratedPlanBtn"><i class="fas fa-save"></i> Uložit tento plán</button><button class="btn btn-success btn-tooltip" id="exportGeneratedPlanBtn" title="Stáhnout návrh jako PDF"><i class="fas fa-file-pdf"></i> Export PDF</button><button class="btn btn-secondary" id="regeneratePlanBtn"><i class="fas fa-sync-alt"></i> Vygenerovat znovu</button>`; const saveBtn = ui.planActions.querySelector('#saveGeneratedPlanBtn'); const exportBtn = ui.planActions.querySelector('#exportGeneratedPlanBtn'); const regenBtn = ui.planActions.querySelector('#regeneratePlanBtn'); if(saveBtn) saveBtn.addEventListener('click', () => saveGeneratedPlan(state.lastGeneratedMarkdown, state.lastGeneratedActivitiesJson, topicsData)); if(exportBtn) exportBtn.addEventListener('click', () => exportPlanToPDFWithStyle({ created_at: new Date(), plan_content_markdown: state.lastGeneratedMarkdown, title: "Nový návrh plánu" })); if(regenBtn) regenBtn.addEventListener('click', handleGenerateClick); ui.planActions.style.display = 'flex'; } ui.planSection.scrollIntoView({ behavior: 'smooth' }); initTooltips(); } catch (error) { console.error('Chyba generování plánu:', error); renderMessage(ui.planContent, 'error', 'Chyba generování', error.message); if(ui.planActions) { ui.planActions.innerHTML = `<button class="btn btn-secondary" id="regeneratePlanBtn"><i class="fas fa-sync-alt"></i> Vygenerovat znovu</button>`; const regenBtn = ui.planActions.querySelector('#regeneratePlanBtn'); if(regenBtn) regenBtn.addEventListener('click', handleGenerateClick); ui.planActions.style.display = 'flex'; } } finally { setLoadingState('generation', false); } };
+        const generateStudyPlan = async () => { /* ... (code unchanged) ... */ if (!state.latestDiagnosticData || !state.currentUser) { showToast('Chybí data pro generování.', 'error'); return; } if (!GEMINI_API_KEY || GEMINI_API_KEY.startsWith('YOUR_')) { showToast('Chyba: Nastavte platný Gemini API klíč v kódu.', 'error'); return; } ui.currentPlanSection.classList.remove('visible-section'); ui.historyPlanSection.classList.remove('visible-section'); ui.createPlanSection.classList.remove('visible-section'); ui.planSection.classList.add('visible-section'); // Show detail section for generation
+ setLoadingState('generation', true); if(ui.planContent) ui.planContent.innerHTML = ''; if(ui.planActions) ui.planActions.innerHTML = ''; state.lastGeneratedMarkdown = null; state.lastGeneratedActivitiesJson = null; if (ui.genericBackBtn) ui.genericBackBtn.onclick = () => switchTab('create'); try { const topicsData = Object.entries(state.latestDiagnosticData.topic_results || {}).map(([topicKey, data]) => ({ name: data.name || state.topicMap[topicKey] || `Téma ${topicKey}`, questions: data.total || 0, correct: data.correct || 0, percentage: data.score || 0 })).sort((a, b) => a.percentage - b.percentage); const fullMarkdownResponse = await generatePlanContentWithGemini(state.latestDiagnosticData, topicsData); const jsonRegex = /```json\s*([\s\S]*?)\s*```/; const jsonMatch = fullMarkdownResponse.match(jsonRegex); let activitiesArray = null; let planMarkdownForStorage = fullMarkdownResponse; if (jsonMatch && jsonMatch[1]) { try { activitiesArray = JSON.parse(jsonMatch[1].replace(/\u00A0/g, ' ').trim()); planMarkdownForStorage = fullMarkdownResponse.replace(jsonRegex, '').trim(); state.lastGeneratedActivitiesJson = activitiesArray; } catch (e) { console.error("Chyba parsování JSON aktivit:", e); showToast("Warning: Nepodařilo se zpracovat aktivity z plánu.", "warning"); state.lastGeneratedActivitiesJson = null; } } else { console.warn("JSON blok aktivit nenalezen."); state.lastGeneratedActivitiesJson = null; } state.lastGeneratedMarkdown = planMarkdownForStorage; if(ui.planSectionTitle) ui.planSectionTitle.textContent = 'Návrh studijního plánu'; displayPlanContent(state.lastGeneratedMarkdown); if(ui.planActions) { ui.planActions.innerHTML = `<button class="btn btn-primary" id="saveGeneratedPlanBtn"><i class="fas fa-save"></i> Uložit tento plán</button><button class="btn btn-success btn-tooltip" id="exportGeneratedPlanBtn" title="Stáhnout návrh jako PDF"><i class="fas fa-file-pdf"></i> Export PDF</button><button class="btn btn-secondary" id="regeneratePlanBtn"><i class="fas fa-sync-alt"></i> Vygenerovat znovu</button>`; const saveBtn = ui.planActions.querySelector('#saveGeneratedPlanBtn'); const exportBtn = ui.planActions.querySelector('#exportGeneratedPlanBtn'); const regenBtn = ui.planActions.querySelector('#regeneratePlanBtn'); if(saveBtn) saveBtn.addEventListener('click', () => saveGeneratedPlan(state.lastGeneratedMarkdown, state.lastGeneratedActivitiesJson, topicsData)); if(exportBtn) exportBtn.addEventListener('click', () => exportPlanToPDFWithStyle({ created_at: new Date(), plan_content_markdown: state.lastGeneratedMarkdown, title: "Nový návrh plánu" })); if(regenBtn) regenBtn.addEventListener('click', handleGenerateClick); ui.planActions.style.display = 'flex'; } ui.planSection.scrollIntoView({ behavior: 'smooth' }); initTooltips(); } catch (error) { console.error('Chyba generování plánu:', error); renderMessage(ui.planContent, 'error', 'Chyba generování', error.message); if(ui.planActions) { ui.planActions.innerHTML = `<button class="btn btn-secondary" id="regeneratePlanBtn"><i class="fas fa-sync-alt"></i> Vygenerovat znovu</button>`; const regenBtn = ui.planActions.querySelector('#regeneratePlanBtn'); if(regenBtn) regenBtn.addEventListener('click', handleGenerateClick); ui.planActions.style.display = 'flex'; } } finally { setLoadingState('generation', false); } };
         const generatePlanContentWithGemini = async (testData, topicsData) => { /* ... (code unchanged - prompt is complex) ... */ const totalScore = testData.total_score || 0; const totalQuestions = testData.total_questions || 1; const analysis = testData.analysis || {}; const overallAssessment = analysis.summary?.overall_assessment || 'N/A'; const strengths = analysis.strengths?.map(s => `${s.topic} (${s.score}%)`).join(', ') || 'Nebyly identifikovány'; const weaknesses = analysis.weaknesses?.map(w => `${w.topic} (${w.score}%)`).join(', ') || 'Nebyly identifikovány'; const recommendations = analysis.recommendations?.join('\n- ') || 'Žádná specifická.'; const prompt = ` Jsi expertní AI tutor specializující se na přípravu na PŘIJÍMACÍ ZKOUŠKY z matematiky pro 9. třídu ZŠ v Česku. Tvým úkolem je vytvořit NÁROČNÝ, DETAILNÍ a KONZISTENTNÍ týdenní studijní plán v ČEŠTINĚ ve formátu Markdown, zaměřený na dosažení co nejlepšího výsledku u zkoušek. Na konci MUSÍŠ vygenerovat JSON pole aktivit pro tento plán, které PŘESNĚ ODRÁŽÍ obsah Markdown plánu pro daný den. # Kontext: Student právě dokončil diagnostický test. # Výsledky diagnostického testu: - Celkové skóre: ${totalScore}/50 bodů - Počet otázek: ${totalQuestions} - Výsledky podle témat (Název tématu: Plně správně/Celkem otázek (Úspěšnost %)): ${topicsData.map(topic => `  - ${topic.name}: ${topic.correct}/${topic.questions} (${topic.percentage}%)`).join('\n')} # Analýza výsledků testu (Shrnutí od AI): - Celkové hodnocení: ${overallAssessment} - Identifikované silné stránky: ${strengths} - Identifikované slabé stránky: ${weaknesses} - Doporučení na základě testu: - ${recommendations} # Oficiální Témata Zkoušky (CERMAT - detailně): 1.  **Čísla a aritmetické operace:** Přirozená čísla (do milionu), nula. Sčítání, odčítání, násobení, dělení (vlastnosti, algoritmy). Zlomky (porovnávání, sčítání/odčítání se stejným jm.). Desetinná čísla, číselná osa. 2.  **Algebra:** Mocniny, odmocniny (základní operace). Lineární rovnice (jedna neznámá, úpravy). Soustavy 2 lineárních rovnic (dosazovací, sčítací metoda). Mnohočleny (sčítání, odčítání, násobení, vytýkání, vzorce (a±b)², a²-b²). Výrazy s proměnnými (dosazování, úpravy). 3.  **Geometrie:** Základní rovinné útvary (čtverec, obdélník, trojúhelník - typy, vlastnosti, věty; kruh/kružnice - části, vlastnosti). Kreslení, náčrty. Kolmost, rovnoběžnost. Obvod, obsah rovinných útvarů. Povrch a objem těles (krychle, kvádr, válec; základy kužele, koule). Pythagorova věta. Základní konstrukční úlohy. 4.  **Práce s daty:** Tabulky, diagramy (čtení, interpretace, jednoduchá tvorba). Aritmetický průměr, modus, medián. Grafy závislostí (čtení, interpretace). 5.  **Problémové úlohy:** Slovní úlohy (převod na matematický model, řešení). Úlohy na poměr, přímá a nepřímá úměrnost, měřítko mapy. Úlohy na pohyb, společnou práci (základní typy). Aplikace matematiky. Strategie řešení. 6.  **Proporce a procenta:** Procento, promile. Procentová část, základ, počet procent. Jednoduché úrokování. Trojčlenka. Poměr (základní úpravy, rozdělení). 7.  **Logické úlohy:** Logické vztahy, jednoduché výroky, číselné řady, vzory, závislosti. # TVŮJ ÚKOL (Vytvoř NÁROČNÝ, DETAILNÍ a KONZISTENTNÍ plán): 1.  Vytvoř DETAILNÍ týdenní studijní plán (Pondělí - Neděle) ve formátu Markdown. Musí být strukturovaný, srozumitelný a zaměřený na VÝRAZNÉ zlepšení. Dbej na přirozené formátování textu, vyhni se slovům nalepeným na sebe bez mezer. 2.  Plán musí pokrývat klíčové oblasti z OFICIÁLNÍCH TÉMAT, klást ZVÝŠENÝ DŮRAZ na slabé stránky (${weaknesses}), ale ZAHRNOVAT i OPAKOVÁNÍ silnějších stránek. 3.  Navrhni RŮZNORODÉ a KONKRÉTNÍ aktivity: * Řešení KONKRÉTNÍCH TYPŮ příkladů s uvedením POČTU. * Procvičování SLOVNÍCH ÚLOH zaměřených na dané téma. * Používej formulace jako 'Opakování [téma/vzorce]' místo 'Opakuj [téma]'. Např.: 'Opakování vzorců pro mnohočleny'. * Analýzu VYSVĚTLENÝCH příkladů (např. "Projdi řešené příklady na ..."). * Doporučení k ANALÝZE minulých chyb. * Zařazení NÁROČNĚJŠÍCH úloh u silnějších témat. 4.  Buď co nejvíce SPECIFICKÝ v popisu úkolů v Markdown i JSON. Místo 'Procvičuj geometrii' uveď 'Výpočet obvodů a obsahů složených rovinných útvarů (3 úlohy)'. 5.  Rozděl denní studium (cca 75-100 minut) do 2-3 INTENZIVNÍCH bloků. Uveď odhadovaný čas. 6.  **DŮLEŽITÉ:** V poli 'description' v JSON bloku **NEUVÁDĚJ KONKRÉTNÍ ROVNICE NEBO ČÍSELNÉ ZADÁNÍ PŘÍKLADŮ**. Místo toho SLOVNĚ popiš TYP úloh, počet a zaměření (např. 'Řešení 5 lineárních rovnic se zlomky', 'Výpočet procentové části ze základu ve 4 slovních úlohách'). 7.  **NAPROSTÁ KONZISTENCE JE KLÍČOVÁ:** JSON \`title\` a \`description\` musí být PŘÍMÝM a VĚRNÝM shrnutím aktivity popsané v odpovídajícím bloku v Markdown textu pro ten samý den a časový úsek. Žádné informace nesmí být v JSON přidány ani vynechány oproti Markdown popisu daného bloku. 8.  NA KONEC celého Markdown textu PŘIDEJ validní JSON blok (\`\`\`json ... \`\`\`) obsahující pole objektů pro VŠECHNY aktivity. Klíče: "day_of_week" (číslo 0-6, Neděle=0), "title" (string, název bloku), "description" (string, SLOVNÍ popis TYPU úkolů, KONZISTENTNÍ s Markdown), "time_slot" (string, čas). # Požadovaný formát výstupu (Markdown + JSON na konci): **Analýza diagnostiky:** * Zaměření na: ${weaknesses} * Udržování: ${strengths} **Hlavní cíle pro tento týden:** * [Použij odrážky] Výrazně zlepšit [Nejslabší téma]. * [Použij odrážky] Upevnit znalosti v [Druhé nejslabší téma]. * [Použij odrážky] Zopakovat a procvičit [Silnější téma]. --- ### Pondělí * **Fokus dne:** [Např. Složitější lineární rovnice a aplikace procent] * **Blok 1 (cca 45 min): Algebra - Rovnice:** Řešení 10 složitějších lineárních rovnic se zlomky a závorkami. Důraz na správné úpravy a zkoušku. * **Blok 2 (cca 40 min): Procenta - Slovní úlohy:** Řešení 5 slovních úloh na výpočet základu a procentové změny (zdražení/sleva). * *Tip dne:* U rovnic si piš mezikroky a ověřuj si je. ### Úterý * **Fokus dne:** [Např. Geometrie - Tělesa a opakování mnohočlenů] * **Blok 1 (cca 50 min): Geometrie - Objem a povrch válce:** Opakování vzorců. Výpočet objemu a povrchu válce ve 4 úlohách (včetně slovních). * **Blok 2 (cca 30 min): Opakování - Mnohočleny:** Opakování vzorců (a±b)², a²-b². Rozklad 10 mnohočlenů na součin pomocí vytýkání a vzorců. * *Tip dne:* Kresli si náčrty těles, pomůže ti to s představivostí. * ... (atd. pro všechny dny) ... --- **Obecné tipy pro maximální efektivitu:** * ... \`\`\`json [   { "day_of_week": 1, "title": "Algebra: Složitější rovnice", "description": "Řešení 10 složitějších lineárních rovnic se zlomky a závorkami. Důraz na správné úpravy a zkoušku.", "time_slot": "45 min" },   { "day_of_week": 1, "title": "Procenta: Slovní úlohy (základ, změna)", "description": "Řešení 5 slovních úloh na výpočet základu a procentové změny (zdražení/sleva).", "time_slot": "40 min" },   { "day_of_week": 2, "title": "Geometrie: Objem a povrch válce", "description": "Opakování vzorců. Výpočet objemu a povrchu válce ve 4 úlohách (včetně slovních).", "time_slot": "50 min" },   { "day_of_week": 2, "title": "Opakování: Rozklad mnohočlenů", "description": "Opakování vzorců (a±b)², a²-b². Rozklad 10 mnohočlenů na součin pomocí vytýkání a vzorců.", "time_slot": "30 min" }   // ... (další aktivity pro všechny dny, KONZISTENTNÍ S MARKDOWNEM) ... ] \`\`\` `; try { const response = await fetch(GEMINI_API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { temperature: 0.6, topK: 40, topP: 0.95, maxOutputTokens: 8192 }, safetySettings: [{ category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" }, { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" }, { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" }, { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" }] }) }); const data = await response.json(); if (!response.ok) throw new Error(data.error?.message || `Chyba Gemini API (${response.status})`); const geminiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text; if (!geminiResponse) throw new Error('Prázdná odpověď od Gemini API'); return geminiResponse; } catch (error) { console.error('Chyba při generování obsahu plánu:', error); throw error; /* Rethrow */ } };
         const saveGeneratedPlan = async (markdownContent, activitiesArray, topicsData) => { /* ... (code unchanged) ... */ if (!state.currentUser || !state.latestDiagnosticData || !markdownContent || !supabaseClient) { showToast('Chyba: Chybí data pro uložení.', 'error'); return; } const saveButton = document.getElementById('saveGeneratedPlanBtn'); if (saveButton) { saveButton.disabled = true; saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ukládám...'; } const priorityTopics = {}; topicsData.forEach((topic, index) => { priorityTopics[topic.name] = { priority: index + 1, performance: topic.percentage, focus_level: topic.percentage < 50 ? 'high' : topic.percentage < 75 ? 'medium' : 'low' }; }); let savedPlanId = null; try { const { error: deactivateError } = await supabaseClient .from('study_plans') .update({ status: 'inactive', updated_at: new Date().toISOString() }) .eq('user_id', state.currentUser.id) .eq('status', 'active'); if (deactivateError) throw deactivateError; const today = new Date(); const completionDate = new Date(today); completionDate.setDate(completionDate.getDate() + 7); const newPlanData = { user_id: state.currentUser.id, title: `Studijní plán (${formatDate(today)})`, subject: "Matematika", status: "active", diagnostic_id: state.latestDiagnosticData.id, plan_content_markdown: markdownContent, priority_topics: priorityTopics, estimated_completion_date: completionDate.toISOString().split('T')[0], progress: 0, is_auto_adjusted: true }; const { data: savedPlan, error: insertPlanError } = await supabaseClient .from('study_plans') .insert(newPlanData) .select('id') .single(); if (insertPlanError) throw insertPlanError; savedPlanId = savedPlan.id; console.log("Nový plán uložen, ID:", savedPlanId); if (activitiesArray && Array.isArray(activitiesArray) && activitiesArray.length > 0) { const activitiesToInsert = activitiesArray.map(act => { if (typeof act !== 'object' || act === null) return null; const dayOfWeek = typeof act.day_of_week === 'number' ? act.day_of_week : parseInt(act.day_of_week, 10); if (isNaN(dayOfWeek) || dayOfWeek < 0 || dayOfWeek > 6) return null; return { plan_id: savedPlanId, day_of_week: dayOfWeek, time_slot: act.time_slot || null, title: act.title || 'Nespecifikováno', description: act.description || null, completed: false }; }).filter(item => item !== null); if (activitiesToInsert.length > 0) { const { error: insertActivitiesError } = await supabaseClient.from('plan_activities').insert(activitiesToInsert); if (insertActivitiesError) { console.error("Chyba vkládání aktivit:", insertActivitiesError); showToast('Plán uložen, ale aktivity pro harmonogram selhaly.', 'warning'); } else { console.log("Aktivity úspěšně vloženy."); showToast('Studijní plán a aktivity uloženy!', 'success'); } } else { showToast('Plán uložen, ale nebyly nalezeny platné aktivity.', 'warning'); } } else { showToast('Studijní plán uložen (bez detailních aktivit).', 'info'); } state.currentStudyPlan = { ...newPlanData, id: savedPlanId }; switchTab('current'); } catch (error) { console.error("Chyba při ukládání plánu:", error); showToast(`Nepodařilo se uložit plán: ${error.message}`, 'error'); if (saveButton) { saveButton.disabled = false; saveButton.innerHTML = '<i class="fas fa-save"></i> Uložit tento plán'; } } };
         const displayPlanContent = (markdownContent) => { /* ... (code unchanged) ... */ if (!ui.planContent) return; try { marked.setOptions({ gfm: true, breaks: true, sanitize: false }); const htmlContent = marked.parse(markdownContent || ''); ui.planContent.innerHTML = htmlContent; ui.planContent.style.display = 'block'; if (window.MathJax && typeof window.MathJax.typesetPromise === 'function') { setTimeout(() => { window.MathJax.typesetPromise([ui.planContent]).catch(e => console.error("MathJax chyba:", e)); }, 0); } else { console.warn("MathJax není připraven pro renderování."); } } catch (e) { console.error("Chyba renderování Markdown:", e); ui.planContent.innerHTML = "<p style='color:red;'>Chyba zobrazení plánu.</p>"; ui.planContent.style.display = 'block'; } };
