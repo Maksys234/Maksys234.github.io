@@ -3,70 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Justax - AI Vzdělávací Platforma</title> <link rel="preconnect" href="https://fonts.googleapis.com">
+    <title>Justax - Inteligentní Vzdělávací Platforma</title> <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700;800&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
-        /* --- КИБЕРПАНК/SCI-FI Палитра и Переменные (v5 - Утонченная) --- */
+        /* --- КИБЕРПАНК/SCI-FI Палитра и Переменные (v6 - Refined & Less Neon) --- */
         :root {
-            /* Основные цвета - Глубже и менее насыщенные */
-            --dark-bg-primary: #060412;      /* Очень темный сине-фиолетовый */
-            --dark-bg-secondary: #0d0a24;    /* Темно-индиго */
-            --dark-card-bg: rgba(18, 12, 50, 0.7); /* Полупрозрачный фон карт */
-            --dark-card-solid: #120c32;    /* Сплошной темный фиолетово-синий */
-            --dark-purple-accent: #3a2d78; /* Темно-фиолетовый акцент */
-            --dark-blue-accent: #202a64; /* Темно-синий акцент */
+            /* Основные темные цвета */
+            --dark-bg-primary: #05030f;      /* Еще глубже */
+            --dark-bg-secondary: #0a071a;    /* Предыдущий основной стал вторичным */
+            --dark-card-bg: rgba(18, 12, 50, 0.65);/* Чуть прозрачнее карты */
+            --dark-card-solid: #100a2d;    /* Чуть светлее сплошной фон */
+            --dark-purple-accent: #3a2d78;
+            --dark-blue-accent: #202a64;
 
-            /* Акценты - Менее яркие, более "технологичные" */
-            --accent-cyan: #00dceb;       /* Мягче циан */
-            --accent-pink: #e800e8;       /* Мягче розовый */
-            --accent-purple: #9d33ff;     /* Мягче фиолетовый */
-            --accent-lime: #7cfc00;       /* Chartreuse / Lime */
-            --accent-blue-light: #5d8dff; /* Светлый синий акцент */
+            /* Акценты - Основной акцент на синий/фиолетовый, неон очень редкий */
+            --accent-primary: #6a5acd;    /* SlateBlue - основной акцент */
+            --accent-secondary: #4d7eff;  /* Умеренный синий */
+            --accent-cyan-subtle: rgba(0, 220, 235, 0.7); /* Мягкий циан для эффектов */
+            --accent-pink-subtle: rgba(232, 0, 232, 0.6); /* Мягкий розовый для эффектов */
+            --accent-lime-subtle: rgba(124, 252, 0, 0.7); /* Лайм для иконок статуса */
+            --accent-glow: var(--accent-primary); /* Свечение основано на основном акценте */
 
             /* Текст */
-            --text-light: #e8eaf6;       /* Почти белый, легкий синий оттенок */
-            --text-medium: #b0b8d0;      /* Серо-голубой */
-            --text-muted: #7a84a3;       /* Приглушенный */
-            --text-heading: #ffffff;      /* Заголовки - чистый белый */
-            --text-link: var(--accent-cyan);
-            --text-link-hover: var(--text-light);
+            --text-light: #eceff4;       /* Очень светлый серо-синий */
+            --text-medium: #a8b2d1;      /* Светлый серо-синий */
+            --text-muted: #8892b0;       /* Более приглушенный */
+            --text-heading: #ffffff;
+            --text-link: var(--accent-secondary);
+            --text-link-hover: var(--accent-cyan-subtle);
 
-            /* Градиенты */
-            --gradient-header-scrolled: linear-gradient(180deg, rgba(10, 7, 26, 0.95) 0%, rgba(10, 7, 26, 0.8) 100%);
-            --gradient-subtle-border: linear-gradient(145deg, rgba(0, 220, 235, 0.3) 0%, rgba(157, 51, 255, 0.3) 100%);
-            --gradient-button: linear-gradient(95deg, var(--accent-cyan) 0%, var(--accent-blue-light) 100%);
-            --gradient-button-hover: linear-gradient(95deg, var(--accent-blue-light) 0%, var(--accent-pink) 100%);
-            --gradient-text: linear-gradient(90deg, var(--accent-cyan), var(--accent-blue-light), var(--accent-pink));
-            --gradient-timeline: linear-gradient(to bottom, rgba(0, 220, 235, 0.5), rgba(157, 51, 255, 0.5));
-            --gradient-hero-bg: linear-gradient(160deg, var(--dark-bg-primary) 10%, var(--dark-blue-accent) 50%, var(--dark-bg-secondary) 90%);
+            /* Градиенты - Менее кричащие */
+            --gradient-header-scrolled: linear-gradient(180deg, rgba(6, 4, 15, 0.95) 0%, rgba(6, 4, 15, 0.85) 100%);
+            --gradient-border: linear-gradient(145deg, rgba(106, 90, 205, 0.4) 0%, rgba(77, 141, 255, 0.4) 100%); /* Основан на акцентах */
+            --gradient-button: linear-gradient(95deg, var(--accent-secondary) 0%, var(--accent-primary) 100%);
+            --gradient-button-hover: linear-gradient(95deg, var(--accent-primary) 0%, var(--accent-pink-subtle) 100%);
+            --gradient-text: linear-gradient(90deg, var(--accent-secondary), var(--accent-primary));
+            --gradient-hero-bg: linear-gradient(170deg, var(--dark-bg-primary) 20%, var(--dark-blue-accent) 60%, var(--dark-bg-secondary) 95%);
 
             /* Границы и разделители */
-            --border-color-light: rgba(58, 45, 120, 0.4); /* --dark-purple-accent с прозрачностью */
-            --border-color-medium: rgba(58, 45, 120, 0.7);
-            --border-color-strong: rgba(0, 220, 235, 0.5); /* --accent-cyan с прозрачностью */
+            --border-color-light: rgba(58, 45, 120, 0.3);
+            --border-color-medium: rgba(58, 45, 120, 0.6);
+            --border-color-strong: rgba(106, 90, 205, 0.5); /* Основан на --accent-primary */
 
             /* Шрифты */
-            --font-primary: 'Inter', sans-serif; /* Inter для основного текста - чище */
-            --font-secondary: 'Poppins', sans-serif; /* Poppins для заголовков */
+            --font-primary: 'Inter', sans-serif;
+            --font-secondary: 'Poppins', sans-serif;
             --font-mono: 'Roboto Mono', monospace;
 
-            /* Тени */
-            --shadow-glow-cyan: 0 0 15px rgba(0, 220, 235, 0.4);
-            --shadow-glow-pink: 0 0 15px rgba(232, 0, 232, 0.4);
-            --shadow-card: 0 8px 30px rgba(0, 0, 0, 0.3);
-            --shadow-button: 0 4px 12px rgba(var(--accent-cyan-rgb, 0, 220, 235), 0.25);
-            --shadow-button-hover: 0 6px 20px rgba(var(--accent-pink-rgb, 232, 0, 232), 0.3);
+            /* Тени - Мягче */
+            --shadow-glow: 0 0 12px rgba(106, 90, 205, 0.4); /* Основан на --accent-primary */
+            --shadow-card: 0 6px 25px rgba(0, 0, 0, 0.2);
+            --shadow-button: 0 3px 10px rgba(77, 141, 255, 0.2);
+            --shadow-button-hover: 0 5px 18px rgba(106, 90, 205, 0.3);
 
             /* Размеры и переходы */
-            --card-radius: 10px; /* Немного острее */
+            --card-radius: 12px; /* Чуть больше */
             --btn-radius: 8px;
-            --section-padding-y: clamp(6rem, 12vh, 9rem);
-            --container-width: 1400px;
-            --transition-fast: all 0.25s ease-in-out;
-            --transition-medium: all 0.4s ease-in-out;
-            --transition-cubic: all 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.15); /* Чуть мягче */
+            --section-padding-y: clamp(6rem, 12vh, 8rem); /* Немного меньше */
+            --container-width: 1360px; /* Немного меньше */
+            --transition-fast: all 0.2s ease-in-out;
+            --transition-medium: all 0.35s ease-in-out;
+            --transition-cubic: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); /* Стандартный ease-out */
         }
 
         /* --- Базовые стили --- */
@@ -74,318 +73,296 @@
         html { scroll-behavior: smooth; font-size: 16px; -webkit-text-size-adjust: 100%; }
         body {
             background-color: var(--dark-bg-primary); color: var(--text-medium);
-            font-family: var(--font-primary); line-height: 1.75; /* Чуть больше */
+            font-family: var(--font-primary); line-height: 1.7;
             overflow-x: hidden; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
             min-height: 100vh; position: relative;
         }
-        body::before { /* Фоновая сетка - стала тоньше и темнее */
+        body::before { /* Фоновая сетка - очень тонкая и темная */
             content: ""; position: fixed; inset: 0; width: 100%; height: 100%; z-index: -2;
             background-image:
-                linear-gradient(rgba(58, 45, 120, 0.06) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(58, 45, 120, 0.06) 1px, transparent 1px);
-            background-size: 50px 50px; opacity: 0.8; animation: bg-grid-pan 150s linear infinite;
+                linear-gradient(rgba(32, 42, 100, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(32, 42, 100, 0.05) 1px, transparent 1px);
+            background-size: 50px 50px; opacity: 0.7; animation: bg-grid-pan 180s linear infinite;
         }
-        @keyframes bg-grid-pan { 0% { background-position: 0 0; } 100% { background-position: 1500px 750px; } }
-        body::after { /* Убрал scanlines */ }
+        @keyframes bg-grid-pan { 0% { background-position: 0 0; } 100% { background-position: 1800px 900px; } }
 
         /* --- Типография --- */
-        h1, h2, h3, h4, h5, h6 { font-family: var(--font-secondary); font-weight: 700; color: var(--text-heading); line-height: 1.35; margin-bottom: 1.2em; }
-        h1 { font-size: clamp(2.8rem, 7vw, 5rem); letter-spacing: -1px; text-transform: uppercase; font-weight: 800; }
-        h2 { font-size: clamp(2.1rem, 5vw, 3.3rem); font-weight: 800; }
-        h3 { font-size: clamp(1.4rem, 4vw, 1.8rem); font-weight: 600; }
-        p { margin-bottom: 1.7rem; font-size: clamp(1rem, 2.5vw, 1.1rem); max-width: 720px; }
+        h1, h2, h3, h4, h5, h6 { font-family: var(--font-secondary); font-weight: 600; color: var(--text-heading); line-height: 1.4; margin-bottom: 1.2em; }
+        h1 { font-size: clamp(2.5rem, 7vw, 4.5rem); letter-spacing: -0.5px; font-weight: 700; }
+        h2 { font-size: clamp(1.9rem, 5vw, 3rem); font-weight: 700; }
+        h3 { font-size: clamp(1.3rem, 3.5vw, 1.7rem); font-weight: 600; }
+        p { margin-bottom: 1.5rem; font-size: clamp(0.95rem, 2.2vw, 1.05rem); max-width: 700px; }
         a { color: var(--text-link); text-decoration: none; transition: color var(--transition-fast); }
-        a:hover { color: var(--text-light); text-decoration: underline; text-decoration-color: var(--accent-pink); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+        a:hover { color: var(--text-light); text-decoration: underline; text-decoration-color: var(--accent-primary); text-decoration-thickness: 1.5px; text-underline-offset: 4px; }
         .section-title { text-align: center; margin-bottom: 1.5rem; }
         .section-title span { /* Градиентный текст */
             background: var(--gradient-text); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            background-clip: text; color: transparent; filter: drop-shadow(0 0 8px var(--accent-cyan));
-            display: inline-block;
+            background-clip: text; color: transparent;
+            filter: drop-shadow(0 0 6px var(--accent-secondary)); display: inline-block;
         }
-        .section-subtitle { font-size: clamp(1rem, 3vw, 1.2rem); text-align: center; max-width: 850px; margin: -1rem auto 4.5rem auto; color: var(--text-medium); }
+        .section-subtitle { font-size: clamp(1rem, 3vw, 1.15rem); text-align: center; max-width: 800px; margin: -1rem auto 4rem auto; color: var(--text-medium); }
 
         /* --- Общие элементы --- */
-        .container { width: 100%; max-width: var(--container-width); margin: 0 auto; padding: 0 2rem; /* Увеличил паддинг */ }
+        .container { width: 100%; max-width: var(--container-width); margin: 0 auto; padding: 0 1.5rem; }
         section { padding: var(--section-padding-y) 0; position: relative; overflow: hidden; }
-        .visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+        .visually-hidden { /* ... без изменений ... */ position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 
-        /* --- Кнопки (v5 - Refined Cyber) --- */
+        /* --- Кнопки (v6 - Solid with Subtle Glow) --- */
         .btn {
-            display: inline-block; padding: 0.8rem 2.1rem;
-            background: transparent; color: var(--accent-cyan);
-            border: 2px solid var(--accent-cyan); border-radius: var(--btn-radius);
-            font-family: var(--font-secondary); font-weight: 600; font-size: 0.95rem;
-            text-align: center; text-transform: uppercase; letter-spacing: 1px;
+            display: inline-block; padding: 0.8rem 2rem;
+            background: var(--accent-primary); color: var(--text-light);
+            border: 2px solid transparent; border-radius: var(--btn-radius);
+            font-family: var(--font-secondary); font-weight: 600; font-size: 0.9rem;
+            text-align: center; text-transform: uppercase; letter-spacing: 0.8px;
             cursor: pointer; transition: all var(--transition-medium);
             position: relative; overflow: hidden; z-index: 1;
-            box-shadow: 0 0 10px -3px rgba(0, 220, 235, 0.5), inset 0 0 6px -4px rgba(0, 220, 235, 0.3);
-        }
-        .btn::before { /* Inner glow effect */
-            content: ''; position: absolute; top: 50%; left: 50%; width: 150%; height: 150%;
-            background: radial-gradient(circle, rgba(0, 220, 235, 0.15) 0%, transparent 70%);
-            transform: translate(-50%, -50%); transition: width 0.4s ease, height 0.4s ease, opacity 0.4s ease;
-            z-index: -1; opacity: 0; border-radius: inherit;
+            box-shadow: var(--shadow-button);
         }
         .btn:hover {
-            color: var(--dark-bg-primary); background-color: var(--accent-cyan); border-color: var(--accent-cyan);
-            box-shadow: 0 0 20px 0px rgba(0, 220, 235, 0.6), inset 0 0 8px 0px rgba(0, 0, 0, 0.1);
-            transform: translateY(-3px);
+            background: var(--accent-secondary); border-color: transparent;
+            box-shadow: var(--shadow-button-hover);
+            transform: translateY(-2px);
         }
-        .btn:hover::before { width: 250%; height: 250%; opacity: 1; }
         .btn-outline {
-            border-color: var(--accent-pink); color: var(--accent-pink);
-            box-shadow: 0 0 10px -3px rgba(232, 0, 232, 0.5), inset 0 0 6px -4px rgba(232, 0, 232, 0.3);
+            background: transparent; color: var(--accent-secondary);
+            border: 2px solid var(--accent-secondary);
+            box-shadow: inset 0 0 0 0 var(--accent-secondary); /* Reset initial inner shadow */
         }
-        .btn-outline::before { background: radial-gradient(circle, rgba(232, 0, 232, 0.15) 0%, transparent 70%); }
-        .btn-outline:hover { background-color: var(--accent-pink); border-color: var(--accent-pink); color: var(--dark-bg-primary); box-shadow: 0 0 20px 0px rgba(232, 0, 232, 0.6), inset 0 0 8px 0px rgba(0, 0, 0, 0.1); }
+        .btn-outline:hover {
+            background: rgba(var(--accent-secondary-rgb, 77, 141, 255), 0.1); /* Use RGB or fallback */
+            color: var(--text-light); border-color: var(--accent-secondary);
+            box-shadow: none;
+        }
 
-        /* --- Хедер (v5 - More Subtle Glass) --- */
+        /* --- Хедер (v6 - Refined Glass) --- */
         header {
-            padding: 1rem 0; position: fixed; top: 0; left: 0; width: 100%; z-index: 1000;
+            padding: 0.9rem 0; position: fixed; top: 0; left: 0; width: 100%; z-index: 1000;
             background: transparent; border-bottom: 1px solid transparent;
-            transition: background-color 0.4s ease, padding 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease, backdrop-filter 0.4s ease;
+            transition: background-color 0.3s ease, padding 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, backdrop-filter 0.3s ease;
         }
         header.scrolled {
-            padding: 0.8rem 0;
-            background: rgba(10, 7, 26, 0.8); /* Чуть прозрачнее */
-            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-            border-bottom: 1px solid var(--border-color-light); /* Менее заметная линия */
-            box-shadow: 0 5px 25px rgba(0, 0, 0, 0.2);
+            padding: 0.7rem 0;
+            background: rgba(6, 4, 15, 0.8); /* Darker, more transparent */
+            backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+            border-bottom: 1px solid var(--border-color-light);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
         }
         .nav-container { display: flex; justify-content: space-between; align-items: center; }
-        .logo { font-size: 2rem; font-weight: 800; color: var(--text-heading); display: flex; align-items: center; gap: 0.7rem; font-family: var(--font-secondary); transition: transform var(--transition-medium), text-shadow var(--transition-medium); text-shadow: 0 0 8px var(--accent-cyan); }
-        .logo:hover { transform: scale(1.03); text-shadow: 0 0 15px var(--accent-cyan); }
-        .logo i { color: var(--accent-cyan); font-size: 1.8rem; transition: transform 0.4s var(--transition-cubic); }
-        .logo:hover i { transform: rotate(-10deg) scale(1.08); }
-        .nav-links { display: flex; gap: clamp(1.8rem, 4vw, 3.2rem); }
-        .nav-links a { color: var(--text-medium); font-weight: 500; position: relative; padding: 0.4rem 0; font-size: 1rem; transition: color var(--transition-fast), transform 0.2s ease; }
-        .nav-links a::before { /* Подчеркивание при наведении */
-            content: ''; position: absolute; bottom: -5px; left: 0; width: 0; height: 2px;
-            background: var(--accent-cyan); transition: width 0.3s ease-out;
-            box-shadow: 0 0 5px var(--accent-cyan);
+        .logo { font-size: 1.9rem; font-weight: 700; color: var(--text-heading); display: flex; align-items: center; gap: 0.6rem; transition: transform var(--transition-medium), text-shadow var(--transition-medium); text-shadow: 0 0 6px var(--accent-cyan-subtle); }
+        .logo:hover { transform: scale(1.02); text-shadow: 0 0 12px var(--accent-cyan-subtle); }
+        .logo i { color: var(--accent-cyan-subtle); font-size: 1.7rem; transition: transform 0.3s var(--transition-cubic); }
+        .logo:hover i { transform: rotate(-8deg) scale(1.05); }
+        .nav-links { display: flex; gap: clamp(1.5rem, 3.5vw, 2.8rem); }
+        .nav-links a { color: var(--text-medium); font-weight: 500; position: relative; padding: 0.3rem 0; font-size: 0.95rem; transition: color var(--transition-fast), transform 0.2s ease; }
+        .nav-links a::before { /* Thinner underline */
+            content: ''; position: absolute; bottom: -3px; left: 0; width: 0; height: 1.5px;
+            background: var(--accent-primary); transition: width 0.3s ease-out;
         }
-        .nav-links a:hover, .nav-links a.active { color: var(--text-light); transform: translateY(-1px); }
-        .nav-links a:hover::before, .nav-links a.active::before { width: 100%; }
-        .header-actions { display: flex; align-items: center; gap: 1rem; }
-        .auth-link { font-size: 0.9rem !important; padding: 0.65rem 1.6rem !important; }
+        .nav-links a:hover, .nav-links a.active { color: var(--text-light); }
+        .nav-links a:hover::before, .nav-links a.active::before { width: 70%; } /* Shorter underline */
+        .header-actions { display: flex; align-items: center; gap: 0.8rem; }
+        .auth-link { font-size: 0.85rem !important; padding: 0.6rem 1.4rem !important; }
         .mobile-auth-link { display: none; }
-        .hamburger { /* ... стили остались прежними ... */ display: none; flex-direction: column; justify-content: space-around; width: 28px; height: 22px; cursor: pointer; z-index: 1002; background: transparent; border: none; }
-        .hamburger span { display: block; width: 100%; height: 3px; background-color: var(--text-light); border-radius: 3px; transition: all 0.35s cubic-bezier(0.68, -0.6, 0.32, 1.6); position: relative; box-shadow: 0 0 4px var(--accent-cyan); }
-        .hamburger.active span:nth-child(1) { transform: translateY(9.5px) rotate(135deg); background-color: var(--accent-pink); box-shadow: 0 0 6px var(--accent-pink); }
+        .hamburger { /* ... без изменений ... */ display: none; flex-direction: column; justify-content: space-around; width: 28px; height: 22px; cursor: pointer; z-index: 1002; background: transparent; border: none; }
+        .hamburger span { display: block; width: 100%; height: 2.5px; background-color: var(--text-light); border-radius: 3px; transition: all 0.35s cubic-bezier(0.68, -0.6, 0.32, 1.6); position: relative; } /* Thinner lines */
+        .hamburger.active span:nth-child(1) { transform: translateY(9.25px) rotate(135deg); background-color: var(--accent-pink-subtle); }
         .hamburger.active span:nth-child(2) { opacity: 0; transform: translateX(-15px); }
-        .hamburger.active span:nth-child(3) { transform: translateY(-9.5px) rotate(-135deg); background-color: var(--accent-pink); box-shadow: 0 0 6px var(--accent-pink); }
+        .hamburger.active span:nth-child(3) { transform: translateY(-9.25px) rotate(-135deg); background-color: var(--accent-pink-subtle); }
 
-        /* --- Герой секция (v5) --- */
+        /* --- Герой секция (v6) --- */
         .hero {
-            padding: clamp(11rem, 28vh, 16rem) 0 clamp(8rem, 20vh, 11rem);
-            background: var(--gradient-hero-bg); background-size: 300% 300%;
-            animation: gradientBG 20s ease infinite alternate; /* Slower alternation */
-            text-align: center; overflow: hidden; min-height: 100vh; /* Full viewport height */
+            padding: clamp(10rem, 25vh, 14rem) 0 clamp(7rem, 18vh, 9rem);
+            background: var(--gradient-hero-bg); background-size: 250% 250%;
+            animation: gradientBG 25s ease infinite alternate;
+            text-align: center; overflow: hidden; min-height: 90vh;
             display: flex; align-items: center; justify-content: center;
         }
-        .hero .container { position: relative; z-index: 1; max-width: 1150px; }
+        .hero .container { position: relative; z-index: 1; max-width: 1100px; }
         .hero h1 {
-            font-size: clamp(3rem, 8vw, 5.8rem); margin-bottom: 1.8rem; line-height: 1.1;
-            color: var(--text-heading); text-shadow: 0 0 5px var(--accent-cyan), 0 0 15px var(--accent-cyan), 0 0 25px var(--accent-blue-light); /* Slightly softer glow */
-             /* Removed flicker animation for a cleaner look */
+            font-size: clamp(2.8rem, 7.5vw, 5rem); margin-bottom: 1.5rem; line-height: 1.15;
+            color: var(--text-heading); text-shadow: 0 0 15px rgba(106, 90, 205, 0.4); /* Subtle purple glow */
         }
-        .hero p { font-size: clamp(1.1rem, 3vw, 1.3rem); margin-bottom: 3.5rem; max-width: 880px; margin-left: auto; margin-right: auto; color: var(--text-light); /* Brighter subtext */ opacity: 0.9; text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
-        .hero-buttons { display: flex; gap: 1.5rem; justify-content: center; flex-wrap: wrap; }
+        .hero p { font-size: clamp(1.05rem, 2.8vw, 1.25rem); margin-bottom: 3rem; max-width: 800px; margin-left: auto; margin-right: auto; color: var(--text-light); opacity: 0.85; }
+        .hero-buttons { display: flex; gap: 1.2rem; justify-content: center; flex-wrap: wrap; }
 
-        /* --- SVG Разделитель (Subtle Wave) --- */
-        .wave-divider { position: absolute; bottom: -1px; left: 0; width: 100%; line-height: 0; transform: rotate(180deg); z-index: 5; }
-        .wave-divider svg { display: block; width: 100%; height: 80px; /* Lower height */ position: relative; }
+        /* --- SVG Разделитель (Very Subtle) --- */
+        .wave-divider { position: absolute; bottom: -1px; left: 0; width: 100%; line-height: 0; transform: rotate(180deg); z-index: 5; opacity: 0.8; }
+        .wave-divider svg { display: block; width: 100%; height: 60px; position: relative; }
         .wave-divider .shape-fill { fill: var(--dark-bg-secondary); }
-         /* Example subtle wave path */
-         .wave-divider svg path { d: path("M0,0 C150,80 350,0 600,40 S850,80 1200,0 V120 H0 Z"); }
+         .wave-divider svg path { d: path("M0,0 C200,50 400,0 600,25 S1000,50 1200,0 V120 H0 Z"); } /* Smoother path */
 
-        /* --- Секция Функций (v5 - Minimal Tech) --- */
+        /* --- Секция Функций (v6 - Minimal Border) --- */
         .features { background: var(--dark-bg-secondary); }
-        .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 2rem; /* Slightly smaller gap */ }
+        .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 310px), 1fr)); gap: 2rem; }
         .feature-card {
-            background: transparent; border-radius: var(--card-radius);
-            padding: 2.2rem 1.8rem; text-align: left; /* Align text left */
+            background: var(--dark-card-solid); border-radius: var(--card-radius);
+            padding: 2rem 1.8rem; text-align: left;
             transition: all var(--transition-medium);
             border: 1px solid var(--border-color-light);
             position: relative; overflow: hidden;
         }
-         .feature-card::before { /* Subtle background glow on hover */
-            content: ''; position: absolute; inset: 0; z-index: -1;
-            background: radial-gradient(circle at center, rgba(var(--accent-purple-rgb, 157, 51, 255), 0.1) 0%, transparent 70%);
-            border-radius: inherit; opacity: 0; transition: opacity 0.4s ease;
-        }
-        .feature-card:hover { transform: translateY(-8px); border-color: var(--border-color-medium); background-color: rgba(18, 12, 50, 0.3); /* Slight bg color */ box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
-        .feature-card:hover::before { opacity: 1; }
-        .feature-card-header { display: flex; align-items: center; gap: 1.2rem; margin-bottom: 1.2rem; }
+        .feature-card:hover { transform: translateY(-6px); border-color: var(--border-color-strong); background-color: var(--dark-blue-accent); box-shadow: 0 12px 35px rgba(0,0,0,0.2); }
+        .feature-card-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; }
         .feature-icon {
-            width: 50px; height: 50px; flex-shrink: 0;
-            border: 2px solid var(--border-color-medium);
-            background: var(--dark-card-solid);
-            border-radius: 1rem; display: flex; align-items: center; justify-content: center;
-            font-size: 1.6rem; color: var(--accent-cyan); box-shadow: inset 0 0 10px rgba(var(--accent-cyan-rgb, 0, 220, 235), 0.2);
-            transition: all 0.4s var(--transition-cubic);
+            width: 45px; height: 45px; flex-shrink: 0;
+            border: 1px solid var(--border-color-medium);
+            background: var(--dark-bg-primary); /* Darker background */
+            border-radius: 10px; display: flex; align-items: center; justify-content: center;
+            font-size: 1.5rem; color: var(--accent-secondary);
+            transition: all 0.3s ease;
         }
-        .feature-card:hover .feature-icon { border-color: var(--accent-cyan); color: var(--text-light); background: var(--accent-blue-light); box-shadow: var(--shadow-glow-cyan); transform: scale(1.1) rotate(-10deg); }
-        .feature-card h3 { font-size: 1.4rem; margin: 0; color: var(--text-light); font-weight: 600; }
-        .feature-card p { color: var(--text-medium); font-size: 0.95rem; line-height: 1.6; margin: 0; text-align: left; }
+        .feature-card:hover .feature-icon { border-color: var(--accent-secondary); color: var(--text-light); background: var(--accent-primary); transform: scale(1.05); box-shadow: var(--shadow-glow); }
+        .feature-card h3 { font-size: 1.3rem; margin: 0; color: var(--text-light); font-weight: 600; }
+        .feature-card p { color: var(--text-medium); font-size: 0.9rem; line-height: 1.6; margin: 0; }
 
-        /* --- Как это работает (v5 - Clean Vertical) --- */
+        /* --- Как это работает (v6 - Refined Vertical) --- */
         .how-it-works { background: var(--dark-bg-primary); }
-        .timeline-container { max-width: 850px; margin: 3rem auto 0; position: relative; padding: 0 1rem; }
-        .timeline-container::before { /* Линия - тоньше и мягче */
-            content: ''; position: absolute; top: 20px; bottom: 20px; left: 25px; width: 2px;
-            background: var(--gradient-timeline); opacity: 0.5; border-radius: 1px; box-shadow: 0 0 8px var(--accent-cyan);
+        .timeline-container { max-width: 800px; margin: 3rem auto 0; position: relative; padding: 0 1rem; }
+        .timeline-container::before { /* Линия - тоньше */
+            content: ''; position: absolute; top: 15px; bottom: 15px; left: 20px; width: 2px;
+            background: var(--gradient-timeline); opacity: 0.3; border-radius: 1px; box-shadow: 0 0 6px var(--accent-cyan-subtle);
         }
-        .timeline-item { position: relative; padding-left: 70px; margin-bottom: 3rem; }
+        .timeline-item { position: relative; padding-left: 60px; margin-bottom: 2.8rem; }
         .timeline-icon {
-            position: absolute; left: 25px; top: 5px; transform: translateX(-50%);
-            width: 45px; height: 45px; border-radius: 50%;
-            background: var(--dark-bg-secondary);
-            border: 2px solid var(--accent-pink);
-            box-shadow: 0 0 12px rgba(var(--accent-pink-rgb, 232, 0, 232), 0.5);
+            position: absolute; left: 20px; top: 2px; transform: translateX(-50%);
+            width: 40px; height: 40px; border-radius: 50%;
+            background: var(--dark-card-solid);
+            border: 2px solid var(--accent-pink-subtle);
+            box-shadow: 0 0 10px rgba(var(--accent-pink-rgb, 232, 0, 232), 0.4);
             display: flex; align-items: center; justify-content: center;
-            font-size: 1.4rem; font-weight: 700; color: var(--accent-pink);
+            font-size: 1.2rem; font-weight: 600; color: var(--accent-pink-subtle);
             z-index: 2; transition: all var(--transition-medium); font-family: var(--font-secondary);
         }
-        .timeline-item:hover .timeline-icon { transform: translateX(-50%) scale(1.1); border-color: var(--accent-cyan); color: var(--accent-cyan); box-shadow: 0 0 18px rgba(var(--accent-cyan-rgb, 0, 220, 235), 0.6); }
-        .timeline-content { background: transparent; padding: 0.5rem 0 0.5rem 1rem; border-radius: 0; border: none; border-left: 2px solid var(--border-color-light); transition: border-color var(--transition-medium); }
-        .timeline-item:hover .timeline-content { border-left-color: var(--accent-purple); }
-        .timeline-content h3 { font-size: 1.5rem; margin-bottom: 0.5rem; color: var(--text-light); }
-        .timeline-content p { color: var(--text-medium); font-size: 1rem; line-height: 1.65; margin-bottom: 0; }
+        .timeline-item:hover .timeline-icon { transform: translateX(-50%) scale(1.08); border-color: var(--accent-cyan-subtle); color: var(--accent-cyan-subtle); box-shadow: 0 0 15px rgba(var(--accent-cyan-rgb, 0, 220, 235), 0.5); }
+        .timeline-content { background: transparent; padding: 0.2rem 0 0.2rem 1rem; border: none; border-left: 2px solid var(--border-color-light); transition: border-color var(--transition-medium); }
+        .timeline-item:hover .timeline-content { border-left-color: var(--accent-primary); }
+        .timeline-content h3 { font-size: 1.4rem; margin-bottom: 0.4rem; color: var(--text-light); }
+        .timeline-content p { color: var(--text-medium); font-size: 0.95rem; line-height: 1.6; margin-bottom: 0; }
 
-        /* --- Отзывы (v5 - Clean & Focused) --- */
+        /* --- Отзывы (v6 - Subtle Tech Card) --- */
         .testimonials { background: var(--dark-bg-secondary); }
-        .testimonials-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 2rem; }
+        .testimonials-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 330px), 1fr)); gap: 2rem; }
         .testimonial-card {
             background: var(--dark-card-solid); border-radius: var(--card-radius);
             padding: 2rem; box-shadow: var(--shadow-card);
             transition: all var(--transition-medium); border: 1px solid var(--border-color-light);
             display: flex; flex-direction: column;
         }
-        .testimonial-card:hover { transform: translateY(-8px); border-color: var(--border-color-medium); box-shadow: 0 15px 40px rgba(0,0,0,0.25); }
-        .testimonial-content { flex-grow: 1; margin-bottom: 1.5rem; }
-        .testimonial-rating { margin-bottom: 1rem; color: var(--neon-yellow); font-size: 0.9rem; letter-spacing: 1.5px; } /* Smaller stars */
-        .testimonial-text { font-family: var(--font-primary); /* Changed font */ font-size: 1rem; color: var(--text-light); line-height: 1.7; margin-bottom: 0; font-style: italic; padding-left: 1.5rem; border-left: 3px solid var(--accent-purple); }
-        .testimonial-text::before { display: none; } /* Removed quote icon */
-        .testimonial-author { display: flex; align-items: center; margin-top: auto; padding-top: 1.5rem; border-top: 1px solid var(--border-color-light); }
-        .testimonial-avatar { width: 50px; height: 50px; border-radius: 50%; margin-right: 1rem; flex-shrink: 0; border: 2px solid var(--accent-purple); padding: 2px; background: var(--dark-bg-primary); }
+        .testimonial-card:hover { transform: translateY(-6px); border-color: var(--border-color-medium); box-shadow: 0 12px 35px rgba(0,0,0,0.2); }
+        .testimonial-content { flex-grow: 1; margin-bottom: 1.2rem; }
+        .testimonial-rating { margin-bottom: 1rem; color: var(--accent-yellow); font-size: 0.85rem; letter-spacing: 1px; } /* Yellow stars */
+        .testimonial-text { font-family: var(--font-primary); font-size: 0.95rem; color: var(--text-light); line-height: 1.7; margin-bottom: 0; font-style: italic; padding-left: 1.2rem; border-left: 2px solid var(--accent-primary); }
+        .testimonial-author { display: flex; align-items: center; margin-top: auto; padding-top: 1.2rem; border-top: 1px solid var(--border-color-light); }
+        .testimonial-avatar { width: 45px; height: 45px; border-radius: 50%; margin-right: 1rem; flex-shrink: 0; border: 2px solid var(--accent-primary); padding: 2px; background: var(--dark-bg-primary); }
         .testimonial-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
         .testimonial-author-info { flex-grow: 1; }
         .testimonial-name { font-weight: 600; margin-bottom: 0.1rem; color: var(--text-light); font-size: 1rem; }
-        .testimonial-role { font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+        .testimonial-role { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
 
-        /* --- Тарифы (v5 - Minimal Glow) --- */
+        /* --- Тарифы (v6 - Focused & Clean) --- */
         .pricing { background: var(--dark-bg-primary); }
-        .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: 2rem; align-items: stretch; }
+        .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 310px), 1fr)); gap: 1.8rem; align-items: stretch; }
         .pricing-card {
             background: var(--dark-card-solid); border-radius: var(--card-radius);
             padding: 2.5rem 2rem; box-shadow: var(--shadow-card); text-align: center;
             transition: all var(--transition-medium); position: relative; overflow: hidden;
-            display: flex; flex-direction: column; border: 1px solid var(--border-color-light);
+            display: flex; flex-direction: column; border: 1px solid var(--border-color-medium); /* Visible border */
         }
-        .pricing-card::before { /* Subtle top glow */
-             content: ''; position: absolute; top: 0; left: 0; right: 0; height: 5px;
-             background: linear-gradient(90deg, transparent, var(--accent-cyan), transparent);
-             opacity: 0; transition: opacity 0.4s ease;
-         }
-        .pricing-card:hover { transform: translateY(-10px); border-color: var(--accent-cyan); box-shadow: 0 18px 45px rgba(0,0,0,0.3); }
-        .pricing-card:hover::before { opacity: 0.6; }
-        .pricing-card.popular { border: 2px solid var(--accent-pink); box-shadow: var(--shadow-card), 0 0 20px rgba(var(--accent-pink-rgb, 232, 0, 232), 0.3); transform: scale(1.03); }
-        .pricing-card.popular:hover { transform: scale(1.06) translateY(-5px); }
-        .popular-badge { position: absolute; top: 15px; right: 15px; background: var(--accent-pink); color: var(--white); padding: 0.3rem 0.8rem; font-size: 0.7rem; font-weight: 600; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.5px; }
-        .pricing-icon { font-size: 2.2rem; margin-bottom: 1.2rem; color: var(--accent-cyan); }
-        .pricing-card.popular .pricing-icon { color: var(--accent-pink); }
-        .pricing-card h3 { font-size: 1.5rem; margin-bottom: 0.8rem; font-weight: 600; color: var(--text-heading); text-transform: uppercase; letter-spacing: 0.8px; }
-        .pricing-price { font-size: clamp(2.8rem, 7vw, 3.5rem); font-weight: 700; margin-bottom: 0.4rem; line-height: 1; color: var(--text-light); }
-        .pricing-period { font-size: 0.85rem; font-weight: 400; color: var(--text-muted); margin-bottom: 2rem; text-transform: uppercase; letter-spacing: 0.5px; }
-        .pricing-features { margin-bottom: 2.2rem; flex-grow: 1; text-align: left; padding-left: 0.5rem; }
-        .pricing-feature { padding: 0.6rem 0; border-bottom: 1px solid var(--border-color-light); color: var(--text-medium); font-size: 0.95rem; display: flex; align-items: center; gap: 0.8rem; }
+        .pricing-card:hover { transform: translateY(-8px); box-shadow: 0 15px 40px rgba(0,0,0,0.25); border-color: var(--accent-primary); }
+        .pricing-card.popular { border: 2px solid var(--accent-pink-subtle); box-shadow: var(--shadow-card), 0 0 18px rgba(var(--accent-pink-rgb, 232, 0, 232), 0.25); transform: scale(1.02); }
+        .pricing-card.popular:hover { transform: scale(1.04) translateY(-5px); }
+        .popular-badge { position: absolute; top: 12px; right: 12px; background: var(--accent-pink-subtle); color: var(--white); padding: 0.25rem 0.7rem; font-size: 0.65rem; font-weight: 600; border-radius: 15px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .pricing-icon { font-size: 2rem; margin-bottom: 1rem; color: var(--accent-primary); }
+        .pricing-card.popular .pricing-icon { color: var(--accent-pink-subtle); }
+        .pricing-card h3 { font-size: 1.4rem; margin-bottom: 0.8rem; font-weight: 600; color: var(--text-heading); text-transform: uppercase; letter-spacing: 0.8px; }
+        .pricing-price { font-size: clamp(2.6rem, 6vw, 3.2rem); font-weight: 700; margin-bottom: 0.3rem; line-height: 1; color: var(--text-light); }
+        .pricing-period { font-size: 0.8rem; font-weight: 400; color: var(--text-muted); margin-bottom: 2rem; text-transform: uppercase; letter-spacing: 0.5px; }
+        .pricing-features { margin-bottom: 2rem; flex-grow: 1; text-align: left; padding-left: 0.8rem; }
+        .pricing-feature { padding: 0.55rem 0; border-bottom: 1px solid var(--border-color-light); color: var(--text-medium); font-size: 0.9rem; display: flex; align-items: center; gap: 0.7rem; }
         .pricing-feature:last-child { border-bottom: none; }
-        .pricing-feature i { color: var(--accent-lime); font-size: 1rem; width: 20px; text-align: center; text-shadow: 0 0 5px rgba(var(--accent-lime-rgb, 124, 252, 0), 0.5); }
-        .pricing-feature.disabled { color: var(--text-muted); opacity: 0.6; }
+        .pricing-feature i { color: var(--accent-lime-subtle); font-size: 0.9rem; width: 18px; text-align: center; text-shadow: 0 0 4px rgba(var(--accent-lime-rgb, 124, 252, 0), 0.4); }
+        .pricing-feature.disabled { color: var(--text-muted); opacity: 0.5; }
         .pricing-feature.disabled i { color: var(--text-muted); text-shadow: none; }
         .pricing-feature.disabled span { text-decoration: line-through; }
-        .pricing-card .btn { margin-top: auto; width: 100%; }
+        .pricing-card .btn { margin-top: auto; width: 100%; font-size: 0.9rem; padding: 0.75rem 1.8rem;}
 
-        /* --- CTA (v5 - Direct & Clean) --- */
-        .cta { background: var(--dark-blue-accent); /* Dark blue accent */ color: var(--text-light); text-align: center; padding: clamp(5rem, 10vh, 7rem) 1.5rem; position: relative; overflow: hidden; }
+        /* --- CTA (v6 - Minimalist) --- */
+        .cta { background: var(--dark-card-solid); /* Use card background */ color: var(--text-light); text-align: center; padding: clamp(4.5rem, 8vh, 6rem) 1.5rem; margin-top: var(--section-padding-y); border-top: 1px solid var(--border-color-light); }
         .cta .container { position: relative; z-index: 1; }
-        .cta h2 { color: var(--text-heading); font-size: clamp(2.2rem, 5vw, 3.2rem); margin-bottom: 1.5rem; font-weight: 700; line-height: 1.3; }
-        .cta p { font-size: clamp(1.05rem, 2.8vw, 1.25rem); max-width: 780px; margin: 0 auto 2.5rem; color: var(--text-medium); opacity: 0.95; }
-        .cta .btn { background: var(--gradient-button); color: var(--dark-bg-primary); font-size: 1.05rem; padding: 0.9rem 2.4rem; box-shadow: var(--shadow-button); border: none; }
-        .cta .btn:hover { background: var(--gradient-button-hover); box-shadow: var(--shadow-button-hover); transform: translateY(-4px) scale(1.03); }
+        .cta h2 { color: var(--text-heading); font-size: clamp(2rem, 5vw, 3rem); margin-bottom: 1.2rem; font-weight: 700; line-height: 1.3; }
+        .cta p { font-size: clamp(1rem, 2.5vw, 1.15rem); max-width: 700px; margin: 0 auto 2.5rem; color: var(--text-medium); }
+        .cta .btn { /* Keep primary button style */ }
 
-        /* --- Футер (v5 - Simplified) --- */
-        footer { background: #04020a; /* Even darker */ color: var(--text-medium); padding: 5rem 0 2rem; position: relative; border-top: 1px solid var(--border-color-light); }
-        .footer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 3rem 2rem; margin-bottom: 3.5rem; }
-        .footer-column h3 { color: var(--text-light); font-size: 1.2rem; margin-bottom: 1.2rem; font-weight: 600; position: relative; padding-bottom: 0.5rem; }
-        .footer-column h3::after { content: ''; position: absolute; bottom: 0; left: 0; width: 35px; height: 2px; background: var(--accent-cyan); }
-        .footer-column .logo { margin-bottom: 1.2rem; display: inline-block; }
-        .footer-column p { font-size: 0.9rem; line-height: 1.6; max-width: 100%; }
-        .social-links { display: flex; gap: 0.8rem; margin-top: 1.2rem; }
-        .social-link { display: flex; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 50%; background: transparent; color: var(--text-muted); transition: all var(--transition-fast); border: 1px solid var(--border-color-light); font-size: 1rem; }
-        .social-link:hover { background: var(--accent-cyan); color: var(--dark-bg-primary); border-color: var(--accent-cyan); transform: translateY(-3px); }
+        /* --- Футер (v6 - Streamlined) --- */
+        footer { background: #04020a; color: var(--text-medium); padding: 4.5rem 0 2rem; position: relative; border-top: 1px solid var(--border-color-light); }
+        .footer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 2.5rem 1.5rem; margin-bottom: 3rem; }
+        .footer-column h3 { color: var(--text-light); font-size: 1.1rem; margin-bottom: 1rem; font-weight: 600; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border-color-light); }
+        .footer-column .logo { margin-bottom: 1rem; }
+        .footer-column p { font-size: 0.9rem; line-height: 1.6; }
+        .social-links { display: flex; gap: 0.8rem; margin-top: 1rem; }
+        .social-link { display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%; background: transparent; color: var(--text-muted); transition: all var(--transition-fast); border: 1px solid var(--border-color-light); font-size: 1rem; }
+        .social-link:hover { background: var(--accent-secondary); color: var(--white); border-color: transparent; transform: translateY(-2px); }
         .footer-links { list-style: none; }
-        .footer-links li { margin-bottom: 0.7rem; }
-        .footer-links a { color: var(--text-medium); transition: all var(--transition-fast); font-size: 0.9rem; display: inline-block; } /* Simpler links */
-        .footer-links a:hover { color: var(--accent-cyan); padding-left: 5px; }
+        .footer-links li { margin-bottom: 0.6rem; }
+        .footer-links a { color: var(--text-medium); transition: all var(--transition-fast); font-size: 0.9rem; }
+        .footer-links a:hover { color: var(--accent-secondary); padding-left: 4px; }
         .copyright { text-align: center; padding-top: 2rem; border-top: 1px solid var(--border-color-light); color: var(--text-muted); font-size: 0.85rem; font-family: var(--font-mono); }
-        .copyright a { color: var(--accent-purple); }
-        .copyright a:hover { color: var(--accent-pink); }
-        .copyright i.fa-heart { color: var(--accent-pink); animation: heartbeat 1.8s ease-in-out infinite; display: inline-block; }
+        .copyright a { color: var(--accent-primary); }
+        .copyright a:hover { color: var(--accent-secondary); }
+        .copyright i.fa-heart { color: var(--accent-pink-subtle); animation: heartbeat 1.8s ease-in-out infinite; display: inline-block; }
 
-        /* --- Адаптивность (v5) --- */
-        @media (max-width: 1024px) { html { font-size: 15px; } .nav-links { gap: 1.8rem; } }
+        /* --- Адаптивность (v6 - Mobile Focus) --- */
+        @media (max-width: 1024px) { html { font-size: 15px; } .nav-links { gap: 1.5rem; } .container { padding: 0 1.2rem; } }
         @media (max-width: 768px) {
             html { font-size: 14px; }
             .nav-links { /* Mobile Menu Styles */
-                position: fixed; top: 0; right: -100%; width: min(80vw, 320px); height: 100vh;
-                background: rgba(10, 7, 26, 0.95); backdrop-filter: blur(10px);
-                flex-direction: column; padding: 7rem 2rem 2rem; gap: 1.8rem;
-                transition: right 0.45s ease-in-out; z-index: 1001;
-                box-shadow: -6px 0 25px rgba(0,0,0,0.25); border-left: 1px solid var(--border-color-medium);
+                position: fixed; top: 0; right: -100%; width: min(85vw, 300px); height: 100vh;
+                background: rgba(6, 4, 15, 0.97); backdrop-filter: blur(12px);
+                flex-direction: column; padding: 6rem 1.5rem 2rem; gap: 1.5rem;
+                transition: right 0.4s ease-in-out; z-index: 1001;
+                box-shadow: -5px 0 20px rgba(0,0,0,0.3); border-left: 1px solid var(--border-color-medium);
             }
             .nav-links.active { right: 0; }
-            .nav-links a { font-size: 1.15rem; padding: 0.8rem 0; }
-            .nav-links a::before { display: none; } /* No underlines in mobile menu */
-            .hamburger { display: flex; }
+            .nav-links a { font-size: 1.1rem; padding: 0.7rem 0; }
+            .hamburger { display: flex; z-index: 1002; /* Ensure hamburger is above overlay */ }
             .desktop-auth-link { display: none; }
-            .mobile-auth-link { display: block; margin-top: 2.5rem; text-align: center; }
-            .timeline-container::before { left: 18px; } /* Adjust timeline line */
-            .timeline-item { padding-left: 60px; }
-            .timeline-icon { width: 40px; height: 40px; left: 18px; font-size: 1.3rem; }
-            .footer-grid { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem; }
+            .mobile-auth-link { display: block; margin-top: 2rem; text-align: center; }
+            .timeline-container::before { left: 12px; width: 2px; } /* Thinner line on mobile */
+            .timeline-item { padding-left: 45px; }
+            .timeline-icon { width: 35px; height: 35px; left: 12px; font-size: 1.1rem; }
+            .footer-grid { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; }
+            .container { padding: 0 1rem; }
+            section { --section-padding-y: clamp(4rem, 8vh, 6rem); }
         }
         @media (max-width: 576px) {
-            .container { padding: 0 1rem; }
-            .hero { padding: 7rem 0 5rem; }
-            .hero h1 { font-size: 2.5rem; }
-            .hero p { font-size: 1rem; }
-            .hero-buttons { flex-direction: column; gap: 1rem; align-items: center; }
-            .wave-divider svg { height: 60px; }
-            .section-padding-y { --section-padding-y: clamp(4rem, 8vh, 6rem); } /* Reduce section padding */
-            .timeline-container { margin-top: 1.5rem; }
-            .timeline-item { margin-bottom: 2rem; }
-            .timeline-content { padding: 1.2rem 1.5rem; }
-            .pricing-card, .testimonial-card { padding: 2rem 1.2rem; }
-            .cta h2 { font-size: 2rem; }
+            .hero { padding: 6rem 0 4rem; }
+            .hero h1 { font-size: 2.2rem; }
+            .hero p { font-size: 0.95rem; }
+            .wave-divider svg { height: 50px; }
+            .timeline-content h3 { font-size: 1.2rem; }
+            .timeline-content p { font-size: 0.9rem; }
+            .pricing-card { padding: 2rem 1.2rem; }
+            .cta h2 { font-size: 1.8rem; }
             .footer-grid { grid-template-columns: 1fr; text-align: center; }
             .footer-column h3::after { left: 50%; transform: translateX(-50%); }
             .social-links, .footer-links a { justify-content: center; }
+            .copyright { font-size: 0.8rem; }
         }
 
-        /* --- Анимации появления (v5) --- */
-        [data-animate] { opacity: 0; transform: translateY(40px); transition: opacity 0.9s cubic-bezier(0.165, 0.84, 0.44, 1), transform 0.9s cubic-bezier(0.165, 0.84, 0.44, 1); }
+        /* --- Анимации появления (v6) --- */
+        [data-animate] { opacity: 0; transform: translateY(35px); transition: opacity 0.8s cubic-bezier(0.165, 0.84, 0.44, 1), transform 0.8s cubic-bezier(0.165, 0.84, 0.44, 1); }
         [data-animate].animated { opacity: 1; transform: translateY(0); }
-        /* Staggered delays for grids */
-        .features-grid > [data-animate], .testimonials-grid > [data-animate], .pricing-grid > [data-animate] {
-            transition-delay: calc(var(--animation-order, 0) * 100ms);
+        /* Staggered delays */
+        .features-grid > [data-animate], .testimonials-grid > [data-animate], .pricing-grid > [data-animate], .footer-grid > [data-animate] {
+            transition-delay: calc(var(--animation-order, 0) * 80ms); /* Faster stagger */
         }
+        .timeline-item[data-animate] { transition-delay: calc(var(--animation-order, 0) * 120ms); }
 
-        /* --- Оверлей меню (v5) --- */
-        .menu-overlay { /* ... стили остались прежними ... */ position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(10, 7, 26, 0.7); backdrop-filter: blur(6px); z-index: 1000; opacity: 0; visibility: hidden; transition: opacity 0.4s ease, visibility 0s 0.4s; }
-        .menu-overlay.active { opacity: 1; visibility: visible; transition: opacity 0.4s ease, visibility 0s 0s; }
+        /* --- Оверлей меню (v6) --- */
+        .menu-overlay { position: fixed; inset: 0; background-color: rgba(6, 4, 15, 0.7); backdrop-filter: blur(4px); z-index: 1000; opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0s 0.3s; }
+        .menu-overlay.active { opacity: 1; visibility: visible; transition: opacity 0.3s ease, visibility 0s 0s; }
         body.menu-open { overflow: hidden; }
+
     </style>
 </head>
 <body class="dark">
@@ -429,7 +406,7 @@
         <section class="features" id="features">
             <div class="wave-divider" style="top: -1px; bottom: auto; transform: rotate(0);">
                 <svg data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
-                     <path d="M0,0 C150,80 350,0 600,40 S850,80 1200,0 V120 H0 Z" class="shape-fill" style="fill: var(--dark-bg-primary);"></path>
+                    <path d="M0,0 C200,50 400,0 600,25 S1000,50 1200,0 V120 H0 Z" class="shape-fill"></path>
                  </svg>
             </div>
             <div class="container">
@@ -437,47 +414,41 @@
                 <p class="section-subtitle" data-animate>Spojujeme špičkovou AI a osvědčené metody výuky, abychom vytvořili nástroj, který skutečně posouvá vaše hranice.</p>
                 <div class="features-grid">
                     <div class="feature-card" data-animate style="--animation-order: 1;">
-                         <div class="feature-card-inner-bg"></div>
                          <div class="feature-card-header">
                              <div class="feature-icon"><i class="fas fa-brain"></i></div>
                              <h3>Adaptivní AI Jádro</h3>
                          </div>
-                         <p>Naše pokročilá AI (včetně modelů Gemini/GPT) analyzuje váš styl učení a přizpůsobuje obsah v reálném čase.</p>
+                         <p>Naše pokročilá AI analyzuje váš styl učení a přizpůsobuje obsah v reálném čase pro maximální efektivitu.</p>
                      </div>
-                     <div class="feature-card" data-animate style="--animation-order: 2;">
-                         <div class="feature-card-inner-bg"></div>
+                    <div class="feature-card" data-animate style="--animation-order: 2;">
                          <div class="feature-card-header">
                             <div class="feature-icon"><i class="fas fa-map-signs"></i></div>
                             <h3>Hyper-Personalizace</h3>
                         </div>
-                        <p>Žádné šablony. Justax tvoří dynamickou studijní cestu specificky pro vás, optimalizovanou pro maximální efektivitu.</p>
+                        <p>Žádné obecné plány. Justax tvoří dynamickou studijní cestu specificky pro vaše potřeby a cíle.</p>
                     </div>
-                     <div class="feature-card" data-animate style="--animation-order: 3;">
-                         <div class="feature-card-inner-bg"></div>
+                    <div class="feature-card" data-animate style="--animation-order: 3;">
                          <div class="feature-card-header">
                             <div class="feature-icon"><i class="fas fa-check-double"></i></div>
                             <h3>CERMAT Validace</h3>
                         </div>
                         <p>Trénujte s úlohami kalibrovanými podle náročnosti a formátu skutečných CERMAT testů. Buďte 100% připraveni.</p>
                     </div>
-                     <div class="feature-card" data-animate style="--animation-order: 4;">
-                         <div class="feature-card-inner-bg"></div>
+                    <div class="feature-card" data-animate style="--animation-order: 4;">
                          <div class="feature-card-header">
                             <div class="feature-icon"><i class="fas fa-microchip"></i></div>
                             <h3>Inteligentní Vysvětlení</h3>
                         </div>
-                        <p>Nejen řešení, ale hluboké pochopení principů. AI rozkládá složité koncepty na srozumitelné kroky.</p>
+                        <p>Nejen odpovědi, ale hluboké pochopení principů. AI rozkládá složité koncepty na srozumitelné kroky.</p>
                     </div>
-                     <div class="feature-card" data-animate style="--animation-order: 5;">
-                         <div class="feature-card-inner-bg"></div>
+                    <div class="feature-card" data-animate style="--animation-order: 5;">
                          <div class="feature-card-header">
                             <div class="feature-icon"><i class="fas fa-microscope"></i></div>
                             <h3>Precizní Analýza Chyb</h3>
                         </div>
                         <p>AI odhalí vzorce ve vašich chybách a poskytne cílená cvičení k jejich systematickému odstranění.</p>
                     </div>
-                     <div class="feature-card" data-animate style="--animation-order: 6;">
-                         <div class="feature-card-inner-bg"></div>
+                    <div class="feature-card" data-animate style="--animation-order: 6;">
                          <div class="feature-card-header">
                             <div class="feature-icon"><i class="fas fa-globe"></i></div>
                             <h3>Neomezený Přístup 24/7</h3>
@@ -493,28 +464,28 @@
                 <h2 class="section-title" data-animate><span>Vaše Cesta k Úspěchu</span></h2>
                 <p class="section-subtitle" data-animate>Jen pár kroků vás dělí od revolučního způsobu přípravy na zkoušky s Justax.</p>
                 <div class="timeline-container">
-                     <div class="timeline-item" data-animate>
+                     <div class="timeline-item" data-animate style="--animation-order: 1;">
                         <div class="timeline-icon">1</div>
                         <div class="timeline-content">
                             <h3>Registrace & Profil</h3>
                             <p>Vytvořte si účet během minuty a specifikujte své studijní cíle – SŠ nebo Maturita.</p>
                         </div>
                     </div>
-                    <div class="timeline-item" data-animate>
+                    <div class="timeline-item" data-animate style="--animation-order: 2;">
                         <div class="timeline-icon">2</div>
                         <div class="timeline-content">
                             <h3>Inteligentní Diagnostika</h3>
                             <p>Náš adaptivní test rychle a přesně zmapuje vaše silné a slabé stránky.</p>
                         </div>
                     </div>
-                    <div class="timeline-item" data-animate>
+                    <div class="timeline-item" data-animate style="--animation-order: 3;">
                         <div class="timeline-icon">3</div>
                         <div class="timeline-content">
                             <h3>Dynamický Plán na Míru</h3>
                             <p>AI okamžitě sestaví váš osobní studijní plán, zaměřený na problematické oblasti.</p>
                         </div>
                     </div>
-                    <div class="timeline-item" data-animate>
+                    <div class="timeline-item" data-animate style="--animation-order: 4;">
                         <div class="timeline-icon">4</div>
                         <div class="timeline-content">
                             <h3>Interaktivní Učení</h3>
@@ -528,7 +499,7 @@
         <section class="testimonials" id="testimonials">
              <div class="wave-divider" style="top: -1px; bottom: auto; transform: rotate(0);">
                  <svg data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
-                     <path d="M0,0 C150,80 350,0 600,40 S850,80 1200,0 V120 H0 Z" class="shape-fill" style="fill: var(--dark-bg-primary);"></path>
+                     <path d="M0,0 C200,50 400,0 600,25 S1000,50 1200,0 V120 H0 Z" class="shape-fill" style="fill: var(--dark-bg-primary);"></path>
                  </svg>
              </div>
             <div class="container">
@@ -569,7 +540,7 @@
             </div>
              <div class="wave-divider" style="bottom: -1px; top: auto;">
                  <svg data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
-                      <path d="M0,0 C150,80 350,0 600,40 S850,80 1200,0 V120 H0 Z" class="shape-fill" style="fill: var(--dark-bg-secondary);"></path>
+                      <path d="M0,0 C200,50 400,0 600,25 S1000,50 1200,0 V120 H0 Z" class="shape-fill" style="fill: var(--dark-bg-secondary);"></path>
                   </svg>
              </div>
         </section>
@@ -640,12 +611,12 @@
     <footer id="contact">
          <div class="wave-divider" style="top: -1px; bottom: auto; transform: rotate(0);">
              <svg data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
-                 <path d="M0,0 C150,80 350,0 600,40 S850,80 1200,0 V120 H0 Z" class="shape-fill" style="fill: var(--dark-blue-accent);"></path>
+                 <path d="M0,0 C200,50 400,0 600,25 S1000,50 1200,0 V120 H0 Z" class="shape-fill" style="fill: var(--dark-blue-accent);"></path>
              </svg>
          </div>
         <div class="container">
             <div class="footer-grid">
-                <div class="footer-column" data-animate>
+                <div class="footer-column" data-animate style="--animation-order: 1;">
                      <a href="#" class="logo"> <i class="fas fa-atom"></i> <span>Justax</span> </a>
                     <p>Inteligentní AI platforma pro efektivní přípravu na klíčové zkoušky.</p>
                     <div class="social-links">
@@ -728,11 +699,11 @@
             let lastScrollY = window.scrollY;
             const scrollHandler = () => {
                 const currentScrollY = window.scrollY;
-                if (header) header.classList.toggle('scrolled', currentScrollY > 50);
+                if (header) header.classList.toggle('scrolled', currentScrollY > 30); // Trigger earlier
                 lastScrollY = currentScrollY;
             };
             window.addEventListener('scroll', scrollHandler, { passive: true });
-            scrollHandler();
+            scrollHandler(); // Initial check
 
             // --- Анимация Intersection Observer ---
              const animatedElements = document.querySelectorAll('[data-animate]');
@@ -740,7 +711,7 @@
                  const observer = new IntersectionObserver((entries, observerInstance) => {
                      entries.forEach(entry => {
                          if (entry.isIntersecting) {
-                              // Set animation order based on index if not specified
+                              // Set animation order if not specified
                               if (!entry.target.style.getPropertyValue("--animation-order")) {
                                   const siblings = Array.from(entry.target.parentNode.querySelectorAll('[data-animate]'));
                                   entry.target.style.setProperty("--animation-order", siblings.indexOf(entry.target));
@@ -752,7 +723,7 @@
                  }, { threshold: 0.1 }); // Trigger slightly earlier
                  animatedElements.forEach(element => observer.observe(element));
              } else {
-                  // Fallback for older browsers
+                  // Fallback
                  animatedElements.forEach(element => element.classList.add('animated'));
              }
 
@@ -765,9 +736,9 @@
                              const targetElement = document.querySelector(href);
                              if (targetElement) {
                                  e.preventDefault();
-                                 const headerOffset = header?.classList.contains('scrolled') ? (header?.offsetHeight ?? 70) : (header?.offsetHeight ?? 90);
+                                 const headerOffset = header?.classList.contains('scrolled') ? (header?.offsetHeight ?? 60) : (header?.offsetHeight ?? 80); // Adjusted offset based on scroll
                                  const elementPosition = targetElement.getBoundingClientRect().top;
-                                 const offsetPosition = elementPosition + window.pageYOffset - headerOffset - 30; // Slightly larger offset
+                                 const offsetPosition = elementPosition + window.pageYOffset - headerOffset - 15; // Fine-tuned offset
                                  window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
                                  if(navLinks?.classList.contains('active')) toggleMenu(true);
                              }
@@ -786,8 +757,8 @@
                  if (!sections || sections.length === 0 || !navItems) return;
                  let currentSectionId = '';
                  const scrollY = window.pageYOffset;
-                 const headerHeight = header?.offsetHeight ?? 80;
-                 const offset = headerHeight + 200; // Increased offset for better detection
+                 const headerHeight = header?.offsetHeight ?? 70;
+                 const offset = headerHeight + 180; // Further offset for better accuracy
 
                  sections.forEach(section => {
                      const sectionTop = section.offsetTop - offset;
@@ -796,16 +767,27 @@
                          currentSectionId = section.getAttribute('id');
                       }
                  });
+                 // Check if near the bottom of the page to activate 'contact'
+                 if ((window.innerHeight + scrollY) >= document.body.offsetHeight - 100) { // 100px tolerance from bottom
+                     currentSectionId = 'contact';
+                 }
+
                  navItems.forEach(link => {
+                     const linkHref = link.getAttribute('href');
                      link.classList.remove('active');
-                     if (currentSectionId && link.getAttribute('href') === `#${currentSectionId}`) {
+                     if (currentSectionId && linkHref === `#${currentSectionId}`) {
                          link.classList.add('active');
                      }
                  });
              }
-             window.addEventListener('scroll', updateActiveNav, { passive: true });
+             // Debounce scroll handler for performance
+             let scrollTimeout;
+             window.addEventListener('scroll', () => {
+                 clearTimeout(scrollTimeout);
+                 scrollTimeout = setTimeout(updateActiveNav, 50); // Update less frequently
+             }, { passive: true });
              window.addEventListener('resize', updateActiveNav);
-             updateActiveNav();
+             updateActiveNav(); // Initial check
 
        });
     </script>
