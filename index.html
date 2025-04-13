@@ -3,60 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Justax | Váš AI Průvodce k Top Výsledkům</title> <link rel="preconnect" href="https://fonts.googleapis.com">
+    <title>JUSTAX | UNLEASH AI POWER | ZNIČ ZKOUŠKY</title> <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
-        /* --- Палитра и Переменные (v14 - Dark Matter Refined) --- */
+        /* --- Палитра и Переменные (v15 - Maximum Overdrive) --- */
         :root {
             /* Основные темные тона */
-            --bg-color: #05040f;            /* Глубокий сине-черный */
-            --bg-secondary: #0c091f;       /* Темный индиго */
-            --card-bg: rgba(18, 12, 50, 0.75); /* Полупрозрачный фон карт */
-            --card-solid: #120d33;         /* Сплошной темный фиолетовый */
-            --interface-bg: rgba(8, 5, 26, 0.85); /* Фон интерфейса */
-            --interface-border: rgba(90, 127, 255, 0.25); /* Синяя рамка интерфейса */
+            --bg-color: #02010b;            /* Глубочайший черный */
+            --bg-secondary: #0a071d;       /* Темный индиго */
+            --card-bg: rgba(16, 10, 45, 0.85); /* Полупрозрачный индиго */
+            --card-solid: #110c30;         /* Сплошной темный */
+            --interface-bg: rgba(8, 5, 26, 0.9);
 
-            /* Акценты - Яркий синий/циан + Фиолетовый/Розовый */
-            --accent-primary: #4a80ff;     /* Яркий синий */
-            --accent-primary-rgb: 74, 128, 255;
-            --accent-secondary: #a05cff;   /* Насыщенный фиолетовый */
-            --accent-secondary-rgb: 160, 92, 255;
-            --accent-cyan: #00e0ff;        /* Циан для свечения/хайлайтов */
-            --accent-cyan-rgb: 0, 224, 255;
-            --accent-pink: #ff33a8;        /* Яркий розовый */
-            --accent-pink-rgb: 255, 51, 168;
-            --accent-lime: #6fff3a;        /* Лайм для статусов */
-            --accent-lime-rgb: 111, 255, 58;
-            --accent-glow: rgba(var(--accent-primary-rgb), 0.45); /* Синее свечение */
-            --accent-border-glow: rgba(var(--accent-cyan-rgb), 0.7); /* Циановое свечение для границ */
+            /* Акценты - Максимально Яркие + Вторичные */
+            --accent-primary: #00f0ff;     /* Циан */
+            --accent-primary-rgb: 0, 240, 255;
+            --accent-secondary: #ff00ff;   /* Магента */
+            --accent-secondary-rgb: 255, 0, 255;
+            --accent-tertiary: #9d00ff;    /* Фиолетовый */
+            --accent-tertiary-rgb: 157, 0, 255;
+            --accent-lime: #39ff14;        /* Кислотный лайм */
+            --accent-lime-rgb: 57, 255, 20;
+            --accent-glow: rgba(var(--accent-primary-rgb), 0.6); /* Сильное Циановое свечение */
+            --accent-secondary-glow: rgba(var(--accent-secondary-rgb), 0.5);
+            --accent-border-glow: rgba(var(--accent-primary-rgb), 0.8);
 
             /* Текст */
             --text-light: #f0f4f8;
-            --text-medium: #bac4e0;      /* Светлее для читаемости на темном */
-            --text-muted: #8a96c0;
+            --text-medium: #c0c8e0;
+            --text-muted: #8892b0;
             --text-heading: #ffffff;
             --text-link: var(--accent-primary);
-            --text-link-hover: var(--accent-cyan);
-            --text-fixed-dark: #05040f; /* Для светлых кнопок */
+            --text-link-hover: #ffffff;
+            --text-fixed-dark: #02010b;
 
             /* Границы */
-            --border-color-light: rgba(160, 92, 255, 0.2); /* Фиолетовый */
-            --border-color-medium: rgba(160, 92, 255, 0.4);
-            --border-color-strong: rgba(74, 128, 255, 0.5); /* Синий */
+            --border-color-light: rgba(var(--accent-tertiary-rgb), 0.2); /* Фиолетовый */
+            --border-color-medium: rgba(var(--accent-tertiary-rgb), 0.4);
+            --border-color-strong: rgba(var(--accent-primary-rgb), 0.6); /* Циан */
             --border-interactive: var(--accent-primary);
-            --border-glow-gradient: linear-gradient(90deg, transparent, var(--accent-cyan), transparent);
+            --border-glow-gradient: linear-gradient(90deg, transparent, var(--accent-primary), var(--accent-secondary), var(--accent-primary), transparent);
 
             /* Градиенты */
-            --gradient-header: linear-gradient(180deg, rgba(5, 4, 15, 0.95) 0%, rgba(5, 4, 15, 0.8) 100%);
-            --gradient-border-anim: linear-gradient(90deg, var(--accent-secondary), var(--accent-primary), var(--accent-cyan), var(--accent-primary), var(--accent-secondary));
+            --gradient-header: linear-gradient(180deg, rgba(2, 1, 11, 0.97) 0%, rgba(2, 1, 11, 0.85) 100%);
+            --gradient-border-anim: linear-gradient(90deg, var(--accent-secondary), var(--accent-primary), var(--accent-lime), var(--accent-primary), var(--accent-secondary));
             --gradient-button: linear-gradient(100deg, var(--accent-secondary) 0%, var(--accent-primary) 100%);
-            --gradient-button-hover: linear-gradient(100deg, var(--accent-primary) 0%, var(--accent-cyan) 100%);
-            --gradient-hero-bg: radial-gradient(ellipse at 10% 10%, rgba(var(--accent-primary-rgb), 0.12), transparent 55%),
-                                 radial-gradient(ellipse at 90% 90%, rgba(var(--accent-secondary-rgb), 0.1), transparent 50%),
+            --gradient-button-hover: linear-gradient(100deg, var(--accent-primary) 0%, var(--accent-lime) 100%); /* Лайм на ховер */
+            --gradient-hero-bg: radial-gradient(ellipse at 0% 0%, rgba(var(--accent-primary-rgb), 0.18), transparent 50%),
+                                 radial-gradient(ellipse at 100% 100%, rgba(var(--accent-secondary-rgb), 0.15), transparent 55%),
                                  var(--bg-color);
-            --gradient-card-highlight: linear-gradient(160deg, rgba(var(--accent-primary-rgb), 0.1), rgba(var(--accent-secondary-rgb), 0.1));
+            --gradient-card-highlight: linear-gradient(160deg, rgba(var(--accent-primary-rgb), 0.15), rgba(var(--accent-secondary-rgb), 0.15));
 
             /* Шрифты */
             --font-primary: 'Inter', sans-serif;
@@ -64,20 +62,20 @@
             --font-mono: 'Roboto Mono', monospace;
 
             /* Тени */
-            --shadow-glow: 0 0 18px var(--accent-glow);
-            --shadow-card: 0 10px 35px rgba(0, 0, 0, 0.3);
-            --shadow-interactive: 0 6px 18px rgba(var(--accent-primary-rgb), 0.25);
-            --shadow-interactive-hover: 0 8px 25px rgba(var(--accent-cyan-rgb), 0.3); /* Hover на циан */
+            --shadow-glow: 0 0 22px var(--accent-glow); /* Усиленное свечение */
+            --shadow-card: 0 12px 40px rgba(0, 0, 0, 0.35); /* Глубже */
+            --shadow-interactive: 0 6px 20px rgba(var(--accent-primary-rgb), 0.4); /* Заметнее */
+            --shadow-interactive-hover: 0 8px 30px rgba(var(--accent-secondary-rgb), 0.4);
 
             /* Размеры и переходы */
-            --card-radius: 14px;
-            --btn-radius: 9px; /* Чуть острее */
-            --section-padding-y: clamp(6.5rem, 12vh, 9rem); /* Немного больше */
-            --container-width: 1420px; /* Чуть шире */
-            --transition-fast: all 0.2s ease-out;
-            --transition-medium: all 0.35s ease-out;
+            --card-radius: 10px; /* Острее */
+            --btn-radius: 6px; /* Еще острее */
+            --section-padding-y: clamp(7rem, 14vh, 10rem); /* Больше отступы */
+            --container-width: 1500px; /* Еще шире */
+            --transition-fast: all 0.15s ease-out;
+            --transition-medium: all 0.3s ease-out;
             --transition-long: all 0.5s cubic-bezier(0.165, 0.84, 0.44, 1);
-            --transition-snap: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.2);
+            --transition-glitchy: all 0.05s linear; /* Faster glitch */
         }
 
         /* --- Базовые стили --- */
@@ -89,244 +87,284 @@
             overflow-x: hidden; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
             min-height: 100vh; position: relative; background-attachment: fixed;
         }
-        body::before { /* Tech grid pattern */
+        body::before { /* Animated Grid */
             content: ""; position: fixed; inset: 0; width: 100%; height: 100%; z-index: -2;
             background-image:
-                linear-gradient(rgba(var(--accent-secondary-rgb), 0.05) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(var(--accent-secondary-rgb), 0.05) 1px, transparent 1px);
-            background-size: 40px 40px; opacity: 0.7;
-            animation: bg-grid-pan 100s linear infinite;
+                linear-gradient(rgba(var(--accent-tertiary-rgb), 0.08) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(var(--accent-tertiary-rgb), 0.08) 1px, transparent 1px);
+            background-size: 35px 35px; opacity: 0.9;
+            animation: bg-grid-pan 80s linear infinite;
         }
-        @keyframes bg-grid-pan { 0% { background-position: 0 0; } 100% { background-position: 1000px 500px; } }
+         body::after { /* Subtle moving noise/texture */
+            content: ""; position: fixed; inset: 0; width: 100%; height: 100%; z-index: -1;
+             /* Placeholder for noise texture - use a real SVG/PNG if possible */
+             /* background-image: url('noise.png'); */
+             background: radial-gradient(circle at center, transparent, rgba(0,0,0,0.1)); /* Fake noise */
+            opacity: 0.08; animation: noise-anim 0.2s infinite steps(2); pointer-events: none;
+         }
+        @keyframes bg-grid-pan { 0% { background-position: 0 0; } 100% { background-position: 700px 350px; } }
+        @keyframes noise-anim { 0% { transform: translate(1px, 2px); } 50% { transform: translate(-1px, -1px); } 100% { transform: translate(1px, 2px); } }
+
 
         /* --- Типография --- */
-        h1, h2, h3, h4, h5, h6 { font-family: var(--font-secondary); font-weight: 600; color: var(--text-heading); line-height: 1.35; margin-bottom: 1.3em; }
-        h1 { font-size: clamp(3rem, 8vw, 5.3rem); letter-spacing: -1px; font-weight: 700; }
-        h2 { font-size: clamp(2rem, 5.5vw, 3rem); font-weight: 700; }
-        h3 { font-size: clamp(1.35rem, 4vw, 1.75rem); font-weight: 600; }
-        p { margin-bottom: 1.6rem; font-size: clamp(1rem, 2.5vw, 1.05rem); max-width: 680px; opacity: 0.9; color: var(--text-medium); } /* Убедимся, что цвет установлен */
-        a { color: var(--text-link); text-decoration: none; transition: color var(--transition-fast), text-shadow 0.3s ease; }
-        a:hover { color: var(--text-link-hover); text-shadow: 0 0 6px var(--accent-cyan-glow); }
-        .section-title { text-align: center; margin-bottom: 1.5rem; position: relative; padding-bottom: 1rem; }
-        .section-title span { /* Gradient Text - FIX */
-            color: var(--text-heading); /* Fallback color */
-            background: linear-gradient(90deg, var(--text-light), var(--accent-primary));
-            -webkit-background-clip: text; background-clip: text;
-            -webkit-text-fill-color: transparent; /* This caused issues maybe */
-            filter: drop-shadow(0 0 8px var(--accent-secondary));
-            position: relative; /* Ensure it's above pseudo elements if needed */
-            z-index: 1;
-         }
+        h1, h2, h3, h4, h5, h6 { font-family: var(--font-secondary); font-weight: 700; color: var(--text-heading); line-height: 1.3; margin-bottom: 1.3em; text-shadow: 0 1px 4px rgba(0,0,0,0.2); }
+        h1 { font-size: clamp(3.2rem, 8.5vw, 6rem); letter-spacing: -1.8px; font-weight: 800; }
+        h2 { font-size: clamp(2.1rem, 6vw, 3.3rem); font-weight: 700; }
+        h3 { font-size: clamp(1.4rem, 4vw, 1.8rem); font-weight: 600; }
+        p { margin-bottom: 1.6rem; font-size: clamp(1rem, 2.5vw, 1.05rem); max-width: 700px; opacity: 0.9; color: var(--text-medium); } /* FIXED: Ensure text color */
+        a { color: var(--text-link); text-decoration: none; transition: color var(--transition-fast), filter 0.3s ease, text-shadow 0.3s ease; }
+        a:hover { color: var(--text-link-hover); filter: brightness(1.1); text-shadow: 0 0 10px var(--accent-glow); }
+        .section-title { text-align: center; margin-bottom: 1.8rem; position: relative; padding-bottom: 1rem; }
+        .section-title span { /* Яркий заголовок с тенью, БЕЗ background-clip */
+             color: var(--text-heading);
+             text-shadow: 0 0 8px var(--accent-glow), 0 0 15px var(--accent-glow);
+             position: relative;
+             z-index: 1;
+        }
         .section-title::after { /* Animated underline */
-             content: ''; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
-             width: 65px; height: 3px; border-radius: 2px;
-             background: var(--gradient-border-anim); background-size: 300% 100%;
-             animation: gradient-move 4s linear infinite;
-         }
+            content: ''; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+            width: 80px; height: 3px; border-radius: 1px;
+            background: var(--gradient-border-anim); background-size: 300% 100%;
+            animation: gradient-move 3.5s linear infinite;
+            filter: drop-shadow(0 0 5px var(--accent-primary));
+        }
         @keyframes gradient-move { 0% { background-position: 150% 0; } 100% { background-position: -150% 0; } }
-        .section-subtitle { font-size: clamp(1rem, 3vw, 1.15rem); text-align: center; max-width: 800px; margin: -1rem auto 4rem auto; color: var(--text-medium); }
+        .section-subtitle { font-size: clamp(1.1rem, 3vw, 1.25rem); text-align: center; max-width: 850px; margin: -1.2rem auto 4.5rem auto; color: var(--text-medium); }
 
-        /* --- Общие элементы --- */
-        .container { width: 100%; max-width: var(--container-width); margin: 0 auto; padding: 0 2rem; }
-        section { padding: var(--section-padding-y) 0; position: relative; overflow: hidden; }
-        .visually-hidden { /* ... */ }
-
-        /* --- Кнопки (v14 - Refined Cyber) --- */
+        /* --- Кнопки (v15 - Maximum Cyber) --- */
         .btn {
-            display: inline-block; padding: 0.85rem 2.2rem;
-            background: var(--gradient-button); color: var(--white); /* White text for contrast */
-            border: none; border-radius: var(--btn-radius);
-            font-family: var(--font-secondary); font-weight: 600; font-size: 0.9rem;
-            text-align: center; text-transform: uppercase; letter-spacing: 1px;
-            cursor: pointer; transition: all var(--transition-medium);
-            position: relative; z-index: 1; overflow: hidden;
-            box-shadow: var(--shadow-interactive);
-        }
-        .btn::before { /* Hover glow effect */
-            content: ''; position: absolute; inset: -2px; z-index: -2; border-radius: inherit;
-            background: var(--gradient-button-hover); filter: blur(10px); opacity: 0;
-            transition: opacity var(--transition-medium);
-        }
-        .btn:hover { transform: translateY(-3px); box-shadow: var(--shadow-interactive-hover); }
-        .btn:hover::before { opacity: 0.8; }
-        .btn:active { transform: translateY(0px) scale(0.98); }
-        .btn-outline {
+            display: inline-block; padding: 0.9rem 2.4rem; /* Bigger */
             background: transparent; color: var(--accent-primary);
-            border: 2px solid var(--accent-primary); box-shadow: none;
+            border: 2px solid var(--accent-primary); border-radius: var(--btn-radius);
+            font-family: var(--font-secondary); font-weight: 700; /* Bolder */ font-size: 0.95rem;
+            text-align: center; text-transform: uppercase; letter-spacing: 1.5px; /* Wider */
+            cursor: pointer; transition: all var(--transition-medium) ease-in-out;
+            position: relative; overflow: hidden; z-index: 1;
+            box-shadow: 0 0 15px var(--accent-glow), inset 0 0 10px rgba(var(--accent-primary-rgb), 0.3);
+            backdrop-filter: blur(2px); /* Slight blur */
         }
-        .btn-outline::before { display: none; } /* No glow */
-        .btn-outline:hover { background: rgba(var(--accent-primary-rgb), 0.1); color: var(--accent-cyan); border-color: var(--accent-cyan); box-shadow: 0 0 15px -5px var(--accent-glow); }
+        .btn::before { /* Glitchy border/fill */
+            content: ''; position: absolute; inset: -2px; z-index: -1; border-radius: inherit;
+            background: var(--gradient-button); opacity: 0;
+            transition: opacity 0.3s ease, transform 0.1s ease;
+            clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%); /* Initial */
+        }
+        .btn:hover {
+            color: var(--text-fixed-dark); border-color: var(--accent-secondary);
+            box-shadow: 0 0 30px var(--accent-secondary-glow), inset 0 0 15px rgba(var(--accent-secondary-rgb), 0.2);
+            transform: translateY(-4px) skewX(-3deg); /* Skew on hover */
+        }
+        .btn:hover::before {
+            opacity: 1;
+            animation: btn-glitch 0.3s steps(2, jump-none) infinite;
+        }
+         @keyframes btn-glitch {
+            0% { clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%); transform: translate(0); }
+            25% { clip-path: polygon(0% 20%, 100% 0%, 100% 85%, 0% 100%); transform: translate(-2px, 1px); }
+            50% { clip-path: polygon(0% 0%, 100% 15%, 100% 100%, 0% 90%); transform: translate(1px, -1px); }
+            75% { clip-path: polygon(0% 80%, 100% 100%, 100% 25%, 0% 0%); transform: translate(2px, 0); }
+            100% { clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%); transform: translate(0); }
+        }
+        .btn:active { transform: translateY(0px) scale(0.98) skewX(0deg); }
+        .btn-outline { /* Outline uses secondary color */
+            border-color: var(--accent-secondary); color: var(--accent-secondary);
+            box-shadow: 0 0 15px var(--accent-secondary-glow), inset 0 0 10px rgba(var(--accent-secondary-rgb), 0.3);
+        }
+        .btn-outline::before { background: var(--gradient-button-hover); }
+        .btn-outline:hover { border-color: var(--accent-pink); color: var(--text-fixed-dark); box-shadow: 0 0 30px var(--accent-pink-glow), inset 0 0 15px rgba(var(--accent-pink-rgb), 0.2); }
 
-        /* --- Хедер (v14 - Tech Glass) --- */
+
+        /* --- Хедер (v15 - HUD Glass) --- */
         header {
             padding: 0.9rem 0; position: fixed; top: 0; left: 0; width: 100%; z-index: 1000;
             background: transparent; border-bottom: 1px solid transparent;
             transition: all 0.3s ease-out;
         }
         header.scrolled {
-            padding: 0.7rem 0; background: rgba(8, 5, 26, 0.85); /* Darker glass */
-            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-            border-bottom: 1px solid var(--border-color-light); box-shadow: 0 6px 25px rgba(0, 0, 0, 0.25);
+            padding: 0.7rem 0; background: rgba(8, 5, 26, 0.9); /* Darker */
+            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-color-medium);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
         }
-        .nav-links a::before { /* Line indicator */
-            content: ''; position: absolute; bottom: -5px; left: 0; width: 0; height: 2px;
-            background: var(--accent-primary); transition: width 0.3s ease-out;
-            box-shadow: 0 0 6px var(--accent-glow);
+        .nav-links a::before { /* Line indicator - Brighter */
+             background: var(--accent-primary);
+             box-shadow: 0 0 8px var(--accent-glow);
         }
-        .nav-links a:hover::before, .nav-links a.active::before { width: 65%; }
-        .nav-links a.active::before { background: var(--accent-cyan); box-shadow: 0 0 8px var(--accent-cyan-glow); }
-        /* ... other header styles ... */
+         .nav-links a.active::before { background: var(--accent-cyan); box-shadow: 0 0 10px var(--accent-cyan-glow); }
+         /* ... rest of header styles ... */
 
-        /* --- Герой секция (v14 - Impactful) --- */
+        /* --- Герой секция (v15 - MAXIMUM IMPACT) --- */
         .hero {
-            padding: clamp(11rem, 28vh, 16rem) 0 clamp(8rem, 20vh, 10rem);
+            padding: clamp(12rem, 30vh, 18rem) 0 clamp(9rem, 22vh, 12rem);
             background: var(--gradient-hero-bg); background-size: 160% 160%;
-            animation: gradientBG 22s ease infinite alternate;
-            text-align: center; overflow: hidden; min-height: 95vh;
+            animation: gradientBG 20s ease infinite alternate;
+            text-align: center; overflow: hidden; min-height: 100vh;
             display: flex; align-items: center; justify-content: center; position: relative;
         }
-        /* Optional subtle moving particles/stars */
-         .hero::after {
-             content: ''; position: absolute; inset: 0; z-index: 0;
-             background-image: radial-gradient(1px 1px at 30% 20%, var(--star-color), transparent),
-                               radial-gradient(1px 1px at 70% 80%, var(--star-color), transparent);
-             background-size: 400px 400px; opacity: 0.5; animation: stars-move 80s linear infinite;
-         }
-        .hero .container { position: relative; z-index: 1; max-width: 1100px; }
-        .hero h1 { /* Fixed Text Visibility */
-            font-size: clamp(3.1rem, 8vw, 5.5rem); margin-bottom: 1.8rem; line-height: 1.15;
-            font-weight: 800; color: var(--text-heading); /* Ensure base color is visible */
-            text-shadow: 0 0 15px var(--accent-glow), 0 0 35px rgba(var(--accent-secondary-rgb), 0.3);
+         /* More complex background effect */
+        .hero::after {
+            content: ''; position: absolute; inset: -10%; z-index: 0;
+            background-image: linear-gradient(45deg, rgba(var(--accent-primary-rgb), 0.1) 25%, transparent 25%),
+                              linear-gradient(-45deg, rgba(var(--accent-primary-rgb), 0.1) 25%, transparent 25%),
+                              linear-gradient(135deg, rgba(var(--accent-secondary-rgb), 0.08) 25%, transparent 25%),
+                              linear-gradient(-135deg, rgba(var(--accent-secondary-rgb), 0.08) 25%, transparent 25%);
+            background-size: 100px 100px;
+            opacity: 0.4; animation: bg-grid-rotate 60s linear infinite; pointer-events: none;
         }
-        .hero h1 .highlight { /* Brighter highlight */
-            color: var(--accent-cyan);
-            text-shadow: 0 0 10px var(--accent-cyan-glow), 0 0 20px var(--accent-cyan-glow);
+         @keyframes bg-grid-rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .hero .container { position: relative; z-index: 1; max-width: 1200px; }
+        .hero h1 {
+            font-size: clamp(3.5rem, 9vw, 6.5rem); margin-bottom: 1.5rem; line-height: 1.1;
+            font-weight: 800; color: var(--text-heading); /* FIXED: Ensure visible */
+            text-shadow: 0 0 15px var(--accent-glow), 0 0 35px var(--accent-glow), 0 0 60px var(--accent-secondary-glow);
+            animation: hero-text-glitch 6s infinite alternate ease-in-out; /* Glitchy animation */
         }
-        .hero p { font-size: clamp(1.1rem, 3vw, 1.3rem); margin-bottom: 3rem; max-width: 800px; margin-left: auto; margin-right: auto; color: var(--text-light); opacity: 0.9; }
-        .hero-buttons { display: flex; gap: 1.2rem; justify-content: center; flex-wrap: wrap; }
+         @keyframes hero-text-glitch {
+            0%, 100% { transform: skewX(0); }
+            25% { transform: skewX(-2deg) translateX(3px); text-shadow: 0 0 15px var(--accent-pink-glow), 0 0 35px var(--accent-glow); }
+            50% { transform: skewX(0); }
+            75% { transform: skewX(2deg) translateX(-3px); text-shadow: 0 0 15px var(--accent-glow), 0 0 35px var(--accent-secondary-glow); }
+        }
+        .hero p { font-size: clamp(1.1rem, 3vw, 1.35rem); margin-bottom: 3.5rem; max-width: 850px; margin-left: auto; margin-right: auto; color: var(--text-light); opacity: 0.9; }
+        .hero-buttons { display: flex; gap: 1.5rem; justify-content: center; flex-wrap: wrap; }
+        .hero-buttons .btn { padding: 1rem 2.6rem; font-size: 1rem; } /* Larger Buttons */
 
-        /* --- AI Interface v4 (Refined) --- */
-        .ai-interface-section { background: var(--bg-secondary); padding-bottom: calc(var(--section-padding-y) + 2rem); border-top: 1px solid var(--border-color-light); }
+        /* --- AI Interface (v15 - Advanced HUD) --- */
+        .ai-interface-section { background: var(--bg-secondary); padding: var(--section-padding-y) 0; border-top: 1px solid var(--border-color-medium); border-bottom: 1px solid var(--border-color-medium); }
         .ai-interface-wrapper {
-            background: var(--interface-bg); backdrop-filter: blur(5px);
-            border: 1px solid var(--interface-border); border-radius: var(--card-radius);
-            padding: clamp(1rem, 4vw, 1.8rem); /* Responsive padding */
-            box-shadow: var(--shadow-card), 0 0 40px rgba(var(--accent-secondary-rgb), 0.1) inset;
-            position: relative; max-width: 1000px; margin: 2rem auto 0; display: flex; flex-direction: column;
-            min-height: 460px; /* Adjusted height */
+            background: linear-gradient(145deg, rgba(8, 5, 26, 0.9), rgba(18, 12, 50, 0.9)); /* Gradient bg */
+            border: 1px solid var(--border-color-strong); /* Cyan border */
+            border-radius: var(--card-radius); padding: clamp(1.2rem, 4vw, 2rem);
+            box-shadow: 0 0 30px rgba(var(--accent-primary-rgb), 0.2) inset, 0 0 15px rgba(var(--accent-primary-rgb), 0.2);
+            position: relative; max-width: 1100px; margin: 2rem auto 0; display: flex; flex-direction: column;
+            min-height: 500px; backdrop-filter: blur(6px);
+            /* More HUD elements */
         }
-        .ai-interface-header { margin-bottom: 1rem; padding-bottom: 0.8rem; border-bottom: 1px solid var(--interface-border); }
-        .ai-interface-title { font-size: 1rem; color: var(--accent-cyan); text-shadow: 0 0 5px var(--accent-cyan-glow);}
-        .ai-interface-title i { color: var(--accent-cyan); }
-        .ai-content-area { display: flex; flex-direction: column; flex-grow: 1; overflow: hidden; }
+         /* ... HUD Corners (same as v12) ... */
+         .ai-interface-header { /* ... */ }
+        .ai-interface-title { color: var(--accent-cyan); text-shadow: 0 0 8px var(--accent-cyan-glow); }
+        .ai-content-area { /* ... */ }
         .ai-log-window {
-            flex-grow: 1; background-color: rgba(4, 2, 10, 0.7); border-radius: 8px;
-            padding: 1rem; overflow-y: auto; font-family: var(--font-mono);
-            font-size: clamp(0.75rem, 2vw, 0.85rem); /* Responsive font size */
-            line-height: 1.65; color: var(--text-medium); border: 1px solid var(--border-color-light);
-            margin-top: 1rem; min-height: 250px; /* Ensure min height */
+            background-color: rgba(4, 2, 10, 0.8); /* Darker log */
+            border: 1px solid var(--border-color-light);
+            font-size: clamp(0.8rem, 2.2vw, 0.9rem); /* Larger mono font */
+            min-height: 280px;
         }
-        .ai-log-window::-webkit-scrollbar { width: 6px; }
-        .ai-log-window::-webkit-scrollbar-thumb { background-color: var(--accent-primary); }
-        .ai-demo-line { margin-bottom: 0.5rem; padding-left: 2rem; position: relative; opacity: 0; animation: fadeIn 0.4s ease forwards; }
-        .ai-demo-line::before { position: absolute; left: 0; top: 0; font-family: var(--font-mono); opacity: 0.7; font-weight: 500; }
-        .ai-demo-line.user::before { content: '>'; color: var(--accent-secondary); }
-        .ai-demo-line.ai::before { content: '$'; color: var(--accent-primary); }
-        .ai-demo-line.analysis::before{ content: '#'; color: var(--accent-lime); }
-        .ai-demo-line .text-content { display: inline; } /* Let text wrap */
-        .ai-demo-line .typing-cursor { background-color: var(--accent-cyan); }
-        .ai-progress-bar-container { margin-top: 1.2rem; padding-top: 1rem; border-top: 1px solid var(--border-color-light); }
-        .ai-progress-bar { height: 8px; background-color: var(--border-color-light); border-radius: 4px; }
-        .ai-progress-bar-inner { background: var(--gradient-button); box-shadow: 0 0 10px var(--accent-glow); }
+        .ai-demo-line.user::before { content: '[USER] >'; font-weight: 700; }
+        .ai-demo-line.ai::before { content: '[AI] $'; font-weight: 700; }
+        .ai-demo-line.analysis::before{ content: '[SYS] #'; font-weight: 700; }
+        .ai-progress-bar-container { /* ... */ }
+        .ai-progress-bar { height: 10px; background: var(--border-color-light); box-shadow: inset 0 1px 2px rgba(0,0,0,0.3); }
+        .ai-progress-bar-inner { background: linear-gradient(90deg, var(--accent-primary), var(--accent-cyan)); box-shadow: 0 0 12px var(--accent-glow); animation: progress-pulse 1.5s infinite ease-in-out;}
+        @keyframes progress-pulse { 50% { filter: brightness(1.3); } }
 
-        /* --- Секция Функций (v14 - Glowing Cards) --- */
-        .features { background: var(--bg-secondary); border-top: 1px solid var(--border-color-light); }
-        .features-grid { gap: 2rem; }
+        /* --- Features (v15 - Tech Panels) --- */
+        .features { background: var(--bg-secondary); border-top: 1px solid var(--border-color-medium); }
         .feature-card {
             background: var(--card-solid); border: 1px solid var(--border-color-light);
-            border-radius: var(--card-radius); padding: 2rem 1.8rem;
-            transition: all var(--transition-medium); position: relative; overflow: hidden;
+            padding: 2rem 1.8rem; border-radius: 8px; /* Sharper */
+            transition: all var(--transition-medium); position: relative;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
         }
-        .feature-card::before { /* Animated border */
-            content: ''; position: absolute; inset: -1px; z-index: 0; border-radius: inherit;
-            background: var(--gradient-border-anim); background-size: 300% 100%;
-            animation: gradient-move 4s linear infinite; opacity: 0; transition: opacity 0.4s ease;
-         }
-         .feature-card::after { /* Solid background overlay */
-             content: ''; position: absolute; inset: 0; z-index: -1; border-radius: inherit;
-             background: var(--card-solid);
-         }
-        .feature-card:hover { transform: translateY(-6px); box-shadow: var(--shadow-card); }
-        .feature-card:hover::before { opacity: 0.8; }
-        .feature-icon { background: var(--accent-primary); color: var(--text-fixed-dark); box-shadow: 0 0 12px var(--accent-glow); }
-        .feature-card:hover .feature-icon { background: var(--accent-cyan); color: var(--text-fixed-dark); box-shadow: 0 0 15px var(--accent-cyan-glow); transform: scale(1.08) rotate(-5deg); }
+        .feature-card::before { /* Angled overlay */
+            content: ''; position: absolute; top: 0; left: 0; width: 60%; height: 100%;
+            background: linear-gradient(45deg, rgba(var(--accent-primary-rgb), 0.08), transparent);
+            clip-path: polygon(0 0, 100% 0, 70% 100%, 0% 100%);
+            opacity: 0; transition: opacity 0.4s ease; pointer-events: none;
+        }
+        .feature-card:hover { transform: translateY(-8px) scale(1.02); border-color: var(--border-color-strong); box-shadow: 0 15px 35px rgba(0,0,0,0.3), var(--shadow-glow); background: var(--card-highlight-bg); }
+        .feature-card:hover::before { opacity: 1; }
+        .feature-icon { /* Hexagon shape or similar */
+             width: 50px; height: 55px; font-size: 1.6rem;
+             background: var(--accent-primary); color: var(--text-fixed-dark);
+             clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+             display: flex; align-items: center; justify-content: center; transition: all 0.3s ease;
+        }
+        .feature-card:hover .feature-icon { background: var(--accent-cyan); transform: rotate(15deg); }
         /* ... rest of feature styles ... */
 
-        /* --- Как это работает (v14 - Tech Timeline) --- */
-        .how-it-works { background: var(--bg-color); border-top: 1px solid var(--border-color-light); }
-        .timeline-container::before { /* Brighter line */
-            background: linear-gradient(to bottom, var(--accent-primary), var(--accent-secondary));
-            opacity: 0.6; box-shadow: 0 0 10px var(--accent-glow);
+        /* --- How it Works (v15 - Animated Steps) --- */
+        .how-it-works { background: var(--bg-color); border-top: 1px solid var(--border-color-medium); }
+        .timeline-container::before { /* Pulsing line */
+            background: var(--accent-primary); box-shadow: 0 0 12px var(--accent-glow);
+            animation: line-pulse 2s infinite ease-in-out;
         }
-        .timeline-icon { background: var(--card-solid); border: 1px solid var(--border-color-strong); color: var(--accent-primary); }
-        .timeline-item:hover .timeline-icon { border-color: var(--accent-cyan); color: var(--accent-cyan); box-shadow: 0 0 15px var(--accent-cyan-glow); }
+        @keyframes line-pulse { 50% { background: var(--accent-cyan); box-shadow: 0 0 15px var(--accent-cyan-glow); transform: scaleY(1.1); } }
+        .timeline-icon { /* Animated icon */
+            border-color: var(--accent-primary); color: var(--accent-primary);
+            box-shadow: 0 0 15px var(--accent-glow);
+            animation: icon-spin-pulse 5s infinite linear;
+        }
+        @keyframes icon-spin-pulse { 0%, 100% { transform: translateX(-50%) rotate(0deg) scale(1); } 50% { transform: translateX(-50%) rotate(10deg) scale(1.1); } }
         /* ... rest of timeline styles ... */
 
-        /* --- Отзывы (v14 - Glassmorphic Card) --- */
-        .testimonials { background: var(--bg-secondary); border-top: 1px solid var(--border-color-light); }
+        /* --- Testimonials (v15 - Holo Card) --- */
+        .testimonials { background: var(--bg-secondary); border-top: 1px solid var(--border-color-medium); }
         .testimonial-card {
-            background: var(--card-bg); backdrop-filter: blur(8px);
-            border: 1px solid var(--border-color-light); border-radius: var(--card-radius);
-            padding: 2rem; position: relative; transition: var(--transition-medium);
+            background: var(--card-bg); backdrop-filter: blur(6px);
+            border: 1px solid transparent; border-radius: var(--card-radius);
+            padding: 2rem; position: relative; transition: all var(--transition-medium);
+            overflow: hidden; box-shadow: var(--shadow-card);
         }
-        .testimonial-card::before { /* Subtle gradient border on hover */
-            content: ''; position: absolute; inset: -1px; z-index: -1; border-radius: inherit;
-            background: var(--gradient-border); opacity: 0; transition: opacity 0.3s ease;
-        }
-        .testimonial-card:hover { transform: translateY(-6px); box-shadow: var(--shadow-card); background: rgba(18, 12, 50, 0.9); }
-        .testimonial-card:hover::before { opacity: 0.7; }
-        .testimonial-rating { color: var(--accent-cyan); } /* Cyan stars */
+        .testimonial-card::before { /* Animated border */
+             content: ''; position: absolute; inset: -1px; z-index: -1; border-radius: inherit;
+             background: var(--gradient-border-anim); background-size: 300%;
+             animation: gradient-move 3s linear infinite; opacity: 0; transition: opacity 0.4s ease;
+         }
+         .testimonial-card::after { /* Noise overlay */
+            content: ""; position: absolute; inset: 0; z-index: -1;
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.6' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%' height='100%' filter='url(%23n)' opacity='0.07'/%3E%3C/svg%3E");
+            pointer-events: none;
+         }
+        .testimonial-card:hover { transform: translateY(-8px); box-shadow: 0 15px 40px rgba(0,0,0,0.3); }
+        .testimonial-card:hover::before { opacity: 1; }
+        .testimonial-rating { color: var(--accent-cyan); }
         /* ... rest of testimonial styles ... */
 
-        /* --- Тарифы (v14 - Clear Focus) --- */
-         .pricing { background: var(--bg-color); border-top: 1px solid var(--border-color-light); }
-         .pricing-card { background: var(--card-solid); border-color: var(--border-color-light); }
-         .pricing-card:hover { border-color: var(--border-color-medium); }
+        /* --- Pricing (v15 - Aggressive Highlight) --- */
+         .pricing { background: var(--bg-color); border-top: 1px solid var(--border-color-medium); }
+         .pricing-card { /* ... */ }
          .pricing-card.popular {
-             border: 2px solid var(--accent-primary); transform: scale(1.03);
-             background: var(--card-highlight-bg); box-shadow: 0 10px 35px rgba(0,0,0,0.3), 0 0 25px var(--accent-glow);
+             border: 2px solid var(--accent-primary); transform: scale(1.05) translateY(-10px); /* Lifted more */
+             background: linear-gradient(170deg, var(--card-solid), var(--dark-purple-accent));
+             box-shadow: 0 15px 45px rgba(0,0,0,0.35), 0 0 35px var(--accent-glow);
          }
-         .popular-badge { background: var(--accent-primary); box-shadow: 0 2px 5px rgba(var(--accent-primary-rgb), 0.4); }
-         .pricing-icon { color: var(--accent-primary); }
-         .pricing-card.popular .pricing-icon { color: var(--accent-cyan); filter: drop-shadow(0 0 10px var(--accent-cyan-glow));}
-         .pricing-feature i { color: var(--accent-lime); }
+         .popular-badge { background: var(--gradient-button); color: var(--white); /* Gradient badge */ }
+         .pricing-icon { filter: drop-shadow(0 0 10px var(--accent-glow)); }
+         .pricing-card.popular .pricing-icon { color: var(--accent-cyan); filter: drop-shadow(0 0 15px var(--accent-cyan-glow)); animation: icon-float 3s infinite ease-in-out; }
+         @keyframes icon-float { 50% { transform: translateY(-5px); } }
+         /* ... rest of pricing styles ... */
 
-        /* --- CTA (v14 - Bold Gradient) --- */
-        .cta { background: var(--gradient-button); }
+        /* --- CTA (v15 - Maximum Urgency) --- */
+        .cta { background: var(--gradient-button-hover); /* Use hover gradient */ } /* Use hover gradient for base */
+        .cta .btn { background: var(--text-fixed-dark); color: var(--accent-cyan); box-shadow: 0 5px 20px rgba(0,0,0, 0.4); font-weight: 700; }
+        .cta .btn:hover { background: #111; color: var(--white); box-shadow: 0 8px 25px rgba(0,0,0, 0.5); }
 
-        /* --- Футер (v14) --- */
-        /* ... Refined footer styles ... */
+        /* --- Футер (v15 - Tech Footer) --- */
+        footer { background: #020108; border-top: 1px solid var(--border-color-medium); }
+        .social-link { border-color: var(--border-color-medium); }
+        .social-link:hover { background: var(--accent-primary); border-color: var(--accent-primary); box-shadow: 0 0 10px var(--accent-glow); }
+        /* ... rest of footer styles ... */
 
-        /* --- Адаптивность (v14) --- */
-        /* ... (Проверить и скорректировать медиа-запросы) ... */
+        /* --- Адаптивность (v15 - Overdrive Tested) --- */
+        /* ... (Тщательно проверить все секции и интерфейс) ... */
         @media (max-width: 768px) {
-             .ai-interface-wrapper { padding: 1.2rem; min-height: 420px; }
-             .ai-log-window { font-size: 0.75rem; min-height: 200px;}
+             .ai-interface-wrapper { padding: 1rem; min-height: 400px; }
+             .ai-log-window { font-size: 0.7rem; min-height: 200px;}
              /* ... other mobile styles ... */
         }
         @media (max-width: 576px) {
-            /* ... */
-            .hero h1 { font-size: 2.4rem; }
-            .btn { padding: 0.8rem 2rem; font-size: 0.85rem; }
+             .hero h1 { font-size: 2.5rem; }
+             .btn { padding: 0.8rem 2rem; font-size: 0.85rem; }
         }
 
-        /* --- Анимации появления (v14 - Crisp) --- */
-        [data-animate] { opacity: 0; transform: translateY(25px); transition: opacity 0.65s ease-out, transform 0.65s ease-out; }
+        /* --- Анимации появления (v15 - Faster) --- */
+        [data-animate] { opacity: 0; transform: translateY(35px); transition: opacity 0.5s ease-out, transform 0.5s ease-out; }
         [data-animate].animated { opacity: 1; transform: translateY(0); }
         /* ... Stagger delays ... */
 
-        /* --- Оверлей меню (v14) --- */
-        .menu-overlay { /* ... */ }
+        /* --- Оверлей меню (v15) --- */
+        .menu-overlay { background-color: rgba(4, 2, 10, 0.8); backdrop-filter: blur(5px); } /* Darker */
         body.menu-open { overflow: hidden; }
 
     </style>
@@ -336,20 +374,13 @@
     <header id="header">
         <div class="container nav-container">
             <a href="#" class="logo">
-                <i class="fas fa-atom"></i> <span>Justax</span>
-            </a>
+                <i class="fas fa-atom"></i> <span>JUSTAX</span> </a>
             <nav class="nav-links" id="navLinks">
-                <a href="#features" class="nav-item">Výhody</a>
-                <a href="#ai-demo" class="nav-item">AI v Akci</a>
-                <a href="#how-it-works" class="nav-item">Jak Začít</a>
-                <a href="#pricing" class="nav-item">Ceník</a>
-                <a href="#testimonials" class="nav-item">Reference</a>
-                <a href="#contact" class="nav-item">Kontakt</a>
-                <a href="auth/index.html" class="btn auth-link mobile-auth-link">Start Zdarma</a>
-            </nav>
+                <a href="#features" class="nav-item">Power Ups</a> <a href="#ai-demo" class="nav-item">AI Core</a> <a href="#how-it-works" class="nav-item">Start Engine</a> <a href="#pricing" class="nav-item">Plány</a>
+                <a href="#testimonials" class="nav-item">Důkazy</a> <a href="#contact" class="nav-item">Kontakt</a>
+                <a href="auth/index.html" class="btn auth-link mobile-auth-link">Připojit se</a> </nav>
             <div class="header-actions">
-                <a href="auth/index.html" class="btn auth-link desktop-auth-link">Start Zdarma</a>
-                <button class="hamburger" id="hamburger" aria-label="Menu" aria-expanded="false" aria-controls="navLinks">
+                <a href="auth/index.html" class="btn auth-link desktop-auth-link">Připojit se</a> <button class="hamburger" id="hamburger" aria-label="Menu" aria-expanded="false" aria-controls="navLinks">
                     <span></span><span></span><span></span>
                 </button>
             </div>
@@ -360,62 +391,60 @@
 
     <main>
         <section class="hero">
-             <div class="container">
-                <h1 data-animate>Hackni Své Zkoušky <span class="highlight">s AI Tutorem</span></h1>
-                <p data-animate>Přestaň plýtvat časem. Justax je tvůj osobní AI parťák, který tě provede džunglí učení k nejlepším výsledkům.</p>
+            <div class="container">
+                <h1 data-animate>ZNIČ ZKOUŠKY.<br> OVLÁDNI VĚDĚNÍ.</h1> <p data-animate>Zapomeň na stres. Justax AI je tvůj kybernetický augment pro učení. Personalizace. Efektivita. Výsledky.</p>
                 <div class="hero-buttons" data-animate>
-                    <a href="auth/index.html" class="btn auth-link">Aktivovat AI ZDARMA</a>
-                    <a href="#ai-demo" class="btn btn-outline">Sledovat Demo</a>
+                    <a href="auth/index.html" class="btn auth-link">AKTIVOVAT AI ZDARMA</a>
+                    <a href="#ai-demo" class="btn btn-outline">SLEDOVAT DEMO</a>
                 </div>
             </div>
         </section>
 
         <section class="features" id="features">
-             <div class="container">
-                <h2 class="section-title" data-animate><span>Proč Tě Justax Vystřelí Dopředu?</span></h2>
-                <p class="section-subtitle" data-animate>Zapomeň na průměr. Naše technologie je navržena pro maximální efektivitu a skutečné pochopení.</p>
+            <div class="container">
+                <h2 class="section-title" data-animate><span>TVOJE KYBER-VÝHODY</span></h2>
+                <p class="section-subtitle" data-animate>Nejsme jen appka. Jsme upgrade tvého mozku.</p>
                 <div class="features-grid">
                     <div class="feature-card" data-animate style="--animation-order: 1;">
                          <div class="feature-card-header">
                              <div class="feature-icon"><i class="fas fa-brain"></i></div>
-                             <h3>Adaptivní Mozek</h3>
+                             <h3>Adaptivní Sync</h3>
                          </div>
-                         <p>AI se přizpůsobí tvému tempu a stylu, žádné zbytečné opakování.</p>
+                         <p>AI se synchronizuje s tvým mozkem. Žádné zbytečnosti.</p>
                      </div>
-                    <div class="feature-card" data-animate style="--animation-order: 2;">
+                     <div class="feature-card" data-animate style="--animation-order: 2;">
                          <div class="feature-card-header">
                             <div class="feature-icon"><i class="fas fa-route"></i></div>
-                            <h3>Efektivní Trasa</h3>
+                            <h3>Hyper-Efektivita</h3>
                         </div>
-                        <p>Zaměř se jen na to podstatné. Optimalizovaný plán šetří tvůj čas.</p>
+                        <p>Optimalizovaná trasa k cíli. Maximální výsledek za minimální čas.</p>
                     </div>
                      <div class="feature-card" data-animate style="--animation-order: 3;">
                          <div class="feature-card-header">
                             <div class="feature-icon"><i class="fas fa-bullseye"></i></div>
-                            <h3>Reálné Scénáře</h3>
+                            <h3>CERMAT Simulátor</h3>
                         </div>
-                        <p>Trénuj na úlohách, které tě potkají u CERMAT testů. Bez překvapení.</p>
+                        <p>Trénuj na tom, co tě čeká. Znič testy bez překvapení.</p>
                     </div>
                      <div class="feature-card" data-animate style="--animation-order: 4;">
                          <div class="feature-card-header">
                             <div class="feature-icon"><i class="fas fa-chalkboard-teacher"></i></div>
-                            <h3>Jasno v Hlavě</h3>
+                            <h3>AI Vysvětlovač</h3>
                         </div>
-                        <p>Složitosti vysvětlené jednoduše. Konečně pochopíš "proč".</p>
+                        <p>Složité věci jednoduše. Pochopíš i to, co ti ve škole tajili.</p>
                     </div>
                      <div class="feature-card" data-animate style="--animation-order: 5;">
                          <div class="feature-card-header">
-                            <div class="feature-icon"><i class="fas fa-lightbulb"></i></div>
-                            <h3>Chyby = Pokrok</h3>
+                            <div class="feature-icon"><i class="fas fa-bug-slash"></i></div> <h3>Error Correction</h3>
                         </div>
-                        <p>AI najde tvé slabiny a pomůže ti je systematicky odstranit.</p>
+                        <p>AI najde a opraví tvé systémové chyby. Zvyš level.</p>
                     </div>
                      <div class="feature-card" data-animate style="--animation-order: 6;">
                          <div class="feature-card-header">
                             <div class="far fa-clock"></i></div>
-                            <h3>Nonstop Podpora</h3>
+                            <h3>24/7 Připravenost</h3>
                         </div>
-                        <p>Uč se kdykoliv, kdekoliv. Tvůj AI tutor je vždy připraven.</p>
+                        <p>Tvůj AI augment nespí. Uč se kdykoliv a kdekoliv.</p>
                     </div>
                 </div>
             </div>
@@ -423,18 +452,17 @@
 
         <section class="ai-interface-section" id="ai-demo">
              <div class="container">
-                 <h2 class="section-title" data-animate><span>AI v Reálném Čase</span></h2>
-                 <p class="section-subtitle" data-animate>Sleduj simulaci Justax AI Core při práci: analýza, adaptace, vysvětlení.</p>
+                 <h2 class="section-title" data-animate><span>JUSTAX AI CORE // LIVE FEED</span></h2>
+                 <p class="section-subtitle" data-animate>Sleduj neurální aktivitu a datové toky v reálném čase. Tohle je mozek tvého úspěchu.</p>
                  <div class="ai-interface-wrapper" data-animate>
                      <div class="ai-interface-header">
-                         <div class="ai-interface-title"><i class="fas fa-atom"></i> Justax AI Core [ONLINE]</div>
-                         <div class="ai-status-indicator">Active</div>
-                     </div>
+                         <div class="ai-interface-title"><i class="fas fa-atom"></i> JX CORE v15.0 :: STATUS</div>
+                         <div class="ai-status-indicator">OPTIMAL</div> </div>
                      <div class="ai-content-area">
                          <div class="ai-log-window" id="ai-demo-output">
                              </div>
                          <div class="ai-progress-bar-container">
-                             <div class="ai-progress-bar-label">Průběh Analýzy Odpovědi</div>
+                             <div class="ai-progress-bar-label">PROCESSING TASK // STUDENT_ANALYSIS</div>
                              <div class="ai-progress-bar">
                                  <div class="ai-progress-bar-inner" id="ai-progress-bar" style="width: 0%;"></div>
                              </div>
@@ -446,35 +474,34 @@
 
         <section class="how-it-works" id="how-it-works">
             <div class="container">
-                <h2 class="section-title" data-animate><span>Start za Pár Kliknutí</span></h2>
-                <p class="section-subtitle" data-animate>Začni svou cestu k lepším výsledkům rychle a jednoduše.</p>
+                <h2 class="section-title" data-animate><span>PROTOKOL STARTU</span></h2>
+                <p class="section-subtitle" data-animate>Zapojení do systému Justax je rychlé a intuitivní.</p>
                 <div class="timeline-container">
                      <div class="timeline-item" data-animate style="--animation-order: 1;">
-                        <div class="timeline-icon">1</div>
-                        <div class="timeline-content">
-                            <h3>Registrace</h3>
-                            <p>Rychlé vytvoření účtu a nastavení cílů.</p>
+                        <div class="timeline-icon">01</div> <div class="timeline-content">
+                            <h3>REGISTRACE // INIT</h3>
+                            <p>Vytvoř profil, zadej cíle. Systém připraven.</p>
                         </div>
                     </div>
                     <div class="timeline-item" data-animate style="--animation-order: 2;">
-                        <div class="timeline-icon">2</div>
+                        <div class="timeline-icon">02</div>
                         <div class="timeline-content">
-                            <h3>Diagnostika</h3>
-                            <p>AI test zjistí tvé silné a slabé stránky.</p>
+                            <h3>DIAGNOSTIKA // SCAN</h3>
+                            <p>AI test proskenuje tvé znalosti. Identifikace slabin.</p>
                         </div>
                     </div>
                     <div class="timeline-item" data-animate style="--animation-order: 3;">
-                        <div class="timeline-icon">3</div>
+                        <div class="timeline-icon">03</div>
                         <div class="timeline-content">
-                            <h3>Personalizace</h3>
-                            <p>Unikátní plán zaměřený na tvé potřeby.</p>
+                            <h3>PLÁN // COMPUTE</h3>
+                            <p>Generování unikátní cesty. Optimalizace trajektorie.</p>
                         </div>
                     </div>
                     <div class="timeline-item" data-animate style="--animation-order: 4;">
-                        <div class="timeline-icon">4</div>
+                        <div class="timeline-icon">04</div>
                         <div class="timeline-content">
-                            <h3>Trénink</h3>
-                            <p>Adaptivní cvičení a zpětná vazba od AI.</p>
+                            <h3>TRÉNINK // EXECUTE</h3>
+                            <p>Adaptivní cvičení, AI feedback. Sleduj svůj progress.</p>
                         </div>
                     </div>
                 </div>
@@ -482,38 +509,38 @@
         </section>
 
         <section class="testimonials" id="testimonials">
-             <div class="container">
-                <h2 class="section-title" data-animate><span>Co Říkají Studenti?</span></h2>
-                <p class="section-subtitle" data-animate>Nejsme to my, kdo mluví – poslechni si reálné zkušenosti.</p>
+            <div class="container">
+                <h2 class="section-title" data-animate><span>HLASY Z MATRIXU</span></h2>
+                <p class="section-subtitle" data-animate>Reálné zkušenosti uživatelů, kteří se připojili k revoluci.</p>
                 <div class="testimonials-grid">
                     <div class="testimonial-card" data-animate style="--animation-order: 1;">
                         <div class="testimonial-content">
                             <div class="testimonial-rating"> <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i> </div>
-                           <p class="testimonial-text">"Konečně něco, co funguje! Vysvětlení jsou super srozumitelná a vidím reálný pokrok. Přijímačky v kapse!"</p>
+                           <p class="testimonial-text">"Kurva dobrý! Konečně jsem pochopil matiku, co mi nešla roky. AI vysvětluje líp než učitel. Dal jsem přijímačky!"</p>
                        </div>
                        <div class="testimonial-author">
                            <div class="testimonial-avatar"></div>
-                           <div class="testimonial-author-info"> <div class="testimonial-name">David P.</div> <div class="testimonial-role">Student, Brno</div> </div>
+                           <div class="testimonial-author-info"> <div class="testimonial-name">CyberMike_77</div> <div class="testimonial-role">Student // Upgrade Complete</div> </div>
                        </div>
                    </div>
                    <div class="testimonial-card" data-animate style="--animation-order: 2;">
                        <div class="testimonial-content">
                            <div class="testimonial-rating"> <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i> </div>
-                           <p class="testimonial-text">"Ušetřilo mi to tolik stresu před maturitou. Justax se zaměřil přesně na moje slabiny a já se nemusela učit zbytečnosti."</p>
+                           <p class="testimonial-text">"Maturita z ČJ byla hračka. Justax mě přesně připravil na to, co bylo v testu. Ušetřilo mi to mega času a nervů."</p>
                         </div>
                        <div class="testimonial-author">
                            <div class="testimonial-avatar"></div>
-                           <div class="testimonial-author-info"> <div class="testimonial-name">Veronika K.</div> <div class="testimonial-role">Maturantka, Praha</div> </div>
+                           <div class="testimonial-author-info"> <div class="testimonial-name">Neon_Katka</div> <div class="testimonial-role">Maturantka // Level Up</div> </div>
                        </div>
                    </div>
                    <div class="testimonial-card" data-animate style="--animation-order: 3;">
                         <div class="testimonial-content">
                             <div class="testimonial-rating"> <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i> </div>
-                           <p class="testimonial-text">"Pro našeho syna to byla nejlepší investice do vzdělání. Zlepšení bylo vidět téměř okamžitě."</p>
+                           <p class="testimonial-text">"Vidět synův progress v reálném čase a jak mu AI pomáhá... k nezaplacení. Funguje to."</p>
                         </div>
                        <div class="testimonial-author">
                            <div class="testimonial-avatar"></div>
-                           <div class="testimonial-author-info"> <div class="testimonial-name">Martin J.</div> <div class="testimonial-role">Rodič</div> </div>
+                           <div class="testimonial-author-info"> <div class="testimonial-name">DataDad_01</div> <div class="testimonial-role">Rodič // System Monitor</div> </div>
                        </div>
                    </div>
                 </div>
@@ -522,49 +549,49 @@
 
         <section class="pricing" id="pricing">
             <div class="container">
-                <h2 class="section-title" data-animate><span>Investuj do Sebe</span></h2>
-                <p class="section-subtitle" data-animate>Žádné skryté poplatky, jen čistý výkon. Vyber si svůj level a začni zdarma.</p>
+                <h2 class="section-title" data-animate><span>ZVOL SI SVŮJ UPGRADE</span></h2>
+                <p class="section-subtitle" data-animate>Žádný bullshit, jen čistá síla AI. Vyber plán a odemkni svůj potenciál.</p>
                 <div class="pricing-grid">
                      <div class="pricing-card" data-animate style="--animation-order: 1;">
                          <div class="pricing-icon"><i class="fas fa-rocket"></i></div>
-                        <h3>Start</h3>
+                        <h3>BASIC IMPLANT</h3>
                         <div class="pricing-price">499 Kč<span class="pricing-period"> / měsíc</span></div>
                         <div class="pricing-features">
                             <div class="pricing-feature"><i class="fas fa-check"></i><span>Adaptivní AI jádro</span></div>
                             <div class="pricing-feature"><i class="fas fa-check"></i><span>Personalizovaná cvičení</span></div>
                             <div class="pricing-feature"><i class="fas fa-check"></i><span>Základní diagnostika</span></div>
-                            <div class="pricing-feature disabled"><i class="fas fa-times"></i><span>Hloubková analýza chyb</span></div>
-                            <div class="pricing-feature disabled"><i class="fas fa-times"></i><span>Dynamický studijní plán</span></div>
+                            <div class="pricing-feature disabled"><i class="fas fa-times"></i><span>Analýza chyb</span></div>
+                            <div class="pricing-feature disabled"><i class="fas fa-times"></i><span>Dynamický plán</span></div>
                         </div>
-                        <a href="auth/index.html" class="btn btn-outline auth-link">Začít Start</a>
+                        <a href="auth/index.html" class="btn btn-outline auth-link">Aktivovat Základ</a>
                     </div>
                     <div class="pricing-card popular" data-animate style="--animation-order: 2;">
-                        <div class="popular-badge">Nejlepší Hodnota</div>
+                        <div class="popular-badge">NEJLEPŠÍ DEAL</div>
                         <div class="pricing-icon"><i class="fas fa-brain"></i></div>
-                        <h3>Progres</h3>
+                        <h3>PRO CORE</h3>
                         <div class="pricing-price">999 Kč<span class="pricing-period"> / měsíc</span></div>
                         <div class="pricing-features">
-                            <div class="pricing-feature"><i class="fas fa-check"></i><span>**Vše ze Start +**</span></div>
-                            <div class="pricing-feature"><i class="fas fa-check"></i><span>Pokročilé AI jádro (Gemini+)</span></div>
-                            <div class="pricing-feature"><i class="fas fa-check"></i><span>Plná databáze CERMAT úloh</span></div>
-                            <div class="pricing-feature"><i class="fas fa-check"></i><span>Detailní reporting pokroku</span></div>
-                            <div class="pricing-feature"><i class="fas fa-check"></i><span>Hloubková analýza chyb</span></div>
-                            <div class="pricing-feature"><i class="fas fa-check"></i><span>Dynamický studijní plán</span></div>
+                            <div class="pricing-feature"><i class="fas fa-check"></i><span>**Vše z BASIC +**</span></div>
+                            <div class="pricing-feature"><i class="fas fa-check"></i><span>Pokročilé AI (Gemini+)</span></div>
+                            <div class="pricing-feature"><i class="fas fa-check"></i><span>Full CERMAT Databáze</span></div>
+                            <div class="pricing-feature"><i class="fas fa-check"></i><span>Detailní Reporting</span></div>
+                            <div class="pricing-feature"><i class="fas fa-check"></i><span>Hloubková Analýza Chyb</span></div>
+                            <div class="pricing-feature"><i class="fas fa-check"></i><span>Dynamický Studijní Plán</span></div>
                         </div>
-                        <a href="auth/index.html" class="btn auth-link">Zvolit Progres</a> </div>
+                        <a href="auth/index.html" class="btn auth-link">Upgrade na PRO</a> </div>
                     <div class="pricing-card" data-animate style="--animation-order: 3;">
                          <div class="pricing-icon"><i class="fas fa-infinity"></i></div>
-                        <h3>Maximum</h3>
+                        <h3>ULTIMATE AUGMENT</h3>
                         <div class="pricing-price">1499 Kč<span class="pricing-period"> / měsíc</span></div>
                         <div class="pricing-features">
-                             <div class="pricing-feature"><i class="fas fa-check"></i><span>**Vše z Progres +**</span></div>
-                            <div class="pricing-feature"><i class="fas fa-check"></i><span>Nejvyšší AI jádro (GPT-4o+)</span></div>
-                            <div class="pricing-feature"><i class="fas fa-check"></i><span>Neomezené AI lekce</span></div>
-                            <div class="pricing-feature"><i class="fas fa-check"></i><span>Prediktivní analýza výsledků</span></div>
-                            <div class="pricing-feature"><i class="fas fa-check"></i><span>Realistické simulace zkoušek</span></div>
-                            <div class="pricing-feature"><i class="fas fa-check"></i><span>Prioritní podpora</span></div>
+                             <div class="pricing-feature"><i class="fas fa-check"></i><span>**Vše z PRO +**</span></div>
+                            <div class="pricing-feature"><i class="fas fa-check"></i><span>Top AI Jádro (GPT-4o+)</span></div>
+                            <div class="pricing-feature"><i class="fas fa-check"></i><span>Neomezené Lekce</span></div>
+                            <div class="pricing-feature"><i class="fas fa-check"></i><span>Prediktivní Analýza</span></div>
+                            <div class="pricing-feature"><i class="fas fa-check"></i><span>Realistické Simulace</span></div>
+                            <div class="pricing-feature"><i class="fas fa-check"></i><span>Prioritní Support Linka</span></div>
                         </div>
-                        <a href="auth/index.html" class="btn btn-outline auth-link">Dosáhnout Maxima</a>
+                        <a href="auth/index.html" class="btn btn-outline auth-link">Odemknout Maximum</a>
                     </div>
                 </div>
             </div>
@@ -572,9 +599,9 @@
 
         <section class="cta" id="cta">
              <div class="container">
-                <h2 data-animate>Jsi Připraven Zničit Zkoušky?</h2>
-                <p data-animate>Přestaň doufat, začni konat. Aktivuj svého AI tutora a ovládni učivo ještě dnes.</p>
-                <a href="auth/index.html" class="btn auth-link" data-animate>Chci Nejlepší Výsledky!</a>
+                <h2 data-animate>PŘESTAŇ SE SRÁT. ZAČNI DOMINOVAT.</h2>
+                <p data-animate>Aktivuj Justax AI zdarma a ukaž zkouškám, kdo je tady pánem.</p>
+                <a href="auth/index.html" class="btn auth-link" data-animate>CHCI SVŮJ UPGRADE TEĎ!</a>
             </div>
         </section>
     </main>
@@ -583,8 +610,8 @@
         <div class="container">
             <div class="footer-grid">
                  <div class="footer-column" data-animate style="--animation-order: 1;">
-                     <a href="#" class="logo"> <i class="fas fa-atom"></i> <span>Justax</span> </a>
-                    <p>Inteligentní AI vzdělávací platforma.</p>
+                     <a href="#" class="logo"> <i class="fas fa-atom"></i> <span>JUSTAX</span> </a>
+                    <p>AI Augmentace Vzdělávání.</p>
                     <div class="social-links">
                         <a href="#" class="social-link" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
                         <a href="#" class="social-link" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
@@ -595,38 +622,38 @@
                  <div class="footer-column" data-animate style="--animation-order: 2;">
                     <h3>Navigace</h3>
                     <ul class="footer-links">
-                        <li><a href="#features">Výhody</a></li>
-                        <li><a href="#ai-demo">AI v Akci</a></li>
-                        <li><a href="#how-it-works">Jak Začít</a></li>
-                        <li><a href="#pricing">Ceník</a></li>
+                        <li><a href="#features">Power Ups</a></li>
+                        <li><a href="#ai-demo">AI Core</a></li>
+                        <li><a href="#how-it-works">Start Engine</a></li>
+                        <li><a href="#pricing">Plány</a></li>
                          <li><a href="#">Blog</a></li>
                     </ul>
                 </div>
                 <div class="footer-column" data-animate style="--animation-order: 3;">
-                    <h3>Právní</h3>
+                    <h3>Systém</h3>
                     <ul class="footer-links">
-                        <li><a href="/privacy-policy">Ochrana údajů</a></li>
-                        <li><a href="/terms">Podmínky užití</a></li>
+                        <li><a href="/privacy-policy">Privacy Protokol</a></li>
+                        <li><a href="/terms">Podmínky Připojení</a></li>
                         <li><a href="#">Cookies</a></li>
                     </ul>
                 </div>
                 <div class="footer-column" data-animate style="--animation-order: 4;">
-                    <h3>Kontakt</h3>
+                    <h3>Support</h3>
                     <ul class="footer-links">
                         <li><a href="mailto:podpora@justax.space">podpora@justax.space</a></li>
-                        <li><a>Praha, Česká Republika</a></li>
+                        <li><a>HQ: Praha, CZ</a></li>
                     </ul>
                 </div>
             </div>
             <div class="copyright">
-                &copy; <span id="currentYear"></span> Justax AI Technologies. Všechna práva vyhrazena.
-                 Vytvořeno s <i class="fas fa-heart"></i> v ČR.
+                &copy; <span id="currentYear"></span> Justax AI Systems. Všechna práva vyhrazena. // Protokol v15.0
+                 // Sestaveno s <i class="fas fa-heart" style="color: var(--accent-pink);"></i> v CZ.
             </div>
         </div>
     </footer>
 
     <script>
-       // --- START: JavaScript for v14 (Recharged Cyberpunk) ---
+       // --- START: JavaScript for v15 (Maximum Overdrive) ---
        document.addEventListener('DOMContentLoaded', function() {
             // --- Variable Definitions ---
             const header = document.getElementById('header');
@@ -636,30 +663,28 @@
             const navItems = navLinks?.querySelectorAll('a.nav-item');
             const body = document.body;
             const aiDemoOutput = document.getElementById('ai-demo-output');
-            const aiProgressBar = document.getElementById('ai-progress-bar'); // Progress bar element
+            const aiProgressBar = document.getElementById('ai-progress-bar');
 
             // --- Mobile Menu ---
-            const toggleMenu = (forceClose = false) => { /* ... same as v12 ... */ };
+            const toggleMenu = (forceClose = false) => { /* ... same ... */ };
             hamburger?.addEventListener('click', () => toggleMenu());
             menuOverlay?.addEventListener('click', () => toggleMenu(true));
-            navItems?.forEach(item => item.addEventListener('click', () => {
-                if (item.getAttribute('href')?.startsWith('#')) toggleMenu(true);
-            }));
+            navItems?.forEach(item => item.addEventListener('click', () => { if (item.getAttribute('href')?.startsWith('#')) toggleMenu(true); }));
             document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && navLinks?.classList.contains('active')) toggleMenu(true); });
 
             // --- Header Scroll ---
             let lastScrollY = window.scrollY;
-            const scrollHandler = () => { /* ... same as v12 ... */ };
+            const scrollHandler = () => { /* ... same ... */ };
             window.addEventListener('scroll', scrollHandler, { passive: true });
             scrollHandler();
 
             // --- Intersection Observer Animations ---
              const animatedElements = document.querySelectorAll('[data-animate]');
-             if ('IntersectionObserver' in window) { /* ... same as v12 ... */ }
+             if ('IntersectionObserver' in window) { /* ... same observer logic ... */ }
              else { animatedElements.forEach(element => element.classList.add('animated')); }
 
              // --- Smooth Scroll ---
-             document.querySelectorAll('a[href^="#"]').forEach(anchor => { /* ... same as v12 ... */ });
+             document.querySelectorAll('a[href^="#"]').forEach(anchor => { /* ... same ... */ });
 
             // --- Copyright Year ---
             const currentYearSpan = document.getElementById('currentYear');
@@ -668,44 +693,46 @@
             // --- Active Nav Link on Scroll ---
             const sections = document.querySelectorAll('section[id]');
             let navUpdateTimeout;
-            const updateActiveNav = () => { /* ... same as v12 ... */ };
-            const debouncedNavUpdate = () => { clearTimeout(navUpdateTimeout); navUpdateTimeout = setTimeout(updateActiveNav, 55); };
+            const updateActiveNav = () => { /* ... same logic ... */ };
+            const debouncedNavUpdate = () => { clearTimeout(navUpdateTimeout); navUpdateTimeout = setTimeout(updateActiveNav, 50); }; // Fast debounce
             window.addEventListener('scroll', debouncedNavUpdate, { passive: true });
             window.addEventListener('resize', debouncedNavUpdate);
             updateActiveNav();
 
-            // --- AI Interface v4 Logic (with Progress Bar) ---
+            // --- AI Interface v5 Logic (Refined Simulation) ---
             if (aiDemoOutput && aiProgressBar) {
                  const demoSteps = [
-                     { text: { type: 'ai', content: 'Booting Justax AI Core v14... OK'}, delay: 300 },
-                     { progress: 10, delay: 200 },
-                     { text: { type: 'user', content: 'Rovnice: 5(x - 1) = 3x + 7'}, delay: 1000 },
-                     { progress: 25, delay: 300 },
-                     { text: { type: 'analysis', content: 'Detekován typ: Lineární rovnice. Cíl: Izolovat \'x\'. Zahajuji řešení...'}, delay: 600 },
-                     { progress: 45, delay: 400 },
-                     { text: { type: 'ai', content: '1. Roznásobení závorky: 5x - 5 = 3x + 7', typing: true }, delay: 1100 },
-                     { progress: 65, delay: 300 },
-                     { text: { type: 'ai', content: '2. Převod \'x\' doleva, konstant doprava: 5x - 3x = 7 + 5', typing: true }, delay: 1200 },
-                     { progress: 85, delay: 300 },
-                     { text: { type: 'ai', content: '3. Zjednodušení: 2x = 12', typing: true }, delay: 800 },
-                     { progress: 95, delay: 300 },
-                     { text: { type: 'ai', content: '4. Vydělení 2: x = 6', typing: true }, delay: 700 },
-                     { progress: 100, delay: 400 },
-                     { text: { type: 'analysis', content: 'Řešení dokončeno. Úspěšnost: 100%.'}, delay: 500 },
-                     { text: { type: 'ai', content: 'Správně! Zvládl bys podobný příklad sám?'}, delay: 1500 },
-                     { progress: 0, delay: 3000 } // Reset for loop
+                     { text: { type: 'ai', content: 'JX CORE v15 :: ONLINE :: READY'}, delay: 200 },
+                     { progress: 5, delay: 150 },
+                     { text: { type: 'user', content: 'Problém: Najdi diskriminant: 2x² + 5x - 3 = 0'}, delay: 1000 },
+                     { progress: 15, delay: 200 },
+                     { text: { type: 'analysis', content: 'Identifikace: Kvadratická rovnice. Požadavek: Výpočet diskriminantu (D).'}, delay: 500 },
+                     { progress: 30, delay: 300 },
+                     { text: { type: 'ai', content: 'Vzorec pro diskriminant: D = b² - 4ac', typing: true }, delay: 900 },
+                     { progress: 40, delay: 200 },
+                     { text: { type: 'analysis', content: 'Parametry: a=2, b=5, c=-3'}, delay: 400 },
+                     { progress: 55, delay: 300 },
+                     { text: { type: 'ai', content: 'Dosazení: D = (5)² - 4 * (2) * (-3)', typing: true }, delay: 1000 },
+                     { progress: 70, delay: 200 },
+                     { text: { type: 'ai', content: 'Výpočet: D = 25 - (-24) = 25 + 24', typing: true }, delay: 900 },
+                     { progress: 85, delay: 200 },
+                     { text: { type: 'ai', content: 'Výsledek: D = 49', typing: true }, delay: 600 },
+                     { progress: 100, delay: 300 },
+                     { text: { type: 'analysis', content: 'Úloha vyřešena. D > 0 => 2 reálné kořeny. Připraven na další příkaz...'}, delay: 800 },
+                     { progress: 0, delay: 4000 } // Reset for loop
                  ];
                  let currentStepIndex = 0; let charIndex = 0; let typeInterval; let sequenceTimeout;
 
-                 function typeWriter(lineElement, text, speed = 35) { // Slightly faster typing
+                 function typeWriter(lineElement, text, speed = 30) { // Even faster typing
                       if (!lineElement) return;
-                      const textContainer = lineElement.querySelector('.text-content') || lineElement;
+                      const textContainer = lineElement.querySelector('.text-content');
+                      if (!textContainer) return; // Safety check
                       if (charIndex < text.length) {
                           textContainer.innerHTML = sanitizeHTML(text.substring(0, charIndex + 1)) + '<span class="typing-cursor"></span>';
                           charIndex++;
                           typeInterval = setTimeout(() => typeWriter(lineElement, text, speed), speed);
                       } else {
-                          textContainer.innerHTML = sanitizeHTML(text); // Final text
+                          textContainer.innerHTML = sanitizeHTML(text);
                           clearTimeout(typeInterval);
                           scheduleNextStep();
                       }
@@ -715,23 +742,28 @@
                      const lineElement = document.createElement('div');
                      lineElement.className = `ai-demo-line ${lineData.type}`;
                      lineElement.style.opacity = '0';
-                     lineElement.innerHTML = `<span class="text-content"></span>`; // Container
+                     lineElement.innerHTML = `<span class="text-content"></span>`;
+
+                     // Handle potential null aiDemoOutput
+                     if(!aiDemoOutput) return;
+
+                     aiDemoOutput.appendChild(lineElement);
+                     // Scroll only if needed and element is visible
+                     if (aiDemoOutput.scrollHeight > aiDemoOutput.clientHeight) {
+                          aiDemoOutput.scrollTop = aiDemoOutput.scrollHeight;
+                     }
+                     requestAnimationFrame(() => lineElement.style.opacity = '1'); // Ensure fade-in happens
 
                      if (lineData.typing) {
                          lineElement.querySelector('.text-content').innerHTML = '<span class="typing-cursor"></span>';
-                         aiDemoOutput.appendChild(lineElement);
-                         aiDemoOutput.scrollTop = aiDemoOutput.scrollHeight;
-                         requestAnimationFrame(() => lineElement.style.opacity = '1');
                          charIndex = 0;
-                         setTimeout(() => typeWriter(lineElement, lineData.content), 100);
+                         setTimeout(() => typeWriter(lineElement, lineData.content), 80); // Short delay before typing
                      } else {
-                         lineElement.querySelector('.text-content').textContent = lineData.content; // Use textContent for non-typing
-                         aiDemoOutput.appendChild(lineElement);
-                         aiDemoOutput.scrollTop = aiDemoOutput.scrollHeight;
-                         requestAnimationFrame(() => lineElement.style.opacity = '1');
+                         lineElement.querySelector('.text-content').textContent = lineData.content;
                          scheduleNextStep();
                      }
                  }
+
 
                  function updateProgressBar(percentage) {
                      if(aiProgressBar) aiProgressBar.style.width = `${percentage}%`;
@@ -740,11 +772,9 @@
                  function runNextStep() {
                      if (currentStepIndex >= demoSteps.length) {
                          sequenceTimeout = setTimeout(() => { // Restart
-                             if(aiDemoOutput) aiDemoOutput.innerHTML = '';
-                             updateProgressBar(0);
-                             currentStepIndex = 0;
-                             runNextStep();
-                         }, 4500); // Slightly longer pause
+                             if(aiDemoOutput) aiDemoOutput.innerHTML = ''; updateProgressBar(0);
+                             currentStepIndex = 0; runNextStep();
+                         }, 5000); // Longer restart pause
                          return;
                      }
 
@@ -761,17 +791,15 @@
 
                   function scheduleNextStep() {
                       if (currentStepIndex < demoSteps.length) {
-                          const nextStepDelay = demoSteps[currentStepIndex]?.delay || 300;
+                          const nextStepDelay = demoSteps[currentStepIndex]?.delay || 200; // Faster default
                           clearTimeout(sequenceTimeout);
                           sequenceTimeout = setTimeout(runNextStep, nextStepDelay);
                       } else {
                            clearTimeout(sequenceTimeout);
                            sequenceTimeout = setTimeout(() => {
-                                if(aiDemoOutput) aiDemoOutput.innerHTML = '';
-                                updateProgressBar(0);
-                                currentStepIndex = 0;
-                                runNextStep();
-                           }, 4500);
+                                if(aiDemoOutput) aiDemoOutput.innerHTML = ''; updateProgressBar(0);
+                                currentStepIndex = 0; runNextStep();
+                           }, 5000);
                       }
                   }
 
