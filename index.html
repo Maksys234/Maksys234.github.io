@@ -3,433 +3,387 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Justax - Kyber Budoucnost Učení</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <title>Justax - AI Vzdělávací Platforma</title> <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700;800&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-
     <style>
-        /* --- КИБЕРПАНК Палитра и Переменные (v4 - Улучшенная) --- */
+        /* --- КИБЕРПАНК/SCI-FI Палитра и Переменные (v5 - Утонченная) --- */
         :root {
-            /* Основные цвета */
-            --dark-bg-primary: #0a071a;     /* Глубокий темно-синий, почти черный */
-            --dark-bg-secondary: #100c2a;   /* Насыщенный темно-фиолетовый */
-            --dark-card-bg: rgba(26, 20, 60, 0.8); /* Полупрозрачный фон карт */
-            --dark-card-solid: #1a143c;   /* Сплошной темный фиолетово-синий */
-            --dark-purple-accent: #2a2154; /* Дополнительный темный фиолетовый */
+            /* Основные цвета - Глубже и менее насыщенные */
+            --dark-bg-primary: #060412;      /* Очень темный сине-фиолетовый */
+            --dark-bg-secondary: #0d0a24;    /* Темно-индиго */
+            --dark-card-bg: rgba(18, 12, 50, 0.7); /* Полупрозрачный фон карт */
+            --dark-card-solid: #120c32;    /* Сплошной темный фиолетово-синий */
+            --dark-purple-accent: #3a2d78; /* Темно-фиолетовый акцент */
+            --dark-blue-accent: #202a64; /* Темно-синий акцент */
 
-            /* Неоновые акценты */
-            --neon-cyan: #00f0ff;       /* Электрический циан */
-            --neon-lime: #39ff14;       /* Кислотный лайм */
-            --neon-pink: #ff00ff;       /* Яркая фуксия */
-            --neon-purple: #9d00ff;     /* Глубокий фиолетовый неон */
-            --neon-yellow: #fff000;     /* Неоновый желтый */
-            --accent-blue: #4d7eff;     /* Дополнительный синий */
+            /* Акценты - Менее яркие, более "технологичные" */
+            --accent-cyan: #00dceb;       /* Мягче циан */
+            --accent-pink: #e800e8;       /* Мягче розовый */
+            --accent-purple: #9d33ff;     /* Мягче фиолетовый */
+            --accent-lime: #7cfc00;       /* Chartreuse / Lime */
+            --accent-blue-light: #5d8dff; /* Светлый синий акцент */
 
             /* Текст */
-            --text-light: #e0e5f0;      /* Светлый с голубым оттенком */
-            --text-medium: #a0a8c0;     /* Средний серо-голубой */
-            --text-muted: #707890;      /* Приглушенный серо-голубой */
-            --text-heading: #ffffff;     /* Заголовки - чисто белый */
-            --text-link-hover: var(--neon-cyan);
+            --text-light: #e8eaf6;       /* Почти белый, легкий синий оттенок */
+            --text-medium: #b0b8d0;      /* Серо-голубой */
+            --text-muted: #7a84a3;       /* Приглушенный */
+            --text-heading: #ffffff;      /* Заголовки - чистый белый */
+            --text-link: var(--accent-cyan);
+            --text-link-hover: var(--text-light);
 
             /* Градиенты */
-            --gradient-header-scrolled: linear-gradient(180deg, rgba(10, 7, 26, 0.9) 0%, rgba(10, 7, 26, 0.7) 100%);
-            --gradient-neon-border: linear-gradient(135deg, var(--neon-cyan), var(--neon-pink), var(--neon-purple));
-            --gradient-button: linear-gradient(95deg, var(--neon-cyan) 0%, var(--neon-pink) 100%);
-            --gradient-button-hover: linear-gradient(95deg, var(--neon-pink) 0%, var(--neon-purple) 100%);
-            --gradient-text-glitch: linear-gradient(90deg, var(--neon-cyan), var(--neon-pink), var(--neon-lime));
-            --gradient-timeline: linear-gradient(to bottom, var(--neon-cyan), var(--neon-pink), var(--neon-purple));
-            --gradient-hero-bg: linear-gradient(-45deg, var(--dark-bg-primary), var(--dark-purple-accent), var(--dark-bg-secondary), var(--dark-bg-primary));
+            --gradient-header-scrolled: linear-gradient(180deg, rgba(10, 7, 26, 0.95) 0%, rgba(10, 7, 26, 0.8) 100%);
+            --gradient-subtle-border: linear-gradient(145deg, rgba(0, 220, 235, 0.3) 0%, rgba(157, 51, 255, 0.3) 100%);
+            --gradient-button: linear-gradient(95deg, var(--accent-cyan) 0%, var(--accent-blue-light) 100%);
+            --gradient-button-hover: linear-gradient(95deg, var(--accent-blue-light) 0%, var(--accent-pink) 100%);
+            --gradient-text: linear-gradient(90deg, var(--accent-cyan), var(--accent-blue-light), var(--accent-pink));
+            --gradient-timeline: linear-gradient(to bottom, rgba(0, 220, 235, 0.5), rgba(157, 51, 255, 0.5));
+            --gradient-hero-bg: linear-gradient(160deg, var(--dark-bg-primary) 10%, var(--dark-blue-accent) 50%, var(--dark-bg-secondary) 90%);
 
             /* Границы и разделители */
-            --border-color-light: rgba(157, 0, 255, 0.15); /* Легкая фиолетовая рамка */
-            --border-color-medium: rgba(157, 0, 255, 0.3);
-            --border-color-strong: rgba(0, 240, 255, 0.5); /* Циановая рамка */
+            --border-color-light: rgba(58, 45, 120, 0.4); /* --dark-purple-accent с прозрачностью */
+            --border-color-medium: rgba(58, 45, 120, 0.7);
+            --border-color-strong: rgba(0, 220, 235, 0.5); /* --accent-cyan с прозрачностью */
 
             /* Шрифты */
-            --font-primary: 'Poppins', sans-serif; /* Основной текст */
-            --font-secondary: 'Inter', sans-serif;  /* Заголовки, кнопки */
-            --font-mono: 'Roboto Mono', monospace; /* Моноширинный для кода/отзывов */
+            --font-primary: 'Inter', sans-serif; /* Inter для основного текста - чище */
+            --font-secondary: 'Poppins', sans-serif; /* Poppins для заголовков */
+            --font-mono: 'Roboto Mono', monospace;
 
             /* Тени */
-            --shadow-glow-cyan: 0 0 18px rgba(0, 240, 255, 0.5);
-            --shadow-glow-lime: 0 0 18px rgba(57, 255, 20, 0.5);
-            --shadow-glow-pink: 0 0 18px rgba(255, 0, 255, 0.5);
-            --shadow-card: 0 10px 35px rgba(0, 0, 0, 0.25);
-            --shadow-button: 0 5px 15px rgba(var(--neon-cyan-rgb, 0, 240, 255), 0.3);
-            --shadow-button-hover: 0 8px 25px rgba(var(--neon-pink-rgb, 255, 0, 255), 0.4);
+            --shadow-glow-cyan: 0 0 15px rgba(0, 220, 235, 0.4);
+            --shadow-glow-pink: 0 0 15px rgba(232, 0, 232, 0.4);
+            --shadow-card: 0 8px 30px rgba(0, 0, 0, 0.3);
+            --shadow-button: 0 4px 12px rgba(var(--accent-cyan-rgb, 0, 220, 235), 0.25);
+            --shadow-button-hover: 0 6px 20px rgba(var(--accent-pink-rgb, 232, 0, 232), 0.3);
 
             /* Размеры и переходы */
-            --card-radius: 0.75rem; /* 12px */
-            --btn-radius: 6px;   /* Острее кнопки */
-            --section-padding-y: clamp(5rem, 10vh, 8rem); /* Адаптивный отступ секций */
-            --container-width: 1380px;
-            --transition-fast: all 0.2s ease-in-out;
-            --transition-medium: all 0.35s ease-in-out;
-            --transition-cubic: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.1); /* "Подпрыгивающий" эффект */
+            --card-radius: 10px; /* Немного острее */
+            --btn-radius: 8px;
+            --section-padding-y: clamp(6rem, 12vh, 9rem);
+            --container-width: 1400px;
+            --transition-fast: all 0.25s ease-in-out;
+            --transition-medium: all 0.4s ease-in-out;
+            --transition-cubic: all 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.15); /* Чуть мягче */
         }
 
         /* --- Базовые стили --- */
         *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
         html { scroll-behavior: smooth; font-size: 16px; -webkit-text-size-adjust: 100%; }
         body {
-            background-color: var(--dark-bg-primary);
-            color: var(--text-medium);
-            font-family: var(--font-primary);
-            line-height: 1.7;
-            overflow-x: hidden;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-            min-height: 100vh;
-            position: relative;
+            background-color: var(--dark-bg-primary); color: var(--text-medium);
+            font-family: var(--font-primary); line-height: 1.75; /* Чуть больше */
+            overflow-x: hidden; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+            min-height: 100vh; position: relative;
         }
-        body::before { /* Фоновая сетка */
-            content: ""; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            width: 100%; height: 100%; z-index: -2;
+        body::before { /* Фоновая сетка - стала тоньше и темнее */
+            content: ""; position: fixed; inset: 0; width: 100%; height: 100%; z-index: -2;
             background-image:
-                linear-gradient(rgba(157, 0, 255, 0.05) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(157, 0, 255, 0.05) 1px, transparent 1px);
-            background-size: 60px 60px;
-            opacity: 0.6;
-            animation: bg-grid-pan 120s linear infinite;
+                linear-gradient(rgba(58, 45, 120, 0.06) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(58, 45, 120, 0.06) 1px, transparent 1px);
+            background-size: 50px 50px; opacity: 0.8; animation: bg-grid-pan 150s linear infinite;
         }
-         @keyframes bg-grid-pan { 0% { background-position: 0 0; } 100% { background-position: 1200px 600px; } }
-        body::after { /* Scanlines эффект (опционально) */
-            content: ""; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            width: 100%; height: 100%; z-index: -1;
-            background: linear-gradient(0deg, transparent 0%, rgba(10, 7, 26, 0.8) 5%, transparent 10%);
-            background-size: 100% 8px; /* Шире линии */
-            opacity: 0.08; /* Очень легкие */
-            animation: scanlines 0.15s linear infinite; pointer-events: none;
-        }
-        @keyframes scanlines { 0% { background-position: 0 0; } 100% { background-position: 0 8px; } }
+        @keyframes bg-grid-pan { 0% { background-position: 0 0; } 100% { background-position: 1500px 750px; } }
+        body::after { /* Убрал scanlines */ }
 
         /* --- Типография --- */
-        h1, h2, h3, h4, h5, h6 { font-family: var(--font-secondary); font-weight: 700; color: var(--text-heading); line-height: 1.3; margin-bottom: 1.2em; }
-        h1 { font-size: clamp(2.6rem, 7vw, 4.8rem); letter-spacing: -1.5px; text-transform: uppercase; font-weight: 800; }
-        h2 { font-size: clamp(2rem, 5.5vw, 3.2rem); font-weight: 800; }
-        h3 { font-size: clamp(1.5rem, 4vw, 1.9rem); font-weight: 700; }
-        p { margin-bottom: 1.6rem; font-size: clamp(0.95rem, 2.5vw, 1.05rem); max-width: 700px; }
-        a { color: var(--text-link-hover); text-decoration: none; transition: color var(--transition-fast); }
-        a:hover { color: var(--text-light); text-decoration: underline; text-decoration-color: var(--neon-pink); }
+        h1, h2, h3, h4, h5, h6 { font-family: var(--font-secondary); font-weight: 700; color: var(--text-heading); line-height: 1.35; margin-bottom: 1.2em; }
+        h1 { font-size: clamp(2.8rem, 7vw, 5rem); letter-spacing: -1px; text-transform: uppercase; font-weight: 800; }
+        h2 { font-size: clamp(2.1rem, 5vw, 3.3rem); font-weight: 800; }
+        h3 { font-size: clamp(1.4rem, 4vw, 1.8rem); font-weight: 600; }
+        p { margin-bottom: 1.7rem; font-size: clamp(1rem, 2.5vw, 1.1rem); max-width: 720px; }
+        a { color: var(--text-link); text-decoration: none; transition: color var(--transition-fast); }
+        a:hover { color: var(--text-light); text-decoration: underline; text-decoration-color: var(--accent-pink); text-decoration-thickness: 1px; text-underline-offset: 3px; }
         .section-title { text-align: center; margin-bottom: 1.5rem; }
-        .section-title span { /* Для градиентного текста */
-            background: var(--gradient-text-glitch);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            background-clip: text; color: transparent;
-            filter: drop-shadow(0 0 10px var(--neon-cyan));
-            display: inline-block; /* Необходимо для drop-shadow */
+        .section-title span { /* Градиентный текст */
+            background: var(--gradient-text); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-clip: text; color: transparent; filter: drop-shadow(0 0 8px var(--accent-cyan));
+            display: inline-block;
         }
-        .section-subtitle { font-size: clamp(1rem, 3vw, 1.25rem); text-align: center; max-width: 800px; margin: -1rem auto 4rem auto; color: var(--text-medium); }
+        .section-subtitle { font-size: clamp(1rem, 3vw, 1.2rem); text-align: center; max-width: 850px; margin: -1rem auto 4.5rem auto; color: var(--text-medium); }
 
         /* --- Общие элементы --- */
-        .container { width: 100%; max-width: var(--container-width); margin: 0 auto; padding: 0 1.5rem; }
+        .container { width: 100%; max-width: var(--container-width); margin: 0 auto; padding: 0 2rem; /* Увеличил паддинг */ }
         section { padding: var(--section-padding-y) 0; position: relative; overflow: hidden; }
         .visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 
-        /* --- Кнопки (v4 - Enhanced Cyber) --- */
+        /* --- Кнопки (v5 - Refined Cyber) --- */
         .btn {
-            display: inline-block; padding: 0.85rem 2.2rem;
-            background: transparent; color: var(--neon-cyan);
-            border: 2px solid var(--neon-cyan); border-radius: var(--btn-radius);
-            font-family: var(--font-secondary); font-weight: 600; font-size: 1rem;
-            text-align: center; text-transform: uppercase; letter-spacing: 1.2px;
+            display: inline-block; padding: 0.8rem 2.1rem;
+            background: transparent; color: var(--accent-cyan);
+            border: 2px solid var(--accent-cyan); border-radius: var(--btn-radius);
+            font-family: var(--font-secondary); font-weight: 600; font-size: 0.95rem;
+            text-align: center; text-transform: uppercase; letter-spacing: 1px;
             cursor: pointer; transition: all var(--transition-medium);
             position: relative; overflow: hidden; z-index: 1;
-            box-shadow: 0 0 12px -2px rgba(0, 240, 255, 0.6), inset 0 0 8px -4px rgba(0, 240, 255, 0.4);
+            box-shadow: 0 0 10px -3px rgba(0, 220, 235, 0.5), inset 0 0 6px -4px rgba(0, 220, 235, 0.3);
         }
-        .btn::before { /* Glitchy hover effect */
-            content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
-            background: var(--gradient-button); transition: left 0.3s ease-in-out; z-index: -1;
+        .btn::before { /* Inner glow effect */
+            content: ''; position: absolute; top: 50%; left: 50%; width: 150%; height: 150%;
+            background: radial-gradient(circle, rgba(0, 220, 235, 0.15) 0%, transparent 70%);
+            transform: translate(-50%, -50%); transition: width 0.4s ease, height 0.4s ease, opacity 0.4s ease;
+            z-index: -1; opacity: 0; border-radius: inherit;
         }
         .btn:hover {
-            color: var(--dark-bg-primary); border-color: var(--neon-pink);
-            box-shadow: 0 0 25px 0px rgba(255, 0, 255, 0.6), inset 0 0 10px 0px rgba(0, 0, 0, 0.2);
-            transform: translateY(-3px) scale(1.02);
+            color: var(--dark-bg-primary); background-color: var(--accent-cyan); border-color: var(--accent-cyan);
+            box-shadow: 0 0 20px 0px rgba(0, 220, 235, 0.6), inset 0 0 8px 0px rgba(0, 0, 0, 0.1);
+            transform: translateY(-3px);
         }
-        .btn:hover::before { left: 0; }
+        .btn:hover::before { width: 250%; height: 250%; opacity: 1; }
         .btn-outline {
-            border-color: var(--neon-pink); color: var(--neon-pink);
-            box-shadow: 0 0 12px -2px rgba(255, 0, 255, 0.6), inset 0 0 8px -4px rgba(255, 0, 255, 0.4);
+            border-color: var(--accent-pink); color: var(--accent-pink);
+            box-shadow: 0 0 10px -3px rgba(232, 0, 232, 0.5), inset 0 0 6px -4px rgba(232, 0, 232, 0.3);
         }
-        .btn-outline::before { background: var(--gradient-button-hover); }
-        .btn-outline:hover { border-color: var(--neon-purple); }
+        .btn-outline::before { background: radial-gradient(circle, rgba(232, 0, 232, 0.15) 0%, transparent 70%); }
+        .btn-outline:hover { background-color: var(--accent-pink); border-color: var(--accent-pink); color: var(--dark-bg-primary); box-shadow: 0 0 20px 0px rgba(232, 0, 232, 0.6), inset 0 0 8px 0px rgba(0, 0, 0, 0.1); }
 
-        /* --- Хедер (v4 - Glassmorphism + Active State) --- */
+        /* --- Хедер (v5 - More Subtle Glass) --- */
         header {
             padding: 1rem 0; position: fixed; top: 0; left: 0; width: 100%; z-index: 1000;
             background: transparent; border-bottom: 1px solid transparent;
             transition: background-color 0.4s ease, padding 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease, backdrop-filter 0.4s ease;
         }
         header.scrolled {
-            padding: 0.7rem 0;
-            background: rgba(16, 12, 42, 0.85); /* --dark-bg-secondary с прозрачностью */
-            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-            border-bottom: 1px solid var(--border-color-medium);
-            box-shadow: 0 6px 30px rgba(0, 0, 0, 0.25);
+            padding: 0.8rem 0;
+            background: rgba(10, 7, 26, 0.8); /* Чуть прозрачнее */
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-color-light); /* Менее заметная линия */
+            box-shadow: 0 5px 25px rgba(0, 0, 0, 0.2);
         }
         .nav-container { display: flex; justify-content: space-between; align-items: center; }
-        .logo { font-size: 2.1rem; font-weight: 800; color: var(--text-heading); display: flex; align-items: center; gap: 0.8rem; font-family: var(--font-secondary); transition: transform var(--transition-medium), text-shadow var(--transition-medium); text-shadow: 0 0 10px var(--neon-cyan); }
-        .logo:hover { transform: scale(1.04); text-shadow: 0 0 18px var(--neon-cyan); }
-        .logo i { color: var(--neon-cyan); font-size: 1.9rem; transition: transform 0.4s var(--transition-cubic); }
-        .logo:hover i { transform: rotate(-12deg) scale(1.1); }
-        .nav-links { display: flex; gap: clamp(1.5rem, 4vw, 3rem); /* Адаптивный gap */ }
+        .logo { font-size: 2rem; font-weight: 800; color: var(--text-heading); display: flex; align-items: center; gap: 0.7rem; font-family: var(--font-secondary); transition: transform var(--transition-medium), text-shadow var(--transition-medium); text-shadow: 0 0 8px var(--accent-cyan); }
+        .logo:hover { transform: scale(1.03); text-shadow: 0 0 15px var(--accent-cyan); }
+        .logo i { color: var(--accent-cyan); font-size: 1.8rem; transition: transform 0.4s var(--transition-cubic); }
+        .logo:hover i { transform: rotate(-10deg) scale(1.08); }
+        .nav-links { display: flex; gap: clamp(1.8rem, 4vw, 3.2rem); }
         .nav-links a { color: var(--text-medium); font-weight: 500; position: relative; padding: 0.4rem 0; font-size: 1rem; transition: color var(--transition-fast), transform 0.2s ease; }
-        .nav-links a::before { content: ''; position: absolute; bottom: -4px; left: 0; width: 0; height: 2px; background: var(--gradient-neon-border); transition: width 0.3s ease-out; }
-        .nav-links a:hover, .nav-links a.active { color: var(--text-light); transform: translateY(-2px); }
+        .nav-links a::before { /* Подчеркивание при наведении */
+            content: ''; position: absolute; bottom: -5px; left: 0; width: 0; height: 2px;
+            background: var(--accent-cyan); transition: width 0.3s ease-out;
+            box-shadow: 0 0 5px var(--accent-cyan);
+        }
+        .nav-links a:hover, .nav-links a.active { color: var(--text-light); transform: translateY(-1px); }
         .nav-links a:hover::before, .nav-links a.active::before { width: 100%; }
         .header-actions { display: flex; align-items: center; gap: 1rem; }
-        .auth-link { font-size: 0.9rem !important; padding: 0.6rem 1.5rem !important; }
+        .auth-link { font-size: 0.9rem !important; padding: 0.65rem 1.6rem !important; }
         .mobile-auth-link { display: none; }
-        .hamburger { display: none; flex-direction: column; justify-content: space-around; width: 28px; height: 22px; cursor: pointer; z-index: 1002; background: transparent; border: none; }
-        .hamburger span { display: block; width: 100%; height: 3px; background-color: var(--text-light); border-radius: 3px; transition: all 0.35s cubic-bezier(0.68, -0.6, 0.32, 1.6); position: relative; box-shadow: 0 0 6px var(--neon-cyan); }
-        .hamburger.active span:nth-child(1) { transform: translateY(9.5px) rotate(135deg); background-color: var(--neon-pink); box-shadow: 0 0 8px var(--neon-pink); }
+        .hamburger { /* ... стили остались прежними ... */ display: none; flex-direction: column; justify-content: space-around; width: 28px; height: 22px; cursor: pointer; z-index: 1002; background: transparent; border: none; }
+        .hamburger span { display: block; width: 100%; height: 3px; background-color: var(--text-light); border-radius: 3px; transition: all 0.35s cubic-bezier(0.68, -0.6, 0.32, 1.6); position: relative; box-shadow: 0 0 4px var(--accent-cyan); }
+        .hamburger.active span:nth-child(1) { transform: translateY(9.5px) rotate(135deg); background-color: var(--accent-pink); box-shadow: 0 0 6px var(--accent-pink); }
         .hamburger.active span:nth-child(2) { opacity: 0; transform: translateX(-15px); }
-        .hamburger.active span:nth-child(3) { transform: translateY(-9.5px) rotate(-135deg); background-color: var(--neon-pink); box-shadow: 0 0 8px var(--neon-pink); }
+        .hamburger.active span:nth-child(3) { transform: translateY(-9.5px) rotate(-135deg); background-color: var(--accent-pink); box-shadow: 0 0 6px var(--accent-pink); }
 
-        /* --- Герой секция (v4) --- */
+        /* --- Герой секция (v5) --- */
         .hero {
-            padding: clamp(10rem, 25vh, 15rem) 0 clamp(7rem, 18vh, 10rem);
-            background: var(--gradient-hero-bg); background-size: 400% 400%;
-            animation: gradientBG 18s ease infinite;
-            text-align: center; overflow: hidden; min-height: 95vh;
+            padding: clamp(11rem, 28vh, 16rem) 0 clamp(8rem, 20vh, 11rem);
+            background: var(--gradient-hero-bg); background-size: 300% 300%;
+            animation: gradientBG 20s ease infinite alternate; /* Slower alternation */
+            text-align: center; overflow: hidden; min-height: 100vh; /* Full viewport height */
             display: flex; align-items: center; justify-content: center;
         }
-        @keyframes gradientBG { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
-        .hero .container { position: relative; z-index: 1; max-width: 1100px; }
+        .hero .container { position: relative; z-index: 1; max-width: 1150px; }
         .hero h1 {
-            position: relative; /* Needed for pseudo-elements */
-            font-size: clamp(3rem, 8vw, 5.5rem); margin-bottom: 1.5rem; line-height: 1.15;
-            color: var(--text-heading); text-shadow: 0 0 8px var(--neon-cyan), 0 0 18px var(--neon-cyan), 0 0 30px var(--neon-cyan), 0 0 50px var(--neon-pink);
-            animation: textFlicker 3s linear infinite alternate;
+            font-size: clamp(3rem, 8vw, 5.8rem); margin-bottom: 1.8rem; line-height: 1.1;
+            color: var(--text-heading); text-shadow: 0 0 5px var(--accent-cyan), 0 0 15px var(--accent-cyan), 0 0 25px var(--accent-blue-light); /* Slightly softer glow */
+             /* Removed flicker animation for a cleaner look */
         }
-        @keyframes textFlicker { 0%, 18%, 22%, 25%, 53%, 57%, 100% { text-shadow: 0 0 8px var(--neon-cyan), 0 0 18px var(--neon-cyan), 0 0 30px var(--neon-cyan), 0 0 50px var(--neon-pink), 0 0 70px var(--neon-purple); } 20%, 24%, 55% { text-shadow: none; } }
-         /* Glitch Effect Placeholder - can be added if desired */
-        .hero p { font-size: clamp(1.1rem, 3vw, 1.35rem); margin-bottom: 3rem; max-width: 850px; margin-left: auto; margin-right: auto; color: var(--text-medium); text-shadow: 0 1px 3px rgba(0,0,0,0.4); }
+        .hero p { font-size: clamp(1.1rem, 3vw, 1.3rem); margin-bottom: 3.5rem; max-width: 880px; margin-left: auto; margin-right: auto; color: var(--text-light); /* Brighter subtext */ opacity: 0.9; text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
         .hero-buttons { display: flex; gap: 1.5rem; justify-content: center; flex-wrap: wrap; }
 
-        /* --- SVG Разделитель (острый) --- */
+        /* --- SVG Разделитель (Subtle Wave) --- */
         .wave-divider { position: absolute; bottom: -1px; left: 0; width: 100%; line-height: 0; transform: rotate(180deg); z-index: 5; }
-        .wave-divider svg { display: block; width: calc(150% + 1.3px); height: 120px; position: relative; }
+        .wave-divider svg { display: block; width: 100%; height: 80px; /* Lower height */ position: relative; }
         .wave-divider .shape-fill { fill: var(--dark-bg-secondary); }
+         /* Example subtle wave path */
+         .wave-divider svg path { d: path("M0,0 C150,80 350,0 600,40 S850,80 1200,0 V120 H0 Z"); }
 
-        /* --- Секция Функций (v4 - Neon Grid Cards) --- */
+        /* --- Секция Функций (v5 - Minimal Tech) --- */
         .features { background: var(--dark-bg-secondary); }
-        .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: 2.5rem; }
+        .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 2rem; /* Slightly smaller gap */ }
         .feature-card {
-            background: var(--dark-card-solid); border-radius: var(--card-radius);
-            padding: 2.5rem 2rem; text-align: center;
-            box-shadow: var(--shadow-card); transition: all var(--transition-medium);
-            border: 1px solid var(--border-color-light); position: relative; overflow: hidden;
+            background: transparent; border-radius: var(--card-radius);
+            padding: 2.2rem 1.8rem; text-align: left; /* Align text left */
+            transition: all var(--transition-medium);
+            border: 1px solid var(--border-color-light);
+            position: relative; overflow: hidden;
         }
-         .feature-card::before, .feature-card::after { /* Animated border */
-            content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
-            background: conic-gradient(transparent, rgba(0, 240, 255, 0.5), transparent 30%);
-            border-radius: inherit; /* Inherit radius */
-            animation: borderRotate 6s linear infinite;
-            z-index: -2; opacity: 0; transition: opacity 0.4s ease;
+         .feature-card::before { /* Subtle background glow on hover */
+            content: ''; position: absolute; inset: 0; z-index: -1;
+            background: radial-gradient(circle at center, rgba(var(--accent-purple-rgb, 157, 51, 255), 0.1) 0%, transparent 70%);
+            border-radius: inherit; opacity: 0; transition: opacity 0.4s ease;
         }
-        .feature-card::after {
-            background: conic-gradient(transparent, rgba(255, 0, 255, 0.5), transparent 30%);
-            animation-delay: -3s; /* Offset second gradient */
-        }
-        @keyframes borderRotate { 100% { transform: rotate(1turn); } }
-        .feature-card:hover { transform: translateY(-12px) scale(1.03); box-shadow: 0 20px 55px rgba(0, 0, 0, 0.35); border-color: var(--border-color-strong); }
-        .feature-card:hover::before, .feature-card:hover::after { opacity: 1; }
-        /* Content mask to hide the border outside the card shape */
-        .feature-card > * { position: relative; z-index: 1; } /* Ensure content is above border */
-        .feature-card::before { z-index: 0;} .feature-card::after { z-index: 0; }
-        .feature-card-inner-bg { /* Solid bg inside */
-            position: absolute; inset: 1px; /* Slightly smaller than card */
-            background: var(--dark-card-solid); border-radius: calc(var(--card-radius) - 1px);
-            z-index: -1;
-        }
+        .feature-card:hover { transform: translateY(-8px); border-color: var(--border-color-medium); background-color: rgba(18, 12, 50, 0.3); /* Slight bg color */ box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .feature-card:hover::before { opacity: 1; }
+        .feature-card-header { display: flex; align-items: center; gap: 1.2rem; margin-bottom: 1.2rem; }
         .feature-icon {
-            width: 65px; height: 65px; margin: 0 auto 1.5rem auto;
-            background: var(--gradient-2, var(--dark-purple-accent)); /* Fallback */
-            border-radius: 1.2rem; display: flex; align-items: center; justify-content: center;
-            font-size: 2rem; color: var(--dark-bg-primary); box-shadow: 0 5px 15px rgba(var(--primary-rgb, 77, 126, 255), 0.3);
+            width: 50px; height: 50px; flex-shrink: 0;
+            border: 2px solid var(--border-color-medium);
+            background: var(--dark-card-solid);
+            border-radius: 1rem; display: flex; align-items: center; justify-content: center;
+            font-size: 1.6rem; color: var(--accent-cyan); box-shadow: inset 0 0 10px rgba(var(--accent-cyan-rgb, 0, 220, 235), 0.2);
             transition: all 0.4s var(--transition-cubic);
         }
-        .feature-card:hover .feature-icon { transform: scale(1.15) rotate(-15deg); box-shadow: 0 8px 25px rgba(var(--primary-rgb, 77, 126, 255), 0.4); }
-        .feature-card h3 { font-size: 1.6rem; margin-bottom: 0.8rem; color: var(--text-light); }
-        .feature-card p { color: var(--text-medium); font-size: 0.95rem; line-height: 1.65; margin: 0 auto; max-width: 90%; }
+        .feature-card:hover .feature-icon { border-color: var(--accent-cyan); color: var(--text-light); background: var(--accent-blue-light); box-shadow: var(--shadow-glow-cyan); transform: scale(1.1) rotate(-10deg); }
+        .feature-card h3 { font-size: 1.4rem; margin: 0; color: var(--text-light); font-weight: 600; }
+        .feature-card p { color: var(--text-medium); font-size: 0.95rem; line-height: 1.6; margin: 0; text-align: left; }
 
-        /* --- Как это работает (v4 - Vertical Timeline) --- */
+        /* --- Как это работает (v5 - Clean Vertical) --- */
         .how-it-works { background: var(--dark-bg-primary); }
-        .timeline-container { max-width: 900px; margin: 4rem auto 0; position: relative; padding: 0 1rem; }
-        .timeline-container::before { /* Центральная линия */
-            content: ''; position: absolute; top: 10px; bottom: 10px; left: 30px; width: 4px;
-            background: linear-gradient(to bottom, var(--neon-cyan), var(--neon-pink) 50%, var(--neon-purple));
-            border-radius: 2px; z-index: 0; opacity: 0.4; box-shadow: 0 0 12px var(--neon-cyan);
+        .timeline-container { max-width: 850px; margin: 3rem auto 0; position: relative; padding: 0 1rem; }
+        .timeline-container::before { /* Линия - тоньше и мягче */
+            content: ''; position: absolute; top: 20px; bottom: 20px; left: 25px; width: 2px;
+            background: var(--gradient-timeline); opacity: 0.5; border-radius: 1px; box-shadow: 0 0 8px var(--accent-cyan);
         }
-        .timeline-item { position: relative; padding-left: 80px; /* Space for icon */ margin-bottom: 3.5rem; }
-        .timeline-item:last-child { margin-bottom: 0; }
+        .timeline-item { position: relative; padding-left: 70px; margin-bottom: 3rem; }
         .timeline-icon {
-            position: absolute; left: 0; top: 0; transform: translateX(-50%); left: 30px; /* Center on the line */
-            width: 60px; height: 60px; border-radius: 50%;
-            background: var(--gradient-hero-bg); background-size: 200% 200%; /* Animate BG */
-            animation: gradientBG 10s ease infinite alternate;
+            position: absolute; left: 25px; top: 5px; transform: translateX(-50%);
+            width: 45px; height: 45px; border-radius: 50%;
+            background: var(--dark-bg-secondary);
+            border: 2px solid var(--accent-pink);
+            box-shadow: 0 0 12px rgba(var(--accent-pink-rgb, 232, 0, 232), 0.5);
             display: flex; align-items: center; justify-content: center;
-            font-size: 1.7rem; font-weight: 700; color: var(--dark-bg-primary);
-            box-shadow: 0 0 0 5px var(--dark-bg-primary), 0 0 15px 3px var(--neon-pink); /* Glow effect */
-            z-index: 2; transition: all 0.3s ease; border: 3px solid var(--neon-pink);
-            font-family: var(--font-secondary);
+            font-size: 1.4rem; font-weight: 700; color: var(--accent-pink);
+            z-index: 2; transition: all var(--transition-medium); font-family: var(--font-secondary);
         }
-        .timeline-item:hover .timeline-icon { transform: translateX(-50%) scale(1.1); box-shadow: 0 0 0 6px var(--dark-bg-primary), 0 0 25px 5px var(--neon-pink); border-color: var(--neon-cyan); }
-        .timeline-content { background: var(--dark-card-solid); padding: 1.8rem 2rem; border-radius: var(--card-radius); border: 1px solid var(--border-color-light); transition: all var(--transition-medium); position: relative; }
-         .timeline-content::before { /* Connector line (optional) */
-             content: ''; position: absolute; top: 25px; left: -49px; width: 50px; height: 2px;
-             background: var(--border-color-medium); z-index: 0;
-         }
-        .timeline-item:hover .timeline-content { transform: translateX(5px); border-color: var(--border-color-medium); box-shadow: 0 5px 15px rgba(0,0,0,0.15); }
-        .timeline-content h3 { font-size: 1.7rem; margin-bottom: 0.7rem; color: var(--text-light); }
-        .timeline-content p { color: var(--text-medium); font-size: 1rem; line-height: 1.6; margin-bottom: 0; }
+        .timeline-item:hover .timeline-icon { transform: translateX(-50%) scale(1.1); border-color: var(--accent-cyan); color: var(--accent-cyan); box-shadow: 0 0 18px rgba(var(--accent-cyan-rgb, 0, 220, 235), 0.6); }
+        .timeline-content { background: transparent; padding: 0.5rem 0 0.5rem 1rem; border-radius: 0; border: none; border-left: 2px solid var(--border-color-light); transition: border-color var(--transition-medium); }
+        .timeline-item:hover .timeline-content { border-left-color: var(--accent-purple); }
+        .timeline-content h3 { font-size: 1.5rem; margin-bottom: 0.5rem; color: var(--text-light); }
+        .timeline-content p { color: var(--text-medium); font-size: 1rem; line-height: 1.65; margin-bottom: 0; }
 
-        /* --- Отзывы (v4 - Data Feed Style) --- */
+        /* --- Отзывы (v5 - Clean & Focused) --- */
         .testimonials { background: var(--dark-bg-secondary); }
-        .testimonials-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 350px), 1fr)); gap: 2.5rem; }
+        .testimonials-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 2rem; }
         .testimonial-card {
             background: var(--dark-card-solid); border-radius: var(--card-radius);
-            padding: 2rem; box-shadow: var(--shadow-card), inset 0 1px 0 rgba(255, 255, 255, 0.05);
-            transition: all var(--transition-medium); border: 1px solid var(--border-color-medium);
-            display: flex; flex-direction: column; position: relative; overflow: hidden;
+            padding: 2rem; box-shadow: var(--shadow-card);
+            transition: all var(--transition-medium); border: 1px solid var(--border-color-light);
+            display: flex; flex-direction: column;
         }
-        .testimonial-card::before { /* Subtle grid overlay inside card */
-            content: ''; position: absolute; inset: 0; z-index: 0;
-            background-image: linear-gradient(rgba(0, 240, 255, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 240, 255, 0.03) 1px, transparent 1px);
-            background-size: 30px 30px; opacity: 0.5; pointer-events: none;
-        }
-        .testimonial-card:hover { transform: translateY(-10px) scale(1.02); box-shadow: var(--shadow-card), inset 0 1px 0 rgba(255, 255, 255, 0.08), var(--shadow-glow-cyan); border-color: var(--border-color-strong); }
-        .testimonial-content { z-index: 1; flex-grow: 1; margin-bottom: 1.5rem; position: relative;}
-        .testimonial-rating { margin-bottom: 1.2rem; color: var(--neon-yellow); font-size: 1rem; filter: drop-shadow(0 0 6px var(--neon-yellow)); letter-spacing: 1px;}
-        .testimonial-text { font-family: var(--font-mono); font-size: 0.95rem; color: var(--text-light); line-height: 1.7; margin-bottom: 0; position: relative; padding: 1rem 1.2rem; background: rgba(var(--dark-purple-accent-rgb, 42, 33, 84), 0.5); /* Use RGB or fallback */ border-radius: 6px; border-left: 3px solid var(--neon-lime); }
-        .testimonial-text::before { content: '>'; position: absolute; left: -0.8em; top: 0.9rem; font-family: var(--font-mono); color: var(--neon-lime); opacity: 0.8; } /* Terminal prompt style */
-        .testimonial-author { z-index: 1; display: flex; align-items: center; margin-top: auto; padding-top: 1.5rem; border-top: 1px solid var(--border-color-light); }
-        .testimonial-avatar { width: 55px; height: 55px; border-radius: 50%; margin-right: 1rem; overflow: hidden; flex-shrink: 0; border: 3px solid var(--neon-lime); box-shadow: 0 0 15px rgba(57, 255, 20, 0.4); padding: 2px; background-color: var(--dark-bg-primary); }
+        .testimonial-card:hover { transform: translateY(-8px); border-color: var(--border-color-medium); box-shadow: 0 15px 40px rgba(0,0,0,0.25); }
+        .testimonial-content { flex-grow: 1; margin-bottom: 1.5rem; }
+        .testimonial-rating { margin-bottom: 1rem; color: var(--neon-yellow); font-size: 0.9rem; letter-spacing: 1.5px; } /* Smaller stars */
+        .testimonial-text { font-family: var(--font-primary); /* Changed font */ font-size: 1rem; color: var(--text-light); line-height: 1.7; margin-bottom: 0; font-style: italic; padding-left: 1.5rem; border-left: 3px solid var(--accent-purple); }
+        .testimonial-text::before { display: none; } /* Removed quote icon */
+        .testimonial-author { display: flex; align-items: center; margin-top: auto; padding-top: 1.5rem; border-top: 1px solid var(--border-color-light); }
+        .testimonial-avatar { width: 50px; height: 50px; border-radius: 50%; margin-right: 1rem; flex-shrink: 0; border: 2px solid var(--accent-purple); padding: 2px; background: var(--dark-bg-primary); }
         .testimonial-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
         .testimonial-author-info { flex-grow: 1; }
-        .testimonial-name { font-weight: 600; margin-bottom: 0.2rem; color: var(--text-light); font-size: 1.05rem; }
-        .testimonial-role { font-size: 0.85rem; color: var(--text-muted); font-family: var(--font-mono); text-transform: uppercase; }
+        .testimonial-name { font-weight: 600; margin-bottom: 0.1rem; color: var(--text-light); font-size: 1rem; }
+        .testimonial-role { font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
 
-        /* --- Тарифы (v4 - Holo Cards) --- */
+        /* --- Тарифы (v5 - Minimal Glow) --- */
         .pricing { background: var(--dark-bg-primary); }
-        .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 330px), 1fr)); gap: 2.5rem; align-items: stretch; }
-        .pricing-card { background: var(--dark-card-bg); border-radius: var(--card-radius); padding: 3rem 2.5rem; box-shadow: var(--shadow-card); text-align: center; transition: all var(--transition-medium); position: relative; overflow: hidden; display: flex; flex-direction: column; border: 1px solid var(--border-color-medium); backdrop-filter: blur(5px); }
-         .pricing-card::before { /* Animated holo effect */
-             content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-             background: linear-gradient(45deg, rgba(0, 240, 255, 0.1) 0%, rgba(255, 0, 255, 0.05) 50%, rgba(157, 0, 255, 0.1) 100%);
-             background-size: 300% 300%; animation: holoShine 8s linear infinite alternate;
-             z-index: 0; opacity: 0; transition: opacity 0.4s ease; border-radius: inherit;
+        .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: 2rem; align-items: stretch; }
+        .pricing-card {
+            background: var(--dark-card-solid); border-radius: var(--card-radius);
+            padding: 2.5rem 2rem; box-shadow: var(--shadow-card); text-align: center;
+            transition: all var(--transition-medium); position: relative; overflow: hidden;
+            display: flex; flex-direction: column; border: 1px solid var(--border-color-light);
+        }
+        .pricing-card::before { /* Subtle top glow */
+             content: ''; position: absolute; top: 0; left: 0; right: 0; height: 5px;
+             background: linear-gradient(90deg, transparent, var(--accent-cyan), transparent);
+             opacity: 0; transition: opacity 0.4s ease;
          }
-         @keyframes holoShine { 0% { background-position: 0% 0%; } 100% { background-position: 100% 100%; } }
-        .pricing-card:hover { transform: translateY(-12px) scale(1.03); box-shadow: 0 20px 55px rgba(0, 0, 0, 0.4); border-color: var(--border-color-strong); }
-        .pricing-card:hover::before { opacity: 1; }
-        .pricing-card > * { position: relative; z-index: 1; } /* Content above holo */
-        .pricing-card.popular { border: 2px solid transparent; background: linear-gradient(var(--dark-card-solid), var(--dark-card-solid)) padding-box, var(--gradient-neon-border) border-box; /* Gradient border */ transform: scale(1.05); box-shadow: var(--shadow-card), var(--shadow-glow-pink); }
-        .pricing-card.popular:hover { transform: scale(1.08) translateY(-5px); }
-        .popular-badge { position: absolute; top: 18px; right: -40px; background: var(--gradient-button-hover); color: var(--white); padding: 0.6rem 3.5rem; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; transform: rotate(45deg); box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25); letter-spacing: 0.8px; z-index: 2; }
-        .pricing-icon { font-size: 2.5rem; margin-bottom: 1.5rem; color: var(--neon-cyan); filter: drop-shadow(0 0 10px var(--neon-cyan)); }
-        .pricing-card.popular .pricing-icon { color: var(--neon-pink); filter: drop-shadow(0 0 10px var(--neon-pink)); }
-        .pricing-card h3 { font-size: 1.6rem; margin-bottom: 1rem; font-weight: 700; color: var(--text-heading); text-transform: uppercase; letter-spacing: 1px; }
-        .pricing-price { font-size: clamp(3rem, 8vw, 3.8rem); font-weight: 800; margin-bottom: 0.5rem; line-height: 1; background: var(--gradient-text-glitch); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; color: transparent; filter: drop-shadow(0 0 8px var(--neon-cyan)); }
-        .pricing-period { font-size: 0.9rem; font-weight: 400; color: var(--text-muted); margin-bottom: 2.5rem; text-transform: uppercase; letter-spacing: 0.5px; }
-        .pricing-features { margin-bottom: 2.5rem; flex-grow: 1; text-align: left; padding-left: 1rem; }
-        .pricing-feature { padding: 0.75rem 0; border-bottom: 1px solid var(--border-color-light); color: var(--text-medium); font-size: 0.95rem; display: flex; align-items: center; gap: 1rem; transition: color 0.2s; }
+        .pricing-card:hover { transform: translateY(-10px); border-color: var(--accent-cyan); box-shadow: 0 18px 45px rgba(0,0,0,0.3); }
+        .pricing-card:hover::before { opacity: 0.6; }
+        .pricing-card.popular { border: 2px solid var(--accent-pink); box-shadow: var(--shadow-card), 0 0 20px rgba(var(--accent-pink-rgb, 232, 0, 232), 0.3); transform: scale(1.03); }
+        .pricing-card.popular:hover { transform: scale(1.06) translateY(-5px); }
+        .popular-badge { position: absolute; top: 15px; right: 15px; background: var(--accent-pink); color: var(--white); padding: 0.3rem 0.8rem; font-size: 0.7rem; font-weight: 600; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .pricing-icon { font-size: 2.2rem; margin-bottom: 1.2rem; color: var(--accent-cyan); }
+        .pricing-card.popular .pricing-icon { color: var(--accent-pink); }
+        .pricing-card h3 { font-size: 1.5rem; margin-bottom: 0.8rem; font-weight: 600; color: var(--text-heading); text-transform: uppercase; letter-spacing: 0.8px; }
+        .pricing-price { font-size: clamp(2.8rem, 7vw, 3.5rem); font-weight: 700; margin-bottom: 0.4rem; line-height: 1; color: var(--text-light); }
+        .pricing-period { font-size: 0.85rem; font-weight: 400; color: var(--text-muted); margin-bottom: 2rem; text-transform: uppercase; letter-spacing: 0.5px; }
+        .pricing-features { margin-bottom: 2.2rem; flex-grow: 1; text-align: left; padding-left: 0.5rem; }
+        .pricing-feature { padding: 0.6rem 0; border-bottom: 1px solid var(--border-color-light); color: var(--text-medium); font-size: 0.95rem; display: flex; align-items: center; gap: 0.8rem; }
         .pricing-feature:last-child { border-bottom: none; }
-        .pricing-feature i { color: var(--neon-lime); font-size: 1.1rem; width: 22px; text-align: center; text-shadow: 0 0 7px var(--neon-lime); transition: transform 0.3s; }
-        .pricing-feature:hover i { transform: scale(1.2); }
+        .pricing-feature i { color: var(--accent-lime); font-size: 1rem; width: 20px; text-align: center; text-shadow: 0 0 5px rgba(var(--accent-lime-rgb, 124, 252, 0), 0.5); }
         .pricing-feature.disabled { color: var(--text-muted); opacity: 0.6; }
         .pricing-feature.disabled i { color: var(--text-muted); text-shadow: none; }
         .pricing-feature.disabled span { text-decoration: line-through; }
         .pricing-card .btn { margin-top: auto; width: 100%; }
 
-        /* --- CTA (v4 - Impactful) --- */
-        .cta { background: var(--dark-purple-accent); /* Darker accent */ color: var(--text-light); text-align: center; padding: clamp(5rem, 10vh, 8rem) 1.5rem; position: relative; overflow: hidden; margin-top: var(--section-padding-y); }
+        /* --- CTA (v5 - Direct & Clean) --- */
+        .cta { background: var(--dark-blue-accent); /* Dark blue accent */ color: var(--text-light); text-align: center; padding: clamp(5rem, 10vh, 7rem) 1.5rem; position: relative; overflow: hidden; }
         .cta .container { position: relative; z-index: 1; }
-        .cta h2 { color: var(--text-heading); font-size: clamp(2.5rem, 6vw, 3.5rem); margin-bottom: 1.5rem; font-weight: 800; line-height: 1.25; text-shadow: 0 0 20px var(--neon-pink); }
-        .cta p { font-size: clamp(1.1rem, 3vw, 1.3rem); max-width: 750px; margin: 0 auto 3rem; color: var(--text-medium); }
-        .cta .btn { background: var(--gradient-button); color: var(--dark-bg-primary); font-size: 1.1rem; padding: 1rem 2.6rem; box-shadow: 0 0 18px 3px rgba(0, 240, 255, 0.6), 0 12px 30px rgba(0, 0, 0, 0.3); border: 2px solid transparent; animation: pulse-glow-cta 2.5s infinite ease-in-out; }
-        @keyframes pulse-glow-cta { 0%, 100% { box-shadow: 0 0 18px 3px rgba(0, 240, 255, 0.6), 0 12px 30px rgba(0, 0, 0, 0.3); transform: scale(1); } 50% { box-shadow: 0 0 30px 6px rgba(255, 0, 255, 0.7), 0 15px 35px rgba(0, 0, 0, 0.4); transform: scale(1.05); } }
-        .cta .btn:hover { background: var(--gradient-button-hover); animation: none; transform: translateY(-5px) scale(1.05); box-shadow: 0 0 35px 8px rgba(255, 0, 255, 0.8), 0 15px 40px rgba(0, 0, 0, 0.4); }
+        .cta h2 { color: var(--text-heading); font-size: clamp(2.2rem, 5vw, 3.2rem); margin-bottom: 1.5rem; font-weight: 700; line-height: 1.3; }
+        .cta p { font-size: clamp(1.05rem, 2.8vw, 1.25rem); max-width: 780px; margin: 0 auto 2.5rem; color: var(--text-medium); opacity: 0.95; }
+        .cta .btn { background: var(--gradient-button); color: var(--dark-bg-primary); font-size: 1.05rem; padding: 0.9rem 2.4rem; box-shadow: var(--shadow-button); border: none; }
+        .cta .btn:hover { background: var(--gradient-button-hover); box-shadow: var(--shadow-button-hover); transform: translateY(-4px) scale(1.03); }
 
-        /* --- Футер (v4 - Cleaner Structure) --- */
-        footer { background: var(--dark-bg-primary); color: var(--text-medium); padding: 6rem 0 2.5rem; position: relative; border-top: 1px solid var(--border-color-light); }
-        .footer::before { display: none; } /* Removed top gradient line */
-        .footer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 3rem 2rem; margin-bottom: 4rem; }
-        .footer-column h3 { color: var(--text-light); font-size: 1.3rem; margin-bottom: 1.5rem; font-weight: 600; position: relative; padding-bottom: 0.7rem; }
-        .footer-column h3::after { content: ''; position: absolute; bottom: 0; left: 0; width: 40px; height: 3px; background: var(--neon-cyan); border-radius: 1px; box-shadow: 0 0 8px var(--neon-cyan); }
-        .footer-column .logo { margin-bottom: 1.5rem; display: inline-block; /* Allows hover effect */ }
-        .footer-column p { font-size: 0.95rem; line-height: 1.7; max-width: 100%; }
-        .social-links { display: flex; gap: 1rem; margin-top: 1.5rem; }
-        .social-link { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; background: rgba(var(--neon-purple-rgb, 157, 0, 255), 0.1); color: var(--text-medium); font-size: 1.05rem; transition: all var(--transition-cubic); border: 1px solid var(--border-color-light); }
-        .social-link:hover { background: var(--neon-cyan); color: var(--dark-bg-primary); transform: translateY(-4px) scale(1.1) rotate(8deg); box-shadow: var(--shadow-glow-cyan); border-color: transparent; }
+        /* --- Футер (v5 - Simplified) --- */
+        footer { background: #04020a; /* Even darker */ color: var(--text-medium); padding: 5rem 0 2rem; position: relative; border-top: 1px solid var(--border-color-light); }
+        .footer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 3rem 2rem; margin-bottom: 3.5rem; }
+        .footer-column h3 { color: var(--text-light); font-size: 1.2rem; margin-bottom: 1.2rem; font-weight: 600; position: relative; padding-bottom: 0.5rem; }
+        .footer-column h3::after { content: ''; position: absolute; bottom: 0; left: 0; width: 35px; height: 2px; background: var(--accent-cyan); }
+        .footer-column .logo { margin-bottom: 1.2rem; display: inline-block; }
+        .footer-column p { font-size: 0.9rem; line-height: 1.6; max-width: 100%; }
+        .social-links { display: flex; gap: 0.8rem; margin-top: 1.2rem; }
+        .social-link { display: flex; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 50%; background: transparent; color: var(--text-muted); transition: all var(--transition-fast); border: 1px solid var(--border-color-light); font-size: 1rem; }
+        .social-link:hover { background: var(--accent-cyan); color: var(--dark-bg-primary); border-color: var(--accent-cyan); transform: translateY(-3px); }
         .footer-links { list-style: none; }
-        .footer-links li { margin-bottom: 0.8rem; }
-        .footer-links a { color: var(--text-medium); transition: all var(--transition-fast); font-size: 0.95rem; display: flex; align-items: center; gap: 0.8em; }
-        .footer-links a:hover { color: var(--neon-cyan); transform: translateX(6px); }
-        .footer-links i.fa-angle-right { font-size: 0.8em; transition: transform 0.3s ease; }
-        .footer-links a:hover i.fa-angle-right { transform: translateX(3px); }
-        .copyright { text-align: center; padding-top: 2.5rem; border-top: 1px solid var(--border-color-light); color: var(--text-muted); font-size: 0.9rem; font-family: var(--font-mono); }
-        .copyright a { color: var(--text-link-hover); }
-        .copyright a:hover { color: var(--text-light); text-decoration: underline; }
-        .copyright i.fa-heart { color: var(--neon-pink); animation: heartbeat 1.6s ease-in-out infinite; display: inline-block; }
-        @keyframes heartbeat { 0%, 100% { transform: scale(1); } 10%, 30% { transform: scale(0.9); } 20%, 40%, 60%, 80% { transform: scale(1.1); } 50%, 70%, 90% { transform: scale(1); } }
+        .footer-links li { margin-bottom: 0.7rem; }
+        .footer-links a { color: var(--text-medium); transition: all var(--transition-fast); font-size: 0.9rem; display: inline-block; } /* Simpler links */
+        .footer-links a:hover { color: var(--accent-cyan); padding-left: 5px; }
+        .copyright { text-align: center; padding-top: 2rem; border-top: 1px solid var(--border-color-light); color: var(--text-muted); font-size: 0.85rem; font-family: var(--font-mono); }
+        .copyright a { color: var(--accent-purple); }
+        .copyright a:hover { color: var(--accent-pink); }
+        .copyright i.fa-heart { color: var(--accent-pink); animation: heartbeat 1.8s ease-in-out infinite; display: inline-block; }
 
-        /* --- Адаптивность (v4) --- */
-        @media (max-width: 1024px) { html { font-size: 15px; } .nav-links { gap: 2rem; } }
+        /* --- Адаптивность (v5) --- */
+        @media (max-width: 1024px) { html { font-size: 15px; } .nav-links { gap: 1.8rem; } }
         @media (max-width: 768px) {
             html { font-size: 14px; }
-            .nav-links { position: fixed; top: 0; right: -100%; /* Start off-screen */ width: min(75vw, 300px); height: 100vh; background: rgba(16, 12, 42, 0.98); backdrop-filter: blur(15px); flex-direction: column; padding: 6rem 2rem 2rem; gap: 1.5rem; transition: right 0.4s ease-in-out; z-index: 1001; box-shadow: -5px 0 20px rgba(0,0,0,0.2); border-left: 1px solid var(--border-color-medium); }
+            .nav-links { /* Mobile Menu Styles */
+                position: fixed; top: 0; right: -100%; width: min(80vw, 320px); height: 100vh;
+                background: rgba(10, 7, 26, 0.95); backdrop-filter: blur(10px);
+                flex-direction: column; padding: 7rem 2rem 2rem; gap: 1.8rem;
+                transition: right 0.45s ease-in-out; z-index: 1001;
+                box-shadow: -6px 0 25px rgba(0,0,0,0.25); border-left: 1px solid var(--border-color-medium);
+            }
             .nav-links.active { right: 0; }
-            .nav-links a { font-size: 1.1rem; padding: 0.8rem 0; width: 100%; }
-            .nav-links a::before { display: none; } /* Remove underline for mobile menu */
-            .nav-links a.active, .nav-links a:hover { color: var(--neon-pink); }
+            .nav-links a { font-size: 1.15rem; padding: 0.8rem 0; }
+            .nav-links a::before { display: none; } /* No underlines in mobile menu */
             .hamburger { display: flex; }
             .desktop-auth-link { display: none; }
-            .mobile-auth-link { display: block; margin-top: 2rem; text-align: center; }
-            .timeline-container::before { left: 15px; }
-            .timeline-item { padding-left: 55px; }
-            .timeline-icon { width: 45px; height: 45px; left: 15px; font-size: 1.4rem; }
-            .timeline-content::before { display: none; }
-             .footer-grid { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 2rem; }
+            .mobile-auth-link { display: block; margin-top: 2.5rem; text-align: center; }
+            .timeline-container::before { left: 18px; } /* Adjust timeline line */
+            .timeline-item { padding-left: 60px; }
+            .timeline-icon { width: 40px; height: 40px; left: 18px; font-size: 1.3rem; }
+            .footer-grid { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem; }
         }
         @media (max-width: 576px) {
-            .hero { padding: 8rem 0 6rem; min-height: 85vh; }
+            .container { padding: 0 1rem; }
+            .hero { padding: 7rem 0 5rem; }
+            .hero h1 { font-size: 2.5rem; }
             .hero p { font-size: 1rem; }
-            .hero-buttons { flex-direction: column; gap: 1.2rem; align-items: center; }
-            .hero-buttons .btn { width: min(100%, 300px); }
-            .wave-divider svg { height: 80px; }
-            .feature-card { padding: 2rem 1.5rem; }
-            .timeline-container { margin-top: 2rem; }
-            .timeline-item { margin-bottom: 2.5rem; }
-            .timeline-content { padding: 1.5rem; }
-            .testimonial-card { padding: 1.5rem; }
-            .pricing-card { padding: 2.5rem 1.5rem; }
-            .cta h2 { font-size: 2.2rem; }
-            .cta p { font-size: 1rem; }
+            .hero-buttons { flex-direction: column; gap: 1rem; align-items: center; }
+            .wave-divider svg { height: 60px; }
+            .section-padding-y { --section-padding-y: clamp(4rem, 8vh, 6rem); } /* Reduce section padding */
+            .timeline-container { margin-top: 1.5rem; }
+            .timeline-item { margin-bottom: 2rem; }
+            .timeline-content { padding: 1.2rem 1.5rem; }
+            .pricing-card, .testimonial-card { padding: 2rem 1.2rem; }
+            .cta h2 { font-size: 2rem; }
             .footer-grid { grid-template-columns: 1fr; text-align: center; }
             .footer-column h3::after { left: 50%; transform: translateX(-50%); }
-            .social-links { justify-content: center; }
-             .footer-links a { justify-content: center; }
+            .social-links, .footer-links a { justify-content: center; }
         }
 
-        /* --- Анимации появления (v4) --- */
-        [data-animate] { opacity: 0; transform: translateY(50px) scale(0.98); transition: opacity 0.8s cubic-bezier(0.165, 0.84, 0.44, 1), transform 0.8s cubic-bezier(0.165, 0.84, 0.44, 1); }
-        [data-animate].animated { opacity: 1; transform: translateY(0) scale(1); }
-        /* Добавляем задержку для элементов в grid */
-        .features-grid > [data-animate]:nth-child(1) { transition-delay: 0.1s; }
-        .features-grid > [data-animate]:nth-child(2) { transition-delay: 0.2s; }
-        .features-grid > [data-animate]:nth-child(3) { transition-delay: 0.3s; }
-        .features-grid > [data-animate]:nth-child(4) { transition-delay: 0.15s; }
-        .features-grid > [data-animate]:nth-child(5) { transition-delay: 0.25s; }
-        .features-grid > [data-animate]:nth-child(6) { transition-delay: 0.35s; }
-        /* Аналогично для других grid-ов */
+        /* --- Анимации появления (v5) --- */
+        [data-animate] { opacity: 0; transform: translateY(40px); transition: opacity 0.9s cubic-bezier(0.165, 0.84, 0.44, 1), transform 0.9s cubic-bezier(0.165, 0.84, 0.44, 1); }
+        [data-animate].animated { opacity: 1; transform: translateY(0); }
+        /* Staggered delays for grids */
+        .features-grid > [data-animate], .testimonials-grid > [data-animate], .pricing-grid > [data-animate] {
+            transition-delay: calc(var(--animation-order, 0) * 100ms);
+        }
 
-        /* --- Оверлей меню (v4) --- */
-        .menu-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(10, 7, 26, 0.6); backdrop-filter: blur(5px); z-index: 1000; opacity: 0; visibility: hidden; transition: opacity 0.4s ease, visibility 0s 0.4s; }
+        /* --- Оверлей меню (v5) --- */
+        .menu-overlay { /* ... стили остались прежними ... */ position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(10, 7, 26, 0.7); backdrop-filter: blur(6px); z-index: 1000; opacity: 0; visibility: hidden; transition: opacity 0.4s ease, visibility 0s 0.4s; }
         .menu-overlay.active { opacity: 1; visibility: visible; transition: opacity 0.4s ease, visibility 0s 0s; }
         body.menu-open { overflow: hidden; }
     </style>
@@ -463,7 +417,7 @@
     <main>
         <section class="hero">
             <div class="container">
-                <h1 data-animate data-text="Vzdělávací Revoluce: Váš Osobní AI Lektor Justax">Vzdělávací Revoluce: Váš Osobní AI Lektor Justax</h1>
+                <h1 data-animate>Vzdělávací Revoluce: Váš Osobní AI Lektor Justax</h1>
                 <p data-animate>Přestaňte se sami trápit přípravou na zkoušky. Justax přináší budoucnost vzdělávání – inteligentní AI systém, který se učí s vámi, pro vás.</p>
                 <div class="hero-buttons" data-animate>
                     <a href="auth/index.html" class="btn auth-link">Objevte Budoucnost Učení</a>
@@ -475,47 +429,59 @@
         <section class="features" id="features">
             <div class="wave-divider" style="top: -1px; bottom: auto; transform: rotate(0);">
                 <svg data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
-                    <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V120H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" class="shape-fill" style="fill: var(--dark-bg-primary);"></path>
-                </svg>
+                     <path d="M0,0 C150,80 350,0 600,40 S850,80 1200,0 V120 H0 Z" class="shape-fill" style="fill: var(--dark-bg-primary);"></path>
+                 </svg>
             </div>
             <div class="container">
                 <h2 class="section-title" data-animate><span>Proč je Justax Unikátní?</span></h2>
                 <p class="section-subtitle" data-animate>Spojujeme špičkovou AI a osvědčené metody výuky, abychom vytvořili nástroj, který skutečně posouvá vaše hranice.</p>
                 <div class="features-grid">
-                    <div class="feature-card" data-animate>
-                        <div class="feature-card-inner-bg"></div>
-                        <div class="feature-icon"><i class="fas fa-brain"></i></div>
-                        <h3>Adaptivní AI Jádro</h3>
-                        <p>Naše pokročilá AI (včetně modelů Gemini/GPT) analyzuje váš styl učení a přizpůsobuje obsah v reálném čase.</p>
-                    </div>
-                    <div class="feature-card" data-animate>
-                        <div class="feature-card-inner-bg"></div>
-                        <div class="feature-icon"><i class="fas fa-map-signs"></i></div>
-                        <h3>Hyper-Personalizace</h3>
+                    <div class="feature-card" data-animate style="--animation-order: 1;">
+                         <div class="feature-card-inner-bg"></div>
+                         <div class="feature-card-header">
+                             <div class="feature-icon"><i class="fas fa-brain"></i></div>
+                             <h3>Adaptivní AI Jádro</h3>
+                         </div>
+                         <p>Naše pokročilá AI (včetně modelů Gemini/GPT) analyzuje váš styl učení a přizpůsobuje obsah v reálném čase.</p>
+                     </div>
+                     <div class="feature-card" data-animate style="--animation-order: 2;">
+                         <div class="feature-card-inner-bg"></div>
+                         <div class="feature-card-header">
+                            <div class="feature-icon"><i class="fas fa-map-signs"></i></div>
+                            <h3>Hyper-Personalizace</h3>
+                        </div>
                         <p>Žádné šablony. Justax tvoří dynamickou studijní cestu specificky pro vás, optimalizovanou pro maximální efektivitu.</p>
                     </div>
-                    <div class="feature-card" data-animate>
-                        <div class="feature-card-inner-bg"></div>
-                        <div class="feature-icon"><i class="fas fa-check-double"></i></div>
-                        <h3>CERMAT Validace</h3>
+                     <div class="feature-card" data-animate style="--animation-order: 3;">
+                         <div class="feature-card-inner-bg"></div>
+                         <div class="feature-card-header">
+                            <div class="feature-icon"><i class="fas fa-check-double"></i></div>
+                            <h3>CERMAT Validace</h3>
+                        </div>
                         <p>Trénujte s úlohami kalibrovanými podle náročnosti a formátu skutečných CERMAT testů. Buďte 100% připraveni.</p>
                     </div>
-                    <div class="feature-card" data-animate>
-                        <div class="feature-card-inner-bg"></div>
-                        <div class="feature-icon"><i class="fas fa-microchip"></i></div>
-                        <h3>Inteligentní Vysvětlení</h3>
+                     <div class="feature-card" data-animate style="--animation-order: 4;">
+                         <div class="feature-card-inner-bg"></div>
+                         <div class="feature-card-header">
+                            <div class="feature-icon"><i class="fas fa-microchip"></i></div>
+                            <h3>Inteligentní Vysvětlení</h3>
+                        </div>
                         <p>Nejen řešení, ale hluboké pochopení principů. AI rozkládá složité koncepty na srozumitelné kroky.</p>
                     </div>
-                    <div class="feature-card" data-animate>
-                        <div class="feature-card-inner-bg"></div>
-                        <div class="feature-icon"><i class="fas fa-microscope"></i></div>
-                        <h3>Precizní Analýza Chyb</h3>
+                     <div class="feature-card" data-animate style="--animation-order: 5;">
+                         <div class="feature-card-inner-bg"></div>
+                         <div class="feature-card-header">
+                            <div class="feature-icon"><i class="fas fa-microscope"></i></div>
+                            <h3>Precizní Analýza Chyb</h3>
+                        </div>
                         <p>AI odhalí vzorce ve vašich chybách a poskytne cílená cvičení k jejich systematickému odstranění.</p>
                     </div>
-                    <div class="feature-card" data-animate>
-                        <div class="feature-card-inner-bg"></div>
-                        <div class="feature-icon"><i class="fas fa-globe"></i></div>
-                        <h3>Neomezený Přístup 24/7</h3>
+                     <div class="feature-card" data-animate style="--animation-order: 6;">
+                         <div class="feature-card-inner-bg"></div>
+                         <div class="feature-card-header">
+                            <div class="feature-icon"><i class="fas fa-globe"></i></div>
+                            <h3>Neomezený Přístup 24/7</h3>
+                        </div>
                         <p>Váš osobní AI tutor nikdy nespí. Učte se kdykoli, kdekoli, na jakémkoli zařízení – zcela flexibilně.</p>
                     </div>
                 </div>
@@ -561,15 +527,15 @@
 
         <section class="testimonials" id="testimonials">
              <div class="wave-divider" style="top: -1px; bottom: auto; transform: rotate(0);">
-                <svg data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
-                    <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V120H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" class="shape-fill" style="fill: var(--dark-bg-primary);"></path>
-                </svg>
+                 <svg data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
+                     <path d="M0,0 C150,80 350,0 600,40 S850,80 1200,0 V120 H0 Z" class="shape-fill" style="fill: var(--dark-bg-primary);"></path>
+                 </svg>
              </div>
             <div class="container">
                 <h2 class="section-title" data-animate><span>Příběhy Našich Studentů</span></h2>
                 <p class="section-subtitle" data-animate>Co říkají ti, kteří už zažili transformaci svého učení s Justax?</p>
                 <div class="testimonials-grid">
-                     <div class="testimonial-card" data-animate>
+                     <div class="testimonial-card" data-animate style="--animation-order: 1;">
                         <div class="testimonial-content">
                             <div class="testimonial-rating"> <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i> </div>
                            <p class="testimonial-text">"Justax mi doslova zachránil přípravu. AI vysvětlení jsou neuvěřitelně jasná a personalizovaný plán mi pomohl zaměřit se přesně na to, co mi nešlo. Přijímačky jsem zvládl!"</p>
@@ -579,7 +545,7 @@
                            <div class="testimonial-author-info"> <div class="testimonial-name">Martin K.</div> <div class="testimonial-role">Úspěšný uchazeč o SŠ, Brno</div> </div>
                        </div>
                    </div>
-                   <div class="testimonial-card" data-animate>
+                   <div class="testimonial-card" data-animate style="--animation-order: 2;">
                        <div class="testimonial-content">
                            <div class="testimonial-rating"> <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i> </div>
                            <p class="testimonial-text">"Nejsem zrovna studijní typ, ale Justax mě baví. Analýza chyb je top – konečně vím, proč se pletu. A můžu se učit kdykoliv, což je super."</p>
@@ -589,7 +555,7 @@
                            <div class="testimonial-author-info"> <div class="testimonial-name">Lucie P.</div> <div class="testimonial-role">Studentka, Praha</div> </div>
                        </div>
                    </div>
-                   <div class="testimonial-card" data-animate>
+                   <div class="testimonial-card" data-animate style="--animation-order: 3;">
                         <div class="testimonial-content">
                             <div class="testimonial-rating"> <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i> </div>
                            <p class="testimonial-text">"Investice do Justax se nám mnohonásobně vrátila. Dcera získala jistotu a výsledky se zlepšily rychleji, než jsme čekali. Skvělá hodnota za peníze."</p>
@@ -603,8 +569,8 @@
             </div>
              <div class="wave-divider" style="bottom: -1px; top: auto;">
                  <svg data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
-                     <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" class="shape-fill" style="fill: var(--dark-bg-secondary);"></path>
-                 </svg>
+                      <path d="M0,0 C150,80 350,0 600,40 S850,80 1200,0 V120 H0 Z" class="shape-fill" style="fill: var(--dark-bg-secondary);"></path>
+                  </svg>
              </div>
         </section>
 
@@ -613,7 +579,7 @@
                 <h2 class="section-title" data-animate><span>Investujte do Své Budoucnosti</span></h2>
                 <p class="section-subtitle" data-animate>Transparentní ceny bez skrytých poplatků. Vyberte si plán, který akceleruje vaši přípravu.</p>
                 <div class="pricing-grid">
-                     <div class="pricing-card" data-animate>
+                     <div class="pricing-card" data-animate style="--animation-order: 1;">
                          <div class="pricing-icon"><i class="fas fa-rocket"></i></div>
                         <h3>Start</h3>
                         <div class="pricing-price">499 Kč<span class="pricing-period"> / měsíc</span></div>
@@ -627,7 +593,7 @@
                         </div>
                         <a href="auth/index.html" class="btn btn-outline auth-link">Začít Start</a>
                     </div>
-                    <div class="pricing-card popular" data-animate>
+                    <div class="pricing-card popular" data-animate style="--animation-order: 2;">
                         <div class="popular-badge">Nejlepší volba</div>
                         <div class="pricing-icon"><i class="fas fa-brain"></i></div>
                         <h3>Progres</h3>
@@ -643,7 +609,7 @@
                         </div>
                         <a href="auth/index.html" class="btn auth-link">Zvolit Progres</a>
                     </div>
-                    <div class="pricing-card" data-animate>
+                    <div class="pricing-card" data-animate style="--animation-order: 3;">
                          <div class="pricing-icon"><i class="fas fa-infinity"></i></div>
                         <h3>Maximum</h3>
                         <div class="pricing-price">1499 Kč<span class="pricing-period"> / měsíc</span></div>
@@ -674,7 +640,7 @@
     <footer id="contact">
          <div class="wave-divider" style="top: -1px; bottom: auto; transform: rotate(0);">
              <svg data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
-                 <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V120H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" class="shape-fill" style="fill: var(--dark-purple-accent);"></path>
+                 <path d="M0,0 C150,80 350,0 600,40 S850,80 1200,0 V120 H0 Z" class="shape-fill" style="fill: var(--dark-blue-accent);"></path>
              </svg>
          </div>
         <div class="container">
@@ -686,34 +652,36 @@
                         <a href="#" class="social-link" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
                         <a href="#" class="social-link" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
                         <a href="#" class="social-link" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
-                         <a href="#" class="social-link" aria-label="X"><i class="fab fa-xing"></i></a> </div>
+                         <a href="#" class="social-link" aria-label="X"><i class="fab fa-xing"></i></a>
+                    </div>
                 </div>
-                 <div class="footer-column" data-animate>
+                 <div class="footer-column" data-animate style="--animation-order: 2;">
                     <h3>Navigace</h3>
                     <ul class="footer-links">
-                        <li><a href="#features"><i class="fas fa-angle-right"></i> Vlastnosti</a></li>
-                        <li><a href="#how-it-works"><i class="fas fa-angle-right"></i> Jak funguje</a></li>
-                        <li><a href="#pricing"><i class="fas fa-angle-right"></i> Ceník</a></li>
-                        <li><a href="#testimonials"><i class="fas fa-angle-right"></i> Ohlasy</a></li>
-                         <li><a href="#"><i class="fas fa-angle-right"></i> Blog (Brzy)</a></li>
+                        <li><a href="#features">Vlastnosti</a></li>
+                        <li><a href="#how-it-works">Jak funguje</a></li>
+                        <li><a href="#pricing">Ceník</a></li>
+                        <li><a href="#testimonials">Ohlasy</a></li>
+                         <li><a href="#">Blog (Brzy)</a></li>
                     </ul>
                 </div>
-                <div class="footer-column" data-animate>
+                <div class="footer-column" data-animate style="--animation-order: 3;">
                     <h3>Předměty</h3>
                     <ul class="footer-links">
-                        <li><a href="#"><i class="fas fa-graduation-cap"></i> Matematika (SŠ)</a></li>
-                        <li><a href="#"><i class="fas fa-graduation-cap"></i> Český jazyk (SŠ)</a></li>
-                        <li><a href="#"><i class="fas fa-graduation-cap"></i> Matematika (Maturita)</a></li>
-                         <li><a href="#"><i class="fas fa-graduation-cap"></i> Český jazyk (Maturita)</a></li>
-                        <li><a href="#"><i class="fas fa-graduation-cap"></i> Angličtina (Brzy)</a></li>
+                        <li><a href="#">Matematika (SŠ)</a></li>
+                        <li><a href="#">Český jazyk (SŠ)</a></li>
+                        <li><a href="#">Matematika (Maturita)</a></li>
+                         <li><a href="#">Český jazyk (Maturita)</a></li>
+                        <li><a href="#">Angličtina (Brzy)</a></li>
                     </ul>
                 </div>
-                <div class="footer-column" data-animate>
+                <div class="footer-column" data-animate style="--animation-order: 4;">
                     <h3>Kontakt</h3>
                     <ul class="footer-links">
-                        <li><a href="mailto:podpora@justax.space"><i class="fas fa-envelope"></i> podpora@justax.space</a></li>
-                        <li><a><i class="fas fa-map-marker-alt"></i> Praha, Česká Republika</a></li>
-                         <li><a href="#"><i class="fas fa-phone-alt"></i> +420 123 456 789</a></li> </ul>
+                        <li><a href="mailto:podpora@justax.space">podpora@justax.space</a></li>
+                        <li><a>Praha, Česká Republika</a></li>
+                         <li><a href="#">+420 123 456 789</a></li>
+                    </ul>
                 </div>
             </div>
             <div class="copyright">
@@ -730,17 +698,12 @@
             const hamburger = document.getElementById('hamburger');
             const navLinks = document.getElementById('navLinks');
             const menuOverlay = document.getElementById('menuOverlay');
-            const navItems = navLinks?.querySelectorAll('a.nav-item'); // Add null check
+            const navItems = navLinks?.querySelectorAll('a.nav-item');
             const body = document.body;
-
-            // --- Particle.js Initialization (Optional) ---
-            /* if (typeof particlesJS !== 'undefined') {
-                particlesJS('particles-js', { /* ... your config ... *\/ });
-            } else { console.warn("Particle.js library not loaded or #particles-js element missing."); } */
 
             // --- Мобильное меню ---
             const toggleMenu = (forceClose = false) => {
-                 if (!navLinks || !hamburger || !menuOverlay) return; // Guard clause
+                 if (!navLinks || !hamburger || !menuOverlay) return;
                 const isActive = navLinks.classList.contains('active');
                 if (forceClose || isActive) {
                     hamburger.classList.remove('active');
@@ -765,19 +728,11 @@
             let lastScrollY = window.scrollY;
             const scrollHandler = () => {
                 const currentScrollY = window.scrollY;
-                if (header) {
-                     header.classList.toggle('scrolled', currentScrollY > 50); // Trigger slightly later
-                     // Optional: Hide header on scroll down, show on scroll up
-                     /* if (currentScrollY > lastScrollY && currentScrollY > 100) {
-                         header.style.transform = 'translateY(-100%)';
-                     } else {
-                         header.style.transform = 'translateY(0)';
-                     } */
-                }
+                if (header) header.classList.toggle('scrolled', currentScrollY > 50);
                 lastScrollY = currentScrollY;
             };
             window.addEventListener('scroll', scrollHandler, { passive: true });
-            scrollHandler(); // Initial check
+            scrollHandler();
 
             // --- Анимация Intersection Observer ---
              const animatedElements = document.querySelectorAll('[data-animate]');
@@ -785,17 +740,19 @@
                  const observer = new IntersectionObserver((entries, observerInstance) => {
                      entries.forEach(entry => {
                          if (entry.isIntersecting) {
-                             // Use requestAnimationFrame for smoother start
-                             requestAnimationFrame(() => {
-                                 entry.target.classList.add('animated');
-                             });
+                              // Set animation order based on index if not specified
+                              if (!entry.target.style.getPropertyValue("--animation-order")) {
+                                  const siblings = Array.from(entry.target.parentNode.querySelectorAll('[data-animate]'));
+                                  entry.target.style.setProperty("--animation-order", siblings.indexOf(entry.target));
+                              }
+                             requestAnimationFrame(() => { entry.target.classList.add('animated'); });
                              observerInstance.unobserve(entry.target);
                          }
                      });
-                 }, { threshold: 0.15 }); // Trigger slightly later for better visibility
+                 }, { threshold: 0.1 }); // Trigger slightly earlier
                  animatedElements.forEach(element => observer.observe(element));
              } else {
-                  // Fallback for older browsers - animate all immediately
+                  // Fallback for older browsers
                  animatedElements.forEach(element => element.classList.add('animated'));
              }
 
@@ -810,13 +767,11 @@
                                  e.preventDefault();
                                  const headerOffset = header?.classList.contains('scrolled') ? (header?.offsetHeight ?? 70) : (header?.offsetHeight ?? 90);
                                  const elementPosition = targetElement.getBoundingClientRect().top;
-                                 const offsetPosition = elementPosition + window.pageYOffset - headerOffset - 20; // Extra offset
+                                 const offsetPosition = elementPosition + window.pageYOffset - headerOffset - 30; // Slightly larger offset
                                  window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
-                                 if(navLinks?.classList.contains('active')) toggleMenu(true); // Close mobile menu on click
+                                 if(navLinks?.classList.contains('active')) toggleMenu(true);
                              }
-                         } catch (error) {
-                             console.warn(`Smooth scroll target not found for selector: ${href}`);
-                         }
+                         } catch (error) { console.warn(`Smooth scroll target not found: ${href}`); }
                      }
                  });
              });
@@ -828,11 +783,11 @@
             // --- Активная ссылка в навигации при скролле ---
             const sections = document.querySelectorAll('section[id]');
             const updateActiveNav = () => {
-                 if (!sections || sections.length === 0 || !navItems) return; // Guard clause
+                 if (!sections || sections.length === 0 || !navItems) return;
                  let currentSectionId = '';
                  const scrollY = window.pageYOffset;
                  const headerHeight = header?.offsetHeight ?? 80;
-                 const offset = headerHeight + 150; // Adjusted offset
+                 const offset = headerHeight + 200; // Increased offset for better detection
 
                  sections.forEach(section => {
                      const sectionTop = section.offsetTop - offset;
@@ -841,11 +796,6 @@
                          currentSectionId = section.getAttribute('id');
                       }
                  });
-                  // Highlight based on section or fallback to top if no section is active
-                  if (!currentSectionId && scrollY < sections[0]?.offsetTop - offset) {
-                       // Optionally highlight the first link or nothing if at the top
-                  }
-
                  navItems.forEach(link => {
                      link.classList.remove('active');
                      if (currentSectionId && link.getAttribute('href') === `#${currentSectionId}`) {
@@ -854,8 +804,8 @@
                  });
              }
              window.addEventListener('scroll', updateActiveNav, { passive: true });
-             window.addEventListener('resize', updateActiveNav); // Update on resize
-             updateActiveNav(); // Initial check
+             window.addEventListener('resize', updateActiveNav);
+             updateActiveNav();
 
        });
     </script>
