@@ -29,10 +29,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <style>
-        /* --- START: FINÁLNÍ VYLEPŠENÉ CSS STYLY (v7.1 - Class-based visibility Final) --- */
+        /* --- START: FINÁLNÍ VYLEPŠENÉ CSS STYLY (v8 - Simplified Visibility) --- */
         :root {
-            /* Палитра */
-            --primary-rgb: 67, 97, 238; --primary: #4361ee; --primary-light: #697ff1; --primary-dark: #3a0ca3;
+            /* ... (Paleta barev, Sémantické barvy, Rozměry, Stíny - beze změny) ... */
+             --primary-rgb: 67, 97, 238; --primary: #4361ee; --primary-light: #697ff1; --primary-dark: #3a0ca3;
             --secondary-rgb: 63, 55, 201; --secondary: #3f37c9;
             --success-rgb: 16, 185, 129; --success: #10b981; --success-light: #a7f3d0; --success-bg: #f0fdf4; --success-dark: #059669;
             --danger-rgb: 247, 37, 133; --danger: #f72585; --danger-light: #fecdd3; --danger-bg: #fff1f2;
@@ -46,7 +46,6 @@
             --gradient-2: linear-gradient(135deg, #4cc9f0, #4361ee);
             --gradient-3: linear-gradient(135deg, #f72585, #7209b7);
             --gradient-4: linear-gradient(135deg, #f8961e, #f3722c);
-            /* Sémantické */
             --bg-color: var(--gray-50);
             --card-bg-color: var(--white);
             --card-bg-color-rgb: 255, 255, 255;
@@ -58,14 +57,12 @@
             --input-border: var(--gray-300);
             --skeleton-bg: var(--gray-100);
             --skeleton-highlight: var(--gray-200);
-            /* Rozměry */
             --sidebar-width: 260px;
             --transition-speed: 0.25s;
             --transition-bezier: cubic-bezier(0.4, 0, 0.2, 1);
             --card-radius: 12px;
             --button-radius: 8px;
             --form-element-radius: 6px;
-            /* Stíny */
             --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.03);
             --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.04);
             --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.05);
@@ -78,6 +75,7 @@
         body { background-color: var(--bg-color); color: var(--text-primary); min-height: 100vh; display: flex; overflow: hidden; line-height: 1.7; font-size: 15px; }
 
         /* --- Sidebar (Konzistentní) --- */
+        /* ... (CSS beze změny) ... */
         .sidebar { width: var(--sidebar-width); height: 100vh; position: fixed; top: 0; left: 0; background: var(--gradient-1); color: var(--white); padding: 1.5rem 1rem; display: flex; flex-direction: column; z-index: 1000; box-shadow: var(--shadow-lg); transition: transform var(--transition-speed) var(--transition-bezier), width var(--transition-speed) var(--transition-bezier); }
         .sidebar-header { display: flex; align-items: center; margin-bottom: 2rem; padding: 0 0.75rem; position: relative; min-height: 40px; }
         #sidebar-close-toggle { display: none; position: absolute; right: -5px; top: 50%; transform: translateY(-50%); background: none; border: none; color: rgba(255, 255, 255, 0.8); font-size: 1.6rem; cursor: pointer; padding: 0.5rem; line-height: 1; }
@@ -119,12 +117,12 @@
         /* --- Všeobecné styly --- */
         .main-content-wrapper { display: flex; flex-direction: column; gap: 2rem; }
         .section { background-color: var(--card-bg-color); border-radius: var(--card-radius); box-shadow: var(--shadow-md); padding: 0; border: 1px solid var(--border-color); position: relative; overflow: hidden; display: none; /* Start hidden */ }
-        .section.visible-section { display: block !important; /* Force display when class is added */ opacity: 1 !important; visibility: visible !important; animation: fadeIn 0.5s ease forwards;}
+        .section.visible-section { display: block !important; /* Force display */ opacity: 1 !important; visibility: visible !important; animation: fadeIn 0.5s ease forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .section-title { font-size: 1.5rem; font-weight: 600; margin: 0; padding: 1.5rem 2.5rem; color: var(--text-primary); border-bottom: 1px solid var(--border-color); display: flex; align-items: center; gap: 0.75rem; background-color: var(--gray-50); border-radius: var(--card-radius) var(--card-radius) 0 0; }
         .section-title i { font-size: 1rem; color: var(--primary); width: 24px; text-align: center;}
-        .section-content { padding: 2rem 2.5rem; display: none; } /* Start hidden */
-        .section-content.content-visible { display: block !important; } /* Show when class is added */
+        .section-content { padding: 2rem 2.5rem; display: none; /* Start hidden */ }
+        .section-content.content-visible { display: block !important; } /* Show message content */
         .btn { display: inline-flex; align-items: center; justify-content: center; padding: 0.8rem 1.6rem; border-radius: var(--button-radius); font-weight: 500; font-size: 0.95rem; text-decoration: none; transition: all 0.2s var(--transition-bezier); cursor: pointer; border: none; gap: 0.6rem; line-height: 1.4; }
         .btn-primary { background: var(--primary); color: white; box-shadow: 0 3px 6px rgba(var(--primary-rgb), 0.2); }
         .btn-primary:hover:not(:disabled) { background: var(--primary-dark); transform: translateY(-2px); box-shadow: 0 5px 10px rgba(var(--primary-rgb), 0.25); }
@@ -134,7 +132,6 @@
         .btn-success:hover:not(:disabled) { background: var(--success-dark); transform: translateY(-2px); box-shadow: 0 5px 10px rgba(var(--success-rgb), 0.25); }
         .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
         .btn i { font-size: 1em; transition: transform 0.2s ease; }
-
 
         /* --- Záložky (Tabs) --- */
         .tabs-wrapper { background-color: var(--card-bg-color); border-radius: var(--card-radius) var(--card-radius) 0 0; box-shadow: var(--shadow-sm); border: 1px solid var(--border-color); border-bottom: none; margin-bottom: 0; }
@@ -148,9 +145,9 @@
         .tab-linked-section { border-radius: 0 0 var(--card-radius) var(--card-radius); margin-top: -1px; border-top-color: transparent; padding: 0; }
 
         /* --- Obsah Plánu (Markdown) --- */
-        .plan-content { margin-top: 0; padding: 2rem 2.5rem; line-height: 1.75; display: none; /* Start hidden */}
-        .plan-content.content-visible { display: block !important; } /* Show when class is added */
-        /* ... (styles for markdown elements h1-h4, p, ul, li etc. remain the same) ... */
+        .plan-content { margin-top: 0; padding: 2rem 2.5rem; line-height: 1.75; display: none; }
+        .plan-content.content-visible { display: block !important; }
+        /* ... (markdown element styles unchanged) ... */
         .plan-content h1, .plan-content h2, .plan-content h3, .plan-content h4 { color: var(--text-primary); margin-top: 1.8em; margin-bottom: 0.8em; font-weight: 600; padding-bottom: 0.4rem; }
         .plan-content h1 { font-size: 1.8rem; border-bottom: 2px solid var(--primary); display: inline-block; }
         .plan-content h2 { font-size: 1.5rem; border-bottom: 1px solid var(--border-color); }
@@ -169,7 +166,7 @@
         .plan-content hr { border: none; border-top: 1px solid var(--border-color); margin: 2.5rem 0; }
 
         /* --- Vertikální Seznam/Timeline Plánu --- */
-        .vertical-schedule-list { display: none; /* Hide by default */ flex-direction: column; gap: 0; margin: 0; padding: 0; }
+        .vertical-schedule-list { display: none; /* Hide by default */ flex-direction: column; gap: 0; margin: 0; padding: 0; min-height: 100px; /* Ensure it has min height */ }
         .vertical-schedule-list.schedule-visible { display: flex !important; } /* Show when class is added */
         .day-schedule-card { background-color: var(--card-bg-color); border-radius: 0; border: none; box-shadow: none; border-bottom: 1px solid var(--border-color); overflow: visible; }
         .day-schedule-card:last-child { border-bottom: none; }
@@ -206,8 +203,9 @@
         .day-schedule-card.expanded .day-expand-icon { transform: rotate(180deg); }
 
         /* --- Historie plánů --- */
-        .plan-history { margin-top: 0; padding: 1rem 0 0 0; display: grid; gap: 1.25rem; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); }
-        /* ... (styles for history items remain the same) ... */
+        .plan-history { margin-top: 0; padding: 1rem 0 0 0; display: none; /* Start hidden */ gap: 1.25rem; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); }
+        .plan-history.content-visible { display: grid !important; } /* Show when class added */
+        /* ... (history items styles unchanged) ... */
         .history-item { background-color: var(--card-bg-color); border-radius: var(--card-radius); padding: 1.5rem; box-shadow: var(--shadow-sm); display: flex; flex-direction: column; transition: all 0.2s ease; cursor: pointer; border: 1px solid var(--border-color); border-left: 5px solid var(--gray-400); }
         .history-item:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); border-left-color: var(--primary); }
         .history-item-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.8rem; }
@@ -226,8 +224,10 @@
 
 
         /* --- Vytvoření Plánu (Create Plan) --- */
-        .create-plan-content { text-align: center; padding: 2rem 0; }
-        .create-plan-content .notest-message, .create-plan-content .locked-overlay { display: block; } /* Ensure these are block */
+        .create-plan-content { text-align: center; padding: 2rem 0; display: none; /* Start hidden */ }
+        .create-plan-content.content-visible { display: block !important; } /* Show when class added */
+        .create-plan-content .notest-message, .create-plan-content .locked-overlay { display: block; }
+        /* ... (rest of create plan styles unchanged) ... */
         .notest-message { background-color: var(--info-bg); border-left: 4px solid var(--info); padding: 2rem; margin: 1.5rem 0; border-radius: var(--card-radius); border: 1px solid var(--info-light); }
         .notest-message h3 { color: var(--info); margin-bottom: 1rem; font-size: 1.3rem; display: flex; align-items: center; gap: 0.7rem; justify-content: center; font-weight: 600;}
         .notest-message p { color: var(--text-secondary); margin-bottom: 1.5rem; line-height: 1.6; max-width: 650px; margin-left: auto; margin-right: auto; font-size: 1rem;}
@@ -251,13 +251,13 @@
         .plan-meta h2 { margin-bottom: 0.4rem !important; border-bottom: none !important; padding-bottom: 0 !important;}
         .plan-date { font-size: 0.85rem; color: var(--text-muted); }
         .plan-actions { display: flex; gap: 0.75rem; flex-shrink: 0; align-self: flex-start;}
-        .step-navigation { display: none; /* Hide by default */ justify-content: flex-end; /* Align button to the right */ margin-top: 2rem; padding: 1.5rem 2.5rem; border-top: 1px solid var(--border-color); background-color: var(--gray-50); margin-bottom: 0; /* No negative margin */ margin-left: 0; margin-right: 0; border-radius: 0 0 var(--card-radius) var(--card-radius); }
+        .step-navigation { display: none; /* Hide by default */ justify-content: flex-end; margin-top: 0; padding: 1.5rem 2.5rem; border-top: 1px solid var(--border-color); background-color: var(--gray-50); margin-bottom: 0; margin-left: 0; margin-right: 0; border-radius: 0 0 var(--card-radius) var(--card-radius); }
         .step-navigation.nav-visible { display: flex !important; } /* Show when class is added */
 
 
         /* --- Loading & Skeleton States --- */
-        .loader-container { display: none; /* Hide loader by default */ flex-direction: column; justify-content: center; align-items: center; min-height: 250px; text-align: center; color: var(--text-muted); font-size: 1.1rem; padding: 2rem; }
-        .loader-container.visible-loader { display: flex !important; } /* Show when class is added */
+        .loader-container { display: none; flex-direction: column; justify-content: center; align-items: center; min-height: 250px; text-align: center; color: var(--text-muted); font-size: 1.1rem; padding: 2rem; }
+        .loader-container.visible-loader { display: flex !important; }
         .loader { width: 45px; height: 45px; border: 5px solid rgba(var(--primary-rgb), 0.1); border-radius: 50%; border-top-color: var(--primary); animation: spin 1s linear infinite; margin-bottom: 1.2rem; }
         @keyframes spin { to { transform: rotate(360deg); } }
         .skeleton { background-color: var(--skeleton-bg); border-radius: 4px; position: relative; overflow: hidden; }
@@ -277,8 +277,8 @@
 
 
         /* --- Empty State --- */
-        .empty-state { padding: 3rem 2.5rem; text-align: center; color: var(--text-muted); display: none; /* Hidden by default */ background-color: transparent; border-radius: 0; border: none; margin-top: 0; }
-        .section-content.content-visible .empty-state { display: flex; flex-direction: column; align-items: center; } /* Show when needed */
+        .empty-state { padding: 3rem 2.5rem; text-align: center; color: var(--text-muted); display: none; background-color: transparent; border-radius: 0; border: none; margin-top: 0; }
+        .section-content.content-visible .empty-state { display: flex; flex-direction: column; align-items: center; }
         .empty-state i { font-size: 3rem; margin-bottom: 1rem; color: var(--gray-400); }
         .empty-state h3 { font-size: 1.2rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.75rem; }
         .empty-state p { margin: 0 auto 1.5rem auto; font-size: 0.95rem; max-width: 450px; }
@@ -561,17 +561,18 @@
 
                  if (loader) loader.classList.toggle('visible-loader', isLoadingFlag);
 
-                 if (content) {
-                     if (isLoadingFlag) content.classList.remove('content-visible', 'schedule-visible');
-                 }
-                 if (nav) {
-                      if (isLoadingFlag) nav.classList.remove('nav-visible');
+                 // Hide content areas only when loading starts
+                 if (isLoadingFlag) {
+                     if (content) content.classList.remove('content-visible', 'schedule-visible');
+                     if (nav) nav.classList.remove('nav-visible');
                  }
 
+                 // Special handling for detail/generation view buttons
                  if(key === 'detail' || key === 'generation') {
                      if (ui.planActions) ui.planActions.style.display = isLoadingFlag ? 'none' : 'flex';
                  }
 
+                 // Render skeletons when loading starts
                  if(key === 'history') renderHistorySkeletons(isLoadingFlag ? 3 : 0);
                  if(key === 'schedule') renderVerticalScheduleSkeletons(isLoadingFlag ? 3 : 0);
              });
@@ -588,7 +589,6 @@
              });
              container.innerHTML = `<div class="notest-message ${type}"><h3><i class="fas ${iconMap[type]}"></i> ${sanitizeHTML(title)}</h3><p>${sanitizeHTML(message)}</p><div class="action-buttons">${buttonsHTML}</div></div>`;
              container.classList.add('content-visible'); // <<< ADD VISIBILITY CLASS
-             container.style.display = ''; // Reset direct style if any
              addButtons.forEach(btn => {
                  const btnElement = container.querySelector(`#${btn.id}`);
                  if (btnElement && btn.onClick) {
@@ -620,9 +620,8 @@
                      const titleArea = event.target.closest('.activity-title-time');
                      const checkboxLabel = event.target.closest('.activity-checkbox');
 
-                     if (checkboxLabel || event.target.tagName === 'INPUT') { return; } // Prevent on checkbox/label
+                     if (checkboxLabel || event.target.tagName === 'INPUT') { return; }
 
-                     // Activity Description Expand/Collapse
                      if (expandButton || titleArea) {
                          const activityElement = (expandButton || titleArea).closest('.activity-list-item');
                          const descElement = activityElement?.querySelector('.activity-desc');
@@ -631,7 +630,6 @@
                                console.log("Toggled activity description for:", activityElement.dataset.activityId);
                           }
                      }
-                     // Day Card Expand/Collapse
                      else if (header) {
                          const dayCard = header.closest('.day-schedule-card');
                          if (dayCard) {
@@ -641,7 +639,6 @@
                      }
                  });
 
-                 // Separate listener for checkbox changes
                  scheduleContainer.addEventListener('change', async (event) => {
                      if (event.target.type === 'checkbox' && event.target.closest('.activity-checkbox')) {
                           const checkbox = event.target;
@@ -720,14 +717,7 @@
              if (ui.planSection) ui.planSection.classList.remove('visible-section');
 
              try {
-                 const { data: plans, error } = await supabaseClient
-                     .from('study_plans')
-                     .select('*')
-                     .eq('user_id', state.currentUser.id)
-                     .eq('status', 'active')
-                     .order('created_at', { ascending: false })
-                     .limit(1);
-
+                 const { data: plans, error } = await supabaseClient.from('study_plans').select('*').eq('user_id', state.currentUser.id).eq('status', 'active').order('created_at', { ascending: false }).limit(1);
                  if (error) throw error;
                  console.log("[CurrentPlan] Fetched plans:", plans);
 
@@ -764,8 +754,7 @@
              const node = ui.promptCreatePlanTemplate.content.cloneNode(true);
              const btn = node.getElementById('createNewPlanFromPromptBtn');
              if (btn) btn.addEventListener('click', () => switchTab('create'));
-             container.innerHTML = '';
-             container.appendChild(node);
+             container.innerHTML = ''; container.appendChild(node);
              container.classList.add('content-visible'); // Use class
         };
 
@@ -774,8 +763,7 @@
              const node = ui.noActivePlanTemplate.content.cloneNode(true);
              const link = node.querySelector('.link-to-create-tab');
              if (link) link.addEventListener('click', (e) => { e.preventDefault(); switchTab('create'); });
-             container.innerHTML = '';
-             container.appendChild(node);
+             container.innerHTML = ''; container.appendChild(node);
              container.classList.add('content-visible'); // Use class
         };
 
@@ -886,11 +874,11 @@
         // ==============================================
         const getLatestDiagnostic = async (showLoaderFlag = true) => { /* ... (code unchanged) ... */ if (!state.currentUser || !supabaseClient) return null; if (showLoaderFlag) setLoadingState('create', true); try { const { data, error } = await supabaseClient.from('user_diagnostics').select('id, completed_at, total_score, total_questions, topic_results, analysis').eq('user_id', state.currentUser.id).order('completed_at', { ascending: false }).limit(1); if (error) throw error; return (data && data.length > 0) ? data[0] : null; } catch (error) { console.error("Chyba načítání diagnostiky:", error); return null; } finally { if (showLoaderFlag) setLoadingState('create', false); } };
         const checkPlanCreationAvailability = async () => { /* ... (code unchanged, uses renderMessage) ... */ if (!supabaseClient || !state.currentUser) return; setLoadingState('create', true); if(ui.createPlanContent) ui.createPlanContent.classList.remove('content-visible'); try { state.latestDiagnosticData = await getLatestDiagnostic(false); if (state.latestDiagnosticData === null) { renderMessage(ui.createPlanContent, 'error', 'Chyba', 'Nepodařilo se ověřit váš diagnostický test.'); return; } else if (!state.latestDiagnosticData) { renderNoDiagnosticAvailable(ui.createPlanContent); return; } const { data: latestPlan, error: planError } = await supabaseClient.from('study_plans').select('created_at').eq('user_id', state.currentUser.id).order('created_at', { ascending: false }).limit(1); if (planError) throw planError; let canCreate = true; if (latestPlan && latestPlan.length > 0) { const lastPlanDate = new Date(latestPlan[0].created_at); const oneWeekAgo = new Date(); oneWeekAgo.setDate(oneWeekAgo.getDate() - 7); if (lastPlanDate > oneWeekAgo) { canCreate = false; state.nextPlanCreateTime = new Date(lastPlanDate); state.nextPlanCreateTime.setDate(state.nextPlanCreateTime.getDate() + 7); } } state.planCreateAllowed = canCreate; if (canCreate) renderPlanCreationForm(); else renderLockedPlanSection(); } catch (error) { console.error('Chyba při kontrole dostupnosti vytvoření plánu:', error); renderMessage(ui.createPlanContent, 'error', 'Chyba', 'Nepodařilo se ověřit možnost vytvoření plánu.'); } finally { setLoadingState('create', false); } };
-        const renderNoDiagnosticAvailable = (container) => { /* ... (code unchanged, uses template, adds class) ... */ if (!container || !ui.noDiagnosticTemplate) return; const node = ui.noDiagnosticTemplate.content.cloneNode(true); const btn = node.getElementById('goToTestBtn'); if(btn) btn.onclick = () => window.location.href = 'test1.html'; container.innerHTML = ''; container.appendChild(node); container.classList.add('content-visible'); container.style.display = ''; };
-        const renderLockedPlanSection = () => { /* ... (code unchanged, uses template, adds class) ... */ if(!ui.createPlanContent || !ui.lockedPlanTemplate) return; const node = ui.lockedPlanTemplate.content.cloneNode(true); const timerEl = node.getElementById('nextPlanTimer'); const viewBtn = node.getElementById('viewCurrentPlanBtnLocked'); if(timerEl) updateNextPlanTimer(timerEl); if(viewBtn) viewBtn.addEventListener('click', () => switchTab('current')); ui.createPlanContent.innerHTML = ''; ui.createPlanContent.appendChild(node); ui.createPlanContent.classList.add('content-visible'); ui.createPlanContent.style.display = ''; startPlanTimer(); };
+        const renderNoDiagnosticAvailable = (container) => { /* ... (code unchanged, uses template, adds class) ... */ if (!container || !ui.noDiagnosticTemplate) return; const node = ui.noDiagnosticTemplate.content.cloneNode(true); const btn = node.getElementById('goToTestBtn'); if(btn) btn.onclick = () => window.location.href = 'test1.html'; container.innerHTML = ''; container.appendChild(node); container.classList.add('content-visible'); };
+        const renderLockedPlanSection = () => { /* ... (code unchanged, uses template, adds class) ... */ if(!ui.createPlanContent || !ui.lockedPlanTemplate) return; const node = ui.lockedPlanTemplate.content.cloneNode(true); const timerEl = node.getElementById('nextPlanTimer'); const viewBtn = node.getElementById('viewCurrentPlanBtnLocked'); if(timerEl) updateNextPlanTimer(timerEl); if(viewBtn) viewBtn.addEventListener('click', () => switchTab('current')); ui.createPlanContent.innerHTML = ''; ui.createPlanContent.appendChild(node); ui.createPlanContent.classList.add('content-visible'); startPlanTimer(); };
         const startPlanTimer = () => { /* ... (code unchanged) ... */ if (state.planTimerInterval) clearInterval(state.planTimerInterval); state.planTimerInterval = setInterval(() => { const timerEl = document.getElementById('nextPlanTimer'); if (timerEl && document.body.contains(timerEl)) updateNextPlanTimer(timerEl); else clearInterval(state.planTimerInterval); }, 1000); };
         const updateNextPlanTimer = (el) => { /* ... (code unchanged) ... */ if (!state.nextPlanCreateTime || !el) return; const now = new Date(); const diff = state.nextPlanCreateTime - now; if (diff <= 0) { el.textContent = 'Nyní'; clearInterval(state.planTimerInterval); state.planCreateAllowed = true; if(state.currentTab === 'create') setTimeout(checkPlanCreationAvailability, 500); return; } const d = Math.floor(diff/(1000*60*60*24)), h = Math.floor((diff%(1000*60*60*24))/(1000*60*60)), m = Math.floor((diff%(1000*60*60))/(1000*60)), s = Math.floor((diff%(1000*60))/1000); el.textContent = `${d}d ${h}h ${m}m ${s}s`; };
-        const renderPlanCreationForm = () => { /* ... (code unchanged, uses template, adds class) ... */ if (!ui.createPlanContent || !ui.createPlanFormTemplate || !state.latestDiagnosticData) return; const node = ui.createPlanFormTemplate.content.cloneNode(true); const diagInfo = node.getElementById('diagnosticInfo'); if (diagInfo) { const score = state.latestDiagnosticData.total_score ?? '-'; const maxScore = state.latestDiagnosticData.total_questions ? state.latestDiagnosticData.total_questions * 1 : '50'; diagInfo.innerHTML = `<p>Plán bude vycházet z testu ze dne: <strong>${formatDate(state.latestDiagnosticData.completed_at)}</strong> (Skóre: ${score}/${maxScore})</p>`; } const genBtn = node.getElementById('generatePlanBtn'); if (genBtn) genBtn.addEventListener('click', handleGenerateClick); ui.createPlanContent.innerHTML = ''; ui.createPlanContent.appendChild(node); ui.createPlanContent.classList.add('content-visible'); ui.createPlanContent.style.display = ''; };
+        const renderPlanCreationForm = () => { /* ... (code unchanged, uses template, adds class) ... */ if (!ui.createPlanContent || !ui.createPlanFormTemplate || !state.latestDiagnosticData) return; const node = ui.createPlanFormTemplate.content.cloneNode(true); const diagInfo = node.getElementById('diagnosticInfo'); if (diagInfo) { const score = state.latestDiagnosticData.total_score ?? '-'; const maxScore = state.latestDiagnosticData.total_questions ? state.latestDiagnosticData.total_questions * 1 : '50'; diagInfo.innerHTML = `<p>Plán bude vycházet z testu ze dne: <strong>${formatDate(state.latestDiagnosticData.completed_at)}</strong> (Skóre: ${score}/${maxScore})</p>`; } const genBtn = node.getElementById('generatePlanBtn'); if (genBtn) genBtn.addEventListener('click', handleGenerateClick); ui.createPlanContent.innerHTML = ''; ui.createPlanContent.appendChild(node); ui.createPlanContent.classList.add('content-visible'); };
         const handleGenerateClick = function() { /* ... (code unchanged) ... */ this.disabled = true; this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generuji plán...'; generateStudyPlan(); };
 
 
@@ -900,7 +888,7 @@
         const generateStudyPlan = async () => { /* ... (code unchanged) ... */ if (!state.latestDiagnosticData || !state.currentUser) { showToast('Chybí data pro generování.', 'error'); return; } if (!GEMINI_API_KEY || GEMINI_API_KEY.startsWith('YOUR_')) { showToast('Chyba: Nastavte platný Gemini API klíč v kódu.', 'error'); return; } ui.currentPlanSection.classList.remove('visible-section'); ui.historyPlanSection.classList.remove('visible-section'); ui.createPlanSection.classList.remove('visible-section'); ui.planSection.classList.add('visible-section'); setLoadingState('generation', true); if(ui.planContent) ui.planContent.classList.remove('content-visible'); if(ui.planActions) ui.planActions.innerHTML = ''; state.lastGeneratedMarkdown = null; state.lastGeneratedActivitiesJson = null; if (ui.genericBackBtn) ui.genericBackBtn.onclick = () => switchTab('create'); try { const topicsData = Object.entries(state.latestDiagnosticData.topic_results || {}).map(([topicKey, data]) => ({ name: data.name || state.topicMap[topicKey] || `Téma ${topicKey}`, questions: data.total || 0, correct: data.correct || 0, percentage: data.score || 0 })).sort((a, b) => a.percentage - b.percentage); const fullMarkdownResponse = await generatePlanContentWithGemini(state.latestDiagnosticData, topicsData); const jsonRegex = /```json\s*([\s\S]*?)\s*```/; const jsonMatch = fullMarkdownResponse.match(jsonRegex); let activitiesArray = null; let planMarkdownForStorage = fullMarkdownResponse; if (jsonMatch && jsonMatch[1]) { try { activitiesArray = JSON.parse(jsonMatch[1].replace(/\u00A0/g, ' ').trim()); planMarkdownForStorage = fullMarkdownResponse.replace(jsonRegex, '').trim(); state.lastGeneratedActivitiesJson = activitiesArray; } catch (e) { console.error("Chyba parsování JSON aktivit:", e); showToast("Warning: Nepodařilo se zpracovat aktivity z plánu.", "warning"); state.lastGeneratedActivitiesJson = null; } } else { console.warn("JSON blok aktivit nenalezen."); state.lastGeneratedActivitiesJson = null; } state.lastGeneratedMarkdown = planMarkdownForStorage; if(ui.planSectionTitle) ui.planSectionTitle.textContent = 'Návrh studijního plánu'; displayPlanContent(state.lastGeneratedMarkdown); if(ui.planActions) { ui.planActions.innerHTML = `<button class="btn btn-primary" id="saveGeneratedPlanBtn"><i class="fas fa-save"></i> Uložit tento plán</button><button class="btn btn-success btn-tooltip" id="exportGeneratedPlanBtn" title="Stáhnout návrh jako PDF"><i class="fas fa-file-pdf"></i> Export PDF</button><button class="btn btn-secondary" id="regeneratePlanBtn"><i class="fas fa-sync-alt"></i> Vygenerovat znovu</button>`; const saveBtn = ui.planActions.querySelector('#saveGeneratedPlanBtn'); const exportBtn = ui.planActions.querySelector('#exportGeneratedPlanBtn'); const regenBtn = ui.planActions.querySelector('#regeneratePlanBtn'); if(saveBtn) saveBtn.addEventListener('click', () => saveGeneratedPlan(state.lastGeneratedMarkdown, state.lastGeneratedActivitiesJson, topicsData)); if(exportBtn) exportBtn.addEventListener('click', () => exportPlanToPDFWithStyle({ created_at: new Date(), plan_content_markdown: state.lastGeneratedMarkdown, title: "Nový návrh plánu" })); if(regenBtn) regenBtn.addEventListener('click', handleGenerateClick); ui.planActions.style.display = 'flex'; } ui.planSection.scrollIntoView({ behavior: 'smooth' }); initTooltips(); } catch (error) { console.error('Chyba generování plánu:', error); renderMessage(ui.planContent, 'error', 'Chyba generování', error.message); if(ui.planActions) { ui.planActions.innerHTML = `<button class="btn btn-secondary" id="regeneratePlanBtn"><i class="fas fa-sync-alt"></i> Vygenerovat znovu</button>`; const regenBtn = ui.planActions.querySelector('#regeneratePlanBtn'); if(regenBtn) regenBtn.addEventListener('click', handleGenerateClick); ui.planActions.style.display = 'flex'; } } finally { setLoadingState('generation', false); } };
         const generatePlanContentWithGemini = async (testData, topicsData) => { /* ... (code unchanged - prompt is complex) ... */ const totalScore = testData.total_score || 0; const totalQuestions = testData.total_questions || 1; const analysis = testData.analysis || {}; const overallAssessment = analysis.summary?.overall_assessment || 'N/A'; const strengths = analysis.strengths?.map(s => `${s.topic} (${s.score}%)`).join(', ') || 'Nebyly identifikovány'; const weaknesses = analysis.weaknesses?.map(w => `${w.topic} (${w.score}%)`).join(', ') || 'Nebyly identifikovány'; const recommendations = analysis.recommendations?.join('\n- ') || 'Žádná specifická.'; const prompt = ` Jsi expertní AI tutor specializující se na přípravu na PŘIJÍMACÍ ZKOUŠKY z matematiky pro 9. třídu ZŠ v Česku. Tvým úkolem je vytvořit NÁROČNÝ, DETAILNÍ a KONZISTENTNÍ týdenní studijní plán v ČEŠTINĚ ve formátu Markdown, zaměřený na dosažení co nejlepšího výsledku u zkoušek. Na konci MUSÍŠ vygenerovat JSON pole aktivit pro tento plán, které PŘESNĚ ODRÁŽÍ obsah Markdown plánu pro daný den. # Kontext: Student právě dokončil diagnostický test. # Výsledky diagnostického testu: - Celkové skóre: ${totalScore}/50 bodů - Počet otázek: ${totalQuestions} - Výsledky podle témat (Název tématu: Plně správně/Celkem otázek (Úspěšnost %)): ${topicsData.map(topic => `  - ${topic.name}: ${topic.correct}/${topic.questions} (${topic.percentage}%)`).join('\n')} # Analýza výsledků testu (Shrnutí od AI): - Celkové hodnocení: ${overallAssessment} - Identifikované silné stránky: ${strengths} - Identifikované slabé stránky: ${weaknesses} - Doporučení na základě testu: - ${recommendations} # Oficiální Témata Zkoušky (CERMAT - detailně): 1.  **Čísla a aritmetické operace:** Přirozená čísla (do milionu), nula. Sčítání, odčítání, násobení, dělení (vlastnosti, algoritmy). Zlomky (porovnávání, sčítání/odčítání se stejným jm.). Desetinná čísla, číselná osa. 2.  **Algebra:** Mocniny, odmocniny (základní operace). Lineární rovnice (jedna neznámá, úpravy). Soustavy 2 lineárních rovnic (dosazovací, sčítací metoda). Mnohočleny (sčítání, odčítání, násobení, vytýkání, vzorce (a±b)², a²-b²). Výrazy s proměnnými (dosazování, úpravy). 3.  **Geometrie:** Základní rovinné útvary (čtverec, obdélník, trojúhelník - typy, vlastnosti, věty; kruh/kružnice - části, vlastnosti). Kreslení, náčrty. Kolmost, rovnoběžnost. Obvod, obsah rovinných útvarů. Povrch a objem těles (krychle, kvádr, válec; základy kužele, koule). Pythagorova věta. Základní konstrukční úlohy. 4.  **Práce s daty:** Tabulky, diagramy (čtení, interpretace, jednoduchá tvorba). Aritmetický průměr, modus, medián. Grafy závislostí (čtení, interpretace). 5.  **Problémové úlohy:** Slovní úlohy (převod na matematický model, řešení). Úlohy na poměr, přímá a nepřímá úměrnost, měřítko mapy. Úlohy na pohyb, společnou práci (základní typy). Aplikace matematiky. Strategie řešení. 6.  **Proporce a procenta:** Procento, promile. Procentová část, základ, počet procent. Jednoduché úrokování. Trojčlenka. Poměr (základní úpravy, rozdělení). 7.  **Logické úlohy:** Logické vztahy, jednoduché výroky, číselné řady, vzory, závislosti. # TVŮJ ÚKOL (Vytvoř NÁROČNÝ, DETAILNÍ a KONZISTENTNÍ plán): 1.  Vytvoř DETAILNÍ týdenní studijní plán (Pondělí - Neděle) ve formátu Markdown. Musí být strukturovaný, srozumitelný a zaměřený na VÝRAZNÉ zlepšení. Dbej na přirozené formátování textu, vyhni se slovům nalepeným na sebe bez mezer. 2.  Plán musí pokrývat klíčové oblasti z OFICIÁLNÍCH TÉMAT, klást ZVÝŠENÝ DŮRAZ na slabé stránky (${weaknesses}), ale ZAHRNOVAT i OPAKOVÁNÍ silnějších stránek. 3.  Navrhni RŮZNORODÉ a KONKRÉTNÍ aktivity: * Řešení KONKRÉTNÍCH TYPŮ příkladů s uvedením POČTU. * Procvičování SLOVNÍCH ÚLOH zaměřených na dané téma. * Používej formulace jako 'Opakování [téma/vzorce]' místo 'Opakuj [téma]'. Např.: 'Opakování vzorců pro mnohočleny'. * Analýzu VYSVĚTLENÝCH příkladů (např. "Projdi řešené příklady na ..."). * Doporučení k ANALÝZE minulých chyb. * Zařazení NÁROČNĚJŠÍCH úloh u silnějších témat. 4.  Buď co nejvíce SPECIFICKÝ v popisu úkolů v Markdown i JSON. Místo 'Procvičuj geometrii' uveď 'Výpočet obvodů a obsahů složených rovinných útvarů (3 úlohy)'. 5.  Rozděl denní studium (cca 75-100 minut) do 2-3 INTENZIVNÍCH bloků. Uveď odhadovaný čas. 6.  **DŮLEŽITÉ:** V poli 'description' v JSON bloku **NEUVÁDĚJ KONKRÉTNÍ ROVNICE NEBO ČÍSELNÉ ZADÁNÍ PŘÍKLADŮ**. Místo toho SLOVNĚ popiš TYP úloh, počet a zaměření (např. 'Řešení 5 lineárních rovnic se zlomky', 'Výpočet procentové části ze základu ve 4 slovních úlohách'). 7.  **NAPROSTÁ KONZISTENCE JE KLÍČOVÁ:** JSON \`title\` a \`description\` musí být PŘÍMÝM a VĚRNÝM shrnutím aktivity popsané v odpovídajícím bloku v Markdown textu pro ten samý den a časový úsek. Žádné informace nesmí být v JSON přidány ani vynechány oproti Markdown popisu daného bloku. 8.  NA KONEC celého Markdown textu PŘIDEJ validní JSON blok (\`\`\`json ... \`\`\`) obsahující pole objektů pro VŠECHNY aktivity. Klíče: "day_of_week" (číslo 0-6, Neděle=0), "title" (string, název bloku), "description" (string, SLOVNÍ popis TYPU úkolů, KONZISTENTNÍ s Markdown), "time_slot" (string, čas). # Požadovaný formát výstupu (Markdown + JSON na konci): **Analýza diagnostiky:** * Zaměření na: ${weaknesses} * Udržování: ${strengths} **Hlavní cíle pro tento týden:** * [Použij odrážky] Výrazně zlepšit [Nejslabší téma]. * [Použij odrážky] Upevnit znalosti v [Druhé nejslabší téma]. * [Použij odrážky] Zopakovat a procvičit [Silnější téma]. --- ### Pondělí * **Fokus dne:** [Např. Složitější lineární rovnice a aplikace procent] * **Blok 1 (cca 45 min): Algebra - Rovnice:** Řešení 10 složitějších lineárních rovnic se zlomky a závorkami. Důraz na správné úpravy a zkoušku. * **Blok 2 (cca 40 min): Procenta - Slovní úlohy:** Řešení 5 slovních úloh na výpočet základu a procentové změny (zdražení/sleva). * *Tip dne:* U rovnic si piš mezikroky a ověřuj si je. ### Úterý * **Fokus dne:** [Např. Geometrie - Tělesa a opakování mnohočlenů] * **Blok 1 (cca 50 min): Geometrie - Objem a povrch válce:** Opakování vzorců. Výpočet objemu a povrchu válce ve 4 úlohách (včetně slovních). * **Blok 2 (cca 30 min): Opakování - Mnohočleny:** Opakování vzorců (a±b)², a²-b². Rozklad 10 mnohočlenů na součin pomocí vytýkání a vzorců. * *Tip dne:* Kresli si náčrty těles, pomůže ti to s představivostí. * ... (atd. pro všechny dny) ... --- **Obecné tipy pro maximální efektivitu:** * ... \`\`\`json [   { "day_of_week": 1, "title": "Algebra: Složitější rovnice", "description": "Řešení 10 složitějších lineárních rovnic se zlomky a závorkami. Důraz na správné úpravy a zkoušku.", "time_slot": "45 min" },   { "day_of_week": 1, "title": "Procenta: Slovní úlohy (základ, změna)", "description": "Řešení 5 slovních úloh na výpočet základu a procentové změny (zdražení/sleva).", "time_slot": "40 min" },   { "day_of_week": 2, "title": "Geometrie: Objem a povrch válce", "description": "Opakování vzorců. Výpočet objemu a povrchu válce ve 4 úlohách (včetně slovních).", "time_slot": "50 min" },   { "day_of_week": 2, "title": "Opakování: Rozklad mnohočlenů", "description": "Opakování vzorců (a±b)², a²-b². Rozklad 10 mnohočlenů na součin pomocí vytýkání a vzorců.", "time_slot": "30 min" }   // ... (další aktivity pro všechny dny, KONZISTENTNÍ S MARKDOWNEM) ... ] \`\`\` `; try { const response = await fetch(GEMINI_API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { temperature: 0.6, topK: 40, topP: 0.95, maxOutputTokens: 8192 }, safetySettings: [{ category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" }, { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" }, { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" }, { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" }] }) }); const data = await response.json(); if (!response.ok) throw new Error(data.error?.message || `Chyba Gemini API (${response.status})`); const geminiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text; if (!geminiResponse) throw new Error('Prázdná odpověď od Gemini API'); return geminiResponse; } catch (error) { console.error('Chyba při generování obsahu plánu:', error); throw error; /* Rethrow */ } };
         const saveGeneratedPlan = async (markdownContent, activitiesArray, topicsData) => { /* ... (code unchanged) ... */ if (!state.currentUser || !state.latestDiagnosticData || !markdownContent || !supabaseClient) { showToast('Chyba: Chybí data pro uložení.', 'error'); return; } const saveButton = document.getElementById('saveGeneratedPlanBtn'); if (saveButton) { saveButton.disabled = true; saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ukládám...'; } const priorityTopics = {}; topicsData.forEach((topic, index) => { priorityTopics[topic.name] = { priority: index + 1, performance: topic.percentage, focus_level: topic.percentage < 50 ? 'high' : topic.percentage < 75 ? 'medium' : 'low' }; }); let savedPlanId = null; try { const { error: deactivateError } = await supabaseClient .from('study_plans') .update({ status: 'inactive', updated_at: new Date().toISOString() }) .eq('user_id', state.currentUser.id) .eq('status', 'active'); if (deactivateError) throw deactivateError; const today = new Date(); const completionDate = new Date(today); completionDate.setDate(completionDate.getDate() + 7); const newPlanData = { user_id: state.currentUser.id, title: `Studijní plán (${formatDate(today)})`, subject: "Matematika", status: "active", diagnostic_id: state.latestDiagnosticData.id, plan_content_markdown: markdownContent, priority_topics: priorityTopics, estimated_completion_date: completionDate.toISOString().split('T')[0], progress: 0, is_auto_adjusted: true }; const { data: savedPlan, error: insertPlanError } = await supabaseClient .from('study_plans') .insert(newPlanData) .select('id') .single(); if (insertPlanError) throw insertPlanError; savedPlanId = savedPlan.id; console.log("Nový plán uložen, ID:", savedPlanId); if (activitiesArray && Array.isArray(activitiesArray) && activitiesArray.length > 0) { const activitiesToInsert = activitiesArray.map(act => { if (typeof act !== 'object' || act === null) return null; const dayOfWeek = typeof act.day_of_week === 'number' ? act.day_of_week : parseInt(act.day_of_week, 10); if (isNaN(dayOfWeek) || dayOfWeek < 0 || dayOfWeek > 6) return null; return { plan_id: savedPlanId, day_of_week: dayOfWeek, time_slot: act.time_slot || null, title: act.title || 'Nespecifikováno', description: act.description || null, completed: false }; }).filter(item => item !== null); if (activitiesToInsert.length > 0) { const { error: insertActivitiesError } = await supabaseClient.from('plan_activities').insert(activitiesToInsert); if (insertActivitiesError) { console.error("Chyba vkládání aktivit:", insertActivitiesError); showToast('Plán uložen, ale aktivity pro harmonogram selhaly.', 'warning'); } else { console.log("Aktivity úspěšně vloženy."); showToast('Studijní plán a aktivity uloženy!', 'success'); } } else { showToast('Plán uložen, ale nebyly nalezeny platné aktivity.', 'warning'); } } else { showToast('Studijní plán uložen (bez detailních aktivit).', 'info'); } state.currentStudyPlan = { ...newPlanData, id: savedPlanId }; switchTab('current'); } catch (error) { console.error("Chyba při ukládání plánu:", error); showToast(`Nepodařilo se uložit plán: ${error.message}`, 'error'); if (saveButton) { saveButton.disabled = false; saveButton.innerHTML = '<i class="fas fa-save"></i> Uložit tento plán'; } } };
-        const displayPlanContent = (markdownContent) => { /* ... (code unchanged, adds class) ... */ if (!ui.planContent) return; try { marked.setOptions({ gfm: true, breaks: true, sanitize: false }); const htmlContent = marked.parse(markdownContent || ''); ui.planContent.innerHTML = htmlContent; ui.planContent.classList.add('content-visible'); ui.planContent.style.display = ''; if (window.MathJax && typeof window.MathJax.typesetPromise === 'function') { setTimeout(() => { window.MathJax.typesetPromise([ui.planContent]).catch(e => console.error("MathJax chyba:", e)); }, 0); } else { console.warn("MathJax není připraven pro renderování."); } } catch (e) { console.error("Chyba renderování Markdown:", e); renderMessage(ui.planContent, 'error', 'Chyba zobrazení plánu', e.message); } };
+        const displayPlanContent = (markdownContent) => { /* ... (code unchanged, adds class) ... */ if (!ui.planContent) return; try { marked.setOptions({ gfm: true, breaks: true, sanitize: false }); const htmlContent = marked.parse(markdownContent || ''); ui.planContent.innerHTML = htmlContent; ui.planContent.classList.add('content-visible'); if (window.MathJax && typeof window.MathJax.typesetPromise === 'function') { setTimeout(() => { window.MathJax.typesetPromise([ui.planContent]).catch(e => console.error("MathJax chyba:", e)); }, 0); } else { console.warn("MathJax není připraven pro renderování."); } } catch (e) { console.error("Chyba renderování Markdown:", e); renderMessage(ui.planContent, 'error', 'Chyba zobrazení plánu', e.message); } };
 
         // ==============================================
         //          Export PDF
