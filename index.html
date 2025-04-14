@@ -3,42 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JUSTAX | AI CORE ONLINE | ZVLÁDNI ZKOUŠKY</title> <link rel="preconnect" href="https://fonts.googleapis.com">
+    <title>JUSTAX | AI Kyber Augmentace pro Zkoušky</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <style>
+    <link rel="stylesheet" href="style.css"> <style>
         /* --- Палитра и Переменные (v16 - Cyber Core Polished) --- */
         :root {
             /* Основа */
-            --bg-color: #050410;            /* Глубокий */
+            --bg-color: #050410;            /* Глубокий космос */
             --bg-secondary: #0d0a24;       /* Темный индиго */
-            --card-bg: rgba(18, 12, 50, 0.8);  /* Полупрозрачный */
-            --card-solid: #120d33;         /* Сплошной */
-            --interface-bg: rgba(8, 5, 26, 0.9);
+            --card-bg: rgba(18, 12, 50, 0.8);  /* Полупрозрачный темный фиолетовый, чуть прозрачнее */
+            --card-solid: #120c32;         /* Сплошной фиолетовый */
+            --interface-bg: rgba(8, 5, 26, 0.9); /* Фон интерфейса, почти непрозрачный */
             --interface-border: rgba(0, 240, 255, 0.3); /* Циановая рамка интерфейса */
+            --dark-purple-accent: #1a104a; /* Темный фиолетовый для градиентов */
 
             /* Акценты - Циан основной, Фиолетовый/Розовый вторичные */
-            --accent-primary: #00e0ff;     /* Циан */
-            --accent-primary-rgb: 0, 240, 255;
+            --accent-primary: #00e0ff;     /* Циан (Яркий голубой) */
+            --accent-primary-rgb: 0, 224, 255;
             --accent-secondary: #a05cff;   /* Фиолетовый */
             --accent-secondary-rgb: 160, 92, 255;
             --accent-pink: #ff33a8;        /* Розовый */
             --accent-pink-rgb: 255, 51, 168;
-            --accent-lime: #6fff3a;        /* Лайм */
+            --accent-lime: #6fff3a;        /* Лайм (для галочек) */
             --accent-lime-rgb: 111, 255, 58;
+            --accent-cyan: var(--accent-primary); /* Синоним для ясности */
+            --accent-cyan-rgb: var(--accent-primary-rgb);
+            --accent-cyan-glow: rgba(var(--accent-cyan-rgb), 0.5);
             --accent-glow: rgba(var(--accent-primary-rgb), 0.5); /* Сильное Циановое свечение */
             --accent-secondary-glow: rgba(var(--accent-secondary-rgb), 0.4);
+            --accent-pink-glow: rgba(var(--accent-pink-rgb), 0.3);
             --accent-border-glow: rgba(var(--accent-primary-rgb), 0.7);
 
             /* Текст */
-            --text-light: #f0f4f8;
-            --text-medium: #c0c8e0;
-            --text-muted: #8892b0;
-            --text-heading: #ffffff; /* БЕЛЫЙ! */
+            --text-light: #f0f4f8;          /* Почти белый */
+            --text-medium: #c0c8e0;         /* Светло-серый/голубой */
+            --text-muted: #8892b0;          /* Приглушенный */
+            --text-heading: #ffffff;        /* БЕЛЫЙ для заголовков */
             --text-link: var(--accent-primary);
             --text-link-hover: #ffffff;
-            --text-fixed-dark: #050410;
+            --text-fixed-dark: #050410;     /* Для текста на светлых кнопках при ховере */
+            --white: #ffffff;
 
             /* Границы */
             --border-color-light: rgba(var(--accent-secondary-rgb), 0.2);
@@ -56,11 +63,12 @@
                                  radial-gradient(ellipse at 90% 90%, rgba(var(--accent-secondary-rgb), 0.12), transparent 55%),
                                  var(--bg-color);
             --gradient-card-highlight: linear-gradient(160deg, rgba(var(--accent-primary-rgb), 0.12), rgba(var(--accent-secondary-rgb), 0.1));
+            --gradient-cta: linear-gradient(110deg, var(--accent-secondary) 0%, var(--accent-pink) 100%); /* Розово-фиолетовый для CTA */
 
             /* Шрифты */
             --font-primary: 'Inter', sans-serif;
-            --font-secondary: 'Poppins', sans-serif;
-            --font-mono: 'Roboto Mono', monospace;
+            --font-secondary: 'Poppins', sans-serif; /* Для заголовков и кнопок */
+            --font-mono: 'Roboto Mono', monospace; /* Для интерфейса ИИ */
 
             /* Тени */
             --shadow-glow: 0 0 20px var(--accent-glow);
@@ -85,224 +93,617 @@
             background-color: var(--bg-color); color: var(--text-medium); /* Базовый цвет текста */
             font-family: var(--font-primary); line-height: 1.7;
             overflow-x: hidden; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
-            min-height: 100vh; position: relative; background-attachment: fixed;
+            min-height: 100vh; position: relative; background-attachment: fixed; /* Fixed background */
         }
-        body::before { /* Animated Grid */
+        /* Animated Grid Background */
+        body::before {
             content: ""; position: fixed; inset: 0; width: 100%; height: 100%; z-index: -2;
             background-image:
-                linear-gradient(rgba(var(--accent-secondary-rgb), 0.06) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(var(--accent-secondary-rgb), 0.06) 1px, transparent 1px);
-            background-size: 35px 35px; opacity: 0.9;
+                linear-gradient(rgba(var(--accent-secondary-rgb), 0.06) 1px, transparent 1px), /* Горизонтальные линии */
+                linear-gradient(90deg, rgba(var(--accent-secondary-rgb), 0.06) 1px, transparent 1px); /* Вертикальные линии */
+            background-size: 35px 35px; /* Размер ячейки сетки */
+            opacity: 0.9;
             animation: bg-grid-pan 90s linear infinite;
         }
-        @keyframes bg-grid-pan { 0% { background-position: 0 0; } 100% { background-position: 700px 350px; } }
-        /* Optional noise overlay */
-        /* body::after { ... } */
+        @keyframes bg-grid-pan {
+            0% { background-position: 0 0; }
+            100% { background-position: 700px 350px; } /* Движение сетки */
+        }
+        /* Optional subtle noise overlay
+        body::after {
+             content: ""; position: fixed; inset: 0; z-index: -1;
+             background: url('path/to/noise.png'); opacity: 0.05;
+        } */
+
+        .container {
+             width: 90%; max-width: var(--container-width); margin-left: auto; margin-right: auto; padding-left: 15px; padding-right: 15px;
+        }
 
         /* --- Типография (ГАРАНТИРОВАННО ВИДИМАЯ) --- */
         h1, h2, h3, h4, h5, h6 { font-family: var(--font-secondary); font-weight: 700; color: var(--text-heading); line-height: 1.3; margin-bottom: 1.3em; text-shadow: 0 2px 5px rgba(0,0,0,0.2); }
-        h1 { font-size: clamp(3.2rem, 8vw, 5.6rem); letter-spacing: -1.5px; font-weight: 800; }
+        h1 { font-size: clamp(3.1rem, 8vw, 5.6rem); letter-spacing: -1.5px; font-weight: 800; }
         h2 { font-size: clamp(2.1rem, 5.8vw, 3.2rem); }
-        h3 { font-size: clamp(1.4rem, 4vw, 1.8rem); font-weight: 600; }
-        p { margin-bottom: 1.6rem; font-size: clamp(1rem, 2.5vw, 1.1rem); max-width: 700px; opacity: 0.9; color: var(--text-medium); } /* Явный цвет параграфа */
+        h3 { font-size: clamp(1.4rem, 4vw, 1.8rem); font-weight: 600; margin-bottom: 0.8em; /* Уменьшил отступ под h3 */ }
+        p { margin-bottom: 1.6rem; font-size: clamp(1rem, 2.5vw, 1.1rem); max-width: 700px; opacity: 0.9; color: var(--text-medium); }
         a { color: var(--text-link); text-decoration: none; transition: color var(--transition-fast), text-shadow 0.3s ease; }
         a:hover { color: var(--text-link-hover); text-shadow: 0 0 8px var(--accent-glow); }
-        .section-title { text-align: center; margin-bottom: 1.6rem; position: relative; padding-bottom: 1rem; }
-        .section-title span { /* БЕЗ background-clip! Только цвет + тень */
+
+        .section-title {
+             text-align: center; margin-bottom: 1.6rem; position: relative; padding-bottom: 1rem;
+        }
+        .section-title span { /* Текст заголовка секции с неоном */
             color: var(--text-heading);
             text-shadow: 0 0 10px var(--accent-glow), 0 0 20px var(--accent-glow);
         }
-        .section-title::after { /* Animated underline */
-            background: var(--gradient-border-anim); background-size: 300% 100%;
+        .section-title::after { /* Анимированное подчеркивание */
+            content: ''; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+            width: 75px; height: 3px; border-radius: 1.5px;
+            background: var(--gradient-border-anim);
+            background-size: 300% 100%;
             animation: gradient-move 3.5s linear infinite;
-            filter: drop-shadow(0 0 6px var(--accent-primary));
-            /* ... (остальные свойства как в v15) ... */
-             content: ''; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 75px; height: 3px; border-radius: 1.5px;
+            filter: drop-shadow(0 0 6px var(--accent-primary)); /* Тень под линией */
+        }
+        @keyframes gradient-move {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 100% 50%; }
+        }
+        .section-subtitle {
+             font-size: clamp(1.05rem, 3vw, 1.2rem); text-align: center; max-width: 820px;
+             margin: -1rem auto 4.2rem auto; color: var(--text-medium); opacity: 0.85;
          }
-        .section-subtitle { font-size: clamp(1.05rem, 3vw, 1.2rem); text-align: center; max-width: 820px; margin: -1rem auto 4.2rem auto; color: var(--text-medium); }
 
         /* --- Кнопки (v16 - Polished Cyber) --- */
         .btn {
-            display: inline-block; padding: 0.9rem 2.4rem;
+            display: inline-block; padding: 0.9rem 2.4rem; /* Немного больше паддинг */
             background: transparent; color: var(--accent-primary);
             border: 2px solid var(--accent-primary); border-radius: var(--btn-radius);
             font-family: var(--font-secondary); font-weight: 600; font-size: 0.95rem;
-            text-align: center; text-transform: uppercase; letter-spacing: 1.3px; /* Wider spacing */
+            text-align: center; text-transform: uppercase; letter-spacing: 1.3px; /* Шире буквы */
             cursor: pointer; transition: all var(--transition-medium);
             position: relative; overflow: hidden; z-index: 1;
-            box-shadow: 0 0 12px -2px var(--accent-glow), inset 0 0 8px -4px var(--accent-glow);
-            backdrop-filter: blur(2px);
+            box-shadow: 0 0 12px -2px var(--accent-glow), inset 0 0 8px -4px var(--accent-glow); /* Внешнее и внутреннее свечение */
+            backdrop-filter: blur(2px); /* Легкий блюр фона под кнопкой */
         }
-        .btn::before { /* Fill effect */
+        .btn::before { /* Эффект заливки при наведении */
             content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
             background: var(--gradient-button); transition: left 0.3s ease-in-out; z-index: -1;
         }
         .btn:hover {
-            color: var(--text-fixed-dark); border-color: var(--accent-secondary); /* Secondary border on hover */
-            box-shadow: 0 0 25px var(--accent-secondary-glow), inset 0 0 10px rgba(var(--accent-secondary-rgb), 0.1);
-            transform: translateY(-3px);
+            color: var(--text-fixed-dark); /* Темный текст на светлом фоне */
+            border-color: var(--accent-secondary); /* Фиолетовая рамка при ховере */
+            box-shadow: 0 0 25px var(--accent-secondary-glow), inset 0 0 10px rgba(var(--accent-secondary-rgb), 0.1); /* Фиолетовое свечение */
+            transform: translateY(-3px); /* Легкий подъем */
         }
-        .btn:hover::before { left: 0; background: var(--gradient-button-hover); /* Use hover gradient for fill */ }
-        .btn:active { transform: translateY(0px) scale(0.98); }
+        .btn:hover::before {
+             left: 0;
+             background: var(--gradient-button-hover); /* Используем градиент ховера для заливки */
+        }
+        .btn:active { transform: translateY(0px) scale(0.98); box-shadow: 0 0 10px var(--accent-secondary-glow); } /* Эффект нажатия */
+
+        /* Стиль для контурной кнопки */
         .btn-outline {
             border-color: var(--accent-secondary); color: var(--accent-secondary);
             box-shadow: 0 0 12px -2px var(--accent-secondary-glow), inset 0 0 8px -4px var(--accent-secondary-glow);
         }
-        .btn-outline::before { display: none; } /* No fill for outline */
-        .btn-outline:hover { background: rgba(var(--accent-secondary-rgb), 0.1); border-color: var(--accent-pink); color: var(--accent-pink); box-shadow: 0 0 18px var(--accent-pink-glow); }
-
-        /* --- Хедер (v16) --- */
-        header { /* ... */ }
-        header.scrolled { /* ... */ }
-        .nav-links a::before { /* Line indicator */ /* ... */ }
-        /* ... other header styles ... */
-
-        /* --- Герой секция (v16 - Focused Power) --- */
-        .hero {
-            padding: clamp(11rem, 28vh, 17rem) 0 clamp(8rem, 20vh, 11rem);
-            background: var(--gradient-hero-bg); background-size: 170% 170%;
-            animation: gradientBG 20s ease infinite alternate;
-            /* ... остальное как в v15 ... */
+        .btn-outline::before { display: none; } /* Убираем эффект заливки для outline */
+        .btn-outline:hover {
+            background: rgba(var(--accent-secondary-rgb), 0.1); /* Легкий фон при ховере */
+            border-color: var(--accent-pink); color: var(--accent-pink); /* Розовый при ховере */
+            box-shadow: 0 0 18px var(--accent-pink-glow);
         }
-        .hero h1 { /* ГАРАНТИРОВАННО ВИДИМЫЙ ТЕКСТ */
+
+        /* --- Хедер (Шапка) --- */
+        header {
+             position: fixed; top: 0; left: 0; width: 100%; z-index: 1000;
+             padding: 1rem 0;
+             background: var(--gradient-header); /* Полупрозрачный градиент */
+             backdrop-filter: blur(8px); /* Размытие фона */
+             transition: background-color 0.3s ease, box-shadow 0.3s ease, padding 0.3s ease;
+             border-bottom: 1px solid rgba(var(--accent-secondary-rgb), 0.1); /* Тонкая нижняя граница */
+        }
+        header.scrolled {
+             padding: 0.7rem 0;
+             background: rgba(5, 4, 16, 0.9); /* Более плотный фон при скролле */
+             box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+             border-bottom: 1px solid rgba(var(--accent-secondary-rgb), 0.2);
+        }
+        .nav-container { display: flex; justify-content: space-between; align-items: center; }
+        .logo { display: flex; align-items: center; color: var(--text-heading); font-family: var(--font-secondary); font-weight: 700; font-size: 1.6rem; }
+        .logo i { color: var(--accent-primary); margin-right: 0.5rem; font-size: 1.5rem; transition: transform 0.3s ease; }
+        .logo:hover i { transform: rotate(360deg); }
+        .nav-links { display: flex; align-items: center; list-style: none; }
+        .nav-item { color: var(--text-medium); margin-left: 1.8rem; font-size: 0.95rem; font-weight: 500; position: relative; padding: 0.5rem 0; }
+        .nav-item::before { /* Индикатор активной ссылки */
+             content: ''; position: absolute; bottom: 0; left: 0; width: 0; height: 2px;
+             background-color: var(--accent-primary);
+             transition: width 0.3s ease;
+        }
+        .nav-item:hover, .nav-item.active { color: var(--white); }
+        .nav-item:hover::before, .nav-item.active::before { width: 100%; }
+        .header-actions { display: flex; align-items: center; }
+        .auth-link.desktop-auth-link { margin-left: 1.5rem; }
+        .auth-link.mobile-auth-link { display: none; margin-top: 1.5rem; text-align: center; }
+        .hamburger { display: none; /* Скрыт по умолчанию */ background: none; border: none; cursor: pointer; padding: 0.5rem; z-index: 1001; }
+        .hamburger span { display: block; width: 25px; height: 3px; background-color: var(--white); margin: 5px 0; border-radius: 1.5px; transition: all 0.3s ease; }
+
+        /* --- Герой секция (Hero) --- */
+        .hero {
+            padding: clamp(11rem, 28vh, 17rem) 0 clamp(8rem, 20vh, 11rem); /* Динамические отступы */
+            background: var(--gradient-hero-bg); background-size: 170% 170%;
+            animation: gradientBG 20s ease infinite alternate; /* Плавная анимация фона */
+            text-align: center; overflow: hidden; position: relative;
+            border-bottom: 1px solid var(--border-color-medium); /* Граница снизу */
+        }
+        @keyframes gradientBG { /* Анимация для фона героя */
+            0% { background-position: 0% 50%; }
+            100% { background-position: 100% 50%; }
+        }
+        .hero h1 { /* Главный заголовок */
             font-size: clamp(3.1rem, 8.2vw, 5.8rem); margin-bottom: 1.6rem; line-height: 1.15;
             font-weight: 800; color: var(--text-heading); /* Белый цвет */
-            text-shadow: 0 0 12px var(--accent-glow), 0 0 30px var(--accent-glow), 0 0 50px var(--accent-secondary-glow); /* Мощная тень */
-            /* Убрана сложная анимация глитча */
+            text-shadow: 0 0 12px var(--accent-glow), 0 0 30px var(--accent-glow), 0 0 50px var(--accent-secondary-glow); /* Мощная неоновая тень */
         }
-        .hero h1 .highlight { /* Яркий акцент */
-             color: var(--accent-cyan);
-             text-shadow: 0 0 10px var(--accent-cyan-glow), 0 0 25px var(--accent-cyan-glow);
+        .hero h1 .highlight { /* Акцентное слово */
+             color: var(--accent-cyan); /* Яркий циан */
+             /* Дополнительная тень для акцента */
+             text-shadow: 0 0 10px var(--accent-cyan-glow), 0 0 25px var(--accent-cyan-glow), 0 0 40px rgba(var(--accent-cyan-rgb), 0.3);
         }
-        /* ... hero p, buttons ... */
+        .hero p {
+             max-width: 650px; margin: 0 auto 2.5rem auto; color: var(--text-light); font-size: clamp(1.1rem, 3vw, 1.25rem); opacity: 0.9;
+        }
+        .hero-buttons { display: flex; justify-content: center; gap: 1.5rem; flex-wrap: wrap; }
 
         /* --- AI Interface v5 (Polished HUD) --- */
-        .ai-interface-section { background: var(--bg-secondary); padding: var(--section-padding-y) 0; border-top: 1px solid var(--border-color-medium); }
+        .ai-interface-section {
+             background: var(--bg-secondary); /* Темный фон */
+             padding: var(--section-padding-y) 0;
+             border-top: 1px solid var(--border-color-medium);
+             position: relative; /* Для псевдоэлементов */
+        }
+        /* Дополнительные фоновые элементы для секции ИИ */
+        .ai-interface-section::before {
+             content: ''; position: absolute; top: 10%; left: 5%; width: 150px; height: 150px;
+             background: radial-gradient(circle, rgba(var(--accent-primary-rgb), 0.08) 0%, transparent 70%);
+             z-index: 0; pointer-events: none;
+        }
+        .ai-interface-section::after {
+             content: ''; position: absolute; bottom: 15%; right: 8%; width: 100px; height: 100px;
+             background: radial-gradient(circle, rgba(var(--accent-secondary-rgb), 0.06) 0%, transparent 70%);
+             z-index: 0; pointer-events: none;
+        }
         .ai-interface-wrapper {
-            background: var(--interface-bg); backdrop-filter: blur(6px);
+            background: var(--interface-bg); /* Почти непрозрачный фон */
+            backdrop-filter: blur(6px); /* Размытие */
             border: 1px solid var(--interface-border); /* Ярче рамка */
             border-radius: var(--card-radius); padding: clamp(1.5rem, 4vw, 2rem);
-            box-shadow: var(--shadow-card), 0 0 45px rgba(var(--accent-secondary-rgb), 0.15) inset;
+            box-shadow: var(--shadow-card), 0 0 45px rgba(var(--accent-secondary-rgb), 0.15) inset; /* Внешняя и внутренняя тень */
             position: relative; max-width: 1080px; margin: 2rem auto 0; display: flex; flex-direction: column;
-            min-height: 480px;
+            min-height: 480px; /* Минимальная высота */
+            z-index: 1; /* Выше фоновых элементов */
         }
-        .ai-interface-wrapper::before, .ai-interface-wrapper::after { /* HUD Corners */
+        /* HUD Уголки */
+        .ai-interface-wrapper::before, .ai-interface-wrapper::after {
             content: ''; position: absolute; width: 30px; height: 30px;
             border-color: var(--accent-primary); border-style: solid; opacity: 0.8;
-            transition: all 0.3s ease; pointer-events: none;
+            transition: all 0.3s ease; pointer-events: none; /* Не мешают кликам */
         }
-        .ai-interface-wrapper::before { top: 10px; left: 10px; border-width: 3px 0 0 3px; }
-        .ai-interface-wrapper::after { bottom: 10px; right: 10px; border-width: 0 3px 3px 0; }
+        .ai-interface-wrapper::before { top: 10px; left: 10px; border-width: 3px 0 0 3px; } /* Верхний левый */
+        .ai-interface-wrapper::after { bottom: 10px; right: 10px; border-width: 0 3px 3px 0; } /* Нижний правый */
         .ai-interface-wrapper:hover::before { transform: translate(-3px, -3px); border-color: var(--accent-cyan); }
         .ai-interface-wrapper:hover::after { transform: translate(3px, 3px); border-color: var(--accent-cyan); }
-        .ai-interface-header { margin-bottom: 1.2rem; padding-bottom: 1rem; border-bottom: 1px solid var(--interface-border); }
-        .ai-interface-title { font-size: 1.1rem; color: var(--accent-cyan); text-shadow: 0 0 6px var(--accent-cyan-glow); }
-        .ai-content-area { /* ... */ }
-        .ai-log-window {
-             background-color: rgba(4, 2, 10, 0.85); border-radius: 6px;
-             border: 1px solid var(--border-color-light); font-size: 0.85rem; min-height: 260px;
-             box-shadow: inset 0 0 15px rgba(0,0,0,0.3);
-        }
-        .ai-demo-line { /* ... */ }
-        .ai-demo-line::before { /* ... */ }
-        .ai-progress-bar-container { /* ... */ }
-        .ai-progress-bar { height: 10px; background-color: var(--border-color-light); border-radius: 5px; }
-        .ai-progress-bar-inner { background: var(--gradient-button); box-shadow: 0 0 10px var(--accent-glow); animation: progress-pulse 1.8s infinite ease-in-out; }
-        @keyframes progress-pulse { 50% { filter: brightness(1.2); box-shadow: 0 0 15px var(--accent-glow);} }
 
-        /* --- Features (v16 - Polished Panels) --- */
-        .features { background: var(--bg-secondary); border-top: 1px solid var(--border-color-medium); }
+        .ai-interface-header {
+             margin-bottom: 1.2rem; padding-bottom: 1rem;
+             border-bottom: 1px solid var(--interface-border);
+             display: flex; justify-content: space-between; align-items: center;
+             flex-wrap: wrap; gap: 10px;
+        }
+        .ai-interface-title {
+             font-size: 1.1rem; color: var(--accent-cyan);
+             text-shadow: 0 0 6px var(--accent-cyan-glow);
+             font-family: var(--font-mono); /* Моноширинный */
+             display: flex; align-items: center; gap: 0.5rem;
+        }
+        .ai-status-indicator { /* Индикатор статуса */
+             font-size: 0.8rem; padding: 0.2rem 0.6rem; border-radius: 4px;
+             background-color: rgba(var(--accent-lime-rgb), 0.15);
+             color: var(--accent-lime); border: 1px solid rgba(var(--accent-lime-rgb), 0.3);
+             font-family: var(--font-mono); text-transform: uppercase;
+        }
+        .ai-content-area { flex-grow: 1; display: flex; flex-direction: column; } /* Занимает оставшееся место */
+        .ai-log-window {
+             background-color: rgba(4, 2, 10, 0.85); /* Очень темный фон лога */
+             border-radius: 6px; flex-grow: 1; /* Растягивается */
+             border: 1px solid var(--border-color-light); font-size: 0.9rem; /* Чуть крупнее шрифт */
+             min-height: 260px; padding: 1rem; margin-bottom: 1.5rem;
+             overflow-y: auto; /* Скролл, если много текста */
+             box-shadow: inset 0 0 15px rgba(0,0,0,0.3);
+             font-family: var(--font-mono); /* Моноширинный шрифт для лога */
+             color: var(--text-light); /* Светлый текст */
+        }
+        /* Стилизация скроллбара (опционально, Webkit) */
+        .ai-log-window::-webkit-scrollbar { width: 8px; }
+        .ai-log-window::-webkit-scrollbar-track { background: rgba(var(--accent-secondary-rgb), 0.1); border-radius: 4px; }
+        .ai-log-window::-webkit-scrollbar-thumb { background-color: var(--accent-primary); border-radius: 4px; border: 2px solid transparent; background-clip: content-box; }
+        .ai-log-window::-webkit-scrollbar-thumb:hover { background-color: var(--accent-cyan); }
+
+        .ai-demo-line { /* Строка в логе */
+             margin-bottom: 0.7em; line-height: 1.5;
+             transition: opacity 0.3s ease;
+             position: relative;
+             padding-left: 1.8em; /* Отступ для иконки/префикса */
+        }
+        .ai-demo-line::before { /* Префикс строки */
+             content: '>'; /* По умолчанию */
+             position: absolute; left: 0; top: 0;
+             font-weight: 700;
+             font-family: var(--font-mono);
+        }
+        .ai-demo-line.user::before { content: 'USR:'; color: var(--accent-pink); }
+        .ai-demo-line.ai::before { content: 'AI:'; color: var(--accent-cyan); }
+        .ai-demo-line.analysis::before { content: 'SYS:'; color: var(--accent-secondary); }
+        .ai-demo-line.analysis { color: var(--text-muted); font-style: italic; }
+
+        .typing-cursor { /* Курсор при печати */
+            display: inline-block; width: 8px; height: 1em; background-color: var(--accent-cyan);
+            animation: blink 0.7s infinite; margin-left: 2px; vertical-align: middle;
+        }
+        @keyframes blink { 50% { opacity: 0; } }
+
+        .ai-progress-bar-container { margin-top: auto; /* Прижимает прогресс-бар вниз */}
+        .ai-progress-bar-label {
+             font-size: 0.8rem; color: var(--text-muted);
+             margin-bottom: 0.5rem; font-family: var(--font-mono);
+         }
+        .ai-progress-bar { height: 10px; background-color: var(--border-color-light); border-radius: 5px; overflow: hidden; }
+        .ai-progress-bar-inner {
+             height: 100%; width: 0%; /* Ширина управляется JS */
+             background: var(--gradient-button); /* Градиент */
+             box-shadow: 0 0 10px var(--accent-glow);
+             border-radius: 5px;
+             transition: width 0.4s ease-out; /* Плавное изменение ширины */
+             animation: progress-pulse 1.8s infinite ease-in-out; /* Пульсация */
+        }
+        @keyframes progress-pulse {
+            50% { filter: brightness(1.3); box-shadow: 0 0 15px var(--accent-glow);}
+        }
+
+        /* --- Features (Фичи) --- */
+        .features {
+            background: var(--bg-secondary);
+            padding: var(--section-padding-y) 0;
+            border-top: 1px solid var(--border-color-medium);
+         }
+        .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; }
         .feature-card {
-            background: var(--card-solid); border: 1px solid var(--border-color-light);
+            background: var(--card-solid); /* Сплошной фон */
+            border: 1px solid var(--border-color-light);
             padding: 2rem; border-radius: var(--card-radius);
             transition: all var(--transition-medium); position: relative; overflow: hidden;
             box-shadow: 0 8px 25px rgba(0,0,0,0.2);
         }
-        .feature-card::before { /* Top glow border */
+        .feature-card::before { /* Верхняя граница-свечение при ховере */
             content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
             background: var(--border-glow-gradient); background-size: 200% 100%;
             animation: gradient-move 3.5s linear infinite; opacity: 0; transition: opacity 0.3s ease;
+            z-index: 2;
         }
-        .feature-card:hover { transform: translateY(-7px); border-color: var(--border-color-strong); box-shadow: 0 15px 40px rgba(0,0,0,0.3), var(--shadow-glow); background: var(--gradient-card-highlight); }
-        .feature-card:hover::before { opacity: 0.9; }
-        .feature-icon { /* Hexagon shape */
-             background: var(--accent-primary); color: var(--text-fixed-dark); box-shadow: 0 0 10px var(--accent-glow);
-             /* ... clip-path, size, etc. ... */
-             width: 48px; height: 52px; font-size: 1.5rem; clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%); display: flex; align-items: center; justify-content: center; transition: all 0.3s ease;
+        .feature-card:hover {
+             transform: translateY(-7px); /* Подъем */
+             border-color: var(--border-color-strong); /* Ярче рамка */
+             box-shadow: 0 15px 40px rgba(0,0,0,0.3), var(--shadow-glow); /* Усиленная тень + свечение */
+             background: var(--gradient-card-highlight); /* Легкий градиентный фон */
         }
-        .feature-card:hover .feature-icon { background: var(--accent-cyan); transform: rotate(10deg); box-shadow: 0 0 15px var(--accent-cyan-glow); }
-        /* ... rest of feature styles ... */
+        .feature-card:hover::before { opacity: 0.9; } /* Показать границу */
 
-        /* --- How it Works (v16 - Enhanced Timeline) --- */
-        .how-it-works { background: var(--bg-color); border-top: 1px solid var(--border-color-medium); }
-        .timeline-container::before { /* Pulsing line */ /* ... same as v15 ... */ }
-        .timeline-icon { /* Animated icon */ /* ... same as v15 ... */ }
-        /* ... rest of timeline styles ... */
+        .feature-card-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; }
+        .feature-icon { /* Иконка в форме гексагона */
+             background: var(--accent-primary); color: var(--text-fixed-dark);
+             box-shadow: 0 0 10px var(--accent-glow);
+             width: 48px; height: 52px; font-size: 1.5rem; flex-shrink: 0;
+             clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+             display: flex; align-items: center; justify-content: center;
+             transition: all 0.3s ease;
+        }
+        .feature-card:hover .feature-icon {
+             background: var(--accent-cyan); /* Цвет меняется на циан */
+             transform: rotate(10deg) scale(1.1); /* Поворот и увеличение */
+             box-shadow: 0 0 15px var(--accent-cyan-glow);
+        }
+        .feature-card h3 { margin-bottom: 0; } /* Убираем лишний отступ у h3 */
+        .feature-card p { color: var(--text-muted); font-size: 0.95rem; margin-bottom: 0; } /* Уменьшен текст, убран отступ */
 
-        /* --- Testimonials (v16 - Glassy Card) --- */
-        .testimonials { background: var(--bg-secondary); border-top: 1px solid var(--border-color-medium); }
+        /* --- How it Works (Как это работает) --- */
+        .how-it-works {
+             background: var(--bg-color); /* Основной фон */
+             padding: var(--section-padding-y) 0;
+             border-top: 1px solid var(--border-color-medium);
+             position: relative; /* Для линии таймлайна */
+        }
+        .timeline-container {
+             max-width: 800px; margin: 3rem auto 0; position: relative;
+             padding: 2rem 0;
+        }
+        /* Вертикальная линия таймлайна */
+        .timeline-container::before {
+             content: ''; position: absolute; top: 0; bottom: 0; left: 30px;
+             width: 3px; background-color: rgba(var(--accent-secondary-rgb), 0.15);
+             border-radius: 1.5px;
+        }
+        /* Пульсирующая точка на линии */
+        .timeline-container::after {
+             content: ''; position: absolute; top: 0; left: 24px; /* Центрирование */
+             width: 15px; height: 15px; border-radius: 50%;
+             background-color: var(--accent-primary);
+             box-shadow: 0 0 15px var(--accent-glow);
+             animation: pulse-line 2s infinite ease-in-out;
+             z-index: 1;
+        }
+        @keyframes pulse-line {
+             0%, 100% { transform: scale(1); opacity: 1; }
+             50% { transform: scale(1.3); opacity: 0.7; }
+        }
+        .timeline-item {
+             position: relative; margin-bottom: 3.5rem; padding-left: 75px; /* Отступ от иконки */
+             min-height: 60px; /* Чтобы контент не залезал на иконку */
+        }
+        .timeline-item:last-child { margin-bottom: 0; }
+        .timeline-icon {
+             position: absolute; left: 0; top: 0;
+             width: 60px; height: 60px; border-radius: 50%;
+             background: var(--card-solid); /* Фон иконки */
+             border: 2px solid var(--border-color-medium);
+             color: var(--accent-primary);
+             font-size: 1.3rem; font-weight: 700; font-family: var(--font-secondary);
+             display: flex; align-items: center; justify-content: center;
+             box-shadow: 0 0 12px rgba(var(--accent-primary-rgb), 0.2);
+             transition: all var(--transition-medium);
+             z-index: 2; /* Над линией */
+        }
+        .timeline-item:hover .timeline-icon {
+             border-color: var(--accent-primary);
+             transform: scale(1.1);
+             box-shadow: 0 0 20px var(--accent-glow);
+        }
+        .timeline-content h3 { margin-bottom: 0.5em; color: var(--text-light); }
+        .timeline-content p { margin-bottom: 0; color: var(--text-muted); font-size: 0.95rem; }
+
+        /* --- Testimonials (Отзывы) --- */
+        .testimonials {
+             background: var(--bg-secondary); /* Темный фон */
+             padding: var(--section-padding-y) 0;
+             border-top: 1px solid var(--border-color-medium);
+        }
+        .testimonials-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 2rem; }
         .testimonial-card {
-            background: var(--card-bg); backdrop-filter: blur(10px); /* Stronger blur */
+            background: var(--card-bg); /* Полупрозрачный фон */
+            backdrop-filter: blur(10px); /* Сильнее размытие - "стекло" */
             border: 1px solid var(--border-color-light); border-radius: var(--card-radius);
             padding: 2.2rem; position: relative; transition: var(--transition-medium);
             box-shadow: 0 5px 20px rgba(0,0,0,0.2);
         }
-        .testimonial-card::before { /* Subtle gradient border on hover */ /* ... same as v14 ... */ }
-        .testimonial-card:hover { transform: translateY(-7px); box-shadow: var(--shadow-card); background: rgba(18, 12, 50, 0.9); }
-        .testimonial-card:hover::before { opacity: 0.8; }
-        .testimonial-rating { color: var(--accent-cyan); } /* Cyan stars */
-        .testimonial-avatar { border-color: var(--accent-primary); box-shadow: 0 0 10px var(--accent-glow); }
-        /* ... rest of testimonial styles ... */
-
-        /* --- Pricing (v16 - Strong Focus) --- */
-         .pricing { background: var(--bg-color); border-top: 1px solid var(--border-color-medium); }
-         .pricing-card { background: var(--card-solid); border-color: var(--border-color-medium); /* Slightly stronger base border */ }
-         .pricing-card.popular {
-             border-color: var(--accent-primary); /* Brighter border */
-             background: linear-gradient(175deg, var(--card-solid) 0%, var(--dark-purple-accent) 100%);
-             box-shadow: 0 12px 40px rgba(0,0,0,0.3), 0 0 30px var(--accent-glow);
-             transform: scale(1.04) translateY(-5px); /* More pronounced */
-         }
-         .popular-badge { background: var(--gradient-button); color: var(--white); }
-         .pricing-icon { filter: drop-shadow(0 0 10px var(--accent-glow)); }
-         .pricing-card.popular .pricing-icon { color: var(--accent-cyan); filter: drop-shadow(0 0 15px var(--accent-cyan-glow)); }
-         .pricing-feature i { color: var(--accent-lime); }
-
-        /* --- CTA (v16 - High Energy) --- */
-        .cta { background: linear-gradient(110deg, var(--accent-secondary) 0%, var(--accent-pink) 100%); } /* Pink/Purple gradient */
-
-        /* --- Футер (v16) --- */
-        /* ... Refined footer styles ... */
-
-        /* --- Адаптивность (v16) --- */
-        /* ... (Тщательно проверить все секции, особенно интерфейс) ... */
-        @media (max-width: 768px) {
-            .ai-interface-wrapper { min-height: 400px; padding: 1.2rem;}
-            .ai-log-window { min-height: 220px; }
-            /* ... */
+        /* Градиентная рамка при наведении (слабая) */
+        .testimonial-card::before {
+             content: ''; position: absolute; inset: -1px; /* За пределы */
+             border-radius: inherit; /* Наследует радиус */
+             background: linear-gradient(135deg, rgba(var(--accent-primary-rgb), 0.5), rgba(var(--accent-secondary-rgb), 0.4));
+             opacity: 0; transition: opacity var(--transition-medium);
+             z-index: -1; /* Под контентом */
+             mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0); /* Вырезает центр */
+             -webkit-mask-composite: xor; mask-composite: exclude;
         }
+        .testimonial-card:hover {
+             transform: translateY(-7px);
+             box-shadow: var(--shadow-card); /* Усиленная тень */
+             background: rgba(18, 12, 50, 0.9); /* Чуть плотнее фон при ховере */
+        }
+        .testimonial-card:hover::before { opacity: 0.8; }
+        .testimonial-content { margin-bottom: 1.5rem; }
+        .testimonial-rating { color: var(--accent-cyan); margin-bottom: 1rem; font-size: 1.1rem; } /* Циановые звезды */
+        .testimonial-text { color: var(--text-light); font-size: 1rem; line-height: 1.7; font-style: italic; margin-bottom: 0; }
+        .testimonial-author { display: flex; align-items: center; gap: 1rem; }
+        .testimonial-avatar {
+             width: 55px; height: 55px; border-radius: 50%;
+             border: 3px solid var(--accent-primary); /* Рамка аватара */
+             box-shadow: 0 0 10px var(--accent-glow); /* Свечение аватара */
+             background-color: var(--bg-secondary); /* Placeholder color */
+             /* background-image: url('path/to/avatar.jpg'); */ /* Add user image here */
+             background-size: cover; background-position: center; flex-shrink: 0;
+        }
+        .testimonial-name { font-weight: 600; color: var(--white); font-size: 1rem; }
+        .testimonial-role { font-size: 0.85rem; color: var(--text-muted); }
+
+        /* --- Pricing (Цены) --- */
+         .pricing {
+             background: var(--bg-color); /* Основной фон */
+             padding: var(--section-padding-y) 0;
+             border-top: 1px solid var(--border-color-medium);
+         }
+         .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; align-items: center; /* Выровнять по центру вертикально */ }
+         .pricing-card {
+             background: var(--card-solid);
+             border: 1px solid var(--border-color-medium); /* Чуть ярче базовая рамка */
+             border-radius: var(--card-radius); padding: 2.5rem 1.5rem;
+             text-align: center; transition: var(--transition-medium);
+             position: relative; overflow: hidden;
+             display: flex; flex-direction: column; height: 100%; /* Растянуть по высоте */
+         }
+         .pricing-card.popular {
+             border-color: var(--accent-primary); /* Яркая рамка */
+             background: linear-gradient(175deg, var(--card-solid) 0%, var(--dark-purple-accent) 100%); /* Градиентный фон */
+             box-shadow: 0 12px 40px rgba(0,0,0,0.3), 0 0 30px var(--accent-glow); /* Заметная тень и свечение */
+             transform: scale(1.04) translateY(-10px); /* Выделение популярного плана */
+             z-index: 5; /* Поверх других */
+         }
+         .popular-badge {
+             position: absolute; top: -1px; left: 50%; transform: translateX(-50%) translateY(-50%);
+             background: var(--gradient-button); /* Градиент */
+             color: var(--white); padding: 0.4rem 1.2rem; border-radius: 15px;
+             font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+             box-shadow: 0 4px 10px rgba(var(--accent-secondary-rgb), 0.4);
+         }
+         .pricing-icon {
+              font-size: 3rem; color: var(--accent-primary);
+              margin-bottom: 1rem; filter: drop-shadow(0 0 10px var(--accent-glow)); /* Тень-свечение иконки */
+              transition: all 0.3s ease;
+         }
+         .pricing-card:hover .pricing-icon { transform: scale(1.1); }
+         .pricing-card.popular .pricing-icon { color: var(--accent-cyan); filter: drop-shadow(0 0 15px var(--accent-cyan-glow)); } /* Ярче иконка на популярном */
+
+         .pricing-card h3 { font-size: 1.4rem; margin-bottom: 0.8rem; }
+         .pricing-price { font-size: 2.5rem; font-weight: 700; color: var(--white); margin-bottom: 0.3rem; }
+         .pricing-period { font-size: 1rem; font-weight: 400; color: var(--text-muted); }
+         .pricing-features { margin: 2rem 0; text-align: left; flex-grow: 1; } /* Растягивается, чтобы кнопка была внизу */
+         .pricing-feature {
+              margin-bottom: 0.8rem; display: flex; align-items: center; gap: 0.7rem;
+              font-size: 0.95rem; color: var(--text-medium);
+         }
+         .pricing-feature i { color: var(--accent-lime); font-size: 1.1rem; /* Лаймовые галочки */ flex-shrink: 0; }
+         .pricing-feature.disabled { color: var(--text-muted); text-decoration: line-through; opacity: 0.6; }
+         .pricing-feature.disabled i { color: var(--text-muted); }
+         .pricing-feature span { flex-grow: 1; }
+         .pricing-feature span strong { color: var(--text-light); font-weight: 600; } /* Выделение "+ Vše z..." */
+
+         .pricing-card .btn { margin-top: auto; /* Прижимает кнопку вниз */ width: 100%; }
+
+        /* --- CTA (Призыв к действию) --- */
+        .cta {
+             background: var(--gradient-cta); /* Фиолетово-розовый градиент */
+             padding: clamp(4rem, 10vh, 6rem) 0;
+             text-align: center; color: var(--white);
+             border-top: 1px solid rgba(255, 255, 255, 0.1); /* Светлая граница */
+        }
+        .cta h2 {
+             font-size: clamp(2rem, 5vw, 2.8rem); color: var(--white);
+             text-shadow: 0 2px 10px rgba(0,0,0,0.3); margin-bottom: 1rem;
+        }
+        .cta p {
+             max-width: 600px; margin-left: auto; margin-right: auto;
+             color: rgba(255, 255, 255, 0.9); font-size: 1.1rem; margin-bottom: 2rem;
+        }
+        .cta .btn { /* Кнопка в CTA */
+             background: var(--white); color: var(--accent-pink); /* Белый фон, розовый текст */
+             border-color: var(--white); font-weight: 700;
+             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+        }
+        .cta .btn::before { display: none; } /* Убираем эффект заливки */
+        .cta .btn:hover {
+             background: var(--text-fixed-dark); /* Темный фон */
+             color: var(--white); border-color: var(--text-fixed-dark);
+             transform: translateY(-4px) scale(1.03); /* Сильнее эффект */
+             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        /* --- Футер (Footer) --- */
+        footer {
+             background: var(--bg-secondary); color: var(--text-muted);
+             padding: 4rem 0 2rem 0; border-top: 1px solid var(--border-color-medium);
+             font-size: 0.9rem;
+        }
+        .footer-grid {
+             display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+             gap: 2.5rem; margin-bottom: 3rem;
+        }
+        .footer-column h3 { font-size: 1.1rem; color: var(--text-light); margin-bottom: 1rem; }
+        .footer-column .logo { font-size: 1.5rem; margin-bottom: 1rem; } /* Лого в футере */
+        .footer-column p { font-size: 0.9rem; margin-bottom: 1.5rem; max-width: 250px; }
+        .social-links { display: flex; gap: 1rem; }
+        .social-link {
+             color: var(--text-muted); font-size: 1.2rem;
+             transition: color 0.2s ease, transform 0.2s ease;
+        }
+        .social-link:hover { color: var(--accent-primary); transform: translateY(-3px); }
+        .footer-links { list-style: none; padding: 0; margin: 0; }
+        .footer-links li { margin-bottom: 0.6rem; }
+        .footer-links a { color: var(--text-muted); transition: color 0.2s ease; }
+        .footer-links a:hover { color: var(--accent-primary); }
+        .copyright {
+             text-align: center; padding-top: 2rem;
+             border-top: 1px solid var(--border-color-light);
+             font-size: 0.85rem; color: var(--text-muted);
+        }
+        .copyright i { margin: 0 0.2rem; }
+
+        /* --- Адаптивность (Responsiveness) --- */
+        @media (max-width: 992px) {
+             .nav-container { padding: 0 5%; } /* Отступы для планшетов */
+             .features-grid { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+             .pricing-grid { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+             .testimonials-grid { grid-template-columns: 1fr; max-width: 500px; margin: 0 auto; } /* Отзывы в одну колонку */
+             .footer-grid { gap: 2rem; }
+        }
+
+        @media (max-width: 768px) {
+             html { font-size: 15px; } /* Уменьшаем базовый шрифт */
+             .nav-links {
+                 position: fixed; top: 0; right: -100%; /* Скрыто за экраном */
+                 width: 75%; max-width: 320px; height: 100vh;
+                 background-color: var(--bg-secondary); /* Фон меню */
+                 flex-direction: column; justify-content: center; align-items: center;
+                 padding: 2rem; transition: right 0.4s cubic-bezier(0.23, 1, 0.32, 1); /* Плавный выезд */
+                 box-shadow: -5px 0 20px rgba(0, 0, 0, 0.2);
+                 border-left: 1px solid var(--border-color-medium);
+                 z-index: 1000;
+             }
+             .nav-links.active { right: 0; /* Показать меню */ }
+             .nav-item { margin: 1rem 0; font-size: 1.1rem; }
+             .hamburger { display: block; z-index: 1001; /* Над оверлеем */}
+             /* Стили для крестика гамбургера */
+             .hamburger.active span:nth-child(1) { transform: translateY(8px) rotate(45deg); }
+             .hamburger.active span:nth-child(2) { opacity: 0; }
+             .hamburger.active span:nth-child(3) { transform: translateY(-8px) rotate(-45deg); }
+             .auth-link.desktop-auth-link { display: none; } /* Скрыть кнопку в хедере */
+             .auth-link.mobile-auth-link { display: block; /* Показать кнопку в меню */ }
+             .menu-overlay {
+                 position: fixed; inset: 0; background-color: rgba(5, 4, 16, 0.85);
+                 backdrop-filter: blur(6px); z-index: 999; /* Под меню, над контентом */
+                 opacity: 0; pointer-events: none; transition: opacity 0.4s ease;
+             }
+             .menu-overlay.active { opacity: 1; pointer-events: auto; }
+             body.menu-open { overflow: hidden; } /* Запретить скролл фона */
+
+             .hero h1 { font-size: clamp(2.5rem, 10vw, 3.5rem); }
+             .hero p { font-size: 1.1rem; }
+             .hero-buttons { flex-direction: column; gap: 1rem; align-items: center; }
+             .hero-buttons .btn { width: 80%; max-width: 300px; } /* Кнопки в столбец */
+
+             .ai-interface-wrapper { min-height: 400px; padding: 1.2rem;}
+             .ai-log-window { min-height: 220px; font-size: 0.85rem; }
+             .footer-grid { grid-template-columns: 1fr; text-align: center; }
+             .footer-column p { margin-left: auto; margin-right: auto; }
+             .social-links { justify-content: center; }
+        }
+
         @media (max-width: 576px) {
-            .hero h1 { font-size: 2.5rem; }
-            .btn { padding: 0.85rem 2rem; font-size: 0.9rem; }
-            .feature-card { padding: 1.8rem 1.5rem; }
-            .pricing-card { padding: 2rem 1.2rem; }
-            /* ... */
+             html { font-size: 14px; }
+             .hero h1 { font-size: 2.3rem; }
+             .section-title { font-size: 1.8rem; }
+             .btn { padding: 0.85rem 2rem; font-size: 0.9rem; letter-spacing: 1px; }
+             .feature-card { padding: 1.8rem 1.5rem; }
+             .pricing-card { padding: 2rem 1.2rem; }
+             .pricing-price { font-size: 2.2rem; }
+             .ai-interface-wrapper::before, .ai-interface-wrapper::after { display: none; } /* Скрыть уголки на мал. экранах */
         }
 
         /* --- Анимации появления (v16 - Faster Fade) --- */
-        [data-animate] { opacity: 0; transform: translateY(25px); transition: opacity 0.5s ease-out, transform 0.5s ease-out; } /* Faster */
+        [data-animate] {
+             opacity: 0;
+             transform: translateY(25px);
+             transition: opacity 0.5s ease-out, transform 0.5s ease-out; /* Чуть быстрее */
+        }
         [data-animate].animated { opacity: 1; transform: translateY(0); }
-        /* ... Stagger delays ... */
-
-        /* --- Оверлей меню (v16) --- */
-        .menu-overlay { background-color: rgba(5, 4, 16, 0.85); backdrop-filter: blur(6px); }
-        body.menu-open { overflow: hidden; }
+        /* Ступенчатая задержка для сеток */
+        .features-grid [data-animate],
+        .timeline-container [data-animate],
+        .testimonials-grid [data-animate],
+        .pricing-grid [data-animate],
+        .footer-grid [data-animate] {
+             transition-delay: calc(var(--animation-order, 0) * 0.1s);
+        }
 
     </style>
 </head>
-<body class="dark">
-
-    <header id="header">
+<body class="dark"> <header id="header">
         <div class="container nav-container">
             <a href="#" class="logo">
                 <i class="fas fa-atom"></i> <span>JUSTAX</span>
@@ -381,7 +782,7 @@
                     </div>
                      <div class="feature-card" data-animate style="--animation-order: 6;">
                          <div class="feature-card-header">
-                            <div class="far fa-clock"></i></div>
+                             <div class="feature-icon"><i class="fas fa-clock"></i></div>
                             <h3>24/7 Připravenost</h3>
                         </div>
                         <p>Tvůj AI augment nespí. Uč se kdykoliv a kdekoliv.</p>
@@ -397,7 +798,7 @@
                  <div class="ai-interface-wrapper" data-animate>
                      <div class="ai-interface-header">
                          <div class="ai-interface-title"><i class="fas fa-atom"></i> Justax AI Core [v16.0]</div>
-                         <div class="ai-status-indicator">Optimal</div>
+                         <div class="ai-status-indicator">OPTIMAL</div>
                      </div>
                      <div class="ai-content-area">
                          <div class="ai-log-window" id="ai-demo-output">
@@ -461,7 +862,7 @@
                            <p class="testimonial-text">"Kurva dobrý! Konečně jsem pochopil matiku, co mi nešla roky. AI vysvětluje líp než učitel. Dal jsem přijímačky!"</p>
                        </div>
                        <div class="testimonial-author">
-                           <div class="testimonial-avatar"></div>
+                           <div class="testimonial-avatar" style="background-image: url('https://via.placeholder.com/55/00e0ff/050410?text=CM');"></div>
                            <div class="testimonial-author-info"> <div class="testimonial-name">CyberMike_77</div> <div class="testimonial-role">Student // Upgrade Complete</div> </div>
                        </div>
                    </div>
@@ -471,7 +872,7 @@
                            <p class="testimonial-text">"Maturita z ČJ byla hračka. Justax mě přesně připravil na to, co bylo v testu. Ušetřilo mi to mega času a nervů."</p>
                         </div>
                        <div class="testimonial-author">
-                           <div class="testimonial-avatar"></div>
+                            <div class="testimonial-avatar" style="background-image: url('https://via.placeholder.com/55/a05cff/050410?text=NK');"></div>
                            <div class="testimonial-author-info"> <div class="testimonial-name">Neon_Katka</div> <div class="testimonial-role">Maturantka // Level Up</div> </div>
                        </div>
                    </div>
@@ -481,7 +882,7 @@
                            <p class="testimonial-text">"Pro našeho syna to byla nejlepší investice do vzdělání. Zlepšení bylo vidět téměř okamžitě."</p>
                         </div>
                        <div class="testimonial-author">
-                           <div class="testimonial-avatar"></div>
+                            <div class="testimonial-avatar" style="background-image: url('https://via.placeholder.com/55/ff33a8/050410?text=DD');"></div>
                            <div class="testimonial-author-info"> <div class="testimonial-name">DataDad_01</div> <div class="testimonial-role">Rodič // System Monitor</div> </div>
                        </div>
                    </div>
@@ -507,13 +908,13 @@
                         </div>
                         <a href="auth/index.html" class="btn btn-outline auth-link">Aktivovat Základ</a>
                     </div>
-                    <div class="pricing-card popular" data-animate style="--animation-order: 2;">
+                     <div class="pricing-card popular" data-animate style="--animation-order: 2;">
                         <div class="popular-badge">NEJLEPŠÍ DEAL</div>
                         <div class="pricing-icon"><i class="fas fa-brain"></i></div>
                         <h3>PRO CORE</h3>
                         <div class="pricing-price">999 Kč<span class="pricing-period"> / měsíc</span></div>
                         <div class="pricing-features">
-                            <div class="pricing-feature"><i class="fas fa-check"></i><span>**Vše z BASIC +**</span></div>
+                            <div class="pricing-feature"><i class="fas fa-check"></i><span><strong>Vše z BASIC +</strong></span></div>
                             <div class="pricing-feature"><i class="fas fa-check"></i><span>Pokročilé AI (Gemini+)</span></div>
                             <div class="pricing-feature"><i class="fas fa-check"></i><span>Full CERMAT Databáze</span></div>
                             <div class="pricing-feature"><i class="fas fa-check"></i><span>Detailní Reporting</span></div>
@@ -527,7 +928,7 @@
                         <h3>ULTIMATE AUGMENT</h3>
                         <div class="pricing-price">1499 Kč<span class="pricing-period"> / měsíc</span></div>
                         <div class="pricing-features">
-                             <div class="pricing-feature"><i class="fas fa-check"></i><span>**Vše z PRO +**</span></div>
+                             <div class="pricing-feature"><i class="fas fa-check"></i><span><strong>Vše z PRO +</strong></span></div>
                             <div class="pricing-feature"><i class="fas fa-check"></i><span>Top AI Jádro (GPT-4o+)</span></div>
                             <div class="pricing-feature"><i class="fas fa-check"></i><span>Neomezené Lekce</span></div>
                             <div class="pricing-feature"><i class="fas fa-check"></i><span>Prediktivní Analýza</span></div>
@@ -560,7 +961,7 @@
                         <a href="#" class="social-link" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
                         <a href="#" class="social-link" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
                          <a href="#" class="social-link" aria-label="X"><i class="fab fa-xing"></i></a>
-                    </div>
+                         </div>
                 </div>
                  <div class="footer-column" data-animate style="--animation-order: 2;">
                     <h3>Navigace</h3>
@@ -569,23 +970,20 @@
                         <li><a href="#ai-demo">AI Core</a></li>
                         <li><a href="#how-it-works">Start Engine</a></li>
                         <li><a href="#pricing">Plány</a></li>
-                         <li><a href="#">Blog</a></li>
-                    </ul>
+                         <li><a href="#">Blog</a></li> </ul>
                 </div>
                 <div class="footer-column" data-animate style="--animation-order: 3;">
                     <h3>Systém</h3>
                     <ul class="footer-links">
                         <li><a href="/privacy-policy">Privacy Protokol</a></li>
                         <li><a href="/terms">Podmínky Připojení</a></li>
-                        <li><a href="#">Cookies</a></li>
-                    </ul>
+                        <li><a href="#">Cookies</a></li> </ul>
                 </div>
                 <div class="footer-column" data-animate style="--animation-order: 4;">
                     <h3>Support</h3>
                     <ul class="footer-links">
                         <li><a href="mailto:podpora@justax.space">podpora@justax.space</a></li>
-                        <li><a>HQ: Praha, CZ</a></li>
-                    </ul>
+                        <li><a><i class="fas fa-map-marker-alt" style="margin-right: 5px;"></i>HQ: Praha, CZ</a></li> </ul>
                 </div>
             </div>
             <div class="copyright">
@@ -603,46 +1001,146 @@
             const hamburger = document.getElementById('hamburger');
             const navLinks = document.getElementById('navLinks');
             const menuOverlay = document.getElementById('menuOverlay');
+            // Убедимся, что выбираем только ссылки внутри navLinks
             const navItems = navLinks?.querySelectorAll('a.nav-item');
             const body = document.body;
             const aiDemoOutput = document.getElementById('ai-demo-output');
             const aiProgressBar = document.getElementById('ai-progress-bar');
+            const currentYearSpan = document.getElementById('currentYear');
 
             // --- Mobile Menu ---
-            const toggleMenu = (forceClose = false) => { /* ... same ... */ };
+            const toggleMenu = (forceClose = false) => {
+                 if (!hamburger || !navLinks || !menuOverlay) return;
+                 const isActive = navLinks.classList.contains('active');
+                 if (forceClose || isActive) {
+                     hamburger.classList.remove('active');
+                     navLinks.classList.remove('active');
+                     menuOverlay.classList.remove('active');
+                     body.classList.remove('menu-open');
+                     hamburger.setAttribute('aria-expanded', 'false');
+                 } else {
+                     hamburger.classList.add('active');
+                     navLinks.classList.add('active');
+                     menuOverlay.classList.add('active');
+                     body.classList.add('menu-open');
+                     hamburger.setAttribute('aria-expanded', 'true');
+                 }
+            };
+            // Event listeners for menu
             hamburger?.addEventListener('click', () => toggleMenu());
-            menuOverlay?.addEventListener('click', () => toggleMenu(true));
-            navItems?.forEach(item => item.addEventListener('click', () => { if (item.getAttribute('href')?.startsWith('#')) toggleMenu(true); }));
-            document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && navLinks?.classList.contains('active')) toggleMenu(true); });
+            menuOverlay?.addEventListener('click', () => toggleMenu(true)); // Close on overlay click
+            navItems?.forEach(item => item.addEventListener('click', () => {
+                 // Close menu only if it's a link to a section on the same page
+                 if (item.getAttribute('href')?.startsWith('#')) {
+                      toggleMenu(true);
+                 }
+            }));
+            // Close menu with Escape key
+            document.addEventListener('keydown', (e) => {
+                 if (e.key === 'Escape' && navLinks?.classList.contains('active')) {
+                     toggleMenu(true);
+                 }
+            });
 
-            // --- Header Scroll ---
+            // --- Header Scroll Effect ---
             let lastScrollY = window.scrollY;
-            const scrollHandler = () => { /* ... same ... */ };
+            const scrollHandler = () => {
+                 if (!header) return;
+                 const currentScrollY = window.scrollY;
+                 if (currentScrollY > 50) { // Add scrolled class after scrolling down 50px
+                     header.classList.add('scrolled');
+                 } else {
+                     header.classList.remove('scrolled');
+                 }
+                 // Optional: Hide header on scroll down, show on scroll up
+                 /*
+                 if (currentScrollY > lastScrollY && currentScrollY > header.offsetHeight) {
+                     header.style.transform = 'translateY(-100%)'; // Hide
+                 } else {
+                     header.style.transform = 'translateY(0)'; // Show
+                 }
+                 */
+                 lastScrollY = currentScrollY;
+            };
             window.addEventListener('scroll', scrollHandler, { passive: true });
-            scrollHandler();
+            scrollHandler(); // Initial check on load
 
             // --- Intersection Observer Animations ---
-             const animatedElements = document.querySelectorAll('[data-animate]');
-             if ('IntersectionObserver' in window) { /* ... same ... */ }
-             else { animatedElements.forEach(element => element.classList.add('animated')); }
+            const animatedElements = document.querySelectorAll('[data-animate]');
+            if ('IntersectionObserver' in window) {
+                 const observer = new IntersectionObserver((entries, observer) => {
+                     entries.forEach(entry => {
+                         if (entry.isIntersecting) {
+                             entry.target.classList.add('animated');
+                             observer.unobserve(entry.target); // Animate only once
+                         }
+                     });
+                 }, { threshold: 0.1 }); // Trigger when 10% is visible
+
+                 animatedElements.forEach(element => observer.observe(element));
+            } else { // Fallback for older browsers
+                 animatedElements.forEach(element => element.classList.add('animated'));
+            }
 
              // --- Smooth Scroll ---
-             document.querySelectorAll('a[href^="#"]').forEach(anchor => { /* ... same ... */ });
+             document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                 anchor.addEventListener('click', function (e) {
+                     const hrefAttribute = this.getAttribute('href');
+                     // Ensure it's a link to an element on the page
+                     if (hrefAttribute && hrefAttribute.length > 1 && hrefAttribute.startsWith('#')) {
+                          const targetElement = document.querySelector(hrefAttribute);
+                          if (targetElement) {
+                               e.preventDefault();
+                               targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+                               // Optional: Update URL hash without jumping
+                               // history.pushState(null, null, hrefAttribute);
+                          }
+                     }
+                 });
+             });
 
             // --- Copyright Year ---
-            const currentYearSpan = document.getElementById('currentYear');
-            if (currentYearSpan) currentYearSpan.textContent = new Date().getFullYear();
+            if (currentYearSpan) {
+                 currentYearSpan.textContent = new Date().getFullYear();
+            }
 
             // --- Active Nav Link on Scroll ---
             const sections = document.querySelectorAll('section[id]');
             let navUpdateTimeout;
-            const updateActiveNav = () => { /* ... same logic ... */ };
-            const debouncedNavUpdate = () => { clearTimeout(navUpdateTimeout); navUpdateTimeout = setTimeout(updateActiveNav, 50); };
-            window.addEventListener('scroll', debouncedNavUpdate, { passive: true });
-            window.addEventListener('resize', debouncedNavUpdate);
-            updateActiveNav();
 
-             // --- AI Interface v5 Logic (Refined Simulation from v15) ---
+            const updateActiveNav = () => {
+                 if (!navItems) return;
+                 let currentSectionId = null;
+                 const scrollPosition = window.scrollY + header.offsetHeight + 50; // Offset for header height + margin
+
+                 sections.forEach(section => {
+                     if (scrollPosition >= section.offsetTop) {
+                         currentSectionId = section.id;
+                     }
+                 });
+
+                 navItems.forEach(item => {
+                     item.classList.remove('active');
+                     // Check href exists and matches currentSectionId
+                     const itemHref = item.getAttribute('href');
+                     if (itemHref && itemHref === `#${currentSectionId}`) {
+                         item.classList.add('active');
+                     }
+                 });
+            };
+
+            // Debounce the scroll event for performance
+            const debouncedNavUpdate = () => {
+                 clearTimeout(navUpdateTimeout);
+                 navUpdateTimeout = setTimeout(updateActiveNav, 50);
+            };
+
+            window.addEventListener('scroll', debouncedNavUpdate, { passive: true });
+            window.addEventListener('resize', debouncedNavUpdate); // Update on resize too
+            updateActiveNav(); // Initial check
+
+             // --- AI Interface v5 Logic (Refined Simulation - JS logic is mostly the same) ---
              if (aiDemoOutput && aiProgressBar) {
                  const demoSteps = [
                      { text: { type: 'ai', content: 'JX CORE v16 :: ONLINE :: READY'}, delay: 200 },
@@ -664,77 +1162,136 @@
                      { text: { type: 'analysis', content: 'Úloha vyřešena. D > 0 => 2 reálné kořeny. Připraven na další příkaz...'}, delay: 800 },
                      { progress: 0, delay: 4000 } // Reset for loop
                  ];
-                 let currentStepIndex = 0; let charIndex = 0; let typeInterval; let sequenceTimeout;
+                 let currentStepIndex = 0;
+                 let charIndex = 0;
+                 let typeInterval;
+                 let sequenceTimeout;
+
+                 // Simple sanitizer (replace with a robust library like DOMPurify if handling real user input)
+                 function sanitizeHTML(str) {
+                      const temp = document.createElement('div');
+                      temp.textContent = str;
+                      return temp.innerHTML;
+                 }
 
                  function typeWriter(lineElement, text, speed = 30) {
                       if (!lineElement) return;
                       const textContainer = lineElement.querySelector('.text-content');
                       if (!textContainer) return;
+
                       if (charIndex < text.length) {
+                           // Append next character and the cursor
                           textContainer.innerHTML = sanitizeHTML(text.substring(0, charIndex + 1)) + '<span class="typing-cursor"></span>';
                           charIndex++;
                           typeInterval = setTimeout(() => typeWriter(lineElement, text, speed), speed);
                       } else {
+                           // Remove cursor when done typing
                           textContainer.innerHTML = sanitizeHTML(text);
                           clearTimeout(typeInterval);
+                          // Crucially, schedule the next step *after* typing is complete
                           scheduleNextStep();
                       }
                   }
 
                  function addDemoLine(lineData) {
                      const lineElement = document.createElement('div');
-                     lineElement.className = `ai-demo-line ${lineData.type}`;
-                     lineElement.style.opacity = '0';
+                     // Добавляем класс типа сообщения (user, ai, analysis)
+                     lineElement.className = `ai-demo-line ${lineData.type || 'ai'}`; // Default to 'ai' if type is missing
+                     lineElement.style.opacity = '0'; // Start transparent for fade-in
+                     // Создаем контейнер для текста, чтобы курсор был рядом с текстом
                      lineElement.innerHTML = `<span class="text-content"></span>`;
 
                      if(!aiDemoOutput) return;
                      aiDemoOutput.appendChild(lineElement);
-                     if (aiDemoOutput.scrollHeight > aiDemoOutput.clientHeight) aiDemoOutput.scrollTop = aiDemoOutput.scrollHeight;
-                     requestAnimationFrame(() => lineElement.style.opacity = '1');
+                     // Auto-scroll to bottom
+                     if (aiDemoOutput.scrollHeight > aiDemoOutput.clientHeight) {
+                          aiDemoOutput.scrollTop = aiDemoOutput.scrollHeight;
+                     }
+                     // Fade in the new line
+                     requestAnimationFrame(() => {
+                         lineElement.style.opacity = '1';
+                     });
 
                      if (lineData.typing) {
+                         // Start with just the cursor if typing
                          lineElement.querySelector('.text-content').innerHTML = '<span class="typing-cursor"></span>';
-                         charIndex = 0;
+                         charIndex = 0; // Reset char index for this line
+                         // Start typing after a short delay
+                         clearTimeout(typeInterval); // Clear previous typing interval if any
                          setTimeout(() => typeWriter(lineElement, lineData.content), 80);
+                         // *** IMPORTANT: Don't schedule the next step here; typeWriter will do it when finished ***
                      } else {
+                         // Display text directly if not typing
                          lineElement.querySelector('.text-content').textContent = lineData.content;
+                         // Schedule the next step immediately since there's no typing
                          scheduleNextStep();
                      }
                  }
 
-                 function updateProgressBar(percentage) { if(aiProgressBar) aiProgressBar.style.width = `${percentage}%`; }
-
-                 function runNextStep() {
-                     if (currentStepIndex >= demoSteps.length) {
-                         sequenceTimeout = setTimeout(() => { // Restart
-                             if(aiDemoOutput) aiDemoOutput.innerHTML = ''; updateProgressBar(0);
-                             currentStepIndex = 0; runNextStep();
-                         }, 5000);
-                         return;
+                 function updateProgressBar(percentage) {
+                     if(aiProgressBar) {
+                          aiProgressBar.style.width = `${percentage}%`;
                      }
-                     const step = demoSteps[currentStepIndex];
-                     let blockExecution = false;
-                     if (step.progress !== undefined) updateProgressBar(step.progress);
-                     if (step.text) { addDemoLine(step.text); blockExecution = step.text.typing; }
-                     currentStepIndex++;
-                     if (!blockExecution) scheduleNextStep();
                  }
 
+                 function runNextStep() {
+                     // Check if we've reached the end of the steps
+                     if (currentStepIndex >= demoSteps.length) {
+                          // Schedule a restart after a delay
+                         sequenceTimeout = setTimeout(() => {
+                             if(aiDemoOutput) aiDemoOutput.innerHTML = ''; // Clear the log
+                             updateProgressBar(0); // Reset progress bar
+                             currentStepIndex = 0; // Reset index
+                             runNextStep(); // Start over
+                         }, 5000); // Restart after 5 seconds
+                         return; // Stop execution for this cycle
+                     }
+
+                     const step = demoSteps[currentStepIndex];
+                     let blockExecution = false; // Flag to check if we need to wait (e.g., for typing)
+
+                     // Update progress bar if defined in the step
+                     if (step.progress !== undefined) {
+                         updateProgressBar(step.progress);
+                     }
+
+                     // Add text line if defined in the step
+                     if (step.text) {
+                         addDemoLine(step.text);
+                         blockExecution = step.text.typing; // Block if this step involves typing
+                     }
+
+                     currentStepIndex++; // Move to the next step index
+
+                     // If the current step didn't block execution (e.g., wasn't a typing step), schedule the next one
+                     if (!blockExecution) {
+                          scheduleNextStep();
+                     }
+                  }
+
+                  // Schedules the execution of the *next* step based on its delay
                   function scheduleNextStep() {
+                       // Check if there are more steps left
                       if (currentStepIndex < demoSteps.length) {
-                          const nextStepDelay = demoSteps[currentStepIndex]?.delay || 250;
-                          clearTimeout(sequenceTimeout);
+                          // Get the delay for the *upcoming* step
+                          const nextStepDelay = demoSteps[currentStepIndex]?.delay || 250; // Default delay
+                          clearTimeout(sequenceTimeout); // Clear any existing timeout
+                          // Set timeout to run the *next* step after its specified delay
                           sequenceTimeout = setTimeout(runNextStep, nextStepDelay);
                       } else {
+                           // If no more steps, schedule the restart (handled within runNextStep now)
                            clearTimeout(sequenceTimeout);
-                           sequenceTimeout = setTimeout(() => {
-                                if(aiDemoOutput) aiDemoOutput.innerHTML = ''; updateProgressBar(0);
-                                currentStepIndex = 0; runNextStep();
-                           }, 5000);
+                           runNextStep(); // Call runNextStep to handle the restart logic
                       }
                   }
-                 function sanitizeHTML(str) { /* ... */ }
-                 if(aiDemoOutput && aiProgressBar) { aiDemoOutput.innerHTML = ''; updateProgressBar(0); currentStepIndex = 0; runNextStep(); }
+
+                 // Initial Start: Clear output, reset progress, start the sequence
+                 if(aiDemoOutput && aiProgressBar) {
+                      aiDemoOutput.innerHTML = ''; // Clear previous content
+                      updateProgressBar(0);
+                      currentStepIndex = 0;
+                      runNextStep(); // Start the simulation
+                 }
             }
             // --- End AI Interface Logic ---
 
