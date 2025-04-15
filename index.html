@@ -8,8 +8,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link rel="stylesheet" href="style.css"> <style>
-        /* --- Палитра и Переменные (v16 - Cyber Core Polished) --- */
+    <style>
+        /* --- Палитра и Переменные (v17 - Cyber Core Enhanced) --- */
         :root {
             /* Основа */
             --bg-color: #050410;            /* Глубокий космос */
@@ -52,7 +52,7 @@
             --border-color-medium: rgba(var(--accent-secondary-rgb), 0.4);
             --border-color-strong: rgba(var(--accent-primary-rgb), 0.6); /* Ярче циан */
             --border-interactive: var(--accent-primary);
-            --border-glow-gradient: linear-gradient(90deg, transparent, var(--accent-primary), transparent);
+            --border-glow-gradient: linear-gradient(90deg, transparent, var(--accent-primary), var(--accent-pink), var(--accent-primary), transparent); /* Градиент для границ ховера */
 
             /* Градиенты */
             --gradient-header: linear-gradient(180deg, rgba(5, 4, 16, 0.95) 0%, rgba(5, 4, 16, 0.8) 100%);
@@ -75,6 +75,7 @@
             --shadow-card: 0 10px 35px rgba(0, 0, 0, 0.35); /* Глубже */
             --shadow-interactive: 0 6px 18px rgba(var(--accent-primary-rgb), 0.35); /* Заметнее */
             --shadow-interactive-hover: 0 8px 25px rgba(var(--accent-pink-rgb), 0.4); /* Розовый ховер */
+            --shadow-card-hover-enhanced: 0 15px 45px rgba(0, 0, 0, 0.4), 0 0 25px var(--accent-glow), inset 0 0 10px rgba(var(--accent-primary-rgb), 0.1); /* Усиленная тень для ховера карточек */
 
             /* Размеры и переходы */
             --card-radius: 12px;
@@ -84,6 +85,7 @@
             --transition-fast: all 0.2s ease-out;
             --transition-medium: all 0.35s ease-out;
             --transition-long: all 0.5s cubic-bezier(0.165, 0.84, 0.44, 1);
+            --transition-bounce: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Пружинистая анимация */
         }
 
         /* --- Базовые стили --- */
@@ -95,6 +97,7 @@
             overflow-x: hidden; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
             min-height: 100vh; position: relative; background-attachment: fixed; /* Fixed background */
         }
+
         /* Animated Grid Background */
         body::before {
             content: ""; position: fixed; inset: 0; width: 100%; height: 100%; z-index: -2;
@@ -109,11 +112,28 @@
             0% { background-position: 0 0; }
             100% { background-position: 700px 350px; } /* Движение сетки */
         }
-        /* Optional subtle noise overlay
+
+        /* Scanline Overlay - NEW */
         body::after {
-             content: ""; position: fixed; inset: 0; z-index: -1;
-             background: url('path/to/noise.png'); opacity: 0.05;
-        } */
+            content: "";
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            width: 100%; height: 100%;
+            z-index: -1; /* Над сеткой, под контентом */
+            background: linear-gradient(
+                to bottom,
+                rgba(18, 16, 32, 0) 50%, /* Цвет фона с прозрачностью */
+                rgba(0, 0, 0, 0.15) 50% /* Темная линия */
+            );
+            background-size: 100% 4px; /* Ширина 100%, высота линии 4px */
+            opacity: 0.25; /* Регулируй прозрачность (сделал чуть менее заметной) */
+            pointer-events: none;
+            animation: scanlines 25s linear infinite;
+        }
+        @keyframes scanlines {
+            from { background-position: 0 0; }
+            to { background-position: 0 100px; } /* Скорость движения */
+        }
 
         .container {
              width: 90%; max-width: var(--container-width); margin-left: auto; margin-right: auto; padding-left: 15px; padding-right: 15px;
@@ -130,12 +150,33 @@
 
         .section-title {
              text-align: center; margin-bottom: 1.6rem; position: relative; padding-bottom: 1rem;
+             padding-left: 20px; padding-right: 20px; /* Место для декоративных уголков */
         }
+        /* Section Title - Decorative Corner (Top Left) - NEW */
+        .section-title::before {
+            content: '';
+            position: absolute;
+            width: 12px; /* Уменьшил размер */
+            height: 12px;
+            border-color: var(--accent-primary);
+            border-style: solid;
+            opacity: 0.5;
+            top: 0; /* Позиция сверху */
+            left: 0; /* Позиция слева */
+            border-width: 2px 0 0 2px; /* Верхняя левая */
+            transition: all var(--transition-medium);
+        }
+        .section-title:hover::before {
+            opacity: 1;
+            border-color: var(--accent-cyan);
+            transform: translate(-3px, -3px); /* Легкое смещение при ховере */
+        }
+
         .section-title span { /* Текст заголовка секции с неоном */
             color: var(--text-heading);
             text-shadow: 0 0 10px var(--accent-glow), 0 0 20px var(--accent-glow);
         }
-        .section-title::after { /* Анимированное подчеркивание */
+        .section-title::after { /* Анимированное подчеркивание (Остается как есть) */
             content: ''; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
             width: 75px; height: 3px; border-radius: 1.5px;
             background: var(--gradient-border-anim);
@@ -152,7 +193,7 @@
              margin: -1rem auto 4.2rem auto; color: var(--text-medium); opacity: 0.85;
          }
 
-        /* --- Кнопки (v16 - Polished Cyber) --- */
+        /* --- Кнопки (v17 - Enhanced) --- */
         .btn {
             display: inline-block; padding: 0.9rem 2.4rem; /* Немного больше паддинг */
             background: transparent; color: var(--accent-primary);
@@ -178,7 +219,12 @@
              left: 0;
              background: var(--gradient-button-hover); /* Используем градиент ховера для заливки */
         }
-        .btn:active { transform: translateY(0px) scale(0.98); box-shadow: 0 0 10px var(--accent-secondary-glow); } /* Эффект нажатия */
+        /* Improved Active State - NEW */
+        .btn:active {
+            transform: translateY(1px) scale(0.97); /* Чуть вниз и меньше */
+            box-shadow: 0 0 8px var(--accent-secondary-glow), inset 0 0 10px rgba(0,0,0,0.2); /* Уменьшенная тень */
+            transition: all 0.1s ease-out; /* Быстрая реакция на нажатие */
+        }
 
         /* Стиль для контурной кнопки */
         .btn-outline {
@@ -190,6 +236,12 @@
             background: rgba(var(--accent-secondary-rgb), 0.1); /* Легкий фон при ховере */
             border-color: var(--accent-pink); color: var(--accent-pink); /* Розовый при ховере */
             box-shadow: 0 0 18px var(--accent-pink-glow);
+        }
+        /* Active state for outline button */
+        .btn-outline:active {
+            transform: translateY(1px) scale(0.97);
+            box-shadow: 0 0 8px var(--accent-pink-glow), inset 0 0 10px rgba(0,0,0,0.1);
+            background: rgba(var(--accent-pink-rgb), 0.15);
         }
 
         /* --- Хедер (Шапка) --- */
@@ -209,7 +261,7 @@
         }
         .nav-container { display: flex; justify-content: space-between; align-items: center; }
         .logo { display: flex; align-items: center; color: var(--text-heading); font-family: var(--font-secondary); font-weight: 700; font-size: 1.6rem; }
-        .logo i { color: var(--accent-primary); margin-right: 0.5rem; font-size: 1.5rem; transition: transform 0.3s ease; }
+        .logo i { color: var(--accent-primary); margin-right: 0.5rem; font-size: 1.5rem; transition: transform 0.4s ease; } /* Slower rotate */
         .logo:hover i { transform: rotate(360deg); }
         .nav-links { display: flex; align-items: center; list-style: none; }
         .nav-item { color: var(--text-medium); margin-left: 1.8rem; font-size: 0.95rem; font-weight: 500; position: relative; padding: 0.5rem 0; }
@@ -253,7 +305,7 @@
         }
         .hero-buttons { display: flex; justify-content: center; gap: 1.5rem; flex-wrap: wrap; }
 
-        /* --- AI Interface v5 (Polished HUD) --- */
+        /* --- AI Interface v6 (Enhanced HUD) --- */
         .ai-interface-section {
              background: var(--bg-secondary); /* Темный фон */
              padding: var(--section-padding-y) 0;
@@ -280,7 +332,22 @@
             position: relative; max-width: 1080px; margin: 2rem auto 0; display: flex; flex-direction: column;
             min-height: 480px; /* Минимальная высота */
             z-index: 1; /* Выше фоновых элементов */
+            /* Pulsing Animation - NEW */
+            animation: interface-pulse 3s infinite ease-in-out alternate;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease; /* Add transitions for smooth pulse */
         }
+        /* Keyframes for Pulsing Interface - NEW */
+        @keyframes interface-pulse {
+            from {
+                box-shadow: var(--shadow-card), 0 0 45px rgba(var(--accent-secondary-rgb), 0.15) inset, 0 0 15px rgba(var(--accent-primary-rgb), 0.2);
+                border-color: var(--interface-border);
+            }
+            to {
+                box-shadow: var(--shadow-card), 0 0 55px rgba(var(--accent-secondary-rgb), 0.20) inset, 0 0 25px rgba(var(--accent-primary-rgb), 0.3);
+                border-color: rgba(var(--accent-primary-rgb), 0.5);
+            }
+        }
+
         /* HUD Уголки */
         .ai-interface-wrapper::before, .ai-interface-wrapper::after {
             content: ''; position: absolute; width: 30px; height: 30px;
@@ -304,12 +371,18 @@
              font-family: var(--font-mono); /* Моноширинный */
              display: flex; align-items: center; gap: 0.5rem;
         }
-        .ai-status-indicator { /* Индикатор статуса */
+        /* Blinking Status Indicator - NEW */
+        .ai-status-indicator {
              font-size: 0.8rem; padding: 0.2rem 0.6rem; border-radius: 4px;
              background-color: rgba(var(--accent-lime-rgb), 0.15);
              color: var(--accent-lime); border: 1px solid rgba(var(--accent-lime-rgb), 0.3);
              font-family: var(--font-mono); text-transform: uppercase;
+             animation: status-blink 1.5s infinite steps(1, end);
         }
+        @keyframes status-blink {
+           50% { background-color: rgba(var(--accent-lime-rgb), 0.3); color: var(--white); }
+        }
+
         .ai-content-area { flex-grow: 1; display: flex; flex-direction: column; } /* Занимает оставшееся место */
         .ai-log-window {
              background-color: rgba(4, 2, 10, 0.85); /* Очень темный фон лога */
@@ -368,7 +441,7 @@
             50% { filter: brightness(1.3); box-shadow: 0 0 15px var(--accent-glow);}
         }
 
-        /* --- Features (Фичи) --- */
+        /* --- Features (Фичи - Enhanced Hover) --- */
         .features {
             background: var(--bg-secondary);
             padding: var(--section-padding-y) 0;
@@ -379,36 +452,47 @@
             background: var(--card-solid); /* Сплошной фон */
             border: 1px solid var(--border-color-light);
             padding: 2rem; border-radius: var(--card-radius);
-            transition: all var(--transition-medium); position: relative; overflow: hidden;
+            transition: transform var(--transition-medium), border-color var(--transition-medium), box-shadow var(--transition-medium), background var(--transition-medium); /* Added background to transition */
+            position: relative; overflow: hidden;
             box-shadow: 0 8px 25px rgba(0,0,0,0.2);
         }
-        .feature-card::before { /* Верхняя граница-свечение при ховере */
+        /* Enhanced Hover Border - NEW */
+        .feature-card::before {
             content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
             background: var(--border-glow-gradient); background-size: 200% 100%;
-            animation: gradient-move 3.5s linear infinite; opacity: 0; transition: opacity 0.3s ease;
+            animation: gradient-move 3.5s linear infinite paused; /* Paused by default */
+            opacity: 0;
+            transition: opacity var(--transition-medium), transform 0.4s ease-out; /* Added transform transition */
+            transform: scaleX(0); /* Start scaled down */
+            transform-origin: left; /* Animate from left */
             z-index: 2;
         }
         .feature-card:hover {
              transform: translateY(-7px); /* Подъем */
              border-color: var(--border-color-strong); /* Ярче рамка */
-             box-shadow: 0 15px 40px rgba(0,0,0,0.3), var(--shadow-glow); /* Усиленная тень + свечение */
+             box-shadow: var(--shadow-card-hover-enhanced); /* Усиленная тень + свечение */
              background: var(--gradient-card-highlight); /* Легкий градиентный фон */
         }
-        .feature-card:hover::before { opacity: 0.9; } /* Показать границу */
+        .feature-card:hover::before {
+            opacity: 0.9;
+            transform: scaleX(1); /* Expand border */
+            animation-play-state: running; /* Start gradient animation */
+        }
 
         .feature-card-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; }
-        .feature-icon { /* Иконка в форме гексагона */
+        /* Enhanced Icon Hover - NEW */
+        .feature-icon {
              background: var(--accent-primary); color: var(--text-fixed-dark);
              box-shadow: 0 0 10px var(--accent-glow);
              width: 48px; height: 52px; font-size: 1.5rem; flex-shrink: 0;
              clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
              display: flex; align-items: center; justify-content: center;
-             transition: all 0.3s ease;
+             transition: var(--transition-bounce); /* Bouncy transition */
         }
         .feature-card:hover .feature-icon {
              background: var(--accent-cyan); /* Цвет меняется на циан */
-             transform: rotate(10deg) scale(1.1); /* Поворот и увеличение */
-             box-shadow: 0 0 15px var(--accent-cyan-glow);
+             transform: rotate(15deg) scale(1.15); /* Увеличен угол и масштаб */
+             box-shadow: 0 0 20px var(--accent-cyan-glow); /* Усиленное свечение */
         }
         .feature-card h3 { margin-bottom: 0; } /* Убираем лишний отступ у h3 */
         .feature-card p { color: var(--text-muted); font-size: 0.95rem; margin-bottom: 0; } /* Уменьшен текст, убран отступ */
@@ -454,7 +538,7 @@
              background: var(--card-solid); /* Фон иконки */
              border: 2px solid var(--border-color-medium);
              color: var(--accent-primary);
-             font-size: 1.3rem; font-weight: 700; font-family: var(--font-secondary);
+             font-size: 1.3rem; font-weight: 700; font-family: var(--font-secondary); /* Poppins for numbers */
              display: flex; align-items: center; justify-content: center;
              box-shadow: 0 0 12px rgba(var(--accent-primary-rgb), 0.2);
              transition: all var(--transition-medium);
@@ -479,25 +563,31 @@
             background: var(--card-bg); /* Полупрозрачный фон */
             backdrop-filter: blur(10px); /* Сильнее размытие - "стекло" */
             border: 1px solid var(--border-color-light); border-radius: var(--card-radius);
-            padding: 2.2rem; position: relative; transition: var(--transition-medium);
+            padding: 2.2rem; position: relative;
+            transition: transform var(--transition-medium), box-shadow var(--transition-medium), background var(--transition-medium); /* Adjusted transitions */
             box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            overflow: hidden; /* Needed for the mask effect */
+            z-index: 1; /* Ensure cards stack correctly */
         }
-        /* Градиентная рамка при наведении (слабая) */
+        /* Градиентная рамка при наведении (сохраняем маску) */
         .testimonial-card::before {
              content: ''; position: absolute; inset: -1px; /* За пределы */
              border-radius: inherit; /* Наследует радиус */
              background: linear-gradient(135deg, rgba(var(--accent-primary-rgb), 0.5), rgba(var(--accent-secondary-rgb), 0.4));
-             opacity: 0; transition: opacity var(--transition-medium);
+             opacity: 0;
+             transition: opacity var(--transition-medium); /* Smooth opacity transition */
              z-index: -1; /* Под контентом */
              mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0); /* Вырезает центр */
              -webkit-mask-composite: xor; mask-composite: exclude;
         }
         .testimonial-card:hover {
              transform: translateY(-7px);
-             box-shadow: var(--shadow-card); /* Усиленная тень */
+             box-shadow: var(--shadow-card), 0 0 20px rgba(var(--accent-primary-rgb), 0.15); /* Усиленная тень + легкое свечение */
              background: rgba(18, 12, 50, 0.9); /* Чуть плотнее фон при ховере */
         }
-        .testimonial-card:hover::before { opacity: 0.8; }
+        .testimonial-card:hover::before {
+             opacity: 0.8; /* Показать границу плавно */
+        }
         .testimonial-content { margin-bottom: 1.5rem; }
         .testimonial-rating { color: var(--accent-cyan); margin-bottom: 1rem; font-size: 1.1rem; } /* Циановые звезды */
         .testimonial-text { color: var(--text-light); font-size: 1rem; line-height: 1.7; font-style: italic; margin-bottom: 0; }
@@ -509,25 +599,55 @@
              background-color: var(--bg-secondary); /* Placeholder color */
              /* background-image: url('path/to/avatar.jpg'); */ /* Add user image here */
              background-size: cover; background-position: center; flex-shrink: 0;
+             transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        .testimonial-card:hover .testimonial-avatar {
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 15px var(--accent-cyan-glow);
         }
         .testimonial-name { font-weight: 600; color: var(--white); font-size: 1rem; }
         .testimonial-role { font-size: 0.85rem; color: var(--text-muted); }
 
-        /* --- Pricing (Цены) --- */
+        /* --- Pricing (Цены - Enhanced Hover for non-popular) --- */
          .pricing {
              background: var(--bg-color); /* Основной фон */
              padding: var(--section-padding-y) 0;
              border-top: 1px solid var(--border-color-medium);
          }
-         .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; align-items: center; /* Выровнять по центру вертикально */ }
+         .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; align-items: stretch; /* Stretch cards to same height */ }
          .pricing-card {
              background: var(--card-solid);
              border: 1px solid var(--border-color-medium); /* Чуть ярче базовая рамка */
              border-radius: var(--card-radius); padding: 2.5rem 1.5rem;
-             text-align: center; transition: var(--transition-medium);
+             text-align: center;
+             transition: transform var(--transition-medium), border-color var(--transition-medium), box-shadow var(--transition-medium), background var(--transition-medium); /* Consistent transitions */
              position: relative; overflow: hidden;
              display: flex; flex-direction: column; height: 100%; /* Растянуть по высоте */
+             box-shadow: 0 8px 25px rgba(0,0,0,0.2); /* Base shadow */
          }
+         /* Hover effect for non-popular cards - NEW */
+         .pricing-card:not(.popular)::before {
+             content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+             background: var(--border-glow-gradient); background-size: 200% 100%;
+             animation: gradient-move 3.5s linear infinite paused;
+             opacity: 0;
+             transition: opacity var(--transition-medium), transform 0.4s ease-out;
+             transform: scaleX(0);
+             transform-origin: left;
+             z-index: 2;
+         }
+         .pricing-card:not(.popular):hover {
+              transform: translateY(-7px);
+              border-color: var(--border-color-strong);
+              box-shadow: var(--shadow-card-hover-enhanced); /* Use enhanced shadow */
+              background: var(--gradient-card-highlight);
+         }
+         .pricing-card:not(.popular):hover::before {
+             opacity: 0.9;
+             transform: scaleX(1);
+             animation-play-state: running;
+         }
+         /* Popular Card Styling (remains largely the same but ensures it's above) */
          .pricing-card.popular {
              border-color: var(--accent-primary); /* Яркая рамка */
              background: linear-gradient(175deg, var(--card-solid) 0%, var(--dark-purple-accent) 100%); /* Градиентный фон */
@@ -541,17 +661,18 @@
              color: var(--white); padding: 0.4rem 1.2rem; border-radius: 15px;
              font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
              box-shadow: 0 4px 10px rgba(var(--accent-secondary-rgb), 0.4);
+             z-index: 6; /* Above card content */
          }
          .pricing-icon {
               font-size: 3rem; color: var(--accent-primary);
               margin-bottom: 1rem; filter: drop-shadow(0 0 10px var(--accent-glow)); /* Тень-свечение иконки */
               transition: all 0.3s ease;
          }
-         .pricing-card:hover .pricing-icon { transform: scale(1.1); }
+         .pricing-card:hover .pricing-icon { transform: scale(1.1) rotate(5deg); } /* Added rotate on hover */
          .pricing-card.popular .pricing-icon { color: var(--accent-cyan); filter: drop-shadow(0 0 15px var(--accent-cyan-glow)); } /* Ярче иконка на популярном */
 
          .pricing-card h3 { font-size: 1.4rem; margin-bottom: 0.8rem; }
-         .pricing-price { font-size: 2.5rem; font-weight: 700; color: var(--white); margin-bottom: 0.3rem; }
+         .pricing-price { font-size: 2.5rem; font-weight: 700; color: var(--white); margin-bottom: 0.3rem; font-family: var(--font-secondary); } /* Using Poppins */
          .pricing-period { font-size: 1rem; font-weight: 400; color: var(--text-muted); }
          .pricing-features { margin: 2rem 0; text-align: left; flex-grow: 1; } /* Растягивается, чтобы кнопка была внизу */
          .pricing-feature {
@@ -585,6 +706,9 @@
              background: var(--white); color: var(--accent-pink); /* Белый фон, розовый текст */
              border-color: var(--white); font-weight: 700;
              box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+             /* Reset specific button styles if needed */
+             backdrop-filter: none;
+             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
         }
         .cta .btn::before { display: none; } /* Убираем эффект заливки */
         .cta .btn:hover {
@@ -592,6 +716,10 @@
              color: var(--white); border-color: var(--text-fixed-dark);
              transform: translateY(-4px) scale(1.03); /* Сильнее эффект */
              box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+        .cta .btn:active {
+             transform: translateY(0px) scale(0.99); /* Adjusted active state */
+             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
         }
 
         /* --- Футер (Footer) --- */
@@ -628,7 +756,8 @@
         @media (max-width: 992px) {
              .nav-container { padding: 0 5%; } /* Отступы для планшетов */
              .features-grid { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
-             .pricing-grid { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+             .pricing-grid { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; } /* Reduced gap */
+             .pricing-card.popular { transform: scale(1.02) translateY(0); } /* Less pronounced scale on tablet */
              .testimonials-grid { grid-template-columns: 1fr; max-width: 500px; margin: 0 auto; } /* Отзывы в одну колонку */
              .footer-grid { gap: 2rem; }
         }
@@ -672,12 +801,15 @@
              .footer-grid { grid-template-columns: 1fr; text-align: center; }
              .footer-column p { margin-left: auto; margin-right: auto; }
              .social-links { justify-content: center; }
+             .pricing-card.popular { transform: scale(1) translateY(0); } /* No scale on mobile */
+             .pricing-grid { grid-template-columns: 1fr; max-width: 350px; margin: 0 auto;} /* Stack pricing cards */
         }
 
         @media (max-width: 576px) {
              html { font-size: 14px; }
              .hero h1 { font-size: 2.3rem; }
              .section-title { font-size: 1.8rem; }
+             .section-title::before { display: none; } /* Hide corner bracket on small screens */
              .btn { padding: 0.85rem 2rem; font-size: 0.9rem; letter-spacing: 1px; }
              .feature-card { padding: 1.8rem 1.5rem; }
              .pricing-card { padding: 2rem 1.2rem; }
@@ -685,7 +817,7 @@
              .ai-interface-wrapper::before, .ai-interface-wrapper::after { display: none; } /* Скрыть уголки на мал. экранах */
         }
 
-        /* --- Анимации появления (v16 - Faster Fade) --- */
+        /* --- Анимации появления (v17 - Faster Fade) --- */
         [data-animate] {
              opacity: 0;
              transform: translateY(25px);
@@ -702,8 +834,9 @@
         }
 
     </style>
-</head>
-<body class="dark"> <header id="header">
+    </head>
+<body class="dark">
+    <header id="header">
         <div class="container nav-container">
             <a href="#" class="logo">
                 <i class="fas fa-atom"></i> <span>JUSTAX</span>
@@ -797,7 +930,7 @@
                  <p class="section-subtitle" data-animate>Sleduj simulaci Justax AI Core při práci: analýza, adaptace, vysvětlení v reálném čase.</p>
                  <div class="ai-interface-wrapper" data-animate>
                      <div class="ai-interface-header">
-                         <div class="ai-interface-title"><i class="fas fa-atom"></i> Justax AI Core [v16.0]</div>
+                         <div class="ai-interface-title"><i class="fas fa-atom"></i> Justax AI Core [v17.0]</div> {/* Updated version */ }
                          <div class="ai-status-indicator">OPTIMAL</div>
                      </div>
                      <div class="ai-content-area">
@@ -960,7 +1093,7 @@
                         <a href="#" class="social-link" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
                         <a href="#" class="social-link" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
                         <a href="#" class="social-link" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
-                         <a href="#" class="social-link" aria-label="X"><i class="fab fa-xing"></i></a>
+                         <a href="#" class="social-link" aria-label="X"><i class="fab fa-xing"></i></a> {/* Changed X icon */ }
                          </div>
                 </div>
                  <div class="footer-column" data-animate style="--animation-order: 2;">
@@ -970,45 +1103,47 @@
                         <li><a href="#ai-demo">AI Core</a></li>
                         <li><a href="#how-it-works">Start Engine</a></li>
                         <li><a href="#pricing">Plány</a></li>
-                         <li><a href="#">Blog</a></li> </ul>
+                         <li><a href="#">Blog</a></li> {/* Placeholder */}
+                    </ul>
                 </div>
                 <div class="footer-column" data-animate style="--animation-order: 3;">
                     <h3>Systém</h3>
                     <ul class="footer-links">
-                        <li><a href="/privacy-policy">Privacy Protokol</a></li>
-                        <li><a href="/terms">Podmínky Připojení</a></li>
-                        <li><a href="#">Cookies</a></li> </ul>
+                        <li><a href="/privacy-policy">Privacy Protokol</a></li> {/* Placeholder link */}
+                        <li><a href="/terms">Podmínky Připojení</a></li> {/* Placeholder link */}
+                        <li><a href="#">Cookies</a></li> {/* Placeholder link */}
+                    </ul>
                 </div>
                 <div class="footer-column" data-animate style="--animation-order: 4;">
                     <h3>Support</h3>
                     <ul class="footer-links">
                         <li><a href="mailto:podpora@justax.space">podpora@justax.space</a></li>
-                        <li><a><i class="fas fa-map-marker-alt" style="margin-right: 5px;"></i>HQ: Praha, CZ</a></li> </ul>
+                        <li><a><i class="fas fa-map-marker-alt" style="margin-right: 5px;"></i>HQ: Praha, CZ</a></li> {/* Static text */}
+                    </ul>
                 </div>
             </div>
             <div class="copyright">
-                &copy; <span id="currentYear"></span> Justax AI Systems. Všechna práva vyhrazena. // Protokol v16.0
+                &copy; <span id="currentYear"></span> Justax AI Systems. Všechna práva vyhrazena. // Protokol v17.0 {/* Updated version */}
                  // Sestaveno s <i class="fas fa-heart" style="color: var(--accent-pink);"></i> v CZ.
             </div>
         </div>
     </footer>
 
     <script>
-       // --- START: JavaScript for v16 (Cyber Core Polished) ---
+       // --- START: JavaScript for v17 (Cyber Core Enhanced) ---
        document.addEventListener('DOMContentLoaded', function() {
             // --- Variable Definitions ---
             const header = document.getElementById('header');
             const hamburger = document.getElementById('hamburger');
             const navLinks = document.getElementById('navLinks');
             const menuOverlay = document.getElementById('menuOverlay');
-            // Убедимся, что выбираем только ссылки внутри navLinks
-            const navItems = navLinks?.querySelectorAll('a.nav-item');
+            const navItems = navLinks?.querySelectorAll('a.nav-item'); // Ensure selecting only links inside navLinks
             const body = document.body;
             const aiDemoOutput = document.getElementById('ai-demo-output');
             const aiProgressBar = document.getElementById('ai-progress-bar');
             const currentYearSpan = document.getElementById('currentYear');
 
-            // --- Mobile Menu ---
+            // --- Mobile Menu Logic ---
             const toggleMenu = (forceClose = false) => {
                  if (!hamburger || !navLinks || !menuOverlay) return;
                  const isActive = navLinks.classList.contains('active');
@@ -1030,7 +1165,7 @@
             hamburger?.addEventListener('click', () => toggleMenu());
             menuOverlay?.addEventListener('click', () => toggleMenu(true)); // Close on overlay click
             navItems?.forEach(item => item.addEventListener('click', () => {
-                 // Close menu only if it's a link to a section on the same page
+                 // Close menu only if it's an anchor link on the same page
                  if (item.getAttribute('href')?.startsWith('#')) {
                       toggleMenu(true);
                  }
@@ -1052,7 +1187,7 @@
                  } else {
                      header.classList.remove('scrolled');
                  }
-                 // Optional: Hide header on scroll down, show on scroll up
+                 // Optional: Hide header on scroll down, show on scroll up (currently commented out)
                  /*
                  if (currentScrollY > lastScrollY && currentScrollY > header.offsetHeight) {
                      header.style.transform = 'translateY(-100%)'; // Hide
@@ -1082,41 +1217,48 @@
                  animatedElements.forEach(element => element.classList.add('animated'));
             }
 
-             // --- Smooth Scroll ---
+             // --- Smooth Scroll for Anchor Links ---
              document.querySelectorAll('a[href^="#"]').forEach(anchor => {
                  anchor.addEventListener('click', function (e) {
                      const hrefAttribute = this.getAttribute('href');
-                     // Ensure it's a link to an element on the page
+                     // Ensure it's a valid anchor link on the page
                      if (hrefAttribute && hrefAttribute.length > 1 && hrefAttribute.startsWith('#')) {
-                          const targetElement = document.querySelector(hrefAttribute);
-                          if (targetElement) {
-                               e.preventDefault();
-                               targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                          try {
+                               const targetElement = document.querySelector(hrefAttribute);
+                               if (targetElement) {
+                                   e.preventDefault();
+                                   targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
-                               // Optional: Update URL hash without jumping
-                               // history.pushState(null, null, hrefAttribute);
+                                   // Optional: Update URL hash without jumping (uncomment if desired)
+                                   // history.pushState(null, null, hrefAttribute);
+                               }
+                          } catch (error) {
+                               console.error(`Error finding element for selector: ${hrefAttribute}`, error);
                           }
                      }
                  });
              });
 
-            // --- Copyright Year ---
+            // --- Update Copyright Year ---
             if (currentYearSpan) {
                  currentYearSpan.textContent = new Date().getFullYear();
             }
 
-            // --- Active Nav Link on Scroll ---
+            // --- Active Nav Link Highlighting on Scroll ---
             const sections = document.querySelectorAll('section[id]');
             let navUpdateTimeout;
 
             const updateActiveNav = () => {
-                 if (!navItems) return;
+                 if (!navItems || !header) return; // Ensure navItems and header exist
                  let currentSectionId = null;
                  const scrollPosition = window.scrollY + header.offsetHeight + 50; // Offset for header height + margin
 
                  sections.forEach(section => {
-                     if (scrollPosition >= section.offsetTop) {
-                         currentSectionId = section.id;
+                     // Check if section exists and has an offsetTop
+                     if (section && typeof section.offsetTop === 'number') {
+                         if (scrollPosition >= section.offsetTop) {
+                             currentSectionId = section.id;
+                         }
                      }
                  });
 
@@ -1140,10 +1282,10 @@
             window.addEventListener('resize', debouncedNavUpdate); // Update on resize too
             updateActiveNav(); // Initial check
 
-             // --- AI Interface v5 Logic (Refined Simulation - JS logic is mostly the same) ---
+             // --- AI Interface Demo Logic (v6 - Refined Simulation) ---
              if (aiDemoOutput && aiProgressBar) {
                  const demoSteps = [
-                     { text: { type: 'ai', content: 'JX CORE v16 :: ONLINE :: READY'}, delay: 200 },
+                     { text: { type: 'ai', content: 'JX CORE v17 :: ONLINE :: READY'}, delay: 200 },
                      { progress: 5, delay: 150 },
                      { text: { type: 'user', content: 'Problém: Najdi diskriminant: 2x² + 5x - 3 = 0'}, delay: 1000 },
                      { progress: 15, delay: 200 },
@@ -1160,70 +1302,80 @@
                      { text: { type: 'ai', content: 'Výsledek: D = 49', typing: true }, delay: 600 },
                      { progress: 100, delay: 300 },
                      { text: { type: 'analysis', content: 'Úloha vyřešena. D > 0 => 2 reálné kořeny. Připraven na další příkaz...'}, delay: 800 },
-                     { progress: 0, delay: 4000 } // Reset for loop
+                     { progress: 0, delay: 5000 } // Reset for loop, increased delay before restart
                  ];
                  let currentStepIndex = 0;
                  let charIndex = 0;
                  let typeInterval;
                  let sequenceTimeout;
 
-                 // Simple sanitizer (replace with a robust library like DOMPurify if handling real user input)
+                 // Basic HTML sanitizer (important to prevent XSS if content were dynamic)
+                 // For real applications, use a robust library like DOMPurify.
                  function sanitizeHTML(str) {
                       const temp = document.createElement('div');
                       temp.textContent = str;
-                      return temp.innerHTML;
+                      return temp.innerHTML.replace(/</g, "&lt;").replace(/>/g, "&gt;"); // Basic sanitization
                  }
 
-                 function typeWriter(lineElement, text, speed = 30) {
+                 function typeWriter(lineElement, text, speed = 35) { // Slightly adjusted default speed
                       if (!lineElement) return;
                       const textContainer = lineElement.querySelector('.text-content');
                       if (!textContainer) return;
 
                       if (charIndex < text.length) {
                            // Append next character and the cursor
-                          textContainer.innerHTML = sanitizeHTML(text.substring(0, charIndex + 1)) + '<span class="typing-cursor"></span>';
-                          charIndex++;
-                          typeInterval = setTimeout(() => typeWriter(lineElement, text, speed), speed);
+                           textContainer.innerHTML = sanitizeHTML(text.substring(0, charIndex + 1)) + '<span class="typing-cursor"></span>';
+                           charIndex++;
+                           // Randomize speed slightly for more natural feel
+                           const currentSpeed = speed + (Math.random() * speed * 0.5 - speed * 0.25); // +/- 25% variation
+                           typeInterval = setTimeout(() => typeWriter(lineElement, text, speed), currentSpeed);
                       } else {
                            // Remove cursor when done typing
-                          textContainer.innerHTML = sanitizeHTML(text);
-                          clearTimeout(typeInterval);
-                          // Crucially, schedule the next step *after* typing is complete
-                          scheduleNextStep();
+                           textContainer.innerHTML = sanitizeHTML(text);
+                           clearTimeout(typeInterval);
+                           // Schedule the next step *after* typing is complete
+                           scheduleNextStep();
                       }
                   }
 
                  function addDemoLine(lineData) {
+                     if(!aiDemoOutput) return; // Ensure output element exists
+
                      const lineElement = document.createElement('div');
-                     // Добавляем класс типа сообщения (user, ai, analysis)
-                     lineElement.className = `ai-demo-line ${lineData.type || 'ai'}`; // Default to 'ai' if type is missing
+                     // Add message type class (user, ai, analysis)
+                     lineElement.className = `ai-demo-line ${lineData.type || 'ai'}`; // Default to 'ai'
                      lineElement.style.opacity = '0'; // Start transparent for fade-in
-                     // Создаем контейнер для текста, чтобы курсор был рядом с текстом
+                     // Create a container for text to keep cursor adjacent
                      lineElement.innerHTML = `<span class="text-content"></span>`;
 
-                     if(!aiDemoOutput) return;
                      aiDemoOutput.appendChild(lineElement);
-                     // Auto-scroll to bottom
-                     if (aiDemoOutput.scrollHeight > aiDemoOutput.clientHeight) {
+
+                     // Auto-scroll to bottom only if the user isn't scrolled up
+                     const isScrolledToBottom = aiDemoOutput.scrollHeight - aiDemoOutput.clientHeight <= aiDemoOutput.scrollTop + 1;
+                     if (isScrolledToBottom) {
                           aiDemoOutput.scrollTop = aiDemoOutput.scrollHeight;
                      }
+
                      // Fade in the new line
                      requestAnimationFrame(() => {
                          lineElement.style.opacity = '1';
                      });
 
+                     // Handle typing effect or direct display
                      if (lineData.typing) {
                          // Start with just the cursor if typing
-                         lineElement.querySelector('.text-content').innerHTML = '<span class="typing-cursor"></span>';
+                         const textContainer = lineElement.querySelector('.text-content');
+                         if(textContainer) textContainer.innerHTML = '<span class="typing-cursor"></span>';
                          charIndex = 0; // Reset char index for this line
+                         clearTimeout(typeInterval); // Clear previous typing interval
                          // Start typing after a short delay
-                         clearTimeout(typeInterval); // Clear previous typing interval if any
-                         setTimeout(() => typeWriter(lineElement, lineData.content), 80);
-                         // *** IMPORTANT: Don't schedule the next step here; typeWriter will do it when finished ***
+                         setTimeout(() => typeWriter(lineElement, lineData.content), 100); // Slightly longer delay before typing starts
+                         // IMPORTANT: Don't schedule next step here; typeWriter handles it on completion
                      } else {
                          // Display text directly if not typing
-                         lineElement.querySelector('.text-content').textContent = lineData.content;
-                         // Schedule the next step immediately since there's no typing
+                         const textContainer = lineElement.querySelector('.text-content');
+                          if(textContainer) textContainer.textContent = lineData.content;
+                         // Schedule the next step immediately as there's no typing delay
                          scheduleNextStep();
                      }
                  }
@@ -1243,27 +1395,27 @@
                              updateProgressBar(0); // Reset progress bar
                              currentStepIndex = 0; // Reset index
                              runNextStep(); // Start over
-                         }, 5000); // Restart after 5 seconds
+                         }, demoSteps[demoSteps.length - 1]?.delay || 5000); // Use last step's delay for restart timing
                          return; // Stop execution for this cycle
                      }
 
                      const step = demoSteps[currentStepIndex];
-                     let blockExecution = false; // Flag to check if we need to wait (e.g., for typing)
+                     let blockExecution = false; // Flag to indicate if we need to wait (e.g., for typing)
 
-                     // Update progress bar if defined in the step
+                     // Update progress bar if defined
                      if (step.progress !== undefined) {
                          updateProgressBar(step.progress);
                      }
 
-                     // Add text line if defined in the step
+                     // Add text line if defined
                      if (step.text) {
                          addDemoLine(step.text);
-                         blockExecution = step.text.typing; // Block if this step involves typing
+                         blockExecution = step.text.typing; // Block further scheduling if this step involves typing
                      }
 
                      currentStepIndex++; // Move to the next step index
 
-                     // If the current step didn't block execution (e.g., wasn't a typing step), schedule the next one
+                     // If the current step didn't block execution (e.g., wasn't a typing step), schedule the next one immediately based on *its* delay
                      if (!blockExecution) {
                           scheduleNextStep();
                      }
@@ -1271,19 +1423,19 @@
 
                   // Schedules the execution of the *next* step based on its delay
                   function scheduleNextStep() {
-                       // Check if there are more steps left
-                      if (currentStepIndex < demoSteps.length) {
-                          // Get the delay for the *upcoming* step
-                          const nextStepDelay = demoSteps[currentStepIndex]?.delay || 250; // Default delay
-                          clearTimeout(sequenceTimeout); // Clear any existing timeout
-                          // Set timeout to run the *next* step after its specified delay
-                          sequenceTimeout = setTimeout(runNextStep, nextStepDelay);
-                      } else {
-                           // If no more steps, schedule the restart (handled within runNextStep now)
-                           clearTimeout(sequenceTimeout);
-                           runNextStep(); // Call runNextStep to handle the restart logic
-                      }
-                  }
+                       // Ensure we don't schedule past the end or double schedule
+                       clearTimeout(sequenceTimeout);
+
+                       if (currentStepIndex < demoSteps.length) {
+                           // Get the delay for the *upcoming* step (the one at currentStepIndex)
+                           const nextStepDelay = demoSteps[currentStepIndex]?.delay || 250; // Default delay
+                           // Set timeout to run the *next* step after its specified delay
+                           sequenceTimeout = setTimeout(runNextStep, nextStepDelay);
+                       } else {
+                           // If no more steps, trigger the restart logic in runNextStep
+                           runNextStep();
+                       }
+                   }
 
                  // Initial Start: Clear output, reset progress, start the sequence
                  if(aiDemoOutput && aiProgressBar) {
@@ -1298,5 +1450,5 @@
        });
        // --- END: JavaScript ---
     </script>
-</body>
+    </body>
 </html>
