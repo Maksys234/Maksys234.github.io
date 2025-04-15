@@ -701,8 +701,8 @@
          }
         .avatar-preview img { width: 100%; height: 100%; object-fit: cover; }
         .file-upload { position: relative; overflow: hidden; margin: 10px 0; display: inline-block; }
-        .file-upload input[type=file] { position: absolute; top: 0; right: 0; min-width: 100%; min-height: 100%; font-size: 100px; text-align: right; filter: alpha(opacity=0); opacity: 0; outline: none; cursor: pointer; display: block; }
-        /* .upload-btn is styled by .btn .btn-outline */
+        /* Скрываем оригинальный input[type=file] */
+        .file-upload input[type=file] { position: absolute; top: 0; left: 0; width: 0.1px; height: 0.1px; opacity: 0; overflow: hidden; z-index: -1; }
 
         /* Toast notification (Cyberpunk Style) */
          .toast-container { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 1050; display: flex; flex-direction: column; gap: 0.8rem; max-width: 380px; pointer-events: none; }
@@ -1030,7 +1030,8 @@
                     <div class="avatar-preview" id="avatar-preview"> <span>?</span> </div>
                     <div class="file-upload">
                         <button type="button" class="btn btn-outline upload-btn" id="select-avatar-file-btn"> <i class="fas fa-upload"></i> Vybrat soubor </button>
-                        <input type="file" id="avatar-upload" accept="image/jpeg, image/png, image/gif" style="display: none;"> </div>
+                        <input type="file" id="avatar-upload" accept="image/jpeg, image/png, image/gif" style="display: none;">
+                    </div>
                     <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 1rem;">Podporované formáty: JPG, PNG, GIF. Max. velikost: 2MB.</p>
                 </div>
             </div>
@@ -1126,7 +1127,7 @@
                 deleteAccountModal: document.getElementById('delete-account-modal'),
                 avatarPreview: document.getElementById('avatar-preview'),
                 avatarUploadInput: document.getElementById('avatar-upload'),
-                selectAvatarFileBtn: document.getElementById('select-avatar-file-btn'), // <<< ADDED
+                selectAvatarFileBtn: document.getElementById('select-avatar-file-btn'),
                 confirmDeletePasswordField: document.getElementById('confirm-delete-password'),
                 toastContainer: document.getElementById('toast-container'),
                 globalError: document.getElementById('global-error'),
@@ -1235,21 +1236,20 @@
                      preferences: ui.savePreferencesBtn,
                      avatar: ui.saveAvatarBtn,
                      delete: ui.confirmDeleteAccountBtn,
-                     notifications: ui.markAllReadBtn // Added notification button
+                     notifications: ui.markAllReadBtn
                  };
                  const button = buttons[section];
                  if (button) {
                      button.disabled = isLoadingFlag;
                      const icon = button.querySelector('i');
-                     const originalIconClass = button.dataset.originalIconClass || icon?.className.replace(' fa-spin', ''); // Store original class
+                     const originalIconClass = button.dataset.originalIconClass || icon?.className.replace(' fa-spin', '');
 
                      if (isLoadingFlag) {
                          if(icon && !button.dataset.originalIconClass) {
                              button.dataset.originalIconClass = icon.className; // Store original
-                             icon.className = 'fas fa-spinner fa-spin';
-                         } else if (icon) {
-                             icon.className = 'fas fa-spinner fa-spin';
                          }
+                         if(icon) icon.className = 'fas fa-spinner fa-spin';
+
                          if (section === 'profile') button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ukládám...';
                          else if (section === 'password') button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Měním...';
                          else if (section === 'preferences') button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ukládám...';
@@ -1261,11 +1261,11 @@
                              icon.className = button.dataset.originalIconClass;
                              delete button.dataset.originalIconClass; // Clean up
                          }
-                          if (section === 'profile') button.innerHTML = `<i class="${originalIconClass || 'fas fa-save'}"></i> Uložit změny`;
-                          else if (section === 'password') button.innerHTML = `<i class="${originalIconClass || 'fas fa-key'}"></i> Změnit heslo`;
-                          else if (section === 'preferences') button.innerHTML = `<i class="${originalIconClass || 'fas fa-save'}"></i> Uložit nastavení`;
-                          else if (section === 'avatar') button.innerHTML = `<i class="${originalIconClass || 'fas fa-save'}"></i> Uložit obrázek`;
-                          else if (section === 'delete') button.innerHTML = `<i class="${originalIconClass || 'fas fa-skull-crossbones'}"></i> Ano, smazat účet`;
+                          if (section === 'profile') button.innerHTML = `<i class="fas fa-save"></i> Uložit změny`;
+                          else if (section === 'password') button.innerHTML = `<i class="fas fa-key"></i> Změnit heslo`;
+                          else if (section === 'preferences') button.innerHTML = `<i class="fas fa-save"></i> Uložit nastavení`;
+                          else if (section === 'avatar') button.innerHTML = `<i class="fas fa-save"></i> Uložit obrázek`;
+                          else if (section === 'delete') button.innerHTML = `<i class="fas fa-skull-crossbones"></i> Ano, smazat účet`;
                           else if (section === 'notifications') button.textContent = 'Vymazat vše';
                      }
                  }
@@ -1287,7 +1287,65 @@
              async function updateProfileData(data) { if (!currentUser || !supabase) { showToast('Chyba', 'Nejste přihlášeni.', 'error'); return false; } console.log("[Profile Update] Aktualizace dat:", data); setLoadingState('profile', true); try { const { data: updatedProfile, error } = await supabase.from('profiles').update({ first_name: data.first_name, last_name: data.last_name, username: data.username, school: data.school, grade: data.grade, bio: data.bio, updated_at: new Date().toISOString() }).eq('id', currentUser.id).select().single(); if (error) throw error; currentProfile = updatedProfile; updateProfileDisplay(currentProfile); showToast('ÚSPĚCH', 'Profil byl úspěšně aktualizován.', 'success'); console.log("[Profile Update] Úspěšně aktualizováno."); return true; } catch (error) { console.error('[Profile Update] Chyba:', error); showToast('CHYBA', `Aktualizace profilu selhala: ${error.message}`, 'error'); return false; } finally { setLoadingState('profile', false); } }
              async function updateUserPassword(currentPassword, newPassword) { if (!currentUser || !supabase) { showToast('Chyba', 'Nejste přihlášeni.', 'error'); return false; } console.log("[Password Update] Pokus o změnu hesla."); setLoadingState('password', true); try { console.warn("Password Update: Client-side update doesn't verify current password securely."); const { error } = await supabase.auth.updateUser({ password: newPassword }); if (error) { let message = 'Změna hesla selhala.'; if (error.message.includes('requires recent login')) message = 'Vyžadováno nedávné přihlášení. Přihlaste se znovu.'; else if (error.message.includes('weak_password')) message = 'Heslo je příliš slabé.'; else if (error.message.includes('same password')) message = 'Nové heslo musí být jiné než současné.'; showToast('CHYBA HESLA', message, 'error'); console.error('[Password Update] Chyba Supabase:', error); if (message.includes('jiné')) { showFieldError('new_password', message); } else { showFieldError('current_password', 'Ověření selhalo nebo je vyžadováno nové přihlášení.'); } return false; } ui.passwordForm.reset(); clearAllErrors('password-form'); showToast('ÚSPĚCH', 'Heslo bylo úspěšně změněno.', 'success'); console.log("[Password Update] Heslo úspěšně změněno."); return true; } catch (error) { console.error('[Password Update] Neočekávaná chyba:', error); showToast('CHYBA', 'Došlo k neočekávané chybě při změně hesla.', 'error'); return false; } finally { setLoadingState('password', false); } }
              async function updatePreferencesData() { if (!currentUser || !supabase) { showToast('Chyba', 'Nejste přihlášeni.', 'error'); return false; } console.log("[Preferences Update] Aktualizace nastavení."); setLoadingState('preferences', true); try { const preferences = { dark_mode: ui.darkModeToggle.checked, language: ui.languageSelect.value, }; const notifications = { email: ui.emailNotificationsToggle.checked, study_tips: ui.studyTipsToggle.checked, content_updates: ui.contentUpdatesToggle.checked, practice_reminders: ui.practiceRemindersToggle.checked }; const { data: updatedProfile, error } = await supabase.from('profiles').update({ preferences: preferences, notifications: notifications, updated_at: new Date().toISOString() }).eq('id', currentUser.id).select().single(); if (error) throw error; currentProfile = updatedProfile; applyPreferences(currentProfile.preferences); showToast('ÚSPĚCH', 'Nastavení byla uložena.', 'success'); console.log("[Preferences Update] Nastavení uložena."); return true; } catch (error) { console.error('[Preferences Update] Chyba:', error); showToast('CHYBA', 'Uložení nastavení selhalo.', 'error'); return false; } finally { setLoadingState('preferences', false); } }
-             async function uploadAndSaveAvatar(file) { if (!currentUser || !supabase) { showToast('Chyba', 'Nejste přihlášeni.', 'error'); return false; } if (!file) { showToast('Chyba', 'Nebyl vybrán žádný soubor.', 'warning'); return false; } if (file.size > 2 * 1024 * 1024) { showToast('Chyba', 'Soubor je příliš velký (max 2MB).', 'error'); return false; } if (!['image/jpeg', 'image/png', 'image/gif'].includes(file.type)) { showToast('Chyba', 'Nepodporovaný formát souboru.', 'error'); return false; } console.log("[Avatar Upload] Nahrávání souboru:", file.name); setLoadingState('avatar', true); try { const fileExt = file.name.split('.').pop(); const fileName = `public/${currentUser.id}-${Date.now()}.${fileExt}`; const { error: uploadError } = await supabase.storage.from('avatars').upload(fileName, file, { upsert: true }); if (uploadError) throw new Error(`Chyba nahrávání souboru: ${uploadError.message}`); const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(fileName); if (!urlData || !urlData.publicUrl) throw new Error("Nepodařilo se získat URL obrázku."); const publicUrl = urlData.publicUrl; console.log("[Avatar Upload] Soubor nahrán, URL:", publicUrl); const { data: updatedProfile, error: updateError } = await supabase.from('profiles').update({ avatar_url: publicUrl, updated_at: new Date().toISOString() }).eq('id', currentUser.id).select().single(); if (updateError) throw new Error(`Chyba aktualizace profilu: ${updateError.message}`); currentProfile = updatedProfile; updateProfileDisplay(currentProfile); hideModal('avatar-modal'); showToast('ÚSPĚCH', 'Profilový obrázek byl aktualizován.', 'success'); console.log("[Avatar Upload] Avatar úspěšně aktualizován."); return true; } catch (error) { console.error('[Avatar Upload] Chyba:', error); showToast('CHYBA', `Aktualizace avataru selhala: ${error.message}`, 'error'); return false; } finally { setLoadingState('avatar', false); } }
+             async function uploadAndSaveAvatar(file) {
+                 // ** Исправленная версия **
+                 if (!currentUser || !supabase) { showToast('Chyba', 'Nejste přihlášeni.', 'error'); return false; }
+                 if (!file) { showToast('Chyba', 'Nebyl vybrán žádný soubor.', 'warning'); return false; }
+                 if (file.size > 2 * 1024 * 1024) { showToast('Chyba', 'Soubor je příliš velký (max 2MB).', 'error'); return false; }
+                 if (!['image/jpeg', 'image/png', 'image/gif'].includes(file.type)) { showToast('Chyba', 'Nepodporovaný formát souboru.', 'error'); return false; }
+
+                 console.log("[Avatar Upload] Nahrávání souboru:", file.name);
+                 setLoadingState('avatar', true);
+                 try {
+                     const fileExt = file.name.split('.').pop();
+                     // --- ИСПРАВЛЕННЫЙ ПУТЬ ---
+                     // Убираем 'public/'. Загружаем в папку с ID пользователя.
+                     const fileName = `${currentUser.id}/${Date.now()}.${fileExt}`;
+                     // --------------------------
+
+                     const { error: uploadError } = await supabase.storage
+                         .from('avatars') // Убедитесь, что имя бакета ТОЧНО 'avatars'
+                         .upload(fileName, file, {
+                             cacheControl: '3600', // Кэшировать на час
+                             upsert: true // Перезаписывать, если файл с таким именем уже есть
+                         });
+
+                     if (uploadError) throw new Error(`Chyba nahrávání souboru: ${uploadError.message}`);
+
+                     // Получаем URL для ИСПРАВЛЕННОГО имени файла
+                     const { data: urlData } = supabase.storage
+                         .from('avatars')
+                         .getPublicUrl(fileName);
+
+                     if (!urlData || !urlData.publicUrl) throw new Error("Nepodařilo se získat URL obrázku.");
+
+                     const publicUrl = urlData.publicUrl;
+                     console.log("[Avatar Upload] Soubor nahrán, URL:", publicUrl); // Проверьте этот URL
+
+                     // Обновляем профиль С ПРАВИЛЬНЫМ URL
+                     const { data: updatedProfile, error: updateError } = await supabase
+                         .from('profiles')
+                         .update({ avatar_url: publicUrl, updated_at: new Date().toISOString() })
+                         .eq('id', currentUser.id)
+                         .select()
+                         .single();
+
+                     if (updateError) throw new Error(`Chyba aktualizace profilu: ${updateError.message}`);
+
+                     currentProfile = updatedProfile;
+                     updateProfileDisplay(currentProfile); // Эта функция обновит UI
+                     hideModal('avatar-modal');
+                     showToast('ÚSPĚCH', 'Profilový obrázek byl aktualizován.', 'success');
+                     console.log("[Avatar Upload] Avatar úspěšně aktualizován.");
+                     return true;
+                 } catch (error) {
+                     console.error('[Avatar Upload] Chyba:', error);
+                     showToast('CHYBA', `Aktualizace avataru selhala: ${error.message}`, 'error');
+                     return false;
+                 } finally {
+                     setLoadingState('avatar', false);
+                 }
+             }
              async function deleteUserAccount(password) { if (!currentUser || !supabase) { showToast('Chyba', 'Nejste přihlášeni.', 'error'); return false; } if (!password) { showFieldError('confirm-delete-password', 'Zadejte heslo pro potvrzení.'); return false; } console.warn("[Account Deletion] Zahájení procesu smazání účtu pro:", currentUser.id); setLoadingState('delete', true); clearFieldError('confirm-delete-password'); try { console.log("[Account Deletion] Volání funkce 'delete-user-account'..."); const { data, error } = await supabase.functions.invoke('delete-user-account', { body: JSON.stringify({ password: password }) }); if (error) { let message = error.message || 'Neznámá chyba serverové funkce.'; if (message.includes('Invalid user credentials') || message.includes('Incorrect password')) { showFieldError('confirm-delete-password', 'Nesprávné heslo.'); message = 'Nesprávné heslo.'; } else if (message.includes('requires recent login')) { showFieldError('confirm-delete-password', 'Vyžadováno nedávné přihlášení.'); message = 'Pro smazání účtu se prosím znovu přihlaste.'; showToast('Chyba', message, 'warning'); } else { showToast('CHYBA SMAZÁNÍ', message, 'error'); } console.error('[Account Deletion] Chyba funkce:', error); return false; } console.log("[Account Deletion] Funkce úspěšně provedena:", data); showToast('ÚČET SMAZÁN', 'Váš účet byl úspěšně smazán.', 'success', 5000); setTimeout(() => { window.location.href = '/auth/index.html'; }, 3000); return true; } catch (error) { console.error('[Account Deletion] Chyba:', error); if (!document.getElementById('confirm-delete-password-error')?.textContent) { showToast('CHYBA SMAZÁNÍ', `Smazání účtu selhalo: ${error.message}`, 'error'); } return false; } finally { setLoadingState('delete', false); } }
             // --- END: Supabase Interaction Functions ---
 
@@ -1397,8 +1455,61 @@
 
 
             // --- START: UI Update Functions ---
-            function updateProfileDisplay(profileData) { if (!profileData) { console.warn("updateProfileDisplay: Chybí data profilu."); return; } console.log("[UI Update] Aktualizace zobrazení profilu..."); const sidebarDisplayName = `${profileData.first_name || ''} ${profileData.last_name || ''}`.trim() || profileData.username || currentUser?.email?.split('@')[0] || 'Pilot'; if (ui.sidebarName) ui.sidebarName.textContent = sanitizeHTML(sidebarDisplayName); if (ui.sidebarAvatar) { const initials = getInitials(profileData); const avatarUrl = profileData.avatar_url; ui.sidebarAvatar.innerHTML = avatarUrl ? `<img src="${sanitizeHTML(avatarUrl)}" alt="${sanitizeHTML(initials)}">` : sanitizeHTML(initials); } const profileDisplayName = `${profileData.first_name || ''} ${profileData.last_name || ''}`.trim() || profileData.username || 'Uživatel'; if (ui.profileName) ui.profileName.textContent = sanitizeHTML(profileDisplayName); if (ui.profileEmail) ui.profileEmail.textContent = sanitizeHTML(profileData.email); if (ui.profileAvatar) { const initials = getInitials(profileData); const avatarUrl = profileData.avatar_url; const overlayHTML = ui.profileAvatar.querySelector('.edit-avatar-overlay')?.outerHTML || `<div class="edit-avatar-overlay" id="edit-avatar-btn"><i class="fas fa-camera-retro"></i><span>Změnit</span></div>`; ui.profileAvatar.innerHTML = avatarUrl ? `<img src="${sanitizeHTML(avatarUrl)}" alt="Avatar">` : `<span>${sanitizeHTML(initials)}</span>`; ui.profileAvatar.innerHTML += overlayHTML; // Re-attach listener after update
- const editBtn = ui.profileAvatar.querySelector('#edit-avatar-btn'); if (editBtn) editBtn.addEventListener('click', () => showModal('avatar-modal')); } if (ui.avatarPreview) { const initials = getInitials(profileData); const avatarUrl = profileData.avatar_url; ui.avatarPreview.innerHTML = avatarUrl ? `<img src="${sanitizeHTML(avatarUrl)}" alt="Náhled">` : `<span>${sanitizeHTML(initials)}</span>`; } if (ui.profileLevel) ui.profileLevel.textContent = profileData.level ?? 1; if (ui.profilePoints) ui.profilePoints.textContent = profileData.points ?? 0; if (ui.profileBadges) ui.profileBadges.textContent = profileData.badges_count ?? 0; if (ui.profileStreak) ui.profileStreak.textContent = profileData.streak_days ?? 0; if (ui.firstNameField) ui.firstNameField.value = profileData.first_name || ''; if (ui.lastNameField) ui.lastNameField.value = profileData.last_name || ''; if (ui.usernameField) ui.usernameField.value = profileData.username || ''; if (ui.emailField) ui.emailField.value = profileData.email || ''; if (ui.schoolField) ui.schoolField.value = profileData.school || ''; if (ui.gradeField) ui.gradeField.value = profileData.grade || ''; if (ui.bioField) ui.bioField.value = profileData.bio || ''; if (profileData.preferences) { if (ui.darkModeToggle) ui.darkModeToggle.checked = profileData.preferences.dark_mode ?? false; if (ui.languageSelect) ui.languageSelect.value = profileData.preferences.language || 'cs'; applyPreferences(profileData.preferences); } if (profileData.notifications) { if (ui.emailNotificationsToggle) ui.emailNotificationsToggle.checked = profileData.notifications.email ?? true; if (ui.studyTipsToggle) ui.studyTipsToggle.checked = profileData.notifications.study_tips ?? true; if (ui.contentUpdatesToggle) ui.contentUpdatesToggle.checked = profileData.notifications.content_updates ?? true; if (ui.practiceRemindersToggle) ui.practiceRemindersToggle.checked = profileData.notifications.practice_reminders ?? true; } console.log("[UI Update] Zobrazení profilu dokončeno."); }
+            function updateProfileDisplay(profileData) {
+                 if (!profileData) { console.warn("updateProfileDisplay: Chybí data profilu."); return; }
+                 console.log("[UI Update] Aktualizace zobrazení profilu...");
+                 const sidebarDisplayName = `${profileData.first_name || ''} ${profileData.last_name || ''}`.trim() || profileData.username || currentUser?.email?.split('@')[0] || 'Pilot';
+                 if (ui.sidebarName) ui.sidebarName.textContent = sanitizeHTML(sidebarDisplayName);
+                 if (ui.sidebarAvatar) {
+                     const initials = getInitials(profileData);
+                     const avatarUrl = profileData.avatar_url;
+                     // Cache busting by adding timestamp
+                     const cacheBustingUrl = avatarUrl ? `${avatarUrl}?t=${new Date().getTime()}` : null;
+                     ui.sidebarAvatar.innerHTML = cacheBustingUrl ? `<img src="${sanitizeHTML(cacheBustingUrl)}" alt="${sanitizeHTML(initials)}">` : sanitizeHTML(initials);
+                 }
+                 const profileDisplayName = `${profileData.first_name || ''} ${profileData.last_name || ''}`.trim() || profileData.username || 'Uživatel';
+                 if (ui.profileName) ui.profileName.textContent = sanitizeHTML(profileDisplayName);
+                 if (ui.profileEmail) ui.profileEmail.textContent = sanitizeHTML(profileData.email);
+                 if (ui.profileAvatar) {
+                     const initials = getInitials(profileData);
+                     const avatarUrl = profileData.avatar_url;
+                     const cacheBustingUrl = avatarUrl ? `${avatarUrl}?t=${new Date().getTime()}` : null;
+                     const overlayHTML = ui.profileAvatar.querySelector('.edit-avatar-overlay')?.outerHTML || `<div class="edit-avatar-overlay" id="edit-avatar-btn"><i class="fas fa-camera-retro"></i><span>Změnit</span></div>`;
+                     ui.profileAvatar.innerHTML = cacheBustingUrl ? `<img src="${sanitizeHTML(cacheBustingUrl)}" alt="Avatar">` : `<span>${sanitizeHTML(initials)}</span>`;
+                     ui.profileAvatar.innerHTML += overlayHTML;
+                     const editBtn = ui.profileAvatar.querySelector('#edit-avatar-btn');
+                     if (editBtn) editBtn.addEventListener('click', () => showModal('avatar-modal'));
+                 }
+                 if (ui.avatarPreview) {
+                     const initials = getInitials(profileData);
+                     const avatarUrl = profileData.avatar_url;
+                     const cacheBustingUrl = avatarUrl ? `${avatarUrl}?t=${new Date().getTime()}` : null;
+                     ui.avatarPreview.innerHTML = cacheBustingUrl ? `<img src="${sanitizeHTML(cacheBustingUrl)}" alt="Náhled">` : `<span>${sanitizeHTML(initials)}</span>`;
+                 }
+                 if (ui.profileLevel) ui.profileLevel.textContent = profileData.level ?? 1;
+                 if (ui.profilePoints) ui.profilePoints.textContent = profileData.points ?? 0;
+                 if (ui.profileBadges) ui.profileBadges.textContent = profileData.badges_count ?? 0;
+                 if (ui.profileStreak) ui.profileStreak.textContent = profileData.streak_days ?? 0;
+                 if (ui.firstNameField) ui.firstNameField.value = profileData.first_name || '';
+                 if (ui.lastNameField) ui.lastNameField.value = profileData.last_name || '';
+                 if (ui.usernameField) ui.usernameField.value = profileData.username || '';
+                 if (ui.emailField) ui.emailField.value = profileData.email || '';
+                 if (ui.schoolField) ui.schoolField.value = profileData.school || '';
+                 if (ui.gradeField) ui.gradeField.value = profileData.grade || '';
+                 if (ui.bioField) ui.bioField.value = profileData.bio || '';
+                 if (profileData.preferences) {
+                     if (ui.darkModeToggle) ui.darkModeToggle.checked = profileData.preferences.dark_mode ?? false;
+                     if (ui.languageSelect) ui.languageSelect.value = profileData.preferences.language || 'cs';
+                     applyPreferences(profileData.preferences);
+                 }
+                 if (profileData.notifications) {
+                     if (ui.emailNotificationsToggle) ui.emailNotificationsToggle.checked = profileData.notifications.email ?? true;
+                     if (ui.studyTipsToggle) ui.studyTipsToggle.checked = profileData.notifications.study_tips ?? true;
+                     if (ui.contentUpdatesToggle) ui.contentUpdatesToggle.checked = profileData.notifications.content_updates ?? true;
+                     if (ui.practiceRemindersToggle) ui.practiceRemindersToggle.checked = profileData.notifications.practice_reminders ?? true;
+                 }
+                 console.log("[UI Update] Zobrazení profilu dokončeno.");
+             }
             function applyPreferences(preferences) { if (!preferences) return; if (preferences.dark_mode) { document.documentElement.classList.add('dark'); } else { document.documentElement.classList.remove('dark'); } console.log("[Preferences Apply] Aplikováno nastavení (Tmavý režim: " + preferences.dark_mode + ")"); }
             // --- END: UI Update Functions ---
 
@@ -1510,7 +1621,7 @@
                 initHeaderScrollDetection();
                 updateCopyrightYear();
 
-                // --- Notification Listeners (Added/Corrected) ---
+                // --- Notification Listeners ---
                 if (ui.notificationBell) {
                     ui.notificationBell.addEventListener('click', (event) => {
                         event.stopPropagation();
@@ -1532,7 +1643,7 @@
                                 if (success) {
                                     item.classList.add('is-read');
                                     const dot = item.querySelector('.unread-dot');
-                                    if(dot) dot.remove(); // More robust removal
+                                    if(dot) dot.remove();
                                     const currentCountText = ui.notificationCount.textContent.replace('+', '');
                                     const currentCount = parseInt(currentCountText) || 0;
                                     const newCount = Math.max(0, currentCount - 1);
