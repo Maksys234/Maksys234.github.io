@@ -1,8 +1,9 @@
 <!DOCTYPE html>
-<html lang="cs" class="dark"> <head>
+<html lang="cs" class="dark">
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Justax - Profil</title>
+    <title>Justax - Profil // NASTAVENÍ</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
@@ -16,8 +17,10 @@
             /* Основа */
             --bg-color: #03020c;
             --bg-secondary: #0a071f;
+            --bg-secondary-rgb: 10, 7, 31;
             --card-bg: rgba(15, 10, 45, 0.88);
             --card-solid: #0f0a2d;
+            --card-solid-rgb: 15, 10, 45;
             --interface-bg: rgba(6, 4, 22, 0.92);
             --interface-border: rgba(0, 240, 255, 0.35);
             --dark-purple-accent: #160c41;
@@ -48,11 +51,13 @@
             --text-light: #f1f5f9; /* Почти белый */
             --text-medium: #b8c4e0; /* Светло-серый/голубой */
             --text-muted: #808db0; /* Приглушенный */
+            --text-muted-rgb: 128, 141, 176;
             --text-heading: #ffffff; /* Белый */
             --text-link: var(--accent-primary);
             --text-link-hover: #ffffff;
             --text-fixed-dark: #03020c; /* Для текста на светлых/ярких фонах */
             --white: #ffffff;
+            --white-rgb: 255, 255, 255;
             --black: #000000; /* Иногда нужен чистый черный */
 
             /* Границы */
@@ -130,19 +135,19 @@
             position: relative; /* Для позиционирования псевдоэлементов */
         }
 
-        /* Фоновые эффекты (опционально, можно убрать для дашборда) */
+        /* Фоновые эффекты */
         body::before { /* Сетка */
             content: ""; position: fixed; inset: 0; width: 100%; height: 100%; z-index: -3;
             background-image:
                 linear-gradient(rgba(var(--accent-secondary-rgb), 0.04) 1px, transparent 1px),
                 linear-gradient(90deg, rgba(var(--accent-secondary-rgb), 0.04) 1px, transparent 1px);
-            background-size: 40px 40px; opacity: 0.6; /* Менее заметно */
+            background-size: 40px 40px; opacity: 0.6;
             animation: bg-grid-pan 100s linear infinite; pointer-events: none;
         }
         body::after { /* Сканлинии */
             content: ""; position: fixed; inset: 0; width: 100%; height: 100%; z-index: -2;
             background: linear-gradient( to bottom, rgba(10, 7, 31, 0) 50%, rgba(0, 0, 0, 0.08) 50% );
-            background-size: 100% 3px; opacity: 0.15; /* Менее заметно */
+            background-size: 100% 3px; opacity: 0.15;
             animation: scanlines 25s linear infinite; pointer-events: none;
         }
         @keyframes bg-grid-pan { 0% { background-position: 0 0; } 100% { background-position: 800px 400px; } }
@@ -150,7 +155,7 @@
 
         /* Свечение мыши */
         .mouse-follower-glow {
-            position: fixed; width: 200px; height: 200px; /* Чуть меньше */
+            position: fixed; width: 200px; height: 200px;
             background: radial-gradient(circle, rgba(var(--accent-primary-rgb), 0.05) 0%, transparent 70%);
             border-radius: 50%; pointer-events: none; z-index: -1;
             transform: translate(-50%, -50%); filter: blur(35px);
@@ -161,7 +166,7 @@
 
         /* Типография */
         h1, h2, h3, h4, h5, h6 { font-family: var(--font-secondary); font-weight: 600; color: var(--text-heading); line-height: 1.35; margin-bottom: 1em; text-shadow: 0 1px 3px rgba(0,0,0,0.3); }
-        h1 { font-size: clamp(1.6rem, 3vw, 1.9rem); font-weight: 700; } /* Уменьшено для дашборда */
+        h1 { font-size: clamp(1.6rem, 3vw, 1.9rem); font-weight: 700; }
         h2 { font-size: clamp(1.3rem, 2.5vw, 1.5rem); margin-bottom: 1.5rem; /* Section title */ }
         h3 { font-size: clamp(1.1rem, 2vw, 1.25rem); }
         p { margin-bottom: 1.2rem; font-size: clamp(0.9rem, 1.8vw, 1rem); max-width: 700px; color: var(--text-medium); }
@@ -183,16 +188,16 @@
          body { /* Firefox scrollbar */ scrollbar-width: thin; scrollbar-color: rgba(var(--accent-primary-rgb), 0.5) rgba(var(--accent-secondary-rgb), 0.08); }
 
         /* --- Утилиты --- */
-        .btn { /* Базовый стиль кнопки, применяемый к кнопкам дашборда */
-            display: inline-flex; align-items: center; justify-content: center; gap: 0.6em; /* Slightly more gap */
-            padding: 0.7rem 1.4rem; /* Adjusted padding */
+        .btn {
+            display: inline-flex; align-items: center; justify-content: center; gap: 0.6em;
+            padding: 0.7rem 1.4rem;
             background: transparent; color: var(--accent-primary);
             border: 2px solid var(--accent-primary); border-radius: var(--button-radius);
             font-family: var(--font-secondary); font-weight: 600; font-size: 0.9rem;
             text-align: center; text-transform: uppercase; letter-spacing: 1px;
             cursor: pointer; transition: all var(--transition-medium), transform 0.15s ease-out;
             position: relative; overflow: hidden; z-index: 1;
-            box-shadow: 0 0 12px -4px var(--accent-glow), inset 0 0 8px -6px var(--accent-glow); /* Adjusted shadow */
+            box-shadow: 0 0 12px -4px var(--accent-glow), inset 0 0 8px -6px var(--accent-glow);
             backdrop-filter: blur(2px); will-change: transform, box-shadow, color, border-color;
         }
         .btn::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: var(--gradient-button); transition: left 0.35s ease-in-out; z-index: -1; }
@@ -201,6 +206,8 @@
         .btn:active:not(:disabled) { transform: translateY(0px) scale(0.97); box-shadow: 0 0 8px var(--accent-secondary-glow), inset 0 0 12px rgba(0,0,0,0.3); transition-duration: 0.08s; }
         .btn:disabled { opacity: 0.5; cursor: not-allowed; background-color: transparent !important; border-color: var(--text-muted) !important; color: var(--text-muted) !important; box-shadow: none !important; }
         .btn:disabled::before { display: none; }
+        .btn i.fa-spinner { margin-right: 0.5em; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
         .btn-outline { /* Контурная кнопка */
             border-color: var(--accent-secondary); color: var(--accent-secondary); box-shadow: 0 0 10px -3px var(--accent-secondary-glow), inset 0 0 8px -5px var(--accent-secondary-glow);
@@ -256,15 +263,15 @@
         /* --- Sidebar (Cyberpunk theme) --- */
         .sidebar {
             width: var(--sidebar-width); height: 100vh; position: fixed; top: 0; left: 0;
-            background: var(--gradient-sidebar); /* Новый градиент */
-            color: var(--text-medium); /* Базовый цвет текста */
+            background: var(--gradient-sidebar);
+            color: var(--text-medium);
             padding: 1.5rem 1rem; display: flex; flex-direction: column; z-index: 1000;
-            box-shadow: 5px 0 30px rgba(0, 0, 0, 0.4); /* Тень */
+            box-shadow: 5px 0 30px rgba(0, 0, 0, 0.4);
             border-right: 1px solid var(--border-color-light);
             transition: transform var(--transition-medium) ease, width var(--transition-medium) ease;
         }
         .sidebar-header { display: flex; align-items: center; margin-bottom: 2.5rem; padding: 0 0.5rem; position: relative; min-height: 45px; }
-        #sidebar-close-toggle { /* Кнопка закрытия на мобильных */
+        #sidebar-close-toggle {
              display: none; position: absolute; right: 0px; top: 50%; transform: translateY(-50%);
              background: none; border: none; color: var(--text-muted); font-size: 1.8rem; cursor: pointer;
              padding: 0.5rem; line-height: 1; transition: color 0.2s ease;
@@ -275,22 +282,21 @@
              display: flex; align-items: center; gap: 0.8rem; text-shadow: 0 0 8px var(--accent-secondary-glow);
         }
         .sidebar-logo i { font-size: 1.8rem; color: var(--accent-secondary); }
-        .sidebar-logo span { transition: opacity 0.2s ease; } /* Для скрытия на узком экране */
+        .sidebar-logo span { transition: opacity 0.2s ease; }
         .sidebar-menu { list-style: none; padding: 0; margin: 0; flex-grow: 1; overflow-y: auto; }
-        /* Скроллбар сайдбара уже стилизован глобально */
         .sidebar-item { margin-bottom: 0.6rem; }
         .sidebar-link {
-            display: flex; align-items: center; padding: 0.85rem 1rem; /* Немного больше */
+            display: flex; align-items: center; padding: 0.85rem 1rem;
             color: var(--text-medium); text-decoration: none; border-radius: var(--button-radius);
             transition: background-color 0.25s ease, color 0.25s ease, box-shadow 0.25s ease, border-left-color 0.25s ease;
             font-weight: 500; position: relative;
-            border-left: 4px solid transparent; /* Основа для активной метки */
+            border-left: 4px solid transparent;
         }
         .sidebar-link i {
             margin-right: 0.85rem; font-size: 1.25rem; width: 25px; text-align: center;
             transition: color 0.25s ease; color: var(--text-muted);
         }
-        .sidebar-link span { transition: opacity 0.2s ease; } /* Для скрытия текста */
+        .sidebar-link span { transition: opacity 0.2s ease; }
         .sidebar-link:hover {
             background-color: rgba(var(--accent-primary-rgb), 0.1); color: var(--text-light);
             box-shadow: inset 3px 0 8px -2px rgba(var(--accent-primary-rgb), 0.3);
@@ -302,16 +308,15 @@
             box-shadow: inset 4px 0 10px -3px rgba(var(--accent-primary-rgb), 0.4);
         }
         .sidebar-link.active i { color: var(--accent-primary); }
-        /* Убираем ::before, используем border-left */
 
-        .user-profile { /* Профиль пользователя */
+        .user-profile {
             display: flex; align-items: center; padding: 1rem; margin-top: 1.5rem;
             background-color: rgba(var(--accent-secondary-rgb), 0.1); border-radius: 12px;
             border: 1px solid var(--border-color-light); flex-shrink: 0;
         }
         .user-avatar {
             width: 42px; height: 42px; border-radius: 50%;
-            background-color: var(--accent-secondary); /* Цвет фона аватарки */
+            background-color: var(--accent-secondary);
             display: flex; align-items: center; justify-content: center; margin-right: 0.85rem;
             font-weight: 600; font-size: 1.1rem; overflow: hidden; color: var(--white);
             border: 2px solid rgba(var(--accent-primary-rgb), 0.3); flex-shrink: 0;
@@ -321,7 +326,7 @@
         .user-info { flex-grow: 1; overflow: hidden; }
         .user-name { font-weight: 600; font-size: 1rem; color: var(--text-light); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .user-role { font-size: 0.8rem; color: var(--text-muted); white-space: nowrap; }
-        .sidebar-footer { /* Подвал сайдбара */
+        .sidebar-footer {
             margin-top: 1.5rem; padding: 1rem; font-size: 0.8rem; color: var(--text-muted);
             text-align: center; flex-shrink: 0; opacity: 0.7;
         }
@@ -329,120 +334,107 @@
 
         /* --- Основной контент --- */
         main {
-            flex: 1; margin-left: var(--sidebar-width); padding: 0 var(--container-padding-x); /* Только горизонтальный паддинг */
+            flex: 1; margin-left: var(--sidebar-width); padding: 0 var(--container-padding-x);
             transition: margin-left var(--transition-medium) ease;
             width: calc(100% - var(--sidebar-width)); overflow-y: auto; height: 100vh;
-            display: block; /* Make sure it's displayed by default */
-             /* Скроллбар уже стилизован глобально */
-             /* Animation handled by specific elements */
+            display: none; /* Initially hidden by default */
         }
+        main.loaded {
+            display: block;
+            animation: fadeInMain 0.5s ease-out forwards;
+        }
+        @keyframes fadeInMain { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
 
         /* Хедер дашборда (используется в профиле) */
         .dashboard-header {
-            margin-bottom: var(--section-padding-y); /* Отступ снизу */
-            background-color: rgba(var(--bg-secondary-rgb, 10, 7, 31), 0.7); /* Полупрозрачный фон */
-            backdrop-filter: blur(12px); border-radius: 0 0 var(--card-radius) var(--card-radius); /* Скругление только снизу */
+            margin-bottom: var(--section-padding-y);
+            background-color: rgba(var(--bg-secondary-rgb, 10, 7, 31), 0.7);
+            backdrop-filter: blur(12px); border-radius: 0 0 var(--card-radius) var(--card-radius);
             padding: 1rem var(--container-padding-x); box-shadow: var(--shadow-hud);
             display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;
             position: sticky; top: 0; z-index: 900;
             border-bottom: 1px solid var(--border-color-light);
             transition: background-color 0.3s ease, box-shadow 0.3s ease;
         }
-        body.scrolled .dashboard-header { /* Стиль при скролле */
+        body.scrolled .dashboard-header {
              background-color: rgba(var(--bg-secondary-rgb, 10, 7, 31), 0.85);
              box-shadow: 0 6px 20px rgba(0,0,0,0.3);
         }
         .header-content { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; width: 100%; }
         .header-content > div:first-child { display: flex; align-items: center; gap: 1rem; flex-grow: 1; }
-        /* Мобильное меню */
         .mobile-menu-toggle {
              display: none; background: none; border: none; color: var(--text-medium); font-size: 1.6rem; cursor: pointer; padding: 0.5rem; margin-right: 0.5rem; z-index: 1010; transition: color 0.2s ease;
         }
         .mobile-menu-toggle:hover { color: var(--accent-primary); }
-        @media (max-width: 992px) { .mobile-menu-toggle { display: block; } } /* Показать на планшетах/мобильных */
+        @media (max-width: 992px) { .mobile-menu-toggle { display: block; } }
 
-        .header-content h1 { /* Заголовок страницы */
+        .header-content h1 {
              font-size: 1.7rem; font-weight: 700; color: var(--text-heading); margin: 0;
-             text-shadow: 0 0 10px var(--accent-glow); /* Свечение заголовка */
+             text-shadow: 0 0 10px var(--accent-glow);
         }
         .header-actions { display: flex; align-items: center; gap: 1rem; }
 
-        /* Search Box (Copied from original profile.html, adapted to theme) */
-        .search-box { position: relative; display: none; /* Hide by default on profile? Re-enable if needed */ }
-        .search-box input {
-             width: 250px; height: 40px; border-radius: 20px; padding: 0 1rem 0 2.5rem;
-             border: 1px solid var(--border-color-light); background-color: var(--input-bg-color);
-             color: var(--text-light); outline: none; transition: all 0.2s ease; font-size: 0.9rem;
-         }
-        .search-box input:focus { border-color: var(--input-focus-border-color); box-shadow: var(--input-focus-shadow); }
-        .search-box i { position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
-        @media (min-width: 768px) { .search-box { display: block; } } /* Show on larger screens if needed */
-
-        /* Уведомления (Copied from dashboard.html) */
         .notifications { position: relative; }
         .notification-bell { cursor: pointer; padding: 0.6rem; position: relative; display: inline-block; line-height: 1; }
         .notification-bell i { font-size: 1.4rem; color: var(--text-medium); transition: color 0.2s, transform 0.2s; }
         .notification-bell:hover i { color: var(--accent-primary); transform: scale(1.1); }
         .notification-badge {
             position: absolute; top: 0px; right: 0px; width: 18px; height: 18px;
-            background-color: var(--accent-pink); /* Используем розовый акцент */
+            background-color: var(--accent-pink);
             color: var(--white); font-size: 0.65rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600;
-            border: 2px solid var(--bg-secondary); /* Фон хедера */
+            border: 2px solid var(--bg-secondary);
             pointer-events: none; opacity: 0; transform: scale(0.5); transition: opacity 0.2s, transform 0.2s;
             box-shadow: 0 0 8px var(--accent-pink-glow);
         }
         .notification-badge.visible { opacity: 1; transform: scale(1); }
-         /* Add dropdown styles if needed for profile page */
          .notifications-dropdown-wrapper { display: none; /* Hidden by default on profile */ }
 
-        /* Logout Button (Adapted from profile.html) */
         #logout-btn {
             background: none; border: none; color: var(--text-medium);
-            cursor: pointer; font-size: 1.4rem; /* Match bell icon size */
+            cursor: pointer; font-size: 1.4rem;
             padding: 0.6rem; display: flex; align-items: center; transition: color 0.2s ease;
         }
         #logout-btn:hover { color: var(--accent-pink); }
 
         /* --- Основной контент дашборда --- */
-        .main-content-wrapper { padding: var(--section-padding-y) 0; /* Вертикальные отступы для контента */ }
-        .main-content-grid { display: grid; gap: 2rem; /* Увеличен gap */ }
+        .main-content-wrapper { padding: var(--section-padding-y) 0; }
+        .main-content-grid { display: grid; gap: 2rem; }
         .section { /* Replaces .card for profile section */
             background: var(--card-bg); border-radius: var(--card-radius);
             border: 1px solid var(--border-color-light);
             box-shadow: var(--shadow-hud);
-            padding: clamp(1.5rem, 4vw, 2.5rem); /* Responsive padding */
+            padding: clamp(1.5rem, 4vw, 2.5rem);
             margin-bottom: 2rem;
              position: relative; overflow: hidden;
         }
-        /* Section corners (like card) */
         .section::before, .section::after {
              content: ''; position: absolute; width: 12px; height: 12px;
-             border-color: var(--accent-primary); border-style: solid; opacity: 0.6; /* Visible */
+             border-color: var(--accent-primary); border-style: solid; opacity: 0.6;
              transition: all 0.3s ease; pointer-events: none; z-index: 1;
          }
          .section::before { top: 10px; left: 10px; border-width: 2px 0 0 2px; }
          .section::after { bottom: 10px; right: 10px; border-width: 0 2px 2px 0; }
 
-
-        .section-title { /* Используем стиль из index */
+        .section-title {
             font-size: 1.5rem; font-weight: 600; margin-bottom: 1.5rem; color: var(--text-heading);
             padding-bottom: 0.8rem; position: relative;
             display: flex; align-items: center; gap: 0.7rem;
         }
-         .section-title i { /* Иконка секции */
+         .section-title i {
              font-size: 1.1em; color: var(--accent-secondary);
              text-shadow: 0 0 8px var(--accent-secondary-glow);
          }
-         .section-title::after { /* Подчеркивание */
+         .section-title::after {
             content: ''; position: absolute; bottom: 0; left: 0; width: 60px; height: 3px;
             background: var(--gradient-border-anim); background-size: 300% 100%;
             animation: gradient-move 4s linear infinite; border-radius: 1.5px;
             filter: drop-shadow(0 0 5px var(--accent-primary));
         }
+        @keyframes gradient-move { 0% { background-position: 0% 50%; } 100% { background-position: 100% 50%; } }
          /* Ensure section titles inside tabs don't have the border */
         .tab-content .section-title { border: none; padding-bottom: 0; margin-bottom: 1.5rem; }
         .tab-content .section-title::after { display: none; }
-
 
         /* === Profile Specific Styles (Adapted to Cyberpunk) === */
         .profile-header {
@@ -451,14 +443,14 @@
         }
 
         .profile-avatar {
-            width: 140px; /* Larger */ height: 140px; border-radius: 50%;
-            background: var(--gradient-profile-avatar); /* Use theme gradient */
+            width: 140px; height: 140px; border-radius: 50%;
+            background: var(--gradient-profile-avatar);
             display: flex; align-items: center; justify-content: center;
-            font-size: 3.5rem; /* Larger initials */ color: var(--white);
+            font-size: 3.5rem; color: var(--white);
             margin-bottom: 1.5rem; position: relative; overflow: hidden;
-            box-shadow: 0 0 25px rgba(var(--accent-primary-rgb), 0.3), 0 0 15px rgba(var(--accent-secondary-rgb), 0.2); /* Glow effect */
+            box-shadow: 0 0 25px rgba(var(--accent-primary-rgb), 0.3), 0 0 15px rgba(var(--accent-secondary-rgb), 0.2);
             cursor: pointer;
-            border: 4px solid var(--interface-bg); /* Inner border matching dark bg */
+            border: 4px solid var(--interface-bg);
             transition: transform var(--transition-medium), box-shadow var(--transition-medium);
         }
         .profile-avatar:hover {
@@ -468,9 +460,9 @@
         .profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
         .profile-avatar .edit-avatar-overlay {
              position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-             background: rgba(var(--bg-secondary-rgb, 10, 7, 31), 0.75); /* Dark overlay */
+             background: rgba(var(--bg-secondary-rgb, 10, 7, 31), 0.75);
              backdrop-filter: blur(3px);
-             color: var(--accent-primary); /* Accent color for text/icon */
+             color: var(--accent-primary);
              display: flex; flex-direction: column; justify-content: center; align-items: center;
              opacity: 0; transition: opacity 0.3s ease;
          }
@@ -485,13 +477,13 @@
         .stat-item { text-align: center; }
         .stat-value {
              font-size: clamp(1.8rem, 5vw, 2.2rem); font-weight: 700;
-             color: var(--accent-primary); /* Use primary accent */
+             color: var(--accent-primary);
              text-shadow: 0 0 10px var(--accent-glow); line-height: 1.1;
          }
         .stat-label { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-top: 0.3rem; }
 
         .profile-tabs {
-             display: flex; border-bottom: 1px solid var(--border-color-light); margin-bottom: 2.5rem; overflow-x: auto; padding-bottom: 1px; /* Prevent border cutting off glow */
+             display: flex; border-bottom: 1px solid var(--border-color-light); margin-bottom: 2.5rem; overflow-x: auto; padding-bottom: 1px;
              /* Scrollbar for tabs */
              scrollbar-width: thin; scrollbar-color: rgba(var(--accent-primary-rgb), 0.5) transparent;
          }
@@ -505,8 +497,8 @@
              display: flex; align-items: center; gap: 0.6rem; position: relative;
          }
          .profile-tab i { font-size: 1.1rem; transition: color 0.3s ease; }
-         .profile-tab::after { /* Glow effect for active/hover */
-             content: ''; position: absolute; left: 0; bottom: -2px; /* Position below the tab */
+         .profile-tab::after {
+             content: ''; position: absolute; left: 0; bottom: -2px;
              width: 100%; height: 3px; background: var(--accent-primary);
              border-radius: 1.5px; opacity: 0; transform: scaleX(0.5);
              box-shadow: 0 0 10px var(--accent-glow);
@@ -526,7 +518,7 @@
         .form-group { margin-bottom: 1.75rem; }
         .form-label { display: block; margin-bottom: 0.7rem; font-weight: 600; color: var(--text-light); font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.5px; }
         .form-control {
-             width: 100%; padding: 0.9rem 1.1rem; /* Slightly more padding */
+             width: 100%; padding: 0.9rem 1.1rem;
              border: 1px solid var(--input-border-color); border-radius: var(--form-element-radius);
              font-size: 1rem; transition: all 0.3s ease;
              background-color: var(--input-bg-color); color: var(--text-light);
@@ -535,7 +527,7 @@
         .form-control:focus { border-color: var(--input-focus-border-color); box-shadow: var(--input-focus-shadow); outline: none; background-color: rgba(var(--accent-primary-rgb), 0.05); }
         .form-control[disabled] { background-color: rgba(var(--text-muted-rgb, 128, 141, 176), 0.1); opacity: 0.6; cursor: not-allowed; border-color: rgba(var(--text-muted-rgb, 128, 141, 176), 0.2); }
         textarea.form-control { min-height: 130px; resize: vertical; }
-        select.form-control { /* Specific styles for select */
+        select.form-control {
              appearance: none; -webkit-appearance: none; -moz-appearance: none;
              background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23808db0'%3E%3Cpath fill-rule='evenodd' d='M8 11.646l-4.854-4.853.708-.708L8 10.23l4.146-4.146.708.708z'/%3E%3C/svg%3E");
              background-repeat: no-repeat; background-position: right 1rem center; background-size: 1em 1em; padding-right: 3rem;
@@ -545,16 +537,16 @@
         .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(250px, 100%), 1fr)); gap: 1.75rem; }
 
         .settings-group { margin-bottom: 2.5rem; }
-        .settings-title { /* Title within settings */
+        .settings-title {
              font-size: 1.2rem; font-weight: 600; margin-bottom: 1.5rem; color: var(--text-light);
              border-bottom: 1px solid var(--border-color-light); padding-bottom: 0.75rem;
              display: flex; align-items: center; gap: 0.6rem;
          }
-         .settings-title i { color: var(--accent-secondary); } /* Optional icon */
+         .settings-title i { color: var(--accent-secondary); }
 
         .toggle-switch {
-             display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; /* Increased margin */
-             padding: 1rem 0; /* Increased padding */ border-bottom: 1px solid rgba(var(--border-color-light-rgb, 160, 92, 255), 0.15); /* Lighter dash */
+             display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;
+             padding: 1rem 0; border-bottom: 1px solid rgba(var(--border-color-light-rgb, 160, 92, 255), 0.15);
          }
         .toggle-switch:last-child { border-bottom: none; margin-bottom: 0; }
         .toggle-label { font-weight: 500; font-size: 1rem; color: var(--text-light); }
@@ -564,7 +556,6 @@
         .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(var(--accent-secondary-rgb), 0.2); transition: .4s; border-radius: 34px; border: 1px solid var(--border-color-light); }
         .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px; background-color: var(--text-medium); transition: .4s; border-radius: 50%; box-shadow: 0 1px 4px rgba(0,0,0,0.3); }
         input:checked + .slider { background-color: var(--accent-primary); border-color: var(--accent-primary); box-shadow: 0 0 8px var(--accent-glow); }
-        input:focus + .slider { /* No extra focus style needed due to global focus */ }
         input:checked + .slider:before { background-color: var(--white); transform: translateX(24px); }
 
         .danger-zone {
@@ -579,28 +570,19 @@
         .is-invalid { border-color: var(--accent-pink) !important; }
         .is-invalid:focus { box-shadow: 0 0 0 3px rgba(var(--accent-pink-rgb), 0.25) !important; }
 
-        /* Loading & Error (Adapted from original profile.html) */
-        .loading {
-            display: flex; justify-content: center; align-items: center; padding: 3rem;
-            font-size: 1rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;
-            gap: 1rem;
-        }
-        .loading::after { /* Cyberpunk spinner */
-            content: ""; width: 24px; height: 24px;
-            border: 3px solid var(--accent-primary); border-radius: 50%;
-            border-top-color: transparent; border-right-color: transparent;
-            animation: loading-spinner 0.8s linear infinite;
-        }
-        @keyframes loading-spinner { to { transform: rotate(360deg); } }
-        .error-container { display: none; margin-bottom: 1.5rem; }
-        .error-message {
-             background-color: rgba(var(--accent-pink-rgb), 0.1); border-left: 4px solid var(--accent-pink);
-             color: var(--accent-pink); padding: 1rem 1.2rem; margin: 1rem 0; border-radius: 8px;
-             font-size: 0.9rem; display: flex; align-items: center;
-             box-shadow: 0 3px 8px rgba(var(--accent-pink-rgb), 0.2);
+        /* Initial Loading Overlay */
+         .initial-loading-overlay {
+             position: fixed; inset: 0; background-color: var(--bg-color);
+             z-index: 1100; display: flex; justify-content: center; align-items: center; flex-direction: column; gap: 1.2rem;
+             transition: opacity 0.6s ease-out, visibility 0s 0.6s;
+             opacity: 1; visibility: visible;
          }
-        .error-message i { margin-right: 0.8rem; font-size: 1.3rem; }
-        .retry-button { /* Use btn style */ margin-left: auto; } /* Already styled as btn */
+         .initial-loading-overlay.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+         .initial-loading-overlay .loading-spinner {
+              width: 40px; height: 40px; border-width: 5px; border-color: var(--accent-primary); border-top-color: transparent; border-right-color: transparent;
+              animation: loading-spinner 0.9s linear infinite;
+         }
+         .initial-loading-overlay p { color: var(--text-medium); font-size: 1.1rem; font-weight: 500; letter-spacing: 0.5px; }
 
         /* Modal (Cyberpunk theme) */
         .modal {
@@ -613,10 +595,10 @@
         .modal.active { display: flex; opacity: 1; backdrop-filter: blur(8px); }
         .modal-content {
             background-color: var(--interface-bg); border-radius: var(--card-radius);
-            width: 90%; max-width: 600px; /* Slightly wider */
+            width: 90%; max-width: 600px;
             box-shadow: var(--shadow-card);
             transform: translateY(-30px) scale(0.95); transform-origin: center;
-            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Bounce effect */
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             overflow: hidden;
             border: 1px solid var(--border-color-medium);
         }
@@ -648,7 +630,7 @@
         .avatar-preview {
              width: 180px; height: 180px; border-radius: 50%; overflow: hidden; margin-bottom: 2rem;
              border: 5px solid var(--accent-primary);
-             background: var(--gradient-profile-avatar); /* Match profile avatar */
+             background: var(--gradient-profile-avatar);
              display: flex; align-items: center; justify-content: center;
              color: var(--white); font-size: 4rem; font-weight: 600;
              box-shadow: 0 0 20px rgba(var(--accent-primary-rgb), 0.4), inset 0 0 15px rgba(0,0,0,0.3);
@@ -657,14 +639,14 @@
         .avatar-preview img { width: 100%; height: 100%; object-fit: cover; }
         .file-upload { position: relative; overflow: hidden; margin: 10px 0; display: inline-block; }
         .file-upload input[type=file] { position: absolute; top: 0; right: 0; min-width: 100%; min-height: 100%; font-size: 100px; text-align: right; filter: alpha(opacity=0); opacity: 0; outline: none; cursor: pointer; display: block; }
-        /* .upload-btn is styled by .btn */
+        /* .upload-btn is styled by .btn .btn-outline */
 
         /* Toast notification (Cyberpunk Style) */
          .toast-container { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 1050; display: flex; flex-direction: column; gap: 0.8rem; max-width: 380px; pointer-events: none; }
          .toast {
-             padding: 1rem 1.3rem; border-radius: 12px; background: var(--interface-bg); /* Темный фон */
+             padding: 1rem 1.3rem; border-radius: 12px; background: var(--interface-bg);
              box-shadow: var(--shadow-card); display: flex; align-items: flex-start; color: var(--text-light);
-             animation: toast-in 0.45s cubic-bezier(0.215, 0.610, 0.355, 1) forwards; /* Улучшенная анимация */
+             animation: toast-in 0.45s cubic-bezier(0.215, 0.610, 0.355, 1) forwards;
              pointer-events: auto; border: 1px solid var(--border-color-medium); border-left-width: 5px;
              opacity: 0; transform: translateX(110%); backdrop-filter: blur(4px);
          }
@@ -694,19 +676,18 @@
             main { margin-left: 85px; width: calc(100% - 85px); }
             .sidebar { width: 85px; }
             .sidebar-logo span, .sidebar-link span, .user-info, .sidebar-footer { display: none; }
-            .sidebar-link i { margin-right: 0; font-size: 1.6rem; } /* Крупнее иконки */
+            .sidebar-link i { margin-right: 0; font-size: 1.6rem; }
             .sidebar-logo i { margin-right: 0; }
             .sidebar-header, .sidebar-link { justify-content: center; }
             .user-profile { justify-content: center; padding: 0.8rem; }
             .user-avatar { margin-right: 0; width: 45px; height: 45px; }
-            .mobile-menu-toggle#main-mobile-menu-toggle { display: block; } /* Показать кнопку меню в хедере */
+            .mobile-menu-toggle#main-mobile-menu-toggle { display: block; }
         }
         @media (max-width: 768px) { /* Мобильный */
-             main { padding: 0 1rem; } /* Меньше паддинг */
+             main { padding: 0 1rem; }
              .header-content { flex-direction: column; align-items: stretch; }
              .header-content > div:first-child { justify-content: space-between;}
              .header-actions { justify-content: flex-end; margin-top: 0.5rem; gap: 0.8rem; }
-             .search-box { display: none; } /* Hide search on mobile header */
              .dashboard-header { padding: 0.8rem 1rem; }
              .section-title { font-size: 1.3rem; }
              .profile-avatar { width: 120px; height: 120px; font-size: 3rem; }
@@ -719,7 +700,7 @@
         @media (max-width: 576px) { /* Маленький мобильный */
             :root { --sidebar-width: 0; }
             main { margin-left: 0; width: 100%; padding: 0 0.75rem; }
-            .sidebar { transform: translateX(-110%); width: 280px; z-index: 1000; } /* Скрыт по умолчанию */
+            .sidebar { transform: translateX(-110%); width: 280px; z-index: 1100; } /* Increased z-index */
             .sidebar.active { transform: translateX(0); }
             /* Восстанавливаем вид активного сайдбара */
             .sidebar.active .sidebar-logo span, .sidebar.active .sidebar-link span,
@@ -728,9 +709,9 @@
             .sidebar.active .sidebar-header, .sidebar.active .sidebar-link { justify-content: flex-start; }
             .sidebar.active .user-profile { padding: 1rem; }
             .sidebar.active .user-avatar { margin-right: 0.85rem; width: 42px; height: 42px; }
-            .sidebar.active #sidebar-close-toggle { display: block; } /* Показать кнопку закрытия */
+            .sidebar.active #sidebar-close-toggle { display: block; }
             .header-actions { gap: 0.5rem; }
-            .mouse-follower-glow { display: none !important; } /* Отключить свечение мыши */
+            .mouse-follower-glow { display: none !important; }
             .profile-avatar { width: 100px; height: 100px; font-size: 2.5rem; }
             .profile-name { font-size: 1.5rem; }
             .stat-value { font-size: 1.8rem; }
@@ -743,8 +724,8 @@
          /* Оверлей для мобильного меню */
          .sidebar-overlay {
              display: none; position: fixed; inset: 0;
-             background-color: rgba(3, 2, 12, 0.7); /* Темный полупрозрачный */
-             z-index: 999; opacity: 0;
+             background-color: rgba(3, 2, 12, 0.7);
+             z-index: 999; /* Below sidebar */ opacity: 0;
              transition: opacity var(--transition-medium) ease;
              backdrop-filter: blur(5px);
          }
@@ -761,7 +742,7 @@
             .sidebar { transition: transform 0.01ms !important; }
             .mouse-follower-glow { display: none !important; }
             body::before, body::after { animation: none !important; }
-            .loading-spinner, .loading::after { animation: none !important; border: 3px solid var(--accent-primary) !important; } /* Просто рамка */
+            .loading-spinner, .loading::after { animation: none !important; border: 3px solid var(--accent-primary) !important; }
             .card:hover, .shortcut-card:hover, .btn:hover, .btn-outline:hover, .welcome-button:hover, .refresh-btn:hover, .view-all-link:hover, .profile-avatar:hover, .modal-close:hover { transform: none !important; }
              .modal.active .modal-content { transform: translateY(0) scale(1) !important; transition: none !important;}
              .tab-content.active { animation: none !important; }
@@ -770,7 +751,14 @@
         /* --- END: Киберпанк CSS Тема --- */
     </style>
 </head>
-<body class="dark"> <div class="offline-banner" id="offline-banner"> <i class="fas fa-plug"></i> OFFLINE // SPOJENÍ ZTRACENO. </div>
+<body class="dark">
+
+    <div class="initial-loading-overlay" id="initial-loader">
+        <div class="loading-spinner"></div>
+        <p>NAČÍTÁNÍ PROFILU...</p>
+    </div>
+
+    <div class="offline-banner" id="offline-banner"> <i class="fas fa-plug"></i> OFFLINE // SPOJENÍ ZTRACENO. </div>
 
     <div class="sidebar-overlay" id="sidebar-overlay"></div>
 
@@ -788,59 +776,85 @@
             <li class="sidebar-item"> <a href="/dashboard/pokrok.html" class="sidebar-link"> <i class="fas fa-chart-line"></i> <span>Pokrok</span> </a> </li>
             <li class="sidebar-item"> <a href="/dashboard/oceneni.html" class="sidebar-link"> <i class="fas fa-medal"></i> <span>Ocenění</span> </a> </li>
             <li class="sidebar-item"> <a href="/dashboard/materialy.html" class="sidebar-link"> <i class="fas fa-database"></i> <span>Databanka</span> </a> </li>
-            <li class="sidebar-item"> <a href="/dashboard/profile.html" class="sidebar-link active"> <i class="fas fa-user-astronaut"></i> <span>Profil</span> </a> </li> </ul>
+            <li class="sidebar-item"> <a href="/dashboard/profile.html" class="sidebar-link active"> <i class="fas fa-user-astronaut"></i> <span>Profil</span> </a> </li>
+        </ul>
         <div class="user-profile">
-            <div class="user-avatar" id="sidebar-avatar">?</div> <div class="user-info">
-                <div class="user-name" id="sidebar-name">Načítání...</div> <div class="user-role">Pilot</div> </div>
+            <div class="user-avatar" id="sidebar-avatar">?</div>
+            <div class="user-info">
+                <div class="user-name" id="sidebar-name">Načítání...</div>
+                <div class="user-role">Pilot</div>
+            </div>
         </div>
-        <div class="sidebar-footer"> &copy; <span id="currentYearSidebar">2025</span> Justax Systems </div> </aside>
+        <div class="sidebar-footer"> &copy; <span id="currentYearSidebar">2025</span> Justax Systems </div>
+    </aside>
 
-    <main id="main-content"> <div class="error-container" id="global-error"></div>
+    <main id="main-content" style="display: none;">
+        <div class="error-container" id="global-error"></div>
 
         <header class="dashboard-header">
             <div class="header-content">
-                 <div> <button class="mobile-menu-toggle" id="main-mobile-menu-toggle" aria-label="Otevřít menu">
-                          <i class="fas fa-bars"></i>
+                 <div>
+                     <button class="mobile-menu-toggle" id="main-mobile-menu-toggle" aria-label="Otevřít menu">
+                         <i class="fas fa-bars"></i>
                      </button>
-                     <h1><i class="fas fa-id-card"></i> Profil // NASTAVENÍ</h1> </div>
+                     <h1><i class="fas fa-id-card"></i> Profil // NASTAVENÍ</h1>
+                 </div>
                 <div class="header-actions">
                     <div class="notifications">
-                        <div class="notification-bell" id="notification-bell" title="Oznámení">
+                        <div class="notification-bell" id="notification-bell" title="Oznámení (neaktivní)">
                              <i class="far fa-bell"></i>
-                             <span class="notification-badge" id="notification-count">0</span> </div>
-                         <div class="notifications-dropdown-wrapper" id="notifications-dropdown">
-                             </div>
-                    </div>
-                    <button id="logout-btn" title="Odhlásit se">
-                        <i class="fas fa-power-off"></i> </button>
+                             <span class="notification-badge" id="notification-count">0</span>
+                         </div>
+                         </div>
+                    <button id="logout-btn" title="Odhlásit se" class="btn btn-danger">
+                        <i class="fas fa-power-off"></i> <span style="margin-left: 0.5em;">Odhlásit</span>
+                    </button>
                 </div>
             </div>
         </header>
 
         <div class="main-content-wrapper">
             <div class="main-content-grid">
-                <section class="section profile-section" data-animate style="--animation-order: 0;">
-                    <div id="profile-loading" class="loading">Načítání profilu...</div>
-
-                    <div id="profile-content" style="display:none;">
+                <section class="section profile-section">
+                    <div id="profile-content">
                         <div class="profile-header">
                             <div class="profile-avatar" id="profile-avatar" title="Změnit profilový obrázek">
-                                 <span>?</span> <div class="edit-avatar-overlay" id="edit-avatar-btn"> <i class="fas fa-camera-retro"></i> <span>Změnit</span>
+                                 <span>?</span>
+                                 <div class="edit-avatar-overlay" id="edit-avatar-btn">
+                                    <i class="fas fa-camera-retro"></i>
+                                    <span>Změnit</span>
                                 </div>
                             </div>
                             <h2 class="profile-name" id="profile-name">Načítání...</h2>
                             <p class="profile-email" id="profile-email">Načítání...</p>
                             <div class="profile-stats">
-                                <div class="stat-item"> <div class="stat-value" id="profile-level">1</div> <div class="stat-label">Úroveň</div> </div>
-                                <div class="stat-item"> <div class="stat-value" id="profile-points">0</div> <div class="stat-label">Kredity</div> </div> <div class="stat-item"> <div class="stat-value" id="profile-badges">0</div> <div class="stat-label">Odznaky</div> </div>
-                                <div class="stat-item"> <div class="stat-value" id="profile-streak">0</div> <div class="stat-label">Série</div> </div> </div>
+                                <div class="stat-item">
+                                     <div class="stat-value" id="profile-level">1</div>
+                                     <div class="stat-label">Úroveň</div>
+                                </div>
+                                <div class="stat-item">
+                                     <div class="stat-value" id="profile-points">0</div>
+                                     <div class="stat-label">Kredity</div>
+                                </div>
+                                <div class="stat-item">
+                                     <div class="stat-value" id="profile-badges">0</div>
+                                     <div class="stat-label">Odznaky</div>
+                                </div>
+                                <div class="stat-item">
+                                     <div class="stat-value" id="profile-streak">0</div>
+                                     <div class="stat-label">Série</div>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="profile-tabs">
                             <div class="profile-tab active" data-tab="personal-info"> <i class="fas fa-user-edit"></i> Osobní údaje </div>
-                            <div class="profile-tab" data-tab="password"> <i class="fas fa-key"></i> Heslo </div> <div class="profile-tab" data-tab="preferences"> <i class="fas fa-sliders-h"></i> Nastavení </div> </div>
+                            <div class="profile-tab" data-tab="password"> <i class="fas fa-key"></i> Heslo </div>
+                            <div class="profile-tab" data-tab="preferences"> <i class="fas fa-sliders-h"></i> Nastavení </div>
+                        </div>
 
                         <div class="tab-content active" id="personal-info">
+                             <h3 class="section-title">Upravit osobní údaje</h3>
                              <form id="profile-form">
                                 <div class="form-row">
                                     <div class="form-group"> <label class="form-label" for="first_name">Jméno</label> <input type="text" class="form-control" id="first_name" name="first_name" placeholder="Zadejte své jméno"> <div class="field-error" id="first_name-error"></div> </div>
@@ -850,64 +864,127 @@
                                 <div class="form-group"> <label class="form-label" for="email">E-mail</label> <input type="email" class="form-control" id="email" name="email" placeholder="Zadejte e-mail" disabled> </div>
                                 <div class="form-row">
                                     <div class="form-group"> <label class="form-label" for="school">Škola</label> <input type="text" class="form-control" id="school" name="school" placeholder="Zadejte svou školu"> <div class="field-error" id="school-error"></div> </div>
-                                    <div class="form-group"> <label class="form-label" for="grade">Třída</label> <select class="form-control" id="grade" name="grade"> <option value="">Vyberte třídu</option> <option value="6">6. třída</option> <option value="7">7. třída</option> <option value="8">8. třída</option> <option value="9">9. třída</option> <option value="1_ss">1. ročník SŠ</option> <option value="2_ss">2. ročník SŠ</option> <option value="3_ss">3. ročník SŠ</option> <option value="4_ss">4. ročník SŠ</option> </option> <option value="other">Jiná / Mimo školu</option> </select> <div class="field-error" id="grade-error"></div> </div>
+                                    <div class="form-group"> <label class="form-label" for="grade">Třída</label> <select class="form-control" id="grade" name="grade"> <option value="">Vyberte třídu</option> <option value="6">6. třída</option> <option value="7">7. třída</option> <option value="8">8. třída</option> <option value="9">9. třída</option> <option value="1_ss">1. ročník SŠ</option> <option value="2_ss">2. ročník SŠ</option> <option value="3_ss">3. ročník SŠ</option> <option value="4_ss">4. ročník SŠ</option> <option value="other">Jiná / Mimo školu</option> </select> <div class="field-error" id="grade-error"></div> </div>
                                 </div>
                                 <div class="form-group"> <label class="form-label" for="bio">O mně</label> <textarea class="form-control" id="bio" name="bio" rows="4" placeholder="Napište něco o sobě (nepovinné)"></textarea> <div class="field-error" id="bio-error"></div> </div>
-                                <button type="submit" class="btn" id="save-profile-btn"> <i class="fas fa-save"></i> Uložit změny </button> </form>
+                                <button type="submit" class="btn" id="save-profile-btn"> <i class="fas fa-save"></i> Uložit změny </button>
+                            </form>
                         </div>
 
                         <div class="tab-content" id="password">
+                            <h3 class="section-title">Změnit heslo</h3>
                             <form id="password-form">
                                  <div class="form-group"> <label class="form-label" for="current_password">Současné heslo</label> <input type="password" class="form-control" id="current_password" name="current_password" placeholder="Zadejte současné heslo" autocomplete="current-password"> <div class="field-error" id="current_password-error"></div> </div>
                                 <div class="form-group"> <label class="form-label" for="new_password">Nové heslo</label> <input type="password" class="form-control" id="new_password" name="new_password" placeholder="Minimálně 8 znaků" autocomplete="new-password"> <div class="field-error" id="new_password-error"></div> </div>
                                 <div class="form-group"> <label class="form-label" for="confirm_password">Potvrzení hesla</label> <input type="password" class="form-control" id="confirm_password" name="confirm_password" placeholder="Zadejte nové heslo znovu" autocomplete="new-password"> <div class="field-error" id="confirm_password-error"></div> </div>
-                                <button type="submit" class="btn" id="save-password-btn"> <i class="fas fa-key"></i> Změnit heslo </button> </form>
+                                <button type="submit" class="btn" id="save-password-btn"> <i class="fas fa-key"></i> Změnit heslo </button>
+                            </form>
                         </div>
 
                         <div class="tab-content" id="preferences">
+                            <h3 class="section-title">Upravit nastavení</h3>
                             <div class="settings-group">
-                                <h4 class="settings-title"><i class="fas fa-palette"></i> Vzhled a jazyk</h4> <div class="toggle-switch"> <div> <div class="toggle-label">Tmavý režim</div> <div class="toggle-desc">Přepnout na tmavé barevné schéma</div> </div> <label class="switch"> <input type="checkbox" id="dark_mode"> <span class="slider"></span> </label> </div>
-                                <div class="form-group" style="margin-top: 1.5rem;"> <label class="form-label" for="language">Jazyk rozhraní</label> <select class="form-control" id="language" name="language"> <option value="cs">Čeština</option> <option value="en">English</option> <option value="sk">Slovenčina</option> </select> </div>
+                                <h4 class="settings-title"><i class="fas fa-palette"></i> Vzhled a jazyk</h4>
+                                <div class="toggle-switch">
+                                    <div>
+                                        <div class="toggle-label">Tmavý režim</div>
+                                        <div class="toggle-desc">Přepnout na tmavé barevné schéma</div>
+                                    </div>
+                                    <label class="switch"> <input type="checkbox" id="dark_mode"> <span class="slider"></span> </label>
+                                </div>
+                                <div class="form-group" style="margin-top: 1.5rem;">
+                                    <label class="form-label" for="language">Jazyk rozhraní</label>
+                                    <select class="form-control" id="language" name="language"> <option value="cs">Čeština</option> <option value="en">English</option> <option value="sk">Slovenčina</option> </select>
+                                </div>
                             </div>
                             <div class="settings-group">
-                                <h4 class="settings-title"><i class="fas fa-bell"></i> Oznámení</h4> <div class="toggle-switch"> <div> <div class="toggle-label">E-mailová oznámení</div> <div class="toggle-desc">Zasílat důležité informace e-mailem</div> </div> <label class="switch"> <input type="checkbox" id="email_notifications"> <span class="slider"></span> </label> </div>
-                                <div class="toggle-switch"> <div> <div class="toggle-label">Studijní tipy</div> <div class="toggle-desc">Zasílat tipy pro efektivní studium</div> </div> <label class="switch"> <input type="checkbox" id="study_tips"> <span class="slider"></span> </label> </div>
-                                <div class="toggle-switch"> <div> <div class="toggle-label">Aktualizace obsahu</div> <div class="toggle-desc">Oznámení o novém obsahu na platformě</div> </div> <label class="switch"> <input type="checkbox" id="content_updates"> <span class="slider"></span> </label> </div>
-                                <div class="toggle-switch"> <div> <div class="toggle-label">Připomenutí cvičení</div> <div class="toggle-desc">Připomínat pravidelné procvičování</div> </div> <label class="switch"> <input type="checkbox" id="practice_reminders"> <span class="slider"></span> </label> </div>
+                                <h4 class="settings-title"><i class="fas fa-bell"></i> Oznámení</h4>
+                                <div class="toggle-switch">
+                                    <div>
+                                        <div class="toggle-label">E-mailová oznámení</div>
+                                        <div class="toggle-desc">Zasílat důležité informace e-mailem</div>
+                                    </div>
+                                    <label class="switch"> <input type="checkbox" id="email_notifications"> <span class="slider"></span> </label>
+                                </div>
+                                <div class="toggle-switch">
+                                    <div>
+                                        <div class="toggle-label">Studijní tipy</div>
+                                        <div class="toggle-desc">Zasílat tipy pro efektivní studium</div>
+                                    </div>
+                                    <label class="switch"> <input type="checkbox" id="study_tips"> <span class="slider"></span> </label>
+                                </div>
+                                <div class="toggle-switch">
+                                    <div>
+                                        <div class="toggle-label">Aktualizace obsahu</div>
+                                        <div class="toggle-desc">Oznámení o novém obsahu na platformě</div>
+                                    </div>
+                                    <label class="switch"> <input type="checkbox" id="content_updates"> <span class="slider"></span> </label>
+                                </div>
+                                <div class="toggle-switch">
+                                    <div>
+                                        <div class="toggle-label">Připomenutí cvičení</div>
+                                        <div class="toggle-desc">Připomínat pravidelné procvičování</div>
+                                    </div>
+                                    <label class="switch"> <input type="checkbox" id="practice_reminders"> <span class="slider"></span> </label>
+                                </div>
                             </div>
-                            <button type="button" class="btn" id="save-preferences-btn"> <i class="fas fa-save"></i> Uložit nastavení </button> <div class="danger-zone">
-                                <h4 class="danger-zone-title"><i class="fas fa-biohazard"></i> Nebezpečná zóna</h4> <p class="danger-zone-desc">Tato akce je nevratná. Smazáním účtu přijdete o všechna data, statistiky a studijní pokrok.</p>
-                                <button type="button" class="btn btn-danger" id="delete-account-btn"> <i class="fas fa-skull-crossbones"></i> Smazat můj účet </button> </div>
+                            <button type="button" class="btn" id="save-preferences-btn"> <i class="fas fa-save"></i> Uložit nastavení </button>
+                            <div class="danger-zone">
+                                <h4 class="danger-zone-title"><i class="fas fa-biohazard"></i> Nebezpečná zóna</h4>
+                                <p class="danger-zone-desc">Tato akce je nevratná. Smazáním účtu přijdete o všechna data, statistiky a studijní pokrok.</p>
+                                <button type="button" class="btn btn-danger" id="delete-account-btn"> <i class="fas fa-skull-crossbones"></i> Smazat můj účet </button>
+                            </div>
                         </div>
                     </div>
-                </section> </div> <footer class="dashboard-footer">
+                </section>
+             </div>
+            <footer class="dashboard-footer">
                 <p>&copy; <span id="currentYearFooter">2025</span> Justax Systems // Secure Channel</p>
             </footer>
-        </div> </main>
+        </div>
+    </main>
 
     <div class="modal" id="avatar-modal">
         <div class="modal-content">
-            <div class="modal-header"> <h2 class="modal-title">Změnit profilový obrázek</h2> <button type="button" class="modal-close" data-dismiss="modal">&times;</button> </div>
+            <div class="modal-header">
+                <h2 class="modal-title">Změnit profilový obrázek</h2>
+                <button type="button" class="modal-close" data-dismiss="modal">&times;</button>
+            </div>
             <div class="modal-body">
                 <div class="avatar-upload">
                     <div class="avatar-preview" id="avatar-preview"> <span>?</span> </div>
-                    <div class="file-upload"> <button type="button" class="btn btn-outline upload-btn"> <i class="fas fa-upload"></i> Vybrat soubor </button> <input type="file" id="avatar-upload" accept="image/jpeg, image/png, image/gif"> </div>
+                    <div class="file-upload">
+                        <button type="button" class="btn btn-outline upload-btn"> <i class="fas fa-upload"></i> Vybrat soubor </button>
+                        <input type="file" id="avatar-upload" accept="image/jpeg, image/png, image/gif">
+                    </div>
                     <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 1rem;">Podporované formáty: JPG, PNG, GIF. Max. velikost: 2MB.</p>
                 </div>
             </div>
-            <div class="modal-footer"> <button type="button" class="btn btn-secondary" data-dismiss="modal">Zrušit</button> <button type="button" class="btn" id="save-avatar-btn"> <i class="fas fa-save"></i> Uložit obrázek </button> </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Zrušit</button>
+                <button type="button" class="btn" id="save-avatar-btn" disabled> <i class="fas fa-save"></i> Uložit obrázek </button>
+            </div>
         </div>
     </div>
 
     <div class="modal" id="delete-account-modal">
         <div class="modal-content">
-            <div class="modal-header"> <h2 class="modal-title">Opravdu smazat účet?</h2> <button type="button" class="modal-close" data-dismiss="modal">&times;</button> </div>
+            <div class="modal-header">
+                <h2 class="modal-title">Opravdu smazat účet?</h2>
+                <button type="button" class="modal-close" data-dismiss="modal">&times;</button>
+            </div>
             <div class="modal-body">
                 <p>Tato akce je <strong>nevratná</strong>. Všechna vaše data, včetně pokroku, statistik a nastavení, budou trvale odstraněna.</p>
                 <p>Pro potvrzení smazání zadejte své aktuální heslo:</p>
-                <div class="form-group" style="margin-top: 1rem;"> <input type="password" class="form-control" id="confirm-delete-password" placeholder="Vaše aktuální heslo" autocomplete="current-password"> <div class="field-error" id="confirm-delete-password-error"></div> </div>
+                <div class="form-group" style="margin-top: 1rem;">
+                    <input type="password" class="form-control" id="confirm-delete-password" placeholder="Vaše aktuální heslo" autocomplete="current-password">
+                    <div class="field-error" id="confirm-delete-password-error"></div>
+                </div>
             </div>
-            <div class="modal-footer"> <button type="button" class="btn btn-secondary" data-dismiss="modal">Zrušit</button> <button type="button" class="btn btn-danger" id="confirm-delete-account-btn"> <i class="fas fa-skull-crossbones"></i> Ano, smazat účet </button> </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Zrušit</button>
+                <button type="button" class="btn btn-danger" id="confirm-delete-account-btn"> <i class="fas fa-skull-crossbones"></i> Ano, smazat účet </button>
+            </div>
         </div>
     </div>
 
@@ -916,43 +993,37 @@
     <div id="mouse-follower" class="mouse-follower-glow"></div>
 
     <script>
-        // Using an immediately invoked function expression (IIFE) to scope variables
         (function() {
             // --- START: Initialization and Configuration ---
-            const supabaseUrl = 'https://qcimhjjwvsbgjsitmvuh.supabase.co'; // YOUR URL
-            const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10'; // YOUR ANON KEY
+            const supabaseUrl = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
+            const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10';
             let supabase = null;
             let currentUser = null;
             let currentProfile = null;
+            let isLoading = { profile: false, password: false, preferences: false, avatar: false, delete: false };
 
             // DOM Elements Cache
             const ui = {
-                // Loaders & Overlays
-                profileLoading: document.getElementById('profile-loading'),
-                sidebarOverlay: document.getElementById('sidebar-overlay'), // From dashboard theme
-                // Main Layout & Sidebar
+                initialLoader: document.getElementById('initial-loader'),
+                sidebarOverlay: document.getElementById('sidebar-overlay'),
                 mainContent: document.getElementById('main-content'),
                 sidebar: document.getElementById('sidebar'),
-                mainMobileMenuToggle: document.getElementById('main-mobile-menu-toggle'), // From dashboard theme
-                sidebarCloseToggle: document.getElementById('sidebar-close-toggle'), // From dashboard theme
-                // Sidebar Profile (IDs from dashboard theme)
+                mainMobileMenuToggle: document.getElementById('main-mobile-menu-toggle'),
+                sidebarCloseToggle: document.getElementById('sidebar-close-toggle'),
                 sidebarAvatar: document.getElementById('sidebar-avatar'),
                 sidebarName: document.getElementById('sidebar-name'),
-                // Header (elements might need adding/adjusting)
                 logoutBtn: document.getElementById('logout-btn'),
-                notificationBell: document.getElementById('notification-bell'), // Added
-                notificationCount: document.getElementById('notification-count'), // Added
-                // Profile Content Area
+                notificationBell: document.getElementById('notification-bell'),
+                notificationCount: document.getElementById('notification-count'),
+                profileLoading: document.getElementById('profile-loading'), // Added loader specific to profile content
                 profileContent: document.getElementById('profile-content'),
                 profileName: document.getElementById('profile-name'),
                 profileEmail: document.getElementById('profile-email'),
                 profileAvatar: document.getElementById('profile-avatar'),
-                // Profile Stats
                 profileLevel: document.getElementById('profile-level'),
                 profilePoints: document.getElementById('profile-points'),
                 profileBadges: document.getElementById('profile-badges'),
                 profileStreak: document.getElementById('profile-streak'),
-                // Forms & Fields
                 profileForm: document.getElementById('profile-form'),
                 passwordForm: document.getElementById('password-form'),
                 firstNameField: document.getElementById('first_name'),
@@ -965,102 +1036,93 @@
                 currentPasswordField: document.getElementById('current_password'),
                 newPasswordField: document.getElementById('new_password'),
                 confirmPasswordField: document.getElementById('confirm_password'),
-                // Preferences Fields
                 darkModeToggle: document.getElementById('dark_mode'),
                 languageSelect: document.getElementById('language'),
                 emailNotificationsToggle: document.getElementById('email_notifications'),
                 studyTipsToggle: document.getElementById('study_tips'),
                 contentUpdatesToggle: document.getElementById('content_updates'),
                 practiceRemindersToggle: document.getElementById('practice_reminders'),
-                // Buttons
                 saveProfileBtn: document.getElementById('save-profile-btn'),
                 savePasswordBtn: document.getElementById('save-password-btn'),
                 savePreferencesBtn: document.getElementById('save-preferences-btn'),
                 deleteAccountBtn: document.getElementById('delete-account-btn'),
                 confirmDeleteAccountBtn: document.getElementById('confirm-delete-account-btn'),
                 saveAvatarBtn: document.getElementById('save-avatar-btn'),
-                // Modals
                 avatarModal: document.getElementById('avatar-modal'),
                 deleteAccountModal: document.getElementById('delete-account-modal'),
                 avatarPreview: document.getElementById('avatar-preview'),
                 avatarUploadInput: document.getElementById('avatar-upload'),
                 confirmDeletePasswordField: document.getElementById('confirm-delete-password'),
-                // Feedback & Status
-                toastContainer: document.getElementById('toast-container'), // From dashboard theme
+                toastContainer: document.getElementById('toast-container'),
                 globalError: document.getElementById('global-error'),
-                offlineBanner: document.getElementById('offline-banner'), // From dashboard theme
-                // Mouse Follower (From dashboard theme)
+                offlineBanner: document.getElementById('offline-banner'),
                 mouseFollower: document.getElementById('mouse-follower'),
-                // Tabs
                 profileTabs: document.querySelectorAll('.profile-tab'),
-                tabContents: document.querySelectorAll('.tab-content')
+                tabContents: document.querySelectorAll('.tab-content'),
+                currentYearSidebar: document.getElementById('currentYearSidebar'),
+                currentYearFooter: document.getElementById('currentYearFooter')
             };
             // --- END: Initialization and Configuration ---
 
-
             // --- START: Helper Functions ---
-
-            // Toast notification function (Cyberpunk Style)
             function showToast(title, message, type = 'info', duration = 4500) {
                 if (!ui.toastContainer) return;
                 try {
-                     const toastId = `toast-${Date.now()}`;
-                     const toastElement = document.createElement('div');
-                     toastElement.className = `toast ${type}`;
-                     toastElement.id = toastId;
-                     toastElement.setAttribute('role', 'alert');
-                     toastElement.setAttribute('aria-live', 'assertive');
-                     toastElement.innerHTML = `
-                         <i class="toast-icon"></i>
-                         <div class="toast-content">
-                             ${title ? `<div class="toast-title">${sanitizeHTML(title)}</div>` : ''}
-                             <div class="toast-message">${sanitizeHTML(message)}</div>
-                         </div>
-                         <button type="button" class="toast-close" aria-label="Zavřít">&times;</button>
-                     `;
-                     const icon = toastElement.querySelector('.toast-icon');
-                     icon.className = `toast-icon fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle'}`;
-                     toastElement.querySelector('.toast-close').addEventListener('click', () => {
-                         toastElement.classList.remove('show');
-                         setTimeout(() => toastElement.remove(), 400);
-                     });
-                     ui.toastContainer.appendChild(toastElement);
-                     requestAnimationFrame(() => { toastElement.classList.add('show'); });
-                     setTimeout(() => { if (toastElement.parentElement) { toastElement.classList.remove('show'); setTimeout(() => toastElement.remove(), 400); } }, duration);
-                 } catch (e) { console.error("Chyba při zobrazování toastu:", e); }
+                    const toastId = `toast-${Date.now()}`;
+                    const toastElement = document.createElement('div');
+                    toastElement.className = `toast ${type}`;
+                    toastElement.id = toastId;
+                    toastElement.setAttribute('role', 'alert');
+                    toastElement.setAttribute('aria-live', 'assertive');
+                    toastElement.innerHTML = `
+                        <i class="toast-icon"></i>
+                        <div class="toast-content">
+                            ${title ? `<div class="toast-title">${sanitizeHTML(title)}</div>` : ''}
+                            <div class="toast-message">${sanitizeHTML(message)}</div>
+                        </div>
+                        <button type="button" class="toast-close" aria-label="Zavřít">&times;</button>
+                    `;
+                    const icon = toastElement.querySelector('.toast-icon');
+                    icon.className = `toast-icon fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle'}`;
+                    toastElement.querySelector('.toast-close').addEventListener('click', () => {
+                        toastElement.classList.remove('show');
+                        setTimeout(() => toastElement.remove(), 400);
+                    });
+                    ui.toastContainer.appendChild(toastElement);
+                    requestAnimationFrame(() => { toastElement.classList.add('show'); });
+                    setTimeout(() => { if (toastElement.parentElement) { toastElement.classList.remove('show'); setTimeout(() => toastElement.remove(), 400); } }, duration);
+                } catch (e) { console.error("Chyba při zobrazování toastu:", e); }
             }
 
-            // Error display (Cyberpunk Style)
-             function showError(message, isGlobal = false) {
-                 console.error("Došlo k chybě:", message);
-                 if (isGlobal && ui.globalError) {
-                     ui.globalError.innerHTML = `<div class="error-message"><i class="fas fa-exclamation-triangle"></i><div>${sanitizeHTML(message)}</div><button class="retry-button btn" id="global-retry-btn">Zkusit Znovu</button></div>`; // Added .btn class
-                     ui.globalError.style.display = 'block';
-                     const retryBtn = document.getElementById('global-retry-btn');
-                     if (retryBtn) { retryBtn.addEventListener('click', () => { hideError(); loadUserProfile(); }); } // Reload profile on retry
-                 } else { showToast('CHYBA SYSTÉMU', message, 'error', 6000); }
-             }
-             function hideError() { if (ui.globalError) ui.globalError.style.display = 'none'; }
+            function showError(message, isGlobal = false) {
+                console.error("Došlo k chybě:", message);
+                if (isGlobal && ui.globalError) {
+                    ui.globalError.innerHTML = `<div class="error-message"><i class="fas fa-exclamation-triangle"></i><div>${sanitizeHTML(message)}</div><button class="retry-button btn" id="global-retry-btn">Zkusit Znovu</button></div>`;
+                    ui.globalError.style.display = 'block';
+                    const retryBtn = document.getElementById('global-retry-btn');
+                    if (retryBtn) { retryBtn.addEventListener('click', () => { hideError(); if(initializeApp) initializeApp(); }); }
+                } else { showToast('CHYBA SYSTÉMU', message, 'error', 6000); }
+            }
+            function hideError() { if (ui.globalError) ui.globalError.style.display = 'none'; }
 
-             // Field Error Handling (Cyberpunk Style)
-             function showFieldError(fieldName, message) {
-                 const field = document.getElementById(fieldName);
-                 const errorElement = document.getElementById(`${fieldName}-error`);
-                 if (field && errorElement) {
-                     field.classList.add('is-invalid');
-                     errorElement.textContent = message;
-                     errorElement.style.display = 'block';
-                 }
-             }
-             function clearFieldError(fieldName) {
-                 const field = document.getElementById(fieldName);
-                 const errorElement = document.getElementById(`${fieldName}-error`);
-                 if (field && errorElement) {
-                     field.classList.remove('is-invalid');
-                     errorElement.textContent = '';
-                     errorElement.style.display = 'none';
-                 }
-             }
+            function showFieldError(fieldName, message) {
+                const field = document.getElementById(fieldName);
+                const errorElement = document.getElementById(`${fieldName}-error`);
+                if (field && errorElement) {
+                    field.classList.add('is-invalid');
+                    errorElement.textContent = message;
+                    errorElement.style.display = 'block';
+                }
+            }
+            function clearFieldError(fieldName) {
+                const field = document.getElementById(fieldName);
+                const errorElement = document.getElementById(`${fieldName}-error`);
+                if (field && errorElement) {
+                    field.classList.remove('is-invalid');
+                    errorElement.textContent = '';
+                    errorElement.style.display = 'none';
+                }
+            }
             function clearAllErrors(formId = null) {
                 const scope = formId ? document.getElementById(formId) : document;
                 if (!scope) return;
@@ -1068,564 +1130,115 @@
                 scope.querySelectorAll('.is-invalid').forEach(f => f.classList.remove('is-invalid'));
             }
 
-             // Modal functions (Cyberpunk Style)
-             function showModal(modalId) { const m = document.getElementById(modalId); if (m) m.classList.add('active'); }
-             function hideModal(modalId) { const m = document.getElementById(modalId); if (m) m.classList.remove('active'); clearAllErrors(modalId === 'delete-account-modal' ? 'delete-account-modal' : null); if (modalId === 'delete-account-modal' && ui.confirmDeletePasswordField) ui.confirmDeletePasswordField.value = ''; if (modalId === 'avatar-modal' && ui.avatarUploadInput) ui.avatarUploadInput.value = ''; /* Reset file input */ }
+            function showModal(modalId) { const m = document.getElementById(modalId); if (m) { m.style.display = 'flex'; requestAnimationFrame(() => m.classList.add('active')); } }
+            function hideModal(modalId) { const m = document.getElementById(modalId); if (m) { m.classList.remove('active'); setTimeout(() => { m.style.display = 'none'; if (modalId === 'delete-account-modal' && ui.confirmDeletePasswordField) ui.confirmDeletePasswordField.value = ''; if (modalId === 'avatar-modal' && ui.avatarUploadInput) ui.avatarUploadInput.value = ''; }, 400); /* Match transition duration */ } }
 
-            // Online/Offline status (Cyberpunk Style)
             function updateOnlineStatus() { if (ui.offlineBanner) ui.offlineBanner.style.display = navigator.onLine ? 'none' : 'block'; if (!navigator.onLine) showToast('Offline', 'Spojení ztraceno.', 'warning'); }
-
-            // Get Initials (no change)
             function getInitials(userData) { if (!userData) return '?'; const f = userData.first_name?.[0] || ''; const l = userData.last_name?.[0] || ''; const nameInitial = (f + l).toUpperCase(); const usernameInitial = userData.username?.[0].toUpperCase() || ''; const emailInitial = userData.email?.[0].toUpperCase() || ''; return nameInitial || usernameInitial || emailInitial || '?'; }
-
-            // Sanitize HTML (no change)
             function sanitizeHTML(str) { const temp = document.createElement('div'); temp.textContent = str || ''; return temp.innerHTML; }
-
-            // Menu Toggle Functions (from dashboard theme)
             function openMenu() { if (ui.sidebar && ui.sidebarOverlay) { ui.sidebar.classList.add('active'); ui.sidebarOverlay.classList.add('active'); } }
             function closeMenu() { if (ui.sidebar && ui.sidebarOverlay) { ui.sidebar.classList.remove('active'); ui.sidebarOverlay.classList.remove('active'); } }
+            const initMouseFollower = () => { const follower = ui.mouseFollower; if (!follower || window.innerWidth <= 576) return; let hasMoved = false; const updatePosition = (event) => { if (!hasMoved) { document.body.classList.add('mouse-has-moved'); hasMoved = true; } requestAnimationFrame(() => { follower.style.left = `${event.clientX}px`; follower.style.top = `${event.clientY}px`; }); }; window.addEventListener('mousemove', updatePosition, { passive: true }); document.body.addEventListener('mouseleave', () => { if (hasMoved) follower.style.opacity = '0'; }); document.body.addEventListener('mouseenter', () => { if (hasMoved) follower.style.opacity = '1'; }); window.addEventListener('touchstart', () => { if(follower) follower.style.display = 'none'; }, { passive: true, once: true }); };
+            const initHeaderScrollDetection = () => { let lastScrollY = window.scrollY; const mainEl = ui.mainContent; if (!mainEl) return; mainEl.addEventListener('scroll', () => { const currentScrollY = mainEl.scrollTop; document.body.classList.toggle('scrolled', currentScrollY > 10); lastScrollY = currentScrollY <= 0 ? 0 : currentScrollY; }, { passive: true }); if (mainEl.scrollTop > 10) document.body.classList.add('scrolled'); };
+            const updateCopyrightYear = () => { const year = new Date().getFullYear(); if (ui.currentYearSidebar) ui.currentYearSidebar.textContent = year; if (ui.currentYearFooter) ui.currentYearFooter.textContent = year; };
 
-             // Mouse Follower Logic (from dashboard theme)
-             const initMouseFollower = () => {
-                 const follower = ui.mouseFollower;
-                 if (!follower || window.innerWidth <= 576) return; // Не показывать на мобильных
-                 let hasMoved = false;
-                 const updatePosition = (event) => {
-                     if (!hasMoved) { document.body.classList.add('mouse-has-moved'); hasMoved = true; }
-                     requestAnimationFrame(() => { follower.style.left = `${event.clientX}px`; follower.style.top = `${event.clientY}px`; });
-                  };
-                 window.addEventListener('mousemove', updatePosition, { passive: true });
-                 document.body.addEventListener('mouseleave', () => { if (hasMoved) follower.style.opacity = '0'; });
-                 document.body.addEventListener('mouseenter', () => { if (hasMoved) follower.style.opacity = '1'; });
-                 window.addEventListener('touchstart', () => { follower.style.display = 'none'; }, { passive: true, once: true });
-             };
-
-            // Form validation functions
-             const validators = {
-                 required: (value, fieldName, message = 'Toto pole je povinné') => {
-                     if (!value || value.trim() === '') { showFieldError(fieldName, message); return false; }
-                     return true;
-                 },
-                 minLength: (value, fieldName, length, message = `Minimální délka je ${length} znaků`) => {
-                     if (value && value.length < length) { showFieldError(fieldName, message); return false; }
-                     return true;
-                 },
-                 email: (value, fieldName, message = 'Neplatný formát e-mailu') => {
-                     if (value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) { showFieldError(fieldName, message); return false; }
-                     return true;
-                 },
-                 match: (value1, fieldName1, value2, message = 'Hodnoty se neshodují') => {
-                     if (value1 !== value2) { showFieldError(fieldName1, message); return false; }
-                     return true;
-                 }
-             };
-
-             // Update Copyright Year in Footer/Sidebar
-             const updateCopyrightYear = () => {
-                 const currentYear = new Date().getFullYear();
-                 const sidebarYearSpan = document.getElementById('currentYearSidebar');
-                 const footerYearSpan = document.getElementById('currentYearFooter');
-                 if (sidebarYearSpan) sidebarYearSpan.textContent = currentYear;
-                 if (footerYearSpan) footerYearSpan.textContent = currentYear;
-             };
+            const validators = {
+                required: (value, fieldName, message = 'Toto pole je povinné') => { if (!value || String(value).trim() === '') { showFieldError(fieldName, message); return false; } return true; },
+                minLength: (value, fieldName, length, message = `Minimální délka je ${length} znaků`) => { if (value && String(value).length < length) { showFieldError(fieldName, message); return false; } return true; },
+                match: (value1, fieldName1, value2, message = 'Hodnoty se neshodují') => { if (value1 !== value2) { showFieldError(fieldName1, message); return false; } return true; }
+            };
             // --- END: Helper Functions ---
 
-
             // --- START: Supabase Interaction Functions ---
-             function initializeSupabase() {
-                 try {
-                     if (typeof window.supabase === 'undefined' || typeof window.supabase.createClient !== 'function') { throw new Error("Knihovna Supabase nebyla správně načtena."); }
-                     supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
-                     if (!supabase) throw new Error("Vytvoření klienta Supabase selhalo.");
-                     console.log('[Supabase] Klient úspěšně inicializován.');
-                     return true;
-                 } catch (error) { console.error('[Supabase] Inicializace selhala:', error); showError("Kritická chyba: Nepodařilo se připojit k databázi.", true); return false; }
-             }
-
-            async function fetchUserProfile(userId) {
-                if (!supabase || !userId) return null;
-                console.log(`[Profile] Načítání profilu pro ID: ${userId}`);
-                try {
-                    const { data: profile, error } = await supabase.from('profiles').select('*').eq('id', userId).single();
-                    if (error && error.code !== 'PGRST116') throw error; // Ignore "No rows found" if profile is new
-                    if (!profile) {
-                        console.warn(`[Profile] Profil nenalezen pro ${userId}. Vytváření výchozího...`);
-                        // Create default profile if it doesn't exist
-                        const defaultProfileData = {
-                            id: userId,
-                            email: currentUser.email, // Use the authenticated user's email
-                            username: currentUser.email.split('@')[0], // Default username from email
-                            level: 1, points: 0, badges_count: 0, streak_days: 0,
-                            created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
-                            preferences: { dark_mode: window.matchMedia('(prefers-color-scheme: dark)').matches, language: 'cs' },
-                            notifications: { email: true, study_tips: true, content_updates: true, practice_reminders: true }
-                        };
-                        const { data: newProfile, error: createError } = await supabase.from('profiles').insert([defaultProfileData]).select().single();
-                        if (createError) throw createError;
-                        console.log("[Profile] Výchozí profil úspěšně vytvořen.");
-                        return newProfile;
-                    }
-                    console.log("[Profile] Profil úspěšně načten.");
-                    return profile;
-                } catch (error) { console.error('[Profile] Chyba při načítání/vytváření profilu:', error); showToast('Chyba Profilu', 'Nepodařilo se načíst data profilu.', 'error'); return null; }
-            }
-
-            async function updateProfileData(data) {
-                if (!currentUser || !supabase) { showToast('Chyba', 'Nejste přihlášeni.', 'error'); return false; }
-                console.log("[Profile Update] Aktualizace dat:", data);
-                try {
-                    const { data: updatedProfile, error } = await supabase
-                        .from('profiles')
-                        .update({
-                            first_name: data.first_name,
-                            last_name: data.last_name,
-                            username: data.username,
-                            school: data.school,
-                            grade: data.grade,
-                            bio: data.bio,
-                            updated_at: new Date().toISOString()
-                        })
-                        .eq('id', currentUser.id)
-                        .select()
-                        .single();
-                    if (error) throw error;
-                    currentProfile = updatedProfile; // Update local cache
-                    updateProfileDisplay(currentProfile); // Refresh UI
-                    showToast('ÚSPĚCH', 'Profil byl úspěšně aktualizován.', 'success');
-                    console.log("[Profile Update] Úspěšně aktualizováno.");
-                    return true;
-                } catch (error) { console.error('[Profile Update] Chyba:', error); showToast('CHYBA', 'Aktualizace profilu selhala.', 'error'); return false; }
-            }
-
-            async function updateUserPassword(currentPassword, newPassword) {
-                 if (!currentUser || !supabase) { showToast('Chyba', 'Nejste přihlášeni.', 'error'); return false; }
-                 console.log("[Password Update] Pokus o změnu hesla.");
-                 try {
-                     // Supabase requires re-authentication for password change, but we can try direct update first
-                     const { error } = await supabase.auth.updateUser({ password: newPassword });
-
-                     if (error) {
-                         // Handle specific errors
-                         if (error.message.includes('requires recent login') || error.message.includes('AuthApiError: Email rate limit exceeded') || error.code === 'weak_password') {
-                             // This error often means the current password wasn't verified implicitly or the new password is weak
-                             // Supabase doesn't offer a direct "verify current password" before update via JS client for security reasons.
-                             // You might need a server-side function or handle re-authentication flow.
-                             // For now, we show a generic message or specific ones if detectable.
-                             let message = 'Změna hesla selhala.';
-                             if (error.message.includes('requires recent login')) message = 'Vyžadováno nedávné přihlášení. Přihlaste se znovu a zkuste to znovu.';
-                             else if (error.message.includes('weak_password') || error.message.includes('should be different')) message = error.message; // Use Supabase's message
-                             showToast('CHYBA HESLA', message, 'error');
-                             console.error('[Password Update] Chyba Supabase:', error);
-                             // Optionally show error on current_password field if it's likely the issue
-                             if(!message.includes('should be different')) showFieldError('current_password', 'Ověření selhalo nebo je vyžadováno nové přihlášení.');
-                             return false;
-                         }
-                         throw error; // Rethrow other errors
-                     }
-
-                     ui.passwordForm.reset();
-                     clearAllErrors('password'); // Clear errors specifically for the password form
-                     showToast('ÚSPĚCH', 'Heslo bylo úspěšně změněno.', 'success');
-                     console.log("[Password Update] Heslo úspěšně změněno.");
-                     return true;
-                 } catch (error) { console.error('[Password Update] Neočekávaná chyba:', error); showToast('CHYBA', 'Došlo k neočekávané chybě při změně hesla.', 'error'); return false; }
-            }
-
-            async function updatePreferencesData() {
-                if (!currentUser || !supabase) { showToast('Chyba', 'Nejste přihlášeni.', 'error'); return false; }
-                console.log("[Preferences Update] Aktualizace nastavení.");
-                try {
-                     const preferences = {
-                         dark_mode: ui.darkModeToggle.checked,
-                         language: ui.languageSelect.value,
-                     };
-                     const notifications = {
-                         email: ui.emailNotificationsToggle.checked,
-                         study_tips: ui.studyTipsToggle.checked,
-                         content_updates: ui.contentUpdatesToggle.checked,
-                         practice_reminders: ui.practiceRemindersToggle.checked
-                     };
-                     const { data: updatedProfile, error } = await supabase
-                        .from('profiles')
-                        .update({
-                            preferences: preferences,
-                            notifications: notifications,
-                            updated_at: new Date().toISOString()
-                        })
-                        .eq('id', currentUser.id)
-                        .select()
-                        .single();
-                    if (error) throw error;
-                    currentProfile = updatedProfile; // Update local cache
-                    applyPreferences(currentProfile.preferences); // Apply immediately if needed (e.g., dark mode)
-                    showToast('ÚSPĚCH', 'Nastavení byla uložena.', 'success');
-                    console.log("[Preferences Update] Nastavení uložena.");
-                    return true;
-                } catch (error) { console.error('[Preferences Update] Chyba:', error); showToast('CHYBA', 'Uložení nastavení selhalo.', 'error'); return false; }
-            }
-
-            async function uploadAndSaveAvatar(file) {
-                 if (!currentUser || !supabase) { showToast('Chyba', 'Nejste přihlášeni.', 'error'); return false; }
-                 if (!file) { showToast('Chyba', 'Nebyl vybrán žádný soubor.', 'warning'); return false; }
-                 if (file.size > 2 * 1024 * 1024) { showToast('Chyba', 'Soubor je příliš velký (max 2MB).', 'error'); return false; }
-                 if (!['image/jpeg', 'image/png', 'image/gif'].includes(file.type)) { showToast('Chyba', 'Nepodporovaný formát souboru.', 'error'); return false; }
-
-                 console.log("[Avatar Upload] Nahrávání souboru:", file.name);
-                 const btn = ui.saveAvatarBtn; const origText = btn.innerHTML;
-                 btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ukládám...';
-
-                 try {
-                     // Generate unique file name
-                     const fileExt = file.name.split('.').pop();
-                     const fileName = `public/${currentUser.id}-${Date.now()}.${fileExt}`; // Store in 'public' folder within 'avatars' bucket
-
-                     // 1. Upload file to Supabase Storage
-                     const { error: uploadError } = await supabase.storage
-                         .from('avatars') // Bucket name
-                         .upload(fileName, file);
-                     if (uploadError) throw new Error(`Chyba nahrávání souboru: ${uploadError.message}`);
-
-                     // 2. Get public URL of the uploaded file
-                     const { data: urlData } = supabase.storage
-                         .from('avatars')
-                         .getPublicUrl(fileName);
-                     if (!urlData || !urlData.publicUrl) throw new Error("Nepodařilo se získat URL obrázku.");
-                     const publicUrl = urlData.publicUrl;
-                     console.log("[Avatar Upload] Soubor nahrán, URL:", publicUrl);
-
-                     // 3. Update avatar_url in the user's profile
-                     const { data: updatedProfile, error: updateError } = await supabase
-                         .from('profiles')
-                         .update({ avatar_url: publicUrl, updated_at: new Date().toISOString() })
-                         .eq('id', currentUser.id)
-                         .select()
-                         .single();
-                     if (updateError) throw new Error(`Chyba aktualizace profilu: ${updateError.message}`);
-
-                     currentProfile = updatedProfile; // Update local cache
-                     updateProfileDisplay(currentProfile); // Refresh UI
-                     hideModal('avatar-modal');
-                     showToast('ÚSPĚCH', 'Profilový obrázek byl aktualizován.', 'success');
-                     console.log("[Avatar Upload] Avatar úspěšně aktualizován.");
-                     return true;
-
-                 } catch (error) { console.error('[Avatar Upload] Chyba:', error); showToast('CHYBA', `Aktualizace avataru selhala: ${error.message}`, 'error'); return false; }
-                 finally { btn.disabled = false; btn.innerHTML = origText; }
-             }
-
-             async function deleteUserAccount(password) {
-                 if (!currentUser || !supabase) { showToast('Chyba', 'Nejste přihlášeni.', 'error'); return false; }
-                 if (!password) { showFieldError('confirm-delete-password', 'Zadejte heslo pro potvrzení.'); return false; }
-
-                 console.warn("[Account Deletion] Zahájení procesu smazání účtu pro:", currentUser.id);
-                 const btn = ui.confirmDeleteAccountBtn; const origText = btn.innerHTML;
-                 btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mažu účet...';
-                 clearFieldError('confirm-delete-password');
-
-                 try {
-                     // IMPORTANT: Supabase JS client cannot directly delete users for security reasons.
-                     // This requires a trusted environment, typically a serverless function (Edge Function).
-                     // We will *invoke* a function named 'delete-user-account'.
-                     // This function MUST be created in your Supabase project and handle the actual deletion.
-                     // It should verify the user's password internally before proceeding.
-
-                     console.log("[Account Deletion] Volání funkce 'delete-user-account'...");
-                     const { data, error } = await supabase.functions.invoke('delete-user-account', {
-                         // You might need to pass the password for verification within the function
-                         // Be cautious about sending passwords directly, hash comparison server-side is better.
-                         // For this example, we assume the function verifies the logged-in user and optionally the password.
-                         body: JSON.stringify({ password: password }) // Sending password for server-side verification
-                     });
-
-                     if (error) {
-                         // Handle specific function errors
-                         if (error.message.includes('Invalid user credentials') || error.message.includes('Incorrect password')) {
-                             showFieldError('confirm-delete-password', 'Nesprávné heslo.');
-                         } else if (error.message.includes('requires recent login')) {
-                             showFieldError('confirm-delete-password', 'Vyžadováno nedávné přihlášení.');
-                             showToast('Chyba', 'Pro smazání účtu se prosím znovu přihlaste.', 'warning');
-                         } else {
-                             // Generic function error
-                             throw new Error(error.message || 'Neznámá chyba serverové funkce.');
-                         }
-                         console.error('[Account Deletion] Chyba funkce:', error);
-                         return false; // Stop deletion process
-                     }
-
-                     // If the function succeeded (implies user was deleted and possibly signed out)
-                     console.log("[Account Deletion] Funkce úspěšně provedena:", data);
-                     showToast('ÚČET SMAZÁN', 'Váš účet byl úspěšně smazán.', 'success', 5000);
-                     // Redirect after a delay
-                     setTimeout(() => { window.location.href = '/auth/index.html'; }, 3000);
-                     return true;
-
-                 } catch (error) {
-                     console.error('[Account Deletion] Chyba:', error);
-                     // Avoid showing error on password field if it wasn't a password error specifically
-                     if (!document.getElementById('confirm-delete-password-error')?.textContent) {
-                         showToast('CHYBA SMAZÁNÍ', `Smazání účtu selhalo: ${error.message}`, 'error');
-                     }
-                     return false;
-                 } finally { btn.disabled = false; btn.innerHTML = origText; }
-             }
+             function initializeSupabase() { try { if (typeof window.supabase === 'undefined' || typeof window.supabase.createClient !== 'function') { throw new Error("Knihovna Supabase nebyla správně načtena."); } supabase = window.supabase.createClient(supabaseUrl, supabaseKey); if (!supabase) throw new Error("Vytvoření klienta Supabase selhalo."); console.log('[Supabase] Klient úspěšně inicializován.'); return true; } catch (error) { console.error('[Supabase] Inicializace selhala:', error); showError("Kritická chyba: Nepodařilo se připojit k databázi.", true); return false; } }
+             async function fetchUserProfile(userId) { if (!supabase || !userId) return null; console.log(`[Profile] Načítání profilu pro ID: ${userId}`); try { const { data: profile, error } = await supabase.from('profiles').select('*').eq('id', userId).single(); if (error && error.code !== 'PGRST116') throw error; if (!profile) { console.warn(`[Profile] Profil nenalezen pro ${userId}. Vytváření výchozího...`); const defaultProfileData = { id: userId, email: currentUser.email, username: currentUser.email.split('@')[0], level: 1, points: 0, badges_count: 0, streak_days: 0, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), preferences: { dark_mode: window.matchMedia('(prefers-color-scheme: dark)').matches, language: 'cs' }, notifications: { email: true, study_tips: true, content_updates: true, practice_reminders: true } }; const { data: newProfile, error: createError } = await supabase.from('profiles').insert([defaultProfileData]).select().single(); if (createError) throw createError; console.log("[Profile] Výchozí profil úspěšně vytvořen."); return newProfile; } console.log("[Profile] Profil úspěšně načten."); return profile; } catch (error) { console.error('[Profile] Chyba při načítání/vytváření profilu:', error); showToast('Chyba Profilu', 'Nepodařilo se načíst data profilu.', 'error'); return null; } }
+             async function updateProfileData(data) { if (!currentUser || !supabase) { showToast('Chyba', 'Nejste přihlášeni.', 'error'); return false; } console.log("[Profile Update] Aktualizace dat:", data); isLoading.profile = true; try { const { data: updatedProfile, error } = await supabase.from('profiles').update({ first_name: data.first_name, last_name: data.last_name, username: data.username, school: data.school, grade: data.grade, bio: data.bio, updated_at: new Date().toISOString() }).eq('id', currentUser.id).select().single(); if (error) throw error; currentProfile = updatedProfile; updateProfileDisplay(currentProfile); showToast('ÚSPĚCH', 'Profil byl úspěšně aktualizován.', 'success'); console.log("[Profile Update] Úspěšně aktualizováno."); return true; } catch (error) { console.error('[Profile Update] Chyba:', error); showToast('CHYBA', `Aktualizace profilu selhala: ${error.message}`, 'error'); return false; } finally { isLoading.profile = false; } }
+             async function updateUserPassword(currentPassword, newPassword) { if (!currentUser || !supabase) { showToast('Chyba', 'Nejste přihlášeni.', 'error'); return false; } console.log("[Password Update] Pokus o změnu hesla."); isLoading.password = true; try { const { error } = await supabase.auth.updateUser({ password: newPassword }); if (error) { let message = 'Změna hesla selhala.'; if (error.message.includes('requires recent login')) message = 'Vyžadováno nedávné přihlášení. Přihlaste se znovu.'; else if (error.message.includes('weak_password') || error.message.includes('should be different')) message = error.message; showToast('CHYBA HESLA', message, 'error'); console.error('[Password Update] Chyba Supabase:', error); if (!message.includes('should be different')) showFieldError('current_password', 'Ověření selhalo nebo je vyžadováno nové přihlášení.'); return false; } ui.passwordForm.reset(); clearAllErrors('password-form'); showToast('ÚSPĚCH', 'Heslo bylo úspěšně změněno.', 'success'); console.log("[Password Update] Heslo úspěšně změněno."); return true; } catch (error) { console.error('[Password Update] Neočekávaná chyba:', error); showToast('CHYBA', 'Došlo k neočekávané chybě při změně hesla.', 'error'); return false; } finally { isLoading.password = false; } }
+             async function updatePreferencesData() { if (!currentUser || !supabase) { showToast('Chyba', 'Nejste přihlášeni.', 'error'); return false; } console.log("[Preferences Update] Aktualizace nastavení."); isLoading.preferences = true; try { const preferences = { dark_mode: ui.darkModeToggle.checked, language: ui.languageSelect.value, }; const notifications = { email: ui.emailNotificationsToggle.checked, study_tips: ui.studyTipsToggle.checked, content_updates: ui.contentUpdatesToggle.checked, practice_reminders: ui.practiceRemindersToggle.checked }; const { data: updatedProfile, error } = await supabase.from('profiles').update({ preferences: preferences, notifications: notifications, updated_at: new Date().toISOString() }).eq('id', currentUser.id).select().single(); if (error) throw error; currentProfile = updatedProfile; applyPreferences(currentProfile.preferences); showToast('ÚSPĚCH', 'Nastavení byla uložena.', 'success'); console.log("[Preferences Update] Nastavení uložena."); return true; } catch (error) { console.error('[Preferences Update] Chyba:', error); showToast('CHYBA', 'Uložení nastavení selhalo.', 'error'); return false; } finally { isLoading.preferences = false; } }
+             async function uploadAndSaveAvatar(file) { if (!currentUser || !supabase) { showToast('Chyba', 'Nejste přihlášeni.', 'error'); return false; } if (!file) { showToast('Chyba', 'Nebyl vybrán žádný soubor.', 'warning'); return false; } if (file.size > 2 * 1024 * 1024) { showToast('Chyba', 'Soubor je příliš velký (max 2MB).', 'error'); return false; } if (!['image/jpeg', 'image/png', 'image/gif'].includes(file.type)) { showToast('Chyba', 'Nepodporovaný formát souboru.', 'error'); return false; } console.log("[Avatar Upload] Nahrávání souboru:", file.name); isLoading.avatar = true; const btn = ui.saveAvatarBtn; const origText = btn.innerHTML; btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ukládám...'; try { const fileExt = file.name.split('.').pop(); const fileName = `public/${currentUser.id}-${Date.now()}.${fileExt}`; const { error: uploadError } = await supabase.storage.from('avatars').upload(fileName, file); if (uploadError) throw new Error(`Chyba nahrávání souboru: ${uploadError.message}`); const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(fileName); if (!urlData || !urlData.publicUrl) throw new Error("Nepodařilo se získat URL obrázku."); const publicUrl = urlData.publicUrl; console.log("[Avatar Upload] Soubor nahrán, URL:", publicUrl); const { data: updatedProfile, error: updateError } = await supabase.from('profiles').update({ avatar_url: publicUrl, updated_at: new Date().toISOString() }).eq('id', currentUser.id).select().single(); if (updateError) throw new Error(`Chyba aktualizace profilu: ${updateError.message}`); currentProfile = updatedProfile; updateProfileDisplay(currentProfile); hideModal('avatar-modal'); showToast('ÚSPĚCH', 'Profilový obrázek byl aktualizován.', 'success'); console.log("[Avatar Upload] Avatar úspěšně aktualizován."); return true; } catch (error) { console.error('[Avatar Upload] Chyba:', error); showToast('CHYBA', `Aktualizace avataru selhala: ${error.message}`, 'error'); return false; } finally { isLoading.avatar = false; btn.disabled = false; btn.innerHTML = origText; } }
+             async function deleteUserAccount(password) { if (!currentUser || !supabase) { showToast('Chyba', 'Nejste přihlášeni.', 'error'); return false; } if (!password) { showFieldError('confirm-delete-password', 'Zadejte heslo pro potvrzení.'); return false; } console.warn("[Account Deletion] Zahájení procesu smazání účtu pro:", currentUser.id); isLoading.delete = true; const btn = ui.confirmDeleteAccountBtn; const origText = btn.innerHTML; btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mažu účet...'; clearFieldError('confirm-delete-password'); try { console.log("[Account Deletion] Volání funkce 'delete-user-account'..."); const { data, error } = await supabase.functions.invoke('delete-user-account', { body: JSON.stringify({ password: password }) }); if (error) { let message = error.message || 'Neznámá chyba serverové funkce.'; if (message.includes('Invalid user credentials') || message.includes('Incorrect password')) { showFieldError('confirm-delete-password', 'Nesprávné heslo.'); message = 'Nesprávné heslo.'; } else if (message.includes('requires recent login')) { showFieldError('confirm-delete-password', 'Vyžadováno nedávné přihlášení.'); message = 'Pro smazání účtu se prosím znovu přihlaste.'; showToast('Chyba', message, 'warning'); } else { showToast('CHYBA SMAZÁNÍ', message, 'error'); } console.error('[Account Deletion] Chyba funkce:', error); return false; } console.log("[Account Deletion] Funkce úspěšně provedena:", data); showToast('ÚČET SMAZÁN', 'Váš účet byl úspěšně smazán.', 'success', 5000); setTimeout(() => { window.location.href = '/auth/index.html'; }, 3000); return true; } catch (error) { console.error('[Account Deletion] Chyba:', error); if (!document.getElementById('confirm-delete-password-error')?.textContent) { showToast('CHYBA SMAZÁNÍ', `Smazání účtu selhalo: ${error.message}`, 'error'); } return false; } finally { isLoading.delete = false; btn.disabled = false; btn.innerHTML = origText; } }
             // --- END: Supabase Interaction Functions ---
 
-
             // --- START: UI Update Functions ---
-            function updateProfileDisplay(profileData) {
-                if (!profileData) { console.warn("updateProfileDisplay: Chybí data profilu."); return; }
-                console.log("[UI Update] Aktualizace zobrazení profilu...");
-
-                // --- Sidebar ---
-                const sidebarDisplayName = `${profileData.first_name || ''} ${profileData.last_name || ''}`.trim() || profileData.username || currentUser?.email?.split('@')[0] || 'Pilot';
-                if (ui.sidebarName) ui.sidebarName.textContent = sanitizeHTML(sidebarDisplayName);
-                if (ui.sidebarAvatar) {
-                    const initials = getInitials(profileData);
-                    const avatarUrl = profileData.avatar_url;
-                    ui.sidebarAvatar.innerHTML = avatarUrl ? `<img src="${sanitizeHTML(avatarUrl)}" alt="${sanitizeHTML(initials)}">` : sanitizeHTML(initials);
-                }
-
-                 // --- Profile Header ---
-                 const profileDisplayName = `${profileData.first_name || ''} ${profileData.last_name || ''}`.trim() || profileData.username || 'Uživatel';
-                 if (ui.profileName) ui.profileName.textContent = sanitizeHTML(profileDisplayName);
-                 if (ui.profileEmail) ui.profileEmail.textContent = sanitizeHTML(profileData.email);
-                 if (ui.profileAvatar) {
-                     const initials = getInitials(profileData);
-                     const avatarUrl = profileData.avatar_url;
-                     // Keep the overlay div
-                     const overlayHTML = ui.profileAvatar.querySelector('.edit-avatar-overlay')?.outerHTML || `<div class="edit-avatar-overlay"><i class="fas fa-camera-retro"></i><span>Změnit</span></div>`;
-                     ui.profileAvatar.innerHTML = avatarUrl ? `<img src="${sanitizeHTML(avatarUrl)}" alt="Avatar">` : `<span>${sanitizeHTML(initials)}</span>`;
-                     ui.profileAvatar.innerHTML += overlayHTML; // Re-add overlay
-                     // Re-attach listener as innerHTML was overwritten
-                     ui.profileAvatar.addEventListener('click', () => showModal('avatar-modal'));
-                 }
-                 if (ui.avatarPreview) { // Update modal preview as well
-                     const initials = getInitials(profileData);
-                     const avatarUrl = profileData.avatar_url;
-                     ui.avatarPreview.innerHTML = avatarUrl ? `<img src="${sanitizeHTML(avatarUrl)}" alt="Náhled">` : `<span>${sanitizeHTML(initials)}</span>`;
-                 }
-
-
-                 // --- Profile Stats ---
-                 if (ui.profileLevel) ui.profileLevel.textContent = profileData.level ?? 1;
-                 if (ui.profilePoints) ui.profilePoints.textContent = profileData.points ?? 0;
-                 if (ui.profileBadges) ui.profileBadges.textContent = profileData.badges_count ?? 0;
-                 if (ui.profileStreak) ui.profileStreak.textContent = profileData.streak_days ?? 0;
-
-                // --- Personal Info Form ---
-                if (ui.firstNameField) ui.firstNameField.value = profileData.first_name || '';
-                if (ui.lastNameField) ui.lastNameField.value = profileData.last_name || '';
-                if (ui.usernameField) ui.usernameField.value = profileData.username || '';
-                if (ui.emailField) ui.emailField.value = profileData.email || ''; // Keep disabled
-                if (ui.schoolField) ui.schoolField.value = profileData.school || '';
-                if (ui.gradeField) ui.gradeField.value = profileData.grade || '';
-                if (ui.bioField) ui.bioField.value = profileData.bio || '';
-
-                 // --- Preferences Form ---
-                 if (profileData.preferences) {
-                     if (ui.darkModeToggle) ui.darkModeToggle.checked = profileData.preferences.dark_mode ?? false;
-                     if (ui.languageSelect) ui.languageSelect.value = profileData.preferences.language || 'cs';
-                     applyPreferences(profileData.preferences); // Apply visual prefs
-                 }
-                 if (profileData.notifications) {
-                     if (ui.emailNotificationsToggle) ui.emailNotificationsToggle.checked = profileData.notifications.email ?? true;
-                     if (ui.studyTipsToggle) ui.studyTipsToggle.checked = profileData.notifications.study_tips ?? true;
-                     if (ui.contentUpdatesToggle) ui.contentUpdatesToggle.checked = profileData.notifications.content_updates ?? true;
-                     if (ui.practiceRemindersToggle) ui.practiceRemindersToggle.checked = profileData.notifications.practice_reminders ?? true;
-                 }
-
-                 // Placeholder for notification count - needs real data if implemented
-                 if (ui.notificationCount) ui.notificationCount.textContent = '0'; // Replace with actual count if available
-
-                 console.log("[UI Update] Zobrazení profilu dokončeno.");
-             }
-
-             function applyPreferences(preferences) {
-                 if (!preferences) return;
-                 // Apply dark mode visually
-                 if (preferences.dark_mode) { document.documentElement.classList.add('dark'); }
-                 else { document.documentElement.classList.remove('dark'); }
-                 // Language requires a page reload or more complex dynamic text replacement
-                 console.log("[Preferences Apply] Aplikováno nastavení (Tmavý režim: " + preferences.dark_mode + ")");
-             }
+            function updateProfileDisplay(profileData) { if (!profileData) { console.warn("updateProfileDisplay: Chybí data profilu."); return; } console.log("[UI Update] Aktualizace zobrazení profilu..."); const sidebarDisplayName = `${profileData.first_name || ''} ${profileData.last_name || ''}`.trim() || profileData.username || currentUser?.email?.split('@')[0] || 'Pilot'; if (ui.sidebarName) ui.sidebarName.textContent = sanitizeHTML(sidebarDisplayName); if (ui.sidebarAvatar) { const initials = getInitials(profileData); const avatarUrl = profileData.avatar_url; ui.sidebarAvatar.innerHTML = avatarUrl ? `<img src="${sanitizeHTML(avatarUrl)}" alt="${sanitizeHTML(initials)}">` : sanitizeHTML(initials); } const profileDisplayName = `${profileData.first_name || ''} ${profileData.last_name || ''}`.trim() || profileData.username || 'Uživatel'; if (ui.profileName) ui.profileName.textContent = sanitizeHTML(profileDisplayName); if (ui.profileEmail) ui.profileEmail.textContent = sanitizeHTML(profileData.email); if (ui.profileAvatar) { const initials = getInitials(profileData); const avatarUrl = profileData.avatar_url; const overlayHTML = ui.profileAvatar.querySelector('.edit-avatar-overlay')?.outerHTML || `<div class="edit-avatar-overlay" id="edit-avatar-btn"><i class="fas fa-camera-retro"></i><span>Změnit</span></div>`; ui.profileAvatar.innerHTML = avatarUrl ? `<img src="${sanitizeHTML(avatarUrl)}" alt="Avatar">` : `<span>${sanitizeHTML(initials)}</span>`; ui.profileAvatar.innerHTML += overlayHTML; // Re-attach listener after update
+ const editBtn = ui.profileAvatar.querySelector('#edit-avatar-btn'); if (editBtn) editBtn.addEventListener('click', () => showModal('avatar-modal')); } if (ui.avatarPreview) { const initials = getInitials(profileData); const avatarUrl = profileData.avatar_url; ui.avatarPreview.innerHTML = avatarUrl ? `<img src="${sanitizeHTML(avatarUrl)}" alt="Náhled">` : `<span>${sanitizeHTML(initials)}</span>`; } if (ui.profileLevel) ui.profileLevel.textContent = profileData.level ?? 1; if (ui.profilePoints) ui.profilePoints.textContent = profileData.points ?? 0; if (ui.profileBadges) ui.profileBadges.textContent = profileData.badges_count ?? 0; if (ui.profileStreak) ui.profileStreak.textContent = profileData.streak_days ?? 0; if (ui.firstNameField) ui.firstNameField.value = profileData.first_name || ''; if (ui.lastNameField) ui.lastNameField.value = profileData.last_name || ''; if (ui.usernameField) ui.usernameField.value = profileData.username || ''; if (ui.emailField) ui.emailField.value = profileData.email || ''; if (ui.schoolField) ui.schoolField.value = profileData.school || ''; if (ui.gradeField) ui.gradeField.value = profileData.grade || ''; if (ui.bioField) ui.bioField.value = profileData.bio || ''; if (profileData.preferences) { if (ui.darkModeToggle) ui.darkModeToggle.checked = profileData.preferences.dark_mode ?? false; if (ui.languageSelect) ui.languageSelect.value = profileData.preferences.language || 'cs'; applyPreferences(profileData.preferences); } if (profileData.notifications) { if (ui.emailNotificationsToggle) ui.emailNotificationsToggle.checked = profileData.notifications.email ?? true; if (ui.studyTipsToggle) ui.studyTipsToggle.checked = profileData.notifications.study_tips ?? true; if (ui.contentUpdatesToggle) ui.contentUpdatesToggle.checked = profileData.notifications.content_updates ?? true; if (ui.practiceRemindersToggle) ui.practiceRemindersToggle.checked = profileData.notifications.practice_reminders ?? true; } console.log("[UI Update] Zobrazení profilu dokončeno."); }
+            function applyPreferences(preferences) { if (!preferences) return; if (preferences.dark_mode) { document.documentElement.classList.add('dark'); } else { document.documentElement.classList.remove('dark'); } console.log("[Preferences Apply] Aplikováno nastavení (Tmavý režim: " + preferences.dark_mode + ")"); }
             // --- END: UI Update Functions ---
 
-
             // --- START: Form Validation ---
-            function validateProfileForm() {
-                clearAllErrors('profile-form');
-                let isValid = true;
-                 // Only basic validation for username for now, add more if needed
-                 if (!validators.required(ui.usernameField.value, 'username')) isValid = false;
-                 else if (!validators.minLength(ui.usernameField.value, 'username', 3)) isValid = false;
-                 // Add other validations (e.g., first_name, last_name) if required
-                 // if (!validators.required(ui.firstNameField.value, 'first_name')) isValid = false;
-                 // if (!validators.required(ui.lastNameField.value, 'last_name')) isValid = false;
-                 return isValid;
-            }
-
-             function validatePasswordForm() {
-                 clearAllErrors('password-form');
-                 let isValid = true;
-                 const newPassword = ui.newPasswordField.value;
-                 const confirmPassword = ui.confirmPasswordField.value;
-                 const currentPassword = ui.currentPasswordField.value; // Needed for some checks
-
-                 if (!validators.required(currentPassword, 'current_password')) isValid = false; // Require current password
-                 if (!validators.required(newPassword, 'new_password', 'Zadejte nové heslo.')) isValid = false;
-                 else if (!validators.minLength(newPassword, 'new_password', 8)) isValid = false;
-                 if (!validators.required(confirmPassword, 'confirm_password', 'Potvrďte nové heslo.')) isValid = false;
-                 else if (newPassword && !validators.match(confirmPassword, 'confirm_password', newPassword, 'Hesla se neshodují.')) isValid = false;
-
-                 return isValid;
-             }
+            function validateProfileForm() { clearAllErrors('profile-form'); let isValid = true; if (!validators.required(ui.usernameField.value, 'username')) isValid = false; else if (!validators.minLength(ui.usernameField.value, 'username', 3)) isValid = false; return isValid; }
+            function validatePasswordForm() { clearAllErrors('password-form'); let isValid = true; const newPassword = ui.newPasswordField.value; const confirmPassword = ui.confirmPasswordField.value; const currentPassword = ui.currentPasswordField.value; if (!validators.required(currentPassword, 'current_password')) isValid = false; if (!validators.required(newPassword, 'new_password', 'Zadejte nové heslo.')) isValid = false; else if (!validators.minLength(newPassword, 'new_password', 8)) isValid = false; if (!validators.required(confirmPassword, 'confirm_password', 'Potvrďte nové heslo.')) isValid = false; else if (newPassword && !validators.match(confirmPassword, 'confirm_password', newPassword, 'Hesla se neshodují.')) isValid = false; return isValid; }
             // --- END: Form Validation ---
 
-
             // --- START: Main Logic ---
-            async function loadUserProfile() {
-                console.log("[MAIN] Načítání profilu...");
-                if (!currentUser) { console.error("[MAIN] Není přihlášený uživatel."); showError("Pro přístup k profilu se musíte přihlásit.", true); ui.profileLoading.style.display = 'none'; return; }
-
-                ui.profileLoading.style.display = 'flex';
-                ui.profileContent.style.display = 'none';
+            async function loadAndDisplayProfile() {
+                console.log("[MAIN] Načítání a zobrazování profilu...");
+                if (!currentUser) { console.error("[MAIN] Není přihlášený uživatel."); showError("Pro přístup k profilu se musíte přihlásit.", true); return; }
+                // Hide main content, show profile loader
+                if(ui.profileContent) ui.profileContent.style.display = 'none';
+                // ui.profileLoading is now the initial overlay, no need to show/hide here
                 hideError();
 
                 try {
                     currentProfile = await fetchUserProfile(currentUser.id);
                     if (!currentProfile) { throw new Error("Nepodařilo se načíst nebo vytvořit profil."); }
-                    updateProfileDisplay(currentProfile); // Display fetched/created data
-                    ui.profileLoading.style.display = 'none';
-                    ui.profileContent.style.display = 'block';
-                    // Animate content in
-                    const animatedElements = ui.profileContent.querySelectorAll('[data-animate]');
-                    animatedElements.forEach((el, index) => {
-                       el.style.setProperty('--animation-order', index);
-                       // Simple way to trigger animation after display: block
-                       requestAnimationFrame(() => { el.classList.add('animated'); });
-                    });
-                     console.log("[MAIN] Profil úspěšně načten a zobrazen.");
-                 } catch (error) {
-                     console.error('[MAIN] Chyba při načítání profilu:', error);
-                     showError('Nepodařilo se načíst profil: ' + error.message, true);
-                     ui.profileLoading.style.display = 'none';
-                 }
-             }
+                    updateProfileDisplay(currentProfile);
+                    if(ui.profileContent) ui.profileContent.style.display = 'block'; // Show content after loading
+                    console.log("[MAIN] Profil úspěšně načten a zobrazen.");
 
-             function setupEventListeners() {
-                 console.log("[SETUP] Nastavování posluchačů událostí...");
+                } catch (error) {
+                    console.error('[MAIN] Chyba při načítání profilu:', error);
+                    showError('Nepodařilo se načíst profil: ' + error.message, true);
+                } finally {
+                    // Initial overlay is handled in initializeApp
+                }
+            }
 
-                 // --- Sidebar/Menu ---
-                 if (ui.mainMobileMenuToggle) ui.mainMobileMenuToggle.addEventListener('click', openMenu);
-                 if (ui.sidebarCloseToggle) ui.sidebarCloseToggle.addEventListener('click', closeMenu);
-                 if (ui.sidebarOverlay) ui.sidebarOverlay.addEventListener('click', closeMenu);
-                 document.querySelectorAll('.sidebar-link').forEach(link => { link.addEventListener('click', () => { if (window.innerWidth <= 992) closeMenu(); }); });
-
-                 // --- Forms ---
-                 if (ui.profileForm) {
-                     ui.profileForm.addEventListener('submit', async (e) => {
-                         e.preventDefault();
-                         if (!validateProfileForm()) return;
-                         ui.saveProfileBtn.disabled = true; ui.saveProfileBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ukládám...';
-                         const success = await updateProfileData({
-                             first_name: ui.firstNameField.value, last_name: ui.lastNameField.value, username: ui.usernameField.value,
-                             school: ui.schoolField.value, grade: ui.gradeField.value, bio: ui.bioField.value
-                         });
-                         ui.saveProfileBtn.disabled = false; ui.saveProfileBtn.innerHTML = '<i class="fas fa-save"></i> Uložit změny';
-                     });
-                 }
-                 if (ui.passwordForm) {
-                     ui.passwordForm.addEventListener('submit', async (e) => {
-                         e.preventDefault();
-                         if (!validatePasswordForm()) return;
-                         ui.savePasswordBtn.disabled = true; ui.savePasswordBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Měním...';
-                         const success = await updateUserPassword(ui.currentPasswordField.value, ui.newPasswordField.value);
-                         ui.savePasswordBtn.disabled = false; ui.savePasswordBtn.innerHTML = '<i class="fas fa-key"></i> Změnit heslo';
-                         if (success) ui.passwordForm.reset(); // Clear form on success only
-                     });
-                 }
-                 if (ui.savePreferencesBtn) {
-                     ui.savePreferencesBtn.addEventListener('click', async () => {
-                         ui.savePreferencesBtn.disabled = true; ui.savePreferencesBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ukládám...';
-                         await updatePreferencesData();
-                         ui.savePreferencesBtn.disabled = false; ui.savePreferencesBtn.innerHTML = '<i class="fas fa-save"></i> Uložit nastavení';
-                     });
-                 }
-
-                 // --- Avatar ---
-                 if (ui.profileAvatar) { ui.profileAvatar.addEventListener('click', () => showModal('avatar-modal')); } // Listener might be re-added in updateProfileDisplay
-                 if (ui.avatarUploadInput) {
-                     ui.avatarUploadInput.addEventListener('change', function() {
-                         if (this.files && this.files[0]) {
-                             const reader = new FileReader();
-                             reader.onload = (e) => { if (ui.avatarPreview) ui.avatarPreview.innerHTML = `<img src="${e.target.result}" alt="Náhled"/>`; };
-                             reader.readAsDataURL(this.files[0]);
-                         }
-                     });
-                 }
-                 if (ui.saveAvatarBtn) { ui.saveAvatarBtn.addEventListener('click', async () => { await uploadAndSaveAvatar(ui.avatarUploadInput?.files[0]); }); }
-
-                 // --- Delete Account ---
-                 if (ui.deleteAccountBtn) { ui.deleteAccountBtn.addEventListener('click', () => showModal('delete-account-modal')); }
-                 if (ui.confirmDeleteAccountBtn) { ui.confirmDeleteAccountBtn.addEventListener('click', async () => { await deleteUserAccount(ui.confirmDeletePasswordField?.value); }); }
-
-                 // --- Modals ---
-                 document.querySelectorAll('.modal-close, [data-dismiss="modal"]').forEach(btn => { btn.addEventListener('click', function() { hideModal(this.closest('.modal').id); }); });
-                 // Close modal on outside click
-                 document.querySelectorAll('.modal').forEach(modal => { modal.addEventListener('click', function(event) { if (event.target === this) { hideModal(this.id); } }); });
-
-                 // --- Tabs ---
-                 ui.profileTabs.forEach(tab => {
-                     tab.addEventListener('click', () => {
-                         ui.profileTabs.forEach(t => t.classList.remove('active'));
-                         tab.classList.add('active');
-                         const tabId = tab.dataset.tab;
-                         ui.tabContents.forEach(c => c.classList.remove('active'));
-                         const activeContent = document.getElementById(tabId);
-                         if (activeContent) activeContent.classList.add('active');
-                     });
-                 });
-
-                 // --- Logout ---
-                 if (ui.logoutBtn) {
-                     ui.logoutBtn.addEventListener('click', async () => {
-                         try {
-                             console.log("Odhlášení...");
-                             ui.logoutBtn.disabled = true;
-                             const { error } = await supabase.auth.signOut();
-                             if (error) throw error;
-                             console.log("Odhlášeno, přesměrovávám...");
-                             window.location.href = '/auth/index.html'; // Redirect after sign out
-                         } catch (error) {
-                             console.error('Chyba při odhlášení:', error);
-                             showToast('Chyba', `Chyba při odhlášení: ${error.message}`, 'error');
-                             ui.logoutBtn.disabled = false;
-                         }
-                     });
-                 }
-
-                 // --- Clear errors on input ---
-                 document.querySelectorAll('.form-control').forEach(input => {
-                     input.addEventListener('input', () => clearFieldError(input.id));
-                     input.addEventListener('change', () => clearFieldError(input.id)); // For selects
-                 });
-
-                 // --- Online/Offline ---
-                 window.addEventListener('online', updateOnlineStatus);
-                 window.addEventListener('offline', updateOnlineStatus);
-                 updateOnlineStatus(); // Initial check
-
-                 // --- Init UI Enhancements ---
-                 initMouseFollower(); // Init mouse follower effect
-                 updateCopyrightYear(); // Update copyright year
-
-                 console.log("[SETUP] Posluchači událostí nastaveni.");
-             }
+            function setupEventListeners() {
+                console.log("[SETUP] Nastavování posluchačů událostí...");
+                // --- Sidebar/Menu ---
+                if (ui.mainMobileMenuToggle) ui.mainMobileMenuToggle.addEventListener('click', openMenu);
+                if (ui.sidebarCloseToggle) ui.sidebarCloseToggle.addEventListener('click', closeMenu);
+                if (ui.sidebarOverlay) ui.sidebarOverlay.addEventListener('click', closeMenu);
+                document.querySelectorAll('.sidebar-link').forEach(link => { link.addEventListener('click', () => { if (window.innerWidth <= 992) closeMenu(); }); });
+                // --- Forms ---
+                if (ui.profileForm) { ui.profileForm.addEventListener('submit', async (e) => { e.preventDefault(); if (!validateProfileForm() || isLoading.profile) return; ui.saveProfileBtn.disabled = true; ui.saveProfileBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ukládám...'; const success = await updateProfileData({ first_name: ui.firstNameField.value, last_name: ui.lastNameField.value, username: ui.usernameField.value, school: ui.schoolField.value, grade: ui.gradeField.value, bio: ui.bioField.value }); ui.saveProfileBtn.disabled = false; ui.saveProfileBtn.innerHTML = '<i class="fas fa-save"></i> Uložit změny'; }); }
+                if (ui.passwordForm) { ui.passwordForm.addEventListener('submit', async (e) => { e.preventDefault(); if (!validatePasswordForm() || isLoading.password) return; ui.savePasswordBtn.disabled = true; ui.savePasswordBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Měním...'; const success = await updateUserPassword(ui.currentPasswordField.value, ui.newPasswordField.value); ui.savePasswordBtn.disabled = false; ui.savePasswordBtn.innerHTML = '<i class="fas fa-key"></i> Změnit heslo'; if (success) ui.passwordForm.reset(); }); }
+                if (ui.savePreferencesBtn) { ui.savePreferencesBtn.addEventListener('click', async () => { if(isLoading.preferences) return; ui.savePreferencesBtn.disabled = true; ui.savePreferencesBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ukládám...'; await updatePreferencesData(); ui.savePreferencesBtn.disabled = false; ui.savePreferencesBtn.innerHTML = '<i class="fas fa-save"></i> Uložit nastavení'; }); }
+                // --- Avatar ---
+                if (ui.profileAvatar) { ui.profileAvatar.addEventListener('click', () => showModal('avatar-modal')); } // Re-attach listener in updateProfileDisplay too
+                if (ui.avatarUploadInput) { ui.avatarUploadInput.addEventListener('change', function() { if (this.files && this.files[0]) { const reader = new FileReader(); reader.onload = (e) => { if (ui.avatarPreview) ui.avatarPreview.innerHTML = `<img src="${e.target.result}" alt="Náhled"/>`; ui.saveAvatarBtn.disabled = false; }; reader.readAsDataURL(this.files[0]); } else { ui.saveAvatarBtn.disabled = true; } }); }
+                if (ui.saveAvatarBtn) { ui.saveAvatarBtn.addEventListener('click', async () => { if(isLoading.avatar) return; await uploadAndSaveAvatar(ui.avatarUploadInput?.files[0]); }); }
+                // --- Delete Account ---
+                if (ui.deleteAccountBtn) { ui.deleteAccountBtn.addEventListener('click', () => showModal('delete-account-modal')); }
+                if (ui.confirmDeleteAccountBtn) { ui.confirmDeleteAccountBtn.addEventListener('click', async () => { if(isLoading.delete) return; await deleteUserAccount(ui.confirmDeletePasswordField?.value); }); }
+                // --- Modals ---
+                document.querySelectorAll('.modal-close, [data-dismiss="modal"]').forEach(btn => { btn.addEventListener('click', function() { hideModal(this.closest('.modal').id); }); });
+                document.querySelectorAll('.modal').forEach(modal => { modal.addEventListener('click', function(event) { if (event.target === this) { hideModal(this.id); } }); });
+                // --- Tabs ---
+                ui.profileTabs.forEach(tab => { tab.addEventListener('click', () => { ui.profileTabs.forEach(t => t.classList.remove('active')); tab.classList.add('active'); const tabId = tab.dataset.tab; ui.tabContents.forEach(c => c.classList.remove('active')); const activeContent = document.getElementById(tabId); if (activeContent) activeContent.classList.add('active'); }); });
+                // --- Logout ---
+                if (ui.logoutBtn) { ui.logoutBtn.addEventListener('click', async () => { try { console.log("Odhlášení..."); ui.logoutBtn.disabled = true; const { error } = await supabase.auth.signOut(); if (error) throw error; console.log("Odhlášeno, přesměrovávám..."); window.location.href = '/auth/index.html'; } catch (error) { console.error('Chyba při odhlášení:', error); showToast('Chyba', `Chyba při odhlášení: ${error.message}`, 'error'); ui.logoutBtn.disabled = false; } }); }
+                // --- Clear errors on input ---
+                document.querySelectorAll('.form-control').forEach(input => { input.addEventListener('input', () => clearFieldError(input.id)); input.addEventListener('change', () => clearFieldError(input.id)); });
+                // --- Online/Offline ---
+                window.addEventListener('online', updateOnlineStatus); window.addEventListener('offline', updateOnlineStatus);
+                updateOnlineStatus();
+                // --- Init UI Enhancements ---
+                initMouseFollower();
+                initHeaderScrollDetection();
+                updateCopyrightYear();
+                console.log("[SETUP] Posluchači událostí nastaveni.");
+            }
 
             async function initializeApp() {
                 console.log("[INIT] Spouštění inicializace aplikace profilu...");
-                if (!initializeSupabase()) { return; } // Stop if Supabase fails
-                setupEventListeners(); // Setup listeners regardless of auth status
+                if (!initializeSupabase()) { return; }
+                setupEventListeners();
+
+                // Show initial loader immediately
+                if (ui.initialLoader) { ui.initialLoader.classList.remove('hidden'); ui.initialLoader.style.display = 'flex'; }
+                if (ui.mainContent) ui.mainContent.style.display = 'none'; // Hide main content initially
 
                 try {
                     console.log("[INIT] Kontrola autentizační seance...");
@@ -1634,21 +1247,28 @@
 
                     if (!session || !session.user) {
                         console.log('[INIT] Uživatel není přihlášen, přesměrování na /auth/index.html');
-                        window.location.href = '/auth/index.html'; // Redirect to login
-                        return; // Stop further execution
+                        window.location.href = '/auth/index.html';
+                        return; // Stop execution, loader will remain visible until redirect happens
                     }
 
                     currentUser = session.user;
                     console.log(`[INIT] Uživatel ověřen (ID: ${currentUser.id}). Načítání profilu...`);
-                    await loadUserProfile(); // Load the profile data and update UI
+
+                    // Fetch profile data
+                    await loadAndDisplayProfile();
+
+                    // Hide initial loader and show main content AFTER profile load attempt
+                    if (ui.initialLoader) { ui.initialLoader.classList.add('hidden'); setTimeout(() => { if (ui.initialLoader) ui.initialLoader.style.display = 'none'; }, 600); } // Match transition duration
+                    if (ui.mainContent) { ui.mainContent.style.display = 'block'; requestAnimationFrame(() => { ui.mainContent.classList.add('loaded'); }); }
 
                     console.log("✅ [INIT] Inicializace stránky profilu dokončena.");
 
                 } catch (error) {
                     console.error("❌ [INIT] Kritická chyba při inicializaci profilu:", error);
-                    showError(`Chyba inicializace: ${error.message}`, true);
-                    if (ui.profileLoading) ui.profileLoading.style.display = 'none';
-                    if (ui.profileContent) ui.profileContent.style.display = 'none'; // Hide content on critical error
+                    // Keep loader visible on critical error or show error within it
+                    if (ui.initialLoader && !ui.initialLoader.classList.contains('hidden')) { ui.initialLoader.innerHTML = `<p style="color: var(--accent-pink);">CHYBA: ${error.message}. Obnovte.</p>`; }
+                    else { showError(`Chyba inicializace: ${error.message}`, true); }
+                    if (ui.mainContent) ui.mainContent.style.display = 'none'; // Ensure main content is hidden
                 }
             }
             // --- END: Main Logic ---
@@ -1656,7 +1276,7 @@
             // --- START THE APP ---
             initializeApp();
 
-        })(); // End of IIFE
+        })();
     </script>
 </body>
 </html>
