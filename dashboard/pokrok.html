@@ -13,7 +13,8 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/date-fns@2.29.3/index.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/date-fns/locale/cs/index.js"></script> <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/css/tooltipster.bundle.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/date-fns/locale/cs/index.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/css/tooltipster.bundle.min.css">
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/js/tooltipster.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -339,34 +340,59 @@
     </div>
 
     <div class="toast-container" id="toast-container"></div>
+
     <div id="sidebar-overlay" class="sidebar-overlay"></div>
 
     <aside id="sidebar" class="sidebar">
         <div class="sidebar-header">
             <button class="mobile-menu-toggle" id="sidebar-close-toggle"> <i class="fas fa-times"></i> </button>
-            <a href="/dashboard/dashboard.html" class="sidebar-logo"> <i class="fas fa-calculator"></i> <span>Justax</span> </a>
+            <a href="/dashboard/dashboard.html" class="sidebar-logo">
+                <i class="fas fa-calculator"></i> <span>Justax</span> </a>
         </div>
         <ul class="sidebar-menu">
-            <li class="sidebar-item"> <a href="/dashboard/dashboard.html" class="sidebar-link"> <i class="fas fa-th-large"></i> <span>Dashboard</span> </a> </li>
-            <li class="sidebar-item"> <a href="/dashboard/procvicovani/main.html" class="sidebar-link"> <i class="fas fa-book-open"></i> <span>Procvičování</span> </a> </li>
-            <li class="sidebar-item"> <a href="/dashboard/pokrok.html" class="sidebar-link active"> <i class="fas fa-chart-line"></i> <span>Pokrok</span> </a> </li>
-            <li class="sidebar-item"> <a href="/dashboard/oceneni.html" class="sidebar-link"> <i class="fas fa-medal"></i> <span>Ocenění</span> </a> </li>
-            <li class="sidebar-item"> <a href="/dashboard/materialy.html" class="sidebar-link"> <i class="fas fa-file-alt"></i> <span>Materiály</span> </a> </li>
-            <li class="sidebar-item"> <a href="/dashboard/profile.html" class="sidebar-link"> <i class="fas fa-user-cog"></i> <span>Profil</span> </a> </li>
+            <li class="sidebar-item">
+                <a href="/dashboard/dashboard.html" class="sidebar-link">
+                    <i class="fas fa-th-large"></i> <span>Dashboard</span>
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a href="/dashboard/procvicovani/main.html" class="sidebar-link">
+                    <i class="fas fa-book-open"></i> <span>Procvičování</span>
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a href="/dashboard/pokrok.html" class="sidebar-link active">
+                    <i class="fas fa-chart-line"></i> <span>Pokrok</span>
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a href="/dashboard/oceneni.html" class="sidebar-link">
+                    <i class="fas fa-medal"></i> <span>Ocenění</span>
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a href="/dashboard/materialy.html" class="sidebar-link">
+                    <i class="fas fa-file-alt"></i> <span>Materiály</span>
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a href="/dashboard/profile.html" class="sidebar-link">
+                    <i class="fas fa-user-cog"></i> <span>Profil</span>
+                </a>
+            </li>
         </ul>
         <div class="user-profile">
-            <div class="user-avatar" id="user-avatar">?</div>
-            <div class="user-info"> <div class="user-name" id="user-name">Načítání...</div> <div class="user-role">Student</div> </div>
+            <div class="user-avatar" id="user-avatar">?</div> <div class="user-info">
+                <div class="user-name" id="user-name">Načítání...</div> <div class="user-role">Student</div> </div>
         </div>
         <div class="sidebar-footer"> &copy; 2025 Justax </div>
     </aside>
+
     <main id="main-content">
         <header class="dashboard-header">
              <div class="header-title">
-                  <button class="mobile-menu-toggle" id="mobile-menu-toggle"> <i class="fas fa-bars"></i> </button>
-                 <h1>Přehled pokroku</h1>
-                 <div class="header-time" id="current-time"></div>
-             </div>
+                 <button class="mobile-menu-toggle" id="mobile-menu-toggle"> <i class="fas fa-bars"></i> </button>
+                 <h1>Přehled pokroku</h1> <div class="header-time" id="current-time"></div> </div>
             <div class="header-actions">
                 <button class="btn btn-primary btn-tooltip" id="refresh-btn" title="Obnovit data">
                     <i class="fas fa-sync-alt"></i>
@@ -378,15 +404,44 @@
         <div class="error-container" id="global-error"></div>
 
         <div class="stats-grid" id="stats-grid">
-             <div class="stats-card loading" data-type="progress"> <div class="loading-skeleton"> <div class="skeleton title-sm" style="width: 70%;"></div> <div class="skeleton value-lg" style="width: 50%;"></div> <div class="skeleton text-md" style="width: 90%;"></div> <div style="margin-top: auto; border-top: 1px solid transparent; padding-top: 1rem;"><div class="skeleton text-sm" style="width: 65%;"></div></div> </div> <div class="stats-card-header"> <h3 class="stats-card-title"><i class="fas fa-tasks"></i>Celkový pokrok</h3> </div> <div class="stats-card-content"> <div class="stats-card-value" id="overall-progress-value">- %</div> <div class="stats-card-description" id="overall-progress-desc">Průměr ze všech oblastí</div> </div> <div class="stats-card-footer" id="overall-progress-footer"><i class="fas fa-minus"></i> Načítání...</div> </div>
-             <div class="stats-card loading" data-type="points"> <div class="loading-skeleton"> <div class="skeleton title-sm" style="width: 60%;"></div> <div class="skeleton value-lg" style="width: 40%;"></div> <div class="skeleton text-md" style="width: 80%;"></div> <div style="margin-top: auto; border-top: 1px solid transparent; padding-top: 1rem;"><div class="skeleton text-sm" style="width: 70%;"></div></div> </div> <div class="stats-card-header"> <h3 class="stats-card-title"><i class="fas fa-star"></i>Celkem bodů</h3> </div> <div class="stats-card-content"> <div class="stats-card-value" id="total-points-value">-</div> <div class="stats-card-description" id="total-points-desc">Získané za aktivity a testy</div> </div> <div class="stats-card-footer" id="total-points-footer"><i class="fas fa-minus"></i> Načítání...</div> </div>
-             <div class="stats-card loading" data-type="streak"> <div class="loading-skeleton"> <div class="skeleton title-sm" style="width: 65%;"></div> <div class="skeleton value-lg" style="width: 30%;"></div> <div class="skeleton text-md" style="width: 85%;"></div> <div style="margin-top: auto; border-top: 1px solid transparent; padding-top: 1rem;"><div class="skeleton text-sm" style="width: 60%;"></div></div> </div> <div class="stats-card-header"> <h3 class="stats-card-title"><i class="fas fa-fire"></i>Studijní série</h3> </div> <div class="stats-card-content"> <div class="stats-card-value" id="streak-value">-</div> <div class="stats-card-description" id="streak-desc">Počet dnů studia v řadě</div> </div> <div class="stats-card-footer" id="streak-footer">Nejdelší série: -</div> </div>
-             <div class="stats-card loading" data-type="exercises"> <div class="loading-skeleton"> <div class="skeleton title-sm" style="width: 80%;"></div> <div class="skeleton value-lg" style="width: 45%;"></div> <div class="skeleton text-md" style="width: 75%;"></div> <div style="margin-top: auto; border-top: 1px solid transparent; padding-top: 1rem;"><div class="skeleton text-sm" style="width: 55%;"></div></div> </div> <div class="stats-card-header"> <h3 class="stats-card-title"><i class="fas fa-check-double"></i>Dokončené aktivity</h3> </div> <div class="stats-card-content"> <div class="stats-card-value" id="completed-count-value">-</div> <div class="stats-card-description" id="completed-count-desc">Počet testů a cvičení</div> </div> <div class="stats-card-footer" id="completed-count-footer"><i class="fas fa-minus"></i> Načítání...</div> </div>
+             <div class="stats-card loading" data-type="progress">
+                 <div class="loading-skeleton"> <div class="skeleton title-sm" style="width: 70%;"></div>
+                     <div class="skeleton value-lg" style="width: 50%;"></div>
+                     <div class="skeleton text-md" style="width: 90%;"></div>
+                     <div style="margin-top: auto; border-top: 1px solid transparent; padding-top: 1rem;"><div class="skeleton text-sm" style="width: 65%;"></div></div>
+                 </div>
+                 <div class="stats-card-header"> <h3 class="stats-card-title"><i class="fas fa-tasks"></i>Celkový pokrok</h3> </div>
+                 <div class="stats-card-content"> <div class="stats-card-value" id="overall-progress-value">- %</div> <div class="stats-card-description" id="overall-progress-desc">Průměr ze všech oblastí</div> </div>
+                 <div class="stats-card-footer" id="overall-progress-footer"><i class="fas fa-minus"></i> Načítání...</div>
+             </div>
+             <div class="stats-card loading" data-type="points">
+                 <div class="loading-skeleton">
+                     <div class="skeleton title-sm" style="width: 60%;"></div> <div class="skeleton value-lg" style="width: 40%;"></div> <div class="skeleton text-md" style="width: 80%;"></div> <div style="margin-top: auto; border-top: 1px solid transparent; padding-top: 1rem;"><div class="skeleton text-sm" style="width: 70%;"></div></div>
+                 </div>
+                 <div class="stats-card-header"> <h3 class="stats-card-title"><i class="fas fa-star"></i>Celkem bodů</h3> </div>
+                 <div class="stats-card-content"> <div class="stats-card-value" id="total-points-value">-</div> <div class="stats-card-description" id="total-points-desc">Získané za aktivity a testy</div> </div>
+                 <div class="stats-card-footer" id="total-points-footer"><i class="fas fa-minus"></i> Načítání...</div>
+             </div>
+             <div class="stats-card loading" data-type="streak">
+                 <div class="loading-skeleton">
+                    <div class="skeleton title-sm" style="width: 65%;"></div> <div class="skeleton value-lg" style="width: 30%;"></div> <div class="skeleton text-md" style="width: 85%;"></div> <div style="margin-top: auto; border-top: 1px solid transparent; padding-top: 1rem;"><div class="skeleton text-sm" style="width: 60%;"></div></div>
+                 </div>
+                 <div class="stats-card-header"> <h3 class="stats-card-title"><i class="fas fa-fire"></i>Studijní série</h3> </div>
+                 <div class="stats-card-content"> <div class="stats-card-value" id="streak-value">-</div> <div class="stats-card-description" id="streak-desc">Počet dnů studia v řadě</div> </div>
+                 <div class="stats-card-footer" id="streak-footer">Nejdelší série: -</div>
+             </div>
+             <div class="stats-card loading" data-type="exercises">
+                 <div class="loading-skeleton">
+                    <div class="skeleton title-sm" style="width: 80%;"></div> <div class="skeleton value-lg" style="width: 45%;"></div> <div class="skeleton text-md" style="width: 75%;"></div> <div style="margin-top: auto; border-top: 1px solid transparent; padding-top: 1rem;"><div class="skeleton text-sm" style="width: 55%;"></div></div>
+                 </div>
+                 <div class="stats-card-header"> <h3 class="stats-card-title"><i class="fas fa-check-double"></i>Dokončené aktivity</h3> </div>
+                 <div class="stats-card-content"> <div class="stats-card-value" id="completed-count-value">-</div> <div class="stats-card-description" id="completed-count-desc">Počet testů a cvičení</div> </div>
+                 <div class="stats-card-footer" id="completed-count-footer"><i class="fas fa-minus"></i> Načítání...</div>
+             </div>
         </div>
 
         <div class="chart-section" id="progress-chart-section">
-             <div class="loading-overlay hidden" id="chart-loading-overlay"> <div class="loading-spinner"></div> </div>
-            <div class="chart-header">
+             <div class="loading-overlay hidden" id="chart-loading-overlay"> <div class="loading-spinner"></div> </div> <div class="chart-header">
                 <h2 class="chart-title"><i class="fas fa-chart-line"></i>Vývoj pokroku v čase</h2>
                 <div class="chart-actions">
                     <select id="chart-period-select" class="btn-sm btn-secondary" aria-label="Vyberte období grafu">
@@ -398,16 +453,14 @@
                 </div>
             </div>
             <div class="chart-container">
-                <canvas id="progressChart"></canvas>
-                 <div class="empty-state empty-chart-message" id="chart-empty-state" style="display: none;">
+                <canvas id="progressChart"></canvas> <div class="empty-state empty-chart-message" id="chart-empty-state" style="display: none;">
                      <i class="fas fa-chart-line"></i><p>Nedostatek dat pro graf.</p>
                  </div>
             </div>
         </div>
 
         <div class="data-table-section" id="activities-section">
-             <div class="loading-overlay hidden" id="table-loading-overlay"> <div class="loading-spinner"></div> </div>
-            <div class="data-table-header">
+             <div class="loading-overlay hidden" id="table-loading-overlay"> <div class="loading-spinner"></div> </div> <div class="data-table-header">
                 <h2 class="data-table-title"><i class="fas fa-history"></i>Historie aktivit</h2>
                 <div class="data-table-actions">
                     <button class="btn btn-secondary btn-sm btn-tooltip" id="export-table-btn" title="Exportovat tabulku jako CSV">
@@ -428,7 +481,7 @@
                 </div>
             </div>
             <div class="table-responsive">
-                 <table class="data-table" id="activities-table" style="display: none;"> {/* Start hidden */}
+                 <table class="data-table" id="activities-table" style="display: none;">
                      <thead>
                          <tr>
                              <th data-sort="created_at">Datum <i class="fas fa-sort"></i></th>
@@ -439,8 +492,7 @@
                          </tr>
                      </thead>
                      <tbody id="activities-body">
-                         {/* Skeleton rows will be inserted here by JS */}
-                     </tbody>
+                         </tbody>
                  </table>
             </div>
              <div class="empty-state" id="activities-empty-state" style="display: none;">
@@ -460,24 +512,23 @@
     </main>
 
     <script>
-        // Obálka IIFE
+        // Obálka IIFE (Immediately Invoked Function Expression) pro zapouzdření kódu
         (function() {
             // --- START: Inicializace a Konfigurace ---
             const supabaseUrl = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
             const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10';
-            let supabase = null;
-            let currentUser = null;
-            let currentProfile = null;
-            let progressChartInstance = null;
-            let currentActivitiesPage = 1;
-            const activitiesPerPage = 10;
-            let totalActivitiesCount = 0;
-            let currentSort = { column: 'created_at', direction: 'desc' };
-            let currentFilter = 'all';
-            let isLoading = { stats: false, chart: false, activities: false };
-            let allActivitiesData = []; // Store fetched activities
+            let supabase = null; // Instance Supabase klienta
+            let currentUser = null; // Objekt aktuálně přihlášeného uživatele
+            let currentProfile = null; // Objekt profilu aktuálního uživatele
+            let progressChartInstance = null; // Instance Chart.js grafu
+            let currentActivitiesPage = 1; // Aktuální stránka v tabulce aktivit
+            const activitiesPerPage = 10; // Počet aktivit na stránku
+            let totalActivitiesCount = 0; // Celkový počet aktivit (pro paginaci)
+            let currentSort = { column: 'created_at', direction: 'desc' }; // Výchozí řazení tabulky
+            let currentFilter = 'all'; // Výchozí filtr tabulky
+            let isLoading = { stats: false, chart: false, activities: false }; // Stavy načítání pro různé sekce
 
-            // DOM Cache (using ui object for better organization)
+            // Cache DOM elementů pro rychlejší přístup (organizováno v objektu `ui`)
             const ui = {
                  sidebarAvatar: document.getElementById('user-avatar'),
                  sidebarName: document.getElementById('user-name'),
@@ -524,32 +575,33 @@
                  initialLoader: document.getElementById('initial-loader')
             };
 
-             // Maps for Activity Types and Statuses
+             // Mapy pro převod typů a stavů aktivit na čitelné názvy, ikony a CSS třídy
              const activityTypeMap = {
-                test: { name: 'Test', icon: 'fa-vial' },
-                exercise: { name: 'Cvičení', icon: 'fa-pencil-alt' },
-                badge: { name: 'Odznak', icon: 'fa-medal' },
-                diagnostic: { name: 'Diagnostika', icon: 'fa-clipboard-check' },
-                lesson: { name: 'Lekce', icon: 'fa-book-open' },
-                plan_generated: { name: 'Plán', icon: 'fa-calendar-alt' },
-                level_up: { name: 'Postup', icon: 'fa-level-up-alt' },
-                other: { name: 'Jiná', icon: 'fa-info-circle' },
-                default: { name: 'Aktivita', icon: 'fa-check-circle' }
+                test: { name: 'Test', icon: 'fa-vial', class: 'test' },
+                exercise: { name: 'Cvičení', icon: 'fa-pencil-alt', class: 'exercise' },
+                badge: { name: 'Odznak', icon: 'fa-medal', class: 'badge' },
+                diagnostic: { name: 'Diagnostika', icon: 'fa-clipboard-check', class: 'diagnostic' },
+                lesson: { name: 'Lekce', icon: 'fa-book-open', class: 'lesson' },
+                plan_generated: { name: 'Plán', icon: 'fa-calendar-alt', class: 'plan_generated' },
+                level_up: { name: 'Postup', icon: 'fa-level-up-alt', class: 'level_up' },
+                other: { name: 'Jiná', icon: 'fa-info-circle', class: 'other' },
+                default: { name: 'Aktivita', icon: 'fa-check-circle', class: 'default' }
              };
              const activityStatusMap = {
                 completed: { name: 'Dokončeno', class: 'completed', icon: 'fa-check-circle' },
-                'in-progress': { name: 'Probíhá', class: 'in-progress', icon: 'fa-spinner fa-spin' },
+                'in-progress': { name: 'Probíhá', class: 'in-progress', icon: 'fa-spinner fa-spin' }, // Adjust based on actual status values
                 pending: { name: 'Čeká', class: 'pending', icon: 'fa-clock' },
                 failed: { name: 'Neúspěch', class: 'failed', icon: 'fa-times-circle' },
-                earned: { name: 'Získáno', class: 'earned', icon: 'fa-medal' },
-                generated: { name: 'Vygenerováno', class: 'generated', icon: 'fa-magic' },
-                skipped: { name: 'Přeskočeno', class: 'skipped', icon: 'fa-forward' },
-                default: { name: 'Neznámý', class: 'default', icon: 'fa-question-circle' }
+                earned: { name: 'Získáno', class: 'earned', icon: 'fa-medal' }, // For badges
+                generated: { name: 'Vygenerováno', class: 'generated', icon: 'fa-magic' }, // For plans
+                skipped: { name: 'Přeskočeno', class: 'skipped', icon: 'fa-forward' }, // For test results
+                default: { name: 'Neznámý', class: 'default', icon: 'fa-question-circle' } // Fallback
              };
             // --- KONEC: Inicializace a Konfigurace ---
 
 
             // --- START: Pomocné Funkce ---
+             /** Zobrazí toast notifikaci. */
              function showToast(message, type = 'success', duration = 4000) {
                  if (!ui.toastContainer) return;
                  try {
@@ -559,6 +611,7 @@
                      toastElement.id = toastId;
                      toastElement.setAttribute('role', 'alert');
                      toastElement.setAttribute('aria-live', 'assertive');
+                     // Bezpečná vložka HTML pro zprávu
                      toastElement.innerHTML = `
                          <i class="toast-icon"></i>
                          <div class="toast-content">
@@ -566,91 +619,145 @@
                          </div>
                          <button type="button" class="toast-close" aria-label="Zavřít">&times;</button>
                      `;
+                     // Nastavení ikony podle typu notifikace
                      const icon = toastElement.querySelector('.toast-icon');
                      icon.className = `toast-icon fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle'}`;
 
+                     // Zavření toastu kliknutím na křížek
                      toastElement.querySelector('.toast-close').addEventListener('click', () => {
                          toastElement.classList.remove('show');
-                         setTimeout(() => toastElement.remove(), 400);
+                         setTimeout(() => toastElement.remove(), 400); // Odstranit po animaci
                      });
 
+                     // Přidání toastu do kontejneru a zobrazení s animací
                      ui.toastContainer.appendChild(toastElement);
-                     requestAnimationFrame(() => { toastElement.classList.add('show'); });
+                     requestAnimationFrame(() => { toastElement.classList.add('show'); }); // Zajistí spuštění animace
+                     // Automatické skrytí po uplynutí doby `duration`
                      setTimeout(() => { if (toastElement.parentElement) { toastElement.classList.remove('show'); setTimeout(() => toastElement.remove(), 400); } }, duration);
                  } catch (e) { console.error("Chyba při zobrazování toastu:", e); }
              }
+
+            /** Zobrazí chybovou zprávu (buď globálně, nebo jako toast). */
             function showError(message, isGlobal = false) {
                 console.error("Došlo k chybě:", message);
-                if (isGlobal && ui.globalError) {
+                if (isGlobal && ui.globalError) { // Zobrazit v globálním kontejneru
                     ui.globalError.innerHTML = `<div class="error-message"><i class="fas fa-exclamation-circle"></i><div>${sanitizeHTML(message)}</div></div>`;
                     ui.globalError.style.display = 'block';
-                } else { showToast(message, 'error', 6000); }
+                } else { // Zobrazit jako toast notifikaci
+                    showToast(message, 'error', 6000); // Delší zobrazení pro chyby
+                }
             }
+
+            /** Skryje globální chybovou zprávu. */
             function hideGlobalError() { if (ui.globalError) ui.globalError.style.display = 'none'; }
-            function sanitizeHTML(str) { const t = document.createElement('div'); t.textContent = str || ''; return t.innerHTML; }
-            function getInitials(userData) { if (!userData) return '?'; const f=userData.first_name?.[0]||''; const l=userData.last_name?.[0]||''; const nameInitial = (f+l).toUpperCase(); const usernameInitial = userData.username?.[0].toUpperCase() || ''; const emailInitial = userData.email?.[0].toUpperCase() || ''; return nameInitial || usernameInitial || emailInitial || '?';}
-            function formatDate(dateString, includeTime = false) { if (!dateString) return '-'; try { const d = new Date(dateString); if (isNaN(d.getTime())) return '-'; const optionsDate = { day: 'numeric', month: 'numeric', year: 'numeric' }; const optionsTime = { hour: '2-digit', minute: '2-digit' }; return d.toLocaleDateString('cs-CZ', optionsDate) + (includeTime ? ' ' + d.toLocaleTimeString('cs-CZ', optionsTime) : ''); } catch (e) { console.error("Chyba formátování data:", dateString, e); return '-'; } }
+
+            /** Jednoduchá sanitizace HTML pro prevenci XSS. */
+            function sanitizeHTML(str) { const temp = document.createElement('div'); temp.textContent = str || ''; return temp.innerHTML; }
+
+            /** Získá iniciály uživatele pro avatar. */
+            function getInitials(userData) {
+                 if (!userData) return '?';
+                 const firstNameInitial = userData.first_name?.[0] || '';
+                 const lastNameInitial = userData.last_name?.[0] || '';
+                 const nameInitials = (firstNameInitial + lastNameInitial).toUpperCase();
+                 const usernameInitial = userData.username?.[0].toUpperCase() || '';
+                 const emailInitial = userData.email?.[0].toUpperCase() || '';
+                 // Priorita: Jméno > Username > Email > Fallback
+                 return nameInitials || usernameInitial || emailInitial || '?';
+            }
+
+            /** Formátuje datum (a volitelně čas) do českého formátu. */
+            function formatDate(dateString, includeTime = false) {
+                 if (!dateString) return '-';
+                 try {
+                     const date = new Date(dateString);
+                     // Kontrola platnosti data
+                     if (isNaN(date.getTime())) return '-';
+                     const optionsDate = { day: 'numeric', month: 'numeric', year: 'numeric' };
+                     const optionsTime = { hour: '2-digit', minute: '2-digit' };
+                     let formatted = date.toLocaleDateString('cs-CZ', optionsDate);
+                     if (includeTime) {
+                         formatted += ' ' + date.toLocaleTimeString('cs-CZ', optionsTime);
+                     }
+                     return formatted;
+                 } catch (e) {
+                     console.error("Chyba formátování data:", dateString, e);
+                     return '-'; // Návrat fallback hodnoty při chybě
+                 }
+            }
+
+            /** Aktualizuje zobrazení aktuálního času v hlavičce. */
             function updateCurrentTime() { if (ui.currentTime) ui.currentTime.textContent = new Date().toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' }); }
+
+            /** Přepíná zobrazení mobilního menu a overlaye. */
             function toggleMobileMenu() { ui.sidebar?.classList.toggle('active'); ui.sidebarOverlay?.classList.toggle('active'); }
+
+            /** Zpracovává událost scrollování pro přidání stínu hlavičce. */
             function handleScroll() { if (!ui.mainElement || !ui.dashboardHeader) return; ui.dashboardHeader.classList.toggle('scrolled', ui.mainElement.scrollTop > 10); }
 
              /**
-             * Manages loading states for different sections.
-             */
+              * Spravuje stavy načítání pro různé sekce stránky (statistiky, graf, tabulka).
+              * @param {string} section - Název sekce ('stats', 'chart', 'activities').
+              * @param {boolean} isLoadingFlag - True pro zapnutí načítání, false pro vypnutí.
+              */
              function setLoadingState(section, isLoadingFlag) {
+                 // Pokud se stav nemění, nic nedělat
                  if (isLoading[section] === isLoadingFlag) return;
                  isLoading[section] = isLoadingFlag;
-                 console.log(`[setLoadingState] Section: ${section}, isLoading: ${isLoadingFlag}`);
+                 console.log(`[setLoadingState] Sekce: ${section}, isLoading: ${isLoadingFlag}`);
 
+                 // Mapování sekcí na jejich loading overlaye, obsahové elementy a "empty state" elementy
                  const overlayMap = { chart: ui.chartLoadingOverlay, activities: ui.tableLoadingOverlay };
                  const contentMap = { chart: ui.progressChartCanvas, activities: ui.activitiesTable };
                  const emptyStateMap = { chart: ui.chartEmptyState, activities: ui.activitiesEmptyState };
 
-                 // Stats Cards Handling (Skeleton)
+                 // Zpracování karet statistik (zobrazení/skrytí skeleton loaderů)
                  if (section === 'stats' && ui.statsGrid) {
                      ui.statsGrid.querySelectorAll('.stats-card').forEach(card => card.classList.toggle('loading', isLoadingFlag));
                  }
 
-                 // Chart and Table Handling (Overlay + Content Visibility)
+                 // Zpracování grafu a tabulky (zobrazení/skrytí overlaye)
                  if (overlayMap[section]) {
                      overlayMap[section].classList.toggle('hidden', !isLoadingFlag);
                  }
 
-                 // Handle visibility of main content vs. empty state
+                 // Správa viditelnosti obsahu versus "empty state"
                  if (contentMap[section] && emptyStateMap[section]) {
                       if (isLoadingFlag) {
-                          contentMap[section].style.display = 'none'; // Hide content while loading
-                          emptyStateMap[section].style.display = 'none'; // Hide empty state while loading
+                          // Během načítání skrýt hlavní obsah i "empty state"
+                          contentMap[section].style.display = 'none';
+                          emptyStateMap[section].style.display = 'none';
                       } else {
-                          // Visibility is determined by rendering functions after data load
+                          // Viditelnost bude určena renderovacími funkcemi po načtení dat
                       }
                  }
 
-                 // Activities Table Specific: Render skeletons when loading starts
+                 // Specifické pro tabulku aktivit: Vykreslení skeleton řádků při zahájení načítání
                  if (section === 'activities' && ui.activitiesBody) {
                      if (isLoadingFlag) {
-                         renderSkeletonRows(activitiesPerPage);
-                         ui.activitiesBody.classList.add('loading');
-                         if(ui.activitiesTable) ui.activitiesTable.style.display = 'table'; // Ensure table structure is visible for skeletons
-                         if(ui.paginationControls) ui.paginationControls.style.display = 'none'; // Hide pagination when loading
-                         if(ui.activitiesEmptyState) ui.activitiesEmptyState.style.display = 'none';
+                         renderSkeletonRows(activitiesPerPage); // Vykreslit skeletony
+                         ui.activitiesBody.classList.add('loading'); // Přidat třídu pro skrytí reálných řádků
+                         if(ui.activitiesTable) ui.activitiesTable.style.display = 'table'; // Zajistit viditelnost struktury tabulky pro skeletony
+                         if(ui.paginationControls) ui.paginationControls.style.display = 'none'; // Skrýt paginaci během načítání
+                         if(ui.activitiesEmptyState) ui.activitiesEmptyState.style.display = 'none'; // Skrýt empty state během načítání
                      } else {
-                         ui.activitiesBody.classList.remove('loading');
-                         // Visibility of table/empty state handled by renderActivitiesTable
+                         ui.activitiesBody.classList.remove('loading'); // Odebrat třídu po načtení
+                         // Viditelnost tabulky/empty state je řešena v renderActivitiesTable
                      }
                  }
 
-                 // Ensure Chart Empty state is hidden when loading
+                 // Zajistit, že "empty state" grafu je skrytý během načítání
                  if (section === 'chart' && isLoadingFlag && ui.chartEmptyState) {
                      ui.chartEmptyState.style.display = 'none';
                  }
              }
 
-            /** Renders skeleton rows in the activities table body. */
+            /** Vykreslí skeleton řádky v těle tabulky aktivit. */
             function renderSkeletonRows(count = 5) {
                 if (!ui.activitiesBody) return;
                 let skeletonHTML = '';
                 for (let i = 0; i < count; i++) {
+                    // Struktura skeleton řádku odpovídající sloupcům tabulky
                     skeletonHTML += `
                         <tr class="skeleton-row">
                             <td><div class="skeleton text-sm" style="width: 70px;"></div></td>
@@ -660,404 +767,441 @@
                             <td><div class="skeleton text-sm" style="width: 90px;"></div></td>
                         </tr>`;
                 }
-                ui.activitiesBody.innerHTML = skeletonHTML;
+                ui.activitiesBody.innerHTML = skeletonHTML; // Nahradit obsah těla tabulky skeletony
             }
 
-            /** Initializes Tooltipster on elements with 'btn-tooltip' class. */
+            /** Inicializuje Tooltipster na elementech s třídou 'btn-tooltip'. */
              function initializeTooltips() {
-                 console.log("[Tooltips] Initializing...");
+                 console.log("[Tooltips] Inicializace...");
                  try {
+                     // Ověření, zda jsou jQuery a Tooltipster načteny
                      if (window.jQuery && window.jQuery.fn.tooltipster) {
-                         // Destroy only instances on elements that still exist
+                         // Nejprve zničit existující instance na elementech, které stále existují, aby se předešlo duplicitám
                          window.jQuery('.btn-tooltip.tooltipstered').each(function() {
-                             if (document.body.contains(this)) {
+                             if (document.body.contains(this)) { // Kontrola, zda element stále existuje v DOM
                                  window.jQuery(this).tooltipster('destroy');
                              }
                          });
-                         // Initialize on all elements with the class, Tooltipster handles duplicates
+                         // Inicializovat na všech elementech s danou třídou (Tooltipster si poradí s již inicializovanými)
                          window.jQuery('.btn-tooltip').tooltipster({
-                             theme: 'tooltipster-shadow',
-                             animation: 'fade',
-                             delay: 150,
-                             distance: 6
+                             theme: 'tooltipster-shadow', // Použít vlastní tmavé téma definované v CSS
+                             animation: 'fade', // Animace zobrazení
+                             delay: 150, // Zpoždění před zobrazením
+                             distance: 6 // Vzdálenost tooltipu od elementu
                          });
-                         console.log("[Tooltips] Initialized.");
+                         console.log("[Tooltips] Tooltipy inicializovány.");
                      } else {
-                         console.warn("[Tooltips] jQuery or Tooltipster not loaded.");
+                         console.warn("[Tooltips] jQuery nebo Tooltipster nejsou načteny.");
                      }
                  } catch (e) {
-                     console.error("[Tooltips] Error initializing Tooltipster:", e);
+                     console.error("[Tooltips] Chyba při inicializaci Tooltipster:", e);
                  }
              }
             // --- KONEC: Pomocné Funkce ---
 
 
             // --- START: Načítání Dat ---
-             /** Main application initialization function. */
+             /** Hlavní inicializační funkce aplikace. */
              async function initializeApp() {
-                 console.log("🚀 [Init] Initializing Progress Page...");
-                 if (!initializeSupabase()) return; // Stop if Supabase fails
+                 console.log("🚀 [Init] Inicializace stránky Pokrok...");
+                 // Inicializace Supabase, pokud selže, ukončit
+                 if (!initializeSupabase()) return;
 
-                 updateCurrentTime(); setInterval(updateCurrentTime, 60000);
-                 setupEventListeners(); // Set up UI interactions early
+                 // Nastavení UI prvků a listenerů, které nezávisí na datech
+                 updateCurrentTime(); setInterval(updateCurrentTime, 60000); // Aktualizovat čas každou minutu
+                 setupEventListeners(); // Nastavit listenery pro interakce
 
+                 // Zobrazit počáteční loader a skrýt hlavní obsah
                  if (ui.initialLoader) { ui.initialLoader.classList.remove('hidden'); ui.initialLoader.style.display = 'flex'; }
                  if (ui.mainElement) ui.mainElement.style.display = 'none';
 
                  try {
-                     console.log("[Init] Checking auth session...");
-                     const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+                     console.log("[Init] Ověřování session...");
+                     const { data: { session }, error: sessionError } = await supabase.auth.getSession(); // Získání aktuální session
                      if (sessionError) throw new Error(`Nepodařilo se ověřit přihlášení: ${sessionError.message}`);
 
+                     // Pokud je uživatel přihlášen
                      if (session?.user) {
                          currentUser = session.user;
-                         console.log(`[Init] User authenticated (ID: ${currentUser.id}). Fetching profile...`);
+                         console.log(`[Init] Uživatel ověřen (ID: ${currentUser.id}). Načítání profilu...`);
+                         // Načtení profilu uživatele
                          currentProfile = await fetchUserProfile(currentUser.id);
-                         if (!currentProfile) throw new Error("Nepodařilo se načíst profil.");
-                         console.log("[Init] Profile loaded:", currentProfile);
+                         if (!currentProfile) throw new Error("Nepodařilo se načíst profil uživatele.");
+                         console.log("[Init] Profil načten:", currentProfile);
 
-                         updateUserInfoUI(); // Update sidebar etc.
-                         console.log("[Init] Basic UI updated.");
+                         updateUserInfoUI(); // Aktualizace UI s údaji uživatele (sidebar)
+                         console.log("[Init] Základní UI aktualizováno.");
 
-                         // Hide loader and show main content AFTER profile load
-                         if (ui.initialLoader) { ui.initialLoader.classList.add('hidden'); setTimeout(() => { if (ui.initialLoader) ui.initialLoader.style.display = 'none'; }, 300); }
-                         if (ui.mainElement) { ui.mainElement.style.display = 'block'; requestAnimationFrame(() => ui.mainElement.classList.add('loaded')); }
-                         console.log("[Init] Loader hidden, main content shown.");
+                         // Skrytí loaderu a zobrazení hlavního obsahu až PO načtení profilu
+                         if (ui.initialLoader) { ui.initialLoader.classList.add('hidden'); setTimeout(() => { if (ui.initialLoader) ui.initialLoader.style.display = 'none'; }, 300); } // Skrýt s malým zpožděním pro plynulost
+                         if (ui.mainElement) { ui.mainElement.style.display = 'block'; requestAnimationFrame(() => ui.mainElement.classList.add('loaded')); } // Zobrazit s fade-in animací
+                         console.log("[Init] Loader skryt, hlavní obsah zobrazen.");
 
-                         // Load all dashboard data (stats, chart, table)
-                         console.log("[Init] Loading all page data...");
+                         // Načtení všech dat pro stránku (statistiky, graf, tabulka)
+                         console.log("[Init] Načítání všech dat stránky...");
                          await loadAllData();
-                         console.log("✅ [Init] Page fully loaded and initialized.");
+                         console.log("✅ [Init] Stránka plně načtena a inicializována.");
 
-                     } else {
-                         console.log("[Init] User not logged in. Redirecting...");
-                         window.location.href = '/auth/index.html'; // Redirect to login
+                     } else { // Pokud uživatel není přihlášen
+                         console.log("[Init] Uživatel není přihlášen. Přesměrování na login...");
+                         window.location.href = '/auth/index.html'; // Přesměrovat na přihlašovací stránku
                      }
-                 } catch (error) {
-                     console.error("❌ [Init] Critical initialization error:", error);
+                 } catch (error) { // Zachycení kritických chyb během inicializace
+                     console.error("❌ [Init] Kritická chyba inicializace:", error);
+                     // Zobrazit chybu buď v loaderu nebo jako globální chybu
                      if (ui.initialLoader && !ui.initialLoader.classList.contains('hidden')) {
                          ui.initialLoader.innerHTML = `<p style="color: var(--danger);">Chyba (${error.message}). Obnovte stránku.</p>`;
                      } else {
-                         showError(`Chyba při inicializaci: ${error.message}`, true); // Show global error if loader is hidden
+                         showError(`Chyba při inicializaci: ${error.message}`, true);
                      }
-                     if (ui.mainElement) ui.mainElement.style.display = 'none'; // Ensure main content is hidden on error
+                     // Skrýt hlavní obsah v případě chyby
+                     if (ui.mainElement) ui.mainElement.style.display = 'none';
                  }
              }
 
-            /** Initializes the Supabase client. */
+            /** Inicializuje Supabase klienta. Vrací true při úspěchu, false při selhání. */
             function initializeSupabase() {
                  try {
+                     // Ověření, zda je Supabase knihovna dostupná
                      if (typeof window.supabase === 'undefined' || typeof window.supabase.createClient !== 'function') {
-                         throw new Error("Supabase library not loaded correctly.");
+                         throw new Error("Knihovna Supabase není správně načtena.");
                      }
-                     supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
-                     if (!supabase) throw new Error("Supabase client creation failed.");
-                     console.log('[Supabase] Client initialized successfully.');
+                     supabase = window.supabase.createClient(supabaseUrl, supabaseKey); // Vytvoření klienta
+                     if (!supabase) throw new Error("Vytvoření Supabase klienta selhalo.");
+                     console.log('[Supabase] Klient úspěšně inicializován.');
                      return true;
                  } catch (error) {
-                     console.error('[Supabase] Initialization failed:', error);
-                     showError("Kritická chyba: Nepodařilo se připojit k databázi.", true);
+                     console.error('[Supabase] Inicializace selhala:', error);
+                     showError("Kritická chyba: Nepodařilo se připojit k databázi.", true); // Zobrazit globální chybu
                      return false;
                  }
             }
 
-            /** Fetches user profile data or creates a default one. */
+            /** Načte profil uživatele z tabulky 'profiles'. */
             async function fetchUserProfile(userId) {
-                if (!supabase) { console.error("[Profile] Supabase client not available."); return null; }
-                console.log(`[Profile] Fetching profile for user ID: ${userId}`);
+                if (!supabase) { console.error("[Profile] Supabase klient není dostupný."); return null; }
+                console.log(`[Profile] Načítání profilu pro uživatele ID: ${userId}`);
                 try {
                     const { data: profile, error } = await supabase
-                        .from('profiles')
-                        .select('*') // Select all columns for now
-                        .eq('id', userId)
-                        .single();
+                        .from('profiles') // Název tabulky profilů
+                        .select('*') // Vybrat všechny sloupce profilu
+                        .eq('id', userId) // Filtrovat podle ID uživatele
+                        .single(); // Očekávat jeden nebo žádný výsledek
 
-                    if (error && error.code !== 'PGRST116') { // PGRST116 = row not found
-                        console.error("[Profile] Supabase error fetching profile:", error);
-                        throw error;
+                    // Zpracování chyb Supabase (kromě případu, kdy profil neexistuje - PGRST116)
+                    if (error && error.code !== 'PGRST116') {
+                        console.error("[Profile] Supabase chyba při načítání profilu:", error);
+                        throw error; // Vyvolat chybu pro další zpracování
                     }
 
+                    // Pokud profil nebyl nalezen (může se stát při nekonzistenci dat)
                     if (!profile) {
-                        console.warn(`[Profile] Profile not found for user ${userId}. Returning null.`);
-                        // Based on schema, a profile *should* exist if the user exists in auth.users
-                        // If it doesn't, there's likely an issue with registration or data consistency.
-                        // Returning null is safer than creating a potentially incomplete default profile here.
+                        console.warn(`[Profile] Profil pro uživatele ${userId} nenalezen. Vracím null.`);
+                         // Vracíme null, protože vytváření defaultního profilu zde může být problematické
                          return null;
                     }
 
-                    console.log("[Profile] Profile data fetched successfully.");
-                    return profile;
-                } catch (error) {
-                    console.error('[Profile] Caught exception fetching profile:', error);
-                    showToast('Nepodařilo se načíst data profilu.', 'error');
-                    return null;
+                    console.log("[Profile] Data profilu úspěšně načtena.");
+                    return profile; // Vrátit načtená data profilu
+                } catch (error) { // Zachycení jakékoliv výjimky během procesu
+                    console.error('[Profile] Zachycena výjimka při načítání profilu:', error);
+                    showToast('Nepodařilo se načíst data profilu.', 'error'); // Informovat uživatele
+                    return null; // Vrátit null v případě chyby
                 }
             }
 
-            /** Loads all data for the page concurrently. */
+            /** Načte všechna potřebná data pro stránku (statistiky, graf, aktivity) paralelně. */
             async function loadAllData() {
+                 // Kontrola předpokladů
                  if (!currentUser || !supabase || !currentProfile) {
                      showError("Nelze načíst data: Chybí informace o uživateli nebo spojení.", true);
-                     setLoadingState('stats', false);
-                     setLoadingState('chart', false);
-                     setLoadingState('activities', false);
+                     // Nastavit stavy načítání na false, pokud chybí předpoklady
+                     setLoadingState('stats', false); setLoadingState('chart', false); setLoadingState('activities', false);
                      return;
                  }
+                 // Pokud již probíhá načítání, přeskočit
                  if (isLoading.stats || isLoading.chart || isLoading.activities) {
-                     console.log("[LoadAllData] Skipping - already loading.");
+                     console.log("[LoadAllData] Přeskakuji - data se již načítají.");
                      return;
                  }
-                 console.log("🔄 [LoadAllData] Starting data fetch...");
-                 hideGlobalError();
-                 setLoadingState('stats', true);
-                 setLoadingState('chart', true);
-                 setLoadingState('activities', true);
+
+                 console.log("🔄 [LoadAllData] Zahájení načítání dat...");
+                 hideGlobalError(); // Skrýt případné předchozí globální chyby
+                 // Nastavit všechny sekce na stav načítání
+                 setLoadingState('stats', true); setLoadingState('chart', true); setLoadingState('activities', true);
 
                  let stats = null, chartData = null, activityResult = { data: [], count: 0 };
 
                  try {
+                     // Spustit všechny asynchronní požadavky paralelně pomocí Promise.allSettled
                      const results = await Promise.allSettled([
-                         fetchUserStats(currentUser.id, currentProfile),
-                         fetchProgressHistory(currentUser.id, ui.chartPeriodSelect?.value || 'month'),
-                         fetchRecentActivities(currentUser.id, currentActivitiesPage, activitiesPerPage, currentSort.column, currentSort.direction === 'asc', currentFilter)
+                         fetchUserStats(currentUser.id, currentProfile), // Načtení statistik
+                         fetchProgressHistory(currentUser.id, ui.chartPeriodSelect?.value || 'month'), // Načtení historie pro graf
+                         fetchRecentActivities(currentUser.id, currentActivitiesPage, activitiesPerPage, currentSort.column, currentSort.direction === 'asc', currentFilter) // Načtení aktivit pro tabulku
                      ]);
-                     console.log("[LoadAllData] Fetch results (settled):", results);
+                     console.log("[LoadAllData] Výsledky načítání (settled):", results);
 
-                     // Process results safely
+                     // Zpracování výsledků pro Statistiky
                      if (results[0].status === 'fulfilled') {
                          stats = results[0].value;
-                         updateStatsCards(stats);
-                         setLoadingState('stats', false); // Stats loaded
+                         updateStatsCards(stats); // Aktualizovat UI statistik
+                         setLoadingState('stats', false); // Statistiky načteny
                      } else {
-                         console.error("❌ Error fetching user stats:", results[0].reason);
-                         showError("Nepodařilo se načíst statistiky pokroku.", false);
-                         updateStatsCards(null); // Show error state in cards
-                         setLoadingState('stats', false); // Stop loading on error
+                         console.error("❌ Chyba při načítání statistik:", results[0].reason);
+                         showError("Nepodařilo se načíst statistiky pokroku.", false); // Zobrazit chybu jako toast
+                         updateStatsCards(null); // Zobrazit chybový stav v kartách
+                         setLoadingState('stats', false); // Zastavit načítání pro statistiky
                      }
 
+                     // Zpracování výsledků pro Graf
                      if (results[1].status === 'fulfilled') {
                          chartData = results[1].value;
-                         renderProgressChart(chartData);
-                         setLoadingState('chart', false); // Chart loaded
+                         renderProgressChart(chartData); // Vykreslit graf
+                         setLoadingState('chart', false); // Graf načten
                      } else {
-                         console.error("❌ Error fetching progress history:", results[1].reason);
+                         console.error("❌ Chyba při načítání historie pro graf:", results[1].reason);
                          showError("Nepodařilo se načíst historii pro graf.", false);
-                         renderProgressChart(null); // Show empty/error state in chart
-                         setLoadingState('chart', false); // Stop loading on error
+                         renderProgressChart(null); // Zobrazit prázdný/chybový stav grafu
+                         setLoadingState('chart', false); // Zastavit načítání pro graf
                      }
 
+                     // Zpracování výsledků pro Tabulku Aktivit
                      if (results[2].status === 'fulfilled') {
                          activityResult = results[2].value || { data: [], count: 0 };
-                         allActivitiesData = activityResult.data; // Store fetched data
-                         totalActivitiesCount = activityResult.count;
-                         renderActivitiesTable(allActivitiesData); // Pass fetched data
-                         updatePaginationUI();
-                         setLoadingState('activities', false); // Activities loaded
+                         allActivitiesData = activityResult.data; // Uložit načtená data aktivit
+                         totalActivitiesCount = activityResult.count; // Uložit celkový počet
+                         renderActivitiesTable(allActivitiesData); // Vykreslit tabulku
+                         updatePaginationUI(); // Aktualizovat paginaci
+                         setLoadingState('activities', false); // Aktivity načteny
                      } else {
-                         console.error("❌ Error fetching recent activities:", results[2].reason);
+                         console.error("❌ Chyba při načítání historie aktivit:", results[2].reason);
                          showError("Nepodařilo se načíst historii aktivit.", false);
-                         allActivitiesData = []; // Clear data on error
+                         allActivitiesData = []; // Vymazat data v případě chyby
                          totalActivitiesCount = 0;
-                         renderActivitiesTable(null); // Show error/empty state in table
+                         renderActivitiesTable(null); // Zobrazit prázdný/chybový stav tabulky
                          updatePaginationUI();
-                         setLoadingState('activities', false); // Stop loading on error
+                         setLoadingState('activities', false); // Zastavit načítání pro aktivity
                      }
 
-                     initializeTooltips();
+                     initializeTooltips(); // Reinicializovat tooltips po případné změně DOM
 
-                 } catch (error) { // Catch unexpected errors during Promise.allSettled or processing
-                     console.error("❌ Unexpected error in loadAllData:", error);
-                     showError(`Nastala neočekávaná chyba: ${error.message}`, true);
-                     // Reset UI states on unexpected error
+                 } catch (error) { // Zachycení neočekávaných chyb během Promise.allSettled nebo zpracování
+                     console.error("❌ Neočekávaná chyba v loadAllData:", error);
+                     showError(`Nastala neočekávaná chyba: ${error.message}`, true); // Zobrazit globální chybu
+                     // Resetovat UI stavy v případě neočekávané chyby
                      updateStatsCards(null); setLoadingState('stats', false);
                      renderProgressChart(null); setLoadingState('chart', false);
                      renderActivitiesTable(null); setLoadingState('activities', false);
                      updatePaginationUI();
                  } finally {
-                     console.log("🏁 [LoadAllData] Finished data fetch and processing.");
-                     // Loading states are now set individually after each promise settles
+                     console.log("🏁 [LoadAllData] Dokončeno načítání a zpracování dat.");
+                     // Stavy načítání jsou nyní nastavovány individuálně po dokončení každého Promise
                  }
              }
 
-            /** Fetches user statistics, combining profile and user_stats table data. */
+            /** Načte statistiky uživatele kombinací dat z 'profiles' a 'user_stats'. */
             async function fetchUserStats(userId, profileData) {
                 if (!supabase || !userId || !profileData) {
-                    console.error("[Stats] Missing Supabase client, user ID, or profile data.");
+                    console.error("[Stats] Chybí Supabase klient, ID uživatele nebo data profilu.");
                     return null;
                 }
-                console.log(`[Stats] Fetching stats for user ${userId}...`);
-                let fetchedStats = null;
-                let statsError = null;
+                console.log(`[Stats] Načítání statistik pro uživatele ${userId}...`);
+                let fetchedStats = null; // Data z tabulky user_stats
+                let statsError = null; // Případná chyba při načítání user_stats
 
                 try {
-                    // Fetch data from user_stats table
+                    // Pokus o načtení dat z tabulky user_stats
                     const { data, error } = await supabase
-                        .from('user_stats') // Table name from your file
-                        .select('progress, progress_weekly, points_weekly, streak_longest, completed_tests') // Select relevant columns
-                        .eq('user_id', userId)
-                        .maybeSingle(); // Handles if no row exists yet
+                        .from('user_stats') // Název tabulky statistik
+                        .select('progress, progress_weekly, points_weekly, streak_longest, completed_tests') // Vybrat relevantní sloupce
+                        .eq('user_id', userId) // Filtrovat podle ID uživatele
+                        .maybeSingle(); // Zpracuje i případ, kdy řádek pro uživatele neexistuje
 
                     fetchedStats = data;
                     statsError = error;
-                    if (statsError) { console.warn("[Stats] Supabase error fetching user_stats:", statsError.message); }
+                    // Pokud došlo k chybě, zaznamenat ji
+                    if (statsError) { console.warn("[Stats] Supabase chyba při načítání user_stats:", statsError.message); }
 
-                } catch (error) {
-                    console.error("[Stats] Unexpected error fetching user_stats:", error);
-                    statsError = error;
+                } catch (error) { // Zachycení neočekávaných chyb
+                    console.error("[Stats] Neočekávaná chyba při načítání user_stats:", error);
+                    statsError = error; // Uložit chybu
                 }
 
-                // Construct the final stats object using profile and user_stats data
+                // Sestavení finálního objektu statistik
+                // Prioritně bereme data z 'profiles', pokud jsou relevantní (např. body, aktuální série)
+                // Data z 'user_stats' použijeme pro agregované hodnoty (týdenní změny, nejdelší série)
                 const finalStats = {
-                    progress: fetchedStats?.progress ?? 0,
+                    // Celkový pokrok (předpokládáme, že je v user_stats)
+                    progress: fetchedStats?.progress ?? profileData.progress ?? 0, // Fallback na profil nebo 0
+                    // Týdenní změna pokroku (z user_stats)
                     progress_weekly: fetchedStats?.progress_weekly ?? 0,
-                    points: profileData.points ?? 0, // Primarily from profiles
+                    // Celkové body (primárně z profiles)
+                    points: profileData.points ?? 0,
+                    // Týdenní změna bodů (z user_stats)
                     points_weekly: fetchedStats?.points_weekly ?? 0,
-                    streak_current: profileData.streak_days ?? 0, // Primarily from profiles
-                    // Ensure streak_longest considers both sources and is at least current streak
+                    // Aktuální studijní série (primárně z profiles)
+                    streak_current: profileData.streak_days ?? 0,
+                    // Nejdelší série (maximum z obou zdrojů, minimálně aktuální série)
                     streak_longest: Math.max(fetchedStats?.streak_longest ?? 0, profileData.streak_days ?? 0),
-                    // Completed exercises/tests seem to be in profiles, fallback to user_stats if needed
+                    // Dokončená cvičení (z profiles)
                     completed_exercises: profileData.completed_exercises ?? 0,
-                    completed_tests: profileData.completed_tests ?? fetchedStats?.completed_tests ?? 0 // Example fallback
+                    // Dokončené testy (z profiles, fallback na user_stats)
+                    completed_tests: profileData.completed_tests ?? fetchedStats?.completed_tests ?? 0
                 };
 
+                // Pokud došlo k chybě při načítání user_stats, logovat varování
                 if (statsError) {
-                    console.warn("[Stats] Returning stats based primarily on profile due to fetch error.");
+                    console.warn("[Stats] Vracím statistiky založené primárně na profilu kvůli chybě načítání.");
                 } else {
-                    console.log("[Stats] Stats fetched/constructed successfully:", finalStats);
+                    console.log("[Stats] Statistiky úspěšně načteny/sestaveny:", finalStats);
                 }
-                return finalStats;
+                return finalStats; // Vrátit sestavený objekt statistik
             }
 
-            /** Fetches progress history data for the chart from `progress_snapshots`. */
+            /** Načte historii pokroku z `progress_snapshots` pro graf. */
             async function fetchProgressHistory(userId, period = 'month') {
-                 if (!supabase || !userId) { console.error("[ChartData] Missing Supabase or user ID."); return null; }
-                 console.log(`[ChartData] Fetching progress snapshots for user ${userId}, period: ${period}`);
+                 if (!supabase || !userId) { console.error("[ChartData] Chybí Supabase nebo ID uživatele."); return null; }
+                 console.log(`[ChartData] Načítání snímků pokroku pro uživatele ${userId}, období: ${period}`);
 
-                 const today = new Date();
-                 let startDate;
+                 const today = new Date(); // Aktuální datum
+                 let startDate = null; // Počáteční datum pro filtraci
 
+                 // Nastavení počátečního data podle zvoleného období
                  switch (period) {
                      case 'week': startDate = dateFns.subDays(today, 7); break;
                      case 'month': startDate = dateFns.subMonths(today, 1); break;
                      case '3months': startDate = dateFns.subMonths(today, 3); break;
-                     case 'all': startDate = null; break; // Fetch all data if 'all'
-                     default: startDate = dateFns.subMonths(today, 1); // Default to month
+                     case 'all': startDate = null; break; // Pro 'all' nenačítáme od konkrétního data
+                     default: startDate = dateFns.subMonths(today, 1); // Výchozí je měsíc
                  }
 
+                 // Sestavení dotazu na Supabase
                  let query = supabase
-                     .from('progress_snapshots') // Table name from your file
-                     .select('snapshot_date, overall_progress') // Select relevant columns
-                     .eq('user_id', userId);
+                     .from('progress_snapshots') // Název tabulky snímků pokroku
+                     .select('snapshot_date, overall_progress') // Vybrat datum a hodnotu pokroku
+                     .eq('user_id', userId); // Filtrovat podle ID uživatele
 
+                 // Pokud je nastaveno počáteční datum, přidat podmínku do dotazu
                  if (startDate) {
-                      // Ensure date is formatted correctly for Supabase (YYYY-MM-DD)
+                     // Formátování data do ISO stringu (YYYY-MM-DD), který Supabase očekává
                      const formattedStartDate = dateFns.formatISO(startDate, { representation: 'date' });
-                     query = query.gte('snapshot_date', formattedStartDate);
-                     console.log(`[ChartData] Filtering from date: ${formattedStartDate}`);
+                     query = query.gte('snapshot_date', formattedStartDate); // Filtrovat data od tohoto data včetně
+                     console.log(`[ChartData] Filtruji od data: ${formattedStartDate}`);
                  }
 
-                 query = query.order('snapshot_date', { ascending: true }); // Order chronologically
+                 // Seřadit výsledky chronologicky
+                 query = query.order('snapshot_date', { ascending: true });
 
                  try {
+                     // Provedení dotazu
                      const { data, error } = await query;
-                     if (error) { console.error("[ChartData] Supabase error fetching snapshots:", error); throw error; }
+                     if (error) { console.error("[ChartData] Supabase chyba při načítání snímků:", error); throw error; }
 
-                     console.log(`[ChartData] Fetched ${data?.length || 0} snapshots.`);
+                     console.log(`[ChartData] Načteno ${data?.length || 0} snímků.`);
+                     // Pokud nejsou žádná data, vrátit prázdné pole pro graf
                      if (!data || data.length === 0) {
-                         return { labels: [], data: [] }; // Return empty if no data
+                         return { labels: [], data: [] };
                      }
 
-                     // Prepare data for Chart.js (use date objects for labels)
-                     const labels = data.map(item => new Date(item.snapshot_date + 'T00:00:00Z')); // Ensure date parsing handles potential timezone issues
-                     const progressData = data.map(item => item.overall_progress ?? 0); // Use 0 if progress is null
+                     // Příprava dat pro Chart.js
+                     // Použít Date objekty pro popisky osy X, zajistit správné zpracování časových pásem přidáním 'T00:00:00Z'
+                     const labels = data.map(item => new Date(item.snapshot_date + 'T00:00:00Z'));
+                     // Hodnoty pokroku, použít 0 pokud je hodnota null
+                     const progressData = data.map(item => item.overall_progress ?? 0);
 
-                     return { labels, data: progressData };
+                     return { labels, data: progressData }; // Vrátit data ve formátu pro Chart.js
 
-                 } catch (error) {
-                     console.error('[ChartData] Caught exception fetching snapshots:', error);
+                 } catch (error) { // Zachycení chyb
+                     console.error('[ChartData] Zachycena výjimka při načítání snímků:', error);
                      showToast('Nepodařilo se načíst data pro graf.', 'error');
-                     return null; // Return null on error
+                     return null; // Vrátit null v případě chyby
                  }
             }
 
-            /** Fetches recent activities with pagination, sorting, and filtering. */
+            /** Načte nedávné aktivity s paginací, řazením a filtrováním z tabulky `activities`. */
             async function fetchRecentActivities(userId, page = 1, limit = 10, sortBy = 'created_at', ascending = false, filterType = 'all') {
-                if (!supabase || !userId) { console.error("[Activities] Missing Supabase client or user ID."); return { data: [], count: 0 }; }
-                console.log(`[Activities] Fetching page ${page} (limit ${limit}), sort: ${sortBy} ${ascending ? 'ASC' : 'DESC'}, filter: ${filterType}`);
+                if (!supabase || !userId) { console.error("[Activities] Chybí Supabase klient nebo ID uživatele."); return { data: [], count: 0 }; } // Bezpečnostní návrat
+                console.log(`[Activities] Načítání stránky ${page} (limit ${limit}), řazení: ${sortBy} ${ascending ? 'ASC' : 'DESC'}, filtr: ${filterType}`);
 
-                const offset = (page - 1) * limit;
+                const offset = (page - 1) * limit; // Výpočet offsetu pro paginaci
+
+                // Sestavení základního dotazu
                 let query = supabase
-                    .from('activities') // Table name from your file
-                    .select('*', { count: 'exact' }) // Fetch count along with data
-                    .eq('user_id', userId);
+                    .from('activities') // Název tabulky aktivit
+                    .select('*', { count: 'exact' }) // Vybrat všechny sloupce a zároveň získat celkový počet záznamů (pro paginaci)
+                    .eq('user_id', userId); // Filtrovat podle ID uživatele
 
-                // Apply filter if not 'all'
+                // Aplikace filtru podle typu aktivity, pokud není 'all'
                 if (filterType !== 'all') {
-                    query = query.eq('type', filterType); // Column name from your file
+                    query = query.eq('type', filterType); // Předpokládáme sloupec 'type'
                 }
 
-                // Apply sorting (use column names from your file)
-                // Map frontend sort keys to actual DB columns if necessary
-                const dbSortColumn = sortBy === 'points_earned' ? 'points_earned' : // Assuming 'points_earned' exists
-                                     sortBy === 'status' ? 'status' : // Assuming 'status' exists
-                                     sortBy === 'title' ? 'title' :
+                // Aplikace řazení
+                // Mapování klíčů pro řazení z frontendu na skutečné názvy sloupců v DB (pokud se liší)
+                const dbSortColumn = sortBy === 'points_earned' ? 'points_earned' : // Předpokládáme existenci sloupce
+                                     sortBy === 'status' ? 'status' : // Předpokládáme existenci sloupce
+                                     sortBy === 'title' ? 'title' : // Předpokládáme existenci sloupce
                                      sortBy === 'type' ? 'type' :
-                                     'created_at'; // Default sort
-                query = query.order(dbSortColumn, { ascending: ascending });
+                                     'created_at'; // Výchozí řazení podle data vytvoření
+                query = query.order(dbSortColumn, { ascending: ascending }); // Nastavit řazení
 
-                // Apply pagination
+                // Aplikace paginace (limit a offset)
                 query = query.range(offset, offset + limit - 1);
 
                 try {
+                    // Provedení dotazu
                     const { data, error, count } = await query;
 
                     if (error) {
-                        console.error("[Activities] Supabase error fetching activities:", error);
-                        throw error;
+                        console.error("[Activities] Supabase chyba při načítání aktivit:", error);
+                        throw error; // Vyvolat chybu pro zpracování výše
                     }
 
-                    console.log(`[Activities] Fetched ${data?.length || 0} activities. Total count: ${count}`);
+                    console.log(`[Activities] Načteno ${data?.length || 0} aktivit. Celkový počet: ${count}`);
+                    // Vrátit data a celkový počet (count)
                     return { data: data || [], count: count || 0 };
-                } catch (error) {
-                    console.error('[Activities] Caught exception fetching activities:', error);
+                } catch (error) { // Zachycení chyb
+                    console.error('[Activities] Zachycena výjimka při načítání aktivit:', error);
                     showToast('Nepodařilo se načíst historii aktivit.', 'error');
-                    return { data: [], count: 0 }; // Return empty on error
+                    return { data: [], count: 0 }; // Vrátit prázdná data v případě chyby
                 }
             }
             // --- KONEC: Načítání Dat ---
 
 
             // --- START: Aktualizace UI ---
-            /** Updates the user info in the sidebar. */
+            /** Aktualizuje informace o uživateli v sidebaru (jméno, avatar). */
             function updateUserInfoUI() {
-                 console.log("[UI Update] Updating sidebar user info...");
-                 if (!ui.sidebarName || !ui.sidebarAvatar) { console.warn("[UI Update] Sidebar elements not found."); return; }
+                 console.log("[UI Update] Aktualizace informací uživatele v sidebaru...");
+                 if (!ui.sidebarName || !ui.sidebarAvatar) { console.warn("[UI Update] Elementy sidebaru nenalezeny."); return; }
 
                  if (currentUser && currentProfile) {
+                     // Sestavení zobrazovaného jména s prioritou: celé jméno > username > část emailu
                      const firstName = currentProfile.first_name ?? '';
                      const lastName = currentProfile.last_name ?? '';
                      const username = currentProfile.username ?? '';
                      const emailUsername = currentUser.email?.split('@')[0] || '';
-                     const displayName = `${firstName} ${lastName}`.trim() || username || emailUsername || 'Uživatel';
-                     ui.sidebarName.textContent = displayName;
+                     const displayName = `${firstName} ${lastName}`.trim() || username || emailUsername || 'Uživatel'; // Fallback
+                     ui.sidebarName.textContent = displayName; // Nastavit jméno
 
-                     const initials = getInitials(currentProfile);
-                     const avatarUrl = currentProfile.avatar_url;
-                     ui.sidebarAvatar.innerHTML = avatarUrl ? `<img src="${avatarUrl}" alt="${initials}">` : initials;
-                     console.log("[UI Update] Sidebar UI updated.");
-                 } else {
-                     console.warn("[UI Update] Missing currentUser or currentProfile, setting defaults.");
+                     // Nastavení avataru: obrázek pokud je URL, jinak iniciály
+                     const initials = getInitials(currentProfile); // Získat iniciály
+                     const avatarUrl = currentProfile.avatar_url; // Získat URL avataru z profilu
+                     // Pokud existuje avatarUrl, vložit <img>, jinak zobrazit textové iniciály
+                     ui.sidebarAvatar.innerHTML = avatarUrl ? `<img src="${sanitizeHTML(avatarUrl)}" alt="${initials}">` : initials;
+                     console.log("[UI Update] Sidebar UI aktualizován.");
+                 } else { // Fallback, pokud data uživatele nebo profilu chybí
+                     console.warn("[UI Update] Chybí currentUser nebo currentProfile, nastavuji výchozí hodnoty.");
                      ui.sidebarName.textContent = "Nepřihlášen";
                      ui.sidebarAvatar.textContent = '?';
                  }
             }
 
-            /** Updates the statistics cards with fetched data. */
+            /** Aktualizuje karty statistik načtenými daty. */
             function updateStatsCards(stats) {
-                 console.log("[UI Update] Updating stats cards with data:", stats);
-                 // Remove loading class from all cards first (will be done by setLoadingState)
-                 // ui.statsGrid?.querySelectorAll('.stats-card').forEach(card => card.classList.remove('loading'));
+                 console.log("[UI Update] Aktualizace karet statistik daty:", stats);
 
+                 // Mapování statistik na jejich DOM elementy
                  const statElements = {
                      progress: { value: ui.overallProgressValue, desc: ui.overallProgressDesc, footer: ui.overallProgressFooter },
                      points: { value: ui.totalPointsValue, desc: ui.totalPointsDesc, footer: ui.totalPointsFooter },
@@ -1065,397 +1209,434 @@
                      completed: { value: ui.completedCountValue, desc: ui.completedCountDesc, footer: ui.completedCountFooter }
                  };
 
-                 // Handle potential errors or null data
+                 // Zpracování případu, kdy data statistik nejsou dostupná (chyba nebo null)
                  if (!stats) {
-                     console.warn("[UI Update] No stats data provided, displaying error state in cards.");
+                     console.warn("[UI Update] Nejsou dostupná data statistik, zobrazuji chybový stav v kartách.");
                      Object.values(statElements).forEach(els => {
                           const card = els.value?.closest('.stats-card');
-                          if(card) card.classList.remove('loading'); // Ensure loading stops
-                          if(els.value) els.value.textContent = '-';
-                          if(els.desc) els.desc.textContent = 'Data nedostupná';
-                          if(els.footer) els.footer.innerHTML = '<i class="fas fa-exclamation-circle" style="color:var(--danger);"></i> Chyba';
+                          if(card) card.classList.remove('loading'); // Ujistit se, že skeleton zmizí
+                          if(els.value) els.value.textContent = '-'; // Výchozí hodnota
+                          if(els.desc) els.desc.textContent = 'Data nedostupná'; // Popis chyby
+                          if(els.footer) els.footer.innerHTML = '<i class="fas fa-exclamation-circle" style="color:var(--danger);"></i> Chyba'; // Footer s ikonou chyby
                      });
-                     return;
+                     return; // Ukončit funkci
                  }
 
-                 // Overall Progress
+                 // Aktualizace karty: Celkový pokrok
                  if (statElements.progress.value) statElements.progress.value.textContent = `${stats.progress ?? 0}%`;
                  if (statElements.progress.desc) statElements.progress.desc.textContent = "Průměrný pokrok";
                  if (statElements.progress.footer) {
-                     const change = stats.progress_weekly ?? 0;
-                     const icon = change > 0 ? 'fa-arrow-up' : change < 0 ? 'fa-arrow-down' : 'fa-minus';
-                     const sign = change > 0 ? '+' : '';
-                     statElements.progress.footer.className = `stats-card-footer ${change > 0 ? 'positive' : change < 0 ? 'negative' : ''}`;
-                     statElements.progress.footer.innerHTML = `<i class="fas ${icon}"></i> ${sign}${change}% tento týden`;
+                     const change = stats.progress_weekly ?? 0; // Týdenní změna
+                     const icon = change > 0 ? 'fa-arrow-up' : change < 0 ? 'fa-arrow-down' : 'fa-minus'; // Ikona podle změny
+                     const sign = change > 0 ? '+' : ''; // Znaménko + pro pozitivní změnu
+                     statElements.progress.footer.className = `stats-card-footer ${change > 0 ? 'positive' : change < 0 ? 'negative' : ''}`; // Třída pro barvu textu
+                     statElements.progress.footer.innerHTML = `<i class="fas ${icon}"></i> ${sign}${change}% tento týden`; // Finální text footeru
                  }
 
-                 // Total Points
+                 // Aktualizace karty: Celkem bodů
                  if (statElements.points.value) statElements.points.value.textContent = stats.points ?? 0;
                  if (statElements.points.desc) statElements.points.desc.textContent = "Celkem získaných bodů";
                  if (statElements.points.footer) {
-                     const change = stats.points_weekly ?? 0;
+                     const change = stats.points_weekly ?? 0; // Týdenní změna bodů
                      const icon = change > 0 ? 'fa-arrow-up' : change < 0 ? 'fa-arrow-down' : 'fa-minus';
                      const sign = change > 0 ? '+' : '';
                       statElements.points.footer.className = `stats-card-footer ${change > 0 ? 'positive' : change < 0 ? 'negative' : ''}`;
                       statElements.points.footer.innerHTML = `<i class="fas ${icon}"></i> ${sign}${change} bodů tento týden`;
                  }
 
-                 // Study Streak
+                 // Aktualizace karty: Studijní série
                  if (statElements.streak.value) statElements.streak.value.textContent = stats.streak_current ?? 0;
                  if (statElements.streak.desc) statElements.streak.desc.textContent = `Aktuální série dnů`;
-                 if (statElements.streak.footer) statElements.streak.footer.innerHTML = `<i class="fas fa-medal"></i> Nejdelší: ${stats.streak_longest ?? 0} dnů`;
+                 if (statElements.streak.footer) statElements.streak.footer.innerHTML = `<i class="fas fa-medal"></i> Nejdelší: ${stats.streak_longest ?? 0} dnů`; // Zobrazit i nejdelší sérii
 
-                 // Completed Activities (assuming data comes from 'profiles' and 'user_stats')
+                 // Aktualizace karty: Dokončené aktivity
+                 // Sečíst dokončená cvičení a testy
                  const completedTotal = (stats.completed_exercises || 0) + (stats.completed_tests || 0);
                  if (statElements.completed.value) statElements.completed.value.textContent = completedTotal;
+                 // Zobrazit rozpis v popisku
                  if (statElements.completed.desc) statElements.completed.desc.textContent = `Cvičení: ${stats.completed_exercises || 0}, Testů: ${stats.completed_tests || 0}`;
-                 if (statElements.completed.footer) statElements.completed.footer.innerHTML = `<i class="fas fa-tasks"></i> Celkový počet`;
+                 if (statElements.completed.footer) statElements.completed.footer.innerHTML = `<i class="fas fa-tasks"></i> Celkový počet`; // Jednoduchý footer
 
-                 console.log("[UI Update] Stats cards updated.");
+                 console.log("[UI Update] Karty statistik aktualizovány.");
              }
 
-            /** Renders the progress chart using Chart.js. */
+            /** Vykreslí graf pokroku pomocí Chart.js. */
             function renderProgressChart(chartData) {
-                 if (!ui.progressChartCanvas) { console.error("[Chart] Canvas element not found."); setLoadingState('chart', false); return; }
-                 const ctx = ui.progressChartCanvas.getContext('2d');
-                 if (!ctx) { console.error("[Chart] Failed to get canvas context."); setLoadingState('chart', false); return; }
+                 // Kontrola existence canvas elementu
+                 if (!ui.progressChartCanvas) { console.error("[Chart] Canvas element nenalezen."); setLoadingState('chart', false); return; }
+                 const ctx = ui.progressChartCanvas.getContext('2d'); // Získání 2D kontextu pro kreslení
+                 if (!ctx) { console.error("[Chart] Nepodařilo se získat kontext canvasu."); setLoadingState('chart', false); return; }
 
-                 // Destroy previous instance if exists
+                 // Zničení předchozí instance grafu, pokud existuje (pro překreslení)
                  if (progressChartInstance) {
                      progressChartInstance.destroy();
                      progressChartInstance = null;
-                     console.log("[Chart] Previous chart instance destroyed.");
+                     console.log("[Chart] Předchozí instance grafu zničena.");
                  }
 
-                 // Handle no data or error case
+                 // Zpracování případu, kdy nejsou data nebo došlo k chybě
                  if (!chartData || !chartData.labels || !chartData.data || chartData.labels.length === 0) {
-                     console.warn("[Chart] No valid data to render chart.");
-                     if (ui.progressChartCanvas) ui.progressChartCanvas.style.display = 'none'; // Hide canvas
-                     if (ui.chartEmptyState) ui.chartEmptyState.style.display = 'flex'; // Show empty state
-                     setLoadingState('chart', false); // Stop loading for chart
+                     console.warn("[Chart] Nejsou platná data pro vykreslení grafu.");
+                     if (ui.progressChartCanvas) ui.progressChartCanvas.style.display = 'none'; // Skrýt canvas
+                     if (ui.chartEmptyState) ui.chartEmptyState.style.display = 'flex'; // Zobrazit zprávu o nedostatku dat
+                     setLoadingState('chart', false); // Ukončit stav načítání grafu
                      return;
                  }
 
-                 // Ensure canvas and empty state visibility are correct
-                 if (ui.progressChartCanvas) ui.progressChartCanvas.style.display = 'block';
-                 if (ui.chartEmptyState) ui.chartEmptyState.style.display = 'none';
+                 // Zajistit správnou viditelnost canvasu a "empty state"
+                 if (ui.progressChartCanvas) ui.progressChartCanvas.style.display = 'block'; // Zobrazit canvas
+                 if (ui.chartEmptyState) ui.chartEmptyState.style.display = 'none'; // Skrýt "empty state"
 
-                 console.log("[Chart] Rendering chart with data:", chartData);
+                 console.log("[Chart] Vykreslování grafu s daty:", chartData);
 
-                 // Set Chart.js defaults for dark mode if needed
+                 // Nastavení výchozích hodnot Chart.js pro tmavý režim (pokud je aktivní)
                  const isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
                  if (isDarkMode) {
-                     Chart.defaults.color = '#94a3b8';
-                     Chart.defaults.borderColor = 'rgba(71, 85, 105, 0.3)';
-                     Chart.defaults.scale.grid.color = 'rgba(51, 65, 85, 0.4)';
-                 } else {
-                      Chart.defaults.color = '#6c757d'; // Default light mode color
+                     Chart.defaults.color = '#94a3b8'; // Barva textu (popisky os)
+                     Chart.defaults.borderColor = 'rgba(71, 85, 105, 0.3)'; // Barva ohraničení
+                     Chart.defaults.scale.grid.color = 'rgba(51, 65, 85, 0.4)'; // Barva mřížky
+                 } else { // Výchozí pro světlý režim
+                      Chart.defaults.color = '#6c757d';
                       Chart.defaults.borderColor = 'rgba(0,0,0,0.1)';
                       Chart.defaults.scale.grid.color = 'rgba(0,0,0,0.1)';
                  }
 
+                 // Určení vhodné časové jednotky pro osu X na základě rozsahu dat
                  const chartUnit = determineChartUnit(chartData.labels);
-                 const locale = dateFns.locale.cs || dateFns.locale.enUS; // Fallback to English if Czech locale isn't loaded
+                 // Načtení české lokalizace pro date-fns (pokud je dostupná)
+                 const locale = dateFns.locale.cs || dateFns.locale.enUS; // Fallback na angličtinu
 
+                 // Vytvoření nové instance Chart.js
                  progressChartInstance = new Chart(ctx, {
-                     type: 'line',
+                     type: 'line', // Typ grafu: spojnicový
                      data: {
-                         labels: chartData.labels,
+                         labels: chartData.labels, // Popisky osy X (Date objekty)
                          datasets: [{
-                             label: 'Pokrok (%)',
-                             data: chartData.data,
-                             borderColor: 'rgba(var(--primary-rgb), 0.8)',
-                             backgroundColor: 'rgba(var(--primary-rgb), 0.1)',
-                             borderWidth: 2.5,
-                             pointBackgroundColor: 'rgba(var(--primary-rgb), 1)',
-                             pointRadius: 4,
-                             pointHoverRadius: 6,
-                             tension: 0.3,
-                             fill: true
+                             label: 'Pokrok (%)', // Název datové sady
+                             data: chartData.data, // Hodnoty pokroku pro osu Y
+                             borderColor: 'rgba(var(--primary-rgb), 0.8)', // Barva čáry
+                             backgroundColor: 'rgba(var(--primary-rgb), 0.1)', // Barva výplně pod čarou
+                             borderWidth: 2.5, // Tloušťka čáry
+                             pointBackgroundColor: 'rgba(var(--primary-rgb), 1)', // Barva bodů
+                             pointRadius: 4, // Velikost bodů
+                             pointHoverRadius: 6, // Velikost bodů při najetí myší
+                             tension: 0.3, // Zakřivení čáry (0 = rovné spojnice)
+                             fill: true // Vyplnit oblast pod čarou
                          }]
                      },
                      options: {
-                         responsive: true,
-                         maintainAspectRatio: false,
+                         responsive: true, // Graf se přizpůsobí velikosti kontejneru
+                         maintainAspectRatio: false, // Neponechávat pevný poměr stran
                          scales: {
-                             x: {
-                                 type: 'time',
-                                 adapters: { date: { locale: locale } }, // Set locale for date-fns adapter
+                             x: { // Konfigurace osy X (časové)
+                                 type: 'time', // Typ osy
+                                 adapters: { date: { locale: locale } }, // Nastavení lokalizace pro date-fns adaptér
                                  time: {
-                                     unit: chartUnit,
-                                     tooltipFormat: 'P', // Date-fns format for full date (e.g., 12.04.2025)
-                                     displayFormats: { // Display formats for different units
-                                         day: 'd.M.',
-                                         week: 'PP', // Localized week format (e.g., 10. dub - 16. dub 2025)
-                                         month: 'LLLL yyyy', // Full month name and year (e.g., duben 2025)
-                                         year: 'yyyy'
+                                     unit: chartUnit, // Automaticky určená časová jednotka (den, týden, měsíc, rok)
+                                     tooltipFormat: 'P', // Formát data v tooltipu (lokalizovaný krátký formát, např. 15. 4. 2025)
+                                     displayFormats: { // Formáty zobrazení popisků na ose X podle jednotky
+                                         day: 'd.M.', // Den a měsíc
+                                         week: 'PP', // Lokalizovaný formát týdne (např. 10. dub – 16. dub 2025)
+                                         month: 'LLLL yyyy', // Celý název měsíce a rok
+                                         year: 'yyyy' // Rok
                                      }
                                  },
-                                 ticks: { color: 'var(--text-muted)', maxRotation: 0, autoSkipPadding: 15 },
-                                 grid: { display: false }
+                                 ticks: { color: 'var(--text-muted)', maxRotation: 0, autoSkipPadding: 15 }, // Barva a styl popisků osy X
+                                 grid: { display: false } // Skrýt mřížku osy X
                              },
-                             y: {
-                                 beginAtZero: true,
-                                 max: 100,
+                             y: { // Konfigurace osy Y (procenta)
+                                 beginAtZero: true, // Začínat na nule
+                                 max: 100, // Maximum na 100%
                                  ticks: {
-                                     stepSize: 20,
-                                     color: 'var(--text-muted)',
-                                     callback: function(value) { return value + '%'; }
+                                     stepSize: 20, // Krok mezi popisky
+                                     color: 'var(--text-muted)', // Barva popisků
+                                     callback: function(value) { return value + '%'; } // Přidat '%' k hodnotám
                                  },
-                                 grid: { color: isDarkMode ? 'rgba(51, 65, 85, 0.4)' : 'rgba(var(--primary-rgb), 0.08)' }
+                                 grid: { color: isDarkMode ? 'rgba(51, 65, 85, 0.4)' : 'rgba(var(--primary-rgb), 0.08)' } // Barva mřížky osy Y (jiná pro dark/light)
                              }
                          },
                          plugins: {
-                             legend: { display: false },
-                             tooltip: {
-                                 mode: 'index',
-                                 intersect: false,
-                                 backgroundColor: isDarkMode ? 'rgba(30, 41, 59, 0.9)' : 'rgba(var(--dark), 0.9)', // Darker tooltip
-                                 titleColor: isDarkMode ? '#e2e8f0' : '#ffffff',
-                                 bodyColor: isDarkMode ? '#cbd5e0' : '#ffffff',
-                                 borderColor: 'rgba(var(--primary-rgb), 0.5)',
+                             legend: { display: false }, // Skrýt legendu
+                             tooltip: { // Konfigurace tooltipu (bublina při najetí myší)
+                                 mode: 'index', // Zobrazit tooltip pro všechny datové sady na daném indexu
+                                 intersect: false, // Zobrazit i když není přímo nad bodem
+                                 backgroundColor: isDarkMode ? 'rgba(30, 41, 59, 0.9)' : 'rgba(var(--dark), 0.9)', // Barva pozadí tooltipu
+                                 titleColor: isDarkMode ? '#e2e8f0' : '#ffffff', // Barva titulku
+                                 bodyColor: isDarkMode ? '#cbd5e0' : '#ffffff', // Barva textu
+                                 borderColor: 'rgba(var(--primary-rgb), 0.5)', // Barva ohraničení
                                  borderWidth: 1,
-                                 padding: 10,
-                                 displayColors: false,
+                                 padding: 10, // Vnitřní odsazení
+                                 displayColors: false, // Nezobrazovat barevné čtverečky vedle labelu
                                  callbacks: {
+                                     // Formátování titulku tooltipu (datum)
                                      title: function(tooltipItems) {
                                          const date = new Date(tooltipItems[0].parsed.x);
-                                         return dateFns.format(date, 'PPP', { locale: locale }); // Format date with locale
+                                         return dateFns.format(date, 'PPP', { locale: locale }); // Dlouhý lokalizovaný formát (např. 15. dubna 2025)
                                      },
+                                     // Formátování obsahu tooltipu (hodnota pokroku)
                                      label: function(context) {
-                                         return `Pokrok: ${context.parsed.y.toFixed(1)}%`;
+                                         return `Pokrok: ${context.parsed.y.toFixed(1)}%`; // Hodnota na jedno desetinné místo
                                      }
                                  }
                              }
                          },
-                         interaction: {
-                             mode: 'nearest',
-                             axis: 'x',
-                             intersect: false
+                         interaction: { // Nastavení interakce myši
+                             mode: 'nearest', // Najít nejbližší bod
+                             axis: 'x', // Interagovat pouze s osou X
+                             intersect: false // Nevyžadovat přímé najetí na bod
                          }
                      }
                  });
-                 console.log("[Chart] Chart rendered successfully.");
+                 console.log("[Chart] Graf úspěšně vykreslen.");
             }
 
-            /** Determines the optimal time unit for the chart's x-axis. */
+            /** Určí optimální časovou jednotku pro osu X grafu na základě rozsahu dat. */
             function determineChartUnit(labels) {
-                 if (!labels || labels.length < 2) return 'day';
-                 const firstDate = labels[0]; // Already date objects
-                 const lastDate = labels[labels.length - 1];
+                 if (!labels || labels.length < 2) return 'day'; // Výchozí je den, pokud je málo dat
+                 const firstDate = labels[0]; // První datum (již Date objekt)
+                 const lastDate = labels[labels.length - 1]; // Poslední datum (již Date objekt)
+                 // Kontrola, zda jsou labels opravdu Date objekty
                  if (!(firstDate instanceof Date) || !(lastDate instanceof Date)) {
-                     console.warn("[ChartUnit] Invalid date objects in labels."); return 'day';
+                     console.warn("[ChartUnit] Neplatné objekty Date v popiscích."); return 'day';
                  }
+                 // Výpočet rozdílu ve dnech mezi prvním a posledním datem
                  const diffDays = dateFns.differenceInDays(lastDate, firstDate);
 
+                 // Rozhodnutí o jednotce na základě počtu dnů
                  if (diffDays <= 10) return 'day';
-                 if (diffDays <= 90) return 'week';
-                 if (diffDays <= 730) return 'month';
-                 return 'year';
+                 if (diffDays <= 90) return 'week'; // Do 3 měsíců použít týdny
+                 if (diffDays <= 730) return 'month'; // Do 2 let použít měsíce
+                 return 'year'; // Pro delší období použít roky
             }
 
-            /** Renders the activities table. */
+            /** Vykreslí tabulku aktivit. */
              function renderActivitiesTable(activities) {
+                 // Kontrola existence potřebných DOM elementů
                  if (!ui.activitiesBody || !ui.activitiesTable || !ui.activitiesEmptyState) {
-                     console.error("[ActivitiesTable] Table elements not found.");
-                     setLoadingState('activities', false); // Stop loading even if elements missing
+                     console.error("[ActivitiesTable] Elementy tabulky nenalezeny.");
+                     setLoadingState('activities', false); // Ukončit načítání i při chybě
                      return;
                  }
-                 ui.activitiesBody.innerHTML = ''; // Clear previous content
+                 ui.activitiesBody.innerHTML = ''; // Vyčistit předchozí obsah tabulky
 
+                 // Zpracování případu, kdy nejsou žádné aktivity k zobrazení
                  if (!activities || activities.length === 0) {
-                     console.log("[ActivitiesTable] No activities to display.");
-                     ui.activitiesTable.style.display = 'none'; // Hide table
-                     ui.activitiesEmptyState.style.display = 'flex'; // Show empty state (use flex for centering)
-                     setLoadingState('activities', false); // Stop loading
+                     console.log("[ActivitiesTable] Nejsou žádné aktivity k zobrazení.");
+                     ui.activitiesTable.style.display = 'none'; // Skrýt tabulku
+                     ui.activitiesEmptyState.style.display = 'flex'; // Zobrazit "empty state" zprávu
+                     setLoadingState('activities', false); // Ukončit načítání
                      return;
                  }
 
-                 console.log(`[ActivitiesTable] Rendering ${activities.length} activities.`);
-                 ui.activitiesTable.style.display = 'table'; // Show table
-                 ui.activitiesEmptyState.style.display = 'none'; // Hide empty state
+                 console.log(`[ActivitiesTable] Vykreslování ${activities.length} aktivit.`);
+                 ui.activitiesTable.style.display = 'table'; // Zobrazit tabulku
+                 ui.activitiesEmptyState.style.display = 'none'; // Skrýt "empty state"
 
+                 // Použití DocumentFragment pro efektivnější vkládání řádků do DOM
                  const fragment = document.createDocumentFragment();
                  activities.forEach(activity => {
-                     const tr = document.createElement('tr');
-                     // Use DB values directly for type/status, handle null/undefined
+                     const tr = document.createElement('tr'); // Vytvořit nový řádek tabulky
+
+                     // Získání informací o typu a stavu z map (s fallbackem na 'default')
+                     // Používáme hodnoty přímo z DB (`activity.type`, `activity.status`), převedené na malá písmena
                      const typeKey = activity.type?.toLowerCase() || 'default';
-                     const statusKey = activity.status?.toLowerCase() || 'default'; // Assuming 'status' column exists
+                     const statusKey = activity.status?.toLowerCase() || 'default'; // Předpokládáme, že sloupec se jmenuje 'status'
 
                      const activityTypeInfo = activityTypeMap[typeKey] || activityTypeMap.default;
                      const activityStatusInfo = activityStatusMap[statusKey] || activityStatusMap.default;
 
-                     // Safely access points_earned
+                     // Bezpečný přístup k bodům (points_earned), pokud je null/undefined, zobrazit '-'
                      const pointsEarned = activity.points_earned != null ? activity.points_earned : '-';
+                     // Bezpečný přístup k názvu/popisu, použít sanitizaci
+                     const titleOrDesc = sanitizeHTML(activity.title || activity.description || '-');
 
+                     // Sestavení HTML obsahu řádku
                      tr.innerHTML = `
-                         <td>${formatDate(activity.created_at, true)}</td>
-                         <td>
+                         <td>${formatDate(activity.created_at, true)}</td> <td>
                              <span class="status-badge ${activityTypeInfo.class || typeKey}">
                                  <i class="fas ${activityTypeInfo.icon}"></i> ${activityTypeInfo.name}
                              </span>
                          </td>
-                         <td><span class="table-activity-title" title="${sanitizeHTML(activity.title || activity.description || '')}">${sanitizeHTML(activity.title || activity.description || '-')}</span></td>
-                         <td class="points-value">${pointsEarned}</td>
                          <td>
+                            <span class="table-activity-title" title="${titleOrDesc}">${titleOrDesc}</span>
+                         </td>
+                         <td class="points-value">${pointsEarned}</td> <td>
                              <span class="status-badge ${activityStatusInfo.class}">
                                  <i class="fas ${activityStatusInfo.icon}"></i> ${activityStatusInfo.name}
                              </span>
                          </td>
                      `;
-                     fragment.appendChild(tr);
+                     fragment.appendChild(tr); // Přidat řádek do fragmentu
                  });
-                 ui.activitiesBody.appendChild(fragment);
-                 console.log("[ActivitiesTable] Table rendered.");
-                 setLoadingState('activities', false); // Stop loading after rendering
+                 ui.activitiesBody.appendChild(fragment); // Vložit všechny řádky najednou do tbody
+                 console.log("[ActivitiesTable] Tabulka vykreslena.");
+                 setLoadingState('activities', false); // Ukončit stav načítání tabulky
              }
 
-            /** Updates the pagination controls UI. */
+            /** Aktualizuje UI ovládacích prvků paginace. */
             function updatePaginationUI() {
+                 // Kontrola existence elementů paginace
                  if (!ui.paginationControls || !ui.pageInfo || !ui.prevPageBtn || !ui.nextPageBtn) return;
 
+                 // Pokud je celkový počet aktivit menší nebo roven počtu na stránku, skrýt paginaci
                  if (totalActivitiesCount <= activitiesPerPage) {
                      ui.paginationControls.style.display = 'none';
                      return;
                  }
 
-                 ui.paginationControls.style.display = 'flex'; // Use flex for alignment
-                 const totalPages = Math.ceil(totalActivitiesCount / activitiesPerPage);
-                 ui.pageInfo.textContent = `Strana ${currentActivitiesPage} z ${totalPages}`;
+                 // Jinak zobrazit paginaci a nastavit stavy tlačítek a text
+                 ui.paginationControls.style.display = 'flex'; // Použít flex pro zarovnání
+                 const totalPages = Math.ceil(totalActivitiesCount / activitiesPerPage); // Výpočet celkového počtu stran
+                 ui.pageInfo.textContent = `Strana ${currentActivitiesPage} z ${totalPages}`; // Zobrazit info o aktuální stránce
+                 // Deaktivovat tlačítko "Předchozí" na první stránce
                  ui.prevPageBtn.disabled = currentActivitiesPage === 1;
+                 // Deaktivovat tlačítko "Další" na poslední stránce
                  ui.nextPageBtn.disabled = currentActivitiesPage === totalPages;
-                 console.log(`[Pagination] UI updated: Page ${currentActivitiesPage}/${totalPages}`);
+                 console.log(`[Pagination] UI aktualizováno: Strana ${currentActivitiesPage}/${totalPages}`);
             }
             // --- KONEC: Aktualizace UI ---
 
 
             // --- START: Event Listenery a Handlery ---
-            /** Sets up all event listeners for the page. */
+            /** Nastaví všechny event listenery pro interaktivní prvky stránky. */
             function setupEventListeners() {
-                 console.log("[Events] Setting up event listeners...");
+                 console.log("[Events] Nastavování event listenerů...");
 
-                 // Refresh Button
+                 // Tlačítko Obnovit
                  ui.refreshBtn?.addEventListener('click', async () => {
+                     // Zamezit vícenásobnému spuštění, pokud se data již načítají
                      if (isLoading.stats || isLoading.chart || isLoading.activities) {
                          showToast("Data se již načítají...", "info");
                          return;
                      }
-                     console.log("🔄 Manual refresh triggered...");
+                     console.log("🔄 Manuální obnovení spuštěno...");
+                     // Vizuální zpětná vazba: točící se ikona, změna textu, deaktivace tlačítka
                      const icon = ui.refreshBtn.querySelector('i');
                      const text = ui.refreshBtn.querySelector('.button-text');
-                     if (icon) icon.classList.add('loading'); // Add spin animation class
+                     if (icon) icon.classList.add('loading'); // Přidat třídu pro animaci otáčení
                      if (text) text.textContent = 'Obnovuji...';
                      ui.refreshBtn.disabled = true;
                      try {
-                         await loadAllData();
-                         showToast("Data byla úspěšně obnovena.", "success");
+                         await loadAllData(); // Znovu načíst všechna data
+                         showToast("Data byla úspěšně obnovena.", "success"); // Úspěšná notifikace
                      } catch (error) {
-                         showError("Obnovení dat selhalo: " + error.message);
+                         showError("Obnovení dat selhalo: " + error.message); // Chybová notifikace
                      } finally {
-                         if (icon) icon.classList.remove('loading'); // Remove spin class
+                         // Obnovit původní stav tlačítka
+                         if (icon) icon.classList.remove('loading');
                          if (text) text.textContent = 'Obnovit';
                          ui.refreshBtn.disabled = false;
-                         initializeTooltips(); // Re-init tooltips after potential content change
+                         initializeTooltips(); // Reinicializovat tooltips pro případné nové prvky
                      }
                  });
 
-                 // Mobile Menu Toggles
-                 ui.mobileMenuToggle?.addEventListener('click', toggleMobileMenu);
-                 ui.sidebarOverlay?.addEventListener('click', toggleMobileMenu);
-                 ui.sidebarCloseToggle?.addEventListener('click', toggleMobileMenu);
+                 // Přepínače mobilního menu
+                 ui.mobileMenuToggle?.addEventListener('click', toggleMobileMenu); // Tlačítko v hlavičce
+                 ui.sidebarOverlay?.addEventListener('click', toggleMobileMenu); // Kliknutí na overlay
+                 ui.sidebarCloseToggle?.addEventListener('click', toggleMobileMenu); // Tlačítko zavření v sidebaru
 
-                 // Chart Period Selector
+                 // Výběr období pro graf
                  ui.chartPeriodSelect?.addEventListener('change', handlePeriodChange);
 
-                 // Activity Filter Selector
+                 // Výběr filtru pro tabulku aktivit
                  ui.activityTypeFilter?.addEventListener('change', handleActivityFilterChange);
 
-                 // Export Button
+                 // Tlačítko pro export tabulky do CSV
                  ui.exportTableBtn?.addEventListener('click', exportTableToCSV);
 
-                 // Table Header Sorting
+                 // Kliknutí na hlavičky tabulky pro řazení
                  ui.tableHeaders?.forEach(header => header.addEventListener('click', handleSortChange));
 
-                 // Pagination Buttons
-                 ui.prevPageBtn?.addEventListener('click', () => changeActivitiesPage(-1));
-                 ui.nextPageBtn?.addEventListener('click', () => changeActivitiesPage(1));
+                 // Tlačítka paginace
+                 ui.prevPageBtn?.addEventListener('click', () => changeActivitiesPage(-1)); // Předchozí stránka
+                 ui.nextPageBtn?.addEventListener('click', () => changeActivitiesPage(1)); // Další stránka
 
-                 // Scroll listener for header shadow
-                 ui.mainElement?.addEventListener('scroll', handleScroll, { passive: true });
+                 // Listener pro scrollování v hlavní oblasti (pro stín hlavičky)
+                 ui.mainElement?.addEventListener('scroll', handleScroll, { passive: true }); // Pasivní listener pro lepší výkon
 
-                 console.log("[Events] Event listeners set up.");
+                 console.log("[Events] Event listenery nastaveny.");
              }
 
-            /** Handles chart period change. */
+            /** Zpracuje změnu výběru období v grafu. */
             async function handlePeriodChange() {
-                 if (!currentUser || isLoading.chart) return; // Prevent if loading
-                 console.log("[Chart] Period changed, reloading chart data...");
-                 await reloadChartData();
+                 // Zamezit spuštění, pokud data chybí nebo se graf načítá
+                 if (!currentUser || isLoading.chart) return;
+                 console.log("[Chart] Období změněno, znovunačítání dat grafu...");
+                 await reloadChartData(); // Znovu načíst a vykreslit graf
             }
 
-            /** Handles activity filter change. */
+            /** Zpracuje změnu filtru v tabulce aktivit. */
             async function handleActivityFilterChange() {
-                 if (!currentUser || isLoading.activities) return; // Prevent if loading
-                 currentFilter = ui.activityTypeFilter.value;
-                 currentActivitiesPage = 1; // Reset to first page on filter change
-                 console.log(`[Filter] Activity filter changed to: ${currentFilter}. Reloading activities...`);
-                 await reloadActivities();
+                 // Zamezit spuštění, pokud data chybí nebo se tabulka načítá
+                 if (!currentUser || isLoading.activities) return;
+                 currentFilter = ui.activityTypeFilter.value; // Uložit novou hodnotu filtru
+                 currentActivitiesPage = 1; // Resetovat na první stránku při změně filtru
+                 console.log(`[Filter] Filtr aktivit změněn na: ${currentFilter}. Znovunačítání aktivit...`);
+                 await reloadActivities(); // Znovu načíst a vykreslit tabulku
             }
 
-            /** Handles table column sorting. */
+            /** Zpracuje kliknutí na hlavičku tabulky pro změnu řazení. */
             async function handleSortChange(event) {
-                 if (isLoading.activities) return; // Prevent if loading
-                 const header = event.currentTarget;
-                 const newSortColumn = header.dataset.sort;
-                 if (!newSortColumn) return;
+                 // Zamezit spuštění, pokud se tabulka načítá
+                 if (isLoading.activities) return;
+                 const header = event.currentTarget; // Hlavička, na kterou se kliklo
+                 const newSortColumn = header.dataset.sort; // Název sloupce pro řazení z data atributu
+                 if (!newSortColumn) return; // Pokud atribut chybí, nic nedělat
 
-                 let newDirection = 'desc'; // Default to descending
+                 let newDirection = 'desc'; // Výchozí směr je sestupně
+                 // Pokud se kliklo na stejný sloupec, který je již seřazen sestupně, změnit na vzestupně
                  if (currentSort.column === newSortColumn && currentSort.direction === 'desc') {
-                     newDirection = 'asc'; // Toggle to ascending
+                     newDirection = 'asc';
                  }
+                 // Aktualizovat aktuální stav řazení
                  currentSort = { column: newSortColumn, direction: newDirection };
-                 currentActivitiesPage = 1; // Reset to first page on sort change
+                 currentActivitiesPage = 1; // Resetovat na první stránku při změně řazení
 
-                 // Update header classes and icons for visual feedback
+                 // Vizuální aktualizace hlaviček tabulky (ikony řazení)
                  ui.tableHeaders?.forEach(th => {
-                     th.classList.remove('sort-asc', 'sort-desc');
-                     const i = th.querySelector('i.fa-sort, i.fa-sort-up, i.fa-sort-down, i.fa-filter'); // Include filter icon
+                     th.classList.remove('sort-asc', 'sort-desc'); // Odstranit třídy řazení
+                     const i = th.querySelector('i.fa-sort, i.fa-sort-up, i.fa-sort-down, i.fa-filter'); // Najít ikonu (včetně filtru)
                      if(i) {
-                         // Reset sort icons, keep filter icon if present
+                         // Resetovat pouze ikony řazení, ponechat ikonu filtru, pokud existuje
                          if(i.classList.contains('fa-sort') || i.classList.contains('fa-sort-up') || i.classList.contains('fa-sort-down')) {
-                              i.className = 'fas fa-sort';
+                              i.className = 'fas fa-sort'; // Nastavit výchozí ikonu
                          }
                      }
                  });
+                 // Přidat třídu a změnit ikonu pro aktuálně řazený sloupec
                  header.classList.add(newDirection === 'asc' ? 'sort-asc' : 'sort-desc');
-                 const sortIcon = header.querySelector('i.fa-sort'); // Find the sort icon specifically
+                 const sortIcon = header.querySelector('i.fa-sort'); // Najít specificky ikonu řazení
                  if (sortIcon) {
-                     sortIcon.className = `fas ${newDirection === 'asc' ? 'fa-sort-up' : 'fa-sort-down'}`;
+                     sortIcon.className = `fas ${newDirection === 'asc' ? 'fa-sort-up' : 'fa-sort-down'}`; // Nastavit ikonu šipky nahoru/dolů
                  }
 
-                 console.log(`[Sort] Sorting changed to: ${currentSort.column} ${currentSort.direction}. Reloading activities...`);
-                 await reloadActivities();
+                 console.log(`[Sort] Řazení změněno na: ${currentSort.column} ${currentSort.direction}. Znovunačítání aktivit...`);
+                 await reloadActivities(); // Znovu načíst a vykreslit tabulku s novým řazením
             }
 
-            /** Changes the current page for activities and reloads them. */
+            /** Změní aktuální stránku aktivit a znovu načte data. */
             async function changeActivitiesPage(direction) {
-                 if (isLoading.activities) return; // Prevent if loading
-                 const totalPages = Math.ceil(totalActivitiesCount / activitiesPerPage);
-                 const newPage = currentActivitiesPage + direction;
+                 // Zamezit spuštění, pokud se tabulka načítá
+                 if (isLoading.activities) return;
+                 const totalPages = Math.ceil(totalActivitiesCount / activitiesPerPage); // Celkový počet stran
+                 const newPage = currentActivitiesPage + direction; // Nová stránka
 
+                 // Přejít na novou stránku pouze pokud je v platném rozsahu
                  if (newPage >= 1 && newPage <= totalPages) {
-                     currentActivitiesPage = newPage;
-                     console.log(`[Pagination] Changing to page ${currentActivitiesPage}. Reloading activities...`);
-                     await reloadActivities();
+                     currentActivitiesPage = newPage; // Aktualizovat aktuální stránku
+                     console.log(`[Pagination] Změna na stránku ${currentActivitiesPage}. Znovunačítání aktivit...`);
+                     await reloadActivities(); // Znovu načíst a vykreslit tabulku pro novou stránku
                  }
             }
 
-            /** Reloads the activities table data based on current state. */
+            /** Znovu načte data tabulky aktivit na základě aktuálního stavu (stránka, řazení, filtr). */
             async function reloadActivities() {
+                 // Zamezit spuštění, pokud chybí uživatel nebo se tabulka načítá
                  if (!currentUser || isLoading.activities) return;
-                 console.log(`🔄 [ReloadActivities] Reloading: page=${currentActivitiesPage}, sort=${currentSort.column} ${currentSort.direction}, filter=${currentFilter}`);
-                 setLoadingState('activities', true);
+                 console.log(`🔄 [ReloadActivities] Znovunačítání: stránka=${currentActivitiesPage}, řazení=${currentSort.column} ${currentSort.direction}, filtr=${currentFilter}`);
+                 setLoadingState('activities', true); // Zapnout stav načítání
                  try {
+                      // Načtení dat s aktuálními parametry
                       const activityResult = await fetchRecentActivities(
                           currentUser.id,
                           currentActivitiesPage,
@@ -1464,84 +1645,99 @@
                           currentSort.direction === 'asc',
                           currentFilter
                       );
-                      allActivitiesData = activityResult.data || []; // Update stored data
-                      totalActivitiesCount = activityResult.count || 0;
-                      renderActivitiesTable(allActivitiesData); // Render new data
-                      updatePaginationUI();
-                 } catch (error) {
+                      allActivitiesData = activityResult.data || []; // Aktualizovat uložená data
+                      totalActivitiesCount = activityResult.count || 0; // Aktualizovat celkový počet
+                      renderActivitiesTable(allActivitiesData); // Vykreslit nová data
+                      updatePaginationUI(); // Aktualizovat paginaci
+                 } catch (error) { // Zachycení chyb při načítání
                       showError("Nepodařilo se znovu načíst aktivity.", false);
-                      renderActivitiesTable(null); // Show empty/error state
-                      updatePaginationUI(); // Update pagination based on error state (likely 0 pages)
+                      renderActivitiesTable(null); // Zobrazit chybový/prázdný stav tabulky
+                      updatePaginationUI(); // Aktualizovat paginaci (pravděpodobně na 0 stran)
                  } finally {
-                      setLoadingState('activities', false); // Ensure loading state is removed
+                      setLoadingState('activities', false); // Vypnout stav načítání (vždy)
                  }
             }
 
-             /** Reloads the chart data based on current state. */
+             /** Znovu načte data grafu na základě aktuálního stavu (vybrané období). */
              async function reloadChartData() {
+                 // Zamezit spuštění, pokud chybí uživatel nebo se graf načítá
                  if (!currentUser || isLoading.chart) return;
-                 const selectedPeriod = ui.chartPeriodSelect.value;
-                 console.log(`🔄 [ReloadChart] Reloading chart for period: ${selectedPeriod}`);
-                 setLoadingState('chart', true);
+                 const selectedPeriod = ui.chartPeriodSelect.value; // Získat vybrané období
+                 console.log(`🔄 [ReloadChart] Znovunačítání grafu pro období: ${selectedPeriod}`);
+                 setLoadingState('chart', true); // Zapnout stav načítání
                  try {
+                     // Načtení dat pro graf s novým obdobím
                      const chartData = await fetchProgressHistory(currentUser.id, selectedPeriod);
-                     renderProgressChart(chartData); // Render new data
-                 } catch (error) {
+                     renderProgressChart(chartData); // Vykreslit nová data
+                 } catch (error) { // Zachycení chyb
                      showError("Nepodařilo se načíst data pro graf.", false);
-                     renderProgressChart(null); // Show empty/error state
+                     renderProgressChart(null); // Zobrazit chybový/prázdný stav grafu
                  } finally {
-                     setLoadingState('chart', false); // Ensure loading state is removed
+                     setLoadingState('chart', false); // Vypnout stav načítání (vždy)
                  }
              }
 
-             /** Exports the currently displayed activities table data to CSV. */
+             /** Exportuje aktuálně zobrazená data z tabulky aktivit do CSV souboru. */
             function exportTableToCSV() {
+                // Zkontrolovat, zda se data nenačítají nebo zda jsou data k dispozici
                 if (isLoading.activities) { showToast("Počkejte na dokončení načítání.", "warning"); return; }
                 if (!allActivitiesData || allActivitiesData.length === 0) { showToast("Není co exportovat.", "info"); return; }
 
-                console.log("[Export] Starting CSV export...");
+                console.log("[Export] Zahájení exportu do CSV...");
+                // Definice hlaviček CSV souboru
                 const headers = ["Datum", "Čas", "Typ Aktivity", "Název/Popis", "Body", "Stav"];
+                // Mapování dat aktivit na řádky CSV
                 const rows = allActivitiesData.map(activity => {
-                    const date = new Date(activity.created_at);
-                    const formattedDate = date.toLocaleDateString('cs-CZ');
-                    const formattedTime = date.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' });
-                    const typeInfo = activityTypeMap[activity.type?.toLowerCase()] || activityTypeMap.default;
-                    const statusInfo = activityStatusMap[activity.status?.toLowerCase()] || activityStatusMap.default;
-                    // Escape commas and quotes within fields
+                    const date = new Date(activity.created_at); // Převod na Date objekt
+                    const formattedDate = date.toLocaleDateString('cs-CZ'); // Formátování data
+                    const formattedTime = date.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' }); // Formátování času
+                    const typeInfo = activityTypeMap[activity.type?.toLowerCase()] || activityTypeMap.default; // Získání info o typu
+                    const statusInfo = activityStatusMap[activity.status?.toLowerCase()] || activityStatusMap.default; // Získání info o stavu
+
+                    // Funkce pro escapování speciálních znaků v CSV (čárky, uvozovky, nové řádky)
                     const escapeCSV = (field) => {
-                        const str = String(field ?? ''); // Handle null/undefined
+                        const str = String(field ?? ''); // Převede na string, null/undefined na prázdný string
+                        // Pokud pole obsahuje problematické znaky, obalit ho do uvozovek a zdvojit vnitřní uvozovky
                         if (str.includes(',') || str.includes('"') || str.includes('\n')) {
-                            return `"${str.replace(/"/g, '""')}"`; // Double quotes inside quoted string
+                            return `"${str.replace(/"/g, '""')}"`;
                         }
-                        return str;
+                        return str; // Jinak vrátit původní string
                     };
+                    // Sestavení řádku CSV spojením escapovaných hodnot
                     return [
                         formattedDate,
                         formattedTime,
                         escapeCSV(typeInfo.name),
-                        escapeCSV(activity.title || activity.description || '-'),
-                        activity.points_earned ?? '', // Use empty string for null points
+                        escapeCSV(activity.title || activity.description || '-'), // Použít název nebo popis
+                        activity.points_earned ?? '', // Body (prázdný string pro null)
                         escapeCSV(statusInfo.name)
-                    ].join(',');
+                    ].join(','); // Spojit čárkou
                 });
 
-                const csvContent = "data:text/csv;charset=utf-8," + headers.join(',') + '\n' + rows.join('\n');
-                const encodedUri = encodeURI(csvContent);
+                // Sestavení kompletního CSV obsahu (hlavička + řádky)
+                // Přidání BOM (Byte Order Mark) pro UTF-8, aby Excel správně zobrazil diakritiku
+                const BOM = "\uFEFF";
+                const csvContent = BOM + headers.join(',') + '\n' + rows.join('\n');
+
+                // Vytvoření odkazu pro stažení souboru
+                const encodedUri = encodeURI("data:text/csv;charset=utf-8," + csvContent); // Zakódování obsahu pro data URI
                 const link = document.createElement("a");
                 link.setAttribute("href", encodedUri);
+                // Generování názvu souboru s časovým razítkem
                 const now = new Date();
                 const timestamp = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-                link.setAttribute("download", `historie_aktivit_${timestamp}.csv`);
-                document.body.appendChild(link); // Required for Firefox
-                link.click();
-                document.body.removeChild(link);
-                showToast("Export do CSV dokončen.", "success");
-                console.log("[Export] CSV export finished.");
+                link.setAttribute("download", `historie_aktivit_${timestamp}.csv`); // Název souboru
+                document.body.appendChild(link); // Přidání odkazu do DOM (nutné pro Firefox)
+                link.click(); // Simulace kliknutí pro zahájení stahování
+                document.body.removeChild(link); // Odstranění odkazu z DOM
+                showToast("Export do CSV dokončen.", "success"); // Notifikace o úspěchu
+                console.log("[Export] Export CSV dokončen.");
             }
             // --- KONEC: Event Listenery a Handlery ---
 
 
             // --- Spuštění Aplikace ---
+            // Přidání listeneru, který spustí inicializaci po načtení DOM
             document.addEventListener('DOMContentLoaded', initializeApp);
 
         })(); // Konec IIFE
