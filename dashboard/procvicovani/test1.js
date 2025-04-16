@@ -1,6 +1,4 @@
-    <script>
-        // ИСПРАВЛЕННЫЙ и ДОПОЛНЕННЫЙ JavaScript
-        (function() {
+            (function() {
             // --- START: Инициализация и Конфигурация ---
             const supabaseUrl = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
             const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10';
@@ -339,6 +337,4 @@
                  setTimeout(initializeApp, 0); // Start with a slight delay
              });
 
-        })(); // Конец IIFE
-    </script>
-</body>
+        })(); // Конец 
