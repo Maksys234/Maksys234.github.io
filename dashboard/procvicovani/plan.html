@@ -71,7 +71,40 @@
             </div>
             <div class="header-actions">
                 <a href="/dashboard/procvicovani/main.html" class="btn btn-secondary btn-tooltip" title="Zpět na přehled procvičování"> <i class="fas fa-arrow-left"></i> Zpět </a>
-            </div>
+                <div class="notifications">
+                    <div class="notification-bell" id="notification-bell" title="Oznámení">
+                         <i class="far fa-bell"></i>
+                         <span class="notification-badge" id="notification-count">0</span>
+                    </div>
+                    <div class="notifications-dropdown-wrapper" id="notifications-dropdown">
+                         <div class="notifications-header">
+                             <span class="notifications-title">PŘÍCHOZÍ SIGNÁLY</span>
+                             <button class="mark-all-read-btn" id="mark-all-read" disabled>Vymazat vše</button>
+                         </div>
+                         <div id="notifications-list">
+                             <div class="notification-item skeleton">
+                                 <div class="notification-icon skeleton" style="background-color: var(--skeleton-bg);"></div>
+                                 <div class="notification-content">
+                                     <div class="skeleton" style="height: 16px; width: 70%; margin-bottom: 6px;"></div>
+                                     <div class="skeleton" style="height: 12px; width: 90%;"></div>
+                                     <div class="skeleton" style="height: 10px; width: 40%; margin-top: 6px;"></div>
+                                 </div>
+                             </div>
+                              <div class="notification-item skeleton">
+                                 <div class="notification-icon skeleton" style="background-color: var(--skeleton-bg);"></div>
+                                 <div class="notification-content">
+                                     <div class="skeleton" style="height: 16px; width: 60%; margin-bottom: 6px;"></div>
+                                     <div class="skeleton" style="height: 12px; width: 80%;"></div>
+                                     <div class="skeleton" style="height: 10px; width: 50%; margin-top: 6px;"></div>
+                                 </div>
+                             </div>
+                             <div id="no-notifications-msg" style="display: none;">ŽÁDNÉ NOVÉ SIGNÁLY</div>
+                         </div>
+                         <div class="notifications-footer">
+                             <a href="/dashboard/notifications.html" class="view-all-notifications-link">ZOBRAZIT ARCHIV</a> </div>
+                    </div>
+                 </div>
+                 </div>
         </header>
 
         <div class="error-container" id="global-error"></div>
@@ -79,8 +112,7 @@
         <div class="main-content-wrapper">
             <div class="tabs-wrapper">
                 <div class="plan-tabs">
-                    <div class="plan-tab active" data-tab="current"><i class="far fa-calendar-alt"></i> Aktuální plán</div>
-                    <div class="plan-tab" data-tab="history"><i class="fas fa-history"></i> Historie plánů</div>
+                    <div class="plan-tab active" data-tab="current"><i class="far fa-calendar-check"></i> Aktuální plán</div> <div class="plan-tab" data-tab="history"><i class="fas fa-history"></i> Historie plánů</div>
                     <div class="plan-tab" data-tab="create"><i class="fas fa-plus-circle"></i> Vytvořit nový</div>
                 </div>
             </div>
@@ -90,10 +122,26 @@
                     <div class="loading-spinner"></div>
                     <p>Načítám aktuální plán...</p>
                 </div>
-                 <div id="currentPlanContent" class="section-content">
+                <div id="currentPlanContent" class="section-content">
                     </div>
-                 <div id="vertical-schedule-list" class="vertical-schedule-list">
+                <div id="vertical-schedule-list" class="vertical-schedule-list">
+                     <div class="skeleton day-card-skeleton">
+                         <div class="skeleton day-header-skeleton"></div>
+                         <div class="skeleton activity-item-skeleton">
+                             <div class="skeleton activity-checkbox-skeleton"></div>
+                             <div class="skeleton activity-content-skeleton">
+                                 <div class="skeleton activity-title-skeleton"></div>
+                                 <div class="skeleton activity-meta-skeleton"></div>
+                             </div>
+                         </div>
+                         <div class="skeleton activity-item-skeleton">
+                             <div class="skeleton activity-checkbox-skeleton"></div>
+                             <div class="skeleton activity-content-skeleton">
+                                 <div class="skeleton activity-title-skeleton" style="width: 60%;"></div>
+                             </div>
+                         </div>
                      </div>
+                 </div>
                  <div class="step-navigation" id="verticalScheduleNav">
                      <button class="btn btn-primary btn-tooltip" id="exportScheduleBtnVertical" title="Stáhnout plán jako PDF">
                          <i class="fas fa-file-pdf"></i> Exportovat
@@ -102,17 +150,27 @@
             </div>
 
             <div class="section" id="historyPlanSection">
-                <h2 class="section-title" style="background: var(--card-solid); border-radius:0;"><i class="fas fa-history"></i> Historie studijních plánů</h2>
+                <h2 class="section-title"><i class="fas fa-history"></i> Historie studijních plánů</h2>
                 <div class="loader-container visible-loader" id="historyLoader">
                     <div class="loading-spinner"></div>
                     <p>Načítám historii...</p>
                 </div>
                 <div id="historyPlanContent" class="plan-history section-content">
+                     <div class="skeleton history-item-skeleton">
+                         <div class="skeleton text-sm" style="width: 40%;"></div>
+                         <div class="skeleton title-sm" style="width: 80%; height: 16px;"></div>
+                         <div class="skeleton text-sm" style="width: 50%;"></div>
                      </div>
+                     <div class="skeleton history-item-skeleton">
+                         <div class="skeleton text-sm" style="width: 40%;"></div>
+                         <div class="skeleton title-sm" style="width: 80%; height: 16px;"></div>
+                         <div class="skeleton text-sm" style="width: 50%;"></div>
+                     </div>
+                </div>
             </div>
 
             <div class="section" id="createPlanSection">
-                <div class="loader-container visible-loader" id="createPlanLoader">
+                 <div class="loader-container visible-loader" id="createPlanLoader">
                     <div class="loading-spinner"></div>
                     <p>Ověřuji dostupnost...</p>
                 </div>
@@ -120,12 +178,14 @@
                     </div>
             </div>
 
-             <div class="section" id="planSection"> <div class="plan-header-dynamic">
+            <div class="section" id="planSection">
+                 <div class="plan-header-dynamic">
                      <div class="plan-meta">
                          <h2 id="plan-section-title">Detail / Návrh plánu</h2>
                          <div class="plan-date" id="plan-meta-date">Vytvořeno: -</div>
                      </div>
-                     <div class="plan-actions" id="planActions"></div>
+                     <div class="plan-actions" id="planActions">
+                         </div>
                  </div>
                  <div class="section-content" style="padding-top:0;">
                      <div class="step-navigation nav-visible" style="margin: 0 0 1.5rem 0; padding: 0; border-top: none; background: transparent; justify-content: flex-start;">
