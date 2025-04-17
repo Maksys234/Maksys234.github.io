@@ -174,7 +174,6 @@
                   if (key === 'history' && ui.historyPlanContent && !ui.historyPlanContent.querySelector('.history-item') && !ui.historyPlanContent.querySelector('.notest-message')) {
                       ui.historyPlanContent.innerHTML = '';
                   }
-                  // Schedule skeletons are naturally replaced by renderVerticalSchedule or renderMessage
              }
         });
     };
@@ -204,13 +203,13 @@
     const initializeSupabase = () => { try { if (!window.supabase) throw new Error("Supabase library not loaded."); supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey); console.log("Supabase client initialized."); return true; } catch (error) { console.error("Supabase init failed:", error); showGlobalError("Chyba připojení k databázi."); return false; } };
     const setupEventListeners = () => {
          console.log("[SETUP] Setting up event listeners...");
-         if (ui.mobileMenuToggle) ui.mobileMenuToggle.addEventListener('click', openMenu); // Changed ID
-         if (ui.sidebarCloseToggle) ui.sidebarCloseToggle.addEventListener('click', closeMenu); // Changed ID
-         if (ui.sidebarOverlay) ui.sidebarOverlay.addEventListener('click', closeMenu); // Changed ID
+         if (ui.mobileMenuToggle) ui.mobileMenuToggle.addEventListener('click', openMenu);
+         if (ui.sidebarCloseToggle) ui.sidebarCloseToggle.addEventListener('click', closeMenu);
+         if (ui.sidebarOverlay) ui.sidebarOverlay.addEventListener('click', closeMenu);
          ui.planTabs.forEach(tab => { tab.addEventListener('click', () => switchTab(tab.dataset.tab)); });
          if (ui.genericBackBtn) { ui.genericBackBtn.addEventListener('click', () => { switchTab(state.currentTab || 'current'); }); }
          if (ui.exportScheduleBtnVertical) { ui.exportScheduleBtnVertical.addEventListener('click', () => { if (state.currentStudyPlan) exportPlanToPDFWithStyle(state.currentStudyPlan); else showToast('Nelze exportovat, plán není načten.', 'warning'); }); }
-         window.addEventListener('resize', () => { if (window.innerWidth > 992 && ui.sidebar?.classList.contains('active')) closeMenu(); }); // Changed logic to use closeMenu
+         window.addEventListener('resize', () => { if (window.innerWidth > 992 && ui.sidebar?.classList.contains('active')) closeMenu(); });
 
         // Event Delegation for Vertical Schedule
          const scheduleContainer = ui.verticalScheduleList;
@@ -221,7 +220,7 @@
                  const titleArea = event.target.closest('.activity-title-time');
                  const checkboxLabel = event.target.closest('.activity-checkbox');
 
-                 if (checkboxLabel || event.target.tagName === 'INPUT') { return; } // Ignore clicks on checkbox/label
+                 if (checkboxLabel || event.target.tagName === 'INPUT') { return; }
 
                  if (expandButton || titleArea) {
                      const activityElement = (expandButton || titleArea).closest('.activity-list-item');
@@ -311,12 +310,10 @@
              initHeaderScrollDetection();
              updateCopyrightYear();
 
-             // Load notifications concurrently with the first tab
              const loadNotificationsPromise = fetchNotifications(user.id, 5)
                  .then(({ unreadCount, notifications }) => renderNotifications(unreadCount, notifications))
                  .catch(err => { console.error("Failed to load notifications initially:", err); renderNotifications(0, []); });
 
-             // Load the initial tab ('current')
              const loadInitialTabPromise = switchTab('current');
 
              await Promise.all([loadNotificationsPromise, loadInitialTabPromise]);
@@ -365,27 +362,36 @@
         hideGlobalError();
 
         try {
-             let targetSection, loadFunction;
-             // Определяем цель и функцию загрузки для каждой вкладки
+             let targetSection = null;
+             let loadFunction = null; // Initialize to null
+
+             // Define section and function based on tabId
              if (tabId === 'current') {
                  targetSection = ui.currentPlanSection;
                  loadFunction = loadCurrentPlan;
+                 console.log(`[NAV] Assigned loadFunction: loadCurrentPlan for tab ${tabId}`);
              } else if (tabId === 'history') {
                  targetSection = ui.historyPlanSection;
                  loadFunction = loadPlanHistory;
+                 console.log(`[NAV] Assigned loadFunction: loadPlanHistory for tab ${tabId}`);
              } else if (tabId === 'create') {
                  targetSection = ui.createPlanSection;
-                 loadFunction = checkPlanCreationAvailability; // <-- ПРАВИЛЬНАЯ ФУНКЦИЯ
+                 loadFunction = checkPlanCreationAvailability; // Assign function here
+                 console.log(`[NAV] Assigned loadFunction: checkPlanCreationAvailability for tab ${tabId}`);
              }
 
+            // Check if both target and function are valid *before* showing section/calling function
             if (targetSection && loadFunction) {
-                 targetSection.classList.add('visible-section'); // Показать нужную секцию
-                 console.log(`[NAV] Loading tab content function for: ${tabId}...`);
-                 await loadFunction(); // <<-- ВЫЗЫВАЕМ и ОЖИДАЕМ нужную функцию
-                 console.log(`[NAV] Tab ${tabId} loading function finished.`);
-                 // Видимость контента внутри секции теперь управляется render-функциями
+                 targetSection.classList.add('visible-section'); // Show section container
+                 console.log(`[NAV] Calling loadFunction for: ${tabId}...`);
+                 await loadFunction(); // Await the function assigned above
+                 console.log(`[NAV] Tab ${tabId} load function finished.`);
+             } else if (targetSection) {
+                 // If only section is found but no load function (shouldn't happen with current tabs)
+                 console.warn(`[NAV] No specific load function defined for tab ${tabId}, only showing the section.`);
+                 targetSection.classList.add('visible-section');
              } else {
-                  console.warn(`[NAV] No action defined for tab: ${tabId}`);
+                  console.warn(`[NAV] No section or action defined for tab: ${tabId}`);
              }
         } catch (error) {
             console.error(`[NAV] Error loading tab ${tabId}:`, error);
@@ -397,74 +403,25 @@
             } else {
                 showGlobalError(`Nepodařilo se načíst záložku "${tabId}": ${error.message}`);
             }
-            setLoadingState(tabId, false);
-            if (tabId === 'current') setLoadingState('schedule', false);
+            setLoadingState(tabId, false); // Reset loading state for the specific tab
+            if (tabId === 'current') setLoadingState('schedule', false); // Also reset schedule if relevant
         }
     };
 
 
     // ==============================================
-    //          Уведомления (Notification Logic - Added)
+    //          Уведомления (Notification Logic)
     // ==============================================
-     async function fetchNotifications(userId, limit = 5) {
-         if (!supabaseClient || !userId) { console.error("[Notifications] Missing Supabase client or User ID."); return { unreadCount: 0, notifications: [] }; }
-         console.log(`[Notifications] Fetching unread notifications for user ${userId}`);
-         setLoadingState('notifications', true);
-         try {
-             const { data, error, count } = await supabaseClient.from('user_notifications').select('*', { count: 'exact' }).eq('user_id', userId).eq('is_read', false).order('created_at', { ascending: false }).limit(limit);
-             if (error) throw error;
-             console.log(`[Notifications] Fetched ${data?.length || 0} notifications. Total unread: ${count}`);
-             return { unreadCount: count ?? 0, notifications: data || [] };
-         } catch (error) {
-             console.error("[Notifications] Exception fetching notifications:", error);
-             showToast('Chyba', 'Nepodařilo se načíst oznámení.', 'error');
-             return { unreadCount: 0, notifications: [] };
-         } finally {
-             setLoadingState('notifications', false);
-         }
-     }
-     function renderNotifications(count, notifications) {
-         console.log("[Render Notifications] Start, Count:", count, "Notifications:", notifications);
-         if (!ui.notificationCount || !ui.notificationsList || !ui.noNotificationsMsg || !ui.markAllReadBtn) { console.error("[Render Notifications] Missing UI elements."); return; }
-         ui.notificationCount.textContent = count > 9 ? '9+' : (count > 0 ? String(count) : '');
-         ui.notificationCount.classList.toggle('visible', count > 0);
-         if (notifications && notifications.length > 0) {
-             ui.notificationsList.innerHTML = notifications.map(n => {
-                  const visual = activityVisuals[n.type?.toLowerCase()] || activityVisuals.default;
-                  const iconClass = visual.icon || 'fa-info-circle'; const typeClass = visual.class || 'default';
-                  const isReadClass = n.is_read ? 'is-read' : ''; const linkAttr = n.link ? `data-link="${sanitizeHTML(n.link)}"` : '';
-                 return `<div class="notification-item ${isReadClass}" data-id="${n.id}" ${linkAttr}>${!n.is_read ? '<span class="unread-dot"></span>' : ''}<div class="notification-icon ${typeClass}"><i class="fas ${iconClass}"></i></div><div class="notification-content"><div class="notification-title">${sanitizeHTML(n.title)}</div><div class="notification-message">${sanitizeHTML(n.message)}</div><div class="notification-time">${formatRelativeTime(n.created_at)}</div></div></div>`;
-             }).join('');
-             ui.noNotificationsMsg.style.display = 'none'; ui.notificationsList.style.display = 'block'; ui.markAllReadBtn.disabled = count === 0;
-         } else { ui.notificationsList.innerHTML = ''; ui.noNotificationsMsg.style.display = 'block'; ui.notificationsList.style.display = 'none'; ui.markAllReadBtn.disabled = true; }
-         ui.notificationsList.closest('.notifications-dropdown-wrapper')?.classList.toggle('has-content', notifications && notifications.length > 0);
-         console.log("[Render Notifications] Finished");
-     }
-      function renderNotificationSkeletons(count = 2) { if (!ui.notificationsList || !ui.noNotificationsMsg) return; let skeletonHTML = ''; for (let i = 0; i < count; i++) { skeletonHTML += `<div class="notification-item skeleton"><div class="notification-icon skeleton" style="background-color: var(--skeleton-bg);"></div><div class="notification-content"><div class="skeleton" style="height: 16px; width: 70%; margin-bottom: 6px;"></div><div class="skeleton" style="height: 12px; width: 90%;"></div><div class="skeleton" style="height: 10px; width: 40%; margin-top: 6px;"></div></div></div>`; } ui.notificationsList.innerHTML = skeletonHTML; ui.noNotificationsMsg.style.display = 'none'; ui.notificationsList.style.display = 'block'; }
+     async function fetchNotifications(userId, limit = 5) { if (!supabaseClient || !userId) { console.error("[Notifications] Missing Supabase client or User ID."); return { unreadCount: 0, notifications: [] }; } console.log(`[Notifications] Fetching unread notifications for user ${userId}`); setLoadingState('notifications', true); try { const { data, error, count } = await supabaseClient.from('user_notifications').select('*', { count: 'exact' }).eq('user_id', userId).eq('is_read', false).order('created_at', { ascending: false }).limit(limit); if (error) throw error; console.log(`[Notifications] Fetched ${data?.length || 0} notifications. Total unread: ${count}`); return { unreadCount: count ?? 0, notifications: data || [] }; } catch (error) { console.error("[Notifications] Exception fetching notifications:", error); showToast('Chyba', 'Nepodařilo se načíst oznámení.', 'error'); return { unreadCount: 0, notifications: [] }; } finally { setLoadingState('notifications', false); } }
+     function renderNotifications(count, notifications) { console.log("[Render Notifications] Start, Count:", count, "Notifications:", notifications); if (!ui.notificationCount || !ui.notificationsList || !ui.noNotificationsMsg || !ui.markAllReadBtn) { console.error("[Render Notifications] Missing UI elements."); return; } ui.notificationCount.textContent = count > 9 ? '9+' : (count > 0 ? String(count) : ''); ui.notificationCount.classList.toggle('visible', count > 0); if (notifications && notifications.length > 0) { ui.notificationsList.innerHTML = notifications.map(n => { const visual = activityVisuals[n.type?.toLowerCase()] || activityVisuals.default; const iconClass = visual.icon || 'fa-info-circle'; const typeClass = visual.class || 'default'; const isReadClass = n.is_read ? 'is-read' : ''; const linkAttr = n.link ? `data-link="${sanitizeHTML(n.link)}"` : ''; return `<div class="notification-item ${isReadClass}" data-id="${n.id}" ${linkAttr}>${!n.is_read ? '<span class="unread-dot"></span>' : ''}<div class="notification-icon ${typeClass}"><i class="fas ${iconClass}"></i></div><div class="notification-content"><div class="notification-title">${sanitizeHTML(n.title)}</div><div class="notification-message">${sanitizeHTML(n.message)}</div><div class="notification-time">${formatRelativeTime(n.created_at)}</div></div></div>`; }).join(''); ui.noNotificationsMsg.style.display = 'none'; ui.notificationsList.style.display = 'block'; ui.markAllReadBtn.disabled = count === 0; } else { ui.notificationsList.innerHTML = ''; ui.noNotificationsMsg.style.display = 'block'; ui.notificationsList.style.display = 'none'; ui.markAllReadBtn.disabled = true; } ui.notificationsList.closest('.notifications-dropdown-wrapper')?.classList.toggle('has-content', notifications && notifications.length > 0); console.log("[Render Notifications] Finished"); }
+     function renderNotificationSkeletons(count = 2) { if (!ui.notificationsList || !ui.noNotificationsMsg) return; let skeletonHTML = ''; for (let i = 0; i < count; i++) { skeletonHTML += `<div class="notification-item skeleton"><div class="notification-icon skeleton" style="background-color: var(--skeleton-bg);"></div><div class="notification-content"><div class="skeleton" style="height: 16px; width: 70%; margin-bottom: 6px;"></div><div class="skeleton" style="height: 12px; width: 90%;"></div><div class="skeleton" style="height: 10px; width: 40%; margin-top: 6px;"></div></div></div>`; } ui.notificationsList.innerHTML = skeletonHTML; ui.noNotificationsMsg.style.display = 'none'; ui.notificationsList.style.display = 'block'; }
      async function markNotificationRead(notificationId) { console.log("[Notifications] Marking notification as read:", notificationId); if (!state.currentUser || !notificationId) return false; try { const { error } = await supabaseClient.from('user_notifications').update({ is_read: true }).eq('user_id', state.currentUser.id).eq('id', notificationId); if (error) throw error; console.log("[Notifications] Mark as read successful for ID:", notificationId); return true; } catch (error) { console.error("[Notifications] Mark as read error:", error); showToast('Chyba', 'Nepodařilo se označit oznámení jako přečtené.', 'error'); return false; } }
-     async function markAllNotificationsRead() { console.log("[Notifications] Marking all as read for user:", state.currentUser?.id); if (!state.currentUser || !ui.markAllReadBtn) return; setLoadingState('notifications', true); try { const { error } = await supabaseClient.from('user_notifications').update({ is_read: true }).eq('user_id', state.currentUser.id).eq('is_read', false); if (error) throw error; console.log("[Notifications] Mark all as read successful"); const { unreadCount, notifications } = await fetchNotifications(state.currentUser.id, 5); renderNotifications(unreadCount, notifications); showToast('SIGNÁLY VYMAZÁNY', 'Všechna oznámení byla označena jako přečtená.', 'success'); } catch (error) { console.error("[Notifications] Mark all as read error:", error); showToast('CHYBA PŘЕНOSU', 'Nepodařilo se označit všechna oznámení.', 'error'); } finally { setLoadingState('notifications', false); } }
+     async function markAllNotificationsRead() { console.log("[Notifications] Marking all as read for user:", state.currentUser?.id); if (!state.currentUser || !ui.markAllReadBtn) return; setLoadingState('notifications', true); try { const { error } = await supabaseClient.from('user_notifications').update({ is_read: true }).eq('user_id', state.currentUser.id).eq('is_read', false); if (error) throw error; console.log("[Notifications] Mark all as read successful"); const { unreadCount, notifications } = await fetchNotifications(state.currentUser.id, 5); renderNotifications(unreadCount, notifications); showToast('SIGNÁLY VYMAZÁNY', 'Všechna oznámení byla označena jako přečtená.', 'success'); } catch (error) { console.error("[Notifications] Mark all as read error:", error); showToast('CHYBA PŘENOSU', 'Nepodařilo se označit všechna oznámení.', 'error'); } finally { setLoadingState('notifications', false); } }
 
     // ==============================================
     //          Актуальный План (Vertical Layout)
     // ==============================================
-     const loadCurrentPlan = async () => {
-        if (!supabaseClient || !state.currentUser) return;
-        console.log("[CurrentPlan] Loading current plan...");
-        setLoadingState('current', true); setLoadingState('schedule', true);
-        if (ui.currentPlanContent) ui.currentPlanContent.innerHTML = '';
-        if (ui.verticalScheduleList) ui.verticalScheduleList.innerHTML = '';
-        if (ui.currentPlanContent) ui.currentPlanContent.classList.remove('content-visible');
-        if (ui.verticalScheduleList) ui.verticalScheduleList.classList.remove('schedule-visible');
-        if (ui.verticalScheduleNav) ui.verticalScheduleNav.classList.remove('nav-visible');
-        try {
-            const { data: plans, error } = await supabaseClient.from('study_plans').select('*').eq('user_id', state.currentUser.id).eq('status', 'active').order('created_at', { ascending: false }).limit(1);
-            if (error) throw error;
-            console.log("[CurrentPlan] Fetched plans:", plans);
-            if (plans && plans.length > 0) { state.currentStudyPlan = plans[0]; console.log("[CurrentPlan] Active plan found:", state.currentStudyPlan.id); await showVerticalSchedule(state.currentStudyPlan); }
-            else { state.currentStudyPlan = null; console.log("[CurrentPlan] No active plan found. Checking diagnostic..."); setLoadingState('schedule', false); const diagnostic = await getLatestDiagnostic(false); if (diagnostic === null) { renderMessage(ui.currentPlanContent, 'error', 'Chyba načítání diagnostiky', 'Nepodařilo se ověřit stav vašeho diagnostického testu.'); } else if (diagnostic) { renderPromptCreatePlan(ui.currentPlanContent); } else { renderNoActivePlan(ui.currentPlanContent); } }
-        } catch (error) { console.error("[CurrentPlan] Error loading current plan:", error); renderMessage(ui.currentPlanContent, 'error', 'Chyba', 'Nepodařilo se načíst aktuální studijní plán.'); setLoadingState('schedule', false); }
-        finally { setLoadingState('current', false); console.log("[CurrentPlan] Loading finished."); }
-     };
+     const loadCurrentPlan = async () => { if (!supabaseClient || !state.currentUser) return; console.log("[CurrentPlan] Loading current plan..."); setLoadingState('current', true); setLoadingState('schedule', true); if (ui.currentPlanContent) ui.currentPlanContent.innerHTML = ''; if (ui.verticalScheduleList) ui.verticalScheduleList.innerHTML = ''; if (ui.currentPlanContent) ui.currentPlanContent.classList.remove('content-visible'); if (ui.verticalScheduleList) ui.verticalScheduleList.classList.remove('schedule-visible'); if (ui.verticalScheduleNav) ui.verticalScheduleNav.classList.remove('nav-visible'); try { const { data: plans, error } = await supabaseClient.from('study_plans').select('*').eq('user_id', state.currentUser.id).eq('status', 'active').order('created_at', { ascending: false }).limit(1); if (error) throw error; console.log("[CurrentPlan] Fetched plans:", plans); if (plans && plans.length > 0) { state.currentStudyPlan = plans[0]; console.log("[CurrentPlan] Active plan found:", state.currentStudyPlan.id); await showVerticalSchedule(state.currentStudyPlan); } else { state.currentStudyPlan = null; console.log("[CurrentPlan] No active plan found. Checking diagnostic..."); setLoadingState('schedule', false); const diagnostic = await getLatestDiagnostic(false); if (diagnostic === null) { renderMessage(ui.currentPlanContent, 'error', 'Chyba načítání diagnostiky', 'Nepodařilo se ověřit stav vašeho diagnostického testu.'); } else if (diagnostic) { renderPromptCreatePlan(ui.currentPlanContent); } else { renderNoActivePlan(ui.currentPlanContent); } } } catch (error) { console.error("[CurrentPlan] Error loading current plan:", error); renderMessage(ui.currentPlanContent, 'error', 'Chyba', 'Nepodařilo se načíst aktuální studijní plán.'); setLoadingState('schedule', false); } finally { setLoadingState('current', false); console.log("[CurrentPlan] Loading finished."); } };
      const renderPromptCreatePlan = (container) => { if (!container || !ui.promptCreatePlanTemplate) return; console.log("[Render] Rendering Prompt Create Plan..."); const node = ui.promptCreatePlanTemplate.content.cloneNode(true); const btn = node.getElementById('createNewPlanFromPromptBtn'); if (btn) btn.addEventListener('click', () => switchTab('create')); container.innerHTML = ''; container.appendChild(node); container.classList.add('content-visible'); console.log("[Render] Prompt Create Plan Rendered."); };
      const renderNoActivePlan = (container) => { if (!container || !ui.noActivePlanTemplate) return; console.log("[Render] Rendering No Active Plan..."); const node = ui.noActivePlanTemplate.content.cloneNode(true); const link = node.querySelector('.link-to-create-tab'); if (link) link.addEventListener('click', (e) => { e.preventDefault(); switchTab('create'); }); container.innerHTML = ''; container.appendChild(node); container.classList.add('content-visible'); console.log("[Render] No Active Plan Rendered."); };
      const showVerticalSchedule = async (plan) => { if (!supabaseClient || !plan || !plan.id) { console.error("[ShowVertical] Invalid plan data."); if(ui.currentPlanContent) renderMessage(ui.currentPlanContent, 'error', 'Chyba plánu', 'Nelze zobrazit detaily plánu.'); setLoadingState('schedule', false); return; } console.log(`[ShowVertical] Displaying schedule for Plan ID ${plan.id}`); if (ui.currentPlanContent) ui.currentPlanContent.classList.remove('content-visible'); if (ui.verticalScheduleList) ui.verticalScheduleList.classList.remove('schedule-visible'); if (ui.verticalScheduleNav) ui.verticalScheduleNav.classList.remove('nav-visible'); try { const { data: activities, error } = await supabaseClient.from('plan_activities').select('*').eq('plan_id', plan.id).order('day_of_week').order('time_slot'); if (error) throw error; console.log(`[ShowVertical] Fetched ${activities?.length ?? 0} activities.`); renderVerticalSchedule(activities || [], plan.id); console.log("[ShowVertical] Rendering complete, adding visibility classes."); if (ui.verticalScheduleList) ui.verticalScheduleList.classList.add('schedule-visible'); if (ui.verticalScheduleNav) ui.verticalScheduleNav.classList.add('nav-visible'); } catch (error) { console.error("[ShowVertical] Error fetching activities:", error); if(ui.currentPlanContent) renderMessage(ui.currentPlanContent, 'error', 'Chyba Harmonogramu', 'Nepodařilo se načíst aktivity.'); if(ui.verticalScheduleList) ui.verticalScheduleList.classList.remove('schedule-visible'); if(ui.verticalScheduleNav) ui.verticalScheduleNav.classList.remove('nav-visible'); } finally { setLoadingState('schedule', false); initTooltips(); } };
@@ -483,24 +440,47 @@
 
 
     // ==============================================
-    //          Создание Плана (с логированием)
+    //          Создание Плана (с логированием и проверками)
     // ==============================================
-    const getLatestDiagnostic = async (showLoaderFlag = true) => { if (!state.currentUser || !supabaseClient) return null; if (showLoaderFlag) setLoadingState('create', true); try { console.log("[getLatestDiagnostic] Fetching diagnostic..."); const { data, error } = await supabaseClient.from('user_diagnostics').select('id, completed_at, total_score, total_questions, topic_results, analysis').eq('user_id', state.currentUser.id).order('completed_at', { ascending: false }).limit(1); if (error) throw error; console.log("[getLatestDiagnostic] Fetched:", data); return (data && data.length > 0) ? data[0] : null; } catch (error) { console.error("Error fetching diagnostic:", error); return null; } finally { if (showLoaderFlag) setLoadingState('create', false); } };
+    const getLatestDiagnostic = async (showLoaderFlag = true) => {
+         if (!state.currentUser || !supabaseClient) return null;
+         if (showLoaderFlag) setLoadingState('create', true);
+         try {
+             console.log("[getLatestDiagnostic] Fetching diagnostic...");
+             const { data, error } = await supabaseClient.from('user_diagnostics').select('id, completed_at, total_score, total_questions, topic_results, analysis').eq('user_id', state.currentUser.id).order('completed_at', { ascending: false }).limit(1);
+             if (error) throw error;
+             console.log("[getLatestDiagnostic] Fetched:", data);
+             return (data && data.length > 0) ? data[0] : false; // Use false for not found, null for error
+         } catch (error) {
+             console.error("Error fetching diagnostic:", error);
+             return null; // Return null on error
+         } finally {
+             if (showLoaderFlag) setLoadingState('create', false);
+         }
+     };
+
     const checkPlanCreationAvailability = async () => {
-        if (!supabaseClient || !state.currentUser) return;
+        console.log("[CreateCheck] Function Entered."); // LOG: Function entry
+        if (!supabaseClient || !state.currentUser) {
+             console.error("[CreateCheck] Aborting: Missing Supabase client or current user.");
+             renderMessage(ui.createPlanContent, 'error', 'Chyba', 'Nelze zkontrolovat dostupnost: Chybí uživatelská data.');
+             setLoadingState('create', false);
+             return;
+        }
         console.log("[CreateCheck] Starting check...");
         setLoadingState('create', true);
-        if(ui.createPlanContent) ui.createPlanContent.classList.remove('content-visible');
+        if(ui.createPlanContent) ui.createPlanContent.classList.remove('content-visible'); // Hide first
+
         try {
             console.log("[CreateCheck] Fetching latest diagnostic...");
-            state.latestDiagnosticData = await getLatestDiagnostic(false); // Fetch diagnostic without its own loader
+            state.latestDiagnosticData = await getLatestDiagnostic(false);
             console.log("[CreateCheck] Diagnostic fetched:", state.latestDiagnosticData);
 
-            if (state.latestDiagnosticData === null) {
+            if (state.latestDiagnosticData === null) { // Check for error (null)
                 console.log("[CreateCheck] Rendering error message (diagnostic fetch failed).");
                 renderMessage(ui.createPlanContent, 'error', 'Chyba', 'Nepodařilo se ověřit váš diagnostický test.');
                 return;
-            } else if (!state.latestDiagnosticData) {
+            } else if (state.latestDiagnosticData === false) { // Check for not found (false)
                  console.log("[CreateCheck] Rendering 'No Diagnostic' message.");
                 renderNoDiagnosticAvailable(ui.createPlanContent);
                 return;
@@ -524,6 +504,12 @@
             }
 
             state.planCreateAllowed = canCreate;
+            if (!ui.createPlanContent) { // Check if container exists before rendering
+                 console.error("[CreateCheck] Error: createPlanContent container not found!");
+                 showGlobalError("Chyba zobrazení: Chybí element pro vytvoření plánu.");
+                 return;
+             }
+
             if (canCreate) {
                  console.log("[CreateCheck] Rendering 'Create Form'.");
                 renderPlanCreationForm(ui.createPlanContent);
@@ -533,17 +519,53 @@
             }
         } catch (error) {
             console.error('[CreateCheck] Error checking plan creation availability:', error);
-            renderMessage(ui.createPlanContent, 'error', 'Chyba', 'Nepodařilo se ověřit možnost vytvoření plánu.');
+            if(ui.createPlanContent) renderMessage(ui.createPlanContent, 'error', 'Chyba', 'Nepodařilo se ověřit možnost vytvoření plánu.');
+            else showGlobalError('Nepodařilo se ověřit možnost vytvoření plánu: ' + error.message);
         } finally {
             setLoadingState('create', false);
             console.log("[CreateCheck] Check finished.");
         }
     };
-    const renderNoDiagnosticAvailable = (container) => { if (!container || !ui.noDiagnosticTemplate) return; console.log("[Render] Rendering No Diagnostic Available..."); const node = ui.noDiagnosticTemplate.content.cloneNode(true); const btn = node.getElementById('goToTestBtn'); if(btn) btn.onclick = () => window.location.href = '/dashboard/procvicovani/test1.html'; container.innerHTML = ''; container.appendChild(node); container.classList.add('content-visible'); console.log("[Render] No Diagnostic Available Rendered."); };
-    const renderLockedPlanSection = (container) => { if(!container || !ui.lockedPlanTemplate) return; console.log("[Render] Rendering Locked Plan Section..."); const node = ui.lockedPlanTemplate.content.cloneNode(true); const timerEl = node.getElementById('nextPlanTimer'); const viewBtn = node.getElementById('viewCurrentPlanBtnLocked'); if(timerEl) updateNextPlanTimer(timerEl); if(viewBtn) viewBtn.addEventListener('click', () => switchTab('current')); container.innerHTML = ''; container.appendChild(node); container.classList.add('content-visible'); startPlanTimer(); console.log("[Render] Locked Plan Section Rendered."); };
+    const renderNoDiagnosticAvailable = (container) => {
+         if (!container || !ui.noDiagnosticTemplate) { console.error("[Render] Missing container or NoDiagnostic template."); return; }
+         console.log("[Render] Rendering No Diagnostic Available...");
+         const node = ui.noDiagnosticTemplate.content.cloneNode(true);
+         const btn = node.getElementById('goToTestBtn');
+         if(btn) btn.onclick = () => window.location.href = '/dashboard/procvicovani/test1.html';
+         container.innerHTML = ''; container.appendChild(node);
+         container.classList.add('content-visible');
+         console.log("[Render] No Diagnostic Available Rendered.");
+    };
+    const renderLockedPlanSection = (container) => {
+         if(!container || !ui.lockedPlanTemplate) { console.error("[Render] Missing container or LockedPlan template."); return; }
+         console.log("[Render] Rendering Locked Plan Section...");
+         const node = ui.lockedPlanTemplate.content.cloneNode(true);
+         const timerEl = node.getElementById('nextPlanTimer');
+         const viewBtn = node.getElementById('viewCurrentPlanBtnLocked');
+         if(timerEl) updateNextPlanTimer(timerEl);
+         if(viewBtn) viewBtn.addEventListener('click', () => switchTab('current'));
+         container.innerHTML = ''; container.appendChild(node);
+         container.classList.add('content-visible');
+         startPlanTimer();
+         console.log("[Render] Locked Plan Section Rendered.");
+    };
     const startPlanTimer = () => { if (state.planTimerInterval) clearInterval(state.planTimerInterval); state.planTimerInterval = setInterval(() => { const timerEl = document.getElementById('nextPlanTimer'); if (timerEl && document.body.contains(timerEl)) updateNextPlanTimer(timerEl); else clearInterval(state.planTimerInterval); }, 1000); };
     const updateNextPlanTimer = (el) => { if (!state.nextPlanCreateTime || !el) return; const now = new Date(); const diff = state.nextPlanCreateTime - now; if (diff <= 0) { el.textContent = 'Nyní'; clearInterval(state.planTimerInterval); state.planCreateAllowed = true; if(state.currentTab === 'create') setTimeout(checkPlanCreationAvailability, 500); return; } const d = Math.floor(diff/(1000*60*60*24)), h = Math.floor((diff%(1000*60*60*24))/(1000*60*60)), m = Math.floor((diff%(1000*60*60))/(1000*60)), s = Math.floor((diff%(1000*60))/1000); el.textContent = `${d}d ${h}h ${m}m ${s}s`; };
-    const renderPlanCreationForm = (container) => { if (!container || !ui.createPlanFormTemplate || !state.latestDiagnosticData) return; console.log("[Render] Rendering Plan Creation Form..."); const node = ui.createPlanFormTemplate.content.cloneNode(true); const diagInfo = node.getElementById('diagnosticInfo'); if (diagInfo) { const score = state.latestDiagnosticData.total_score ?? '-'; diagInfo.innerHTML = `<p>Plán bude vycházet z testu ze dne: <strong>${formatDate(state.latestDiagnosticData.completed_at)}</strong> (Skóre: ${score}/50)</p>`; } const genBtn = node.getElementById('generatePlanBtn'); if (genBtn) genBtn.addEventListener('click', handleGenerateClick); container.innerHTML = ''; container.appendChild(node); container.classList.add('content-visible'); console.log("[Render] Plan Creation Form Rendered."); };
+    const renderPlanCreationForm = (container) => {
+         if (!container || !ui.createPlanFormTemplate || !state.latestDiagnosticData) { console.error("[Render] Missing container, CreatePlan template, or diagnostic data."); return;}
+         console.log("[Render] Rendering Plan Creation Form...");
+         const node = ui.createPlanFormTemplate.content.cloneNode(true);
+         const diagInfo = node.getElementById('diagnosticInfo');
+         if (diagInfo) {
+             const score = state.latestDiagnosticData.total_score ?? '-';
+             diagInfo.innerHTML = `<p>Plán bude vycházet z testu ze dne: <strong>${formatDate(state.latestDiagnosticData.completed_at)}</strong> (Skóre: ${score}/50)</p>`;
+         }
+         const genBtn = node.getElementById('generatePlanBtn');
+         if (genBtn) genBtn.addEventListener('click', handleGenerateClick);
+         container.innerHTML = ''; container.appendChild(node);
+         container.classList.add('content-visible');
+         console.log("[Render] Plan Creation Form Rendered.");
+    };
     const handleGenerateClick = function() { this.disabled = true; this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generuji plán...'; generateStudyPlan(); };
 
     // ==============================================
