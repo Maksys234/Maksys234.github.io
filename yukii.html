@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Happy 15th Birthday, Yuki! 🎉</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        /* Custom styles and animations */
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #fce7f3, #fbcfe8, #f9a8d4); /* Pink gradient background */
+            overflow-x: hidden; /* Prevent horizontal scroll */
+            min-height: 100vh;
+            position: relative; /* Needed for absolute positioning of daisies */
+        }
+
+        /* Daisy animation */
+        .daisy {
+            position: absolute;
+            font-size: 1.5rem; /* Size of the daisy icon */
+            color: white;
+            opacity: 0.7;
+            animation: fall linear infinite;
+            user-select: none; /* Prevent selection */
+            pointer-events: none; /* Prevent interaction */
+            text-shadow: 0 0 5px rgba(0,0,0,0.2);
+        }
+
+        @keyframes fall {
+            0% {
+                transform: translateY(-10vh) rotate(0deg);
+                opacity: 0.7;
+            }
+            100% {
+                transform: translateY(110vh) rotate(360deg);
+                opacity: 0.3;
+            }
+        }
+
+        /* Card styling */
+        .card {
+            background-color: rgba(255, 255, 255, 0.85); /* Semi-transparent white */
+            backdrop-filter: blur(10px); /* Frosted glass effect */
+            border-radius: 20px; /* More rounded corners */
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Image styling */
+        .profile-image {
+            border: 5px solid white; /* White border around image */
+            box-shadow: 0 5px 15px rgba(219, 39, 119, 0.3); /* Pinkish shadow */
+        }
+
+        /* Pulsing heart animation */
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+        }
+        .heart-pulse {
+            animation: pulse 1.5s ease-in-out infinite;
+            display: inline-block;
+        }
+
+        /* Fade-in animation for text */
+        .fade-in {
+            animation: fadeIn 1.5s ease-out forwards;
+            opacity: 0;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        /* Staggered fade-in */
+        .fade-in-delay-1 { animation-delay: 0.3s; }
+        .fade-in-delay-2 { animation-delay: 0.6s; }
+        .fade-in-delay-3 { animation-delay: 0.9s; }
+        .fade-in-delay-4 { animation-delay: 1.2s; }
+
+        /* Button styling */
+        .special-button {
+            background: linear-gradient(45deg, #ec4899, #d946ef);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        .special-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Daisy icon styling */
+        .fa-clover { /* Using clover as a stand-in if daisy isn't available, or use SVG */
+           color: #fef08a; /* Yellow center */
+           position: relative;
+        }
+        .fa-clover::before {
+            /* You might need a more complex SVG or multiple elements for a true daisy */
+            /* This is a simplified representation */
+            content: '\f1bb'; /* Example Font Awesome icon */
+            color: white; /* White petals */
+            position: absolute;
+            left: 0;
+            top: 0;
+            z-index: -1;
+            transform: scale(1.5); /* Make petals larger */
+        }
+         /* Simple CSS Daisy */
+        .css-daisy {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            background-color: #fef08a; /* Yellow center */
+            border-radius: 50%;
+            position: relative;
+            margin: 10px;
+        }
+        .css-daisy::before,
+        .css-daisy::after {
+            content: '';
+            position: absolute;
+            background-color: white; /* White petals */
+            border-radius: 50% 0;
+            box-shadow: 0 0 5px rgba(0,0,0,0.1);
+        }
+        .css-daisy::before { /* Petal set 1 */
+            width: 10px;
+            height: 25px;
+            top: -2.5px;
+            left: 5px;
+            transform-origin: 50% 100%;
+        }
+        .css-daisy::after { /* Petal set 2 - rotated */
+             width: 10px;
+            height: 25px;
+            top: -2.5px;
+            left: 5px;
+            transform-origin: 50% 100%;
+            transform: rotate(90deg);
+        }
+        /* Add more pseudo-elements or divs for more petals */
+
+
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-6">
+
+    <div id="daisy-container"></div>
+
+    <div class="card w-full max-w-2xl p-8 md:p-12 text-center relative z-10">
+
+        <h1 class="text-4xl md:text-5xl font-bold text-pink-600 mb-4 fade-in">
+            Happy 15th Birthday, Yuki! <span class="heart-pulse">💖</span>
+        </h1>
+        <h2 class="text-2xl md:text-3xl font-bold text-purple-600 mb-6 fade-in fade-in-delay-1">
+            Všechno nejlepší k 15. narozeninám! <i class="fa-solid fa-cake-candles text-pink-500"></i>
+        </h2>
+        <h3 class="text-xl md:text-2xl font-bold text-rose-500 mb-8 fade-in fade-in-delay-2">
+            С 15-летием, Юки! <span class="css-daisy"></span>
+        </h3>
+
+        <div class="mb-8 flex justify-center fade-in fade-in-delay-3">
+            <img src="photo_5766869897513649832_y.jpg"
+                 alt="[Фото Юки]"
+                 class="profile-image rounded-full w-48 h-48 md:w-56 md:h-56 object-cover"
+                 onerror="this.onerror=null; this.src='https://placehold.co/224x224/fbcfe8/db2777?text=Yuki+:)'"> </div>
+
+        <div class="text-lg text-gray-700 space-y-4 fade-in fade-in-delay-4">
+            <p>
+                Wishing you the most amazing day filled with joy, laughter, and everything you wish for!
+                <span class="css-daisy"></span>
+                Přejeme ti ten nejúžasnější den plný radosti, smíchu a všeho, co si přeješ!
+                <span class="css-daisy"></span>
+                Желаем тебе самого потрясающего дня, полного радости, смеха и всего, чего ты пожелаешь!
+            </p>
+            <p class="font-semibold text-pink-600">
+                May your 15th year be your best one yet! Keep shining bright! ✨
+            </p>
+            <p>
+                Ať je tvůj 15. rok zatím nejlepší! Zářij dál! <i class="fa-regular fa-star text-yellow-400"></i>
+            </p>
+             <p>
+                Пусть твой 15-й год будет самым лучшим! Продолжай ярко сиять! <i class="fa-solid fa-gift text-purple-500"></i>
+            </p>
+        </div>
+
+        <div class="mt-10 fade-in fade-in-delay-4">
+            <button id="surprise-button" class="special-button text-white font-bold py-3 px-6 rounded-full text-lg">
+                Click for a Surprise! <i class="fa-solid fa-wand-magic-sparkles"></i>
+            </button>
+            <p id="surprise-message" class="mt-4 text-purple-700 font-semibold hidden"></p>
+        </div>
+
+    </div>
+
+    <script>
+        // JavaScript for falling daisies and button interaction
+
+        const daisyContainer = document.getElementById('daisy-container');
+        const numberOfDaisies = 30; // Adjust number of daisies
+
+        // Function to create a single daisy
+        function createDaisy() {
+            const daisy = document.createElement('div');
+            daisy.classList.add('daisy');
+            // Use Font Awesome icon for daisies (adjust class if needed)
+            // Using 'fa-fan' as a placeholder visually similar to petals spinning
+            // For a better daisy, consider SVG or a library.
+            daisy.innerHTML = '<i class="fa-solid fa-fan"></i>'; // Or use the CSS daisy: '<span class="css-daisy" style="transform: scale(0.8);"></span>'
+
+            // Random horizontal position and animation duration/delay
+            daisy.style.left = `${Math.random() * 100}vw`;
+            const duration = Math.random() * 5 + 5; // Duration between 5 and 10 seconds
+            const delay = Math.random() * 5; // Delay up to 5 seconds
+            daisy.style.animationDuration = `${duration}s`;
+            daisy.style.animationDelay = `${delay}s`;
+            daisy.style.fontSize = `${Math.random() * 1 + 0.8}rem`; // Random size
+
+            daisyContainer.appendChild(daisy);
+
+            // Remove daisy after animation ends to prevent buildup
+            daisy.addEventListener('animationend', () => {
+                daisy.remove();
+                // Optional: create a new daisy when one finishes to keep the flow constant
+                // createDaisy();
+            });
+        }
+
+        // Create initial daisies
+        for (let i = 0; i < numberOfDaisies; i++) {
+            createDaisy();
+        }
+
+        // --- Surprise Button Logic ---
+        const surpriseButton = document.getElementById('surprise-button');
+        const surpriseMessage = document.getElementById('surprise-message');
+        const messages = [
+            "You're awesome! Jsi úžasná! Ты крутая!",
+            "Sending virtual hugs! Posílám virtuální objetí! Шлю виртуальные обнимашки!",
+            "Hope you get lots of cake! Doufám, že dostaneš hodně dortu! Надеюсь, у тебя будет много торта!",
+            "Keep being amazing! Buď stále úžasná! Оставайся такой же потрясающей!",
+            "Cheers to 15 years! Na zdraví k 15 letům! Ура 15 годам!"
+        ];
+        let messageIndex = 0;
+
+        surpriseButton.addEventListener('click', () => {
+            surpriseMessage.textContent = messages[messageIndex];
+            surpriseMessage.classList.remove('hidden');
+            // Cycle through messages
+            messageIndex = (messageIndex + 1) % messages.length;
+
+            // Optional: Add a little animation to the button click
+            surpriseButton.classList.add('animate-bounce');
+            setTimeout(() => {
+                 surpriseButton.classList.remove('animate-bounce');
+            }, 500); // Duration of bounce animation in Tailwind is usually short
+        });
+
+    </script>
+</body>
+</html>
