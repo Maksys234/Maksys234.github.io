@@ -524,7 +524,7 @@
                  console.log("[Avatars] Populating built-in avatars...");
                  for (let i = 1; i <= 9; i++) {
                      // *** Adjust path if needed based on your folder structure ***
-                     const avatarPath = `assets/avatar${i}.png`; // Assuming PNG extension
+                     const avatarPath = `assets/avatar${i}.jpeg`; // Assuming PNG extension
                      // *** End path adjustment ***
 
                      const item = document.createElement('div');
