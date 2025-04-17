@@ -135,22 +135,18 @@
             if (loader) loader.classList.toggle('visible-loader', isLoadingFlag);
             if (section) section.classList.toggle('loading', isLoadingFlag);
 
-            // Hide content and empty states when loading starts
             if (isLoadingFlag) {
                 if (content) content.classList.remove('content-visible', 'schedule-visible');
                 if (nav) nav.classList.remove('nav-visible');
                 if (emptyState) emptyState.style.display = 'none';
-                 // Hide schedule list when loading current tab specifically
                  if (key === 'current' && ui.verticalScheduleList) ui.verticalScheduleList.classList.remove('schedule-visible');
                  if (key === 'current' && ui.verticalScheduleNav) ui.verticalScheduleNav.classList.remove('nav-visible');
             }
 
-            // Specific handling for detail/generation view buttons
             if (key === 'detail' || key === 'generation') {
                 if (ui.planActions) ui.planActions.style.display = isLoadingFlag ? 'none' : 'flex';
             }
 
-             // Handle notification bell state
              if (key === 'notifications' && ui.notificationBell) {
                  ui.notificationBell.style.opacity = isLoadingFlag ? 0.5 : 1;
                  if (ui.markAllReadBtn) {
@@ -159,18 +155,16 @@
                  }
              }
 
-            // Render skeletons when loading starts
              if (isLoadingFlag) {
                 if (key === 'history' && ui.historyPlanContent) renderHistorySkeletons(3);
                  if (key === 'schedule' && ui.verticalScheduleList) {
-                     ui.verticalScheduleList.classList.add('schedule-visible'); // Show list to contain skeletons
+                     ui.verticalScheduleList.classList.add('schedule-visible');
                      ui.verticalScheduleList.innerHTML = `
                          <div class="skeleton day-card-skeleton"> <div class="skeleton day-header-skeleton"></div> <div class="skeleton activity-item-skeleton"><div class="skeleton activity-checkbox-skeleton"></div><div class="skeleton activity-content-skeleton"><div class="skeleton activity-title-skeleton"></div><div class="skeleton activity-meta-skeleton"></div></div></div> <div class="skeleton activity-item-skeleton"><div class="skeleton activity-checkbox-skeleton"></div><div class="skeleton activity-content-skeleton"><div class="skeleton activity-title-skeleton" style="width: 60%;"></div></div></div> </div>
                          <div class="skeleton day-card-skeleton"> <div class="skeleton day-header-skeleton" style="width: 50%;"></div> <div class="skeleton activity-item-skeleton"><div class="skeleton activity-checkbox-skeleton"></div><div class="skeleton activity-content-skeleton"><div class="skeleton activity-title-skeleton" style="width: 70%;"></div></div></div> </div>`;
                  }
                  if (key === 'notifications' && ui.notificationsList) { renderNotificationSkeletons(2); }
              } else {
-                  // Clear history skeletons if loading finished and no content was rendered
                   if (key === 'history' && ui.historyPlanContent && !ui.historyPlanContent.querySelector('.history-item') && !ui.historyPlanContent.querySelector('.notest-message')) {
                       ui.historyPlanContent.innerHTML = '';
                   }
@@ -339,7 +333,7 @@
     const fetchUserProfile = async (userId) => { if (!userId || !supabaseClient) return null; try { const { data, error } = await supabaseClient.from('profiles').select('*').eq('id', userId).single(); if (error && error.code !== 'PGRST116') throw error; return data; } catch (e) { console.error("Profile fetch error:", e); return null; } };
     const updateUserInfoUI = () => { if (ui.userName && ui.userAvatar) { const name = `${state.currentProfile?.first_name || ''} ${state.currentProfile?.last_name || ''}`.trim() || state.currentProfile?.username || state.currentUser?.email?.split('@')[0] || 'Student'; ui.userName.textContent = name; if (state.currentProfile?.avatar_url) { ui.userAvatar.innerHTML = `<img src="${state.currentProfile.avatar_url}" alt="Avatar">`; } else { ui.userAvatar.textContent = getInitials(state.currentProfile, state.currentUser?.email); } } };
 
-    // ИСПРАВЛЕННОЕ переключение вкладок
+    // ИСПРАВЛЕННОЕ переключение вкладок с явным вызовом функции
     const switchTab = async (tabId) => {
         if (!supabaseClient) { showGlobalError("Aplikace není správně inicializována."); return; }
         console.log(`[NAV] Switching to tab: ${tabId}`);
@@ -363,48 +357,42 @@
 
         try {
              let targetSection = null;
-             let loadFunction = null; // Initialize to null
 
-             // Define section and function based on tabId
-             if (tabId === 'current') {
-                 targetSection = ui.currentPlanSection;
-                 loadFunction = loadCurrentPlan;
-                 console.log(`[NAV] Assigned loadFunction: loadCurrentPlan for tab ${tabId}`);
-             } else if (tabId === 'history') {
-                 targetSection = ui.historyPlanSection;
-                 loadFunction = loadPlanHistory;
-                 console.log(`[NAV] Assigned loadFunction: loadPlanHistory for tab ${tabId}`);
-             } else if (tabId === 'create') {
-                 targetSection = ui.createPlanSection;
-                 loadFunction = checkPlanCreationAvailability; // Assign function here
-                 console.log(`[NAV] Assigned loadFunction: checkPlanCreationAvailability for tab ${tabId}`);
-             }
+             // Determine target section first
+             if (tabId === 'current') { targetSection = ui.currentPlanSection; }
+             else if (tabId === 'history') { targetSection = ui.historyPlanSection; }
+             else if (tabId === 'create') { targetSection = ui.createPlanSection; }
 
-            // Check if both target and function are valid *before* showing section/calling function
-            if (targetSection && loadFunction) {
-                 targetSection.classList.add('visible-section'); // Show section container
-                 console.log(`[NAV] Calling loadFunction for: ${tabId}...`);
-                 await loadFunction(); // Await the function assigned above
+            if (targetSection) {
+                 targetSection.classList.add('visible-section'); // Show the section container immediately
+
+                 // Define and call the specific load function for the tab
+                 if (tabId === 'current') {
+                     console.log(`[NAV] Calling loadCurrentPlan for tab ${tabId}...`);
+                     await loadCurrentPlan();
+                 } else if (tabId === 'history') {
+                      console.log(`[NAV] Calling loadPlanHistory for tab ${tabId}...`);
+                     await loadPlanHistory();
+                 } else if (tabId === 'create') {
+                      console.log(`[NAV] Calling checkPlanCreationAvailability for tab ${tabId}...`);
+                     await checkPlanCreationAvailability(); // Direct call
+                 }
                  console.log(`[NAV] Tab ${tabId} load function finished.`);
-             } else if (targetSection) {
-                 // If only section is found but no load function (shouldn't happen with current tabs)
-                 console.warn(`[NAV] No specific load function defined for tab ${tabId}, only showing the section.`);
-                 targetSection.classList.add('visible-section');
              } else {
-                  console.warn(`[NAV] No section or action defined for tab: ${tabId}`);
+                  console.warn(`[NAV] No section defined for tab: ${tabId}`);
              }
         } catch (error) {
             console.error(`[NAV] Error loading tab ${tabId}:`, error);
             const errorTargetSection = document.getElementById(`${tabId}PlanSection`);
             const errorContentContainer = document.getElementById(`${tabId}PlanContent`) || errorTargetSection?.querySelector('.section-content');
-            if(errorTargetSection) errorTargetSection.classList.add('visible-section'); // Make section visible to show error
+            if(errorTargetSection) errorTargetSection.classList.add('visible-section');
             if (errorContentContainer) {
                 renderMessage(errorContentContainer, 'error', 'Chyba načítání', `Obsah záložky "${tabId}" nelze načíst.`);
             } else {
                 showGlobalError(`Nepodařilo se načíst záložku "${tabId}": ${error.message}`);
             }
-            setLoadingState(tabId, false); // Reset loading state for the specific tab
-            if (tabId === 'current') setLoadingState('schedule', false); // Also reset schedule if relevant
+            setLoadingState(tabId, false);
+            if (tabId === 'current') setLoadingState('schedule', false);
         }
     };
 
@@ -416,7 +404,7 @@
      function renderNotifications(count, notifications) { console.log("[Render Notifications] Start, Count:", count, "Notifications:", notifications); if (!ui.notificationCount || !ui.notificationsList || !ui.noNotificationsMsg || !ui.markAllReadBtn) { console.error("[Render Notifications] Missing UI elements."); return; } ui.notificationCount.textContent = count > 9 ? '9+' : (count > 0 ? String(count) : ''); ui.notificationCount.classList.toggle('visible', count > 0); if (notifications && notifications.length > 0) { ui.notificationsList.innerHTML = notifications.map(n => { const visual = activityVisuals[n.type?.toLowerCase()] || activityVisuals.default; const iconClass = visual.icon || 'fa-info-circle'; const typeClass = visual.class || 'default'; const isReadClass = n.is_read ? 'is-read' : ''; const linkAttr = n.link ? `data-link="${sanitizeHTML(n.link)}"` : ''; return `<div class="notification-item ${isReadClass}" data-id="${n.id}" ${linkAttr}>${!n.is_read ? '<span class="unread-dot"></span>' : ''}<div class="notification-icon ${typeClass}"><i class="fas ${iconClass}"></i></div><div class="notification-content"><div class="notification-title">${sanitizeHTML(n.title)}</div><div class="notification-message">${sanitizeHTML(n.message)}</div><div class="notification-time">${formatRelativeTime(n.created_at)}</div></div></div>`; }).join(''); ui.noNotificationsMsg.style.display = 'none'; ui.notificationsList.style.display = 'block'; ui.markAllReadBtn.disabled = count === 0; } else { ui.notificationsList.innerHTML = ''; ui.noNotificationsMsg.style.display = 'block'; ui.notificationsList.style.display = 'none'; ui.markAllReadBtn.disabled = true; } ui.notificationsList.closest('.notifications-dropdown-wrapper')?.classList.toggle('has-content', notifications && notifications.length > 0); console.log("[Render Notifications] Finished"); }
      function renderNotificationSkeletons(count = 2) { if (!ui.notificationsList || !ui.noNotificationsMsg) return; let skeletonHTML = ''; for (let i = 0; i < count; i++) { skeletonHTML += `<div class="notification-item skeleton"><div class="notification-icon skeleton" style="background-color: var(--skeleton-bg);"></div><div class="notification-content"><div class="skeleton" style="height: 16px; width: 70%; margin-bottom: 6px;"></div><div class="skeleton" style="height: 12px; width: 90%;"></div><div class="skeleton" style="height: 10px; width: 40%; margin-top: 6px;"></div></div></div>`; } ui.notificationsList.innerHTML = skeletonHTML; ui.noNotificationsMsg.style.display = 'none'; ui.notificationsList.style.display = 'block'; }
      async function markNotificationRead(notificationId) { console.log("[Notifications] Marking notification as read:", notificationId); if (!state.currentUser || !notificationId) return false; try { const { error } = await supabaseClient.from('user_notifications').update({ is_read: true }).eq('user_id', state.currentUser.id).eq('id', notificationId); if (error) throw error; console.log("[Notifications] Mark as read successful for ID:", notificationId); return true; } catch (error) { console.error("[Notifications] Mark as read error:", error); showToast('Chyba', 'Nepodařilo se označit oznámení jako přečtené.', 'error'); return false; } }
-     async function markAllNotificationsRead() { console.log("[Notifications] Marking all as read for user:", state.currentUser?.id); if (!state.currentUser || !ui.markAllReadBtn) return; setLoadingState('notifications', true); try { const { error } = await supabaseClient.from('user_notifications').update({ is_read: true }).eq('user_id', state.currentUser.id).eq('is_read', false); if (error) throw error; console.log("[Notifications] Mark all as read successful"); const { unreadCount, notifications } = await fetchNotifications(state.currentUser.id, 5); renderNotifications(unreadCount, notifications); showToast('SIGNÁLY VYMAZÁNY', 'Všechna oznámení byla označena jako přečtená.', 'success'); } catch (error) { console.error("[Notifications] Mark all as read error:", error); showToast('CHYBA PŘENOSU', 'Nepodařilo se označit všechna oznámení.', 'error'); } finally { setLoadingState('notifications', false); } }
+     async function markAllNotificationsRead() { console.log("[Notifications] Marking all as read for user:", state.currentUser?.id); if (!state.currentUser || !ui.markAllReadBtn) return; setLoadingState('notifications', true); try { const { error } = await supabaseClient.from('user_notifications').update({ is_read: true }).eq('user_id', state.currentUser.id).eq('is_read', false); if (error) throw error; console.log("[Notifications] Mark all as read successful"); const { unreadCount, notifications } = await fetchNotifications(state.currentUser.id, 5); renderNotifications(unreadCount, notifications); showToast('SIGNÁLY VYMAZÁNY', 'Všechna oznámení byla označena jako přečtená.', 'success'); } catch (error) { console.error("[Notifications] Mark all as read error:", error); showToast('CHYBA PŘЕНOSU', 'Nepodařilo se označit všechna oznámení.', 'error'); } finally { setLoadingState('notifications', false); } }
 
     // ==============================================
     //          Актуальный План (Vertical Layout)
@@ -504,7 +492,7 @@
             }
 
             state.planCreateAllowed = canCreate;
-            if (!ui.createPlanContent) { // Check if container exists before rendering
+            if (!ui.createPlanContent) {
                  console.error("[CreateCheck] Error: createPlanContent container not found!");
                  showGlobalError("Chyba zobrazení: Chybí element pro vytvoření plánu.");
                  return;
@@ -526,6 +514,7 @@
             console.log("[CreateCheck] Check finished.");
         }
     };
+
     const renderNoDiagnosticAvailable = (container) => {
          if (!container || !ui.noDiagnosticTemplate) { console.error("[Render] Missing container or NoDiagnostic template."); return; }
          console.log("[Render] Rendering No Diagnostic Available...");
@@ -536,6 +525,7 @@
          container.classList.add('content-visible');
          console.log("[Render] No Diagnostic Available Rendered.");
     };
+
     const renderLockedPlanSection = (container) => {
          if(!container || !ui.lockedPlanTemplate) { console.error("[Render] Missing container or LockedPlan template."); return; }
          console.log("[Render] Rendering Locked Plan Section...");
@@ -549,8 +539,10 @@
          startPlanTimer();
          console.log("[Render] Locked Plan Section Rendered.");
     };
+
     const startPlanTimer = () => { if (state.planTimerInterval) clearInterval(state.planTimerInterval); state.planTimerInterval = setInterval(() => { const timerEl = document.getElementById('nextPlanTimer'); if (timerEl && document.body.contains(timerEl)) updateNextPlanTimer(timerEl); else clearInterval(state.planTimerInterval); }, 1000); };
     const updateNextPlanTimer = (el) => { if (!state.nextPlanCreateTime || !el) return; const now = new Date(); const diff = state.nextPlanCreateTime - now; if (diff <= 0) { el.textContent = 'Nyní'; clearInterval(state.planTimerInterval); state.planCreateAllowed = true; if(state.currentTab === 'create') setTimeout(checkPlanCreationAvailability, 500); return; } const d = Math.floor(diff/(1000*60*60*24)), h = Math.floor((diff%(1000*60*60*24))/(1000*60*60)), m = Math.floor((diff%(1000*60*60))/(1000*60)), s = Math.floor((diff%(1000*60))/1000); el.textContent = `${d}d ${h}h ${m}m ${s}s`; };
+
     const renderPlanCreationForm = (container) => {
          if (!container || !ui.createPlanFormTemplate || !state.latestDiagnosticData) { console.error("[Render] Missing container, CreatePlan template, or diagnostic data."); return;}
          console.log("[Render] Rendering Plan Creation Form...");
@@ -560,18 +552,38 @@
              const score = state.latestDiagnosticData.total_score ?? '-';
              diagInfo.innerHTML = `<p>Plán bude vycházet z testu ze dne: <strong>${formatDate(state.latestDiagnosticData.completed_at)}</strong> (Skóre: ${score}/50)</p>`;
          }
-         const genBtn = node.getElementById('generatePlanBtn');
-         if (genBtn) genBtn.addEventListener('click', handleGenerateClick);
-         container.innerHTML = ''; container.appendChild(node);
-         container.classList.add('content-visible');
-         console.log("[Render] Plan Creation Form Rendered.");
+         const genBtnTemplate = node.getElementById('generatePlanBtn'); // Находим кнопку в клоне шаблона
+         if (genBtnTemplate) {
+              console.log("[Render] Button #generatePlanBtn found in template clone.");
+              genBtnTemplate.addEventListener('click', handleGenerateClick);
+         } else {
+              console.error("[Render] Button #generatePlanBtn NOT FOUND in template clone!"); // Ошибка, если кнопки нет в шаблоне
+         }
+
+         container.innerHTML = ''; // Очищаем контейнер
+         container.appendChild(node); // Вставляем клонированное содержимое
+
+         // <<< ДОПОЛНИТЕЛЬНАЯ ПРОВЕРКА >>>
+         // Проверяем, появилась ли кнопка в реальном DOM контейнера ПОСЛЕ вставки
+         const buttonInDOM = container.querySelector('#generatePlanBtn');
+         if (buttonInDOM) {
+             console.log("✅ [Render] Button #generatePlanBtn VERIFIED in container's DOM after append.");
+         } else {
+             console.error("❌ [Render] Button #generatePlanBtn NOT FOUND in container's DOM after append! Check appendChild or template content.");
+             // Если кнопка не найдена здесь, проблема либо в appendChild, либо в том, что сам `node` пуст
+         }
+         // <<< КОНЕЦ ПРОВЕРКИ >>>
+
+         container.classList.add('content-visible'); // Делаем контейнер видимым
+         console.log("[Render] Plan Creation Form Rendered function finished."); // Лог завершения функции
     };
+
     const handleGenerateClick = function() { this.disabled = true; this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generuji plán...'; generateStudyPlan(); };
 
     // ==============================================
     //          Генерация и Сохранение Плана
     // ==============================================
-    const generateStudyPlan = async () => { if (!state.latestDiagnosticData || !state.currentUser) { showToast('Chybí data pro generování.', 'error'); return; } if (!GEMINI_API_KEY || GEMINI_API_KEY.startsWith('YOUR_')) { showToast('Chyba: Nastavte platný Gemini API klíč v kódu.', 'error'); return; } ui.currentPlanSection.classList.remove('visible-section'); ui.historyPlanSection.classList.remove('visible-section'); ui.createPlanSection.classList.remove('visible-section'); ui.planSection.classList.add('visible-section'); setLoadingState('generation', true); if(ui.planContent) ui.planContent.classList.remove('content-visible'); if(ui.planActions) ui.planActions.innerHTML = ''; state.lastGeneratedMarkdown = null; state.lastGeneratedActivitiesJson = null; if (ui.genericBackBtn) ui.genericBackBtn.onclick = () => switchTab('create'); try { const topicsData = Object.entries(state.latestDiagnosticData.topic_results || {}).map(([topicKey, data]) => ({ name: data.name || state.topicMap[topicKey] || `Téma ${topicKey}`, questions: data.total || 0, correct: data.correct || 0, percentage: data.score || 0 })).sort((a, b) => a.percentage - b.percentage); const fullMarkdownResponse = await generatePlanContentWithGemini(state.latestDiagnosticData, topicsData); const jsonRegex = /```json\s*([\s\S]*?)\s*```/; const jsonMatch = fullMarkdownResponse.match(jsonRegex); let activitiesArray = null; let planMarkdownForStorage = fullMarkdownResponse; if (jsonMatch && jsonMatch[1]) { try { activitiesArray = JSON.parse(jsonMatch[1].replace(/\u00A0/g, ' ').trim()); planMarkdownForStorage = fullMarkdownResponse.replace(jsonRegex, '').trim(); state.lastGeneratedActivitiesJson = activitiesArray; } catch (e) { console.error("Error parsing JSON activities:", e); showToast("Warning: Nepodařilo se zpracovat aktivity z plánu.", "warning"); state.lastGeneratedActivitiesJson = null; } } else { console.warn("JSON block of activities not found."); state.lastGeneratedActivitiesJson = null; } state.lastGeneratedMarkdown = planMarkdownForStorage; if(ui.planSectionTitle) ui.planSectionTitle.textContent = 'Návrh studijního plánu'; displayPlanContent(state.lastGeneratedMarkdown); if(ui.planActions) { ui.planActions.innerHTML = `<button class="btn btn-primary" id="saveGeneratedPlanBtn"><i class="fas fa-save"></i> Uložit tento plán</button><button class="btn btn-success btn-tooltip" id="exportGeneratedPlanBtn" title="Stáhnout návrh jako PDF"><i class="fas fa-file-pdf"></i> Export PDF</button><button class="btn btn-secondary" id="regeneratePlanBtn"><i class="fas fa-sync-alt"></i> Vygenerovat znovu</button>`; const saveBtn = ui.planActions.querySelector('#saveGeneratedPlanBtn'); const exportBtn = ui.planActions.querySelector('#exportGeneratedPlanBtn'); const regenBtn = ui.planActions.querySelector('#regeneratePlanBtn'); if(saveBtn) saveBtn.addEventListener('click', () => saveGeneratedPlan(state.lastGeneratedMarkdown, state.lastGeneratedActivitiesJson, topicsData)); if(exportBtn) exportBtn.addEventListener('click', () => exportPlanToPDFWithStyle({ created_at: new Date(), plan_content_markdown: state.lastGeneratedMarkdown, title: "Nový návrh plánu" })); if(regenBtn) regenBtn.addEventListener('click', handleGenerateClick); ui.planActions.style.display = 'flex'; } ui.planSection.scrollIntoView({ behavior: 'smooth' }); initTooltips(); } catch (error) { console.error('Plan generation error:', error); renderMessage(ui.planContent, 'error', 'Chyba generování', error.message); if(ui.planActions) { ui.planActions.innerHTML = `<button class="btn btn-secondary" id="regeneratePlanBtn"><i class="fas fa-sync-alt"></i> Vygenerovat znovu</button>`; const regenBtn = ui.planActions.querySelector('#regeneratePlanBtn'); if(regenBtn) regenBtn.addEventListener('click', handleGenerateClick); ui.planActions.style.display = 'flex'; } } finally { setLoadingState('generation', false); } };
+    const generateStudyPlan = async () => { if (!state.latestDiagnosticData || !state.currentUser) { showToast('Chybí data pro generování.', 'error'); return; } if (!GEMINI_API_KEY || !GEMINI_API_KEY.startsWith('AIzaSy')) { showToast('Chyba: Nastavte platný Gemini API klíč v kódu.', 'error'); return; } ui.currentPlanSection.classList.remove('visible-section'); ui.historyPlanSection.classList.remove('visible-section'); ui.createPlanSection.classList.remove('visible-section'); ui.planSection.classList.add('visible-section'); setLoadingState('generation', true); if(ui.planContent) ui.planContent.classList.remove('content-visible'); if(ui.planActions) ui.planActions.innerHTML = ''; state.lastGeneratedMarkdown = null; state.lastGeneratedActivitiesJson = null; if (ui.genericBackBtn) ui.genericBackBtn.onclick = () => switchTab('create'); try { const topicsData = Object.entries(state.latestDiagnosticData.topic_results || {}).map(([topicKey, data]) => ({ name: data.name || state.topicMap[topicKey] || `Téma ${topicKey}`, questions: data.total || 0, correct: data.correct || 0, percentage: data.score || 0 })).sort((a, b) => a.percentage - b.percentage); const fullMarkdownResponse = await generatePlanContentWithGemini(state.latestDiagnosticData, topicsData); const jsonRegex = /```json\s*([\s\S]*?)\s*```/; const jsonMatch = fullMarkdownResponse.match(jsonRegex); let activitiesArray = null; let planMarkdownForStorage = fullMarkdownResponse; if (jsonMatch && jsonMatch[1]) { try { activitiesArray = JSON.parse(jsonMatch[1].replace(/\u00A0/g, ' ').trim()); planMarkdownForStorage = fullMarkdownResponse.replace(jsonRegex, '').trim(); state.lastGeneratedActivitiesJson = activitiesArray; } catch (e) { console.error("Error parsing JSON activities:", e); showToast("Warning: Nepodařilo se zpracovat aktivity z plánu.", "warning"); state.lastGeneratedActivitiesJson = null; } } else { console.warn("JSON block of activities not found."); state.lastGeneratedActivitiesJson = null; } state.lastGeneratedMarkdown = planMarkdownForStorage; if(ui.planSectionTitle) ui.planSectionTitle.textContent = 'Návrh studijního plánu'; displayPlanContent(state.lastGeneratedMarkdown); if(ui.planActions) { ui.planActions.innerHTML = `<button class="btn btn-primary" id="saveGeneratedPlanBtn"><i class="fas fa-save"></i> Uložit tento plán</button><button class="btn btn-success btn-tooltip" id="exportGeneratedPlanBtn" title="Stáhnout návrh jako PDF"><i class="fas fa-file-pdf"></i> Export PDF</button><button class="btn btn-secondary" id="regeneratePlanBtn"><i class="fas fa-sync-alt"></i> Vygenerovat znovu</button>`; const saveBtn = ui.planActions.querySelector('#saveGeneratedPlanBtn'); const exportBtn = ui.planActions.querySelector('#exportGeneratedPlanBtn'); const regenBtn = ui.planActions.querySelector('#regeneratePlanBtn'); if(saveBtn) saveBtn.addEventListener('click', () => saveGeneratedPlan(state.lastGeneratedMarkdown, state.lastGeneratedActivitiesJson, topicsData)); if(exportBtn) exportBtn.addEventListener('click', () => exportPlanToPDFWithStyle({ created_at: new Date(), plan_content_markdown: state.lastGeneratedMarkdown, title: "Nový návrh plánu" })); if(regenBtn) regenBtn.addEventListener('click', handleGenerateClick); ui.planActions.style.display = 'flex'; } ui.planSection.scrollIntoView({ behavior: 'smooth' }); initTooltips(); } catch (error) { console.error('Plan generation error:', error); renderMessage(ui.planContent, 'error', 'Chyba generování', error.message); if(ui.planActions) { ui.planActions.innerHTML = `<button class="btn btn-secondary" id="regeneratePlanBtn"><i class="fas fa-sync-alt"></i> Vygenerovat znovu</button>`; const regenBtn = ui.planActions.querySelector('#regeneratePlanBtn'); if(regenBtn) regenBtn.addEventListener('click', handleGenerateClick); ui.planActions.style.display = 'flex'; } } finally { setLoadingState('generation', false); } };
     const generatePlanContentWithGemini = async (testData, topicsData) => { const totalScore = testData.total_score || 0; const totalQuestions = testData.total_questions || 1; const analysis = testData.analysis || {}; const overallAssessment = analysis.summary?.overall_assessment || 'N/A'; const strengths = analysis.strengths?.map(s => `${s.topic} (${s.score}%)`).join(', ') || 'Nebyly identifikovány'; const weaknesses = analysis.weaknesses?.map(w => `${w.topic} (${w.score}%)`).join(', ') || 'Nebyly identifikovány'; const recommendations = analysis.recommendations?.join('\n- ') || 'Žádná specifická.'; const prompt = ` Jsi expertní AI tutor specializující se na přípravu na PŘIJÍMACÍ ZKOUŠKY z matematiky pro 9. třídu ZŠ v Česku. Tvým úkolem je vytvořit NÁROČNÝ, DETAILNÍ a KONZISTENTNÍ týdenní studijní plán v ČEŠTINĚ ve formátu Markdown, zaměřený na dosažení co nejlepšího výsledku u zkoušek. Na konci MUSÍŠ vygenerovat JSON pole aktivit pro tento plán, které PŘESNĚ ODRÁŽÍ obsah Markdown plánu pro daný den. # Kontext: Student právě dokončil diagnostický test. # Výsledky diagnostického testu: - Celkové skóre: ${totalScore}/50 bodů - Počet otázek: ${totalQuestions} - Výsledky podle témat (Název tématu: Plně správně/Celkem otázek (Úspěšnost %)): ${topicsData.map(topic => `  - ${topic.name}: ${topic.correct}/${topic.questions} (${topic.percentage}%)`).join('\n')} # Analýza výsledků testu (Shrnutí od AI): - Celkové hodnocení: ${overallAssessment} - Identifikované silné stránky: ${strengths} - Identifikované slabé stránky: ${weaknesses} - Doporučení na základě testu: - ${recommendations} # Oficiální Témata Zkoušky (CERMAT - detailně): 1.  **Čísla a aritmetické operace:** Přirozená čísla (do milionu), nula. Sčítání, odčítání, násobení, dělení (vlastnosti, algoritmy). Zlomky (porovnávání, sčítání/odčítání se stejným jm.). Desetinná čísla, číselná osa. 2.  **Algebra:** Mocniny, odmocniny (základní operace). Lineární rovnice (jedna neznámá, úpravy). Soustavy 2 lineárních rovnic (dosazovací, sčítací metoda). Mnohočleny (sčítání, odčítání, násobení, vytýkání, vzorce (a±b)², a²-b²). Výrazy s proměnnými (dosazování, úpravy). 3.  **Geometrie:** Základní rovinné útvary (čtverec, obdélník, trojúhelník - typy, vlastnosti, věty; kruh/kružnice - části, vlastnosti). Kreslení, náčrty. Kolmost, rovnoběžnost. Obvod, obsah rovinných útvarů. Povrch a objem těles (krychle, kvádr, válec; základy kužele, koule). Pythagorova věta. Základní konstrukční úlohy. 4.  **Práce s daty:** Tabulky, diagramy (čtení, interpretace, jednoduchá tvorba). Aritmetický průměr, modus, medián. Grafy závislostí (čtení, interpretace). 5.  **Problémové úlohy:** Slovní úlohy (převod na matematický model, řešení). Úlohy na poměr, přímá a nepřímá úměrnost, měřítko mapy. Úlohy na pohyb, společnou práci (základní typy). Aplikace matematiky. Strategie řešení. 6.  **Proporce a procenta:** Procento, promile. Procentová část, základ, počet procent. Jednoduché úrokování. Trojčlenka. Poměr (základní úpravy, rozdělení). 7.  **Logické úlohy:** Logické vztahy, jednoduché výroky, číselné řady, vzory, závislosti. # TVŮJ ÚKOL (Vytvoř NÁROČNÝ, DETAILNÍ a KONZISTENTNÍ plán): 1.  Vytvoř DETAILNÍ týdenní studijní plán (Pondělí - Neděle) ve formátu Markdown. Musí být strukturovaný, srozumitelný a zaměřený na VÝRAZNÉ zlepšení. Dbej na přirozené formátování textu, vyhni se slovům nalepeným na sebe bez mezer. 2.  Plán musí pokrývat klíčové oblasti z OFICIÁLNÍCH TÉMAT, klást ZVÝŠENÝ DŮRAZ na slabé stránky (${weaknesses}), ale ZAHRNOVAT i OPAKOVÁNÍ silnějších stránek. 3.  Navrhni RŮZNORODÉ a KONKRÉTNÍ aktivity: * Řešení KONKRÉTNÍCH TYPŮ příkladů s uvedením POČTU. * Procvičování SLOVNÍCH ÚLOH zaměřených na dané téma. * Používej formulace jako 'Opakování [téma/vzorce]' místo 'Opakuj [téma]'. Např.: 'Opakování vzorců pro mnohočleny'. * Analýzu VYSVĚTLENÝCH příkladů (např. "Projdi řešené příklady na ..."). * Doporučení k ANALÝZE minulých chyb. * Zařazení NÁROČNĚJŠÍCH úloh u silnějších témat. 4.  Buď co nejvíce SPECIFICKÝ v popisu úkolů v Markdown i JSON. Místo 'Procvičuj geometrii' uveď 'Výpočet obvodů a obsahů složených rovinných útvarů (3 úlohy)'. 5.  Rozděl denní studium (cca 75-100 minut) do 2-3 INTENZIVNÍCH bloků. Uveď odhadovaný čas. 6.  **DŮLEŽITÉ:** V poli 'description' v JSON bloku **NEUVÁDĚJ KONKRÉTNÍ ROVNICE NEBO ČÍSELNÉ ZADÁNÍ PŘÍKLADŮ**. Místo toho SLOVNĚ popiš TYP úkolů, počet a zaměření (např. 'Řešení 5 lineárních rovnic se zlomky', 'Výpočet procentové části ze základu ve 4 slovních úlohách'). 7.  **NAPROSTÁ KONZISTENCE JE KLÍČOVÁ:** JSON \`title\` a \`description\` musí být PŘÍMÝM a VĚRNÝM shrnutím aktivity popsané v odpovídajícím bloku v Markdown textu pro ten samý den a časový úsek. Žádné informace nesmí být v JSON přidány ani vynechány oproti Markdown popisu daného bloku. 8.  NA KONEC celého Markdown textu PŘIDEJ validní JSON blok (\`\`\`json ... \`\`\`) obsahující pole objektů pro VŠECHNY aktivity. Klíče: "day_of_week" (číslo 0-6, Neděle=0), "title" (string, název bloku), "description" (string, SLOVNÍ popis TYPU úkolů, KONZISTENTNÍ s Markdown), "time_slot" (string, čas). # Požadovaný formát výstupu (Markdown + JSON na konci): **Analýza diagnostiky:** * Zaměření na: ${weaknesses} * Udržování: ${strengths} **Hlavní cíle pro tento týden:** * [Použij odrážky] Výrazně zlepšit [Nejslabší téma]. * [Použij odrážky] Upevnit znalosti v [Druhé nejslabší téma]. * [Použij odrážky] Zopakovat a procvičit [Silnější téma]. --- ### Pondělí * **Fokus dne:** [Např. Složitější lineární rovnice a aplikace procent] * **Blok 1 (cca 45 min): Algebra - Rovnice:** Řešení 10 složitějších lineárních rovnic se zlomky a závorkami. Důraz na správné úpravy a zkoušku. * **Blok 2 (cca 40 min): Procenta - Slovní úlohy:** Řešení 5 slovních úloh na výpočet základu a procentové změny (zdražení/sleva). * *Tip dne:* U rovnic si piš mezikroky a ověřuj si je. ### Úterý * **Fokus dne:** [Např. Geometrie - Tělesa a opakování mnohočlenů] * **Blok 1 (cca 50 min): Geometrie - Objem a povrch válce:** Opakování vzorců. Výpočet objemu a povrchu válce ve 4 úlohách (včetně slovních). * **Blok 2 (cca 30 min): Opakování - Mnohočleny:** Opakování vzorců (a±b)², a²-b². Rozklad 10 mnohočlenů na součin pomocí vytýkání a vzorců. * *Tip dne:* Kresli si náčrty těles, pomůže ti to s představivostí. * ... (atd. pro všechny dny) ... --- **Obecné tipy pro maximální efektivitu:** * ... \`\`\`json [   { "day_of_week": 1, "title": "Algebra: Složitější rovnice", "description": "Řešení 10 složitějších lineárních rovnic se zlomky a závorkami. Důraz na správné úpravy a zkoušku.", "time_slot": "45 min" },   { "day_of_week": 1, "title": "Procenta: Slovní úlohy (základ, změna)", "description": "Řešení 5 slovních úloh na výpočet základu a procentové změny (zdražení/sleva).", "time_slot": "40 min" },   { "day_of_week": 2, "title": "Geometrie: Objem a povrch válce", "description": "Opakování vzorců. Výpočet objemu a povrchu válce ve 4 úlohách (včetně slovních).", "time_slot": "50 min" },   { "day_of_week": 2, "title": "Opakování: Rozklad mnohočlenů", "description": "Opakování vzorců (a±b)², a²-b². Rozklad 10 mnohočlenů na součin pomocí vytýkání a vzorců.", "time_slot": "30 min" }   // ... (další aktivity pro všechny dny, KONZISTENTNÍ S MARKDOWNEM) ... ] \`\`\` `; try { const response = await fetch(GEMINI_API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { temperature: 0.6, topK: 40, topP: 0.95, maxOutputTokens: 8192 }, safetySettings: [{ category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" }, { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" }, { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" }, { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" }] }) }); const data = await response.json(); if (!response.ok) throw new Error(data.error?.message || `Chyba Gemini API (${response.status})`); const geminiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text; if (!geminiResponse) throw new Error('Prázdná odpověď od Gemini API'); return geminiResponse; } catch (error) { console.error('Chyba při generování obsahu plánu:', error); throw error; } };
     const saveGeneratedPlan = async (markdownContent, activitiesArray, topicsData) => { if (!state.currentUser || !state.latestDiagnosticData || !markdownContent || !supabaseClient) { showToast('Chyba: Chybí data pro uložení.', 'error'); return; } const saveButton = document.getElementById('saveGeneratedPlanBtn'); if (saveButton) { saveButton.disabled = true; saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ukládám...'; } const priorityTopics = {}; topicsData.forEach((topic, index) => { priorityTopics[topic.name] = { priority: index + 1, performance: topic.percentage, focus_level: topic.percentage < 50 ? 'high' : topic.percentage < 75 ? 'medium' : 'low' }; }); let savedPlanId = null; try { const { error: deactivateError } = await supabaseClient.from('study_plans').update({ status: 'inactive', updated_at: new Date().toISOString() }).eq('user_id', state.currentUser.id).eq('status', 'active'); if (deactivateError) throw deactivateError; const today = new Date(); const completionDate = new Date(today); completionDate.setDate(completionDate.getDate() + 7); const newPlanData = { user_id: state.currentUser.id, title: `Studijní plán (${formatDate(today)})`, subject: "Matematika", status: "active", diagnostic_id: state.latestDiagnosticData.id, plan_content_markdown: markdownContent, priority_topics: priorityTopics, estimated_completion_date: completionDate.toISOString().split('T')[0], progress: 0, is_auto_adjusted: true }; const { data: savedPlan, error: insertPlanError } = await supabaseClient.from('study_plans').insert(newPlanData).select('id').single(); if (insertPlanError) throw insertPlanError; savedPlanId = savedPlan.id; console.log("Nový plán uložen, ID:", savedPlanId); if (activitiesArray && Array.isArray(activitiesArray) && activitiesArray.length > 0) { const activitiesToInsert = activitiesArray.map(act => { if (typeof act !== 'object' || act === null) return null; const dayOfWeek = typeof act.day_of_week === 'number' ? act.day_of_week : parseInt(act.day_of_week, 10); if (isNaN(dayOfWeek) || dayOfWeek < 0 || dayOfWeek > 6) return null; return { plan_id: savedPlanId, day_of_week: dayOfWeek, time_slot: act.time_slot || null, title: act.title || 'Nespecifikováno', description: act.description || null, completed: false }; }).filter(item => item !== null); if (activitiesToInsert.length > 0) { const { error: insertActivitiesError } = await supabaseClient.from('plan_activities').insert(activitiesToInsert); if (insertActivitiesError) { console.error("Chyba vkládání aktivit:", insertActivitiesError); showToast('Plán uložen, ale aktivity pro harmonogram selhaly.', 'warning'); } else { console.log("Aktivity úspěšně vloženy."); showToast('Studijní plán a aktivity uloženy!', 'success'); } } else { showToast('Plán uložen, ale nebyly nalezeny platné aktivity.', 'warning'); } } else { showToast('Studijní plán uložen (bez detailních aktivit).', 'info'); } state.currentStudyPlan = { ...newPlanData, id: savedPlanId }; switchTab('current'); } catch (error) { console.error("Chyba při ukládání plánu:", error); showToast(`Nepodařilo se uložit plán: ${error.message}`, 'error'); if (saveButton) { saveButton.disabled = false; saveButton.innerHTML = '<i class="fas fa-save"></i> Uložit tento plán'; } } };
     const displayPlanContent = (markdownContent) => { if (!ui.planContent) return; try { marked.setOptions({ gfm: true, breaks: true, sanitize: false }); const htmlContent = marked.parse(markdownContent || ''); ui.planContent.innerHTML = htmlContent; ui.planContent.classList.add('content-visible'); if (window.MathJax && typeof window.MathJax.typesetPromise === 'function') { setTimeout(() => { window.MathJax.typesetPromise([ui.planContent]).catch(e => console.error("MathJax error:", e)); }, 0); } else { console.warn("MathJax is not ready for rendering."); } } catch (e) { console.error("Markdown rendering error:", e); renderMessage(ui.planContent, 'error', 'Chyba zobrazení plánu', e.message); } };
