@@ -149,7 +149,7 @@ body { scrollbar-width: thin; scrollbar-color: rgba(var(--accent-primary-rgb), 0
 .btn:hover:not(:disabled) { color: var(--text-fixed-dark); border-color: var(--accent-secondary); box-shadow: 0 0 20px var(--accent-secondary-glow), inset 0 0 10px rgba(var(--accent-secondary-rgb), 0.15); transform: translateY(-3px); }
 .btn:hover:not(:disabled)::before { left: 0; background: var(--gradient-button-hover); }
 .btn:active:not(:disabled) { transform: translateY(0px) scale(0.97); box-shadow: 0 0 8px var(--accent-secondary-glow), inset 0 0 12px rgba(0,0,0,0.3); transition-duration: 0.08s; }
-.btn:disabled { opacity: 0.5; cursor: not-allowed; background-color: transparent !important; border-color: var(--text-muted) !important; color: var(--text-muted) !important; box-shadow: none !important; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; background-color: transparent !important; border-color: var(--text-muted) !important; color: var(--text-muted) !important; box-shadow: none !important; transform: none !important; }
 .btn:disabled::before { display: none; }
 .btn i.fa-spinner { animation: spin 1s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
@@ -198,7 +198,7 @@ body { scrollbar-width: thin; scrollbar-color: rgba(var(--accent-primary-rgb), 0
 .sidebar-footer { margin-top: 1.5rem; padding: 1rem; font-size: 0.8rem; color: var(--text-muted); text-align: center; flex-shrink: 0; opacity: 0.7; }
 /* Main Content Area */
 main { flex: 1; margin-left: var(--sidebar-width); padding: 0 var(--container-padding-x); transition: margin-left var(--transition-medium) ease; width: calc(100% - var(--sidebar-width)); overflow-y: auto; height: 100vh; display: none; }
-main.loaded { display: block; animation: fadeInMain 0.5s ease forwards; }
+main.loaded { display: block; animation: fadeInMain 0.5s ease-out forwards; }
 @keyframes fadeInMain { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 .dashboard-header { margin-bottom: var(--section-padding-y); background-color: rgba(var(--bg-secondary-rgb), 0.7); backdrop-filter: blur(12px); border-radius: 0 0 var(--card-radius) var(--card-radius); padding: 1rem var(--container-padding-x); box-shadow: var(--shadow-hud); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; position: sticky; top: 0; z-index: 900; border-bottom: 1px solid var(--border-color-light); transition: background-color 0.3s ease, box-shadow 0.3s ease; }
 body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb), 0.85); box-shadow: 0 6px 20px rgba(0,0,0,0.3); }
@@ -271,7 +271,7 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
 .section-content::-webkit-scrollbar-track { background: rgba(var(--accent-secondary-rgb), 0.08); border-radius: 4px;}
 .section-content::-webkit-scrollbar-thumb { background-color: rgba(var(--accent-primary-rgb), 0.5); border-radius: 4px; }
 /* Class added by JS to show content */
-.section-content.content-visible { display: block !important; }
+.section-content.content-visible { display: block !important; animation: fadeIn 0.6s ease-out forwards; }
 
 /* Plan Content (Markdown display area inside #planSection) */
 .plan-content { line-height: 1.75; display: none; /* Hide by default */ }
@@ -307,7 +307,7 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
 .plan-content mjx-math { color: var(--accent-cyan); } /* Slightly different color for emphasis */
 
 /* Vertical Schedule List Styles */
-.vertical-schedule-list { display: none; /* Hide by default */ flex-direction: column; gap: 0; margin: 0; padding: 0; min-height: 150px; background-color: transparent; border-radius: 0 0 var(--card-radius) var(--card-radius); overflow: hidden; /* Clipped content */ }
+.vertical-schedule-list { display: none; /* Hide by default */ flex-direction: column; gap: 0; margin: 0; padding: 0; min-height: 150px; background-color: transparent; border-radius: 0 0 var(--card-radius) var(--card-radius); overflow: hidden; }
 /* Class added by JS to show schedule */
 .vertical-schedule-list.schedule-visible { display: flex !important; animation: fadeIn 0.6s ease-out forwards; }
 
@@ -343,21 +343,21 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
 .day-schedule-card.expanded .day-expand-icon { transform: rotate(180deg); }
 
 /* Navigation below schedule */
-.step-navigation { display: none; /* Hide by default */ justify-content: flex-end; margin-top: auto; /* Pushes to bottom of flex container */ padding: 1.5rem 2.5rem; border-top: 1px solid var(--border-color-light); background-color: rgba(var(--card-solid-rgb), 0.5); margin-left: -2.5rem; margin-right: -2.5rem; margin-bottom: 0; border-radius: 0 0 var(--card-radius) var(--card-radius); flex-shrink: 0; }
+.step-navigation { display: none; /* Hide by default */ justify-content: flex-end; margin-top: auto; padding: 1.5rem 2.5rem; border-top: 1px solid var(--border-color-light); background-color: rgba(var(--card-solid-rgb), 0.5); margin-left: -2.5rem; margin-right: -2.5rem; margin-bottom: 0; border-radius: 0 0 var(--card-radius) var(--card-radius); flex-shrink: 0; }
 /* Class added by JS to show nav */
 .step-navigation.nav-visible { display: flex !important; animation: fadeIn 0.5s ease-out forwards; }
 
-/* Plan History */
+/* Plan History (Improved Styles) */
 .plan-history { margin-top: 0; padding: 1.5rem 2rem; display: none; gap: 1.5rem; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); flex-grow: 1; overflow-y: auto; }
 .plan-history.content-visible { display: grid !important; }
 .history-item { background-color: var(--card-solid); border-radius: var(--card-radius); padding: 1.5rem; box-shadow: var(--shadow-hud); display: flex; flex-direction: column; transition: all 0.2s ease; cursor: pointer; border: 1px solid var(--border-color-medium); border-left: 5px solid var(--text-muted); }
-.history-item:hover { transform: translateY(-4px); box-shadow: var(--shadow-card); border-left-color: var(--accent-primary); }
+.history-item:hover { transform: translateY(-4px); box-shadow: var(--shadow-card); border-left-color: var(--accent-primary); background-color: rgba(var(--card-solid-rgb), 0.95); }
 .history-item.active { border-left-color: var(--accent-primary); } .history-item.completed { border-left-color: var(--accent-lime); } .history-item.inactive { border-left-color: var(--text-muted); opacity: 0.8; }
 .history-item-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.8rem; }
-.history-info { flex-grow: 1; }
+.history-info { flex-grow: 1; padding-right: 0.5rem; /* Space before status */}
 .history-date { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.3rem; }
-.history-title { font-weight: 600; color: var(--text-light); font-size: 1.1rem; margin-bottom: 0.5rem; line-height: 1.3; }
-.history-status { padding: 0.3rem 0.9rem; border-radius: 20px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; flex-shrink: 0; }
+.history-title { font-weight: 600; color: var(--text-light); font-size: 1.1rem; margin-bottom: 0.5rem; line-height: 1.3; word-break: break-word; /* Prevent overflow */ }
+.history-status { padding: 0.3rem 0.9rem; border-radius: 20px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; flex-shrink: 0; text-align: center; } /* Centered text */
 .history-status.active { background-color: rgba(var(--accent-primary-rgb), 0.1); color: var(--accent-primary); }
 .history-status.completed { background-color: rgba(var(--accent-lime-rgb), 0.1); color: var(--accent-lime); }
 .history-status.inactive { background-color: rgba(var(--text-muted-rgb), 0.1); color: var(--text-muted); }
@@ -392,12 +392,14 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
 .plan-actions { display: none; /* Hidden by default, shown by JS */ gap: 0.75rem; flex-shrink: 0; align-self: flex-start;}
 
 /* Loading & Skeleton */
-.loader-container { display: none; /* Changed from flex to none */ flex-direction: column; justify-content: center; align-items: center; min-height: 200px; text-align: center; color: var(--text-muted); font-size: 1.1rem; padding: 2rem; flex-grow: 1; /* Allows it to take space */ position: absolute; inset: 0; background: rgba(var(--bg-color), 0.6); backdrop-filter: blur(3px); z-index: 10; }
+.loader-container { display: none; flex-direction: column; justify-content: center; align-items: center; min-height: 200px; text-align: center; color: var(--text-muted); font-size: 1.1rem; padding: 2rem; flex-grow: 1; /* Allows it to take space */ position: absolute; inset: 0; background: rgba(var(--bg-color), 0.6); backdrop-filter: blur(3px); z-index: 10; border-radius: 0 0 var(--card-radius) var(--card-radius); /* Apply to relevant sections */ }
+#currentPlanSection .loader-container, #historyPlanSection .loader-container, #createPlanSection .loader-container, #planSection .loader-container { border-radius: 0 0 var(--card-radius) var(--card-radius); } /* Specific for these sections */
 .loader-container.visible-loader { display: flex !important; }
 .loading-spinner { width: 40px; height: 40px; border: 5px solid rgba(var(--accent-primary-rgb), 0.2); border-radius: 50%; border-top-color: var(--accent-primary); animation: spin 1s linear infinite; margin-bottom: 1rem; }
 /* Specific loading styles for plan generation */
 .loader-container.generating-animation .loading-spinner { border-top-color: var(--accent-secondary); animation-duration: 0.8s; }
-.loader-container.generating-animation p::after { content: '...'; animation: loading-dots 1.5s infinite steps(3, end); display: inline-block; vertical-align: bottom; overflow: hidden; }
+.loader-container p { line-height: 1.4; } /* Ensure text wraps nicely */
+.loader-container.generating-animation p::after { content: '...'; animation: loading-dots 1.5s infinite steps(3, end); display: inline-block; vertical-align: bottom; overflow: hidden; width: 3ch; /* Ensure space */ }
 @keyframes loading-dots { 0%, 20% { width: 0; } 40% { width: 1ch; } 60% { width: 2ch; } 80%, 100% { width: 3ch; } }
 
 .skeleton { background-color: var(--skeleton-bg); border-radius: 4px; position: relative; overflow: hidden; }
@@ -454,4 +456,17 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
 @media (max-width: 576px) { :root { --sidebar-width: 0; } main { margin-left: 0; width: 100%; padding: 0.75rem; } body.scrolled .dashboard-header { margin: 0 -0.75rem 1.5rem -0.75rem; padding: 0.75rem 1rem; } .sidebar { transform: translateX(-100%); z-index: 1100; width: 260px; } .sidebar.active { transform: translateX(0); } .sidebar.active .sidebar-logo span, .sidebar.active .sidebar-link span, .sidebar.active .user-info, .sidebar.active .sidebar-footer { display: block; } .sidebar.active .sidebar-link i { margin-right: 0.75rem; font-size: 1.2rem; } .sidebar.active .sidebar-header, .sidebar.active .sidebar-link { justify-content: flex-start; } .sidebar.active .user-profile { padding: 1rem; } .sidebar.active .user-avatar { margin-right: 0.75rem; } .sidebar.active #sidebar-close-toggle { display: block; } .header-title h1 { font-size: 1.3rem; } .toast-container { max-width: calc(100% - 1.5rem); } .btn { padding: 0.7rem 1.2rem; font-size: 0.9rem;} }
 /* Reduced Motion */
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; animation-delay: -0.01ms !important; transition-delay: 0ms !important; will-change: auto !important; } .sidebar { transition: transform 0.01ms !important; } .loading-spinner { animation: none !important; border: 4px solid var(--accent-primary) !important; } .section.visible-section { animation: none !important; } .plan-content.content-visible, .plan-content.generated-reveal, .vertical-schedule-list.schedule-visible, .step-navigation.nav-visible { animation: none !important; } .toast.show { transform: translateX(0) !important; } main.loaded { animation: none !important; } .skeleton::after { animation: none !important; background: var(--skeleton-highlight) !important; } }
+/* Tooltipster Cyberpunk Theme */
+.tooltipster-shadow {
+    border-radius: 8px;
+    background: var(--interface-bg);
+    color: var(--text-light);
+    box-shadow: var(--shadow-card);
+    border: 1px solid var(--border-color-medium);
+}
+.tooltipster-shadow .tooltipster-content {
+    padding: 8px 14px;
+    font-size: 0.88rem;
+    font-family: var(--font-primary);
+}
 /* --- END: Cyberpunk CSS Theme --- */
