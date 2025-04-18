@@ -82,12 +82,13 @@ export const formatRelativeTime = (timestamp) => {
  */
 export const autoResizeTextarea = (textareaElement) => {
     if (!textareaElement) return;
-    const maxHeight = 110;
-    textareaElement.style.height = 'auto';
+    const maxHeight = 110; // Define max height (adjust as needed)
+    textareaElement.style.height = 'auto'; // Reset height to recalculate scrollHeight
     const scrollHeight = textareaElement.scrollHeight;
     textareaElement.style.height = `${Math.min(scrollHeight, maxHeight)}px`;
     textareaElement.style.overflowY = scrollHeight > maxHeight ? 'scroll' : 'hidden';
 };
+
 
 /**
  * Генерирует уникальный идентификатор сессии.
@@ -100,14 +101,27 @@ export const generateSessionId = () => `session_${Date.now()}_${Math.random().to
  */
 export const initTooltips = () => {
     try {
+        // Destroy existing tooltips first to avoid duplicates
         if (window.jQuery && typeof window.jQuery.fn.tooltipster === 'function') {
-            window.jQuery('.tooltipstered').tooltipster('destroy');
+            // Check if elements still exist before destroying
+             window.jQuery('.tooltipstered').each(function() {
+                if (document.body.contains(this)) {
+                    try {
+                       window.jQuery(this).tooltipster('destroy');
+                    } catch(e) {
+                        console.warn("Could not destroy tooltipster instance for element:", this, e);
+                    }
+                }
+            });
+            // Initialize new tooltips
             window.jQuery('.btn-tooltip').tooltipster({
-                theme: 'tooltipster-shadow',
+                theme: 'tooltipster-shadow', // Assuming theme.css defines this
                 animation: 'fade',
-                delay: 100,
+                delay: 150, // Slightly longer delay
+                distance: 6,
                 side: 'top'
             });
+            console.log("[Tooltips] Initialized.");
         } else {
              console.warn("jQuery or Tooltipster not loaded, tooltips disabled.");
         }
@@ -125,6 +139,8 @@ export const updateOnlineStatus = () => {
     }
     if (!navigator.onLine) {
          console.warn("Application is offline.");
+         // Optionally show a toast message (import showToast if needed)
+         // showToast('Offline', 'Spojení bylo ztraceno.', 'warning');
     }
 };
 
@@ -142,7 +158,7 @@ export const updateCopyrightYear = () => {
  */
 export const initMouseFollower = () => {
     const follower = ui.mouseFollower;
-    if (!follower || window.innerWidth <= 576) return;
+    if (!follower || window.innerWidth <= 576) return; // Не показывать на мобильных
 
     let hasMoved = false;
     const updatePosition = (event) => {
@@ -159,6 +175,7 @@ export const initMouseFollower = () => {
     window.addEventListener('mousemove', updatePosition, { passive: true });
     document.body.addEventListener('mouseleave', () => { if (hasMoved) follower.style.opacity = '0'; });
     document.body.addEventListener('mouseenter', () => { if (hasMoved) follower.style.opacity = '1'; });
+    // Скрыть при касании
     window.addEventListener('touchstart', () => { if(follower) follower.style.display = 'none'; }, { passive: true, once: true });
 };
 
@@ -179,7 +196,7 @@ export const initScrollAnimations = () => {
                 observerInstance.unobserve(entry.target);
             }
         });
-    }, { threshold: 0.1, rootMargin: "0px 0px -30px 0px" });
+    }, { threshold: 0.1, rootMargin: "0px 0px -30px 0px" }); // Trigger slightly earlier
 
     animatedElements.forEach(element => observer.observe(element));
     console.log(`Scroll animations initialized for ${animatedElements.length} elements.`);
@@ -190,20 +207,24 @@ export const initScrollAnimations = () => {
  */
 export const initHeaderScrollDetection = () => {
     let lastScrollY = 0;
-    const mainEl = ui.mainContent;
+    const mainEl = ui.mainContent; // Scroll within main content area
     if (!mainEl) return;
 
     const handleScroll = () => {
          const currentScrollY = mainEl.scrollTop;
+         // Add 'scrolled' class if scrolled more than 10px
          document.body.classList.toggle('scrolled', currentScrollY > 10);
-         lastScrollY = currentScrollY <= 0 ? 0 : currentScrollY;
+         lastScrollY = currentScrollY <= 0 ? 0 : currentScrollY; // For Mobile or negative scrolling
     };
 
     mainEl.addEventListener('scroll', handleScroll, { passive: true });
-    if (mainEl.scrollTop > 10) { document.body.classList.add('scrolled'); }
+    // Initial check in case the page loads scrolled
+    if (mainEl.scrollTop > 10) {
+        document.body.classList.add('scrolled');
+    }
 };
 
-// --- PŘIDANÉ FUNKCE PRO MENU ---
+// --- ADDED EXPORTS for openMenu and closeMenu ---
 /**
  * Otevře postranní menu (sidebar).
  */
@@ -227,6 +248,6 @@ export function closeMenu() {
          console.warn("closeMenu: Sidebar or overlay element not found.");
     }
 }
-// --- KONEC PŘIDANÝCH FUNKCÍ ---
+// --- END OF ADDED EXPORTS ---
 
 console.log("Utils module loaded.");
