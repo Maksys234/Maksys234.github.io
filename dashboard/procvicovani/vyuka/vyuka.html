@@ -144,7 +144,7 @@
         </div>
 
         <div class="main-content-wrapper" style="padding-top: 0;">
-             <div class="call-interface" style="display: none;">
+             <div class="call-interface" style="display: flex;">
                  <div class="ai-presenter-area">
                     <div class="ai-presenter-header">
                         <div style="display: flex; align-items: center; gap: 0.8rem;">
@@ -164,7 +164,10 @@
                     </div>
                     <div id="whiteboard-container">
                         <div id="whiteboard-content">
-                            <div class="loading-placeholder" style="display: none; text-align: center; padding: 2rem; color: var(--text-muted);"><i class="fas fa-spinner fa-spin"></i><p>Načítám obsah tabule...</p></div>
+                            <div class="empty-state initial-load-placeholder" style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 200px; color: var(--text-muted);">
+                                <i class="fas fa-spinner fa-spin" style="font-size: 2rem; margin-bottom: 1rem;"></i>
+                                <p>Načítání první lekce...</p>
+                            </div>
                         </div>
                         <div id="board-speaking-indicator" style="display: none;">
                             <span class="dot"></span><span class="dot"></span><span class="dot"></span>
@@ -182,28 +185,27 @@
                             <div class="chat-header"><i class="fas fa-comments"></i> Chat s AI Tutorem</div>
                             <section class="chat-area">
                                 <div class="chat-messages" id="chat-messages">
-                                    <div class="empty-state">
-                                        <i class="fas fa-chalkboard-teacher"></i>
-                                        <h3>Vítejte!</h3>
-                                        <p>AI Tutor bude vysvětlovat zde v chatu a na tabuli vedle. Kliknutím na <i class="fas fa-volume-up"></i> si můžete nechat text přečíst.</p>
+                                    <div class="empty-state initial-load-placeholder" style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 200px; color: var(--text-muted);">
+                                        <i class="fas fa-spinner fa-spin" style="font-size: 2rem; margin-bottom: 1rem;"></i>
+                                        <p>Inicializace rozhraní...</p>
                                     </div>
                                 </div>
                                 <div class="chat-input-area">
                                     <div class="chat-input-wrapper">
-                                        <textarea class="chat-input" id="chat-input" placeholder="Zeptejte se na cokoliv..." rows="1"></textarea>
-                                        <button class="send-button" id="send-button" title="Odeslat zprávu">
+                                        <textarea class="chat-input" id="chat-input" placeholder="Načítání..." rows="1" disabled></textarea>
+                                        <button class="send-button" id="send-button" title="Odeslat zprávu" disabled>
                                             <i class="fas fa-paper-plane"></i>
                                         </button>
                                     </div>
                                 </div>
                                 <div class="chat-controls">
-                                    <button id="mic-btn" class="btn-icon btn-tooltip" title="Zahájit hlasový vstup">
+                                    <button id="mic-btn" class="btn-icon btn-tooltip" title="Hlasový vstup" disabled>
                                         <i class="fas fa-microphone"></i>
                                     </button>
-                                    <button id="clear-chat-btn" class="btn-icon btn-tooltip" title="Vymazat historii tohoto chatu">
+                                    <button id="clear-chat-btn" class="btn-icon btn-tooltip" title="Vymazat historii tohoto chatu" disabled>
                                         <i class="fas fa-trash-alt"></i>
                                     </button>
-                                    <button id="save-chat-btn" class="btn-icon btn-tooltip" title="Uložit chat jako PDF">
+                                    <button id="save-chat-btn" class="btn-icon btn-tooltip" title="Uložit chat jako PDF" disabled>
                                         <i class="fas fa-save"></i>
                                     </button>
                                 </div>
@@ -227,7 +229,5 @@
 
     <div id="mouse-follower" class="mouse-follower-glow"></div>
 
-    <script type="module" src="vyukaApp.js" defer></script>
-
-</body>
+    <script type="module" src="vyukaApp.js" defer></script> </body>
 </html>
