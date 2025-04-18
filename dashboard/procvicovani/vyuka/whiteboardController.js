@@ -3,7 +3,8 @@
 import { ui } from './ui.js';
 import { state } from './state.js';
 import { speakText } from './speechService.js'; // Для кнопки TTS на доске
-import { initTooltips } from './ui.js'; // Или из отдельного utils модуля
+// ODSTRANĚN CHYBNÝ IMPORT: import { initTooltips } from './ui.js';
+// Funkce initTooltips je definována v utils.js a volána z vyukaApp.js
 
 // Загрузка Marked.js (предполагаем, что он загружен глобально через <script>)
 // Если используете npm: import { marked } from 'marked';
@@ -66,16 +67,16 @@ export function clearWhiteboard(showToastMsg = true) {
     ui.whiteboardContent.innerHTML = '';
     state.boardContentHistory = []; // Очищаем историю
     console.log("Whiteboard cleared.");
-    // Закомментируем вызов showToast, чтобы избежать зависимости от UI модуля здесь
+    // Vyvolání toastu by mělo být v uiHelpers nebo vyukaApp
     // if (showToastMsg) {
-    //     showToast('Vymazáno', "Tabule vymazána.", "info");
+    //     showToast('Vymazáno', "Tabule vymazána.", "info"); // Toto by mělo být voláno z vyukaApp
     // }
 }
 
 /**
  * Добавляет новый блок контента на доску.
  * @param {string} markdownContent - Контент в формате Markdown для отображения.
- * @param {string} commentaryText - Текст для озвучивания (TTS). Если null, используется markdownContent.
+ * @param {string|null} commentaryText - Текст для озвучивания (TTS). Если null, используется markdownContent.
  */
 export function appendToWhiteboard(markdownContent, commentaryText) {
     if (!ui.whiteboardContent || !ui.whiteboardContainer) {
@@ -87,58 +88,50 @@ export function appendToWhiteboard(markdownContent, commentaryText) {
     chunkDiv.className = 'whiteboard-chunk';
 
     const contentDiv = document.createElement('div');
-    // 1. Рендерим Markdown ПЕРЕД добавлением в DOM
+    contentDiv.className = "chunk-content-wrapper"; // Přidán wrapper pro lepší layout s tlačítkem
+
+    // 1. Renderujeme Markdown PŘED přidáním do DOM
     renderMarkdown(contentDiv, markdownContent);
 
-    // 2. Создаем кнопку TTS, если TTS поддерживается
-    let ttsButtonHTML = '';
+    chunkDiv.appendChild(contentDiv); // Přidáme obsahový div
+
+    // 2. Vytvoříme tlačítko TTS, pokud je podporováno
     if (state.speechSynthesisSupported) {
-        const textForSpeech = commentaryText || markdownContent; // Используем комментарий или сам markdown
-         // Используем dataset для хранения текста, экранируем его для HTML атрибута
-         const escapedText = textForSpeech.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-        ttsButtonHTML = `
-            <button class="tts-listen-btn btn-tooltip"
-                    title="Poslechnout komentář"
-                    aria-label="Poslechnout komentář"
-                    data-text-to-speak="${escapedText}">
-                <i class="fas fa-volume-up"></i>
-            </button>
-        `;
-    }
+        const textForSpeech = commentaryText || markdownContent; // Použijeme komentář nebo samotný markdown
+        const escapedText = textForSpeech.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 
-    // 3. Собираем HTML для чанка
-     // Добавляем кнопку TTS справа от контента
-     chunkDiv.innerHTML = `
-        <div class="chunk-content-wrapper">
-            ${contentDiv.innerHTML}
-        </div>
-        ${ttsButtonHTML}
-     `;
+        const ttsButton = document.createElement('button');
+        ttsButton.className = 'tts-listen-btn btn-tooltip'; // Přidána třída btn-tooltip
+        ttsButton.title = "Poslechnout komentář"; // Tooltip text
+        ttsButton.setAttribute('aria-label', 'Poslechnout komentář');
+        ttsButton.dataset.textToSpeak = escapedText;
+        ttsButton.innerHTML = '<i class="fas fa-volume-up"></i>';
 
-
-    // 4. Добавляем обработчик для кнопки TTS (если она есть) делегированием
-    const ttsButton = chunkDiv.querySelector('.tts-listen-btn');
-    if (ttsButton) {
+        // 3. Přidáme posluchač události na tlačítko
         ttsButton.addEventListener('click', (e) => {
             e.stopPropagation();
             const textToSpeak = e.currentTarget.dataset.textToSpeak;
             if (textToSpeak) {
-                speakText(textToSpeak, chunkDiv); // Вызываем speakText из speechService
+                speakText(textToSpeak, chunkDiv); // Voláme speakText z speechService
             } else {
                 console.warn("No text found for TTS button on whiteboard.");
             }
         });
+        // Přidáme tlačítko do chunkDiv, ale vedle contentDiv
+        chunkDiv.appendChild(ttsButton);
     }
 
-    // 5. Добавляем элемент в DOM и прокручиваем
+    // 5. Přidáme element do DOM a proscrollujeme
     ui.whiteboardContent.appendChild(chunkDiv);
-    state.boardContentHistory.push(markdownContent); // Сохраняем в историю
-    // Прокрутка к последнему элементу
+    state.boardContentHistory.push(markdownContent); // Uložíme do historie
+
+    // Proscrollujeme k poslednímu elementu
     chunkDiv.scrollIntoView({ behavior: 'smooth', block: 'end' });
 
     console.log("Appended content to whiteboard.");
-    // Инициализируем тултипы для новой кнопки
-     // initTooltips(); // Вызывать из основного модуля после обновления DOM
+
+    // Inicializace tooltipů se nyní volá z vyukaApp.js po této funkci
+    // initTooltips(); // NEVOLAT ZDE
 }
 
 console.log("Whiteboard controller module loaded.");
