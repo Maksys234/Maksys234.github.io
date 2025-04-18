@@ -1,12 +1,11 @@
 // whiteboardController.js - Управление содержимым "доски" (whiteboard)
 
-import { ui } from './ui.js';
-import { state } from './state.js';
-import { speakText } from './speechService.js'; // Для кнопки TTS на доске
-// ODSTRANĚN CHYBNÝ IMPORT Z ./ui.js - Funkce initTooltips je v utils.js
+import { ui } from './ui.js'; // Import DOM elementů je v pořádku
+import { state } from './state.js'; // Import stavu je v pořádku
+import { speakText } from './speechService.js'; // Import pro TTS je v pořádku
 
-// Загрузка Marked.js (предполагаем, что он загружен глобально через <script>)
-// Если используете npm: import { marked } from 'marked';
+// !!! UJISTĚTE SE, ŽE ZDE NENÍ ŽÁDNÝ import { initTooltips } from './ui.js'; !!!
+// Funkce initTooltips je v utils.js a volá se z vyukaApp.js
 
 /**
  * Рендерит Markdown в указанный HTML-элемент с поддержкой MathJax.
@@ -14,45 +13,38 @@ import { speakText } from './speechService.js'; // Для кнопки TTS на 
  * @param {string} markdownText - Текст в формате Markdown.
  */
 export function renderMarkdown(element, markdownText) {
-     if (!element) {
-         console.error("renderMarkdown: Target element not provided.");
-         return;
-     }
-     if (typeof marked === 'undefined') {
-         console.error("renderMarkdown: Marked library is not loaded.");
-         element.textContent = 'Chyba: Knihovna Marked není načtena.';
-         return;
-     }
+    if (!element) {
+        console.error("renderMarkdown: Target element not provided.");
+        return;
+    }
+    if (typeof marked === 'undefined') {
+        console.error("renderMarkdown: Marked library is not loaded.");
+        element.textContent = 'Chyba: Knihovna Marked není načtena.';
+        return;
+    }
 
-     try {
-         marked.setOptions({
-             gfm: true,    // Включить GitHub Flavored Markdown
-             breaks: true, // Преобразовывать переводы строк в <br>
-             // sanitize: false // Важно: НЕ ИСПОЛЬЗОВАТЬ в проде без внешнего DOMPurify! Оставим false, т.к. контент от доверенного AI.
-         });
+    try {
+        marked.setOptions({
+            gfm: true,
+            breaks: true,
+        });
+        const rawHtml = marked.parse(markdownText || '');
+        element.innerHTML = rawHtml;
 
-         // 1. Преобразуем Markdown в HTML
-         const rawHtml = marked.parse(markdownText || '');
-         // 2. Устанавливаем HTML в элемент
-         element.innerHTML = rawHtml;
+        if (window.MathJax && typeof window.MathJax.typesetPromise === 'function') {
+            setTimeout(() => {
+                window.MathJax.typesetPromise([element])
+                    .catch(err => console.error("MathJax typesetting error:", err));
+            }, 0);
+        } else if (!window.MathJax) {
+             console.warn("renderMarkdown: MathJax is not available for typesetting.");
+        }
 
-         // 3. Запускаем рендеринг MathJax *после* обновления DOM
-         if (window.MathJax && typeof window.MathJax.typesetPromise === 'function') {
-             // Использовать setTimeout 0 для ожидания рендера браузера
-             setTimeout(() => {
-                 window.MathJax.typesetPromise([element])
-                     .catch(err => console.error("MathJax typesetting error:", err));
-             }, 0);
-         } else if (!window.MathJax) {
-              console.warn("renderMarkdown: MathJax is not available for typesetting.");
-         }
-
-     } catch (error) {
-         console.error("Markdown rendering error:", error);
-         element.innerHTML = `<p style="color:var(--accent-pink);">Chyba při renderování Markdown.</p>`;
-     }
- }
-
+    } catch (error) {
+        console.error("Markdown rendering error:", error);
+        element.innerHTML = `<p style="color:var(--accent-pink);">Chyba při renderování Markdown.</p>`;
+    }
+}
 
 /**
  * Очищает содержимое доски и историю.
@@ -60,16 +52,13 @@ export function renderMarkdown(element, markdownText) {
  */
 export function clearWhiteboard(showToastMsg = true) {
     if (!ui.whiteboardContent) {
-         console.warn("clearWhiteboard: Whiteboard content element not found.");
-         return;
+        console.warn("clearWhiteboard: Whiteboard content element not found.");
+        return;
     }
     ui.whiteboardContent.innerHTML = '';
-    state.boardContentHistory = []; // Очищаем историю
+    state.boardContentHistory = [];
     console.log("Whiteboard cleared.");
-    // Vyvolání toastu by mělo být v uiHelpers nebo vyukaApp
-    // if (showToastMsg) {
-    //     showToast('Vymazáno', "Tabule vymazána.", "info"); // Toto by mělo být voláno z vyukaApp
-    // }
+    // Toast se volá z vyukaApp
 }
 
 /**
@@ -87,49 +76,37 @@ export function appendToWhiteboard(markdownContent, commentaryText) {
     chunkDiv.className = 'whiteboard-chunk';
 
     const contentDiv = document.createElement('div');
-    contentDiv.className = "chunk-content-wrapper"; // Přidán wrapper pro lepší layout s tlačítkem
+    contentDiv.className = "chunk-content-wrapper";
 
-    // 1. Renderujeme Markdown PŘED přidáním do DOM
     renderMarkdown(contentDiv, markdownContent);
+    chunkDiv.appendChild(contentDiv);
 
-    chunkDiv.appendChild(contentDiv); // Přidáme obsahový div
-
-    // 2. Vytvoříme tlačítko TTS, pokud je podporováno
     if (state.speechSynthesisSupported) {
-        const textForSpeech = commentaryText || markdownContent; // Použijeme komentář nebo samotný markdown
+        const textForSpeech = commentaryText || markdownContent;
         const escapedText = textForSpeech.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-
         const ttsButton = document.createElement('button');
-        ttsButton.className = 'tts-listen-btn btn-tooltip'; // Přidána třída btn-tooltip
-        ttsButton.title = "Poslechnout komentář"; // Tooltip text
+        ttsButton.className = 'tts-listen-btn btn-tooltip';
+        ttsButton.title = "Poslechnout komentář";
         ttsButton.setAttribute('aria-label', 'Poslechnout komentář');
         ttsButton.dataset.textToSpeak = escapedText;
         ttsButton.innerHTML = '<i class="fas fa-volume-up"></i>';
-
-        // 3. Přidáme posluchač události na tlačítko
         ttsButton.addEventListener('click', (e) => {
             e.stopPropagation();
             const textToSpeak = e.currentTarget.dataset.textToSpeak;
             if (textToSpeak) {
-                speakText(textToSpeak, chunkDiv); // Voláme speakText z speechService
+                speakText(textToSpeak, chunkDiv);
             } else {
                 console.warn("No text found for TTS button on whiteboard.");
             }
         });
-        // Přidáme tlačítko do chunkDiv, ale vedle contentDiv
         chunkDiv.appendChild(ttsButton);
     }
 
-    // 5. Přidáme element do DOM a proscrollujeme
     ui.whiteboardContent.appendChild(chunkDiv);
-    state.boardContentHistory.push(markdownContent); // Uložíme do historie
-
-    // Proscrollujeme k poslednímu elementu
+    state.boardContentHistory.push(markdownContent);
     chunkDiv.scrollIntoView({ behavior: 'smooth', block: 'end' });
-
     console.log("Appended content to whiteboard.");
-
-    // Inicializace tooltipů se nyní volá z vyukaApp.js po této funkci
+    // Tooltipy se inicializují ve vyukaApp.js
 }
 
-console.log("Whiteboard controller module loaded.");
+console.log("Whiteboard controller module loaded (Version without initTooltips import)."); // Přidána poznámka pro ověření
