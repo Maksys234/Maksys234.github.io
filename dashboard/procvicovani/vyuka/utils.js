@@ -228,7 +228,7 @@ export const initHeaderScrollDetection = () => {
 /**
  * Otevře postranní menu (sidebar).
  */
-export function openMenu() {
+export function openMenu() { // <--- EXPORTED
     if (ui.sidebar && ui.sidebarOverlay) {
         ui.sidebar.classList.add('active');
         ui.sidebarOverlay.classList.add('active');
@@ -240,7 +240,7 @@ export function openMenu() {
 /**
  * Zavře postranní menu (sidebar).
  */
-export function closeMenu() {
+export function closeMenu() { // <--- EXPORTED
     if (ui.sidebar && ui.sidebarOverlay) {
         ui.sidebar.classList.remove('active');
         ui.sidebarOverlay.classList.remove('active');
