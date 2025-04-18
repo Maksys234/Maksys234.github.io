@@ -3,8 +3,7 @@
 import { ui } from './ui.js';
 import { state } from './state.js';
 import { speakText } from './speechService.js'; // Для кнопки TTS на доске
-// ODSTRANĚN CHYBNÝ IMPORT: import { initTooltips } from './ui.js';
-// Funkce initTooltips je definována v utils.js a volána z vyukaApp.js
+// ODSTRANĚN CHYBNÝ IMPORT Z ./ui.js - Funkce initTooltips je v utils.js
 
 // Загрузка Marked.js (предполагаем, что он загружен глобально через <script>)
 // Если используете npm: import { marked } from 'marked';
@@ -131,7 +130,6 @@ export function appendToWhiteboard(markdownContent, commentaryText) {
     console.log("Appended content to whiteboard.");
 
     // Inicializace tooltipů se nyní volá z vyukaApp.js po této funkci
-    // initTooltips(); // NEVOLAT ZDE
 }
 
 console.log("Whiteboard controller module loaded.");
