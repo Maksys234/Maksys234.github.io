@@ -1,0 +1,76 @@
+/* --- START: vyuka-layout.css --- */
+.main-content-wrapper {
+    /* Override padding if needed for this specific layout */
+    padding: 0; /* Remove padding if .call-interface handles it */
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-height: 0; /* Crucial for flexbox layout */
+}
+
+.call-interface {
+    flex-grow: 1;
+    display: flex;
+    overflow: hidden;
+    padding: 1.5rem var(--container-padding-x);
+    gap: 1.5rem;
+    min-height: 0; /* Important */
+}
+
+.ai-presenter-area {
+    flex: 2 1 65%; /* Whiteboard takes more space */
+    display: flex;
+    flex-direction: column;
+    background-color: var(--card-bg);
+    border-radius: var(--card-radius);
+    box-shadow: var(--shadow-hud);
+    overflow: hidden;
+    border: 1px solid var(--border-color-light);
+    min-height: 0;
+    position: relative;
+}
+
+.interaction-panel {
+    flex: 1 1 35%; /* Chat takes less space */
+    max-width: 450px; /* Limit chat width */
+    display: flex;
+    flex-direction: column;
+    background-color: var(--chat-bg);
+    border-radius: var(--card-radius);
+    box-shadow: var(--shadow-hud);
+    overflow: hidden;
+    border: 1px solid var(--border-color-light);
+    min-height: 0;
+}
+
+/* Responsiveness for layout */
+@media (max-width: 1200px) {
+    .interaction-panel { flex-basis: 40%; max-width: 400px; }
+    .call-interface { padding: 1rem; gap: 1rem; }
+}
+@media (max-width: 992px) {
+     .call-interface {
+        flex-direction: column;
+        height: auto; /* Let content dictate height */
+        padding: 0.8rem;
+        gap: 0.8rem;
+    }
+    .ai-presenter-area {
+        flex: 1 1 55%; /* Adjust flex basis */
+        min-height: 400px; /* Example min-height */
+        order: 1; /* Ensure it stays on top if needed */
+    }
+    .interaction-panel {
+        flex: 1 1 45%; /* Adjust flex basis */
+        min-height: 350px; /* Example min-height */
+        order: 2;
+        max-width: none; /* Remove max-width */
+        width: 100%;
+    }
+}
+@media (max-width: 576px) {
+     .call-interface { padding: 0.5rem; gap: 0.5rem; }
+     .interaction-panel { flex-basis: auto; min-height: 300px; }
+}
+/* --- END: vyuka-layout.css --- */
