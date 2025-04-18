@@ -10,14 +10,30 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
     <script>
-        // MathJax Configuration
+        // Configure MathJax before loading the script
         if (typeof window.MathJax === 'undefined') {
             window.MathJax = {
-                tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$']], processEscapes: true },
-                options: { skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'], ignoreHtmlClass: 'tex2jax_ignore' },
-                startup: { ready: () => { MathJax.startup.defaultReady(); MathJax.startup.promise.then(() => console.log('MathJax loaded and ready.')); } }
+                tex: {
+                    inlineMath: [['$', '$'], ['\\(', '\\)']], // Define inline math delimiters
+                    displayMath: [['$$', '$$']],             // Define display math delimiters
+                    processEscapes: true                   // Process escaped characters like \$
+                },
+                options: {
+                    skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'], // Tags to ignore
+                    ignoreHtmlClass: 'tex2jax_ignore'       // Class to ignore
+                },
+                startup: {
+                    ready: () => {
+                        MathJax.startup.defaultReady();
+                        MathJax.startup.promise.then(() => {
+                            console.log('MathJax loaded and ready.');
+                        });
+                    }
+                }
             };
-        } else { console.warn("window.MathJax already defined."); }
+        } else {
+            console.warn("window.MathJax already defined.");
+        }
     </script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 
@@ -42,8 +58,12 @@
 
     <aside id="sidebar" class="sidebar">
         <div class="sidebar-header">
-            <button class="mobile-menu-toggle" id="sidebar-close-toggle" aria-label="Zavřít menu"> <i class="fas fa-times"></i> </button>
-            <a href="/dashboard/dashboard.html" class="sidebar-logo"> <i class="fas fa-atom"></i> <span>Justax</span> </a>
+            <button class="mobile-menu-toggle" id="sidebar-close-toggle" aria-label="Zavřít menu">
+                <i class="fas fa-times"></i>
+            </button>
+            <a href="/dashboard/dashboard.html" class="sidebar-logo">
+                <i class="fas fa-atom"></i> <span>Justax</span>
+            </a>
         </div>
         <ul class="sidebar-menu">
             <li class="sidebar-item"> <a href="/dashboard/dashboard.html" class="sidebar-link"> <i class="fas fa-tachometer-alt"></i> <span>Nástěnka</span> </a> </li>
@@ -54,11 +74,8 @@
             <li class="sidebar-item"> <a href="/dashboard/profile.html" class="sidebar-link"> <i class="fas fa-user-astronaut"></i> <span>Profil</span> </a> </li>
         </ul>
         <div class="user-profile">
-            <div class="user-avatar" id="user-avatar">?</div>
-            <div class="user-info">
-                <div class="user-name" id="user-name">Načítání...</div>
-                <div class="user-role" id="user-role">Pilot</div>
-            </div>
+            <div class="user-avatar" id="user-avatar">?</div> <div class="user-info">
+                <div class="user-name" id="user-name">Načítání...</div> <div class="user-role" id="user-role">Pilot</div> </div>
         </div>
         <div class="sidebar-footer"> &copy; <span id="currentYearSidebar">2025</span> Justax Systems </div>
     </aside>
@@ -66,16 +83,19 @@
     <main id="main-content">
         <header class="dashboard-header">
             <div class="header-title">
-                <button class="mobile-menu-toggle" id="mobile-menu-toggle" aria-label="Otevřít menu"> <i class="fas fa-bars"></i> </button>
+                <button class="mobile-menu-toggle" id="mobile-menu-toggle" aria-label="Otevřít menu">
+                    <i class="fas fa-bars"></i>
+                </button>
                 <h1><i class="fas fa-route"></i> Studijní plán</h1>
             </div>
             <div class="header-actions">
-                <a href="/dashboard/procvicovani/main.html" class="btn btn-secondary btn-tooltip" title="Zpět na přehled procvičování"> <i class="fas fa-arrow-left"></i> Zpět </a>
+                <a href="/dashboard/procvicovani/main.html" class="btn btn-secondary btn-tooltip" title="Zpět na přehled procvičování">
+                    <i class="fas fa-arrow-left"></i> Zpět
+                </a>
                 <div class="notifications">
                     <div class="notification-bell" id="notification-bell" title="Oznámení">
                          <i class="far fa-bell"></i>
-                         <span class="notification-badge" id="notification-count">0</span>
-                    </div>
+                         <span class="notification-badge" id="notification-count">0</span> </div>
                     <div class="notifications-dropdown-wrapper" id="notifications-dropdown">
                          <div class="notifications-header">
                              <span class="notifications-title">PŘÍCHOZÍ SIGNÁLY</span>
@@ -143,7 +163,7 @@
                              </div>
                          </div>
                      </div>
-                     </div>
+                 </div>
                  <div class="step-navigation" id="verticalScheduleNav">
                      <button class="btn btn-primary btn-tooltip" id="exportScheduleBtnVertical" title="Stáhnout plán jako PDF">
                          <i class="fas fa-file-pdf"></i> Exportovat
@@ -186,7 +206,7 @@
                          <h2 id="plan-section-title">Detail / Návrh plánu</h2>
                          <div class="plan-date" id="plan-meta-date">Vytvořeno: -</div>
                      </div>
-                     <div class="plan-actions" id="planActions">
+                     <div class="plan-actions" id="planActions" style="display: none;">
                          </div>
                  </div>
                  <div class="section-content" style="padding-top:0;">
@@ -277,7 +297,9 @@
         </div>
     </template>
 
-    <div id="mouse-follower" class="mouse-follower-glow"></div> <script src="plan.js" defer></script>
+    <div id="mouse-follower" class="mouse-follower-glow"></div>
+
+    <script src="plan.js" defer></script>
 
 </body>
 </html>
