@@ -1,29 +1,28 @@
 // supabaseService.js - Функции для взаимодействия с Supabase
 
-import { createClient } from '@supabase/supabase-js'; // Предполагаем использование npm/import map
-// Если вы загружаете Supabase через <script>, замените строку выше и используйте window.supabase.createClient
+// УБРАН НЕПРАВИЛЬНЫЙ ИМПОРТ: import { createClient } from '@supabase/supabase-js';
 import { SUPABASE_URL, SUPABASE_ANON_KEY, POINTS_TOPIC_COMPLETE } from './config.js';
 import { state } from './state.js';
 // Импортируйте showToast или другие UI-хелперы, если будете их здесь использовать
-// import { showToast } from './ui.js';
+// import { showToast } from './uiHelpers.js'; // Предполагаем, что они в uiHelpers.js
 
 // Инициализируем клиент Supabase один раз при загрузке модуля
 export let supabaseClient = null;
 
 export function initializeSupabase() {
     try {
-        // Если Supabase загружен через <script>, используйте window.supabase
+        // Используем window.supabase, так как он загружен через <script>
         if (typeof window !== 'undefined' && window.supabase) {
              supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        } else if (typeof createClient !== 'undefined') {
-             // Если используете import (npm)
-             supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+             console.log("Supabase client initialized via window.supabase.");
+        // } else if (typeof createClient !== 'undefined') { // Эта ветка теперь не нужна, если всегда используем <script>
+        //      // Если используете import (npm)
+        //      supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         } else {
-             throw new Error("Supabase library not found.");
+             throw new Error("Supabase library (window.supabase) not found.");
         }
 
         if (!supabaseClient) throw new Error("Client creation failed.");
-        console.log("Supabase client initialized in service.");
         return supabaseClient; // Возвращаем клиент для сохранения в state (опционально)
     } catch (error) {
         console.error("Supabase init failed in service:", error);
@@ -343,4 +342,7 @@ export async function deleteChatSessionHistory(userId, sessionId) {
 }
 
 // --- Инициализация при загрузке модуля ---
-initializeSupabase(); // Вызываем инициализацию здесь
+// Вызываем инициализацию здесь, чтобы клиент был доступен при импорте функций
+initializeSupabase();
+
+console.log("Supabase service module loaded.");
