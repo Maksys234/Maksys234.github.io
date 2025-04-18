@@ -1381,34 +1381,39 @@
         // --- Prompts and Gemini Calls ---
         const _buildInitialPrompt = () => {
             const level = state.currentProfile?.skill_level || 'neznámá';
-            return `Jako AI Tutor vysvětli ZÁKLADY tématu "${state.currentTopic.name}" pro studenta s úrovní "${level}". Rozděl vysvětlení na menší logické části. Pro první část:
+            // Use the description from the current topic (which comes from plan_activities)
+            const topicDescription = state.currentTopic?.description || ''; // Use description from plan
+            const topicName = state.currentTopic?.name || 'Téma';
+            return `Jako AI Tutor vysvětli ZÁKLADY pro aktivitu "${topicName}", která má tento popis: "${topicDescription}". Student má úroveň "${level}". Rozděl vysvětlení na menší logické části. Pro první část:
 Formát odpovědi:
 [BOARD_MARKDOWN]:
 \`\`\`markdown
-(Zde napiš KRÁTKÝ A STRUČNÝ Markdown text pro první část vysvětlení na tabuli - klíčové body, vzorec, jednoduchý diagram. Použij nadpisy, seznamy, zvýraznění, LaTeX pro vzorce \$\$. Používej POUZE nadpisy úrovně ## nebo ###.)
+(Zde napiš KRÁTKÝ A STRUČNÝ Markdown text pro první část vysvětlení na tabuli - klíčové body, vzorec, jednoduchý diagram PŘÍMO K POPISU AKTIVITY. Použij nadpisy, seznamy, zvýraznění, LaTeX pro vzorce \$\$. Používej POUZE nadpisy úrovně ## nebo ###.)
 \`\`\`
 [TTS_COMMENTARY]:
-(Zde napiš PODROBNĚJŠÍ konverzační komentář k první části na tabuli, jako bys mluvil/a k studentovi na úrovni "${level}". Rozveď myšlenky z tabule, přidej kontext nebo jednoduchý příklad. Tento text bude přečten nahlas.)`;
+(Zde napiš PODROBNĚJŠÍ konverzační komentář k první části na tabuli, jako bys mluvil/a k studentovi na úrovni "${level}". Rozveď myšlenky z tabule související s popisem aktivity, přidej kontext nebo jednoduchý příklad.)`;
         };
 
         const _buildContinuePrompt = () => {
             const level = state.currentProfile?.skill_level || 'neznámá';
+            const topicName = state.currentTopic?.name || 'Téma';
+            const topicDescription = state.currentTopic?.description || ''; // Use description from plan
             // Consider sending last few board content pieces for context? Limited by token count.
             // const boardContext = state.boardContentHistory.slice(-1).join("\n---\n"); // Last piece only
-            return `Pokračuj ve vysvětlování tématu "${state.currentTopic.name}" pro studenta s úrovní "${level}". Naváž na předchozí vysvětlení (poslední část historie chatu a tabule je relevantní). Vygeneruj další logickou část.
+            return `Pokračuj ve vysvětlování aktivity "${topicName}" (popis: "${topicDescription}") pro studenta s úrovní "${level}". Naváž na předchozí vysvětlení (poslední část historie chatu a tabule je relevantní). Vygeneruj další logickou část.
 Formát odpovědi:
 [BOARD_MARKDOWN]:
 \`\`\`markdown
 (Zde napiš další stručnou část Markdown textu pro tabuli. Používej POUZE nadpisy úrovně ## nebo ###.)
 \`\`\`
 [TTS_COMMENTARY]:
-(Zde napiš podrobnější konverzační komentář k NOVÉMU obsahu tabule pro hlasový výstup, přizpůsobený úrovni "${level}".)`;
+(Zde napiš podrobnější konverzační komentář k NOVÉMU obsahu tabule pro hlasový výstup, přizpůsobený úrovni "${level}" a související s aktivitou.)`;
         };
 
         const _buildGeminiPayloadContents = (userPrompt) => {
             const level = state.currentProfile?.skill_level || 'neznámá';
             // System instruction defines the expected output format.
-            const systemInstruction = `Jsi AI Tutor "Justax". Vyučuješ téma: "${state.currentTopic.name}" studenta s úrovní "${level}". Vždy odpovídej ve formátu s bloky [BOARD_MARKDOWN]: \`\`\`markdown ... \`\`\` a [TTS_COMMENTARY]: .... Text pro tabuli má být stručný a strukturovaný (nadpisy ## nebo ###, seznamy, LaTeX $\$). Komentář pro TTS má být podrobnější, konverzační a doplňující k textu na tabuli (jako bys mluvil), přizpůsobený úrovni studenta. Pokud odpovídáš na dotaz studenta v chatu, odpověz pouze běžným textem bez těchto bloků.`;
+            const systemInstruction = `Jsi AI Tutor "Justax". Vyučuješ aktivitu: "${state.currentTopic.name}" (popis: "${state.currentTopic.description}") studenta s úrovní "${level}". Vždy odpovídej ve formátu s bloky [BOARD_MARKDOWN]: \`\`\`markdown ... \`\`\` a [TTS_COMMENTARY]: .... Text pro tabuli má být stručný a strukturovaný (nadpisy ## nebo ###, seznamy, LaTeX $\$). Komentář pro TTS má být podrobnější, konverzační a doplňující k textu na tabuli (jako bys mluvil), přizpůsobený úrovni studenta. Pokud odpovídáš na dotaz studenta v chatu, odpověz pouze běžným textem bez těchto bloků.`;
 
             // Build the conversation history, limiting its size.
             const history = state.geminiChatContext.slice(-MAX_GEMINI_HISTORY_TURNS * 2); // Get last N turns
@@ -1423,7 +1428,7 @@ Formát odpovědi:
              // Finally, the current user message
              const contents = [
                  { role: "user", parts: [{ text: systemInstruction }] },
-                 { role: "model", parts: [{ text: `Rozumím. Vygeneruji stručný obsah pro tabuli pomocí nadpisů ## nebo ### a podrobnější TTS komentář ve specifikovaném formátu pro téma "${state.currentTopic.name}" a úroveň "${level}", nebo odpovím na dotaz v chatu.` }] },
+                 { role: "model", parts: [{ text: `Rozumím. Vygeneruji stručný obsah pro tabuli pomocí nadpisů ## nebo ### a podrobnější TTS komentář ve specifikovaném formátu pro aktivitu "${state.currentTopic.name}" a úroveň "${level}", nebo odpovím na dotaz v chatu.` }] },
                  ...history,
                  currentUserMessage
              ];
