@@ -82,15 +82,10 @@ export const formatRelativeTime = (timestamp) => {
  */
 export const autoResizeTextarea = (textareaElement) => {
     if (!textareaElement) return;
-    // Použijeme config pro maximální výšku
-    const maxHeight = 110; // V budoucnu z config.js: import { CHAT_TEXTAREA_MAX_HEIGHT } from './config.js';
-
-    textareaElement.style.height = 'auto'; // Сбросить высоту для пересчета scrollHeight
+    const maxHeight = 110;
+    textareaElement.style.height = 'auto';
     const scrollHeight = textareaElement.scrollHeight;
-
-    // Установить высоту, но не больше максимальной
     textareaElement.style.height = `${Math.min(scrollHeight, maxHeight)}px`;
-    // Показать/скрыть вертикальный скроллбар
     textareaElement.style.overflowY = scrollHeight > maxHeight ? 'scroll' : 'hidden';
 };
 
@@ -106,16 +101,13 @@ export const generateSessionId = () => `session_${Date.now()}_${Math.random().to
 export const initTooltips = () => {
     try {
         if (window.jQuery && typeof window.jQuery.fn.tooltipster === 'function') {
-            // Destroy existing tooltips first to avoid duplicates
             window.jQuery('.tooltipstered').tooltipster('destroy');
-            // Initialize tooltips on elements with the class
             window.jQuery('.btn-tooltip').tooltipster({
                 theme: 'tooltipster-shadow',
                 animation: 'fade',
                 delay: 100,
                 side: 'top'
             });
-             // console.log("Tooltips initialized/re-initialized."); // Optional: Log success
         } else {
              console.warn("jQuery or Tooltipster not loaded, tooltips disabled.");
         }
@@ -132,7 +124,6 @@ export const updateOnlineStatus = () => {
         ui.offlineBanner.style.display = navigator.onLine ? 'none' : 'block';
     }
     if (!navigator.onLine) {
-         // showToast('Offline', 'Spojení bylo ztraceno. Některé funkce nemusí být dostupné.', 'warning'); // Volat z hlavního modulu
          console.warn("Application is offline.");
     }
 };
@@ -151,7 +142,7 @@ export const updateCopyrightYear = () => {
  */
 export const initMouseFollower = () => {
     const follower = ui.mouseFollower;
-    if (!follower || window.innerWidth <= 576) return; // Не показывать на мобильных
+    if (!follower || window.innerWidth <= 576) return;
 
     let hasMoved = false;
     const updatePosition = (event) => {
@@ -199,7 +190,7 @@ export const initScrollAnimations = () => {
  */
 export const initHeaderScrollDetection = () => {
     let lastScrollY = 0;
-    const mainEl = ui.mainContent; // Použijeme main-content pro scroll
+    const mainEl = ui.mainContent;
     if (!mainEl) return;
 
     const handleScroll = () => {
@@ -211,7 +202,6 @@ export const initHeaderScrollDetection = () => {
     mainEl.addEventListener('scroll', handleScroll, { passive: true });
     if (mainEl.scrollTop > 10) { document.body.classList.add('scrolled'); }
 };
-
 
 // --- PŘIDANÉ FUNKCE PRO MENU ---
 /**
@@ -238,6 +228,5 @@ export function closeMenu() {
     }
 }
 // --- KONEC PŘIDANÝCH FUNKCÍ ---
-
 
 console.log("Utils module loaded.");
