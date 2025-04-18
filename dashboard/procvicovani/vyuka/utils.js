@@ -78,19 +78,20 @@ export const formatRelativeTime = (timestamp) => {
 
 /**
  * Автоматически изменяет высоту textarea в зависимости от контента.
+ * @param {HTMLTextAreaElement} textareaElement - Prvek textarea pro změnu velikosti.
  */
-export const autoResizeTextarea = () => {
-    if (!ui.chatInput) return;
-    // Используем config для максимальной высоты
-    const maxHeight = 110; // Возьмем из config.js в будущем: import { CHAT_TEXTAREA_MAX_HEIGHT } from './config.js';
+export const autoResizeTextarea = (textareaElement) => {
+    if (!textareaElement) return;
+    // Použijeme config pro maximální výšku
+    const maxHeight = 110; // V budoucnu z config.js: import { CHAT_TEXTAREA_MAX_HEIGHT } from './config.js';
 
-    ui.chatInput.style.height = 'auto'; // Сбросить высоту для пересчета scrollHeight
-    const scrollHeight = ui.chatInput.scrollHeight;
+    textareaElement.style.height = 'auto'; // Сбросить высоту для пересчета scrollHeight
+    const scrollHeight = textareaElement.scrollHeight;
 
     // Установить высоту, но не больше максимальной
-    ui.chatInput.style.height = `${Math.min(scrollHeight, maxHeight)}px`;
+    textareaElement.style.height = `${Math.min(scrollHeight, maxHeight)}px`;
     // Показать/скрыть вертикальный скроллбар
-    ui.chatInput.style.overflowY = scrollHeight > maxHeight ? 'scroll' : 'hidden';
+    textareaElement.style.overflowY = scrollHeight > maxHeight ? 'scroll' : 'hidden';
 };
 
 /**
@@ -104,15 +105,17 @@ export const generateSessionId = () => `session_${Date.now()}_${Math.random().to
  */
 export const initTooltips = () => {
     try {
-        // Проверяем, загружен ли jQuery и плагин Tooltipster
         if (window.jQuery && typeof window.jQuery.fn.tooltipster === 'function') {
-            // Инициализируем только для элементов, которые еще не были инициализированы
-            window.jQuery('.btn-tooltip:not(.tooltipstered)').tooltipster({
-                theme: 'tooltipster-shadow', // Можно выбрать тему
+            // Destroy existing tooltips first to avoid duplicates
+            window.jQuery('.tooltipstered').tooltipster('destroy');
+            // Initialize tooltips on elements with the class
+            window.jQuery('.btn-tooltip').tooltipster({
+                theme: 'tooltipster-shadow',
                 animation: 'fade',
                 delay: 100,
-                side: 'top' // Позиция подсказки
+                side: 'top'
             });
+             // console.log("Tooltips initialized/re-initialized."); // Optional: Log success
         } else {
              console.warn("jQuery or Tooltipster not loaded, tooltips disabled.");
         }
@@ -129,7 +132,7 @@ export const updateOnlineStatus = () => {
         ui.offlineBanner.style.display = navigator.onLine ? 'none' : 'block';
     }
     if (!navigator.onLine) {
-         // showToast('Offline', 'Spojení bylo ztraceno. Některé funkce nemusí být dostupné.', 'warning'); // Вызывать из основного модуля
+         // showToast('Offline', 'Spojení bylo ztraceno. Některé funkce nemusí být dostupné.', 'warning'); // Volat z hlavního modulu
          console.warn("Application is offline.");
     }
 };
@@ -163,18 +166,9 @@ export const initMouseFollower = () => {
     };
 
     window.addEventListener('mousemove', updatePosition, { passive: true });
-    // Скрываем при уходе мыши с body
-    document.body.addEventListener('mouseleave', () => {
-        if (hasMoved) follower.style.opacity = '0';
-    });
-    // Показываем при возвращении мыши
-    document.body.addEventListener('mouseenter', () => {
-        if (hasMoved) follower.style.opacity = '1';
-    });
-    // Отключаем на тач-устройствах
-    window.addEventListener('touchstart', () => {
-         if(follower) follower.style.display = 'none';
-    }, { passive: true, once: true });
+    document.body.addEventListener('mouseleave', () => { if (hasMoved) follower.style.opacity = '0'; });
+    document.body.addEventListener('mouseenter', () => { if (hasMoved) follower.style.opacity = '1'; });
+    window.addEventListener('touchstart', () => { if(follower) follower.style.display = 'none'; }, { passive: true, once: true });
 };
 
 /**
@@ -191,13 +185,10 @@ export const initScrollAnimations = () => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
                 entry.target.classList.add('animated');
-                observerInstance.unobserve(entry.target); // Отключаем наблюдение после анимации
+                observerInstance.unobserve(entry.target);
             }
         });
-    }, {
-        threshold: 0.1, // % элемента должен быть виден
-        rootMargin: "0px 0px -30px 0px" // Запускать чуть раньше
-    });
+    }, { threshold: 0.1, rootMargin: "0px 0px -30px 0px" });
 
     animatedElements.forEach(element => observer.observe(element));
     console.log(`Scroll animations initialized for ${animatedElements.length} elements.`);
@@ -208,7 +199,7 @@ export const initScrollAnimations = () => {
  */
 export const initHeaderScrollDetection = () => {
     let lastScrollY = 0;
-    const mainEl = ui.mainContent; // Используем main-content для скролла
+    const mainEl = ui.mainContent; // Použijeme main-content pro scroll
     if (!mainEl) return;
 
     const handleScroll = () => {
@@ -218,11 +209,35 @@ export const initHeaderScrollDetection = () => {
     };
 
     mainEl.addEventListener('scroll', handleScroll, { passive: true });
-    // Проверка начального состояния
-    if (mainEl.scrollTop > 10) {
-        document.body.classList.add('scrolled');
-    }
+    if (mainEl.scrollTop > 10) { document.body.classList.add('scrolled'); }
 };
+
+
+// --- PŘIDANÉ FUNKCE PRO MENU ---
+/**
+ * Otevře postranní menu (sidebar).
+ */
+export function openMenu() {
+    if (ui.sidebar && ui.sidebarOverlay) {
+        ui.sidebar.classList.add('active');
+        ui.sidebarOverlay.classList.add('active');
+    } else {
+        console.warn("openMenu: Sidebar or overlay element not found.");
+    }
+}
+
+/**
+ * Zavře postranní menu (sidebar).
+ */
+export function closeMenu() {
+    if (ui.sidebar && ui.sidebarOverlay) {
+        ui.sidebar.classList.remove('active');
+        ui.sidebarOverlay.classList.remove('active');
+    } else {
+         console.warn("closeMenu: Sidebar or overlay element not found.");
+    }
+}
+// --- KONEC PŘIDANÝCH FUNKCÍ ---
 
 
 console.log("Utils module loaded.");
