@@ -1,6 +1,5 @@
 <!DOCTYPE html>
-<html lang="cs" class="dark">
-<head>
+<html lang="cs" class="dark"> <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Justax - Výuka s AI // Kyber-Verze</title>
@@ -11,7 +10,6 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-        // MathJax Configuration
         if (typeof window.MathJax === 'undefined') {
             window.MathJax = {
                 tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$']], processEscapes: true },
@@ -27,14 +25,18 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/js/tooltipster.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
-    <link rel="stylesheet" href="theme.css"> <link rel="stylesheet" href="vyuka-layout.css"> <link rel="stylesheet" href="vyuka-presenter.css"> <link rel="stylesheet" href="vyuka-chat.css"> <link rel="stylesheet" href="vyuka-specific.css"> </head>
-<body class="dark">
-    <div class="initial-loading-overlay" id="initial-loader">
+    <link rel="stylesheet" href="theme.css">
+    <link rel="stylesheet" href="vyuka-layout.css">
+    <link rel="stylesheet" href="vyuka-presenter.css">
+    <link rel="stylesheet" href="vyuka-chat.css">
+    <link rel="stylesheet" href="vyuka-specific.css">
+</head>
+<body class="dark"> <div class="initial-loading-overlay" id="initial-loader">
          <div class="loading-spinner"></div>
          <p>NAČÍTÁNÍ VÝUKOVÉHO MODULU...</p>
      </div>
 
-     <div class="offline-banner" id="offline-banner"> <i class="fas fa-plug"></i> OFFLINE // SPOJENÍ ZTRACENO.</div>
+    <div class="offline-banner" id="offline-banner"> <i class="fas fa-plug"></i> OFFLINE // SPOJENÍ ZTRACENO.</div>
 
     <div class="sidebar-overlay" id="sidebar-overlay"></div>
 
@@ -43,29 +45,24 @@
             <button class="mobile-menu-toggle" id="sidebar-close-toggle" aria-label="Zavřít menu">
                 <i class="fas fa-times"></i>
             </button>
-            <a href="/dashboard/dashboard.html" class="sidebar-logo"> <i class="fas fa-atom"></i> <span>Justax</span>
-            </a>
+            <a href="/dashboard/dashboard.html" class="sidebar-logo"> <i class="fas fa-atom"></i> <span>Justax</span></a>
         </div>
         <ul class="sidebar-menu">
             <li class="sidebar-item"> <a href="/dashboard/dashboard.html" class="sidebar-link"> <i class="fas fa-tachometer-alt"></i> <span>Nástěnka</span> </a> </li>
-            <li class="sidebar-item"> <a href="/dashboard/procvicovani/main.html" class="sidebar-link active"> <i class="fas fa-laptop-code"></i> <span>Procvičování</span> </a> </li>
-            <li class="sidebar-item"> <a href="/dashboard/pokrok.html" class="sidebar-link"> <i class="fas fa-chart-line"></i> <span>Pokrok</span> </a> </li>
-            <li class="sidebar-item"> <a href="/dashboard/oceneni.html" class="sidebar-link"> <i class="fas fa-medal"></i> <span>Ocenění</span> </a> </li>
-            <li class="sidebar-item"> <a href="/dashboard/materialy.html" class="sidebar-link"> <i class="fas fa-database"></i> <span>Databanka</span> </a> </li>
-            <li class="sidebar-item"> <a href="/dashboard/profile.html" class="sidebar-link"> <i class="fas fa-user-astronaut"></i> <span>Profil</span> </a> </li>
+             <li class="sidebar-item"> <a href="/dashboard/procvicovani/main.html" class="sidebar-link active"> <i class="fas fa-laptop-code"></i> <span>Procvičování</span> </a> </li>
+             <li class="sidebar-item"> <a href="/dashboard/pokrok.html" class="sidebar-link"> <i class="fas fa-chart-line"></i> <span>Pokrok</span> </a> </li>
+             <li class="sidebar-item"> <a href="/dashboard/oceneni.html" class="sidebar-link"> <i class="fas fa-medal"></i> <span>Ocenění</span> </a> </li>
+             <li class="sidebar-item"> <a href="/dashboard/materialy.html" class="sidebar-link"> <i class="fas fa-database"></i> <span>Databanka</span> </a> </li>
+             <li class="sidebar-item"> <a href="/dashboard/profile.html" class="sidebar-link"> <i class="fas fa-user-astronaut"></i> <span>Profil</span> </a> </li>
         </ul>
         <div class="user-profile">
-            <div class="user-avatar" id="sidebar-avatar">?</div>
-            <div class="user-info">
-                <div class="user-name" id="sidebar-name">Načítání...</div>
-                <div class="user-role">Pilot</div>
-            </div>
+            <div class="user-avatar" id="sidebar-avatar">?</div> <div class="user-info">
+                <div class="user-name" id="sidebar-name">Načítání...</div> <div class="user-role">Pilot</div> </div>
         </div>
         <div class="sidebar-footer"> &copy; <span id="currentYearSidebar">2025</span> Justax Systems </div>
     </aside>
 
-    <main id="main-content">
-        <div class="error-container" id="global-error"></div>
+    <main id="main-content" style="display: none;"> <div class="error-container" id="global-error"></div>
 
         <header class="dashboard-header">
             <div class="header-content">
@@ -73,13 +70,9 @@
                       <button class="mobile-menu-toggle" id="main-mobile-menu-toggle" aria-label="Otevřít menu">
                           <i class="fas fa-bars"></i>
                      </button>
-                     <h1 id="dashboard-title">Výuka s AI // SYNAPSE</h1>
-                 </div>
+                     <h1 id="dashboard-title">Výuka s AI // SYNAPSE</h1> </div>
                 <div class="header-actions">
-                    <button class="refresh-btn" id="refresh-data-btn" title="Obnovit data" style="display: none;"> <i class="fas fa-sync-alt"></i>
-                        <span class="refresh-text">RELOAD</span>
-                    </button>
-                    <div class="notifications">
+                     <div class="notifications">
                         <div class="notification-bell" id="notification-bell" title="Oznámení">
                              <i class="far fa-bell"></i>
                              <span class="notification-badge" id="notification-count">0</span>
@@ -90,11 +83,11 @@
                                  <button class="mark-all-read-btn" id="mark-all-read" disabled>Vymazat vše</button>
                              </div>
                              <div id="notifications-list">
-                                  <div class="notification-item skeleton"> <div class="notification-icon skeleton" style="background-color: var(--skeleton-bg);"></div> <div class="notification-content"> <div class="skeleton" style="height: 16px; width: 70%; margin-bottom: 6px;"></div> <div class="skeleton" style="height: 12px; width: 90%;"></div> <div class="skeleton" style="height: 10px; width: 40%; margin-top: 6px;"></div> </div> </div>
+                                  <div class="notification-item skeleton"> <div class="notification-icon skeleton"></div> <div class="notification-content"> <div class="skeleton"></div> <div class="skeleton"></div> <div class="skeleton"></div> </div> </div>
                                   <div id="no-notifications-msg" style="display: none;">ŽÁDNÉ NOVÉ SIGNÁLY</div>
                              </div>
                              <div class="notifications-footer">
-                                 <a href="#" class="view-all-notifications-link">ZOBRAZIT ARCHIV</a>
+                                 <a href="/dashboard/notifications.html" class="view-all-notifications-link">ZOBRAZIT ARCHIV</a>
                              </div>
                         </div>
                      </div>
@@ -118,23 +111,20 @@
              </button>
         </div>
 
-        <div class="main-content-wrapper" style="padding-top: 0;">
-             <div class="call-interface" style="display: none;">
-                <div class="ai-presenter-area">
+        <div class="main-content-wrapper" style="padding-top: 0;"> <div class="call-interface" style="display: none;"> <div class="ai-presenter-area">
                     <div class="ai-presenter-header">
                          <div style="display: flex; align-items: center; gap: 0.8rem;">
                             <div class="ai-avatar-placeholder"> <i class="fas fa-chalkboard-teacher"></i> </div>
                             <div class="ai-presenter-info"> <h2>AI Tutor Justax</h2> <p id="ai-status-text">Připraven...</p> </div>
                         </div>
                          <div class="ai-presenter-header-controls">
-                             <button id="clear-board-btn" class="btn-tooltip" title="Vymazat obsah tabule">
-                                 <i class="fas fa-eraser"></i> Vyčistit tabuli
+                             <button id="clear-board-btn" class="btn btn-secondary btn-sm btn-tooltip" title="Vymazat obsah tabule"> <i class="fas fa-eraser"></i> Vyčistit
                              </button>
                          </div>
                     </div>
                     <div id="whiteboard-container">
                         <div id="whiteboard-content">
-                             <div class="loading-placeholder" style="display: none;"><i class="fas fa-spinner"></i><p>Načítám...</p></div>
+                             <div class="loading-placeholder" style="display: none;"><i class="fas fa-spinner fa-spin"></i><p>Načítám...</p></div>
                         </div>
                          <div id="board-speaking-indicator">
                             <span class="dot"></span><span class="dot"></span><span class="dot"></span>
@@ -167,11 +157,14 @@
                                      </div>
                                  </div>
                                  <div class="chat-controls">
-                                     <button id="mic-btn" class="btn-tooltip" title="Zahájit hlasový vstup">
-                                         <i class="fas fa-microphone"></i>
+                                     <button id="mic-btn" class="btn-icon btn-tooltip" title="Zahájit hlasový vstup"> <i class="fas fa-microphone"></i>
                                      </button>
-                                     <button id="clear-chat-btn" class="btn-tooltip" title="Vymazat historii tohoto chatu"> <i class="fas fa-trash-alt"></i> Vymazat chat </button>
-                                     | <button id="save-chat-btn" class="btn-tooltip" title="Uložit chat jako PDF"> <i class="fas fa-save"></i> Uložit chat </button>
+                                     <button id="clear-chat-btn" class="btn-icon btn-tooltip" title="Vymazat historii tohoto chatu">
+                                         <i class="fas fa-trash-alt"></i>
+                                     </button>
+                                     <button id="save-chat-btn" class="btn-icon btn-tooltip" title="Uložit chat jako PDF">
+                                         <i class="fas fa-save"></i>
+                                     </button>
                                  </div>
                             </section>
                          </div>
@@ -193,7 +186,6 @@
 
     <div id="mouse-follower" class="mouse-follower-glow"></div>
 
-    <script src="vyuka.js" defer></script>
-
-</body>
+    <script type="module" src="vyukaApp.js" defer></script>
+    </body>
 </html>
