@@ -152,23 +152,52 @@ const SupabaseService = (() => {
              console.warn("[Points] Skipping point award (invalid input):", { userId, pointsValue });
              return false;
          }
-         console.log(`[Points] Awarding ${pointsValue} points to user ${userId} via RPC...`);
+         // !!! ВАЖНО: Убедитесь, что это имя совпадает с именем вашей функции в Supabase !!!
+         const functionName = 'increment_user_points';
+         console.log(`[Points] Awarding ${pointsValue} points to user ${userId} via RPC '${functionName}'...`);
          try {
-             const { data, error } = await supabase.rpc('increment_user_points', {
+             // Убедитесь, что имена параметров ('user_id_input', 'points_to_add')
+             // точно соответствуют именам параметров в вашей функции Supabase.
+             const { data, error } = await supabase.rpc(functionName, {
                  user_id_input: userId,
                  points_to_add: pointsValue
              });
-             if (error) { console.error(`[Points] RPC Error updating points:`, error); throw error; }
-             const newPoints = data;
-             console.log(`[Points] User points updated via RPC to ${newPoints}.`);
-             if (state.currentUser && state.currentUser.id === userId && state.currentProfile) {
-                 state.currentProfile.points = newPoints;
+
+             if (error) {
+                 console.error(`[Points] RPC Error calling '${functionName}':`, error);
+                 // Check specifically for 404-like or function-not-found errors
+                 if (error.message && (error.message.includes('404') || error.message.toLowerCase().includes('not found') || error.code === 'PGRST116' || error.code === '42883')) {
+                      console.error(`[Points] RPC function '${functionName}' not found or endpoint/parameter issue (${error.code || 'Unknown Code'}). Check Supabase function name, parameters, deployment, and API schema cache.`);
+                      // Consider informing the user more specifically if possible
+                      // showToast('Chyba funkce', `Funkce pro připsání bodů ('${functionName}') nebyla nalezena nebo je nesprávně nakonfigurována.`, 'error');
+                 }
+                 throw error; // Re-throw to be caught below
              }
-             return true;
+
+             // Обработка результата RPC
+             const newPoints = data; // Предполагаем, что функция возвращает новое общее количество очков
+             console.log(`[Points] User points updated via RPC. Result/New Points:`, newPoints);
+
+             // Обновление локального состояния очков
+             if (state.currentUser && state.currentUser.id === userId && state.currentProfile) {
+                 if (typeof newPoints === 'number') {
+                     state.currentProfile.points = newPoints;
+                     console.log(`[Profile Update] Local points updated to ${newPoints}.`);
+                 } else {
+                     // Если RPC не вернула число, рассчитываем локально
+                     const oldPoints = state.currentProfile.points || 0;
+                     state.currentProfile.points = oldPoints + pointsValue;
+                     console.warn(`[Profile Update] RPC did not return new total points. Estimating local points to ${state.currentProfile.points}.`);
+                 }
+                 // Обновление UI (например, в сайдбаре) должно быть вызвано из `vyukaApp.js`
+             }
+
+             return true; // Успех
+
          } catch (error) {
              console.error(`[Points] Exception awarding points for user ${userId}:`, error);
-             // showToast('Chyba kreditů', 'Nepodařilo se připsat kredity.', 'error');
-             return false;
+             // showToast('Chyba kreditů', 'Nepodařilo se připsat kredity.', 'error'); // Обработка в vyukaApp
+             return false; // Неудача
          }
     }
 
