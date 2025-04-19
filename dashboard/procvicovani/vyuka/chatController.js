@@ -30,7 +30,17 @@ export async function addChatMessage(message, sender, saveToDb = true, timestamp
     }
 
     const messageId = `msg-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
-    const avatarText = sender === 'user' ? getInitials(state.currentProfile, state.currentUser?.email) : 'AI'; // Используем getInitials из utils
+
+    // **FIX: Ensure user data is available before generating initials**
+    let avatarText = 'AI';
+    if (sender === 'user') {
+        if (state.currentUser && state.currentProfile) {
+            avatarText = getInitials(state.currentProfile, state.currentUser.email);
+        } else {
+            console.warn("addChatMessage: User profile data missing for avatar, using default.");
+            avatarText = 'Vy'; // Default user avatar text if data is missing
+        }
+    }
 
     const messageDiv = document.createElement('div');
     messageDiv.className = `chat-message ${sender === 'gemini' ? 'model' : sender}`;
@@ -47,21 +57,30 @@ export async function addChatMessage(message, sender, saveToDb = true, timestamp
 
     const textContentSpan = document.createElement('span');
     textContentSpan.className = 'message-text-content';
-    renderMarkdown(textContentSpan, message); // Рендерим Markdown внутри span
+    // **FIX: Handle potential "?" characters by ensuring message is not just "?"**
+    if (message && message.trim() !== '?') {
+        renderMarkdown(textContentSpan, message); // Рендерим Markdown внутри span
+    } else if (message && message.trim() === '?') {
+        console.warn("addChatMessage: Received a message containing only '?'. Skipping render.");
+        // Optionally, render something else or nothing
+        // textContentSpan.textContent = "(Přijata neplatná zpráva)";
+        return; // Or simply don't add the message
+    } else {
+        textContentSpan.textContent = "(Prázdná zpráva)"; // Handle empty messages if needed
+    }
+
     bubbleContentDiv.appendChild(textContentSpan);
 
     // Добавляем кнопку TTS для сообщений Gemini, если поддерживается
-    if (sender === 'gemini' && state.speechSynthesisSupported) {
+    if (sender === 'gemini' && state.speechSynthesisSupported && message && message.trim() !== '?') { // Don't add TTS for "?"
         const textForSpeech = ttsText || message; // Используем специальный текст или основной
         const ttsButton = document.createElement('button');
         ttsButton.className = 'tts-listen-btn btn-tooltip';
         ttsButton.title = 'Poslechnout';
         ttsButton.innerHTML = '<i class="fas fa-volume-up"></i>';
         ttsButton.dataset.textToSpeak = textForSpeech; // Сохраняем текст в data-атрибут
-        ttsButton.addEventListener('click', (e) => {
-            e.stopPropagation();
-            speakText(textForSpeech); // Вызываем speakText из speechService
-        });
+        // Event listener is now added in vyukaApp.js using delegation
+        // ttsButton.addEventListener('click', (e) => { ... });
         bubbleContentDiv.appendChild(ttsButton);
     }
 
@@ -79,20 +98,20 @@ export async function addChatMessage(message, sender, saveToDb = true, timestamp
     // Добавляем сообщение в DOM и прокручиваем
     ui.chatMessages.appendChild(messageDiv);
     // Плавная прокрутка к новому сообщению
-     messageDiv.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    messageDiv.scrollIntoView({ behavior: 'smooth', block: 'end' });
 
-    // Инициализация тултипов для новой кнопки TTS
-     // initTooltips(); // Вызывать из основного модуля после обновления DOM
+    // Инициализация тултипов для новой кнопки TTS происходит в vyukaApp.js
 
     // Сохранение в БД (используем функцию из supabaseService)
-    if (saveToDb && state.supabase && state.currentUser && state.currentTopic && state.currentSessionId) {
+    // **FIX: Don't save if message was just "?"**
+    if (saveToDb && state.supabase && state.currentUser && state.currentTopic && state.currentSessionId && message && message.trim() !== '?') {
         const messageData = {
             user_id: state.currentUser.id,
             session_id: state.currentSessionId,
             topic_id: state.currentTopic.topic_id,
             topic_name: state.currentTopic.name,
             role: sender === 'gemini' ? 'model' : 'user',
-            content: message
+            content: message // Save the original message content
         };
         const saved = await saveChatMessage(messageData);
         if (!saved) {
@@ -177,14 +196,22 @@ export function prepareUserMessageForSend() {
         return null; // Невозможно отправить
     }
 
+    // **FIX: Check for user profile before proceeding**
+    if (!state.currentUser || !state.currentProfile) {
+        console.error("prepareUserMessageForSend: User data not available.");
+        // showToast('Chyba', 'Nelze odeslat, chybí data uživatele.', 'error'); // Called from vyukaApp
+        return null;
+    }
+
     // Очистка поля ввода и изменение размера
     if (ui.chatInput) {
         ui.chatInput.value = '';
-        autoResizeTextarea(); // Используем утилиту
+        autoResizeTextarea(ui.chatInput); // Используем утилиту
     }
 
     // Добавляем сообщение пользователя в UI и контекст Gemini
-    addChatMessage(text, 'user'); // Сохранение в БД происходит внутри addChatMessage
+    // Saving to DB happens inside addChatMessage
+    addChatMessage(text, 'user');
     state.geminiChatContext.push({ role: "user", parts: [{ text }] });
 
     console.log("User message prepared for sending:", text);
@@ -226,17 +253,17 @@ export async function clearCurrentChatSessionHistory() {
  */
 export async function saveChatToPDF() {
     if (!ui.chatMessages || ui.chatMessages.children.length === 0 || (ui.chatMessages.children.length === 1 && ui.chatMessages.querySelector('.empty-state'))) {
-        // showToast("Není co uložit.", "warning");
+        // showToast("Není co uložit.", "warning"); // Called from vyukaApp
         console.warn("saveChatToPDF: No messages to save.");
         return;
     }
     if (typeof html2pdf === 'undefined') {
-        // showToast("Chyba: PDF knihovna nenalezena.", "error");
+        // showToast("Chyba: PDF knihovna nenalezena.", "error"); // Called from vyukaApp
         console.error("saveChatToPDF: html2pdf library not found.");
         return;
     }
 
-    // showToast("Generuji PDF...", "info", 4000); // Уведомление лучше показать из основного модуля
+    // showToast("Generuji PDF...", "info", 4000); // Called from vyukaApp
     console.log("Generating PDF...");
 
     const elementToExport = document.createElement('div');
@@ -292,11 +319,11 @@ export async function saveChatToPDF() {
 
     try {
         await html2pdf().set(pdfOptions).from(elementToExport).save();
-        // showToast("Chat uložen jako PDF!", "success"); // Уведомление из основного модуля
+        // showToast("Chat uložen jako PDF!", "success"); // Called from vyukaApp
         console.log("PDF generated and saved.");
     } catch (e) {
         console.error("PDF Generation Error:", e);
-        // showToast("Chyba při generování PDF.", "error"); // Уведомление из основного модуля
+        // showToast("Chyba při generování PDF.", "error"); // Called from vyukaApp
     }
 }
 
