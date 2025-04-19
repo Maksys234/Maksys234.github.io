@@ -19,9 +19,9 @@
 }
 
 .ai-presenter-area {
-    /* --- ИЗМЕНЕНИЕ ЗДЕСЬ v3.5 --- */
-    flex: 3 1 70%; /* Whiteboard takes more space (Grow 3, Basis 70%) */
-    /* Было: flex: 2 1 65%; */
+    /* --- ИЗМЕНЕНИЕ ЗДЕСЬ v3.6 - Увеличено пространство для доски --- */
+    flex: 2 1 60%; /* Whiteboard takes more space (Grow 2, Basis 60%) */
+    /* Было: flex: 3 1 70% or flex: 2 1 65%; */
     display: flex;
     flex-direction: column;
     background-color: var(--card-bg);
@@ -29,15 +29,16 @@
     box-shadow: var(--shadow-hud);
     overflow: hidden;
     border: 1px solid var(--border-color-light);
-    min-height: 400px; /* Added min-height */
+    min-height: 450px; /* ИЗМЕНЕНИЕ: Увеличена минимальная высота */
+    /* Было: min-height: 400px; */
     position: relative;
 }
 
 .interaction-panel {
-    /* --- ИЗМЕНЕНИЕ ЗДЕСЬ v3.5 --- */
-    flex: 1 1 30%; /* Chat takes less space (Grow 1, Basis 30%) */
-    /* max-width: 450px; */ /* Убрано ограничение ширины */
-    /* Было: flex: 1 1 35%; max-width: 450px; */
+    /* --- ИЗМЕНЕНИЕ ЗДЕСЬ v3.6 - Уменьшено пространство для чата, убрано max-width --- */
+    flex: 1 1 40%; /* Chat takes less space (Grow 1, Basis 40%) */
+    /* max-width: 450px; */ /* УБРАНО ограничение ширины */
+    /* Было: flex: 1 1 30% or flex: 1 1 35%; max-width: 450px; */
     display: flex;
     flex-direction: column;
     background-color: var(--chat-bg);
@@ -45,13 +46,16 @@
     box-shadow: var(--shadow-hud);
     overflow: hidden;
     border: 1px solid var(--border-color-light);
-    min-height: 400px; /* Added min-height, same as whiteboard */
+    min-height: 450px; /* ИЗМЕНЕНИЕ: Увеличена минимальная высота (как у доски) */
+     /* Было: min-height: 400px; */
 }
 
 /* Responsiveness for layout */
 @media (max-width: 1200px) {
-    .ai-presenter-area { flex-basis: 65%; } /* Adjust basis for medium screens */
-    .interaction-panel { flex-basis: 35%; }
+    /* --- ИЗМЕНЕНИЕ ЗДЕСЬ v3.6 - Скорректирован basis для средних экранов --- */
+    .ai-presenter-area { flex-basis: 58%; } /* Adjust basis */
+    .interaction-panel { flex-basis: 42%; } /* Adjust basis */
+    /* Было: 65% / 35% */
     .call-interface { padding: 1rem; gap: 1rem; }
 }
 @media (max-width: 992px) {
@@ -64,12 +68,14 @@
     }
     .ai-presenter-area {
         flex: 1 1 auto; /* Let it take needed height */
-        min-height: 450px; /* Adjust min-height for vertical layout */
+        min-height: 500px; /* ИЗМЕНЕНИЕ: Увеличена min-height для вертикального layout */
+        /* Было: min-height: 450px; */
         order: 1;
     }
     .interaction-panel {
         flex: 1 1 auto; /* Let it take needed height */
-        min-height: 400px; /* Adjust min-height */
+        min-height: 450px; /* ИЗМЕНЕНИЕ: Увеличена min-height */
+        /* Было: min-height: 400px; */
         order: 2;
         max-width: none; /* Max-width removed earlier */
         width: 100%;
@@ -77,7 +83,13 @@
 }
 @media (max-width: 576px) {
      .call-interface { padding: 0.5rem; gap: 0.5rem; }
-     .ai-presenter-area { min-height: 350px; }
-     .interaction-panel { min-height: 300px; }
+     .ai-presenter-area {
+         min-height: 400px; /* ИЗМЕНЕНИЕ: Увеличена min-height */
+         /* Было: min-height: 350px; */
+     }
+     .interaction-panel {
+         min-height: 350px; /* ИЗМЕНЕНИЕ: Увеличена min-height */
+          /* Было: min-height: 300px; */
+     }
 }
 /* --- END: vyuka-layout.css --- */
