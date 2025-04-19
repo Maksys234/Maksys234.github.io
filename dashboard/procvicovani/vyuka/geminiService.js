@@ -1,319 +1,338 @@
-// vyuka/geminiService.js - Функции для взаимодействия с Google Gemini API
-// Версия 3.9.2: Opraveno čištění chatu pro odstranění samotných ```, vylepšena detekce konce boardMarkdown.
+// dashboard/procvicovani/vyuka/geminiService.js
 
-import {
-    GEMINI_API_KEY,
-    GEMINI_API_URL,
-    GEMINI_SAFETY_SETTINGS,
-    GEMINI_GENERATION_CONFIG,
-    MAX_GEMINI_HISTORY_TURNS
-} from './config.js';
-import { state } from './state.js';
+// --- Constants ---
+const GEMINI_API_URL = config.GEMINI_API_URL;
+const GEMINI_SERVICE_VERSION = '3.9.2'; // Updated version for chat cleaning fixes
 
-/**
- * Парсит сырой ответ от Gemini, извлекая блоки Markdown и TTS.
- * @param {string} rawText - Сырой текстовый ответ от Gemini.
- * @returns {{ boardMarkdown: string, ttsCommentary: string, chatText: string }} - Объект с извлеченными частями.
- */
-export function parseGeminiResponse(rawText) {
-    const boardMarker = "[BOARD_MARKDOWN]:";
-    const ttsMarker = "[TTS_COMMENTARY]:";
-    let boardMarkdown = "";
-    let ttsCommentary = "";
-    let chatText = "";
-
-    // --- Логика парсинга (vylepšená detekce konce a čištění chatu) ---
-    const boardStart = rawText.indexOf(boardMarker);
-    let boardEndIndex = -1; // Index konce celého [BOARD_MARKDOWN]: bloku (včetně ```)
-    if (boardStart !== -1) {
-        let blockContentStart = boardStart + boardMarker.length;
-        // Najdi začátek bloku kódu (s markdown nebo bez)
-        let codeBlockStartTagMatch = rawText.substring(blockContentStart).match(/^\s*```(markdown)?/);
-        if (codeBlockStartTagMatch) {
-            blockContentStart += codeBlockStartTagMatch[0].length; // Posunout za značku bloku kódu
-            let blockEndMatch = rawText.indexOf("```", blockContentStart);
-            if (blockEndMatch !== -1) {
-                boardMarkdown = rawText.substring(blockContentStart, blockEndMatch).trim();
-                boardEndIndex = blockEndMatch + 3; // Konec je za značkou ```
-            } else {
-                // Pokud není uzavírací značka, bereme vše do dalšího markeru nebo konce
-                let potentialEnd = rawText.indexOf(ttsMarker, blockContentStart);
-                if (potentialEnd === -1 || potentialEnd < blockContentStart) potentialEnd = rawText.length;
-                boardMarkdown = rawText.substring(blockContentStart, potentialEnd).trim();
-                boardEndIndex = potentialEnd; // Konec je před dalším markerem nebo na konci
-                console.warn("parseGeminiResponse: Chybí uzavírací ``` pro blok tabule.");
-            }
-        } else {
-            // Pokud blok kódu nenalezen, bereme vše do dalšího markeru nebo konce
-            let potentialEnd = rawText.indexOf(ttsMarker, blockContentStart);
-            if (potentialEnd === -1 || potentialEnd < blockContentStart) potentialEnd = rawText.length;
-            boardMarkdown = rawText.substring(blockContentStart, potentialEnd).trim();
-            boardEndIndex = potentialEnd; // Konec je před dalším markerem nebo na konci
-            console.warn("parseGeminiResponse: Blok kódu ``` nenalezen za [BOARD_MARKDOWN]:");
-        }
-    } else {
-         // Pokud není boardMarker, pro účely další logiky považujeme konec za začátek
-         boardEndIndex = 0;
+// --- Initialization ---
+function initializeGeminiService() {
+    if (!GEMINI_API_URL) {
+        console.error('[Gemini Service] API URL is not configured in config.js.');
+        logError('Gemini API URL not configured.');
+        // Potentially disable features relying on Gemini
+        // uiHelpers.disableGeminiFeatures(); // Example function call
+        return false; // Indicate failure
     }
-
-    const ttsStart = rawText.indexOf(ttsMarker);
-    let ttsEndIndex = -1; // Index konce celého [TTS_COMMENTARY]: bloku
-    if (ttsStart !== -1) {
-        let commentaryStart = ttsStart + ttsMarker.length;
-        let potentialEnd = rawText.length;
-        // Hledáme další [BOARD_MARKDOWN]: *až po* aktuálním [TTS_COMMENTARY]:
-        const nextBoardStart = rawText.indexOf(boardMarker, commentaryStart);
-        if (nextBoardStart !== -1 && nextBoardStart > ttsStart) {
-            potentialEnd = nextBoardStart;
-        }
-        ttsCommentary = rawText.substring(commentaryStart, potentialEnd).trim();
-        ttsEndIndex = potentialEnd; // Konec je před dalším markerem nebo na konci
-    } else {
-         // Pokud není TTS marker, pro účely další logiky použijeme konec boardu
-         ttsEndIndex = boardEndIndex > 0 ? boardEndIndex : 0;
-    }
-
-    // Extrakce chatu: vše, co není součástí boardu nebo tts
-    let remainingText = '';
-    // Seřadíme nalezené bloky podle jejich počátečního indexu
-    const blocks = [];
-    if (boardStart !== -1) blocks.push({ start: boardStart, end: boardEndIndex });
-    if (ttsStart !== -1) blocks.push({ start: ttsStart, end: ttsEndIndex });
-    blocks.sort((a, b) => a.start - b.start);
-
-    let lastIndexProcessed = 0;
-    blocks.forEach(block => {
-        if (block.start > lastIndexProcessed) {
-            remainingText += rawText.substring(lastIndexProcessed, block.start);
-        }
-        lastIndexProcessed = Math.max(lastIndexProcessed, block.end);
-    });
-    // Přidáme zbytek textu po posledním bloku
-    if (lastIndexProcessed < rawText.length) {
-        remainingText += rawText.substring(lastIndexProcessed);
-    }
-
-    // Finální čištění chatu
-    chatText = remainingText
-        .replace(boardMarker, '') // Odstranit markery, pokud nějak zbyly
-        .replace(ttsMarker, '')
-        .replace(/```(markdown)?/g, '') // Odstranit ```markdown nebo ```
-        .replace(/`+/g, '') // <<< ODSTRANIT VŠECHNY ZPĚTNÉ APOSTROFY
-        .replace(/[.,!?;:]/g, '') // Odstranit interpunkci
-        .replace(/\$/g, '')      // Odstranit dolar
-        .trim();
-
-    console.log("[ParseGemini v3.9.2] Board:", boardMarkdown ? boardMarkdown.substring(0, 60) + "..." : "None");
-    console.log("[ParseGemini v3.9.2] TTS:", ttsCommentary ? ttsCommentary.substring(0, 60) + "..." : "None");
-    console.log("[ParseGemini v3.9.2] Chat (Raw Parsed):", chatText);
-
-    // Zjednodušení na 1-2 slova zůstává, ale kontrolujeme proti aktualizovanému seznamu
-    if (chatText.includes(' ')) {
-        const allowedPhrases = ["ano muzeme", "ne dekuji", "mam otazku", "chyba systemu", "info na tabuli", "navrhuji ukonceni", "tema uzavreno", "na tabuli", "tema zahajeno", "pokracujeme", "spravne", "zkus to"];
-        const lowerChat = chatText.toLowerCase();
-        if (!allowedPhrases.some(phrase => lowerChat.startsWith(phrase))) { // Zkontroluje, zda začíná povolenou frází
-             const firstWord = chatText.split(' ')[0];
-             console.log(`[ParseGemini v3.9.2] Chat text simplified from "${chatText}" to "${firstWord}"`);
-             chatText = firstWord;
-        }
-    }
-
-    console.log("[ParseGemini v3.9.2] Chat (Final Cleaned):", chatText || "None");
-
-    return { boardMarkdown, ttsCommentary, chatText };
+    logInfo(`[Gemini v${GEMINI_SERVICE_VERSION}] Service initialized with API URL: ${GEMINI_API_URL}`);
+    return true; // Indicate success
 }
 
+// --- Core Function ---
 
 /**
- * Строит финальный контент для запроса к Gemini API.
- * Версия 3.9.2: Používá stejný prompt jako 3.8.8.
- * @param {string} userPrompt - Текущий промпт/сообщение от пользователя или команды приложения.
- * @returns {Array<Object>} Массив объектов 'contents' для API.
+ * Parses the raw text response from the Gemini API.
+ * Extracts content for whiteboard, TTS, and chat based on markers.
+ * Version 3.9.2: Fixes chat cleaning. Handles missing markers gracefully.
+ * Version 3.9.6 (Vyuka Integration): Adjusted parsing to be more robust against missing ```.
+ *
+ * @param {string} responseText The raw text response from the API.
+ * @returns {object} An object containing { boardContent: string|null, ttsText: string|null, chatText: string|null, codeBlock: string|null }.
  */
-function _buildGeminiPayloadContents(userPrompt) {
-    const studentLevel = state.currentProfile?.skill_level || 'střední';
-    const topicName = state.currentTopic?.name || 'Neznámé téma';
-    const boardHistorySummary = state.boardContentHistory.length > 0
-        ? "Stručný souhrn PŘEDCHOZÍHO obsahu tabule:\n" + state.boardContentHistory.map(c => `- ${c.substring(0, 100).replace(/[\r\n]+/g, ' ')}...`).slice(-3).join('\n')
-        : "Tabule je zatím prázdná.";
+function parseGeminiResponse(responseText) {
+    // logDebug(`[ParseGemini v${GEMINI_SERVICE_VERSION}] Raw Response: ${responseText.substring(0, 100)}...`); // Log truncated response
 
-    // --- СИСТЕМНЫЙ ПРОМПТ (Версия 3.8.8/3.9.2) ---
-    let systemInstructionParts = [];
-    systemInstructionParts.push(`Jsi **expertní AI Tutor "Justax"** specializující se na **MATEMATIKU pro PŘIJÍMACÍ ZKOUŠKY na SŠ** v Česku.`);
-    systemInstructionParts.push(`Tvým úkolem je **důkladně** vysvětlit téma "${topicName}" studentovi s aktuální úrovní znalostí "${studentLevel}".`);
-    systemInstructionParts.push(`Cílem je příprava na úroveň CERMAT testů. Buď **precizní, metodický a náročný**, ale stále trpělivý. Komunikuj POUZE v ČEŠTINĚ.`);
+    // Default values
+    let boardContent = null;
+    let ttsText = null;
+    let chatTextRaw = null; // Raw text potentially for chat
+    let chatTextCleaned = null; // Cleaned chat text
+    let codeBlockContent = null; // Generic code block, if any
 
-    systemInstructionParts.push(`\n**ZÁSADNÍ PRAVIDLA KOMUNIKACE:**\n`);
-    systemInstructionParts.push(`* **DOMINUJE TABULE:** Veškerý **obsah** (vysvětlení, teorie, vzorce, kroky řešení, **odpovědi na otázky studenta**, **příklady**, **zpětná vazba**, **zadání úkolů**) patří **PRIMÁRNĚ** na TABULI (\`[BOARD_MARKDOWN]:\`).`);
-    systemInstructionParts.push(`* **TTS DOPLŇUJE:** Mluvený komentář (\`[TTS_COMMENTARY]:\`) slouží k **rozšíření a okomentování** toho, co je na tabuli, přidává kontext nebo alternativní pohled. NESMÍ obsahovat klíčové informace, které nejsou na tabuli.`);
-    systemInstructionParts.push(`* **CHAT MINIMALISTICKÝ:** Chat slouží **POUZE** pro **ultra-krátké** signalizační zprávy (1-2 slova) typu "Na tabuli", "Hotovo", "Rozumím", "Zkus to", "Pokračujeme", "Chyba", "Ano muzeme", "Ne dekuji". **ABSOLUTNĚ ŽÁDNÁ PUNKTUACE (tečky, čárky, otazníky, vykřičníky atd.) v CHATU.** Žádné vysvětlování v chatu. Žádné formátování. **NIKDY NEPOUŽÍVEJ symbol dolaru ($) ani zpětné apostrofy (\`) v CHATU.**`);
-    systemInstructionParts.push(`* **NÁROČNOST ("Přijímačky"):** Vysvětluj koncepty do **hloubky**. Používej **komplexnější příklady**, které mohou vyžadovat více kroků nebo kombinaci různých dovedností v rámci tématu "${topicName}". Zaměř se na typické "chytáky" a časté chyby z CERMAT testů. Požaduj od studenta **detailní postup řešení**, nejen výsledek.`);
-
-    systemInstructionParts.push(`\n**Struktura Výstupu (MUSÍ být dodržena):**\n`);
-    systemInstructionParts.push(`1.  **TABULE (\`[BOARD_MARKDOWN]:\`)**`);
-    systemInstructionParts.push(`    * **Účel:** Hlavní nosič informací. Obsahuje VŠECHNY matematické zápisy, teorii, kroky řešení, příklady, zadání úkolů, zpětnou vazbu.`);
-    systemInstructionParts.push(`    * **Formát:** VŽDY začíná \`[BOARD_MARKDOWN]:\`, následuje \`\
-        \`\`markdown ... \`\`\`\`.`);
-    systemInstructionParts.push(`    * **Obsah Markdown:** Pouze: Nadpisy (\`##\`, \`###\`), seznamy (\`*\`, \`-\`, \`1.\`), tučné (\`**text**\`), kurzíva (\`*text*\`), LaTeX (\`$\` nebo \`<span class="math-block">\`). **Žádný inline kód (\
-        \`)**. Tabulky povoleny.`);
-
-    systemInstructionParts.push(`2.  **MLUVENÝ KOMENTÁŘ (\`[TTS_COMMENTARY]:\`)**`);
-    systemInstructionParts.push(`    * **Účel:** **Doplnění** tabule. Přidává kontext, vysvětluje myšlenkové pochody, alternativní pohledy, povzbuzení. NESMÍ obsahovat info, které není na tabuli.`);
-    systemInstructionParts.push(`    * **Formát:** VŽDY začíná \`[TTS_COMMENTARY]:\`, následuje čistý text **bez formátování a LaTeXu**. `);
-    systemInstructionParts.push(`    * **Kdy použít:** Téměř vždy SPOLEČNĚ S \`[BOARD_MARKDOWN]:\` pro hlavní výklad, odpovědi na otázky nebo komplexní zpětnou vazbu. Může chybět u jednoduché signalizace.`);
-
-    systemInstructionParts.push(`3.  **CHAT (BEZ MARKERŮ, BEZ FORMÁTOVÁNÍ, BEZ PUNKTUACE, BEZ $, BEZ \`, 1-2 SLOVA)**`);
-    systemInstructionParts.push(`    * **Účel:** **Signalizace a řízení toku.** Příklady povolených zpráv: \`Na tabuli\`, \`Hotovo\`, \`Rozumím\`, \`Zkus to\`, \`Pokracujeme\`, \`Chyba\`, \`Ano muzeme\`, \`Ne dekuji\`.`);
-    systemInstructionParts.push(`    * **Formát:** ČISTÝ TEXT, **jedno nebo dvě slova**. **ŽÁDNÁ interpunkce.** **ŽÁDNÝ symbol dolaru.** ŽÁDNÉ zpětné apostrofy. Žádné vysvětlení.`);
-
-    systemInstructionParts.push(`\n**Interakce se Studentem:**\n`);
-    systemInstructionParts.push(`* **Otázky Studenta:** 1. **Odpověď dej na TABULI** (\`[BOARD_MARKDOWN]:\`). 2. (Volitelně) Doplň stručně v \`[TTS_COMMENTARY]:\`. 3. Do CHATU napiš pouze: \`Na tabuli\`.`);
-    systemInstructionParts.push(`* **Řešení Úkolu Studentem:** 1. **Detailní zpětnou vazbu** na **TABULI** (\`[BOARD_MARKDOWN]:\`). 2. (Volitelně) Okmentuj stručně v \`[TTS_COMMENTARY]:\`. 3. Do CHATU napiš pouze: \`Spravne\` nebo \`Chyba\`.`);
-    systemInstructionParts.push(`* **Kontrola Porozumění:** Po vysvětlení na tabuli, zadej **náročnější kontrolní úkol** na **TABULI** a do CHATU napiš \`Zkus to\`.`);
-    systemInstructionParts.push(`* **Pokračování Výkladu:** Po úspěšném kroku/výzvě, připrav další část na TABULI + TTS a do CHATU napiš \`Pokracujeme\`.`);
-
-    systemInstructionParts.push(`\n**Ukončení Témata:**\n`);
-    systemInstructionParts.push(`* **PODMÍNKY:** Navrhuj ukončení **POUZE** když: 1. Téma "${topicName}" bylo **důkladně** probráno na úrovni **Přijímaček**. 2. Student **úspěšně vyřešil několik komplexnějších úloh**. 3. Proběhlo **dostatečné množství interakcí**. `);
-    systemInstructionParts.push(`* **Návrh na Ukončení:** 1. Na **TABULI** (\`[BOARD_MARKDOWN]:\`) stručně shrň. 2. V **CHATU** napiš **POUZE**: \`Navrhuji ukonceni [PROPOSE_COMPLETION]\`. Vlož **přesně** marker \`[PROPOSE_COMPLETION]\` na konec.`);
-
-    systemInstructionParts.push(`\n**Shrnutí Historie Tabule:**\n${boardHistorySummary}\n`);
-    systemInstructionParts.push(`**PŘÍSNĚ DODRŽUJ STRUKTURU A PRAVIDLA! Tabule dominantní, TTS doplňuje, Chat minimalistický bez interpunkce a bez $ nebo \`. Úroveň Přijímačky.**`);
-
-    const systemInstruction = systemInstructionParts.join('\n');
-    // --- КОНЕЦ СБОРКИ systemInstruction ---
-
-    const history = state.geminiChatContext.slice(-MAX_GEMINI_HISTORY_TURNS * 2);
-    const currentUserMessage = { role: "user", parts: [{ text: userPrompt }] };
-    const modelConfirmationText = `Rozumim Budu AI Tutor Justax zamereny na prijimacky Tema ${topicName} Uroven ${studentLevel} Tabule dominantni TTS doplnujici Chat minimalisticky bez interpunkce bez dolaru bez zpetnych apostrofu Ukonceni opatrne s markerem [PROPOSE_COMPLETION]`; // Обновил и здесь
-
-    const contents = [
-        { role: "user", parts: [{ text: systemInstruction }] },
-        { role: "model", parts: [{ text: modelConfirmationText }] },
-        ...history,
-        currentUserMessage
-    ];
-
-    const maxHistoryLength = MAX_GEMINI_HISTORY_TURNS * 2;
-    if (contents.length > maxHistoryLength + 3) { // +3 for system instructions and current user message
-        const historyStartIndex = contents.length - maxHistoryLength - 1; // Index of the first history item to remove
-        contents.splice(2, historyStartIndex - 2); // Remove items between system confirm and needed history
-        console.warn(`[Gemini v3.9.2] Context length exceeded limit (${maxHistoryLength * 2}). Trimmed history. New length: ${contents.length}`);
+    if (!responseText || typeof responseText !== 'string') {
+        logError('[ParseGemini] Invalid responseText received:', responseText);
+        return { boardContent, ttsText, chatText: chatTextCleaned, codeBlock: codeBlockContent };
     }
-    return contents;
-}
-
-
-/**
- * Отправляет запрос к Gemini API и возвращает обработанный ответ.
- * Версия 3.9.2: Používá opravený parseGeminiResponse.
- * @param {string} prompt - Промпт для Gemini.
- * @param {boolean} isChatInteraction - Флаг чат-интеракции.
- * @returns {Promise<{success: boolean, data: object|null, error: string|null}>}
- */
-export async function sendToGemini(prompt, isChatInteraction = false) {
-    if (!GEMINI_API_KEY || !GEMINI_API_KEY.startsWith('AIzaSy')) {
-        console.error("[Gemini v3.9.2] Invalid or missing API Key");
-        return { success: false, data: null, error: "Chyba Konfigurace Chybi platny API klic pro AI" };
-    }
-    if (!prompt || prompt.trim() === '') {
-        console.error("[Gemini v3.9.2] Empty prompt provided");
-        return { success: false, data: null, error: "Chyba Prazdny dotaz pro AI" };
-    }
-    if (!state.currentTopic && !prompt.includes("Vysvětli ZÁKLADY")) {
-        console.error("[Gemini v3.9.2] No current topic set for non-initial prompt");
-        return { success: false, data: null, error: "Chyba Neni vybrano tema" };
-    }
-
-    console.log(`[Gemini v3.9.2] Sending request (Chat Interaction: ${isChatInteraction}): "${prompt.substring(0, 80)}..."`);
-
-    const contents = _buildGeminiPayloadContents(prompt);
-    const body = {
-        contents,
-        generationConfig: GEMINI_GENERATION_CONFIG,
-        safetySettings: GEMINI_SAFETY_SETTINGS
-    };
 
     try {
-        const response = await fetch(GEMINI_API_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(body)
-        });
-        const responseData = await response.json();
+        // Define markers
+        const boardMarker = '[BOARD_MARKDOWN]';
+        const ttsMarker = '[TTS]';
+        const chatMarker = '[CHAT]';
+        // const codeBlockMarker = '```'; // No longer strictly required for board
 
-        if (!response.ok) {
-            let errorText = `Chyba API ${response.status}`;
-            if (responseData?.error?.message) { errorText += ` ${responseData.error.message}`; }
-            else if (typeof responseData === 'string') { errorText += ` ${responseData}`; }
-            else { errorText += ` Neznama chyba API`; }
-            errorText = errorText.replace(/[.,!?;:]/g, '');
-            console.error("[Gemini v3.9.2] API Error Response:", responseData);
-            throw new Error(errorText);
-        }
+        // Find marker indices
+        const boardStartIndex = responseText.indexOf(boardMarker);
+        const ttsStartIndex = responseText.indexOf(ttsMarker);
+        const chatStartIndex = responseText.indexOf(chatMarker);
 
-        if (responseData.promptFeedback?.blockReason) {
-            console.error("[Gemini v3.9.2] Request blocked:", responseData.promptFeedback);
-            throw new Error(`Pozadavek blokovan ${responseData.promptFeedback.blockReason}`);
-        }
+        // --- Extract Board Content ---
+        if (boardStartIndex !== -1) {
+            const boardContentStart = boardStartIndex + boardMarker.length;
+            // Find the end of the board content: it's the start of the next marker *after* boardContentStart, or the end of the string
+            let boardEndIndex = responseText.length;
+            if (ttsStartIndex > boardContentStart && ttsStartIndex < boardEndIndex) {
+                boardEndIndex = ttsStartIndex;
+            }
+            if (chatStartIndex > boardContentStart && chatStartIndex < boardEndIndex) {
+                boardEndIndex = chatStartIndex;
+            }
+            // Add any other potential markers here if they can follow BOARD_MARKDOWN
 
-        const candidate = responseData.candidates?.[0];
-        if (!candidate) {
-            console.error("[Gemini v3.9.2] No candidate found in response:", responseData);
-            throw new Error('AI neposkytlo platnou odpoved');
-        }
-
-        if (candidate.finishReason && !["STOP", "MAX_TOKENS"].includes(candidate.finishReason)) {
-            console.warn(`[Gemini v3.9.2] Potentially problematic FinishReason: ${candidate.finishReason}.`);
-            let reasonText = `Generovani ukonceno ${candidate.finishReason}`;
-            if (candidate.finishReason === 'SAFETY') reasonText = 'Odpoved blokovana filtrem';
-            if (candidate.finishReason === 'RECITATION') reasonText = 'Odpoved blokovana recitace';
-            // Throw error for problematic finish reasons even if content exists? Maybe not, let's parse first.
-        }
-
-        const rawText = candidate.content?.parts?.[0]?.text;
-
-        // Handle cases where response is blocked or empty but finishReason is STOP (e.g., safety filter on output)
-        if (!rawText && candidate.finishReason && candidate.finishReason !== 'STOP') {
-             if (candidate.finishReason === 'MAX_TOKENS') throw new Error('Odpoved AI prilis dlouha');
-             else throw new Error('AI vratilo prazdnou odpoved Duvod ' + (candidate.finishReason || 'Neznamy'));
-        }
-
-        // If rawText is empty (even with STOP reason), still add it to context and return empty parsed data
-        if (!rawText) {
-            console.warn("[Gemini v3.9.2] Response candidate has no text content (rawText is empty/undefined). FinishReason:", candidate.finishReason);
-            // Update context
-             state.geminiChatContext.push({ role: "user", parts: [{ text: prompt }] });
-             state.geminiChatContext.push({ role: "model", parts: [{ text: "" }] }); // Add empty response to history
-             // Trim context if needed
-             if (state.geminiChatContext.length > MAX_GEMINI_HISTORY_TURNS * 2 + 2) {
-                 state.geminiChatContext.splice(2, state.geminiChatContext.length - (MAX_GEMINI_HISTORY_TURNS * 2 + 2));
-             }
-            return { success: true, data: { boardMarkdown: "", ttsCommentary: "", chatText: "" }, error: null };
-        }
-
-        // Update context with valid response
-        state.geminiChatContext.push({ role: "user", parts: [{ text: prompt }] });
-        state.geminiChatContext.push({ role: "model", parts: [{ text: rawText }] });
-        if (state.geminiChatContext.length > MAX_GEMINI_HISTORY_TURNS * 2 + 2) {
-             state.geminiChatContext.splice(2, state.geminiChatContext.length - (MAX_GEMINI_HISTORY_TURNS * 2 + 2));
-        }
-
-        // Update board history (only if board content exists)
-        const boardMatch = rawText.match(/\[BOARD_MARKDOWN]:\s*```(?:markdown)?([\s\S]*?)```/); // Improved regex
-        if (boardMatch && boardMatch[1]) {
-            state.boardContentHistory.push(boardMatch[1].trim());
-            if(state.boardContentHistory.length > 7) { // Limit history size
-                state.boardContentHistory.shift();
+            boardContent = responseText.substring(boardContentStart, boardEndIndex).trim();
+            logDebug(`[ParseGemini v${GEMINI_SERVICE_VERSION}] Board: ${boardContent.substring(0, 100)}...`);
+        } else {
+            logWarning(`[ParseGemini] Marker ${boardMarker} not found.`);
+            // Attempt to salvage if no markers are present but there's content
+            if (ttsStartIndex === -1 && chatStartIndex === -1 && responseText.length > 0) {
+                logWarning(`[ParseGemini] No markers found, assuming entire response is board content.`);
+                boardContent = responseText.trim();
+                logDebug(`[ParseGemini v${GEMINI_SERVICE_VERSION}] Board (fallback): ${boardContent.substring(0, 100)}...`);
             }
         }
 
-        const parsedData = parseGeminiResponse(rawText); // Использует parseGeminiResponse v3.9.2
+        // --- Extract TTS Text ---
+        if (ttsStartIndex !== -1) {
+            const ttsContentStart = ttsStartIndex + ttsMarker.length;
+            // Find the end of TTS content: start of next marker *after* ttsContentStart, or end of string
+            let ttsEndIndex = responseText.length;
+            if (chatStartIndex > ttsContentStart && chatStartIndex < ttsEndIndex) {
+                ttsEndIndex = chatStartIndex;
+            }
+            if (boardStartIndex > ttsContentStart && boardStartIndex < ttsEndIndex) {
+                 ttsEndIndex = boardStartIndex; // Should ideally not happen if order is fixed
+            }
+            // Add other markers if needed
+
+            ttsText = responseText.substring(ttsContentStart, ttsEndIndex).trim();
+            logDebug(`[ParseGemini v${GEMINI_SERVICE_VERSION}] TTS: ${ttsText.substring(0, 100)}...`);
+        } else {
+            logDebug(`[ParseGemini v${GEMINI_SERVICE_VERSION}] TTS marker not found.`);
+        }
+
+        // --- Extract Chat Text ---
+        if (chatStartIndex !== -1) {
+            const chatContentStart = chatStartIndex + chatMarker.length;
+            // Find the end of Chat content: start of next marker *after* chatContentStart, or end of string
+            let chatEndIndex = responseText.length;
+             if (ttsStartIndex > chatContentStart && ttsStartIndex < chatEndIndex) {
+                 chatEndIndex = ttsStartIndex; // Should ideally not happen
+             }
+             if (boardStartIndex > chatContentStart && boardStartIndex < chatEndIndex) {
+                 chatEndIndex = boardStartIndex; // Should ideally not happen
+             }
+            // Add other markers if needed
+
+            chatTextRaw = responseText.substring(chatContentStart, chatEndIndex).trim();
+            logDebug(`[ParseGemini v${GEMINI_SERVICE_VERSION}] Chat (Raw Parsed): ${chatTextRaw.substring(0, 100)}...`);
+
+            // Clean the chat text
+            chatTextCleaned = chatTextRaw;
+            if (!chatTextCleaned || chatTextCleaned.toLowerCase() === 'none' || chatTextCleaned.toLowerCase() === 'null') {
+                chatTextCleaned = null; // Treat "none" or "null" as no chat message
+                logDebug(`[ParseGemini v${GEMINI_SERVICE_VERSION}] Chat (Final Cleaned): None (detected 'none'/'null')`);
+            } else if (chatTextCleaned.length === 0) {
+                chatTextCleaned = null; // Treat empty string as no chat message
+                logDebug(`[ParseGemini v${GEMINI_SERVICE_VERSION}] Chat (Final Cleaned): None (empty string)`);
+            } else {
+                 // Optional: Further cleaning (e.g., remove leading/trailing quotes if the API sometimes adds them)
+                 // chatTextCleaned = chatTextCleaned.replace(/^"|"$/g, '').trim();
+                 logDebug(`[ParseGemini v${GEMINI_SERVICE_VERSION}] Chat (Final Cleaned): ${chatTextCleaned ? chatTextCleaned.substring(0, 100) + '...' : 'None'}`);
+            }
+        } else {
+            logDebug(`[ParseGemini v${GEMINI_SERVICE_VERSION}] Chat marker not found.`);
+        }
+
+        // --- (Optional) Extract generic code block ---
+        // This logic remains separate, maybe for future use if API returns code outside board
+        // const genericCodeBlockMarker = '```';
+        // const codeBlockStartIndex = responseText.indexOf(genericCodeBlockMarker);
+        // const codeBlockEndIndex = responseText.lastIndexOf(genericCodeBlockMarker);
+        // if (codeBlockStartIndex !== -1 && codeBlockEndIndex > codeBlockStartIndex) {
+        //     // Ensure it's not part of the already parsed board content if board had ```
+        //     // This logic might need refinement based on expected structure
+        //     codeBlockContent = responseText.substring(codeBlockStartIndex + genericCodeBlockMarker.length, codeBlockEndIndex).trim();
+        //     logDebug(`[ParseGemini v${GEMINI_SERVICE_VERSION}] Generic Code Block Found: ${codeBlockContent.substring(0, 100)}...`);
+        // }
+
+    } catch (error) {
+        logError('[ParseGemini] Error parsing response:', error, responseText);
+        // Return default values or throw error depending on desired handling
+        return { boardContent: null, ttsText: null, chatText: null, codeBlock: null };
+    }
+
+    // Return parsed data
+    return { boardContent, ttsText, chatText: chatTextCleaned, codeBlock: codeBlockContent };
+}
+
+
+/**
+ * Sends a request to the Gemini API endpoint.
+ * Handles history formatting and API key retrieval.
+ * Version 3.9.2: Includes fixes for cleaning chat history.
+ *
+ * @param {string} prompt The user's current prompt or message.
+ * @param {Array<object>} history The conversation history (array of {role: 'user'/'model', parts: [{text: string}]}).
+ * @param {boolean} isChatInteraction Indicates if this is part of an ongoing chat vs initial topic load.
+ * @returns {Promise<object>} A promise resolving to { success: boolean, data: { boardContent: string|null, ttsText: string|null, chatText: string|null, codeBlock: string|null } | null, error: string | null }.
+ */
+async function sendToGemini(prompt, history = [], isChatInteraction = true) {
+    logDebug(`[Gemini v${GEMINI_SERVICE_VERSION}] Sending request (Chat Interaction: ${isChatInteraction}): "${prompt.substring(0, 100)}..."`);
+
+    if (!GEMINI_API_URL) {
+        const errorMsg = 'Gemini API URL is not configured.';
+        logError(`[Gemini] ${errorMsg}`);
+        return { success: false, data: null, error: errorMsg };
+    }
+
+    // Retrieve API Key securely (replace with your actual secure method)
+    const apiKey = config.GEMINI_API_KEY; // Assuming it's directly in config for now
+    if (!apiKey) {
+        const errorMsg = 'Gemini API Key is missing or not configured.';
+        logError(`[Gemini] ${errorMsg}`);
+         // uiHelpers.showToast(errorMsg, 'error'); // Notify user if appropriate
+        return { success: false, data: null, error: errorMsg };
+    }
+
+    // --- History Cleaning/Formatting (v3.9.2) ---
+    const cleanedHistory = history
+        .map(entry => {
+            // Ensure parts is an array and contains text
+            if (!entry || !Array.isArray(entry.parts) || entry.parts.length === 0 || typeof entry.parts[0].text !== 'string') {
+                logWarning('[Gemini] Invalid history entry skipped:', entry);
+                return null; // Skip invalid entries
+            }
+            // Trim whitespace from text parts
+            const cleanedText = entry.parts[0].text.trim();
+            if (cleanedText.length === 0) {
+                 logWarning('[Gemini] History entry with empty text skipped:', entry);
+                return null; // Skip entries with effectively empty text
+            }
+            return {
+                role: entry.role,
+                parts: [{ text: cleanedText }]
+            };
+        })
+        .filter(entry => entry !== null); // Remove skipped entries
+
+    // logDebug('[Gemini] Cleaned History:', JSON.stringify(cleanedHistory));
+
+
+    // --- Construct Request Body ---
+    const requestBody = {
+        contents: [
+            // Include history first if it exists
+            ...cleanedHistory,
+            // Add the current user prompt
+            {
+                role: "user", // Always 'user' for the latest prompt
+                parts: [{ text: prompt }]
+            }
+        ],
+         // Add generationConfig if needed (temperature, topP, topK, maxOutputTokens)
+         // generationConfig: {
+         //     temperature: 0.7,
+         //     topP: 1.0,
+         //     topK: 40,
+         //     maxOutputTokens: 1024, // Adjust as needed
+         // },
+         // Add safetySettings if needed
+         // safetySettings: [
+         //     { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_MEDIUM_AND_ABOVE" },
+         //     // Add other categories as needed
+         // ]
+    };
+
+    // logDebug('[Gemini] Request Body:', JSON.stringify(requestBody).substring(0, 500) + '...'); // Log truncated body
+
+
+    // --- API Call ---
+    try {
+        const response = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestBody),
+        });
+
+        if (!response.ok) {
+            let errorBodyText = 'Could not read error body.';
+            try {
+                 // Try to parse the error response from Gemini for more details
+                 const errorData = await response.json();
+                 errorBodyText = JSON.stringify(errorData.error || errorData);
+                 logError(`[Gemini] API Error Response: ${errorBodyText}`);
+            } catch (parseError) {
+                 logError(`[Gemini] Failed to parse error response body: ${parseError}`);
+                 try {
+                    // Fallback: try reading as plain text
+                    errorBodyText = await response.text();
+                    logError(`[Gemini] API Error Response (Text): ${errorBodyText}`);
+                 } catch (textError) {
+                     logError(`[Gemini] Failed to read error response body as text: ${textError}`);
+                 }
+            }
+            const errorMsg = `API request failed with status ${response.status}: ${response.statusText}. Details: ${errorBodyText}`;
+            logError(`[Gemini] ${errorMsg}`);
+            return { success: false, data: null, error: `Chyba ${response.status}: ${errorBodyText}` }; // User-friendly part
+        }
+
+        const data = await response.json();
+        // logDebug('[Gemini] Full API Response Data:', JSON.stringify(data)); // Log full response if needed
+
+        // --- Process Response ---
+        // Assuming the response structure follows the Gemini API standard
+        // Response might be blocked due to safety settings
+        if (data.promptFeedback && data.promptFeedback.blockReason) {
+             const blockReason = data.promptFeedback.blockReason;
+             const errorMsg = `Request blocked due to safety settings: ${blockReason}`;
+             logError(`[Gemini] ${errorMsg}`);
+             // Consider checking safetyRatings for details if needed
+             // console.warn("Safety Ratings:", data.promptFeedback.safetyRatings);
+             return { success: false, data: null, error: `Obsah blokován: ${blockReason}` }; // User-friendly error
+        }
+
+        // Check if candidates array exists and has content
+        if (!data.candidates || data.candidates.length === 0) {
+            const errorMsg = 'API response missing candidates.';
+            logError(`[Gemini] ${errorMsg}`, data);
+             // Check if maybe the prompt was blocked without explicit blockReason
+             if (data.promptFeedback) {
+                 logWarning("[Gemini] Prompt Feedback:", data.promptFeedback);
+                 return { success: false, data: null, error: 'Odpověď AI byla zablokována nebo je prázdná.' };
+             }
+             return { success: false, data: null, error: 'AI neposkytla žádnou odpověď.' };
+        }
+
+        // Extract text from the first candidate
+        const candidate = data.candidates[0];
+        if (!candidate.content || !candidate.content.parts || candidate.content.parts.length === 0 || !candidate.content.parts[0].text) {
+            const errorMsg = 'API response candidate missing valid text content.';
+            logError(`[Gemini] ${errorMsg}`, candidate);
+            // Check finishReason for clues (e.g., "SAFETY", "RECITATION", "OTHER")
+             const finishReason = candidate.finishReason || "N/A";
+             logWarning(`[Gemini] Candidate Finish Reason: ${finishReason}`);
+             if (finishReason === "SAFETY" || finishReason === "RECITATION") {
+                 return { success: false, data: null, error: `Odpověď AI byla zastavena (${finishReason}).` };
+             }
+             return { success: false, data: null, error: 'Odpověď AI má nesprávný formát.' };
+        }
+
+        const responseText = candidate.content.parts[0].text;
+
+        // Parse the extracted text
+        const parsedData = parseGeminiResponse(responseText);
+
         return { success: true, data: parsedData, error: null };
 
     } catch (error) {
-        console.error('[Gemini v3.9.2] Chyba komunikace s Gemini nebo zpracovani odpovedi:', error);
-        return { success: false, data: null, error: (error.message || "Neznama chyba AI").replace(/[.,!?;:]/g, '') };
+        logError('[Gemini] Network or other error during API call:', error);
+        // Handle network errors specifically if possible (e.g., check error.message)
+        let userError = 'Chyba sítě nebo serveru při komunikaci s AI.';
+         if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+             userError = 'Chyba sítě při komunikaci s AI. Zkontrolujte připojení.';
+         }
+         return { success: false, data: null, error: userError };
     }
 }
 
-console.log("Gemini service module loaded (v3.9.2 with chat cleaning fixes).");
+// --- Export or make available globally ---
+// If using modules: export { initializeGeminiService, sendToGemini };
+// If using global scope:
+window.geminiService = {
+    initialize: initializeGeminiService,
+    sendToGemini: sendToGemini,
+    parseGeminiResponse: parseGeminiResponse // Expose if needed externally, though usually internal
+};
+
+logInfo(`Gemini service module loaded (v${GEMINI_SERVICE_VERSION} with chat cleaning fixes).`);
