@@ -1,9 +1,7 @@
 // ui.js - Кэш DOM-элементов интерфейса Vyuka
+// Verze: Přidán continueBtn
 
 // Экспортируем объект ui, чтобы получить доступ к элементам из других модулей.
-// Важно, чтобы этот скрипт выполнялся после того, как DOM будет полностью загружен,
-// либо чтобы доступ к ui объекту происходил внутри `DOMContentLoaded` или подобных обработчиков.
-// В нашем случае, так как мы используем type="module", это будет работать корректно.
 export const ui = {
     // Loaders & Overlays
     initialLoader: document.getElementById('initial-loader'),
@@ -12,14 +10,14 @@ export const ui = {
 
     // Sidebar & User Info
     sidebar: document.getElementById('sidebar'),
-    mainMobileMenuToggle: document.getElementById('main-mobile-menu-toggle'), // Используем ID из HTML
+    mainMobileMenuToggle: document.getElementById('main-mobile-menu-toggle'),
     sidebarCloseToggle: document.getElementById('sidebar-close-toggle'),
-    sidebarAvatar: document.getElementById('sidebar-avatar'), // ID в HTML: user-avatar
-    sidebarName: document.getElementById('sidebar-name'),   // ID в HTML: user-name
+    sidebarAvatar: document.getElementById('sidebar-avatar'),
+    sidebarName: document.getElementById('sidebar-name'),
     currentYearSidebar: document.getElementById('currentYearSidebar'),
 
     // Header & Notifications
-    dashboardHeader: document.querySelector('.dashboard-header'), // Используем класс, т.к. ID нет
+    dashboardHeader: document.querySelector('.dashboard-header'),
     notificationBell: document.getElementById('notification-bell'),
     notificationCount: document.getElementById('notification-count'),
     notificationsDropdown: document.getElementById('notifications-dropdown'),
@@ -29,10 +27,10 @@ export const ui = {
 
     // Main Content & Vyuka specific elements
     mainContent: document.getElementById('main-content'),
-    topicBar: document.querySelector('.topic-bar'), // Используем класс
+    topicBar: document.querySelector('.topic-bar'),
     currentTopicDisplay: document.getElementById('current-topic-display'),
-    continueBtn: document.getElementById('continue-btn'),
-    learningInterface: document.querySelector('.call-interface'), // Главный контейнер обучения
+    continueBtn: document.getElementById('continue-btn'), // << PŘIDÁNO ZDE
+    learningInterface: document.querySelector('.call-interface'), // Hlavní kontejner učení
     aiPresenterArea: document.querySelector('.ai-presenter-area'),
     aiPresenterHeader: document.querySelector('.ai-presenter-header'),
     aiAvatarPlaceholder: document.querySelector('.ai-avatar-placeholder'),
@@ -53,14 +51,13 @@ export const ui = {
     micBtn: document.getElementById('mic-btn'),
     clearChatBtn: document.getElementById('clear-chat-btn'),
     saveChatBtn: document.getElementById('save-chat-btn'),
-    // aiAvatarCorner: document.getElementById('ai-avatar-corner'), // REMOVED
     stopSpeechBtn: document.getElementById('stop-speech-btn'),
-    markCompleteBtn: document.getElementById('mark-complete-btn'),
+    // markCompleteBtn removed as completion is handled differently
 
     // Feedback & Footer
     toastContainer: document.getElementById('toast-container'),
     globalError: document.getElementById('global-error'),
-    dashboardFooter: document.querySelector('.dashboard-footer'), // Используем класс
+    dashboardFooter: document.querySelector('.dashboard-footer'),
     currentYearFooter: document.getElementById('currentYearFooter'),
 
     // Mouse Follower
@@ -71,5 +68,5 @@ export const ui = {
 if (!ui.mainContent || !ui.sidebar || !ui.learningInterface) {
     console.error("UI Cache Error: Core layout elements not found! Check IDs in vyuka.html");
 } else {
-    console.log("UI elements cache created.");
+    console.log("UI elements cache created (including continueBtn).");
 }
