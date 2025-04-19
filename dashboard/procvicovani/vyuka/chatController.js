@@ -31,7 +31,7 @@ export async function addChatMessage(message, sender, saveToDb = true, timestamp
 
     const messageId = `msg-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
 
-    // **FIX: Ensure user data is available before generating initials**
+    // Ensure user data is available before generating initials
     let avatarText = 'AI';
     if (sender === 'user') {
         if (state.currentUser && state.currentProfile) {
@@ -57,14 +57,12 @@ export async function addChatMessage(message, sender, saveToDb = true, timestamp
 
     const textContentSpan = document.createElement('span');
     textContentSpan.className = 'message-text-content';
-    // **FIX: Handle potential "?" characters by ensuring message is not just "?"**
+    // Handle potential "?" characters by ensuring message is not just "?"
     if (message && message.trim() !== '?') {
         renderMarkdown(textContentSpan, message); // Рендерим Markdown внутри span
     } else if (message && message.trim() === '?') {
         console.warn("addChatMessage: Received a message containing only '?'. Skipping render.");
-        // Optionally, render something else or nothing
-        // textContentSpan.textContent = "(Přijata neplatná zpráva)";
-        return; // Or simply don't add the message
+        return; // Don't add the message if it's just "?"
     } else {
         textContentSpan.textContent = "(Prázdná zpráva)"; // Handle empty messages if needed
     }
@@ -79,8 +77,7 @@ export async function addChatMessage(message, sender, saveToDb = true, timestamp
         ttsButton.title = 'Poslechnout';
         ttsButton.innerHTML = '<i class="fas fa-volume-up"></i>';
         ttsButton.dataset.textToSpeak = textForSpeech; // Сохраняем текст в data-атрибут
-        // Event listener is now added in vyukaApp.js using delegation
-        // ttsButton.addEventListener('click', (e) => { ... });
+        // Event listener is added in vyukaApp.js using delegation
         bubbleContentDiv.appendChild(ttsButton);
     }
 
@@ -97,13 +94,12 @@ export async function addChatMessage(message, sender, saveToDb = true, timestamp
 
     // Добавляем сообщение в DOM и прокручиваем
     ui.chatMessages.appendChild(messageDiv);
-    // Плавная прокрутка к новому сообщению
     messageDiv.scrollIntoView({ behavior: 'smooth', block: 'end' });
 
     // Инициализация тултипов для новой кнопки TTS происходит в vyukaApp.js
 
     // Сохранение в БД (используем функцию из supabaseService)
-    // **FIX: Don't save if message was just "?"**
+    // Don't save if message was just "?"
     if (saveToDb && state.supabase && state.currentUser && state.currentTopic && state.currentSessionId && message && message.trim() !== '?') {
         const messageData = {
             user_id: state.currentUser.id,
@@ -116,25 +112,21 @@ export async function addChatMessage(message, sender, saveToDb = true, timestamp
         const saved = await saveChatMessage(messageData);
         if (!saved) {
              console.warn("Failed to save chat message to DB.");
-            // Можно показать toast из основного модуля
-            // showToast("Chyba ukládání chatu.", "error");
+            // showToast("Chyba ukládání chatu.", "error"); // Called from vyukaApp
         }
     }
 }
 
 /**
  * Обновляет визуальное состояние чата (индикатор загрузки, активность кнопок).
- * Эта функция может быть перемещена в основной модуль, если она влияет на другие части UI.
  * @param {boolean} isThinking - Думает ли ИИ.
  */
 export function updateGeminiThinkingState(isThinking) {
     state.geminiIsThinking = isThinking;
-    // setLoadingState('chat', isThinking); // Вызывать из основного модуля
+    // setLoadingState('chat', isThinking); // Called from vyukaApp
 
-    ui.aiAvatarCorner?.classList.toggle('thinking', isThinking);
-    if (!isThinking) {
-        ui.aiAvatarCorner?.classList.remove('speaking');
-    }
+    // REMOVED: ui.aiAvatarCorner?.classList.toggle('thinking', isThinking);
+    // REMOVED: if (!isThinking) { ui.aiAvatarCorner?.classList.remove('speaking'); }
 
     if (isThinking) {
         addThinkingIndicator();
@@ -142,8 +134,7 @@ export function updateGeminiThinkingState(isThinking) {
         removeThinkingIndicator();
     }
 
-    // Управление состоянием кнопок чата
-    // manageButtonStates(); // Вызывать из основного модуля
+    // manageButtonStates(); // Called from vyukaApp
 }
 
 /**
@@ -185,8 +176,6 @@ export function removeThinkingIndicator() {
 
 /**
  * Обрабатывает отправку сообщения пользователем.
- * Примечание: Эта функция теперь НЕ вызывает sendToGemini напрямую.
- * Она должна вернуть текст для отправки, а основной модуль вызовет sendToGemini.
  * @returns {string|null} Текст сообщения для отправки или null, если отправка невозможна.
  */
 export function prepareUserMessageForSend() {
@@ -196,10 +185,10 @@ export function prepareUserMessageForSend() {
         return null; // Невозможно отправить
     }
 
-    // **FIX: Check for user profile before proceeding**
+    // Check for user profile before proceeding
     if (!state.currentUser || !state.currentProfile) {
         console.error("prepareUserMessageForSend: User data not available.");
-        // showToast('Chyba', 'Nelze odeslat, chybí data uživatele.', 'error'); // Called from vyukaApp
+        // showToast is called from handleSendMessage in vyukaApp
         return null;
     }
 
@@ -236,14 +225,14 @@ export async function clearCurrentChatSessionHistory() {
     }
     state.geminiChatContext = []; // Очищаем контекст Gemini
     console.log("Chat history cleared locally.");
-    // showToast("Historie chatu vymazána.", "info"); // Уведомление лучше показать из основного модуля
+    // showToast("Historie chatu vymazána.", "info"); // Called from vyukaApp
 
     // Удаляем историю из БД
     if (state.currentUser && state.currentSessionId) {
         const deleted = await deleteChatSessionHistory(state.currentUser.id, state.currentSessionId);
         if (!deleted) {
              console.warn("Failed to delete chat history from DB.");
-            // showToast("Chyba při mazání historie chatu z databáze.", "error");
+            // showToast("Chyba při mazání historie chatu z databáze.", "error"); // Called from vyukaApp
         }
     }
 }
@@ -302,8 +291,6 @@ export async function saveChatToPDF() {
             const clone = msgElement.cloneNode(true);
             // Удаляем элементы, ненужные в PDF
             clone.querySelector('.tts-listen-btn')?.remove();
-            // Оставляем аватар для ясности
-             // clone.querySelector('.message-avatar')?.remove();
             elementToExport.appendChild(clone);
         }
     });
