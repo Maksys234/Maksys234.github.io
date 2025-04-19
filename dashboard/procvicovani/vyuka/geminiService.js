@@ -1,5 +1,5 @@
 // vyuka/geminiService.js - Функции для взаимодействия с Google Gemini API
-// Версия 3.8.2: Добавлена запятая после объекта model в contents для исправления SyntaxError.
+// Версия 3.8.3: Вынос строки подтверждения модели в константу для исправления SyntaxError.
 // Прочие изменения из v3.8 сохранены.
 
 import {
@@ -102,21 +102,21 @@ export function parseGeminiResponse(rawText) {
     // Убираем пунктуацию
     chatText = chatText.replace(/[.,!?;:]/g, '');
 
-    console.log("[ParseGemini v3.8.2] Board:", boardMarkdown ? boardMarkdown.substring(0, 60) + "..." : "None");
-    console.log("[ParseGemini v3.8.2] TTS:", ttsCommentary ? ttsCommentary.substring(0, 60) + "..." : "None");
-    console.log("[ParseGemini v3.8.2] Chat (Raw Parsed):", chatText);
+    console.log("[ParseGemini v3.8.3] Board:", boardMarkdown ? boardMarkdown.substring(0, 60) + "..." : "None");
+    console.log("[ParseGemini v3.8.3] TTS:", ttsCommentary ? ttsCommentary.substring(0, 60) + "..." : "None");
+    console.log("[ParseGemini v3.8.3] Chat (Raw Parsed):", chatText);
 
-    // Упрощение чата (логика без изменений)
+    // Упрощение чата
     if (chatText.includes(' ')) {
         const allowedPhrases = ["ano muzeme", "ne dekuji", "mam otazku", "chyba systemu", "info na tabuli", "navrhuji ukonceni", "tema uzavreno"];
         if (!allowedPhrases.includes(chatText.toLowerCase())) {
              const firstWord = chatText.split(' ')[0];
-             console.log(`[ParseGemini v3.8.2] Chat text simplified from "${chatText}" to "${firstWord}"`);
+             console.log(`[ParseGemini v3.8.3] Chat text simplified from "${chatText}" to "${firstWord}"`);
              chatText = firstWord;
         }
     }
 
-    console.log("[ParseGemini v3.8.2] Chat (Final Cleaned):", chatText || "None");
+    console.log("[ParseGemini v3.8.3] Chat (Final Cleaned):", chatText || "None");
 
     return { boardMarkdown, ttsCommentary, chatText };
 }
@@ -124,7 +124,7 @@ export function parseGeminiResponse(rawText) {
 
 /**
  * Строит финальный контент для запроса к Gemini API.
- * Версия 3.8.2: Добавлена запятая после объекта model.
+ * Версия 3.8.3: Вынос строки подтверждения модели в константу.
  * @param {string} userPrompt - Текущий промпт/сообщение от пользователя или команды приложения.
  * @returns {Array<Object>} Массив объектов 'contents' для API.
  */
@@ -215,21 +215,23 @@ ${boardHistorySummary}
     const history = state.geminiChatContext.slice(-MAX_GEMINI_HISTORY_TURNS * 2);
     const currentUserMessage = { role: "user", parts: [{ text: userPrompt }] };
 
+    // ИСПРАВЛЕНИЕ: Выносим строку подтверждения модели в константу
+    const modelConfirmationText = `Rozumim Budu AI Tutor Justax zamereny na prijimacky Tema ${topicName} Uroven ${studentLevel} Tabule dominantni TTS doplnujici Chat minimalisticky bez interpunkce Ukonceni opatrne s markerem [PROPOSE_COMPLETION]`;
+
     const contents = [
         { role: "user", parts: [{ text: systemInstruction }] },
-        // Подтверждение модели
-        { role: "model", parts: [{ text: `Rozumim Budu AI Tutor Justax zamereny na prijimacky Tema ${topicName} Uroven ${studentLevel} Tabule dominantni TTS doplnujici Chat minimalisticky bez interpunkce Ukonceni opatrne s markerem [PROPOSE_COMPLETION]` }] }, // Конец объекта модели
-        // ИСПРАВЛЕНИЕ: Добавлена запятая здесь ^^^ перед ...history
+        // Используем константу здесь
+        { role: "model", parts: [{ text: modelConfirmationText }] }, // Конец объекта модели, запятая после него ВАЖНА!
         ...history,
         currentUserMessage
     ];
 
     // Ограничение контекста
     const maxHistoryLength = MAX_GEMINI_HISTORY_TURNS * 2;
-    if (contents.length > maxHistoryLength + 3) { // +1 для userPrompt, +2 для systemInstruction+modelAck
+    if (contents.length > maxHistoryLength + 3) {
         const historyStartIndex = contents.length - maxHistoryLength - 1;
-        contents.splice(2, historyStartIndex - 2); // Удаляем из середины, сохраняя системные сообщения
-        console.warn(`[Gemini v3.8.2] Context length exceeded limit trimmed history New length ${contents.length}`);
+        contents.splice(2, historyStartIndex - 2);
+        console.warn(`[Gemini v3.8.3] Context length exceeded limit trimmed history New length ${contents.length}`);
     }
 
     return contents;
@@ -238,7 +240,7 @@ ${boardHistorySummary}
 
 /**
  * Отправляет запрос к Gemini API и возвращает обработанный ответ.
- * Версия 3.8.2: Использует исправленный _buildGeminiPayloadContents.
+ * Версия 3.8.3: Использует исправленный _buildGeminiPayloadContents.
  * @param {string} prompt - Промпт для Gemini (может быть командой или текстом пользователя).
  * @param {boolean} isChatInteraction - Указывает, является ли это прямым взаимодействием в чате (влияет на логирование).
  * @returns {Promise<{success: boolean, data: {boardMarkdown: string, ttsCommentary: string, chatText: string}|null, error: string|null}>}
@@ -246,24 +248,24 @@ ${boardHistorySummary}
 export async function sendToGemini(prompt, isChatInteraction = false) {
     // Проверки API ключа и промпта (без изменений)
     if (!GEMINI_API_KEY || !GEMINI_API_KEY.startsWith('AIzaSy')) {
-        console.error("[Gemini v3.8.2] Invalid or missing API Key");
+        console.error("[Gemini v3.8.3] Invalid or missing API Key");
         return { success: false, data: null, error: "Chyba Konfigurace Chybi platny API klic pro AI" };
     }
     if (!prompt || prompt.trim() === '') {
-        console.error("[Gemini v3.8.2] Empty prompt provided");
+        console.error("[Gemini v3.8.3] Empty prompt provided");
         return { success: false, data: null, error: "Chyba Prazdny dotaz pro AI" };
     }
     if (!state.currentTopic && !prompt.includes("Vysvětli ZÁKLADY")) {
-        console.error("[Gemini v3.8.2] No current topic set for non-initial prompt");
+        console.error("[Gemini v3.8.3] No current topic set for non-initial prompt");
         return { success: false, data: null, error: "Chyba Neni vybrano tema" };
     }
 
-    console.log(`[Gemini v3.8.2] Sending request (Chat Interaction: ${isChatInteraction}): "${prompt.substring(0, 80)}..."`);
+    console.log(`[Gemini v3.8.3] Sending request (Chat Interaction: ${isChatInteraction}): "${prompt.substring(0, 80)}..."`);
 
-    // Построение payload (теперь с исправленной запятой)
+    // Построение payload (теперь с вынесенной строкой и запятой)
     const contents = _buildGeminiPayloadContents(prompt);
 
-    // console.log("[Gemini v3.8.2] Payload Contents:", JSON.stringify(contents, null, 2));
+    // console.log("[Gemini v3.8.3] Payload Contents:", JSON.stringify(contents, null, 2));
 
     const body = {
         contents,
@@ -287,26 +289,26 @@ export async function sendToGemini(prompt, isChatInteraction = false) {
             else if (typeof responseData === 'string') { errorText += ` ${responseData}`; }
             else { errorText += ` Neznama chyba API`; }
             errorText = errorText.replace(/[.,!?;:]/g, '');
-            console.error("[Gemini v3.8.2] API Error Response:", responseData);
+            console.error("[Gemini v3.8.3] API Error Response:", responseData);
             throw new Error(errorText);
         }
 
-        // console.log("[Gemini v3.8.2] Raw API Response:", JSON.stringify(responseData, null, 2));
+        // console.log("[Gemini v3.8.3] Raw API Response:", JSON.stringify(responseData, null, 2));
 
         // Проверки безопасности и кандидата (без изменений)
         if (responseData.promptFeedback?.blockReason) {
-            console.error("[Gemini v3.8.2] Request blocked:", responseData.promptFeedback);
+            console.error("[Gemini v3.8.3] Request blocked:", responseData.promptFeedback);
             throw new Error(`Pozadavek blokovan ${responseData.promptFeedback.blockReason}`);
         }
         const candidate = responseData.candidates?.[0];
         if (!candidate) {
-            console.error("[Gemini v3.8.2] No candidate found in response:", responseData);
+            console.error("[Gemini v3.8.3] No candidate found in response:", responseData);
             throw new Error('AI neposkytlo platnou odpoved');
         }
 
         // Проверка причины завершения (без изменений)
         if (candidate.finishReason && !["STOP", "MAX_TOKENS"].includes(candidate.finishReason)) {
-            console.warn(`[Gemini v3.8.2] Potentially problematic FinishReason: ${candidate.finishReason}.`);
+            console.warn(`[Gemini v3.8.3] Potentially problematic FinishReason: ${candidate.finishReason}.`);
             let reasonText = `Generovani ukonceno ${candidate.finishReason}`;
             if (candidate.finishReason === 'SAFETY') reasonText = 'Odpoved blokovana filtrem';
             if (candidate.finishReason === 'RECITATION') reasonText = 'Odpoved blokovana recitace';
@@ -321,7 +323,7 @@ export async function sendToGemini(prompt, isChatInteraction = false) {
              else throw new Error('AI vratilo prazdnou odpoved Duvod ' + (candidate.finishReason || 'Neznamy'));
         }
         if (!rawText) {
-            console.warn("[Gemini v3.8.2] Response candidate has no text content returning empty parsed data");
+            console.warn("[Gemini v3.8.3] Response candidate has no text content returning empty parsed data");
              state.geminiChatContext.push({ role: "user", parts: [{ text: prompt }] });
              state.geminiChatContext.push({ role: "model", parts: [{ text: "" }] });
              if (state.geminiChatContext.length > MAX_GEMINI_HISTORY_TURNS * 2 + 2) {
@@ -346,14 +348,14 @@ export async function sendToGemini(prompt, isChatInteraction = false) {
             }
         }
 
-        // Парсинг ответа (используется parseGeminiResponse v3.8.2)
+        // Парсинг ответа (используется parseGeminiResponse v3.8.3)
         const parsedData = parseGeminiResponse(rawText);
         return { success: true, data: parsedData, error: null };
 
     } catch (error) {
-        console.error('[Gemini v3.8.2] Chyba komunikace s Gemini nebo zpracovani odpovedi:', error);
+        console.error('[Gemini v3.8.3] Chyba komunikace s Gemini nebo zpracovani odpovedi:', error);
         return { success: false, data: null, error: (error.message || "Neznama chyba AI").replace(/[.,!?;:]/g, '') };
     }
 }
 
-console.log("Gemini service module loaded (v3.8.2 with comma fix).");
+console.log("Gemini service module loaded (v3.8.3 with const fix).");
