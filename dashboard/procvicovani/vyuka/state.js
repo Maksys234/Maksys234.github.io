@@ -1,15 +1,14 @@
 // state.js - Глобальное состояние приложения Vyuka
+// Версия, включающая флаг aiProposedCompletion
 
 // Экспортируем объект state, чтобы его можно было импортировать и изменять в других модулях.
-// Важно: Прямое изменение этого объекта из разных модулей может усложнить отладку.
-// При усложнении логики можно создать функции-сеттеры внутри этого файла.
 export let state = {
     supabase: null,               // Клиент Supabase (будет инициализирован позже)
     currentUser: null,            // Данные текущего пользователя Supabase Auth
     currentProfile: null,         // Данные профиля пользователя из таблицы 'profiles'
 
     currentTopic: null,           // Текущая тема для изучения { activity_id, plan_id, name, description, user_id, topic_id }
-    currentPlanId: null,          // ID текущего активного учебного плана
+    currentPlanId: null,          // ID текущего активного учебного плана (если используется отдельно)
     currentSessionId: null,       // Уникальный ID текущей сессии обучения/чата
 
     geminiChatContext: [],        // История сообщений для Gemini API
@@ -35,11 +34,13 @@ export let state = {
         chat: false,
         user: false,
         notifications: false,
-        points: false,
+        points: false, // Добавлен для отслеживания загрузки при начислении очков
         // Можно добавить другие по необходимости
     },
 
-    aiIsWaitingForAnswer: false // Флаг: ожидает ли ИИ ответ от пользователя на конкретный вопрос
+    // Флаги состояния диалога с AI
+    aiIsWaitingForAnswer: false, // Флаг: ожидает ли ИИ ответ от пользователя на конкретный вопрос
+    aiProposedCompletion: false  // Флаг: предложил ли ИИ завершить тему
 };
 
-console.log("Initial application state created:", state.isDarkMode ? "Dark mode detected" : "Light mode detected");
+console.log("Initial application state created:", state.isDarkMode ? "Dark mode detected" : "Light mode detected", "- aiProposedCompletion included.");
