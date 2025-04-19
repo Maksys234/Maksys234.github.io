@@ -53,7 +53,7 @@ export const ui = {
     micBtn: document.getElementById('mic-btn'),
     clearChatBtn: document.getElementById('clear-chat-btn'),
     saveChatBtn: document.getElementById('save-chat-btn'),
-    aiAvatarCorner: document.getElementById('ai-avatar-corner'),
+    // aiAvatarCorner: document.getElementById('ai-avatar-corner'), // REMOVED
     stopSpeechBtn: document.getElementById('stop-speech-btn'),
     markCompleteBtn: document.getElementById('mark-complete-btn'),
 
