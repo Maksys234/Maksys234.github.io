@@ -1,10 +1,27 @@
-// speechService.js - Функции для Text-to-Speech (TTS) и Speech-to-Text (STT) - v3.6 (Исправление Zastavit)
+// speechService.js - Funkce pro Text-to-Speech (TTS) a Speech-to-Text (STT)
+// Verze 3.7.0: Aktualizuje state.isSpeakingTTS a volá manageButtonStates
 
 import { state } from './state.js';
 import { ui } from './ui.js';
 import { TTS_LANGUAGE, TTS_RATE, TTS_PITCH, STT_LANGUAGE } from './config.js';
-// Закомментировано, т.к. showToast лучше вызывать из основного потока приложения
-// import { showToast } from './uiHelpers.js';
+// Importujeme funkci pro aktualizaci tlačítek z hlavního modulu
+// POZOR: Toto může vést k cyklické závislosti, pokud vyukaApp.js také importuje
+// něco z tohoto souboru (což dělá). Pokud by nastal problém, je nutné předat
+// manageButtonStates jako callback parametr do speakText, startListening, stopListening.
+// Prozatím to zkusíme takto.
+let manageButtonStatesCallback = () => {
+    console.warn("[SpeechService] manageButtonStates callback not set!");
+};
+
+export function setManageButtonStatesCallback(callback) {
+    if (typeof callback === 'function') {
+        manageButtonStatesCallback = callback;
+        console.log("[SpeechService] manageButtonStates callback registered.");
+    } else {
+        console.error("[SpeechService] Invalid callback provided for manageButtonStates.");
+    }
+}
+
 
 // --- Text-to-Speech (TTS) ---
 
@@ -17,30 +34,21 @@ export function loadVoices() {
         const voices = window.speechSynthesis.getVoices();
         if (!voices || voices.length === 0) {
             console.warn("[TTS] No voices available yet. Waiting for 'onvoiceschanged'.");
-            // Гарантируем, что обработчик назначен только один раз
             if (!window.speechSynthesis.onvoiceschanged) {
                 window.speechSynthesis.onvoiceschanged = loadVoices;
             }
             return;
         }
         console.log('[TTS] Available voices:', voices.map(v => ({ name: v.name, lang: v.lang, default: v.default })));
-
-        // Улучшенный поиск голоса
         let preferredVoice = voices.find(voice => voice.lang === TTS_LANGUAGE && /female|žena|ženský|iveta|zuzana/i.test(voice.name));
         if (!preferredVoice) preferredVoice = voices.find(voice => voice.lang === TTS_LANGUAGE);
         if (!preferredVoice) preferredVoice = voices.find(voice => voice.lang.startsWith('cs'));
         if (!preferredVoice) preferredVoice = voices.find(voice => voice.default && voice.lang.startsWith('cs'));
-        // Если чешский не найден, ищем английский как запасной
         if (!preferredVoice) preferredVoice = voices.find(voice => voice.lang.startsWith('en'));
-        // Если и английского нет, берем любой стандартный или первый
         if (!preferredVoice) preferredVoice = voices.find(voice => voice.default) || voices[0];
-
         state.czechVoice = preferredVoice;
         console.log("[TTS] Selected voice:", state.czechVoice?.name, state.czechVoice?.lang || 'N/A');
-
-        // Удаляем обработчик после успешной загрузки, чтобы не срабатывал повторно
         window.speechSynthesis.onvoiceschanged = null;
-
     } catch (e) {
         console.error("[TTS] Error loading voices:", e);
         state.czechVoice = null;
@@ -67,74 +75,65 @@ export function speakText(text, targetChunkElement = null) {
     if (!state.speechSynthesisSupported) { console.warn("TTS not supported."); return; }
     if (!text) { console.warn("[TTS] No text provided."); return; }
 
-    // Улучшенная очистка текста (сохраняем знаки препинания)
     const plainText = text
-        .replace(/<br\s*\/?>/gi, '\n') // Заменяем <br> на перенос строки
-        .replace(/<[^>]*>/g, ' ')       // Удаляем остальные HTML теги
-        .replace(/```[\s\S]*?```/g, ' (ukázka kódu) ') // Заменяем блоки кода
-        .replace(/`([^`]+)`/g, '$1')   // Удаляем обратные кавычки у inline кода
-        .replace(/!\[.*?\]\(.*?\)/g, ' (obrázek) ') // Заменяем изображения
-        .replace(/\[(.*?)\]\(.*?\)/g, '$1') // Оставляем текст ссылок
-        .replace(/(\*\*|__)(.*?)\1/g, '$2') // Удаляем **bold** и __bold__
-        .replace(/(\*|_)(.*?)\1/g, '$2')   // Удаляем *italic* и _italic_
-        .replace(/~{2}(.*?)~{2}/g, '$1') // Удаляем ~~strikethrough~~
-        .replace(/^\s*#+\s*/gm, '')      // Удаляем # в начале строк (заголовки)
-        .replace(/^\s*>\s*/gm, '')       // Удаляем > в начале строк (цитаты)
-        .replace(/^\s*-\s*/gm, '')       // Удаляем - в начале строк (списки)
-        .replace(/^\s*\d+\.\s*/gm, '') // Удаляем '1.' в начале строк (списки)
-        .replace(/\$\$(.*?)\$\$/g, 'matematický vzorec') // Заменяем блочные формулы
-        .replace(/\$(.*?)\$/g, 'vzorec') // Заменяем inline формулы
-        .replace(/\s+/g, ' ').trim(); // Убираем лишние пробелы
+        .replace(/<br\s*\/?>/gi, '\n')
+        .replace(/<[^>]*>/g, ' ')
+        .replace(/```[\s\S]*?```/g, ' (ukázka kódu) ')
+        .replace(/`([^`]+)`/g, '$1')
+        .replace(/!\[.*?\]\(.*?\)/g, ' (obrázek) ')
+        .replace(/\[(.*?)\]\(.*?\)/g, '$1')
+        .replace(/(\*\*|__)(.*?)\1/g, '$2')
+        .replace(/(\*|_)(.*?)\1/g, '$2')
+        .replace(/~{2}(.*?)~{2}/g, '$1')
+        .replace(/^\s*#+\s*/gm, '')
+        .replace(/^\s*>\s*/gm, '')
+        .replace(/^\s*-\s*/gm, '')
+        .replace(/^\s*\d+\.\s*/gm, '')
+        .replace(/\$\$(.*?)\$\$/g, 'matematický vzorec')
+        .replace(/\$(.*?)\$/g, 'vzorec')
+        .replace(/\s+/g, ' ').trim();
 
     if (!plainText) { console.warn("[TTS] Text is empty after cleaning."); return; }
 
-    // Отменяем предыдущую речь, если она есть
-    if (window.speechSynthesis.speaking) {
-        console.log("[TTS] Attempting to cancel previous speech before starting new one...");
-        window.speechSynthesis.cancel(); // Остановить предыдущее
+    if (window.speechSynthesis.speaking || window.speechSynthesis.pending) {
+        console.log("[TTS] Cancelling previous speech before starting new one...");
+        window.speechSynthesis.cancel();
     }
     removeBoardHighlight(); // Снять подсветку
 
     const utterance = new SpeechSynthesisUtterance(plainText);
-    utterance.lang = state.czechVoice?.lang || TTS_LANGUAGE; // Используем язык выбранного голоса
+    utterance.lang = state.czechVoice?.lang || TTS_LANGUAGE;
     utterance.rate = TTS_RATE;
     utterance.pitch = TTS_PITCH;
-
     if (state.czechVoice) { utterance.voice = state.czechVoice; }
-    else {
-        console.warn("[TTS] Czech voice not loaded, attempting to load now and use default.");
-        loadVoices(); // Попытка загрузить голоса снова
-        if (state.czechVoice) { utterance.voice = state.czechVoice; }
-    }
+    else { console.warn("[TTS] Czech voice not loaded, using default."); }
 
     utterance.onstart = () => {
-        console.log(`[TTS] Speech STARTED. State: speaking=${window.speechSynthesis.speaking}, pending=${window.speechSynthesis.pending}, paused=${window.speechSynthesis.paused}`);
+        console.log(`[TTS] Speech STARTED.`);
+        state.isSpeakingTTS = true; // <<< Aktualizace stavu
         ui.boardSpeakingIndicator?.classList.add('active');
         if (targetChunkElement) {
-            console.log("[TTS Highlight] Adding highlight to:", targetChunkElement);
             targetChunkElement.classList.add('speaking-highlight');
             state.currentlyHighlightedChunk = targetChunkElement;
         }
-        // НЕ вызываем manageButtonStates отсюда
+        manageButtonStatesCallback(); // <<< VOLÁNÍ CALLBACKU
     };
     utterance.onend = () => {
-        console.log(`[TTS] Speech FINISHED. State: speaking=${window.speechSynthesis.speaking}, pending=${window.speechSynthesis.pending}, paused=${window.speechSynthesis.paused}`);
+        console.log(`[TTS] Speech FINISHED.`);
+        state.isSpeakingTTS = false; // <<< Aktualizace stavu
         ui.boardSpeakingIndicator?.classList.remove('active');
         removeBoardHighlight();
-        // НЕ вызываем manageButtonStates отсюда
+        manageButtonStatesCallback(); // <<< VOLÁNÍ CALLBACKU
     };
     utterance.onerror = (event) => {
         console.error('[TTS] SpeechSynthesisUtterance.onerror:', event.error);
+        state.isSpeakingTTS = false; // <<< Aktualizace stavu
         ui.boardSpeakingIndicator?.classList.remove('active');
         removeBoardHighlight();
-        // НЕ вызываем manageButtonStates отсюда
+        manageButtonStatesCallback(); // <<< VOLÁNÍ CALLBACKU
     };
-    utterance.onpause = () => {
-        console.log(`[TTS] Speech PAUSED. State: speaking=${window.speechSynthesis.speaking}, pending=${window.speechSynthesis.pending}, paused=${window.speechSynthesis.paused}`);
-    }
-    utterance.onresume = () => {
-        console.log(`[TTS] Speech RESUMED. State: speaking=${window.speechSynthesis.speaking}, pending=${window.speechSynthesis.pending}, paused=${window.speechSynthesis.paused}`);
-    }
+    utterance.onpause = () => console.log(`[TTS] Speech PAUSED.`);
+    utterance.onresume = () => console.log(`[TTS] Speech RESUMED.`);
 
     console.log(`[TTS] Calling window.speechSynthesis.speak() with voice: ${utterance.voice?.name || 'default'}, lang: ${utterance.lang}`);
     window.speechSynthesis.speak(utterance);
@@ -144,136 +143,165 @@ export function speakText(text, targetChunkElement = null) {
  * Немедленно останавливает текущее воспроизведение TTS.
  */
 export function stopSpeech() {
-    console.log("[TTS Action] User clicked 'Zastavit' button (stopSpeech function called)."); // Лог вызова функции
+    console.log("[TTS Action] User clicked 'Zastavit'.");
     if (state.speechSynthesisSupported) {
-        const wasSpeaking = window.speechSynthesis.speaking; // Проверяем ДО отмены
-        console.log(`[TTS Action] State before cancel: speaking=${wasSpeaking}, pending=${window.speechSynthesis.pending}, paused=${window.speechSynthesis.paused}`);
-        if (wasSpeaking || window.speechSynthesis.pending) { // Отменяем, если говорит или ожидает
-            console.log("[TTS Action] Calling window.speechSynthesis.cancel()...");
+        if (window.speechSynthesis.speaking || window.speechSynthesis.pending) {
             window.speechSynthesis.cancel();
-            console.log("[TTS Action] window.speechSynthesis.cancel() called."); // Лог после вызова
-        } else {
-             console.log("[TTS Action] Not speaking/pending, no need to cancel.");
         }
-        // Убираем индикаторы и подсветку независимо от того, говорило ли что-то
+        state.isSpeakingTTS = false; // <<< Aktualizace stavu
         ui.boardSpeakingIndicator?.classList.remove('active');
         removeBoardHighlight();
-        console.log(`[TTS Action] Indicators cleared. State after cancel: speaking=${window.speechSynthesis.speaking}, pending=${window.speechSynthesis.pending}, paused=${window.speechSynthesis.paused}`);
-        // НЕ вызываем manageButtonStates отсюда
+        manageButtonStatesCallback(); // <<< VOLÁNÍ CALLBACKU
+        console.log("[TTS Action] Speech cancelled and UI updated via callback.");
     } else {
-         console.log("[TTS Action] Speech synthesis not supported, cannot stop.");
+         console.log("[TTS Action] Speech synthesis not supported.");
     }
 }
 
 
-// --- Speech-to-Text (STT) --- (Остается без изменений от v3.5, если работало корректно)
+// --- Speech-to-Text (STT) ---
 
 /** Инициализирует объект SpeechRecognition. */
 export function initializeSpeechRecognition() {
-    if (!state.speechRecognitionSupported) { console.warn("STT: Speech Recognition not supported by this browser."); if(ui.micBtn) { ui.micBtn.disabled = true; ui.micBtn.title = "Rozpoznávání řeči není podporováno"; } return; } try { const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition; state.speechRecognition = new SpeechRecognition(); state.speechRecognition.lang = STT_LANGUAGE; state.speechRecognition.interimResults = false; state.speechRecognition.maxAlternatives = 1; state.speechRecognition.continuous = false; state.speechRecognition.onresult = (event) => { const transcript = event.results[0][0].transcript; console.log('[STT] Speech recognized:', transcript); if (ui.chatInput) { ui.chatInput.value = transcript; ui.chatInput.dispatchEvent(new Event('input')); /* Trigger input event for auto-resize */ } stopListening(); /* Stop listening after result */ }; state.speechRecognition.onerror = (event) => { console.error('[STT] Speech recognition error:', event.error); let errorMsg = "Chyba rozpoznávání řeči"; if (event.error === 'no-speech') errorMsg = "Nerozpoznal jsem žádnou řeč."; else if (event.error === 'audio-capture') errorMsg = "Chyba mikrofonu."; else if (event.error === 'not-allowed' || event.error === 'service-not-allowed') { errorMsg = "Přístup k mikrofonu zamítnut."; if(ui.micBtn) ui.micBtn.disabled = true; } else { errorMsg = `Chyba: ${event.error}`; } /* showToast('Chyba Hlasu', errorMsg, 'error'); */ stopListening(); }; state.speechRecognition.onend = () => { /* Removed unnecessary log */ if (state.isListening) { /* If ended unexpectedly */ console.log('[STT] Recognition ended unexpectedly.'); stopListening(); } }; console.log("STT: Speech Recognition initialized successfully."); } catch (e) { console.error("STT: Failed to initialize Speech Recognition:", e); state.speechRecognitionSupported = false; if(ui.micBtn) { ui.micBtn.disabled = true; ui.micBtn.title = "Chyba inicializace rozpoznávání"; } }
+    if (!state.speechRecognitionSupported) {
+        console.warn("STT: Speech Recognition not supported by this browser.");
+        if(ui.micBtn) { ui.micBtn.disabled = true; ui.micBtn.title = "Rozpoznávání řeči není podporováno"; }
+        return;
+    }
+    try {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        state.speechRecognition = new SpeechRecognition();
+        state.speechRecognition.lang = STT_LANGUAGE;
+        state.speechRecognition.interimResults = false; // Nechceme průběžné výsledky
+        state.speechRecognition.maxAlternatives = 1;
+        state.speechRecognition.continuous = false; // Ukončit po první frázi
+
+        state.speechRecognition.onresult = (event) => {
+            const transcript = event.results[0][0].transcript;
+            console.log('[STT] Speech recognized:', transcript);
+            if (ui.chatInput) {
+                ui.chatInput.value = transcript;
+                ui.chatInput.dispatchEvent(new Event('input')); // Trigger input event for auto-resize
+            }
+            stopListening(); // Explicitně zastavit po získání výsledku
+        };
+
+        state.speechRecognition.onerror = (event) => {
+            console.error('[STT] Speech recognition error:', event.error);
+            let errorMsg = "Chyba rozpoznávání řeči";
+            if (event.error === 'no-speech') errorMsg = "Nerozpoznal jsem žádnou řeč.";
+            else if (event.error === 'audio-capture') errorMsg = "Chyba zachytávání zvuku (mikrofon).";
+            else if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+                 errorMsg = "Přístup k mikrofonu byl zamítnut nebo není povolen.";
+                 if(ui.micBtn) ui.micBtn.disabled = true; // Trvale deaktivovat, pokud zamítnuto
+            } else if (event.error === 'network') {
+                 errorMsg = "Chyba sítě při rozpoznávání řeči.";
+            } else { errorMsg = `Chyba: ${event.error}`; }
+            showToast('Chyba Hlasu', errorMsg, 'error'); // Použít showToast z uiHelpers
+            stopListening(); // Zajistit ukončení
+        };
+
+        state.speechRecognition.onend = () => {
+             // Volá se i po úspěšném rozpoznání (onresult -> stopListening -> onend)
+             // nebo při chybě (onerror -> stopListening -> onend)
+             // nebo při automatickém ukončení (např. ticho)
+            console.log('[STT] Recognition service ended.');
+            // Pokud stav isListening je stále true, znamená to, že skončil neočekávaně
+            if (state.isListening) {
+                 console.warn('[STT] Recognition ended unexpectedly (e.g., timeout). Resetting state.');
+                 stopListening(); // Zavolá interně manageButtonStates a nastaví isListening na false
+            }
+        };
+
+        console.log("STT: Speech Recognition initialized successfully.");
+    } catch (e) {
+        console.error("STT: Failed to initialize Speech Recognition:", e);
+        state.speechRecognitionSupported = false;
+        if(ui.micBtn) { ui.micBtn.disabled = true; ui.micBtn.title = "Chyba inicializace rozpoznávání"; }
+    }
 }
 
 /** Запускает процесс распознавания речи. */
 export function startListening() {
-    if (!state.speechRecognitionSupported || !state.speechRecognition || state.isListening) { console.log("[STT] Cannot start listening:", { supported: state.speechRecognitionSupported, exists: !!state.speechRecognition, listening: state.isListening }); return; }
-    // Проверка разрешений перед стартом
+    if (!state.speechRecognitionSupported || !state.speechRecognition || state.isListening) {
+        console.log("[STT] Cannot start listening:", { supported: state.speechRecognitionSupported, exists: !!state.speechRecognition, listening: state.isListening });
+        return;
+    }
+    // Zkusíme získat přístup k mikrofonu PŘED spuštěním rozpoznávání
     navigator.mediaDevices.getUserMedia({ audio: true })
     .then(() => {
         try {
             console.log('[STT] Attempting to start speech recognition...');
             state.speechRecognition.start();
-            state.isListening = true;
-            if (ui.micBtn) {
-                ui.micBtn.classList.add('listening');
-                ui.micBtn.title = "Zastavit hlasový vstup";
-                // Кнопка не должна быть disabled во время слушания
-                // ui.micBtn.disabled = false; // Это управляется в manageButtonStates
-            }
+            state.isListening = true; // <<< Aktualizace stavu
+            // UI se aktualizuje přes manageButtonStates
+            manageButtonStatesCallback(); // <<< VOLÁNÍ CALLBACKU
             console.log('[STT] Speech recognition started.');
         } catch (e) {
-            // Обработка ошибки, если start() не удался после получения разрешения (редко)
             console.error("[STT] Error starting speech recognition after getting permissions:", e);
-            stopListening(); // Ensure state is reset
-            /* showToast('Chyba Startu', 'Nepodařilo se spustit rozpoznávání.', 'error'); */
+            stopListening(); // Zajistit reset stavu
+            showToast('Chyba Startu', 'Nepodařilo se spustit rozpoznávání.', 'error');
         }
     })
     .catch(err => {
         console.error("[STT] Microphone access denied or unavailable:", err);
-        if (ui.micBtn) {
-             ui.micBtn.disabled = true; // Disable permanently if denied
-             ui.micBtn.title = "Přístup k mikrofonu zamítnut";
-         }
-         /* showToast('Chyba Mikrofonu', 'Přístup k mikrofonu byl zamítnut.', 'error'); */
-         stopListening(); // Ensure state is reset
+        if (ui.micBtn) { ui.micBtn.disabled = true; ui.micBtn.title = "Přístup k mikrofonu zamítnut"; }
+        showToast('Chyba Mikrofonu', 'Přístup k mikrofonu byl zamítnut nebo není dostupný.', 'error');
+        // Není třeba volat stopListening, protože jsme ani nezačali
+        state.isListening = false; // Zajistit správný stav
+        manageButtonStatesCallback(); // Aktualizovat UI
     });
 }
 
 /** Останавливает процесс распознавания речи. */
 export function stopListening() {
-    // Добавлена проверка, чтобы избежать ошибок, если recognition еще не инициализирован
     if (!state.speechRecognitionSupported || !state.speechRecognition) {
-        console.log("[STT] Cannot stop listening: Not supported or not initialized.");
-        state.isListening = false; // Ensure state is false
+        state.isListening = false; // Jistota
+        manageButtonStatesCallback(); // Aktualizovat UI
         return;
     }
-    // Только если действительно слушаем
     if (state.isListening) {
-        try {
-            state.speechRecognition.stop();
-            console.log('[STT] Speech recognition stopped by call.');
-        } catch (e) {
-            console.warn("[STT] Error trying to stop recognition (might be harmless if already stopped):", e);
-        } finally {
-            state.isListening = false;
-            if (ui.micBtn) {
-                ui.micBtn.classList.remove('listening');
-                 // Обновление title будет в manageButtonStates
-            }
-        }
+        try { state.speechRecognition.stop(); console.log('[STT] Stopped by call.'); }
+        catch (e) { console.warn("[STT] Error stopping (harmless if already stopped):", e); }
+        // onend se zavolá automaticky po stop() a tam se nastaví isListening = false a zavolá manageButtonStatesCallback
     } else {
-        // Если не слушали, просто убедимся, что UI в порядке
-        if (ui.micBtn) {
-             ui.micBtn.classList.remove('listening');
-             // Обновление title будет в manageButtonStates
-        }
+         // Pokud už neběží, jen zajistíme správný stav UI
+         state.isListening = false;
+         manageButtonStatesCallback();
     }
 }
 
 /** Обработчик клика по кнопке микрофона. */
 export function handleMicClick() {
-    if (!state.speechRecognitionSupported) { console.warn("Mic button clicked, but STT not supported."); return; }
+    if (!state.speechRecognitionSupported) {
+        showToast("Nepodporováno", "Rozpoznávání řeči není podporováno vaším prohlížečem.", "warning");
+        return;
+    }
+    // Zabráníme spuštění/zastavení, pokud je systém zaneprázdněn jinak
+    const isBusy = state.geminiIsThinking || state.topicLoadInProgress || state.isSpeakingTTS;
+     if (isBusy && !state.isListening) { // Umožníme zastavit, i když je AI zaneprázdněna
+        console.warn("Mic button clicked, but system is busy.");
+        showToast('Systém zaneprázdněn', 'Počkejte na dokončení akce AI.', 'warning');
+        return;
+    }
+
     if (state.isListening) {
         stopListening();
     } else {
-        // Добавим проверку на занятость системы перед стартом
-        const isBusy = state.geminiIsThinking || state.topicLoadInProgress || (state.speechSynthesisSupported && window.speechSynthesis.speaking);
-        if (!isBusy) {
-            startListening();
-        } else {
-            console.warn("Mic button clicked, but system is busy.");
-            /* showToast('Systém zaneprázdněn', 'Počkejte na dokončení akce.', 'warning'); */
-        }
+        startListening();
     }
 }
 
 
 // --- Инициализация при загрузке ---
-// Инициализация голосов при первой возможности
 if (state.speechSynthesisSupported) {
-    // Загрузка голосов может быть асинхронной
     const checkVoices = () => {
         const voices = window.speechSynthesis.getVoices();
-        if (voices.length > 0) {
-            loadVoices();
-        } else if ('onvoiceschanged' in window.speechSynthesis) {
-            // Назначаем обработчик только если голоса еще не загружены
-             window.speechSynthesis.onvoiceschanged = loadVoices;
-        } else {
-             console.warn("TTS: Cannot use 'onvoiceschanged'. Retrying voice load in 500ms.");
-             setTimeout(checkVoices, 500); // Повторная попытка
-        }
+        if (voices.length > 0) { loadVoices(); }
+        else if ('onvoiceschanged' in window.speechSynthesis) { window.speechSynthesis.onvoiceschanged = loadVoices; }
+        else { console.warn("TTS: Cannot use 'onvoiceschanged'. Retrying voice load in 500ms."); setTimeout(checkVoices, 500); }
     };
     checkVoices();
 }
 
-console.log("Speech service module loaded (v3.6 with stopSpeech fixes).");
+console.log("Speech service module loaded (v3.7.0 with manageButtonStates callback).");

@@ -1,5 +1,5 @@
 // state.js - Глобальное состояние приложения Vyuka
-// Версия, включающая флаг aiProposedCompletion
+// Verze 3.9.1: Přidán flag isSpeakingTTS
 
 // Экспортируем объект state, чтобы его можно было импортировать и изменять в других модулях.
 export let state = {
@@ -26,6 +26,7 @@ export let state = {
     speechRecognitionSupported: ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window), // Поддержка STT
     speechRecognition: null,      // Экземпляр объекта SpeechRecognition
     isListening: false,           // Флаг: идет ли распознавание речи
+    isSpeakingTTS: false,         // << PŘIDÁNO: Флаг: probíhá aktivně TTS řeč
     currentlyHighlightedChunk: null, // DOM-элемент подсвечиваемого блока при TTS
 
     // Состояния загрузки для разных частей приложения
@@ -43,4 +44,4 @@ export let state = {
     aiProposedCompletion: false  // Флаг: предложил ли ИИ завершить тему
 };
 
-console.log("Initial application state created:", state.isDarkMode ? "Dark mode detected" : "Light mode detected", "- aiProposedCompletion included.");
+console.log("Initial application state created (including isSpeakingTTS).");
