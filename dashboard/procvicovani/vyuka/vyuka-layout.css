@@ -1,376 +1,95 @@
-/* vyuka-layout.css - Основные стили макета для страницы Vyuka */
-/* Версия 3.8.1: Улучшены размеры панелей доски и чата */
-
-:root {
-    --sidebar-width: 260px;
-    --header-height: 70px;
-    --topic-bar-height: 50px; /* Высота панели с темой */
-    --footer-height: 50px;
-    --content-padding: 1.5rem; /* 24px */
-    --content-padding-mobile: 1rem; /* 16px */
-    --layout-transition-speed: 0.3s;
-}
-
-body {
-    display: flex;
-    font-family: var(--font-family-base);
-    background-color: var(--bg-primary);
-    color: var(--text-primary);
-    margin: 0;
-    overflow-x: hidden; /* Предотвращение горизонтального скролла */
-    transition: background-color var(--layout-transition-speed) ease, color var(--layout-transition-speed) ease;
-}
-
-/* --- Sidebar --- */
-.sidebar {
-    width: var(--sidebar-width);
-    height: 100vh;
-    position: fixed;
-    left: 0;
-    top: 0;
-    background-color: var(--bg-secondary);
-    border-right: 1px solid var(--border-color);
-    display: flex;
-    flex-direction: column;
-    transition: transform var(--layout-transition-speed) ease-in-out, width var(--layout-transition-speed) ease-in-out;
-    z-index: 1001; /* Выше оверлея */
-}
-
-.sidebar-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between; /* Разместить лого и кнопку закрытия */
-    padding: 1.2rem var(--content-padding);
-    border-bottom: 1px solid var(--border-color-light);
-    min-height: var(--header-height);
-    box-sizing: border-box;
-}
-
-.sidebar-logo {
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-    font-size: 1.4rem;
-    font-weight: 700;
-    color: var(--accent-primary);
-    text-decoration: none;
-}
-.sidebar-logo i {
-    font-size: 1.5rem;
-}
-
-.sidebar-menu {
-    list-style: none;
-    padding: 0;
-    margin: 1rem 0;
-    flex-grow: 1; /* Занимает доступное пространство */
-    overflow-y: auto; /* Скролл, если меню не влезает */
-}
-
-.sidebar-item {
-    margin: 0.2rem 0;
-}
-
-.sidebar-link {
-    display: flex;
-    align-items: center;
-    padding: 0.8rem var(--content-padding);
-    color: var(--text-secondary);
-    text-decoration: none;
-    border-radius: var(--border-radius-sm);
-    margin: 0 0.8rem;
-    transition: background-color 0.2s ease, color 0.2s ease;
-    gap: 0.8rem;
-    font-weight: 500;
-}
-.sidebar-link i {
-    font-size: 1.1rem;
-    width: 20px; /* Фикс ширина для иконок */
-    text-align: center;
-}
-.sidebar-link:hover {
-    background-color: var(--bg-hover);
-    color: var(--text-primary);
-}
-.sidebar-link.active {
-    background-color: var(--accent-primary-bg);
-    color: var(--accent-primary);
-    font-weight: 600;
-}
-
-.user-profile {
-    display: flex;
-    align-items: center;
-    padding: 1rem var(--content-padding);
-    border-top: 1px solid var(--border-color-light);
-    gap: 1rem;
-}
-
-.user-avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background-color: var(--accent-secondary);
-    color: var(--bg-secondary);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 600;
-    font-size: 1rem;
-    overflow: hidden; /* Для обрезки img */
-}
-.user-avatar img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.user-info .user-name {
-    font-weight: 600;
-    color: var(--text-primary);
-    font-size: 0.95rem;
-    line-height: 1.3;
-}
-.user-info .user-role {
-    font-size: 0.8rem;
-    color: var(--text-muted);
-}
-
-.sidebar-footer {
-    padding: 1rem var(--content-padding);
-    font-size: 0.75rem;
-    color: var(--text-muted);
-    text-align: center;
-    border-top: 1px solid var(--border-color);
-}
-
-/* --- Main Content Area --- */
-#main-content {
-    margin-left: var(--sidebar-width);
-    width: calc(100% - var(--sidebar-width));
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    transition: margin-left var(--layout-transition-speed) ease-in-out, width var(--layout-transition-speed) ease-in-out;
-    opacity: 0; /* For fade-in */
-    transform: translateY(10px); /* For fade-in */
-    transition: opacity 0.5s ease, transform 0.5s ease;
-}
-#main-content.loaded {
-    opacity: 1;
-    transform: translateY(0);
-}
-
-/* --- Header --- */
-.dashboard-header {
-    position: sticky; /* Прилипает при скролле */
-    top: 0;
-    background-color: var(--bg-secondary-translucent); /* Полупрозрачный фон */
-    backdrop-filter: blur(8px); /* Эффект размытия */
-    -webkit-backdrop-filter: blur(8px);
-    border-bottom: 1px solid var(--border-color);
-    padding: 0 var(--content-padding);
-    height: var(--header-height);
-    display: flex;
-    align-items: center;
-    z-index: 999; /* Выше контента */
-    transition: background-color var(--layout-transition-speed) ease, border-color var(--layout-transition-speed) ease;
-}
-.dashboard-header.scrolled { /* Класс добавляется JS при скролле */
-     background-color: var(--bg-secondary); /* Непрозрачный фон при скролле */
-     border-bottom-color: var(--border-color-light);
-}
-.header-content {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
-}
-.header-content > div:first-child {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-}
-#dashboard-title {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: var(--text-primary);
-    margin: 0;
-}
-.header-actions {
-    display: flex;
-    align-items: center;
-    gap: 0.8rem; /* Расстояние между кнопками */
-}
-
-/* --- Topic Bar --- */
-.topic-bar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 var(--content-padding);
-    height: var(--topic-bar-height);
-    background-color: var(--bg-secondary);
-    border-bottom: 1px solid var(--border-color);
-    position: sticky; /* Прилипает под хедером */
-    top: var(--header-height); /* Появляется под хедером */
-    z-index: 998; /* Ниже хедера, выше контента */
-}
-#current-topic-display {
-    font-size: 1rem;
-    font-weight: 500;
-    color: var(--text-secondary);
-}
-#current-topic-display strong {
-    color: var(--text-primary);
-    font-weight: 600;
-}
-#current-topic-display .placeholder {
-    font-style: italic;
-    color: var(--text-muted);
-}
-#continue-btn { /* Стили для кнопки Pokracovat */
-    /* Здесь уже есть стили .btn */
-}
-
-/* --- Main Content Wrapper --- */
+/* --- START: vyuka-layout.css --- */
 .main-content-wrapper {
-    flex-grow: 1; /* Занимает все оставшееся место по высоте */
-    padding: var(--content-padding);
-    display: flex; /* Используем flex для call-interface */
-    flex-direction: column; /* Элементы внутри располагаются вертикально */
-    overflow-y: auto; /* Скролл для контента, если нужно */
+    /* Override padding if needed for this specific layout */
+    padding: 0; /* Remove padding if .call-interface handles it */
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-height: 0; /* Crucial for flexbox layout */
 }
 
-/* --- Call Interface Layout --- */
 .call-interface {
+    flex-grow: 1;
     display: flex;
-    gap: var(--content-padding);
-    flex-grow: 1; /* Занимает все доступное пространство в main-content-wrapper */
-    min-height: 0; /* Важно для flex-детей с overflow */
-    width: 100%;
+    overflow: hidden;
+    padding: 1.5rem var(--container-padding-x); /* Keep padding here */
+    gap: 1.5rem;
+    min-height: 0; /* Important */
 }
 
 .ai-presenter-area {
-    flex: 2 1 60%; /* Увеличено: grow=2, shrink=1, basis=60% (может занимать больше) */
+    /* --- ИЗМЕНЕНИЕ ЗДЕСЬ v3.6 - Увеличено пространство для доски --- */
+    flex: 2 1 60%; /* Whiteboard takes more space (Grow 2, Basis 60%) */
+    /* Было: flex: 3 1 70% or flex: 2 1 65%; */
     display: flex;
     flex-direction: column;
-    background-color: var(--bg-secondary);
-    border-radius: var(--border-radius-lg);
-    border: 1px solid var(--border-color);
-    overflow: hidden; /* Чтобы скролл был внутри whiteboard-container */
-    min-width: 400px; /* Минимальная ширина */
+    background-color: var(--card-bg);
+    border-radius: var(--card-radius);
+    box-shadow: var(--shadow-hud);
+    overflow: hidden;
+    border: 1px solid var(--border-color-light);
+    min-height: 450px; /* ИЗМЕНЕНИЕ: Увеличена минимальная высота */
+    /* Было: min-height: 400px; */
+    position: relative;
 }
 
 .interaction-panel {
-    flex: 1 1 35%; /* Уменьшено: grow=1, shrink=1, basis=35% (может занимать меньше) */
+    /* --- ИЗМЕНЕНИЕ ЗДЕСЬ v3.6 - Уменьшено пространство для чата, убрано max-width --- */
+    flex: 1 1 40%; /* Chat takes less space (Grow 1, Basis 40%) */
+    /* max-width: 450px; */ /* УБРАНО ограничение ширины */
+    /* Было: flex: 1 1 30% or flex: 1 1 35%; max-width: 450px; */
     display: flex;
     flex-direction: column;
-    background-color: var(--bg-secondary);
-    border-radius: var(--border-radius-lg);
-    border: 1px solid var(--border-color);
+    background-color: var(--chat-bg);
+    border-radius: var(--card-radius);
+    box-shadow: var(--shadow-hud);
     overflow: hidden;
-    min-width: 320px; /* Минимальная ширина */
+    border: 1px solid var(--border-color-light);
+    min-height: 450px; /* ИЗМЕНЕНИЕ: Увеличена минимальная высота (как у доски) */
+     /* Было: min-height: 400px; */
 }
 
-/* --- Footer --- */
-.dashboard-footer {
-    border-top: 1px solid var(--border-color);
-    padding: 0 var(--content-padding);
-    height: var(--footer-height);
-    display: flex;
-    align-items: center;
-    justify-content: center; /* Центрируем текст */
-    color: var(--text-muted);
-    font-size: 0.85rem;
-    background-color: var(--bg-secondary); /* Фон как у хедера/сайдбара */
+/* Responsiveness for layout */
+@media (max-width: 1200px) {
+    /* --- ИЗМЕНЕНИЕ ЗДЕСЬ v3.6 - Скорректирован basis для средних экранов --- */
+    .ai-presenter-area { flex-basis: 58%; } /* Adjust basis */
+    .interaction-panel { flex-basis: 42%; } /* Adjust basis */
+    /* Было: 65% / 35% */
+    .call-interface { padding: 1rem; gap: 1rem; }
 }
-
-
-/* --- Mobile Adjustments --- */
-.mobile-menu-toggle {
-    display: none; /* Скрыто по умолчанию */
-    background: none;
-    border: none;
-    color: var(--text-primary);
-    font-size: 1.5rem;
-    cursor: pointer;
-    padding: 0.5rem;
-}
-.sidebar-overlay {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    z-index: 1000;
-}
-
 @media (max-width: 992px) {
-    .sidebar {
-        transform: translateX(-100%);
-        box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+     .call-interface {
+        flex-direction: column;
+        height: auto; /* Let content dictate height */
+        padding: 0.8rem;
+        gap: 0.8rem;
+        overflow-y: auto; /* Allow main interface to scroll on small screens */
     }
-    .sidebar.active {
-        transform: translateX(0);
+    .ai-presenter-area {
+        flex: 1 1 auto; /* Let it take needed height */
+        min-height: 500px; /* ИЗМЕНЕНИЕ: Увеличена min-height для вертикального layout */
+        /* Было: min-height: 450px; */
+        order: 1;
     }
-    #main-content {
-        margin-left: 0;
+    .interaction-panel {
+        flex: 1 1 auto; /* Let it take needed height */
+        min-height: 450px; /* ИЗМЕНЕНИЕ: Увеличена min-height */
+        /* Было: min-height: 400px; */
+        order: 2;
+        max-width: none; /* Max-width removed earlier */
         width: 100%;
     }
-    .mobile-menu-toggle {
-        display: block; /* Показать на мобильных */
-    }
-    .sidebar-overlay.active {
-        display: block; /* Показать оверлей при активном сайдбаре */
-    }
-    .sidebar-header .mobile-menu-toggle { /* Кнопка закрытия в сайдбаре */
-        display: block;
-    }
-    .header-content > div:first-child { gap: 0.5rem; } /* Уменьшить отступ в хедере */
-    #dashboard-title { font-size: 1.2rem; }
-    .header-actions { gap: 0.5rem; }
-    .main-content-wrapper { padding: var(--content-padding-mobile); }
-
-    /* Делаем панели вертикальными на мобильных */
-    .call-interface {
-        flex-direction: column;
-        overflow-y: auto; /* Скролл для всей области */
-    }
-    .ai-presenter-area,
-    .interaction-panel {
-        flex: 1 1 auto; /* Сброс flex-basis, равный рост/сжатие */
-        min-width: unset; /* Убрать мин. ширину */
-        min-height: 400px; /* Минимальная высота для каждой панели */
-    }
 }
-
 @media (max-width: 576px) {
-     #dashboard-title { font-size: 1rem; }
-     .header-actions .btn span { display: none; } /* Скрыть текст кнопок */
-     .header-actions .btn i { margin-right: 0; }
-     .topic-bar { flex-direction: column; height: auto; padding: 0.5rem var(--content-padding-mobile); gap: 0.5rem; text-align: center; }
-     #current-topic-display { font-size: 0.9rem; }
-     .user-profile { flex-direction: column; text-align: center; gap: 0.5rem; }
-     .ai-presenter-area,
+     .call-interface { padding: 0.5rem; gap: 0.5rem; }
+     .ai-presenter-area {
+         min-height: 400px; /* ИЗМЕНЕНИЕ: Увеличена min-height */
+         /* Было: min-height: 350px; */
+     }
      .interaction-panel {
-         min-height: 350px; /* Еще немного уменьшить мин. высоту */
+         min-height: 350px; /* ИЗМЕНЕНИЕ: Увеличена min-height */
+          /* Было: min-height: 300px; */
      }
 }
-
-/* --- Other --- */
-.error-container {
-    background-color: var(--color-danger-bg);
-    color: var(--color-danger);
-    padding: 1rem;
-    border: 1px solid var(--color-danger);
-    border-radius: var(--border-radius-md);
-    margin: 0 var(--content-padding) var(--content-padding);
-    display: none; /* Initially hidden */
-    text-align: center;
-}
-.error-container.visible {
-    display: block;
-}
+/* --- END: vyuka-layout.css --- */
