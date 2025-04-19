@@ -1,6 +1,6 @@
 // vyuka/geminiService.js - Функции для взаимодействия с Google Gemini API
-// Версия 3.8.6: ДИАГНОСТИЧЕСКАЯ - Замена systemInstruction на простую заглушку для поиска SyntaxError.
-// Прочие изменения из v3.8.3/5 сохранены.
+// Версия 3.8.7: Восстановлен systemInstruction с проверенным синтаксисом и экранированием.
+// Прочие изменения из v3.8.5 сохранены.
 
 import {
     GEMINI_API_KEY,
@@ -102,21 +102,21 @@ export function parseGeminiResponse(rawText) {
     // Убираем пунктуацию
     chatText = chatText.replace(/[.,!?;:]/g, '');
 
-    console.log("[ParseGemini v3.8.6] Board:", boardMarkdown ? boardMarkdown.substring(0, 60) + "..." : "None");
-    console.log("[ParseGemini v3.8.6] TTS:", ttsCommentary ? ttsCommentary.substring(0, 60) + "..." : "None");
-    console.log("[ParseGemini v3.8.6] Chat (Raw Parsed):", chatText);
+    console.log("[ParseGemini v3.8.7] Board:", boardMarkdown ? boardMarkdown.substring(0, 60) + "..." : "None");
+    console.log("[ParseGemini v3.8.7] TTS:", ttsCommentary ? ttsCommentary.substring(0, 60) + "..." : "None");
+    console.log("[ParseGemini v3.8.7] Chat (Raw Parsed):", chatText);
 
     // Упрощение чата
     if (chatText.includes(' ')) {
         const allowedPhrases = ["ano muzeme", "ne dekuji", "mam otazku", "chyba systemu", "info na tabuli", "navrhuji ukonceni", "tema uzavreno"];
         if (!allowedPhrases.includes(chatText.toLowerCase())) {
              const firstWord = chatText.split(' ')[0];
-             console.log(`[ParseGemini v3.8.6] Chat text simplified from "${chatText}" to "${firstWord}"`);
+             console.log(`[ParseGemini v3.8.7] Chat text simplified from "${chatText}" to "${firstWord}"`);
              chatText = firstWord;
         }
     }
 
-    console.log("[ParseGemini v3.8.6] Chat (Final Cleaned):", chatText || "None");
+    console.log("[ParseGemini v3.8.7] Chat (Final Cleaned):", chatText || "None");
 
     return { boardMarkdown, ttsCommentary, chatText };
 }
@@ -124,35 +124,77 @@ export function parseGeminiResponse(rawText) {
 
 /**
  * Строит финальный контент для запроса к Gemini API.
- * Версия 3.8.6: ЗАМЕНА systemInstruction на заглушку для диагностики.
+ * Версия 3.8.7: Восстановлен systemInstruction с проверенным синтаксисом.
  * @param {string} userPrompt - Текущий промпт/сообщение от пользователя или команды приложения.
  * @returns {Array<Object>} Массив объектов 'contents' для API.
  */
 function _buildGeminiPayloadContents(userPrompt) {
-    // ----- ДИАГНОСТИКА: НАЧАЛО ИЗМЕНЕНИЙ -----
-    // const studentLevel = state.currentProfile?.skill_level || 'střední'; // Временно не используется
-    // const topicName = state.currentTopic?.name || 'Neznámé téma'; // Временно не используется
-    // const boardHistorySummary = "Historie tabule ignorovana"; // Временно не используется
+    const studentLevel = state.currentProfile?.skill_level || 'střední';
+    const topicName = state.currentTopic?.name || 'Neznámé téma';
+    const boardHistorySummary = state.boardContentHistory.length > 0
+        ? "Stručný souhrn PŘEDCHOZÍHO obsahu tabule:\n" + state.boardContentHistory.map(c => `- ${c.substring(0, 100).replace(/[\r\n]+/g, ' ')}...`).slice(-3).join('\n')
+        : "Tabule je zatím prázdná.";
 
-    // ЗАМЕНЯЕМ СЛОЖНЫЙ ПРОМПТ НА ПРОСТУЮ ЗАГЛУШКУ
-    const systemInstruction = 'System prompt placeholder';
-    console.warn("[Gemini v3.8.6 DIAG] Using simplified systemInstruction placeholder!");
-    // ----- ДИАГНОСТИКА: КОНЕЦ ИЗМЕНЕНИЙ -----
+    // --- ВОССТАНОВЛЕННЫЙ СИСТЕМНЫЙ ПРОМПТ (Версия 3.8 с ИСПРАВЛЕННЫМ ЭКРАНИРОВАНИЕМ) ---
+    // Собираем по частям для надежности
+    let systemInstructionParts = [];
+    systemInstructionParts.push(`Jsi **expertní AI Tutor "Justax"** specializující se na **MATEMATIKU pro PŘIJÍMACÍ ZKOUŠKY na SŠ** v Česku.`);
+    systemInstructionParts.push(`Tvým úkolem je **důkladně** vysvětlit téma "${topicName}" studentovi s aktuální úrovní znalostí "${studentLevel}".`);
+    systemInstructionParts.push(`Cílem je příprava na úroveň CERMAT testů. Buď **precizní, metodický a náročný**, ale stále trpělivý. Komunikuj POUZE v ČEŠTINĚ.`);
+
+    systemInstructionParts.push(`\n**ZÁSADNÍ PRAVIDLA KOMUNIKACE:**\n`);
+    systemInstructionParts.push(`* **DOMINUJE TABULE:** Veškerý **obsah** (vysvětlení, teorie, vzorce, kroky řešení, **odpovědi na otázky studenta**, **příklady**, **zpětná vazba**, **zadání úkolů**) patří **PRIMÁRNĚ** na TABULI (\`[BOARD_MARKDOWN]:\`).`); // Экранирование `[BOARD_MARKDOWN]:`
+    systemInstructionParts.push(`* **TTS DOPLŇUJE:** Mluvený komentář (\`[TTS_COMMENTARY]:\`) slouží k **rozšíření a okomentování** toho, co je na tabuli, přidává kontext nebo alternativní pohled. NESMÍ obsahovat klíčové informace, které nejsou na tabuli.`); // Экранирование `[TTS_COMMENTARY]:`
+    systemInstructionParts.push(`* **CHAT MINIMALISTICKÝ:** Chat slouží **POUZE** pro **ultra-krátké** signalizační zprávy (1-2 slova) typu "Na tabuli", "Hotovo", "Rozumím", "Zkus to", "Pokračujeme", "Chyba", "Ano muzeme", "Ne dekuji". **ABSOLUTNĚ ŽÁDNÁ PUNKTUACE (tečky, čárky, otazníky, vykřičníky atd.) v CHATU.** Žádné vysvětlování v chatu. Žádné formátování.`);
+    systemInstructionParts.push(`* **NÁROČNOST ("Přijímačky"):** Vysvětluj koncepty do **hloubky**. Používej **komplexnější příklady**, které mohou vyžadovat více kroků nebo kombinaci různých dovedností v rámci tématu "${topicName}". Zaměř se na typické "chytáky" a časté chyby z CERMAT testů. Požaduj od studenta **detailní postup řešení**, nejen výsledek.`);
+
+    systemInstructionParts.push(`\n**Struktura Výstupu (MUSÍ být dodržena):**\n`);
+    systemInstructionParts.push(`1.  **TABULE (\`[BOARD_MARKDOWN]:\`)**`); // Экранирование `[BOARD_MARKDOWN]:`
+    systemInstructionParts.push(`    * **Účel:** Hlavní nosič informací. Zde patří: Teoretické vysvětlení (definice, věty, vlastnosti). Vzorce a jejich odvození (pokud je relevantní). **Detailní krokové postupy řešení** typových úloh (úroveň Přijímačky). **Zadání komplexnějších příkladů k řešení** pro studenta. **Odpovědi na otázky studenta** (pokud vyžadují vysvětlení nebo postup). **Detailní zpětná vazba** na řešení studenta (analýza postupu, označení chyby, správný postup).`);
+    systemInstructionParts.push(`    * **Formát:** VŽDY začíná \`[BOARD_MARKDOWN]:\`, následuje \`\
+        \`\`markdown ... \`\`\`\`.`); // Экранирование `[BOARD_MARKDOWN]:` и ```markdown ... ```
+    systemInstructionParts.push(`    * **Obsah Markdown:** Pouze: Nadpisy (\`##\`, \`###\`), seznamy (\`*\`, \`-\`, \`1.\`), tučné (\`**text**\`), kurzíva (\`*text*\`), LaTeX (\`$\` nebo \`<span class="math-block">\`). **Žádný inline kód (\
+        \`)**. Minimum běžného textu, maximum strukturovaných informací.`); // Экранирование символов Markdown и `
+
+    systemInstructionParts.push(`2.  **MLUVENÝ KOMENTÁŘ (\`[TTS_COMMENTARY]:\`)**`); // Экранирование `[TTS_COMMENTARY]:`
+    systemInstructionParts.push(`    * **Účel:** **Doplnění** tabule. Může obsahovat: Zdůraznění klíčových bodů z tabule. Upozornění na časté chyby. Motivaci pro další krok. Stručné shrnutí. Nabídku pokračovat ("Podíváme se na další typ úlohy?").`);
+    systemInstructionParts.push(`    * **Formát:** VŽDY začíná \`[TTS_COMMENTARY]:\`, následuje čistý text **bez formátování a LaTeXu**.`); // Экранирование `[TTS_COMMENTARY]:`
+    systemInstructionParts.push(`    * **Kdy použít:** Téměř vždy SPOLEČNĚ S \`[BOARD_MARKDOWN]:\` (pokud nejde jen o ultra krátkou odpověď na tabuli). **Nikdy pro přímou odpověď na otázku studenta v chatu.**`); // Экранирование `[BOARD_MARKDOWN]:`
+
+    systemInstructionParts.push(`3.  **CHAT (BEZ MARKERŮ, BEZ FORMÁTOVÁNÍ, BEZ PUNKTUACE, 1-2 SLOVA)**`);
+    systemInstructionParts.push(`    * **Účel:** **Signalizace a řízení toku.** Příklady povolených zpráv: \`Na tabuli\`, \`Hotovo\`, \`Rozumím\`, \`Zkus to\`, \`Pokračujeme\`, \`Chyba\`, \`Ano muzeme\`, \`Ne dekuji\`.`); // Экранирование примеров
+    systemInstructionParts.push(`    * **Formát:** ČISTÝ TEXT, **jedno nebo dvě slova**. **ŽÁDNÁ interpunkce.** Žádné vysvětlení.`);
+
+    systemInstructionParts.push(`\n**Interakce se Studentem:**\n`);
+    systemInstructionParts.push(`* **Otázky Studenta:** 1. **Odpověď dej na TABULI** (\`[BOARD_MARKDOWN]:\`). 2. (Volitelně) Doplň stručně v \`[TTS_COMMENTARY]:\`. 3. Do CHATU napiš pouze: \`Na tabuli\`.`); // Экранирование
+    systemInstructionParts.push(`* **Řešení Úkolu Studentem:** 1. **Detailní zpětnou vazbu** na **TABULI** (\`[BOARD_MARKDOWN]:\`). 2. (Volitelně) Okmentuj stručně v \`[TTS_COMMENTARY]:\`. 3. Do CHATU napiš pouze: \`Spravne\` nebo \`Chyba\`.`); // Экранирование
+    systemInstructionParts.push(`* **Kontrola Porozumění:** Po vysvětlení na tabuli, zadej **náročnější kontrolní úkol** na **TABULI** a do CHATU napiš \`Zkus to\`.`); // Экранирование
+    systemInstructionParts.push(`* **Pokračování Výkladu:** Po úspěšném kroku/výzvě, připrav další část na TABULI + TTS a do CHATU napiš \`Pokracujeme\`.`); // Экранирование
+
+    systemInstructionParts.push(`\n**Ukončení Témata:**\n`);
+    systemInstructionParts.push(`* **PODMÍNKY:** Navrhuj ukončení **POUZE** když: 1. Téma "${topicName}" bylo **důkladně** probráno na úrovni **Přijímaček**. 2. Student **úspěšně vyřešil několik komplexnějších úloh**. 3. Proběhlo **dostatečné množství interakcí**. `);
+    systemInstructionParts.push(`* **Návrh na Ukončení:** 1. Na **TABULI** (\`[BOARD_MARKDOWN]:\`) stručně shrň. 2. V **CHATU** napiš **POUZE**: \`Navrhuji ukonceni [PROPOSE_COMPLETION]\`. Vlož **přesně** marker \`[PROPOSE_COMPLETION]\` na konec.`); // Экранирование
+
+    systemInstructionParts.push(`\n**Shrnutí Historie Tabule:**\n${boardHistorySummary}\n`);
+
+    systemInstructionParts.push(`**PŘÍSNĚ DODRŽUJ STRUKTURU A PRAVIDLA! Dominantní TABULE, doplňující TTS, minimalistický CHAT bez interpunkce. Úroveň Přijímačky.**`);
+
+    // Собираем финальную строку инструкций
+    const systemInstruction = systemInstructionParts.join('\n');
+    // --- КОНЕЦ СБОРКИ systemInstruction ---
 
 
     const history = state.geminiChatContext.slice(-MAX_GEMINI_HISTORY_TURNS * 2);
     const currentUserMessage = { role: "user", parts: [{ text: userPrompt }] };
 
-    // Строка подтверждения модели (остается вынесенной, но теперь бессмысленна без переменных)
-    // Используем простую строку, чтобы не зависеть от переменных topicName/studentLevel
-    const modelConfirmationText = `Rozumim Pripraven`;
+    // Строка подтверждения модели (остается вынесенной)
+    const modelConfirmationText = `Rozumim Budu AI Tutor Justax zamereny na prijimacky Tema ${topicName} Uroven ${studentLevel} Tabule dominantni TTS doplnujici Chat minimalisticky bez interpunkce Ukonceni opatrne s markerem [PROPOSE_COMPLETION]`;
 
     const contents = [
-        // Используем простую заглушку systemInstruction
         { role: "user", parts: [{ text: systemInstruction }] },
-        // Используем простую строку-подтверждение
+        // Используем константу
         { role: "model", parts: [{ text: modelConfirmationText }] }, // Запятая после важна
-        ...history, // История пока остается
+        ...history,
         currentUserMessage
     ];
 
@@ -161,7 +203,7 @@ function _buildGeminiPayloadContents(userPrompt) {
     if (contents.length > maxHistoryLength + 3) {
         const historyStartIndex = contents.length - maxHistoryLength - 1;
         contents.splice(2, historyStartIndex - 2);
-        console.warn(`[Gemini v3.8.6 DIAG] Context length exceeded limit trimmed history New length ${contents.length}`);
+        console.warn(`[Gemini v3.8.7] Context length exceeded limit trimmed history New length ${contents.length}`);
     }
 
     return contents;
@@ -170,7 +212,7 @@ function _buildGeminiPayloadContents(userPrompt) {
 
 /**
  * Отправляет запрос к Gemini API и возвращает обработанный ответ.
- * Версия 3.8.6: ДИАГНОСТИЧЕСКАЯ. Использует исправленный _buildGeminiPayloadContents с заглушкой.
+ * Версия 3.8.7: Использует восстановленный _buildGeminiPayloadContents.
  * @param {string} prompt - Промпт для Gemini (может быть командой или текстом пользователя).
  * @param {boolean} isChatInteraction - Указывает, является ли это прямым взаимодействием в чате (влияет на логирование).
  * @returns {Promise<{success: boolean, data: {boardMarkdown: string, ttsCommentary: string, chatText: string}|null, error: string|null}>}
@@ -178,25 +220,24 @@ function _buildGeminiPayloadContents(userPrompt) {
 export async function sendToGemini(prompt, isChatInteraction = false) {
     // Проверки API ключа и промпта
     if (!GEMINI_API_KEY || !GEMINI_API_KEY.startsWith('AIzaSy')) {
-        console.error("[Gemini v3.8.6 DIAG] Invalid or missing API Key");
+        console.error("[Gemini v3.8.7] Invalid or missing API Key");
         return { success: false, data: null, error: "Chyba Konfigurace Chybi platny API klic pro AI" };
     }
     if (!prompt || prompt.trim() === '') {
-        console.error("[Gemini v3.8.6 DIAG] Empty prompt provided");
+        console.error("[Gemini v3.8.7] Empty prompt provided");
         return { success: false, data: null, error: "Chyba Prazdny dotaz pro AI" };
     }
-    // Проверка currentTopic остается важной
     if (!state.currentTopic && !prompt.includes("Vysvětli ZÁKLADY")) {
-        console.error("[Gemini v3.8.6 DIAG] No current topic set for non-initial prompt");
+        console.error("[Gemini v3.8.7] No current topic set for non-initial prompt");
         return { success: false, data: null, error: "Chyba Neni vybrano tema" };
     }
 
-    console.log(`[Gemini v3.8.6 DIAG] Sending request (Chat Interaction: ${isChatInteraction}): "${prompt.substring(0, 80)}..."`);
+    console.log(`[Gemini v3.8.7] Sending request (Chat Interaction: <span class="math-inline">\{isChatInteraction\}\)\: "</span>{prompt.substring(0, 80)}..."`);
 
-    // Построение payload (с заглушкой вместо systemInstruction)
+    // Построение payload (с восстановленным systemInstruction)
     const contents = _buildGeminiPayloadContents(prompt);
 
-    // console.log("[Gemini v3.8.6 DIAG] Payload Contents:", JSON.stringify(contents, null, 2));
+    // console.log("[Gemini v3.8.7] Payload Contents:", JSON.stringify(contents, null, 2)); // Раскомментировать для детальной отладки
 
     const body = {
         contents,
@@ -220,26 +261,26 @@ export async function sendToGemini(prompt, isChatInteraction = false) {
             else if (typeof responseData === 'string') { errorText += ` ${responseData}`; }
             else { errorText += ` Neznama chyba API`; }
             errorText = errorText.replace(/[.,!?;:]/g, '');
-            console.error("[Gemini v3.8.6 DIAG] API Error Response:", responseData);
+            console.error("[Gemini v3.8.7] API Error Response:", responseData);
             throw new Error(errorText);
         }
 
-        // console.log("[Gemini v3.8.6 DIAG] Raw API Response:", JSON.stringify(responseData, null, 2));
+        // console.log("[Gemini v3.8.7] Raw API Response:", JSON.stringify(responseData, null, 2));
 
         // Проверки безопасности и кандидата (без изменений)
         if (responseData.promptFeedback?.blockReason) {
-            console.error("[Gemini v3.8.6 DIAG] Request blocked:", responseData.promptFeedback);
+            console.error("[Gemini v3.8.7] Request blocked:", responseData.promptFeedback);
             throw new Error(`Pozadavek blokovan ${responseData.promptFeedback.blockReason}`);
         }
         const candidate = responseData.candidates?.[0];
         if (!candidate) {
-            console.error("[Gemini v3.8.6 DIAG] No candidate found in response:", responseData);
+            console.error("[Gemini v3.8.7] No candidate found in response:", responseData);
             throw new Error('AI neposkytlo platnou odpoved');
         }
 
         // Проверка причины завершения (без изменений)
         if (candidate.finishReason && !["STOP", "MAX_TOKENS"].includes(candidate.finishReason)) {
-            console.warn(`[Gemini v3.8.6 DIAG] Potentially problematic FinishReason: ${candidate.finishReason}.`);
+            console.warn(`[Gemini v3.8.7] Potentially problematic FinishReason: ${candidate.finishReason}.`);
             let reasonText = `Generovani ukonceno ${candidate.finishReason}`;
             if (candidate.finishReason === 'SAFETY') reasonText = 'Odpoved blokovana filtrem';
             if (candidate.finishReason === 'RECITATION') reasonText = 'Odpoved blokovana recitace';
@@ -254,7 +295,7 @@ export async function sendToGemini(prompt, isChatInteraction = false) {
              else throw new Error('AI vratilo prazdnou odpoved Duvod ' + (candidate.finishReason || 'Neznamy'));
         }
         if (!rawText) {
-            console.warn("[Gemini v3.8.6 DIAG] Response candidate has no text content returning empty parsed data");
+            console.warn("[Gemini v3.8.7] Response candidate has no text content returning empty parsed data");
              state.geminiChatContext.push({ role: "user", parts: [{ text: prompt }] });
              state.geminiChatContext.push({ role: "model", parts: [{ text: "" }] });
              if (state.geminiChatContext.length > MAX_GEMINI_HISTORY_TURNS * 2 + 2) {
@@ -279,14 +320,14 @@ export async function sendToGemini(prompt, isChatInteraction = false) {
             }
         }
 
-        // Парсинг ответа (используется parseGeminiResponse v3.8.6)
+        // Парсинг ответа (используется parseGeminiResponse v3.8.7)
         const parsedData = parseGeminiResponse(rawText);
         return { success: true, data: parsedData, error: null };
 
     } catch (error) {
-        console.error('[Gemini v3.8.6 DIAG] Chyba komunikace s Gemini nebo zpracovani odpovedi:', error);
+        console.error('[Gemini v3.8.7] Chyba komunikace s Gemini nebo zpracovani odpovedi:', error);
         return { success: false, data: null, error: (error.message || "Neznama chyba AI").replace(/[.,!?;:]/g, '') };
     }
 }
 
-console.log("Gemini service module loaded (v3.8.6 DIAGNOSTIC with simplified prompt).");
+console.log("Gemini service module loaded (v3.8.7 with restored prompt).");
