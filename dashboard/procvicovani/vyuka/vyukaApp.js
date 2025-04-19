@@ -1,5 +1,5 @@
 // vyukaApp.js - Основной файл приложения Vyuka
-// Verze 3.9.5: Odstraněn import renderMarkdown, opravena logika aiIsWaitingForAnswer.
+// Verze 3.9.5 (beze změn, potvrzení stavu)
 
 // --- Import Modulů ---
 import { MAX_GEMINI_HISTORY_TURNS, NOTIFICATION_FETCH_LIMIT, POINTS_TOPIC_COMPLETE } from './config.js';
@@ -414,7 +414,7 @@ async function startLearningSession() {
             if (boardMarkdown) { await renderBoardAndMath(boardMarkdown, ttsCommentary || boardMarkdown); domChangedInTry = true; }
             else { console.error("Gemini initial response missing board content."); await addChatMessage("Chyba: AI neposkytlo úvodní obsah.", 'gemini', false); domChangedInTry = true; }
             if (finalChatText) { await addChatMessage(finalChatText, 'gemini', false, new Date(), ttsCommentary); domChangedInTry = true; }
-            else if (boardMarkdown) { await addChatMessage("Téma zahájeno.", 'gemini', false); domChangedInTry = true; }
+            else if (boardMarkdown) { await addChatMessage("Téma zahájeno.", 'gemini', false); domChangedInTry = true; } // Fallback, pokud Gemini nedodá chat text
             if (ttsCommentary && boardMarkdown) { speakText(ttsCommentary, ui.whiteboardContent?.lastElementChild); }
             // **OPRAVA: Nastavení aiIsWaitingForAnswer**
             state.aiProposedCompletion = proposedCompletion;
