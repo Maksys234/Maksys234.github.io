@@ -1,18 +1,75 @@
 // utils.js - Общие вспомогательные функции
+// Verze 3.9.6: Upravena sanitizeHTML pro lepší podporu MathJax s DOMPurify
 
 import { state } from './state.js'; // state нужен для getInitials
 import { ui } from './ui.js'; // ui нужен для autoResizeTextarea и updateOnlineStatus
+// Import DOMPurify (assuming it's available globally or via import map/module)
+// If using modules, you might need: import DOMPurify from 'dompurify';
+// Make sure DOMPurify library is included in your HTML or build process.
+// <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.8/purify.min.js"></script>
 
 /**
- * Экранирует HTML-строку для безопасного отображения.
- * @param {string} str - Входная строка.
- * @returns {string} Экранированная строка.
+ * Sanitizes an HTML string using DOMPurify to prevent XSS attacks,
+ * configured to allow MathJax elements and necessary HTML tags.
+ * @param {string} dirtyHtml - The potentially unsafe HTML string.
+ * @param {object} [configOverrides={}] - Optional DOMPurify configuration overrides.
+ * @returns {string} The sanitized HTML string.
  */
-export const sanitizeHTML = (str) => {
-    const temp = document.createElement('div');
-    temp.textContent = str || '';
-    return temp.innerHTML;
-};
+export function sanitizeHTML(dirtyHtml, configOverrides = {}) {
+    // Check if DOMPurify is available
+    if (typeof DOMPurify === 'undefined' || typeof DOMPurify.sanitize !== 'function') {
+        console.warn("DOMPurify library not loaded. Falling back to basic text escaping.");
+        const temp = document.createElement('div');
+        temp.textContent = dirtyHtml || '';
+        return temp.innerHTML; // Basic escaping as fallback
+    }
+
+    // Default configuration allowing common formatting and MathJax elements
+    const defaultConfig = {
+        USE_PROFILES: { html: true }, // Allows common HTML tags like p, strong, em, ul, ol, li, etc.
+        ADD_TAGS: [ // Explicitly allow MathJax wrapper elements and common math tags
+            'math', 'maction', 'maligngroup', 'malignmark', 'menclose', 'merror',
+            'mfenced', 'mfrac', 'mi', 'mlabeledtr', 'mmultiscripts', 'mn', 'mo', 'mover', 'mpadded',
+            'mphantom', 'mroot', 'mrow', 'ms', 'mspace', 'msqrt', 'mstyle', 'msub',
+            'msubsup', 'msup', 'mtable', 'mtd', 'mtext', 'mtr', 'munder', 'munderover',
+            'semantics', 'annotation', // MathML tags
+            'mjx-container', 'mjx-assistive-mml', 'mjx-math' // MathJax v3 specific elements
+            // Add other tags if needed (e.g., 'br', 'hr', 'blockquote', 'pre', 'code', 'table', 'thead', 'tbody', 'tr', 'th', 'td')
+        ],
+        ADD_ATTR: [ // Allow common MathJax attributes and basic HTML attributes
+            'class', 'id', 'style', // Common HTML
+            'xmlns', 'display', 'href', 'mathvariant', 'mathsize', 'mathcolor', // MathML / MathJax
+            'mathbackground', 'encoding', 'definitionURL', 'accent', 'accentunder', // More MathML
+            'align', 'rowalign', 'columnalign', 'groupalign', 'alignmentscope', // Table related
+            'columnspan', 'rowspan', 'columnlines', 'rowlines', 'frame', 'framespacing',
+            'equalrows', 'equalcolumns', 'displaystyle', 'scriptlevel', 'width', 'height',
+            'data-mathml' // Potentially used by MathJax
+            // Add 'src' for images if you use them in markdown that needs sanitizing
+        ],
+        // KEEP_CONTENT: true, // Might be too permissive, use ADD_TAGS/ADD_ATTR carefully
+        // SAFE_FOR_TEMPLATES: true, // Can help with frameworks, might slightly change output
+        ALLOW_UNKNOWN_PROTOCOLS: true, // Can help if MathJax uses custom protocols (unlikely but possible)
+        RETURN_DOM: false, // Ensure it returns a string
+        RETURN_DOM_FRAGMENT: false
+    };
+
+    // Merge default config with overrides
+    const finalConfig = { ...defaultConfig, ...configOverrides };
+
+    try {
+        // Sanitize the input HTML
+        const cleanHtml = DOMPurify.sanitize(dirtyHtml || '', finalConfig);
+        // console.log("Sanitized HTML:", cleanHtml); // DEBUG: See the sanitized output
+        return cleanHtml;
+    } catch (error) {
+        console.error("DOMPurify sanitization failed:", error);
+        // Fallback to basic escaping on error
+        const temp = document.createElement('div');
+        temp.textContent = dirtyHtml || '';
+        return temp.innerHTML;
+    }
+}
+
 
 /**
  * Получает инициалы пользователя из данных профиля или email.
@@ -121,7 +178,7 @@ export const initTooltips = () => {
                 distance: 6,
                 side: 'top'
             });
-            console.log("[Tooltips] Initialized.");
+            // console.log("[Tooltips] Initialized."); // Can be noisy
         } else {
              console.warn("jQuery or Tooltipster not loaded, tooltips disabled.");
         }
@@ -185,7 +242,7 @@ export const initMouseFollower = () => {
 export const initScrollAnimations = () => {
     const animatedElements = document.querySelectorAll('.main-content-wrapper [data-animate]');
     if (!animatedElements.length || !('IntersectionObserver' in window)) {
-        console.log("Scroll animations not initialized.");
+        // console.log("Scroll animations not initialized."); // Too noisy
         return;
     }
 
@@ -199,7 +256,7 @@ export const initScrollAnimations = () => {
     }, { threshold: 0.1, rootMargin: "0px 0px -30px 0px" }); // Trigger slightly earlier
 
     animatedElements.forEach(element => observer.observe(element));
-    console.log(`Scroll animations initialized for ${animatedElements.length} elements.`);
+    // console.log(`Scroll animations initialized for ${animatedElements.length} elements.`); // Too noisy
 };
 
 /**
@@ -228,7 +285,7 @@ export const initHeaderScrollDetection = () => {
 /**
  * Otevře postranní menu (sidebar).
  */
-export function openMenu() { // <--- EXPORTED
+export function openMenu() {
     if (ui.sidebar && ui.sidebarOverlay) {
         ui.sidebar.classList.add('active');
         ui.sidebarOverlay.classList.add('active');
@@ -240,7 +297,7 @@ export function openMenu() { // <--- EXPORTED
 /**
  * Zavře postranní menu (sidebar).
  */
-export function closeMenu() { // <--- EXPORTED
+export function closeMenu() {
     if (ui.sidebar && ui.sidebarOverlay) {
         ui.sidebar.classList.remove('active');
         ui.sidebarOverlay.classList.remove('active');
@@ -250,4 +307,4 @@ export function closeMenu() { // <--- EXPORTED
 }
 // --- END OF ADDED EXPORTS ---
 
-console.log("Utils module loaded.");
+console.log("Utils module loaded (v3.9.6 with MathJax sanitize config).");

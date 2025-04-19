@@ -1,4 +1,6 @@
 /* --- START: vyuka-specific.css --- */
+/* Verze 3.9.6: Skryta patička .dashboard-footer */
+
 .topic-bar {
     padding: 0.8rem var(--container-padding-x);
     background-color: var(--dark-purple-accent);
@@ -32,39 +34,17 @@
     animation: spin 1.5s linear infinite;
 }
 
-/* Floating AI Avatar - REMOVED */
-
-/* Light Theme Overrides for Specifics */
-body.light .topic-bar { background-color: #e9ecef; border-color: var(--border-color-medium); }
-body.light #current-topic-display { color: var(--text-medium-light); }
-body.light #current-topic-display strong { color: var(--accent-primary); text-shadow: none; }
-
 /* MathJax general */
 mjx-container { text-align: left !important; }
 
-/* --- START: Copied Notification Styles from test1.css (for consistency) --- */
+/* --- START: Copied Notification Styles --- */
 .notifications { position: relative; }
 .notification-bell { cursor: pointer; padding: 0.6rem; position: relative; display: inline-block; line-height: 1; }
 .notification-bell i { font-size: 1.4rem; color: var(--text-muted); transition: color 0.2s, transform 0.2s; }
 .notification-bell:hover i { color: var(--accent-primary); transform: scale(1.1); }
-.notification-badge {
-    position: absolute; top: 0px; right: 0px; width: 18px; height: 18px;
-    background-color: var(--accent-pink); color: var(--white); font-size: 0.65rem;
-    border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600;
-    border: 2px solid var(--bg-secondary); pointer-events: none; opacity: 0; transform: scale(0.5);
-    transition: opacity 0.2s, transform 0.2s; box-shadow: 0 0 8px var(--accent-pink-glow);
-}
+.notification-badge { position: absolute; top: 0px; right: 0px; width: 18px; height: 18px; background-color: var(--accent-pink); color: var(--white); font-size: 0.65rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; border: 2px solid var(--bg-secondary); pointer-events: none; opacity: 0; transform: scale(0.5); transition: opacity 0.2s, transform 0.2s; box-shadow: 0 0 8px var(--accent-pink-glow); }
 .notification-badge.visible { opacity: 1; transform: scale(1); }
-.notifications-dropdown-wrapper {
-    position: absolute; top: calc(100% + 12px); right: -10px;
-    width: 380px; background-color: var(--interface-bg);
-    border-radius: 12px; box-shadow: var(--shadow-card);
-    border: 1px solid var(--border-color-medium);
-    z-index: 1010; opacity: 0; visibility: hidden;
-    transform: translateY(15px) scale(0.98); transform-origin: top right;
-    transition: opacity 0.3s ease, transform 0.3s ease, visibility 0s 0.3s;
-    backdrop-filter: blur(5px);
-}
+.notifications-dropdown-wrapper { position: absolute; top: calc(100% + 12px); right: -10px; width: 380px; background-color: var(--interface-bg); border-radius: 12px; box-shadow: var(--shadow-card); border: 1px solid var(--border-color-medium); z-index: 1010; opacity: 0; visibility: hidden; transform: translateY(15px) scale(0.98); transform-origin: top right; transition: opacity 0.3s ease, transform 0.3s ease, visibility 0s 0.3s; backdrop-filter: blur(5px); }
 .notifications-dropdown-wrapper.active { opacity: 1; visibility: visible; transform: translateY(0) scale(1); transition-delay: 0s; }
 .notifications-header { padding: 1rem 1.25rem; border-bottom: 1px solid var(--border-color-light); display: flex; justify-content: space-between; align-items: center; }
 .notifications-title { font-size: 1rem; font-weight: 600; color: var(--text-light); }
@@ -82,17 +62,7 @@ mjx-container { text-align: left !important; }
 .notification-item.is-read:hover { opacity: 0.8; }
 .notification-item.is-read .unread-dot { display: none; }
 .notification-icon { width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 1rem; color: var(--white); box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
-/* Specific Icon Styles */
-.notification-icon.info { background-color: var(--accent-primary); }
-.notification-icon.success { background-color: var(--accent-lime); color: var(--text-fixed-dark); }
-.notification-icon.warning { background-color: var(--accent-orange); }
-.notification-icon.danger { background-color: var(--accent-pink); }
-.notification-icon.badge { background: linear-gradient(45deg, var(--accent-orange), var(--accent-pink)); }
-.notification-icon.level_up { background: var(--gradient-level-up); }
-.notification-icon.plan_generated { background: linear-gradient(45deg, var(--accent-secondary), var(--accent-cyan)); } /* Example for plan */
-.notification-icon.exercise { background: linear-gradient(45deg, #2a9d8f, var(--accent-lime)); } /* Example for exercise */
-.notification-icon.test { background: linear-gradient(45deg, var(--accent-secondary), var(--accent-pink)); } /* Example for test */
-.notification-icon.default { background-color: var(--text-muted); }
+.notification-icon.info { background-color: var(--accent-primary); } .notification-icon.success { background-color: var(--accent-lime); color: var(--text-fixed-dark); } .notification-icon.warning { background-color: var(--accent-orange); } .notification-icon.danger { background-color: var(--accent-pink); } .notification-icon.badge { background: linear-gradient(45deg, var(--accent-orange), var(--accent-pink)); } .notification-icon.level_up { background: var(--gradient-level-up); } .notification-icon.plan_generated { background: linear-gradient(45deg, var(--accent-secondary), var(--accent-cyan)); } .notification-icon.exercise { background: linear-gradient(45deg, #2a9d8f, var(--accent-lime)); } .notification-icon.test { background: linear-gradient(45deg, var(--accent-secondary), var(--accent-pink)); } .notification-icon.default { background-color: var(--text-muted); }
 .notification-content { flex-grow: 1; }
 .notification-title { font-weight: 600; color: var(--text-light); margin-bottom: 0.25rem; font-size: 0.95rem; }
 .notification-message { font-size: 0.88rem; color: var(--text-medium); line-height: 1.45; margin-bottom: 0.3rem; }
@@ -102,13 +72,11 @@ mjx-container { text-align: left !important; }
 .view-all-notifications-link { font-size: 0.9rem; color: var(--accent-primary); text-decoration: none; font-weight: 500; }
 .view-all-notifications-link:hover { color: var(--white); text-decoration: underline; }
 #no-notifications-msg { padding: 2rem 1rem; text-align: center; color: var(--text-muted); font-size: 0.9rem; display: none; }
-/* Notification Skeletons (ensure consistency if used) */
-.notification-item.skeleton { cursor: default; }
-.notification-item.skeleton:hover { background-color: transparent; }
-.notification-icon.skeleton { background-color: var(--skeleton-bg); }
-.notification-item.skeleton .skeleton { background-color: var(--skeleton-bg); position: relative; overflow: hidden; border-radius: 4px; }
-.notification-item.skeleton .skeleton::after { content: ''; position: absolute; top: 0; left: -150%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, var(--skeleton-highlight), transparent); animation: skeleton-loading 1.5s infinite linear; }
-@keyframes skeleton-loading { 0% { left: -150%; } 100% { left: 150%; } }
 /* --- END: Copied Notification Styles --- */
+
+/* ---- HIDE FOOTER --- */
+.dashboard-footer {
+    display: none !important; /* Hide the footer */
+}
 
 /* --- END: vyuka-specific.css --- */

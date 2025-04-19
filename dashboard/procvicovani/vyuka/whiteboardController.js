@@ -1,18 +1,18 @@
 // whiteboardController.js - Kontroler pro správu obsahu na "tabuli" (whiteboard)
-// Verze 3.9.6: Nový přístup k MathJax - obalení do spanů PŘED marked/sanitize.
+// Verze 3.9.5 (revert): Jednodušší zpracování Markdownu a MathJax. Spoléhá na správnou konfiguraci sanitizeHTML v utils.js.
 
 import { marked } from "https://cdn.jsdelivr.net/npm/marked/lib/marked.esm.js";
-import { sanitizeHTML } from './utils.js';
+import { sanitizeHTML } from './utils.js'; // Import upravené sanitizační funkce
 import { ui } from './ui.js';
 import { state } from './state.js';
 
-// Konfigurace Marked.js
+// Konfigurace Marked.js - Důležité: NECHCEME, aby Marked interpretoval $ jako LaTeX.
 marked.setOptions({
     renderer: new marked.Renderer(),
     pedantic: false,
     gfm: true,
     breaks: true,
-    sanitize: false, // Sanitizaci děláme zvlášť
+    sanitize: false, // Sanitizaci děláme zvlášť pomocí DOMPurify v sanitizeHTML
     smartLists: true,
     smartypants: false,
     xhtml: false
@@ -31,70 +31,26 @@ export function appendToWhiteboard(markdownContent, ttsText = "") {
     }
     const container = ui.whiteboardContent;
 
-    // 1. PŘED-ZPRACOVÁNÍ MARKDOWNU pro MathJax:
-    //    Obalíme $...$ a $$...$$ do spanů, které snadněji přežijí marked a sanitize.
-    //    Použijeme zástupné znaky, aby marked neinterpretoval vnitřek.
-    let mathProcessedMarkdown = markdownContent || "";
-    try {
-        // Display Math: $$...$$ -> <span class="math-block">CONTENT</span>
-        // Použijeme negativní lookbehind (?<!) a lookahead (?!) aby se nezachytily escapované dolary (\$)
-        mathProcessedMarkdown = mathProcessedMarkdown.replace(/(?<!\\)\$\$(.*?)(?<!\\)\$\$/gs, (match, content) => {
-            // Zakódujeme speciální znaky uvnitř pro bezpečný průchod marked/sanitize
-             const encodedContent = content.replace(/</g, '&lt;').replace(/>/g, '&gt;');
-            return `<span class="math-block" data-math-content="${encodeURIComponent(content)}">Block Formula</span>`; // Placeholder
-        });
-        // Inline Math: $...$ -> <span class="math-inline">CONTENT</span>
-        mathProcessedMarkdown = mathProcessedMarkdown.replace(/(?<!\\)\$([^\$]+?)(?<!\\)\$/g, (match, content) => {
-            // Zakódujeme speciální znaky uvnitř
-             const encodedContent = content.replace(/</g, '&lt;').replace(/>/g, '&gt;');
-             // Odstraníme potenciální vnější mezery zachycené regexem
-             const trimmedContent = content.trim();
-             if (!trimmedContent) return '$'; // Pokud je obsah prázdný, vrátíme jen dolar
-            return `<span class="math-inline" data-math-content="${encodeURIComponent(trimmedContent)}">Inline Formula</span>`; // Placeholder
-        });
-    } catch (e) {
-        console.error("Error during Math pre-processing:", e);
-        // Pokračujeme s původním markdownem v případě chyby
-        mathProcessedMarkdown = markdownContent || "";
-    }
-
-
-    // 2. Konverze Markdown na HTML
+    // 1. Konverze Markdown na HTML - necháváme $ a $$ nedotčené pro MathJax
     let dirtyHtml = "";
     try {
-        dirtyHtml = marked.parse(mathProcessedMarkdown);
+        dirtyHtml = marked.parse(markdownContent || "");
     } catch (e) {
         console.error("Marked.parse error:", e);
         dirtyHtml = "<p>Chyba při zpracování Markdownu.</p>";
     }
 
-    // 3. Sanitizace HTML - MUSÍME POVOLIT <span class="math-..."> a data-math-content
-    const cleanHtml = sanitizeHTML(dirtyHtml, {
-        USE_PROFILES: { html: true },
-        ADD_TAGS: ['span'], // Povolit <span>
-        ADD_ATTR: ['class', 'data-math-content'] // Povolit 'class' a náš data atribut
-        // SAFE_FOR_TEMPLATES: true // Pokud používáme DOMPurify, toto může pomoci zachovat obsah spanů
-    });
+    // 2. Sanitizace HTML pomocí upravené funkce v utils.js
+    //   Předpokládáme, že tato funkce nyní správně zachází s MathJaxem.
+    const cleanHtml = sanitizeHTML(dirtyHtml); // Použijeme nově nakonfigurovanou sanitizeHTML
 
-    // 4. Vytvoření obalujícího div elementu (chunk)
+    // 3. Vytvoření obalujícího div elementu (chunk)
     const chunkDiv = document.createElement('div');
-    chunkDiv.className = 'whiteboard-chunk tex2jax_process'; // MathJax by měl hledat v prvcích s touto třídou
+    // Třída tex2jax_process je na #whiteboard-content, MathJax ji tam najde.
+    chunkDiv.className = 'whiteboard-chunk';
     chunkDiv.innerHTML = cleanHtml;
 
-    // 5. Obnovení obsahu matematiky z data atributů
-    chunkDiv.querySelectorAll('span.math-inline, span.math-block').forEach(span => {
-        const originalContent = decodeURIComponent(span.dataset.mathContent || '');
-        if (span.classList.contains('math-inline')) {
-             // Obnovíme $...$ pro MathJax
-             span.textContent = `$${originalContent}$`;
-        } else if (span.classList.contains('math-block')) {
-             // Obnovíme $$...$$ pro MathJax
-             span.textContent = `$$${originalContent}$$`;
-        }
-        span.removeAttribute('data-math-content'); // Odstraníme data atribut
-    });
-
-    // 6. Přidání TTS tlačítka
+    // 4. Přidání TTS tlačítka
     if (ttsText) {
         const ttsButton = document.createElement('button');
         ttsButton.className = 'tts-listen-btn btn-tooltip';
@@ -104,35 +60,35 @@ export function appendToWhiteboard(markdownContent, ttsText = "") {
         chunkDiv.appendChild(ttsButton);
     }
 
-    // 7. Přidání do DOMu a scroll
+    // 5. Přidání do DOMu a scroll
     container.appendChild(chunkDiv);
     container.scrollTop = container.scrollHeight;
 
-    // 8. Explicitní spuštění MathJax pro nově přidaný element
+    // 6. Explicitní spuštění MathJax pro nově přidaný element
     if (window.MathJax && window.MathJax.startup) {
-        console.log("[MathJax v3.9.6] Queueing typesetting for new whiteboard chunk...");
+        console.log("[MathJax v3.9.5] Queueing typesetting for new whiteboard chunk...");
         window.MathJax.startup.promise.then(() => {
             if (typeof window.MathJax.typesetPromise === 'function') {
-                 console.log("[MathJax v3.9.6] MathJax ready, typesetting chunk:", chunkDiv);
-                 window.MathJax.typesetPromise([chunkDiv]) // Cílíme na nový chunk
+                 console.log("[MathJax v3.9.5] MathJax ready, typesetting chunk:", chunkDiv);
+                 window.MathJax.typesetPromise([chunkDiv])
                      .then(() => {
-                         console.log("[MathJax v3.9.6] Typesetting complete for new chunk.");
+                         console.log("[MathJax v3.9.5] Typesetting complete for new chunk.");
                      }).catch((err) => {
-                         console.error('[MathJax v3.9.6] Error typesetting chunk:', err);
+                         console.error('[MathJax v3.9.5] Error typesetting chunk:', err);
                      });
             } else {
-                 console.error("[MathJax v3.9.6] typesetPromise function not found after startup.");
+                 console.error("[MathJax v3.9.5] typesetPromise function not found after startup.");
             }
         }).catch(err => console.error("MathJax startup promise failed:", err));
     } else {
         console.warn("MathJax or MathJax.startup not available for new chunk.");
     }
 
-    // 9. Uložení do historie (původní markdown)
+    // 7. Uložení do historie
     state.boardContentHistory.push(markdownContent);
     if (state.boardContentHistory.length > 7) { state.boardContentHistory.shift(); }
 
-    console.log("Appended content to whiteboard and queued MathJax typesetting (v3.9.6).");
+    console.log("Appended content to whiteboard and queued MathJax typesetting (v3.9.5).");
     return chunkDiv;
 }
 
@@ -152,6 +108,4 @@ export function clearWhiteboard(showInternalToast = true) {
     }
 }
 
-// Funkce renderMarkdown zde není exportována
-
-console.log("Whiteboard controller module loaded (v3.9.6 with span pre-processing for MathJax).");
+console.log("Whiteboard controller module loaded (v3.9.5 - reverted to simpler MathJax handling).");
