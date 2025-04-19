@@ -12,27 +12,34 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <script>
-        // Configure MathJax before loading the script
+        // Konfigurace MathJax před načtením skriptu - Verze 3.9.4
         if (typeof window.MathJax === 'undefined') {
             window.MathJax = {
                 tex: {
-                    inlineMath: [['<span class="math-inline">', '</span>'], ['\\(', '\\)']], // Define inline math delimiters
-                    displayMath: [['<span class="math-block">', '</span>']],             // Define display math delimiters
-                    processEscapes: true                   // Process escaped characters like \$
+                    // Zjednodušené a jednoznačné delimitery
+                    inlineMath: [['$', '$']],
+                    displayMath: [['$$', '$$']],
+                    processEscapes: true
+                },
+                svg: {
+                    fontCache: 'global'
                 },
                 options: {
-                    skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'], // Tags to ignore
-                    ignoreHtmlClass: 'tex2jax_ignore'       // Class to ignore
+                    skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
+                    ignoreHtmlClass: 'tex2jax_ignore',
+                    processHtmlClass: 'tex2jax_process' // Třída pro explicitní zpracování
                 },
                 startup: {
                     ready: () => {
+                        console.log('MathJax startup: Ready.');
                         MathJax.startup.defaultReady();
                         MathJax.startup.promise.then(() => {
-                            console.log('MathJax loaded and ready.');
+                             console.log('MathJax initial typesetting finished (if any).');
                         });
                     }
                 }
             };
+            console.log("MathJax configuration set (v3.9.4).");
         } else {
             console.warn("window.MathJax already defined.");
         }
@@ -115,7 +122,7 @@
                                  <button class="mark-all-read-btn" id="mark-all-read" disabled>Vymazat vše</button>
                              </div>
                              <div id="notifications-list">
-                                  <div class="notification-item skeleton"> <div class="notification-icon skeleton"></div> <div class="notification-content"> <div class="skeleton"></div> <div class="skeleton"></div> <div class="skeleton"></div> </div> </div>
+                                  <div class="notification-item skeleton" style="display: none;"> <div class="notification-icon skeleton"></div> <div class="notification-content"> <div class="skeleton"></div> <div class="skeleton"></div> <div class="skeleton"></div> </div> </div>
                                   <div id="no-notifications-msg" style="display: none;">ŽÁDNÉ NOVÉ SIGNÁLY</div>
                              </div>
                              <div class="notifications-footer">
@@ -160,7 +167,7 @@
                         </div>
                     </div>
                     <div id="whiteboard-container">
-                        <div id="whiteboard-content">
+                        <div id="whiteboard-content" class="tex2jax_process">
                             <div class="empty-state initial-load-placeholder" style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 200px; color: var(--text-muted);">
                                 <i class="fas fa-spinner fa-spin" style="font-size: 2rem; margin-bottom: 1rem;"></i>
                                 <p>Načítání první lekce...</p>
@@ -176,7 +183,7 @@
                          <div class="interaction-tab active" data-tab="chat-tab">
                               <i class="fas fa-comments"></i> Chat
                          </div>
-                         </div>
+                     </div>
                      <div class="interaction-content-area">
                         <div id="chat-tab-content" class="tab-content active">
                             <div class="chat-header"><i class="fas fa-comments"></i> Chat s AI Tutorem</div>
@@ -192,6 +199,9 @@
                                         <textarea class="chat-input" id="chat-input" placeholder="Načítání..." rows="1" disabled></textarea>
                                         <button class="send-button" id="send-button" title="Odeslat zprávu" disabled>
                                             <i class="fas fa-paper-plane"></i>
+                                        </button>
+                                        <button id="mic-btn" class="btn-icon btn-tooltip" title="Hlasový vstup" disabled>
+                                             <i class="fas fa-microphone"></i>
                                         </button>
                                     </div>
                                 </div>

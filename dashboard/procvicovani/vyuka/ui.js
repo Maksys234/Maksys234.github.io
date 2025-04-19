@@ -1,7 +1,6 @@
 // ui.js - Кэш DOM-элементов интерфейса Vyuka
-// Verze: Přidán continueBtn
+// Verze: 3.9.4 - Odstraněny clearChatBtn, saveChatBtn, ověřeno micBtn
 
-// Экспортируем объект ui, чтобы получить доступ к элементам из других модулей.
 export const ui = {
     // Loaders & Overlays
     initialLoader: document.getElementById('initial-loader'),
@@ -29,8 +28,8 @@ export const ui = {
     mainContent: document.getElementById('main-content'),
     topicBar: document.querySelector('.topic-bar'),
     currentTopicDisplay: document.getElementById('current-topic-display'),
-    continueBtn: document.getElementById('continue-btn'), // << PŘIDÁNO ZDE
-    learningInterface: document.querySelector('.call-interface'), // Hlavní kontejner učení
+    continueBtn: document.getElementById('continue-btn'),
+    learningInterface: document.querySelector('.call-interface'),
     aiPresenterArea: document.querySelector('.ai-presenter-area'),
     aiPresenterHeader: document.querySelector('.ai-presenter-header'),
     aiAvatarPlaceholder: document.querySelector('.ai-avatar-placeholder'),
@@ -42,17 +41,16 @@ export const ui = {
     interactionPanel: document.querySelector('.interaction-panel'),
     interactionTabs: document.querySelector('.interaction-tabs'),
     chatTabContent: document.getElementById('chat-tab-content'),
-    chatTabButton: document.querySelector('.interaction-tab[data-tab="chat-tab"]'), // Выбираем по атрибуту
+    chatTabButton: document.querySelector('.interaction-tab[data-tab="chat-tab"]'),
     chatHeader: document.querySelector('.chat-header'),
     chatMessages: document.getElementById('chat-messages'),
     chatInput: document.getElementById('chat-input'),
     sendButton: document.getElementById('send-button'),
-    chatControls: document.querySelector('.chat-controls'),
-    micBtn: document.getElementById('mic-btn'),
-    clearChatBtn: document.getElementById('clear-chat-btn'),
-    saveChatBtn: document.getElementById('save-chat-btn'),
+    // chatControls: document.querySelector('.chat-controls'), // Odstraněno
+    micBtn: document.getElementById('mic-btn'), // ID zůstává stejné, i když je na jiném místě
+    // clearChatBtn: document.getElementById('clear-chat-btn'), // Odstraněno
+    // saveChatBtn: document.getElementById('save-chat-btn'), // Odstraněno
     stopSpeechBtn: document.getElementById('stop-speech-btn'),
-    // markCompleteBtn removed as completion is handled differently
 
     // Feedback & Footer
     toastContainer: document.getElementById('toast-container'),
@@ -65,8 +63,8 @@ export const ui = {
 };
 
 // Проверка наличия ключевых элементов при загрузке модуля
-if (!ui.mainContent || !ui.sidebar || !ui.learningInterface) {
-    console.error("UI Cache Error: Core layout elements not found! Check IDs in vyuka.html");
+if (!ui.mainContent || !ui.sidebar || !ui.learningInterface || !ui.chatInput || !ui.micBtn) { // Přidána kontrola micBtn
+    console.error("UI Cache Error: Core layout elements not found! Check IDs in vyuka.html and ui.js");
 } else {
-    console.log("UI elements cache created (including continueBtn).");
+    console.log("UI elements cache created successfully (v3.9.4).");
 }
