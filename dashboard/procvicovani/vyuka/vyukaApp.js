@@ -20,7 +20,7 @@ import { sendToGemini, parseGeminiResponse } from './geminiService.js';
 // Убедимся, что импортируем stopSpeech
 import { loadVoices, speakText, stopSpeech, handleMicClick, initializeSpeechRecognition, removeBoardHighlight } from './speechService.js';
 import { renderMarkdown, clearWhiteboard, appendToWhiteboard } from './whiteboardController.js';
-import { addChatMessage, addThinkingIndicator, removeThinkingIndicator, confirmClearChat, saveChatToPDF, updateGeminiThinkingState /* Добавлен импорт */ } from './chatController.js';
+import { addChatMessage, addThinkingIndicator, removeThinkingIndicator, confirmClearChat, saveChatToPDF } from './chatController.js';
 
 // --- Основная Логика Приложения ---
 
