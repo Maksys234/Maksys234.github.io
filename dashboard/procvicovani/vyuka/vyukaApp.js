@@ -1,4 +1,4 @@
-// vyukaApp.js - Основной файл приложения Vyuka, инициализация и координация модулей
+// vyukaApp.js - Основной файл приложения Vyuka, инициализация и координация модулей (Версия с улучшениями)
 
 // --- Импорт Модулей ---
 import { MAX_GEMINI_HISTORY_TURNS, NOTIFICATION_FETCH_LIMIT, POINTS_TOPIC_COMPLETE } from './config.js';
@@ -23,13 +23,30 @@ import { addChatMessage, addThinkingIndicator, removeThinkingIndicator, confirmC
 
 // --- Основная Логика Приложения ---
 
-const activityVisuals = { test: { icon: 'fa-vial', class: 'test' }, exercise: { icon: 'fa-pencil-alt', class: 'exercise' }, badge: { icon: 'fa-medal', class: 'badge' }, diagnostic: { icon: 'fa-clipboard-check', class: 'diagnostic' }, lesson: { icon: 'fa-book-open', class: 'lesson' }, plan_generated: { icon: 'fa-calendar-alt', class: 'plan_generated' }, level_up: { icon: 'fa-level-up-alt', class: 'level_up' }, vyuka_start: { icon: 'fa-chalkboard-teacher', class: 'lesson'}, vyuka_complete: { icon: 'fa-flag-checkered', class: 'test'}, achievement: { icon: 'fa-trophy', class: 'badge'}, info: { icon: 'fa-info-circle', class: 'info' }, warning: { icon: 'fa-exclamation-triangle', class: 'warning' }, error: { icon: 'fa-exclamation-circle', class: 'danger' }, other: { icon: 'fa-info-circle', class: 'other' }, default: { icon: 'fa-check-circle', class: 'default' } };
+// Карта визуальных стилей для уведомлений (можно вынести в config.js)
+const activityVisuals = {
+    test: { icon: 'fa-vial', class: 'test' },
+    exercise: { icon: 'fa-pencil-alt', class: 'exercise' },
+    badge: { icon: 'fa-medal', class: 'badge' },
+    diagnostic: { icon: 'fa-clipboard-check', class: 'diagnostic' },
+    lesson: { icon: 'fa-book-open', class: 'lesson' },
+    plan_generated: { icon: 'fa-calendar-alt', class: 'plan_generated' },
+    level_up: { icon: 'fa-level-up-alt', class: 'level_up' },
+    vyuka_start: { icon: 'fa-chalkboard-teacher', class: 'lesson'},
+    vyuka_complete: { icon: 'fa-flag-checkered', class: 'test'},
+    achievement: { icon: 'fa-trophy', class: 'badge'},
+    info: { icon: 'fa-info-circle', class: 'info' },
+    warning: { icon: 'fa-exclamation-triangle', class: 'warning' },
+    error: { icon: 'fa-exclamation-circle', class: 'danger' },
+    other: { icon: 'fa-info-circle', class: 'other' },
+    default: { icon: 'fa-check-circle', class: 'default' }
+};
 
 /**
  * Главная функция инициализации приложения.
  */
 async function initializeApp() {
-    console.log("🚀 [Init Vyuka - Kyber V3] Starting App Initialization..."); // Added version marker
+    console.log("🚀 [Init Vyuka - Kyber V3.1] Starting App Initialization..."); // Version bump for clarity
     let initializationError = null;
 
     if (ui.initialLoader) {
@@ -59,14 +76,16 @@ async function initializeApp() {
         if (!state.currentProfile) {
             console.warn(`Profile not found for user ${state.currentUser.id}.`);
             initializationError = new Error("Profil nenalezen nebo se nepodařilo načíst. Zkuste obnovit stránku.");
+            // We need UI initialized even to show the error properly
+            try { initializeUI(); updateUserInfoUI(); } catch (uiError) { console.error("UI Init failed during profile error:", uiError); }
             manageUIState('error', { errorMessage: initializationError.message });
         } else {
             console.log("[INIT] Profile fetched successfully.");
         }
 
         console.log("[INIT] Initializing base UI...");
-        initializeUI();
-        updateUserInfoUI();
+        initializeUI(); // Initialize UI regardless of profile outcome (needed for error display)
+        updateUserInfoUI(); // Update user info based on fetched data (or lack thereof)
 
         if (state.currentProfile && !initializationError) {
             console.log("[INIT] Loading initial topic and notifications...");
@@ -78,28 +97,39 @@ async function initializeApp() {
                 .catch(err => { console.error("Chyba při úvodním načítání notifikací:", err); renderNotifications(0, []); showToast('Chyba Notifikací', 'Nepodařilo se načíst signály.', 'error'); })
                 .finally(() => {
                     setLoadingState('notifications', false);
-                    // Manage button state ONLY after notifications finished loading
-                    manageButtonStates(); // Ensure notification button state is correct
+                    manageButtonStates(); // Explicit call after async notification load
                 });
 
             const loadTopicPromise = loadNextTopicFlow()
-                 .catch(err => console.error("Chyba při načítání úvodního tématu:", err));
+                 .catch(err => {
+                     console.error("Chyba při načítání úvodního tématu:", err);
+                     // Ensure UI reflects the error state even if profile was fetched
+                     manageUIState('error', { errorMessage: `Chyba načítání tématu: ${err.message}` });
+                     setLoadingState('currentTopic', false); // Ensure loading stops on error
+                 });
 
             await Promise.all([loadNotificationsPromise, loadTopicPromise]);
             console.log("[INIT] Initial data loading complete (or errors handled).");
 
-        } else if (initializationError) {
+        } else {
+             // If profile failed or error occurred, ensure loading states are off
              setLoadingState('currentTopic', false);
              setLoadingState('notifications', false);
+             // Ensure manageButtonStates is called to reflect the error/no-profile state
+             manageButtonStates();
         }
 
     } catch (error) {
-        console.error("❌ [Init Vyuka - Kyber V3] Critical initialization error:", error);
+        console.error("❌ [Init Vyuka - Kyber V3.1] Critical initialization error:", error);
         initializationError = error;
+        // Attempt to initialize UI for error display if not already done
         if (!document.getElementById('main-mobile-menu-toggle')) {
-            try { initializeUI(); } catch (uiError) { console.error("Failed to initialize UI during error handling:", uiError); }
+            try { initializeUI(); } catch (uiError) { console.error("Failed to initialize UI during critical error handling:", uiError); }
         }
         manageUIState('error', { errorMessage: error.message });
+        setLoadingState('all', false); // Ensure all loading states are off
+        // Show error prominently
+        showError(`Chyba inicializace: ${error.message}`, true);
     } finally {
         console.log("[INIT] Finalizing initialization (finally block)...");
         if (ui.initialLoader) {
@@ -107,44 +137,40 @@ async function initializeApp() {
              setTimeout(() => { if (ui.initialLoader) ui.initialLoader.style.display = 'none'; }, 500);
         }
         if (ui.mainContent) {
-            ui.mainContent.style.display = 'flex';
+            ui.mainContent.style.display = 'flex'; // Use 'flex' as per layout
             requestAnimationFrame(() => {
                 if (ui.mainContent) ui.mainContent.classList.add('loaded');
-                initScrollAnimations();
+                initScrollAnimations(); // Initialize animations after layout is visible
             });
         }
-        if (initializationError) {
-            setLoadingState('all', false); // Ensure all flags are off
-            showError(`Chyba inicializace: ${initializationError.message}`, true);
-        }
-        // *** FIX: Guarantee final button state check ***
+        // Final call to ensure buttons reflect the final state
         manageButtonStates();
-        console.log("✅ [Init Vyuka - Kyber V3] App Initialization Finished (finally block).");
+        console.log("✅ [Init Vyuka - Kyber V3.1] App Initialization Finished (finally block).");
     }
 }
-
 
 /**
  * Инициализация базового UI.
  */
 function initializeUI() {
-    // ... (код из предыдущего ответа без изменений) ...
+    console.log("[UI Init] Initializing UI elements and handlers...");
     try {
         updateTheme();
         setupEventListeners();
         initTooltips();
         if (ui.chatTabButton) ui.chatTabButton.classList.add('active');
         if (ui.chatTabContent) ui.chatTabContent.classList.add('active');
-        initializeSpeechRecognition();
+        initializeSpeechRecognition(); // Initialize STT service
         initMouseFollower();
         initHeaderScrollDetection();
         updateCopyrightYear();
         updateOnlineStatus();
-        manageUIState('initial');
-        console.log("UI Initialized successfully.");
+        manageUIState('initial'); // Set initial screen state
+        console.log("[UI Init] UI Initialized successfully.");
     } catch (error) {
         console.error("UI Init failed:", error);
         showError(`Chyba inicializace UI: ${error.message}`, false);
+        // If you have a stack trace, log it for more detailed debugging
         if (error.stack) console.error("Original stack trace:", error.stack);
     }
 }
@@ -154,104 +180,104 @@ function initializeUI() {
  * Настройка основных обработчиков событий.
  */
 function setupEventListeners() {
-    // ... (код из предыдущего ответа без изменений) ...
     console.log("[SETUP] Setting up event listeners...");
+    let listenersAttached = 0; // Counter for attached listeners
+
+    // Helper function to attach listener and log
+    function addListener(element, event, handler, elementName) {
+        if (element) {
+            element.addEventListener(event, handler);
+            listenersAttached++;
+            // console.log(`[SETUP] Listener '${event}' added to '${elementName}'.`);
+        } else {
+            console.warn(`[SETUP] Element '${elementName}' not found. Listener not attached.`);
+        }
+    }
 
     // Mobile Menu Toggle
-    if (ui.mainMobileMenuToggle) ui.mainMobileMenuToggle.addEventListener('click', openMenu);
-    else console.warn("Element 'main-mobile-menu-toggle' not found.");
-
-    // Sidebar Close/Overlay
-    if(ui.sidebarCloseToggle) ui.sidebarCloseToggle.addEventListener('click', closeMenu);
-    else console.warn("Element 'sidebar-close-toggle' not found.");
-    if(ui.sidebarOverlay) ui.sidebarOverlay.addEventListener('click', closeMenu);
-    else console.warn("Element 'sidebar-overlay' not found.");
+    addListener(ui.mainMobileMenuToggle, 'click', openMenu, 'mainMobileMenuToggle');
+    addListener(ui.sidebarCloseToggle, 'click', closeMenu, 'sidebarCloseToggle');
+    addListener(ui.sidebarOverlay, 'click', closeMenu, 'sidebarOverlay');
 
     // Chat Input & Buttons
-    if(ui.chatInput) ui.chatInput.addEventListener('input', () => autoResizeTextarea(ui.chatInput));
-    else console.warn("Element 'chat-input' not found.");
-    if(ui.sendButton) ui.sendButton.addEventListener('click', handleSendMessage);
-    else console.warn("Element 'send-button' not found.");
-    if(ui.chatInput) ui.chatInput.addEventListener('keypress', (e) => {
+    addListener(ui.chatInput, 'input', () => autoResizeTextarea(ui.chatInput), 'chatInput (input)');
+    addListener(ui.sendButton, 'click', handleSendMessage, 'sendButton');
+    addListener(ui.chatInput, 'keypress', (e) => {
         if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(); }
-    });
-    if(ui.clearChatBtn) ui.clearChatBtn.addEventListener('click', () => confirmClearChat());
-    else console.warn("Element 'clear-chat-btn' not found.");
-    if(ui.saveChatBtn) ui.saveChatBtn.addEventListener('click', saveChatToPDF);
-    else console.warn("Element 'save-chat-btn' not found.");
-    if(ui.micBtn) ui.micBtn.addEventListener('click', handleMicClick);
-    else console.warn("Element 'mic-btn' not found.");
+    }, 'chatInput (keypress)');
+    addListener(ui.clearChatBtn, 'click', () => confirmClearChat(), 'clearChatBtn');
+    addListener(ui.saveChatBtn, 'click', saveChatToPDF, 'saveChatBtn');
+    addListener(ui.micBtn, 'click', handleMicClick, 'micBtn');
 
     // Whiteboard & Speech Controls
-    if(ui.clearBoardBtn) ui.clearBoardBtn.addEventListener('click', () => { clearWhiteboard(false); showToast('Vymazáno', "Tabule vymazána.", "info"); });
-    else console.warn("Element 'clear-board-btn' not found.");
-    if(ui.stopSpeechBtn) ui.stopSpeechBtn.addEventListener('click', stopSpeech);
-    else console.warn("Element 'stop-speech-btn' not found.");
+    addListener(ui.clearBoardBtn, 'click', () => { clearWhiteboard(false); showToast('Vymazáno', "Tabule vymazána.", "info"); }, 'clearBoardBtn');
+    addListener(ui.stopSpeechBtn, 'click', stopSpeech, 'stopSpeechBtn');
 
     // Learning Flow Controls
-    if(ui.continueBtn) ui.continueBtn.addEventListener('click', requestContinue);
-    else console.warn("Element 'continue-btn' not found.");
-    if(ui.markCompleteBtn) ui.markCompleteBtn.addEventListener('click', handleMarkTopicCompleteFlow);
-    else console.warn("Element 'mark-complete-btn' not found.");
+    addListener(ui.continueBtn, 'click', requestContinue, 'continueBtn');
+    addListener(ui.markCompleteBtn, 'click', handleMarkTopicCompleteFlow, 'markCompleteBtn');
 
-    // Dynamic TTS Buttons
-    if(ui.chatMessages) ui.chatMessages.addEventListener('click', handleDynamicTTSClick);
-    else console.warn("Element 'chat-messages' not found for TTS delegation.");
-    if(ui.whiteboardContent) ui.whiteboardContent.addEventListener('click', handleDynamicTTSClick);
-    else console.warn("Element 'whiteboard-content' not found for TTS delegation.");
+    // Dynamic TTS Buttons (Event Delegation)
+    addListener(ui.chatMessages, 'click', handleDynamicTTSClick, 'chatMessages (TTS Delegation)');
+    addListener(ui.whiteboardContent, 'click', handleDynamicTTSClick, 'whiteboardContent (TTS Delegation)');
 
     // Theme Change Listener
-    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => { state.isDarkMode = event.matches; updateTheme(); });
+    const darkModeMatcher = window.matchMedia('(prefers-color-scheme: dark)');
+    if (darkModeMatcher && typeof darkModeMatcher.addEventListener === 'function') {
+        darkModeMatcher.addEventListener('change', event => { state.isDarkMode = event.matches; updateTheme(); });
+        listenersAttached++;
+    } else {
+        console.warn("[SETUP] Cannot add theme change listener.");
+    }
 
     // Resize Listener
     window.addEventListener('resize', () => { if (window.innerWidth > 992 && ui.sidebar?.classList.contains('active')) { closeMenu(); } });
+    listenersAttached++;
 
     // Online/Offline Status
     window.addEventListener('online', updateOnlineStatus);
     window.addEventListener('offline', updateOnlineStatus);
+    listenersAttached += 2;
 
     // Notification Listeners
-    if (ui.notificationBell) ui.notificationBell.addEventListener('click', (event) => { event.stopPropagation(); ui.notificationsDropdown?.classList.toggle('active'); });
-    else console.warn("Notification bell element not found.");
+    addListener(ui.notificationBell, 'click', (event) => { event.stopPropagation(); ui.notificationsDropdown?.classList.toggle('active'); }, 'notificationBell');
+    addListener(ui.markAllReadBtn, 'click', async () => {
+        if (state.isLoading.notifications || !state.currentUser) return;
+        setLoadingState('notifications', true); manageButtonStates();
+        try {
+            const success = await markAllNotificationsRead(state.currentUser.id);
+            if(success) { const { unreadCount, notifications } = await fetchNotifications(state.currentUser.id, NOTIFICATION_FETCH_LIMIT); renderNotifications(unreadCount, notifications); showToast('SIGNÁLY VYMAZÁNY', 'Všechna oznámení označena.', 'success'); }
+            else { showToast('CHYBA PŘENOSU', 'Nepodařilo se označit oznámení.', 'error'); }
+        } catch (err) { console.error("Error marking all notifications read:", err); showToast('CHYBA SYSTÉMU', 'Při označování nastala chyba.', 'error');
+        } finally { setLoadingState('notifications', false); manageButtonStates(); }
+    }, 'markAllReadBtn');
 
-    if (ui.markAllReadBtn) {
-        ui.markAllReadBtn.addEventListener('click', async () => {
-            if (state.isLoading.notifications) return;
-            setLoadingState('notifications', true); manageButtonStates();
-            try {
-                const success = await markAllNotificationsRead(state.currentUser.id);
-                if(success) { const { unreadCount, notifications } = await fetchNotifications(state.currentUser.id, NOTIFICATION_FETCH_LIMIT); renderNotifications(unreadCount, notifications); showToast('SIGNÁLY VYMAZÁNY', 'Všechna oznámení označena.', 'success'); }
-                else { showToast('CHYBA PŘENOSU', 'Nepodařilo se označit oznámení.', 'error'); }
-            } catch (err) { console.error("Error marking all notifications read:", err); showToast('CHYBA SYSTÉMU', 'Při označování nastala chyba.', 'error');
-            } finally { setLoadingState('notifications', false); manageButtonStates(); }
-        });
-    } else console.warn("Mark all read button not found.");
-
-    if (ui.notificationsList) {
-        ui.notificationsList.addEventListener('click', async (event) => {
-            const item = event.target.closest('.notification-item');
-            if (item && !state.isLoading.notifications) {
-                const notificationId = item.dataset.id; const link = item.dataset.link; const isRead = item.classList.contains('is-read');
-                if (!isRead && notificationId && state.currentUser) {
-                    item.style.opacity = '0.5'; const success = await markNotificationRead(notificationId, state.currentUser.id); item.style.opacity = '';
-                    if (success) {
-                        item.classList.add('is-read'); item.querySelector('.unread-dot')?.remove();
-                        const countEl = ui.notificationCount;
-                        if (countEl) { const currentCount = parseInt(countEl.textContent.replace('+', '') || '0'); const newCount = Math.max(0, currentCount - 1); countEl.textContent = newCount > 9 ? '9+' : (newCount > 0 ? String(newCount) : ''); countEl.classList.toggle('visible', newCount > 0); }
-                        manageButtonStates();
-                    } else { showToast('Chyba', 'Nepodařilo se označit oznámení.', 'error'); }
-                }
-                if (link) { ui.notificationsDropdown?.classList.remove('active'); window.location.href = link; }
+    addListener(ui.notificationsList, 'click', async (event) => {
+        const item = event.target.closest('.notification-item');
+        if (item && !state.isLoading.notifications && state.currentUser) {
+            const notificationId = item.dataset.id; const link = item.dataset.link; const isRead = item.classList.contains('is-read');
+            if (!isRead && notificationId) {
+                item.style.opacity = '0.5'; const success = await markNotificationRead(notificationId, state.currentUser.id); item.style.opacity = '';
+                if (success) {
+                    item.classList.add('is-read'); item.querySelector('.unread-dot')?.remove();
+                    const countEl = ui.notificationCount;
+                    if (countEl) { const currentCount = parseInt(countEl.textContent.replace('+', '') || '0'); const newCount = Math.max(0, currentCount - 1); countEl.textContent = newCount > 9 ? '9+' : (newCount > 0 ? String(newCount) : ''); countEl.classList.toggle('visible', newCount > 0); }
+                    manageButtonStates(); // Update mark all read button state
+                } else { showToast('Chyba', 'Nepodařilo se označit oznámení.', 'error'); }
             }
-        });
-    } else console.warn("Notifications list element not found.");
+            if (link) { ui.notificationsDropdown?.classList.remove('active'); window.location.href = link; }
+        }
+    }, 'notificationsList');
 
+    // Close notification dropdown on outside click
     document.addEventListener('click', (event) => {
         if (ui.notificationsDropdown?.classList.contains('active') && !ui.notificationsDropdown.contains(event.target) && !ui.notificationBell?.contains(event.target)) {
             ui.notificationsDropdown.classList.remove('active');
         }
     });
-    console.log("Event listeners setup complete.");
+    listenersAttached++; // For document click listener
+
+    console.log(`[SETUP] Event listeners setup complete. Total attached (approx): ${listenersAttached}`);
 }
 
 // --- Обновление UI ---
@@ -260,47 +286,202 @@ function setupEventListeners() {
  * Обновляет информацию о пользователе в UI (сайдбар).
  */
 function updateUserInfoUI() {
-    // ... (код из предыдущего ответа без изменений) ...
-    if (!ui.sidebarName || !ui.sidebarAvatar) return;
-    if (state.currentUser && state.currentProfile) { const displayName = `${state.currentProfile.first_name || ''} ${state.currentProfile.last_name || ''}`.trim() || state.currentProfile.username || state.currentUser.email?.split('@')[0] || 'Pilot'; ui.sidebarName.textContent = sanitizeHTML(displayName); const initials = getInitials(state.currentProfile, state.currentUser.email); const avatarUrl = state.currentProfile.avatar_url; let finalUrl = avatarUrl; if (avatarUrl && !avatarUrl.startsWith('http') && !avatarUrl.startsWith('//') && !avatarUrl.startsWith('data:')) { finalUrl = null; console.warn("Invalid avatar URL:", avatarUrl); } else if (avatarUrl) { finalUrl = sanitizeHTML(avatarUrl); } ui.sidebarAvatar.innerHTML = finalUrl ? `<img src="${finalUrl}" alt="${sanitizeHTML(initials)}">` : sanitizeHTML(initials); const sidebarImg = ui.sidebarAvatar.querySelector('img'); if (sidebarImg) { sidebarImg.onerror = function() { console.warn(`Failed to load avatar: ${this.src}`); ui.sidebarAvatar.innerHTML = sanitizeHTML(initials); }; } } else { ui.sidebarName.textContent = 'Nepřihlášen'; ui.sidebarAvatar.textContent = '?'; }
+    if (!ui.sidebarName || !ui.sidebarAvatar) {
+        console.warn("updateUserInfoUI: Sidebar elements not found.");
+        return;
+    }
+    if (state.currentUser && state.currentProfile) {
+        const displayName = `${state.currentProfile.first_name || ''} ${state.currentProfile.last_name || ''}`.trim() || state.currentProfile.username || state.currentUser.email?.split('@')[0] || 'Pilot';
+        ui.sidebarName.textContent = sanitizeHTML(displayName);
+        const initials = getInitials(state.currentProfile, state.currentUser.email);
+        const avatarUrl = state.currentProfile.avatar_url;
+        let finalUrl = avatarUrl;
+
+        // Basic URL validation
+        if (avatarUrl && !avatarUrl.startsWith('http') && !avatarUrl.startsWith('//') && !avatarUrl.startsWith('data:')) {
+            finalUrl = null; // Treat invalid URLs as null
+            console.warn("Invalid avatar URL:", avatarUrl);
+        } else if (avatarUrl) {
+            finalUrl = sanitizeHTML(avatarUrl); // Sanitize potentially valid URLs
+        }
+
+        ui.sidebarAvatar.innerHTML = finalUrl ? `<img src="${finalUrl}" alt="${sanitizeHTML(initials)}">` : sanitizeHTML(initials);
+
+        // Add error handling for the image itself
+        const sidebarImg = ui.sidebarAvatar.querySelector('img');
+        if (sidebarImg) {
+            sidebarImg.onerror = function() {
+                console.warn(`Failed to load avatar: ${this.src}`);
+                ui.sidebarAvatar.innerHTML = sanitizeHTML(initials); // Fallback to initials
+            };
+        }
+    } else {
+        ui.sidebarName.textContent = 'Nepřihlášen';
+        ui.sidebarAvatar.textContent = '?';
+    }
 }
 
 /**
  * Отображает уведомления в выпадающем списке.
  */
  function renderNotifications(count, notifications) {
-    // ... (код из предыдущего ответа без изменений) ...
-    console.log("[Render Notifications V3] Count:", count, "Notifications:", notifications);
-    if (!ui.notificationCount || !ui.notificationsList || !ui.noNotificationsMsg || !ui.markAllReadBtn) { console.error("[Render Notifications] Missing UI elements."); return; }
+    console.log("[Render Notifications V3.1] Count:", count, "Notifications:", notifications);
+    if (!ui.notificationCount || !ui.notificationsList || !ui.noNotificationsMsg || !ui.markAllReadBtn) {
+        console.error("[Render Notifications] Missing UI elements.");
+        return;
+    }
+
+    // Update count badge
     ui.notificationCount.textContent = count > 9 ? '9+' : (count > 0 ? String(count) : '');
     ui.notificationCount.classList.toggle('visible', count > 0);
+
+    // Render list or empty message
     if (notifications && notifications.length > 0) {
-        ui.notificationsList.innerHTML = notifications.map(n => { const visual = activityVisuals[(n.type || 'default').toLowerCase()] || activityVisuals.default; const isReadClass = n.is_read ? 'is-read' : ''; const linkAttr = n.link ? `data-link="${sanitizeHTML(n.link)}"` : ''; return `<div class="notification-item ${isReadClass}" data-id="${n.id}" ${linkAttr}>${!n.is_read ? '<span class="unread-dot"></span>' : ''}<div class="notification-icon ${visual.class}"><i class="fas ${visual.icon}"></i></div><div class="notification-content"><div class="notification-title">${sanitizeHTML(n.title)}</div><div class="notification-message">${sanitizeHTML(n.message)}</div><div class="notification-time">${formatRelativeTime(n.created_at)}</div></div></div>`; }).join('');
-        ui.noNotificationsMsg.style.display = 'none'; ui.notificationsList.style.display = 'block'; ui.notificationsList.closest('.notifications-dropdown-wrapper')?.classList.add('has-content');
-    } else { ui.notificationsList.innerHTML = ''; ui.noNotificationsMsg.style.display = 'block'; ui.notificationsList.style.display = 'none'; ui.notificationsList.closest('.notifications-dropdown-wrapper')?.classList.remove('has-content'); }
-    const currentUnreadCount = parseInt(ui.notificationCount.textContent.replace('+', '') || '0'); ui.markAllReadBtn.disabled = currentUnreadCount === 0 || state.isLoading.notifications;
-    console.log("[Render Notifications V3] Finished rendering.");
+        ui.notificationsList.innerHTML = notifications.map(n => {
+            // Determine icon and class based on type (using activityVisuals map)
+            const visual = activityVisuals[(n.type || 'default').toLowerCase()] || activityVisuals.default;
+            const isReadClass = n.is_read ? 'is-read' : '';
+            const linkAttr = n.link ? `data-link="${sanitizeHTML(n.link)}"` : '';
+            // Build list item HTML
+            return `
+                <div class="notification-item ${isReadClass}" data-id="${n.id}" ${linkAttr}>
+                    ${!n.is_read ? '<span class="unread-dot"></span>' : ''}
+                    <div class="notification-icon ${visual.class}">
+                        <i class="fas ${visual.icon}"></i>
+                    </div>
+                    <div class="notification-content">
+                        <div class="notification-title">${sanitizeHTML(n.title)}</div>
+                        <div class="notification-message">${sanitizeHTML(n.message)}</div>
+                        <div class="notification-time">${formatRelativeTime(n.created_at)}</div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+        ui.noNotificationsMsg.style.display = 'none';
+        ui.notificationsList.style.display = 'block';
+        ui.notificationsList.closest('.notifications-dropdown-wrapper')?.classList.add('has-content');
+    } else {
+        ui.notificationsList.innerHTML = ''; // Clear list
+        ui.noNotificationsMsg.style.display = 'block';
+        ui.notificationsList.style.display = 'none';
+        ui.notificationsList.closest('.notifications-dropdown-wrapper')?.classList.remove('has-content');
+    }
+
+    // Update "Mark All Read" button state (disabled if count is 0 or notifications are loading)
+    const currentUnreadCount = parseInt(ui.notificationCount.textContent.replace('+', '') || '0');
+    ui.markAllReadBtn.disabled = currentUnreadCount === 0 || state.isLoading.notifications;
+
+    console.log("[Render Notifications V3.1] Finished rendering.");
  }
 
 /**
  * Управляет общим состоянием интерфейса (Co se zobrazuje).
  */
- function manageUIState(mode, options = {}) {
-    // ... (код из предыдущего ответа без изменений в этой части) ...
-    console.log("[UI State]:", mode, options);
+function manageUIState(mode, options = {}) {
+    console.log("[UI State Change]:", mode, options);
+
+    // Determine overall activity state
     const isLearningActive = state.currentTopic && ['learning', 'chatting', 'requestingExplanation', 'waitingForAnswer'].includes(mode);
-    const isEmptyState = ['noPlan', 'planComplete', 'error', 'loggedOut'].includes(mode);
-    if (ui.learningInterface) { const shouldShowInterface = !isEmptyState && mode !== 'initial'; ui.learningInterface.style.display = shouldShowInterface ? 'flex' : 'none'; }
-    if (ui.chatMessages) { let emptyStateHTML = ''; if (isEmptyState || mode === 'initial' || mode === 'loadingTopic') { ui.chatMessages.innerHTML = ''; switch (mode) { case 'loggedOut': emptyStateHTML = `<div class='empty-state'><i class='fas fa-sign-in-alt'></i><h3>NEPŘIHLÁŠEN</h3><p>Pro přístup k výuce se prosím <a href="/auth/index.html" style="color: var(--accent-primary)">přihlaste</a>.</p></div>`; break; case 'noPlan': emptyStateHTML = `<div class='empty-state'><i class='fas fa-calendar-times'></i><h3>ŽÁDNÝ AKTIVNÍ PLÁN</h3><p>Nemáte aktivní studijní plán. Nejprve prosím dokončete <a href="/dashboard/procvicovani/test1.html" style="color: var(--accent-primary)">diagnostický test</a>.</p></div>`; break; case 'planComplete': emptyStateHTML = `<div class='empty-state'><i class='fas fa-check-circle'></i><h3>PLÁN DOKONČEN!</h3><p>Všechny naplánované aktivity jsou hotové. Skvělá práce! Můžete si <a href="/dashboard/procvicovani/plan.html" style="color: var(--accent-primary)">vytvořit nový plán</a>.</p></div>`; break; case 'error': emptyStateHTML = `<div class='empty-state'><i class='fas fa-exclamation-triangle'></i><h3>CHYBA SYSTÉMU</h3><p>${sanitizeHTML(options.errorMessage || 'Nastala chyba při načítání dat.')}</p></div>`; if (options.errorMessage && !document.getElementById('global-error')?.offsetParent) showError(options.errorMessage, true); break; case 'initial': emptyStateHTML = '<div class="empty-state"><i class="fas fa-cog fa-spin"></i><h3>Inicializace...</h3></div>'; break; case 'loadingTopic': emptyStateHTML = '<div class="empty-state initial-load-placeholder" style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 200px; color: var(--text-muted);"><i class="fas fa-book-open" style="font-size: 2rem; margin-bottom: 1rem;"></i><p>Načítání tématu...</p></div>'; break; } if (emptyStateHTML) ui.chatMessages.innerHTML = emptyStateHTML; } else if (isLearningActive && !ui.chatMessages.hasChildNodes()) { ui.chatMessages.innerHTML = `<div class='empty-state'><i class='fas fa-comments'></i><h3>Chat připraven</h3><p>Zeptejte se na cokoliv k tématu nebo počkejte na pokyny AI.</p></div>`; } }
-    if (ui.whiteboardContent) { const existingPlaceholder = ui.whiteboardContent.querySelector('.initial-load-placeholder'); if (isEmptyState || mode === 'loadingTopic') { if(!existingPlaceholder || mode !== 'loadingTopic') { ui.whiteboardContent.innerHTML = `<div class="empty-state initial-load-placeholder" style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 200px; color: var(--text-muted);"><i class="fas fa-spinner fa-spin" style="font-size: 2rem; margin-bottom: 1rem;"></i><p>${mode === 'loadingTopic' ? 'Načítání první lekce...' : 'Systém není připraven.'}</p></div>`; } } else if (isLearningActive) { if(existingPlaceholder) { console.warn("[ManageUIState] Removing lingering whiteboard placeholder."); existingPlaceholder.remove(); if (!ui.whiteboardContent.hasChildNodes()) { ui.whiteboardContent.innerHTML = `<div class='empty-state'><i class='fas fa-chalkboard'></i><h3>Tabule připravena</h3><p>Zde se bude zobrazovat vysvětlení od AI.</p></div>`; } } else if (!ui.whiteboardContent.hasChildNodes()) { ui.whiteboardContent.innerHTML = `<div class='empty-state'><i class='fas fa-chalkboard'></i><h3>Tabule připravena</h3><p>Zde se bude zobrazovat vysvětlení od AI.</p></div>`; } } }
-    // *** ВАЖНО: Вызывать manageButtonStates ПОСЛЕ обновления UI ***
+    const isEmptyState = ['noPlan', 'planComplete', 'error', 'loggedOut', 'initial', 'loadingTopic'].includes(mode);
+
+    // Show/hide main learning interface
+    if (ui.learningInterface) {
+        const shouldShowInterface = !isEmptyState;
+        ui.learningInterface.style.display = shouldShowInterface ? 'flex' : 'none';
+        console.log(`[UI State] Learning interface display: ${shouldShowInterface ? 'flex' : 'none'}`);
+    }
+
+    // Manage Chat Area Content
+    if (ui.chatMessages) {
+        let emptyStateHTML = '';
+        // If in an empty/error/loading state OR if learning is active but chat has no real messages yet
+        if (isEmptyState || (isLearningActive && !ui.chatMessages.querySelector('.chat-message'))) {
+            // Clear existing messages if necessary
+            if (ui.chatMessages.innerHTML !== '') { // Avoid unnecessary clears
+                ui.chatMessages.innerHTML = '';
+            }
+            switch (mode) {
+                case 'loggedOut':
+                    emptyStateHTML = `<div class='empty-state'><i class='fas fa-sign-in-alt'></i><h3>NEPŘIHLÁŠEN</h3><p>Pro přístup k výuce se prosím <a href="/auth/index.html" style="color: var(--accent-primary)">přihlaste</a>.</p></div>`;
+                    break;
+                case 'noPlan':
+                    emptyStateHTML = `<div class='empty-state'><i class='fas fa-calendar-times'></i><h3>ŽÁDNÝ AKTIVNÍ PLÁN</h3><p>Nemáte aktivní studijní plán. Nejprve prosím dokončete <a href="/dashboard/procvicovani/test1.html" style="color: var(--accent-primary)">diagnostický test</a>.</p></div>`;
+                    break;
+                case 'planComplete':
+                    emptyStateHTML = `<div class='empty-state'><i class='fas fa-check-circle'></i><h3>PLÁN DOKONČEN!</h3><p>Všechny naplánované aktivity jsou hotové. Skvělá práce! Můžete si <a href="/dashboard/procvicovani/plan.html" style="color: var(--accent-primary)">vytvořit nový plán</a>.</p></div>`;
+                    break;
+                case 'error':
+                    emptyStateHTML = `<div class='empty-state'><i class='fas fa-exclamation-triangle'></i><h3>CHYBA SYSTÉMU</h3><p>${sanitizeHTML(options.errorMessage || 'Nastala chyba při načítání dat.')}</p></div>`;
+                    // Optionally show global error too if not already visible
+                    if (options.errorMessage && !document.getElementById('global-error')?.offsetParent) {
+                        showError(options.errorMessage, true);
+                    }
+                    break;
+                case 'initial':
+                    emptyStateHTML = '<div class="empty-state"><i class="fas fa-cog fa-spin"></i><h3>Inicializace...</h3></div>';
+                    break;
+                case 'loadingTopic':
+                    emptyStateHTML = '<div class="empty-state initial-load-placeholder"><i class="fas fa-book-open" style="font-size: 2rem; margin-bottom: 1rem;"></i><p>Načítání tématu...</p></div>';
+                    break;
+                 case 'learning': // When starting a topic, before AI speaks
+                    emptyStateHTML = `<div class='empty-state'><i class='fas fa-comments'></i><h3>Chat připraven</h3><p>Počkejte na první vysvětlení od AI nebo položte otázku.</p></div>`;
+                    break;
+                // Add other cases as needed
+            }
+            if (emptyStateHTML) {
+                ui.chatMessages.innerHTML = emptyStateHTML;
+                console.log(`[UI State] Chat set to state: ${mode}`);
+            }
+        }
+        // If learning is active and chat *already* has messages, do nothing to chat messages here.
+    }
+
+    // Manage Whiteboard Area Content
+    if (ui.whiteboardContent) {
+        const existingPlaceholder = ui.whiteboardContent.querySelector('.initial-load-placeholder, .empty-state');
+        // If in an empty/error/loading state OR if learning is active but board has no real content yet
+        if (isEmptyState || (isLearningActive && !ui.whiteboardContent.querySelector('.whiteboard-chunk'))) {
+            let emptyBoardHTML = '';
+            switch (mode) {
+                case 'loadingTopic':
+                    emptyBoardHTML = '<div class="empty-state initial-load-placeholder"><i class="fas fa-spinner fa-spin" style="font-size: 2rem; margin-bottom: 1rem;"></i><p>Načítání první lekce...</p></div>';
+                    break;
+                case 'error':
+                    emptyBoardHTML = `<div class='empty-state error'><i class='fas fa-exclamation-triangle'></i><h3>Chyba Tabule</h3><p>${sanitizeHTML(options.errorMessage || 'Obsah nelze zobrazit.')}</p></div>`;
+                    break;
+                case 'noPlan':
+                case 'planComplete':
+                case 'loggedOut':
+                     emptyBoardHTML = `<div class='empty-state'><i class='fas fa-chalkboard'></i><h3>Tabule</h3><p>Nejprve vyberte nebo načtěte téma.</p></div>`;
+                     break;
+                case 'initial':
+                     emptyBoardHTML = `<div class='empty-state'><i class='fas fa-spinner fa-spin'></i><h3>Inicializace...</h3></div>`;
+                     break;
+                case 'learning': // When starting a topic, before AI puts something on board
+                     emptyBoardHTML = `<div class='empty-state'><i class='fas fa-chalkboard'></i><h3>Tabule připravena</h3><p>Zde se bude zobrazovat vysvětlení od AI.</p></div>`;
+                     break;
+            }
+            // Only update if the state requires an empty state AND either no placeholder exists or the mode requires a *specific* placeholder
+            if (emptyBoardHTML && (!existingPlaceholder || (mode === 'loadingTopic' || mode === 'error'))) {
+                ui.whiteboardContent.innerHTML = emptyBoardHTML;
+                console.log(`[UI State] Whiteboard set to state: ${mode}`);
+            } else if (isLearningActive && existingPlaceholder) {
+                // If learning is active but we still have a placeholder (e.g., from initial load), remove it
+                existingPlaceholder.remove();
+                console.log("[UI State] Removed whiteboard placeholder as learning is active.");
+            }
+        }
+        // If learning is active and whiteboard *already* has content, do nothing here.
+    }
+
+    // *** CRUCIAL: Call manageButtonStates AFTER updating UI content ***
     manageButtonStates();
 }
 
 
 /**
- * Управляет активностью/неактивностью кнопок.
- * FIX V3: More robust state checking.
+ * Управляет активностью/неактивностью кнопок на основе текущего состояния.
+ * Версия 3.1: Добавлено детальное логирование.
  */
 function manageButtonStates() {
     // Core state flags
@@ -310,16 +491,13 @@ function manageButtonStates() {
     const isWaitingForAnswer = state.aiIsWaitingForAnswer;
     const isListening = state.isListening;
     const isSpeaking = state.speechSynthesisSupported && window.speechSynthesis.speaking;
+    const isLoadingPoints = state.isLoading.points; // Check points loading state
 
     // Derived states for clarity
-    // isBusy covers AI thinking, topic loading, and STT listening
-    const isBusy = isThinking || isLoadingTopic || isListening;
-    // Can interact (chat, continue) ONLY IF topic exists, system is NOT busy, AND AI is NOT waiting for an answer.
-    const canInteract = hasTopic && !isBusy && !isWaitingForAnswer;
-    // Can mark complete ONLY IF topic exists and system is NOT busy (allows completing even if AI is waiting).
-    const canComplete = hasTopic && !isBusy;
-    // Mic usage depends on interaction being allowed + browser support.
-    const canUseMic = canInteract && state.speechRecognitionSupported;
+    const isBusyGeneral = isThinking || isLoadingTopic || isListening || isLoadingPoints; // Added points loading
+    const canInteract = hasTopic && !isBusyGeneral && !isWaitingForAnswer;
+    const canComplete = hasTopic && !isBusyGeneral; // Allow complete even if waiting? Yes.
+    const canUseMic = canInteract && state.speechRecognitionSupported && !isBusyGeneral; // Mic requires interaction + no busy
 
     // UI element states
     const chatInputHasText = ui.chatInput?.value.trim().length > 0;
@@ -328,149 +506,217 @@ function manageButtonStates() {
     const notificationsLoading = state.isLoading.notifications;
     const unreadNotifCount = parseInt(ui.notificationCount?.textContent?.replace('+', '') || '0');
 
-    // Debug Log
-    // console.log(`[BTN STATE] hasTopic: ${hasTopic}, isThinking: ${isThinking}, isLoadingTopic: ${isLoadingTopic}, isWaiting: ${isWaitingForAnswer}, isListening: ${isListening}, canInteract: ${canInteract}`);
+    // --- Button State Logic with Logging ---
 
-    // Apply states to buttons
+    // Send Button
+    const sendDisabled = !canInteract || !chatInputHasText;
     if (ui.sendButton) {
-        ui.sendButton.disabled = !canInteract || !chatInputHasText;
+        if (ui.sendButton.disabled !== sendDisabled) {
+            console.log(`[BTN STATE] Send Button: ${sendDisabled ? 'DISABLED' : 'ENABLED'} (Reason: canInteract=${canInteract}, hasText=${chatInputHasText})`);
+            ui.sendButton.disabled = sendDisabled;
+        }
         ui.sendButton.innerHTML = isThinking ? '<i class="fas fa-spinner fa-spin"></i>' : '<i class="fas fa-paper-plane"></i>';
     }
+
+    // Chat Input
+    const inputDisabled = !hasTopic || isBusyGeneral || isWaitingForAnswer;
     if (ui.chatInput) {
-        ui.chatInput.disabled = !canInteract && !isListening; // Also disable if listening, even if interaction is generally allowed
-        ui.chatInput.placeholder = isListening ? "Poslouchám..." : (canInteract ? "Zeptejte se nebo odpovězte..." : (isWaitingForAnswer ? "AI čeká na odpověď..." : "Počkejte prosím..."));
+        if (ui.chatInput.disabled !== inputDisabled) {
+            console.log(`[BTN STATE] Chat Input: ${inputDisabled ? 'DISABLED' : 'ENABLED'} (Reason: hasTopic=${hasTopic}, isBusy=${isBusyGeneral}, isWaiting=${isWaitingForAnswer})`);
+            ui.chatInput.disabled = inputDisabled;
+        }
+        ui.chatInput.placeholder = isListening ? "Poslouchám..."
+                                 : (inputDisabled ? (isThinking ? "AI přemýšlí..." : (isLoadingTopic ? "Načítám téma..." : (isWaitingForAnswer ? "Odpovězte na otázku AI..." : "Akce není dostupná...")))
+                                 : "Zeptejte se nebo odpovězte...");
     }
+
+    // Continue Button
+    const continueDisabled = !canInteract;
     if (ui.continueBtn) {
-        ui.continueBtn.disabled = !canInteract; // Disable if cannot interact
+        if (ui.continueBtn.disabled !== continueDisabled) {
+            console.log(`[BTN STATE] Continue Button: ${continueDisabled ? 'DISABLED' : 'ENABLED'} (Reason: canInteract=${canInteract})`);
+            ui.continueBtn.disabled = continueDisabled;
+        }
         ui.continueBtn.style.display = hasTopic ? 'inline-flex' : 'none';
     }
+
+    // Mark Complete Button
+    const completeDisabled = !canComplete || isLoadingPoints; // Also disable if awarding points
     if (ui.markCompleteBtn) {
-        ui.markCompleteBtn.disabled = !canComplete; // Disable if cannot complete
+        if (ui.markCompleteBtn.disabled !== completeDisabled) {
+            console.log(`[BTN STATE] Mark Complete Button: ${completeDisabled ? 'DISABLED' : 'ENABLED'} (Reason: canComplete=${canComplete}, isLoadingPoints=${isLoadingPoints})`);
+            ui.markCompleteBtn.disabled = completeDisabled;
+        }
         ui.markCompleteBtn.style.display = hasTopic ? 'inline-flex' : 'none';
     }
+
+    // Clear Board Button
+    const clearBoardDisabled = boardIsEmpty || isBusyGeneral; // Disable if busy
     if (ui.clearBoardBtn) {
-        ui.clearBoardBtn.disabled = boardIsEmpty || isThinking; // Disable if board empty or thinking
+        if (ui.clearBoardBtn.disabled !== clearBoardDisabled) {
+            console.log(`[BTN STATE] Clear Board Button: ${clearBoardDisabled ? 'DISABLED' : 'ENABLED'} (Reason: boardEmpty=${boardIsEmpty}, isBusy=${isBusyGeneral})`);
+            ui.clearBoardBtn.disabled = clearBoardDisabled;
+        }
     }
+
+    // Stop Speech Button
+    const stopSpeechDisabled = !isSpeaking;
     if (ui.stopSpeechBtn) {
-        ui.stopSpeechBtn.disabled = !isSpeaking; // Disable if not speaking
+         if (ui.stopSpeechBtn.disabled !== stopSpeechDisabled) {
+            console.log(`[BTN STATE] Stop Speech Button: ${stopSpeechDisabled ? 'DISABLED' : 'ENABLED'} (Reason: isSpeaking=${isSpeaking})`);
+            ui.stopSpeechBtn.disabled = stopSpeechDisabled;
+         }
     }
+
+    // Microphone Button
+    const micDisabled = !canUseMic || !state.speechRecognitionSupported; // Check support too
     if (ui.micBtn) {
-        ui.micBtn.disabled = !canUseMic;
-        ui.micBtn.classList.toggle('listening', isListening);
-        ui.micBtn.title = !state.speechRecognitionSupported ? "Nepodporováno" : (isListening ? "Zastavit hlasový vstup" : "Zahájit hlasový vstup");
+         if (ui.micBtn.disabled !== micDisabled) {
+             console.log(`[BTN STATE] Mic Button: ${micDisabled ? 'DISABLED' : 'ENABLED'} (Reason: canUseMic=${canUseMic}, supported=${state.speechRecognitionSupported})`);
+             ui.micBtn.disabled = micDisabled;
+         }
+         ui.micBtn.classList.toggle('listening', isListening);
+         ui.micBtn.title = !state.speechRecognitionSupported ? "Nepodporováno" : (isListening ? "Zastavit hlasový vstup" : (micDisabled ? "Hlasový vstup nedostupný" : "Zahájit hlasový vstup"));
     }
+
+    // Clear Chat Button
+    const clearChatDisabled = isThinking || chatIsEmpty; // Disable if thinking
     if (ui.clearChatBtn) {
-        ui.clearChatBtn.disabled = isThinking || chatIsEmpty; // Disable if thinking or chat empty
+         if (ui.clearChatBtn.disabled !== clearChatDisabled) {
+            console.log(`[BTN STATE] Clear Chat Button: ${clearChatDisabled ? 'DISABLED' : 'ENABLED'} (Reason: isThinking=${isThinking}, chatEmpty=${chatIsEmpty})`);
+            ui.clearChatBtn.disabled = clearChatDisabled;
+         }
     }
+
+    // Save Chat Button
+    const saveChatDisabled = isThinking || chatIsEmpty; // Disable if thinking
     if (ui.saveChatBtn) {
-        ui.saveChatBtn.disabled = isThinking || chatIsEmpty; // Disable if thinking or chat empty
+         if (ui.saveChatBtn.disabled !== saveChatDisabled) {
+            console.log(`[BTN STATE] Save Chat Button: ${saveChatDisabled ? 'DISABLED' : 'ENABLED'} (Reason: isThinking=${isThinking}, chatEmpty=${chatIsEmpty})`);
+            ui.saveChatBtn.disabled = saveChatDisabled;
+         }
     }
+
+    // Mark All Read Notifications Button
+    const markAllReadDisabled = unreadNotifCount === 0 || notificationsLoading;
     if (ui.markAllReadBtn) {
-        ui.markAllReadBtn.disabled = unreadNotifCount === 0 || notificationsLoading; // Disable if no unread or loading
+         if (ui.markAllReadBtn.disabled !== markAllReadDisabled) {
+            console.log(`[BTN STATE] Mark All Read Button: ${markAllReadDisabled ? 'DISABLED' : 'ENABLED'} (Reason: unread=${unreadNotifCount}, loading=${notificationsLoading})`);
+            ui.markAllReadBtn.disabled = markAllReadDisabled;
+         }
     }
 }
 
-
 // --- Handle Dynamic TTS Click ---
 function handleDynamicTTSClick(event) {
-    // ... (код из предыдущего ответа без изменений) ...
     const button = event.target.closest('.tts-listen-btn');
-    if (button && button.dataset.textToSpeak) { const chunkElement = button.closest('.whiteboard-chunk'); speakText(button.dataset.textToSpeak, chunkElement); }
+    if (button && button.dataset.textToSpeak) {
+        // Find the parent chunk if it's on the whiteboard
+        const chunkElement = button.closest('.whiteboard-chunk');
+        speakText(button.dataset.textToSpeak, chunkElement);
+    }
 }
 
 // --- Обработчики Действий ---
 
 /**
  * Обрабатывает отправку сообщения из чата.
- * FIX V3: Robust state management.
  */
 async function handleSendMessage() {
-    if (!state.currentUser || !state.currentProfile) { showError("Nelze odeslat zprávu, chybí data uživatele.", false); return; }
+    if (!state.currentUser || !state.currentProfile) {
+        showError("Nelze odeslat zprávu, chybí data uživatele.", false);
+        return;
+    }
 
-    const canChat = !!state.currentTopic && !state.geminiIsThinking && !state.topicLoadInProgress && !state.aiIsWaitingForAnswer;
-    if (!canChat) { showToast('Nelze odeslat', 'Počkejte prosím na AI nebo odpovězte na otázku.', 'warning'); return; }
-
+    // Recalculate 'canInteract' specific to sending a message
+    const canSend = !!state.currentTopic && !state.geminiIsThinking && !state.topicLoadInProgress && !state.isListening; // Allow sending even if AI is waiting
     const text = ui.chatInput?.value.trim();
-    if (!text || state.isListening) return;
+
+    if (!canSend || !text) {
+        console.warn(`Cannot send message: canSend=${canSend}, text=${!!text}`);
+        if (!canSend) showToast('Počkejte prosím', 'AI přemýšlí nebo se načítá téma.', 'warning');
+        return;
+    }
 
     const inputBeforeSend = ui.chatInput?.value;
     if (ui.chatInput) { ui.chatInput.value = ''; autoResizeTextarea(ui.chatInput); }
 
-    let wasWaiting = state.aiIsWaitingForAnswer; // Store if AI was waiting *before* this message
+    let wasWaiting = state.aiIsWaitingForAnswer; // Store if AI was waiting before this message
 
     try {
-        await addChatMessage(text, 'user');
-        initTooltips();
+        await addChatMessage(text, 'user'); // Display and save user message
+        initTooltips(); // Re-init for potential new elements
         state.geminiChatContext.push({ role: "user", parts: [{ text }] });
 
         // --- Start Thinking State ---
         state.geminiIsThinking = true;
-        state.aiIsWaitingForAnswer = false; // User sent a message, AI is no longer waiting
+        state.aiIsWaitingForAnswer = false; // Sending a message *always* resets the waiting flag
         addThinkingIndicator();
-        manageButtonStates();
+        manageButtonStates(); // Update UI immediately
         // --------------------------
 
         let promptForGemini;
-        if (wasWaiting) { // If AI *was* waiting before this message
-           promptForGemini = `Student odpověděl na předchozí otázku: "${text}". Téma je "${state.currentTopic.name}". Vyhodnoť odpověď a pokračuj v konverzaci POUZE textem do chatu. Můžeš položit další otázku nebo navrhnout pokračování výkladu.`;
+        if (wasWaiting) {
+           promptForGemini = `Student odpověděl na předchozí otázku: "${text}". Téma je "${state.currentTopic.name}". Vyhodnoť stručně odpověď a pokračuj v konverzaci POUZE textem do chatu. Můžeš položit další otázku nebo navrhnout pokračování výkladu.`;
         } else {
             promptForGemini = `Student píše do chatu: "${text}". Téma je "${state.currentTopic.name}". Odpověz relevantně v rámci tématu a konverzace. Použij POUZE text do chatu. Nepřidávej bloky [BOARD_MARKDOWN] ani [TTS_COMMENTARY].`;
         }
 
-        const response = await sendToGemini(promptForGemini, true);
-        removeThinkingIndicator(); // Remove indicator *after* response or error
+        const response = await sendToGemini(promptForGemini, true); // true indicates chat interaction
 
         if (response.success && response.data) {
             const { chatText, ttsCommentary } = response.data;
             if (chatText) {
                 await addChatMessage(chatText, 'gemini', true, new Date(), ttsCommentary);
-                initTooltips();
+                initTooltips(); // Re-init for potential new TTS buttons
                 const lowerChatText = chatText.toLowerCase();
-                // Set waiting state based on the NEW response
+                // Set waiting state based on the NEW AI response
                 state.aiIsWaitingForAnswer = chatText.endsWith('?') || lowerChatText.includes('otázka:') || lowerChatText.includes('zkuste') || lowerChatText.includes('jak byste');
-                // manageUIState is called in finally
             } else {
                 console.warn("Gemini chat response missing chatText.");
                 await addChatMessage("(AI neodpovědělo textem)", 'gemini', false);
-                state.aiIsWaitingForAnswer = false; // Ensure reset
+                state.aiIsWaitingForAnswer = false; // Ensure reset if no text
             }
         } else {
             console.error("Error response from Gemini:", response.error);
             await addChatMessage(`Promiňte, nastala chyba: ${response.error || 'Neznámá chyba AI.'}`, 'gemini', false);
             state.aiIsWaitingForAnswer = false; // Reset on error
+            // Restore input if sending failed
             if (ui.chatInput) { ui.chatInput.value = inputBeforeSend; autoResizeTextarea(ui.chatInput); }
         }
     } catch (error) {
         console.error("Error in handleSendMessage:", error);
         showError("Došlo k chybě při odesílání zprávy.", false);
-        removeThinkingIndicator(); // Ensure removal
         state.aiIsWaitingForAnswer = false; // Reset on error
+        // Restore input on exception
         if (ui.chatInput) { ui.chatInput.value = inputBeforeSend; autoResizeTextarea(ui.chatInput); }
     } finally {
         // --- End Thinking State ---
+        removeThinkingIndicator(); // Remove indicator *after* response or error
         state.geminiIsThinking = false;
-        setLoadingState('chat', false);
+        setLoadingState('chat', false); // Ensure chat loading state is off
         manageUIState(state.aiIsWaitingForAnswer ? 'waitingForAnswer' : 'learning'); // Update overall UI state
         manageButtonStates(); // Explicitly call manageButtonStates at the very end
         // --------------------------
     }
 }
 
+
 /**
  * Запрашивает следующую часть объяснения у AI.
- * FIX V3: Robust state management.
  */
 async function requestContinue() {
-    const canContinue = !!state.currentTopic && !state.geminiIsThinking && !state.topicLoadInProgress && !state.aiIsWaitingForAnswer;
+    // Allow continue ONLY if topic exists, not busy, and NOT waiting for answer
+    const canContinue = !!state.currentTopic && !state.geminiIsThinking && !state.topicLoadInProgress && !state.isListening && !state.aiIsWaitingForAnswer;
     if (!canContinue) {
-        console.log("Cannot request continue:", { thinking: state.geminiIsThinking, topic: !!state.currentTopic, waiting: state.aiIsWaitingForAnswer, loading: state.topicLoadInProgress });
-        showToast('Nelze pokračovat', 'Počkejte na dokončení předchozí akce nebo odpovězte AI.', 'warning');
+        console.warn(`Cannot request continue: topic=${!!state.currentTopic}, thinking=${state.geminiIsThinking}, loading=${state.topicLoadInProgress}, listening=${state.isListening}, waiting=${state.aiIsWaitingForAnswer}`);
+        showToast('Nelze pokračovat', 'AI přemýšlí, načítá téma nebo čeká na odpověď.', 'warning');
         return;
     }
 
     // --- Start Thinking State ---
     state.geminiIsThinking = true;
-    state.aiIsWaitingForAnswer = false; // Explicitly not waiting when user clicks continue
+    state.aiIsWaitingForAnswer = false; // Continue overrides waiting
     addThinkingIndicator();
     manageButtonStates();
     // --------------------------
@@ -478,35 +724,43 @@ async function requestContinue() {
     const prompt = `Pokračuj ve vysvětlování tématu "${state.currentTopic.name}" pro studenta s úrovní "${state.currentProfile?.skill_level || 'neznámá'}". Naváž na předchozí část. Vygeneruj další logickou část výkladu.\nFormát odpovědi MUSÍ být:\n[BOARD_MARKDOWN]:\n\`\`\`markdown\n...\`\`\`\n[TTS_COMMENTARY]:\n...`;
 
     try {
-        const response = await sendToGemini(prompt, false);
-        removeThinkingIndicator(); // Remove after response
+        const response = await sendToGemini(prompt, false); // false = not a direct chat interaction
 
         if (response.success && response.data) {
             const { boardMarkdown, ttsCommentary, chatText } = response.data;
             let domChanged = false;
 
+            // Handle board content
             if (boardMarkdown) {
-                 const placeholder = ui.whiteboardContent?.querySelector('.initial-load-placeholder');
+                 const placeholder = ui.whiteboardContent?.querySelector('.initial-load-placeholder, .empty-state');
                  if (placeholder) placeholder.remove();
-                 appendToWhiteboard(boardMarkdown, ttsCommentary || boardMarkdown);
+                 appendToWhiteboard(boardMarkdown, ttsCommentary || boardMarkdown); // Pass TTS text for button
                  domChanged = true;
             }
+
+            // Handle potential chat message accompanying the explanation
             if (chatText) {
-                await addChatMessage(chatText, 'gemini', true, new Date(), ttsCommentary);
+                await addChatMessage(chatText, 'gemini', true, new Date(), ttsCommentary); // Save and display chat
                 domChanged = true;
                 const lowerChatText = chatText.toLowerCase();
                 // Set waiting state based on the NEW response
                 state.aiIsWaitingForAnswer = chatText.endsWith('?') || lowerChatText.includes('otázka:') || lowerChatText.includes('zkuste') || lowerChatText.includes('jak byste');
-                // manageUIState called in finally
             } else if (ttsCommentary && !boardMarkdown) {
+                // If only TTS commentary is provided (e.g., just a spoken summary)
                 await addChatMessage("(Poslechněte si další část komentáře)", 'gemini', true, new Date(), ttsCommentary);
-                domChanged = true; state.aiIsWaitingForAnswer = false;
+                domChanged = true;
+                state.aiIsWaitingForAnswer = false; // No explicit question
             } else if (!boardMarkdown && !chatText && !ttsCommentary) {
+                // Handle case where Gemini returns nothing useful
                 console.warn("Gemini continue request returned empty content.");
-                await addChatMessage("(AI neposkytlo další obsah, zkuste se zeptat jinak.)", 'gemini', false);
+                await addChatMessage("(AI neposkytlo další obsah, zkuste se zeptat jinak nebo pokračovat znovu.)", 'gemini', false);
                 state.aiIsWaitingForAnswer = false;
-            } else { state.aiIsWaitingForAnswer = false; }
-            if (domChanged) { initTooltips(); }
+            } else {
+                 // If board/TTS but no chat, AI is not waiting for a chat response
+                 state.aiIsWaitingForAnswer = false;
+            }
+
+            if (domChanged) initTooltips(); // Re-initialize tooltips if new buttons were added
         } else {
             console.error("Error response from Gemini:", response.error);
             await addChatMessage(`Promiňte, nastala chyba při pokračování: ${response.error || 'Neznámá chyba AI.'}`, 'gemini', false);
@@ -515,79 +769,125 @@ async function requestContinue() {
     } catch (error) {
         console.error("Error in requestContinue:", error);
         showError("Došlo k chybě při žádosti o pokračování.", false);
-        removeThinkingIndicator(); // Ensure removal
         state.aiIsWaitingForAnswer = false; // Reset on error
     } finally {
         // --- End Thinking State ---
+        removeThinkingIndicator(); // Ensure removal
         state.geminiIsThinking = false;
-        setLoadingState('chat', false);
+        setLoadingState('chat', false); // Ensure chat loading state is off
         manageUIState(state.aiIsWaitingForAnswer ? 'waitingForAnswer' : 'learning'); // Update overall UI state
-        manageButtonStates(); // Explicitly call manageButtonStates at the very end
+        manageButtonStates(); // Update buttons based on final state
         // --------------------------
     }
 }
 
-
 /**
  * Запускает сессию обучения для текущей темы.
- * FIX V3: Robust state management.
  */
 async function startLearningSession() {
-    if (!state.currentTopic) { console.error("Cannot start session: no topic."); manageUIState('error', {errorMessage: 'Chyba: Téma není definováno.'}); return; }
-    state.currentSessionId = generateSessionId();
+    if (!state.currentTopic) {
+        console.error("Cannot start session: no topic.");
+        manageUIState('error', {errorMessage: 'Chyba: Téma není definováno.'});
+        return;
+    }
+    state.currentSessionId = generateSessionId(); // Generate unique ID for this session
+    state.geminiChatContext = []; // Reset chat history for the new topic
 
     // --- Start Thinking State ---
     state.geminiIsThinking = true;
-    state.aiIsWaitingForAnswer = false;
-    manageUIState('requestingExplanation');
+    state.aiIsWaitingForAnswer = false; // Start fresh, AI isn't waiting
+    manageUIState('requestingExplanation'); // Update UI to show loading/requesting
     addThinkingIndicator();
-    manageButtonStates();
+    manageButtonStates(); // Update buttons for thinking state
     // --------------------------
 
     const prompt = `Jsi AI Tutor "Justax". Vysvětli ZÁKLADY tématu "${state.currentTopic.name}" pro studenta s úrovní "${state.currentProfile?.skill_level || 'neznámá'}". Rozděl vysvětlení na menší logické části. Pro PRVNÍ ČÁST:\nFormát odpovědi MUSÍ být:\n[BOARD_MARKDOWN]:\n\`\`\`markdown\n...\`\`\`\n[TTS_COMMENTARY]:\n...`;
 
     try {
-        const response = await sendToGemini(prompt, false);
-        removeThinkingIndicator(); // Remove after response
+        const response = await sendToGemini(prompt, false); // false = not direct chat
 
-        const placeholder = ui.whiteboardContent?.querySelector('.initial-load-placeholder');
-        if (placeholder) { placeholder.remove(); console.log("Initial placeholder removed."); }
-        else if (ui.whiteboardContent) { ui.whiteboardContent.innerHTML = ''; }
+        // --- Prepare UI for Response ---
+        // Remove placeholder/empty state from board *before* appending new content
+        const placeholder = ui.whiteboardContent?.querySelector('.initial-load-placeholder, .empty-state');
+        if (placeholder) {
+            placeholder.remove();
+            console.log("Initial whiteboard placeholder removed.");
+        } else if (ui.whiteboardContent) {
+            ui.whiteboardContent.innerHTML = ''; // Clear if no placeholder but still has content
+        }
+        // Clear initial empty chat message only if AI will provide content
+        if (response.success && response.data && (response.data.boardMarkdown || response.data.chatText || response.data.ttsCommentary)) {
+             const chatPlaceholder = ui.chatMessages?.querySelector('.empty-state');
+             if (chatPlaceholder && chatPlaceholder.textContent.includes("Chat připraven")) {
+                 chatPlaceholder.remove();
+             }
+        }
+        // --- End UI Prep ---
 
         if (response.success && response.data) {
-            const { boardMarkdown, ttsCommentary, chatText } = response.data; let domChanged = false;
-            if (boardMarkdown) { appendToWhiteboard(boardMarkdown, ttsCommentary || boardMarkdown); domChanged = true; }
+            const { boardMarkdown, ttsCommentary, chatText } = response.data;
+            let domChanged = false;
+
+            if (boardMarkdown) {
+                appendToWhiteboard(boardMarkdown, ttsCommentary || boardMarkdown); // Pass TTS text
+                domChanged = true;
+            }
+
             if (chatText) {
-                await addChatMessage(chatText, 'gemini', true, new Date(), ttsCommentary); domChanged = true;
+                await addChatMessage(chatText, 'gemini', true, new Date(), ttsCommentary); // Save and display
+                domChanged = true;
                 const lowerChatText = chatText.toLowerCase();
+                // Set waiting state based on the NEW response
                 state.aiIsWaitingForAnswer = chatText.endsWith('?') || lowerChatText.includes('otázka:') || lowerChatText.includes('zkuste') || lowerChatText.includes('jak byste');
-                // manageUIState called in finally
-            } else if (ttsCommentary && !boardMarkdown){ await addChatMessage("(Poslechněte si úvodní komentář)", 'gemini', true, new Date(), ttsCommentary); domChanged = true; state.aiIsWaitingForAnswer = false; }
-            else if (!boardMarkdown && !chatText && !ttsCommentary){
-                 console.warn("Gemini initial empty."); await addChatMessage("(AI neposkytlo úvodní obsah. Zkuste položit otázku.)", 'gemini', false);
-                 if (!boardMarkdown && ui.whiteboardContent && !ui.whiteboardContent.hasChildNodes()) { ui.whiteboardContent.innerHTML = `<div class='empty-state'><i class='fas fa-chalkboard'></i><h3>Tabule prázdná</h3><p>AI neposkytlo obsah.</p></div>`; }
-                 state.aiIsWaitingForAnswer = false;
-            } else { state.aiIsWaitingForAnswer = false; }
-            if(domChanged) { initTooltips(); }
+            } else if (ttsCommentary && !boardMarkdown) {
+                // Only TTS commentary provided
+                await addChatMessage("(Poslechněte si úvodní komentář)", 'gemini', true, new Date(), ttsCommentary);
+                domChanged = true;
+                state.aiIsWaitingForAnswer = false; // No explicit question
+            } else if (!boardMarkdown && !chatText && !ttsCommentary) {
+                // Handle case where Gemini returns nothing useful
+                console.warn("Gemini initial explanation returned empty content.");
+                await addChatMessage("(AI neposkytlo úvodní obsah. Zkuste položit otázku.)", 'gemini', false);
+                // Show empty state on board if nothing was added
+                 if (!boardMarkdown && ui.whiteboardContent && !ui.whiteboardContent.hasChildNodes()) {
+                    ui.whiteboardContent.innerHTML = `<div class='empty-state'><i class='fas fa-chalkboard'></i><h3>Tabule prázdná</h3><p>AI neposkytlo obsah.</p></div>`;
+                }
+                state.aiIsWaitingForAnswer = false;
+            } else {
+                // Board/TTS present, but no chat text -> AI is not waiting
+                state.aiIsWaitingForAnswer = false;
+            }
+
+            if (domChanged) initTooltips(); // Re-init if TTS buttons added
+
         } else {
-             console.error("Error response from Gemini:", response.error);
-             await addChatMessage(`Promiňte, nastala chyba při zahájení výkladu: ${response.error || 'Neznámá chyba AI.'}`, 'gemini', false);
-             if (ui.whiteboardContent) { ui.whiteboardContent.innerHTML = `<div class='empty-state error'><i class='fas fa-exclamation-triangle'></i><h3>Chyba načítání</h3><p>Obsah pro tabuli nelze zobrazit.</p></div>`; }
-             state.aiIsWaitingForAnswer = false; showError(`Chyba AI: ${response.error}`, false);
+            // Handle Gemini error
+            console.error("Error response from Gemini:", response.error);
+            await addChatMessage(`Promiňte, nastala chyba při zahájení výkladu: ${response.error || 'Neznámá chyba AI.'}`, 'gemini', false);
+            // Show error state on board
+            if (ui.whiteboardContent) {
+                ui.whiteboardContent.innerHTML = `<div class='empty-state error'><i class='fas fa-exclamation-triangle'></i><h3>Chyba načítání</h3><p>Obsah pro tabuli nelze zobrazit.</p></div>`;
+            }
+            state.aiIsWaitingForAnswer = false; // Reset on error
+            showError(`Chyba AI: ${response.error}`, false);
         }
     } catch(error) {
+        // Handle fetch/logic error
         console.error("Error in startLearningSession:", error);
         showError("Došlo k chybě při zahájení výkladu.", false);
-        removeThinkingIndicator();
-        if (ui.whiteboardContent) { ui.whiteboardContent.innerHTML = `<div class='empty-state error'><i class='fas fa-exclamation-triangle'></i><h3>Chyba systému</h3><p>Nelze zahájit výuku.</p></div>`; }
+        // Show error state on board and chat
+        if (ui.whiteboardContent) {
+            ui.whiteboardContent.innerHTML = `<div class='empty-state error'><i class='fas fa-exclamation-triangle'></i><h3>Chyba systému</h3><p>Nelze zahájit výuku.</p></div>`;
+        }
         await addChatMessage(`Systémová chyba: ${error.message}`, 'gemini', false);
         state.aiIsWaitingForAnswer = false; // Reset on error
     } finally {
         // --- End Thinking State ---
+        removeThinkingIndicator(); // Ensure removal
         state.geminiIsThinking = false;
-        setLoadingState('chat', false);
+        setLoadingState('chat', false); // Ensure chat loading state is off
         manageUIState(state.aiIsWaitingForAnswer ? 'waitingForAnswer' : 'learning'); // Update overall UI state
-        manageButtonStates(); // Explicitly call manageButtonStates at the very end
+        manageButtonStates(); // Update buttons based on final state
         // --------------------------
     }
 }
@@ -595,99 +895,141 @@ async function startLearningSession() {
 
 /**
  * Поток действий при нажатии "Označit jako dokončené".
- * FIX V3: Robust state management.
  */
 async function handleMarkTopicCompleteFlow() {
-    const canComplete = !!state.currentTopic && !state.geminiIsThinking && !state.topicLoadInProgress;
-    if (!canComplete || state.isLoading.points) return;
-    if (!confirm(`Opravdu označit téma "${state.currentTopic.name}" jako dokončené?`)) return;
+    const canComplete = !!state.currentTopic && !state.topicLoadInProgress && !state.isLoading.points && !state.geminiIsThinking;
+    if (!canComplete) {
+        console.warn(`Cannot mark complete: topic=${!!state.currentTopic}, loadingTopic=${state.topicLoadInProgress}, loadingPoints=${state.isLoading.points}, thinking=${state.geminiIsThinking}`);
+        showToast("Nelze dokončit", "Počkejte na dokončení předchozí akce.", "warning");
+        return;
+    }
+    if (!confirm(`Opravdu označit téma "${state.currentTopic.name}" jako dokončené? Získáte ${POINTS_TOPIC_COMPLETE} kreditů.`)) {
+        return;
+    }
 
     console.log(`[Flow] Marking topic ${state.currentTopic.activity_id} as complete.`);
     // --- Start Completion State ---
-    state.topicLoadInProgress = true;
-    // setLoadingState('currentTopic', true); // Use topicLoadInProgress internally
-    manageButtonStates();
+    state.topicLoadInProgress = true; // Use this to block further actions
+    setLoadingState('points', true); // Indicate points are being processed
+    // setLoadingState('currentTopic', true); // Optional: visual indication for topic change
+    manageButtonStates(); // Disable buttons during completion
     // ---------------------------
 
     try {
         const successMark = await markTopicComplete(state.currentTopic.activity_id, state.currentUser.id);
+
         if (successMark) {
             console.log(`[Flow] Topic marked complete. Awarding points...`);
-            setLoadingState('points', true); manageButtonStates();
             const pointsAwarded = await awardPoints(state.currentUser.id, POINTS_TOPIC_COMPLETE);
-            setLoadingState('points', false);
-            if (pointsAwarded) { showToast('+', `${POINTS_TOPIC_COMPLETE} kreditů získáno!`, 'success', 3000); }
-            else { showToast('Varování', 'Téma dokončeno, ale body se nepodařilo připsat.', 'warning'); }
+            setLoadingState('points', false); // Points processing finished
+
+            if (pointsAwarded) {
+                showToast('+', `${POINTS_TOPIC_COMPLETE} kreditů získáno!`, 'success', 3000);
+                 // Update profile points in UI immediately if possible
+                if(state.currentProfile) {
+                    state.currentProfile.points = (state.currentProfile.points || 0) + POINTS_TOPIC_COMPLETE;
+                    updateUserInfoUI(); // Refresh sidebar display
+                }
+            } else {
+                showToast('Varování', 'Téma dokončeno, ale body se nepodařilo připsat.', 'warning');
+            }
             showToast(`Téma "${state.currentTopic.name}" dokončeno.`, "success");
-            // Allow next topic load
-            state.topicLoadInProgress = false;
-            // setLoadingState('currentTopic', false); // Let loadNextTopicFlow handle its own loading
-            await loadNextTopicFlow();
+
+            // Load next topic
+            state.topicLoadInProgress = false; // Allow next topic load
+            // setLoadingState('currentTopic', false); // loadNextTopicFlow handles its own loading state
+            await loadNextTopicFlow(); // Trigger loading the next topic
+            // manageButtonStates will be called by loadNextTopicFlow's final state
+
         } else {
             showToast("Chyba při označování tématu jako dokončeného.", "error");
-            state.topicLoadInProgress = false; // Reset blocking flag
+            state.topicLoadInProgress = false; // Reset blocking flag on failure
+            setLoadingState('points', false);
             // setLoadingState('currentTopic', false);
-            manageButtonStates(); // Re-enable based on current state
+            manageButtonStates(); // Re-enable buttons based on current state
         }
     } catch (error) {
         console.error("Error in handleMarkTopicCompleteFlow:", error);
         showToast("Neočekávaná chyba při dokončování tématu.", "error");
-        state.topicLoadInProgress = false; // Reset blocking flag
+        state.topicLoadInProgress = false; // Reset blocking flag on exception
         setLoadingState('points', false);
         // setLoadingState('currentTopic', false);
-        manageButtonStates(); // Re-enable based on current state
+        manageButtonStates(); // Re-enable buttons based on current state
     }
-    // No finally needed, success path calls loadNextTopicFlow which manages state.
+    // No finally needed, state is managed within try/catch or by loadNextTopicFlow
 }
 
 /**
  * Поток действий для загрузки следующей темы.
- * FIX V3: Robust state management.
  */
 async function loadNextTopicFlow() {
-     if (!state.currentUser || state.topicLoadInProgress) { console.log("[Flow] Load next topic skipped."); return; }
+    // Prevent concurrent loads
+    if (!state.currentUser || state.topicLoadInProgress) {
+        console.log(`[Flow] Load next topic skipped: User=${!!state.currentUser}, Loading=${state.topicLoadInProgress}`);
+        return;
+    }
 
-     console.log("[Flow] Loading next topic flow started.");
-     state.topicLoadInProgress = true; // START Blocking flag
-     setLoadingState('currentTopic', true); // Show visual loading
-     state.currentTopic = null; state.geminiChatContext = []; state.aiIsWaitingForAnswer = false;
+    console.log("[Flow] Loading next topic flow STARTED.");
+    state.topicLoadInProgress = true; // START Blocking flag
+    setLoadingState('currentTopic', true); // Show visual loading indicator
+    state.currentTopic = null; // Reset current topic state
+    state.geminiChatContext = []; // Reset Gemini context
+    state.aiIsWaitingForAnswer = false; // Reset waiting state
 
-     if (ui.currentTopicDisplay) ui.currentTopicDisplay.innerHTML = '<span class="placeholder"><i class="fas fa-spinner fa-spin"></i> Načítám další téma...</span>';
-     clearWhiteboard(false); if (ui.chatMessages) ui.chatMessages.innerHTML = '';
-     manageUIState('loadingTopic'); manageButtonStates();
+    // Clear UI related to the previous topic
+    if (ui.currentTopicDisplay) {
+        ui.currentTopicDisplay.innerHTML = '<span class="placeholder"><i class="fas fa-spinner fa-spin"></i> Načítám další téma...</span>';
+    }
+    clearWhiteboard(false); // Clear board silently
+    if (ui.chatMessages) {
+        ui.chatMessages.innerHTML = ''; // Clear chat messages
+    }
+    manageUIState('loadingTopic'); // Set UI to loading state
+    manageButtonStates(); // Update buttons for loading state
 
-     try {
-          console.log("[Flow] Calling loadNextUncompletedTopic...");
-          const result = await loadNextUncompletedTopic(state.currentUser.id);
-          console.log("[Flow] loadNextUncompletedTopic result:", result);
+    try {
+        console.log("[Flow] Calling loadNextUncompletedTopic from Supabase service...");
+        const result = await loadNextUncompletedTopic(state.currentUser.id);
+        console.log("[Flow] loadNextUncompletedTopic result:", result);
 
-          if (result.success && result.topic) {
-              state.currentTopic = result.topic;
-              if (ui.currentTopicDisplay) { ui.currentTopicDisplay.innerHTML = `Téma: <strong>${sanitizeHTML(state.currentTopic.name)}</strong>`; }
-              setLoadingState('currentTopic', false); // Stop visual loading
-              state.topicLoadInProgress = false; // END Blocking flag (success)
-              await startLearningSession(); // Starts its own loading/thinking states
-          } else {
-              state.currentTopic = null;
-              if (ui.currentTopicDisplay) ui.currentTopicDisplay.innerHTML = `<span class="placeholder">(${result.message || 'Není další téma'})</span>`;
-              manageUIState(result.reason || 'error', { errorMessage: result.message });
-              setLoadingState('currentTopic', false); // Ensure visual loading stops
-              state.topicLoadInProgress = false; // END Blocking flag (no topic/error)
-              manageButtonStates(); // Update buttons as no topic is active
-          }
-     } catch(error) {
-          console.error("Error in loadNextTopicFlow execution:", error);
-          state.currentTopic = null;
-          if (ui.currentTopicDisplay) ui.currentTopicDisplay.innerHTML = `<span class="placeholder">(Chyba načítání)</span>`;
-          manageUIState('error', { errorMessage: `Chyba při načítání dalšího tématu: ${error.message}` });
-          setLoadingState('currentTopic', false); // Ensure visual loading stops
-          state.topicLoadInProgress = false; // END Blocking flag (exception)
-          manageButtonStates(); // Update buttons after exception
-     }
-     // No finally needed, all paths manage state/buttons
-     console.log("[Flow] Loading next topic flow finished.");
+        if (result.success && result.topic) {
+            // Topic found
+            state.currentTopic = result.topic;
+            if (ui.currentTopicDisplay) {
+                ui.currentTopicDisplay.innerHTML = `Téma: <strong>${sanitizeHTML(state.currentTopic.name)}</strong>`;
+            }
+            // setLoadingState('currentTopic', false); // Visual loading stops implicitly when session starts
+            state.topicLoadInProgress = false; // END Blocking flag (success path)
+            await startLearningSession(); // Automatically start the session for the new topic
+            // startLearningSession handles its own thinking/loading states and button updates
+
+        } else {
+            // No topic found or error loading topic details
+            state.currentTopic = null;
+            const message = result.message || 'Není další téma nebo nastala chyba.';
+            if (ui.currentTopicDisplay) {
+                ui.currentTopicDisplay.innerHTML = `<span class="placeholder">(${sanitizeHTML(message)})</span>`;
+            }
+            manageUIState(result.reason || 'error', { errorMessage: message }); // Show appropriate empty/error state
+            setLoadingState('currentTopic', false); // Ensure visual loading stops
+            state.topicLoadInProgress = false; // END Blocking flag (no topic/error path)
+            manageButtonStates(); // Update buttons as no topic is active
+        }
+    } catch(error) {
+        // Handle exceptions during the flow
+        console.error("Error in loadNextTopicFlow execution:", error);
+        state.currentTopic = null;
+        if (ui.currentTopicDisplay) {
+            ui.currentTopicDisplay.innerHTML = `<span class="placeholder">(Chyba načítání)</span>`;
+        }
+        manageUIState('error', { errorMessage: `Chyba při načítání dalšího tématu: ${error.message}` });
+        setLoadingState('currentTopic', false); // Ensure visual loading stops
+        state.topicLoadInProgress = false; // END Blocking flag (exception path)
+        manageButtonStates(); // Update buttons after exception
+    }
+    // No finally needed, state and buttons are managed within try/catch paths
+    console.log("[Flow] Loading next topic flow FINISHED.");
 }
-
 
 // --- Запуск Приложения ---
 document.addEventListener('DOMContentLoaded', initializeApp);
