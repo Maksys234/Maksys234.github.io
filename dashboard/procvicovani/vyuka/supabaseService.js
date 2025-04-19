@@ -1,4 +1,5 @@
 // supabaseService.js - Функции для взаимодействия с Supabase
+// Версия 3.8: Добавлено логирование параметров перед вызовом RPC awardPoints
 
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config.js';
 import { state } from './state.js';
@@ -50,25 +51,20 @@ const SupabaseService = (() => {
                             hasLoggedInitialSignIn = true;
                         }
                         state.currentUser = session.user; // Обновляем состояние
-                        // Можно добавить вызов функции для обновления профиля, если нужно
-                        // fetchUserProfile(session.user.id).then(profile => state.currentProfile = profile);
                     } else {
-                         // Это может произойти, если INITIAL_SESSION не нашла пользователя
                          console.log('Supabase Auth: Initial session checked, no user.');
                          state.currentUser = null;
                          state.currentProfile = null;
-                         hasLoggedInitialSignIn = false; // Сброс флага, если пользователь вышел
+                         hasLoggedInitialSignIn = false;
                     }
                 } else if (event === 'SIGNED_OUT') {
                     console.log('Supabase Auth: User signed out.');
                     state.currentUser = null;
                     state.currentProfile = null;
-                    hasLoggedInitialSignIn = false; // Сброс флага
-                    // Здесь можно добавить редирект на страницу входа
+                    hasLoggedInitialSignIn = false;
                     // window.location.href = '/auth/index.html';
                 } else if (event === 'TOKEN_REFRESHED') {
                     console.log('Supabase Auth: Token refreshed.');
-                    // Обновляем пользователя в состоянии, если он изменился
                     if (session?.user && state.currentUser?.id !== session.user.id) {
                          state.currentUser = session.user;
                     }
@@ -86,7 +82,6 @@ const SupabaseService = (() => {
 
         } catch (error) {
             console.error("Supabase service initialization failed:", error);
-            // showError("Kritická chyba: Nelze se připojit k databázi.", true); // Используйте showError из uiHelpers
             client = null;
             isInitialized = false;
             return null;
@@ -100,7 +95,7 @@ const SupabaseService = (() => {
     function getClient() {
         if (!isInitialized) {
             console.warn("Supabase client accessed before initialization. Trying to initialize now.");
-            initialize(); // Попытка инициализации при первом доступе, если не было сделано ранее
+            initialize();
         }
         if (!client) {
             console.error("Cannot get Supabase client, initialization failed.");
@@ -124,7 +119,7 @@ const SupabaseService = (() => {
                 .single();
 
             if (error) {
-                if (error.code === 'PGRST116') {
+                if (error.code === 'PGRST116') { // Standard code for "Not Found"
                     console.warn(`[Supabase] Profile not found for user ${userId} (status: ${status}).`);
                     return null;
                 } else {
@@ -140,66 +135,85 @@ const SupabaseService = (() => {
             return profile;
         } catch (error) {
             console.error('[Supabase] Exception during profile fetch execution:', error);
-            // showToast('Chyba Profilu', 'Nepodařilo se načíst data profilu.', 'error');
             return null;
         }
     }
 
     async function awardPoints(userId, pointsValue) {
-         const supabase = getClient();
-         if (!supabase) { console.error("[Points] Supabase client not initialized."); return false; }
-         if (!userId || typeof pointsValue !== 'number' || pointsValue <= 0) {
-             console.warn("[Points] Skipping point award (invalid input):", { userId, pointsValue });
-             return false;
-         }
-         // !!! ВАЖНО: Убедитесь, что это имя совпадает с именем вашей функции в Supabase !!!
-         const functionName = 'increment_user_points';
-         console.log(`[Points] Awarding ${pointsValue} points to user ${userId} via RPC '${functionName}'...`);
-         try {
-             // Убедитесь, что имена параметров ('user_id_input', 'points_to_add')
-             // точно соответствуют именам параметров в вашей функции Supabase.
-             const { data, error } = await supabase.rpc(functionName, {
-                 user_id_input: userId,
-                 points_to_add: pointsValue
-             });
+        const supabase = getClient();
+        if (!supabase) { console.error("[Points] Supabase client not initialized."); return false; }
+        if (!userId || typeof pointsValue !== 'number' || pointsValue <= 0) {
+            console.warn("[Points] Skipping point award (invalid input):", { userId, pointsValue });
+            return false;
+        }
+        // !!! ВАЖНО: ПРОВЕРЬТЕ ЭТО ИМЯ В SUPABASE -> SQL Editor -> Database Functions !!!
+        const functionName = 'increment_user_points';
 
-             if (error) {
-                 console.error(`[Points] RPC Error calling '${functionName}':`, error);
-                 // Check specifically for 404-like or function-not-found errors
-                 if (error.message && (error.message.includes('404') || error.message.toLowerCase().includes('not found') || error.code === 'PGRST116' || error.code === '42883')) {
-                      console.error(`[Points] RPC function '${functionName}' not found or endpoint/parameter issue (${error.code || 'Unknown Code'}). Check Supabase function name, parameters, deployment, and API schema cache.`);
-                      // Consider informing the user more specifically if possible
-                      // showToast('Chyba funkce', `Funkce pro připsání bodů ('${functionName}') nebyla nalezena nebo je nesprávně nakonfigurována.`, 'error');
-                 }
-                 throw error; // Re-throw to be caught below
-             }
+        // !!! ВАЖНО: ПРОВЕРЬТЕ ИМЕНА ПАРАМЕТРОВ В ОПРЕДЕЛЕНИИ ФУНКЦИИ В SUPABASE !!!
+        const parameters = {
+            user_id_input: userId,      // Имя параметра 1
+            points_to_add: pointsValue  // Имя параметра 2
+        };
 
-             // Обработка результата RPC
-             const newPoints = data; // Предполагаем, что функция возвращает новое общее количество очков
-             console.log(`[Points] User points updated via RPC. Result/New Points:`, newPoints);
+        // --- ДОПОЛНИТЕЛЬНОЕ ЛОГИРОВАНИЕ ПЕРЕД ВЫЗОВОМ ---
+        console.log(`[Points] Preparing to call RPC function '${functionName}' with parameters:`, JSON.stringify(parameters));
+        console.log(`[Points] Target URL should be approximately: ${supabase.restUrl}/rpc/${functionName}`);
+        console.log(`[Points] User ID: ${userId}, Points to add: ${pointsValue}`);
+        // --- Конец дополнительного логирования ---
 
-             // Обновление локального состояния очков
-             if (state.currentUser && state.currentUser.id === userId && state.currentProfile) {
-                 if (typeof newPoints === 'number') {
-                     state.currentProfile.points = newPoints;
-                     console.log(`[Profile Update] Local points updated to ${newPoints}.`);
-                 } else {
-                     // Если RPC не вернула число, рассчитываем локально
-                     const oldPoints = state.currentProfile.points || 0;
-                     state.currentProfile.points = oldPoints + pointsValue;
-                     console.warn(`[Profile Update] RPC did not return new total points. Estimating local points to ${state.currentProfile.points}.`);
-                 }
-                 // Обновление UI (например, в сайдбаре) должно быть вызвано из `vyukaApp.js`
-             }
+        try {
+            const { data, error } = await supabase.rpc(functionName, parameters);
 
-             return true; // Успех
+            if (error) {
+                // Расширенное логирование ошибок
+                console.error(`[Points] RPC Error calling '${functionName}':`, {
+                    message: error.message,
+                    details: error.details,
+                    hint: error.hint,
+                    code: error.code // '42883' function does not exist, '42703' column does not exist, 'PGRST116' Not Found (может быть из-за RLS или неправильного endpoint)
+                });
 
-         } catch (error) {
-             console.error(`[Points] Exception awarding points for user ${userId}:`, error);
-             // showToast('Chyba kreditů', 'Nepodařilo se připsat kredity.', 'error'); // Обработка в vyukaApp
-             return false; // Неудача
-         }
+                if (error.code === '42883') {
+                     console.error(`[Points] CRITICAL: Function '${functionName}' does not exist in Supabase schema or is not exposed via API. Check function name and API schema settings.`);
+                     // showToast('Chyba funkce', `Funkce '${functionName}' nenalezena. Kontaktujte administrátora.`, 'error');
+                } else if (error.code === '42703') {
+                     console.error(`[Points] CRITICAL: One of the parameters (${Object.keys(parameters).join(', ')}) does not match the function definition in Supabase.`);
+                } else if (error.code === 'PGRST116' || (error.message && error.message.toLowerCase().includes('not found'))) {
+                     console.error(`[Points] CRITICAL: RPC endpoint '/rpc/${functionName}' not found. Check API settings or function deployment status.`);
+                } else if (error.message && error.message.toLowerCase().includes('permission denied')) {
+                     console.error(`[Points] CRITICAL: Permission denied for function '${functionName}'. Check RLS policies and role permissions (e.g., GRANT EXECUTE ON FUNCTION ${functionName} TO authenticated;).`);
+                }
+                // Перебрасываем ошибку для обработки выше
+                throw error;
+            }
+
+            // Успешный вызов RPC
+            const newPoints = data;
+            console.log(`[Points] RPC function '${functionName}' executed successfully. Result/New Points:`, newPoints);
+
+            // Обновление локального состояния очков
+            if (state.currentUser && state.currentUser.id === userId && state.currentProfile) {
+                if (typeof newPoints === 'number') {
+                    state.currentProfile.points = newPoints;
+                    console.log(`[Profile Update] Local points updated to ${newPoints}.`);
+                } else {
+                    const oldPoints = state.currentProfile.points || 0;
+                    state.currentProfile.points = oldPoints + pointsValue;
+                    console.warn(`[Profile Update] RPC did not return new total points (Returned: ${JSON.stringify(newPoints)}). Estimating local points to ${state.currentProfile.points}.`);
+                }
+                // Обновление UI должно быть вызвано из vyukaApp.js
+            }
+
+            return true; // Успех
+
+        } catch (error) {
+            // Логируем ошибку еще раз на уровне catch (может быть полезно для не-RPC ошибок)
+            console.error(`[Points] Exception during awardPoints execution for user ${userId}:`, error);
+            // Не показываем toast здесь, пусть обрабатывает вызывающая функция
+            return false; // Неудача
+        }
     }
+
 
     async function fetchNotifications(userId, limit = 5) {
         const supabase = getClient();
@@ -268,7 +282,10 @@ const SupabaseService = (() => {
     async function saveChatMessage(messageData) {
         const supabase = getClient();
         if (!supabase) { console.error("saveChatMessage: Supabase client not initialized."); return false; }
-        if (!messageData.user_id || !messageData.session_id || !messageData.role || !messageData.content) { console.error("saveChatMessage: Missing required data", messageData); return false; }
+        if (!messageData.user_id || !messageData.session_id || !messageData.role || typeof messageData.content === 'undefined') { // Allow empty content string ''
+             console.error("saveChatMessage: Missing required data (userId, sessionId, role, or content)", messageData);
+             return false;
+         }
         console.log("[ChatSave] Saving message to DB...");
         try {
             const { error } = await supabase.from('chat_history').insert({ user_id: messageData.user_id, session_id: messageData.session_id, topic_id: messageData.topic_id || null, topic_name: messageData.topic_name || null, role: messageData.role, content: messageData.content });
@@ -291,8 +308,8 @@ const SupabaseService = (() => {
 
     // Возвращаем публичный интерфейс сервиса
     return {
-        initialize, // Возможно, инициализацию лучше вызывать из основного app файла
-        getClient, // Если нужен прямой доступ к клиенту
+        initialize,
+        getClient,
         fetchUserProfile,
         awardPoints,
         fetchNotifications,
@@ -306,9 +323,8 @@ const SupabaseService = (() => {
 })();
 
 // --- Экспортируем функции ---
-// Экспортируем функции из созданного объекта SupabaseService
 export const {
-    initialize: initializeSupabase, // Переименовываем для ясности в импорте
+    initialize: initializeSupabase,
     getClient: getSupabaseClient,
     fetchUserProfile,
     awardPoints,
@@ -321,4 +337,4 @@ export const {
     deleteChatSessionHistory
 } = SupabaseService;
 
-console.log("Supabase service module loaded."); // Лог о загрузке модуля
+console.log("Supabase service module loaded (v3.8 with RPC param logging).");
