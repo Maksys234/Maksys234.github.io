@@ -1,4 +1,4 @@
-// vyukaApp.js - Основной файл приложения Vyuka (Версия 3.3 - Игнорирование одинокого "?" от AI)
+// vyukaApp.js - Основной файл приложения Vyuka (Версия 3.4 - Синхронизация логики Enter и кнопки Отправить)
 
 // --- Импорт Модулей ---
 import { MAX_GEMINI_HISTORY_TURNS, NOTIFICATION_FETCH_LIMIT, POINTS_TOPIC_COMPLETE } from './config.js';
@@ -23,7 +23,6 @@ import { addChatMessage, addThinkingIndicator, removeThinkingIndicator, confirmC
 
 // --- Основная Логика Приложения ---
 
-// Карта визуальных стилей для уведомлений (можно вынести в config.js)
 const activityVisuals = {
     test: { icon: 'fa-vial', class: 'test' },
     exercise: { icon: 'fa-pencil-alt', class: 'exercise' },
@@ -46,7 +45,7 @@ const activityVisuals = {
  * Главная функция инициализации приложения.
  */
 async function initializeApp() {
-    console.log("🚀 [Init Vyuka - Kyber V3.3] Starting App Initialization...");
+    console.log("🚀 [Init Vyuka - Kyber V3.4] Starting App Initialization...");
     let initializationError = null;
 
     if (ui.initialLoader) {
@@ -122,7 +121,7 @@ async function initializeApp() {
         }
 
     } catch (error) {
-        console.error("❌ [Init Vyuka - Kyber V3.3] Critical initialization error:", error);
+        console.error("❌ [Init Vyuka - Kyber V3.4] Critical initialization error:", error);
         initializationError = error;
         // Attempt to initialize UI for error display if not already done
         if (!document.getElementById('main-mobile-menu-toggle')) {
@@ -147,7 +146,7 @@ async function initializeApp() {
         }
         // Final call to ensure buttons reflect the final state
         manageButtonStates();
-        console.log("✅ [Init Vyuka - Kyber V3.3] App Initialization Finished (finally block).");
+        console.log("✅ [Init Vyuka - Kyber V3.4] App Initialization Finished (finally block).");
     }
 }
 
@@ -327,7 +326,7 @@ function updateUserInfoUI() {
  * Отображает уведомления в выпадающем списке.
  */
  function renderNotifications(count, notifications) {
-    console.log("[Render Notifications V3.1] Count:", count, "Notifications:", notifications);
+    console.log("[Render Notifications V3.1] Count:", count, "Notifications:", notifications); // Version irrelevant for render logic
     if (!ui.notificationCount || !ui.notificationsList || !ui.noNotificationsMsg || !ui.markAllReadBtn) {
         console.error("[Render Notifications] Missing UI elements.");
         return;
@@ -574,19 +573,25 @@ async function handleSendMessage() {
     }
 
     console.log("[ACTION] handleSendMessage triggered.");
-    // Allow sending even if AI is waiting, but not if busy with other things
-    const canSend = !!state.currentTopic && !state.geminiIsThinking && !state.topicLoadInProgress && !state.isListening;
+
+    // *** ИЗМЕНЕНИЕ ЗДЕСЬ v3.4 ***
+    // Проверка возможности отправки теперь СТРОГО соответствует `canInteract`
+    const canSend = state.currentTopic && !state.geminiIsThinking && !state.topicLoadInProgress && !state.isListening && !state.aiIsWaitingForAnswer;
     const text = ui.chatInput?.value.trim();
     console.log(`[ACTION] handleSendMessage: canSend=${canSend}, text='${text}'`);
 
     if (!canSend || !text) {
-        if (!canSend) showToast('Počkejte prosím', 'AI přemýšlí nebo se načítá téma.', 'warning');
+        if (!canSend && state.aiIsWaitingForAnswer) {
+             showToast('Nelze odeslat', 'Nejprve odpovězte na otázku AI.', 'warning');
+        } else if (!canSend) {
+            showToast('Počkejte prosím', 'AI přemýšlí nebo se načítá téma.', 'warning');
+        }
         return;
     }
 
     const inputBeforeSend = ui.chatInput?.value;
     if (ui.chatInput) { ui.chatInput.value = ''; autoResizeTextarea(ui.chatInput); }
-    let wasWaiting = state.aiIsWaitingForAnswer;
+    let wasWaiting = state.aiIsWaitingForAnswer; // This should always be false now to reach here, but keep for logic clarity
 
     try {
         await addChatMessage(text, 'user'); // Display and save user message
@@ -603,7 +608,9 @@ async function handleSendMessage() {
         // --------------------------
 
         let promptForGemini;
-        if (wasWaiting) {
+        // Since canSend check now includes !isWaitingForAnswer, wasWaiting will always be false here
+        // But we keep the structure in case logic changes later
+        if (wasWaiting) { // This branch is unlikely to be hit now
            promptForGemini = `Student odpověděl na předchozí otázku: "${text}". Téma je "${state.currentTopic.name}". Vyhodnoť stručně odpověď a pokračuj v konverzaci POUZE textem do chatu. Můžeš položit další otázku nebo navrhnout pokračování výkladu.`;
         } else {
             promptForGemini = `Student píše do chatu: "${text}". Téma je "${state.currentTopic.name}". Odpověz relevantně v rámci tématu a konverzace. Použij POUZE text do chatu. Nepřidávej bloky [BOARD_MARKDOWN] ani [TTS_COMMENTARY].`;
@@ -615,14 +622,14 @@ async function handleSendMessage() {
 
         if (response.success && response.data) {
             const { chatText, ttsCommentary } = response.data;
-            // *** ИЗМЕНЕНИЕ ЗДЕСЬ v3.3 ***
-            const isMeaningfulChatText = chatText && chatText.trim() !== '?'; // Check if chatText is not empty and not just "?"
+            // Check if chatText is meaningful before processing
+            const isMeaningfulChatText = chatText && chatText.trim() !== '?';
 
             if (isMeaningfulChatText) {
                 await addChatMessage(chatText, 'gemini', true, new Date(), ttsCommentary);
                 initTooltips(); // Re-init for potential new TTS buttons
                 const lowerChatText = chatText.toLowerCase();
-                // Set waiting state based on the NEW AI response only if it's meaningful text
+                // Set waiting state based on the NEW meaningful AI response
                 const isNowWaiting = chatText.endsWith('?') || lowerChatText.includes('otázka:') || lowerChatText.includes('zkuste') || lowerChatText.includes('jak byste');
                 console.log(`[STATE CHANGE] aiIsWaitingForAnswer evaluated to ${isNowWaiting} based on Gemini response.`);
                 state.aiIsWaitingForAnswer = isNowWaiting;
@@ -638,6 +645,7 @@ async function handleSendMessage() {
             console.error("Error response from Gemini:", response.error);
             await addChatMessage(`Promiňte, nastala chyba: ${response.error || 'Neznámá chyba AI.'}`, 'gemini', false);
             state.aiIsWaitingForAnswer = false; // Reset on error
+            console.log(`[STATE CHANGE] aiIsWaitingForAnswer set to false (Gemini error).`);
             // Restore input if sending failed
             if (ui.chatInput) { ui.chatInput.value = inputBeforeSend; autoResizeTextarea(ui.chatInput); }
         }
@@ -645,6 +653,7 @@ async function handleSendMessage() {
         console.error("Error in handleSendMessage catch block:", error);
         showError("Došlo k chybě při odesílání zprávy.", false);
         state.aiIsWaitingForAnswer = false; // Reset on error
+        console.log(`[STATE CHANGE] aiIsWaitingForAnswer set to false (exception).`);
         // Restore input on exception
         if (ui.chatInput) { ui.chatInput.value = inputBeforeSend; autoResizeTextarea(ui.chatInput); }
     } finally {
@@ -697,7 +706,7 @@ async function requestContinue() {
             const { boardMarkdown, ttsCommentary, chatText } = response.data;
             let domChanged = false;
 
-            // *** ИЗМЕНЕНИЕ ЗДЕСЬ v3.3 ***
+            // Check if chatText is meaningful
             const isMeaningfulChatText = chatText && chatText.trim() !== '?';
 
             // Handle board content
@@ -791,18 +800,21 @@ async function startLearningSession() {
         const response = await sendToGemini(prompt, false); // false = not direct chat
         console.log("[ACTION] startLearningSession: Gemini response received:", response);
 
-        // --- Prepare UI for Response --- (без изменений)
+        // --- Prepare UI for Response ---
         const placeholder = ui.whiteboardContent?.querySelector('.initial-load-placeholder, .empty-state');
-        if (placeholder) { placeholder.remove(); console.log("Initial whiteboard placeholder removed."); } else if (ui.whiteboardContent) { ui.whiteboardContent.innerHTML = ''; }
+        if (placeholder) { placeholder.remove(); console.log("Initial whiteboard placeholder removed."); }
+        else if (ui.whiteboardContent) { ui.whiteboardContent.innerHTML = ''; } // Clear if no placeholder but still has content
         const chatPlaceholder = ui.chatMessages?.querySelector('.empty-state');
-        if (response.success && response.data && (response.data.boardMarkdown || response.data.chatText || response.data.ttsCommentary)) { if (chatPlaceholder && chatPlaceholder.textContent.includes("Chat připraven")) { chatPlaceholder.remove(); } }
+        if (response.success && response.data && (response.data.boardMarkdown || response.data.chatText || response.data.ttsCommentary)) {
+             if (chatPlaceholder && chatPlaceholder.textContent.includes("Chat připraven")) { chatPlaceholder.remove(); }
+        }
         // --- End UI Prep ---
 
         if (response.success && response.data) {
             const { boardMarkdown, ttsCommentary, chatText } = response.data;
             let domChanged = false;
 
-            // *** ИЗМЕНЕНИЕ ЗДЕСЬ v3.3 ***
+            // Check if chatText is meaningful
             const isMeaningfulChatText = chatText && chatText.trim() !== '?';
 
             if (boardMarkdown) {
@@ -898,9 +910,7 @@ async function handleMarkTopicCompleteFlow() {
     console.log(`[Flow] Marking topic ${state.currentTopic.activity_id} as complete. Setting topicLoadInProgress=true, isLoading.points=true`);
     state.topicLoadInProgress = true; // Use this to block further actions
     setLoadingState('points', true); // Indicate points are being processed
-    // setLoadingState('currentTopic', true); // Optional: visual indication for topic change
     manageButtonStates(); // Disable buttons during completion
-    // ---------------------------
 
     try {
         const successMark = await markTopicComplete(state.currentTopic.activity_id, state.currentUser.id);
@@ -908,35 +918,24 @@ async function handleMarkTopicCompleteFlow() {
         if (successMark) {
             console.log(`[Flow] Topic marked complete. Awarding points...`);
             const pointsAwarded = await awardPoints(state.currentUser.id, POINTS_TOPIC_COMPLETE);
-            // Points loading state is reset *after* award attempt
-            setLoadingState('points', false); // <-- Reset points loading here
+            setLoadingState('points', false); // Points processing finished
             console.log(`[Flow] Points awarding finished (Awarded: ${pointsAwarded}). Reset isLoading.points=false`);
 
             if (pointsAwarded) {
                 showToast('+', `${POINTS_TOPIC_COMPLETE} kreditů získáno!`, 'success', 3000);
-                 // Update profile points in UI immediately if possible
-                if(state.currentProfile) {
-                    state.currentProfile.points = (state.currentProfile.points || 0) + POINTS_TOPIC_COMPLETE;
-                    updateUserInfoUI(); // Refresh sidebar display
-                }
-            } else {
-                showToast('Varování', 'Téma dokončeno, ale body se nepodařilo připsat.', 'warning');
-            }
+                 if(state.currentProfile) { state.currentProfile.points = (state.currentProfile.points || 0) + POINTS_TOPIC_COMPLETE; updateUserInfoUI(); }
+            } else { showToast('Varování', 'Téma dokončeno, ale body se nepodařilo připsat.', 'warning'); }
             showToast(`Téma "${state.currentTopic.name}" dokončeno.`, "success");
 
-            // Load next topic
             console.log("[Flow] Topic completion success. Resetting topicLoadInProgress=false and loading next topic.");
             state.topicLoadInProgress = false; // Allow next topic load BEFORE calling it
-            // setLoadingState('currentTopic', false); // loadNextTopicFlow handles its own loading state
-            await loadNextTopicFlow(); // Trigger loading the next topic
-            // manageButtonStates will be called by loadNextTopicFlow's final state
+            await loadNextTopicFlow(); // Load next
 
         } else {
             showToast("Chyba při označování tématu jako dokončeného.", "error");
             console.log("[Flow] Topic completion failed (markTopicComplete returned false). Resetting flags.");
             state.topicLoadInProgress = false; // Reset blocking flag on failure
             setLoadingState('points', false);
-            // setLoadingState('currentTopic', false);
             manageButtonStates(); // Re-enable buttons based on current state
         }
     } catch (error) {
@@ -945,17 +944,15 @@ async function handleMarkTopicCompleteFlow() {
         console.log("[Flow] Topic completion exception. Resetting flags.");
         state.topicLoadInProgress = false; // Reset blocking flag on exception
         setLoadingState('points', false);
-        // setLoadingState('currentTopic', false);
         manageButtonStates(); // Re-enable buttons based on current state
     }
-    // No finally needed, state is managed within try/catch or by loadNextTopicFlow
+    // No finally needed, state managed in try/catch or by loadNextTopicFlow
 }
 
 /**
  * Поток действий для загрузки следующей темы.
  */
 async function loadNextTopicFlow() {
-    // Prevent concurrent loads
     if (!state.currentUser || state.topicLoadInProgress) {
         console.log(`[Flow] Load next topic skipped: User=${!!state.currentUser}, Loading=${state.topicLoadInProgress}`);
         return;
@@ -968,7 +965,6 @@ async function loadNextTopicFlow() {
     state.geminiChatContext = []; // Reset Gemini context
     state.aiIsWaitingForAnswer = false; // Reset waiting state
     console.log("[STATE CHANGE] aiIsWaitingForAnswer set to false by loadNextTopicFlow start.");
-
 
     // Clear UI related to the previous topic
     if (ui.currentTopicDisplay) {
@@ -992,7 +988,6 @@ async function loadNextTopicFlow() {
             if (ui.currentTopicDisplay) {
                 ui.currentTopicDisplay.innerHTML = `Téma: <strong>${sanitizeHTML(state.currentTopic.name)}</strong>`;
             }
-            // setLoadingState('currentTopic', false); // Visual loading stops implicitly when session starts
             console.log("[Flow] Topic loaded successfully. Resetting topicLoadInProgress=false. Starting session...");
             state.topicLoadInProgress = false; // END Blocking flag (success path) BEFORE starting session
             await startLearningSession(); // Automatically start the session for the new topic
@@ -1024,7 +1019,6 @@ async function loadNextTopicFlow() {
         setLoadingState('currentTopic', false); // Ensure visual loading stops
         manageButtonStates(); // Update buttons after exception
     }
-    // No finally needed, state and buttons are managed within try/catch paths
     console.log("[Flow] Loading next topic flow FINISHED.");
 }
 
