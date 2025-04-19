@@ -1,4 +1,4 @@
-// geminiService.js - Функции для взаимодействия с Google Gemini API (Версия с улучшенным промптом)
+// geminiService.js - Функции для взаимодействия с Google Gemini API (Версия 3.4.1 - Исправление синтаксиса)
 
 import {
     GEMINI_API_KEY,
@@ -40,7 +40,7 @@ export function parseGeminiResponse(rawText) {
         } else {
             // Если блок ``` не найден, попробуем извлечь до следующего маркера или конца
             let contentEnd = rawText.indexOf(ttsMarker, boardStart);
-            if (contentEnd === -1) contentEnd = rawText.length;
+            if (contentEnd === -1 || contentEnd < boardStart) contentEnd = rawText.length; // Исправлено: ищем ttsMarker *после* boardStart
             boardMarkdown = rawText.substring(boardStart + boardMarker.length, contentEnd).trim();
             console.warn("parseGeminiResponse: Code block ``` not found after [BOARD_MARKDOWN]:, extracting content until next marker or end.");
         }
@@ -52,7 +52,8 @@ export function parseGeminiResponse(rawText) {
         // Комментарий идет до конца или до следующего маркера [BOARD_MARKDOWN], если он есть *после* TTS
         let commentaryEnd = rawText.length;
         const nextBoardStart = rawText.indexOf(boardMarker, ttsStart + ttsMarker.length);
-        if (nextBoardStart !== -1) {
+        // Исправлено: убедимся, что nextBoardStart действительно *после* ttsStart
+        if (nextBoardStart !== -1 && nextBoardStart > ttsStart) {
             commentaryEnd = nextBoardStart;
         }
         ttsCommentary = rawText.substring(ttsStart + ttsMarker.length, commentaryEnd).trim();
@@ -64,15 +65,32 @@ export function parseGeminiResponse(rawText) {
     const markers = [];
     if (boardStart !== -1) {
         let boardEndIndex = rawText.indexOf("```", boardStart + boardMarker.length);
-        if (boardEndIndex !== -1) boardEndIndex = rawText.indexOf("```", boardEndIndex + 3) + 3;
-        if (boardEndIndex < 3) boardEndIndex = boardStart + boardMarker.length + boardMarkdown.length; // Fallback if no ```
+         if (boardEndIndex !== -1) {
+             // Ищем закрывающий ``` после открывающего
+             let closingTagIndex = rawText.indexOf("```", boardEndIndex + 3);
+             if (closingTagIndex !== -1) {
+                 boardEndIndex = closingTagIndex + 3;
+             } else {
+                 // Если нет закрывающего, считаем концом блока конец markdown-контента
+                 boardEndIndex = boardStart + boardMarker.length + boardMarkdown.length;
+                 console.warn("parseGeminiResponse: Closing ``` not found for board, estimated end index.");
+             }
+         } else {
+              // Если не было ``` вообще, конец блока - это конец markdown-контента
+             boardEndIndex = boardStart + boardMarker.length + boardMarkdown.length;
+         }
         markers.push({ start: boardStart, end: Math.max(boardStart + boardMarker.length, boardEndIndex) });
     }
     if (ttsStart !== -1) {
-        let ttsEndIndex = ttsStart + ttsMarker.length + ttsCommentary.length;
-        const nextBoardStart = rawText.indexOf(boardMarker, ttsStart + ttsMarker.length);
-         if (nextBoardStart !== -1 && nextBoardStart > ttsStart) {
-             ttsEndIndex = nextBoardStart; // TTS ends before the next board marker
+         // Определяем конец TTS более надежно
+         let ttsEndIndex = ttsStart + ttsMarker.length + ttsCommentary.length;
+         const nextBoardAfterTts = rawText.indexOf(boardMarker, ttsStart + ttsMarker.length);
+         if(nextBoardAfterTts !== -1 && nextBoardAfterTts > ttsStart) {
+             // Если есть [BOARD_MARKDOWN] после [TTS_COMMENTARY], TTS заканчивается перед ним
+             ttsEndIndex = nextBoardAfterTts;
+         } else {
+             // Иначе TTS идет до конца строки (или до конца найденного ttsCommentary)
+             ttsEndIndex = ttsStart + ttsMarker.length + ttsCommentary.length;
          }
          markers.push({ start: ttsStart, end: ttsEndIndex });
     }
@@ -82,7 +100,7 @@ export function parseGeminiResponse(rawText) {
         if (marker.start > lastIndex) {
             chatSegments.push(rawText.substring(lastIndex, marker.start));
         }
-        lastIndex = marker.end;
+        lastIndex = Math.max(lastIndex, marker.end); // Используем Math.max для предотвращения отката индекса
     });
     if (lastIndex < rawText.length) {
         chatSegments.push(rawText.substring(lastIndex));
@@ -99,9 +117,9 @@ export function parseGeminiResponse(rawText) {
         chatText = ""; // Игнорируем одинокий "?"
     }
 
-    console.log("[ParseGemini V2] Board:", boardMarkdown ? boardMarkdown.substring(0, 60) + "..." : "None");
-    console.log("[ParseGemini V2] TTS:", ttsCommentary ? ttsCommentary.substring(0, 60) + "..." : "None");
-    console.log("[ParseGemini V2] Chat:", chatText ? chatText.substring(0, 60) + "..." : "None");
+    console.log("[ParseGemini V2.1] Board:", boardMarkdown ? boardMarkdown.substring(0, 60) + "..." : "None");
+    console.log("[ParseGemini V2.1] TTS:", ttsCommentary ? ttsCommentary.substring(0, 60) + "..." : "None");
+    console.log("[ParseGemini V2.1] Chat:", chatText ? chatText.substring(0, 60) + "..." : "None");
 
     return { boardMarkdown, ttsCommentary, chatText };
 }
@@ -109,18 +127,13 @@ export function parseGeminiResponse(rawText) {
 
 // --- Функции для создания промптов (вспомогательные) ---
 
-// Эти функции теперь менее важны, т.к. основная логика в _buildGeminiPayloadContents
-// Оставляем их для совместимости или будущих доработок, но они не будут формировать полный запрос.
 function _buildInitialPrompt() {
-    // Этот промпт теперь используется только как часть _buildGeminiPayloadContents
     return `Vysvětli ZÁKLADY tématu "${state.currentTopic?.name}". Začni PRVNÍ částí.`;
 }
 function _buildContinuePrompt() {
-    // Этот промпт теперь используется только как часть _buildGeminiPayloadContents
     return `Pokračuj ve vysvětlování tématu "${state.currentTopic?.name}". Naváž na předchozí část.`;
 }
 function _buildChatInteractionPrompt(userText) {
-     // Этот промпт теперь используется только как часть _buildGeminiPayloadContents
      return state.aiIsWaitingForAnswer
          ? `Student odpověděl: "${userText}"`
          : `Student píše do chatu: "${userText}"`;
@@ -136,50 +149,49 @@ function _buildGeminiPayloadContents(userPrompt) {
     const level = state.currentProfile?.skill_level || 'neznámá';
     const topicName = state.currentTopic?.name || 'Neznámé téma';
 
-    // --- УЛУЧШЕННЫЙ СИСТЕМНЫЙ ПРОМПТ (v2) ---
+    // --- УЛУЧШЕННЫЙ СИСТЕМНЫЙ ПРОМПТ (v2.1) ---
     const systemInstruction = `
 Jsi expertní, přátelský a trpělivý AI Tutor "Justax". Tvým cílem je efektivně vysvětlit téma "${topicName}" studentovi 9. třídy ZŠ v Česku s aktuální úrovní znalostí "${level}". Komunikuj POUZE v ČEŠTINĚ.
 
-Tvůj výstup MUSÍ být strukturován pomocí JEDNOHO nebo VÍCE z následujících kanálů/formátů, v závislosti na kontextu:
+Tvůj výstup MUSÍ být strukturován pomocí JEDNOHO nebo VÍCE z následujících kanálů/formátů, v závislosti na kontextu. **NIKDY nekombinuj obsah určený pro různé kanály v jednom bloku.**
 
-1.  **TABULE (`[BOARD_MARKDOWN]:`)**
-    * **Účel:** Prezentace klíčových, strukturovaných informací (definice, vzorce, kroky řešení, diagramy, tabulky). Obsah musí být vizuálně přehledný.
-    * **Formát:** VŽDY začíná markerem \`[BOARD_MARKDOWN]:\` následovaným blokem kódu \`\`\`markdown ... \`\`\`.
+1.  **TABULE (\`[BOARD_MARKDOWN]:\`)**
+    * **Účel:** VIZUÁLNÍ prezentace klíčových, strukturovaných informací (definice, vzorce, KROKY ŘEŠENÍ, diagramy, tabulky). Obsah musí být jasný a přehledný na první pohled.
+    * **Formát:** VŽDY začíná markerem \`[BOARD_MARKDOWN]:\` na samostatném řádku, následovaným blokem kódu \`\`\`markdown ... \`\`\` na dalších řádcích.
     * **Obsah Markdown:**
         * Používej POUZE: Nadpisy (\`##\`, \`###\`), seznamy (\`*\`, \`-\`, \`1.\`), tučné písmo (\`**text**\`), kurzívu (\`*text*\`), inline kód (\``kód`\`) pro zvýraznění, LaTeX pro vzorce (\`$ ... $\` pro inline, \`$$...$$\` pro blokové).
-        * Text musí být STRUČNÝ, věcný a dobře organizovaný.
-        * ZDE NEPOUŽÍVEJ konverzační styl, otázky ani dlouhé odstavce. Toto je pro vizuální prezentaci.
-    * **Kdy použít:** POVINNĚ při *zahájení* výkladu (\`startLearningSession\`) a při *pokračování* výkladu (\`requestContinue\`). Také POUZE tehdy, když student VÝSLOVNĚ požádá o zobrazení něčeho na tabuli (např. "ukaž postup na tabuli", "napiš rovnici na tabuli").
+        * Text musí být **STRUČNÝ**, faktický, zaměřený na klíčové body. ŽÁDNÉ dlouhé odstavce.
+        * **ZDE NEPATŘÍ:** Konverzační styl, uvítací fráze, otázky studentovi, vysvětlení "proč" (to patří do TTS).
+    * **Kdy použít:** POVINNĚ při *zahájení* výkladu (první krok) a při *pokračování* výkladu (další kroky). Také POUZE tehdy, když student VÝSLOVNĚ požádá o zobrazení něčeho na tabuli (např. "ukaž postup na tabuli", "napiš rovnici na tabuli").
 
-2.  **MLUVENÝ KOMENTÁŘ (`[TTS_COMMENTARY]:`)**
-    * **Účel:** Podrobnější, konverzační vysvětlení obsahu zobrazeného na tabuli nebo poskytnutí dalšího kontextu.
-    * **Formát:** VŽDY začíná markerem \`[TTS_COMMENTARY]:\` následovaným čistým textem (bez Markdown).
+2.  **MLUVENÝ KOMENTÁŘ (\`[TTS_COMMENTARY]:\`)**
+    * **Účel:** PODROBNĚJŠÍ, **konverzační** vysvětlení obsahu zobrazeného na TABULI, poskytnutí KONTEXTU, motivace, vysvětlení "proč" daný krok děláme.
+    * **Formát:** VŽDY začíná markerem \`[TTS_COMMENTARY]:\` na samostatném řádku, následovaným **čistým textem** (bez Markdown a LaTeXu).
     * **Obsah:**
-        * Vysvětluj koncepty srozumitelně, přizpůsobeno úrovni "${level}". Rozveď myšlenky z tabule.
-        * MŮŽEŠ použít řečnické otázky nebo jednoduché kontrolní otázky ("Rozumíme si?", "Je to jasné?", "Můžeme přejít dál?").
-        * NEPOKLÁDEJ zde složité otázky nebo příklady, které má student vyřešit – ty patří do chatu.
-    * **Kdy použít:** VŽDY SPOLEČNĚ S \`[BOARD_MARKDOWN]:\` při *zahájení* a *pokračování* výkladu. NIKDY samostatně. NIKDY v reakci na zprávu studenta v chatu.
+        * Vysvětluj koncepty srozumitelně, přizpůsobeno úrovni "${level}". Rozveď stručné body z tabule.
+        * Můžeš použít řečnické otázky nebo **jednoduché** kontrolní otázky na konci ("Rozumíš tomu?", "Je tento krok jasný?", "Můžeme pokračovat?").
+        * **ZDE NEPATŘÍ:** Komplexní otázky vyžadující výpočet nebo podrobnou odpověď studenta, složité vzorce (ty patří na tabuli), dlouhé seznamy kroků (ty patří na tabuli).
+    * **Kdy použít:** VŽDY **SPOLEČNĚ S** \`[BOARD_MARKDOWN]:\` při *zahájení* a *pokračování* výkladu. NIKDY samostatně. NIKDY v reakci na zprávu studenta v chatu.
 
-3.  **CHAT (Čistý text)**
-    * **Účel:** Přímá interakce se studentem - odpovídání na jeho otázky, KONTROLA jeho odpovědí, pokládání KONKRÉTNÍCH otázek k zamyšlení nebo procvičení, krátká zpětná vazba, přechodové fráze.
-    * **Formát:** POUZE čistý text. ŽÁDNÉ MARKERY (\`[BOARD_MARKDOWN]:\`, \`[TTS_COMMENTARY]:\`), ŽÁDNÉ bloky \`\`\`markdown\`.
+3.  **CHAT (Čistý text - BEZ MARKERŮ)**
+    * **Účel:** Přímá **interakce** se studentem: odpovídání na jeho otázky, KONTROLA a HODNOCENÍ jeho odpovědí, pokládání **KONKRÉTNÍCH otázek** k zamyšlení nebo procvičení, krátká zpětná vazba, přechodové fráze ("Dobře, teď se podíváme na...").
+    * **Formát:** POUZE čistý text. **ŽÁDNÉ** markery \`[BOARD_MARKDOWN]:\`, \`[TTS_COMMENTARY]:\`, žádné bloky \`\`\`markdown\`. Žádný LaTeX (vzorce v chatu piš slovně nebo velmi jednoduše).
     * **Obsah:**
-        * Udržuj přátelský a podporující tón.
-        * Odpovědi musí být relevantní k tématu "${topicName}" a aktuální diskuzi.
-        * MŮŽEŠ POKLÁDAT **konkrétní otázky** vyžadující odpověď studenta (např. "Jak bys upravil tento výraz?", "Zkus vypočítat hodnotu x.", "Co si myslíš o tomto kroku?").
-        * Pokud hodnotíš odpověď studenta, buď KONSTRUKTIVNÍ. Pokud je špatně, vysvětli proč.
-        * Odpovědi by měly být spíše KRATŠÍ, pokud nejde o vysvětlení složitého dotazu studenta.
-        * **DŮLEŽITÉ:** Vyhni se zakončení odpovědi POUZE otazníkem (\`?\`), pokud to není skutečná, smysluplná otázka pro studenta. Místo "?" použij např. "Můžeme pokračovat?".
-    * **Kdy použít:** VŽDY v reakci na zprávu studenta v chatu (pokud student nepožádal o zobrazení na tabuli - viz výjimka níže). MŮŽE následovat po bloku TABULE+TTS, pokud chceš v chatu položit doplňující otázku.
+        * Udržuj přátelský, podporující a konverzační tón.
+        * Odpovídej relevantně k tématu "${topicName}" a kontextu diskuze.
+        * MŮŽEŠ POKLÁDAT **konkrétní otázky** vyžadující odpověď studenta (např. "Jaký bude další krok?", "Zkus vypočítat hodnotu x v rovnici 2x = 10.", "Co si myslíš o tomto postupu?").
+        * Pokud hodnotíš odpověď studenta, buď KONSTRUKTIVNÍ. Pokud je špatně, jasně vysvětli proč.
+        * **DŮLEŽITÉ:** Vyhni se zakončení odpovědi POUZE otazníkem (\`?\`). Místo toho polož jasnou otázku nebo použij frázi jako "Můžeme pokračovat?".
+    * **Kdy použít:** VŽDY v reakci na zprávu studenta v chatu (POKUD student explicitně nepožádal o zobrazení na tabuli). MŮŽE následovat po bloku TABULE+TTS, pokud chceš v chatu položit **doplňující otázku** k právě vysvětlenému obsahu.
 
 **SPECIÁLNÍ PŘÍPADY:**
 
-* **Student žádá o zobrazení na tabuli:** Pokud student napíše něco jako "ukaž na tabuli", "napiš postup", "jak vypadá vzorec", pak:
-    1.  Použij \`[BOARD_MARKDOWN]:\` \`\`\`markdown ... \`\`\` pro zobrazení požadovaného obsahu (rovnice, kroky, vzorec).
-    2.  Do CHATU napiš pouze KRÁTKOU potvrzovací zprávu, např. "Jasně, tady je to na tabuli:" nebo "Dobře, postup je teď na tabuli.". NEopakuj obsah tabule v chatu.
-* **Studentova odpověď na tvou otázku:** Pokud student odpovídá na tvou předchozí otázku z chatu, vyhodnoť jeho odpověď v CHATU (čistým textem) a poté buď polož další otázku, nebo navrhni pokračování výkladu pomocí \`[BOARD_MARKDOWN]:\` a \`[TTS_COMMENTARY]:\`.
+* **Student žádá o zobrazení na tabuli:** Pokud student napíše "ukaž na tabuli", "napiš postup", "jak vypadá vzorec", pak:
+    1.  Použij `[BOARD_MARKDOWN]:` \`\`\`markdown ... \`\`\` pro zobrazení **POUZE** požadovaného vizuálního obsahu (rovnice, kroky, vzorec).
+    2.  Do CHATU napiš POUZE **KRÁTKOU** potvrzovací zprávu, např. "Jasně, tady je to na tabuli:" nebo "Dobře, postup je teď na tabuli.". **NEopakuj obsah tabule v chatu.**
+* **Studentova odpověď na tvou otázku:** Vyhodnoť jeho odpověď v CHATU (čistým textem). Poté buď polož další otázku v CHATU, nebo navrhni pokračování výkladu (což spustí další kolo s TABULÍ+TTS).
 
-**PŘÍSNĚ DODRŽUJ STRUKTURU A PRAVIDLA PRO JEDNOTLIVÉ KANÁLY!** Nepoužívej markery tam, kde nemají být, a naopak. Udržuj kontext diskuze.
+**PŘÍSNĚ DODRŽUJ STRUKTURU A PRAVIDLA!** Každý kanál má svůj účel a formát. Jasně odděluj vizuální prezentaci (tabule), mluvené vysvětlení (TTS) a interaktivní diskuzi (chat).
 `;
     // --- КОНЕЦ УЛУЧШЕННОГО ПРОМПТА ---
 
@@ -188,10 +200,10 @@ Tvůj výstup MUSÍ být strukturován pomocí JEDNOHO nebo VÍCE z následujíc
     const currentUserMessage = { role: "user", parts: [{ text: userPrompt }] };
 
      // Структура: Системные инструкции -> Подтверждение Модели -> История -> Текущий Запрос
+     // Исправлено: Убрана возможная синтаксическая ошибка, упрощен ответ модели
      const contents = [
          { role: "user", parts: [{ text: systemInstruction }] },
-         // Обновленный ответ модели для подтверждения понимания правил
-         { role: "model", parts: [{ text: `Rozumím. Jsem AI tutor Justax, připravený vysvětlovat téma "${topicName}" pro úroveň "${level}". Budu striktně dodržovat pravidla pro používání tabule (\`[BOARD_MARKDOWN]:\` + \`\`\`markdown\`), mluveného komentáře (\`[TTS_COMMENTARY]:\`) a chatu (čistý text). Na explicitní žádost studenta zobrazím obsah i na tabuli během chatu.` }] },
+         { role: "model", parts: [{ text: `Rozumím. Jsem připraven vysvětlovat téma "${topicName}" pro úroveň "${level}" a budu striktně dodržovat pravidla pro tabuli, komentář a chat.` }] },
          ...history,
          currentUserMessage
      ];
@@ -210,8 +222,9 @@ export async function sendToGemini(prompt, isChatInteraction = false) {
         console.error("[Gemini] Invalid or missing API Key!");
         return { success: false, data: null, error: "Chyba Konfigurace: Chybí platný API klíč pro AI." };
     }
-    if (!state.currentTopic && !prompt.includes("Vysvětli ZÁKLADY")) { // Разрешаем только первый запрос без темы
-        console.error("[Gemini] No current topic set.");
+    // Разрешаем первый запрос (startLearningSession) даже без currentTopic
+    if (!state.currentTopic && !prompt.includes("Vysvětli ZÁKLADY")) {
+        console.error("[Gemini] No current topic set for non-initial prompt.");
         return { success: false, data: null, error: "Chyba: Není vybráno žádné téma." };
     }
 
@@ -247,6 +260,7 @@ export async function sendToGemini(prompt, isChatInteraction = false) {
 
         console.log("[Gemini] Raw API Response:", JSON.stringify(responseData, null, 2)); // Логируем успешный ответ
 
+        // Проверка блокировки и кандидата
         if (responseData.promptFeedback?.blockReason) {
             console.error("[Gemini] Request blocked:", responseData.promptFeedback);
             throw new Error(`Požadavek blokován: ${responseData.promptFeedback.blockReason}. Zkuste přeformulovat.`);
@@ -256,12 +270,14 @@ export async function sendToGemini(prompt, isChatInteraction = false) {
             console.error("[Gemini] No candidate found in response:", responseData);
             throw new Error('AI neposkytlo platnou odpověď (žádný kandidát).');
         }
+
         // Проверяем finishReason, но позволяем ответу пройти, если есть текст
         if (candidate.finishReason && !["STOP", "MAX_TOKENS"].includes(candidate.finishReason)) {
             console.warn(`[Gemini] Potentially problematic FinishReason: ${candidate.finishReason}.`);
             if (candidate.finishReason === 'SAFETY') {
                 throw new Error('Odpověď blokována bezpečnostním filtrem AI.');
             }
+            // Допускаем другие причины, если текст есть
         }
 
         const rawText = candidate.content?.parts?.[0]?.text;
@@ -271,6 +287,7 @@ export async function sendToGemini(prompt, isChatInteraction = false) {
              if (candidate.finishReason === 'MAX_TOKENS') throw new Error('Odpověď AI byla příliš dlouhá (Max Tokens).');
              else throw new Error('AI vrátilo prázdnou odpověď (Důvod: ' + (candidate.finishReason || 'Neznámý') + ').');
         }
+
         // Если текста нет, но причина STOP (например, safety block внутри), вернем пустой результат
         if (!rawText) {
             console.warn("[Gemini] Response candidate has no text content, returning empty parsed data.");
@@ -283,9 +300,8 @@ export async function sendToGemini(prompt, isChatInteraction = false) {
             return { success: true, data: { boardMarkdown: "", ttsCommentary: "", chatText: "(AI neposkytlo žádný textový obsah)" }, error: null };
         }
 
-
-        // Обновляем контекст чата в state
-        state.geminiChatContext.push({ role: "user", parts: [{ text: finalPrompt }] }); // Сохраняем финальный промпт
+        // Обновляем контекст чата в state (даже если парсинг не удастся)
+        state.geminiChatContext.push({ role: "user", parts: [{ text: finalPrompt }] });
         state.geminiChatContext.push({ role: "model", parts: [{ text: rawText }] });
         // Обрезаем историю, если она слишком длинная (+2 для системных сообщений)
         if (state.geminiChatContext.length > MAX_GEMINI_HISTORY_TURNS * 2 + 2) {
@@ -298,8 +314,9 @@ export async function sendToGemini(prompt, isChatInteraction = false) {
 
     } catch (error) {
         console.error('[Gemini] Chyba komunikace s Gemini:', error);
+        // Не обновляем контекст при ошибке сети/API
         return { success: false, data: null, error: error.message }; // Возвращаем ошибку
     }
 }
 
-console.log("Gemini service module loaded (v2 with improved prompt).");
+console.log("Gemini service module loaded (v2.1 with improved prompt & syntax fix)."); // Updated log message
