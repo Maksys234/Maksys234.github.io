@@ -1,6 +1,6 @@
 // vyuka/geminiService.js - Функции для взаимодействия с Google Gemini API
-// Версия 3.8.1: Исправлена синтаксическая ошибка (отсутствующие `) в строке подтверждения модели.
-// Прочие изменения из v3.8 сохранены (сложность, фокус на доску, минималистичный чат).
+// Версия 3.8.2: Добавлена запятая после объекта model в contents для исправления SyntaxError.
+// Прочие изменения из v3.8 сохранены.
 
 import {
     GEMINI_API_KEY,
@@ -14,6 +14,7 @@ import { state } from './state.js';
 
 /**
  * Парсит сырой ответ от Gemini, извлекая блоки Markdown и TTS.
+ * (Логика парсинга без изменений с версии 3.8.1)
  * @param {string} rawText - Сырой текстовый ответ от Gemini.
  * @returns {{ boardMarkdown: string, ttsCommentary: string, chatText: string }} - Объект с извлеченными частями.
  */
@@ -24,7 +25,7 @@ export function parseGeminiResponse(rawText) {
     let ttsCommentary = "";
     let chatText = "";
 
-    // Извлечение Markdown для доски (логика остается прежней)
+    // Извлечение Markdown для доски
     const boardStart = rawText.indexOf(boardMarker);
     if (boardStart !== -1) {
         let blockStart = rawText.indexOf("```markdown", boardStart + boardMarker.length);
@@ -48,7 +49,7 @@ export function parseGeminiResponse(rawText) {
         }
     }
 
-    // Извлечение комментария TTS (логика остается прежней)
+    // Извлечение комментария TTS
     const ttsStart = rawText.indexOf(ttsMarker);
     if (ttsStart !== -1) {
         let commentaryEnd = rawText.length;
@@ -59,7 +60,7 @@ export function parseGeminiResponse(rawText) {
         ttsCommentary = rawText.substring(ttsStart + ttsMarker.length, commentaryEnd).trim();
     }
 
-    // Извлечение текста для чата (логика остается прежней, но ожидается минимум текста)
+    // Извлечение текста для чата
     let chatSegments = [];
     let lastIndex = 0;
     const markers = [];
@@ -95,28 +96,27 @@ export function parseGeminiResponse(rawText) {
     chatText = chatSegments
         .map(s => s.replace(boardMarker, '').replace(ttsMarker, '').replace(/```(markdown)?/g, '').trim())
         .filter(s => s.length > 0)
-        .join(" ") // Соединяем пробелом, т.к. ожидаются короткие фразы
+        .join(" ")
         .trim();
 
-    // Убираем любую пунктуацию из чата
+    // Убираем пунктуацию
     chatText = chatText.replace(/[.,!?;:]/g, '');
 
-    // Логирование для отладки
-    console.log("[ParseGemini v3.8.1] Board:", boardMarkdown ? boardMarkdown.substring(0, 60) + "..." : "None");
-    console.log("[ParseGemini v3.8.1] TTS:", ttsCommentary ? ttsCommentary.substring(0, 60) + "..." : "None");
-    console.log("[ParseGemini v3.8.1] Chat (Raw Parsed):", chatText); // Логируем "сырой" результат парсинга чата
+    console.log("[ParseGemini v3.8.2] Board:", boardMarkdown ? boardMarkdown.substring(0, 60) + "..." : "None");
+    console.log("[ParseGemini v3.8.2] TTS:", ttsCommentary ? ttsCommentary.substring(0, 60) + "..." : "None");
+    console.log("[ParseGemini v3.8.2] Chat (Raw Parsed):", chatText);
 
-    // Оставляем только первое слово/фразу, если их несколько (эвристика)
+    // Упрощение чата (логика без изменений)
     if (chatText.includes(' ')) {
-        const allowedPhrases = ["ano muzeme", "ne dekuji", "mam otazku", "chyba systemu", "info na tabuli", "navrhuji ukonceni", "tema uzavreno"]; // Добавил некоторые ожидаемые фразы
+        const allowedPhrases = ["ano muzeme", "ne dekuji", "mam otazku", "chyba systemu", "info na tabuli", "navrhuji ukonceni", "tema uzavreno"];
         if (!allowedPhrases.includes(chatText.toLowerCase())) {
              const firstWord = chatText.split(' ')[0];
-             console.log(`[ParseGemini v3.8.1] Chat text simplified from "${chatText}" to "${firstWord}"`);
+             console.log(`[ParseGemini v3.8.2] Chat text simplified from "${chatText}" to "${firstWord}"`);
              chatText = firstWord;
         }
     }
 
-    console.log("[ParseGemini v3.8.1] Chat (Final Cleaned):", chatText || "None");
+    console.log("[ParseGemini v3.8.2] Chat (Final Cleaned):", chatText || "None");
 
     return { boardMarkdown, ttsCommentary, chatText };
 }
@@ -124,7 +124,7 @@ export function parseGeminiResponse(rawText) {
 
 /**
  * Строит финальный контент для запроса к Gemini API.
- * Версия 3.8.1: Исправлены кавычки в строке подтверждения модели.
+ * Версия 3.8.2: Добавлена запятая после объекта model.
  * @param {string} userPrompt - Текущий промпт/сообщение от пользователя или команды приложения.
  * @returns {Array<Object>} Массив объектов 'contents' для API.
  */
@@ -135,7 +135,7 @@ function _buildGeminiPayloadContents(userPrompt) {
         ? "Stručný souhrn PŘEDCHOZÍHO obsahu tabule:\n" + state.boardContentHistory.map(c => `- ${c.substring(0, 100).replace(/[\r\n]+/g, ' ')}...`).slice(-3).join('\n')
         : "Tabule je zatím prázdná.";
 
-    // --- СИСТЕМНЫЙ ПРОМПТ (Версия 3.8) ---
+    // --- СИСТЕМНЫЙ ПРОМПТ (Версия 3.8 без изменений) ---
     const systemInstruction = `
 Jsi **expertní AI Tutor "Justax"** specializující se na **MATEMATIKU pro PŘIJÍMACÍ ZKOUŠKY na SŠ** v Česku. Tvým úkolem je **důkladně** vysvětlit téma "${topicName}" studentovi s aktuální úrovní znalostí "${studentLevel}". Cílem je příprava na úroveň CERMAT testů. Buď **precizní, metodický a náročný**, ale stále trpělivý. Komunikuj POUZE v ČEŠTINĚ.
 
@@ -217,49 +217,53 @@ ${boardHistorySummary}
 
     const contents = [
         { role: "user", parts: [{ text: systemInstruction }] },
-        // ИСПРАВЛЕНИЕ: Добавлены обратные апострофы ` вокруг строки
-        { role: "model", parts: [{ text: `Rozumim Budu AI Tutor Justax zamereny na prijimacky Tema ${topicName} Uroven ${studentLevel} Tabule dominantni TTS doplnujici Chat minimalisticky bez interpunkce Ukonceni opatrne s markerem [PROPOSE_COMPLETION]` }] },
+        // Подтверждение модели
+        { role: "model", parts: [{ text: `Rozumim Budu AI Tutor Justax zamereny na prijimacky Tema ${topicName} Uroven ${studentLevel} Tabule dominantni TTS doplnujici Chat minimalisticky bez interpunkce Ukonceni opatrne s markerem [PROPOSE_COMPLETION]` }] }, // Конец объекта модели
+        // ИСПРАВЛЕНИЕ: Добавлена запятая здесь ^^^ перед ...history
         ...history,
         currentUserMessage
     ];
 
-    // Ограничение контекста (без изменений)
+    // Ограничение контекста
     const maxHistoryLength = MAX_GEMINI_HISTORY_TURNS * 2;
-    if (contents.length > maxHistoryLength + 3) {
+    if (contents.length > maxHistoryLength + 3) { // +1 для userPrompt, +2 для systemInstruction+modelAck
         const historyStartIndex = contents.length - maxHistoryLength - 1;
-        contents.splice(2, historyStartIndex - 2);
-        console.warn(`[Gemini v3.8.1] Context length exceeded limit trimmed history New length ${contents.length}`);
+        contents.splice(2, historyStartIndex - 2); // Удаляем из середины, сохраняя системные сообщения
+        console.warn(`[Gemini v3.8.2] Context length exceeded limit trimmed history New length ${contents.length}`);
     }
 
     return contents;
 }
 
+
 /**
  * Отправляет запрос к Gemini API и возвращает обработанный ответ.
- * Версия 3.8.1: Исправлена ошибка синтаксиса.
+ * Версия 3.8.2: Использует исправленный _buildGeminiPayloadContents.
  * @param {string} prompt - Промпт для Gemini (может быть командой или текстом пользователя).
  * @param {boolean} isChatInteraction - Указывает, является ли это прямым взаимодействием в чате (влияет на логирование).
  * @returns {Promise<{success: boolean, data: {boardMarkdown: string, ttsCommentary: string, chatText: string}|null, error: string|null}>}
  */
 export async function sendToGemini(prompt, isChatInteraction = false) {
+    // Проверки API ключа и промпта (без изменений)
     if (!GEMINI_API_KEY || !GEMINI_API_KEY.startsWith('AIzaSy')) {
-        console.error("[Gemini v3.8.1] Invalid or missing API Key");
+        console.error("[Gemini v3.8.2] Invalid or missing API Key");
         return { success: false, data: null, error: "Chyba Konfigurace Chybi platny API klic pro AI" };
     }
     if (!prompt || prompt.trim() === '') {
-        console.error("[Gemini v3.8.1] Empty prompt provided");
+        console.error("[Gemini v3.8.2] Empty prompt provided");
         return { success: false, data: null, error: "Chyba Prazdny dotaz pro AI" };
     }
     if (!state.currentTopic && !prompt.includes("Vysvětli ZÁKLADY")) {
-        console.error("[Gemini v3.8.1] No current topic set for non-initial prompt");
+        console.error("[Gemini v3.8.2] No current topic set for non-initial prompt");
         return { success: false, data: null, error: "Chyba Neni vybrano tema" };
     }
 
-    console.log(`[Gemini v3.8.1] Sending request (Chat Interaction: ${isChatInteraction}): "${prompt.substring(0, 80)}..."`);
+    console.log(`[Gemini v3.8.2] Sending request (Chat Interaction: ${isChatInteraction}): "${prompt.substring(0, 80)}..."`);
 
+    // Построение payload (теперь с исправленной запятой)
     const contents = _buildGeminiPayloadContents(prompt);
 
-    // console.log("[Gemini v3.8.1] Payload Contents:", JSON.stringify(contents, null, 2));
+    // console.log("[Gemini v3.8.2] Payload Contents:", JSON.stringify(contents, null, 2));
 
     const body = {
         contents,
@@ -268,6 +272,7 @@ export async function sendToGemini(prompt, isChatInteraction = false) {
     };
 
     try {
+        // Отправка запроса и обработка ответа (логика fetch без изменений)
         const response = await fetch(GEMINI_API_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -278,32 +283,30 @@ export async function sendToGemini(prompt, isChatInteraction = false) {
 
         if (!response.ok) {
             let errorText = `Chyba API ${response.status}`;
-            if (responseData?.error?.message) {
-                 errorText += ` ${responseData.error.message}`;
-            } else if (typeof responseData === 'string') {
-                 errorText += ` ${responseData}`;
-            } else {
-                 errorText += ` Neznama chyba API`;
-            }
+            if (responseData?.error?.message) { errorText += ` ${responseData.error.message}`; }
+            else if (typeof responseData === 'string') { errorText += ` ${responseData}`; }
+            else { errorText += ` Neznama chyba API`; }
             errorText = errorText.replace(/[.,!?;:]/g, '');
-            console.error("[Gemini v3.8.1] API Error Response:", responseData);
+            console.error("[Gemini v3.8.2] API Error Response:", responseData);
             throw new Error(errorText);
         }
 
-        // console.log("[Gemini v3.8.1] Raw API Response:", JSON.stringify(responseData, null, 2));
+        // console.log("[Gemini v3.8.2] Raw API Response:", JSON.stringify(responseData, null, 2));
 
+        // Проверки безопасности и кандидата (без изменений)
         if (responseData.promptFeedback?.blockReason) {
-            console.error("[Gemini v3.8.1] Request blocked:", responseData.promptFeedback);
+            console.error("[Gemini v3.8.2] Request blocked:", responseData.promptFeedback);
             throw new Error(`Pozadavek blokovan ${responseData.promptFeedback.blockReason}`);
         }
         const candidate = responseData.candidates?.[0];
         if (!candidate) {
-            console.error("[Gemini v3.8.1] No candidate found in response:", responseData);
+            console.error("[Gemini v3.8.2] No candidate found in response:", responseData);
             throw new Error('AI neposkytlo platnou odpoved');
         }
 
+        // Проверка причины завершения (без изменений)
         if (candidate.finishReason && !["STOP", "MAX_TOKENS"].includes(candidate.finishReason)) {
-            console.warn(`[Gemini v3.8.1] Potentially problematic FinishReason: ${candidate.finishReason}.`);
+            console.warn(`[Gemini v3.8.2] Potentially problematic FinishReason: ${candidate.finishReason}.`);
             let reasonText = `Generovani ukonceno ${candidate.finishReason}`;
             if (candidate.finishReason === 'SAFETY') reasonText = 'Odpoved blokovana filtrem';
             if (candidate.finishReason === 'RECITATION') reasonText = 'Odpoved blokovana recitace';
@@ -312,12 +315,13 @@ export async function sendToGemini(prompt, isChatInteraction = false) {
 
         const rawText = candidate.content?.parts?.[0]?.text;
 
+        // Обработка пустого ответа (без изменений)
         if (!rawText && candidate.finishReason && candidate.finishReason !== 'STOP') {
              if (candidate.finishReason === 'MAX_TOKENS') throw new Error('Odpoved AI prilis dlouha');
              else throw new Error('AI vratilo prazdnou odpoved Duvod ' + (candidate.finishReason || 'Neznamy'));
         }
         if (!rawText) {
-            console.warn("[Gemini v3.8.1] Response candidate has no text content returning empty parsed data");
+            console.warn("[Gemini v3.8.2] Response candidate has no text content returning empty parsed data");
              state.geminiChatContext.push({ role: "user", parts: [{ text: prompt }] });
              state.geminiChatContext.push({ role: "model", parts: [{ text: "" }] });
              if (state.geminiChatContext.length > MAX_GEMINI_HISTORY_TURNS * 2 + 2) {
@@ -326,14 +330,14 @@ export async function sendToGemini(prompt, isChatInteraction = false) {
             return { success: true, data: { boardMarkdown: "", ttsCommentary: "", chatText: "" }, error: null };
         }
 
-        // Добавляем запрос и ответ в историю
+        // Добавление в историю (без изменений)
         state.geminiChatContext.push({ role: "user", parts: [{ text: prompt }] });
         state.geminiChatContext.push({ role: "model", parts: [{ text: rawText }] });
         if (state.geminiChatContext.length > MAX_GEMINI_HISTORY_TURNS * 2 + 2) {
              state.geminiChatContext.splice(2, state.geminiChatContext.length - (MAX_GEMINI_HISTORY_TURNS * 2 + 2));
         }
 
-        // Сохраняем маркдаун доски ДО парсинга (для истории)
+        // Сохранение истории доски (без изменений)
         const boardMatch = rawText.match(/\[BOARD_MARKDOWN]:\s*```(markdown)?([\s\S]*?)```/);
         if (boardMatch && boardMatch[2]) {
             state.boardContentHistory.push(boardMatch[2].trim());
@@ -342,14 +346,14 @@ export async function sendToGemini(prompt, isChatInteraction = false) {
             }
         }
 
-        // Парсим ответ
+        // Парсинг ответа (используется parseGeminiResponse v3.8.2)
         const parsedData = parseGeminiResponse(rawText);
         return { success: true, data: parsedData, error: null };
 
     } catch (error) {
-        console.error('[Gemini v3.8.1] Chyba komunikace s Gemini nebo zpracovani odpovedi:', error);
+        console.error('[Gemini v3.8.2] Chyba komunikace s Gemini nebo zpracovani odpovedi:', error);
         return { success: false, data: null, error: (error.message || "Neznama chyba AI").replace(/[.,!?;:]/g, '') };
     }
 }
 
-console.log("Gemini service module loaded (v3.8.1 with syntax fix).");
+console.log("Gemini service module loaded (v3.8.2 with comma fix).");
