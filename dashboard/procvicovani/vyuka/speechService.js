@@ -3,7 +3,7 @@
 import { state } from './state.js';
 import { ui } from './ui.js';
 import { TTS_LANGUAGE, TTS_RATE, TTS_PITCH, STT_LANGUAGE } from './config.js';
-// import { showToast } from './ui.js'; // Если будете использовать тосты здесь
+// import { showToast } from './uiHelpers.js'; // Use from uiHelpers if needed
 
 // --- Text-to-Speech (TTS) ---
 
@@ -102,7 +102,7 @@ export function speakText(text, targetChunkElement = null) {
 
     utterance.onstart = () => {
         console.log("[TTS] Speech started.");
-        ui.aiAvatarCorner?.classList.add('speaking');
+        // REMOVED: ui.aiAvatarCorner?.classList.add('speaking');
         ui.boardSpeakingIndicator?.classList.add('active');
         if (targetChunkElement) {
             targetChunkElement.classList.add('speaking-highlight');
@@ -111,14 +111,14 @@ export function speakText(text, targetChunkElement = null) {
     };
     utterance.onend = () => {
         console.log("[TTS] Speech finished.");
-        ui.aiAvatarCorner?.classList.remove('speaking');
+        // REMOVED: ui.aiAvatarCorner?.classList.remove('speaking');
         ui.boardSpeakingIndicator?.classList.remove('active');
         removeBoardHighlight();
     };
     utterance.onerror = (event) => {
         console.error('[TTS] SpeechSynthesisUtterance.onerror', event);
         // showToast(`Chyba při čtení: ${event.error}`, 'error');
-        ui.aiAvatarCorner?.classList.remove('speaking');
+        // REMOVED: ui.aiAvatarCorner?.classList.remove('speaking');
         ui.boardSpeakingIndicator?.classList.remove('active');
         removeBoardHighlight();
     };
@@ -133,7 +133,7 @@ export function speakText(text, targetChunkElement = null) {
 export function stopSpeech() {
     if (state.speechSynthesisSupported) {
         window.speechSynthesis.cancel();
-        ui.aiAvatarCorner?.classList.remove('speaking');
+        // REMOVED: ui.aiAvatarCorner?.classList.remove('speaking');
         ui.boardSpeakingIndicator?.classList.remove('active');
         removeBoardHighlight();
         console.log("[TTS] Speech cancelled by user.");
@@ -170,7 +170,7 @@ export function initializeSpeechRecognition() {
             if (ui.chatInput) {
                 ui.chatInput.value = transcript;
                 // Нужно импортировать или передать функцию autoResizeTextarea
-                // autoResizeTextarea(); // Предполагаем, что она будет доступна
+                // autoResizeTextarea(); // Called from vyukaApp via input event
                 ui.chatInput.dispatchEvent(new Event('input')); // Имитируем событие input для autoResize
             }
              stopListening(); // Остановить прослушивание после получения результата
@@ -186,7 +186,7 @@ export function initializeSpeechRecognition() {
                 errorMsg = "Přístup k mikrofonu zamítnut.";
                 if(ui.micBtn) ui.micBtn.disabled = true;
             }
-            // showToast(errorMsg, 'error');
+            // showToast(errorMsg, 'error'); // Call from uiHelpers
             stopListening(); // Остановить в любом случае при ошибке
         };
 
@@ -232,17 +232,16 @@ export function startListening() {
                     ui.micBtn.disabled = false; // Убедимся, что кнопка активна
                 }
                 console.log('[STT] Speech recognition started.');
-                // Здесь нужно вызвать manageButtonStates, если он будет импортирован
-                // manageButtonStates();
+                // manageButtonStates() // Called from vyukaApp
             } catch (e) {
                 console.error("[STT] Error starting speech recognition:", e);
-                // showToast("Nepodařilo se spustit rozpoznávání.", "error");
+                // showToast("Nepodařilo se spustit rozpoznávání.", "error"); // Call from uiHelpers
                 stopListening(); // Сбросить состояние, если запуск не удался
             }
         })
         .catch(err => {
             console.error("[STT] Microphone access denied:", err);
-            // showToast("Přístup k mikrofonu je nutný pro hlasový vstup.", "warning");
+            // showToast("Přístup k mikrofonu je nutný pro hlasový vstup.", "warning"); // Call from uiHelpers
             if(ui.micBtn) ui.micBtn.disabled = true; // Заблокировать кнопку, если доступ запрещен
             stopListening();
         });
@@ -262,16 +261,13 @@ export function stopListening() {
     } catch (e) {
         console.warn("[STT] Error trying to stop recognition (might be harmless):", e);
     } finally {
-         // Этот код может быть вызван дважды (из onerror/onresult и из onend),
-         // но это не страшно, главное - установить правильное состояние UI.
         state.isListening = false;
         if (ui.micBtn) {
             ui.micBtn.classList.remove('listening');
             ui.micBtn.title = state.speechRecognitionSupported ? "Zahájit hlasový vstup" : "Rozpoznávání řeči není podporováno";
-            // Не меняем disabled здесь, т.к. причина остановки может быть разной
+            // Don't change disabled state here, manageButtonStates handles it
         }
-        // Здесь нужно вызвать manageButtonStates, если он будет импортирован
-        // manageButtonStates();
+        // manageButtonStates() // Called from vyukaApp
     }
 }
 
@@ -280,7 +276,7 @@ export function stopListening() {
  */
 export function handleMicClick() {
     if (!state.speechRecognitionSupported) {
-        // showToast("Rozpoznávání řeči není podporováno.", "warning");
+        // showToast("Rozpoznávání řeči není podporováno.", "warning"); // Call from uiHelpers
         console.warn("Mic button clicked, but STT not supported.");
         return;
     }
@@ -305,7 +301,7 @@ if (state.speechSynthesisSupported) {
     }
 }
 
-// Инициализация распознавания речи
-initializeSpeechRecognition();
+// Инициализация распознавания речи (Called from initializeUI now)
+// initializeSpeechRecognition(); // Don't call here, called from initializeUI
 
 console.log("Speech service module loaded.");
