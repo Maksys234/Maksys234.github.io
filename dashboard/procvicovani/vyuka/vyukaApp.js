@@ -1,10 +1,10 @@
 // vyukaApp.js - Основной файл приложения Vyuka
-// Verze 3.9.4: Opravena logika aiIsWaitingForAnswer, odstraněny listenery pro smazaná tlačítka, opraven MathJax.
+// Verze 3.9.5: Odstraněn import renderMarkdown, opravena logika aiIsWaitingForAnswer.
 
 // --- Import Modulů ---
 import { MAX_GEMINI_HISTORY_TURNS, NOTIFICATION_FETCH_LIMIT, POINTS_TOPIC_COMPLETE } from './config.js';
 import { state } from './state.js';
-import { ui } from './ui.js'; // Obsahuje micBtn, neobsahuje clear/save chat
+import { ui } from './ui.js';
 import {
     sanitizeHTML, getInitials, formatTimestamp, formatRelativeTime, autoResizeTextarea,
     generateSessionId, initTooltips, updateOnlineStatus, updateCopyrightYear,
@@ -19,9 +19,9 @@ import {
 } from './supabaseService.js';
 import { sendToGemini, parseGeminiResponse } from './geminiService.js';
 import { loadVoices, speakText, stopSpeech, handleMicClick, initializeSpeechRecognition, removeBoardHighlight, setManageButtonStatesCallback } from './speechService.js';
-// Import z whiteboardController
-import { appendToWhiteboard, clearWhiteboard, renderMarkdown } from './whiteboardController.js';
-// Import z chatController (confirmClearChat a saveChatToPDF už nebudou volány)
+// Import POUZE appendToWhiteboard a clearWhiteboard z whiteboardController
+import { appendToWhiteboard, clearWhiteboard } from './whiteboardController.js';
+// Import z chatController
 import { addChatMessage, addThinkingIndicator, removeThinkingIndicator } from './chatController.js';
 
 // --- Основная Логика Приложения ---
@@ -47,21 +47,20 @@ const activityVisuals = {
 
 /**
  * Komplexní funkce pro správu stavu VŠECH interaktivních tlačítek.
- * Verze 3.9.4: Finální logika pro input/continue.
+ * Verze 3.9.5: Finální logika pro input/continue.
  */
 function manageButtonStates() {
     // --- 1. Získání aktuálního stavu aplikace ---
     const hasTopic = !!state.currentTopic;
     const isThinking = state.geminiIsThinking;
     const isLoadingTopic = state.topicLoadInProgress;
-    const isWaitingForAction = state.aiIsWaitingForAnswer; // Jen pro info, méně blokuje
-    const isProposingCompletion = state.aiProposedCompletion; // STÁLE BLOKUJE
+    const isWaitingForAction = state.aiIsWaitingForAnswer; // Jen pro info
+    const isProposingCompletion = state.aiProposedCompletion; // BLOKUJE vstup
     const isListening = state.isListening;
     const isSpeaking = state.isSpeakingTTS;
     const isLoadingPoints = state.isLoading.points;
     const isLoadingNotifications = state.isLoading.notifications;
     const chatInputHasText = ui.chatInput?.value.trim().length > 0;
-    const chatIsEmpty = !ui.chatMessages?.hasChildNodes() || !!ui.chatMessages?.querySelector('.empty-state');
     const boardIsEmpty = !ui.whiteboardContent?.hasChildNodes() || !!ui.whiteboardContent?.querySelector('.empty-state');
     const unreadNotifCount = parseInt(ui.notificationCount?.textContent?.replace('+', '') || '0');
 
@@ -110,8 +109,6 @@ function manageButtonStates() {
              else if (isLoadingPoints) placeholder = "Zpracovávám dokončení...";
              else if (isProposingCompletion) placeholder = "AI navrhuje ukončení. Odpověz Ano/Ne.";
              else placeholder = "Akce nedostupná";
-        } else if (isWaitingForAction && !isProposingCompletion) { // Tento stav by už neměl nastávat, ale pro jistotu
-            placeholder = "Reaguj na tabuli nebo polož dotaz...";
         }
         if (ui.chatInput.placeholder !== placeholder) { ui.chatInput.placeholder = placeholder; }
     }
@@ -135,7 +132,7 @@ function manageButtonStates() {
 
 /** Hlavní funkce inicializace aplikace. */
 async function initializeApp() {
-    console.log("🚀 [Init Vyuka v3.9.4] Starting App Initialization...");
+    console.log("🚀 [Init Vyuka v3.9.5] Starting App Initialization...");
     let initializationError = null;
     if (ui.initialLoader) { ui.initialLoader.style.display = 'flex'; ui.initialLoader.classList.remove('hidden'); }
     if (ui.mainContent) ui.mainContent.style.display = 'none';
@@ -183,7 +180,7 @@ async function initializeApp() {
             console.log("[INIT] Initial data loading complete or errors handled.");
         } else { setLoadingState('currentTopic', false); setLoadingState('notifications', false); manageButtonStates(); }
     } catch (error) {
-        console.error("❌ [Init Vyuka v3.9.4] Critical initialization error:", error); initializationError = error;
+        console.error("❌ [Init Vyuka v3.9.5] Critical initialization error:", error); initializationError = error;
         if (!document.getElementById('main-mobile-menu-toggle')) { try { initializeUI(); } catch (uiError) { console.error("Failed to initialize UI during critical error handling:", uiError); } }
         manageUIState('error', { errorMessage: error.message.replace(/[.,!?;:]/g, '') }); setLoadingState('all', false); showError(`Chyba inicializace: ${error.message.replace(/[.,!?;:]/g, '')}`, true);
     } finally {
@@ -191,7 +188,7 @@ async function initializeApp() {
         if (ui.initialLoader) { ui.initialLoader.classList.add('hidden'); setTimeout(() => { if (ui.initialLoader) ui.initialLoader.style.display = 'none'; }, 500); }
         if (ui.mainContent) { ui.mainContent.style.display = 'flex'; requestAnimationFrame(() => { if (ui.mainContent) ui.mainContent.classList.add('loaded'); initScrollAnimations(); }); }
         manageButtonStates(); initTooltips();
-        console.log("✅ [Init Vyuka v3.9.4] App Initialization Finished (finally block).");
+        console.log("✅ [Init Vyuka v3.9.5] App Initialization Finished (finally block).");
     }
 }
 
@@ -200,7 +197,7 @@ function initializeUI() {
     console.log("[UI Init] Initializing UI elements and handlers...");
     try {
         updateTheme();
-        setupEventListeners(); // Musí být zde, aby listenery byly připojeny
+        setupEventListeners();
         if (ui.chatTabButton) ui.chatTabButton.classList.add('active');
         if (ui.chatTabContent) ui.chatTabContent.classList.add('active');
         initializeSpeechRecognition();
@@ -209,7 +206,7 @@ function initializeUI() {
         initHeaderScrollDetection();
         updateCopyrightYear();
         updateOnlineStatus();
-        manageUIState('initial'); // Nastaví počáteční stav UI (včetně tlačítek)
+        manageUIState('initial');
         console.log("[UI Init] UI Initialized successfully.");
     } catch (error) {
         console.error("UI Init failed:", error);
@@ -221,46 +218,22 @@ function initializeUI() {
 function setupEventListeners() {
     console.log("[SETUP] Setting up event listeners...");
     let listenersAttached = 0;
-
     function addListener(element, event, handler, elementName) {
-        if (element) {
-            element.removeEventListener(event, handler); // Prevent duplicates
-            element.addEventListener(event, handler);
-            listenersAttached++;
-        } else {
-            // Logovat jen jednou za běhu, pokud prvek chybí (např. pokud ui.js nebylo aktualizováno)
-            if (!state[`listener_warn_${elementName}`]) {
-                console.warn(`[SETUP] Element '${elementName}' not found. Listener not attached.`);
-                state[`listener_warn_${elementName}`] = true; // Značka, že varování bylo zalogováno
-            }
-        }
+        if (element) { element.removeEventListener(event, handler); element.addEventListener(event, handler); listenersAttached++; }
+        else { if (!state[`listener_warn_${elementName}`]) { console.warn(`[SETUP] Element '${elementName}' not found. Listener not attached.`); state[`listener_warn_${elementName}`] = true; } }
     }
-
-    // --- Sidebar & Menu ---
     addListener(ui.mainMobileMenuToggle, 'click', openMenu, 'mainMobileMenuToggle');
     addListener(ui.sidebarCloseToggle, 'click', closeMenu, 'sidebarCloseToggle');
     addListener(ui.sidebarOverlay, 'click', closeMenu, 'sidebarOverlay');
-
-    // --- Chat Input & Send ---
     addListener(ui.chatInput, 'input', () => autoResizeTextarea(ui.chatInput), 'chatInput (input)');
     addListener(ui.sendButton, 'click', handleSendMessage, 'sendButton');
     addListener(ui.chatInput, 'keypress', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(); } }, 'chatInput (keypress)');
-
-    // --- Board Controls ---
     addListener(ui.clearBoardBtn, 'click', () => { clearWhiteboard(false); showToast('Vymazáno', "Tabule byla vymazána.", "info"); manageButtonStates(); }, 'clearBoardBtn');
-
-    // --- Pokračuj Button ---
     addListener(ui.continueBtn, 'click', requestContinue, 'continueBtn');
-
-    // --- Speech Controls ---
-    addListener(ui.micBtn, 'click', handleMicClick, 'micBtn'); // Ověřeno, že ui.micBtn existuje a má správné ID
+    addListener(ui.micBtn, 'click', handleMicClick, 'micBtn');
     addListener(ui.stopSpeechBtn, 'click', stopSpeech, 'stopSpeechBtn');
-
-    // --- Dynamic TTS Click Handlers (Event Delegation) ---
     addListener(ui.chatMessages, 'click', handleDynamicTTSClick, 'chatMessages (TTS Delegation)');
     addListener(ui.whiteboardContent, 'click', handleDynamicTTSClick, 'whiteboardContent (TTS Delegation)');
-
-    // --- Theme & Window Events ---
     const darkModeMatcher = window.matchMedia('(prefers-color-scheme: dark)');
     function handleThemeChange(event) { state.isDarkMode = event.matches; updateTheme(); }
     function handleResize() { if (window.innerWidth > 992 && ui.sidebar?.classList.contains('active')) { closeMenu(); } }
@@ -268,8 +241,6 @@ function setupEventListeners() {
     window.removeEventListener('resize', handleResize); window.addEventListener('resize', handleResize); listenersAttached++;
     window.removeEventListener('online', updateOnlineStatus); window.addEventListener('online', updateOnlineStatus); listenersAttached++;
     window.removeEventListener('offline', updateOnlineStatus); window.addEventListener('offline', updateOnlineStatus); listenersAttached++;
-
-    // --- Notification Handlers ---
     function handleNotificationBellClick(event) { event.stopPropagation(); ui.notificationsDropdown?.classList.toggle('active'); }
     async function handleMarkAllReadClick() { if(ui.markAllReadBtn.disabled) return; setLoadingState('notifications', true); const success = await markAllNotificationsRead(state.currentUser.id); if (success) { renderNotifications(0, []); showToast('Hotovo', 'Všechna oznámení označena jako přečtená.', 'success'); } else { showToast('Chyba', 'Nepodařilo se označit oznámení.', 'error'); } setLoadingState('notifications', false); manageButtonStates(); }
     async function handleNotificationItemClick(event) { const item = event.target.closest('.notification-item'); if (item) { const notificationId = item.dataset.id; const link = item.dataset.link; const isRead = item.classList.contains('is-read'); if (!isRead && notificationId) { const success = await markNotificationRead(notificationId, state.currentUser.id); if (success) { item.classList.add('is-read'); item.querySelector('.unread-dot')?.remove(); const currentCountText = ui.notificationCount.textContent.replace('+', ''); const currentCount = parseInt(currentCountText) || 0; const newCount = Math.max(0, currentCount - 1); ui.notificationCount.textContent = newCount > 9 ? '9+' : (newCount > 0 ? String(newCount) : ''); ui.notificationCount.classList.toggle('visible', newCount > 0); manageButtonStates(); } } if (link) window.location.href = link; } }
@@ -278,12 +249,8 @@ function setupEventListeners() {
     addListener(ui.markAllReadBtn, 'click', handleMarkAllReadClick, 'markAllReadBtn');
     addListener(ui.notificationsList, 'click', handleNotificationItemClick, 'notificationsList (Delegation)');
     document.removeEventListener('click', handleOutsideNotificationClick); document.addEventListener('click', handleOutsideNotificationClick); listenersAttached++;
-
     console.log(`[SETUP] Event listeners setup complete. Total attached approx: ${listenersAttached}`);
 }
-
-
-// --- Обновление UI ---
 
 /** Обновляет информацию о пользователе в UI (сайдбар). */
 function updateUserInfoUI() {
@@ -339,152 +306,93 @@ function handleDynamicTTSClick(event) {
 
 /** Vykreslí Markdown na tabuli (používá appendToWhiteboard, který volá MathJax). */
 async function renderBoardAndMath(markdown, tts) {
-     const newElement = appendToWhiteboard(markdown, tts);
-     // MathJax je volán uvnitř appendToWhiteboard
+     appendToWhiteboard(markdown, tts); // appendToWhiteboard nyní řeší MathJax
  }
 
 /**
  * Обрабатывает отправку сообщения из чата.
- * Verze 3.9.4: Opravena logika aiIsWaitingForAnswer.
+ * Verze 3.9.5: Opravena logika aiIsWaitingForAnswer.
  */
 async function handleSendMessage() {
     if (!state.currentUser || !state.currentProfile) { showError("Nelze odeslat zprávu, chybí data uživatele.", false); return; }
     const text = ui.chatInput?.value.trim();
     if (!text) return;
     console.log("[ACTION] handleSendMessage triggered with text:", text);
-
     const affirmativeResponses = ['ano', 'jo', 'ok', 'dobře', 'dobre', 'souhlasim', 'potvrdit', 'uzavrit', 'dokoncit', 'jiste', 'jistě'];
     const negativeResponses = ['ne', 'nechci', 'stop', 'nemyslim', 'nesouhlasim', 'zrusit', 'neukoncovat'];
     const forceCompleteKeywords = ['ukonci', 'dokonci', 'zavri', 'konec', 'skonci', 'hotovo', 'заверши', 'укончи', 'конец', 'стоп'];
-
-    // Blokace ručního ukončení
-    if (!state.aiProposedCompletion && text) { const lowerText = text.toLowerCase(); if (forceCompleteKeywords.some(keyword => lowerText.includes(keyword))) { console.warn("[ACTION] User attempted to force topic completion"); if (ui.chatInput) { ui.chatInput.value = ''; autoResizeTextarea(ui.chatInput); } state.geminiIsThinking = true; addThinkingIndicator(); manageButtonStates(); let domChanged = true; try { const prompt = `Student se pokusil ukončit téma "${state.currentTopic?.name || 'toto'}". Vysvětli na TABULI stručně, že téma ukončuje AI až po důkladném probrání a ověření znalostí, a že student má pokračovat v učení nebo požádat o další krok. Do CHATU napiš pouze "Info".`; const response = await sendToGemini(prompt, true); if (response.success && response.data) { if (response.data.boardMarkdown) { await renderBoardAndMath(response.data.boardMarkdown, response.data.ttsCommentary); domChanged = true; } if (response.data.chatText) { await addChatMessage(response.data.chatText, 'gemini', false, new Date(), response.data.ttsCommentary); domChanged = true; } else await addChatMessage("Info", 'gemini', false); } else { await addChatMessage("Chyba", 'gemini', false); domChanged = true; } } catch (e) { await addChatMessage("Chyba", 'gemini', false); domChanged = true; } finally { removeThinkingIndicator(); state.geminiIsThinking = false; state.aiIsWaitingForAnswer = false; /* Oprava: Po vysvětlení blokace nečekáme */ manageButtonStates(); if (domChanged) initTooltips(); } return; } }
-
-    // Zpracování potvrzení/odmítnutí AI návrhu
-    if (state.aiProposedCompletion && text) { const lowerText = text.toLowerCase().replace(/[.,!?]/g, ''); if (affirmativeResponses.includes(lowerText)) { console.log("[AI Action] User confirmed topic completion via chat"); const confirmationText = ui.chatInput?.value; if (ui.chatInput) { ui.chatInput.value = ''; autoResizeTextarea(ui.chatInput); } await addChatMessage(confirmationText, 'user'); state.aiIsWaitingForAnswer = false; state.aiProposedCompletion = false; manageButtonStates(); await completeTopicFlow(); return; } else if (negativeResponses.includes(lowerText)) { console.log("[AI Action] User rejected topic completion via chat"); const rejectionText = ui.chatInput?.value; if (ui.chatInput) { ui.chatInput.value = ''; autoResizeTextarea(ui.chatInput); } await addChatMessage(rejectionText, 'user'); state.aiIsWaitingForAnswer = false; state.aiProposedCompletion = false; state.geminiIsThinking = true; addThinkingIndicator(); manageButtonStates(); let domChanged = true; try { const prompt = `Student odmítl ukončení tématu "${state.currentTopic?.name || 'toto'}". Pokračuj ve výkladu další logickou částí nebo zadej další úkol na TABULI. Do CHATU napiš pouze "Pokracujeme".`; const response = await sendToGemini(prompt, true); if (response.success && response.data) { if (response.data.boardMarkdown) { await renderBoardAndMath(response.data.boardMarkdown, response.data.ttsCommentary); domChanged = true; } if (response.data.chatText) { await addChatMessage(response.data.chatText, 'gemini', false, new Date(), response.data.ttsCommentary); domChanged = true; } else await addChatMessage("Pokracujeme", 'gemini', false); } else { await addChatMessage("Chyba", 'gemini', false); domChanged = true; } } catch(e) { await addChatMessage("Chyba", 'gemini', false); domChanged = true; } finally { removeThinkingIndicator(); state.geminiIsThinking = false; state.aiIsWaitingForAnswer = false; /* Oprava: Po odmítnutí a pokračování nečekáme */ manageUIState('learning'); manageButtonStates(); if (domChanged) initTooltips(); } return; } state.aiProposedCompletion = false; console.log("[State Change] User response is not direct yes/no to completion proposal. Resetting aiProposedCompletion and proceeding."); }
-
-    // Znovu zkontrolujeme, zda můžeme odeslat
-    const isBusyProcessing = state.geminiIsThinking || state.topicLoadInProgress || state.isLoading.points;
-    const isBusyUI = state.isListening || state.isSpeakingTTS;
-    const canSendNow = state.currentTopic && !isBusyProcessing && !isBusyUI && !state.aiProposedCompletion;
-    const inputHasTextNow = ui.chatInput?.value.trim().length > 0;
-    console.log(`[ACTION] handleSendMessage Check: canSendNow=${canSendNow}, inputHasTextNow=${inputHasTextNow}`);
-    if (!canSendNow || !inputHasTextNow) { if (!canSendNow) { if (state.geminiIsThinking) showToast('Počkejte prosím', 'AI zpracovává předchozí požadavek.', 'warning'); else if(state.isSpeakingTTS) showToast('Počkejte prosím', 'AI právě mluví.', 'warning'); else if(state.isListening) showToast('Počkejte prosím', 'Probíhá hlasový vstup.', 'warning'); else if(state.aiProposedCompletion) showToast('Počkejte prosím', 'Odpovězte na návrh AI (Ano/Ne).', 'warning'); else showToast('Počkejte prosím', 'Systém je zaneprázdněn.', 'warning'); } return; }
-
-    const inputBeforeSend = ui.chatInput?.value;
-    if (ui.chatInput) { ui.chatInput.value = ''; autoResizeTextarea(ui.chatInput); }
-
+    if (!state.aiProposedCompletion && text) { const lowerText = text.toLowerCase(); if (forceCompleteKeywords.some(keyword => lowerText.includes(keyword))) { console.warn("[ACTION] User attempted to force topic completion"); if (ui.chatInput) { ui.chatInput.value = ''; autoResizeTextarea(ui.chatInput); } state.geminiIsThinking = true; addThinkingIndicator(); manageButtonStates(); let domChanged = true; try { const prompt = `Student se pokusil ukončit téma "${state.currentTopic?.name || 'toto'}". Vysvětli na TABULI stručně, že téma ukončuje AI až po důkladném probrání a ověření znalostí, a že student má pokračovat v učení nebo požádat o další krok. Do CHATU napiš pouze "Info".`; const response = await sendToGemini(prompt, true); if (response.success && response.data) { if (response.data.boardMarkdown) { await renderBoardAndMath(response.data.boardMarkdown, response.data.ttsCommentary); domChanged = true; } if (response.data.chatText) { await addChatMessage(response.data.chatText, 'gemini', false, new Date(), response.data.ttsCommentary); domChanged = true; } else await addChatMessage("Info", 'gemini', false); } else { await addChatMessage("Chyba", 'gemini', false); domChanged = true; } } catch (e) { await addChatMessage("Chyba", 'gemini', false); domChanged = true; } finally { removeThinkingIndicator(); state.geminiIsThinking = false; state.aiIsWaitingForAnswer = false; manageButtonStates(); if (domChanged) initTooltips(); } return; } }
+    if (state.aiProposedCompletion && text) { const lowerText = text.toLowerCase().replace(/[.,!?]/g, ''); if (affirmativeResponses.includes(lowerText)) { console.log("[AI Action] User confirmed topic completion via chat"); const confirmationText = ui.chatInput?.value; if (ui.chatInput) { ui.chatInput.value = ''; autoResizeTextarea(ui.chatInput); } await addChatMessage(confirmationText, 'user'); state.aiIsWaitingForAnswer = false; state.aiProposedCompletion = false; manageButtonStates(); await completeTopicFlow(); return; } else if (negativeResponses.includes(lowerText)) { console.log("[AI Action] User rejected topic completion via chat"); const rejectionText = ui.chatInput?.value; if (ui.chatInput) { ui.chatInput.value = ''; autoResizeTextarea(ui.chatInput); } await addChatMessage(rejectionText, 'user'); state.aiIsWaitingForAnswer = false; state.aiProposedCompletion = false; state.geminiIsThinking = true; addThinkingIndicator(); manageButtonStates(); let domChanged = true; try { const prompt = `Student odmítl ukončení tématu "${state.currentTopic?.name || 'toto'}". Pokračuj ve výkladu další logickou částí nebo zadej další úkol na TABULI. Do CHATU napiš pouze "Pokracujeme".`; const response = await sendToGemini(prompt, true); if (response.success && response.data) { if (response.data.boardMarkdown) { await renderBoardAndMath(response.data.boardMarkdown, response.data.ttsCommentary); domChanged = true; } if (response.data.chatText) { await addChatMessage(response.data.chatText, 'gemini', false, new Date(), response.data.ttsCommentary); domChanged = true; } else await addChatMessage("Pokracujeme", 'gemini', false); } else { await addChatMessage("Chyba", 'gemini', false); domChanged = true; } } catch(e) { await addChatMessage("Chyba", 'gemini', false); domChanged = true; } finally { removeThinkingIndicator(); state.geminiIsThinking = false; state.aiIsWaitingForAnswer = false; manageUIState('learning'); manageButtonStates(); if (domChanged) initTooltips(); } return; } state.aiProposedCompletion = false; console.log("[State Change] User response is not direct yes/no to completion proposal. Resetting aiProposedCompletion and proceeding."); }
+    const isBusyProcessing = state.geminiIsThinking || state.topicLoadInProgress || state.isLoading.points; const isBusyUI = state.isListening || state.isSpeakingTTS; const canSendNow = state.currentTopic && !isBusyProcessing && !isBusyUI && !state.aiProposedCompletion; const inputHasTextNow = ui.chatInput?.value.trim().length > 0; console.log(`[ACTION] handleSendMessage Check: canSendNow=${canSendNow}, inputHasTextNow=${inputHasTextNow}`); if (!canSendNow || !inputHasTextNow) { if (!canSendNow) { if (state.geminiIsThinking) showToast('Počkejte prosím', 'AI zpracovává předchozí požadavek.', 'warning'); else if(state.isSpeakingTTS) showToast('Počkejte prosím', 'AI právě mluví.', 'warning'); else if(state.isListening) showToast('Počkejte prosím', 'Probíhá hlasový vstup.', 'warning'); else if(state.aiProposedCompletion) showToast('Počkejte prosím', 'Odpovězte na návrh AI (Ano/Ne).', 'warning'); else showToast('Počkejte prosím', 'Systém je zaneprázdněn.', 'warning'); } return; }
+    const inputBeforeSend = ui.chatInput?.value; if (ui.chatInput) { ui.chatInput.value = ''; autoResizeTextarea(ui.chatInput); }
     let domChangedInTry = false;
     try {
         await addChatMessage(text, 'user'); domChangedInTry = true;
         state.geminiChatContext.push({ role: "user", parts: [{ text }] });
-
         console.log("[ACTION] handleSendMessage Setting isThinking=true, aiWaiting=false, proposing=false");
         state.geminiIsThinking = true; state.aiIsWaitingForAnswer = false; state.aiProposedCompletion = false;
         addThinkingIndicator(); domChangedInTry = true;
         manageButtonStates();
-
         console.log("[ACTION] handleSendMessage Calling sendToGemini (isChatInteraction=true)");
         const response = await sendToGemini(text, true);
         console.log("[ACTION] handleSendMessage Gemini response received:", response);
-
         if (response.success && response.data) {
-            const { boardMarkdown, ttsCommentary, chatText } = response.data;
-            const completionMarker = "[PROPOSE_COMPLETION]";
-            let finalChatText = chatText;
-            let proposedCompletion = false;
+            const { boardMarkdown, ttsCommentary, chatText } = response.data; const completionMarker = "[PROPOSE_COMPLETION]"; let finalChatText = chatText; let proposedCompletion = false;
              if (finalChatText && finalChatText.includes(completionMarker)) { finalChatText = finalChatText.replace(completionMarker, "").trim(); proposedCompletion = true; console.log("[AI Action] AI proposed topic completion in response."); }
-
             if (boardMarkdown) { const placeholder = ui.whiteboardContent?.querySelector('.initial-load-placeholder, .empty-state'); if (placeholder) placeholder.remove(); await renderBoardAndMath(boardMarkdown, ttsCommentary || boardMarkdown); domChangedInTry = true; }
             else { console.warn("Gemini response has no board content for chat interaction."); if(ttsCommentary && !finalChatText) { await addChatMessage(ttsCommentary, 'gemini', true, new Date(), ttsCommentary); domChangedInTry = true; } }
             if (finalChatText) { await addChatMessage(finalChatText, 'gemini', false, new Date(), ttsCommentary); domChangedInTry = true; }
             if (ttsCommentary && boardMarkdown) { speakText(ttsCommentary, ui.whiteboardContent?.lastElementChild); }
-
             // **OPRAVA: Nastavení aiIsWaitingForAnswer**
             state.aiProposedCompletion = proposedCompletion;
             if (proposedCompletion) { showToast("Návrh AI", "AI navrhuje ukončení tématu. Odpovězte Ano/Ne.", "info", 6000); state.aiIsWaitingForAnswer = true; console.log("[STATE CHANGE] aiIsWaitingForAnswer set to true (waiting for completion confirmation)."); }
             else { state.aiIsWaitingForAnswer = false; console.log("[STATE CHANGE] aiIsWaitingForAnswer set to FALSE (after normal AI response)."); }
             if (domChangedInTry) { initTooltips(); }
-        } else { // Chyba při komunikaci s Gemini
-            console.error("Error response from Gemini:", response.error); const errorMsg = (response.error || "Neznámá chyba AI").replace(/[.,!?;:]/g, ''); await addChatMessage(`Chyba: ${errorMsg}`, 'gemini', false); domChangedInTry = true; state.aiIsWaitingForAnswer = false; state.aiProposedCompletion = false; console.log(`[STATE CHANGE] aiIsWaitingForAnswer/aiProposedCompletion set to false (Gemini error).`); if (ui.chatInput) { ui.chatInput.value = inputBeforeSend; autoResizeTextarea(ui.chatInput); } if (domChangedInTry) initTooltips();
-        }
-    } catch (error) { // Obecná chyba v bloku try
-         console.error("Error in handleSendMessage catch block:", error); const errorMsg = `Chyba odesílání zprávy: ${error.message}`.replace(/[.,!?;:]/g, ''); showError(errorMsg, false); await addChatMessage("Chyba systému.", 'gemini', false); domChangedInTry = true; state.aiIsWaitingForAnswer = false; state.aiProposedCompletion = false; console.log(`[STATE CHANGE] aiIsWaitingForAnswer/aiProposedCompletion set to false (exception).`); if (ui.chatInput) { ui.chatInput.value = inputBeforeSend; autoResizeTextarea(ui.chatInput); } if (domChangedInTry) initTooltips();
+        } else { console.error("Error response from Gemini:", response.error); const errorMsg = (response.error || "Neznámá chyba AI").replace(/[.,!?;:]/g, ''); await addChatMessage(`Chyba: ${errorMsg}`, 'gemini', false); domChangedInTry = true; state.aiIsWaitingForAnswer = false; state.aiProposedCompletion = false; console.log(`[STATE CHANGE] aiIsWaitingForAnswer/aiProposedCompletion set to false (Gemini error).`); if (ui.chatInput) { ui.chatInput.value = inputBeforeSend; autoResizeTextarea(ui.chatInput); } if (domChangedInTry) initTooltips(); }
+    } catch (error) { console.error("Error in handleSendMessage catch block:", error); const errorMsg = `Chyba odesílání zprávy: ${error.message}`.replace(/[.,!?;:]/g, ''); showError(errorMsg, false); await addChatMessage("Chyba systému.", 'gemini', false); domChangedInTry = true; state.aiIsWaitingForAnswer = false; state.aiProposedCompletion = false; console.log(`[STATE CHANGE] aiIsWaitingForAnswer/aiProposedCompletion set to false (exception).`); if (ui.chatInput) { ui.chatInput.value = inputBeforeSend; autoResizeTextarea(ui.chatInput); } if (domChangedInTry) initTooltips();
     } finally {
          console.log("[ACTION] handleSendMessage Entering finally block."); const indicatorRemoved = removeThinkingIndicator(); domChangedInTry = domChangedInTry || indicatorRemoved; console.log("[ACTION] handleSendMessage Setting isThinking=false in finally."); state.geminiIsThinking = false; setLoadingState('chat', false);
-         let nextUiState = state.aiProposedCompletion ? 'aiProposingCompletion' : 'learning';
-         manageUIState(nextUiState);
-         manageButtonStates(); // MUST be the last call
-         if (domChangedInTry) initTooltips();
-         console.log("[ACTION] handleSendMessage Exiting finally block.");
+         let nextUiState = state.aiProposedCompletion ? 'aiProposingCompletion' : 'learning'; manageUIState(nextUiState); manageButtonStates(); if (domChangedInTry) initTooltips(); console.log("[ACTION] handleSendMessage Exiting finally block.");
     }
 }
 
-
-/**
- * Zpracuje požadavek na pokračování ve výkladu (kliknutí na "Pokračuj").
- * Verze 3.9.4: Používá renderBoardAndMath a opravenou logiku aiIsWaitingForAnswer.
- */
+/** Zpracuje požadavek na pokračování ve výkladu (kliknutí na "Pokračuj"). */
 async function requestContinue() {
     console.log("[ACTION] requestContinue triggered");
-
-    const isBusyProcessing = state.geminiIsThinking || state.topicLoadInProgress || state.isLoading.points;
-    const isBusyUI = state.isListening || state.isSpeakingTTS;
-    const canContinueNow = state.currentTopic && !state.aiProposedCompletion && !isBusyProcessing && !isBusyUI;
-
+    const isBusyProcessing = state.geminiIsThinking || state.topicLoadInProgress || state.isLoading.points; const isBusyUI = state.isListening || state.isSpeakingTTS; const canContinueNow = state.currentTopic && !state.aiProposedCompletion && !isBusyProcessing && !isBusyUI;
     if (!canContinueNow) { console.warn(`Cannot request continue: thinking=${state.geminiIsThinking}, loadingTopic=${state.topicLoadInProgress}, listening=${state.isListening}, speaking=${state.isSpeakingTTS}, proposing=${state.aiProposedCompletion}`); let reason = 'Systém je zaneprázdněn'; if(state.isSpeakingTTS) reason = 'AI právě mluví.'; if(state.isListening) reason = 'Probíhá hlasový vstup.'; showToast('Nelze pokračovat', reason, 'warning'); return; }
-
     let domChangedInTry = false;
     try {
         console.log("[ACTION] requestContinue: Setting isThinking=true, aiWaiting=false, proposing=false");
         state.geminiIsThinking = true; state.aiIsWaitingForAnswer = false; state.aiProposedCompletion = false;
         addThinkingIndicator(); domChangedInTry = true;
         manageButtonStates();
-
         const prompt = `Pokračuj ve vysvětlování tématu "${state.currentTopic.name}" na úrovni Přijímaček. Naváž na PŘEDCHOZÍ OBSAH TABULE. Připrav další logickou část výkladu nebo komplexnější příklad na TABULI. Do CHATU napiš pouze "Na tabuli".`;
-
         console.log("[ACTION] requestContinue: Calling sendToGemini (isChatInteraction=false)");
         const response = await sendToGemini(prompt, false);
         console.log("[ACTION] requestContinue: Gemini response received:", response);
-
         if (response.success && response.data) {
-            const { boardMarkdown, ttsCommentary, chatText } = response.data;
-            const completionMarker = "[PROPOSE_COMPLETION]";
-            let finalChatText = chatText;
-            let proposedCompletion = false;
+            const { boardMarkdown, ttsCommentary, chatText } = response.data; const completionMarker = "[PROPOSE_COMPLETION]"; let finalChatText = chatText; let proposedCompletion = false;
              if (finalChatText && finalChatText.includes(completionMarker)) { finalChatText = finalChatText.replace(completionMarker, "").trim(); proposedCompletion = true; console.log("[AI Action] AI proposed topic completion in response."); }
-
             if (boardMarkdown) { const placeholder = ui.whiteboardContent?.querySelector('.initial-load-placeholder, .empty-state'); if (placeholder) placeholder.remove(); await renderBoardAndMath(boardMarkdown, ttsCommentary || boardMarkdown); domChangedInTry = true; }
             else { console.error("Gemini did not return board content for 'continue' request."); await addChatMessage("Chyba: AI neposkytlo žádný obsah pro tabuli.", 'gemini', false); domChangedInTry = true; }
             if (finalChatText) { await addChatMessage(finalChatText, 'gemini', false, new Date(), ttsCommentary); domChangedInTry = true; }
             else if (boardMarkdown) { await addChatMessage("Na tabuli", 'gemini', false); domChangedInTry = true; }
             if (ttsCommentary && boardMarkdown) { speakText(ttsCommentary, ui.whiteboardContent?.lastElementChild); }
-
             // **OPRAVA: Nastavení aiIsWaitingForAnswer**
             state.aiProposedCompletion = proposedCompletion;
             if (proposedCompletion) { showToast("Návrh AI", "AI navrhuje ukončení tématu. Odpovězte Ano/Ne.", "info", 6000); state.aiIsWaitingForAnswer = true; console.log("[STATE CHANGE] aiIsWaitingForAnswer set to true (waiting for completion confirmation)."); }
             else { state.aiIsWaitingForAnswer = false; console.log("[STATE CHANGE] aiIsWaitingForAnswer set to FALSE (after 'continue' action)."); }
             if (domChangedInTry) { initTooltips(); }
-        } else { // Chyba při komunikaci s Gemini
-             console.error("Error response from Gemini (continue):", response.error); const errorMsg = (response.error || "Neznámá chyba AI").replace(/[.,!?;:]/g, ''); await addChatMessage(`Chyba: ${errorMsg}`, 'gemini', false); domChangedInTry = true; state.aiIsWaitingForAnswer = false; state.aiProposedCompletion = false; console.log(`[STATE CHANGE] aiIsWaitingForAnswer/aiProposedCompletion set to false (Gemini error during continue).`); if (domChangedInTry) initTooltips();
-        }
-    } catch (error) { // Obecná chyba v bloku try
-        console.error("Error in requestContinue catch block:", error); const errorMsg = `Chyba při pokračování: ${error.message}`.replace(/[.,!?;:]/g, ''); showError(errorMsg, false); await addChatMessage("Chyba systému.", 'gemini', false); domChangedInTry = true; state.aiIsWaitingForAnswer = false; state.aiProposedCompletion = false; console.log(`[STATE CHANGE] aiIsWaitingForAnswer/aiProposedCompletion set to false (exception during continue).`); if (domChangedInTry) initTooltips();
+        } else { console.error("Error response from Gemini (continue):", response.error); const errorMsg = (response.error || "Neznámá chyba AI").replace(/[.,!?;:]/g, ''); await addChatMessage(`Chyba: ${errorMsg}`, 'gemini', false); domChangedInTry = true; state.aiIsWaitingForAnswer = false; state.aiProposedCompletion = false; console.log(`[STATE CHANGE] aiIsWaitingForAnswer/aiProposedCompletion set to false (Gemini error during continue).`); if (domChangedInTry) initTooltips(); }
+    } catch (error) { console.error("Error in requestContinue catch block:", error); const errorMsg = `Chyba při pokračování: ${error.message}`.replace(/[.,!?;:]/g, ''); showError(errorMsg, false); await addChatMessage("Chyba systému.", 'gemini', false); domChangedInTry = true; state.aiIsWaitingForAnswer = false; state.aiProposedCompletion = false; console.log(`[STATE CHANGE] aiIsWaitingForAnswer/aiProposedCompletion set to false (exception during continue).`); if (domChangedInTry) initTooltips();
     } finally {
          console.log("[ACTION] requestContinue: Entering finally block."); const indicatorRemoved = removeThinkingIndicator(); domChangedInTry = domChangedInTry || indicatorRemoved; console.log("[ACTION] requestContinue: Setting isThinking=false in finally."); state.geminiIsThinking = false; setLoadingState('chat', false);
-         let nextUiState = state.aiProposedCompletion ? 'aiProposingCompletion' : 'learning';
-         manageUIState(nextUiState);
-         manageButtonStates(); // MUST be the last call
-         if (domChangedInTry) initTooltips();
-         console.log("[ACTION] requestContinue: Exiting finally block.");
+         let nextUiState = state.aiProposedCompletion ? 'aiProposingCompletion' : 'learning'; manageUIState(nextUiState); manageButtonStates(); if (domChangedInTry) initTooltips(); console.log("[ACTION] requestContinue: Exiting finally block.");
     }
 }
 
-
-/**
- * Запускает сессию обучения для текущей темы.
- * Verze 3.9.4: Používá renderBoardAndMath a opravenou logiku aiIsWaitingForAnswer.
- */
+/** Запускает сессию обучения для текущей темы. */
 async function startLearningSession() {
      if (!state.currentTopic) { console.error("[ACTION] startLearningSession: No current topic defined."); manageUIState('error', {errorMessage: 'Chyba: Téma není definováno.'}); return; }
      console.log("[ACTION] startLearningSession triggered for topic:", state.currentTopic.name);
@@ -494,49 +402,32 @@ async function startLearningSession() {
     manageUIState('requestingExplanation');
     addThinkingIndicator(); let domChangedInTry = true;
     manageButtonStates();
-
     const prompt = `Vysvětli ZÁKLADY tématu "${state.currentTopic.name}" na úrovni Přijímaček. Začni PRVNÍ částí výkladu na TABULI. Do CHATU napiš pouze "Téma zahájeno.".`;
-
     try {
         console.log("[ACTION] startLearningSession: Calling sendToGemini (isChatInteraction=false)");
         const response = await sendToGemini(prompt, false);
         console.log("[ACTION] startLearningSession: Gemini response received:", response);
-
         if (response.success && response.data && response.data.boardMarkdown) { const boardPlaceholder = ui.whiteboardContent?.querySelector('.initial-load-placeholder, .empty-state'); if (boardPlaceholder) { boardPlaceholder.remove(); console.log("Initial whiteboard placeholder removed."); } const chatPlaceholder = ui.chatMessages?.querySelector('.empty-state, .initial-load-placeholder'); if (chatPlaceholder) { chatPlaceholder.remove(); console.log("Initial chat placeholder removed.");} } else if (response.success && response.data && !response.data.boardMarkdown) { const boardPlaceholder = ui.whiteboardContent?.querySelector('.initial-load-placeholder, .empty-state'); if(boardPlaceholder) boardPlaceholder.innerHTML = `<i class='fas fa-chalkboard'></i><h3>Tabule prázdná</h3><p>AI neposkytlo úvodní obsah.</p>`; const chatPlaceholder = ui.chatMessages?.querySelector('.empty-state, .initial-load-placeholder'); if(chatPlaceholder) chatPlaceholder.innerHTML = `<i class='fas fa-comments'></i><h3>Chat</h3><p>AI neposkytlo úvodní obsah.</p>`; }
-
         if (response.success && response.data) {
-            const { boardMarkdown, ttsCommentary, chatText } = response.data;
-            const completionMarker = "[PROPOSE_COMPLETION]";
-            let finalChatText = chatText;
-            let proposedCompletion = false;
+            const { boardMarkdown, ttsCommentary, chatText } = response.data; const completionMarker = "[PROPOSE_COMPLETION]"; let finalChatText = chatText; let proposedCompletion = false;
              if (finalChatText && finalChatText.includes(completionMarker)) { finalChatText = finalChatText.replace(completionMarker, "").trim(); proposedCompletion = true; console.log("[AI Action] AI proposed topic completion unexpectedly in initial response."); }
-
             if (boardMarkdown) { await renderBoardAndMath(boardMarkdown, ttsCommentary || boardMarkdown); domChangedInTry = true; }
             else { console.error("Gemini initial response missing board content."); await addChatMessage("Chyba: AI neposkytlo úvodní obsah.", 'gemini', false); domChangedInTry = true; }
             if (finalChatText) { await addChatMessage(finalChatText, 'gemini', false, new Date(), ttsCommentary); domChangedInTry = true; }
             else if (boardMarkdown) { await addChatMessage("Téma zahájeno.", 'gemini', false); domChangedInTry = true; }
             if (ttsCommentary && boardMarkdown) { speakText(ttsCommentary, ui.whiteboardContent?.lastElementChild); }
-
             // **OPRAVA: Nastavení aiIsWaitingForAnswer**
             state.aiProposedCompletion = proposedCompletion;
             if (proposedCompletion) { showToast("Návrh AI", "AI navrhuje ukončení tématu. Odpovězte Ano/Ne.", "info", 6000); state.aiIsWaitingForAnswer = true; console.log("[STATE CHANGE] aiIsWaitingForAnswer set to true (waiting for completion confirmation)."); }
             else { state.aiIsWaitingForAnswer = false; console.log("[STATE CHANGE] aiIsWaitingForAnswer set to FALSE (after initial explanation)."); }
             if (domChangedInTry) { initTooltips(); }
-        } else { // Chyba odpovědi od Gemini
-             console.error("Error response from Gemini (start session):", response.error); const errorMsg = (response.error || "Neznámá chyba AI").replace(/[.,!?;:]/g, ''); await addChatMessage(`Chyba: ${errorMsg}`, 'gemini', false); domChangedInTry = true; if (ui.whiteboardContent) { ui.whiteboardContent.innerHTML = `<div class='empty-state error'><i class='fas fa-exclamation-triangle'></i><h3>Chyba načítání</h3><p>Nepodařilo se získat úvodní obsah od AI.</p></div>`; } state.aiIsWaitingForAnswer = false; state.aiProposedCompletion = false; console.log(`[STATE CHANGE] aiIsWaitingForAnswer/aiProposedCompletion set to false (Gemini error during start).`); showError(`Chyba AI při startu: ${errorMsg}`, false); if (domChangedInTry) initTooltips();
-        }
-    } catch(error) { // Obecná chyba v bloku try
-        console.error("Error in startLearningSession catch block:", error); const errorMsg = `Chyba zahájení výkladu: ${error.message}`.replace(/[.,!?;:]/g, ''); showError(errorMsg, false); if (ui.whiteboardContent) { ui.whiteboardContent.innerHTML = `<div class='empty-state error'><i class='fas fa-exclamation-triangle'></i><h3>Chyba systému</h3></div>`; } await addChatMessage("Chyba systému při startu.", 'gemini', false); domChangedInTry = true; state.aiIsWaitingForAnswer = false; state.aiProposedCompletion = false; console.log(`[STATE CHANGE] aiIsWaitingForAnswer/aiProposedCompletion set to false (exception during start).`); if (domChangedInTry) initTooltips();
+        } else { console.error("Error response from Gemini (start session):", response.error); const errorMsg = (response.error || "Neznámá chyba AI").replace(/[.,!?;:]/g, ''); await addChatMessage(`Chyba: ${errorMsg}`, 'gemini', false); domChangedInTry = true; if (ui.whiteboardContent) { ui.whiteboardContent.innerHTML = `<div class='empty-state error'><i class='fas fa-exclamation-triangle'></i><h3>Chyba načítání</h3><p>Nepodařilo se získat úvodní obsah od AI.</p></div>`; } state.aiIsWaitingForAnswer = false; state.aiProposedCompletion = false; console.log(`[STATE CHANGE] aiIsWaitingForAnswer/aiProposedCompletion set to false (Gemini error during start).`); showError(`Chyba AI při startu: ${errorMsg}`, false); if (domChangedInTry) initTooltips(); }
+    } catch(error) { console.error("Error in startLearningSession catch block:", error); const errorMsg = `Chyba zahájení výkladu: ${error.message}`.replace(/[.,!?;:]/g, ''); showError(errorMsg, false); if (ui.whiteboardContent) { ui.whiteboardContent.innerHTML = `<div class='empty-state error'><i class='fas fa-exclamation-triangle'></i><h3>Chyba systému</h3></div>`; } await addChatMessage("Chyba systému při startu.", 'gemini', false); domChangedInTry = true; state.aiIsWaitingForAnswer = false; state.aiProposedCompletion = false; console.log(`[STATE CHANGE] aiIsWaitingForAnswer/aiProposedCompletion set to false (exception during start).`); if (domChangedInTry) initTooltips();
     } finally {
          console.log("[ACTION] startLearningSession: Entering finally block."); const indicatorRemoved = removeThinkingIndicator(); domChangedInTry = domChangedInTry || indicatorRemoved; console.log("[ACTION] startLearningSession: Setting isThinking=false in finally."); state.geminiIsThinking = false; setLoadingState('chat', false);
-         let nextUiState = state.aiProposedCompletion ? 'aiProposingCompletion' : 'learning';
-         manageUIState(nextUiState);
-         manageButtonStates(); // MUST be the last call
-         if (domChangedInTry) initTooltips();
-         console.log("[ACTION] startLearningSession: Exiting finally block.");
+         let nextUiState = state.aiProposedCompletion ? 'aiProposingCompletion' : 'learning'; manageUIState(nextUiState); manageButtonStates(); if (domChangedInTry) initTooltips(); console.log("[ACTION] startLearningSession: Exiting finally block.");
     }
 }
-
 
 /** Поток действий при подтверждении завершения темы пользователем. */
 async function completeTopicFlow() {
