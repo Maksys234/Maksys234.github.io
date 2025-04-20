@@ -424,8 +424,35 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
 /* --- Vyuka Main Content Area --- */
 .main-content-wrapper { padding: 0; flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 0; /* Crucial for flexbox layout */ }
 .call-interface { flex-grow: 1; display: flex; overflow: hidden; padding: 1.5rem var(--container-padding-x); gap: 1.5rem; /* Use calc if needed, but flex-grow should handle it */ min-height: 0; /* Important */ }
-.ai-presenter-area { flex: 2 1 65%; /* Whiteboard takes more space */ display: flex; flex-direction: column; background-color: var(--card-bg); border-radius: var(--card-radius); box-shadow: var(--shadow-hud); overflow: hidden; border: 1px solid var(--border-color-light); min-height: 0; position: relative; }
-.interaction-panel { flex: 1 1 35%; /* Chat takes less space */ max-width: 450px; /* Limit chat width */ display: flex; flex-direction: column; background-color: var(--chat-bg); border-radius: var(--card-radius); box-shadow: var(--shadow-hud); overflow: hidden; border: 1px solid var(--border-color-light); min-height: 0; }
+
+/* *** MODIFICATION START: Adjust flex properties for presenter and interaction panel *** */
+.ai-presenter-area {
+    flex: 3 1 60%; /* Changed: Grow 3, Shrink 1, Basis 60% */
+    display: flex;
+    flex-direction: column;
+    background-color: var(--card-bg);
+    border-radius: var(--card-radius);
+    box-shadow: var(--shadow-hud);
+    overflow: hidden;
+    border: 1px solid var(--border-color-light);
+    min-height: 0;
+    position: relative;
+    min-width: 450px; /* Added minimum width */
+}
+.interaction-panel {
+    flex: 2 1 40%; /* Changed: Grow 2, Shrink 1, Basis 40% */
+    max-width: 450px; /* Limit chat width */
+    display: flex;
+    flex-direction: column;
+    background-color: var(--chat-bg);
+    border-radius: var(--card-radius);
+    box-shadow: var(--shadow-hud);
+    overflow: hidden;
+    border: 1px solid var(--border-color-light);
+    min-height: 0;
+    min-width: 340px; /* Added minimum width */
+}
+/* *** MODIFICATION END *** */
 
 /* AI Presenter (Whiteboard Area) */
 .ai-presenter-header { padding: 0.8rem 1.25rem; border-bottom: 1px solid var(--border-color-light); display: flex; align-items: center; justify-content: space-between; background-color: rgba(var(--dark-purple-accent-rgb), 0.4); flex-shrink: 0; min-height: 55px; }
@@ -588,9 +615,58 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
 /* --- Responsiveness --- */
 .sidebar-overlay { display: none; position: fixed; inset: 0; background-color: rgba(3, 2, 12, 0.7); z-index: 999; opacity: 0; transition: opacity var(--transition-medium) ease; backdrop-filter: blur(5px); }
 .sidebar-overlay.active { display: block; opacity: 1; }
-@media (max-width: 1200px) { .interaction-panel { flex-basis: 40%; max-width: 400px; } .call-interface { padding: 1rem; gap: 1rem; } }
-@media (max-width: 992px) { :root { --sidebar-width: 85px; } main { margin-left: 85px; width: calc(100% - 85px); } .sidebar { width: 85px; } .sidebar-logo span, .sidebar-link span, .user-info, .sidebar-footer { display: none; } .sidebar-link i { margin-right: 0; font-size: 1.6rem; } .sidebar-logo i { margin-right: 0; } .sidebar-header, .sidebar-link { justify-content: center; } .user-profile { justify-content: center; padding: 0.8rem; } .user-avatar { margin-right: 0; width: 45px; height: 45px; } .mobile-menu-toggle#main-mobile-menu-toggle { display: block; } #sidebar-close-toggle { display: none !important; } .call-interface { flex-direction: column; height: auto; /* Let content dictate height */ padding: 0.8rem; gap: 0.8rem; } .ai-presenter-area { flex: 1 1 55%; min-height: 400px; order: 1; } .interaction-panel { flex: 1 1 45%; min-height: 350px; order: 2; max-width: none; width: 100%; } }
-@media (max-width: 576px) { :root { --sidebar-width: 0; } main { margin-left: 0; width: 100%; } .sidebar { transform: translateX(-110%); z-index: 1100; width: 280px; } .sidebar.active { transform: translateX(0); } .sidebar.active .sidebar-logo span, .sidebar.active .sidebar-link span, .sidebar.active .user-info, .sidebar.active .sidebar-footer { display: block; } .sidebar.active .sidebar-link i { margin-right: 0.85rem; font-size: 1.25rem; } .sidebar.active .sidebar-header, .sidebar.active .sidebar-link { justify-content: flex-start; } .sidebar.active .user-profile { padding: 1rem; } .sidebar.active .user-avatar { margin-right: 0.85rem; width: 42px; height: 42px; } .sidebar.active #sidebar-close-toggle { display: block; } .header-content h1 { font-size: 1.4rem; } .header-actions { gap: 0.5rem; } .header-actions .btn { padding: 0.5rem 0.8rem; font-size: 0.8rem; } .header-actions .btn span { display: none; } .topic-bar { padding: 0.6rem var(--container-padding-x); min-height: 50px; } #current-topic-display { font-size: 1rem; } .call-interface { padding: 0.5rem; gap: 0.5rem; height: auto; } .interaction-panel { flex-basis: auto; min-height: 300px; } .chat-input { padding: 0.7rem 1rem; font-size: 0.9rem; } .send-button { height: 38px; padding: 0 1rem; } .message-bubble { padding: 0.7rem 1rem; } .toast-container { max-width: calc(100% - 1.5rem); } #ai-avatar-corner { width: 50px; height: 50px; font-size: 1.8rem; bottom: 1rem; right: 1rem; } }
+@media (max-width: 1200px) {
+    .interaction-panel {
+         /* flex-basis: 40%; -- Removed, let flex-grow handle it */
+         /* max-width: 400px; -- Reduced slightly */
+    }
+    .call-interface { padding: 1rem; gap: 1rem; }
+    .ai-presenter-area { min-width: 400px; } /* Adjust min-width for slightly smaller screens */
+    .interaction-panel { min-width: 320px; }
+}
+@media (max-width: 992px) {
+    :root { --sidebar-width: 85px; }
+    main { margin-left: 85px; width: calc(100% - 85px); }
+    .sidebar { width: 85px; }
+    .sidebar-logo span, .sidebar-link span, .user-info, .sidebar-footer { display: none; }
+    .sidebar-link i { margin-right: 0; font-size: 1.6rem; }
+    .sidebar-logo i { margin-right: 0; }
+    .sidebar-header, .sidebar-link { justify-content: center; }
+    .user-profile { justify-content: center; padding: 0.8rem; }
+    .user-avatar { margin-right: 0; width: 45px; height: 45px; }
+    .mobile-menu-toggle#main-mobile-menu-toggle { display: block; }
+    #sidebar-close-toggle { display: none !important; }
+    /* Stack presenter and chat */
+    .call-interface { flex-direction: column; height: auto; /* Let content dictate height */ padding: 0.8rem; gap: 0.8rem; }
+    .ai-presenter-area { flex: 1 1 55%; min-height: 400px; order: 1; min-width: 0; /* Reset min-width when stacked */ }
+    .interaction-panel { flex: 1 1 45%; min-height: 350px; order: 2; max-width: none; width: 100%; min-width: 0; /* Reset min-width when stacked */ }
+}
+@media (max-width: 576px) {
+    :root { --sidebar-width: 0; }
+    main { margin-left: 0; width: 100%; }
+    .sidebar { transform: translateX(-110%); z-index: 1100; width: 280px; }
+    .sidebar.active { transform: translateX(0); }
+    .sidebar.active .sidebar-logo span, .sidebar.active .sidebar-link span, .sidebar.active .user-info, .sidebar.active .sidebar-footer { display: block; }
+    .sidebar.active .sidebar-link i { margin-right: 0.85rem; font-size: 1.25rem; }
+    .sidebar.active .sidebar-header, .sidebar.active .sidebar-link { justify-content: flex-start; }
+    .sidebar.active .user-profile { padding: 1rem; }
+    .sidebar.active .user-avatar { margin-right: 0.85rem; width: 42px; height: 42px; }
+    .sidebar.active #sidebar-close-toggle { display: block; }
+    .header-content h1 { font-size: 1.4rem; }
+    .header-actions { gap: 0.5rem; }
+    .header-actions .btn { padding: 0.5rem 0.8rem; font-size: 0.8rem; }
+    .header-actions .btn span { display: none; } /* Hide text on small screens */
+    .topic-bar { padding: 0.6rem var(--container-padding-x); min-height: 50px; }
+    #current-topic-display { font-size: 1rem; }
+    .call-interface { padding: 0.5rem; gap: 0.5rem; height: auto; }
+    .ai-presenter-area { min-height: 350px; }
+    .interaction-panel { flex-basis: auto; min-height: 300px; }
+    .chat-input { padding: 0.7rem 1rem; font-size: 0.9rem; }
+    .send-button { height: 38px; padding: 0 1rem; }
+    .message-bubble { padding: 0.7rem 1rem; }
+    .toast-container { max-width: calc(100% - 1.5rem); }
+    #ai-avatar-corner { width: 50px; height: 50px; font-size: 1.8rem; bottom: 1rem; right: 1rem; }
+}
 
 /* --- Reduced Motion --- */
 @media (prefers-reduced-motion: reduce) {

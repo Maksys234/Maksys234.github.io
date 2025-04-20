@@ -199,6 +199,25 @@
         const initScrollAnimations = () => { const animatedElements = document.querySelectorAll('.main-content-wrapper [data-animate]'); if (!animatedElements.length || !('IntersectionObserver' in window)) { console.log("Scroll animations not initialized."); return; } const observer = new IntersectionObserver((entries, observerInstance) => { entries.forEach(entry => { if (entry.isIntersecting) { entry.target.classList.add('animated'); observerInstance.unobserve(entry.target); } }); }, { threshold: 0.1, rootMargin: "0px 0px -30px 0px" }); animatedElements.forEach(element => observer.observe(element)); console.log(`Scroll animations initialized for ${animatedElements.length} elements.`); };
         const initHeaderScrollDetection = () => { let lastScrollY = window.scrollY; const mainEl = ui.mainContent; if (!mainEl) return; mainEl.addEventListener('scroll', () => { const currentScrollY = mainEl.scrollTop; document.body.classList.toggle('scrolled', currentScrollY > 10); lastScrollY = currentScrollY <= 0 ? 0 : currentScrollY; }, { passive: true }); if (mainEl.scrollTop > 10) document.body.classList.add('scrolled'); };
 
+        // *** NEW Function to clean chat messages ***
+        function cleanChatMessage(text) {
+            if (typeof text !== 'string') return text;
+
+            // Remove the specific backtick sequence: ``
+            let cleanedText = text.replace(/``/g, '');
+
+            // Remove lines that ONLY contain "." or "?" after trimming
+            cleanedText = cleanedText.split('\n')
+                                     .filter(line => line.trim() !== '.' && line.trim() !== '?')
+                                     .join('\n');
+
+            // Optional: Trim final whitespace from the result
+            cleanedText = cleanedText.trim();
+
+            // console.log(`[Clean] Original: "${text.substring(0,50)}..." Cleaned: "${cleanedText.substring(0,50)}..."`);
+            return cleanedText;
+        }
+
         const setLoadingState = (sectionKey, isLoadingFlag) => {
             if (state.isLoading[sectionKey] === isLoadingFlag && sectionKey !== 'all') return;
             if (sectionKey === 'all') { Object.keys(state.isLoading).forEach(key => state.isLoading[key] = isLoadingFlag); }
@@ -590,7 +609,8 @@
         // --- Learning Session & Chat ---
         const startLearningSession = async () => { if (!state.currentTopic) return; state.currentSessionId = generateSessionId(); manageUIState('requestingExplanation'); const prompt = _buildInitialPrompt(); await sendToGemini(prompt); };
         const requestContinue = async () => { if (state.geminiIsThinking || !state.currentTopic || state.aiIsWaitingForAnswer) return; const prompt = _buildContinuePrompt(); await sendToGemini(prompt); };
-        const addChatMessage = async (message, sender, saveToDb = true, timestamp = new Date(), ttsText = null) => {
+        // *** MODIFIED function to accept original content for DB saving ***
+        const addChatMessage = async (displayMessage, sender, saveToDb = true, timestamp = new Date(), ttsText = null, originalContent = null) => {
             if (!ui.chatMessages) return;
             const id = `msg-${Date.now()}`;
             const avatarText = sender === 'user' ? getInitials(state.currentProfile, state.currentUser?.email) : 'AI';
@@ -602,10 +622,20 @@
             const bubbleDiv = document.createElement('div'); bubbleDiv.className = 'message-bubble';
             const bubbleContentDiv = document.createElement('div'); bubbleContentDiv.className = 'message-bubble-content';
             const textContentSpan = document.createElement('span'); textContentSpan.className = 'message-text-content';
-            renderMarkdown(textContentSpan, message); // Render markdown inside span
+            renderMarkdown(textContentSpan, displayMessage); // Render the potentially cleaned displayMessage
             bubbleContentDiv.appendChild(textContentSpan);
 
-            if (sender === 'gemini' && state.speechSynthesisSupported) { const ttsButton = document.createElement('button'); ttsButton.className = 'tts-listen-btn btn-tooltip'; ttsButton.title = 'Poslechnout'; ttsButton.innerHTML = '<i class="fas fa-volume-up"></i>'; const textForSpeech = ttsText || message; ttsButton.dataset.textToSpeak = textForSpeech; ttsButton.addEventListener('click', (e) => { e.stopPropagation(); speakText(textForSpeech); }); bubbleContentDiv.appendChild(ttsButton); }
+            if (sender === 'gemini' && state.speechSynthesisSupported) {
+                const ttsButton = document.createElement('button');
+                ttsButton.className = 'tts-listen-btn btn-tooltip';
+                ttsButton.title = 'Poslechnout';
+                ttsButton.innerHTML = '<i class="fas fa-volume-up"></i>';
+                const textForSpeech = ttsText || displayMessage; // Use TTS text if provided, otherwise use display message
+                ttsButton.dataset.textToSpeak = textForSpeech;
+                ttsButton.addEventListener('click', (e) => { e.stopPropagation(); speakText(textForSpeech); });
+                bubbleContentDiv.appendChild(ttsButton);
+            }
+
             bubbleDiv.appendChild(bubbleContentDiv);
             const timeDiv = `<div class="message-timestamp">${formatTimestamp(timestamp)}</div>`;
             div.innerHTML = avatarDiv + bubbleDiv.outerHTML + timeDiv;
@@ -614,7 +644,25 @@
             div.scrollIntoView({ behavior: 'smooth', block: 'end' });
             initTooltips();
 
-            if (saveToDb && state.supabase && state.currentUser && state.currentTopic && state.currentSessionId) { try { await state.supabase.from('chat_history').insert({ user_id: state.currentUser.id, session_id: state.currentSessionId, topic_id: state.currentTopic.topic_id, topic_name: state.currentTopic.name, role: sender === 'gemini' ? 'model' : 'user', content: message }); } catch (e) { console.error("Chat save error:", e); showToast("Chyba ukládání chatu.", "error"); } }
+            // --- Database Saving Logic ---
+            const contentToSave = originalContent !== null ? originalContent : displayMessage; // Use original if provided, else use display
+
+            if (saveToDb && state.supabase && state.currentUser && state.currentTopic && state.currentSessionId) {
+                 try {
+                     await state.supabase.from('chat_history').insert({
+                         user_id: state.currentUser.id,
+                         session_id: state.currentSessionId,
+                         topic_id: state.currentTopic.topic_id,
+                         topic_name: state.currentTopic.name,
+                         role: sender === 'gemini' ? 'model' : 'user',
+                         content: contentToSave // Save the potentially original content
+                     });
+                 } catch (e) {
+                     console.error("Chat save error:", e);
+                     showToast("Chyba ukládání chatu.", "error");
+                 }
+             }
+             // --- End Database Saving Logic ---
         };
         const updateGeminiThinkingState = (isThinking) => { state.geminiIsThinking = isThinking; setLoadingState('chat', isThinking); ui.aiAvatarCorner?.classList.toggle('thinking', isThinking); if (!isThinking) ui.aiAvatarCorner?.classList.remove('speaking'); if (isThinking) addThinkingIndicator(); else removeThinkingIndicator(); };
         const addThinkingIndicator = () => { if (state.thinkingIndicatorId || !ui.chatMessages) return; const id = `thinking-${Date.now()}`; const div = document.createElement('div'); div.className = 'chat-message model'; div.id = id; div.innerHTML = `<div class="message-avatar">AI</div><div class="message-thinking-indicator"><span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span></div>`; const empty = ui.chatMessages.querySelector('.empty-state'); if(empty) empty.remove(); ui.chatMessages.appendChild(div); div.scrollIntoView({ behavior: 'smooth', block: 'end' }); state.thinkingIndicatorId = id; };
@@ -625,7 +673,8 @@
             if (!text || state.geminiIsThinking || !state.currentTopic || state.isListening) return;
             if (ui.chatInput) { ui.chatInput.value = ''; autoResizeTextarea(); }
 
-            await addChatMessage(text, 'user');
+            // Pass the original text to addChatMessage for saving
+            await addChatMessage(text, 'user', true, new Date(), null, text); // <<< Pass original text as last arg
             state.geminiChatContext.push({ role: "user", parts: [{ text }] });
             updateGeminiThinkingState(true);
 
@@ -639,7 +688,7 @@
                 promptForGemini = `Student píše do chatu: "${text}". Odpověz textem v chatu k tématu "${state.currentTopic.name}". Měj na paměti, co už bylo vysvětleno. Odpovídej POUZE textem do chatu. Neposílej žádný Markdown pro tabuli, pokud to není explicitně vyžádáno pro opravu nebo doplnění tabule.`;
             }
 
-            await sendToGemini(promptForGemini);
+            await sendToGemini(promptForGemini, true); // <<< Indicate this is a chat interaction
         };
 
         const confirmClearChat = () => { if (confirm("Opravdu vymazat historii této konverzace? Tato akce je nevratná.")) { clearCurrentChatSessionHistory(); } };
@@ -669,6 +718,7 @@
              return { boardMarkdown, ttsCommentary, chatText };
           };
 
+        // *** MODIFIED function to clean chat message before displaying ***
         const processGeminiResponse = (rawText, timestamp) => {
             removeThinkingIndicator();
             console.log("Raw Gemini Response Received:", rawText ? rawText.substring(0, 100) + "..." : "Empty Response");
@@ -677,24 +727,35 @@
             const { boardMarkdown, ttsCommentary, chatText } = parseGeminiResponse(rawText);
             let aiResponded = false;
 
+            // Clean the chat text before displaying
+            const cleanedChatText = cleanChatMessage(chatText); // <<< APPLY CLEANING
+
             if (boardMarkdown) { appendToWhiteboard(boardMarkdown, ttsCommentary || boardMarkdown); aiResponded = true; }
-            if (chatText) {
+            if (cleanedChatText) { // Use cleaned text for display
                 const ttsForChat = (ttsCommentary && !boardMarkdown) ? ttsCommentary : null;
-                addChatMessage(chatText, 'gemini', true, timestamp, ttsForChat);
-                 // Check if AI asked a question
-                 const lowerChatText = chatText.toLowerCase();
+                // Pass cleaned for display/TTS, original for DB saving
+                addChatMessage(cleanedChatText, 'gemini', true, timestamp, ttsForChat, chatText); // <<< Pass original `chatText` as last arg
+                 // Check if AI asked a question based on the *original* chat text
+                 const lowerChatText = chatText.toLowerCase(); // Use original for logic check
                  if (lowerChatText.includes('zkuste') || lowerChatText.includes('jak byste') || lowerChatText.includes('vypočítejte') || lowerChatText.includes('otázka:') || chatText.endsWith('?') || lowerChatText.includes('můžeš mi říct') ) {
                     state.aiIsWaitingForAnswer = true;
                     console.log("AI is waiting for an answer.");
-                    manageUIState('waitingForAnswer'); // Update UI state
+                    manageUIState('waitingForAnswer');
                  } else {
-                    state.aiIsWaitingForAnswer = false; // Reset if AI didn't ask question
+                    state.aiIsWaitingForAnswer = false;
                     manageUIState('learning');
                  }
                  aiResponded = true;
-            } else if (ttsCommentary && !boardMarkdown) { addChatMessage("(Poslechněte si komentář)", 'gemini', true, timestamp, ttsCommentary); aiResponded = true; manageUIState('learning'); }
+            } else if (ttsCommentary && !boardMarkdown) {
+                 // If only TTS exists, add placeholder and pass TTS content
+                 addChatMessage("(Poslechněte si komentář)", 'gemini', true, timestamp, ttsCommentary, "(Pouze hlasový komentář)"); // Pass original description
+                 aiResponded = true; manageUIState('learning');
+            }
 
-            if (!aiResponded) { addChatMessage("(AI neodpovědělo očekávaným formátem)", 'gemini', false, timestamp); console.warn("AI sent no usable content."); manageUIState('learning'); }
+            if (!aiResponded) {
+                addChatMessage("(AI neodpovědělo očekávaným formátem)", 'gemini', false, timestamp, null, "(Neplatný formát odpovědi)"); // Pass original description
+                console.warn("AI sent no usable content."); manageUIState('learning');
+            }
         };
 
         // --- Prompts and Gemini Calls ---
@@ -799,7 +860,7 @@ Formát odpovědi MUSÍ být:
             finally { updateGeminiThinkingState(false); }
         };
 
-        const handleGeminiError = (msg, time) => { addChatMessage(`Nastala chyba při komunikaci s AI: ${msg}`, 'gemini', false, time); manageUIState('learning'); };
+        const handleGeminiError = (msg, time) => { addChatMessage(`Nastala chyba při komunikaci s AI: ${msg}`, 'gemini', false, time, null, `(Chyba: ${msg})`); manageUIState('learning'); };
 
         // --- Notification Logic ---
         const activityVisuals = { test: { icon: 'fa-vial', class: 'test' }, exercise: { icon: 'fa-pencil-alt', class: 'exercise' }, badge: { icon: 'fa-medal', class: 'badge' }, diagnostic: { icon: 'fa-clipboard-check', class: 'diagnostic' }, lesson: { icon: 'fa-book-open', class: 'lesson' }, plan_generated: { icon: 'fa-calendar-alt', class: 'plan_generated' }, level_up: { icon: 'fa-level-up-alt', class: 'level_up' }, other: { icon: 'fa-info-circle', class: 'other' }, default: { icon: 'fa-check-circle', class: 'default' } };
