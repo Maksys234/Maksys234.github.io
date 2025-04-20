@@ -28,7 +28,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <link rel="stylesheet" href="vyuka.css">
-    </head>
+
+</head>
 <body class="dark">
     <div class="initial-loading-overlay" id="initial-loader">
          <div class="loading-spinner"></div>
@@ -76,30 +77,26 @@
                      </button>
                      <h1 id="dashboard-title">Výuka s AI // SYNAPSE</h1>
                  </div>
-                <div class="header-actions">
-                    <button class="refresh-btn" id="refresh-data-btn" title="Obnovit data" style="display: none;"> <i class="fas fa-sync-alt"></i>
-                        <span class="refresh-text">RELOAD</span>
-                    </button>
-                    <div class="notifications">
-                        <div class="notification-bell" id="notification-bell" title="Oznámení">
-                             <i class="far fa-bell"></i>
-                             <span class="notification-badge" id="notification-count">0</span>
-                        </div>
-                        <div class="notifications-dropdown-wrapper" id="notifications-dropdown">
-                             <div class="notifications-header">
-                                 <span class="notifications-title">PŘÍCHOZÍ SIGNÁLY</span>
-                                 <button class="mark-all-read-btn" id="mark-all-read" disabled>Vymazat vše</button>
-                             </div>
-                             <div id="notifications-list">
-                                  <div class="notification-item skeleton"> <div class="notification-icon skeleton" style="background-color: var(--skeleton-bg);"></div> <div class="notification-content"> <div class="skeleton" style="height: 16px; width: 70%; margin-bottom: 6px;"></div> <div class="skeleton" style="height: 12px; width: 90%;"></div> <div class="skeleton" style="height: 10px; width: 40%; margin-top: 6px;"></div> </div> </div>
-                                  <div id="no-notifications-msg" style="display: none;">ŽÁDNÉ NOVÉ SIGNÁLY</div>
-                             </div>
-                             <div class="notifications-footer">
-                                 <a href="#" class="view-all-notifications-link">ZOBRAZIT ARCHIV</a>
-                             </div>
-                        </div>
-                     </div>
-                     <button class="btn btn-success btn-tooltip" id="mark-complete-btn" style="display: none;" title="Označit aktuální téma jako probrané">
+                 <div class="header-actions">
+                     <div class="notifications">
+                         <div class="notification-bell" id="notification-bell" title="Oznámení">
+                              <i class="far fa-bell"></i>
+                              <span class="notification-badge" id="notification-count">0</span>
+                         </div>
+                         <div class="notifications-dropdown-wrapper" id="notifications-dropdown">
+                              <div class="notifications-header">
+                                  <span class="notifications-title">PŘÍCHOZÍ SIGNÁLY</span>
+                                  <button class="mark-all-read-btn" id="mark-all-read" disabled>Vymazat vše</button>
+                              </div>
+                              <div id="notifications-list">
+                                   <div class="notification-item skeleton"> <div class="notification-icon skeleton" style="background-color: var(--skeleton-bg);"></div> <div class="notification-content"> <div class="skeleton" style="height: 16px; width: 70%; margin-bottom: 6px;"></div> <div class="skeleton" style="height: 12px; width: 90%;"></div> <div class="skeleton" style="height: 10px; width: 40%; margin-top: 6px;"></div> </div> </div>
+                                   <div id="no-notifications-msg" style="display: none;">ŽÁDNÉ NOVÉ SIGNÁLY</div>
+                              </div>
+                              <div class="notifications-footer">
+                                  <a href="/dashboard/notifications.html" class="view-all-notifications-link">ZOBRAZIT ARCHIV</a> </div>
+                         </div>
+                      </div>
+                      <button class="btn btn-success btn-tooltip" id="mark-complete-btn" style="display: none;" title="Označit aktuální téma jako probrané">
                          <i class="fas fa-check-circle"></i> Dokončit
                      </button>
                      <a href="/dashboard/procvicovani/main.html" class="btn btn-secondary">
@@ -108,7 +105,7 @@
                      <button id="stop-speech-btn" class="btn btn-warning btn-tooltip" title="Zastavit aktuální čtení textu">
                          <i class="fas fa-stop-circle"></i> Zastavit
                      </button>
-                </div>
+                 </div>
             </div>
         </header>
 
@@ -135,8 +132,7 @@
                     </div>
                     <div id="whiteboard-container">
                         <div id="whiteboard-content">
-                             <div class="loading-placeholder" style="display: none;"><i class="fas fa-spinner"></i><p>Načítám...</p></div>
-                        </div>
+                             </div>
                          <div id="board-speaking-indicator">
                             <span class="dot"></span><span class="dot"></span><span class="dot"></span>
                         </div>
@@ -153,15 +149,20 @@
                             <div class="chat-header"><i class="fas fa-comments"></i> Chat s AI Tutorem</div>
                             <section class="chat-area">
                                  <div class="chat-messages" id="chat-messages">
-                                     <div class="empty-state">
-                                         <i class="fas fa-chalkboard-teacher"></i>
-                                         <h3>Vítejte!</h3>
-                                         <p>AI Tutor bude vysvětlovat zde v chatu a na tabuli vedle. Kliknutím na <i class="fas fa-volume-up"></i> si můžete nechat text přečíst.</p>
+                                     <div class="initial-chat-interface">
+                                         <div class="ai-greeting-avatar">
+                                             <i class="fas fa-robot"></i>
+                                         </div>
+                                         <h3 class="initial-chat-title">AI Tutor Justax je připraven</h3>
+                                         <p class="initial-chat-message">Čekám na načtení tématu nebo vaši zprávu.</p>
+                                         <div class="initial-chat-status">
+                                             <span class="status-dot online"></span> Online
+                                         </div>
                                      </div>
-                                 </div>
+                                     </div>
                                  <div class="chat-input-area">
                                      <div class="chat-input-wrapper">
-                                         <textarea class="chat-input" id="chat-input" placeholder="Zeptejte se na cokoliv..." rows="1"></textarea>
+                                         <textarea class="chat-input" id="chat-input" placeholder="Zeptejte se nebo odpovězte..." rows="1"></textarea>
                                          <button class="send-button" id="send-button" title="Odeslat zprávu">
                                              <i class="fas fa-paper-plane"></i>
                                          </button>
