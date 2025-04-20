@@ -10,9 +10,8 @@
         const MAX_GEMINI_HISTORY_TURNS = 10; // Increased slightly for better context
         const NOTIFICATION_FETCH_LIMIT = 5;
         const POINTS_TOPIC_COMPLETE = 25; // Points for marking a topic as complete
-        // const POINTS_CORRECT_ANSWER = 5; // Keep for future implementation if needed
 
-        // --- DOM Elements Cache (Updated for Cyberpunk theme) ---
+        // --- DOM Elements Cache (Updated for Cyberpunk theme + Notifications) ---
         const ui = {
             // Loaders & Overlays
             initialLoader: document.getElementById('initial-loader'),
@@ -27,12 +26,12 @@
             currentYearSidebar: document.getElementById('currentYearSidebar'),
             // Header & Notifications
             dashboardHeader: document.querySelector('.dashboard-header'),
-            notificationBell: document.getElementById('notification-bell'),
-            notificationCount: document.getElementById('notification-count'),
-            notificationsDropdown: document.getElementById('notifications-dropdown'),
-            notificationsList: document.getElementById('notifications-list'),
-            noNotificationsMsg: document.getElementById('no-notifications-msg'),
-            markAllReadBtn: document.getElementById('mark-all-read'),
+            notificationBell: document.getElementById('notification-bell'),       // <<< Added
+            notificationCount: document.getElementById('notification-count'),     // <<< Added
+            notificationsDropdown: document.getElementById('notifications-dropdown'), // <<< Added
+            notificationsList: document.getElementById('notifications-list'),       // <<< Added
+            noNotificationsMsg: document.getElementById('no-notifications-msg'),   // <<< Added
+            markAllReadBtn: document.getElementById('mark-all-read'),             // <<< Added
             // Main Content & Vyuka specific elements
             mainContent: document.getElementById('main-content'),
             topicBar: document.querySelector('.topic-bar'),
@@ -87,6 +86,19 @@
                 currentTopic: false, chat: false, user: false, notifications: false, points: false
             },
             aiIsWaitingForAnswer: false // NEW: Flag for AI interactivity state
+        };
+
+        // Visuals for notification types (from plan.js/test1.js) <<< Added
+        const activityVisuals = {
+            test: { icon: 'fa-vial', class: 'test' },
+            exercise: { icon: 'fa-pencil-alt', class: 'exercise' },
+            badge: { icon: 'fa-medal', class: 'badge' },
+            diagnostic: { icon: 'fa-clipboard-check', class: 'diagnostic' },
+            lesson: { icon: 'fa-book-open', class: 'lesson' },
+            plan_generated: { icon: 'fa-calendar-alt', class: 'plan_generated' },
+            level_up: { icon: 'fa-level-up-alt', class: 'level_up' },
+            other: { icon: 'fa-info-circle', class: 'other' },
+            default: { icon: 'fa-check-circle', class: 'default' }
         };
 
         // --- Cyberpunk Helper Functions (Integrated/Updated) ---
@@ -202,21 +214,23 @@
         // *** NEW Function to clean chat messages ***
         function cleanChatMessage(text) {
             if (typeof text !== 'string') return text;
-
-            // Remove the specific backtick sequence: ``
-            let cleanedText = text.replace(/``/g, '');
-
+            let cleanedText = text.replace(/``/g, ''); // Remove ``
             // Remove lines that ONLY contain "." or "?" after trimming
             cleanedText = cleanedText.split('\n')
                                      .filter(line => line.trim() !== '.' && line.trim() !== '?')
                                      .join('\n');
-
-            // Optional: Trim final whitespace from the result
-            cleanedText = cleanedText.trim();
-
-            // console.log(`[Clean] Original: "${text.substring(0,50)}..." Cleaned: "${cleanedText.substring(0,50)}..."`);
+            cleanedText = cleanedText.trim(); // Trim final result
             return cleanedText;
         }
+
+        // *** MODIFIED Function to clear initial chat placeholder ***
+        const clearInitialChatState = () => {
+            const initialElement = ui.chatMessages?.querySelector('.initial-chat-interface');
+            if (initialElement) {
+                initialElement.remove();
+                console.log("Initial chat state cleared.");
+            }
+        };
 
         const setLoadingState = (sectionKey, isLoadingFlag) => {
             if (state.isLoading[sectionKey] === isLoadingFlag && sectionKey !== 'all') return;
@@ -224,24 +238,29 @@
             else { state.isLoading[sectionKey] = isLoadingFlag; }
             console.log(`[SetLoading] ${sectionKey}: ${isLoadingFlag}`);
 
-            // Example: Disable/Enable Send Button during chat loading
+            // Handle chat loading
             if (sectionKey === 'chat' && ui.sendButton) {
                ui.sendButton.disabled = isLoadingFlag || state.geminiIsThinking || state.topicLoadInProgress || state.isListening;
                ui.sendButton.innerHTML = state.geminiIsThinking ? '<i class="fas fa-spinner fa-spin"></i>' : '<i class="fas fa-paper-plane"></i>';
             }
-            // Example: Show loading text for topic display
+            // Handle topic loading
             if (sectionKey === 'currentTopic' && ui.currentTopicDisplay) {
                  if (isLoadingFlag) { ui.currentTopicDisplay.innerHTML = '<span class="placeholder"><i class="fas fa-spinner fa-spin"></i> Načítám téma...</span>'; }
             }
-             // Handle notification bell state
-            if (sectionKey === 'notifications' && ui.notificationBell) {
-                ui.notificationBell.style.opacity = isLoadingFlag ? 0.5 : 1;
+             // Handle notification loading state <<< MODIFICATION
+            if (sectionKey === 'notifications') {
+                if (ui.notificationBell) ui.notificationBell.style.opacity = isLoadingFlag ? 0.5 : 1;
                 if (ui.markAllReadBtn) {
+                    // Ensure notificationCount exists before accessing textContent
                     const currentUnreadCount = parseInt(ui.notificationCount?.textContent?.replace('+', '') || '0');
                     ui.markAllReadBtn.disabled = isLoadingFlag || currentUnreadCount === 0;
                 }
+                 // Render skeletons while loading notifications <<< NEW
+                 if (isLoadingFlag && ui.notificationsList) {
+                     renderNotificationSkeletons(2);
+                 }
             }
-            // Manage overall button states which depend on multiple loading flags
+            // Manage overall button states
             manageButtonStates();
         };
 
@@ -336,7 +355,7 @@
         const initializeUI = () => {
             try {
                 updateTheme();
-                setupEventListeners();
+                setupEventListeners(); // Setup includes notification listeners now
                 initTooltips();
                 if (ui.chatTabButton) ui.chatTabButton.classList.add('active');
                 if (ui.chatTabContent) ui.chatTabContent.classList.add('active');
@@ -346,7 +365,7 @@
                 initHeaderScrollDetection();
                 updateCopyrightYear();
                 updateOnlineStatus();
-                manageUIState('initial');
+                manageUIState('initial'); // Initial state manages empty chat etc.
                 console.log("UI Initialized successfully.");
                 return true;
             } catch(error) { console.error("UI Init failed:", error); showError(`Chyba inicializace UI: ${error.message}`, true); return false; }
@@ -375,10 +394,17 @@
                 if (!initializeUI()) return;
 
                 console.log("[INIT] Loading initial topic and notifications...");
-                const loadNotificationsPromise = fetchNotifications(state.currentUser.id, NOTIFICATION_FETCH_LIMIT).then(({ unreadCount, notifications }) => renderNotifications(unreadCount, notifications)).catch(err => { console.error("Chyba při úvodním načítání notifikací:", err); renderNotifications(0, []); });
-                const loadTopicPromise = loadNextUncompletedTopic();
+                // Fetch notifications FIRST <<< MODIFICATION
+                const loadNotificationsPromise = fetchNotifications(state.currentUser.id, NOTIFICATION_FETCH_LIMIT)
+                    .then(({ unreadCount, notifications }) => renderNotifications(unreadCount, notifications))
+                    .catch(err => { console.error("Chyba při úvodním načítání notifikací:", err); renderNotifications(0, []); });
 
-                await Promise.all([loadNotificationsPromise, loadTopicPromise]);
+                // Wait for notifications before potentially loading topic
+                await loadNotificationsPromise;
+
+                // Now load topic
+                const loadTopicPromise = loadNextUncompletedTopic();
+                await loadTopicPromise;
 
                  if (ui.initialLoader) { ui.initialLoader.classList.add('hidden'); setTimeout(() => { if (ui.initialLoader) ui.initialLoader.style.display = 'none'; }, 500); }
                  if (ui.mainContent) { ui.mainContent.style.display = 'flex'; requestAnimationFrame(() => { ui.mainContent.classList.add('loaded'); }); }
@@ -400,7 +426,7 @@
         const updateUserInfoUI = () => { if (!ui.sidebarName || !ui.sidebarAvatar) return; if (state.currentUser && state.currentProfile) { const displayName = `${state.currentProfile.first_name || ''} ${state.currentProfile.last_name || ''}`.trim() || state.currentProfile.username || state.currentUser.email?.split('@')[0] || 'Pilot'; ui.sidebarName.textContent = sanitizeHTML(displayName); const initials = getInitials(state.currentProfile, state.currentUser.email); const avatarUrl = state.currentProfile.avatar_url ? `${state.currentProfile.avatar_url}?t=${new Date().getTime()}` : null; ui.sidebarAvatar.innerHTML = avatarUrl ? `<img src="${sanitizeHTML(avatarUrl)}" alt="${initials}">` : initials; } else { ui.sidebarName.textContent = 'Nepřihlášen'; ui.sidebarAvatar.textContent = '?'; } };
         const handleLoggedOutUser = () => { console.warn("User not logged in."); if (ui.currentTopicDisplay) ui.currentTopicDisplay.innerHTML = '<span class="placeholder">Nejste přihlášeni</span>'; showToast("Prosím, přihlaste se.", "warning"); manageUIState('loggedOut'); };
 
-        // --- Event Listeners Setup ---
+        // --- Event Listeners Setup (Now includes notification listeners) ---
         const setupEventListeners = () => {
             console.log("[SETUP] Setting up event listeners...");
             if (ui.mainMobileMenuToggle) ui.mainMobileMenuToggle.addEventListener('click', openMenu);
@@ -421,10 +447,61 @@
             window.addEventListener('resize', () => { if (window.innerWidth > 992 && ui.sidebar?.classList.contains('active')) { closeMenu(); } });
             window.addEventListener('online', updateOnlineStatus);
             window.addEventListener('offline', updateOnlineStatus);
-            if (ui.notificationBell) { ui.notificationBell.addEventListener('click', (event) => { event.stopPropagation(); ui.notificationsDropdown?.classList.toggle('active'); }); }
-            if (ui.markAllReadBtn) { ui.markAllReadBtn.addEventListener('click', markAllNotificationsRead); }
-            if (ui.notificationsList) { ui.notificationsList.addEventListener('click', async (event) => { const item = event.target.closest('.notification-item'); if (item) { const notificationId = item.dataset.id; const link = item.dataset.link; const isRead = item.classList.contains('is-read'); if (!isRead && notificationId) { const success = await markNotificationRead(notificationId); if (success) { item.classList.add('is-read'); item.querySelector('.unread-dot')?.remove(); const currentCountText = ui.notificationCount.textContent.replace('+', ''); const currentCount = parseInt(currentCountText) || 0; const newCount = Math.max(0, currentCount - 1); ui.notificationCount.textContent = newCount > 9 ? '9+' : (newCount > 0 ? String(newCount) : ''); ui.notificationCount.classList.toggle('visible', newCount > 0); if (ui.markAllReadBtn) ui.markAllReadBtn.disabled = newCount === 0; } } if (link) window.location.href = link; } }); }
-            document.addEventListener('click', (event) => { if (ui.notificationsDropdown?.classList.contains('active') && !ui.notificationsDropdown.contains(event.target) && !ui.notificationBell?.contains(event.target)) { ui.notificationsDropdown.classList.remove('active'); } });
+
+            // *** MODIFICATION START: Added Notification Listeners ***
+            if (ui.notificationBell) {
+                ui.notificationBell.addEventListener('click', (event) => {
+                    event.stopPropagation();
+                    ui.notificationsDropdown?.classList.toggle('active');
+                     // Optionally fetch notifications when opened if count > 0?
+                     // const currentCount = parseInt(ui.notificationCount?.textContent?.replace('+', '') || '0');
+                     // if (ui.notificationsDropdown?.classList.contains('active') && currentCount > 0) {
+                     //     fetchNotifications(state.currentUser.id, NOTIFICATION_FETCH_LIMIT)
+                     //       .then(({ unreadCount, notifications }) => renderNotifications(unreadCount, notifications));
+                     // }
+                });
+            }
+            if (ui.markAllReadBtn) {
+                ui.markAllReadBtn.addEventListener('click', markAllNotificationsRead);
+            }
+            if (ui.notificationsList) {
+                ui.notificationsList.addEventListener('click', async (event) => {
+                    const item = event.target.closest('.notification-item');
+                    if (item) {
+                        const notificationId = item.dataset.id;
+                        const link = item.dataset.link;
+                        const isRead = item.classList.contains('is-read');
+                        if (!isRead && notificationId) {
+                            const success = await markNotificationRead(notificationId);
+                            if (success) {
+                                item.classList.add('is-read');
+                                item.querySelector('.unread-dot')?.remove();
+                                const currentCountText = ui.notificationCount.textContent.replace('+', '');
+                                const currentCount = parseInt(currentCountText) || 0;
+                                const newCount = Math.max(0, currentCount - 1);
+                                ui.notificationCount.textContent = newCount > 9 ? '9+' : (newCount > 0 ? String(newCount) : '');
+                                ui.notificationCount.classList.toggle('visible', newCount > 0);
+                                if (ui.markAllReadBtn) ui.markAllReadBtn.disabled = newCount === 0;
+                            }
+                        }
+                        if (link) {
+                            window.location.href = link; // Navigate if link exists
+                        }
+                        // Optionally close dropdown after click
+                        // ui.notificationsDropdown?.classList.remove('active');
+                    }
+                });
+            }
+            // Close dropdown on outside click
+            document.addEventListener('click', (event) => {
+                if (ui.notificationsDropdown?.classList.contains('active') &&
+                    !ui.notificationsDropdown.contains(event.target) &&
+                    !ui.notificationBell?.contains(event.target)) {
+                    ui.notificationsDropdown.classList.remove('active');
+                }
+            });
+            // *** MODIFICATION END: Added Notification Listeners ***
+
             console.log("Event listeners setup complete.");
         };
 
@@ -432,23 +509,49 @@
         const manageUIState = (mode, options = {}) => {
             console.log("[UI State]:", mode, options);
             const isLearning = ['learning', 'chatting', 'requestingExplanation', 'waitingForAnswer'].includes(mode);
-            const showLearningInterface = !!state.currentTopic || ['loadingTopic', 'requestingExplanation', 'noPlan', 'planComplete', 'error'].includes(mode) || mode.startsWith('initial') || mode === 'loadingUser';
+            // Keep initial chat visible until first message/loading
+            const showLearningInterface = true; // Always show the interface container
 
-            if (ui.learningInterface) { ui.learningInterface.style.display = showLearningInterface ? 'flex' : 'none'; }
-
-            if (ui.chatMessages && !isLearning && !['initial', 'loadingUser', 'loadingTopic'].includes(mode)) {
-                let emptyStateHTML = '';
-                switch (mode) {
-                    case 'loggedOut': emptyStateHTML = `<div class='empty-state'><i class='fas fa-sign-in-alt'></i><h3>NEPŘIHLÁŠEN</h3><p>Pro přístup k výuce se prosím <a href="/auth/index.html" style="color: var(--accent-primary)">přihlaste</a>.</p></div>`; break;
-                    case 'noPlan': emptyStateHTML = `<div class='empty-state'><i class='fas fa-calendar-times'></i><h3>ŽÁDNÝ AKTIVNÍ PLÁN</h3><p>Nemáte aktivní studijní plán. Nejprve prosím dokončete <a href="/dashboard/procvicovani/test1.html" style="color: var(--accent-primary)">diagnostický test</a>.</p></div>`; break;
-                    case 'planComplete': emptyStateHTML = `<div class='empty-state'><i class='fas fa-check-circle'></i><h3>PLÁN DOKONČEN!</h3><p>Všechny naplánované aktivity jsou hotové. Skvělá práce! Můžete si <a href="/dashboard/procvicovani/plan.html" style="color: var(--accent-primary)">vytvořit nový plán</a>.</p></div>`; break;
-                    case 'error': emptyStateHTML = `<div class='empty-state'><i class='fas fa-exclamation-triangle'></i><h3>CHYBA SYSTÉMU</h3><p>${options.errorMessage || 'Nastala chyba při načítání dat.'}</p></div>`; break;
-                    default: emptyStateHTML = '';
-                }
-                if (emptyStateHTML || (ui.chatMessages.children.length === 0 && ['loggedOut', 'noPlan', 'planComplete', 'error'].includes(mode))) { ui.chatMessages.innerHTML = emptyStateHTML; }
-            } else if (ui.chatMessages && mode === 'loadingTopic'){
-                ui.chatMessages.innerHTML = '<div class="empty-state"><i class="fas fa-book-open"></i><h3>NAČÍTÁNÍ TÉMATU...</h3></div>';
+            if (ui.learningInterface) {
+                // Ensure the interface is always visible, state changes manage content inside
+                ui.learningInterface.style.display = 'flex';
             }
+
+            // Update topic display based on state
+            if (state.currentTopic) {
+                 if(ui.currentTopicDisplay) ui.currentTopicDisplay.innerHTML = `Téma: <strong>${sanitizeHTML(state.currentTopic.name)}</strong>`;
+             } else if (mode === 'loadingTopic') {
+                 if(ui.currentTopicDisplay) ui.currentTopicDisplay.innerHTML = '<span class="placeholder"><i class="fas fa-spinner fa-spin"></i> Načítám téma...</span>';
+             } else if (mode === 'noPlan'){
+                 if(ui.currentTopicDisplay) ui.currentTopicDisplay.innerHTML = '<span class="placeholder">Žádný aktivní plán</span>';
+             } else if (mode === 'planComplete'){
+                 if(ui.currentTopicDisplay) ui.currentTopicDisplay.innerHTML = '<span class="placeholder">Plán dokončen!</span>';
+             } else if (mode === 'error'){
+                 if(ui.currentTopicDisplay) ui.currentTopicDisplay.innerHTML = '<span class="placeholder error">Chyba načítání</span>';
+             } else if (!state.currentUser) {
+                 if(ui.currentTopicDisplay) ui.currentTopicDisplay.innerHTML = '<span class="placeholder">Nepřihlášen</span>';
+             } else {
+                  // Default state before topic is loaded but after login
+                  if(ui.currentTopicDisplay) ui.currentTopicDisplay.innerHTML = '<span class="placeholder">Připraven...</span>';
+             }
+
+
+            // Handle empty states in chat (only if chat is empty AND it's a relevant state)
+            if (ui.chatMessages && ui.chatMessages.children.length === 1 && ui.chatMessages.querySelector('.initial-chat-interface')) {
+                 // Initial state is handled by HTML, don't overwrite unless error/no plan etc.
+                 let emptyStateHTML = '';
+                 switch (mode) {
+                     case 'loggedOut': emptyStateHTML = `<div class='empty-state'><i class='fas fa-sign-in-alt'></i><h3>NEPŘIHLÁŠEN</h3><p>Pro přístup k výuce se prosím <a href="/auth/index.html" style="color: var(--accent-primary)">přihlaste</a>.</p></div>`; break;
+                     case 'noPlan': emptyStateHTML = `<div class='empty-state'><i class='fas fa-calendar-times'></i><h3>ŽÁDNÝ AKTIVNÍ PLÁN</h3><p>Nemáte aktivní studijní plán. Nejprve prosím dokončete <a href="/dashboard/procvicovani/test1.html" style="color: var(--accent-primary)">diagnostický test</a>.</p></div>`; break;
+                     case 'planComplete': emptyStateHTML = `<div class='empty-state'><i class='fas fa-check-circle'></i><h3>PLÁN DOKONČEN!</h3><p>Všechny naplánované aktivity jsou hotové. Skvělá práce! Můžete si <a href="/dashboard/procvicovani/plan.html" style="color: var(--accent-primary)">vytvořit nový plán</a>.</p></div>`; break;
+                     case 'error': emptyStateHTML = `<div class='empty-state'><i class='fas fa-exclamation-triangle'></i><h3>CHYBA SYSTÉMU</h3><p>${options.errorMessage || 'Nastala chyba při načítání dat.'}</p></div>`; break;
+                 }
+                 if (emptyStateHTML) { ui.chatMessages.innerHTML = emptyStateHTML; } // Overwrite initial only if error/specific state
+             } else if (ui.chatMessages && mode === 'loadingTopic' && ui.chatMessages.children.length === 1 && ui.chatMessages.querySelector('.initial-chat-interface')){
+                 // Special case for loading topic: Show message if chat is still initial
+                 ui.chatMessages.innerHTML = '<div class="empty-state"><i class="fas fa-book-open"></i><h3>NAČÍTÁNÍ TÉMATU...</h3></div>';
+             }
+
 
             manageButtonStates(); // Update buttons based on the new state
         };
@@ -527,7 +630,11 @@
             state.topicLoadInProgress = true;
             setLoadingState('currentTopic', true);
             state.currentTopic = null;
-            if (ui.chatMessages) ui.chatMessages.innerHTML = '';
+            // *** MODIFICATION: Clear chat only if it's not the initial state ***
+            if (ui.chatMessages && !ui.chatMessages.querySelector('.initial-chat-interface')) {
+                 ui.chatMessages.innerHTML = '';
+             }
+            // *** END MODIFICATION ***
             clearWhiteboard(false);
             state.geminiChatContext = [];
             state.aiIsWaitingForAnswer = false; // Reset waiting state
@@ -555,10 +662,6 @@
         };
 
         // --- Points System ---
-        /**
-         * Awards points to the current user and updates the database and UI.
-         * @param {number} pointsValue The number of points to award.
-         */
         async function awardPoints(pointsValue) {
             if (!state.currentUser || !state.currentProfile || !state.supabase || pointsValue <= 0) {
                 console.log("[Points] Skipping point award:", { userId: state.currentUser?.id, profileExists: !!state.currentProfile, pointsValue });
@@ -579,9 +682,6 @@
                 state.currentProfile.points = newPoints;
                 console.log(`[Points] User points updated to ${newPoints}`);
                 showToast('+', `${pointsValue} kreditů získáno!`, 'success', 3000);
-                // Optional: Log activity
-                // await logActivity('points_earned', `Získáno ${pointsValue} bodů za dokončení tématu`, pointsValue);
-
             } catch (error) {
                 console.error(`[Points] Error updating user points:`, error);
                 showToast('Chyba', 'Nepodařilo se aktualizovat kredity.', 'error');
@@ -609,9 +709,11 @@
         // --- Learning Session & Chat ---
         const startLearningSession = async () => { if (!state.currentTopic) return; state.currentSessionId = generateSessionId(); manageUIState('requestingExplanation'); const prompt = _buildInitialPrompt(); await sendToGemini(prompt); };
         const requestContinue = async () => { if (state.geminiIsThinking || !state.currentTopic || state.aiIsWaitingForAnswer) return; const prompt = _buildContinuePrompt(); await sendToGemini(prompt); };
-        // *** MODIFIED function to accept original content for DB saving ***
+
+        // *** MODIFIED: Clears initial state before adding message ***
         const addChatMessage = async (displayMessage, sender, saveToDb = true, timestamp = new Date(), ttsText = null, originalContent = null) => {
             if (!ui.chatMessages) return;
+            clearInitialChatState(); // <<< Clears initial placeholder if present
             const id = `msg-${Date.now()}`;
             const avatarText = sender === 'user' ? getInitials(state.currentProfile, state.currentUser?.email) : 'AI';
             const div = document.createElement('div');
@@ -630,7 +732,7 @@
                 ttsButton.className = 'tts-listen-btn btn-tooltip';
                 ttsButton.title = 'Poslechnout';
                 ttsButton.innerHTML = '<i class="fas fa-volume-up"></i>';
-                const textForSpeech = ttsText || displayMessage; // Use TTS text if provided, otherwise use display message
+                const textForSpeech = ttsText || displayMessage;
                 ttsButton.dataset.textToSpeak = textForSpeech;
                 ttsButton.addEventListener('click', (e) => { e.stopPropagation(); speakText(textForSpeech); });
                 bubbleContentDiv.appendChild(ttsButton);
@@ -639,33 +741,33 @@
             bubbleDiv.appendChild(bubbleContentDiv);
             const timeDiv = `<div class="message-timestamp">${formatTimestamp(timestamp)}</div>`;
             div.innerHTML = avatarDiv + bubbleDiv.outerHTML + timeDiv;
-            const empty = ui.chatMessages.querySelector('.empty-state'); if(empty) empty.remove();
+            // const empty = ui.chatMessages.querySelector('.empty-state'); if(empty) empty.remove(); -- Replaced by clearInitialChatState
             ui.chatMessages.appendChild(div);
             div.scrollIntoView({ behavior: 'smooth', block: 'end' });
             initTooltips();
 
             // --- Database Saving Logic ---
-            const contentToSave = originalContent !== null ? originalContent : displayMessage; // Use original if provided, else use display
-
+            const contentToSave = originalContent !== null ? originalContent : displayMessage;
             if (saveToDb && state.supabase && state.currentUser && state.currentTopic && state.currentSessionId) {
-                 try {
-                     await state.supabase.from('chat_history').insert({
-                         user_id: state.currentUser.id,
-                         session_id: state.currentSessionId,
-                         topic_id: state.currentTopic.topic_id,
-                         topic_name: state.currentTopic.name,
-                         role: sender === 'gemini' ? 'model' : 'user',
-                         content: contentToSave // Save the potentially original content
-                     });
-                 } catch (e) {
-                     console.error("Chat save error:", e);
-                     showToast("Chyba ukládání chatu.", "error");
-                 }
-             }
-             // --- End Database Saving Logic ---
+                 try { await state.supabase.from('chat_history').insert({ user_id: state.currentUser.id, session_id: state.currentSessionId, topic_id: state.currentTopic.topic_id, topic_name: state.currentTopic.name, role: sender === 'gemini' ? 'model' : 'user', content: contentToSave });
+                 } catch (e) { console.error("Chat save error:", e); showToast("Chyba ukládání chatu.", "error"); }
+            }
+        };
+        // *** MODIFIED: Clears initial state before adding indicator ***
+        const addThinkingIndicator = () => {
+            if (state.thinkingIndicatorId || !ui.chatMessages) return;
+            clearInitialChatState(); // <<< Clears initial placeholder if present
+            const id = `thinking-${Date.now()}`;
+            const div = document.createElement('div');
+            div.className = 'chat-message model';
+            div.id = id;
+            div.innerHTML = `<div class="message-avatar">AI</div><div class="message-thinking-indicator"><span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span></div>`;
+            // const empty = ui.chatMessages.querySelector('.empty-state'); if(empty) empty.remove(); -- Replaced by clearInitialChatState
+            ui.chatMessages.appendChild(div);
+            div.scrollIntoView({ behavior: 'smooth', block: 'end' });
+            state.thinkingIndicatorId = id;
         };
         const updateGeminiThinkingState = (isThinking) => { state.geminiIsThinking = isThinking; setLoadingState('chat', isThinking); ui.aiAvatarCorner?.classList.toggle('thinking', isThinking); if (!isThinking) ui.aiAvatarCorner?.classList.remove('speaking'); if (isThinking) addThinkingIndicator(); else removeThinkingIndicator(); };
-        const addThinkingIndicator = () => { if (state.thinkingIndicatorId || !ui.chatMessages) return; const id = `thinking-${Date.now()}`; const div = document.createElement('div'); div.className = 'chat-message model'; div.id = id; div.innerHTML = `<div class="message-avatar">AI</div><div class="message-thinking-indicator"><span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span></div>`; const empty = ui.chatMessages.querySelector('.empty-state'); if(empty) empty.remove(); ui.chatMessages.appendChild(div); div.scrollIntoView({ behavior: 'smooth', block: 'end' }); state.thinkingIndicatorId = id; };
         const removeThinkingIndicator = () => { if (state.thinkingIndicatorId) { document.getElementById(state.thinkingIndicatorId)?.remove(); state.thinkingIndicatorId = null; } };
 
         const handleSendMessage = async () => {
@@ -673,27 +775,23 @@
             if (!text || state.geminiIsThinking || !state.currentTopic || state.isListening) return;
             if (ui.chatInput) { ui.chatInput.value = ''; autoResizeTextarea(); }
 
-            // Pass the original text to addChatMessage for saving
-            await addChatMessage(text, 'user', true, new Date(), null, text); // <<< Pass original text as last arg
+            await addChatMessage(text, 'user', true, new Date(), null, text); // Pass original text for saving
             state.geminiChatContext.push({ role: "user", parts: [{ text }] });
             updateGeminiThinkingState(true);
 
             let promptForGemini;
             if (state.aiIsWaitingForAnswer) {
-                // AI was waiting for an answer to a specific question
                 promptForGemini = `Student odpověděl: "${text}". Téma je "${state.currentTopic.name}". Vyhodnoť prosím tuto odpověď stručně v rámci konverzace. Vysvětli případné chyby. Odpovídej POUZE textem do chatu. Poté polož další otázku NEBO navrhni pokračování ve výkladu.`;
-                state.aiIsWaitingForAnswer = false; // Assume AI will handle the flow now
+                state.aiIsWaitingForAnswer = false;
             } else {
-                // General user query or comment
                 promptForGemini = `Student píše do chatu: "${text}". Odpověz textem v chatu k tématu "${state.currentTopic.name}". Měj na paměti, co už bylo vysvětleno. Odpovídej POUZE textem do chatu. Neposílej žádný Markdown pro tabuli, pokud to není explicitně vyžádáno pro opravu nebo doplnění tabule.`;
             }
-
-            await sendToGemini(promptForGemini, true); // <<< Indicate this is a chat interaction
+            await sendToGemini(promptForGemini, true);
         };
 
         const confirmClearChat = () => { if (confirm("Opravdu vymazat historii této konverzace? Tato akce je nevratná.")) { clearCurrentChatSessionHistory(); } };
         const clearCurrentChatSessionHistory = async () => { if (ui.chatMessages) { ui.chatMessages.innerHTML = `<div class="empty-state"><i class="fas fa-comments"></i><h3>Chat vymazán</h3><p>Můžete začít novou konverzaci.</p></div>`; } state.geminiChatContext = []; showToast("Historie chatu vymazána.", "info"); if (state.supabase && state.currentUser && state.currentSessionId) { try { const { error } = await state.supabase.from('chat_history').delete().match({ user_id: state.currentUser.id, session_id: state.currentSessionId }); if (error) throw error; console.log(`Chat history deleted from DB for session: ${state.currentSessionId}`); } catch (e) { console.error("DB clear chat error:", e); showToast("Chyba při mazání historie chatu z databáze.", "error"); } } };
-        const saveChatToPDF = async () => { if (!ui.chatMessages || ui.chatMessages.children.length === 0 || (ui.chatMessages.children.length === 1 && ui.chatMessages.querySelector('.empty-state'))) { showToast("Není co uložit.", "warning"); return; } if (typeof html2pdf === 'undefined') { showToast("Chyba: PDF knihovna nenalezena.", "error"); return; } showToast("Generuji PDF...", "info", 4000); const elementToExport = document.createElement('div'); elementToExport.style.padding="15mm"; elementToExport.innerHTML = `<style>body { font-family: 'Poppins', sans-serif; font-size: 10pt; line-height: 1.5; color: #333; } .chat-message { margin-bottom: 12px; max-width: 90%; page-break-inside: avoid; } .user { margin-left: 10%; } .model { margin-right: 10%; } .message-bubble { display: inline-block; padding: 8px 14px; border-radius: 15px; background-color: #e9ecef; } .user .message-bubble { background-color: #d1e7dd; } .message-timestamp { font-size: 8pt; color: #6c757d; margin-top: 4px; display: block; } .user .message-timestamp { text-align: right; } h1 { font-size: 16pt; color: #0d6efd; text-align: center; margin-bottom: 5px; } p.subtitle { font-size: 9pt; color: #6c757d; text-align: center; margin: 0 0 15px 0; } hr { border: 0; border-top: 1px solid #ccc; margin: 15px 0; } .tts-listen-btn { display: none; } mjx-math { font-size: 1em; } pre { background-color: #f8f9fa; border: 1px solid #dee2e6; padding: 0.8em; border-radius: 6px; overflow-x: auto; font-size: 0.9em; } code { background-color: #e9ecef; padding: 0.1em 0.3em; border-radius: 3px; } pre code { background: none; padding: 0; }</style><h1>Chat s AI Tutorem - ${sanitizeHTML(state.currentTopic?.name || 'Neznámé téma')}</h1><p class="subtitle">Vygenerováno: ${new Date().toLocaleString('cs-CZ')}</p><hr>`; Array.from(ui.chatMessages.children).forEach(msgElement => { if (msgElement.classList.contains('chat-message') && !msgElement.id.startsWith('thinking-')) { const clone = msgElement.cloneNode(true); clone.querySelector('.message-avatar')?.remove(); clone.querySelector('.tts-listen-btn')?.remove(); clone.classList.add('msg'); if(msgElement.classList.contains('user')) clone.classList.add('user'); else clone.classList.add('model'); clone.querySelector('.message-bubble')?.classList.add('bubble'); clone.querySelector('.message-timestamp')?.classList.add('time'); elementToExport.appendChild(clone); } }); const filename = `chat-${state.currentTopic?.name?.replace(/[^a-z0-9]/gi, '_') || 'vyuka'}-${Date.now()}.pdf`; const pdfOptions = { margin: 15, filename: filename, image: { type: 'jpeg', quality: 0.95 }, html2canvas: { scale: 2, useCORS: true, logging: false }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } }; try { await html2pdf().set(pdfOptions).from(elementToExport).save(); showToast("Chat uložen jako PDF!", "success"); } catch (e) { console.error("PDF Generation Error:", e); showToast("Chyba při generování PDF.", "error"); } };
+        const saveChatToPDF = async () => { if (!ui.chatMessages || ui.chatMessages.children.length === 0 || (ui.chatMessages.children.length === 1 && ui.chatMessages.querySelector('.empty-state')) || (ui.chatMessages.children.length === 1 && ui.chatMessages.querySelector('.initial-chat-interface'))) { showToast("Není co uložit.", "warning"); return; } if (typeof html2pdf === 'undefined') { showToast("Chyba: PDF knihovna nenalezena.", "error"); return; } showToast("Generuji PDF...", "info", 4000); const elementToExport = document.createElement('div'); elementToExport.style.padding="15mm"; elementToExport.innerHTML = `<style>body { font-family: 'Poppins', sans-serif; font-size: 10pt; line-height: 1.5; color: #333; } .chat-message { margin-bottom: 12px; max-width: 90%; page-break-inside: avoid; } .user { margin-left: 10%; } .model { margin-right: 10%; } .message-bubble { display: inline-block; padding: 8px 14px; border-radius: 15px; background-color: #e9ecef; } .user .message-bubble { background-color: #d1e7dd; } .message-timestamp { font-size: 8pt; color: #6c757d; margin-top: 4px; display: block; } .user .message-timestamp { text-align: right; } h1 { font-size: 16pt; color: #0d6efd; text-align: center; margin-bottom: 5px; } p.subtitle { font-size: 9pt; color: #6c757d; text-align: center; margin: 0 0 15px 0; } hr { border: 0; border-top: 1px solid #ccc; margin: 15px 0; } .tts-listen-btn { display: none; } mjx-math { font-size: 1em; } pre { background-color: #f8f9fa; border: 1px solid #dee2e6; padding: 0.8em; border-radius: 6px; overflow-x: auto; font-size: 0.9em; } code { background-color: #e9ecef; padding: 0.1em 0.3em; border-radius: 3px; } pre code { background: none; padding: 0; }</style><h1>Chat s AI Tutorem - ${sanitizeHTML(state.currentTopic?.name || 'Neznámé téma')}</h1><p class="subtitle">Vygenerováno: ${new Date().toLocaleString('cs-CZ')}</p><hr>`; Array.from(ui.chatMessages.children).forEach(msgElement => { if (msgElement.classList.contains('chat-message') && !msgElement.id.startsWith('thinking-')) { const clone = msgElement.cloneNode(true); clone.querySelector('.message-avatar')?.remove(); clone.querySelector('.tts-listen-btn')?.remove(); clone.classList.add('msg'); if(msgElement.classList.contains('user')) clone.classList.add('user'); else clone.classList.add('model'); clone.querySelector('.message-bubble')?.classList.add('bubble'); clone.querySelector('.message-timestamp')?.classList.add('time'); elementToExport.appendChild(clone); } }); const filename = `chat-${state.currentTopic?.name?.replace(/[^a-z0-9]/gi, '_') || 'vyuka'}-${Date.now()}.pdf`; const pdfOptions = { margin: 15, filename: filename, image: { type: 'jpeg', quality: 0.95 }, html2canvas: { scale: 2, useCORS: true, logging: false }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } }; try { await html2pdf().set(pdfOptions).from(elementToExport).save(); showToast("Chat uložen jako PDF!", "success"); } catch (e) { console.error("PDF Generation Error:", e); showToast("Chyba při generování PDF.", "error"); } };
 
         // --- Gemini Interaction & Parsing ---
         const parseGeminiResponse = (rawText) => {
@@ -718,7 +816,7 @@
              return { boardMarkdown, ttsCommentary, chatText };
           };
 
-        // *** MODIFIED function to clean chat message before displaying ***
+        // Modified to use cleanChatMessage and pass original content
         const processGeminiResponse = (rawText, timestamp) => {
             removeThinkingIndicator();
             console.log("Raw Gemini Response Received:", rawText ? rawText.substring(0, 100) + "..." : "Empty Response");
@@ -726,17 +824,13 @@
 
             const { boardMarkdown, ttsCommentary, chatText } = parseGeminiResponse(rawText);
             let aiResponded = false;
-
-            // Clean the chat text before displaying
-            const cleanedChatText = cleanChatMessage(chatText); // <<< APPLY CLEANING
+            const cleanedChatText = cleanChatMessage(chatText); // Clean for display
 
             if (boardMarkdown) { appendToWhiteboard(boardMarkdown, ttsCommentary || boardMarkdown); aiResponded = true; }
-            if (cleanedChatText) { // Use cleaned text for display
+            if (cleanedChatText) {
                 const ttsForChat = (ttsCommentary && !boardMarkdown) ? ttsCommentary : null;
-                // Pass cleaned for display/TTS, original for DB saving
-                addChatMessage(cleanedChatText, 'gemini', true, timestamp, ttsForChat, chatText); // <<< Pass original `chatText` as last arg
-                 // Check if AI asked a question based on the *original* chat text
-                 const lowerChatText = chatText.toLowerCase(); // Use original for logic check
+                addChatMessage(cleanedChatText, 'gemini', true, timestamp, ttsForChat, chatText); // Pass cleaned (display), original (save)
+                 const lowerChatText = chatText.toLowerCase(); // Check original for logic
                  if (lowerChatText.includes('zkuste') || lowerChatText.includes('jak byste') || lowerChatText.includes('vypočítejte') || lowerChatText.includes('otázka:') || chatText.endsWith('?') || lowerChatText.includes('můžeš mi říct') ) {
                     state.aiIsWaitingForAnswer = true;
                     console.log("AI is waiting for an answer.");
@@ -747,30 +841,29 @@
                  }
                  aiResponded = true;
             } else if (ttsCommentary && !boardMarkdown) {
-                 // If only TTS exists, add placeholder and pass TTS content
-                 addChatMessage("(Poslechněte si komentář)", 'gemini', true, timestamp, ttsCommentary, "(Pouze hlasový komentář)"); // Pass original description
+                 addChatMessage("(Poslechněte si komentář)", 'gemini', true, timestamp, ttsCommentary, "(Pouze hlasový komentář)");
                  aiResponded = true; manageUIState('learning');
             }
 
             if (!aiResponded) {
-                addChatMessage("(AI neodpovědělo očekávaným formátem)", 'gemini', false, timestamp, null, "(Neplatný formát odpovědi)"); // Pass original description
+                addChatMessage("(AI neodpovědělo očekávaným formátem)", 'gemini', false, timestamp, null, "(Neplatný formát odpovědi)");
                 console.warn("AI sent no usable content."); manageUIState('learning');
             }
         };
 
         // --- Prompts and Gemini Calls ---
+        // *** MODIFIED: Initial prompt asks for TTS intro and optional chat message, NO board markdown ***
         const _buildInitialPrompt = () => {
             const level = state.currentProfile?.skill_level || 'neznámá';
-            return `Jsi AI Tutor "Justax". Vysvětli ZÁKLADY tématu "${state.currentTopic.name}" pro studenta s úrovní "${level}". Rozděl vysvětlení na menší logické části. Pro PRVNÍ ČÁST:
+            return `Jsi AI Tutor "Justax". PŘIVÍTEJ studenta s úrovní "${level}" k tématu "${state.currentTopic.name}".
 Formát odpovědi MUSÍ být:
-[BOARD_MARKDOWN]:
-\`\`\`markdown
-(Zde napiš KRÁTKÝ a STRUČNÝ Markdown text pro první část vysvětlení na TABULI - klíčové body, vzorec, jednoduchý diagram. Použij POUZE nadpisy ## nebo ###, seznamy, \$\$. NEPOUŽÍVEJ chatovací styl zde.)
-\`\`\`
 [TTS_COMMENTARY]:
-(Zde napiš PODROBNĚJŠÍ konverzační komentář k obsahu tabule pro hlasový výstup. Rozveď myšlenky, přidej kontext, PŘIZPŮSOBENO ÚROVNI "${level}". Můžeš zakončit otázkou pro ověření pochopení.)`;
+(Zde napiš KRÁTKÝ úvodní konverzační komentář k tématu pro hlasový výstup. Jen pár vět na úvod. NEPTEJ SE ZATÍM NA NIC.)
+
+(VOLITELNĚ můžeš přidat krátkou uvítací zprávu přímo do chatu, pokud chceš kromě hlasového výstupu napsat i text. Pokud ano, napiš ji sem, BEZ jakýchkoli značek jako [CHAT_TEXT]:. Pokud nechceš psát text do chatu, nech tento prostor prázdný.)`;
         };
 
+        // Continue prompt remains the same, requests board content
         const _buildContinuePrompt = () => {
             const level = state.currentProfile?.skill_level || 'neznámá';
             return `Pokračuj ve vysvětlování tématu "${state.currentTopic.name}" pro studenta s úrovní "${level}". Naváž na předchozí část. Vygeneruj další logickou část výkladu.
@@ -783,7 +876,7 @@ Formát odpovědi MUSÍ být:
 (Zde napiš podrobnější konverzační komentář k NOVÉMU obsahu tabule pro hlasový výstup, přizpůsobený úrovni "${level}". Zkus položit jednoduchou otázku nebo zadat příklad k tématu.)`;
         };
 
-        // NEW: Prompt specifically for handling user answers/questions in chat
+        // Chat interaction prompt remains the same
         const _buildChatInteractionPrompt = (userText) => {
              const level = state.currentProfile?.skill_level || 'neznámá';
              let baseInstruction;
@@ -792,9 +885,7 @@ Formát odpovědi MUSÍ být:
              } else {
                  baseInstruction = `Student píše do chatu: "${userText}". Odpověz relevantně k tématu "${state.currentTopic.name}" a kontextu diskuze.`;
              }
-             // Reset waiting flag as AI is now processing the answer/query
              state.aiIsWaitingForAnswer = false;
-
              return `${baseInstruction} Udržuj konverzační tón přizpůsobený úrovni "${level}". Odpovídej POUZE textem do CHATU. Nepoužívej bloky [BOARD_MARKDOWN] ani [TTS_COMMENTARY]. Na konci své odpovědi můžeš položit další otázku nebo navrhnout pokračování ve výkladu.`;
          };
 
@@ -802,7 +893,7 @@ Formát odpovědi MUSÍ být:
             const level = state.currentProfile?.skill_level || 'neznámá';
             // Updated System Instruction
             const systemInstruction = `Jsi AI Tutor "Justax". Vyučuješ téma: "${state.currentTopic.name}" studenta s úrovní "${level}".
-- Pokud dostaneš instrukci začít nebo pokračovat ve výkladu, ODPOVĚĎ MUSÍ OBSAHOVAT BLOKY [BOARD_MARKDOWN]: \`\`\`markdown ... \`\`\` A [TTS_COMMENTARY]: .... Text pro tabuli má být stručný a strukturovaný (nadpisy ## nebo ###, seznamy, LaTeX \$\$). Komentář pro TTS má být podrobnější, konverzační. Můžeš pokládat otázky v TTS komentáři nebo chat textu.
+- Pokud dostaneš instrukci začít nebo pokračovat ve výkladu, ODPOVĚĎ MUSÍ OBSAHOVAT BLOKY [BOARD_MARKDOWN]: \`\`\`markdown ... \`\`\` A [TTS_COMMENTARY]: .... Text pro tabuli má být stručný a strukturovaný (nadpisy ## nebo ###, seznamy, LaTeX \$\$). Komentář pro TTS má být podrobnější, konverzační. Můžeš pokládat otázky v TTS komentáři nebo chat textu. VÝJIMKA: První zpráva (přivítání) nemusí obsahovat [BOARD_MARKDOWN].
 - Pokud dostaneš text od studenta (označený jako "Student píše..." nebo "Student odpověděl..."), odpovídej POUZE běžným textem do CHATU. Vyhodnoť odpovědi studenta nebo odpověz na jeho otázky.
 - Pokud jsi právě položil otázku, očekávej odpověď studenta.`;
 
@@ -812,7 +903,7 @@ Formát odpovědi MUSÍ být:
              // Structure: System setup -> History -> Current User Prompt
              const contents = [
                  { role: "user", parts: [{ text: systemInstruction }] },
-                 { role: "model", parts: [{ text: `Rozumím. Budu generovat obsah pro tabuli a TTS komentář podle zadání, nebo odpovím na dotaz studenta v chatu pro téma "${state.currentTopic.name}" (${level}).` }] },
+                 { role: "model", parts: [{ text: `Rozumím. Budu generovat obsah pro tabuli a TTS komentář podle zadání (kromě případného prvního přivítání), nebo odpovím na dotaz studenta v chatu pro téma "${state.currentTopic.name}" (${level}).` }] }, // Acknowledge exception
                  ...history,
                  currentUserMessage
              ];
@@ -829,9 +920,7 @@ Formát odpovědi MUSÍ být:
             const timestamp = new Date();
             updateGeminiThinkingState(true);
 
-            // Use the correct payload builder based on interaction type
             const contents = _buildGeminiPayloadContents(prompt, isChatInteraction);
-
             const body = {
                 contents,
                 generationConfig: { temperature: 0.6, topP: 0.95, topK: 40, maxOutputTokens: 4096 },
@@ -862,12 +951,135 @@ Formát odpovědi MUSÍ být:
 
         const handleGeminiError = (msg, time) => { addChatMessage(`Nastala chyba při komunikaci s AI: ${msg}`, 'gemini', false, time, null, `(Chyba: ${msg})`); manageUIState('learning'); };
 
-        // --- Notification Logic ---
-        const activityVisuals = { test: { icon: 'fa-vial', class: 'test' }, exercise: { icon: 'fa-pencil-alt', class: 'exercise' }, badge: { icon: 'fa-medal', class: 'badge' }, diagnostic: { icon: 'fa-clipboard-check', class: 'diagnostic' }, lesson: { icon: 'fa-book-open', class: 'lesson' }, plan_generated: { icon: 'fa-calendar-alt', class: 'plan_generated' }, level_up: { icon: 'fa-level-up-alt', class: 'level_up' }, other: { icon: 'fa-info-circle', class: 'other' }, default: { icon: 'fa-check-circle', class: 'default' } };
-        async function fetchNotifications(userId, limit = NOTIFICATION_FETCH_LIMIT) { if (!state.supabase || !userId) { console.error("[Notifications] Missing Supabase or User ID."); return { unreadCount: 0, notifications: [] }; } console.log(`[Notifications] Fetching unread notifications for user ${userId}`); setLoadingState('notifications', true); try { const { data, error, count } = await state.supabase.from('user_notifications').select('*', { count: 'exact' }).eq('user_id', userId).eq('is_read', false).order('created_at', { ascending: false }).limit(limit); if (error) throw error; console.log(`[Notifications] Fetched ${data?.length || 0} notifications. Total unread: ${count}`); return { unreadCount: count ?? 0, notifications: data || [] }; } catch (error) { console.error("[Notifications] Exception fetching notifications:", error); showToast('Chyba', 'Nepodařilo se načíst oznámení.', 'error'); return { unreadCount: 0, notifications: [] }; } finally { setLoadingState('notifications', false); } }
-        function renderNotifications(count, notifications) { console.log("[Render Notifications] Start, Count:", count, "Notifications:", notifications); if (!ui.notificationCount || !ui.notificationsList || !ui.noNotificationsMsg || !ui.markAllReadBtn) { console.error("[Render Notifications] Missing UI elements for notifications."); return; } ui.notificationCount.textContent = count > 9 ? '9+' : (count > 0 ? String(count) : ''); ui.notificationCount.classList.toggle('visible', count > 0); if (notifications && notifications.length > 0) { ui.notificationsList.innerHTML = notifications.map(n => { const visual = activityVisuals[n.type?.toLowerCase()] || activityVisuals.default; const isReadClass = n.is_read ? 'is-read' : ''; const linkAttr = n.link ? `data-link="${sanitizeHTML(n.link)}"` : ''; return `<div class="notification-item ${isReadClass}" data-id="${n.id}" ${linkAttr}>${!n.is_read ? '<span class="unread-dot"></span>' : ''}<div class="notification-icon ${visual.class}"><i class="fas ${visual.icon}"></i></div><div class="notification-content"><div class="notification-title">${sanitizeHTML(n.title)}</div><div class="notification-message">${sanitizeHTML(n.message)}</div><div class="notification-time">${formatRelativeTime(n.created_at)}</div></div></div>`; }).join(''); ui.noNotificationsMsg.style.display = 'none'; ui.notificationsList.style.display = 'block'; ui.markAllReadBtn.disabled = count === 0; } else { ui.notificationsList.innerHTML = ''; ui.noNotificationsMsg.style.display = 'block'; ui.notificationsList.style.display = 'none'; ui.markAllReadBtn.disabled = true; } console.log("[Render Notifications] Finished rendering."); }
-        async function markNotificationRead(notificationId) { console.log("[Notifications] Marking notification as read:", notificationId); if (!state.currentUser || !notificationId || !state.supabase) return false; try { const { error } = await state.supabase.from('user_notifications').update({ is_read: true }).eq('user_id', state.currentUser.id).eq('id', notificationId); if (error) throw error; console.log("[Notifications] Mark as read successful for ID:", notificationId); return true; } catch (error) { console.error("[Notifications] Mark as read error:", error); showToast('Chyba', 'Nepodařilo se označit oznámení jako přečtené.', 'error'); return false; } }
-        async function markAllNotificationsRead() { console.log("[Notifications] Marking all as read for user:", state.currentUser?.id); if (!state.currentUser || !ui.markAllReadBtn || !state.supabase) return; setLoadingState('notifications', true); try { const { error } = await state.supabase.from('user_notifications').update({ is_read: true }).eq('user_id', state.currentUser.id).eq('is_read', false); if (error) throw error; console.log("[Notifications] Mark all as read successful in DB."); const { unreadCount, notifications } = await fetchNotifications(state.currentUser.id, NOTIFICATION_FETCH_LIMIT); renderNotifications(unreadCount, notifications); showToast('SIGNÁLY VYMAZÁNY', 'Všechna oznámení byla označena jako přečtená.', 'success'); } catch (error) { console.error("[Notifications] Mark all as read error:", error); showToast('CHYBA PŘENOSU', 'Nepodařilo se označit všechna oznámení.', 'error'); } finally { setLoadingState('notifications', false); } }
+        // *** MODIFICATION START: Added Notification Functions ***
+        async function fetchNotifications(userId, limit = NOTIFICATION_FETCH_LIMIT) {
+             if (!state.supabase || !userId) { console.error("[Notifications] Missing Supabase or User ID."); return { unreadCount: 0, notifications: [] }; }
+             console.log(`[Notifications] Fetching unread notifications for user ${userId}`);
+             setLoadingState('notifications', true);
+             try {
+                 const { data, error, count } = await state.supabase
+                     .from('user_notifications')
+                     .select('*', { count: 'exact' })
+                     .eq('user_id', userId)
+                     .eq('is_read', false)
+                     .order('created_at', { ascending: false })
+                     .limit(limit);
+                 if (error) throw error;
+                 console.log(`[Notifications] Fetched ${data?.length || 0} notifications. Total unread: ${count}`);
+                 return { unreadCount: count ?? 0, notifications: data || [] };
+             } catch (error) {
+                 console.error("[Notifications] Exception fetching notifications:", error);
+                 showToast('Chyba', 'Nepodařilo se načíst oznámení.', 'error');
+                 return { unreadCount: 0, notifications: [] };
+             } finally {
+                 setLoadingState('notifications', false);
+             }
+         }
+
+         function renderNotifications(count, notifications) {
+             console.log("[Render Notifications] Start, Count:", count, "Notifications:", notifications);
+             if (!ui.notificationCount || !ui.notificationsList || !ui.noNotificationsMsg || !ui.markAllReadBtn) {
+                 console.error("[Render Notifications] Missing UI elements for notifications.");
+                 return;
+             }
+             ui.notificationCount.textContent = count > 9 ? '9+' : (count > 0 ? String(count) : '');
+             ui.notificationCount.classList.toggle('visible', count > 0);
+
+             if (notifications && notifications.length > 0) {
+                 ui.notificationsList.innerHTML = notifications.map(n => {
+                     const visual = activityVisuals[n.type?.toLowerCase()] || activityVisuals.default;
+                     const isReadClass = n.is_read ? 'is-read' : '';
+                     const linkAttr = n.link ? `data-link="${sanitizeHTML(n.link)}"` : '';
+                     return `
+                         <div class="notification-item ${isReadClass}" data-id="${n.id}" ${linkAttr}>
+                             ${!n.is_read ? '<span class="unread-dot"></span>' : ''}
+                             <div class="notification-icon ${visual.class}"><i class="fas ${visual.icon}"></i></div>
+                             <div class="notification-content">
+                                 <div class="notification-title">${sanitizeHTML(n.title)}</div>
+                                 <div class="notification-message">${sanitizeHTML(n.message)}</div>
+                                 <div class="notification-time">${formatRelativeTime(n.created_at)}</div>
+                             </div>
+                         </div>`;
+                 }).join('');
+                 ui.noNotificationsMsg.style.display = 'none';
+                 ui.notificationsList.style.display = 'block';
+                 ui.markAllReadBtn.disabled = count === 0;
+             } else {
+                 ui.notificationsList.innerHTML = ''; // Clear potential skeletons
+                 ui.noNotificationsMsg.style.display = 'block';
+                 ui.notificationsList.style.display = 'none';
+                 ui.markAllReadBtn.disabled = true;
+             }
+             console.log("[Render Notifications] Finished rendering.");
+         }
+
+         function renderNotificationSkeletons(count = 2) {
+             if (!ui.notificationsList || !ui.noNotificationsMsg) return;
+             let skeletonHTML = '';
+             for (let i = 0; i < count; i++) {
+                 skeletonHTML += `
+                     <div class="notification-item skeleton">
+                         <div class="notification-icon skeleton" style="background-color: var(--skeleton-bg);"></div>
+                         <div class="notification-content">
+                             <div class="skeleton" style="height: 16px; width: 70%; margin-bottom: 6px;"></div>
+                             <div class="skeleton" style="height: 12px; width: 90%;"></div>
+                             <div class="skeleton" style="height: 10px; width: 40%; margin-top: 6px;"></div>
+                         </div>
+                     </div>`;
+             }
+             ui.notificationsList.innerHTML = skeletonHTML;
+             ui.noNotificationsMsg.style.display = 'none';
+             ui.notificationsList.style.display = 'block';
+         }
+
+         async function markNotificationRead(notificationId) {
+             console.log("[Notifications] Marking notification as read:", notificationId);
+             if (!state.currentUser || !notificationId || !state.supabase) return false;
+             try {
+                 const { error } = await state.supabase
+                     .from('user_notifications')
+                     .update({ is_read: true })
+                     .eq('user_id', state.currentUser.id)
+                     .eq('id', notificationId);
+                 if (error) throw error;
+                 console.log("[Notifications] Mark as read successful for ID:", notificationId);
+                 return true;
+             } catch (error) {
+                 console.error("[Notifications] Mark as read error:", error);
+                 showToast('Chyba', 'Nepodařilo se označit oznámení jako přečtené.', 'error');
+                 return false;
+             }
+         }
+
+         async function markAllNotificationsRead() {
+             console.log("[Notifications] Marking all as read for user:", state.currentUser?.id);
+             if (!state.currentUser || !ui.markAllReadBtn || !state.supabase) return;
+             setLoadingState('notifications', true); // Start loading
+             ui.markAllReadBtn.disabled = true; // Disable button immediately
+
+             try {
+                 const { error } = await state.supabase
+                     .from('user_notifications')
+                     .update({ is_read: true })
+                     .eq('user_id', state.currentUser.id)
+                     .eq('is_read', false);
+                 if (error) throw error;
+                 console.log("[Notifications] Mark all as read successful in DB.");
+                 // Re-fetch and re-render immediately
+                 const { unreadCount, notifications } = await fetchNotifications(state.currentUser.id, NOTIFICATION_FETCH_LIMIT);
+                 renderNotifications(unreadCount, notifications); // This handles empty state too
+                 showToast('SIGNÁLY VYMAZÁNY', 'Všechna oznámení byla označena jako přečtená.', 'success');
+             } catch (error) {
+                 console.error("[Notifications] Mark all as read error:", error);
+                 showToast('CHYBA PŘENOSU', 'Nepodařilo se označit všechna oznámení.', 'error');
+                 // Re-enable button only if error occurred and count might still be > 0
+                 const currentCount = parseInt(ui.notificationCount?.textContent?.replace('+', '') || '0');
+                 ui.markAllReadBtn.disabled = currentCount === 0;
+             } finally {
+                 setLoadingState('notifications', false); // Stop loading regardless of outcome
+             }
+         }
+        // *** MODIFICATION END: Added Notification Functions ***
 
         // --- Run Application ---
         document.addEventListener('DOMContentLoaded', initializeApp);
