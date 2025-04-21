@@ -1,5 +1,5 @@
 // Файл: procvicovani/vyuka/vyuka.js
-// Версия 12: Глобальный вызов MathJax для доски, еще более строгий запрет на "Stačí takto?".
+// Версия 13: Попытка исправить MathJax в чате через startup.promise, дальнейшее ужесточение промпта против "Stačí takto?".
 
 (function() { // IIFE для изоляции области видимости
     'use strict';
@@ -43,7 +43,7 @@
             aiStatusText: document.getElementById('ai-status-text'),
             clearBoardBtn: document.getElementById('clear-board-btn'),
             whiteboardContainer: document.getElementById('whiteboard-container'),
-            whiteboardContent: document.getElementById('whiteboard-content'), // Target for global MathJax
+            whiteboardContent: document.getElementById('whiteboard-content'),
             boardSpeakingIndicator: document.getElementById('board-speaking-indicator'),
             interactionPanel: document.querySelector('.interaction-panel'),
             interactionTabs: document.querySelector('.interaction-tabs'),
@@ -88,7 +88,7 @@
         const activityVisuals = { /* ... (no changes) ... */ test: { icon: 'fa-vial', class: 'test' }, exercise: { icon: 'fa-pencil-alt', class: 'exercise' }, badge: { icon: 'fa-medal', class: 'badge' }, diagnostic: { icon: 'fa-clipboard-check', class: 'diagnostic' }, lesson: { icon: 'fa-book-open', class: 'lesson' }, plan_generated: { icon: 'fa-calendar-alt', class: 'plan_generated' }, level_up: { icon: 'fa-level-up-alt', class: 'level_up' }, other: { icon: 'fa-info-circle', class: 'other' }, default: { icon: 'fa-check-circle', class: 'default' } };
 
         // --- Helper Functions ---
-        // ... (showToast, showError, hideError, sanitizeHTML, getInitials, formatTimestamp, formatRelativeTime, etc. remain unchanged) ...
+        // ... (showToast, showError, hideError, etc. remain unchanged) ...
         function showToast(title, message, type = 'info', duration = 4500) { if (!ui.toastContainer) return; try { const toastId = `toast-${Date.now()}`; const toastElement = document.createElement('div'); toastElement.className = `toast ${type}`; toastElement.id = toastId; toastElement.setAttribute('role', 'alert'); toastElement.setAttribute('aria-live', 'assertive'); toastElement.innerHTML = `<i class="toast-icon"></i><div class="toast-content">${title ? `<div class="toast-title">${sanitizeHTML(title)}</div>` : ''}<div class="toast-message">${sanitizeHTML(message)}</div></div><button type="button" class="toast-close" aria-label="Zavřít">&times;</button>`; const icon = toastElement.querySelector('.toast-icon'); icon.className = `toast-icon fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle'}`; toastElement.querySelector('.toast-close').addEventListener('click', () => { toastElement.classList.remove('show'); setTimeout(() => toastElement.remove(), 400); }); ui.toastContainer.appendChild(toastElement); requestAnimationFrame(() => { toastElement.classList.add('show'); }); setTimeout(() => { if (toastElement.parentElement) { toastElement.classList.remove('show'); setTimeout(() => toastElement.remove(), 400); } }, duration); } catch (e) { console.error("Chyba při zobrazování toastu:", e); } }
         function showError(message, isGlobal = false) { console.error("Došlo k chybě:", message); if (isGlobal && ui.globalError) { ui.globalError.innerHTML = `<div class="error-message"><i class="fas fa-exclamation-triangle"></i><div>${sanitizeHTML(message)}</div><button class="retry-button btn" onclick="location.reload()">Zkusit Znovu</button></div>`; ui.globalError.style.display = 'block'; } else { showToast('CHYBA SYSTÉMU', message, 'error', 6000); } }
         function hideError() { if (ui.globalError) ui.globalError.style.display = 'none'; }
@@ -98,7 +98,7 @@
         const formatRelativeTime = (timestamp) => { if (!timestamp) return ''; try { const now = new Date(); const date = new Date(timestamp); if (isNaN(date.getTime())) return '-'; const diffMs = now - date; const diffSec = Math.round(diffMs / 1000); const diffMin = Math.round(diffSec / 60); const diffHour = Math.round(diffMin / 60); const diffDay = Math.round(diffHour / 24); const diffWeek = Math.round(diffDay / 7); if (diffSec < 60) return 'Nyní'; if (diffMin < 60) return `Před ${diffMin} min`; if (diffHour < 24) return `Před ${diffHour} hod`; if (diffDay === 1) return `Včera`; if (diffDay < 7) return `Před ${diffDay} dny`; if (diffWeek <= 4) return `Před ${diffWeek} týdny`; return date.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric' }); } catch (e) { console.error("Chyba formátování času:", e, "Timestamp:", timestamp); return '-'; } };
         const openMenu = () => { if (ui.sidebar && ui.sidebarOverlay) { ui.sidebar.classList.add('active'); ui.sidebarOverlay.classList.add('active'); } };
         const closeMenu = () => { if (ui.sidebar && ui.sidebarOverlay) { ui.sidebar.classList.remove('active'); ui.sidebarOverlay.classList.remove('active'); } };
-        // *** MODIFIED renderMarkdown: Removed MathJax call completely ***
+        // *** renderMarkdown: NO MathJax call ***
         const renderMarkdown = (el, text) => {
             if (!el) return;
             const originalText = text || '';
@@ -120,20 +120,16 @@
                 el.innerHTML = `<p style="color:var(--accent-pink);">Chyba renderování Markdown.</p><pre><code>${sanitizeHTML(originalText)}</code></pre>`;
             }
         };
-        // --- NEW MathJax Helper for Whiteboard ---
+        // triggerWhiteboardMathJax (from v12, for whiteboard)
         const triggerWhiteboardMathJax = () => {
              if (ui.whiteboardContent && window.MathJax && typeof window.MathJax.typesetPromise === 'function') {
-                 console.log("[MathJax v12] Triggering global typeset for whiteboard...");
-                 // Use a slightly longer timeout to increase chance of content being ready
+                 console.log("[MathJax v13] Triggering global typeset for whiteboard...");
                  setTimeout(() => {
-                     window.MathJax.typesetPromise([ui.whiteboardContent]) // Target the whole container
-                         .then(() => console.log("[MathJax v12] Whiteboard typeset completed."))
-                         .catch(e => console.error("[MathJax v12] Whiteboard typeset error:", e));
-                 }, 100); // 100ms delay
-             } else {
-                 if (!ui.whiteboardContent) console.warn("[MathJax v12] Whiteboard content element not found for typesetting.");
-                 if (!(window.MathJax && typeof window.MathJax.typesetPromise === 'function')) console.warn("[MathJax v12] MathJax or typesetPromise not available.");
-             }
+                     window.MathJax.typesetPromise([ui.whiteboardContent])
+                         .then(() => console.log("[MathJax v13] Whiteboard typeset completed."))
+                         .catch(e => console.error("[MathJax v13] Whiteboard typeset error:", e));
+                 }, 100);
+             } else { /* ... logging warnings ... */ if (!ui.whiteboardContent) console.warn("[MathJax v13] Whiteboard content element not found for typesetting."); if (!(window.MathJax && typeof window.MathJax.typesetPromise === 'function')) console.warn("[MathJax v13] MathJax or typesetPromise not available."); }
         };
         // --- (Rest of helpers remain the same) ---
         const autoResizeTextarea = () => { if (!ui.chatInput) return; ui.chatInput.style.height = 'auto'; const scrollHeight = ui.chatInput.scrollHeight; const maxHeight = 110; ui.chatInput.style.height = `${Math.min(scrollHeight, maxHeight)}px`; ui.chatInput.style.overflowY = scrollHeight > maxHeight ? 'scroll' : 'hidden'; };
@@ -163,7 +159,7 @@
         // ... (No changes needed) ...
         const initializeSupabase = () => { try { if (!window.supabase) throw new Error("Supabase library not loaded."); state.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); if (!state.supabase) throw new Error("Client creation failed."); console.log("Supabase initialized."); return true; } catch (error) { console.error("Supabase init failed:", error); showToast("Chyba DB.", "error", 10000); return false; } };
         const initializeUI = () => { try { updateTheme(); setupEventListeners(); initTooltips(); if (ui.chatTabButton) ui.chatTabButton.classList.add('active'); if (ui.chatTabContent) ui.chatTabContent.classList.add('active'); if (state.speechSynthesisSupported) { if (window.speechSynthesis.getVoices().length > 0) { loadVoices(); } else if (window.speechSynthesis.onvoiceschanged !== undefined) { window.speechSynthesis.onvoiceschanged = loadVoices; } } else { console.warn("Speech Synthesis not supported."); } initializeSpeechRecognition(); initMouseFollower(); initHeaderScrollDetection(); updateCopyrightYear(); updateOnlineStatus(); manageUIState('initial'); console.log("UI Initialized successfully."); return true; } catch(error) { console.error("UI Init failed:", error); showError(`Chyba inicializace UI: ${error.message}`, true); return false; } };
-        const initializeApp = async () => { console.log("🚀 [Init Vyuka - Kyber v12] Starting..."); if (!initializeSupabase()) return; if (typeof marked === 'undefined') { showError("Kritická chyba: Knihovna 'marked.js' se nepodařilo načíst. Obnovte stránku.", true); if (ui.initialLoader) { ui.initialLoader.classList.add('hidden'); setTimeout(() => { if (ui.initialLoader) ui.initialLoader.style.display = 'none'; }, 300); } return; } console.log("✅ Marked library found."); if (ui.initialLoader) { ui.initialLoader.style.display = 'flex'; ui.initialLoader.classList.remove('hidden'); } if (ui.mainContent) ui.mainContent.style.display = 'none'; try { console.log("[INIT] Checking auth session..."); const { data: { session }, error: sessionError } = await state.supabase.auth.getSession(); if (sessionError) throw new Error(`Nepodařilo se ověřit sezení: ${sessionError.message}`); if (!session || !session.user) { console.log('[Init Vyuka - Kyber] Not logged in. Redirecting...'); window.location.href = '/auth/index.html'; return; } state.currentUser = session.user; console.log(`[INIT] User authenticated (ID: ${state.currentUser.id}).`); setLoadingState('user', true); state.currentProfile = await fetchUserProfile(state.currentUser.id); updateUserInfoUI(); setLoadingState('user', false); if (!state.currentProfile) { showError("Profil nenalezen nebo se nepodařilo načíst.", true); if (ui.initialLoader) { ui.initialLoader.classList.add('hidden'); setTimeout(() => { if (ui.initialLoader) ui.initialLoader.style.display = 'none'; }, 300); } if (ui.mainContent) ui.mainContent.style.display = 'flex'; manageUIState('error', { errorMessage: 'Profil nenalezen.' }); return; } if (!initializeUI()) return; console.log("[INIT] Loading initial topic and notifications..."); const loadNotificationsPromise = fetchNotifications(state.currentUser.id, NOTIFICATION_FETCH_LIMIT).then(({ unreadCount, notifications }) => renderNotifications(unreadCount, notifications)).catch(err => { console.error("Chyba při úvodním načítání notifikací:", err); renderNotifications(0, []); }); await loadNotificationsPromise; const loadTopicPromise = loadNextUncompletedTopic(); await loadTopicPromise; if (ui.initialLoader) { ui.initialLoader.classList.add('hidden'); setTimeout(() => { if (ui.initialLoader) ui.initialLoader.style.display = 'none'; }, 500); } if (ui.mainContent) { ui.mainContent.style.display = 'flex'; requestAnimationFrame(() => { ui.mainContent.classList.add('loaded'); }); } requestAnimationFrame(initScrollAnimations); console.log("✅ [Init Vyuka - Kyber v12] Page Initialized."); } catch (error) { console.error("❌ [Init Vyuka - Kyber] Critical initialization error:", error); if (ui.initialLoader && !ui.initialLoader.classList.contains('hidden')) { ui.initialLoader.innerHTML = `<p style="color: var(--accent-pink);">CHYBA (${error.message}). Obnovte.</p>`; } else { showError(`Chyba inicializace: ${error.message}`, true); } if (ui.mainContent) ui.mainContent.style.display = 'flex'; setLoadingState('all', false); } };
+        const initializeApp = async () => { console.log("🚀 [Init Vyuka - Kyber v13] Starting..."); if (!initializeSupabase()) return; if (typeof marked === 'undefined') { showError("Kritická chyba: Knihovna 'marked.js' se nepodařilo načíst. Obnovte stránku.", true); if (ui.initialLoader) { ui.initialLoader.classList.add('hidden'); setTimeout(() => { if (ui.initialLoader) ui.initialLoader.style.display = 'none'; }, 300); } return; } console.log("✅ Marked library found."); if (ui.initialLoader) { ui.initialLoader.style.display = 'flex'; ui.initialLoader.classList.remove('hidden'); } if (ui.mainContent) ui.mainContent.style.display = 'none'; try { console.log("[INIT] Checking auth session..."); const { data: { session }, error: sessionError } = await state.supabase.auth.getSession(); if (sessionError) throw new Error(`Nepodařilo se ověřit sezení: ${sessionError.message}`); if (!session || !session.user) { console.log('[Init Vyuka - Kyber] Not logged in. Redirecting...'); window.location.href = '/auth/index.html'; return; } state.currentUser = session.user; console.log(`[INIT] User authenticated (ID: ${state.currentUser.id}).`); setLoadingState('user', true); state.currentProfile = await fetchUserProfile(state.currentUser.id); updateUserInfoUI(); setLoadingState('user', false); if (!state.currentProfile) { showError("Profil nenalezen nebo se nepodařilo načíst.", true); if (ui.initialLoader) { ui.initialLoader.classList.add('hidden'); setTimeout(() => { if (ui.initialLoader) ui.initialLoader.style.display = 'none'; }, 300); } if (ui.mainContent) ui.mainContent.style.display = 'flex'; manageUIState('error', { errorMessage: 'Profil nenalezen.' }); return; } if (!initializeUI()) return; console.log("[INIT] Loading initial topic and notifications..."); const loadNotificationsPromise = fetchNotifications(state.currentUser.id, NOTIFICATION_FETCH_LIMIT).then(({ unreadCount, notifications }) => renderNotifications(unreadCount, notifications)).catch(err => { console.error("Chyba při úvodním načítání notifikací:", err); renderNotifications(0, []); }); await loadNotificationsPromise; const loadTopicPromise = loadNextUncompletedTopic(); await loadTopicPromise; if (ui.initialLoader) { ui.initialLoader.classList.add('hidden'); setTimeout(() => { if (ui.initialLoader) ui.initialLoader.style.display = 'none'; }, 500); } if (ui.mainContent) { ui.mainContent.style.display = 'flex'; requestAnimationFrame(() => { ui.mainContent.classList.add('loaded'); }); } requestAnimationFrame(initScrollAnimations); console.log("✅ [Init Vyuka - Kyber v13] Page Initialized."); } catch (error) { console.error("❌ [Init Vyuka - Kyber] Critical initialization error:", error); if (ui.initialLoader && !ui.initialLoader.classList.contains('hidden')) { ui.initialLoader.innerHTML = `<p style="color: var(--accent-pink);">CHYBA (${error.message}). Obnovte.</p>`; } else { showError(`Chyba inicializace: ${error.message}`, true); } if (ui.mainContent) ui.mainContent.style.display = 'flex'; setLoadingState('all', false); } };
 
         // --- User Profile & Auth ---
         // ... (No changes needed) ...
@@ -181,9 +177,10 @@
         const manageButtonStates = () => { const canInteractBase = !!state.currentTopic && !state.geminiIsThinking && !state.topicLoadInProgress; const canChat = canInteractBase || (!!state.currentTopic && state.aiIsWaitingForAnswer); const canContinueOrComplete = canInteractBase && !state.aiIsWaitingForAnswer; if (ui.sendButton) { ui.sendButton.disabled = !canChat || state.isListening || state.geminiIsThinking; ui.sendButton.innerHTML = state.geminiIsThinking ? '<i class="fas fa-spinner fa-spin"></i>' : '<i class="fas fa-paper-plane"></i>'; } if (ui.chatInput) { ui.chatInput.disabled = !canChat || state.isListening || state.geminiIsThinking; ui.chatInput.placeholder = state.isListening ? "Poslouchám..." : (canChat ? "Zeptejte se nebo odpovězte..." : "Počkejte prosím..."); } if (ui.continueBtn) { ui.continueBtn.disabled = !canContinueOrComplete; ui.continueBtn.style.display = state.currentTopic ? 'inline-flex' : 'none'; } if (ui.markCompleteBtn) { ui.markCompleteBtn.disabled = !canContinueOrComplete; ui.markCompleteBtn.style.display = state.currentTopic ? 'inline-flex' : 'none'; } if (ui.clearBoardBtn) { ui.clearBoardBtn.disabled = !ui.whiteboardContent || ui.whiteboardContent.children.length === 0 || state.geminiIsThinking; } if (ui.stopSpeechBtn) { ui.stopSpeechBtn.disabled = !state.speechSynthesisSupported || !window.speechSynthesis.speaking; } if (ui.micBtn) { const canUseMic = canChat && state.speechRecognitionSupported && !state.geminiIsThinking; ui.micBtn.disabled = !canUseMic; ui.micBtn.classList.toggle('listening', state.isListening); ui.micBtn.title = !state.speechRecognitionSupported ? "Nepodporováno" : state.isListening ? "Zastavit hlasový vstup" : "Zahájit hlasový vstup"; } const isChatEmptyOrInitial = ui.chatMessages?.children.length === 0 || !!ui.chatMessages?.querySelector('.initial-chat-interface'); if (ui.clearChatBtn) { ui.clearChatBtn.disabled = state.geminiIsThinking || isChatEmptyOrInitial; } if (ui.saveChatBtn) { ui.saveChatBtn.disabled = state.geminiIsThinking || isChatEmptyOrInitial; } let statusText = "Připraven..."; if (state.isLoading.currentTopic || state.topicLoadInProgress) statusText = "Načítám téma..."; else if (state.geminiIsThinking) statusText = "Přemýšlím..."; else if (state.isListening) statusText = "Poslouchám..."; else if (window.speechSynthesis.speaking) statusText = "Mluvím..."; else if (state.aiIsWaitingForAnswer) statusText = "Čekám na vaši odpověď..."; else if (!state.currentTopic) statusText = "Žádné téma..."; if (ui.aiStatusText) ui.aiStatusText.textContent = statusText; };
 
         // --- Whiteboard ---
-        // *** MODIFIED appendToWhiteboard: Removed MathJax call, calls triggerWhiteboardMathJax instead ***
+        // updateTheme, clearWhiteboard, appendToWhiteboard
         const updateTheme = () => { /* ... */ console.log("Updating theme, isDarkMode:", state.isDarkMode); document.documentElement.classList.toggle('dark', state.isDarkMode); document.documentElement.classList.toggle('light', !state.isDarkMode); document.documentElement.style.setProperty('--board-highlight-color', state.isDarkMode ? 'var(--board-highlight-dark)' : 'var(--board-highlight-light)'); };
         const clearWhiteboard = (showToastMsg = true) => { /* ... */ if (!ui.whiteboardContent) return; ui.whiteboardContent.innerHTML = ''; state.boardContentHistory = []; console.log("Whiteboard cleared."); if (showToastMsg) showToast('Vymazáno', "Tabule vymazána.", "info"); manageButtonStates(); };
+        // *** MODIFIED appendToWhiteboard: Calls triggerWhiteboardMathJax ***
         const appendToWhiteboard = (markdownContent, commentaryText) => {
             if (!ui.whiteboardContent || !ui.whiteboardContainer) return;
             const chunkDiv = document.createElement('div');
@@ -191,11 +188,10 @@
             const contentDiv = document.createElement('div');
             const originalText = markdownContent || '';
 
-            // Render Markdown using helper (which no longer calls MathJax)
-            renderMarkdown(contentDiv, originalText);
+            renderMarkdown(contentDiv, originalText); // Render without MathJax call inside
 
-            // Add TTS button
             const ttsButton = document.createElement('button');
+            /* ... tts button setup ... */
             ttsButton.className = 'tts-listen-btn btn-tooltip';
             ttsButton.title = 'Poslechnout komentář';
             ttsButton.innerHTML = '<i class="fas fa-volume-up"></i>';
@@ -213,7 +209,7 @@
             console.log("Appended content to whiteboard.");
 
             // Trigger global MathJax typesetting for the whiteboard
-            triggerWhiteboardMathJax();
+            triggerWhiteboardMathJax(); // Call the helper
 
             initTooltips();
             manageButtonStates();
@@ -231,7 +227,7 @@
         // --- Learning Session & Chat ---
         const startLearningSession = async () => { /* ... */ if (!state.currentTopic) return; state.currentSessionId = generateSessionId(); clearInitialChatState(); manageUIState('requestingExplanation'); const prompt = _buildInitialPrompt(); await sendToGemini(prompt); };
         const requestContinue = async () => { /* ... */ console.log("[RequestContinue] Triggered. AI Waiting:", state.aiIsWaitingForAnswer); if (state.geminiIsThinking || !state.currentTopic) return; if (state.aiIsWaitingForAnswer) { showToast("Nejprve odpovězte na úlohu v chatu.", "warning", 3000); console.warn("[RequestContinue] Blocked: AI is waiting for an answer."); return; } const prompt = _buildContinuePrompt(); await sendToGemini(prompt); };
-        // *** MODIFIED addChatMessage: Removed MathJax call ***
+        // *** MODIFIED addChatMessage: Added explicit targeted MathJax call via startup.promise ***
         const addChatMessage = async (displayMessage, sender, saveToDb = true, timestamp = new Date(), ttsText = null, originalContent = null) => {
              if (!ui.chatMessages) return;
              clearInitialChatState();
@@ -245,10 +241,10 @@
              bubbleDiv.className = 'message-bubble';
              const bubbleContentDiv = document.createElement('div');
              bubbleContentDiv.className = 'message-bubble-content';
-             const textContentSpan = document.createElement('span');
+             const textContentSpan = document.createElement('span'); // Target for rendering and typesetting
              textContentSpan.className = 'message-text-content';
 
-             renderMarkdown(textContentSpan, displayMessage); // Render content into span (No MathJax here)
+             renderMarkdown(textContentSpan, displayMessage); // Render content into span (No MathJax call inside)
 
              bubbleContentDiv.appendChild(textContentSpan);
 
@@ -259,7 +255,17 @@
              div.innerHTML = avatarDiv + bubbleDiv.outerHTML + timeDiv;
              ui.chatMessages.appendChild(div);
 
-             // MathJax call removed from here
+             // --- Explicit MathJax call for the chat message span via startup promise ---
+             if (textContentSpan && window.MathJax && typeof window.MathJax.startup === 'object' && (displayMessage.includes('$') || displayMessage.includes('\\'))) {
+                  console.log(`[MathJax v13] Queueing typeset for span in chat message: ${id}`);
+                  MathJax.startup.promise.then(() => {
+                      console.log(`[MathJax v13] Startup promise resolved for ${id}. Typesetting chat span...`);
+                      MathJax.typesetPromise([textContentSpan]) // Target the specific span
+                          .then(() => console.log(`[MathJax v13] Typeset successful for chat span ${id}`))
+                          .catch((err) => console.error(`[MathJax v13] Typeset error for chat span ${id}: ${err.message}`));
+                  }).catch((err) => console.error(`[MathJax v13] Startup promise error: ${err.message}`));
+              }
+             // --------------------------------------------------------------------------
 
              div.scrollIntoView({ behavior: 'smooth', block: 'end' });
              initTooltips();
@@ -283,7 +289,7 @@
         const processGeminiResponse = (rawText, timestamp) => { removeThinkingIndicator(); state.lastInteractionTime = Date.now(); console.log("[ProcessGemini] Processing Raw Response:", rawText ? rawText.substring(0, 100) + "..." : "Empty Response"); if (!rawText) { handleGeminiError("AI vrátilo prázdnou odpověď.", timestamp); manageButtonStates(); return; } const { boardMarkdown, ttsCommentary, chatText } = parseGeminiResponse(rawText); let aiResponded = false; const cleanedChatText = cleanChatMessage(chatText); console.log(`[ProcessGemini] Parsed-> Board: ${!!boardMarkdown}, TTS: ${!!ttsCommentary}, Chat: ${!!cleanedChatText}`); if (boardMarkdown) { appendToWhiteboard(boardMarkdown, ttsCommentary || boardMarkdown); if (ttsCommentary) { speakText(ttsCommentary); } aiResponded = true; state.aiIsWaitingForAnswer = false; const lowerBoard = boardMarkdown.toLowerCase(); const taskKeywords = ['úloha k řešení', 'vyřešte tento příklad', 'zodpovězte následující', 'úkol:', 'otázka k procvičení']; const taskHeaderRegex = /###\s*(úloha|příklad k řešení|úkol|otázka)/i; const zadaniEndsWithQuestion = /\*\*zadání:\*\*[\s\S]*\?$/i; if (taskKeywords.some(kw => lowerBoard.includes(kw)) || taskHeaderRegex.test(boardMarkdown) || zadaniEndsWithQuestion.test(boardMarkdown.replace(/\s+/g, ' '))) { state.aiIsWaitingForAnswer = true; console.log("[ProcessGemini] Task DETECTED on board, setting aiIsWaitingForAnswer = true."); } else { console.log("[ProcessGemini] No task detected on board."); } } if (cleanedChatText) { const ttsForChat = (!boardMarkdown && ttsCommentary) ? ttsCommentary : null; addChatMessage(cleanedChatText, 'gemini', true, timestamp, ttsForChat, chatText); aiResponded = true; } else if (ttsCommentary && !boardMarkdown) { speakText(ttsCommentary); aiResponded = true; } if (!aiResponded && !boardMarkdown && !ttsCommentary && !cleanedChatText) { addChatMessage("(AI neodpovědělo očekávaným formátem nebo odpověď byla prázdná)", 'gemini', false, timestamp, null, rawText || "(Prázdná/neplatná odpověď)"); console.warn("AI sent no usable content."); state.aiIsWaitingForAnswer = false; } if (state.aiIsWaitingForAnswer) { manageUIState('waitingForAnswer'); } else { manageUIState('learning'); } };
 
         // --- Prompts and Gemini Calls ---
-        // *** MODIFIED PROMPTS v12: Stricter rule against "Stačí takto?" ***
+        // *** MODIFIED PROMPTS v13: Stricter rule against "Stačí takto?" + Example ***
         const _buildInitialPrompt = () => { /* ... (same as v10) ... */ const level = state.currentProfile?.skill_level || 'středně pokročilá'; const topicName = state.currentTopic?.name || 'Neznámé téma'; return `Jsi expertní AI Tutor "Justax", specialista na přípravu na PŘIJÍMACÍ ZKOUŠKY z matematiky pro 9. třídu ZŠ v ČR. Komunikuješ v ČEŠTINĚ. Tvé vysvětlení musí být strukturované, přesné a profesionální. Téma lekce: "${topicName}". Cílová úroveň studenta: "${level}". HLAVNÍ PRAVIDLA (DODRŽUJ VŽDY!): 1. **Obsah na tabuli:** Všechny klíčové informace (definice, věty, vzorce), řešené příklady a ÚLOHY K ŘEŠENÍ MUSÍ být ve formátu Markdown v sekci [BOARD_MARKDOWN]. Tabule je HLAVNÍ výukový prostor. 2. **Hlasový komentář:** Sekce [TTS_COMMENTARY] slouží pro DOPLŇUJÍCÍ hlasový komentář k obsahu na tabuli (shrnutí, kontext, důraz). NEOPAKUJ doslova text z tabule. 3. **Chat:** Text mimo značky používej MINIMÁLNĚ (pozdravy). NIKDY v chatu nezadávej nové úlohy/příklady. 4. **Struktura a Náročnost:** Postupuj logicky: základy -> složitější koncepty -> **náročné příklady úrovně přijímaček**. Po vysvětlení VŽDY zařaď řešený příklad a NÁSLEDNĚ úlohu k řešení studentem (na tabuli!). Používej RŮZNÉ typy úloh (výpočty, slovní úlohy, úlohy s více kroky, zlomky, parametry - pokud relevantní). 5. **Interakce:** * Po zadání ÚLOHY K ŘEŠENÍ na tabuli, v [TTS_COMMENTARY] **JASNĚ uveď, že očekáváš odpověď** studenta v chatu. **NEPOKLÁDEJ další otázku v chatu.** Systém zablokuje tlačítko "Pokračuj", dokud student neodpoví. * Po běžném vysvětlení nebo řešeném příkladu **ABSOLUTNĚ NEČEKEJ na odpověď** a **STRIKTNĚ ZAKÁZÁNO ptát se "Je to jasné?"**, "Rozumíš?", "Pokračujeme?". Student sám klikne na "Pokračuj". 6. **Fokus na Téma:** **STRIKTNĚ se drž tématu lekce: "${topicName}".** Nevysvětluj nesouvisející pokročilé koncepty (např. složité grafy, intervaly, derivace), pokud nejsou PŘÍMOU součástí tohoto konkrétního tématu pro 9. třídu. PRVNÍ KROK: Začni se ZÁKLADNÍ DEFINICÍ nebo klíčovým konceptem tématu "${topicName}". Poskytni JEDEN JEDNODUCHÝ řešený příklad. POŽADOVANÝ FORMÁT ODPOVĚDI: [BOARD_MARKDOWN]: \`\`\`markdown ## ${topicName} - Základy ### [Krátký, výstižný podnadpis, např. Definice Lineární Rovnice] (Zde napiš stručnou, přesnou definici nebo úvodní koncept. Použij **tučné písmo** pro termíny a $$...$$pro matematiku.) ### První řešený příklad (Základní) (Zde uveď první VELMI JEDNODUCHÝ řešený příklad ilustrující definici. Jasně odděl zadání a kroky řešení.) **Zadání:** ... **Řešení:** * Krok 1: ... ($$...$$) * Krok 2: ... ($$...$$) * Výsledek:$$...$$ \`\`\` [TTS_COMMENTARY]: (Zde napiš hlasový komentář: Stručné přivítání, představení tématu a shrnutí toho, co je na tabuli – definice a první příklad. Zdůrazni klíčový bod. NEPOKLÁDEJ OTÁZKU.) (Text do chatu - VOLITELNÉ, velmi krátký, např. "Začněme.")`; };
         const _buildContinuePrompt = () => { /* ... (same as v10) ... */ const level = state.currentProfile?.skill_level || 'středně pokročilá'; const topicName = state.currentTopic?.name || 'Neznámé téma'; return `Pokračuj ve výkladu tématu "${topicName}" pro studenta úrovně "${level}" připravujícího se na PŘIJÍMACÍ ZKOUŠKY 9. třídy. Naváž logicky na PŘEDCHOZÍ OBSAH NA TABULI. HLAVNÍ PRAVIDLA (PŘIPOMENUTÍ!): - Všechny NOVÉ informace, řešené příklady a ÚLOHY K ŘEŠENÍ patří VÝHRADNĚ do [BOARD_MARKDOWN]. - [TTS_COMMENTARY] použij pro DOPLNĚNÍ k tabuli. - STRIKTNĚ se drž tématu "${topicName}" a úrovně 9. třídy. Žádné nesouvisející koncepty. - Postupně ZVYŠUJ NÁROČNOST úloh k úrovni přijímaček (více kroků, zlomky, slovní úlohy, parametry...). - Po zadání ÚLOHY K ŘEŠENÍ na tabuli, v [TTS_COMMENTARY] **JASNĚ řekni, že čekáš odpověď** v chatu. Systém vynutí odpověď. - Po teorii/řešeném příkladu **ABSOLUTNĚ NEČEKEJ na odpověď** a **STRIKTNĚ ZAKÁZÁNO ptát se "Je to jasné?", "Rozumíš?", "Pokračujeme?".** Student klikne "Pokračuj". DALŠÍ KROK: Vyber a vygeneruj JEDEN z následujících kroků: A) Další část teorie/vysvětlení navazující na předchozí. B) Další ŘEŠENÝ příklad (**složitější** než předchozí, může být i slovní úloha). C) ÚLOHU K ŘEŠENÍ pro studenta (**náročnost úrovně přijímaček**, může být i slovní úloha). POŽADOVANÝ FORMÁT ODPOVĚDI: [BOARD_MARKDOWN]: \`\`\`markdown ### [Nadpis další části / Řešený příklad (Typ) / Úloha k řešení (Typ)] (Zde uveď text vysvětlení NEBO zadání a PODROBNÉ řešení příkladu NEBO POUZE ZADÁNÍ úlohy k řešení. Používej Markdown, $$...$$.) \`\`\` [TTS_COMMENTARY]: (Zde napiš hlasový komentář k NOVÉMU obsahu. Pokud jsi zadal ÚLOHU K ŘEŠENÍ, **JASNĚ řekni:** "Nyní zkuste tuto úlohu vyřešit vy a napište mi výsledek/postup do chatu." Pokud jde o teorii/řešený příklad, stručně shrň hlavní myšlenku nebo upozorni na klíčový krok. **NEPOKLÁDEJ OTÁZKU.**) (Text do chatu - POUZE pokud NEZADÁVÁŠ úlohu k řešení, např. "Podíváme se na další typ.")`; };
         const _buildChatInteractionPrompt = (userText) => {
@@ -307,7 +313,7 @@ TVŮJ ÚKOL:
 2.  **NEVYSVĚTLUJ novou látku** ani nezadávej nové příklady v chatu. Odkazuj na tabuli nebo řekni, že to bude probráno dále.
 3.  **Pokud studentův dotaz směřuje MIMO aktuální téma "${topicName}", jemně ho vrať zpět.**
 4.  Udržuj profesionální, ale nápomocný tón (úroveň "${level}").
-5.  **Na konci své odpovědi NEPOKLÁDEJ otázky typu "Stačí takto?", "Je to srozumitelnější?" apod. Odpověz POUZE na otázku a SKONČI.** Nechej iniciativu dalšího kroku na studentovi (tlačítko "Pokračuj").`; // *** MODIFIED instruction here ***
+5.  **Na konci své odpovědi NEPOKLÁDEJ otázky typu "Stačí takto?", "Je to srozumitelnější?" apod. Odpověz POUZE na otázku a SKONČI.** Příklad POUZE přímé odpovědi: "Součet je 25 a rozdíl 7." NEBO "Ano, tento krok je správný." NIC VÍC.`; // *** MODIFIED instruction here ***
             }
 
             return `${baseInstruction}
@@ -316,15 +322,15 @@ PRAVIDLA CHATU (PŘIPOMENUTÍ): Odpovídej POUZE běžným textem do chatu. Nepo
         const _buildGeminiPayloadContents = (userPrompt, isChatInteraction = false) => {
             const level = state.currentProfile?.skill_level || 'středně pokročilá';
             const topicName = state.currentTopic?.name || 'Neznámé téma';
-            // *** MODIFIED System Prompt v12 ***
+            // *** System Prompt v13 ***
             const systemInstruction = `Jsi expertní AI Tutor "Justax", specialista na přípravu na PŘIJÍMACÍ ZKOUŠKY z matematiky pro 9. třídu ZŠ v ČR. Komunikuješ v ČEŠTINĚ. VŽDY dodržuj tato pravidla:
 1.  **Obsah na tabuli:** Všechny definice, vzorce, vysvětlení, ŘEŠENÉ PŘÍKLADY a ÚLOHY K ŘEŠENÍ patří VÝHRADNĚ do [BOARD_MARKDOWN]: \`\`\`markdown ... \`\`\`. Používej Markdown a $$...$$ pro matematiku.
 2.  **Hlasový komentář:** [TTS_COMMENTARY]: ... používej pro DOPLNĚNÍ k tabuli, NEOPAKUJ text doslova.
 3.  **Chat:** Přímý chat (mimo značky) používej MINIMÁLNĚ. NIKDY v něm nezadávej nové úlohy/příklady.
 4.  **Struktura a Náročnost:** Postupuj logicky, zvyšuj náročnost úloh k úrovni PŘIJÍMACÍCH ZKOUŠEK 9. třídy (více kroků, zlomky, slovní úlohy...).
 5.  **Interakce:** Po zadání ÚLOHY K ŘEŠENÍ na tabuli, v [TTS_COMMENTARY] jasně řekni, že čekáš na odpověď studenta v chatu (systém vynutí odpověď). V JINÝCH případech NEČEKEJ na odpověď a NEPOKLÁDEJ zbytečné dotazy ("Jasné?", "Pokračujeme?").
-6.  **Fokus na Téma:** **STRIKTNĚ se drž tématu lekce: "${topicName}".** Nevysvětluj nesouvisející pokročilé koncepty (např. složité grafy, intervaly, derivace), pokud nejsou PŘÍMOU součástí tohoto konkrétního tématu pro 9. třídu.
-7.  **Odpovědi v chatu:** Pokud student ODPOVÍDÁ na úlohu nebo POKLÁDÁ OTÁZKU, odpovídej POUZE textem do CHATU podle instrukcí v uživatelském promptu. Po správné odpovědi studenta JEN potvrď a UKONČI odpověď. **Nikdy nekonči své odpovědi v CHATU otázkami jako "Stačí takto?", "Je to jasné?" apod.**`; // *** Added strict rule here ***
+6.  **Fokus na Téma:** **STRIKTNĚ se drž tématu lekce: "${topicName}".** Nevysvětluj nesouvisející pokročilé koncepty, pokud nejsou PŘÍMOU součástí tématu pro 9. třídu.
+7.  **Odpovědi v chatu:** Pokud student ODPOVÍDÁ na úlohu nebo POKLÁDÁ OTÁZKU, odpovídej POUZE textem do CHATU podle instrukcí v uživatelském promptu. Po správné odpovědi studenta JEN potvrď a UKONČI odpověď. **Když odpovídáš na otázku studenta, odpověz PŘÍMO a ihned SKONČI. NIKDY nekonči otázkami jako "Stačí takto?", "Je to jasné?" apod.**`; // *** Updated rule 7 ***
 
             const history = state.geminiChatContext.slice(-MAX_GEMINI_HISTORY_TURNS * 2);
             const currentUserMessage = { role: "user", parts: [{ text: userPrompt }] };
