@@ -1,5 +1,5 @@
 /* --- START: Cyberpunk CSS Theme (Adapted for vyuka.html) --- */
-/* --- Версия 19: Avatar Styling Added, Chat Height Increased, MathJax Fix --- */
+/* --- Версия 20: Rebalanced Width (Presenter 55%, Chat 45%), Height Optimized, v19 Fixes Kept --- */
 
 /* --- Global Settings & Variables (Enhanced) --- */
 :root {
@@ -477,9 +477,9 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
 .main-content-wrapper { padding: 0; flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 0; /* Crucial for flexbox layout */ }
 .call-interface { flex-grow: 1; display: flex; overflow: hidden; padding: 1.8rem var(--container-padding-x); gap: 1.8rem; min-height: 0; /* Important */ }
 
-/* *** MODIFICATION v19: Adjust flex properties FURTHER for chat height *** */
+/* *** MODIFICATION v20: Rebalanced Width (Presenter 55%, Chat 45%) *** */
 .ai-presenter-area {
-	flex: 1 1 40%; /* Let presenter shrink more, basis 40% */
+	flex: 1 1 55%; /* Presenter gets slightly more base width */
 	display: flex;
 	flex-direction: column;
 	background-color: var(--card-bg);
@@ -489,11 +489,11 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
 	border: 1px solid var(--border-color-light);
 	min-height: 0;
 	position: relative;
-	min-width: 400px; /* Reduce min width slightly */
+	min-width: 450px; /* Keep a decent min width for presenter */
     transition: box-shadow var(--transition-medium);
 }
 .interaction-panel {
-	flex: 2 1 60%; /* Give chat more grow weight and basis */
+	flex: 1 1 45%; /* Chat gets slightly less base width, but equal grow factor */
     max-width: none; /* Ensure no max width */
 	min-width: 400px; /* Keep a reasonable min width */
 	display: flex;
@@ -507,7 +507,7 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
     transition: box-shadow var(--transition-medium);
 }
 .ai-presenter-area:hover, .interaction-panel:hover { box-shadow: var(--shadow-card); }
-/* *** END MODIFICATION v19 *** */
+/* *** END MODIFICATION v20 *** */
 
 /* AI Presenter (Whiteboard Area) */
 .ai-presenter-header { padding: 0.9rem 1.3rem; border-bottom: 1px solid var(--border-color-light); display: flex; align-items: center; justify-content: space-between; background-color: rgba(var(--dark-purple-accent-rgb), 0.5); flex-shrink: 0; min-height: 60px; }
@@ -585,21 +585,21 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
 .chat-message.user { margin-left: auto; flex-direction: row-reverse; }
 /* --- START MODIFICATION v19: Message Avatar Styling --- */
 .message-avatar {
-    width: 40px; height: 40px; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-weight: 600; font-size: 1.1rem; flex-shrink: 0;
-    box-shadow: 0 3px 6px rgba(0,0,0,0.35);
-    border: 2px solid rgba(var(--white-rgb), 0.08);
-    background-color: var(--accent-secondary); /* Default/Fallback */
-    color: var(--white);
+	width: 40px; height: 40px; border-radius: 50%;
+	display: flex; align-items: center; justify-content: center;
+	font-weight: 600; font-size: 1.1rem; flex-shrink: 0;
+	box-shadow: 0 3px 6px rgba(0,0,0,0.35);
+	border: 2px solid rgba(var(--white-rgb), 0.08);
+	background-color: var(--accent-secondary); /* Default/Fallback */
+	color: var(--white);
 }
 .chat-message.user .message-avatar {
-    background: var(--gradient-success); /* Use gradient for user */
-    color: var(--text-fixed-dark); /* Ensure text contrast on gradient */
+	background: var(--gradient-success); /* Use gradient for user */
+	color: var(--text-fixed-dark); /* Ensure text contrast on gradient */
 }
 .chat-message.model .message-avatar {
-    background: var(--gradient-button); /* Use AI gradient */
-    color: var(--text-fixed-dark); /* Ensure text contrast on gradient */
+	background: var(--gradient-button); /* Use AI gradient */
+	color: var(--text-fixed-dark); /* Ensure text contrast on gradient */
 }
 /* Add this if you use images */
 .message-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
@@ -612,8 +612,8 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
 .message-timestamp { font-size: 0.78rem; color: var(--text-muted); margin-top: 6px; display: block; text-align: left; opacity: 0.75; }
 .chat-message.user .message-timestamp { text-align: right; }
 /* MathJax in chat */
-.message-bubble mjx-container { background: transparent; border: none; padding: 0.3rem; margin: 0.3rem 0; overflow-x: auto; overflow-y: hidden; max-width: 100%; } /* Added overflow-x */
-.message-bubble mjx-math { font-size: 1.08em !important; } /* Slightly larger, important for override */
+.message-bubble mjx-container { background: rgba(var(--white-rgb), 0.05); border: none; padding: 0.3rem; margin: 0.3rem 0; overflow-x: auto; overflow-y: hidden; max-width: 100%; border-radius: 6px; } /* Added style for MathJax in chat */
+.message-bubble mjx-math { font-size: 1.08em !important; display: inline-block; white-space: normal;} /* Ensure MathJax size and wrapping */
 .chat-message.model .message-bubble mjx-math { color: var(--accent-cyan); }
 .chat-message.user .message-bubble mjx-math { color: #e8e8ff; } /* Brighter user math */
 /* Chat TTS button */
@@ -752,8 +752,8 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
 .sidebar-overlay.active { display: block; opacity: 1; }
 @media (max-width: 1200px) {
 	/* Slightly adjust proportions if needed on smaller desktops */
-	.ai-presenter-area { flex-basis: 45%; min-width: 400px;} /* Adjust */
-	.interaction-panel { flex-basis: 55%; min-width: 380px;} /* Adjust */
+	.ai-presenter-area { flex-basis: 50%; min-width: 400px;} /* Re-balanced slightly */
+	.interaction-panel { flex-basis: 50%; min-width: 380px;}
 	.call-interface { padding: 1rem; gap: 1rem; }
 }
 @media (max-width: 992px) {
@@ -770,7 +770,7 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
 	#sidebar-close-toggle { display: none !important; }
 	/* Stack presenter and chat */
 	.call-interface { flex-direction: column; height: auto; padding: 0.8rem; gap: 0.8rem; }
-	.ai-presenter-area { flex: 1 1 45%; min-height: 400px; order: 1; min-width: 0; flex-basis: auto; }
+	.ai-presenter-area { flex: 1 1 45%; min-height: 400px; order: 1; min-width: 0; flex-basis: auto; } /* Keep heights similar */
 	.interaction-panel { flex: 1 1 55%; min-height: 400px; order: 2; max-width: none; width: 100%; min-width: 0; flex-basis: auto; }
 }
 @media (max-width: 576px) {
@@ -827,33 +827,38 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
 }
 /* --- END: Cyberpunk CSS Theme --- */
 
-/* MathJax specific */
+/* --- START MODIFICATION v19/v20: MathJax specific styles --- */
+/* Style for MathJax containers in chat bubbles */
 .message-bubble mjx-container {
-    overflow-x: auto; /* Allow horizontal scroll */
+    overflow-x: auto; /* Allow horizontal scroll for wide equations */
     overflow-y: hidden;
-    max-width: 100%; /* Ensure it doesn't break layout */
-    padding: 0.5rem; /* Add some padding */
-    border-radius: 6px; /* Match other code blocks */
+    max-width: 100%; /* Prevent breaking bubble layout */
+    padding: 0.5rem; /* Add some internal padding */
+    border-radius: 6px;
     background-color: rgba(var(--white-rgb), 0.05); /* Subtle background */
-    margin: 0.5rem 0; /* Space around */
+    margin: 0.5rem 0; /* Vertical spacing */
+    display: block; /* Ensure it behaves like a block */
 }
+/* Style for MathJax containers on the whiteboard */
 #whiteboard-content mjx-container {
     background: rgba(var(--accent-primary-rgb), 0.04);
     border: 1px solid var(--border-color-medium);
     padding: 0.6rem;
     border-radius: 8px;
-    display: block; /* Ensure it takes block space */
-    margin: 1rem 0;
+    display: block; /* Ensure block behavior */
+    margin: 1rem 0; /* Vertical spacing */
     overflow-x: auto; /* Allow scroll if too wide */
     overflow-y: hidden;
 }
-
+/* General MathJax math element styling */
 mjx-math {
     font-size: 1.1em !important; /* Ensure consistent size */
-    display: inline-block; /* Prevent line breaks inside simple formulas */
-    white-space: normal; /* Allow wrapping if needed */
+    display: inline-block; /* Prevent breaks in simple formulas */
+    white-space: normal; /* Allow wrapping for complex formulas */
+    vertical-align: middle; /* Align better with surrounding text */
 }
-/* Adjust color based on context if needed */
+/* Specific MathJax colors based on context */
 .chat-message.model .message-bubble mjx-math { color: var(--accent-cyan); }
-.chat-message.user .message-bubble mjx-math { color: #e8e8ff; }
+.chat-message.user .message-bubble mjx-math { color: #e8e8ff; } /* Brighter for user */
 #whiteboard-content mjx-math { color: var(--accent-cyan); }
+/* --- END MODIFICATION v19/v20: MathJax specific styles --- */
