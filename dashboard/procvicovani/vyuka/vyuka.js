@@ -1,8 +1,8 @@
 // Файл: procvicovani/vyuka/vyuka.js
-// Версия 17:
-// - Исправлен парсинг [BOARD_MARKDOWN] для предотвращения появления "markdown" на доске.
-// - Реализована логика для модального окна предложения завершения темы (вместо confirm).
-// - Удалена логика, связанная с пользовательской кнопкой "Dokončit" (#mark-complete-btn).
+// Версия 18:
+// - Улучшен парсинг [BOARD_MARKDOWN] для предотвращения появления "markdown" (опять!).
+// - Интегрирована работа с HTML модальным окном для предложения завершения темы.
+// - Окончательно удалена логика пользовательской кнопки "Dokončit".
 
 (function() { // IIFE для изоляции области видимости
 	'use strict';
@@ -63,7 +63,6 @@
 			saveChatBtn: document.getElementById('save-chat-btn'),
 			aiAvatarCorner: document.getElementById('ai-avatar-corner'),
 			stopSpeechBtn: document.getElementById('stop-speech-btn'),
-			// markCompleteBtn: REMOVED - User can no longer complete manually
 			toastContainer: document.getElementById('toast-container'),
 			globalError: document.getElementById('global-error'),
 			dashboardFooter: document.querySelector('.dashboard-footer'),
@@ -92,7 +91,6 @@
 			 isLoading: { currentTopic: false, chat: false, user: false, notifications: false, points: false },
 			 aiIsWaitingForAnswer: false,
 			 lastInteractionTime: Date.now(),
-			 // New state for AI suggestion
              aiSuggestedCompletion: false
 		 };
 
@@ -139,13 +137,13 @@
 		};
 		const triggerWhiteboardMathJax = () => {
 			 if (ui.whiteboardContent && window.MathJax && typeof window.MathJax.typesetPromise === 'function') {
-				 console.log("[MathJax v17] Triggering global typeset for whiteboard...");
+				 console.log("[MathJax v18] Triggering global typeset for whiteboard...");
 				 setTimeout(() => {
 					 window.MathJax.typesetPromise([ui.whiteboardContent])
-						 .then(() => console.log("[MathJax v17] Whiteboard typeset completed."))
-						 .catch(e => console.error("[MathJax v17] Whiteboard typeset error:", e));
+						 .then(() => console.log("[MathJax v18] Whiteboard typeset completed."))
+						 .catch(e => console.error("[MathJax v18] Whiteboard typeset error:", e));
 				 }, 100);
-			 } else { if (!ui.whiteboardContent) console.warn("[MathJax v17] Whiteboard content element not found for typesetting."); if (!(window.MathJax && typeof window.MathJax.typesetPromise === 'function')) console.warn("[MathJax v17] MathJax or typesetPromise not available."); }
+			 } else { if (!ui.whiteboardContent) console.warn("[MathJax v18] Whiteboard content element not found for typesetting."); if (!(window.MathJax && typeof window.MathJax.typesetPromise === 'function')) console.warn("[MathJax v18] MathJax or typesetPromise not available."); }
 		};
 		const autoResizeTextarea = () => { if (!ui.chatInput) return; ui.chatInput.style.height = 'auto'; const scrollHeight = ui.chatInput.scrollHeight; const maxHeight = 110; ui.chatInput.style.height = `${Math.min(scrollHeight, maxHeight)}px`; ui.chatInput.style.overflowY = scrollHeight > maxHeight ? 'scroll' : 'hidden'; };
 		const generateSessionId = () => `session_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
@@ -172,16 +170,16 @@
 		// --- Initialization ---
 		const initializeSupabase = () => { try { if (!window.supabase) throw new Error("Supabase library not loaded."); state.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); if (!state.supabase) throw new Error("Client creation failed."); console.log("Supabase initialized."); return true; } catch (error) { console.error("Supabase init failed:", error); showToast("Chyba DB.", "error", 10000); return false; } };
 		const initializeUI = () => { try { updateTheme(); setupEventListeners(); initTooltips(); if (ui.chatTabButton) ui.chatTabButton.classList.add('active'); if (ui.chatTabContent) ui.chatTabContent.classList.add('active'); if (state.speechSynthesisSupported) { if (window.speechSynthesis.getVoices().length > 0) { loadVoices(); } else if (window.speechSynthesis.onvoiceschanged !== undefined) { window.speechSynthesis.onvoiceschanged = loadVoices; } } else { console.warn("Speech Synthesis not supported."); } initializeSpeechRecognition(); initMouseFollower(); initHeaderScrollDetection(); updateCopyrightYear(); updateOnlineStatus(); manageUIState('initial'); console.log("UI Initialized successfully."); return true; } catch(error) { console.error("UI Init failed:", error); showError(`Chyba inicializace UI: ${error.message}`, true); return false; } };
-		const initializeApp = async () => { console.log("🚀 [Init Vyuka - Kyber v17] Starting..."); if (!initializeSupabase()) return; if (typeof marked === 'undefined') { showError("Kritická chyba: Knihovna 'marked.js' se nepodařilo načíst. Obnovte stránku.", true); if (ui.initialLoader) { ui.initialLoader.classList.add('hidden'); setTimeout(() => { if (ui.initialLoader) ui.initialLoader.style.display = 'none'; }, 300); } return; } console.log("✅ Marked library found."); if (ui.initialLoader) { ui.initialLoader.style.display = 'flex'; ui.initialLoader.classList.remove('hidden'); } if (ui.mainContent) ui.mainContent.style.display = 'none'; try { console.log("[INIT] Checking auth session..."); const { data: { session }, error: sessionError } = await state.supabase.auth.getSession(); if (sessionError) throw new Error(`Nepodařilo se ověřit sezení: ${sessionError.message}`); if (!session || !session.user) { console.log('[Init Vyuka - Kyber] Not logged in. Redirecting...'); window.location.href = '/auth/index.html'; return; } state.currentUser = session.user; console.log(`[INIT] User authenticated (ID: ${state.currentUser.id}).`); setLoadingState('user', true); state.currentProfile = await fetchUserProfile(state.currentUser.id); updateUserInfoUI(); setLoadingState('user', false); if (!state.currentProfile) { showError("Profil nenalezen nebo se nepodařilo načíst.", true); if (ui.initialLoader) { ui.initialLoader.classList.add('hidden'); setTimeout(() => { if (ui.initialLoader) ui.initialLoader.style.display = 'none'; }, 300); } if (ui.mainContent) ui.mainContent.style.display = 'flex'; manageUIState('error', { errorMessage: 'Profil nenalezen.' }); return; } if (!initializeUI()) return; console.log("[INIT] Loading initial topic and notifications..."); const loadNotificationsPromise = fetchNotifications(state.currentUser.id, NOTIFICATION_FETCH_LIMIT).then(({ unreadCount, notifications }) => renderNotifications(unreadCount, notifications)).catch(err => { console.error("Chyba při úvodním načítání notifikací:", err); renderNotifications(0, []); }); await loadNotificationsPromise; const loadTopicPromise = loadNextUncompletedTopic(); await loadTopicPromise; if (ui.initialLoader) { ui.initialLoader.classList.add('hidden'); setTimeout(() => { if (ui.initialLoader) ui.initialLoader.style.display = 'none'; }, 500); } if (ui.mainContent) { ui.mainContent.style.display = 'flex'; requestAnimationFrame(() => { ui.mainContent.classList.add('loaded'); }); } requestAnimationFrame(initScrollAnimations); console.log("✅ [Init Vyuka - Kyber v17] Page Initialized."); } catch (error) { console.error("❌ [Init Vyuka - Kyber] Critical initialization error:", error); if (ui.initialLoader && !ui.initialLoader.classList.contains('hidden')) { ui.initialLoader.innerHTML = `<p style="color: var(--accent-pink);">CHYBA (${error.message}). Obnovte.</p>`; } else { showError(`Chyba inicializace: ${error.message}`, true); } if (ui.mainContent) ui.mainContent.style.display = 'flex'; setLoadingState('all', false); } };
+		const initializeApp = async () => { console.log("🚀 [Init Vyuka - Kyber v18] Starting..."); if (!initializeSupabase()) return; if (typeof marked === 'undefined') { showError("Kritická chyba: Knihovna 'marked.js' se nepodařilo načíst. Obnovte stránku.", true); if (ui.initialLoader) { ui.initialLoader.classList.add('hidden'); setTimeout(() => { if (ui.initialLoader) ui.initialLoader.style.display = 'none'; }, 300); } return; } console.log("✅ Marked library found."); if (ui.initialLoader) { ui.initialLoader.style.display = 'flex'; ui.initialLoader.classList.remove('hidden'); } if (ui.mainContent) ui.mainContent.style.display = 'none'; try { console.log("[INIT] Checking auth session..."); const { data: { session }, error: sessionError } = await state.supabase.auth.getSession(); if (sessionError) throw new Error(`Nepodařilo se ověřit sezení: ${sessionError.message}`); if (!session || !session.user) { console.log('[Init Vyuka - Kyber] Not logged in. Redirecting...'); window.location.href = '/auth/index.html'; return; } state.currentUser = session.user; console.log(`[INIT] User authenticated (ID: ${state.currentUser.id}).`); setLoadingState('user', true); state.currentProfile = await fetchUserProfile(state.currentUser.id); updateUserInfoUI(); setLoadingState('user', false); if (!state.currentProfile) { showError("Profil nenalezen nebo se nepodařilo načíst.", true); if (ui.initialLoader) { ui.initialLoader.classList.add('hidden'); setTimeout(() => { if (ui.initialLoader) ui.initialLoader.style.display = 'none'; }, 300); } if (ui.mainContent) ui.mainContent.style.display = 'flex'; manageUIState('error', { errorMessage: 'Profil nenalezen.' }); return; } if (!initializeUI()) return; console.log("[INIT] Loading initial topic and notifications..."); const loadNotificationsPromise = fetchNotifications(state.currentUser.id, NOTIFICATION_FETCH_LIMIT).then(({ unreadCount, notifications }) => renderNotifications(unreadCount, notifications)).catch(err => { console.error("Chyba při úvodním načítání notifikací:", err); renderNotifications(0, []); }); await loadNotificationsPromise; const loadTopicPromise = loadNextUncompletedTopic(); await loadTopicPromise; if (ui.initialLoader) { ui.initialLoader.classList.add('hidden'); setTimeout(() => { if (ui.initialLoader) ui.initialLoader.style.display = 'none'; }, 500); } if (ui.mainContent) { ui.mainContent.style.display = 'flex'; requestAnimationFrame(() => { ui.mainContent.classList.add('loaded'); }); } requestAnimationFrame(initScrollAnimations); console.log("✅ [Init Vyuka - Kyber v18] Page Initialized."); } catch (error) { console.error("❌ [Init Vyuka - Kyber] Critical initialization error:", error); if (ui.initialLoader && !ui.initialLoader.classList.contains('hidden')) { ui.initialLoader.innerHTML = `<p style="color: var(--accent-pink);">CHYBA (${error.message}). Obnovte.</p>`; } else { showError(`Chyba inicializace: ${error.message}`, true); } if (ui.mainContent) ui.mainContent.style.display = 'flex'; setLoadingState('all', false); } };
 
 		// --- User Profile & Auth ---
 		const fetchUserProfile = async (userId) => { if (!state.supabase || !userId) return null; console.log(`[Profile] Fetching profile for user ID: ${userId}`); try { const { data: profile, error } = await state.supabase.from('profiles').select('*').eq('id', userId).single(); if (error && error.code !== 'PGRST116') throw error; if (!profile) { console.warn(`[Profile] Profile not found for user ${userId}.`); return null; } console.log("[Profile] Profile data fetched."); return profile; } catch (error) { console.error('[Profile] Exception fetching profile:', error); showToast('Chyba Profilu', 'Nepodařilo se načíst data profilu.', 'error'); return null; } };
 		const updateUserInfoUI = () => { if (!ui.sidebarName || !ui.sidebarAvatar) return; if (state.currentUser && state.currentProfile) { const displayName = `${state.currentProfile.first_name || ''} ${state.currentProfile.last_name || ''}`.trim() || state.currentProfile.username || state.currentUser.email?.split('@')[0] || 'Pilot'; ui.sidebarName.textContent = sanitizeHTML(displayName); const initials = getInitials(state.currentProfile, state.currentUser.email); const avatarUrl = state.currentProfile.avatar_url ? `${state.currentProfile.avatar_url}?t=${new Date().getTime()}` : null; ui.sidebarAvatar.innerHTML = avatarUrl ? `<img src="${sanitizeHTML(avatarUrl)}" alt="${initials}">` : initials; } else { ui.sidebarName.textContent = 'Nepřihlášen'; ui.sidebarAvatar.textContent = '?'; } };
 		const handleLoggedOutUser = () => { console.warn("User not logged in."); if (ui.currentTopicDisplay) ui.currentTopicDisplay.innerHTML = '<span class="placeholder">Nejste přihlášeni</span>'; showToast("Prosím, přihlaste se.", "warning"); manageUIState('loggedOut'); };
 
-		// --- Event Listeners Setup (Removed markCompleteBtn listener) ---
+		// --- Event Listeners Setup (Removed markCompleteBtn listener, added modal listeners) ---
 		const setupEventListeners = () => {
-            console.log("[SETUP v17] Setting up event listeners...");
+            console.log("[SETUP v18] Setting up event listeners...");
             if (ui.mainMobileMenuToggle) ui.mainMobileMenuToggle.addEventListener('click', openMenu);
             if (ui.sidebarCloseToggle) ui.sidebarCloseToggle.addEventListener('click', closeMenu);
             if (ui.sidebarOverlay) ui.sidebarOverlay.addEventListener('click', closeMenu);
@@ -191,7 +189,7 @@
             if (ui.clearChatBtn) ui.clearChatBtn.addEventListener('click', confirmClearChat);
             if (ui.saveChatBtn) ui.saveChatBtn.addEventListener('click', saveChatToPDF);
             if (ui.continueBtn) ui.continueBtn.addEventListener('click', requestContinue);
-            // REMOVED: if (ui.markCompleteBtn) ui.markCompleteBtn.addEventListener('click', handleMarkTopicComplete);
+            // REMOVED: Listener for markCompleteBtn
             if (ui.clearBoardBtn) ui.clearBoardBtn.addEventListener('click', () => clearWhiteboard(true));
             if (ui.stopSpeechBtn) ui.stopSpeechBtn.addEventListener('click', stopSpeech);
             if (ui.micBtn) ui.micBtn.addEventListener('click', handleMicClick);
@@ -202,21 +200,61 @@
             window.addEventListener('offline', updateOnlineStatus);
             if (ui.notificationBell) { ui.notificationBell.addEventListener('click', (event) => { event.stopPropagation(); ui.notificationsDropdown?.classList.toggle('active'); }); }
             if (ui.markAllReadBtn) { ui.markAllReadBtn.addEventListener('click', markAllNotificationsRead); }
-            if (ui.notificationsList) { ui.notificationsList.addEventListener('click', async (event) => { const item = event.target.closest('.notification-item'); if (item) { const notificationId = item.dataset.id; const link = item.dataset.link; const isRead = item.classList.contains('is-read'); if (!isRead && notificationId) { const success = await markNotificationRead(notificationId); if (success) { item.classList.add('is-read'); item.querySelector('.unread-dot')?.remove(); const currentCountText = ui.notificationCount.textContent.replace('+', ''); const currentCount = parseInt(currentCountText) || 0; const newCount = Math.max(0, currentCount - 1); ui.notificationCount.textContent = newCount > 9 ? '9+' : (newCount > 0 ? String(newCount) : ''); ui.notificationCount.classList.toggle('visible', newCount > 0); if (ui.markAllReadBtn) ui.markAllReadBtn.disabled = newCount === 0; } } if (link) window.location.href = link; } }); }
+            if (ui.notificationsList) { ui.notificationsList.addEventListener('click', async (event) => { const item = event.target.closest('.notification-item'); if (item) { const notificationId = item.dataset.id; const link = item.dataset.link; const isRead = item.classList.contains('is-read'); if (!isRead && notificationId) { const success = await markNotificationRead(notificationId); if (success) { item.classList.add('is-read'); item.querySelector('.unread-dot')?.remove(); const currentCountText = ui.notificationCount?.textContent?.replace('+', '') || '0'; const currentCount = parseInt(currentCountText) || 0; const newCount = Math.max(0, currentCount - 1); ui.notificationCount.textContent = newCount > 9 ? '9+' : (newCount > 0 ? String(newCount) : ''); ui.notificationCount.classList.toggle('visible', newCount > 0); if (ui.markAllReadBtn) ui.markAllReadBtn.disabled = newCount === 0; } } if (link) window.location.href = link; } }); }
             document.addEventListener('click', (event) => { if (ui.notificationsDropdown?.classList.contains('active') && !ui.notificationsDropdown.contains(event.target) && !ui.notificationBell?.contains(event.target)) { ui.notificationsDropdown.classList.remove('active'); } });
 
-            // Modal Listeners
-            if(ui.closeCompletionModalBtn) ui.closeCompletionModalBtn.addEventListener('click', handleDeclineCompletion);
-            if(ui.completionSuggestionOverlay) ui.completionSuggestionOverlay.addEventListener('click', (event) => { if (event.target === ui.completionSuggestionOverlay) { handleDeclineCompletion(); } }); // Close on overlay click
-            if(ui.confirmCompleteBtn) ui.confirmCompleteBtn.addEventListener('click', handleConfirmCompletion);
-            if(ui.declineCompleteBtn) ui.declineCompleteBtn.addEventListener('click', handleDeclineCompletion);
-
+            // --- Modal Listeners ---
+            if (ui.closeCompletionModalBtn) {
+                ui.closeCompletionModalBtn.removeEventListener('click', handleDeclineCompletion); // Remove previous if any
+                ui.closeCompletionModalBtn.addEventListener('click', handleDeclineCompletion);
+            }
+            if (ui.completionSuggestionOverlay) {
+                ui.completionSuggestionOverlay.removeEventListener('click', handleOverlayClick); // Remove previous if any
+                ui.completionSuggestionOverlay.addEventListener('click', handleOverlayClick); // Close on overlay click
+            }
+            if (ui.confirmCompleteBtn) {
+                ui.confirmCompleteBtn.removeEventListener('click', handleConfirmCompletion); // Remove previous if any
+                ui.confirmCompleteBtn.addEventListener('click', handleConfirmCompletion);
+            }
+            if (ui.declineCompleteBtn) {
+                 ui.declineCompleteBtn.removeEventListener('click', handleDeclineCompletion); // Remove previous if any
+                 ui.declineCompleteBtn.addEventListener('click', handleDeclineCompletion);
+            }
             console.log("Event listeners setup complete.");
         };
 
-		// --- UI State & Button Management (Removed markCompleteBtn) ---
-		const manageUIState = (mode, options = {}) => { console.log("[UI State]:", mode, options); state.lastInteractionTime = Date.now(); if (ui.learningInterface) ui.learningInterface.style.display = 'flex'; if (state.currentTopic) { if(ui.currentTopicDisplay) ui.currentTopicDisplay.innerHTML = `Téma: <strong>${sanitizeHTML(state.currentTopic.name)}</strong>`; } else if (mode === 'loadingTopic') { if(ui.currentTopicDisplay) ui.currentTopicDisplay.innerHTML = '<span class="placeholder"><i class="fas fa-spinner fa-spin"></i> Načítám téma...</span>'; } else if (mode === 'noPlan'){ if(ui.currentTopicDisplay) ui.currentTopicDisplay.innerHTML = '<span class="placeholder">Žádný aktivní plán</span>'; } else if (mode === 'planComplete'){ if(ui.currentTopicDisplay) ui.currentTopicDisplay.innerHTML = '<span class="placeholder">Plán dokončen!</span>'; } else if (mode === 'error'){ if(ui.currentTopicDisplay) ui.currentTopicDisplay.innerHTML = '<span class="placeholder error">Chyba načítání</span>'; } else if (!state.currentUser) { if(ui.currentTopicDisplay) ui.currentTopicDisplay.innerHTML = '<span class="placeholder">Nepřihlášen</span>'; } else { if(ui.currentTopicDisplay) ui.currentTopicDisplay.innerHTML = '<span class="placeholder">Připraven...</span>'; } const isChatInitial = !!ui.chatMessages?.querySelector('.initial-chat-interface'); if (isChatInitial || mode === 'error' || mode === 'noPlan' || mode === 'planComplete' || mode === 'loggedOut') { let emptyStateHTML = ''; switch (mode) { case 'loggedOut': emptyStateHTML = `<div class='empty-state'><i class='fas fa-sign-in-alt'></i><h3>NEPŘIHLÁŠEN</h3><p>Pro přístup k výuce se prosím <a href="/auth/index.html" style="color: var(--accent-primary)">přihlaste</a>.</p></div>`; break; case 'noPlan': emptyStateHTML = `<div class='empty-state'><i class='fas fa-calendar-times'></i><h3>ŽÁDNÝ AKTIVNÍ PLÁN</h3><p>Nemáte aktivní studijní plán. Nejprve prosím dokončete <a href="/dashboard/procvicovani/test1.html" style="color: var(--accent-primary)">diagnostický test</a>.</p></div>`; break; case 'planComplete': emptyStateHTML = `<div class='empty-state'><i class='fas fa-check-circle'></i><h3>PLÁN DOKONČEN!</h3><p>Všechny naplánované aktivity jsou hotové. Skvělá práce! Můžete si <a href="/dashboard/procvicovani/plan.html" style="color: var(--accent-primary)">vytvořit nový plán</a>.</p></div>`; break; case 'error': emptyStateHTML = `<div class='empty-state'><i class='fas fa-exclamation-triangle'></i><h3>CHYBA SYSTÉMU</h3><p>${options.errorMessage || 'Nastala chyba při načítání dat.'}</p></div>`; break; case 'loadingTopic': emptyStateHTML = '<div class="empty-state"><i class="fas fa-book-open"></i><h3>NAČÍTÁNÍ TÉMATU...</h3></div>'; break; default: if (isChatInitial) { emptyStateHTML = `<div class="initial-chat-interface"><div class="ai-greeting-avatar"><i class="fas fa-robot"></i></div><h3 class="initial-chat-title">AI Tutor Justax je připraven</h3><p class="initial-chat-message">Čekám na načtení tématu nebo vaši zprávu.</p><div class="initial-chat-status"><span class="status-dot online"></span> Online</div></div>`; } } if (emptyStateHTML && ui.chatMessages) { ui.chatMessages.innerHTML = emptyStateHTML; } } manageButtonStates(); };
-		const manageButtonStates = () => {
+        // --- UI State & Button Management (Removed markCompleteBtn logic) ---
+        const manageUIState = (mode, options = {}) => {
+             console.log("[UI State]:", mode, options);
+             state.lastInteractionTime = Date.now();
+             if (ui.learningInterface) ui.learningInterface.style.display = 'flex';
+
+             // Update topic display based on current state
+             if (state.currentTopic) { if(ui.currentTopicDisplay) ui.currentTopicDisplay.innerHTML = `Téma: <strong>${sanitizeHTML(state.currentTopic.name)}</strong>`; }
+             else if (mode === 'loadingTopic') { if(ui.currentTopicDisplay) ui.currentTopicDisplay.innerHTML = '<span class="placeholder"><i class="fas fa-spinner fa-spin"></i> Načítám téma...</span>'; }
+             else if (mode === 'noPlan'){ if(ui.currentTopicDisplay) ui.currentTopicDisplay.innerHTML = '<span class="placeholder">Žádný aktivní plán</span>'; }
+             else if (mode === 'planComplete'){ if(ui.currentTopicDisplay) ui.currentTopicDisplay.innerHTML = '<span class="placeholder">Plán dokončen!</span>'; }
+             else if (mode === 'error'){ if(ui.currentTopicDisplay) ui.currentTopicDisplay.innerHTML = '<span class="placeholder error">Chyba načítání</span>'; }
+             else if (!state.currentUser) { if(ui.currentTopicDisplay) ui.currentTopicDisplay.innerHTML = '<span class="placeholder">Nepřihlášen</span>'; }
+             else { if(ui.currentTopicDisplay) ui.currentTopicDisplay.innerHTML = '<span class="placeholder">Připraven...</span>'; }
+
+             // Handle initial/empty/error states for chat area
+             const isChatInitial = !!ui.chatMessages?.querySelector('.initial-chat-interface');
+             if (isChatInitial || mode === 'error' || mode === 'noPlan' || mode === 'planComplete' || mode === 'loggedOut') {
+                 let emptyStateHTML = '';
+                 switch (mode) {
+                     case 'loggedOut': emptyStateHTML = `<div class='empty-state'><i class='fas fa-sign-in-alt'></i><h3>NEPŘIHLÁŠEN</h3><p>Pro přístup k výuce se prosím <a href="/auth/index.html" style="color: var(--accent-primary)">přihlaste</a>.</p></div>`; break;
+                     case 'noPlan': emptyStateHTML = `<div class='empty-state'><i class='fas fa-calendar-times'></i><h3>ŽÁDNÝ AKTIVNÍ PLÁN</h3><p>Nemáte aktivní studijní plán. Nejprve prosím dokončete <a href="/dashboard/procvicovani/test1.html" style="color: var(--accent-primary)">diagnostický test</a>.</p></div>`; break;
+                     case 'planComplete': emptyStateHTML = `<div class='empty-state'><i class='fas fa-check-circle'></i><h3>PLÁN DOKONČEN!</h3><p>Všechny naplánované aktivity jsou hotové. Skvělá práce! Můžete si <a href="/dashboard/procvicovani/plan.html" style="color: var(--accent-primary)">vytvořit nový plán</a>.</p></div>`; break;
+                     case 'error': emptyStateHTML = `<div class='empty-state'><i class='fas fa-exclamation-triangle'></i><h3>CHYBA SYSTÉMU</h3><p>${options.errorMessage || 'Nastala chyba při načítání dat.'}</p></div>`; break;
+                     case 'loadingTopic': emptyStateHTML = '<div class="empty-state"><i class="fas fa-book-open"></i><h3>NAČÍTÁNÍ TÉMATU...</h3></div>'; break;
+                     default: if (isChatInitial) { emptyStateHTML = `<div class="initial-chat-interface"><div class="ai-greeting-avatar"><i class="fas fa-robot"></i></div><h3 class="initial-chat-title">AI Tutor Justax je připraven</h3><p class="initial-chat-message">Čekám na načtení tématu nebo vaši zprávu.</p><div class="initial-chat-status"><span class="status-dot online"></span> Online</div></div>`; }
+                 }
+                 if (emptyStateHTML && ui.chatMessages) { ui.chatMessages.innerHTML = emptyStateHTML; }
+             }
+             manageButtonStates(); // Always update button states
+        };
+        const manageButtonStates = () => {
             const canInteractBase = !!state.currentTopic && !state.geminiIsThinking && !state.topicLoadInProgress;
             const canChat = canInteractBase || (!!state.currentTopic && state.aiIsWaitingForAnswer);
             const canContinue = canInteractBase && !state.aiIsWaitingForAnswer && !state.aiSuggestedCompletion; // Cannot continue if suggestion pending
@@ -224,7 +262,7 @@
             if (ui.sendButton) { ui.sendButton.disabled = !canChat || state.isListening || state.geminiIsThinking; ui.sendButton.innerHTML = state.geminiIsThinking ? '<i class="fas fa-spinner fa-spin"></i>' : '<i class="fas fa-paper-plane"></i>'; }
             if (ui.chatInput) { ui.chatInput.disabled = !canChat || state.isListening || state.geminiIsThinking; ui.chatInput.placeholder = state.isListening ? "Poslouchám..." : (canChat ? "Zeptejte se nebo odpovězte..." : "Počkejte prosím..."); }
             if (ui.continueBtn) { ui.continueBtn.disabled = !canContinue; ui.continueBtn.style.display = state.currentTopic ? 'inline-flex' : 'none'; }
-            // REMOVED: if (ui.markCompleteBtn) { ... }
+            // REMOVED: Logic for ui.markCompleteBtn
             if (ui.clearBoardBtn) { ui.clearBoardBtn.disabled = !ui.whiteboardContent || ui.whiteboardContent.children.length === 0 || state.geminiIsThinking; }
             if (ui.stopSpeechBtn) { ui.stopSpeechBtn.disabled = !state.speechSynthesisSupported || !window.speechSynthesis.speaking; }
             if (ui.micBtn) { const canUseMic = canChat && state.speechRecognitionSupported && !state.geminiIsThinking; ui.micBtn.disabled = !canUseMic; ui.micBtn.classList.toggle('listening', state.isListening); ui.micBtn.title = !state.speechRecognitionSupported ? "Nepodporováno" : state.isListening ? "Zastavit hlasový vstup" : "Zahájit hlasový vstup"; }
@@ -287,25 +325,25 @@
 		const loadNextUncompletedTopic = async () => { if (!state.currentUser || state.topicLoadInProgress || !state.supabase) return; state.topicLoadInProgress = true; setLoadingState('currentTopic', true); state.currentTopic = null; state.aiSuggestedCompletion = false; if (ui.chatMessages) { ui.chatMessages.innerHTML = ''; } clearWhiteboard(false); state.geminiChatContext = []; state.aiIsWaitingForAnswer = false; manageUIState('loadingTopic'); try { const { data: plans, error: planError } = await state.supabase.from('study_plans').select('id').eq('user_id', state.currentUser.id).eq('status', 'active').limit(1); if (planError) throw planError; if (!plans || plans.length === 0) { manageUIState('noPlan'); return; } state.currentPlanId = plans[0].id; const { data: activities, error: activityError } = await state.supabase.from('plan_activities').select('id, title, description, topic_id').eq('plan_id', state.currentPlanId).eq('completed', false).order('day_of_week').order('time_slot').limit(1); if (activityError) throw activityError; if (activities && activities.length > 0) { const activity = activities[0]; let name = activity.title || 'N/A'; let desc = activity.description || ''; if (activity.topic_id) { try { const { data: topic, error: topicError } = await state.supabase.from('exam_topics').select('name, description').eq('id', activity.topic_id).single(); if (topicError && topicError.code !== 'PGRST116') throw topicError; if (topic) { name = topic.name || name; desc = topic.description || desc; } } catch(e) { console.warn("Could not fetch topic details:", e); } } state.currentTopic = { activity_id: activity.id, plan_id: state.currentPlanId, name: name, description: desc, user_id: state.currentUser.id, topic_id: activity.topic_id }; if (ui.currentTopicDisplay) { ui.currentTopicDisplay.innerHTML = `Téma: <strong>${sanitizeHTML(name)}</strong>`; } await startLearningSession(); } else { manageUIState('planComplete'); } } catch (error) { console.error('Error loading next topic:', error); showToast(`Chyba načítání tématu: ${error.message}`, "error"); manageUIState('error', { errorMessage: error.message }); } finally { state.topicLoadInProgress = false; setLoadingState('currentTopic', false); } };
 		const handleMarkTopicComplete = async () => { // Now primarily called by AI suggestion confirmation
 			if (!state.currentTopic || !state.supabase || state.topicLoadInProgress) return;
-			console.log(`[MarkComplete v17] Attempting to mark topic: ${state.currentTopic.activity_id} (${state.currentTopic.name})`);
+			console.log(`[MarkComplete v18] Attempting to mark topic: ${state.currentTopic.activity_id} (${state.currentTopic.name})`);
 			state.topicLoadInProgress = true;
 			state.aiSuggestedCompletion = false;
 			manageButtonStates();
 			try {
-				console.log(`[MarkComplete v17] Points to award: ${POINTS_TOPIC_COMPLETE}`);
+				console.log(`[MarkComplete v18] Points to award: ${POINTS_TOPIC_COMPLETE}`);
 				const { error } = await state.supabase
 					.from('plan_activities')
 					.update({ completed: true, updated_at: new Date().toISOString() })
 					.eq('id', state.currentTopic.activity_id);
 				if (error) throw error;
-				console.log("[MarkComplete v17] Activity marked as completed in DB.");
+				console.log("[MarkComplete v18] Activity marked as completed in DB.");
 
 				await awardPoints(POINTS_TOPIC_COMPLETE); // Award points AFTER successful DB update
 
 				showToast(`Téma "${state.currentTopic.name}" dokončeno!`, "success", 3000);
 				await loadNextUncompletedTopic(); // Load next topic
 			} catch (error) {
-				console.error(`[MarkComplete v17] Error marking topic complete:`, error);
+				console.error(`[MarkComplete v18] Error marking topic complete:`, error);
 				showToast("Chyba při označování tématu jako dokončeného.", "error");
 				state.topicLoadInProgress = false; // Re-enable buttons on error
 				manageButtonStates();
@@ -314,17 +352,17 @@
 
 		// --- Points System ---
 		async function awardPoints(pointsValue) {
-			console.log(`[Points v17] Attempting to award ${pointsValue} points.`);
-			if (!state.currentUser || !state.currentUser.id) { console.warn("[Points v17] Skipping: No current user ID."); return; }
-			if (!state.currentProfile || !state.currentProfile.id) { console.warn("[Points v17] Skipping: No current profile data."); showToast('Profil nenalezen, body nelze připsat.', 'warning'); return; }
-			if (!state.supabase) { console.warn("[Points v17] Skipping: Supabase client not available."); return; }
-			if (pointsValue <= 0) { console.log("[Points v17] Skipping: Zero or negative points value."); return; }
+			console.log(`[Points v18] Attempting to award ${pointsValue} points.`);
+			if (!state.currentUser || !state.currentUser.id) { console.warn("[Points v18] Skipping: No current user ID."); return; }
+			if (!state.currentProfile || !state.currentProfile.id) { console.warn("[Points v18] Skipping: No current profile data."); showToast('Profil nenalezen, body nelze připsat.', 'warning'); return; }
+			if (!state.supabase) { console.warn("[Points v18] Skipping: Supabase client not available."); return; }
+			if (pointsValue <= 0) { console.log("[Points v18] Skipping: Zero or negative points value."); return; }
 
 			setLoadingState('points', true);
 			const userId = state.currentUser.id;
 			const currentPoints = state.currentProfile.points ?? 0; // Use nullish coalescing for safety
 			const newPoints = currentPoints + pointsValue;
-			console.log(`[Points v17] User: ${userId}, Current Points: ${currentPoints}, Awarding: ${pointsValue}, New Total: ${newPoints}`);
+			console.log(`[Points v18] User: ${userId}, Current Points: ${currentPoints}, Awarding: ${pointsValue}, New Total: ${newPoints}`);
 
 			try {
 				const { data, error } = await state.supabase
@@ -335,21 +373,21 @@
 					.single();
 
 				if (error) {
-					console.error(`[Points v17] Supabase update error for user ${userId}:`, error);
+					console.error(`[Points v18] Supabase update error for user ${userId}:`, error);
 					throw error;
 				}
 
 				if (data && data.points === newPoints) {
 					state.currentProfile.points = newPoints; // Update local state *after* successful DB update
-					console.log(`[Points v17] User ${userId} points updated successfully in DB and state to ${newPoints}.`);
+					console.log(`[Points v18] User ${userId} points updated successfully in DB and state to ${newPoints}.`);
 					showToast('+', `${pointsValue} kreditů získáno!`, 'success', 3000);
 				} else {
-					console.warn(`[Points v17] DB update discrepancy for user ${userId}. Expected ${newPoints}, got ${data?.points}. State NOT updated locally.`);
+					console.warn(`[Points v18] DB update discrepancy for user ${userId}. Expected ${newPoints}, got ${data?.points}. State NOT updated locally.`);
 					showToast('Varování', 'Nekonzistence při aktualizaci kreditů.', 'warning');
 				}
 
 			} catch (error) {
-				console.error(`[Points v17] Exception updating user points for ${userId}:`, error);
+				console.error(`[Points v18] Exception updating user points for ${userId}:`, error);
 				showToast('Chyba', 'Nepodařilo se aktualizovat kredity.', 'error');
 			} finally {
 				setLoadingState('points', false);
@@ -368,6 +406,7 @@
 			const div = document.createElement('div');
 			div.className = `chat-message ${sender === 'gemini' ? 'model' : sender}`;
 			div.id = id;
+			div.style.opacity = '0'; // For animation
 
 			const avatarDiv = `<div class="message-avatar">${avatarText}</div>`;
 			const bubbleDiv = document.createElement('div');
@@ -375,8 +414,7 @@
 			const bubbleContentDiv = document.createElement('div');
 			bubbleContentDiv.className = 'message-bubble-content';
 
-			// Use renderMarkdown, setting isChat = true
-			renderMarkdown(bubbleContentDiv, displayMessage, true);
+			renderMarkdown(bubbleContentDiv, displayMessage, true); // isChat = true
 
 			if (sender === 'gemini' && state.speechSynthesisSupported) { const ttsButton = document.createElement('button'); ttsButton.className = 'tts-listen-btn btn-tooltip'; ttsButton.title = 'Poslechnout'; ttsButton.innerHTML = '<i class="fas fa-volume-up"></i>'; const textForSpeech = ttsText || displayMessage; ttsButton.dataset.textToSpeak = textForSpeech; ttsButton.addEventListener('click', (e) => { e.stopPropagation(); speakText(textForSpeech); }); bubbleContentDiv.appendChild(ttsButton); }
 
@@ -385,17 +423,18 @@
 			div.innerHTML = avatarDiv + bubbleDiv.outerHTML + timeDiv;
 			ui.chatMessages.appendChild(div);
 
-			// Reworked MathJax Triggering for Chat
+			// MathJax Triggering for Chat
 			if (window.MathJax && typeof window.MathJax.typesetPromise === 'function' && (displayMessage.includes('$') || displayMessage.includes('\\'))) {
-				 console.log(`[MathJax v17] Queueing typeset for chat message bubble: ${id}`);
+				 console.log(`[MathJax v18] Queueing typeset for chat message bubble: ${id}`);
 				 setTimeout(() => {
-					 window.MathJax.typesetPromise([bubbleContentDiv]) // Target the whole bubble content div
-						 .then(() => console.log(`[MathJax v17] Typeset successful for chat bubble ${id}`))
-						 .catch((err) => console.error(`[MathJax v17] Typeset error for chat bubble ${id}: ${err.message}`));
+					 window.MathJax.typesetPromise([bubbleContentDiv]) // Target the bubble content
+						 .then(() => console.log(`[MathJax v18] Typeset successful for chat bubble ${id}`))
+						 .catch((err) => console.error(`[MathJax v18] Typeset error for chat bubble ${id}: ${err.message}`));
 				 }, 0);
 			 }
 
 			 div.scrollIntoView({ behavior: 'smooth', block: 'end' });
+             requestAnimationFrame(() => { div.style.opacity = '1'; }); // Trigger fade/pop animation
 			 initTooltips();
 			 const contentToSave = originalContent !== null ? originalContent : displayMessage;
 			 if (saveToDb && state.supabase && state.currentUser && state.currentTopic && state.currentSessionId) { try { await state.supabase.from('chat_history').insert({ user_id: state.currentUser.id, session_id: state.currentSessionId, topic_id: state.currentTopic.topic_id, topic_name: state.currentTopic.name, role: sender === 'gemini' ? 'model' : 'user', content: contentToSave }); } catch (e) { console.error("Chat save error:", e); showToast("Chyba ukládání chatu.", "error"); } }
@@ -408,54 +447,69 @@
 		const confirmClearChat = () => { if (confirm("Opravdu vymazat historii této konverzace? Tato akce je nevratná.")) { clearCurrentChatSessionHistory(); } };
 		const clearCurrentChatSessionHistory = async () => { if (ui.chatMessages) { ui.chatMessages.innerHTML = `<div class="initial-chat-interface"><div class="ai-greeting-avatar"><i class="fas fa-robot"></i></div><h3 class="initial-chat-title">AI Tutor Justax je připraven</h3><p class="initial-chat-message">Chat vymazán. Čekám na načtení tématu nebo vaši zprávu.</p><div class="initial-chat-status"><span class="status-dot online"></span> Online</div></div>`; } state.geminiChatContext = []; showToast("Historie chatu vymazána.", "info"); if (state.supabase && state.currentUser && state.currentSessionId) { try { const { error } = await state.supabase.from('chat_history').delete().match({ user_id: state.currentUser.id, session_id: state.currentSessionId }); if (error) throw error; console.log(`Chat history deleted from DB for session: ${state.currentSessionId}`); } catch (e) { console.error("DB clear chat error:", e); showToast("Chyba při mazání historie chatu z databáze.", "error"); } } manageButtonStates(); };
 		const saveChatToPDF = async () => { if (!ui.chatMessages || ui.chatMessages.children.length === 0 || !!ui.chatMessages.querySelector('.initial-chat-interface')) { showToast("Není co uložit.", "warning"); return; } if (typeof html2pdf === 'undefined') { showToast("Chyba: PDF knihovna nenalezena.", "error"); return; } showToast("Generuji PDF...", "info", 4000); const elementToExport = document.createElement('div'); elementToExport.style.padding="15mm"; elementToExport.innerHTML = `<style>body { font-family: 'Poppins', sans-serif; font-size: 10pt; line-height: 1.5; color: #333; } .chat-message { margin-bottom: 12px; max-width: 90%; page-break-inside: avoid; } .user { margin-left: 10%; } .model { margin-right: 10%; } .message-bubble { display: inline-block; padding: 8px 14px; border-radius: 15px; background-color: #e9ecef; } .user .message-bubble { background-color: #d1e7dd; } .message-timestamp { font-size: 8pt; color: #6c757d; margin-top: 4px; display: block; } .user .message-timestamp { text-align: right; } h1 { font-size: 16pt; color: #0d6efd; text-align: center; margin-bottom: 5px; } p.subtitle { font-size: 9pt; color: #6c757d; text-align: center; margin: 0 0 15px 0; } hr { border: 0; border-top: 1px solid #ccc; margin: 15px 0; } .tts-listen-btn { display: none; } mjx-math { font-size: 1em; } pre { background-color: #f8f9fa; border: 1px solid #dee2e6; padding: 0.8em; border-radius: 6px; overflow-x: auto; font-size: 0.9em; } code { background-color: #e9ecef; padding: 0.1em 0.3em; border-radius: 3px; } pre code { background: none; padding: 0; }</style><h1>Chat s AI Tutorem - ${sanitizeHTML(state.currentTopic?.name || 'Neznámé téma')}</h1><p class="subtitle">Vygenerováno: ${new Date().toLocaleString('cs-CZ')}</p><hr>`; Array.from(ui.chatMessages.children).forEach(msgElement => { if (msgElement.classList.contains('chat-message') && !msgElement.id.startsWith('thinking-')) { const clone = msgElement.cloneNode(true); clone.querySelector('.message-avatar')?.remove(); clone.querySelector('.tts-listen-btn')?.remove(); clone.classList.add('msg'); if(msgElement.classList.contains('user')) clone.classList.add('user'); else clone.classList.add('model'); clone.querySelector('.message-bubble')?.classList.add('bubble'); clone.querySelector('.message-timestamp')?.classList.add('time'); elementToExport.appendChild(clone); } }); const filename = `chat-${state.currentTopic?.name?.replace(/[^a-z0-9]/gi, '_') || 'vyuka'}-${Date.now()}.pdf`; const pdfOptions = { margin: 15, filename: filename, image: { type: 'jpeg', quality: 0.95 }, html2canvas: { scale: 2, useCORS: true, logging: false }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } }; try { await html2pdf().set(pdfOptions).from(elementToExport).save(); showToast("Chat uložen jako PDF!", "success"); } catch (e) { console.error("PDF Generation Error:", e); showToast("Chyba při generování PDF.", "error"); } };
-		// *** MODIFIED Functions v17: Implement modal show/hide and actions ***
+		// *** MODIFIED Functions v18: Using HTML Modal ***
         const showCompletionModal = () => {
             if (ui.completionSuggestionOverlay) {
-                ui.completionSuggestionOverlay.style.display = 'flex'; // Make overlay block events
-                requestAnimationFrame(() => { // Allow display change to register
-                     ui.completionSuggestionOverlay.classList.add('visible'); // Trigger fade-in animation
+                ui.completionSuggestionOverlay.style.display = 'flex';
+                requestAnimationFrame(() => {
+                     ui.completionSuggestionOverlay.classList.add('visible');
                  });
-            }
+                 console.log("[Modal] Showing completion suggestion modal.");
+            } else {
+                 console.error("[Modal] Error: Completion suggestion overlay element not found!");
+                 // Fallback to confirm if modal elements are missing
+                 if (confirm("AI Tutor navrhuje dokončit téma. Chcete jej nyní označit jako dokončené?")) {
+                     handleConfirmCompletion();
+                 } else {
+                     handleDeclineCompletion();
+                 }
+             }
         };
         const hideCompletionModal = () => {
             if (ui.completionSuggestionOverlay) {
-                 ui.completionSuggestionOverlay.classList.remove('visible'); // Trigger fade-out
-                 // Wait for animation before hiding completely
+                 ui.completionSuggestionOverlay.classList.remove('visible');
                  setTimeout(() => {
-                     ui.completionSuggestionOverlay.style.display = 'none';
+                     if (ui.completionSuggestionOverlay) ui.completionSuggestionOverlay.style.display = 'none';
                  }, 300); // Match CSS transition duration
+                 console.log("[Modal] Hiding completion suggestion modal.");
              }
         };
         const promptTopicCompletion = () => {
-			console.log("[CompletionPrompt v17] AI suggested topic completion.");
+			console.log("[CompletionPrompt v18] AI suggested topic completion. Showing modal.");
             state.aiSuggestedCompletion = true;
-            manageButtonStates(); // Update buttons (disable Continue)
-			showCompletionModal(); // Show the styled modal
+            manageButtonStates();
+			showCompletionModal();
 		};
         const handleConfirmCompletion = () => {
-            console.log("[CompletionPrompt v17] User chose YES.");
+            console.log("[CompletionPrompt v18] User chose YES.");
             hideCompletionModal();
-            handleMarkTopicComplete(); // Call the function to complete the topic
+            handleMarkTopicComplete();
         };
         const handleDeclineCompletion = () => {
-             console.log("[CompletionPrompt v17] User chose NO or closed modal.");
+             console.log("[CompletionPrompt v18] User chose NO or closed modal.");
              hideCompletionModal();
-             state.aiSuggestedCompletion = false; // Reset flag
+             state.aiSuggestedCompletion = false;
              showToast("Dobře, můžete pokračovat kliknutím na 'Pokračuj' nebo položením otázky.", "info", 5000);
-             manageButtonStates(); // Re-enable buttons
+             manageButtonStates();
         };
+        // Added handler for clicking outside the modal
+         const handleOverlayClick = (event) => {
+             if (event.target === ui.completionSuggestionOverlay) {
+                 handleDeclineCompletion();
+             }
+         };
 
 		// --- Gemini Interaction & Parsing ---
-		// *** MODIFIED parseGeminiResponse v17: Refined board marker parsing ***
+		// *** MODIFIED parseGeminiResponse v18: Fixed board marker regex ***
 		const parseGeminiResponse = (rawText) => {
-			console.log("[ParseGemini v17] Raw input:", rawText ? rawText.substring(0, 150) + "..." : "EMPTY");
+			console.log("[ParseGemini v18] Raw input:", rawText ? rawText.substring(0, 150) + "..." : "EMPTY");
 			const boardMarker = "[BOARD_MARKDOWN]:";
 			const ttsMarker = "[TTS_COMMENTARY]:";
-            const actionMarker = ACTION_SUGGEST_COMPLETION; // "[ACTION:SUGGEST_COMPLETION]";
+            const actionMarker = ACTION_SUGGEST_COMPLETION;
 
-            // Regex definitions
-			const boardRegex = /(\[BOARD_MARKDOWN]:)\s*(`{3}(markdown)?\s*([\s\S]*?)\s*`{3}|([\s\S]*?))(?=\s*\[TTS_COMMENTARY]:|\s*\[BOARD_MARKDOWN]:|\s*\[ACTION:SUGGEST_COMPLETION]:|$)/i;
-			const ttsRegex = /(\[TTS_COMMENTARY]:)\s*(`{3}\s*([\s\S]*?)\s*`{3}|([\s\S]*?))(?=\s*\[BOARD_MARKDOWN]:|\s*\[TTS_COMMENTARY]:|\s*\[ACTION:SUGGEST_COMPLETION]:|$)/i;
+            // Regex definitions (using non-capturing group for 'markdown')
+			const boardRegex = /(\[BOARD_MARKDOWN]:)\s*(?:`{3}(?:markdown)?\s*([\s\S]*?)\s*`{3}|([\s\S]*?))(?=\s*\[TTS_COMMENTARY]:|\s*\[BOARD_MARKDOWN]:|\s*\[ACTION:SUGGEST_COMPLETION]:|$)/i;
+			const ttsRegex = /(\[TTS_COMMENTARY]:)\s*(?:`{3}\s*([\s\S]*?)\s*`{3}|([\s\S]*?))(?=\s*\[BOARD_MARKDOWN]:|\s*\[TTS_COMMENTARY]:|\s*\[ACTION:SUGGEST_COMPLETION]:|$)/i;
 			const actionRegex = /(\[ACTION:SUGGEST_COMPLETION])/i;
 
 			let remainingText = rawText || "";
@@ -467,9 +521,8 @@
 			const actionMatch = remainingText.match(actionRegex);
 			if (actionMatch) {
 				actionSignal = 'SUGGEST_COMPLETION';
-				remainingText = remainingText.replace(actionMatch[0], "").trim(); // Remove signal
-				console.log(`[ParseGemini v17] Found action signal: ${actionSignal}`);
-                // If ONLY action signal is present, we might return early
+				remainingText = remainingText.replace(actionMatch[0], "").trim();
+				console.log(`[ParseGemini v18] Found action signal: ${actionSignal}`);
                 if (remainingText.length === 0) {
                      return { boardMarkdown: "", ttsCommentary: "", chatText: "", actionSignal };
                 }
@@ -477,54 +530,60 @@
 
 			// 2. Extract Board Content
 			const boardMatch = remainingText.match(boardRegex);
+            console.log("[ParseGemini v18] Board Regex Match:", boardMatch); // DEBUG: Log the match object
 			if (boardMatch) {
-                // boardMatch[0] is the whole matched block including marker and ```markdown
-                // boardMatch[1] is just the marker "[BOARD_MARKDOWN]:"
-                // boardMatch[2] is the optional ```markdown fence start
-                // boardMatch[3] is the language "markdown" (optional)
-                // boardMatch[4] is the content inside ``` (if present)
-                // boardMatch[5] is the content *without* ``` (if present)
-				boardMarkdown = (boardMatch[4] || boardMatch[5] || "").trim();
-				remainingText = remainingText.replace(boardMatch[0], ""); // Remove the entire matched block
-				console.log(`[ParseGemini v17] Found board content. Length: ${boardMarkdown.length}`);
+                // Group 1: Marker "[BOARD_MARKDOWN]:"
+                // Group 2: Content inside ``` (if fenced)
+                // Group 3: Content without ``` (if not fenced)
+                boardMarkdown = (boardMatch[2] || boardMatch[3] || "").trim();
+                // Explicitly log the extracted content *before* removing the block
+                console.log(`[ParseGemini v18] Extracted Board Content (Before Removal): "${boardMarkdown.substring(0,50)}..."`);
+				remainingText = remainingText.replace(boardMatch[0], ""); // Remove the entire matched block (marker + content)
+				console.log(`[ParseGemini v18] Found board content. Length: ${boardMarkdown.length}`);
+                // Double check for the raw marker at the beginning of the *extracted* content
+                if (boardMarkdown.toLowerCase().startsWith('markdown')) {
+                    console.warn("[ParseGemini v18] Extracted board content started with 'markdown'. Attempting cleanup.");
+                    boardMarkdown = boardMarkdown.substring(8).trim(); // Remove 'markdown' + newline/space
+                }
 			} else {
-				console.log(`[ParseGemini v17] Marker "${boardMarker}" not found or malformed.`);
+				console.log(`[ParseGemini v18] Marker "${boardMarker}" not found or malformed.`);
 			}
 
 			// 3. Extract TTS Content
 			const ttsMatch = remainingText.match(ttsRegex);
+            console.log("[ParseGemini v18] TTS Regex Match:", ttsMatch); // DEBUG
 			if (ttsMatch) {
-                // ttsMatch[0] is the whole block
-                // ttsMatch[1] is the marker
-                // ttsMatch[2] is optional ``` fence start
-                // ttsMatch[3] is content inside ```
-                // ttsMatch[4] is content without ```
-				ttsCommentary = (ttsMatch[3] || ttsMatch[4] || "").trim();
+                // Group 1: Marker
+                // Group 2: Content inside ```
+                // Group 3: Content without ```
+				ttsCommentary = (ttsMatch[2] || ttsMatch[3] || "").trim();
 				remainingText = remainingText.replace(ttsMatch[0], ""); // Remove the entire matched block
-				console.log(`[ParseGemini v17] Found TTS content. Length: ${ttsCommentary.length}`);
+				console.log(`[ParseGemini v18] Found TTS content. Length: ${ttsCommentary.length}`);
 			} else {
-				console.log(`[ParseGemini v17] Marker "${ttsMarker}" not found or malformed.`);
+				console.log(`[ParseGemini v18] Marker "${ttsMarker}" not found or malformed.`);
 			}
 
 			// 4. Assign remaining as chat text and perform final cleanup
 			let chatText = remainingText
 				.replace(/```(markdown)?\s*|\s*```/g, '') // Remove any leftover backticks
-                .replace(/\[BOARD_MARKDOWN]:/gi, '') // Remove stray markers (should be redundant)
-                .replace(/\[TTS_COMMENTARY]:/gi, '') // Remove stray markers (should be redundant)
+                .replace(/\[BOARD_MARKDOWN]:/gi, '') // Remove stray markers
+                .replace(/\[TTS_COMMENTARY]:/gi, '')
+                .replace(/\[ACTION:SUGGEST_COMPLETION]/gi, '')
 				.trim();
 
-			console.log("[ParseGemini v17] Result - Board:", boardMarkdown ? boardMarkdown.substring(0, 50) + "..." : "None");
-			console.log("[ParseGemini v17] Result - TTS:", ttsCommentary ? ttsCommentary.substring(0, 50) + "..." : "None");
-			console.log("[ParseGemini v17] Result - Chat:", chatText ? chatText.substring(0, 50) + "..." : "None");
-            console.log("[ParseGemini v17] Result - Action:", actionSignal);
+			console.log("[ParseGemini v18] Result - Board:", boardMarkdown ? boardMarkdown.substring(0, 50) + "..." : "None");
+			console.log("[ParseGemini v18] Result - TTS:", ttsCommentary ? ttsCommentary.substring(0, 50) + "..." : "None");
+			console.log("[ParseGemini v18] Result - Chat:", chatText ? chatText.substring(0, 50) + "..." : "None");
+            console.log("[ParseGemini v18] Result - Action:", actionSignal);
 
 			return { boardMarkdown, ttsCommentary, chatText, actionSignal };
 		};
 
+		// *** processGeminiResponse (v18 - slight adjustment for logging) ***
 		const processGeminiResponse = (rawText, timestamp) => {
 			removeThinkingIndicator();
 			state.lastInteractionTime = Date.now();
-			console.log("[ProcessGemini v17] Processing Raw Response:", rawText ? rawText.substring(0, 100) + "..." : "Empty Response");
+			console.log("[ProcessGemini v18] Processing Raw Response:", rawText ? rawText.substring(0, 100) + "..." : "Empty Response");
 
 			if (!rawText) {
 				handleGeminiError("AI vrátilo prázdnou odpověď.", timestamp);
@@ -536,36 +595,27 @@
 			let aiResponded = false;
 			const cleanedChatText = cleanChatMessage(chatText);
 
-			console.log(`[ProcessGemini v17] Parsed-> Board: ${!!boardMarkdown}, TTS: ${!!ttsCommentary}, Chat: ${!!cleanedChatText}, Action: ${actionSignal}`);
+			console.log(`[ProcessGemini v18] Parsed-> Board: ${!!boardMarkdown}, TTS: ${!!ttsCommentary}, Chat: ${!!cleanedChatText}, Action: ${actionSignal}`);
 
             // Handle Action Signal FIRST
             if (actionSignal === 'SUGGEST_COMPLETION') {
-                // Even if there's other content, prioritize the action signal for UI flow
                 promptTopicCompletion();
                 aiResponded = true;
-                 // Optionally speak TTS if it was provided alongside the signal
-                 if (ttsCommentary) {
-                    speakText(ttsCommentary);
-                 }
+                 if (ttsCommentary) { speakText(ttsCommentary); }
                  manageUIState('suggestedCompletion');
-                 // Don't necessarily return here if board content was also sent with suggestion
-                 // Let board content render if it exists
+                 // Don't return immediately, allow board content to render if sent alongside
             }
 
             // Process Board Content (if any)
 			if (boardMarkdown) {
-				appendToWhiteboard(boardMarkdown, ttsCommentary || boardMarkdown); // Pass commentary for TTS button
-				// Speak TTS only if it wasn't spoken due to action signal above
-                // And only if it wasn't the primary content (i.e., only if board exists)
+				appendToWhiteboard(boardMarkdown, ttsCommentary || boardMarkdown);
+                // Speak TTS only if it wasn't spoken due to action signal above
                 if (ttsCommentary && actionSignal !== 'SUGGEST_COMPLETION') {
 					speakText(ttsCommentary);
 				}
 				aiResponded = true;
-				// Reset waiting state only if *not* suggesting completion
-                if (actionSignal !== 'SUGGEST_COMPLETION') {
-                    state.aiIsWaitingForAnswer = false;
-                }
-				// Check for task only if not suggesting completion
+                if (actionSignal !== 'SUGGEST_COMPLETION') { state.aiIsWaitingForAnswer = false; }
+                // Check for task only if not suggesting completion
                 if (actionSignal !== 'SUGGEST_COMPLETION') {
                     const lowerBoard = boardMarkdown.toLowerCase();
                     const taskKeywords = ['úloha k řešení', 'vyřešte tento příklad', 'zodpovězte následující', 'úkol:', 'otázka k procvičení'];
@@ -573,44 +623,38 @@
                     const zadaniEndsWithQuestion = /\*\*zadání:\*\*[\s\S]*\?$/i;
                     if (taskKeywords.some(kw => lowerBoard.includes(kw)) || taskHeaderRegex.test(boardMarkdown) || zadaniEndsWithQuestion.test(boardMarkdown.replace(/\s+/g, ' '))) {
                         state.aiIsWaitingForAnswer = true;
-                        console.log("[ProcessGemini v17] Task DETECTED on board, setting aiIsWaitingForAnswer = true.");
+                        console.log("[ProcessGemini v18] Task DETECTED on board, setting aiIsWaitingForAnswer = true.");
                     } else {
-                        console.log("[ProcessGemini v17] No task detected on board.");
+                        console.log("[ProcessGemini v18] No task detected on board.");
                     }
                 }
 			}
 
             // Process Chat Text (if any)
 			if (cleanedChatText) {
-				const ttsForChat = (!boardMarkdown && ttsCommentary && actionSignal !== 'SUGGEST_COMPLETION') ? ttsCommentary : null; // TTS for chat only if no board/action TTS
+				const ttsForChat = (!boardMarkdown && ttsCommentary && actionSignal !== 'SUGGEST_COMPLETION') ? ttsCommentary : null;
 				addChatMessage(cleanedChatText, 'gemini', true, timestamp, ttsForChat, chatText);
 				aiResponded = true;
 			} else if (ttsCommentary && !boardMarkdown && actionSignal !== 'SUGGEST_COMPLETION') {
-				// Speak TTS only if no board and no action signal already handled it
-				speakText(ttsCommentary);
+				speakText(ttsCommentary); // Speak TTS if only TTS was sent (and no action)
 				aiResponded = true;
 			}
 
 			// Handle cases where nothing usable was sent
-			if (!aiResponded && !actionSignal) { // Added check for actionSignal
+			if (!aiResponded && !actionSignal) {
 				addChatMessage("(AI neodpovědělo očekávaným formátem nebo odpověď byla prázdná)", 'gemini', false, timestamp, null, rawText || "(Prázdná/neplatná odpověď)");
 				console.warn("AI sent no usable content and no action signal.");
 				state.aiIsWaitingForAnswer = false; // Ensure waiting state is off
 			}
 
 			// Update UI state based on final states
-			if (state.aiIsWaitingForAnswer) {
-				manageUIState('waitingForAnswer');
-			} else if (state.aiSuggestedCompletion) {
-                 manageUIState('suggestedCompletion');
-            } else {
-				manageUIState('learning');
-			}
+			if (state.aiIsWaitingForAnswer) { manageUIState('waitingForAnswer'); }
+            else if (state.aiSuggestedCompletion) { manageUIState('suggestedCompletion'); }
+            else { manageUIState('learning'); }
 		};
 
 
-		// --- Prompts and Gemini Calls ---
-		// *** MODIFIED PROMPTS v17 (Refined based on v15) ***
+		// --- Prompts and Gemini Calls (Using v15 prompts) ---
 		const _buildInitialPrompt = () => {
 			const level = state.currentProfile?.skill_level || 'středně pokročilá';
 			const topicName = state.currentTopic?.name || 'Neznámé téma';

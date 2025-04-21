@@ -1,5 +1,5 @@
 /* --- START: Cyberpunk CSS Theme (Adapted for vyuka.html) --- */
-/* --- Версия 17: Исправлен размер чата, сохранены улучшения UI/UX v16 --- */
+/* --- Версия 18: Chat size significantly increased, UI enhancements from v16 kept --- */
 
 /* --- Global Settings & Variables (Enhanced) --- */
 :root {
@@ -478,9 +478,9 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
 .main-content-wrapper { padding: 0; flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 0; /* Crucial for flexbox layout */ }
 .call-interface { flex-grow: 1; display: flex; overflow: hidden; padding: 1.8rem var(--container-padding-x); gap: 1.8rem; /* Use calc if needed, but flex-grow should handle it */ min-height: 0; /* Important */ }
 
-/* *** MODIFICATION v17: Adjust flex properties for chat size *** */
+/* *** MODIFICATION v18: Adjust flex properties AGAIN for chat size *** */
 .ai-presenter-area {
-	flex: 2 1 55%; /* Changed: Grow 2, Shrink 1, Basis 55% */
+	flex: 1 1 500px; /* Grow 1, Shrink 1, Base 500px */
 	display: flex;
 	flex-direction: column;
 	background-color: var(--card-bg);
@@ -490,13 +490,13 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
 	border: 1px solid var(--border-color-light);
 	min-height: 0;
 	position: relative;
-	min-width: 400px; /* Reduced slightly */
+	min-width: 450px; /* Keep a decent min width for presenter */
     transition: box-shadow var(--transition-medium);
 }
 .interaction-panel {
-	flex: 3 1 45%; /* Changed: Grow 3, Shrink 1, Basis 45% */
-	/* max-width: none; Removed max-width constraint */
-	min-width: 380px; /* Increased min-width */
+	flex: 2 1 400px; /* Grow 2, Shrink 1, Base 400px */
+    max-width: none; /* REMOVED max-width */
+	min-width: 400px; /* Set a reasonable min width */
 	display: flex;
 	flex-direction: column;
 	background-color: var(--chat-bg);
@@ -508,7 +508,7 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
     transition: box-shadow var(--transition-medium);
 }
 .ai-presenter-area:hover, .interaction-panel:hover { box-shadow: var(--shadow-card); }
-/* *** END MODIFICATION v17 *** */
+/* *** END MODIFICATION v18 *** */
 
 /* AI Presenter (Whiteboard Area) */
 .ai-presenter-header { padding: 0.9rem 1.3rem; border-bottom: 1px solid var(--border-color-light); display: flex; align-items: center; justify-content: space-between; background-color: rgba(var(--dark-purple-accent-rgb), 0.5); flex-shrink: 0; min-height: 60px; }
@@ -523,6 +523,10 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
 
 /* Whiteboard (Enhanced) */
 #whiteboard-container { flex-grow: 1; position: relative; overflow-y: auto; background-color: var(--board-bg); border: 1px solid var(--board-border); border-radius: 0 0 var(--card-radius) var(--card-radius); padding: 1.8rem; color: var(--board-text); scrollbar-width: thin; scrollbar-color: var(--chat-scrollbar-thumb) var(--chat-scrollbar-track); }
+#whiteboard-container::-webkit-scrollbar { width: 8px; }
+#whiteboard-container::-webkit-scrollbar-track { background: var(--chat-scrollbar-track); }
+#whiteboard-container::-webkit-scrollbar-thumb { background-color: var(--chat-scrollbar-thumb); border-radius: 4px; }
+#whiteboard-container::-webkit-scrollbar-thumb:hover { background-color: var(--chat-scrollbar-thumb-hover); }
 #whiteboard-content {
 	min-height: 100%; line-height: 1.8; font-size: 1.05rem; /* Slightly larger font */
 	letter-spacing: normal; word-spacing: normal; font-kerning: normal; text-rendering: optimizeLegibility;
@@ -692,15 +696,16 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
 .toast-close:hover { opacity: 1; color: var(--accent-primary); transform: scale(1.1); }
 @keyframes toast-in { from { opacity: 0; transform: translateX(110%); } to { opacity: 1; transform: translateX(0); } }
 
-/* --- NEW v16: Modal Styles --- */
+/* --- Modal Styles --- */
 .modal-overlay {
     position: fixed; inset: 0; background-color: rgba(var(--bg-secondary-rgb), 0.8);
-    display: flex; align-items: center; justify-content: center;
+    display: none; /* Changed from flex */ align-items: center; justify-content: center;
     z-index: 1060; padding: 1rem;
     opacity: 0; transition: opacity 0.3s ease-out; backdrop-filter: blur(8px);
     pointer-events: none; /* Hidden by default */
 }
 .modal-overlay.visible {
+    display: flex; /* Show overlay */
     opacity: 1;
     pointer-events: auto; /* Make interactive when visible */
 }
@@ -732,8 +737,8 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
 .sidebar-overlay.active { display: block; opacity: 1; }
 @media (max-width: 1200px) {
 	/* Slightly adjust proportions if needed on smaller desktops */
-	.ai-presenter-area { flex-basis: 58%; min-width: 380px;}
-	.interaction-panel { flex-basis: 42%; min-width: 360px;}
+	.ai-presenter-area { flex-basis: 55%; min-width: 400px;} /* Give presenter slightly more base */
+	.interaction-panel { flex-basis: 45%; min-width: 380px;}
 	.call-interface { padding: 1rem; gap: 1rem; }
 }
 @media (max-width: 992px) {
@@ -799,8 +804,8 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
 	.toast.show { transform: translateX(0) !important; }
 	.chat-message, .whiteboard-chunk { animation: none !important; opacity: 1 !important; transform: none !important; } /* Disable message pop-in */
 	.modal-overlay, .modal-content { transition: none !important; } /* Disable modal animations */
-    .modal-overlay:not([style*="display: none"]) { opacity: 1 !important; }
-    .modal-overlay:not([style*="display: none"]) .modal-content { transform: none !important; }
+    .modal-overlay.visible { opacity: 1 !important; }
+    .modal-overlay.visible .modal-content { transform: none !important; }
     .ai-greeting-avatar { animation: none !important; } /* Disable avatar float */
     .initial-chat-status .status-dot { animation: none !important; } /* Disable status dot pulse */
     .unread-dot { animation: none !important; } /* Disable notification dot pulse */
