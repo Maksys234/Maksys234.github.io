@@ -1,5 +1,5 @@
 // Файл: procvicovani/vyuka/vyuka.js
-// Версия 10: Отладка молчания AI (логирование), улучшение детекции задач, дальнейшее усиление промптов против лишних вопросов.
+// Версия 11: Возврат MathJax в addChatMessage (целевой), усиление промпта против "Stačí takto?".
 
 (function() { // IIFE для изоляции области видимости
     'use strict';
@@ -15,7 +15,7 @@
         const POINTS_TOPIC_COMPLETE = 25;
 
         // --- DOM Elements Cache ---
-        const ui = { /* ... (DOM cache remains the same as v9) ... */
+        const ui = { /* ... (DOM cache remains the same) ... */
             initialLoader: document.getElementById('initial-loader'),
             sidebarOverlay: document.getElementById('sidebar-overlay'),
             offlineBanner: document.getElementById('offline-banner'),
@@ -68,21 +68,21 @@
         };
 
         // --- Global State ---
-        let state = { /* ... (State remains the same as v9) ... */
-            supabase: null, currentUser: null, currentProfile: null,
-            currentTopic: null, currentPlanId: null, currentSessionId: null,
-            geminiChatContext: [], geminiIsThinking: false, thinkingIndicatorId: null,
-            topicLoadInProgress: false,
-            isDarkMode: window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches,
-            boardContentHistory: [],
-            speechSynthesisSupported: ('speechSynthesis' in window),
-            czechVoice: null,
-            speechRecognitionSupported: ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window),
-            speechRecognition: null, isListening: false, currentlyHighlightedChunk: null,
-            isLoading: { currentTopic: false, chat: false, user: false, notifications: false, points: false },
-            aiIsWaitingForAnswer: false,
-            lastInteractionTime: Date.now()
-        };
+        let state = { /* ... (State remains the same) ... */
+             supabase: null, currentUser: null, currentProfile: null,
+             currentTopic: null, currentPlanId: null, currentSessionId: null,
+             geminiChatContext: [], geminiIsThinking: false, thinkingIndicatorId: null,
+             topicLoadInProgress: false,
+             isDarkMode: window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches,
+             boardContentHistory: [],
+             speechSynthesisSupported: ('speechSynthesis' in window),
+             czechVoice: null,
+             speechRecognitionSupported: ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window),
+             speechRecognition: null, isListening: false, currentlyHighlightedChunk: null,
+             isLoading: { currentTopic: false, chat: false, user: false, notifications: false, points: false },
+             aiIsWaitingForAnswer: false,
+             lastInteractionTime: Date.now()
+         };
 
         // Visuals for notification types
         const activityVisuals = { /* ... (no changes) ... */ test: { icon: 'fa-vial', class: 'test' }, exercise: { icon: 'fa-pencil-alt', class: 'exercise' }, badge: { icon: 'fa-medal', class: 'badge' }, diagnostic: { icon: 'fa-clipboard-check', class: 'diagnostic' }, lesson: { icon: 'fa-book-open', class: 'lesson' }, plan_generated: { icon: 'fa-calendar-alt', class: 'plan_generated' }, level_up: { icon: 'fa-level-up-alt', class: 'level_up' }, other: { icon: 'fa-info-circle', class: 'other' }, default: { icon: 'fa-check-circle', class: 'default' } };
@@ -92,17 +92,16 @@
         // openMenu, closeMenu, autoResizeTextarea, generateSessionId, initTooltips,
         // updateOnlineStatus, updateCopyrightYear, initMouseFollower, initScrollAnimations,
         // initHeaderScrollDetection, cleanChatMessage, clearInitialChatState, setLoadingState
-        // *** renderMarkdown: Reverted MathJax call back inside, removed from addChatMessage ***
-        function showToast(title, message, type = 'info', duration = 4500) { if (!ui.toastContainer) return; try { const toastId = `toast-${Date.now()}`; const toastElement = document.createElement('div'); toastElement.className = `toast ${type}`; toastElement.id = toastId; toastElement.setAttribute('role', 'alert'); toastElement.setAttribute('aria-live', 'assertive'); toastElement.innerHTML = `<i class="toast-icon"></i><div class="toast-content">${title ? `<div class="toast-title">${sanitizeHTML(title)}</div>` : ''}<div class="toast-message">${sanitizeHTML(message)}</div></div><button type="button" class="toast-close" aria-label="Zavřít">&times;</button>`; const icon = toastElement.querySelector('.toast-icon'); icon.className = `toast-icon fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle'}`; toastElement.querySelector('.toast-close').addEventListener('click', () => { toastElement.classList.remove('show'); setTimeout(() => toastElement.remove(), 400); }); ui.toastContainer.appendChild(toastElement); requestAnimationFrame(() => { toastElement.classList.add('show'); }); setTimeout(() => { if (toastElement.parentElement) { toastElement.classList.remove('show'); setTimeout(() => toastElement.remove(), 400); } }, duration); } catch (e) { console.error("Chyba při zobrazování toastu:", e); } }
-        function showError(message, isGlobal = false) { console.error("Došlo k chybě:", message); if (isGlobal && ui.globalError) { ui.globalError.innerHTML = `<div class="error-message"><i class="fas fa-exclamation-triangle"></i><div>${sanitizeHTML(message)}</div><button class="retry-button btn" onclick="location.reload()">Zkusit Znovu</button></div>`; ui.globalError.style.display = 'block'; } else { showToast('CHYBA SYSTÉMU', message, 'error', 6000); } }
-        function hideError() { if (ui.globalError) ui.globalError.style.display = 'none'; }
-        const sanitizeHTML = (str) => { const temp = document.createElement('div'); temp.textContent = str || ''; return temp.innerHTML; };
-        const getInitials = (profileData, email) => { if (!profileData && !email) return '?'; let initials = ''; if (profileData?.first_name) initials += profileData.first_name[0]; if (profileData?.last_name) initials += profileData.last_name[0]; if (initials) return initials.toUpperCase(); if (profileData?.username) return profileData.username[0].toUpperCase(); if (email) return email[0].toUpperCase(); return 'Pilot'; };
+        function showToast(title, message, type = 'info', duration = 4500) { /* ... */ if (!ui.toastContainer) return; try { const toastId = `toast-${Date.now()}`; const toastElement = document.createElement('div'); toastElement.className = `toast ${type}`; toastElement.id = toastId; toastElement.setAttribute('role', 'alert'); toastElement.setAttribute('aria-live', 'assertive'); toastElement.innerHTML = `<i class="toast-icon"></i><div class="toast-content">${title ? `<div class="toast-title">${sanitizeHTML(title)}</div>` : ''}<div class="toast-message">${sanitizeHTML(message)}</div></div><button type="button" class="toast-close" aria-label="Zavřít">&times;</button>`; const icon = toastElement.querySelector('.toast-icon'); icon.className = `toast-icon fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle'}`; toastElement.querySelector('.toast-close').addEventListener('click', () => { toastElement.classList.remove('show'); setTimeout(() => toastElement.remove(), 400); }); ui.toastContainer.appendChild(toastElement); requestAnimationFrame(() => { toastElement.classList.add('show'); }); setTimeout(() => { if (toastElement.parentElement) { toastElement.classList.remove('show'); setTimeout(() => toastElement.remove(), 400); } }, duration); } catch (e) { console.error("Chyba při zobrazování toastu:", e); } }
+        function showError(message, isGlobal = false) { /* ... */ console.error("Došlo k chybě:", message); if (isGlobal && ui.globalError) { ui.globalError.innerHTML = `<div class="error-message"><i class="fas fa-exclamation-triangle"></i><div>${sanitizeHTML(message)}</div><button class="retry-button btn" onclick="location.reload()">Zkusit Znovu</button></div>`; ui.globalError.style.display = 'block'; } else { showToast('CHYBA SYSTÉMU', message, 'error', 6000); } }
+        function hideError() { /* ... */ if (ui.globalError) ui.globalError.style.display = 'none'; }
+        const sanitizeHTML = (str) => { /* ... */ const temp = document.createElement('div'); temp.textContent = str || ''; return temp.innerHTML; };
+        const getInitials = (profileData, email) => { /* ... */ if (!profileData && !email) return '?'; let initials = ''; if (profileData?.first_name) initials += profileData.first_name[0]; if (profileData?.last_name) initials += profileData.last_name[0]; if (initials) return initials.toUpperCase(); if (profileData?.username) return profileData.username[0].toUpperCase(); if (email) return email[0].toUpperCase(); return 'Pilot'; };
         const formatTimestamp = (d = new Date()) => d.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' });
-        const formatRelativeTime = (timestamp) => { if (!timestamp) return ''; try { const now = new Date(); const date = new Date(timestamp); if (isNaN(date.getTime())) return '-'; const diffMs = now - date; const diffSec = Math.round(diffMs / 1000); const diffMin = Math.round(diffSec / 60); const diffHour = Math.round(diffMin / 60); const diffDay = Math.round(diffHour / 24); const diffWeek = Math.round(diffDay / 7); if (diffSec < 60) return 'Nyní'; if (diffMin < 60) return `Před ${diffMin} min`; if (diffHour < 24) return `Před ${diffHour} hod`; if (diffDay === 1) return `Včera`; if (diffDay < 7) return `Před ${diffDay} dny`; if (diffWeek <= 4) return `Před ${diffWeek} týdny`; return date.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric' }); } catch (e) { console.error("Chyba formátování času:", e, "Timestamp:", timestamp); return '-'; } };
-        const openMenu = () => { if (ui.sidebar && ui.sidebarOverlay) { ui.sidebar.classList.add('active'); ui.sidebarOverlay.classList.add('active'); } };
-        const closeMenu = () => { if (ui.sidebar && ui.sidebarOverlay) { ui.sidebar.classList.remove('active'); ui.sidebarOverlay.classList.remove('active'); } };
-        // *** renderMarkdown: Reverted MathJax call back here for testing ***
+        const formatRelativeTime = (timestamp) => { /* ... */ if (!timestamp) return ''; try { const now = new Date(); const date = new Date(timestamp); if (isNaN(date.getTime())) return '-'; const diffMs = now - date; const diffSec = Math.round(diffMs / 1000); const diffMin = Math.round(diffSec / 60); const diffHour = Math.round(diffMin / 60); const diffDay = Math.round(diffHour / 24); const diffWeek = Math.round(diffDay / 7); if (diffSec < 60) return 'Nyní'; if (diffMin < 60) return `Před ${diffMin} min`; if (diffHour < 24) return `Před ${diffHour} hod`; if (diffDay === 1) return `Včera`; if (diffDay < 7) return `Před ${diffDay} dny`; if (diffWeek <= 4) return `Před ${diffWeek} týdny`; return date.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric' }); } catch (e) { console.error("Chyba formátování času:", e, "Timestamp:", timestamp); return '-'; } };
+        const openMenu = () => { /* ... */ if (ui.sidebar && ui.sidebarOverlay) { ui.sidebar.classList.add('active'); ui.sidebarOverlay.classList.add('active'); } };
+        const closeMenu = () => { /* ... */ if (ui.sidebar && ui.sidebarOverlay) { ui.sidebar.classList.remove('active'); ui.sidebarOverlay.classList.remove('active'); } };
+        // *** MODIFIED renderMarkdown: Removed MathJax call (moved to addChatMessage) ***
         const renderMarkdown = (el, text) => {
             if (!el) return;
             const originalText = text || '';
@@ -115,36 +114,28 @@
                 marked.setOptions({ gfm: true, breaks: true, sanitize: false });
                 const htmlContent = marked.parse(originalText);
                 if (htmlContent === originalText && originalText.trim() !== '') {
-                    console.warn("[RenderMarkdown] marked.parse() did not change the input text.", originalText.substring(0, 100) + "...");
-                    el.innerHTML = `<p>${sanitizeHTML(originalText)}</p>`; // Fallback wrap
+                    // Don't log warning here, just use the content
+                    el.innerHTML = `<p>${sanitizeHTML(originalText)}</p>`;
                 } else {
                     el.innerHTML = htmlContent;
                 }
-                // *** MathJax call RE-ADDED here ***
-                 if (window.MathJax && typeof window.MathJax.typesetPromise === 'function' && (originalText.includes('$') || originalText.includes('\\'))) {
-                     console.log("[MathJax] Attempting MathJax typeset in renderMarkdown...");
-                     setTimeout(() => { // Keep the timeout
-                         window.MathJax.typesetPromise([el])
-                             .then(() => console.log("[MathJax] Typeset successful in renderMarkdown."))
-                             .catch(e => console.error("MathJax typesetting error in renderMarkdown:", e));
-                     }, 0);
-                 }
+                // MathJax call removed
             } catch (e) {
                 console.error("Markdown rendering error:", e);
                 el.innerHTML = `<p style="color:var(--accent-pink);">Chyba renderování Markdown.</p><pre><code>${sanitizeHTML(originalText)}</code></pre>`;
             }
         };
-        const autoResizeTextarea = () => { if (!ui.chatInput) return; ui.chatInput.style.height = 'auto'; const scrollHeight = ui.chatInput.scrollHeight; const maxHeight = 110; ui.chatInput.style.height = `${Math.min(scrollHeight, maxHeight)}px`; ui.chatInput.style.overflowY = scrollHeight > maxHeight ? 'scroll' : 'hidden'; };
+        const autoResizeTextarea = () => { /* ... */ if (!ui.chatInput) return; ui.chatInput.style.height = 'auto'; const scrollHeight = ui.chatInput.scrollHeight; const maxHeight = 110; ui.chatInput.style.height = `${Math.min(scrollHeight, maxHeight)}px`; ui.chatInput.style.overflowY = scrollHeight > maxHeight ? 'scroll' : 'hidden'; };
         const generateSessionId = () => `session_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
-        const initTooltips = () => { try { if (window.jQuery?.fn.tooltipster) { window.jQuery('.btn-tooltip:not(.tooltipstered)').tooltipster({ theme: 'tooltipster-shadow', animation: 'fade', delay: 100, side: 'top' }); } } catch (e) { console.error("Tooltipster error:", e); } };
-        const updateOnlineStatus = () => { if (ui.offlineBanner) { ui.offlineBanner.style.display = navigator.onLine ? 'none' : 'block'; } if (!navigator.onLine) { showToast('Offline', 'Spojení bylo ztraceno. Některé funkce nemusí být dostupné.', 'warning'); } };
-        const updateCopyrightYear = () => { const year = new Date().getFullYear(); if (ui.currentYearSidebar) ui.currentYearSidebar.textContent = year; if (ui.currentYearFooter) ui.currentYearFooter.textContent = year; };
-        const initMouseFollower = () => { const follower = ui.mouseFollower; if (!follower || window.innerWidth <= 576) return; let hasMoved = false; const updatePosition = (event) => { if (!hasMoved) { document.body.classList.add('mouse-has-moved'); hasMoved = true; } requestAnimationFrame(() => { follower.style.left = `${event.clientX}px`; follower.style.top = `${event.clientY}px`; }); }; window.addEventListener('mousemove', updatePosition, { passive: true }); document.body.addEventListener('mouseleave', () => { if (hasMoved) follower.style.opacity = '0'; }); document.body.addEventListener('mouseenter', () => { if (hasMoved) follower.style.opacity = '1'; }); window.addEventListener('touchstart', () => { if(follower) follower.style.display = 'none'; }, { passive: true, once: true }); };
-        const initScrollAnimations = () => { const animatedElements = document.querySelectorAll('.main-content-wrapper [data-animate]'); if (!animatedElements.length || !('IntersectionObserver' in window)) { console.log("Scroll animations not initialized."); return; } const observer = new IntersectionObserver((entries, observerInstance) => { entries.forEach(entry => { if (entry.isIntersecting) { entry.target.classList.add('animated'); observerInstance.unobserve(entry.target); } }); }, { threshold: 0.1, rootMargin: "0px 0px -30px 0px" }); animatedElements.forEach(element => observer.observe(element)); console.log(`Scroll animations initialized for ${animatedElements.length} elements.`); };
-        const initHeaderScrollDetection = () => { let lastScrollY = window.scrollY; const mainEl = ui.mainContent; if (!mainEl) return; mainEl.addEventListener('scroll', () => { const currentScrollY = mainEl.scrollTop; document.body.classList.toggle('scrolled', currentScrollY > 10); lastScrollY = currentScrollY <= 0 ? 0 : currentScrollY; }, { passive: true }); if (mainEl.scrollTop > 10) document.body.classList.add('scrolled'); };
-        function cleanChatMessage(text) { if (typeof text !== 'string') return text; let cleanedText = text.replace(/``/g, ''); const lines = cleanedText.split('\n'); const filteredLines = lines.filter(line => { const trimmedLine = line.trim(); return trimmedLine !== '.' && trimmedLine !== '?'; }); cleanedText = filteredLines.join('\n'); if (cleanedText.trim() === "(Poslechněte si komentář)") { console.log("[Clean] Removing placeholder text."); return ""; } cleanedText = cleanedText.trim(); return cleanedText; }
-        const clearInitialChatState = () => { const initialElement = ui.chatMessages?.querySelector('.initial-chat-interface'); if (initialElement) { initialElement.remove(); console.log("Initial chat state cleared."); } };
-        const setLoadingState = (sectionKey, isLoadingFlag) => { if (state.isLoading[sectionKey] === isLoadingFlag && sectionKey !== 'all') return; if (sectionKey === 'all') { Object.keys(state.isLoading).forEach(key => state.isLoading[key] = isLoadingFlag); } else { state.isLoading[sectionKey] = isLoadingFlag; } console.log(`[SetLoading] ${sectionKey}: ${isLoadingFlag}`); if (sectionKey === 'chat') { if (ui.sendButton) { ui.sendButton.disabled = isLoadingFlag || state.geminiIsThinking || state.topicLoadInProgress || state.isListening; ui.sendButton.innerHTML = state.geminiIsThinking ? '<i class="fas fa-spinner fa-spin"></i>' : '<i class="fas fa-paper-plane"></i>'; } } if (sectionKey === 'currentTopic') { if (ui.currentTopicDisplay) { if (isLoadingFlag) { ui.currentTopicDisplay.innerHTML = '<span class="placeholder"><i class="fas fa-spinner fa-spin"></i> Načítám téma...</span>'; } } } if (sectionKey === 'notifications') { if (ui.notificationBell) ui.notificationBell.style.opacity = isLoadingFlag ? 0.5 : 1; if (ui.markAllReadBtn) { const currentUnreadCount = parseInt(ui.notificationCount?.textContent?.replace('+', '') || '0'); ui.markAllReadBtn.disabled = isLoadingFlag || currentUnreadCount === 0; } if (isLoadingFlag && ui.notificationsList) { renderNotificationSkeletons(2); } } manageButtonStates(); };
+        const initTooltips = () => { /* ... */ try { if (window.jQuery?.fn.tooltipster) { window.jQuery('.btn-tooltip:not(.tooltipstered)').tooltipster({ theme: 'tooltipster-shadow', animation: 'fade', delay: 100, side: 'top' }); } } catch (e) { console.error("Tooltipster error:", e); } };
+        const updateOnlineStatus = () => { /* ... */ if (ui.offlineBanner) { ui.offlineBanner.style.display = navigator.onLine ? 'none' : 'block'; } if (!navigator.onLine) { showToast('Offline', 'Spojení bylo ztraceno. Některé funkce nemusí být dostupné.', 'warning'); } };
+        const updateCopyrightYear = () => { /* ... */ const year = new Date().getFullYear(); if (ui.currentYearSidebar) ui.currentYearSidebar.textContent = year; if (ui.currentYearFooter) ui.currentYearFooter.textContent = year; };
+        const initMouseFollower = () => { /* ... */ const follower = ui.mouseFollower; if (!follower || window.innerWidth <= 576) return; let hasMoved = false; const updatePosition = (event) => { if (!hasMoved) { document.body.classList.add('mouse-has-moved'); hasMoved = true; } requestAnimationFrame(() => { follower.style.left = `${event.clientX}px`; follower.style.top = `${event.clientY}px`; }); }; window.addEventListener('mousemove', updatePosition, { passive: true }); document.body.addEventListener('mouseleave', () => { if (hasMoved) follower.style.opacity = '0'; }); document.body.addEventListener('mouseenter', () => { if (hasMoved) follower.style.opacity = '1'; }); window.addEventListener('touchstart', () => { if(follower) follower.style.display = 'none'; }, { passive: true, once: true }); };
+        const initScrollAnimations = () => { /* ... */ const animatedElements = document.querySelectorAll('.main-content-wrapper [data-animate]'); if (!animatedElements.length || !('IntersectionObserver' in window)) { console.log("Scroll animations not initialized."); return; } const observer = new IntersectionObserver((entries, observerInstance) => { entries.forEach(entry => { if (entry.isIntersecting) { entry.target.classList.add('animated'); observerInstance.unobserve(entry.target); } }); }, { threshold: 0.1, rootMargin: "0px 0px -30px 0px" }); animatedElements.forEach(element => observer.observe(element)); console.log(`Scroll animations initialized for ${animatedElements.length} elements.`); };
+        const initHeaderScrollDetection = () => { /* ... */ let lastScrollY = window.scrollY; const mainEl = ui.mainContent; if (!mainEl) return; mainEl.addEventListener('scroll', () => { const currentScrollY = mainEl.scrollTop; document.body.classList.toggle('scrolled', currentScrollY > 10); lastScrollY = currentScrollY <= 0 ? 0 : currentScrollY; }, { passive: true }); if (mainEl.scrollTop > 10) document.body.classList.add('scrolled'); };
+        function cleanChatMessage(text) { /* ... */ if (typeof text !== 'string') return text; let cleanedText = text.replace(/``/g, ''); const lines = cleanedText.split('\n'); const filteredLines = lines.filter(line => { const trimmedLine = line.trim(); return trimmedLine !== '.' && trimmedLine !== '?'; }); cleanedText = filteredLines.join('\n'); if (cleanedText.trim() === "(Poslechněte si komentář)") { console.log("[Clean] Removing placeholder text."); return ""; } cleanedText = cleanedText.trim(); return cleanedText; }
+        const clearInitialChatState = () => { /* ... */ const initialElement = ui.chatMessages?.querySelector('.initial-chat-interface'); if (initialElement) { initialElement.remove(); console.log("Initial chat state cleared."); } };
+        const setLoadingState = (sectionKey, isLoadingFlag) => { /* ... */ if (state.isLoading[sectionKey] === isLoadingFlag && sectionKey !== 'all') return; if (sectionKey === 'all') { Object.keys(state.isLoading).forEach(key => state.isLoading[key] = isLoadingFlag); } else { state.isLoading[sectionKey] = isLoadingFlag; } console.log(`[SetLoading] ${sectionKey}: ${isLoadingFlag}`); if (sectionKey === 'chat') { if (ui.sendButton) { ui.sendButton.disabled = isLoadingFlag || state.geminiIsThinking || state.topicLoadInProgress || state.isListening; ui.sendButton.innerHTML = state.geminiIsThinking ? '<i class="fas fa-spinner fa-spin"></i>' : '<i class="fas fa-paper-plane"></i>'; } } if (sectionKey === 'currentTopic') { if (ui.currentTopicDisplay) { if (isLoadingFlag) { ui.currentTopicDisplay.innerHTML = '<span class="placeholder"><i class="fas fa-spinner fa-spin"></i> Načítám téma...</span>'; } } } if (sectionKey === 'notifications') { if (ui.notificationBell) ui.notificationBell.style.opacity = isLoadingFlag ? 0.5 : 1; if (ui.markAllReadBtn) { const currentUnreadCount = parseInt(ui.notificationCount?.textContent?.replace('+', '') || '0'); ui.markAllReadBtn.disabled = isLoadingFlag || currentUnreadCount === 0; } if (isLoadingFlag && ui.notificationsList) { renderNotificationSkeletons(2); } } manageButtonStates(); };
 
         // --- TTS/STT Functions ---
         // loadVoices, removeBoardHighlight, speakText, stopSpeech, initializeSpeechRecognition,
@@ -164,7 +155,7 @@
         // --- (No changes needed) ---
         const initializeSupabase = () => { try { if (!window.supabase) throw new Error("Supabase library not loaded."); state.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); if (!state.supabase) throw new Error("Client creation failed."); console.log("Supabase initialized."); return true; } catch (error) { console.error("Supabase init failed:", error); showToast("Chyba DB.", "error", 10000); return false; } };
         const initializeUI = () => { try { updateTheme(); setupEventListeners(); initTooltips(); if (ui.chatTabButton) ui.chatTabButton.classList.add('active'); if (ui.chatTabContent) ui.chatTabContent.classList.add('active'); if (state.speechSynthesisSupported) { if (window.speechSynthesis.getVoices().length > 0) { loadVoices(); } else if (window.speechSynthesis.onvoiceschanged !== undefined) { window.speechSynthesis.onvoiceschanged = loadVoices; } } else { console.warn("Speech Synthesis not supported."); } initializeSpeechRecognition(); initMouseFollower(); initHeaderScrollDetection(); updateCopyrightYear(); updateOnlineStatus(); manageUIState('initial'); console.log("UI Initialized successfully."); return true; } catch(error) { console.error("UI Init failed:", error); showError(`Chyba inicializace UI: ${error.message}`, true); return false; } };
-        const initializeApp = async () => { console.log("🚀 [Init Vyuka - Kyber v10] Starting..."); if (!initializeSupabase()) return; if (typeof marked === 'undefined') { showError("Kritická chyba: Knihovna 'marked.js' se nepodařilo načíst. Obnovte stránku.", true); if (ui.initialLoader) { ui.initialLoader.classList.add('hidden'); setTimeout(() => { if (ui.initialLoader) ui.initialLoader.style.display = 'none'; }, 300); } return; } console.log("✅ Marked library found."); if (ui.initialLoader) { ui.initialLoader.style.display = 'flex'; ui.initialLoader.classList.remove('hidden'); } if (ui.mainContent) ui.mainContent.style.display = 'none'; try { console.log("[INIT] Checking auth session..."); const { data: { session }, error: sessionError } = await state.supabase.auth.getSession(); if (sessionError) throw new Error(`Nepodařilo se ověřit sezení: ${sessionError.message}`); if (!session || !session.user) { console.log('[Init Vyuka - Kyber] Not logged in. Redirecting...'); window.location.href = '/auth/index.html'; return; } state.currentUser = session.user; console.log(`[INIT] User authenticated (ID: ${state.currentUser.id}).`); setLoadingState('user', true); state.currentProfile = await fetchUserProfile(state.currentUser.id); updateUserInfoUI(); setLoadingState('user', false); if (!state.currentProfile) { showError("Profil nenalezen nebo se nepodařilo načíst.", true); if (ui.initialLoader) { ui.initialLoader.classList.add('hidden'); setTimeout(() => { if (ui.initialLoader) ui.initialLoader.style.display = 'none'; }, 300); } if (ui.mainContent) ui.mainContent.style.display = 'flex'; manageUIState('error', { errorMessage: 'Profil nenalezen.' }); return; } if (!initializeUI()) return; console.log("[INIT] Loading initial topic and notifications..."); const loadNotificationsPromise = fetchNotifications(state.currentUser.id, NOTIFICATION_FETCH_LIMIT).then(({ unreadCount, notifications }) => renderNotifications(unreadCount, notifications)).catch(err => { console.error("Chyba při úvodním načítání notifikací:", err); renderNotifications(0, []); }); await loadNotificationsPromise; const loadTopicPromise = loadNextUncompletedTopic(); await loadTopicPromise; if (ui.initialLoader) { ui.initialLoader.classList.add('hidden'); setTimeout(() => { if (ui.initialLoader) ui.initialLoader.style.display = 'none'; }, 500); } if (ui.mainContent) { ui.mainContent.style.display = 'flex'; requestAnimationFrame(() => { ui.mainContent.classList.add('loaded'); }); } requestAnimationFrame(initScrollAnimations); console.log("✅ [Init Vyuka - Kyber v10] Page Initialized."); } catch (error) { console.error("❌ [Init Vyuka - Kyber] Critical initialization error:", error); if (ui.initialLoader && !ui.initialLoader.classList.contains('hidden')) { ui.initialLoader.innerHTML = `<p style="color: var(--accent-pink);">CHYBA (${error.message}). Obnovte.</p>`; } else { showError(`Chyba inicializace: ${error.message}`, true); } if (ui.mainContent) ui.mainContent.style.display = 'flex'; setLoadingState('all', false); } };
+        const initializeApp = async () => { console.log("🚀 [Init Vyuka - Kyber v11] Starting..."); if (!initializeSupabase()) return; if (typeof marked === 'undefined') { showError("Kritická chyba: Knihovna 'marked.js' se nepodařilo načíst. Obnovte stránku.", true); if (ui.initialLoader) { ui.initialLoader.classList.add('hidden'); setTimeout(() => { if (ui.initialLoader) ui.initialLoader.style.display = 'none'; }, 300); } return; } console.log("✅ Marked library found."); if (ui.initialLoader) { ui.initialLoader.style.display = 'flex'; ui.initialLoader.classList.remove('hidden'); } if (ui.mainContent) ui.mainContent.style.display = 'none'; try { console.log("[INIT] Checking auth session..."); const { data: { session }, error: sessionError } = await state.supabase.auth.getSession(); if (sessionError) throw new Error(`Nepodařilo se ověřit sezení: ${sessionError.message}`); if (!session || !session.user) { console.log('[Init Vyuka - Kyber] Not logged in. Redirecting...'); window.location.href = '/auth/index.html'; return; } state.currentUser = session.user; console.log(`[INIT] User authenticated (ID: ${state.currentUser.id}).`); setLoadingState('user', true); state.currentProfile = await fetchUserProfile(state.currentUser.id); updateUserInfoUI(); setLoadingState('user', false); if (!state.currentProfile) { showError("Profil nenalezen nebo se nepodařilo načíst.", true); if (ui.initialLoader) { ui.initialLoader.classList.add('hidden'); setTimeout(() => { if (ui.initialLoader) ui.initialLoader.style.display = 'none'; }, 300); } if (ui.mainContent) ui.mainContent.style.display = 'flex'; manageUIState('error', { errorMessage: 'Profil nenalezen.' }); return; } if (!initializeUI()) return; console.log("[INIT] Loading initial topic and notifications..."); const loadNotificationsPromise = fetchNotifications(state.currentUser.id, NOTIFICATION_FETCH_LIMIT).then(({ unreadCount, notifications }) => renderNotifications(unreadCount, notifications)).catch(err => { console.error("Chyba při úvodním načítání notifikací:", err); renderNotifications(0, []); }); await loadNotificationsPromise; const loadTopicPromise = loadNextUncompletedTopic(); await loadTopicPromise; if (ui.initialLoader) { ui.initialLoader.classList.add('hidden'); setTimeout(() => { if (ui.initialLoader) ui.initialLoader.style.display = 'none'; }, 500); } if (ui.mainContent) { ui.mainContent.style.display = 'flex'; requestAnimationFrame(() => { ui.mainContent.classList.add('loaded'); }); } requestAnimationFrame(initScrollAnimations); console.log("✅ [Init Vyuka - Kyber v11] Page Initialized."); } catch (error) { console.error("❌ [Init Vyuka - Kyber] Critical initialization error:", error); if (ui.initialLoader && !ui.initialLoader.classList.contains('hidden')) { ui.initialLoader.innerHTML = `<p style="color: var(--accent-pink);">CHYBA (${error.message}). Obnovte.</p>`; } else { showError(`Chyba inicializace: ${error.message}`, true); } if (ui.mainContent) ui.mainContent.style.display = 'flex'; setLoadingState('all', false); } };
 
         // --- User Profile & Auth ---
         // fetchUserProfile, updateUserInfoUI, handleLoggedOutUser
@@ -205,73 +196,62 @@
 
         // --- Learning Session & Chat ---
         const startLearningSession = async () => { /* ... */ if (!state.currentTopic) return; state.currentSessionId = generateSessionId(); clearInitialChatState(); manageUIState('requestingExplanation'); const prompt = _buildInitialPrompt(); await sendToGemini(prompt); };
-        // *** requestContinue (Verified check is present) ***
-        const requestContinue = async () => {
-            console.log("[RequestContinue] Triggered. AI Waiting:", state.aiIsWaitingForAnswer); // Log state
-            if (state.geminiIsThinking || !state.currentTopic) return;
-            if (state.aiIsWaitingForAnswer) {
-                showToast("Nejprve odpovězte na úlohu v chatu.", "warning", 3000);
-                console.warn("[RequestContinue] Blocked: AI is waiting for an answer.");
-                return;
-            }
-            const prompt = _buildContinuePrompt();
-            await sendToGemini(prompt);
-        };
-        // *** MODIFIED addChatMessage: Removed explicit MathJax call ***
+        const requestContinue = async () => { /* ... */ console.log("[RequestContinue] Triggered. AI Waiting:", state.aiIsWaitingForAnswer); if (state.geminiIsThinking || !state.currentTopic) return; if (state.aiIsWaitingForAnswer) { showToast("Nejprve odpovězte na úlohu v chatu.", "warning", 3000); console.warn("[RequestContinue] Blocked: AI is waiting for an answer."); return; } const prompt = _buildContinuePrompt(); await sendToGemini(prompt); };
+        // *** MODIFIED addChatMessage: Explicit targeted MathJax call (v9 style) ***
         const addChatMessage = async (displayMessage, sender, saveToDb = true, timestamp = new Date(), ttsText = null, originalContent = null) => {
             if (!ui.chatMessages) return;
             clearInitialChatState();
             const id = `msg-${Date.now()}`;
             const avatarText = sender === 'user' ? getInitials(state.currentProfile, state.currentUser?.email) : 'AI';
-            const div = document.createElement('div'); // The main message element
+            const div = document.createElement('div');
             div.className = `chat-message ${sender === 'gemini' ? 'model' : sender}`;
             div.id = id;
-
             const avatarDiv = `<div class="message-avatar">${avatarText}</div>`;
-
             const bubbleDiv = document.createElement('div');
             bubbleDiv.className = 'message-bubble';
-
             const bubbleContentDiv = document.createElement('div');
             bubbleContentDiv.className = 'message-bubble-content';
-
-            const textContentSpan = document.createElement('span');
+            const textContentSpan = document.createElement('span'); // Target for rendering and typesetting
             textContentSpan.className = 'message-text-content';
-            renderMarkdown(textContentSpan, displayMessage); // Render markdown into the span (This now includes MathJax call again)
+
+            renderMarkdown(textContentSpan, displayMessage); // Render content into span
 
             bubbleContentDiv.appendChild(textContentSpan);
 
-            // Add TTS button if applicable
+            // Add TTS button
             if (sender === 'gemini' && state.speechSynthesisSupported) {
                 const ttsButton = document.createElement('button');
+                /* ... tts button setup ... */
                 ttsButton.className = 'tts-listen-btn btn-tooltip';
                 ttsButton.title = 'Poslechnout';
                 ttsButton.innerHTML = '<i class="fas fa-volume-up"></i>';
                 const textForSpeech = ttsText || displayMessage;
                 ttsButton.dataset.textToSpeak = textForSpeech;
-                ttsButton.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    speakText(textForSpeech);
-                });
+                ttsButton.addEventListener('click', (e) => { e.stopPropagation(); speakText(textForSpeech); });
                 bubbleContentDiv.appendChild(ttsButton);
             }
 
             bubbleDiv.appendChild(bubbleContentDiv);
             const timeDiv = `<div class="message-timestamp">${formatTimestamp(timestamp)}</div>`;
+            div.innerHTML = avatarDiv + bubbleDiv.outerHTML + timeDiv;
+            ui.chatMessages.appendChild(div);
 
-            div.innerHTML = avatarDiv + bubbleDiv.outerHTML + timeDiv; // Assemble the final message structure
-            ui.chatMessages.appendChild(div); // Add to DOM
-
-            // MathJax call removed - handled by renderMarkdown now
-            // if (window.MathJax && typeof window.MathJax.typesetPromise === 'function' && ...) { ... }
+            // --- Explicit MathJax call for the specific span ---
+            if (window.MathJax && typeof window.MathJax.typesetPromise === 'function' && (displayMessage.includes('$') || displayMessage.includes('\\'))) {
+                 console.log(`[MathJax v11] Attempting to typeset span in message: ${id}`);
+                  setTimeout(() => {
+                      window.MathJax.typesetPromise([textContentSpan]) // Target the specific span
+                          .then(() => console.log(`[MathJax v11] Successfully typeset span in message: ${id}`))
+                          .catch(e => console.error(`[MathJax v11] Typesetting error in addChatMessage for ${id}:`, e));
+                  }, 50); // Slightly increased delay to 50ms might help
+              }
+            // ----------------------------------------------------
 
             div.scrollIntoView({ behavior: 'smooth', block: 'end' });
             initTooltips();
-
-            // Save to DB
             const contentToSave = originalContent !== null ? originalContent : displayMessage;
             if (saveToDb && state.supabase && state.currentUser && state.currentTopic && state.currentSessionId) {
-                try { /* ... DB save logic ... */ await state.supabase.from('chat_history').insert({ user_id: state.currentUser.id, session_id: state.currentSessionId, topic_id: state.currentTopic.topic_id, topic_name: state.currentTopic.name, role: sender === 'gemini' ? 'model' : 'user', content: contentToSave }); } catch (e) { console.error("Chat save error:", e); showToast("Chyba ukládání chatu.", "error"); }
+                try { await state.supabase.from('chat_history').insert({ user_id: state.currentUser.id, session_id: state.currentSessionId, topic_id: state.currentTopic.topic_id, topic_name: state.currentTopic.name, role: sender === 'gemini' ? 'model' : 'user', content: contentToSave }); } catch (e) { console.error("Chat save error:", e); showToast("Chyba ukládání chatu.", "error"); }
             }
             manageButtonStates();
         };
@@ -287,154 +267,46 @@
         const saveChatToPDF = async () => { if (!ui.chatMessages || ui.chatMessages.children.length === 0 || !!ui.chatMessages.querySelector('.initial-chat-interface')) { showToast("Není co uložit.", "warning"); return; } if (typeof html2pdf === 'undefined') { showToast("Chyba: PDF knihovna nenalezena.", "error"); return; } showToast("Generuji PDF...", "info", 4000); const elementToExport = document.createElement('div'); elementToExport.style.padding="15mm"; elementToExport.innerHTML = `<style>body { font-family: 'Poppins', sans-serif; font-size: 10pt; line-height: 1.5; color: #333; } .chat-message { margin-bottom: 12px; max-width: 90%; page-break-inside: avoid; } .user { margin-left: 10%; } .model { margin-right: 10%; } .message-bubble { display: inline-block; padding: 8px 14px; border-radius: 15px; background-color: #e9ecef; } .user .message-bubble { background-color: #d1e7dd; } .message-timestamp { font-size: 8pt; color: #6c757d; margin-top: 4px; display: block; } .user .message-timestamp { text-align: right; } h1 { font-size: 16pt; color: #0d6efd; text-align: center; margin-bottom: 5px; } p.subtitle { font-size: 9pt; color: #6c757d; text-align: center; margin: 0 0 15px 0; } hr { border: 0; border-top: 1px solid #ccc; margin: 15px 0; } .tts-listen-btn { display: none; } mjx-math { font-size: 1em; } pre { background-color: #f8f9fa; border: 1px solid #dee2e6; padding: 0.8em; border-radius: 6px; overflow-x: auto; font-size: 0.9em; } code { background-color: #e9ecef; padding: 0.1em 0.3em; border-radius: 3px; } pre code { background: none; padding: 0; }</style><h1>Chat s AI Tutorem - ${sanitizeHTML(state.currentTopic?.name || 'Neznámé téma')}</h1><p class="subtitle">Vygenerováno: ${new Date().toLocaleString('cs-CZ')}</p><hr>`; Array.from(ui.chatMessages.children).forEach(msgElement => { if (msgElement.classList.contains('chat-message') && !msgElement.id.startsWith('thinking-')) { const clone = msgElement.cloneNode(true); clone.querySelector('.message-avatar')?.remove(); clone.querySelector('.tts-listen-btn')?.remove(); clone.classList.add('msg'); if(msgElement.classList.contains('user')) clone.classList.add('user'); else clone.classList.add('model'); clone.querySelector('.message-bubble')?.classList.add('bubble'); clone.querySelector('.message-timestamp')?.classList.add('time'); elementToExport.appendChild(clone); } }); const filename = `chat-${state.currentTopic?.name?.replace(/[^a-z0-9]/gi, '_') || 'vyuka'}-${Date.now()}.pdf`; const pdfOptions = { margin: 15, filename: filename, image: { type: 'jpeg', quality: 0.95 }, html2canvas: { scale: 2, useCORS: true, logging: false }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } }; try { await html2pdf().set(pdfOptions).from(elementToExport).save(); showToast("Chat uložen jako PDF!", "success"); } catch (e) { console.error("PDF Generation Error:", e); showToast("Chyba při generování PDF.", "error"); } };
 
         // --- Gemini Interaction & Parsing ---
-        // *** MODIFIED parseGeminiResponse: Added more logging ***
-        const parseGeminiResponse = (rawText) => {
-            console.log("[ParseGemini] Raw input:", rawText ? rawText.substring(0, 150) + "..." : "EMPTY"); // Log raw input
-            const boardMarker = "[BOARD_MARKDOWN]:";
-            const ttsMarker = "[TTS_COMMENTARY]:";
-            let boardMarkdown = "";
-            let ttsCommentary = "";
-            let chatText = "";
-
-            const findContent = (marker, text) => {
-                const markerIndex = text.indexOf(marker);
-                if (markerIndex === -1) {
-                     console.log(`[ParseGemini] Marker "${marker}" not found.`);
-                     return { content: "", remainingText: text };
-                }
-                let contentStart = markerIndex + marker.length;
-                let content = "";
-                let remainingText = text.substring(0, markerIndex);
-                const blockStartMatch = text.substring(contentStart).match(/^\s*```(markdown)?\s*\n/);
-                if (blockStartMatch) {
-                    contentStart += blockStartMatch[0].length;
-                    const blockEndIndex = text.indexOf("```", contentStart);
-                    if (blockEndIndex !== -1) {
-                        content = text.substring(contentStart, blockEndIndex).trim();
-                        remainingText += text.substring(blockEndIndex + 3);
-                        console.log(`[ParseGemini] Found block for "${marker}". Length: ${content.length}`);
-                    } else {
-                        content = text.substring(contentStart).trim();
-                        console.warn(`[ParseGemini] Missing closing \`\`\` for marker: "${marker}". Taking rest of text.`);
-                    }
-                } else {
-                    const nextBoard = text.indexOf(boardMarker, contentStart);
-                    const nextTTS = text.indexOf(ttsMarker, contentStart);
-                    let endPos = text.length;
-                    if (nextBoard !== -1) endPos = Math.min(endPos, nextBoard);
-                    if (nextTTS !== -1) endPos = Math.min(endPos, nextTTS);
-                    content = text.substring(contentStart, endPos).trim();
-                    remainingText += text.substring(endPos);
-                    console.log(`[ParseGemini] Found content without block for "${marker}". Length: ${content.length}`);
-                }
-                return { content, remainingText };
-            };
-
-            let remaining = rawText || ""; // Ensure rawText is not null/undefined
-            let boardResult = findContent(boardMarker, remaining);
-            boardMarkdown = boardResult.content;
-            remaining = boardResult.remainingText;
-
-            let ttsResult = findContent(ttsMarker, remaining);
-            ttsCommentary = ttsResult.content;
-            remaining = ttsResult.remainingText;
-
-            chatText = remaining.trim();
-            if (chatText.includes(boardMarker) || chatText.includes(ttsMarker)) {
-                console.warn("[ParseGemini] Potential parsing issue: Markers found in chatText:", chatText.substring(0, 100));
-            }
-            chatText = chatText.replace(/```(markdown)?\s*|\s*```/g, '').trim(); // Clean stray backticks
-
-            console.log("[ParseGemini] Result - Board:", boardMarkdown ? boardMarkdown.substring(0, 50) + "..." : "None");
-            console.log("[ParseGemini] Result - TTS:", ttsCommentary ? ttsCommentary.substring(0, 50) + "..." : "None");
-            console.log("[ParseGemini] Result - Chat:", chatText ? chatText.substring(0, 50) + "..." : "None");
-
-            return { boardMarkdown, ttsCommentary, chatText };
-        };
-
-        // *** MODIFIED processGeminiResponse: Improved task detection ***
-        const processGeminiResponse = (rawText, timestamp) => {
-            removeThinkingIndicator();
-            state.lastInteractionTime = Date.now();
-            console.log("[ProcessGemini] Processing Raw Response:", rawText ? rawText.substring(0, 100) + "..." : "Empty Response");
-
-            if (!rawText) {
-                handleGeminiError("AI vrátilo prázdnou odpověď.", timestamp);
-                manageButtonStates(); return;
-            }
-
-            const { boardMarkdown, ttsCommentary, chatText } = parseGeminiResponse(rawText);
-            let aiResponded = false;
-            const cleanedChatText = cleanChatMessage(chatText);
-            console.log(`[ProcessGemini] Parsed-> Board: ${!!boardMarkdown}, TTS: ${!!ttsCommentary}, Chat: ${!!cleanedChatText}`);
-
-            // --- Handle board content ---
-            if (boardMarkdown) {
-                appendToWhiteboard(boardMarkdown, ttsCommentary || boardMarkdown);
-                if (ttsCommentary) { speakText(ttsCommentary); }
-                aiResponded = true;
-                state.aiIsWaitingForAnswer = false; // Default to not waiting
-
-                // --- Improved Task Detection ---
-                const lowerBoard = boardMarkdown.toLowerCase();
-                const taskKeywords = ['úloha k řešení', 'vyřešte tento příklad', 'zodpovězte následující', 'úkol:', 'otázka k procvičení'];
-                const taskHeaderRegex = /###\s*(úloha|příklad k řešení|úkol|otázka)/i;
-                const zadaniEndsWithQuestion = /\*\*zadání:\*\*[\s\S]*\?$/i; // Check if bold Zadání ends with ?
-
-                if (taskKeywords.some(kw => lowerBoard.includes(kw)) ||
-                    taskHeaderRegex.test(boardMarkdown) ||
-                    zadaniEndsWithQuestion.test(boardMarkdown.replace(/\s+/g, ' ')))
-                {
-                    state.aiIsWaitingForAnswer = true;
-                    console.log("[ProcessGemini] Task DETECTED on board, setting aiIsWaitingForAnswer = true.");
-                } else {
-                    console.log("[ProcessGemini] No task detected on board.");
-                }
-                // --- End Improved Task Detection ---
-            }
-
-            // --- Handle chat content ---
-            const lowerOriginalChat = chatText.toLowerCase();
-            // Removed general question check here, relying on prompts and board detection
-            // const aiAskingQuestionInChat = ...;
-
-            if (cleanedChatText) {
-                const ttsForChat = (!boardMarkdown && ttsCommentary) ? ttsCommentary : null;
-                addChatMessage(cleanedChatText, 'gemini', true, timestamp, ttsForChat, chatText);
-                aiResponded = true;
-                // Don't automatically set waiting based on chat, rely on board detection
-                // if (aiAskingQuestionInChat && !state.aiIsWaitingForAnswer) { ... }
-            } else if (ttsCommentary && !boardMarkdown) {
-                speakText(ttsCommentary);
-                aiResponded = true;
-            }
-
-            // --- Fallback ---
-            if (!aiResponded && !boardMarkdown && !ttsCommentary && !cleanedChatText) {
-                addChatMessage("(AI neodpovědělo očekávaným formátem nebo odpověď byla prázdná)", 'gemini', false, timestamp, null, rawText || "(Prázdná/neplatná odpověď)");
-                console.warn("AI sent no usable content.");
-                state.aiIsWaitingForAnswer = false;
-            }
-
-            // --- Update UI ---
-            if (state.aiIsWaitingForAnswer) {
-                 manageUIState('waitingForAnswer');
-            } else {
-                 manageUIState('learning');
-            }
-        };
+        // parseGeminiResponse, processGeminiResponse
+        // --- (No changes needed) ---
+        const parseGeminiResponse = (rawText) => { console.log("[ParseGemini] Raw input:", rawText ? rawText.substring(0, 150) + "..." : "EMPTY"); const boardMarker = "[BOARD_MARKDOWN]:"; const ttsMarker = "[TTS_COMMENTARY]:"; let boardMarkdown = ""; let ttsCommentary = ""; let chatText = ""; const findContent = (marker, text) => { const markerIndex = text.indexOf(marker); if (markerIndex === -1) { console.log(`[ParseGemini] Marker "${marker}" not found.`); return { content: "", remainingText: text }; } let contentStart = markerIndex + marker.length; let content = ""; let remainingText = text.substring(0, markerIndex); const blockStartMatch = text.substring(contentStart).match(/^\s*```(markdown)?\s*\n/); if (blockStartMatch) { contentStart += blockStartMatch[0].length; const blockEndIndex = text.indexOf("```", contentStart); if (blockEndIndex !== -1) { content = text.substring(contentStart, blockEndIndex).trim(); remainingText += text.substring(blockEndIndex + 3); console.log(`[ParseGemini] Found block for "${marker}". Length: ${content.length}`); } else { content = text.substring(contentStart).trim(); console.warn(`[ParseGemini] Missing closing \`\`\` for marker: "${marker}". Taking rest of text.`); } } else { const nextBoard = text.indexOf(boardMarker, contentStart); const nextTTS = text.indexOf(ttsMarker, contentStart); let endPos = text.length; if (nextBoard !== -1) endPos = Math.min(endPos, nextBoard); if (nextTTS !== -1) endPos = Math.min(endPos, nextTTS); content = text.substring(contentStart, endPos).trim(); remainingText += text.substring(endPos); console.log(`[ParseGemini] Found content without block for "${marker}". Length: ${content.length}`); } return { content, remainingText }; }; let remaining = rawText || ""; let boardResult = findContent(boardMarker, remaining); boardMarkdown = boardResult.content; remaining = boardResult.remainingText; let ttsResult = findContent(ttsMarker, remaining); ttsCommentary = ttsResult.content; remaining = ttsResult.remainingText; chatText = remaining.trim(); if (chatText.includes(boardMarker) || chatText.includes(ttsMarker)) { console.warn("[ParseGemini] Potential parsing issue: Markers found in chatText:", chatText.substring(0, 100)); } chatText = chatText.replace(/```(markdown)?\s*|\s*```/g, '').trim(); console.log("[ParseGemini] Result - Board:", boardMarkdown ? boardMarkdown.substring(0, 50) + "..." : "None"); console.log("[ParseGemini] Result - TTS:", ttsCommentary ? ttsCommentary.substring(0, 50) + "..." : "None"); console.log("[ParseGemini] Result - Chat:", chatText ? chatText.substring(0, 50) + "..." : "None"); return { boardMarkdown, ttsCommentary, chatText }; };
+        const processGeminiResponse = (rawText, timestamp) => { removeThinkingIndicator(); state.lastInteractionTime = Date.now(); console.log("[ProcessGemini] Processing Raw Response:", rawText ? rawText.substring(0, 100) + "..." : "Empty Response"); if (!rawText) { handleGeminiError("AI vrátilo prázdnou odpověď.", timestamp); manageButtonStates(); return; } const { boardMarkdown, ttsCommentary, chatText } = parseGeminiResponse(rawText); let aiResponded = false; const cleanedChatText = cleanChatMessage(chatText); console.log(`[ProcessGemini] Parsed-> Board: ${!!boardMarkdown}, TTS: ${!!ttsCommentary}, Chat: ${!!cleanedChatText}`); if (boardMarkdown) { appendToWhiteboard(boardMarkdown, ttsCommentary || boardMarkdown); if (ttsCommentary) { speakText(ttsCommentary); } aiResponded = true; state.aiIsWaitingForAnswer = false; const lowerBoard = boardMarkdown.toLowerCase(); const taskKeywords = ['úloha k řešení', 'vyřešte tento příklad', 'zodpovězte následující', 'úkol:', 'otázka k procvičení']; const taskHeaderRegex = /###\s*(úloha|příklad k řešení|úkol|otázka)/i; const zadaniEndsWithQuestion = /\*\*zadání:\*\*[\s\S]*\?$/i; if (taskKeywords.some(kw => lowerBoard.includes(kw)) || taskHeaderRegex.test(boardMarkdown) || zadaniEndsWithQuestion.test(boardMarkdown.replace(/\s+/g, ' '))) { state.aiIsWaitingForAnswer = true; console.log("[ProcessGemini] Task DETECTED on board, setting aiIsWaitingForAnswer = true."); } else { console.log("[ProcessGemini] No task detected on board."); } } if (cleanedChatText) { const ttsForChat = (!boardMarkdown && ttsCommentary) ? ttsCommentary : null; addChatMessage(cleanedChatText, 'gemini', true, timestamp, ttsForChat, chatText); aiResponded = true; } else if (ttsCommentary && !boardMarkdown) { speakText(ttsCommentary); aiResponded = true; } if (!aiResponded && !boardMarkdown && !ttsCommentary && !cleanedChatText) { addChatMessage("(AI neodpovědělo očekávaným formátem nebo odpověď byla prázdná)", 'gemini', false, timestamp, null, rawText || "(Prázdná/neplatná odpověď)"); console.warn("AI sent no usable content."); state.aiIsWaitingForAnswer = false; } if (state.aiIsWaitingForAnswer) { manageUIState('waitingForAnswer'); } else { manageUIState('learning'); } };
 
 
         // --- Prompts and Gemini Calls ---
-        // *** MODIFIED PROMPTS v10: Further reinforcement ***
-        const _buildInitialPrompt = () => { /* ... (same as v9, instructions are strict) ... */ const level = state.currentProfile?.skill_level || 'středně pokročilá'; const topicName = state.currentTopic?.name || 'Neznámé téma'; return `Jsi expertní AI Tutor "Justax", specialista na přípravu na PŘIJÍMACÍ ZKOUŠKY z matematiky pro 9. třídu ZŠ v ČR. Komunikuješ v ČEŠTINĚ. Tvé vysvětlení musí být strukturované, přesné a profesionální. Téma lekce: "${topicName}". Cílová úroveň studenta: "${level}". HLAVNÍ PRAVIDLA (DODRŽUJ VŽDY!): 1. **Obsah na tabuli:** Všechny klíčové informace (definice, věty, vzorce), řešené příklady a ÚLOHY K ŘEŠENÍ MUSÍ být ve formátu Markdown v sekci [BOARD_MARKDOWN]. Tabule je HLAVNÍ výukový prostor. 2. **Hlasový komentář:** Sekce [TTS_COMMENTARY] slouží pro DOPLŇUJÍCÍ hlasový komentář k obsahu na tabuli (shrnutí, kontext, důraz). NEOPAKUJ doslova text z tabule. 3. **Chat:** Text mimo značky používej MINIMÁLNĚ (pozdravy). NIKDY v chatu nezadávej nové úlohy/příklady. 4. **Struktura a Náročnost:** Postupuj logicky: základy -> složitější koncepty -> **náročné příklady úrovně přijímaček**. Po vysvětlení VŽDY zařaď řešený příklad a NÁSLEDNĚ úlohu k řešení studentem (na tabuli!). Používej RŮZNÉ typy úloh (výpočty, slovní úlohy, úlohy s více kroky, zlomky, parametry - pokud relevantní). 5. **Interakce:** * Po zadání ÚLOHY K ŘEŠENÍ na tabuli, v [TTS_COMMENTARY] **JASNĚ uveď, že očekáváš odpověď** studenta v chatu. **NEPOKLÁDEJ další otázku v chatu.** Systém zablokuje tlačítko "Pokračuj", dokud student neodpoví. * Po běžném vysvětlení nebo řešeném příkladu **ABSOLUTNĚ NEČEKEJ na odpověď** a **STRIKTNĚ ZAKÁZÁNO ptát se "Je to jasné?"**, "Rozumíš?", "Pokračujeme?". Student sám klikne na "Pokračuj". 6. **Fokus na Téma:** **STRIKTNĚ se drž tématu lekce: "${topicName}".** Nevysvětluj nesouvisející pokročilé koncepty (např. složité grafy, intervaly, derivace), pokud nejsou PŘÍMOU součástí tohoto konkrétního tématu pro 9. třídu. PRVNÍ KROK: Začni se ZÁKLADNÍ DEFINICÍ nebo klíčovým konceptem tématu "${topicName}". Poskytni JEDEN JEDNODUCHÝ řešený příklad. POŽADOVANÝ FORMÁT ODPOVĚDI: [BOARD_MARKDOWN]: \`\`\`markdown ## ${topicName} - Základy ### [Krátký, výstižný podnadpis, např. Definice Lineární Rovnice] (Zde napiš stručnou, přesnou definici nebo úvodní koncept. Použij **tučné písmo** pro termíny a $$...$$pro matematiku.) ### První řešený příklad (Základní) (Zde uveď první VELMI JEDNODUCHÝ řešený příklad ilustrující definici. Jasně odděl zadání a kroky řešení.) **Zadání:** ... **Řešení:** * Krok 1: ... ($$...$$) * Krok 2: ... ($$...$$) * Výsledek:$$...$$ \`\`\` [TTS_COMMENTARY]: (Zde napiš hlasový komentář: Stručné přivítání, představení tématu a shrnutí toho, co je na tabuli – definice a první příklad. Zdůrazni klíčový bod. NEPOKLÁDEJ OTÁZKU.) (Text do chatu - VOLITELNÉ, velmi krátký, např. "Začněme.")`; };
-        const _buildContinuePrompt = () => { /* ... (same as v9, instructions are strict) ... */ const level = state.currentProfile?.skill_level || 'středně pokročilá'; const topicName = state.currentTopic?.name || 'Neznámé téma'; return `Pokračuj ve výkladu tématu "${topicName}" pro studenta úrovně "${level}" připravujícího se na PŘIJÍMACÍ ZKOUŠKY 9. třídy. Naváž logicky na PŘEDCHOZÍ OBSAH NA TABULI. HLAVNÍ PRAVIDLA (PŘIPOMENUTÍ!): - Všechny NOVÉ informace, řešené příklady a ÚLOHY K ŘEŠENÍ patří VÝHRADNĚ do [BOARD_MARKDOWN]. - [TTS_COMMENTARY] použij pro DOPLNĚNÍ k tabuli. - STRIKTNĚ se drž tématu "${topicName}" a úrovně 9. třídy. Žádné nesouvisející koncepty. - Postupně ZVYŠUJ NÁROČNOST úloh k úrovni přijímaček (více kroků, zlomky, slovní úlohy, parametry...). - Po zadání ÚLOHY K ŘEŠENÍ na tabuli, v [TTS_COMMENTARY] **JASNĚ řekni, že čekáš odpověď** v chatu. Systém vynutí odpověď. - Po teorii/řešeném příkladu **ABSOLUTNĚ NEČEKEJ na odpověď** a **STRIKTNĚ ZAKÁZÁNO ptát se "Je to jasné?", "Rozumíš?", "Pokračujeme?".** Student klikne "Pokračuj". DALŠÍ KROK: Vyber a vygeneruj JEDEN z následujících kroků: A) Další část teorie/vysvětlení navazující na předchozí. B) Další ŘEŠENÝ příklad (**složitější** než předchozí, může být i slovní úloha). C) ÚLOHU K ŘEŠENÍ pro studenta (**náročnost úrovně přijímaček**, může být i slovní úloha). POŽADOVANÝ FORMÁT ODPOVĚDI: [BOARD_MARKDOWN]: \`\`\`markdown ### [Nadpis další části / Řešený příklad (Typ) / Úloha k řešení (Typ)] (Zde uveď text vysvětlení NEBO zadání a PODROBNÉ řešení příkladu NEBO POUZE ZADÁNÍ úlohy k řešení. Používej Markdown, $$...$$.) \`\`\` [TTS_COMMENTARY]: (Zde napiš hlasový komentář k NOVÉMU obsahu. Pokud jsi zadal ÚLOHU K ŘEŠENÍ, **JASNĚ řekni:** "Nyní zkuste tuto úlohu vyřešit vy a napište mi výsledek/postup do chatu." Pokud jde o teorii/řešený příklad, stručně shrň hlavní myšlenku nebo upozorni na klíčový krok. **NEPOKLÁDEJ OTÁZKU.**) (Text do chatu - POUZE pokud NEZADÁVÁŠ úlohu k řešení, např. "Podíváme se na další typ.")`; };
-        const _buildChatInteractionPrompt = (userText) => { /* ... (same as v9, instructions are strict) ... */ const level = state.currentProfile?.skill_level || 'středně pokročilá'; const topicName = state.currentTopic?.name || 'Neznámé téma'; let baseInstruction; if (state.aiIsWaitingForAnswer) { baseInstruction = `Student odpověděl ("${userText}") na úlohu k tématu "${topicName}", která byla zadána na tabuli. TVŮJ ÚKOL: 1. **Stručně a PŘESNĚ vyhodnoť správnost** studentovy odpovědi/postupu. Použij matematickou terminologii. 2. Pokud je odpověď nesprávná nebo neúplná: **Jasně vysvětli chybu** a uveď správný postup nebo výsledek. Buď konstruktivní. 3. Pokud je odpověď správná: **Krátce pochval (např. 'Správně!', 'Výborně!'). NEPOKLÁDEJ ŽÁDNÉ DALŠÍ OTÁZKY** (ani 'Chceš pokračovat?' apod.). Jen potvrď správnost. 4. **V obou případech (správná i nesprávná odpověď): UKONČI svou odpověď ZDE.** Další krok zahájí student kliknutím na "Pokračuj".`; } else { baseInstruction = `Student položil otázku nebo komentář k probíranému tématu "${topicName}": "${userText}". TVŮJ ÚKOL: 1. **Odpověz stručně a PŘÍMO k dotazu studenta.** Využij kontext toho, co je aktuálně na TABULI. 2. **NEVYSVĚTLUJ novou látku** ani nezadávej nové příklady v chatu. Odkazuj na tabuli nebo řekni, že to bude probráno dále. 3. **Pokud studentův dotaz směřuje MIMO aktuální téma "${topicName}", jemně ho vrať zpět.** 4. Udržuj profesionální, ale nápomocný tón (úroveň "${level}"). 5. Ukonči odpověď neutrálně (např. "Stačí takto?", "Je to srozumitelnější?"). Nechej iniciativu dalšího kroku na studentovi (tlačítko "Pokračuj").`; } return `${baseInstruction} PRAVIDLA CHATU (PŘIPOMENUTÍ): Odpovídej POUZE běžným textem do chatu. Nepoužívej [BOARD_MARKDOWN] ani [TTS_COMMENTARY]. Buď stručný a věcný.`; };
-        const _buildGeminiPayloadContents = (userPrompt, isChatInteraction = false) => { /* ... (same system prompt as v9, instructions are strict) ... */ const level = state.currentProfile?.skill_level || 'středně pokročilá'; const topicName = state.currentTopic?.name || 'Neznámé téma'; const systemInstruction = `Jsi expertní AI Tutor "Justax", specialista na přípravu na PŘIJÍMACÍ ZKOUŠKY z matematiky pro 9. třídu ZŠ v ČR. Komunikuješ v ČEŠTINĚ. VŽDY dodržuj tato pravidla: 1. **Obsah na tabuli:** Všechny definice, vzorce, vysvětlení, ŘEŠENÉ PŘÍKLADY a ÚLOHY K ŘEŠENÍ patří VÝHRADNĚ do [BOARD_MARKDOWN]: \`\`\`markdown ... \`\`\`. Používej Markdown a $$...$$ pro matematiku. 2. **Hlasový komentář:** [TTS_COMMENTARY]: ... používej pro DOPLNĚNÍ k tabuli, NEOPAKUJ text doslova. 3. **Chat:** Přímý chat (mimo značky) používej MINIMÁLNĚ. NIKDY v něm nezadávej nové úlohy/příklady. 4. **Struktura a Náročnost:** Postupuj logicky, zvyšuj náročnost úloh k úrovni PŘIJÍMACÍCH ZKOUŠEK 9. třídy (více kroků, zlomky, slovní úlohy...). 5. **Interakce:** Po zadání ÚLOHY K ŘEŠENÍ na tabuli, v [TTS_COMMENTARY] jasně řekni, že čekáš na odpověď studenta v chatu (systém vynutí odpověď). V JINÝCH případech NEČEKEJ na odpověď a NEPOKLÁDEJ zbytečné dotazy ("Jasné?", "Pokračujeme?"). 6. **Fokus na Téma:** **STRIKTNĚ se drž tématu lekce: "${topicName}".** Nevysvětluj nesouvisející pokročilé koncepty (např. složité grafy, intervaly, derivace), pokud nejsou PŘÍMOU součástí tohoto konkrétního tématu pro 9. třídu. 7. **Odpovědi v chatu:** Pokud student ODPOVÍDÁ na úlohu nebo POKLÁDÁ OTÁZKU, odpovídej POUZE textem do CHATU podle instrukcí v uživatelském promptu (vyhodnoť odpověď / odpověz na dotaz, buď stručný, drž se tématu). Po správné odpovědi studenta JEN potvrď a UKONČI odpověď.`; const history = state.geminiChatContext.slice(-MAX_GEMINI_HISTORY_TURNS * 2); const currentUserMessage = { role: "user", parts: [{ text: userPrompt }] }; const contents = [ { role: "user", parts: [{ text: systemInstruction }] }, { role: "model", parts: [{ text: `Rozumím. Budu se řídit pravidly. Výklad a úlohy budou na tabuli ve formátu [BOARD_MARKDOWN]. Komentář v [TTS_COMMENTARY]. Chat využiji minimálně nebo pro reakce na studentovy otázky/řešení. Budu se držet tématu "${topicName}" a zvyšovat náročnost pro úroveň 9. třídy. Nebudu pokládat zbytečné otázky.` }] }, ...history, currentUserMessage ]; return contents; };
-        // --- sendToGemini, handleGeminiError (Added logging in catch) ---
-        const sendToGemini = async (prompt, isChatInteraction = false) => { /* ... */ if (!GEMINI_API_KEY || !GEMINI_API_KEY.startsWith('AIzaSy')) { showToast("Chyba Konfigurace", "Chybí API klíč pro AI.", "error"); updateGeminiThinkingState(false); return; } if (!state.currentTopic) { showToast("Chyba", "Není vybráno téma.", "error"); updateGeminiThinkingState(false); return; } if (!navigator.onLine) { showToast("Offline", "Nelze komunikovat s AI bez připojení.", "warning"); updateGeminiThinkingState(false); return; } console.log(`Sending to Gemini (Chat Interaction: ${isChatInteraction}): "${prompt.substring(0, 80)}..."`); const timestamp = new Date(); updateGeminiThinkingState(true); const contents = _buildGeminiPayloadContents(prompt, isChatInteraction); const body = { contents, generationConfig: { temperature: 0.6, topP: 0.95, topK: 40, maxOutputTokens: 8192 }, safetySettings: [ { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" }, { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" }, { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" }, { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" } ] }; try { const response = await fetch(GEMINI_API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }); if (!response.ok) { let errorText = `Chyba API (${response.status})`; try { const errData = await response.json(); errorText += `: ${errData?.error?.message || 'Neznámá chyba'}`; } catch (e) { errorText += `: ${await response.text()}`; } throw new Error(errorText); } const data = await response.json(); console.log("[DEBUG] Raw Gemini Response Data:", JSON.stringify(data, null, 2)); // *** DEBUG LOG ***
-             if (data.promptFeedback?.blockReason) { throw new Error(`Požadavek blokován: ${data.promptFeedback.blockReason}. Zkuste přeformulovat.`); } const candidate = data.candidates?.[0]; if (!candidate) { throw new Error('AI neposkytlo platnou odpověď (no candidate).'); } if (candidate.finishReason && !["STOP", "MAX_TOKENS"].includes(candidate.finishReason)) { console.warn(`Gemini finishReason: ${candidate.finishReason}.`); if (candidate.finishReason === 'SAFETY') throw new Error('Odpověď blokována bezpečnostním filtrem AI.'); } const text = candidate.content?.parts?.[0]?.text; if (!text && candidate.finishReason !== 'STOP') { if (candidate.finishReason === 'MAX_TOKENS') throw new Error('Odpověď AI byla příliš dlouhá (Max Tokens).'); else throw new Error('AI vrátilo prázdnou odpověď (Důvod: '+(candidate.finishReason || 'Neznámý')+').'); } state.geminiChatContext.push({ role: "user", parts: [{ text: prompt }] }); state.geminiChatContext.push({ role: "model", parts: [{ text: text || "" }] }); if (state.geminiChatContext.length > MAX_GEMINI_HISTORY_TURNS * 2 + 2) { state.geminiChatContext.splice(2, state.geminiChatContext.length - (MAX_GEMINI_HISTORY_TURNS * 2 + 2)); } processGeminiResponse(text || "", timestamp); } catch (error) { console.error('Chyba komunikace s Gemini:', error); console.error('Error stack:', error.stack); // *** DEBUG LOG ***
-             showToast(`Chyba AI: ${error.message}`, "error"); handleGeminiError(error.message, timestamp); } finally { updateGeminiThinkingState(false); } };
+        // *** MODIFIED PROMPTS v11: Even stricter instruction against filler questions ***
+        const _buildInitialPrompt = () => { /* ... (same as v10) ... */ const level = state.currentProfile?.skill_level || 'středně pokročilá'; const topicName = state.currentTopic?.name || 'Neznámé téma'; return `Jsi expertní AI Tutor "Justax", specialista na přípravu na PŘIJÍMACÍ ZKOUŠKY z matematiky pro 9. třídu ZŠ v ČR. Komunikuješ v ČEŠTINĚ. Tvé vysvětlení musí být strukturované, přesné a profesionální. Téma lekce: "${topicName}". Cílová úroveň studenta: "${level}". HLAVNÍ PRAVIDLA (DODRŽUJ VŽDY!): 1. **Obsah na tabuli:** Všechny klíčové informace (definice, věty, vzorce), řešené příklady a ÚLOHY K ŘEŠENÍ MUSÍ být ve formátu Markdown v sekci [BOARD_MARKDOWN]. Tabule je HLAVNÍ výukový prostor. 2. **Hlasový komentář:** Sekce [TTS_COMMENTARY] slouží pro DOPLŇUJÍCÍ hlasový komentář k obsahu na tabuli (shrnutí, kontext, důraz). NEOPAKUJ doslova text z tabule. 3. **Chat:** Text mimo značky používej MINIMÁLNĚ (pozdravy). NIKDY v chatu nezadávej nové úlohy/příklady. 4. **Struktura a Náročnost:** Postupuj logicky: základy -> složitější koncepty -> **náročné příklady úrovně přijímaček**. Po vysvětlení VŽDY zařaď řešený příklad a NÁSLEDNĚ úlohu k řešení studentem (na tabuli!). Používej RŮZNÉ typy úloh (výpočty, slovní úlohy, úlohy s více kroky, zlomky, parametry - pokud relevantní). 5. **Interakce:** * Po zadání ÚLOHY K ŘEŠENÍ na tabuli, v [TTS_COMMENTARY] **JASNĚ uveď, že očekáváš odpověď** studenta v chatu. **NEPOKLÁDEJ další otázku v chatu.** Systém zablokuje tlačítko "Pokračuj", dokud student neodpoví. * Po běžném vysvětlení nebo řešeném příkladu **ABSOLUTNĚ NEČEKEJ na odpověď** a **STRIKTNĚ ZAKÁZÁNO ptát se "Je to jasné?"**, "Rozumíš?", "Pokračujeme?". Student sám klikne na "Pokračuj". 6. **Fokus na Téma:** **STRIKTNĚ se drž tématu lekce: "${topicName}".** Nevysvětluj nesouvisející pokročilé koncepty (např. složité grafy, intervaly, derivace), pokud nejsou PŘÍMOU součástí tohoto konkrétního tématu pro 9. třídu. PRVNÍ KROK: Začni se ZÁKLADNÍ DEFINICÍ nebo klíčovým konceptem tématu "${topicName}". Poskytni JEDEN JEDNODUCHÝ řešený příklad. POŽADOVANÝ FORMÁT ODPOVĚDI: [BOARD_MARKDOWN]: \`\`\`markdown ## ${topicName} - Základy ### [Krátký, výstižný podnadpis, např. Definice Lineární Rovnice] (Zde napiš stručnou, přesnou definici nebo úvodní koncept. Použij **tučné písmo** pro termíny a $$...$$pro matematiku.) ### První řešený příklad (Základní) (Zde uveď první VELMI JEDNODUCHÝ řešený příklad ilustrující definici. Jasně odděl zadání a kroky řešení.) **Zadání:** ... **Řešení:** * Krok 1: ... ($$...$$) * Krok 2: ... ($$...$$) * Výsledek:$$...$$ \`\`\` [TTS_COMMENTARY]: (Zde napiš hlasový komentář: Stručné přivítání, představení tématu a shrnutí toho, co je na tabuli – definice a první příklad. Zdůrazni klíčový bod. NEPOKLÁDEJ OTÁZKU.) (Text do chatu - VOLITELNÉ, velmi krátký, např. "Začněme.")`; };
+        const _buildContinuePrompt = () => { /* ... (same as v10) ... */ const level = state.currentProfile?.skill_level || 'středně pokročilá'; const topicName = state.currentTopic?.name || 'Neznámé téma'; return `Pokračuj ve výkladu tématu "${topicName}" pro studenta úrovně "${level}" připravujícího se na PŘIJÍMACÍ ZKOUŠKY 9. třídy. Naváž logicky na PŘEDCHOZÍ OBSAH NA TABULI. HLAVNÍ PRAVIDLA (PŘIPOMENUTÍ!): - Všechny NOVÉ informace, řešené příklady a ÚLOHY K ŘEŠENÍ patří VÝHRADNĚ do [BOARD_MARKDOWN]. - [TTS_COMMENTARY] použij pro DOPLNĚNÍ k tabuli. - STRIKTNĚ se drž tématu "${topicName}" a úrovně 9. třídy. Žádné nesouvisející koncepty. - Postupně ZVYŠUJ NÁROČNOST úloh k úrovni přijímaček (více kroků, zlomky, slovní úlohy, parametry...). - Po zadání ÚLOHY K ŘEŠENÍ na tabuli, v [TTS_COMMENTARY] **JASNĚ řekni, že čekáš odpověď** v chatu. Systém vynutí odpověď. - Po teorii/řešeném příkladu **ABSOLUTNĚ NEČEKEJ na odpověď** a **STRIKTNĚ ZAKÁZÁNO ptát se "Je to jasné?", "Rozumíš?", "Pokračujeme?".** Student klikne "Pokračuj". DALŠÍ KROK: Vyber a vygeneruj JEDEN z následujících kroků: A) Další část teorie/vysvětlení navazující na předchozí. B) Další ŘEŠENÝ příklad (**složitější** než předchozí, může být i slovní úloha). C) ÚLOHU K ŘEŠENÍ pro studenta (**náročnost úrovně přijímaček**, může být i slovní úloha). POŽADOVANÝ FORMÁT ODPOVĚDI: [BOARD_MARKDOWN]: \`\`\`markdown ### [Nadpis další části / Řešený příklad (Typ) / Úloha k řešení (Typ)] (Zde uveď text vysvětlení NEBO zadání a PODROBNÉ řešení příkladu NEBO POUZE ZADÁNÍ úlohy k řešení. Používej Markdown, $$...$$.) \`\`\` [TTS_COMMENTARY]: (Zde napiš hlasový komentář k NOVÉMU obsahu. Pokud jsi zadal ÚLOHU K ŘEŠENÍ, **JASNĚ řekni:** "Nyní zkuste tuto úlohu vyřešit vy a napište mi výsledek/postup do chatu." Pokud jde o teorii/řešený příklad, stručně shrň hlavní myšlenku nebo upozorni na klíčový krok. **NEPOKLÁDEJ OTÁZKU.**) (Text do chatu - POUZE pokud NEZADÁVÁŠ úlohu k řešení, např. "Podíváme se na další typ.")`; };
+        const _buildChatInteractionPrompt = (userText) => {
+            const level = state.currentProfile?.skill_level || 'středně pokročilá';
+            const topicName = state.currentTopic?.name || 'Neznámé téma';
+            let baseInstruction;
+
+            if (state.aiIsWaitingForAnswer) {
+                // User is answering a task
+                baseInstruction = `Student odpověděl ("${userText}") na úlohu k tématu "${topicName}", která byla zadána na tabuli.
+TVŮJ ÚKOL:
+1.  **Stručně a PŘESNĚ vyhodnoť správnost** studentovy odpovědi/postupu. Použij matematickou terminologii.
+2.  Pokud je odpověď nesprávná nebo neúplná: **Jasně vysvětli chybu** a uveď správný postup nebo výsledek. Buď konstruktivní.
+3.  Pokud je odpověď správná: **Krátce pochval (např. 'Správně!', 'Výborně!'). NEPOKLÁDEJ ŽÁDNÉ DALŠÍ OTÁZKY** (ani 'Chceš pokračovat?' apod.). Jen potvrď správnost.
+4.  **V obou případech (správná i nesprávná odpověď): UKONČI svou odpověď ZDE.** Další krok zahájí student kliknutím na "Pokračuj".`;
+            } else {
+                // User initiated the chat message (question or comment)
+                baseInstruction = `Student položil otázku nebo komentář k probíranému tématu "${topicName}": "${userText}".
+TVŮJ ÚKOL:
+1.  **Odpověz stručně a PŘÍMO k dotazu studenta.** Využij kontext toho, co je aktuálně na TABULI.
+2.  **NEVYSVĚTLUJ novou látku** ani nezadávej nové příklady v chatu. Odkazuj na tabuli nebo řekni, že to bude probráno dále.
+3.  **Pokud studentův dotaz směřuje MIMO aktuální téma "${topicName}", jemně ho vrať zpět.**
+4.  Udržuj profesionální, ale nápomocný tón (úroveň "${level}").
+5.  **Na konci své odpovědi NEPOKLÁDEJ otázky typu "Stačí takto?", "Je to srozumitelnější?" apod. Jen odpověz na otázku a SKONČI.** Nechej iniciativu dalšího kroku na studentovi (tlačítko "Pokračuj").`; // *** MODIFIED instruction here ***
+            }
+
+            return `${baseInstruction}
+PRAVIDLA CHATU (PŘIPOMENUTÍ): Odpovídej POUZE běžným textem do chatu. Nepoužívej [BOARD_MARKDOWN] ani [TTS_COMMENTARY]. Buď stručný a věcný.`;
+        };
+        const _buildGeminiPayloadContents = (userPrompt, isChatInteraction = false) => { /* ... (same system prompt as v10) ... */ const level = state.currentProfile?.skill_level || 'středně pokročilá'; const topicName = state.currentTopic?.name || 'Neznámé téma'; const systemInstruction = `Jsi expertní AI Tutor "Justax", specialista na přípravu na PŘIJÍMACÍ ZKOUŠKY z matematiky pro 9. třídu ZŠ v ČR. Komunikuješ v ČEŠTINĚ. VŽDY dodržuj tato pravidla: 1. **Obsah na tabuli:** Všechny definice, vzorce, vysvětlení, ŘEŠENÉ PŘÍKLADY a ÚLOHY K ŘEŠENÍ patří VÝHRADNĚ do [BOARD_MARKDOWN]: \`\`\`markdown ... \`\`\`. Používej Markdown a $$...$$ pro matematiku. 2. **Hlasový komentář:** [TTS_COMMENTARY]: ... používej pro DOPLNĚNÍ k tabuli, NEOPAKUJ text doslova. 3. **Chat:** Přímý chat (mimo značky) používej MINIMÁLNĚ. NIKDY v něm nezadávej nové úlohy/příklady. 4. **Struktura a Náročnost:** Postupuj logicky, zvyšuj náročnost úloh k úrovni PŘIJÍMACÍCH ZKOUŠEK 9. třídy (více kroků, zlomky, slovní úlohy...). 5. **Interakce:** Po zadání ÚLOHY K ŘEŠENÍ na tabuli, v [TTS_COMMENTARY] jasně řekni, že čekáš na odpověď studenta v chatu (systém vynutí odpověď). V JINÝCH případech NEČEKEJ na odpověď a NEPOKLÁDEJ zbytečné dotazy ("Jasné?", "Pokračujeme?"). 6. **Fokus na Téma:** **STRIKTNĚ se drž tématu lekce: "${topicName}".** Nevysvětluj nesouvisející pokročilé koncepty (např. složité grafy, intervaly, derivace), pokud nejsou PŘÍMOU součástí tohoto konkrétního tématu pro 9. třídu. 7. **Odpovědi v chatu:** Pokud student ODPOVÍDÁ na úlohu nebo POKLÁDÁ OTÁZKU, odpovídej POUZE textem do CHATU podle instrukcí v uživatelském promptu (vyhodnoť odpověď / odpověz na dotaz, buď stručný, drž se tématu). Po správné odpovědi studenta JEN potvrď a UKONČI odpověď. Na konci odpovědi na otázku studenta NEPOKLÁDEJ otázky typu "Stačí takto?".`; const history = state.geminiChatContext.slice(-MAX_GEMINI_HISTORY_TURNS * 2); const currentUserMessage = { role: "user", parts: [{ text: userPrompt }] }; const contents = [ { role: "user", parts: [{ text: systemInstruction }] }, { role: "model", parts: [{ text: `Rozumím. Budu se řídit pravidly. Výklad a úlohy budou na tabuli ve formátu [BOARD_MARKDOWN]. Komentář v [TTS_COMMENTARY]. Chat využiji minimálně nebo pro reakce na studentovy otázky/řešení. Budu se držet tématu "${topicName}" a zvyšovat náročnost pro úroveň 9. třídy. Nebudu pokládat zbytečné otázky.` }] }, ...history, currentUserMessage ]; return contents; };
+        // --- sendToGemini, handleGeminiError (No changes needed) ---
+        const sendToGemini = async (prompt, isChatInteraction = false) => { if (!GEMINI_API_KEY || !GEMINI_API_KEY.startsWith('AIzaSy')) { showToast("Chyba Konfigurace", "Chybí API klíč pro AI.", "error"); updateGeminiThinkingState(false); return; } if (!state.currentTopic) { showToast("Chyba", "Není vybráno téma.", "error"); updateGeminiThinkingState(false); return; } if (!navigator.onLine) { showToast("Offline", "Nelze komunikovat s AI bez připojení.", "warning"); updateGeminiThinkingState(false); return; } console.log(`Sending to Gemini (Chat Interaction: ${isChatInteraction}): "${prompt.substring(0, 80)}..."`); const timestamp = new Date(); updateGeminiThinkingState(true); const contents = _buildGeminiPayloadContents(prompt, isChatInteraction); const body = { contents, generationConfig: { temperature: 0.6, topP: 0.95, topK: 40, maxOutputTokens: 8192 }, safetySettings: [ { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" }, { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" }, { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" }, { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" } ] }; try { const response = await fetch(GEMINI_API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }); if (!response.ok) { let errorText = `Chyba API (${response.status})`; try { const errData = await response.json(); errorText += `: ${errData?.error?.message || 'Neznámá chyba'}`; } catch (e) { errorText += `: ${await response.text()}`; } throw new Error(errorText); } const data = await response.json(); console.log("[DEBUG] Raw Gemini Response Data:", JSON.stringify(data, null, 2)); if (data.promptFeedback?.blockReason) { throw new Error(`Požadavek blokován: ${data.promptFeedback.blockReason}. Zkuste přeformulovat.`); } const candidate = data.candidates?.[0]; if (!candidate) { throw new Error('AI neposkytlo platnou odpověď (no candidate).'); } if (candidate.finishReason && !["STOP", "MAX_TOKENS"].includes(candidate.finishReason)) { console.warn(`Gemini finishReason: ${candidate.finishReason}.`); if (candidate.finishReason === 'SAFETY') throw new Error('Odpověď blokována bezpečnostním filtrem AI.'); } const text = candidate.content?.parts?.[0]?.text; if (!text && candidate.finishReason !== 'STOP') { if (candidate.finishReason === 'MAX_TOKENS') throw new Error('Odpověď AI byla příliš dlouhá (Max Tokens).'); else throw new Error('AI vrátilo prázdnou odpověď (Důvod: '+(candidate.finishReason || 'Neznámý')+').'); } state.geminiChatContext.push({ role: "user", parts: [{ text: prompt }] }); state.geminiChatContext.push({ role: "model", parts: [{ text: text || "" }] }); if (state.geminiChatContext.length > MAX_GEMINI_HISTORY_TURNS * 2 + 2) { state.geminiChatContext.splice(2, state.geminiChatContext.length - (MAX_GEMINI_HISTORY_TURNS * 2 + 2)); } processGeminiResponse(text || "", timestamp); } catch (error) { console.error('Chyba komunikace s Gemini:', error); console.error('Error stack:', error.stack); showToast(`Chyba AI: ${error.message}`, "error"); handleGeminiError(error.message, timestamp); } finally { updateGeminiThinkingState(false); } };
         const handleGeminiError = (msg, time) => { removeThinkingIndicator(); addChatMessage(`Nastala chyba při komunikaci s AI: ${msg}`, 'gemini', false, time, null, `(Chyba: ${msg})`); state.aiIsWaitingForAnswer = false; manageUIState('learning'); };
 
         // --- Notification Logic ---
@@ -445,7 +317,6 @@
         function renderNotificationSkeletons(count = 2) { if (!ui.notificationsList || !ui.noNotificationsMsg) return; let skeletonHTML = ''; for (let i = 0; i < count; i++) { skeletonHTML += `<div class="notification-item skeleton"><div class="notification-icon skeleton" style="background-color: var(--skeleton-bg);"></div><div class="notification-content"><div class="skeleton" style="height: 16px; width: 70%; margin-bottom: 6px;"></div><div class="skeleton" style="height: 12px; width: 90%;"></div><div class="skeleton" style="height: 10px; width: 40%; margin-top: 6px;"></div></div></div>`; } ui.notificationsList.innerHTML = skeletonHTML; ui.noNotificationsMsg.style.display = 'none'; ui.notificationsList.style.display = 'block'; }
         async function markNotificationRead(notificationId) { console.log("[Notifications] Marking notification as read:", notificationId); if (!state.currentUser || !notificationId || !state.supabase) return false; try { const { error } = await state.supabase.from('user_notifications').update({ is_read: true }).eq('user_id', state.currentUser.id).eq('id', notificationId); if (error) throw error; console.log("[Notifications] Mark as read successful for ID:", notificationId); return true; } catch (error) { console.error("[Notifications] Mark as read error:", error); showToast('Chyba', 'Nepodařilo se označit oznámení jako přečtené.', 'error'); return false; } }
         async function markAllNotificationsRead() { console.log("[Notifications] Marking all as read for user:", state.currentUser?.id); if (!state.currentUser || !ui.markAllReadBtn || !state.supabase) return; setLoadingState('notifications', true); ui.markAllReadBtn.disabled = true; try { const { error } = await state.supabase.from('user_notifications').update({ is_read: true }).eq('user_id', state.currentUser.id).eq('is_read', false); if (error) throw error; console.log("[Notifications] Mark all as read successful in DB."); const { unreadCount, notifications } = await fetchNotifications(state.currentUser.id, NOTIFICATION_FETCH_LIMIT); renderNotifications(unreadCount, notifications); showToast('SIGNÁLY VYMAZÁNY', 'Všechna oznámení byla označena jako přečtená.', 'success'); } catch (error) { console.error("[Notifications] Mark all as read error:", error); showToast('CHYBA PŘENOSU', 'Nepodařilo se označit všechna oznámení.', 'error'); const currentCount = parseInt(ui.notificationCount?.textContent?.replace('+', '') || '0'); ui.markAllReadBtn.disabled = currentCount === 0; } finally { setLoadingState('notifications', false); } }
-
 
         // --- Run Application ---
         document.addEventListener('DOMContentLoaded', initializeApp);
