@@ -534,9 +534,14 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
 #whiteboard-container::-webkit-scrollbar-thumb:hover { background-color: var(--chat-scrollbar-thumb-hover); }
 #whiteboard-content {
 	min-height: 100%; line-height: 1.7; font-size: 1rem;
-	/* FIX: Normalize spacing */
+	/* FIX 1: Normalize spacing */
 	letter-spacing: normal;
 	word-spacing: normal;
+	/* FIX 2: Font rendering hints */
+	font-kerning: normal;
+	text-rendering: optimizeLegibility;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
 }
 .whiteboard-chunk { margin-bottom: 1.5rem; padding: 1rem; border-bottom: 1px dashed var(--border-color-light); position: relative; border-radius: 8px; transition: background-color 0.3s ease; }
 .whiteboard-chunk:last-child { border-bottom: none; margin-bottom: 0; }
@@ -547,14 +552,14 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
 #whiteboard-content h3 { font-size: 1.2em; color: var(--accent-secondary); border-bottom-style: dotted; }
 #whiteboard-content p {
 	margin-bottom: 0.8em;
-	/* FIX: Normalize spacing */
+	/* FIX 1: Normalize spacing */
 	letter-spacing: normal;
 	word-spacing: normal;
 }
 #whiteboard-content ul, #whiteboard-content ol { margin-left: 1.5em; margin-bottom: 0.8em; padding-left: 1em; /* Ensure padding for list markers */ }
 #whiteboard-content li {
 	margin-bottom: 0.4em;
-	/* FIX: Normalize spacing */
+	/* FIX 1: Normalize spacing */
 	letter-spacing: normal;
 	word-spacing: normal;
 }
