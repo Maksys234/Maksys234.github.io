@@ -12,32 +12,26 @@
 	<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 	<script>
 		// --- MathJax Configuration (v16 - Reviewed) ---
-		// Ensure MathJax object exists before configuring
 		if (typeof window.MathJax === 'undefined') {
 			window.MathJax = {
 				tex: {
-					inlineMath: [['$', '$'], ['\\(', '\\)']], // Standard delimiters
+					inlineMath: [['$', '$'], ['\\(', '\\)']],
 					displayMath: [['$$', '$$']],
-					processEscapes: true // Allows escaping $
+					processEscapes: true
 				},
                 svg: {
-                    fontCache: 'global' // Use global font cache for potential performance improvement
+                    fontCache: 'global'
                 },
 				options: {
-                    // skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'], // Keep default skips
-					ignoreHtmlClass: 'tex2jax_ignore', // Class to ignore elements
-                    processHtmlClass: 'tex2jax_process' // Class to explicitly process elements if needed
+					ignoreHtmlClass: 'tex2jax_ignore',
+                    processHtmlClass: 'tex2jax_process'
 				},
 				startup: {
-					// Typeset the page automatically on load, wait for MathJax to be fully ready
 					ready: () => {
 						console.log('[MathJax Config] MathJax Startup: Ready.');
 						MathJax.startup.defaultReady();
-						// Additional check after default ready promise resolves
 						MathJax.startup.promise.then(() => {
 							console.log('[MathJax Config] MathJax Startup: Core Ready.');
-                            // Potentially trigger a typeset here if needed, though JS calls it later
-                            // MathJax.typesetPromise();
 						});
 					}
 				}
@@ -92,10 +86,7 @@
 		<div class="sidebar-footer"> &copy; <span id="currentYearSidebar">2025</span> Justax Systems </div>
 	</aside>
 
-	<main id="main-content">
-		<div class="error-container" id="global-error"></div>
-
-		<header class="dashboard-header">
+	<main id="main-content" style="display: none;"> <div class="error-container" id="global-error" style="display: none;"></div> <header class="dashboard-header">
 			<div class="header-content">
 				 <div>
 					  <button class="mobile-menu-toggle" id="main-mobile-menu-toggle" aria-label="Otevřít menu">
@@ -115,15 +106,14 @@
 								  <button class="mark-all-read-btn" id="mark-all-read" disabled>Vymazat vše</button>
 							  </div>
 							  <div id="notifications-list">
-								   <div id="no-notifications-msg" style="display: block; padding: 1rem; text-align: center; color: var(--text-muted);">ŽÁDNÉ NOVÉ SIGNÁLY</div>
+								   <div class="notification-item skeleton"> <div class="notification-icon skeleton" style="background-color: var(--skeleton-bg);"></div> <div class="notification-content"> <div class="skeleton" style="height: 16px; width: 70%; margin-bottom: 6px;"></div> <div class="skeleton" style="height: 12px; width: 90%;"></div> <div class="skeleton" style="height: 10px; width: 40%; margin-top: 6px;"></div> </div> </div>
+								   <div id="no-notifications-msg" style="display: none; padding: 1rem; text-align: center; color: var(--text-muted);">ŽÁDNÉ NOVÉ SIGNÁLY</div>
 							  </div>
 							  <div class="notifications-footer">
-								  <a href="/dashboard/notifications.html" class="view-all-notifications-link">ZOBRAZIT ARCHIV</a> </div>
+								  <a href="/dashboard/notifications.html" class="view-all-notifications-link">ZOBRAZIT ARCHIV</a>
+							  </div>
 						 </div>
 					  </div>
-					  <button class="btn btn-success btn-tooltip" id="mark-complete-btn" style="display: none;" title="Označit aktuální téma jako probrané">
-						 <i class="fas fa-check-circle"></i> Dokončit
-					 </button>
 					 <a href="/dashboard/procvicovani/main.html" class="btn btn-secondary">
 						 <i class="fas fa-times"></i> Ukončit
 					 </a>
@@ -142,7 +132,7 @@
 		</div>
 
 		<div class="main-content-wrapper" style="padding-top: 0;">
-			 <div class="call-interface" style="display: none;">
+			<div class="call-interface" style="display: none;">
 				<div class="ai-presenter-area">
 					<div class="ai-presenter-header">
 						 <div style="display: flex; align-items: center; gap: 0.8rem;">
@@ -204,15 +194,10 @@
 						 </div>
 						 </div>
 				</div>
-			</div>
-
-			<footer class="dashboard-footer">
+			</div> <footer class="dashboard-footer">
 				<p>&copy; <span id="currentYearFooter">2025</span> Justax Systems // Secure Channel</p>
 			</footer>
-		</div>
-	</main>
-
-	<div class="toast-container" id="toast-container"></div>
+		</div> </main> <div class="toast-container" id="toast-container"></div>
 
 	<div id="ai-avatar-corner">
 		<i class="fas fa-robot"></i>
@@ -220,7 +205,7 @@
 
 	<div id="mouse-follower" class="mouse-follower-glow"></div>
 
-    <div class="modal-overlay" id="completionSuggestionOverlay" style="display: none;">
+	<div class="modal-overlay" id="completionSuggestionOverlay" style="display: none;">
         <div class="modal-content card" id="completionSuggestionModal">
             <button class="modal-close-btn" id="closeCompletionModalBtn" aria-label="Zavřít">&times;</button>
             <div class="modal-icon"><i class="fas fa-lightbulb"></i></div>
@@ -232,7 +217,9 @@
             </div>
         </div>
     </div>
-    <script src="vyuka.js" defer></script>
+
+    <script src="vyuka-core.js" defer></script>
+    <script src="vyuka-features.js" defer></script>
 
 </body>
 </html>
