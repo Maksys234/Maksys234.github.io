@@ -901,9 +901,24 @@ ${inputData}
                  if (results.score >= 43) analysis.overall_assessment = "Vynikající výkon!"; else if (results.score >= 33) analysis.overall_assessment = "Dobrý výkon, solidní základ."; else if (results.score >= 20) analysis.overall_assessment = "Průměrný výkon, zaměřte se na slabiny."; else analysis.overall_assessment = `Výkon ${results.score < 10 ? 'výrazně ' : ''}pod průměrem. Nutné opakování.`; if (results.score < SCORE_THRESHOLD_FOR_SAVING) analysis.overall_assessment += " Skóre je příliš nízké pro uložení a generování plánu."; analysis.recommendations = analysis.weaknesses.length > 0 ? [`Intenzivně se zaměřte na nejslabší témata: ${analysis.weaknesses.map(w => w.topic).slice(0, 2).join(', ')}.`] : ["Pokračujte v upevňování znalostí."]; if (analysis.incorrectly_answered_details.length > 3) analysis.recommendations.push(`Projděte si ${analysis.incorrectly_answered_details.length} otázek s nízkým nebo částečným skóre.`); console.log("[Analysis] Vygenerována detailní analýza:", analysis); return analysis;
     }
     async function saveTestResults() {
-         if(!ui.continueBtn) return false; ui.continueBtn.removeAttribute('data-save-error'); if (!currentUser || currentUser.id === 'PLACEHOLDER_USER_ID') { console.warn("Neukládám: Není uživatel."); ui.continueBtn.disabled = true; return false; } if (testResultsData.score < SCORE_THRESHOLD_FOR_SAVING) { console.log(`Výsledek (${testResultsData.score}/50) < ${SCORE_THRESHOLD_FOR_SAVING}. Přeskakuji ukládání.`); ui.continueBtn.disabled = true; return false; } console.log(`Pokouším se uložit výsledky (Skóre: ${testResultsData.score}/50 >= ${SCORE_THRESHOLD_FOR_SAVING})...`); ui.continueBtn.disabled = true; try { const detailedAnalysis = generateDetailedAnalysis(testResultsData, userAnswers, questions);
-             // Prepare answers for saving - include evaluation details
-             const answersToSave = userAnswers.map(a => ({
+        if (!ui.continueBtn) return false;
+        ui.continueBtn.removeAttribute('data-save-error');
+        if (!currentUser || currentUser.id === 'PLACEHOLDER_USER_ID') {
+            console.warn("Neukládám: Není uživatel.");
+            ui.continueBtn.disabled = true;
+            return false;
+        }
+        if (testResultsData.score < SCORE_THRESHOLD_FOR_SAVING) {
+            console.log(`Výsledek (${testResultsData.score}/50) < ${SCORE_THRESHOLD_FOR_SAVING}. Přeskakuji ukládání.`);
+            ui.continueBtn.disabled = true;
+            return false;
+        }
+        console.log(`Pokouším se uložit výsledky (Skóre: ${testResultsData.score}/50 >= ${SCORE_THRESHOLD_FOR_SAVING})...`);
+        ui.continueBtn.disabled = true;
+        try {
+            const detailedAnalysis = generateDetailedAnalysis(testResultsData, userAnswers, questions);
+            // Prepare answers for saving - include evaluation details
+            const answersToSave = userAnswers.map(a => ({
                 question_db_id: a.question_db_id,
                 question_number_in_test: a.question_number_in_test,
                 question_type: a.question_type,
@@ -917,14 +932,47 @@ ${inputData}
                 error_analysis: a.error_analysis,   // Gemini's error analysis
                 feedback: a.feedback,           // Gemini's feedback
                 checked_by: a.checked_by          // 'gemini_scored', 'skipped', 'error'
-             }));
+            }));
 
-             const dataToSave = { user_id: currentUser.id, completed_at: testEndTime ? testEndTime.toISOString() : new Date().toISOString(), total_score: testResultsData.score, total_questions: testResultsData.totalQuestions, // Total questions in the test
-                 answers: answersToSave,           // Store the detailed answers array
-                 topic_results: testResultsData.topicResults, // Store aggregated topic results
-                 analysis: detailedAnalysis,         // Store the generated detailed analysis object
-                 time_spent: testResultsData.timeSpent, test_type: selectedTestType || 'unknown' // Store the test type
-             }; console.log("Data k uložení do user_diagnostics:", dataToSave); const { data, error } = await supabase.from('user_diagnostics').insert(dataToSave).select('id').single(); if (error) { console.error('Supabase insert error:', error); throw new Error(`Supabase chyba: ${error.message} (Hint: ${error.hint})`); } diagnosticId = data.id; console.log("Diagnostika uložena, ID:", diagnosticId); ui.continueBtn.disabled = false; return true; } catch (error) { console.error('Chyba při ukládání:', error); ui.continueBtn.disabled = true; ui.continueBtn.setAttribute('data-save-error', 'true'); showError(`Nepodařilo se uložit výsledky: ${error.message}`, false); return false; }
+            const dataToSave = {
+                user_id: currentUser.id,
+                completed_at: testEndTime ? testEndTime.toISOString() : new Date().toISOString(),
+                total_score: testResultsData.score,
+                total_questions: testResultsData.totalQuestions, // Total questions in the test
+                answers: answersToSave,           // Store the detailed answers array
+                topic_results: testResultsData.topicResults, // Store aggregated topic results
+                analysis: detailedAnalysis,         // Store the generated detailed analysis object
+                time_spent: testResultsData.timeSpent,
+                // test_type: selectedTestType || 'unknown' // REMOVED THIS LINE TO FIX THE BUG
+            };
+            console.log("Data k uložení do user_diagnostics:", dataToSave);
+            const { data, error } = await supabase
+                .from('user_diagnostics')
+                .insert(dataToSave)
+                .select('id')
+                .single();
+
+            if (error) {
+                console.error('Supabase insert error:', error);
+                // Check if the error is specifically about the missing column, although it should be fixed now.
+                if (error.message.includes('test_type') && error.message.includes('does not exist')) {
+                     console.error("CHYBA: Pokus o zápis do neexistujícího sloupce 'test_type' POKRAČUJE!");
+                     throw new Error(`Kritická chyba: Stále se pokouší zapsat do 'test_type'. Zkontrolujte kód!`);
+                 }
+                throw new Error(`Supabase chyba: ${error.message} (Hint: ${error.hint})`);
+            }
+
+            diagnosticId = data.id;
+            console.log("Diagnostika uložena, ID:", diagnosticId);
+            ui.continueBtn.disabled = false;
+            return true;
+        } catch (error) {
+            console.error('Chyba při ukládání:', error);
+            ui.continueBtn.disabled = true;
+            ui.continueBtn.setAttribute('data-save-error', 'true');
+            showError(`Nepodařilo se uložit výsledky: ${error.message}`, false);
+            return false;
+        }
     }
     async function awardPoints() { if (!selectedTestType || !testResultsData || testResultsData.totalQuestions <= 0) { console.warn("Nelze vypočítat body: Chybí data testu."); return; } if (!currentUser || currentUser.id === 'PLACEHOLDER_USER_ID') { console.warn("Nelze uložit body: Chybí uživatel."); return; } if (!currentProfile) { currentProfile = await fetchUserProfile(currentUser.id); if (!currentProfile) { console.warn("Nelze uložit body: Chybí profil uživatele."); return; } } const config = testTypeConfig[selectedTestType]; if (!config) { console.warn(`Neznámá konfigurace testu pro typ: ${selectedTestType}`); return; } const n = config.multiplier; const r = testResultsData.correctAnswers; const t = testResultsData.totalQuestions; const calculatedPoints = Math.round(n * (r / t) * 10); if (calculatedPoints <= 0) { console.log("Nebyly získány žádné body."); return; } console.log(`Vypočítané body: ${calculatedPoints} (n=${n}, r=${r}, t=${t})`); await updateUserPoints(calculatedPoints); }
     async function updateUserPoints(pointsToAdd) { if (!currentUser || !currentProfile || pointsToAdd <= 0) { console.log("Přeskakuji aktualizaci bodů:", { userId: currentUser?.id, profileExists: !!currentProfile, pointsToAdd }); return; } try { const currentPoints = currentProfile.points || 0; const newPoints = currentPoints + pointsToAdd; const { error } = await supabase.from('profiles').update({ points: newPoints, updated_at: new Date().toISOString() }).eq('id', currentUser.id); if (error) { throw error; } console.log(`Body uživatele ${currentUser.id} aktualizovány na ${newPoints} (+${pointsToAdd})`); currentProfile.points = newPoints; showToast('ÚSPĚCH', `Získali jste ${pointsToAdd} kreditů!`, 'success'); } catch (error) { console.error("Chyba při aktualizaci bodů uživatele:", error); showToast('Chyba', 'Nepodařilo se aktualizovat kredity.', 'error'); } }
