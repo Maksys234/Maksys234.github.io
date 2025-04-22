@@ -7,14 +7,14 @@
     'use strict';
 
     // --- START: Инициализация и Конфигурация ---
-    // Конфигурация Supabase и Gemini остается в test1-logic.js
+    // Конфигурация Supabase и Gemini находится в test1-logic.js
 
     let supabase = null;
     let currentUser = null;
     let currentProfile = null;
     let questions = []; // Массив загруженных вопросов теста
     let currentQuestionIndex = 0;
-    let userAnswers = []; // Массив объектов с ответами пользователя (структура определяется при инициализации теста)
+    let userAnswers = []; // Массив объектов с ответами пользователя
     let timer = null;
     let testTime = 0;
     let testStartTime = null;
@@ -109,6 +109,7 @@
     // --- END: Инициализация и Конфигурация ---
 
     // --- START: Helper Functions (UI specific or wrappers) ---
+    // Функции showToast, showError, hideError, sanitizeHTML, getInitials, formatDate, formatTime, openMenu, closeMenu, toggleMobileMenu, updateUserInfoUI, handleScroll, indexToLetter, showGeminiOverlay, showErrorMessagePage, formatRelativeTime, initTooltips, updateCopyrightYear, initMouseFollower, initScrollAnimations, initHeaderScrollDetection, updateOnlineStatus - остаются без изменений, как в предыдущем ответе
     function showToast(title, message, type = 'info', duration = 4500) { if (!ui.toastContainer) return; try { const toastId = `toast-${Date.now()}`; const toastElement = document.createElement('div'); toastElement.className = `toast ${type}`; toastElement.id = toastId; toastElement.setAttribute('role', 'alert'); toastElement.setAttribute('aria-live', 'assertive'); toastElement.innerHTML = `<i class="toast-icon"></i><div class="toast-content">${title ? `<div class="toast-title">${sanitizeHTML(title)}</div>` : ''}<div class="toast-message">${sanitizeHTML(message)}</div></div><button type="button" class="toast-close" aria-label="Zavřít">&times;</button>`; const icon = toastElement.querySelector('.toast-icon'); icon.className = `toast-icon fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle'}`; toastElement.querySelector('.toast-close').addEventListener('click', () => { toastElement.classList.remove('show'); setTimeout(() => toastElement.remove(), 400); }); ui.toastContainer.appendChild(toastElement); requestAnimationFrame(() => { toastElement.classList.add('show'); }); setTimeout(() => { if (toastElement.parentElement) { toastElement.classList.remove('show'); setTimeout(() => toastElement.remove(), 400); } }, duration); } catch (e) { console.error("Chyba při zobrazování toastu:", e); } }
     function showError(message, isGlobal = false) { console.error("Došlo k chybě:", message); if (isGlobal && ui.globalError) { ui.globalError.innerHTML = `<div class="error-message"><i class="fas fa-exclamation-triangle"></i><div>${sanitizeHTML(message)}</div><button class="retry-button btn" onclick="location.reload()">Zkusit Znovu</button></div>`; ui.globalError.style.display = 'block'; } else { showToast('CHYBA SYSTÉMU', message, 'error', 6000); } }
     function hideError() { if (ui.globalError) ui.globalError.style.display = 'none'; }
@@ -118,7 +119,7 @@
     function formatTime(seconds) { if (isNaN(seconds) || seconds < 0) return '--:--'; const m = Math.floor(seconds / 60); const s = Math.round(seconds % 60); return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`; }
     function openMenu() { if (ui.sidebar && ui.sidebarOverlay) { ui.sidebar.classList.add('active'); ui.sidebarOverlay.classList.add('active'); } }
     function closeMenu() { if (ui.sidebar && ui.sidebarOverlay) { ui.sidebar.classList.remove('active'); ui.sidebarOverlay.classList.remove('active'); } }
-    function toggleMobileMenu() { closeMenu(); } // Keep simple for header button
+    function toggleMobileMenu() { closeMenu(); }
     function updateUserInfoUI() { if (!ui.sidebarName || !ui.sidebarAvatar) return; if (currentUser && currentProfile) { const displayName = `${currentProfile.first_name || ''} ${currentProfile.last_name || ''}`.trim() || currentProfile.username || currentUser.email?.split('@')[0] || 'Pilot'; ui.sidebarName.textContent = displayName; const initials = getInitials(currentProfile); ui.sidebarAvatar.innerHTML = currentProfile.avatar_url ? `<img src="${currentProfile.avatar_url}" alt="${displayName}">` : initials; } else { ui.sidebarName.textContent = 'Nepřihlášen'; ui.sidebarAvatar.textContent = '?'; } }
     function handleScroll() { if (!ui.mainContent || !ui.dashboardHeader) return; document.body.classList.toggle('scrolled', ui.mainContent.scrollTop > 10); }
     function indexToLetter(index){ return String.fromCharCode(65 + index); }
@@ -131,16 +132,17 @@
     const initScrollAnimations = () => { const animatedElements = document.querySelectorAll('.main-content-wrapper [data-animate]'); if (!animatedElements.length || !('IntersectionObserver' in window)) { console.log("Scroll animations not initialized."); return; } const observer = new IntersectionObserver((entries, observerInstance) => { entries.forEach(entry => { if (entry.isIntersecting) { entry.target.classList.add('animated'); observerInstance.unobserve(entry.target); } }); }, { threshold: 0.1, rootMargin: "0px 0px -30px 0px" }); animatedElements.forEach(element => observer.observe(element)); console.log(`Scroll animations initialized for ${animatedElements.length} elements.`); };
     const initHeaderScrollDetection = () => { let lastScrollY = window.scrollY; const mainEl = ui.mainContent; if (!mainEl) return; mainEl.addEventListener('scroll', () => { const currentScrollY = mainEl.scrollTop; document.body.classList.toggle('scrolled', currentScrollY > 10); lastScrollY = currentScrollY <= 0 ? 0 : currentScrollY; }, { passive: true }); if (mainEl.scrollTop > 10) document.body.classList.add('scrolled'); };
     function updateOnlineStatus() { if (ui.offlineBanner) { ui.offlineBanner.style.display = navigator.onLine ? 'none' : 'block'; } if (!navigator.onLine) { showToast('Offline', 'Spojení bylo ztraceno. Některé funkce nemusí být dostupné.', 'warning'); } }
-    function setLoadingState(section, isLoadingFlag) { if (isLoading[section] === isLoadingFlag && section !== 'all') return; if (section === 'all') { Object.keys(isLoading).forEach(key => isLoading[key] = isLoadingFlag); } else { isLoading[section] = isLoadingFlag; } console.log(`[SetLoading] Section: ${section}, isLoading: ${isLoadingFlag}`); if (section === 'test') { if (ui.testLoader) ui.testLoader.style.display = isLoadingFlag ? 'flex' : 'none'; if (ui.testContainer) ui.testContainer.style.display = isLoadingFlag ? 'none' : 'block'; } else if (section === 'results') { /* Handle results loading UI if needed */ } else if (section === 'notifications') { if(ui.notificationBell) ui.notificationBell.style.opacity = isLoadingFlag ? 0.5 : 1; if (ui.markAllReadBtn) { const currentUnreadCount = parseInt(ui.notificationCount?.textContent?.replace('+', '') || '0'); ui.markAllReadBtn.disabled = isLoadingFlag || currentUnreadCount === 0; } } }
+    function setLoadingState(section, isLoadingFlag) { if (isLoading[section] === isLoadingFlag && section !== 'all') return; if (section === 'all') { Object.keys(isLoading).forEach(key => isLoading[key] = isLoadingFlag); } else { isLoading[section] = isLoadingFlag; } console.log(`[SetLoading] Section: ${section}, isLoading: ${isLoadingFlag}`); if (section === 'test') { if (ui.testLoader) ui.testLoader.style.display = isLoadingFlag ? 'flex' : 'none'; if (ui.testContainer) ui.testContainer.style.display = isLoadingFlag ? 'none' : (selectedTestType ? 'block' : 'none'); /* Показывать контейнер теста, только если тип выбран */ } else if (section === 'results') { /* UI для загрузки результатов, если нужно */ } else if (section === 'notifications') { if(ui.notificationBell) ui.notificationBell.style.opacity = isLoadingFlag ? 0.5 : 1; if (ui.markAllReadBtn) { const currentUnreadCount = parseInt(ui.notificationCount?.textContent?.replace('+', '') || '0'); ui.markAllReadBtn.disabled = isLoadingFlag || currentUnreadCount === 0; } } }
     // --- END: Helper Functions ---
 
     // --- START: Data Fetching Wrappers (using TestLogic) ---
     async function fetchUserProfile(userId) {
+        // Эта функция остается здесь, так как она нужна для инициализации UI
         if (!supabase || !userId) return null;
         console.log(`[Profile] Fetching profile for user ID: ${userId}`);
         try {
             const { data: profile, error } = await supabase.from('profiles').select('*').eq('id', userId).single();
-            if (error && error.code !== 'PGRST116') throw error; // Ignore 'not found' error specifically
+            if (error && error.code !== 'PGRST116') throw error;
             if (!profile) { console.warn(`[Profile] Profile not found for user ${userId}.`); return null; }
             console.log("[Profile] Profile data fetched.");
             return profile;
@@ -151,34 +153,33 @@
         }
     }
 
-    async function checkExistingDiagnostic(userId) {
-         setLoadingState('test', true); // Use test loading state
+     async function checkExistingDiagnostic(userId) {
+         setLoadingState('test', true); // Keep using test loading state
          if (ui.loaderSubtext) ui.loaderSubtext.textContent = 'Kontroluji předchozí testy...';
          try {
-             // Call the logic function
+             // Call the logic function from the global object
              const hasCompleted = await window.TestLogic.checkExistingDiagnostic(supabase, userId);
              return hasCompleted;
          } catch (err) {
              console.error("Error in checkExistingDiagnostic UI wrapper:", err);
              showToast("Chyba při kontrole testů.", "error");
+             setLoadingState('test', false); // Stop loading on error
              return false; // Assume no test if logic fails
-         } finally {
-            // Intentionally do not stop loading here, caller (initializeApp) will handle it
          }
+         // Loading state is handled by the caller (initializeApp)
      }
 
     async function loadTestQuestions(testType) {
         setLoadingState('test', true);
         if (ui.loaderSubtext) ui.loaderSubtext.textContent = 'Načítám otázky...';
         try {
-            // Call the logic function
+            // Call the logic function from the global object
             questions = await window.TestLogic.loadTestQuestions(supabase, testType, testTypeConfig);
-            initializeTest(); // Start the test UI
+            initializeTest(); // Start the test UI which will stop the loader
         } catch (error) {
             console.error('[UI] Error loading questions:', error);
             showErrorMessagePage(`Nepodařilo se načíst otázky: ${error.message}`);
-        } finally {
-            // Loading state is stopped inside initializeTest or showErrorMessagePage
+             setLoadingState('test', false); // Ensure loader stops on error
         }
     }
     // --- END: Data Fetching Wrappers ---
@@ -192,8 +193,8 @@
         if (ui.testSelector) ui.testSelector.style.display = 'none';
         if (ui.testTimer) ui.testTimer.style.display = 'flex';
         currentQuestionIndex = 0;
-        userAnswers = new Array(questions.length).fill(null).map((_, idx) => {
-            const q = questions[idx];
+        // Initialize userAnswers structure based on loaded questions
+        userAnswers = questions.map((q, idx) => {
             let maxScore = 1;
             const difficultyInt = parseInt(q.difficulty);
              if (q.question_type === 'construction') maxScore = 2;
@@ -220,7 +221,7 @@
         updateProgressBar();
         updateNavigationButtons();
         requestAnimationFrame(() => { if (ui.testContainer) { ui.testContainer.setAttribute('data-animate', ''); ui.testContainer.style.setProperty('--animation-order', 0); initScrollAnimations(); } });
-        setLoadingState('test', false); // Stop loading after setup
+        setLoadingState('test', false); // Stop loading indicator after setup
     }
     function startTimer() { if(timer)clearInterval(timer); testStartTime=new Date(); testTime=0; if(ui.timerValue) ui.timerValue.textContent=formatTime(testTime); ui.testTimer?.classList.remove('timer-warning','timer-danger'); timer=setInterval(()=>{testTime++; if(ui.timerValue) ui.timerValue.textContent=formatTime(testTime); const config=testTypeConfig[selectedTestType]; if(!config)return; const estimatedTime=config.questionsCount*1.5*60; const warningTime=estimatedTime*0.8; if(testTime>estimatedTime){ui.testTimer?.classList.add('timer-danger'); ui.testTimer?.classList.remove('timer-warning');}else if(testTime>warningTime){ui.testTimer?.classList.add('timer-warning'); ui.testTimer?.classList.remove('timer-danger');}},1000); }
     function stopTimer() { clearInterval(timer); timer = null; testEndTime = new Date(); }
@@ -259,7 +260,6 @@
                  break;
              default: // text, numeric, ano_ne
                  let inputType = "text";
-                 // if (question.question_type === 'numeric') { inputType = "text"; /* Allow fractions etc. */ }
                  questionHTML += `<div class="answer-input-container"><label for="text-answer-${index}" class="form-label">Vaše odpověď:</label><input type="${inputType}" id="text-answer-${index}" class="answer-input" placeholder="Zadejte odpověď" value="${sanitizeHTML(savedValue || '')}"></div>`;
                  break;
          }
@@ -277,20 +277,13 @@
          updateNavigationButtons();
 
          // Trigger MathJax
-         if (window.MathJax && typeof window.MathJax.typesetPromise === 'function') {
-             try {
-                 // Use setTimeout to ensure the DOM is updated before typesetting
-                 setTimeout(() => {
-                     window.MathJax.typesetPromise([ui.questionContainer]).catch(e=>console.error("MathJax typesetting error:", e));
-                 }, 0);
-             } catch(e) { console.error("MathJax initialization error:", e); }
-         }
+         if (window.MathJax && typeof window.MathJax.typesetPromise === 'function') { try { setTimeout(() => { window.MathJax.typesetPromise([ui.questionContainer]).catch(e=>console.error("MathJax typesetting error:", e)); }, 0); } catch(e) { console.error("MathJax initialization error:", e); } }
     }
     function handleAnswerSelection(event) { const selectedLabel=event.currentTarget;const qIndex=currentQuestionIndex;const optionId=selectedLabel.dataset.optionId;const radio=selectedLabel.querySelector('input[type="radio"]');ui.questionContainer.querySelectorAll('.answer-option').forEach(label=>{label.classList.remove('selected');});selectedLabel.classList.add('selected');if(radio)radio.checked=true;saveAnswer(qIndex,optionId);}
     function createPagination() { if(!ui.pagination) return; ui.pagination.innerHTML=questions.map((_,i)=>`<div class="page-item" data-question="${i}">${i+1}</div>`).join(''); ui.pagination.querySelectorAll('.page-item').forEach(item=>{item.addEventListener('click',()=>{showQuestion(parseInt(item.dataset.question));});}); updatePagination(); }
     function updatePagination() { ui.pagination?.querySelectorAll('.page-item').forEach((item,index)=>{item.classList.remove('active','answered');if(index===currentQuestionIndex)item.classList.add('active');if(userAnswers[index] && userAnswers[index].userAnswerValue !== null)item.classList.add('answered');}); }
     function updateNavigationButtons() { if(ui.prevBtn) ui.prevBtn.disabled = currentQuestionIndex === 0; if(ui.nextBtn) ui.nextBtn.disabled = currentQuestionIndex === questions.length - 1; if(ui.finishBtn) { ui.finishBtn.style.display = currentQuestionIndex === questions.length - 1 ? 'flex' : 'none'; ui.finishBtn.disabled = false; ui.finishBtn.innerHTML = '<i class="fas fa-check-circle"></i> Dokončit test'; } }
-    function updateProgressBar() { if (!ui.progressBar) return; const answeredCount = userAnswers.filter(a => a && a.userAnswerValue !== null).length; const progress = (answeredCount / questions.length) * 100; ui.progressBar.style.width = `${progress}%`; }
+    function updateProgressBar() { if (!ui.progressBar) return; const answeredCount = userAnswers.filter(a => a && a.userAnswerValue !== null).length; const progress = questions.length > 0 ? (answeredCount / questions.length) * 100 : 0; ui.progressBar.style.width = `${progress}%`; }
     function saveAnswer(qIndex, userAnswerValue) { if (!userAnswers[qIndex]) { console.error(`Chyba: Chybí objekt odpovědi pro index ${qIndex}`); return; } const wasAnsweredBefore = userAnswers[qIndex].userAnswerValue !== null; const isEmptyAnswer = typeof userAnswerValue === 'string' && userAnswerValue.trim() === ''; if (!isEmptyAnswer) { userAnswers[qIndex].userAnswerValue = userAnswerValue; } else { userAnswers[qIndex].userAnswerValue = null; } const isAnsweredNow = userAnswers[qIndex].userAnswerValue !== null; if (wasAnsweredBefore !== isAnsweredNow) { const answeredCount = userAnswers.filter(a => a && a.userAnswerValue !== null).length; if(ui.answeredCountEl) ui.answeredCountEl.textContent = answeredCount; updateProgressBar(); updatePagination(); } console.log(`Odpověď uložena Q#${qIndex + 1}:`, userAnswers[qIndex]); }
     // --- END: Test Logic UI ---
 
@@ -304,49 +297,37 @@
             const qData = questions[i];
             const answerData = userAnswers[i];
 
-            if (!answerData) {
-                console.error(`Chyba: Nenalezen objekt odpovědi pro index ${i} (UI)`);
-                continue;
-            }
-
+            if (!answerData) { console.error(`Chyba: Nenalezen objekt odpovědi pro index ${i} (UI)`); continue; }
             if (answerData.userAnswerValue === null || String(answerData.userAnswerValue).trim() === '') {
-                answerData.scoreAwarded = 0;
-                answerData.correctness = "skipped";
+                answerData.scoreAwarded = 0; answerData.correctness = "skipped";
                 answerData.reasoning = "Otázka byla přeskočena nebo odpověď byla prázdná.";
-                answerData.error_analysis = null;
-                answerData.feedback = "Příště zkuste odpovědět.";
+                answerData.error_analysis = null; answerData.feedback = "Příště zkuste odpovědět.";
                 answerData.checked_by = 'skipped';
                 console.log(`Q#${i+1} (${qData.question_type}) přeskočeno/prázdné (UI).`);
-                promises.push(Promise.resolve());
-                continue;
+                promises.push(Promise.resolve()); continue;
             }
 
             // Вызов логической функции для оценки
             promises.push(
                 window.TestLogic.checkAnswerWithGemini(
-                    qData.question_type,
-                    qData.question_text,
+                    qData.question_type, qData.question_text,
                     qData.question_type === 'construction' ? qData.solution_explanation : qData.correct_answer,
-                    answerData.userAnswerValue,
-                    answerData.maxScore,
-                    i // Pass index for logging in logic function
+                    answerData.userAnswerValue, answerData.maxScore, i
                 ).then(evaluationResult => {
                     userAnswers[i].scoreAwarded = evaluationResult.score;
                     userAnswers[i].correctness = evaluationResult.correctness;
                     userAnswers[i].reasoning = evaluationResult.reasoning;
                     userAnswers[i].error_analysis = evaluationResult.error_analysis;
                     userAnswers[i].feedback = evaluationResult.feedback;
-                    userAnswers[i].checked_by = evaluationResult.correctness === 'error' || evaluationResult.reasoning.includes("fallback") ? 'fallback_scored' : 'gemini_scored'; // Mark if fallback was used
+                    userAnswers[i].checked_by = evaluationResult.correctness === 'error' || evaluationResult.reasoning.includes("fallback") ? 'fallback_scored' : 'gemini_scored';
                      console.log(`Q#${i+1} (${qData.question_type}) vyhodnoceno (UI): Skóre ${evaluationResult.score}/${answerData.maxScore}, Správnost: ${evaluationResult.correctness}`);
                 }).catch(error => {
                     console.error(`Chyba vyhodnocení pro Q#${i+1} (UI):`, error);
-                    userAnswers[i].scoreAwarded = 0;
-                    userAnswers[i].correctness = 'error';
+                    userAnswers[i].scoreAwarded = 0; userAnswers[i].correctness = 'error';
                     userAnswers[i].reasoning = `Automatické hodnocení selhalo: ${error.message}`;
                     userAnswers[i].error_analysis = "Chyba systému hodnocení.";
                     userAnswers[i].feedback = "Kontaktujte podporu, pokud problém přetrvává.";
                     userAnswers[i].checked_by = 'error';
-                     // UI feedback about the error happens in finishTest after all promises resolve
                 })
             );
         }
@@ -357,7 +338,8 @@
     }
 
     function displayResults() {
-        if(!ui.testContainer || !ui.resultsContainer || !ui.reviewContainer || !ui.testTimer || !ui.testLevel || !ui.resultScoreEl || !ui.resultPercentageEl || !ui.resultCorrectEl || !ui.resultIncorrectEl || !ui.resultTimeEl || !ui.lowScoreMessageContainer || !ui.continueBtn || !ui.topicResultsEl || !ui.reviewAnswersBtn || !ui.backToResultsBtn) { console.error("Chyba: Některé elementy výsledků nebyly nalezeny v DOM."); return; }
+        // Эта функция остается без изменений, как в предыдущем ответе test1.js
+         if(!ui.testContainer || !ui.resultsContainer || !ui.reviewContainer || !ui.testTimer || !ui.testLevel || !ui.resultScoreEl || !ui.resultPercentageEl || !ui.resultCorrectEl || !ui.resultIncorrectEl || !ui.resultTimeEl || !ui.lowScoreMessageContainer || !ui.continueBtn || !ui.topicResultsEl || !ui.reviewAnswersBtn || !ui.backToResultsBtn) { console.error("Chyba: Některé elementy výsledků nebyly nalezeny v DOM."); return; }
         if (!testResultsData) { console.error("Chyba: Chybí data výsledků (testResultsData)."); showErrorMessagePage("Nepodařilo se zobrazit výsledky - chybí data."); return; }
 
         ui.testContainer.style.display = 'none';
@@ -375,9 +357,12 @@
         ui.continueBtn.disabled = true; // Disable initially
         const saveError = ui.continueBtn.getAttribute('data-save-error') === 'true';
 
+        // Use constant from TestLogic
+        const scoreThreshold = window.TestLogic?.SCORE_THRESHOLD_FOR_SAVING ?? 5;
+
         if (saveError) { ui.lowScoreMessageContainer.innerHTML = `<div class="error-message-container"><i class="fas fa-exclamation-triangle"></i><div class="loader-text">Chyba ukládání</div><div class="loader-subtext">Nepodařilo se uložit výsledky testu. Studijní plán nelze vytvořit.</div></div>`; }
-        else if (testResultsData.score < window.TestLogic.SCORE_THRESHOLD_FOR_SAVING) { // Access constant via TestLogic if needed, or duplicate
-            ui.lowScoreMessageContainer.innerHTML = `<div class="low-score-message warning"><i class="fas fa-exclamation-circle"></i><strong>Výsledek nebyl uložen.</strong><br>Vaše skóre (${testResultsData.score}/50) je nižší než ${window.TestLogic.SCORE_THRESHOLD_FOR_SAVING} bodů. Tyto výsledky nebudou použity pro generování studijního plánu.</div>`;
+        else if (testResultsData.score < scoreThreshold) {
+            ui.lowScoreMessageContainer.innerHTML = `<div class="low-score-message warning"><i class="fas fa-exclamation-circle"></i><strong>Výsledek nebyl uložen.</strong><br>Vaše skóre (${testResultsData.score}/50) je nižší než ${scoreThreshold} bodů. Tyto výsledky nebudou použity pro generování studijního plánu.</div>`;
         } else {
             ui.lowScoreMessageContainer.innerHTML = `<div class="low-score-message info"><i class="fas fa-info-circle"></i><strong>Výsledky byly uloženy.</strong><br>Vaše skóre (${testResultsData.score}/50) bude použito pro studijní plán.</div>`;
             ui.continueBtn.disabled = false; // Enable only if score is high enough AND no save error
@@ -416,6 +401,7 @@
     }
 
     function displayReview() {
+         // Эта функция остается без изменений, как в предыдущем ответе test1.js
         if (!ui.resultsContainer || !ui.reviewContainer || !ui.reviewContent) { console.error("Elementy pro přehled odpovědí nenalezeny!"); return; }
         ui.resultsContainer.style.display = 'none';
         ui.reviewContainer.style.display = 'block';
@@ -456,7 +442,7 @@
                  else { reviewHTML += sanitizeHTML(q.correct_answer); }
                  reviewHTML += `</div>`;
             }
-            const explanationToShow = (q.solution_explanation && q.solution_explanation !== "Oficiální postup není k dispozici.") ? q.solution_explanation : answer.reasoning; // Prefer official, then Gemini's reason
+            const explanationToShow = (q.solution_explanation && q.solution_explanation !== "Oficiální postup není k dispozici.") ? q.solution_explanation : answer.reasoning;
              if (explanationToShow) { reviewHTML += `<div class="review-solution"><strong>Zdůvodnění / Postup:</strong><pre><code>${sanitizeHTML(explanationToShow)}</code></pre></div>`; }
              if (answer.error_analysis) { reviewHTML += `<div class="review-solution" style="border-left: 3px solid var(--accent-pink); background-color: rgba(var(--accent-pink-rgb), 0.05);"><strong>Analýza chyby:</strong><p style="margin:0;">${sanitizeHTML(answer.error_analysis)}</p></div>`; }
              if (answer.feedback) { reviewHTML += `<div class="review-solution" style="border-left: 3px solid var(--accent-secondary); background-color: rgba(var(--accent-secondary-rgb), 0.05);"><strong>Zpětná vazba:</strong><p style="margin:0;">${sanitizeHTML(answer.feedback)}</p></div>`; }
@@ -474,49 +460,34 @@
     async function finishTest() {
         stopTimer();
         if(ui.finishBtn) { ui.finishBtn.disabled = true; ui.finishBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Vyhodnocuji...'; }
-        let saveResult = { success: false }; // Default save status
+        let saveResult = { success: false };
         try {
-            await evaluateAnswersUI(); // Evaluate answers (calls TestLogic.checkAnswerWithGemini)
-            testResultsData = window.TestLogic.calculateFinalResults(userAnswers, questions); // Calculate results (calls TestLogic.calculateFinalResults)
-            testResultsData.timeSpent = testTime; // Add time spent to results
+            await evaluateAnswersUI(); // Calls logic.checkAnswerWithGemini internally
+            testResultsData = window.TestLogic.calculateFinalResults(userAnswers, questions); // Calls logic function
+            testResultsData.timeSpent = testTime;
 
-            // Attempt to save results
-            saveResult = await window.TestLogic.saveTestResults(supabase, currentUser, testResultsData, userAnswers, questions, testEndTime);
-            diagnosticId = saveResult.diagnosticId || null; // Store ID if saved
+            saveResult = await window.TestLogic.saveTestResults(supabase, currentUser, testResultsData, userAnswers, questions, testEndTime); // Calls logic function
+            diagnosticId = saveResult.diagnosticId || null;
 
-            displayResults(); // Display based on calculated data
+            displayResults(); // Update UI based on calculated results and save status
 
             if (saveResult.success) {
-                 // Award points only if saving was successful
-                 const pointsResult = await window.TestLogic.awardPoints(supabase, currentUser, currentProfile, selectedTestType, testResultsData, testTypeConfig);
+                const pointsResult = await window.TestLogic.awardPoints(supabase, currentUser, currentProfile, selectedTestType, testResultsData, testTypeConfig); // Calls logic function
                  if (pointsResult?.success) {
-                     currentProfile.points = pointsResult.newTotal; // Update local profile state
+                     currentProfile.points = pointsResult.newTotal;
                      showToast(`${pointsResult.awardedPoints} kreditů získáno!`, 'success');
-                 } else if (pointsResult && pointsResult.error) {
-                    showToast(`Nepodařilo se připsat body: ${pointsResult.error}`, 'warning');
-                }
+                 } else if (pointsResult && pointsResult.error) { showToast(`Nepodařilo se připsat body: ${pointsResult.error}`, 'warning'); }
             } else {
                 console.warn("Výsledky nebyly úspěšně uloženy nebo byly pod limitem, body nebudou přiděleny.");
-                 // Ensure continue button is disabled and error state is marked if saving failed
-                 if(ui.continueBtn) {
-                    ui.continueBtn.disabled = true;
-                    if(saveResult.error && saveResult.error !== `Skóre je příliš nízké (<${window.TestLogic.SCORE_THRESHOLD_FOR_SAVING}) pro uložení.`) { // Only set attribute for actual save errors
-                        ui.continueBtn.setAttribute('data-save-error', 'true');
-                    }
-                 }
-                 // Update the displayed message based on the save result after displayResults
-                 displayResults(); // Re-render results to show correct message/button state
+                if(ui.continueBtn) { ui.continueBtn.disabled = true; if(saveResult.error && !saveResult.error.includes('Skóre je příliš nízké')) { ui.continueBtn.setAttribute('data-save-error', 'true'); } }
+                displayResults(); // Re-render results to show correct button state/message
             }
-
             history.pushState({ state: 'testFinished' }, document.title, window.location.href);
-
         } catch (error) {
             console.error("Chyba při dokončování testu:", error);
-            showGeminiOverlay(false); // Ensure overlay is hidden
-            if (!testResultsData) { // If calculation failed
-                testResultsData = { score: 0, percentage: 0, correctAnswers: 0, incorrectAnswers: questions.length, partiallyCorrectAnswers: 0, skippedAnswers: 0, timeSpent: testTime, topicResults: {}, evaluationErrors: questions.length };
-            }
-            displayResults(); // Still try to display results
+            showGeminiOverlay(false);
+            if (!testResultsData) { testResultsData = { score: 0, percentage: 0, correctAnswers: 0, incorrectAnswers: questions.length, partiallyCorrectAnswers: 0, skippedAnswers: 0, timeSpent: testTime, topicResults: {}, evaluationErrors: questions.length }; }
+            displayResults();
             if(ui.lowScoreMessageContainer) { ui.lowScoreMessageContainer.innerHTML = `<div class="error-message-container"><i class="fas fa-exclamation-triangle"></i><div class="loader-text">Chyba!</div><div class="loader-subtext">Chyba vyhodnocení/ukládání: ${error.message}. Výsledky nemusí být kompletní nebo uložené.</div></div>`; }
             if(ui.continueBtn) { ui.continueBtn.disabled = true; ui.continueBtn.setAttribute('data-save-error', 'true'); }
             history.pushState({ state: 'testFinishedWithError' }, document.title, window.location.href);
@@ -528,23 +499,22 @@
 
     // --- START: Notification Logic (UI Interaction) ---
     async function fetchAndRenderNotifications() {
-        if (!currentUser) return;
-        setLoadingState('notifications', true); // Start loading state for bell
+        if (!currentUser || !window.TestLogic) return; // Check if TestLogic is loaded
+        setLoadingState('notifications', true);
         try {
-            // Call the logic function (if separated, otherwise implement here)
-            // Assuming a function fetchNotificationsLogic exists in TestLogic or globally
-            const { unreadCount, notifications } = await fetchNotificationsLogic(currentUser.id, 5); // Adjust limit as needed
+            // Вызов логической функции из TestLogic
+            const { unreadCount, notifications } = await window.TestLogic.fetchNotifications(supabase, currentUser.id, 5); // Use NOTIFICATION_FETCH_LIMIT if needed
             renderNotifications(unreadCount, notifications);
         } catch (error) {
             console.error("[UI] Chyba při načítání notifikací:", error);
             renderNotifications(0, []); // Render empty state on error
         } finally {
-            setLoadingState('notifications', false); // Stop loading state for bell
+            setLoadingState('notifications', false);
         }
     }
 
-     // Renders the notifications dropdown
-     function renderNotifications(count, notifications) {
+    function renderNotifications(count, notifications) {
+        // Эта функция остается без изменений, как в предыдущем ответе test1.js
          console.log("[Render Notifications UI] Start, Count:", count, "Notifications:", notifications);
          if (!ui.notificationCount || !ui.notificationsList || !ui.noNotificationsMsg || !ui.markAllReadBtn) { console.error("[Render Notifications UI] Missing UI elements."); return; }
          ui.notificationCount.textContent = count > 9 ? '9+' : (count > 0 ? String(count) : '');
@@ -575,19 +545,16 @@
              ui.markAllReadBtn.disabled = true;
          }
          console.log("[Render Notifications UI] Finished rendering.");
-     }
+    }
 
-    // Marks a single notification as read (calls logic if separated)
     async function markNotificationReadUI(notificationId) {
+        // Эта функция остается без изменений, как в предыдущем ответе test1.js
         console.log("[UI] Mark Notification Read:", notificationId);
         if (!currentUser || !notificationId) return;
-        // Optionally call a logic function: const success = await markNotificationReadLogic(notificationId);
-        // For now, assume direct DB update or logic included here
         try {
             const { error } = await supabase.from('user_notifications').update({ is_read: true }).eq('user_id', currentUser.id).eq('id', notificationId);
             if (error) throw error;
             console.log("[UI] Mark as read successful for ID:", notificationId);
-            // Update UI immediately
             const item = ui.notificationsList.querySelector(`.notification-item[data-id="${notificationId}"]`);
             if(item) {
                  item.classList.add('is-read');
@@ -605,25 +572,21 @@
         }
     }
 
-    // Marks all notifications as read (calls logic if separated)
     async function markAllNotificationsReadUI() {
+        // Эта функция остается без изменений, как в предыдущем ответе test1.js
         console.log("[UI] Mark All Notifications Read");
         if (!currentUser || !ui.markAllReadBtn || ui.markAllReadBtn.disabled) return;
         setLoadingState('notifications', true);
         ui.markAllReadBtn.disabled = true;
         try {
-             // Optionally call a logic function: await markAllNotificationsReadLogic();
-             // For now, assume direct DB update or logic included here
              const { error } = await supabase.from('user_notifications').update({ is_read: true }).eq('user_id', currentUser.id).eq('is_read', false);
              if (error) throw error;
              console.log("[UI] Mark all as read successful in DB.");
-             // Re-render with fresh data (or just update UI locally)
-              await fetchAndRenderNotifications(); // Fetch and re-render
+              await fetchAndRenderNotifications();
               showToast('Oznámení označena jako přečtená.', 'success');
         } catch (error) {
             console.error("[UI] Mark all as read error:", error);
             showToast('Chyba při označování oznámení.', 'error');
-            // Re-enable button based on actual count if fetch failed
              const currentCount = parseInt(ui.notificationCount?.textContent?.replace('+', '') || '0');
              if(ui.markAllReadBtn) ui.markAllReadBtn.disabled = currentCount === 0;
         } finally {
@@ -634,34 +597,27 @@
 
     // --- START: Event Listeners Setup ---
     function setupEventListeners() {
+         // Эта функция остается без изменений, как в предыдущем ответе test1.js
          console.log("[SETUP] Nastavování posluchačů událostí...");
-         // Sidebar/Menu
          if (ui.mainMobileMenuToggle) ui.mainMobileMenuToggle.addEventListener('click', openMenu);
          if (ui.sidebarCloseToggle) ui.sidebarCloseToggle.addEventListener('click', closeMenu);
          if (ui.sidebarOverlay) ui.sidebarOverlay.addEventListener('click', closeMenu);
          document.querySelectorAll('.sidebar-link').forEach(link => { link.addEventListener('click', () => { if (window.innerWidth <= 992) closeMenu(); }); });
-         // Test Controls
          if (ui.prevBtn) ui.prevBtn.addEventListener('click', () => { if (currentQuestionIndex > 0) showQuestion(currentQuestionIndex - 1); });
          if (ui.nextBtn) ui.nextBtn.addEventListener('click', () => { if (currentQuestionIndex < questions.length - 1) showQuestion(currentQuestionIndex + 1); });
          if (ui.finishBtn) { ui.finishBtn.addEventListener('click', async () => { const unansweredCount = userAnswers.filter(a => a && a.userAnswerValue === null).length; let confirmFinish = true; if (unansweredCount > 0) confirmFinish = confirm(`Nezodpověděli jste ${unansweredCount} ${unansweredCount === 1 ? 'otázku' : (unansweredCount < 5 ? 'otázky' : 'otázek')}. Přesto dokončit?`); else confirmFinish = confirm('Opravdu chcete dokončit test?'); if (confirmFinish) { await finishTest(); } }); }
-         // Results/Review Controls
          if (ui.retryBtn) { ui.retryBtn.addEventListener('click', () => { ui.resultsContainer.style.display = 'none'; ui.reviewContainer.style.display = 'none'; if (ui.testSelector) ui.testSelector.style.display = 'block'; questions = []; userAnswers = []; testResultsData = {}; diagnosticId = null; selectedTestType = null; ui.testTypeCards.forEach(c => c.classList.remove('selected')); if(ui.lowScoreMessageContainer) ui.lowScoreMessageContainer.innerHTML = ''; if (ui.continueBtn) { ui.continueBtn.disabled = true; ui.continueBtn.removeAttribute('data-save-error'); } if(ui.testLevel) ui.testLevel.textContent = 'Výběr testu'; history.replaceState({ state: 'testSelection' }, document.title, window.location.href); }); }
-         if (ui.continueBtn) { ui.continueBtn.addEventListener('click', () => { if (!ui.continueBtn.disabled) window.location.href = `/dashboard/procvicovani/plan.html`; }); } // Redirect to plan page
+         if (ui.continueBtn) { ui.continueBtn.addEventListener('click', () => { if (!ui.continueBtn.disabled) window.location.href = `/dashboard/procvicovani/plan.html`; }); }
          if (ui.reviewAnswersBtn) ui.reviewAnswersBtn.addEventListener('click', displayReview);
          if (ui.backToResultsBtn) ui.backToResultsBtn.addEventListener('click', () => { if(ui.reviewContainer) ui.reviewContainer.style.display = 'none'; if(ui.resultsContainer) ui.resultsContainer.style.display = 'block'; if(ui.mainContent) ui.mainContent.scrollTo({ top: 0, behavior: 'smooth' }); });
-         // Test Type Selection
          ui.testTypeCards.forEach(card => { card.addEventListener('click', function(event) { const testType = this.dataset.testType; const isButtonClicked = event.target.closest('.select-test-btn'); ui.testTypeCards.forEach(c => c.classList.remove('selected')); this.classList.add('selected'); selectedTestType = testType; if (isButtonClicked) { event.stopPropagation(); startSelectedTest(); } }); });
          ui.selectTestBtns.forEach(button => { button.addEventListener('click', function(event) { event.stopPropagation(); const testType = this.closest('.test-type-card').dataset.testType; ui.testTypeCards.forEach(c => c.classList.remove('selected')); this.closest('.test-type-card').classList.add('selected'); selectedTestType = testType; startSelectedTest(); }); });
-         // Back button handling
          window.addEventListener('popstate', handleBackButton);
-         // Resize listener
          window.addEventListener('resize', () => { if (window.innerWidth > 992 && ui.sidebar?.classList.contains('active')) closeMenu(); });
-         // Notifications
          if (ui.notificationBell) { ui.notificationBell.addEventListener('click', (event) => { event.stopPropagation(); ui.notificationsDropdown?.classList.toggle('active'); }); }
-         if (ui.markAllReadBtn) { ui.markAllReadBtn.addEventListener('click', markAllNotificationsReadUI); } // Use UI specific handler
-         if (ui.notificationsList) { ui.notificationsList.addEventListener('click', async (event) => { const item = event.target.closest('.notification-item'); if (item) { const notificationId = item.dataset.id; const link = item.dataset.link; const isRead = item.classList.contains('is-read'); if (!isRead && notificationId) { await markNotificationReadUI(notificationId); /* UI updated inside */ } if (link) window.location.href = link; } }); } // Use UI specific handler
+         if (ui.markAllReadBtn) { ui.markAllReadBtn.addEventListener('click', markAllNotificationsReadUI); }
+         if (ui.notificationsList) { ui.notificationsList.addEventListener('click', async (event) => { const item = event.target.closest('.notification-item'); if (item) { const notificationId = item.dataset.id; const link = item.dataset.link; const isRead = item.classList.contains('is-read'); if (!isRead && notificationId) { await markNotificationReadUI(notificationId); } if (link) window.location.href = link; } }); }
          document.addEventListener('click', (event) => { if (ui.notificationsDropdown?.classList.contains('active') && !ui.notificationsDropdown.contains(event.target) && !ui.notificationBell?.contains(event.target)) { ui.notificationsDropdown.classList.remove('active'); } });
-        // Online/Offline
          window.addEventListener('online', updateOnlineStatus);
          window.addEventListener('offline', updateOnlineStatus);
          console.log("[SETUP] Posluchači událostí nastaveni.");
@@ -670,32 +626,33 @@
 
     // --- START: Test Flow & Back Button ---
     function startSelectedTest() {
+        // Эта функция остается без изменений, как в предыдущем ответе test1.js
         if (!selectedTestType) { showToast('Vyberte prosím typ testu.', 'warning'); return; }
         const config = testTypeConfig[selectedTestType];
         if (!config) { showErrorMessagePage(`Neznámý typ testu: ${selectedTestType}`); return; }
-
         if(ui.currentTestTitle) ui.currentTestTitle.textContent = config.title;
         if(ui.testLevel) ui.testLevel.textContent = config.description;
-
         if (ui.testSelector) ui.testSelector.style.display = 'none';
-        if (ui.testLoader) ui.testLoader.style.display = 'flex'; // Show loader
+        if (ui.testLoader) ui.testLoader.style.display = 'flex';
+        if (ui.loaderSubtext) ui.loaderSubtext.textContent = 'Načítám otázky...';
         if (ui.testContainer) ui.testContainer.style.display = 'none';
         if (ui.resultsContainer) ui.resultsContainer.style.display = 'none';
         if (ui.reviewContainer) ui.reviewContainer.style.display = 'none';
-        if (ui.testTimer) ui.testTimer.style.display = 'none'; // Hide timer initially
-
+        if (ui.testTimer) ui.testTimer.style.display = 'flex'; // Показываем таймер при старте
         history.pushState({ state: 'testInProgress' }, document.title, window.location.href);
-        loadTestQuestions(selectedTestType); // Call wrapper function
+        loadTestQuestions(selectedTestType); // Вызываем обертку
     }
-    function handleBackButton(event) { const state = event.state ? event.state.state : null; const testIsRunning = ui.testContainer && ui.testContainer.style.display === 'block'; const resultsAreShown = ui.resultsContainer && ui.resultsContainer.style.display === 'block'; const reviewIsShown = ui.reviewContainer && ui.reviewContainer.style.display === 'block'; if (reviewIsShown) { ui.reviewContainer.style.display = 'none'; if (ui.resultsContainer) ui.resultsContainer.style.display = 'block'; } else if (testIsRunning) { if (!confirm('Opustit test? Postup nebude uložen.')) { history.pushState({ state: 'testInProgress' }, document.title, window.location.href); } else { stopTimer(); if (ui.testContainer) ui.testContainer.style.display = 'none'; if (ui.testLoader) ui.testLoader.style.display = 'none'; if (ui.testSelector) ui.testSelector.style.display = 'block'; if (ui.testTimer) ui.testTimer.style.display = 'none'; if(ui.testLevel) ui.testLevel.textContent = 'Výběr testu'; } } else if (resultsAreShown) { if(ui.resultsContainer) ui.resultsContainer.style.display = 'none'; if (ui.testSelector) ui.testSelector.style.display = 'block'; if(ui.testLevel) ui.testLevel.textContent = 'Výběr testu'; } else { console.log("Navigace zpět (výchozí chování)."); } }
+    function handleBackButton(event) {
+        // Эта функция остается без изменений, как в предыдущем ответе test1.js
+        const state = event.state ? event.state.state : null; const testIsRunning = ui.testContainer && ui.testContainer.style.display === 'block'; const resultsAreShown = ui.resultsContainer && ui.resultsContainer.style.display === 'block'; const reviewIsShown = ui.reviewContainer && ui.reviewContainer.style.display === 'block'; if (reviewIsShown) { ui.reviewContainer.style.display = 'none'; if (ui.resultsContainer) ui.resultsContainer.style.display = 'block'; } else if (testIsRunning) { if (!confirm('Opustit test? Postup nebude uložen.')) { history.pushState({ state: 'testInProgress' }, document.title, window.location.href); } else { stopTimer(); if (ui.testContainer) ui.testContainer.style.display = 'none'; if (ui.testLoader) ui.testLoader.style.display = 'none'; if (ui.testSelector) ui.testSelector.style.display = 'block'; if (ui.testTimer) ui.testTimer.style.display = 'none'; if(ui.testLevel) ui.testLevel.textContent = 'Výběr testu'; } } else if (resultsAreShown) { if(ui.resultsContainer) ui.resultsContainer.style.display = 'none'; if (ui.testSelector) ui.testSelector.style.display = 'block'; if(ui.testLevel) ui.testLevel.textContent = 'Výběr testu'; } else { console.log("Navigace zpět (výchozí chování)."); } }
     // --- END: Test Flow & Back Button ---
 
     // --- START: App Initialization ---
     async function initializeApp() {
-        console.log("🚀 [Init Test1 UI - Kyber] Starting...");
-        if (!initializeSupabase()) return; // Initialize Supabase client first
+        console.log("🚀 [Init Test1 UI - Kyber v2] Starting...");
+        if (!initializeSupabase()) return; // Инициализация Supabase
 
-        // Ensure TestLogic is loaded
+        // Проверка загрузки логики
         if (typeof window.TestLogic === 'undefined') {
             showErrorMessagePage("Kritická chyba: Chybí základní logika testu (test1-logic.js). Obnovte stránku.");
             return;
@@ -708,45 +665,58 @@
             const { data: { session }, error: sessionError } = await supabase.auth.getSession();
             if (sessionError) throw new Error(`Nepodařilo se ověřit přihlášení: ${sessionError.message}`);
 
-            if (!session || !session.user) { console.log('[Init Test1 UI - Kyber] Not logged in. Redirecting...'); window.location.href = '/auth/index.html'; return; }
+            if (!session || !session.user) { console.log('[Init Test1 UI - Kyber v2] Not logged in. Redirecting...'); window.location.href = '/auth/index.html'; return; }
             currentUser = session.user;
-            currentProfile = await fetchUserProfile(currentUser.id); // Use wrapper
+            currentProfile = await fetchUserProfile(currentUser.id);
             updateUserInfoUI();
 
             if (!currentProfile) { showError("Profil nenalezen. Test nelze spustit.", true); if (ui.initialLoader) { ui.initialLoader.classList.add('hidden'); setTimeout(() => {if(ui.initialLoader) ui.initialLoader.style.display = 'none';}, 300); } if (ui.mainContent) ui.mainContent.style.display = 'block'; return; }
 
-            setupEventListeners(); // Setup UI event listeners
+            setupEventListeners();
             initTooltips();
             initMouseFollower();
             initHeaderScrollDetection();
             updateCopyrightYear();
-            updateOnlineStatus(); // Initial online status check
+            updateOnlineStatus();
 
-            // Fetch initial notifications
+            // Загрузка уведомлений
             await fetchAndRenderNotifications();
 
-            // Check if user already completed the test using the logic function
+            // ИСПРАВЛЕНИЕ: Проверка существующего теста и управление потоком
+            setLoadingState('test', true); // Показываем загрузчик перед проверкой
             const hasCompletedTest = await checkExistingDiagnostic(currentUser.id);
+            setLoadingState('test', false); // Скрываем загрузчик после проверки
 
             if (hasCompletedTest) {
-                if(ui.testSelector) { ui.testSelector.innerHTML = `<div class="section card" data-animate style="--animation-order: 0;"><h2 class="section-title"><i class="fas fa-check-circle" style="color: var(--accent-lime);"></i> Test již dokončen</h2><p>Tento diagnostický test jste již absolvoval/a. <strong>Tento test nelze opakovat.</strong> Vaše výsledky byly použity k vytvoření studijního plánu.</p><div style="margin-top:1.5rem; display:flex; gap:1rem; flex-wrap:wrap;"><a href="plan.html" class="btn btn-primary"><i class="fas fa-tasks"></i> Zobrazit plán</a><a href="main.html" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Zpět</a></div></div>`; ui.testSelector.style.display = 'block'; requestAnimationFrame(initScrollAnimations); }
-                if(ui.testLoader) ui.testLoader.style.display = 'none';
-                if(ui.testLevel) ui.testLevel.textContent = 'Dokončeno';
+                 console.log("[Init] Test již dokončen, zobrazuji zprávu.");
+                 if(ui.testSelector) {
+                    // Отображаем сообщение о завершенном тесте
+                    ui.testSelector.innerHTML = `<div class="section card" data-animate style="--animation-order: 0;"><h2 class="section-title"><i class="fas fa-check-circle" style="color: var(--accent-lime);"></i> Test již dokončen</h2><p>Tento diagnostický test jste již absolvoval/a. <strong>Tento test nelze opakovat.</strong> Vaše výsledky byly použity k vytvoření studijního plánu.</p><div style="margin-top:1.5rem; display:flex; gap:1rem; flex-wrap:wrap;"><a href="plan.html" class="btn btn-primary"><i class="fas fa-tasks"></i> Zobrazit plán</a><a href="main.html" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Zpět</a></div></div>`;
+                    ui.testSelector.style.display = 'block';
+                    requestAnimationFrame(initScrollAnimations); // Запускаем анимацию для этого блока
+                 }
+                 if(ui.testLoader) ui.testLoader.style.display = 'none'; // Скрываем основной загрузчик теста
+                 if(ui.testLevel) ui.testLevel.textContent = 'Dokončeno'; // Обновляем статус в хедере
             } else {
-                if(ui.testSelector) ui.testSelector.style.display = 'block';
-                if(ui.testLoader) ui.testLoader.style.display = 'none';
-                if(ui.testLevel) ui.testLevel.textContent = 'Výběr testu';
-                requestAnimationFrame(() => { if (ui.testSelector) { ui.testSelector.querySelectorAll('.test-type-card').forEach((el, index) => { el.setAttribute('data-animate', ''); el.style.setProperty('--animation-order', index); }); initScrollAnimations(); } });
+                 console.log("[Init] Test nebyl dokončen, zobrazuji výběr typu testu.");
+                 // Отображаем секцию выбора теста
+                 if(ui.testSelector) {
+                     ui.testSelector.style.display = 'block';
+                     // Запускаем анимацию для карточек выбора теста
+                     requestAnimationFrame(() => { ui.testSelector.querySelectorAll('.test-type-card').forEach((el, index) => { el.setAttribute('data-animate', ''); el.style.setProperty('--animation-order', index); }); initScrollAnimations(); });
+                 }
+                 if(ui.testLoader) ui.testLoader.style.display = 'none'; // Скрываем загрузчик теста
+                 if(ui.testLevel) ui.testLevel.textContent = 'Výběr testu'; // Статус в хедере
             }
-             setLoadingState('test', false); // Stop loader after check
+            // Конец ИСПРАВЛЕНИЯ
 
             if (ui.initialLoader) { ui.initialLoader.classList.add('hidden'); setTimeout(() => { if (ui.initialLoader) ui.initialLoader.style.display = 'none'; }, 300); }
             if (ui.mainContent) { ui.mainContent.style.display = 'block'; requestAnimationFrame(() => { ui.mainContent.classList.add('loaded'); }); }
 
-            console.log("✅ [Init Test1 UI - Kyber] Page initialized.");
+            console.log("✅ [Init Test1 UI - Kyber v2] Page initialized.");
 
         } catch (error) {
-            console.error("❌ [Init Test1 UI - Kyber] Error:", error);
+            console.error("❌ [Init Test1 UI - Kyber v2] Error:", error);
             if (ui.initialLoader && !ui.initialLoader.classList.contains('hidden')) { ui.initialLoader.innerHTML = `<p style="color: var(--accent-pink);">Chyba (${error.message}). Obnovte.</p>`; }
             else { showError(`Chyba inicializace: ${error.message}`, true); }
             if (ui.mainContent) ui.mainContent.style.display = 'block';
@@ -756,23 +726,24 @@
 
     // --- Initialize Supabase and App ---
     function initializeSupabase() {
+        // Эта функция остается без изменений, как в предыдущем ответе test1.js
         try {
             if (typeof window.supabase === 'undefined' || typeof window.supabase.createClient !== 'function') { throw new Error("Supabase library not loaded."); }
             supabase = window.supabase.createClient(
-                 'https://qcimhjjwvsbgjsitmvuh.supabase.co', // Use URL directly
-                 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10' // Use Key directly
+                 'https://qcimhjjwvsbgjsitmvuh.supabase.co',
+                 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10'
             );
             if (!supabase) throw new Error("Supabase client creation failed.");
             console.log('[Supabase] Client initialized.');
             return true;
         } catch (error) {
             console.error('[Supabase] Initialization failed:', error);
-            showErrorMessagePage("Kritická chyba: Nelze se připojit k databázi."); // Show fatal error
+            showErrorMessagePage("Kritická chyba: Nelze se připojit k databázi.");
             return false;
         }
     }
 
     // --- Run Application ---
-    initializeApp(); // Call initialization
+    initializeApp(); // Вызов инициализации
 
 })(); // End IIFE
