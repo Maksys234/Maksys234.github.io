@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
     <script>
+        // Конфигурация MathJax (остается без изменений)
         if (typeof window.MathJax === 'undefined') {
             window.MathJax = {
                 tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$']], processEscapes: true },
@@ -94,17 +95,16 @@
                                 <div id="no-notifications-msg" style="display: none;">ŽÁDNÉ NOVÉ SIGNÁLY</div>
                             </div>
                             <div class="notifications-footer">
-                                <a href="#" class="view-all-notifications-link">ZOBRAZIT ARCHIV</a>
+                                <a href="/dashboard/notifications.html" class="view-all-notifications-link">ZOBRAZIT ARCHIV</a>
                             </div>
                         </div>
-                    </div> </div>
+                    </div>
+                 </div>
             </div>
         </header>
 
         <div class="main-content-wrapper">
-            <div class="error-container" id="global-error"></div>
-
-            <div id="test-selector" class="section" style="display: none;" data-animate style="--animation-order: 0;">
+            <div class="error-container" id="global-error" style="display: none;"></div> <div id="test-selector" class="section" style="display: none;" data-animate style="--animation-order: 0;">
                  <h2 class="section-title"> <i class="fas fa-tasks"></i> Vyberte typ diagnostického testu </h2>
                  <div class="test-types-container">
                      <div class="test-type-card card" data-test-type="quick" data-animate style="--animation-order: 1;">
@@ -168,13 +168,14 @@
                              <div class="stat-item card"><div class="stat-value" id="result-time">00:00</div><div class="stat-label">Čas</div></div>
                          </div>
                      </div>
-                     <div id="low-score-message-container"></div>
+                     <div id="low-score-message-container">
+                        </div>
                      <h3 class="section-subtitle">Výsledky podle témat</h3>
                      <div id="topic-results" class="topic-results">
-                         <div class="topic-card card loading">
+                        <div class="topic-card card loading">
                               <div class="loading-skeleton">
-                                 <div class="topic-header"><div class="skeleton topic-icon"></div><div class="skeleton topic-title"></div></div>
-                                 <div class="topic-stats"><div class="skeleton text-sm"></div><div class="skeleton text-sm"></div><div class="skeleton progress-container"></div></div>
+                                 <div class="topic-header"><div class="skeleton topic-icon" style="width:50px; height:50px;"></div><div class="skeleton topic-title" style="height:20px; width:70%;"></div></div>
+                                 <div class="topic-stats"><div class="skeleton text-sm" style="height:14px; width:50%;"></div><div class="skeleton text-sm" style="height:14px; width:60%;"></div><div class="skeleton progress-container" style="height:9px;"></div></div>
                              </div>
                         </div>
                      </div>
@@ -189,20 +190,22 @@
             <div id="review-container" class="section review-container" style="display: none;">
                  <div class="review-navigation"> <button id="back-to-results-btn" class="btn btn-secondary"> <i class="fas fa-arrow-left"></i> Zpět k výsledkům </button> </div>
                  <h2 class="section-title"><i class="fas fa-clipboard-check"></i> Přehled odpovědí</h2>
-                 <div id="review-content"></div>
+                 <div id="review-content">
+                    </div>
             </div>
 
             <div id="gemini-checking-overlay" class="gemini-checking-overlay" style="display: none;">
                  <div class="gemini-spinner"></div>
                  <div class="gemini-checking-text">VYHODNOCUJI ODPOVĚDI // AI ANALÝZA...</div>
             </div>
-        </div><footer class="dashboard-footer">
+        </div>
+
+        <footer class="dashboard-footer">
             <p>&copy; <span id="currentYearFooter">2025</span> Justax Systems // Secure Channel</p>
         </footer>
     </main>
 
     <div id="mouse-follower" class="mouse-follower-glow"></div>
 
-    <script src="test1.js" defer></script>
-</body>
+    <script src="test1-logic.js" defer></script> <script src="test1.js" defer></script>      </body>
 </html>
