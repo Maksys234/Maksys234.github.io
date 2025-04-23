@@ -6,6 +6,7 @@
     let supabase = null;
     let currentUser = null;
     let currentProfile = null; // Keep profile data
+    let currentUserStats = null; // <<< NEW: To store user_stats data
     let userBadges = [];
     let allBadges = [];
     let leaderboardData = { points: [], badges: [], streak: [] };
@@ -239,7 +240,7 @@
 
     // --- START: Data Loading Functions ---
     async function initializeApp() {
-        console.log("🚀 [Init Oceneni - Kyber] Initializing Awards Page...");
+        console.log("🚀 [Init Oceneni - Kyber v2 - FIXED] Initializing Awards Page..."); // Added version marker
         if (!initializeSupabase()) return;
 
         setupUIEventListeners(); // Basic UI listeners first
@@ -257,7 +258,7 @@
                 console.log(`[Init Oceneni - Kyber] User authenticated (ID: ${currentUser.id}). Loading data...`);
 
                 // Load profile first, critical for other fetches and UI
-                currentProfile = await fetchUserProfile(currentUser.id);
+                currentProfile = await fetchUserProfile(currentUser.id); // Fetch profile
                 if (!currentProfile) throw new Error("Nepodařilo se načíst profil uživatele.");
 
                 updateSidebarProfile(currentProfile); // Update sidebar immediately
@@ -303,14 +304,16 @@
              return false;
          }
      }
+    // --- UPDATED fetchUserProfile --- REMOVED streak_longest ---
     async function fetchUserProfile(userId) {
          if (!supabase || !userId) return null;
          console.log(`[Profile] Fetching profile for user ID: ${userId}`);
          try {
              // Select fields needed for sidebar AND for badge progress calculation
+             // REMOVED streak_longest as it's not in profiles table
              const { data: profile, error } = await supabase
                  .from('profiles')
-                 .select('id, first_name, last_name, username, avatar_url, points, streak_days, badges_count, level, completed_exercises, created_at, streak_longest') // Added streak_longest
+                 .select('id, first_name, last_name, username, avatar_url, points, streak_days, badges_count, level, completed_exercises, created_at')
                  .eq('id', userId)
                  .single();
 
@@ -325,7 +328,34 @@
              return null;
          }
      }
-    /** Loads all data for the awards page concurrently. */
+    // --- NEW: fetchUserStats function ---
+    async function fetchUserStats(userId) {
+        if (!supabase || !userId) {
+            console.error("[Stats Fetch] Missing Supabase client or User ID.");
+            return null;
+        }
+        console.log(`[Stats Fetch] Fetching stats for user ID: ${userId}`);
+        try {
+            const { data: statsData, error } = await supabase
+                .from('user_stats')
+                .select('progress, progress_weekly, points_weekly, streak_longest, completed_tests')
+                .eq('user_id', userId)
+                .maybeSingle(); // Use maybeSingle in case stats row doesn't exist yet
+
+            if (error) {
+                console.warn("[Stats Fetch] Supabase error fetching user_stats:", error.message);
+                // Don't throw, return null or empty object, stats card can handle it
+                return null;
+            }
+            console.log("[Stats Fetch] Stats fetched successfully:", statsData);
+            return statsData || {}; // Return empty object if null
+        } catch (error) {
+            console.error("[Stats Fetch] Caught exception fetching user_stats:", error);
+            showToast('Chyba', 'Nepodařilo se načíst statistiky uživatele.', 'error');
+            return null;
+        }
+    }
+    // --- UPDATED loadAllAwardData --- Includes fetchUserStats ---
     async function loadAllAwardData() {
         if (!currentUser || !supabase || !currentProfile) { showError("Nelze načíst data: Chybí informace o uživateli nebo spojení.", true); return; }
         console.log("🔄 [LoadAwards] Starting data fetch...");
@@ -337,12 +367,12 @@
             const results = await Promise.allSettled([
                 fetchAllBadgesDefinition(),
                 fetchUserEarnedBadges(currentUser.id),
-                fetchLeaderboardData(currentLeaderboardFilter)
-                // fetchUserStats is not strictly needed if profile has basic stats, can be added if 'user_stats' has more detail
+                fetchLeaderboardData(currentLeaderboardFilter),
+                fetchUserStats(currentUser.id) // <<< Fetch user_stats
             ]);
             console.log("[LoadAwards] Fetch results (settled):", results);
 
-            let fetchedAllBadges = null, fetchedUserBadges = null, fetchedLeaderboard = null;
+            let fetchedAllBadges = null, fetchedUserBadges = null, fetchedLeaderboard = null, fetchedStats = null;
 
             // Process All Badges Definition
             if (results[0].status === 'fulfilled') { fetchedAllBadges = results[0].value; allBadges = fetchedAllBadges || []; }
@@ -351,30 +381,30 @@
             // Process User Earned Badges
             if (results[1].status === 'fulfilled') { fetchedUserBadges = results[1].value; userBadges = fetchedUserBadges || []; }
             else { console.error("❌ Error fetching user badges:", results[1].reason); showError("Nepodařilo se načíst získané odznaky."); userBadges = []; }
-             setLoadingState('userBadges', false); // Stop loading for earned badges section
-             setLoadingState('recentBadges', false); // Stop loading for recent badges section
-
-
-            // Render Available Badges (needs both allBadges and userBadges)
-            renderAvailableBadges(allBadges, userBadges, currentProfile); // Pass profile for progress
-             setLoadingState('availableBadges', false); // Stop loading for available badges section
+             setLoadingState('userBadges', false);
+             setLoadingState('recentBadges', false);
 
             // Process Leaderboard
             if (results[2].status === 'fulfilled') { fetchedLeaderboard = results[2].value; leaderboardData[currentLeaderboardFilter] = fetchedLeaderboard || []; }
             else { console.error("❌ Error fetching leaderboard:", results[2].reason); showError("Nepodařilo se načíst žebříček."); leaderboardData[currentLeaderboardFilter] = []; }
-            setLoadingState('leaderboard', false); // Stop loading for leaderboard section
+            setLoadingState('leaderboard', false);
 
+            // <<< Process User Stats >>>
+            if (results[3].status === 'fulfilled') { currentUserStats = results[3].value || {}; } // Store fetched stats
+            else { console.error("❌ Error fetching user stats:", results[3].reason); showError("Nepodařilo se načíst statistiky."); currentUserStats = {}; }
+            setLoadingState('stats', false); // Stop loading stats section
 
-             // Update Stats Cards using profile and leaderboard data
-             updateStatsCards(currentProfile, userBadges, leaderboardData[currentLeaderboardFilter]);
-             setLoadingState('stats', false); // Stop loading for stats section
+            // Render Available Badges (needs both allBadges and userBadges)
+            renderAvailableBadges(allBadges, userBadges, currentProfile); // Pass profile for progress
+            setLoadingState('availableBadges', false);
 
+            // Update Stats Cards using profile, stats, badges, and leaderboard data
+            updateStatsCards(currentProfile, currentUserStats, userBadges, leaderboardData[currentLeaderboardFilter]);
 
             // Render sections that depend on fetched data AFTER loading state is false
             renderUserBadges(userBadges);
             renderRecentBadges(userBadges);
             renderLeaderboard(leaderboardData[currentLeaderboardFilter]); // Render initial leaderboard
-
 
         } catch (error) {
             console.error("❌ Unexpected error in loadAllAwardData:", error);
@@ -429,69 +459,32 @@
              return [];
          }
      }
-    // --- UPDATED fetchLeaderboardData ---
     async function fetchLeaderboardData(filter = 'points') {
         console.log(`[Leaderboard] Fetching data for filter: ${filter}...`);
         if (!supabase) {
             console.error("Supabase client not initialized.");
             return [];
         }
-        // Определяем столбец для сортировки в таблице leaderboard
-        let orderColumn = 'points'; // По умолчанию сортируем по очкам
-        let ascendingOrder = false; // По умолчанию по убыванию (больше = лучше)
-
-        if (filter === 'badges') {
-            orderColumn = 'badges_count';
-        } else if (filter === 'streak') {
-            // ПРИМЕЧАНИЕ: Таблица leaderboard не содержит streak_days.
-            // Мы можем получить ее из profiles, но сортировка по связанному полю может быть неэффективной.
-            // Пока что, для простоты, при фильтре 'streak' будем сортировать по очкам/рангу,
-            // а отображать будем значение streak_days из profiles.
-            orderColumn = 'rank'; // Сортируем по рангу как fallback, если нет streak в leaderboard
-            ascendingOrder = true; // Rank usually sorted ascending (1st is best)
-            console.warn("[Leaderboard] Sorting by streak requested, using rank order for fetch. Displaying streak value.");
-        }
+        let orderColumn = 'points';
+        let ascendingOrder = false;
+        if (filter === 'badges') { orderColumn = 'badges_count'; }
+        else if (filter === 'streak') { orderColumn = 'rank'; ascendingOrder = true; console.warn("[Leaderboard] Sorting by streak requested, using rank order for fetch. Displaying streak value."); }
 
         try {
-            // Используем имя 'profile' для связи, как указано в схеме (leaderboard_user_id_fkey foreign KEY (user_id) references profiles (id))
-            // Corrected select with !inner join hint
             const { data, error } = await supabase
-                .from('leaderboard') // Используем таблицу leaderboard
+                .from('leaderboard')
                 .select(`
-                    rank,
-                    user_id,
-                    points,
-                    badges_count,
-                    profile:profiles!inner (
-                        id,
-                        first_name,
-                        last_name,
-                        username,
-                        avatar_url,
-                        level,
-                        streak_days
-                    )
+                    rank, user_id, points, badges_count,
+                    profile:profiles!inner (id, first_name, last_name, username, avatar_url, level, streak_days)
                 `)
-                // Assuming 'leaderboard' table has a 'period' column, e.g., 'overall', 'weekly'
-                // Add .eq('period', 'desired_period') if needed
+                // .eq('period', 'overall') // Add period filter if needed
                 .order(orderColumn, { ascending: ascendingOrder })
-                .limit(10); // Топ 10
+                .limit(10);
 
-            if (error) {
-                console.error(`[Leaderboard] Supabase error fetching leaderboard (filter: ${filter}):`, error);
-                throw error;
-            }
-
-            // Rank recalculation if not sorted by rank initially
+            if (error) throw error;
             let rankedData = data || [];
-            if (orderColumn !== 'rank') {
-                // Recalculate rank based on the current sort order
-                rankedData = rankedData.map((entry, index) => ({ ...entry, calculated_rank: index + 1 }));
-            } else {
-                // Use the rank from the database if sorted by it
-                rankedData = rankedData.map(entry => ({ ...entry, calculated_rank: entry.rank }));
-            }
-
+            if (orderColumn !== 'rank') { rankedData = rankedData.map((entry, index) => ({ ...entry, calculated_rank: index + 1 })); }
+            else { rankedData = rankedData.map(entry => ({ ...entry, calculated_rank: entry.rank })); }
             console.log(`[Leaderboard] Fetched ${rankedData.length} entries, ordered by ${orderColumn}.`);
             return rankedData;
         } catch (error) {
@@ -508,7 +501,7 @@
          if (!ui.sidebarName || !ui.sidebarAvatar) { console.warn("[UI Update] Elementy sidebaru nenalezeny."); return; }
          if (profile) {
              const firstName = profile.first_name ?? '';
-             const displayName = firstName || profile.username || currentUser?.email?.split('@')[0] || 'Pilot'; // Use first name primarily
+             const displayName = firstName || profile.username || currentUser?.email?.split('@')[0] || 'Pilot';
              ui.sidebarName.textContent = sanitizeHTML(displayName);
              const initials = getInitials(profile);
              const avatarUrl = profile.avatar_url;
@@ -520,9 +513,10 @@
              ui.sidebarAvatar.textContent = '?';
          }
      }
-    function updateStatsCards(profileData, earnedBadgesData, leaderboard) {
-         console.log("[UI Update] Updating stats cards with data:", profileData);
-         setLoadingState('stats', false); // Explicitly stop loading here
+    // --- UPDATED updateStatsCards --- Accepts profileData AND statsData ---
+    function updateStatsCards(profileData, statsData, earnedBadgesData, leaderboard) {
+         console.log("[UI Update] Updating stats cards with data:", profileData, statsData);
+         setLoadingState('stats', false); // Stop loading explicitly here
 
          const getStatValue = (value) => (value !== null && value !== undefined) ? value : '-';
          const formatChange = (value, unit = '', iconUp = 'fa-arrow-up', iconDown = 'fa-arrow-down', iconNone = 'fa-minus') => {
@@ -533,37 +527,35 @@
              return `<span class="${cssClass}"><i class="fas ${icon}"></i> ${sign}${value}${unit}</span>`;
          };
 
+         // Check if essential elements and profileData exist
          if (!profileData || !ui.badgesCount || !ui.pointsCount || !ui.streakDays || !ui.rankValue) {
              console.warn("[UI Update] Missing profile data or stat card elements.");
-             // Optionally show error state on cards, but setLoadingState(false) already hides skeletons
+             // Show error state on cards
              [ui.badgesCount, ui.pointsCount, ui.streakDays, ui.rankValue].forEach(el => { if(el) el.textContent = 'ERR'; });
              [ui.badgesChange, ui.pointsChange, ui.streakChange, ui.rankChange].forEach(el => { if(el) el.innerHTML = `<i class="fas fa-exclamation-triangle"></i>`; });
              return;
          }
 
          // Badges Count
-         const badgesTotal = earnedBadgesData?.length ?? profileData.badges_count ?? 0; // Use length or profile field
+         const badgesTotal = earnedBadgesData?.length ?? profileData.badges_count ?? 0;
          ui.badgesCount.textContent = getStatValue(badgesTotal);
-         // Placeholder for badges change
-         ui.badgesChange.innerHTML = `<i class="fas fa-sync-alt"></i> Tento měsíc?`; // Placeholder text
+         ui.badgesChange.innerHTML = `<i class="fas fa-sync-alt"></i> Tento měsíc?`; // Placeholder
 
          // Points Count
          ui.pointsCount.textContent = getStatValue(profileData.points);
-         // Placeholder for points change
-         ui.pointsChange.innerHTML = `<i class="fas fa-sync-alt"></i> Týdně?`; // Placeholder text
+         const pointsWeekly = statsData?.points_weekly; // Get from statsData
+         ui.pointsChange.innerHTML = formatChange(pointsWeekly, ' kr.'); // Use formatter
 
          // Streak Days
          ui.streakDays.textContent = getStatValue(profileData.streak_days);
-         const longestStreak = profileData.streak_longest ?? profileData.streak_days ?? '-';
+         const longestStreak = statsData?.streak_longest ?? profileData.streak_days ?? '-'; // Get from statsData
          ui.streakChange.textContent = `MAX: ${getStatValue(longestStreak)} dní`;
 
          // Rank
          const userRankEntry = leaderboard?.find(u => u.user_id === currentUser?.id);
-         // Use calculated_rank if available (from client-side sort), otherwise use rank from DB
          const rank = userRankEntry?.calculated_rank ?? userRankEntry?.rank ?? '-';
-         const total = leaderboard?.length ?? 0; // Or fetch total users if available
+         const total = leaderboard?.length ?? 0;
          ui.rankValue.textContent = getStatValue(rank);
-          // Total users count isn't directly available from top 10 fetch, using fetched count as proxy
          ui.rankChange.innerHTML = `<i class="fas fa-users"></i> z TOP ${total > 0 ? total : '?'} pilotů`;
 
          console.log("[UI Update] Stats cards updated.");
@@ -589,8 +581,7 @@
              const badgeType = badge.type?.toLowerCase() || 'default';
              const visual = badgeVisuals[badgeType] || badgeVisuals.default;
              const badgeElement = document.createElement('div');
-             // Add animation attributes
-             badgeElement.className = 'badge-card card'; // Add base card class
+             badgeElement.className = 'badge-card card';
              badgeElement.setAttribute('data-animate', '');
              badgeElement.style.setProperty('--animation-order', index);
 
@@ -608,7 +599,6 @@
          });
          ui.badgeGrid.appendChild(fragment);
          console.log(`[Render] Rendered ${earnedBadges.length} earned badges.`);
-         // Trigger animation initialization if content was added dynamically after initial load
          requestAnimationFrame(initScrollAnimations);
      }
     function renderAvailableBadges(allBadgesDef, userEarnedBadges, userProfileData) {
@@ -632,13 +622,12 @@
              const badgeType = badge.type?.toLowerCase() || 'default';
              const visual = badgeVisuals[badgeType] || badgeVisuals.default;
              let progress = 0;
-             let progressText = '???'; // Default progress text
+             let progressText = '???';
 
-             // --- Calculate Progress based on Requirements ---
              if (badge.requirements && typeof badge.requirements === 'object' && userProfileData) {
                  const req = badge.requirements;
                  let current = 0;
-                 let target = parseInt(req.target, 10) || 1; // Default target to 1
+                 let target = parseInt(req.target, 10) || 1;
 
                  try {
                      switch (req.type) {
@@ -646,23 +635,17 @@
                          case 'streak_days': current = userProfileData.streak_days || 0; progressText = `${current}/${target} dní`; break;
                          case 'exercises_completed': current = userProfileData.completed_exercises || 0; progressText = `${current}/${target} cv.`; break;
                          case 'level_reached': current = userProfileData.level || 1; progressText = `${current}/${target} úr.`; break;
-                         // Add more cases as needed
                          default: console.warn(`Unknown badge requirement type: ${req.type}`); progressText = '?/?';
                      }
-                     if (target > 0) {
-                         progress = Math.min(100, Math.max(0, Math.round((current / target) * 100)));
-                     }
+                     if (target > 0) { progress = Math.min(100, Math.max(0, Math.round((current / target) * 100))); }
                  } catch(e) {
                      console.error("Error calculating badge progress:", e, "Badge:", badge, "Profile:", userProfileData);
                      progressText = 'Chyba';
                  }
-             } else {
-                 progressText = 'Nespec.'; // Not specified
-             }
-             // --- End Progress Calculation ---
+             } else { progressText = 'Nespec.'; }
 
              const badgeElement = document.createElement('div');
-             badgeElement.className = 'achievement-card card'; // Add base card class
+             badgeElement.className = 'achievement-card card';
              badgeElement.setAttribute('data-animate', '');
              badgeElement.style.setProperty('--animation-order', index);
 
@@ -684,10 +667,9 @@
          });
          ui.availableBadgesGrid.appendChild(fragment);
          console.log(`[Render] Rendered ${available.length} available badges.`);
-          // Trigger animation initialization if content was added dynamically after initial load
           requestAnimationFrame(initScrollAnimations);
      }
-    // --- UPDATED renderLeaderboard ---
+    // --- UPDATED renderLeaderboard --- Now uses profile data for display
     function renderLeaderboard(data) {
          if (!ui.leaderboardBody || !ui.leaderboardEmpty || !ui.scoreHeader || !ui.leaderboardContainer) {
              console.error("Leaderboard UI elements not found.");
@@ -773,7 +755,7 @@
              const badgeType = badge.type?.toLowerCase() || 'default';
              const visual = badgeVisuals[badgeType] || badgeVisuals.default;
              const badgeElement = document.createElement('div');
-             badgeElement.className = `achievement-item`; // Animation handled by parent container
+             badgeElement.className = `achievement-item`;
              // Removed animation classes/styles, rely on [data-animate] on parent section
 
              badgeElement.innerHTML = `
@@ -791,7 +773,6 @@
          });
          ui.recentAchievementsList.appendChild(fragment);
          console.log(`[Render] Rendered ${recent.length} recent badges.`);
-         // Trigger animation initialization if content was added dynamically after initial load
          requestAnimationFrame(initScrollAnimations);
      }
     // --- END: UI Update Functions ---
@@ -799,18 +780,18 @@
     // --- START: Event Listeners & Handlers ---
     function setupUIEventListeners() {
         console.log("[SETUP] setupUIEventListeners: Start");
-        // Mobile Menu Toggles (from dashboard.html)
+        // Mobile Menu Toggles
         if (ui.mainMobileMenuToggle) ui.mainMobileMenuToggle.addEventListener('click', openMenu);
         if (ui.sidebarCloseToggle) ui.sidebarCloseToggle.addEventListener('click', closeMenu);
         if (ui.sidebarOverlay) ui.sidebarOverlay.addEventListener('click', closeMenu);
         document.querySelectorAll('.sidebar-link').forEach(link => { link.addEventListener('click', () => { if (window.innerWidth <= 992) closeMenu(); }); });
 
-        // Online/Offline Status (from dashboard.html)
+        // Online/Offline Status
         window.addEventListener('online', updateOnlineStatus);
         window.addEventListener('offline', updateOnlineStatus);
         updateOnlineStatus(); // Initial check
 
-        // Refresh button (from dashboard.html)
+        // Refresh button
         if (ui.refreshDataBtn) {
             ui.refreshDataBtn.addEventListener('click', handleGlobalRetry); // Use the retry handler
          }
@@ -837,7 +818,7 @@
              leaderboardData[currentLeaderboardFilter] = data || [];
              renderLeaderboard(leaderboardData[currentLeaderboardFilter]);
              // Re-update stats cards in case rank changed based on new filter's leaderboard
-             updateStatsCards(currentProfile, userBadges, leaderboardData[currentLeaderboardFilter]);
+             updateStatsCards(currentProfile, currentUserStats, userBadges, leaderboardData[currentLeaderboardFilter]); // <<< Pass statsData
          } catch (error) {
              showError("Nepodařilo se načíst data žebříčku pro tento filtr.");
              renderLeaderboard([]); // Render empty state on error
@@ -863,8 +844,8 @@
          // Indicate loading on the button
          if (ui.refreshDataBtn) {
              const icon = ui.refreshDataBtn.querySelector('i');
-             const text = ui.refreshDataBtn.querySelector('.refresh-text');
-             if (icon) icon.classList.add('fa-spin'); // Add loading spinner class
+             const text = ui.refreshDataBtn.querySelector('.refresh-text'); // Assuming refresh-text span exists
+             if (icon) icon.classList.add('fa-spin');
              if (text) text.textContent = 'RELOADING...';
              ui.refreshDataBtn.disabled = true;
          }
@@ -874,8 +855,8 @@
          // Reset button state
          if (ui.refreshDataBtn) {
               const icon = ui.refreshDataBtn.querySelector('i');
-              const text = ui.refreshDataBtn.querySelector('.refresh-text');
-              if (icon) icon.classList.remove('fa-spin'); // Remove loading spinner class
+              const text = ui.refreshDataBtn.querySelector('.refresh-text'); // Assuming refresh-text span exists
+              if (icon) icon.classList.remove('fa-spin');
               if (text) text.textContent = 'RELOAD';
               ui.refreshDataBtn.disabled = false;
          }
