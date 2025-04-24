@@ -126,34 +126,34 @@
 
                 // Handle skeleton visibility specifically for leaderboard
                 if (secKey === 'leaderboard') {
-                     if (config.skeletonEl) config.skeletonEl.style.display = isLoadingFlag ? 'block' : 'none';
-                     if (config.contentEl) config.contentEl.style.visibility = isLoadingFlag ? 'hidden' : 'visible';
-                     if (config.emptyEl) config.emptyEl.style.display = 'none'; // Hide empty state during load
-                     if (config.container.querySelector('.leaderboard-header')) config.container.querySelector('.leaderboard-header').style.visibility = isLoadingFlag ? 'hidden' : 'visible';
-                 } else {
-                     if (isLoadingFlag) {
-                         if (config.contentEl) config.contentEl.style.display = 'none'; // Hide content grid
-                         if (config.emptyEl) config.emptyEl.style.display = 'none'; // Hide empty state
-                     }
-                 }
+                        if (config.skeletonEl) config.skeletonEl.style.display = isLoadingFlag ? 'block' : 'none';
+                        if (config.contentEl) config.contentEl.style.visibility = isLoadingFlag ? 'hidden' : 'visible';
+                        if (config.emptyEl) config.emptyEl.style.display = 'none'; // Hide empty state during load
+                        if (ui.leaderboardHeaderElement) ui.leaderboardHeaderElement.style.visibility = isLoadingFlag ? 'hidden' : 'visible'; // Hide header during load
+                    } else {
+                        if (isLoadingFlag) {
+                            if (config.contentEl) config.contentEl.style.display = 'none'; // Hide content grid
+                            if (config.emptyEl) config.emptyEl.style.display = 'none'; // Hide empty state
+                        }
+                    }
 
                 // Special handling for notification list display
-                 if (secKey === 'notifications') {
-                     if (isLoadingFlag && config.container) {
-                         renderNotificationSkeletons(2); // Show skeletons
-                     }
-                     if (config.emptyEl) {
-                         config.emptyEl.style.display = isLoadingFlag ? 'none' : (config.container?.innerHTML.trim() === '' ? 'block' : 'none');
-                     }
-                 }
+                    if (secKey === 'notifications') {
+                        if (isLoadingFlag && config.container) {
+                            renderNotificationSkeletons(2); // Show skeletons
+                        }
+                        if (config.emptyEl) {
+                            config.emptyEl.style.display = isLoadingFlag ? 'none' : (config.container?.innerHTML.trim() === '' ? 'block' : 'none');
+                        }
+                    }
 
             } else if (secKey === 'notifications' && ui.notificationBell) {
-                 // Handle notification bell opacity separately if container is list
-                 ui.notificationBell.style.opacity = isLoadingFlag ? 0.5 : 1;
-                 if (ui.markAllReadBtn) {
-                     const currentUnreadCount = parseInt(ui.notificationCount?.textContent?.replace('+', '') || '0');
-                     ui.markAllReadBtn.disabled = isLoadingFlag || currentUnreadCount === 0;
-                 }
+                    // Handle notification bell opacity separately if container is list
+                    ui.notificationBell.style.opacity = isLoadingFlag ? 0.5 : 1;
+                    if (ui.markAllReadBtn) {
+                        const currentUnreadCount = parseInt(ui.notificationCount?.textContent?.replace('+', '') || '0');
+                        ui.markAllReadBtn.disabled = isLoadingFlag || currentUnreadCount === 0;
+                    }
             } else {
                 console.warn(`setLoadingState: Container for section "${secKey}" not found.`);
             }
@@ -166,43 +166,7 @@
     // --- END: Helper Functions ---
 
     // --- START: Data Loading Functions ---
-    async function initializeApp() {
-        console.log("🚀 [Init Oceneni - Kyber v4] Initializing Awards Page...");
-        if (!initializeSupabase()) return;
-        setupUIEventListeners();
-        if (ui.initialLoader) { ui.initialLoader.classList.remove('hidden'); ui.initialLoader.style.display = 'flex'; }
-        if (ui.mainContent) ui.mainContent.style.display = 'none';
-        try {
-            console.log("[Init Oceneni - Kyber] Checking auth session...");
-            const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-            if (sessionError) throw new Error(`Nepodařilo se ověřit přihlášení: ${sessionError.message}`);
-
-            if (session?.user) {
-                currentUser = session.user;
-                console.log(`[Init Oceneni - Kyber] User authenticated (ID: ${currentUser.id}). Loading data...`);
-                currentProfile = await fetchUserProfile(currentUser.id);
-                if (!currentProfile) throw new Error("Nepodařilo se načíst profil uživatele.");
-                updateSidebarProfile(currentProfile);
-
-                if (ui.initialLoader) { ui.initialLoader.classList.add('hidden'); setTimeout(() => { if (ui.initialLoader) ui.initialLoader.style.display = 'none'; }, 500); }
-                if (ui.mainContent) { ui.mainContent.style.display = 'block'; requestAnimationFrame(() => ui.mainContent.classList.add('loaded')); }
-
-                await loadAllAwardData(); // Load all data including notifications
-
-                console.log("✅ [Init Oceneni - Kyber] Page fully loaded and initialized.");
-                requestAnimationFrame(() => { initScrollAnimations(); initMouseFollower(); initHeaderScrollDetection(); updateCopyrightYear(); });
-
-            } else {
-                console.log("[Init Oceneni - Kyber] User not logged in. Redirecting...");
-                window.location.href = '/auth/index.html';
-            }
-        } catch (error) {
-            console.error("❌ [Init Oceneni - Kyber] Critical initialization error:", error);
-            if (ui.initialLoader && !ui.initialLoader.classList.contains('hidden')) { ui.initialLoader.innerHTML = `<p style="color: var(--accent-pink);">CHYBA SYSTÉMU (${error.message}). OBNOVTE STRÁNKU.</p>`; }
-            else { showError(`Chyba při inicializaci: ${error.message}`, true); }
-            if (ui.mainContent) ui.mainContent.style.display = 'none';
-        }
-    }
+    async function initializeApp() { console.log("🚀 [Init Oceneni - Kyber v4] Initializing Awards Page..."); if (!initializeSupabase()) return; setupUIEventListeners(); if (ui.initialLoader) { ui.initialLoader.classList.remove('hidden'); ui.initialLoader.style.display = 'flex'; } if (ui.mainContent) ui.mainContent.style.display = 'none'; try { console.log("[Init Oceneni - Kyber] Checking auth session..."); const { data: { session }, error: sessionError } = await supabase.auth.getSession(); if (sessionError) throw new Error(`Nepodařilo se ověřit přihlášení: ${sessionError.message}`); if (session?.user) { currentUser = session.user; console.log(`[Init Oceneni - Kyber] User authenticated (ID: ${currentUser.id}). Loading data...`); currentProfile = await fetchUserProfile(currentUser.id); if (!currentProfile) throw new Error("Nepodařilo se načíst profil uživatele."); updateSidebarProfile(currentProfile); if (ui.initialLoader) { ui.initialLoader.classList.add('hidden'); setTimeout(() => { if (ui.initialLoader) ui.initialLoader.style.display = 'none'; }, 500); } if (ui.mainContent) { ui.mainContent.style.display = 'block'; requestAnimationFrame(() => ui.mainContent.classList.add('loaded')); } await loadAllAwardData(); console.log("✅ [Init Oceneni - Kyber] Page fully loaded and initialized."); requestAnimationFrame(() => { initScrollAnimations(); initMouseFollower(); initHeaderScrollDetection(); updateCopyrightYear(); }); } else { console.log("[Init Oceneni - Kyber] User not logged in. Redirecting..."); window.location.href = '/auth/index.html'; } } catch (error) { console.error("❌ [Init Oceneni - Kyber] Critical initialization error:", error); if (ui.initialLoader && !ui.initialLoader.classList.contains('hidden')) { ui.initialLoader.innerHTML = `<p style="color: var(--accent-pink);">CHYBA SYSTÉMU (${error.message}). OBNOVTE STRÁNKU.</p>`; } else { showError(`Chyba při inicializaci: ${error.message}`, true); } if (ui.mainContent) ui.mainContent.style.display = 'none'; } }
     function initializeSupabase() { try { if (typeof window.supabase === 'undefined' || typeof window.supabase.createClient !== 'function') { throw new Error("Knihovna Supabase nebyla správně načtena."); } supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY); if (!supabase) throw new Error("Vytvoření klienta Supabase selhalo."); console.log('[Supabase] Klient úspěšně inicializován.'); return true; } catch (error) { console.error('[Supabase] Inicializace selhala:', error); showError("Kritická chyba: Nepodařilo se připojit k databázi.", true); return false; } }
     async function fetchUserProfile(userId) { if (!supabase || !userId) return null; console.log(`[Profile] Fetching profile for user ID: ${userId}`); try { const { data: profile, error } = await supabase .from('profiles') .select('id, first_name, last_name, username, email, avatar_url, points, streak_days, badges_count, level, completed_exercises, created_at') .eq('id', userId) .single(); if (error && error.code !== 'PGRST116') throw error; if (!profile) { console.warn(`[Profile] Profile not found for user ${userId}.`); return null; } console.log("[Profile] Profile data fetched successfully."); return profile; } catch (error) { console.error('[Profile] Caught exception fetching profile:', error); showToast('Chyba', 'Nepodařilo se načíst data profilu.', 'error'); return null; } }
     async function fetchUserStats(userId) { if (!supabase || !userId) { console.error("[Stats Fetch] Missing Supabase client or User ID."); return null; } console.log(`[Stats Fetch] Fetching stats for user ID: ${userId}`); try { const { data: statsData, error } = await supabase .from('user_stats') .select('progress, progress_weekly, points_weekly, streak_longest, completed_tests') .eq('user_id', userId) .maybeSingle(); if (error) { console.warn("[Stats Fetch] Supabase error fetching user_stats:", error.message); return null; } console.log("[Stats Fetch] Stats fetched successfully:", statsData); return statsData || {}; } catch (error) { console.error("[Stats Fetch] Caught exception fetching user_stats:", error); showToast('Chyba', 'Nepodařilo se načíst statistiky uživatele.', 'error'); return null; } }
@@ -211,22 +175,19 @@
         console.log("🔄 [LoadAwards] Starting data fetch...");
         hideError();
         setLoadingState('all', true);
-        try {
-            // Fetch notifications first to get the count quickly
-            const { unreadCount, notifications } = await fetchNotifications(currentUser.id, NOTIFICATION_FETCH_LIMIT);
-            renderNotifications(unreadCount, notifications); // Render notifications immediately
-            setLoadingState('notifications', false);
+        renderLeaderboardSkeleton(); // Show leaderboard skeleton immediately
 
-            // Fetch other data in parallel
+        try {
             const results = await Promise.allSettled([
                 fetchAllBadgesDefinition(),
                 fetchUserEarnedBadges(currentUser.id),
                 fetchLeaderboardData(currentLeaderboardFilter, currentLeaderboardPeriod),
-                fetchUserStats(currentUser.id) // Stats needed for badge progress/leaderboard context
+                fetchUserStats(currentUser.id),
+                fetchNotifications(currentUser.id, NOTIFICATION_FETCH_LIMIT) // Fetch notifications in parallel
             ]);
             console.log("[LoadAwards] Fetch results (settled):", results);
 
-            let fetchedAllBadges = null, fetchedUserBadges = null, fetchedLeaderboard = null, fetchedStats = null;
+            let fetchedAllBadges = null, fetchedUserBadges = null, fetchedLeaderboard = null, fetchedStats = null, fetchedNotifications = { unreadCount: 0, notifications: [] };
 
             if (results[0].status === 'fulfilled') { fetchedAllBadges = results[0].value; allBadges = fetchedAllBadges || []; }
             else { console.error("❌ Error fetching all badges:", results[0].reason); showError("Nepodařilo se načíst definice odznaků."); allBadges = []; }
@@ -238,24 +199,30 @@
 
             if (results[2].status === 'fulfilled') { fetchedLeaderboard = results[2].value; leaderboardData[currentLeaderboardFilter] = fetchedLeaderboard || []; }
             else { console.error("❌ Error fetching leaderboard:", results[2].reason); showError("Nepodařilo se načíst žebříček."); leaderboardData[currentLeaderboardFilter] = []; }
-            setLoadingState('leaderboard', false); // Stop leaderboard loading
+             // Leaderboard loading state handled separately by render function now
 
             if (results[3].status === 'fulfilled') { currentUserStats = results[3].value || {}; }
             else { console.error("❌ Error fetching user stats:", results[3].reason); showError("Nepodařilo se načíst statistiky."); currentUserStats = {}; }
             setLoadingState('stats', false); // Stop stats loading
 
+            if (results[4].status === 'fulfilled') { fetchedNotifications = results[4].value || { unreadCount: 0, notifications: [] }; }
+             else { console.error("❌ Error fetching notifications:", results[4].reason); showError("Nepodařilo se načíst oznámení."); fetchedNotifications = { unreadCount: 0, notifications: [] }; }
+             setLoadingState('notifications', false); // Stop notification loading
+
             // Render sections now that data is fetched (or errored)
-            renderAvailableBadges(allBadges, userBadges, currentProfile); // Pass profile for progress calculation
+            renderAvailableBadges(allBadges, userBadges, currentProfile);
             setLoadingState('availableBadges', false);
             updateStatsCards(currentProfile, currentUserStats, userBadges, leaderboardData[currentLeaderboardFilter]);
             renderUserBadges(userBadges);
             renderRecentBadges(userBadges);
-            renderLeaderboard(leaderboardData[currentLeaderboardFilter]); // Render leaderboard
+            renderLeaderboard(leaderboardData[currentLeaderboardFilter]); // Render leaderboard - hides skeleton
+            renderNotifications(fetchedNotifications.unreadCount, fetchedNotifications.notifications);
 
         } catch (error) {
             console.error("❌ Unexpected error in loadAllAwardData:", error);
             showError(`Nastala neočekávaná chyba: ${error.message}`, true);
             setLoadingState('all', false); // Ensure all loaders are stopped
+            renderLeaderboard([]); // Show empty leaderboard on major error
         } finally {
             console.log("🏁 [LoadAwards] Finished data fetch and processing.");
         }
@@ -267,18 +234,17 @@
         if (!supabase) { console.error("Supabase client not initialized."); return []; }
         let orderColumn = 'points'; let ascendingOrder = false; let rankColumn = 'rank'; // Use rank column by default
         if (filter === 'badges') { orderColumn = 'badges_count'; }
-        else if (filter === 'streak') { orderColumn = 'streak_days'; rankColumn = null; } // Use profile.streak_days, rank calculated later
+        else if (filter === 'streak') { rankColumn = null; /* Use profile.streak_days, rank calculated later */ } // No dedicated rank for streak in leaderboard view
 
         try {
-             let query = supabase .from('leaderboard') .select(` rank, user_id, points, badges_count, profile:profiles!inner ( id, first_name, last_name, username, avatar_url, level, streak_days ) `) .eq('period', period);
-             // Only order by DB rank if filter is points or badges
-            if (filter === 'points' || filter === 'badges') {
-                 query = query.order(orderColumn, { ascending: ascendingOrder });
-             } else {
-                 // For streak, fetch profiles ordered by streak, rank later
-                 query = query.order('streak_days', { foreignTable: 'profiles', ascending: false });
-             }
-             query = query.limit(10);
+                let query = supabase .from('leaderboard') .select(` rank, user_id, points, badges_count, profile:profiles!inner ( id, first_name, last_name, username, avatar_url, level, streak_days ) `) .eq('period', period);
+                // Order by the correct column based on filter
+                if (filter === 'points') { query = query.order('points', { ascending: false }); }
+                else if (filter === 'badges') { query = query.order('badges_count', { ascending: false }); }
+                else if (filter === 'streak') { // For streak, order by profile streak
+                    query = query.order('streak_days', { foreignTable: 'profiles', ascending: false });
+                }
+                query = query.limit(10);
 
             const { data, error } = await query;
 
@@ -286,40 +252,19 @@
 
             let rankedData = data || [];
 
-             // Recalculate rank based on fetched order if needed (especially for streak)
-             rankedData = rankedData.map((entry, index) => ({
+                // Recalculate rank based on fetched order if needed (especially for streak)
+                rankedData = rankedData.map((entry, index) => ({
                 ...entry,
                 calculated_rank: index + 1, // Simple index-based rank after fetch
                 score_value: filter === 'points' ? entry.points : (filter === 'badges' ? entry.badges_count : entry.profile.streak_days) // Add score value for rendering
-             }));
+                }));
 
             console.log(`[Leaderboard] Fetched ${rankedData.length} entries for period '${period}', ordered by ${filter}.`);
             return rankedData;
         } catch (error) { console.error(`[Leaderboard] Exception during fetch (filter: ${filter}, period: ${period}):`, error); showToast("Nepodařilo se načíst žebříček.", "error"); return []; }
     }
-    // --- START: Notification Loading Functions ---
-    async function fetchNotifications(userId, limit = 5) {
-        if (!supabase || !userId) { console.error("[Notifications] Missing Supabase client or User ID."); return { unreadCount: 0, notifications: [] }; }
-        console.log(`[Notifications] Fetching unread notifications for user ${userId}`);
-        // No need to set loading state here, handled by loadAllAwardData
-        try {
-            const { data, error, count } = await supabase
-                .from('user_notifications')
-                .select('*', { count: 'exact' })
-                .eq('user_id', userId)
-                .eq('is_read', false)
-                .order('created_at', { ascending: false })
-                .limit(limit);
-            if (error) throw error;
-            console.log(`[Notifications] Fetched ${data?.length || 0} notifications. Total unread: ${count}`);
-            return { unreadCount: count ?? 0, notifications: data || [] };
-        } catch (error) {
-            console.error("[Notifications] Exception fetching notifications:", error);
-            showToast('Chyba', 'Nepodařilo se načíst oznámení.', 'error');
-            return { unreadCount: 0, notifications: [] };
-        }
-    }
-    // --- END: Notification Loading Functions ---
+    async function fetchNotifications(userId, limit = 5) { if (!supabase || !userId) { console.error("[Notifications] Missing Supabase client or User ID."); return { unreadCount: 0, notifications: [] }; } console.log(`[Notifications] Fetching unread notifications for user ${userId}`); try { const { data, error, count } = await supabase .from('user_notifications') .select('*', { count: 'exact' }) .eq('user_id', userId) .eq('is_read', false) .order('created_at', { ascending: false }) .limit(limit); if (error) throw error; console.log(`[Notifications] Fetched ${data?.length || 0} notifications. Total unread: ${count}`); return { unreadCount: count ?? 0, notifications: data || [] }; } catch (error) { console.error("[Notifications] Exception fetching notifications:", error); showToast('Chyba', 'Nepodařilo se načíst oznámení.', 'error'); return { unreadCount: 0, notifications: [] }; } }
+    // --- END: Data Loading Functions ---
 
     // --- START: UI Update Functions ---
     function updateSidebarProfile(profile) { console.log("[UI Update] Updating sidebar profile..."); if (!ui.sidebarName || !ui.sidebarAvatar) { console.warn("[UI Update] Sidebar elements not found."); return; } if (profile) { const firstName = profile.first_name ?? ''; const displayName = firstName || profile.username || currentUser?.email?.split('@')[0] || 'Pilot'; ui.sidebarName.textContent = sanitizeHTML(displayName); const initials = getInitials(profile); const avatarUrl = profile.avatar_url; ui.sidebarAvatar.innerHTML = avatarUrl ? `<img src="${sanitizeHTML(avatarUrl)}" alt="${sanitizeHTML(initials)}">` : sanitizeHTML(initials); console.log("[UI Update] Sidebar updated."); } else { console.warn("[UI Update] Missing profile data."); ui.sidebarName.textContent = "Pilot"; ui.sidebarAvatar.textContent = '?'; } }
@@ -337,20 +282,20 @@
         };
 
         const statElements = {
-             badgesCount: ui.badgesCount, badgesChange: ui.badgesChange,
-             pointsCount: ui.pointsCount, pointsChange: ui.pointsChange,
-             streakDays: ui.streakDays, streakChange: ui.streakChange,
-             rankValue: ui.rankValue, rankChange: ui.rankChange, totalUsers: ui.totalUsers
-         };
+                badgesCount: ui.badgesCount, badgesChange: ui.badgesChange,
+                pointsCount: ui.pointsCount, pointsChange: ui.pointsChange,
+                streakDays: ui.streakDays, streakChange: ui.streakChange,
+                rankValue: ui.rankValue, rankChange: ui.rankChange, totalUsers: ui.totalUsers
+            };
 
         // Handle potential null profile or stats data
         if (!profileData) {
             console.warn("[UI Update] Missing profile data for stats cards.");
             Object.values(statElements).forEach(el => { if(el && el.id !== 'total-users') el.textContent = '-'; }); // Reset all but total users
-             if(statElements.badgesChange) statElements.badgesChange.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ERR`;
-             if(statElements.pointsChange) statElements.pointsChange.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ERR`;
-             if(statElements.streakChange) statElements.streakChange.textContent = `MAX: - dní`;
-             if(statElements.rankChange) statElements.rankChange.innerHTML = `<i class="fas fa-users"></i> z ? pilotů`;
+                if(statElements.badgesChange) statElements.badgesChange.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ERR`;
+                if(statElements.pointsChange) statElements.pointsChange.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ERR`;
+                if(statElements.streakChange) statElements.streakChange.textContent = `MAX: - dní`;
+                if(statElements.rankChange) statElements.rankChange.innerHTML = `<i class="fas fa-users"></i> z ? pilotů`;
             return;
         }
 
@@ -371,38 +316,21 @@
         const total = leaderboard?.length ?? 0; // Use leaderboard length for total in TOP X
         if(statElements.rankValue) statElements.rankValue.textContent = getStatValue(rank);
         if(statElements.rankChange && statElements.totalUsers) {
-             statElements.rankChange.innerHTML = `<i class="fas fa-users"></i> z TOP ${total > 0 ? total : '?'} pilotů`; // Show TOP X based on fetched data
-             // statElements.totalUsers.textContent = '?'; // Total users count might need separate fetch if desired beyond leaderboard scope
+                statElements.rankChange.innerHTML = `<i class="fas fa-users"></i> z TOP ${total > 0 ? total : '?'} pilotů`; // Show TOP X based on fetched data
         }
 
         console.log("[UI Update] Stats cards updated.");
     }
     function renderUserBadges(earnedBadges) { if (!ui.badgeGrid || !ui.emptyBadges || !ui.userBadgesContainer) return; // setLoadingState('userBadges', false); // Loading stopped by loadAllAwardData
-         ui.badgeGrid.innerHTML = ''; if (!earnedBadges || earnedBadges.length === 0) { ui.emptyBadges.style.display = 'block'; ui.badgeGrid.style.display = 'none'; return; } ui.emptyBadges.style.display = 'none'; ui.badgeGrid.style.display = 'grid'; const fragment = document.createDocumentFragment(); earnedBadges.forEach((ub, index) => { const badge = ub.badge; if (!badge) { console.warn("Missing badge details for user badge:", ub); return; } const badgeType = badge.type?.toLowerCase() || 'default'; const visual = badgeVisuals[badgeType] || badgeVisuals.default; const badgeElement = document.createElement('div'); badgeElement.className = 'badge-card card'; badgeElement.setAttribute('data-animate', ''); badgeElement.style.setProperty('--animation-order', index); badgeElement.innerHTML = `<div class="badge-icon ${badgeType}" style="background: ${visual.gradient};"><i class="fas ${visual.icon}"></i></div><h3 class="badge-title">${sanitizeHTML(badge.title)}</h3><p class="badge-desc">${sanitizeHTML(badge.description || '')}</p><div class="badge-date"><i class="far fa-calendar-alt"></i> ${formatDate(ub.earned_at)}</div>`; fragment.appendChild(badgeElement); }); ui.badgeGrid.appendChild(fragment); console.log(`[Render] Rendered ${earnedBadges.length} earned badges.`); requestAnimationFrame(initScrollAnimations); }
+            ui.badgeGrid.innerHTML = ''; if (!earnedBadges || earnedBadges.length === 0) { ui.emptyBadges.style.display = 'block'; ui.badgeGrid.style.display = 'none'; return; } ui.emptyBadges.style.display = 'none'; ui.badgeGrid.style.display = 'grid'; const fragment = document.createDocumentFragment(); earnedBadges.forEach((ub, index) => { const badge = ub.badge; if (!badge) { console.warn("Missing badge details for user badge:", ub); return; } const badgeType = badge.type?.toLowerCase() || 'default'; const visual = badgeVisuals[badgeType] || badgeVisuals.default; const badgeElement = document.createElement('div'); badgeElement.className = 'badge-card card'; badgeElement.setAttribute('data-animate', ''); badgeElement.style.setProperty('--animation-order', index); badgeElement.innerHTML = `<div class="badge-icon ${badgeType}" style="background: ${visual.gradient};"><i class="fas ${visual.icon}"></i></div><h3 class="badge-title">${sanitizeHTML(badge.title)}</h3><p class="badge-desc">${sanitizeHTML(badge.description || '')}</p><div class="badge-date"><i class="far fa-calendar-alt"></i> ${formatDate(ub.earned_at)}</div>`; fragment.appendChild(badgeElement); }); ui.badgeGrid.appendChild(fragment); console.log(`[Render] Rendered ${earnedBadges.length} earned badges.`); requestAnimationFrame(initScrollAnimations); }
     function renderAvailableBadges(allBadgesDef, userEarnedBadges, userProfileData) { if (!ui.availableBadgesGrid || !ui.emptyAvailableBadges || !ui.availableBadgesContainer) return; // setLoadingState('availableBadges', false); // Loading stopped by loadAllAwardData
-         ui.availableBadgesGrid.innerHTML = ''; const earnedIds = new Set(userEarnedBadges.map(ub => ub.badge_id)); const available = allBadgesDef.filter(b => !earnedIds.has(b.id)); if (available.length === 0) { ui.emptyAvailableBadges.style.display = 'block'; ui.availableBadgesGrid.style.display = 'none'; return; } ui.emptyAvailableBadges.style.display = 'none'; ui.availableBadgesGrid.style.display = 'grid'; const fragment = document.createDocumentFragment(); available.forEach((badge, index) => { const badgeType = badge.type?.toLowerCase() || 'default'; const visual = badgeVisuals[badgeType] || badgeVisuals.default; let progress = 0; let progressText = '???'; if (badge.requirements && typeof badge.requirements === 'object' && userProfileData) { const req = badge.requirements; let current = 0; let target = parseInt(req.target, 10) || 1; try { switch (req.type) { case 'points_earned': current = userProfileData.points || 0; progressText = `${current}/${target} KR`; break; case 'streak_days': current = userProfileData.streak_days || 0; progressText = `${current}/${target} dní`; break; case 'exercises_completed': current = userProfileData.completed_exercises || 0; progressText = `${current}/${target} cv.`; break; case 'level_reached': current = userProfileData.level || 1; progressText = `${current}/${target} úr.`; break; default: console.warn(`Unknown badge requirement type: ${req.type}`); progressText = '?/?'; } if (target > 0) { progress = Math.min(100, Math.max(0, Math.round((current / target) * 100))); } } catch(e) { console.error("Error calculating badge progress:", e, "Badge:", badge, "Profile:", userProfileData); progressText = 'Chyba'; } } else { progressText = 'Nespec.'; } const badgeElement = document.createElement('div'); badgeElement.className = 'achievement-card card'; badgeElement.setAttribute('data-animate', ''); badgeElement.style.setProperty('--animation-order', index); badgeElement.innerHTML = `<div class="achievement-icon ${badgeType}" style="background: ${visual.gradient};"><i class="fas ${visual.icon}"></i></div><div class="achievement-content"><h3 class="achievement-title">${sanitizeHTML(badge.title)}</h3><p class="achievement-desc">${sanitizeHTML(badge.description || '')}</p><div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: ${progress}%; background: ${visual.gradient};"></div></div><div class="progress-stats">${progress}% (${progressText})</div></div></div>`; fragment.appendChild(badgeElement); }); ui.availableBadgesGrid.appendChild(fragment); console.log(`[Render] Rendered ${available.length} available badges.`); requestAnimationFrame(initScrollAnimations); }
-    function renderLeaderboardSkeleton() { // Function to show skeleton
-         if (!ui.leaderboardBody || !ui.leaderboardSkeleton) return;
-         console.log("[Leaderboard] Rendering Skeleton");
-         ui.leaderboardSkeleton.style.display = 'block';
-         ui.leaderboardBody.innerHTML = ''; // Clear any old data
-         if(ui.leaderboardTableContainer) ui.leaderboardTableContainer.style.visibility = 'hidden';
-         if(ui.leaderboardHeaderElement) ui.leaderboardHeaderElement.style.visibility = 'hidden';
-         if(ui.leaderboardEmpty) ui.leaderboardEmpty.style.display = 'none';
-         // setLoadingState('leaderboard', true) will handle container class
-     }
+            ui.availableBadgesGrid.innerHTML = ''; const earnedIds = new Set(userEarnedBadges.map(ub => ub.badge_id)); const available = allBadgesDef.filter(b => !earnedIds.has(b.id)); if (available.length === 0) { ui.emptyAvailableBadges.style.display = 'block'; ui.availableBadgesGrid.style.display = 'none'; return; } ui.emptyAvailableBadges.style.display = 'none'; ui.availableBadgesGrid.style.display = 'grid'; const fragment = document.createDocumentFragment(); available.forEach((badge, index) => { const badgeType = badge.type?.toLowerCase() || 'default'; const visual = badgeVisuals[badgeType] || badgeVisuals.default; let progress = 0; let progressText = '???'; if (badge.requirements && typeof badge.requirements === 'object' && userProfileData) { const req = badge.requirements; let current = 0; let target = parseInt(req.target, 10) || 1; try { switch (req.type) { case 'points_earned': current = userProfileData.points || 0; progressText = `${current}/${target} KR`; break; case 'streak_days': current = userProfileData.streak_days || 0; progressText = `${current}/${target} dní`; break; case 'exercises_completed': current = userProfileData.completed_exercises || 0; progressText = `${current}/${target} cv.`; break; case 'level_reached': current = userProfileData.level || 1; progressText = `${current}/${target} úr.`; break; default: console.warn(`Unknown badge requirement type: ${req.type}`); progressText = '?/?'; } if (target > 0) { progress = Math.min(100, Math.max(0, Math.round((current / target) * 100))); } } catch(e) { console.error("Error calculating badge progress:", e, "Badge:", badge, "Profile:", userProfileData); progressText = 'Chyba'; } } else { progressText = 'Nespec.'; } const badgeElement = document.createElement('div'); badgeElement.className = 'achievement-card card'; badgeElement.setAttribute('data-animate', ''); badgeElement.style.setProperty('--animation-order', index); badgeElement.innerHTML = `<div class="achievement-icon ${badgeType}" style="background: ${visual.gradient};"><i class="fas ${visual.icon}"></i></div><div class="achievement-content"><h3 class="achievement-title">${sanitizeHTML(badge.title)}</h3><p class="achievement-desc">${sanitizeHTML(badge.description || '')}</p><div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: ${progress}%; background: ${visual.gradient};"></div></div><div class="progress-stats">${progress}% (${progressText})</div></div></div>`; fragment.appendChild(badgeElement); }); ui.availableBadgesGrid.appendChild(fragment); console.log(`[Render] Rendered ${available.length} available badges.`); requestAnimationFrame(initScrollAnimations); }
+    function renderLeaderboardSkeleton() { if (!ui.leaderboardBody || !ui.leaderboardSkeleton) return; console.log("[Leaderboard] Rendering Skeleton"); ui.leaderboardSkeleton.style.display = 'block'; ui.leaderboardBody.innerHTML = ''; if(ui.leaderboardTableContainer) ui.leaderboardTableContainer.style.visibility = 'hidden'; if(ui.leaderboardHeaderElement) ui.leaderboardHeaderElement.style.visibility = 'hidden'; if(ui.leaderboardEmpty) ui.leaderboardEmpty.style.display = 'none'; }
     function renderLeaderboard(data) {
-        if (!ui.leaderboardBody || !ui.leaderboardEmpty || !ui.scoreHeader || !ui.leaderboardContainer || !ui.leaderboardSkeleton || !ui.leaderboardTableContainer || !ui.leaderboardHeaderElement) {
-            console.error("Leaderboard UI elements not found.");
-            return;
-        }
-        // setLoadingState('leaderboard', false); // Handled by loadAllAwardData
-
-        // Hide skeleton, make content visible
+        if (!ui.leaderboardBody || !ui.leaderboardEmpty || !ui.scoreHeader || !ui.leaderboardContainer || !ui.leaderboardSkeleton || !ui.leaderboardTableContainer || !ui.leaderboardHeaderElement) { console.error("Leaderboard UI elements not found."); return; }
         ui.leaderboardSkeleton.style.display = 'none';
         ui.leaderboardTableContainer.style.visibility = 'visible';
         ui.leaderboardHeaderElement.style.visibility = 'visible';
-
         ui.leaderboardBody.innerHTML = ''; // Clear skeleton or old rows
         const filterMap = { points: 'Kredity', badges: 'Odznaky', streak: 'Série' };
         ui.scoreHeader.textContent = filterMap[currentLeaderboardFilter] || 'Skóre';
@@ -449,8 +377,7 @@
         console.log(`[Render] Rendered ${data.length} leaderboard entries.`);
     }
     function renderRecentBadges(earnedBadges) { if (!ui.recentAchievementsList || !ui.recentAchievementsSection) return; // setLoadingState('recentBadges', false); // Loading stopped by loadAllAwardData
-         ui.recentAchievementsList.innerHTML = ''; const recent = earnedBadges.slice(0, 5); if (recent.length === 0) { ui.recentAchievementsSection.style.display = 'none'; return; } ui.recentAchievementsSection.style.display = 'block'; ui.recentAchievementsSection.classList.remove('loading'); const fragment = document.createDocumentFragment(); recent.forEach((ub, index) => { const badge = ub.badge; if (!badge) return; const badgeType = badge.type?.toLowerCase() || 'default'; const visual = badgeVisuals[badgeType] || badgeVisuals.default; const badgeElement = document.createElement('div'); badgeElement.className = `achievement-item`; badgeElement.innerHTML = `<div class="achievement-item-icon ${badgeType}" style="background: ${visual.gradient};"><i class="fas ${visual.icon}"></i></div><div class="achievement-item-content"><h3 class="achievement-item-title">${sanitizeHTML(badge.title)}</h3><p class="achievement-item-desc">${sanitizeHTML(badge.description || '')}</p><div class="achievement-item-time"><i class="far fa-calendar-alt"></i> ${formatDate(ub.earned_at)}</div></div>`; fragment.appendChild(badgeElement); }); ui.recentAchievementsList.appendChild(fragment); console.log(`[Render] Rendered ${recent.length} recent badges.`); requestAnimationFrame(initScrollAnimations); }
-    // --- START: Notification UI Functions ---
+            ui.recentAchievementsList.innerHTML = ''; const recent = earnedBadges.slice(0, 5); if (recent.length === 0) { ui.recentAchievementsSection.style.display = 'none'; return; } ui.recentAchievementsSection.style.display = 'block'; ui.recentAchievementsSection.classList.remove('loading'); const fragment = document.createDocumentFragment(); recent.forEach((ub, index) => { const badge = ub.badge; if (!badge) return; const badgeType = badge.type?.toLowerCase() || 'default'; const visual = badgeVisuals[badgeType] || badgeVisuals.default; const badgeElement = document.createElement('div'); badgeElement.className = `achievement-item`; badgeElement.innerHTML = `<div class="achievement-item-icon ${badgeType}" style="background: ${visual.gradient};"><i class="fas ${visual.icon}"></i></div><div class="achievement-item-content"><h3 class="achievement-item-title">${sanitizeHTML(badge.title)}</h3><p class="achievement-item-desc">${sanitizeHTML(badge.description || '')}</p><div class="achievement-item-time"><i class="far fa-calendar-alt"></i> ${formatDate(ub.earned_at)}</div></div>`; fragment.appendChild(badgeElement); }); ui.recentAchievementsList.appendChild(fragment); console.log(`[Render] Rendered ${recent.length} recent badges.`); requestAnimationFrame(initScrollAnimations); }
     function renderNotifications(count, notifications) {
         console.log("[Render Notifications UI] Start, Count:", count, "Notifications:", notifications);
         if (!ui.notificationCount || !ui.notificationsList || !ui.noNotificationsMsg || !ui.markAllReadBtn) {
@@ -486,110 +413,64 @@
         }
         console.log("[Render Notifications UI] Finished rendering.");
     }
-        function renderNotificationSkeletons(count = 2) {
-        if (!ui.notificationsList || !ui.noNotificationsMsg) return;
-        let skeletonHTML = '';
-        for (let i = 0; i < count; i++) {
-            skeletonHTML += `<div class="notification-item skeleton"><div class="notification-icon skeleton" style="background-color: var(--skeleton-bg);"></div><div class="notification-content"><div class="skeleton" style="height: 16px; width: 70%; margin-bottom: 6px;"></div><div class="skeleton" style="height: 12px; width: 90%;"></div><div class="skeleton" style="height: 10px; width: 40%; margin-top: 6px;"></div></div></div>`;
-        }
-        ui.notificationsList.innerHTML = skeletonHTML;
-        ui.noNotificationsMsg.style.display = 'none';
-        ui.notificationsList.style.display = 'block';
-    }
-    // --- END: Notification UI Functions ---
-
+    function renderNotificationSkeletons(count = 2) { if (!ui.notificationsList || !ui.noNotificationsMsg) return; let skeletonHTML = ''; for (let i = 0; i < count; i++) { skeletonHTML += `<div class="notification-item skeleton"><div class="notification-icon skeleton" style="background-color: var(--skeleton-bg);"></div><div class="notification-content"><div class="skeleton" style="height: 16px; width: 70%; margin-bottom: 6px;"></div><div class="skeleton" style="height: 12px; width: 90%;"></div><div class="skeleton" style="height: 10px; width: 40%; margin-top: 6px;"></div></div></div>`; } ui.notificationsList.innerHTML = skeletonHTML; ui.noNotificationsMsg.style.display = 'none'; ui.notificationsList.style.display = 'block'; }
+    async function markNotificationRead(notificationId) { console.log("[FUNC] markNotificationRead: Marking ID:", notificationId); if (!currentUser || !notificationId) return false; try { const { error } = await supabase.from('user_notifications').update({ is_read: true }).eq('user_id', currentUser.id).eq('id', notificationId); if (error) throw error; console.log("[FUNC] markNotificationRead: Success for ID:", notificationId); return true; } catch (error) { console.error("[FUNC] markNotificationRead: Error:", error); showToast('Chyba', 'Nepodařilo se označit oznámení jako přečtené.', 'error'); return false; } }
     // --- END: UI Update Functions ---
 
     // --- START: Event Listeners & Handlers ---
-    function setupUIEventListeners() {
-        console.log("[SETUP] setupUIEventListeners: Start");
-        if (ui.mainMobileMenuToggle) ui.mainMobileMenuToggle.addEventListener('click', openMenu);
-        if (ui.sidebarCloseToggle) ui.sidebarCloseToggle.addEventListener('click', closeMenu);
-        if (ui.sidebarOverlay) ui.sidebarOverlay.addEventListener('click', closeMenu);
-        document.querySelectorAll('.sidebar-link').forEach(link => { link.addEventListener('click', () => { if (window.innerWidth <= 992) closeMenu(); }); });
-        window.addEventListener('online', updateOnlineStatus); window.addEventListener('offline', updateOnlineStatus);
-        updateOnlineStatus(); // Initial check
-
-        if (ui.refreshDataBtn) { ui.refreshDataBtn.addEventListener('click', handleGlobalRetry); }
-        ui.filterButtons?.forEach(button => { button.addEventListener('click', handleFilterChange); });
-
-        // --- START: Notification Event Listeners ---
-        if (ui.notificationBell) {
-            ui.notificationBell.addEventListener('click', (event) => {
-                event.stopPropagation();
-                ui.notificationsDropdown?.classList.toggle('active');
-            });
-        }
-        if (ui.markAllReadBtn) {
-            ui.markAllReadBtn.addEventListener('click', markAllNotificationsRead);
-        }
-        if (ui.notificationsList) {
-            ui.notificationsList.addEventListener('click', async (event) => {
-                const item = event.target.closest('.notification-item');
-                if (item) {
-                    const notificationId = item.dataset.id;
-                    const link = item.dataset.link;
-                    const isRead = item.classList.contains('is-read');
-                    if (!isRead && notificationId) {
-                        const success = await markNotificationRead(notificationId); // Call the logic function
-                        if (success) {
-                            // Update UI immediately
-                            item.classList.add('is-read');
-                            const dot = item.querySelector('.unread-dot');
-                            if(dot) dot.remove(); // Remove dot visually
-                            // Update badge count
-                            const currentCountText = ui.notificationCount.textContent.replace('+', '');
-                            const currentCount = parseInt(currentCountText) || 0;
-                            const newCount = Math.max(0, currentCount - 1);
-                            ui.notificationCount.textContent = newCount > 9 ? '9+' : (newCount > 0 ? String(newCount) : '');
-                            ui.notificationCount.classList.toggle('visible', newCount > 0);
-                            if (ui.markAllReadBtn) ui.markAllReadBtn.disabled = newCount === 0;
-                        }
-                    }
-                    // Navigate if link exists
-                    if (link) {
-                        window.location.href = link;
-                    }
-                     // Optional: Close dropdown after interaction?
-                     // ui.notificationsDropdown?.classList.remove('active');
-                }
-            });
-        }
-            // Close dropdown on outside click
-            document.addEventListener('click', (event) => {
-            if (ui.notificationsDropdown?.classList.contains('active') &&
-                !ui.notificationsDropdown.contains(event.target) &&
-                !ui.notificationBell?.contains(event.target)) {
-                ui.notificationsDropdown.classList.remove('active');
-            }
-        });
-        // --- END: Notification Event Listeners ---
-
-        console.log("[SETUP] setupUIEventListeners: Listeners set.");
-    }
-    async function handleFilterChange(event) {
-        const newFilter = event.target.dataset.filter;
-        if (!newFilter || newFilter === currentLeaderboardFilter || isLoading.leaderboard) return;
-        ui.filterButtons.forEach(btn => btn.classList.remove('active'));
-        event.target.classList.add('active');
-        currentLeaderboardFilter = newFilter;
-        console.log(`[Filter] Leaderboard filter changed to: ${currentLeaderboardFilter}. Reloading...`);
-        setLoadingState('leaderboard', true);
-        renderLeaderboardSkeleton(); // Show skeleton immediately
-        try {
-            const data = await fetchLeaderboardData(currentLeaderboardFilter, currentLeaderboardPeriod);
-            leaderboardData[currentLeaderboardFilter] = data || [];
-            renderLeaderboard(leaderboardData[currentLeaderboardFilter]); // Render new data
-            updateStatsCards(currentProfile, currentUserStats, userBadges, leaderboardData[currentLeaderboardFilter]); // Update stats card rank if necessary
-        } catch (error) {
-            showError("Nepodařilo se načíst data žebříčku pro tento filtr.");
-            renderLeaderboard([]); // Render empty state on error
-        } finally {
-            setLoadingState('leaderboard', false); // Stop loading state (skeleton hidden by render)
-        }
-    }
+    function setupUIEventListeners() { console.log("[SETUP] setupUIEventListeners: Start"); if (ui.mainMobileMenuToggle) ui.mainMobileMenuToggle.addEventListener('click', openMenu); if (ui.sidebarCloseToggle) ui.sidebarCloseToggle.addEventListener('click', closeMenu); if (ui.sidebarOverlay) ui.sidebarOverlay.addEventListener('click', closeMenu); document.querySelectorAll('.sidebar-link').forEach(link => { link.addEventListener('click', () => { if (window.innerWidth <= 992) closeMenu(); }); }); window.addEventListener('online', updateOnlineStatus); window.addEventListener('offline', updateOnlineStatus); updateOnlineStatus(); if (ui.refreshDataBtn) { ui.refreshDataBtn.addEventListener('click', handleGlobalRetry); } ui.filterButtons?.forEach(button => { button.addEventListener('click', handleFilterChange); }); if (ui.notificationBell) ui.notificationBell.addEventListener('click', (event) => { event.stopPropagation(); ui.notificationsDropdown?.classList.toggle('active'); });
+        // *** FIX: Use the defined markAllNotificationsRead function ***
+        if (ui.markAllReadBtn) ui.markAllReadBtn.addEventListener('click', markAllNotificationsRead);
+        if (ui.notificationsList) { ui.notificationsList.addEventListener('click', async (event) => { const item = event.target.closest('.notification-item'); if (item) { const notificationId = item.dataset.id; const link = item.dataset.link; const isRead = item.classList.contains('is-read'); if (!isRead && notificationId) { const success = await markNotificationRead(notificationId); if (success) { item.classList.add('is-read'); item.querySelector('.unread-dot')?.remove(); const currentCountText = ui.notificationCount.textContent.replace('+', ''); const currentCount = parseInt(currentCountText) || 0; const newCount = Math.max(0, currentCount - 1); ui.notificationCount.textContent = newCount > 9 ? '9+' : (newCount > 0 ? String(newCount) : ''); ui.notificationCount.classList.toggle('visible', newCount > 0); if (ui.markAllReadBtn) ui.markAllReadBtn.disabled = newCount === 0; } } if (link) window.location.href = link; } }); } document.addEventListener('click', (event) => { if (ui.notificationsDropdown?.classList.contains('active') && !ui.notificationsDropdown.contains(event.target) && !ui.notificationBell?.contains(event.target)) { ui.notificationsDropdown.classList.remove('active'); } }); console.log("[SETUP] setupUIEventListeners: Listeners set."); }
+    async function handleFilterChange(event) { const newFilter = event.target.dataset.filter; if (!newFilter || newFilter === currentLeaderboardFilter || isLoading.leaderboard) return; ui.filterButtons.forEach(btn => btn.classList.remove('active')); event.target.classList.add('active'); currentLeaderboardFilter = newFilter; console.log(`[Filter] Leaderboard filter changed to: ${currentLeaderboardFilter}. Reloading...`); // setLoadingState('leaderboard', true); // Set loading state handled by render function now
+         renderLeaderboardSkeleton(); // Show skeleton immediately
+         try { const data = await fetchLeaderboardData(currentLeaderboardFilter, currentLeaderboardPeriod); leaderboardData[currentLeaderboardFilter] = data || []; renderLeaderboard(leaderboardData[currentLeaderboardFilter]); // Render new data - hides skeleton
+             updateStatsCards(currentProfile, currentUserStats, userBadges, leaderboardData[currentLeaderboardFilter]); // Update stats card rank if necessary
+         } catch (error) { showError("Nepodařilo se načíst data žebříčku pro tento filtr."); renderLeaderboard([]); // Render empty state on error
+             // Ensure skeleton is hidden on error too
+             if(ui.leaderboardSkeleton) ui.leaderboardSkeleton.style.display = 'none';
+             if(ui.leaderboardTableContainer) ui.leaderboardTableContainer.style.visibility = 'visible'; // Ensure container is visible for empty message
+         } /* Loading state stopped by renderLeaderboard */ }
     async function handleGlobalRetry() { console.log("🔄 Global retry triggered..."); if (!currentUser || !currentProfile) { showToast("Chyba", "Pro obnovení je nutné být přihlášen a mít načtený profil.", "error"); if (!currentProfile) await initializeApp(); return; } if (Object.values(isLoading).some(state => state)) { showToast("PROBÍHÁ SYNCHRONIZACE", "Data se již načítají.", "info"); return; } hideError(); if (ui.refreshDataBtn) { const icon = ui.refreshDataBtn.querySelector('i'); const text = ui.refreshDataBtn.querySelector('.refresh-text'); if (icon) icon.classList.add('fa-spin'); if (text) text.textContent = 'RELOADING...'; ui.refreshDataBtn.disabled = true; } await loadAllAwardData(); if (ui.refreshDataBtn) { const icon = ui.refreshDataBtn.querySelector('i'); const text = ui.refreshDataBtn.querySelector('.refresh-text'); if (icon) icon.classList.remove('fa-spin'); if (text) text.textContent = 'RELOAD'; ui.refreshDataBtn.disabled = false; } }
     // --- END: Event Listeners & Handlers ---
+
+    // --- START: Mark All Notifications Read Function (Added) ---
+    async function markAllNotificationsRead() {
+        console.log("[FUNC] markAllNotificationsRead: Start for user:", currentUser?.id);
+        if (!currentUser || !supabase || !ui.markAllReadBtn) return;
+
+        // Prevent multiple clicks while processing
+        if (isLoading.notifications) return;
+        setLoadingState('notifications', true);
+        ui.markAllReadBtn.disabled = true; // Disable button immediately
+
+        try {
+            const { error } = await supabase
+                .from('user_notifications')
+                .update({ is_read: true })
+                .eq('user_id', currentUser.id)
+                .eq('is_read', false);
+
+            if (error) throw error;
+
+            console.log("[FUNC] markAllNotificationsRead: DB update successful");
+            // Refresh the notification list in the UI
+            const { unreadCount, notifications } = await fetchNotifications(currentUser.id, 5);
+            renderNotifications(unreadCount, notifications); // Re-render the list
+            showToast('Oznámení Vymazána', 'Všechna oznámení byla označena jako přečtená.', 'success');
+
+        } catch (error) {
+            console.error("[FUNC] markAllNotificationsRead: Error:", error);
+            showToast('Chyba', 'Nepodařilo se označit všechna oznámení.', 'error');
+            // Re-enable button only if there was an error and still might be unread items
+            const currentCount = parseInt(ui.notificationCount?.textContent?.replace('+', '') || '0');
+            ui.markAllReadBtn.disabled = currentCount === 0;
+        } finally {
+            setLoadingState('notifications', false); // Reset loading state regardless of success/failure
+        }
+    }
+    // --- END: Mark All Notifications Read Function ---
+
 
     // --- Initialize the Application ---
     initializeApp();
