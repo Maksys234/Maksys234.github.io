@@ -9,43 +9,35 @@
     let currentUserStats = null; // Store user_stats data
     let userBadges = [];
     let allBadges = [];
-    let leaderboardData = { points: [], badges: [], streak: [] };
-    let currentLeaderboardFilter = 'points'; // Sort filter
-    let currentLeaderboardPeriod = 'overall'; // Period filter (matches DB function)
-    let isLoading = { stats: false, userBadges: false, availableBadges: false, leaderboard: false, recentBadges: false, notifications: false }; // Added notifications
-    const NOTIFICATION_FETCH_LIMIT = 5; // Limit notifications in dropdown
+    let leaderboardData = []; // <<< CHANGED: Now an array, not object
+    // let currentLeaderboardFilter = 'points'; // <<< REMOVED
+    let currentLeaderboardPeriod = 'overall'; // Keep period filter if needed for DB function
+    let isLoading = { stats: false, userBadges: false, availableBadges: false, leaderboard: false, recentBadges: false, notifications: false };
+    const NOTIFICATION_FETCH_LIMIT = 5;
 
-    // DOM Cache (Updated with notification elements)
+    // DOM Cache (Verified)
     const ui = {
-        // Loaders & Overlays
         initialLoader: document.getElementById('initial-loader'),
         sidebarOverlay: document.getElementById('sidebar-overlay'),
-        // Main Layout & Sidebar
         mainContent: document.getElementById('main-content'),
         sidebar: document.getElementById('sidebar'),
         mainMobileMenuToggle: document.getElementById('main-mobile-menu-toggle'),
         sidebarCloseToggle: document.getElementById('sidebar-close-toggle'),
-        // Sidebar Profile
         sidebarAvatar: document.getElementById('sidebar-avatar'),
         sidebarName: document.getElementById('sidebar-name'),
         currentYearSidebar: document.getElementById('currentYearSidebar'),
-        // Header
         pageTitle: document.getElementById('page-title'),
         refreshDataBtn: document.getElementById('refresh-data-btn'),
-        // Notifications (Added/Verified)
         notificationBell: document.getElementById('notification-bell'),
         notificationCount: document.getElementById('notification-count'),
         notificationsDropdown: document.getElementById('notifications-dropdown'),
         notificationsList: document.getElementById('notifications-list'),
         noNotificationsMsg: document.getElementById('no-notifications-msg'),
         markAllReadBtn: document.getElementById('mark-all-read'),
-        // Global Error/Status
         globalError: document.getElementById('global-error'),
         offlineBanner: document.getElementById('offline-banner'),
         toastContainer: document.getElementById('toast-container'),
-        // Achievements Content Area
         achievementsContent: document.getElementById('achievements-content'),
-        // Stats Cards
         achievementStatsContainer: document.getElementById('achievement-stats-container'),
         badgesCount: document.getElementById('badges-count'),
         badgesChange: document.getElementById('badges-change'),
@@ -56,39 +48,32 @@
         rankValue: document.getElementById('rank-value'),
         rankChange: document.getElementById('rank-change'),
         totalUsers: document.getElementById('total-users'),
-        // Earned Badges
         userBadgesContainer: document.getElementById('user-badges-container'),
         badgeGrid: document.getElementById('badge-grid'),
         emptyBadges: document.getElementById('empty-badges'),
-        // Available Badges
         availableBadgesContainer: document.getElementById('available-badges-container'),
         availableBadgesGrid: document.getElementById('available-badges-grid'),
         emptyAvailableBadges: document.getElementById('empty-available-badges'),
-        // Leaderboard (Verified)
-        leaderboardSection: document.getElementById('leaderboard-section'), // Updated: Section container
-        leaderboardContainer: document.getElementById('leaderboard-container'), // Inner container (for loading class)
-        leaderboardSkeleton: document.querySelector('#leaderboard-container .leaderboard-skeleton'), // Skeleton container
-        leaderboardHeaderElement: document.querySelector('.leaderboard-header'), // Leaderboard header element
-        leaderboardTableContainer: document.querySelector('.leaderboard-table-container'), // Table container
+        leaderboardSection: document.getElementById('leaderboard-section'),
+        leaderboardContainer: document.getElementById('leaderboard-container'),
+        leaderboardSkeleton: document.querySelector('#leaderboard-container .leaderboard-skeleton'),
+        leaderboardHeaderElement: document.querySelector('.leaderboard-header'),
+        leaderboardTableContainer: document.querySelector('.leaderboard-table-container'),
         leaderboardBody: document.getElementById('leaderboard-body'),
         leaderboardEmpty: document.getElementById('leaderboard-empty'),
-        scoreHeader: document.getElementById('score-header'),
-        filterButtons: document.querySelectorAll('.leaderboard-filter .filter-btn'),
-        // Recent Badges
+        // scoreHeader: document.getElementById('score-header'), // <<< REMOVED (No longer dynamic)
+        // filterButtons: document.querySelectorAll('.leaderboard-filter .filter-btn'), // <<< REMOVED
         recentAchievementsSection: document.getElementById('recent-achievements-section'),
         recentAchievementsList: document.getElementById('recent-achievements-list'),
-        // Footer Year
         currentYearFooter: document.getElementById('currentYearFooter'),
-        // Mouse Follower
         mouseFollower: document.getElementById('mouse-follower')
     };
 
-    // Badge Visuals
+    // Badge Visuals & Activity Visuals (No changes)
     const badgeVisuals = { math: { icon: 'fa-square-root-alt', gradient: 'var(--gradient-math)' }, language: { icon: 'fa-language', gradient: 'var(--gradient-lang)' }, streak: { icon: 'fa-fire', gradient: 'var(--gradient-streak)' }, special: { icon: 'fa-star', gradient: 'var(--gradient-special)' }, points: { icon: 'fa-coins', gradient: 'var(--gradient-warning)' }, exercises: { icon: 'fa-pencil-alt', gradient: 'var(--gradient-success)' }, test: { icon: 'fa-vial', gradient: 'var(--gradient-info)' }, default: { icon: 'fa-medal', gradient: 'var(--gradient-locked)' } };
-    // Activity Visuals (for notifications)
     const activityVisuals = { test: { icon: 'fa-vial', class: 'test' }, exercise: { icon: 'fa-pencil-alt', class: 'exercise' }, badge: { icon: 'fa-medal', class: 'badge' }, diagnostic: { icon: 'fa-clipboard-check', class: 'diagnostic' }, lesson: { icon: 'fa-book-open', class: 'lesson' }, plan_generated: { icon: 'fa-calendar-alt', class: 'plan_generated' }, level_up: { icon: 'fa-level-up-alt', class: 'level_up' }, other: { icon: 'fa-info-circle', class: 'other' }, default: { icon: 'fa-check-circle', class: 'default' } };
 
-    // --- START: Helper Functions ---
+    // --- START: Helper Functions (No changes) ---
     function showToast(title, message, type = 'info', duration = 4500) { if (!ui.toastContainer) return; try { const toastId = `toast-${Date.now()}`; const toastElement = document.createElement('div'); toastElement.className = `toast ${type}`; toastElement.id = toastId; toastElement.setAttribute('role', 'alert'); toastElement.setAttribute('aria-live', 'assertive'); toastElement.innerHTML = `<i class="toast-icon"></i><div class="toast-content">${title ? `<div class="toast-title">${sanitizeHTML(title)}</div>` : ''}<div class="toast-message">${sanitizeHTML(message)}</div></div><button type="button" class="toast-close" aria-label="Zavřít">&times;</button>`; const icon = toastElement.querySelector('.toast-icon'); icon.className = `toast-icon fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle'}`; toastElement.querySelector('.toast-close').addEventListener('click', () => { toastElement.classList.remove('show'); setTimeout(() => toastElement.remove(), 400); }); ui.toastContainer.appendChild(toastElement); requestAnimationFrame(() => { toastElement.classList.add('show'); }); setTimeout(() => { if (toastElement.parentElement) { toastElement.classList.remove('show'); setTimeout(() => toastElement.remove(), 400); } }, duration); } catch (e) { console.error("Chyba při zobrazování toastu:", e); } }
     function showError(message, isGlobal = false) { console.error("Došlo k chybě:", message); if (isGlobal && ui.globalError) { ui.globalError.innerHTML = `<div class="error-message"><i class="fas fa-exclamation-triangle"></i><div>${sanitizeHTML(message)}</div><button class="retry-button btn" id="global-retry-btn">Zkusit Znovu</button></div>`; ui.globalError.style.display = 'block'; const retryBtn = document.getElementById('global-retry-btn'); if (retryBtn) { retryBtn.addEventListener('click', handleGlobalRetry); } } else { showToast('CHYBA SYSTÉMU', message, 'error', 6000); } }
     function hideError() { if (ui.globalError) ui.globalError.style.display = 'none'; }
@@ -124,36 +109,33 @@
                     });
                 }
 
-                // Handle skeleton visibility specifically for leaderboard
                 if (secKey === 'leaderboard') {
-                        if (config.skeletonEl) config.skeletonEl.style.display = isLoadingFlag ? 'block' : 'none';
-                        if (config.contentEl) config.contentEl.style.visibility = isLoadingFlag ? 'hidden' : 'visible';
-                        if (config.emptyEl) config.emptyEl.style.display = 'none'; // Hide empty state during load
-                        if (ui.leaderboardHeaderElement) ui.leaderboardHeaderElement.style.visibility = isLoadingFlag ? 'hidden' : 'visible'; // Hide header during load
-                    } else {
-                        if (isLoadingFlag) {
-                            if (config.contentEl) config.contentEl.style.display = 'none'; // Hide content grid
-                            if (config.emptyEl) config.emptyEl.style.display = 'none'; // Hide empty state
-                        }
+                    if (config.skeletonEl) config.skeletonEl.style.display = isLoadingFlag ? 'block' : 'none';
+                    if (config.contentEl) config.contentEl.style.visibility = isLoadingFlag ? 'hidden' : 'visible';
+                    if (config.emptyEl) config.emptyEl.style.display = 'none';
+                    if (ui.leaderboardHeaderElement) ui.leaderboardHeaderElement.style.visibility = isLoadingFlag ? 'hidden' : 'visible';
+                } else {
+                    if (isLoadingFlag) {
+                        if (config.contentEl) config.contentEl.style.display = 'none';
+                        if (config.emptyEl) config.emptyEl.style.display = 'none';
                     }
+                }
 
-                // Special handling for notification list display
-                    if (secKey === 'notifications') {
-                        if (isLoadingFlag && config.container) {
-                            renderNotificationSkeletons(2); // Show skeletons
-                        }
-                        if (config.emptyEl) {
-                            config.emptyEl.style.display = isLoadingFlag ? 'none' : (config.container?.innerHTML.trim() === '' ? 'block' : 'none');
-                        }
+                if (secKey === 'notifications') {
+                    if (isLoadingFlag && config.container) {
+                        renderNotificationSkeletons(2);
                     }
+                    if (config.emptyEl) {
+                        config.emptyEl.style.display = isLoadingFlag ? 'none' : (config.container?.innerHTML.trim() === '' ? 'block' : 'none');
+                    }
+                }
 
             } else if (secKey === 'notifications' && ui.notificationBell) {
-                    // Handle notification bell opacity separately if container is list
-                    ui.notificationBell.style.opacity = isLoadingFlag ? 0.5 : 1;
-                    if (ui.markAllReadBtn) {
-                        const currentUnreadCount = parseInt(ui.notificationCount?.textContent?.replace('+', '') || '0');
-                        ui.markAllReadBtn.disabled = isLoadingFlag || currentUnreadCount === 0;
-                    }
+                ui.notificationBell.style.opacity = isLoadingFlag ? 0.5 : 1;
+                if (ui.markAllReadBtn) {
+                    const currentUnreadCount = parseInt(ui.notificationCount?.textContent?.replace('+', '') || '0');
+                    ui.markAllReadBtn.disabled = isLoadingFlag || currentUnreadCount === 0;
+                }
             } else {
                 console.warn(`setLoadingState: Container for section "${secKey}" not found.`);
             }
@@ -166,7 +148,7 @@
     // --- END: Helper Functions ---
 
     // --- START: Data Loading Functions ---
-    async function initializeApp() { console.log("🚀 [Init Oceneni - Kyber v4] Initializing Awards Page..."); if (!initializeSupabase()) return; setupUIEventListeners(); if (ui.initialLoader) { ui.initialLoader.classList.remove('hidden'); ui.initialLoader.style.display = 'flex'; } if (ui.mainContent) ui.mainContent.style.display = 'none'; try { console.log("[Init Oceneni - Kyber] Checking auth session..."); const { data: { session }, error: sessionError } = await supabase.auth.getSession(); if (sessionError) throw new Error(`Nepodařilo se ověřit přihlášení: ${sessionError.message}`); if (session?.user) { currentUser = session.user; console.log(`[Init Oceneni - Kyber] User authenticated (ID: ${currentUser.id}). Loading data...`); currentProfile = await fetchUserProfile(currentUser.id); if (!currentProfile) throw new Error("Nepodařilo se načíst profil uživatele."); updateSidebarProfile(currentProfile); if (ui.initialLoader) { ui.initialLoader.classList.add('hidden'); setTimeout(() => { if (ui.initialLoader) ui.initialLoader.style.display = 'none'; }, 500); } if (ui.mainContent) { ui.mainContent.style.display = 'block'; requestAnimationFrame(() => ui.mainContent.classList.add('loaded')); } await loadAllAwardData(); console.log("✅ [Init Oceneni - Kyber] Page fully loaded and initialized."); requestAnimationFrame(() => { initScrollAnimations(); initMouseFollower(); initHeaderScrollDetection(); updateCopyrightYear(); }); } else { console.log("[Init Oceneni - Kyber] User not logged in. Redirecting..."); window.location.href = '/auth/index.html'; } } catch (error) { console.error("❌ [Init Oceneni - Kyber] Critical initialization error:", error); if (ui.initialLoader && !ui.initialLoader.classList.contains('hidden')) { ui.initialLoader.innerHTML = `<p style="color: var(--accent-pink);">CHYBA SYSTÉMU (${error.message}). OBNOVTE STRÁNKU.</p>`; } else { showError(`Chyba při inicializaci: ${error.message}`, true); } if (ui.mainContent) ui.mainContent.style.display = 'none'; } }
+    async function initializeApp() { console.log("🚀 [Init Oceneni - Kyber v5] Initializing Awards Page..."); if (!initializeSupabase()) return; setupUIEventListeners(); if (ui.initialLoader) { ui.initialLoader.classList.remove('hidden'); ui.initialLoader.style.display = 'flex'; } if (ui.mainContent) ui.mainContent.style.display = 'none'; try { console.log("[Init Oceneni - Kyber] Checking auth session..."); const { data: { session }, error: sessionError } = await supabase.auth.getSession(); if (sessionError) throw new Error(`Nepodařilo se ověřit přihlášení: ${sessionError.message}`); if (session?.user) { currentUser = session.user; console.log(`[Init Oceneni - Kyber] User authenticated (ID: ${currentUser.id}). Loading data...`); currentProfile = await fetchUserProfile(currentUser.id); if (!currentProfile) throw new Error("Nepodařilo se načíst profil uživatele."); updateSidebarProfile(currentProfile); if (ui.initialLoader) { ui.initialLoader.classList.add('hidden'); setTimeout(() => { if (ui.initialLoader) ui.initialLoader.style.display = 'none'; }, 500); } if (ui.mainContent) { ui.mainContent.style.display = 'block'; requestAnimationFrame(() => ui.mainContent.classList.add('loaded')); } await loadAllAwardData(); console.log("✅ [Init Oceneni - Kyber] Page fully loaded and initialized."); requestAnimationFrame(() => { initScrollAnimations(); initMouseFollower(); initHeaderScrollDetection(); updateCopyrightYear(); }); } else { console.log("[Init Oceneni - Kyber] User not logged in. Redirecting..."); window.location.href = '/auth/index.html'; } } catch (error) { console.error("❌ [Init Oceneni - Kyber] Critical initialization error:", error); if (ui.initialLoader && !ui.initialLoader.classList.contains('hidden')) { ui.initialLoader.innerHTML = `<p style="color: var(--accent-pink);">CHYBA SYSTÉMU (${error.message}). OBNOVTE STRÁNKU.</p>`; } else { showError(`Chyba při inicializaci: ${error.message}`, true); } if (ui.mainContent) ui.mainContent.style.display = 'none'; } }
     function initializeSupabase() { try { if (typeof window.supabase === 'undefined' || typeof window.supabase.createClient !== 'function') { throw new Error("Knihovna Supabase nebyla správně načtena."); } supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY); if (!supabase) throw new Error("Vytvoření klienta Supabase selhalo."); console.log('[Supabase] Klient úspěšně inicializován.'); return true; } catch (error) { console.error('[Supabase] Inicializace selhala:', error); showError("Kritická chyba: Nepodařilo se připojit k databázi.", true); return false; } }
     async function fetchUserProfile(userId) { if (!supabase || !userId) return null; console.log(`[Profile] Fetching profile for user ID: ${userId}`); try { const { data: profile, error } = await supabase .from('profiles') .select('id, first_name, last_name, username, email, avatar_url, points, streak_days, badges_count, level, completed_exercises, created_at') .eq('id', userId) .single(); if (error && error.code !== 'PGRST116') throw error; if (!profile) { console.warn(`[Profile] Profile not found for user ${userId}.`); return null; } console.log("[Profile] Profile data fetched successfully."); return profile; } catch (error) { console.error('[Profile] Caught exception fetching profile:', error); showToast('Chyba', 'Nepodařilo se načíst data profilu.', 'error'); return null; } }
     async function fetchUserStats(userId) { if (!supabase || !userId) { console.error("[Stats Fetch] Missing Supabase client or User ID."); return null; } console.log(`[Stats Fetch] Fetching stats for user ID: ${userId}`); try { const { data: statsData, error } = await supabase .from('user_stats') .select('progress, progress_weekly, points_weekly, streak_longest, completed_tests') .eq('user_id', userId) .maybeSingle(); if (error) { console.warn("[Stats Fetch] Supabase error fetching user_stats:", error.message); return null; } console.log("[Stats Fetch] Stats fetched successfully:", statsData); return statsData || {}; } catch (error) { console.error("[Stats Fetch] Caught exception fetching user_stats:", error); showToast('Chyba', 'Nepodařilo se načíst statistiky uživatele.', 'error'); return null; } }
@@ -178,12 +160,13 @@
         renderLeaderboardSkeleton(); // Show leaderboard skeleton immediately
 
         try {
+            // <<< UPDATED: Fetch leaderboard with default 'points' filter >>>
             const results = await Promise.allSettled([
                 fetchAllBadgesDefinition(),
                 fetchUserEarnedBadges(currentUser.id),
-                fetchLeaderboardData(currentLeaderboardFilter, currentLeaderboardPeriod),
+                fetchLeaderboardData('points', currentLeaderboardPeriod), // Fetch default sort
                 fetchUserStats(currentUser.id),
-                fetchNotifications(currentUser.id, NOTIFICATION_FETCH_LIMIT) // Fetch notifications in parallel
+                fetchNotifications(currentUser.id, NOTIFICATION_FETCH_LIMIT)
             ]);
             console.log("[LoadAwards] Fetch results (settled):", results);
 
@@ -197,280 +180,180 @@
             setLoadingState('userBadges', false);
             setLoadingState('recentBadges', false);
 
-            if (results[2].status === 'fulfilled') { fetchedLeaderboard = results[2].value; leaderboardData[currentLeaderboardFilter] = fetchedLeaderboard || []; }
-            else { console.error("❌ Error fetching leaderboard:", results[2].reason); showError("Nepodařilo se načíst žebříček."); leaderboardData[currentLeaderboardFilter] = []; }
-             // Leaderboard loading state handled separately by render function now
+            // <<< UPDATED: Store leaderboard data directly in the array >>>
+            if (results[2].status === 'fulfilled') { fetchedLeaderboard = results[2].value; leaderboardData = fetchedLeaderboard || []; }
+             else { console.error("❌ Error fetching leaderboard:", results[2].reason); showError("Nepodařilo se načíst žebříček."); leaderboardData = []; }
+            setLoadingState('leaderboard', false); // Stop leaderboard loading (render will hide skeleton)
 
             if (results[3].status === 'fulfilled') { currentUserStats = results[3].value || {}; }
             else { console.error("❌ Error fetching user stats:", results[3].reason); showError("Nepodařilo se načíst statistiky."); currentUserStats = {}; }
-            setLoadingState('stats', false); // Stop stats loading
+            setLoadingState('stats', false);
 
             if (results[4].status === 'fulfilled') { fetchedNotifications = results[4].value || { unreadCount: 0, notifications: [] }; }
              else { console.error("❌ Error fetching notifications:", results[4].reason); showError("Nepodařilo se načíst oznámení."); fetchedNotifications = { unreadCount: 0, notifications: [] }; }
-             setLoadingState('notifications', false); // Stop notification loading
+             setLoadingState('notifications', false);
 
-            // Render sections now that data is fetched (or errored)
+            // <<< UPDATED: Pass leaderboardData directly >>>
             renderAvailableBadges(allBadges, userBadges, currentProfile);
             setLoadingState('availableBadges', false);
-            updateStatsCards(currentProfile, currentUserStats, userBadges, leaderboardData[currentLeaderboardFilter]);
+            updateStatsCards(currentProfile, currentUserStats, userBadges, leaderboardData);
             renderUserBadges(userBadges);
             renderRecentBadges(userBadges);
-            renderLeaderboard(leaderboardData[currentLeaderboardFilter]); // Render leaderboard - hides skeleton
+            renderLeaderboard(leaderboardData);
             renderNotifications(fetchedNotifications.unreadCount, fetchedNotifications.notifications);
 
         } catch (error) {
             console.error("❌ Unexpected error in loadAllAwardData:", error);
             showError(`Nastala neočekávaná chyba: ${error.message}`, true);
-            setLoadingState('all', false); // Ensure all loaders are stopped
-            renderLeaderboard([]); // Show empty leaderboard on major error
+            setLoadingState('all', false);
+            renderLeaderboard([]);
         } finally {
             console.log("🏁 [LoadAwards] Finished data fetch and processing.");
         }
     }
     async function fetchAllBadgesDefinition() { console.log("[Badges] Fetching all badge definitions..."); if (!supabase) return []; try { const { data, error } = await supabase.from('badges').select('*').order('id'); if (error) throw error; console.log(`[Badges] Fetched ${data?.length || 0} badge definitions.`); return data || []; } catch (error) { console.error("[Badges] Error fetching definitions:", error); showError("Nepodařilo se načíst definice odznaků."); return []; } }
     async function fetchUserEarnedBadges(userId) { console.log(`[UserBadges] Fetching earned badges for user ${userId}...`); if (!supabase || !userId) return []; try { const { data, error } = await supabase .from('user_badges') .select(`badge_id, earned_at, badge:badges!inner (id, title, description, type, icon, requirements, points)`) .eq('user_id', userId) .order('earned_at', { ascending: false }); if (error) throw error; console.log(`[UserBadges] Fetched ${data?.length || 0} earned badges.`); return data || []; } catch (error) { console.error("[UserBadges] Error fetching earned badges:", error); showError("Nepodařilo se načíst získané odznaky."); return []; } }
-    async function fetchLeaderboardData(filter = 'points', period = 'overall') {
-        console.log(`[Leaderboard] Fetching data for filter: ${filter}, period: ${period}...`);
+    async function fetchLeaderboardData(filter = 'points', period = 'overall') { // Keep filter for backend sorting
+        console.log(`[Leaderboard] Fetching data for period: ${period}, sorted by: ${filter}...`);
         if (!supabase) { console.error("Supabase client not initialized."); return []; }
-        let orderColumn = 'points'; let ascendingOrder = false; let rankColumn = 'rank'; // Use rank column by default
+        let orderColumn = 'points'; let ascendingOrder = false;
         if (filter === 'badges') { orderColumn = 'badges_count'; }
-        else if (filter === 'streak') { rankColumn = null; /* Use profile.streak_days, rank calculated later */ } // No dedicated rank for streak in leaderboard view
+        else if (filter === 'streak') { orderColumn = 'rank'; ascendingOrder = true; console.warn("[Leaderboard] Sorting by streak requested, using rank order for fetch."); }
 
         try {
-                let query = supabase .from('leaderboard') .select(` rank, user_id, points, badges_count, profile:profiles!inner ( id, first_name, last_name, username, avatar_url, level, streak_days ) `) .eq('period', period);
-                // Order by the correct column based on filter
-                if (filter === 'points') { query = query.order('points', { ascending: false }); }
-                else if (filter === 'badges') { query = query.order('badges_count', { ascending: false }); }
-                else if (filter === 'streak') { // For streak, order by profile streak
-                    query = query.order('streak_days', { foreignTable: 'profiles', ascending: false });
-                }
-                query = query.limit(10);
-
-            const { data, error } = await query;
-
-            if (error) { console.error(`[Leaderboard] Supabase fetch error (filter: ${filter}, period: ${period}):`, error); throw error; }
-
+            const { data, error } = await supabase
+                .from('leaderboard')
+                .select(`
+                    rank, user_id, points, badges_count,
+                    profile:profiles!inner ( id, first_name, last_name, username, avatar_url, level, streak_days )
+                `)
+                .eq('period', period)
+                .order(orderColumn, { ascending: ascendingOrder }) // Order by selected column
+                .limit(10);
+            if (error) { console.error(`[Leaderboard] Supabase fetch error (sort: ${filter}, period: ${period}):`, error); throw error; }
             let rankedData = data || [];
-
-                // Recalculate rank based on fetched order if needed (especially for streak)
-                rankedData = rankedData.map((entry, index) => ({
-                ...entry,
-                calculated_rank: index + 1, // Simple index-based rank after fetch
-                score_value: filter === 'points' ? entry.points : (filter === 'badges' ? entry.badges_count : entry.profile.streak_days) // Add score value for rendering
-                }));
-
-            console.log(`[Leaderboard] Fetched ${rankedData.length} entries for period '${period}', ordered by ${filter}.`);
+            rankedData = rankedData.map((entry, index) => ({ ...entry, calculated_rank: index + 1 })); // Always calculate rank based on fetch order
+            console.log(`[Leaderboard] Fetched ${rankedData.length} entries for period '${period}', ordered by ${orderColumn}.`);
             return rankedData;
-        } catch (error) { console.error(`[Leaderboard] Exception during fetch (filter: ${filter}, period: ${period}):`, error); showToast("Nepodařilo se načíst žebříček.", "error"); return []; }
+        } catch (error) { console.error(`[Leaderboard] Exception during fetch (sort: ${filter}, period: ${period}):`, error); showToast("Nepodařilo se načíst žebříček.", "error"); return []; }
     }
     async function fetchNotifications(userId, limit = 5) { if (!supabase || !userId) { console.error("[Notifications] Missing Supabase client or User ID."); return { unreadCount: 0, notifications: [] }; } console.log(`[Notifications] Fetching unread notifications for user ${userId}`); try { const { data, error, count } = await supabase .from('user_notifications') .select('*', { count: 'exact' }) .eq('user_id', userId) .eq('is_read', false) .order('created_at', { ascending: false }) .limit(limit); if (error) throw error; console.log(`[Notifications] Fetched ${data?.length || 0} notifications. Total unread: ${count}`); return { unreadCount: count ?? 0, notifications: data || [] }; } catch (error) { console.error("[Notifications] Exception fetching notifications:", error); showToast('Chyba', 'Nepodařilo se načíst oznámení.', 'error'); return { unreadCount: 0, notifications: [] }; } }
     // --- END: Data Loading Functions ---
 
     // --- START: UI Update Functions ---
     function updateSidebarProfile(profile) { console.log("[UI Update] Updating sidebar profile..."); if (!ui.sidebarName || !ui.sidebarAvatar) { console.warn("[UI Update] Sidebar elements not found."); return; } if (profile) { const firstName = profile.first_name ?? ''; const displayName = firstName || profile.username || currentUser?.email?.split('@')[0] || 'Pilot'; ui.sidebarName.textContent = sanitizeHTML(displayName); const initials = getInitials(profile); const avatarUrl = profile.avatar_url; ui.sidebarAvatar.innerHTML = avatarUrl ? `<img src="${sanitizeHTML(avatarUrl)}" alt="${sanitizeHTML(initials)}">` : sanitizeHTML(initials); console.log("[UI Update] Sidebar updated."); } else { console.warn("[UI Update] Missing profile data."); ui.sidebarName.textContent = "Pilot"; ui.sidebarAvatar.textContent = '?'; } }
-    function updateStatsCards(profileData, statsData, earnedBadgesData, leaderboard) {
+    function updateStatsCards(profileData, statsData, earnedBadgesData, leaderboard) { // <<< UPDATED: Pass leaderboardData directly
         console.log("[UI Update] Updating stats cards with data:", profileData, statsData);
-        // setLoadingState('stats', false); // Loading stopped by loadAllAwardData
-
         const getStatValue = (value) => (value !== null && value !== undefined) ? value : '-';
-        const formatChange = (value, unit = '', iconUp = 'fa-arrow-up', iconDown = 'fa-arrow-down', iconNone = 'fa-minus') => {
-            if (value === null || value === undefined || value === 0) return `<i class="fas ${iconNone}"></i> --`;
-            const sign = value > 0 ? '+' : '';
-            const icon = value > 0 ? iconUp : iconDown;
-            const cssClass = value > 0 ? 'positive' : 'negative';
-            return `<span class="${cssClass}"><i class="fas ${icon}"></i> ${sign}${value}${unit}</span>`;
-        };
-
-        const statElements = {
-                badgesCount: ui.badgesCount, badgesChange: ui.badgesChange,
-                pointsCount: ui.pointsCount, pointsChange: ui.pointsChange,
-                streakDays: ui.streakDays, streakChange: ui.streakChange,
-                rankValue: ui.rankValue, rankChange: ui.rankChange, totalUsers: ui.totalUsers
-            };
-
-        // Handle potential null profile or stats data
-        if (!profileData) {
-            console.warn("[UI Update] Missing profile data for stats cards.");
-            Object.values(statElements).forEach(el => { if(el && el.id !== 'total-users') el.textContent = '-'; }); // Reset all but total users
-                if(statElements.badgesChange) statElements.badgesChange.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ERR`;
-                if(statElements.pointsChange) statElements.pointsChange.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ERR`;
-                if(statElements.streakChange) statElements.streakChange.textContent = `MAX: - dní`;
-                if(statElements.rankChange) statElements.rankChange.innerHTML = `<i class="fas fa-users"></i> z ? pilotů`;
+        const formatChange = (value, unit = '', iconUp = 'fa-arrow-up', iconDown = 'fa-arrow-down', iconNone = 'fa-minus') => { if (value === null || value === undefined || value === 0) return `<i class="fas ${iconNone}"></i> --`; const sign = value > 0 ? '+' : ''; const icon = value > 0 ? iconUp : iconDown; const cssClass = value > 0 ? 'positive' : 'negative'; return `<span class="${cssClass}"><i class="fas ${icon}"></i> ${sign}${value}${unit}</span>`; };
+        const statElements = { badgesCount: ui.badgesCount, badgesChange: ui.badgesChange, pointsCount: ui.pointsCount, pointsChange: ui.pointsChange, streakDays: ui.streakDays, streakChange: ui.streakChange, rankValue: ui.rankValue, rankChange: ui.rankChange, totalUsers: ui.totalUsers };
+        if (!profileData) { console.warn("[UI Update] Missing profile data for stats cards."); Object.values(statElements).forEach(el => { if(el && el.id !== 'total-users') el.textContent = '-'; }); if(statElements.badgesChange) statElements.badgesChange.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ERR`; if(statElements.pointsChange) statElements.pointsChange.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ERR`; if(statElements.streakChange) statElements.streakChange.textContent = `MAX: - dní`; if(statElements.rankChange) statElements.rankChange.innerHTML = `<i class="fas fa-users"></i> z ? pilotů`; return; }
+        const badgesTotal = earnedBadgesData?.length ?? profileData.badges_count ?? 0; if(statElements.badgesCount) statElements.badgesCount.textContent = getStatValue(badgesTotal); if(statElements.badgesChange) statElements.badgesChange.innerHTML = `<i class="fas fa-sync-alt"></i> Aktualizováno`;
+        if(statElements.pointsCount) statElements.pointsCount.textContent = getStatValue(profileData.points); const pointsWeekly = statsData?.points_weekly; if(statElements.pointsChange) statElements.pointsChange.innerHTML = formatChange(pointsWeekly, ' kr.');
+        if(statElements.streakDays) statElements.streakDays.textContent = getStatValue(profileData.streak_days); const longestStreak = statsData?.streak_longest ?? profileData.streak_days ?? '-'; if(statElements.streakChange) statElements.streakChange.textContent = `MAX: ${getStatValue(longestStreak)} dní`;
+        const userRankEntry = leaderboard?.find(u => u.user_id === currentUser?.id); const rank = userRankEntry?.calculated_rank ?? '-'; const total = leaderboard?.length ?? 0; if(statElements.rankValue) statElements.rankValue.textContent = getStatValue(rank); if(statElements.rankChange && statElements.totalUsers) { statElements.rankChange.innerHTML = `<i class="fas fa-users"></i> z TOP ${total > 0 ? total : '?'} pilotů`; }
+        console.log("[UI Update] Stats cards updated.");
+    }
+    function renderUserBadges(earnedBadges) { if (!ui.badgeGrid || !ui.emptyBadges || !ui.userBadgesContainer) return; setLoadingState('userBadges', false); ui.badgeGrid.innerHTML = ''; if (!earnedBadges || earnedBadges.length === 0) { ui.emptyBadges.style.display = 'block'; ui.badgeGrid.style.display = 'none'; return; } ui.emptyBadges.style.display = 'none'; ui.badgeGrid.style.display = 'grid'; const fragment = document.createDocumentFragment(); earnedBadges.forEach((ub, index) => { const badge = ub.badge; if (!badge) { console.warn("Missing badge details for user badge:", ub); return; } const badgeType = badge.type?.toLowerCase() || 'default'; const visual = badgeVisuals[badgeType] || badgeVisuals.default; const badgeElement = document.createElement('div'); badgeElement.className = 'badge-card card'; badgeElement.setAttribute('data-animate', ''); badgeElement.style.setProperty('--animation-order', index); badgeElement.innerHTML = `<div class="badge-icon ${badgeType}" style="background: ${visual.gradient};"><i class="fas ${visual.icon}"></i></div><h3 class="badge-title">${sanitizeHTML(badge.title)}</h3><p class="badge-desc">${sanitizeHTML(badge.description || '')}</p><div class="badge-date"><i class="far fa-calendar-alt"></i> ${formatDate(ub.earned_at)}</div>`; fragment.appendChild(badgeElement); }); ui.badgeGrid.appendChild(fragment); console.log(`[Render] Rendered ${earnedBadges.length} earned badges.`); requestAnimationFrame(initScrollAnimations); }
+    function renderAvailableBadges(allBadgesDef, userEarnedBadges, userProfileData) { if (!ui.availableBadgesGrid || !ui.emptyAvailableBadges || !ui.availableBadgesContainer) return; setLoadingState('availableBadges', false); ui.availableBadgesGrid.innerHTML = ''; const earnedIds = new Set(userEarnedBadges.map(ub => ub.badge_id)); const available = allBadgesDef.filter(b => !earnedIds.has(b.id)); if (available.length === 0) { ui.emptyAvailableBadges.style.display = 'block'; ui.availableBadgesGrid.style.display = 'none'; return; } ui.emptyAvailableBadges.style.display = 'none'; ui.availableBadgesGrid.style.display = 'grid'; const fragment = document.createDocumentFragment(); available.forEach((badge, index) => { const badgeType = badge.type?.toLowerCase() || 'default'; const visual = badgeVisuals[badgeType] || badgeVisuals.default; let progress = 0; let progressText = '???'; if (badge.requirements && typeof badge.requirements === 'object' && userProfileData) { const req = badge.requirements; let current = 0; let target = parseInt(req.target, 10) || 1; try { switch (req.type) { case 'points_earned': current = userProfileData.points || 0; progressText = `${current}/${target} KR`; break; case 'streak_days': current = userProfileData.streak_days || 0; progressText = `${current}/${target} dní`; break; case 'exercises_completed': current = userProfileData.completed_exercises || 0; progressText = `${current}/${target} cv.`; break; case 'level_reached': current = userProfileData.level || 1; progressText = `${current}/${target} úr.`; break; default: console.warn(`Unknown badge requirement type: ${req.type}`); progressText = '?/?'; } if (target > 0) { progress = Math.min(100, Math.max(0, Math.round((current / target) * 100))); } } catch(e) { console.error("Error calculating badge progress:", e, "Badge:", badge, "Profile:", userProfileData); progressText = 'Chyba'; } } else { progressText = 'Nespec.'; } const badgeElement = document.createElement('div'); badgeElement.className = 'achievement-card card'; badgeElement.setAttribute('data-animate', ''); badgeElement.style.setProperty('--animation-order', index); badgeElement.innerHTML = `<div class="achievement-icon ${badgeType}" style="background: ${visual.gradient};"><i class="fas ${visual.icon}"></i></div><div class="achievement-content"><h3 class="achievement-title">${sanitizeHTML(badge.title)}</h3><p class="achievement-desc">${sanitizeHTML(badge.description || '')}</p><div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: ${progress}%; background: ${visual.gradient};"></div></div><div class="progress-stats">${progress}% (${progressText})</div></div></div>`; fragment.appendChild(badgeElement); }); ui.availableBadgesGrid.appendChild(fragment); console.log(`[Render] Rendered ${available.length} available badges.`); requestAnimationFrame(initScrollAnimations); }
+    function renderLeaderboardSkeleton() { if (!ui.leaderboardBody || !ui.leaderboardSkeleton) return; console.log("[Leaderboard] Rendering Skeleton"); ui.leaderboardSkeleton.style.display = 'block'; ui.leaderboardBody.innerHTML = ''; if(ui.leaderboardTableContainer) ui.leaderboardTableContainer.style.visibility = 'hidden'; if(ui.leaderboardHeaderElement) ui.leaderboardHeaderElement.style.visibility = 'hidden'; if(ui.leaderboardEmpty) ui.leaderboardEmpty.style.display = 'none'; }
+    // --- UPDATED renderLeaderboard ---
+    function renderLeaderboard(data) {
+        if (!ui.leaderboardBody || !ui.leaderboardEmpty || !ui.leaderboardContainer || !ui.leaderboardSkeleton || !ui.leaderboardTableContainer || !ui.leaderboardHeaderElement) {
+            console.error("Leaderboard UI elements not found.");
+            setLoadingState('leaderboard', false); // Ensure loading state is removed on error
             return;
         }
 
-        const badgesTotal = earnedBadgesData?.length ?? profileData.badges_count ?? 0;
-        if(statElements.badgesCount) statElements.badgesCount.textContent = getStatValue(badgesTotal);
-        if(statElements.badgesChange) statElements.badgesChange.innerHTML = `<i class="fas fa-sync-alt"></i> Aktualizováno`; // Placeholder
-
-        if(statElements.pointsCount) statElements.pointsCount.textContent = getStatValue(profileData.points);
-        const pointsWeekly = statsData?.points_weekly;
-        if(statElements.pointsChange) statElements.pointsChange.innerHTML = formatChange(pointsWeekly, ' kr.');
-
-        if(statElements.streakDays) statElements.streakDays.textContent = getStatValue(profileData.streak_days);
-        const longestStreak = statsData?.streak_longest ?? profileData.streak_days ?? '-';
-        if(statElements.streakChange) statElements.streakChange.textContent = `MAX: ${getStatValue(longestStreak)} dní`;
-
-        const userRankEntry = leaderboard?.find(u => u.user_id === currentUser?.id);
-        const rank = userRankEntry?.calculated_rank ?? '-';
-        const total = leaderboard?.length ?? 0; // Use leaderboard length for total in TOP X
-        if(statElements.rankValue) statElements.rankValue.textContent = getStatValue(rank);
-        if(statElements.rankChange && statElements.totalUsers) {
-                statElements.rankChange.innerHTML = `<i class="fas fa-users"></i> z TOP ${total > 0 ? total : '?'} pilotů`; // Show TOP X based on fetched data
-        }
-
-        console.log("[UI Update] Stats cards updated.");
-    }
-    function renderUserBadges(earnedBadges) { if (!ui.badgeGrid || !ui.emptyBadges || !ui.userBadgesContainer) return; // setLoadingState('userBadges', false); // Loading stopped by loadAllAwardData
-            ui.badgeGrid.innerHTML = ''; if (!earnedBadges || earnedBadges.length === 0) { ui.emptyBadges.style.display = 'block'; ui.badgeGrid.style.display = 'none'; return; } ui.emptyBadges.style.display = 'none'; ui.badgeGrid.style.display = 'grid'; const fragment = document.createDocumentFragment(); earnedBadges.forEach((ub, index) => { const badge = ub.badge; if (!badge) { console.warn("Missing badge details for user badge:", ub); return; } const badgeType = badge.type?.toLowerCase() || 'default'; const visual = badgeVisuals[badgeType] || badgeVisuals.default; const badgeElement = document.createElement('div'); badgeElement.className = 'badge-card card'; badgeElement.setAttribute('data-animate', ''); badgeElement.style.setProperty('--animation-order', index); badgeElement.innerHTML = `<div class="badge-icon ${badgeType}" style="background: ${visual.gradient};"><i class="fas ${visual.icon}"></i></div><h3 class="badge-title">${sanitizeHTML(badge.title)}</h3><p class="badge-desc">${sanitizeHTML(badge.description || '')}</p><div class="badge-date"><i class="far fa-calendar-alt"></i> ${formatDate(ub.earned_at)}</div>`; fragment.appendChild(badgeElement); }); ui.badgeGrid.appendChild(fragment); console.log(`[Render] Rendered ${earnedBadges.length} earned badges.`); requestAnimationFrame(initScrollAnimations); }
-    function renderAvailableBadges(allBadgesDef, userEarnedBadges, userProfileData) { if (!ui.availableBadgesGrid || !ui.emptyAvailableBadges || !ui.availableBadgesContainer) return; // setLoadingState('availableBadges', false); // Loading stopped by loadAllAwardData
-            ui.availableBadgesGrid.innerHTML = ''; const earnedIds = new Set(userEarnedBadges.map(ub => ub.badge_id)); const available = allBadgesDef.filter(b => !earnedIds.has(b.id)); if (available.length === 0) { ui.emptyAvailableBadges.style.display = 'block'; ui.availableBadgesGrid.style.display = 'none'; return; } ui.emptyAvailableBadges.style.display = 'none'; ui.availableBadgesGrid.style.display = 'grid'; const fragment = document.createDocumentFragment(); available.forEach((badge, index) => { const badgeType = badge.type?.toLowerCase() || 'default'; const visual = badgeVisuals[badgeType] || badgeVisuals.default; let progress = 0; let progressText = '???'; if (badge.requirements && typeof badge.requirements === 'object' && userProfileData) { const req = badge.requirements; let current = 0; let target = parseInt(req.target, 10) || 1; try { switch (req.type) { case 'points_earned': current = userProfileData.points || 0; progressText = `${current}/${target} KR`; break; case 'streak_days': current = userProfileData.streak_days || 0; progressText = `${current}/${target} dní`; break; case 'exercises_completed': current = userProfileData.completed_exercises || 0; progressText = `${current}/${target} cv.`; break; case 'level_reached': current = userProfileData.level || 1; progressText = `${current}/${target} úr.`; break; default: console.warn(`Unknown badge requirement type: ${req.type}`); progressText = '?/?'; } if (target > 0) { progress = Math.min(100, Math.max(0, Math.round((current / target) * 100))); } } catch(e) { console.error("Error calculating badge progress:", e, "Badge:", badge, "Profile:", userProfileData); progressText = 'Chyba'; } } else { progressText = 'Nespec.'; } const badgeElement = document.createElement('div'); badgeElement.className = 'achievement-card card'; badgeElement.setAttribute('data-animate', ''); badgeElement.style.setProperty('--animation-order', index); badgeElement.innerHTML = `<div class="achievement-icon ${badgeType}" style="background: ${visual.gradient};"><i class="fas ${visual.icon}"></i></div><div class="achievement-content"><h3 class="achievement-title">${sanitizeHTML(badge.title)}</h3><p class="achievement-desc">${sanitizeHTML(badge.description || '')}</p><div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: ${progress}%; background: ${visual.gradient};"></div></div><div class="progress-stats">${progress}% (${progressText})</div></div></div>`; fragment.appendChild(badgeElement); }); ui.availableBadgesGrid.appendChild(fragment); console.log(`[Render] Rendered ${available.length} available badges.`); requestAnimationFrame(initScrollAnimations); }
-    function renderLeaderboardSkeleton() { if (!ui.leaderboardBody || !ui.leaderboardSkeleton) return; console.log("[Leaderboard] Rendering Skeleton"); ui.leaderboardSkeleton.style.display = 'block'; ui.leaderboardBody.innerHTML = ''; if(ui.leaderboardTableContainer) ui.leaderboardTableContainer.style.visibility = 'hidden'; if(ui.leaderboardHeaderElement) ui.leaderboardHeaderElement.style.visibility = 'hidden'; if(ui.leaderboardEmpty) ui.leaderboardEmpty.style.display = 'none'; }
-    function renderLeaderboard(data) {
-        if (!ui.leaderboardBody || !ui.leaderboardEmpty || !ui.scoreHeader || !ui.leaderboardContainer || !ui.leaderboardSkeleton || !ui.leaderboardTableContainer || !ui.leaderboardHeaderElement) { console.error("Leaderboard UI elements not found."); return; }
+        // Hide skeleton, make content visible
         ui.leaderboardSkeleton.style.display = 'none';
         ui.leaderboardTableContainer.style.visibility = 'visible';
         ui.leaderboardHeaderElement.style.visibility = 'visible';
         ui.leaderboardBody.innerHTML = ''; // Clear skeleton or old rows
-        const filterMap = { points: 'Kredity', badges: 'Odznaky', streak: 'Série' };
-        ui.scoreHeader.textContent = filterMap[currentLeaderboardFilter] || 'Skóre';
+        // ui.scoreHeader is removed, no need to update it
 
         if (!data || data.length === 0) {
             ui.leaderboardEmpty.style.display = 'block'; // Show empty state
             ui.leaderboardTableContainer.style.display = 'none'; // Hide table container
             console.log("[Render] Leaderboard empty.");
-            return;
-        }
-        ui.leaderboardEmpty.style.display = 'none'; // Hide empty state
-        ui.leaderboardTableContainer.style.display = 'block'; // Show table container
-
-        const fragment = document.createDocumentFragment();
-        data.forEach((entry) => {
-            const userProfile = entry.profile;
-            if (!userProfile) { console.warn(`Missing profile data for user_id: ${entry.user_id} in leaderboard entry. Skipping.`); return; }
-
-            const rank = entry.calculated_rank || '?'; // Use calculated rank
-            const isCurrentUser = entry.user_id === currentUser?.id;
-            const displayName = `${userProfile.first_name || ''} ${userProfile.last_name || ''}`.trim() || userProfile.username || `Pilot #${entry.user_id.substring(0, 4)}`;
-            const initials = getInitials(userProfile);
-            const avatarUrl = userProfile.avatar_url;
-            const scoreValue = entry.score_value ?? '-'; // Use pre-calculated score_value
-            const badgesCount = entry.badges_count ?? 0;
-
-            const rowElement = document.createElement('tr');
-            if (isCurrentUser) rowElement.classList.add('highlight-row');
-            // Using updated CSS classes from oceneni.css
-            rowElement.innerHTML = `
-                <td class="rank-cell">${rank}</td>
-                <td class="user-cell">
-                    <div class="user-avatar-sm">${avatarUrl ? `<img src="${sanitizeHTML(avatarUrl)}" alt="${sanitizeHTML(displayName)}">` : sanitizeHTML(initials)}</div>
-                    <div class="user-info-sm">
-                        <div class="user-name-sm">${sanitizeHTML(displayName)}</div>
-                        <div class="user-level">Úroveň ${userProfile.level || 1}</div>
-                    </div>
-                </td>
-                <td class="score-cell">${scoreValue}</td>
-                <td class="badge-count-cell">${badgesCount}</td>`;
-            fragment.appendChild(rowElement);
-        });
-        ui.leaderboardBody.appendChild(fragment);
-        console.log(`[Render] Rendered ${data.length} leaderboard entries.`);
-    }
-    function renderRecentBadges(earnedBadges) { if (!ui.recentAchievementsList || !ui.recentAchievementsSection) return; // setLoadingState('recentBadges', false); // Loading stopped by loadAllAwardData
-            ui.recentAchievementsList.innerHTML = ''; const recent = earnedBadges.slice(0, 5); if (recent.length === 0) { ui.recentAchievementsSection.style.display = 'none'; return; } ui.recentAchievementsSection.style.display = 'block'; ui.recentAchievementsSection.classList.remove('loading'); const fragment = document.createDocumentFragment(); recent.forEach((ub, index) => { const badge = ub.badge; if (!badge) return; const badgeType = badge.type?.toLowerCase() || 'default'; const visual = badgeVisuals[badgeType] || badgeVisuals.default; const badgeElement = document.createElement('div'); badgeElement.className = `achievement-item`; badgeElement.innerHTML = `<div class="achievement-item-icon ${badgeType}" style="background: ${visual.gradient};"><i class="fas ${visual.icon}"></i></div><div class="achievement-item-content"><h3 class="achievement-item-title">${sanitizeHTML(badge.title)}</h3><p class="achievement-item-desc">${sanitizeHTML(badge.description || '')}</p><div class="achievement-item-time"><i class="far fa-calendar-alt"></i> ${formatDate(ub.earned_at)}</div></div>`; fragment.appendChild(badgeElement); }); ui.recentAchievementsList.appendChild(fragment); console.log(`[Render] Rendered ${recent.length} recent badges.`); requestAnimationFrame(initScrollAnimations); }
-    function renderNotifications(count, notifications) {
-        console.log("[Render Notifications UI] Start, Count:", count, "Notifications:", notifications);
-        if (!ui.notificationCount || !ui.notificationsList || !ui.noNotificationsMsg || !ui.markAllReadBtn) {
-            console.error("[Render Notifications UI] Missing UI elements.");
-            return;
-        }
-        ui.notificationCount.textContent = count > 9 ? '9+' : (count > 0 ? String(count) : '');
-        ui.notificationCount.classList.toggle('visible', count > 0);
-
-        if (notifications && notifications.length > 0) {
-            ui.notificationsList.innerHTML = notifications.map(n => {
-                const visual = activityVisuals[n.type?.toLowerCase()] || activityVisuals.default; // Use visuals map
-                const isReadClass = n.is_read ? 'is-read' : '';
-                const linkAttr = n.link ? `data-link="${sanitizeHTML(n.link)}"` : '';
-                return `<div class="notification-item ${isReadClass}" data-id="${n.id}" ${linkAttr}>
-                            ${!n.is_read ? '<span class="unread-dot"></span>' : ''}
-                            <div class="notification-icon ${visual.class}"><i class="fas ${visual.icon}"></i></div>
-                            <div class="notification-content">
-                                <div class="notification-title">${sanitizeHTML(n.title)}</div>
-                                <div class="notification-message">${sanitizeHTML(n.message)}</div>
-                                <div class="notification-time">${formatRelativeTime(n.created_at)}</div>
-                            </div>
-                        </div>`;
-            }).join('');
-            ui.noNotificationsMsg.style.display = 'none';
-            ui.notificationsList.style.display = 'block';
-            ui.markAllReadBtn.disabled = count === 0;
         } else {
-            ui.notificationsList.innerHTML = '';
-            ui.noNotificationsMsg.style.display = 'block';
-            ui.notificationsList.style.display = 'none';
-            ui.markAllReadBtn.disabled = true;
+            ui.leaderboardEmpty.style.display = 'none'; // Hide empty state
+            ui.leaderboardTableContainer.style.display = 'block'; // Show table container
+
+            const fragment = document.createDocumentFragment();
+            data.forEach((entry) => {
+                const userProfile = entry.profile;
+                if (!userProfile) { console.warn(`Missing profile data for user_id: ${entry.user_id} in leaderboard entry. Skipping.`); return; }
+
+                const rank = entry.calculated_rank || '?';
+                const isCurrentUser = entry.user_id === currentUser?.id;
+                const displayName = `${userProfile.first_name || ''} ${userProfile.last_name || ''}`.trim() || userProfile.username || `Pilot #${entry.user_id.substring(0, 4)}`;
+                const initials = getInitials(userProfile);
+                const avatarUrl = userProfile.avatar_url;
+                const pointsValue = entry.points ?? 0;
+                const badgesCount = entry.badges_count ?? 0;
+                const streakValue = userProfile.streak_days ?? 0; // Get streak from profile
+
+                const rowElement = document.createElement('tr');
+                if (isCurrentUser) rowElement.classList.add('highlight-row');
+
+                // <<< UPDATED: Added cells for Badges and Streak >>>
+                rowElement.innerHTML = `
+                    <td class="rank-cell">${rank}</td>
+                    <td class="user-cell">
+                        <div class="user-avatar-sm">${avatarUrl ? `<img src="${sanitizeHTML(avatarUrl)}" alt="${sanitizeHTML(displayName)}">` : sanitizeHTML(initials)}</div>
+                        <div class="user-info-sm">
+                            <div class="user-name-sm">${sanitizeHTML(displayName)}</div>
+                            <div class="user-level">Úroveň ${userProfile.level || 1}</div>
+                        </div>
+                    </td>
+                    <td class="score-cell">${pointsValue}</td>
+                    <td class="badge-count-cell">${badgesCount}</td>
+                    <td class="streak-cell">${streakValue}</td>`; // Add streak cell
+                fragment.appendChild(rowElement);
+            });
+            ui.leaderboardBody.appendChild(fragment);
+            console.log(`[Render] Rendered ${data.length} leaderboard entries.`);
         }
-        console.log("[Render Notifications UI] Finished rendering.");
+         setLoadingState('leaderboard', false); // Ensure loading state is removed
     }
+    function renderRecentBadges(earnedBadges) { if (!ui.recentAchievementsList || !ui.recentAchievementsSection) return; setLoadingState('recentBadges', false); ui.recentAchievementsList.innerHTML = ''; const recent = earnedBadges.slice(0, 5); if (recent.length === 0) { ui.recentAchievementsSection.style.display = 'none'; return; } ui.recentAchievementsSection.style.display = 'block'; const fragment = document.createDocumentFragment(); recent.forEach((ub, index) => { const badge = ub.badge; if (!badge) return; const badgeType = badge.type?.toLowerCase() || 'default'; const visual = badgeVisuals[badgeType] || badgeVisuals.default; const badgeElement = document.createElement('div'); badgeElement.className = `achievement-item`; badgeElement.innerHTML = `<div class="achievement-item-icon ${badgeType}" style="background: ${visual.gradient};"><i class="fas ${visual.icon}"></i></div><div class="achievement-item-content"><h3 class="achievement-item-title">${sanitizeHTML(badge.title)}</h3><p class="achievement-item-desc">${sanitizeHTML(badge.description || '')}</p><div class="achievement-item-time"><i class="far fa-calendar-alt"></i> ${formatDate(ub.earned_at)}</div></div>`; fragment.appendChild(badgeElement); }); ui.recentAchievementsList.appendChild(fragment); console.log(`[Render] Rendered ${recent.length} recent badges.`); requestAnimationFrame(initScrollAnimations); }
+    function renderNotifications(count, notifications) { console.log("[Render Notifications UI] Start, Count:", count, "Notifications:", notifications); if (!ui.notificationCount || !ui.notificationsList || !ui.noNotificationsMsg || !ui.markAllReadBtn) { console.error("[Render Notifications UI] Missing UI elements."); return; } ui.notificationCount.textContent = count > 9 ? '9+' : (count > 0 ? String(count) : ''); ui.notificationCount.classList.toggle('visible', count > 0); if (notifications && notifications.length > 0) { ui.notificationsList.innerHTML = notifications.map(n => { const visual = activityVisuals[n.type?.toLowerCase()] || activityVisuals.default; const isReadClass = n.is_read ? 'is-read' : ''; const linkAttr = n.link ? `data-link="${sanitizeHTML(n.link)}"` : ''; return `<div class="notification-item ${isReadClass}" data-id="${n.id}" ${linkAttr}>${!n.is_read ? '<span class="unread-dot"></span>' : ''}<div class="notification-icon ${visual.class}"><i class="fas ${visual.icon}"></i></div><div class="notification-content"><div class="notification-title">${sanitizeHTML(n.title)}</div><div class="notification-message">${sanitizeHTML(n.message)}</div><div class="notification-time">${formatRelativeTime(n.created_at)}</div></div></div>`; }).join(''); ui.noNotificationsMsg.style.display = 'none'; ui.notificationsList.style.display = 'block'; ui.markAllReadBtn.disabled = count === 0; } else { ui.notificationsList.innerHTML = ''; ui.noNotificationsMsg.style.display = 'block'; ui.notificationsList.style.display = 'none'; ui.markAllReadBtn.disabled = true; } console.log("[Render Notifications UI] Finished rendering."); }
     function renderNotificationSkeletons(count = 2) { if (!ui.notificationsList || !ui.noNotificationsMsg) return; let skeletonHTML = ''; for (let i = 0; i < count; i++) { skeletonHTML += `<div class="notification-item skeleton"><div class="notification-icon skeleton" style="background-color: var(--skeleton-bg);"></div><div class="notification-content"><div class="skeleton" style="height: 16px; width: 70%; margin-bottom: 6px;"></div><div class="skeleton" style="height: 12px; width: 90%;"></div><div class="skeleton" style="height: 10px; width: 40%; margin-top: 6px;"></div></div></div>`; } ui.notificationsList.innerHTML = skeletonHTML; ui.noNotificationsMsg.style.display = 'none'; ui.notificationsList.style.display = 'block'; }
     async function markNotificationRead(notificationId) { console.log("[FUNC] markNotificationRead: Marking ID:", notificationId); if (!currentUser || !notificationId) return false; try { const { error } = await supabase.from('user_notifications').update({ is_read: true }).eq('user_id', currentUser.id).eq('id', notificationId); if (error) throw error; console.log("[FUNC] markNotificationRead: Success for ID:", notificationId); return true; } catch (error) { console.error("[FUNC] markNotificationRead: Error:", error); showToast('Chyba', 'Nepodařilo se označit oznámení jako přečtené.', 'error'); return false; } }
+    async function markAllNotificationsRead() { console.log("[FUNC] markAllNotificationsRead: Start for user:", currentUser?.id); if (!currentUser || !supabase || !ui.markAllReadBtn) return; if (isLoading.notifications) return; setLoadingState('notifications', true); ui.markAllReadBtn.disabled = true; try { const { error } = await supabase .from('user_notifications') .update({ is_read: true }) .eq('user_id', currentUser.id) .eq('is_read', false); if (error) throw error; console.log("[FUNC] markAllNotificationsRead: DB update successful"); const { unreadCount, notifications } = await fetchNotifications(currentUser.id, 5); renderNotifications(unreadCount, notifications); showToast('Oznámení Vymazána', 'Všechna oznámení byla označena jako přečtená.', 'success'); } catch (error) { console.error("[FUNC] markAllNotificationsRead: Error:", error); showToast('Chyba', 'Nepodařilo se označit všechna oznámení.', 'error'); const currentCount = parseInt(ui.notificationCount?.textContent?.replace('+', '') || '0'); ui.markAllReadBtn.disabled = currentCount === 0; } finally { setLoadingState('notifications', false); } }
     // --- END: UI Update Functions ---
 
     // --- START: Event Listeners & Handlers ---
-    function setupUIEventListeners() { console.log("[SETUP] setupUIEventListeners: Start"); if (ui.mainMobileMenuToggle) ui.mainMobileMenuToggle.addEventListener('click', openMenu); if (ui.sidebarCloseToggle) ui.sidebarCloseToggle.addEventListener('click', closeMenu); if (ui.sidebarOverlay) ui.sidebarOverlay.addEventListener('click', closeMenu); document.querySelectorAll('.sidebar-link').forEach(link => { link.addEventListener('click', () => { if (window.innerWidth <= 992) closeMenu(); }); }); window.addEventListener('online', updateOnlineStatus); window.addEventListener('offline', updateOnlineStatus); updateOnlineStatus(); if (ui.refreshDataBtn) { ui.refreshDataBtn.addEventListener('click', handleGlobalRetry); } ui.filterButtons?.forEach(button => { button.addEventListener('click', handleFilterChange); }); if (ui.notificationBell) ui.notificationBell.addEventListener('click', (event) => { event.stopPropagation(); ui.notificationsDropdown?.classList.toggle('active'); });
-        // *** FIX: Use the defined markAllNotificationsRead function ***
+    function setupUIEventListeners() {
+        console.log("[SETUP] setupUIEventListeners: Start");
+        if (ui.mainMobileMenuToggle) ui.mainMobileMenuToggle.addEventListener('click', openMenu);
+        if (ui.sidebarCloseToggle) ui.sidebarCloseToggle.addEventListener('click', closeMenu);
+        if (ui.sidebarOverlay) ui.sidebarOverlay.addEventListener('click', closeMenu);
+        document.querySelectorAll('.sidebar-link').forEach(link => { link.addEventListener('click', () => { if (window.innerWidth <= 992) closeMenu(); }); });
+        window.addEventListener('online', updateOnlineStatus); window.addEventListener('offline', updateOnlineStatus);
+        updateOnlineStatus();
+        if (ui.refreshDataBtn) { ui.refreshDataBtn.addEventListener('click', handleGlobalRetry); }
+
+        // <<< REMOVED: Leaderboard filter button listeners >>>
+        // ui.filterButtons?.forEach(button => { button.addEventListener('click', handleFilterChange); });
+
+        if (ui.notificationBell) ui.notificationBell.addEventListener('click', (event) => { event.stopPropagation(); ui.notificationsDropdown?.classList.toggle('active'); });
         if (ui.markAllReadBtn) ui.markAllReadBtn.addEventListener('click', markAllNotificationsRead);
-        if (ui.notificationsList) { ui.notificationsList.addEventListener('click', async (event) => { const item = event.target.closest('.notification-item'); if (item) { const notificationId = item.dataset.id; const link = item.dataset.link; const isRead = item.classList.contains('is-read'); if (!isRead && notificationId) { const success = await markNotificationRead(notificationId); if (success) { item.classList.add('is-read'); item.querySelector('.unread-dot')?.remove(); const currentCountText = ui.notificationCount.textContent.replace('+', ''); const currentCount = parseInt(currentCountText) || 0; const newCount = Math.max(0, currentCount - 1); ui.notificationCount.textContent = newCount > 9 ? '9+' : (newCount > 0 ? String(newCount) : ''); ui.notificationCount.classList.toggle('visible', newCount > 0); if (ui.markAllReadBtn) ui.markAllReadBtn.disabled = newCount === 0; } } if (link) window.location.href = link; } }); } document.addEventListener('click', (event) => { if (ui.notificationsDropdown?.classList.contains('active') && !ui.notificationsDropdown.contains(event.target) && !ui.notificationBell?.contains(event.target)) { ui.notificationsDropdown.classList.remove('active'); } }); console.log("[SETUP] setupUIEventListeners: Listeners set."); }
-    async function handleFilterChange(event) { const newFilter = event.target.dataset.filter; if (!newFilter || newFilter === currentLeaderboardFilter || isLoading.leaderboard) return; ui.filterButtons.forEach(btn => btn.classList.remove('active')); event.target.classList.add('active'); currentLeaderboardFilter = newFilter; console.log(`[Filter] Leaderboard filter changed to: ${currentLeaderboardFilter}. Reloading...`); // setLoadingState('leaderboard', true); // Set loading state handled by render function now
-         renderLeaderboardSkeleton(); // Show skeleton immediately
-         try { const data = await fetchLeaderboardData(currentLeaderboardFilter, currentLeaderboardPeriod); leaderboardData[currentLeaderboardFilter] = data || []; renderLeaderboard(leaderboardData[currentLeaderboardFilter]); // Render new data - hides skeleton
-             updateStatsCards(currentProfile, currentUserStats, userBadges, leaderboardData[currentLeaderboardFilter]); // Update stats card rank if necessary
-         } catch (error) { showError("Nepodařilo se načíst data žebříčku pro tento filtr."); renderLeaderboard([]); // Render empty state on error
-             // Ensure skeleton is hidden on error too
-             if(ui.leaderboardSkeleton) ui.leaderboardSkeleton.style.display = 'none';
-             if(ui.leaderboardTableContainer) ui.leaderboardTableContainer.style.visibility = 'visible'; // Ensure container is visible for empty message
-         } /* Loading state stopped by renderLeaderboard */ }
+        if (ui.notificationsList) { ui.notificationsList.addEventListener('click', async (event) => { const item = event.target.closest('.notification-item'); if (item) { const notificationId = item.dataset.id; const link = item.dataset.link; const isRead = item.classList.contains('is-read'); if (!isRead && notificationId) { const success = await markNotificationRead(notificationId); if (success) { item.classList.add('is-read'); item.querySelector('.unread-dot')?.remove(); const currentCountText = ui.notificationCount.textContent.replace('+', ''); const currentCount = parseInt(currentCountText) || 0; const newCount = Math.max(0, currentCount - 1); ui.notificationCount.textContent = newCount > 9 ? '9+' : (newCount > 0 ? String(newCount) : ''); ui.notificationCount.classList.toggle('visible', newCount > 0); if (ui.markAllReadBtn) ui.markAllReadBtn.disabled = newCount === 0; } } if (link) window.location.href = link; } }); }
+        document.addEventListener('click', (event) => { if (ui.notificationsDropdown?.classList.contains('active') && !ui.notificationsDropdown.contains(event.target) && !ui.notificationBell?.contains(event.target)) { ui.notificationsDropdown.classList.remove('active'); } });
+        console.log("[SETUP] setupUIEventListeners: Listeners set.");
+    }
+
+    // <<< REMOVED: handleFilterChange function >>>
+    /*
+    async function handleFilterChange(event) {
+        // ... function removed ...
+    }
+    */
+
     async function handleGlobalRetry() { console.log("🔄 Global retry triggered..."); if (!currentUser || !currentProfile) { showToast("Chyba", "Pro obnovení je nutné být přihlášen a mít načtený profil.", "error"); if (!currentProfile) await initializeApp(); return; } if (Object.values(isLoading).some(state => state)) { showToast("PROBÍHÁ SYNCHRONIZACE", "Data se již načítají.", "info"); return; } hideError(); if (ui.refreshDataBtn) { const icon = ui.refreshDataBtn.querySelector('i'); const text = ui.refreshDataBtn.querySelector('.refresh-text'); if (icon) icon.classList.add('fa-spin'); if (text) text.textContent = 'RELOADING...'; ui.refreshDataBtn.disabled = true; } await loadAllAwardData(); if (ui.refreshDataBtn) { const icon = ui.refreshDataBtn.querySelector('i'); const text = ui.refreshDataBtn.querySelector('.refresh-text'); if (icon) icon.classList.remove('fa-spin'); if (text) text.textContent = 'RELOAD'; ui.refreshDataBtn.disabled = false; } }
     // --- END: Event Listeners & Handlers ---
-
-    // --- START: Mark All Notifications Read Function (Added) ---
-    async function markAllNotificationsRead() {
-        console.log("[FUNC] markAllNotificationsRead: Start for user:", currentUser?.id);
-        if (!currentUser || !supabase || !ui.markAllReadBtn) return;
-
-        // Prevent multiple clicks while processing
-        if (isLoading.notifications) return;
-        setLoadingState('notifications', true);
-        ui.markAllReadBtn.disabled = true; // Disable button immediately
-
-        try {
-            const { error } = await supabase
-                .from('user_notifications')
-                .update({ is_read: true })
-                .eq('user_id', currentUser.id)
-                .eq('is_read', false);
-
-            if (error) throw error;
-
-            console.log("[FUNC] markAllNotificationsRead: DB update successful");
-            // Refresh the notification list in the UI
-            const { unreadCount, notifications } = await fetchNotifications(currentUser.id, 5);
-            renderNotifications(unreadCount, notifications); // Re-render the list
-            showToast('Oznámení Vymazána', 'Všechna oznámení byla označena jako přečtená.', 'success');
-
-        } catch (error) {
-            console.error("[FUNC] markAllNotificationsRead: Error:", error);
-            showToast('Chyba', 'Nepodařilo se označit všechna oznámení.', 'error');
-            // Re-enable button only if there was an error and still might be unread items
-            const currentCount = parseInt(ui.notificationCount?.textContent?.replace('+', '') || '0');
-            ui.markAllReadBtn.disabled = currentCount === 0;
-        } finally {
-            setLoadingState('notifications', false); // Reset loading state regardless of success/failure
-        }
-    }
-    // --- END: Mark All Notifications Read Function ---
-
 
     // --- Initialize the Application ---
     initializeApp();
