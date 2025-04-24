@@ -12,6 +12,9 @@
     <link rel="stylesheet" href="oceneni.css">
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/css/tooltipster.bundle.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/js/tooltipster.bundle.min.js"></script>
 
     </head>
 <body class="dark">
@@ -29,10 +32,10 @@
             <button class="mobile-menu-toggle" id="sidebar-close-toggle" aria-label="Zavřít menu">
                 <i class="fas fa-times"></i>
             </button>
-            <a href="/dashboard.html" class="sidebar-logo"> <i class="fas fa-atom"></i> <span>Justax</span> </a>
+            <a href="/dashboard/dashboard.html" class="sidebar-logo"> <i class="fas fa-atom"></i> <span>Justax</span> </a>
         </div>
         <ul class="sidebar-menu">
-            <li class="sidebar-item"> <a href="/dashboard.html" class="sidebar-link"> <i class="fas fa-tachometer-alt"></i> <span>Nástěnka</span> </a> </li>
+            <li class="sidebar-item"> <a href="/dashboard/dashboard.html" class="sidebar-link"> <i class="fas fa-tachometer-alt"></i> <span>Nástěnka</span> </a> </li>
             <li class="sidebar-item"> <a href="/dashboard/procvicovani/main.html" class="sidebar-link"> <i class="fas fa-laptop-code"></i> <span>Procvičování</span> </a> </li>
             <li class="sidebar-item"> <a href="/dashboard/pokrok.html" class="sidebar-link"> <i class="fas fa-chart-line"></i> <span>Pokrok</span> </a> </li>
             <li class="sidebar-item"> <a href="/dashboard/oceneni.html" class="sidebar-link active"> <i class="fas fa-medal"></i> <span>Ocenění</span> </a> </li>
@@ -58,26 +61,30 @@
                       <button class="mobile-menu-toggle" id="main-mobile-menu-toggle" aria-label="Otevřít menu">
                           <i class="fas fa-bars"></i>
                      </button>
-                     <h1 id="page-title">Ocenění // KOLEKCE</h1>
+                     <h1 id="page-title"><i class="fas fa-medal"></i> Ocenění // KOLEKCE</h1>
                  </div>
                 <div class="header-actions">
-                    <button class="refresh-btn" id="refresh-data-btn" title="Obnovit data">
+                    <button class="refresh-btn btn btn-secondary btn-tooltip" id="refresh-data-btn" title="Obnovit data">
                         <i class="fas fa-sync-alt"></i>
                         <span class="refresh-text">RELOAD</span>
                     </button>
                     <div class="notifications">
-                         <div class="notification-bell" id="notification-bell" title="Oznámení (není aktivní)">
-                              <i class="far fa-bell"></i>
-                              <span class="notification-badge" id="notification-count">0</span>
+                        <div class="notification-bell" id="notification-bell" title="Oznámení">
+                             <i class="far fa-bell"></i>
+                             <span class="notification-badge" id="notification-count">0</span>
                          </div>
                          <div class="notifications-dropdown-wrapper" id="notifications-dropdown">
-                              <div class="notifications-header">
-                                  <span class="notifications-title">OZNÁMENÍ</span>
-                                  <button class="mark-all-read-btn" id="mark-all-read" disabled>Označit vše</button>
-                              </div>
-                              <div id="notifications-list">
-                                   <div id="no-notifications-msg">ŽÁDNÉ SIGNÁLY</div>
-                              </div>
+                             <div class="notifications-header">
+                                 <span class="notifications-title">PŘÍCHOZÍ SIGNÁLY</span>
+                                 <button class="mark-all-read-btn" id="mark-all-read" disabled>Vymazat vše</button>
+                             </div>
+                             <div id="notifications-list">
+                                  <div class="notification-item skeleton"> <div class="notification-icon skeleton" style="background-color: var(--skeleton-bg);"></div> <div class="notification-content"> <div class="skeleton" style="height: 16px; width: 70%; margin-bottom: 6px;"></div> <div class="skeleton" style="height: 12px; width: 90%;"></div> <div class="skeleton" style="height: 10px; width: 40%; margin-top: 6px;"></div> </div> </div>
+                                 <div id="no-notifications-msg" style="display: none;">ŽÁDNÉ NOVÉ SIGNÁLY</div>
+                             </div>
+                             <div class="notifications-footer">
+                                 <a href="/dashboard/notifications.html" class="view-all-notifications-link">ZOBRAZIT ARCHIV</a>
+                             </div>
                          </div>
                       </div>
                 </div>
@@ -165,48 +172,50 @@
                      </div>
                 </section>
 
-                <section class="leaderboard-section" data-animate style="--animation-order: 7;">
-                     <div class="leaderboard card loading" id="leaderboard-container">
-                         <div class="loading-skeleton">
-                             <div style="padding: 1.2rem 1.5rem; border-bottom: 1px solid var(--border-color-light);">
-                                 <div class="skeleton" style="height: 24px; width: 40%;"></div>
+                <section class="leaderboard-section card loading" id="leaderboard-container" data-animate style="--animation-order: 7;">
+                     <div class="loading-skeleton leaderboard-skeleton">
+                         <div class="leaderboard-header-skeleton">
+                             <div class="skeleton" style="height: 24px; width: 40%; border-radius: 6px;"></div>
+                             <div class="leaderboard-filter-skeleton">
+                                 <div class="skeleton" style="height: 28px; width: 80px; border-radius: 8px;"></div>
+                                 <div class="skeleton" style="height: 28px; width: 80px; border-radius: 8px;"></div>
+                                 <div class="skeleton" style="height: 28px; width: 80px; border-radius: 8px;"></div>
                              </div>
-                             <div style="padding: 0 1.5rem;">
-                                   <div class="skeleton-row"> <div class="skeleton rank-placeholder"></div> <div class="skeleton avatar-placeholder"></div> <div class="skeleton name-placeholder"></div> <div class="skeleton score-placeholder"></div> </div>
-                                   <div class="skeleton-row"> <div class="skeleton rank-placeholder"></div> <div class="skeleton avatar-placeholder"></div> <div class="skeleton name-placeholder"></div> <div class="skeleton score-placeholder"></div> </div>
-                                   <div class="skeleton-row"> <div class="skeleton rank-placeholder"></div> <div class="skeleton avatar-placeholder"></div> <div class="skeleton name-placeholder"></div> <div class="skeleton score-placeholder"></div> </div>
-                              </div>
                          </div>
-                         <div class="leaderboard-header">
-                            <div class="leaderboard-title"><i class="fas fa-trophy"></i>Síň Slávy</div>
-                            <div class="leaderboard-filter">
-                                <button class="filter-btn active" data-filter="points">Kredity</button>
-                                <button class="filter-btn" data-filter="badges">Odznaky</button>
-                                <button class="filter-btn" data-filter="streak">Série</button>
-                            </div>
-                        </div>
-                        <div class="leaderboard-table-container">
-                            <table class="leaderboard-table">
-                                <thead>
-                                    <tr>
-                                        <th>#</th>
-                                        <th>Pilot</th>
-                                        <th id="score-header">Kredity</th>
-                                        <th>Odznaky</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="leaderboard-body">
-                                    </tbody>
-                            </table>
-                        </div>
-                        <div class="empty-state" id="leaderboard-empty" style="display: none; padding: 2rem; border: none;">
-                             <i class="fas fa-satellite-dish empty-state-icon"></i>
-                            <p>ŽÁDNÁ DATA V SÍNI SLÁVY.</p>
+                         <div class="leaderboard-table-skeleton">
+                             <div class="skeleton-row"> <div class="skeleton rank-placeholder"></div> <div class="skeleton avatar-placeholder"></div> <div class="skeleton name-placeholder"></div> <div class="skeleton score-placeholder"></div><div class="skeleton badges-placeholder"></div></div>
+                             <div class="skeleton-row"> <div class="skeleton rank-placeholder"></div> <div class="skeleton avatar-placeholder"></div> <div class="skeleton name-placeholder"></div> <div class="skeleton score-placeholder"></div><div class="skeleton badges-placeholder"></div></div>
+                             <div class="skeleton-row"> <div class="skeleton rank-placeholder"></div> <div class="skeleton avatar-placeholder"></div> <div class="skeleton name-placeholder"></div> <div class="skeleton score-placeholder"></div><div class="skeleton badges-placeholder"></div></div>
+                             <div class="skeleton-row"> <div class="skeleton rank-placeholder"></div> <div class="skeleton avatar-placeholder"></div> <div class="skeleton name-placeholder"></div> <div class="skeleton score-placeholder"></div><div class="skeleton badges-placeholder"></div></div>
+                         </div>
+                     </div>
+                     <div class="leaderboard-header">
+                        <h2 class="section-title leaderboard-title"><i class="fas fa-trophy"></i>Síň Slávy</h2>
+                        <div class="leaderboard-filter">
+                            <button class="filter-btn active" data-filter="points">Kredity</button>
+                            <button class="filter-btn" data-filter="badges">Odznaky</button>
+                            <button class="filter-btn" data-filter="streak">Série</button>
                         </div>
                     </div>
+                    <div class="leaderboard-table-container">
+                        <table class="leaderboard-table">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Pilot</th>
+                                    <th id="score-header">Kredity</th> <th>Odznaky</th>
+                                </tr>
+                            </thead>
+                            <tbody id="leaderboard-body">
+                                </tbody>
+                        </table>
+                    </div>
+                    <div class="empty-state" id="leaderboard-empty" style="display: none; padding: 2rem; border: none;">
+                         <i class="fas fa-satellite-dish empty-state-icon"></i>
+                        <p>ŽÁDNÁ DATA V SÍNI SLÁVY.</p>
+                    </div>
                 </section>
-
-                 <section class="recent-achievements card loading" id="recent-achievements-section" style="display: none;" data-animate style="--animation-order: 8;">
+                <section class="recent-achievements card loading" id="recent-achievements-section" style="display: none;" data-animate style="--animation-order: 8;">
                       <div class="recent-achievements-header">
                          <h2 class="section-title" style="margin: 0; padding: 0; border: none;"><i class="fas fa-history"></i>Nedávné Úspěchy</h2>
                       </div>
