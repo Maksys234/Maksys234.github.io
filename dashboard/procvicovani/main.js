@@ -88,6 +88,7 @@
                 // Feedback & Footer
                 toastContainer: document.getElementById('toast-container'),
                 globalError: document.getElementById('global-error'),
+                offlineBanner: document.getElementById('offline-banner'), // <<< Added Offline Banner
                 currentYearSidebar: document.getElementById('currentYearSidebar'),
                 currentYearFooter: document.getElementById('currentYearFooter'),
                  // Mouse Follower
@@ -96,7 +97,7 @@
 
             // --- Helper Functions ---
             const showToast = (title, message, type = 'info', duration = 4500) => { /* ... (original code) ... */ if (!ui.toastContainer) return; try { const toastId = `toast-${Date.now()}`; const toastElement = document.createElement('div'); toastElement.className = `toast ${type}`; toastElement.id = toastId; toastElement.setAttribute('role', 'alert'); toastElement.setAttribute('aria-live', 'assertive'); toastElement.innerHTML = `<i class="toast-icon"></i><div class="toast-content">${title ? `<div class="toast-title">${sanitizeHTML(title)}</div>` : ''}<div class="toast-message">${sanitizeHTML(message)}</div></div><button type="button" class="toast-close" aria-label="Zavřít">&times;</button>`; const icon = toastElement.querySelector('.toast-icon'); icon.className = `toast-icon fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle'}`; toastElement.querySelector('.toast-close').addEventListener('click', () => { toastElement.classList.remove('show'); setTimeout(() => toastElement.remove(), 400); }); ui.toastContainer.appendChild(toastElement); requestAnimationFrame(() => { toastElement.classList.add('show'); }); setTimeout(() => { if (toastElement.parentElement) { toastElement.classList.remove('show'); setTimeout(() => toastElement.remove(), 400); } }, duration); } catch (e) { console.error("Chyba při zobrazování toastu:", e); } };
-            const showError = (message, isGlobal = false) => { /* ... (original code) ... */ console.error("Došlo k chybě:", message); if (isGlobal && ui.globalError) { ui.globalError.innerHTML = `<div class="error-message"><i class="fas fa-exclamation-circle"></i><div>${sanitizeHTML(message)}</div></div>`; ui.globalError.style.display = 'block'; } else { showToast('CHYBA SYSTÉMU', message, 'error', 6000); } };
+            const showError = (message, isGlobal = false) => { /* ... (original code) ... */ console.error("Došlo k chybě:", message); if (isGlobal && ui.globalError) { ui.globalError.innerHTML = `<div class="error-message"><i class="fas fa-exclamation-triangle"></i><div>${sanitizeHTML(message)}</div></div>`; ui.globalError.style.display = 'block'; } else { showToast('CHYBA SYSTÉMU', message, 'error', 6000); } };
             const hideError = () => { /* ... (original code) ... */ if (ui.globalError) ui.globalError.style.display = 'none'; };
             const sanitizeHTML = (str) => { /* ... (original code) ... */ const t = document.createElement('div'); t.textContent = str || ''; return t.innerHTML; };
             const getInitials = (profile) => { /* ... (original code) ... */ if (!profile) return '?'; const f = profile.first_name?.[0] || ''; const l = profile.last_name?.[0] || ''; const nameInitial = (f + l).toUpperCase(); const usernameInitial = profile.username?.[0].toUpperCase() || ''; const emailInitial = profile.email?.[0].toUpperCase() || ''; return nameInitial || usernameInitial || emailInitial || '?'; };
@@ -171,6 +172,21 @@
                 if (mainEl.scrollTop > 10) document.body.classList.add('scrolled');
             };
 
+             // --- MODIFIED: Function to update online status ---
+             function updateOnlineStatus() {
+                 if (ui.offlineBanner) {
+                    // Always keep it hidden
+                     ui.offlineBanner.style.display = 'none';
+                    // Original logic (commented out):
+                    // ui.offlineBanner.style.display = navigator.onLine ? 'none' : 'block';
+                 }
+                 // Original toast message logic (kept for potential future use, but banner is hidden)
+                 if (!navigator.onLine) {
+                    console.warn("Network offline, banner display is disabled."); // Log instead of toast
+                    // showToast('Offline', 'Spojení bylo ztraceno. Některé funkce nemusí být dostupné.', 'warning');
+                 }
+             }
+
             // --- Loading State ---
             const setLoadingState = (sectionKey, isLoadingFlag) => {
                  const sectionMap = { stats: ui.statsCardsContainer, tests: ui.testResultsContainer, plan: ui.studyPlanContainer, topics: ui.topicAnalysisContainer, notifications: ui.notificationBell }; // Added notifications
@@ -202,7 +218,7 @@
                      });
                  } else if (container && sectionKey === 'stats') {
                       // Special handling for main dashboard stats cards if they use 'loading' class directly
-                      container.querySelectorAll('.stat-card').forEach(card => card.classList.toggle('loading', isLoadingFlag));
+                      container.querySelectorAll('.dashboard-card').forEach(card => card.classList.toggle('loading', isLoadingFlag));
                  }
 
                  // Hide main content and empty state when loading starts
@@ -291,8 +307,8 @@
                     if(ui.progressCard) ui.progressCard.classList.remove('loading');
                     if(ui.pointsCard) ui.pointsCard.classList.remove('loading');
                     if(ui.streakCard) ui.streakCard.classList.remove('loading');
-                    const mainDashboardValueElements = document.querySelectorAll('#progress-card .stat-card-value, #points-card .stat-card-value, #streak-card .stat-card-value');
-                    const mainDashboardChangeElements = document.querySelectorAll('#progress-card .stat-card-change, #points-card .stat-card-change, #streak-card .stat-card-change');
+                    const mainDashboardValueElements = document.querySelectorAll('#progress-card .card-value, #points-card .card-value, #streak-card .card-value'); // Updated selector
+                    const mainDashboardChangeElements = document.querySelectorAll('#progress-card .card-footer, #points-card .card-footer, #streak-card .card-footer'); // Updated selector
                     mainDashboardValueElements.forEach(el => { if(el) el.textContent = '-'; });
                     mainDashboardChangeElements.forEach(el => { if(el) el.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Data Error`; });
 
@@ -315,12 +331,12 @@
                  // --- Render Main Dashboard Stats (if elements exist) ---
                  if (ui.progressCard && ui.pointsCard && ui.streakCard) {
                      const statElementsMain = {
-                        progress: ui.progressCard?.querySelector('.stat-card-value'),
-                        progressChange: ui.progressCard?.querySelector('.stat-card-change'),
-                        points: ui.pointsCard?.querySelector('.stat-card-value'),
-                        pointsChange: ui.pointsCard?.querySelector('.stat-card-change'),
-                        streak: ui.streakCard?.querySelector('.stat-card-value'),
-                        streakLongest: ui.streakCard?.querySelector('.stat-card-change')
+                        progress: ui.progressCard?.querySelector('.card-value'), // Updated selector
+                        progressChange: ui.progressCard?.querySelector('.card-footer'), // Updated selector
+                        points: ui.pointsCard?.querySelector('.card-value'), // Updated selector
+                        pointsChange: ui.pointsCard?.querySelector('.card-footer'), // Updated selector
+                        streak: ui.streakCard?.querySelector('.card-value'), // Updated selector
+                        streakLongest: ui.streakCard?.querySelector('.card-footer') // Updated selector
                      };
                      mainDashboardStatsElements.forEach(c => c?.classList.remove('loading'));
                      if (statElementsMain.progress) statElementsMain.progress.textContent = `${stats.progress ?? 0}%`;
@@ -352,7 +368,7 @@
             const renderTestChart = (chartData) => { /* ... (original code) ... */ if (!ui.testsChartCanvas) { console.error("[Chart] Canvas element not found."); setLoadingState('chart', false); return; } const ctx = ui.testsChartCanvas.getContext('2d'); if (testsChartInstance) testsChartInstance.destroy(); if (!chartData || !chartData.labels || !chartData.data || chartData.labels.length < 2) { if (ui.testsChartCanvas) ui.testsChartCanvas.style.display = 'none'; return; } ui.testsChartCanvas.style.display = 'block'; const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches; const gridColor = 'rgba(var(--accent-secondary-rgb), 0.15)'; const textColor = 'var(--text-muted)'; const pointColor = 'var(--accent-primary)'; const lineColor = 'var(--accent-primary)'; const bgColor = 'rgba(var(--accent-primary-rgb), 0.1)'; testsChartInstance = new Chart(ctx, { type: 'line', data: { labels: chartData.labels, datasets: [{ label: 'Skóre (%)', data: chartData.data, borderColor: lineColor, backgroundColor: bgColor, borderWidth: 2.5, pointBackgroundColor: pointColor, pointRadius: 4, pointHoverRadius: 6, tension: 0.3, fill: true }] }, options: { responsive: true, maintainAspectRatio: false, scales: { x: { type: 'time', time: { unit: 'day', tooltipFormat: 'P', displayFormats: { day: 'd.M.' } }, ticks: { color: textColor, maxRotation: 0, autoSkipPadding: 15 }, grid: { display: false } }, y: { beginAtZero: true, max: 100, ticks: { stepSize: 25, color: textColor, callback: (v) => v + '%' }, grid: { color: gridColor } } }, plugins: { legend: { display: false }, tooltip: { mode: 'index', intersect: false, backgroundColor: 'var(--interface-bg)', titleColor: 'var(--text-heading)', bodyColor: 'var(--text-medium)', borderColor: 'var(--border-color-medium)', borderWidth: 1, padding: 10, displayColors: false, callbacks: { title: (items) => dateFns.format(new Date(items[0].parsed.x), 'PPP', { locale: dateFns.locale.cs || dateFns.locale.enUS }), label: (ctx) => `Skóre: ${ctx.parsed.y.toFixed(0)}%` } } }, interaction: { mode: 'nearest', axis: 'x', intersect: false } } }); console.log("[Render] Test chart updated."); };
             const renderStudyPlanOverview = (plan, activities) => { /* ... (original code) ... */ setLoadingState('plan', false); if (!ui.studyPlanContainer || !ui.studyPlanContent || !ui.studyPlanEmpty || !ui.mainPlanScheduleGrid) return; ui.studyPlanContainer.classList.remove('loading'); if (!plan) { ui.studyPlanContent.style.display = 'none'; ui.studyPlanEmpty.style.display = 'block'; return; } ui.studyPlanContent.style.display = 'block'; ui.studyPlanEmpty.style.display = 'none'; ui.mainPlanScheduleGrid.innerHTML = ''; const daysOrder = [1, 2, 3, 4, 5, 6, 0]; const dayNames = { 0: 'Neděle', 1: 'Pondělí', 2: 'Úterý', 3: 'Středa', 4: 'Čtvrtek', 5: 'Pátek', 6: 'Sobota' }; const activitiesByDay = {}; daysOrder.forEach(dayIndex => activitiesByDay[dayIndex] = []); (activities || []).forEach(activity => { if (activitiesByDay[activity.day_of_week] !== undefined) activitiesByDay[activity.day_of_week].push(activity); }); daysOrder.forEach(dayIndex => { const dayName = dayNames[dayIndex]; const dayDiv = document.createElement('div'); dayDiv.className = 'schedule-day card'; const headerDiv = document.createElement('div'); headerDiv.className = 'schedule-day-header'; headerDiv.textContent = dayName; dayDiv.appendChild(headerDiv); const activitiesDiv = document.createElement('div'); activitiesDiv.className = 'schedule-activities'; const dayActivities = activitiesByDay[dayIndex].sort((a, b) => (a.time_slot || '').localeCompare(b.time_slot || '')); if (dayActivities.length > 0) { dayActivities.forEach(activity => { const visual = activityVisuals[activity.type?.toLowerCase()] || activityVisuals.default; const title = sanitizeHTML(activity.title || 'Nespecifikováno'); const timeSlot = activity.time_slot ? `<span>${sanitizeHTML(activity.time_slot)}</span>` : ''; const activityItem = document.createElement('div'); activityItem.className = `schedule-activity-item ${activity.completed ? 'completed' : ''}`; activityItem.innerHTML = `<i class="fas ${visual.icon} activity-icon"></i><div class="activity-details"><strong>${title}</strong>${timeSlot}</div>`; activitiesDiv.appendChild(activityItem); }); } else { activitiesDiv.innerHTML = `<p class="no-activities-placeholder">Žádné aktivity</p>`; } dayDiv.appendChild(activitiesDiv); ui.mainPlanScheduleGrid.appendChild(dayDiv); }); console.log("[Render] Study plan overview updated."); };
             const renderTopicAnalysis = (topics) => { /* ... (original code) ... */ setLoadingState('topics', false); if (!ui.topicAnalysisContainer || !ui.topicAnalysisContent || !ui.topicAnalysisEmpty || !ui.topicGrid) return; ui.topicAnalysisContainer.classList.remove('loading'); if (!topics || topics.length === 0) { ui.topicAnalysisContent.style.display = 'none'; ui.topicAnalysisEmpty.style.display = 'block'; return; } ui.topicAnalysisContent.style.display = 'block'; ui.topicAnalysisEmpty.style.display = 'none'; ui.topicGrid.innerHTML = ''; const fragment = document.createDocumentFragment(); topics.sort((a, b) => { const order = { 'weakness': 0, 'neutral': 1, 'strength': 2 }; return (order[a.strength] ?? 1) - (order[b.strength] ?? 1); }); topics.forEach(topic => { const topicName = topic.topic?.name || `Téma ${topic.topic_id}` || 'Neznámé téma'; const iconClass = topicIcons[topicName] || topicIcons.default || 'fa-book'; const strength = topic.strength || 'neutral'; const progress = topic.progress || 0; const attempted = topic.questions_attempted || 0; const correct = topic.questions_correct || 0; const accuracy = attempted > 0 ? Math.round((correct / attempted) * 100) : 0; const accuracyClass = accuracy >= 75 ? 'high' : accuracy < 50 ? 'low' : 'medium'; const card = document.createElement('div'); card.className = `topic-card ${strength}`; card.innerHTML = `<div class="topic-header"><div class="topic-icon"><i class="fas ${iconClass}"></i></div><h3 class="topic-title">${sanitizeHTML(topicName)}</h3></div><div class="progress-container" title="Celkový pokrok: ${progress}%"><div class="progress-bar" style="width: ${progress}%;"></div></div><div class="topic-stats"><div class="topic-stat"><span>Správnost:</span><strong class="accuracy-value ${accuracyClass}">${accuracy}%</strong></div><div class="topic-stat"><span>Otázky:</span><strong>${correct}/${attempted}</strong></div></div>`; fragment.appendChild(card); }); ui.topicGrid.appendChild(fragment); console.log("[Render] Topic analysis updated."); };
-            const renderNotifications = (count, notifications) => { /* ... (original code) ... */ console.log("[Render Notifications] Start, Počet:", count, "Oznámení:", notifications); if (!ui.notificationCount || !ui.notificationsList || !ui.noNotificationsMsg || !ui.markAllReadBtn) { console.error("[Render Notifications] Chybí UI elementy."); return; } ui.notificationCount.textContent = count > 9 ? '9+' : (count > 0 ? String(count) : ''); ui.notificationCount.classList.toggle('visible', count > 0); if (notifications && notifications.length > 0) { ui.notificationsList.innerHTML = notifications.map(n => { const iconMap = { info: 'fa-info-circle', success: 'fa-check-circle', warning: 'fa-exclamation-triangle', danger: 'fa-exclamation-circle', badge: 'fa-medal', level_up: 'fa-angle-double-up' }; const iconClass = iconMap[n.type] || 'fa-info-circle'; const typeClass = n.type || 'info'; const isReadClass = n.is_read ? 'is-read' : ''; const linkAttr = n.link ? `data-link="${sanitizeHTML(n.link)}"` : ''; return `<div class="notification-item ${isReadClass}" data-id="${n.id}" ${linkAttr}> ${!n.is_read ? '<span class="unread-dot"></span>' : ''} <div class="notification-icon ${typeClass}"><i class="fas ${iconClass}"></i></div> <div class="notification-content"> <div class="notification-title">${sanitizeHTML(n.title)}</div> <div class="notification-message">${sanitizeHTML(n.message)}</div> <div class="notification-time">${formatRelativeTime(n.created_at)}</div> </div> </div>`; }).join(''); ui.noNotificationsMsg.style.display = 'none'; ui.notificationsList.style.display = 'block'; ui.markAllReadBtn.disabled = count === 0; } else { ui.notificationsList.innerHTML = ''; ui.noNotificationsMsg.style.display = 'block'; ui.notificationsList.style.display = 'none'; ui.markAllReadBtn.disabled = true; } console.log("[Render Notifications] Hotovo"); };
+            const renderNotifications = (count, notifications) => { /* ... (original code) ... */ console.log("[Render Notifications] Start, Počet:", count, "Oznámení:", notifications); if (!ui.notificationCount || !ui.notificationsList || !ui.noNotificationsMsg || !ui.markAllReadBtn) { console.error("[Render Notifications] Chybí UI elementy."); return; } ui.notificationCount.textContent = count > 9 ? '9+' : (count > 0 ? String(count) : ''); ui.notificationCount.classList.toggle('visible', count > 0); if (notifications && notifications.length > 0) { ui.notificationsList.innerHTML = notifications.map(n => { const visual = activityVisuals[n.type?.toLowerCase()] || activityVisuals.default; const isReadClass = n.is_read ? 'is-read' : ''; const linkAttr = n.link ? `data-link="${sanitizeHTML(n.link)}"` : ''; return `<div class="notification-item ${isReadClass}" data-id="${n.id}" ${linkAttr}>${!n.is_read ? '<span class="unread-dot"></span>' : ''}<div class="notification-icon ${visual.class}"><i class="fas ${visual.icon}"></i></div><div class="notification-content"><div class="notification-title">${sanitizeHTML(n.title)}</div><div class="notification-message">${sanitizeHTML(n.message)}</div><div class="notification-time">${formatRelativeTime(n.created_at)}</div></div></div>`; }).join(''); ui.noNotificationsMsg.style.display = 'none'; ui.notificationsList.style.display = 'block'; ui.markAllReadBtn.disabled = count === 0; } else { ui.notificationsList.innerHTML = ''; ui.noNotificationsMsg.style.display = 'block'; ui.notificationsList.style.display = 'none'; ui.markAllReadBtn.disabled = true; } console.log("[Render Notifications] Hotovo"); };
 
             // --- Notification Logic ---
             const markNotificationRead = async (notificationId) => { /* ... (original code) ... */ console.log("[FUNC] markNotificationRead: Označení ID:", notificationId); if (!currentUser || !notificationId) return false; try { const { error } = await supabase.from('user_notifications').update({ is_read: true }).eq('user_id', currentUser.id).eq('id', notificationId); if (error) throw error; console.log("[FUNC] markNotificationRead: Úspěch pro ID:", notificationId); return true; } catch (error) { console.error("[FUNC] markNotificationRead: Chyba:", error); showToast('Chyba', 'Nepodařilo se označit oznámení jako přečtené.', 'error'); return false; } };
@@ -425,7 +441,6 @@
                  ui.sidebarOverlay?.addEventListener('click', toggleMobileMenu);
                  ui.sidebarCloseToggle?.addEventListener('click', toggleMobileMenu);
                  document.querySelectorAll('.sidebar-link').forEach(link => { link.addEventListener('click', () => { if (window.innerWidth <= 992) closeMenu(); }); });
-                 window.addEventListener('resize', () => { if (window.innerWidth > 992 && ui.sidebar?.classList.contains('active')) closeMenu(); });
 
                  // Tab Switching
                  document.querySelectorAll('.content-tab').forEach(tab => { tab.addEventListener('click', handleTabSwitch); });
@@ -467,6 +482,10 @@
 
                  // Scroll listener for header styling
                   if (ui.mainContent) ui.mainContent.addEventListener('scroll', handleScroll, { passive: true });
+
+                 // Online/Offline status listeners
+                 window.addEventListener('online', updateOnlineStatus);
+                 window.addEventListener('offline', updateOnlineStatus);
             }
 
             function handleTabSwitch(event) {
