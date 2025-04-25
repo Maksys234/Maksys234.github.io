@@ -1,6 +1,6 @@
-/* --- START: Киберпанк CSS Тема (Merged & Adapted for /procvicovani/main.html - v3) --- */
+/* --- START: Киберпанк CSS Тема (Merged & Adapted for /procvicovani/main.html - v2) --- */
 /* --- Base Theme from dashboard.html & Enhancements from other CSS --- */
-/* --- FIX: Scrolling, Notification Styles, Tab Scrolling, Reload Button UI --- */
+/* --- FIX: Scrolling & Notification Styles --- */
 
 /* --- Глобальные Настройки и Переменные --- */
 :root {
@@ -332,50 +332,7 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
 .header-content h1 { font-size: 1.8rem; font-weight: 700; color: var(--text-heading); margin: 0; text-shadow: 0 0 12px var(--accent-glow); }
 .header-actions { display: flex; align-items: center; gap: 0.85rem; flex-shrink: 0; }
 
-/* --- Reload Button (FIX: Enhanced UI) --- */
-.refresh-btn {
-    /* Inherit basic button styles */
-    display: inline-flex; align-items: center; justify-content: center; gap: 0.6em;
-    padding: 0.7rem 1.2rem; /* Slightly adjusted padding */
-    border-radius: var(--button-radius);
-    font-family: var(--font-secondary); font-weight: 500; /* Adjusted weight */
-    font-size: 0.9rem; text-align: center;
-    text-transform: uppercase; letter-spacing: 1px;
-    cursor: pointer; transition: all var(--transition-medium);
-    position: relative; overflow: hidden;
-    background: rgba(var(--accent-secondary-rgb), 0.15); /* Secondary-like background */
-    color: var(--text-medium);
-    border: 1px solid var(--border-color-light); /* Light border */
-    box-shadow: var(--shadow-sm);
-}
-.refresh-btn i { transition: transform 0.3s ease; }
-.refresh-btn:hover:not(:disabled) {
-    background-color: rgba(var(--accent-primary-rgb), 0.15);
-    color: var(--accent-primary);
-    border-color: rgba(var(--accent-primary-rgb), 0.5);
-    box-shadow: 0 0 15px rgba(var(--accent-primary-rgb), 0.25);
-    transform: translateY(-2px);
-}
-.refresh-btn:active:not(:disabled) {
-    transform: translateY(0px) scale(0.98);
-    box-shadow: 0 0 8px rgba(var(--accent-primary-rgb), 0.15);
-    background-color: rgba(var(--accent-primary-rgb), 0.1);
-}
-.refresh-btn:disabled {
-    opacity: 0.6; cursor: not-allowed;
-    background-color: rgba(var(--text-muted-rgb), 0.1) !important;
-    color: var(--text-muted) !important;
-    border-color: rgba(var(--text-muted-rgb), 0.2) !important;
-    box-shadow: none !important; transform: none !important;
-}
-.refresh-btn i.fa-spin { animation: spin 1.5s linear infinite; } /* Keep spin animation */
-.refresh-btn .refresh-text { display: inline; /* Show text by default */ margin-left: 0.4em; font-weight: 600; }
-@media (max-width: 768px) {
-    .refresh-btn { padding: 0.6rem; } /* Smaller padding on mobile */
-    .refresh-btn .refresh-text { display: none; } /* Hide text on mobile */
-}
-
-/* --- Notification Styles (Identical to dashboard.html) --- */
+/* --- Notification Styles (FIX: Copy from dashboard.html styles) --- */
 .notifications { position: relative; }
 .notification-bell { cursor: pointer; padding: 0.7rem; position: relative; display: inline-block; line-height: 1; transition: transform 0.2s ease; }
 .notification-bell:hover { transform: scale(1.05); }
@@ -412,10 +369,6 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
 .view-all-notifications-link { font-size: 0.9rem; color: var(--accent-primary); text-decoration: none; font-weight: 500; transition: color 0.2s ease; }
 .view-all-notifications-link:hover { color: var(--white); text-decoration: underline; }
 #no-notifications-msg { padding: 2.5rem 1rem; text-align: center; color: var(--text-muted); font-size: 0.95rem; display: none; }
-.notification-item.skeleton { pointer-events: none; } /* Make skeletons unclickable */
-.skeleton { background-color: var(--skeleton-bg); border-radius: 4px; position: relative; overflow: hidden; }
-.skeleton::after { content: ''; position: absolute; top: 0; left: -150%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, var(--skeleton-highlight), transparent); animation: skeleton-loading 1.5s infinite linear; }
-@keyframes skeleton-loading { 0% { left: -150%; } 100% { left: 150%; } }
 /* --- END: Notification Styles --- */
 
 /* --- Секции (улучшенные) --- */
@@ -426,30 +379,45 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
 @keyframes gradient-move { 0% { background-position: 0% 50%; } 100% { background-position: 100% 50%; } }
 @keyframes popInMessage { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } } /* From vyuka.css */
 
-/* --- Dashboard Cards --- */
-/* ... (styles for .dashboard-grid, .dashboard-card, .card-header, etc. are mostly unchanged) ... */
+/* --- Dashboard Cards (Merged Styles) --- */
 .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 2rem; }
-.dashboard-card { padding: 1.9rem; display: flex; flex-direction: column; min-height: 190px; }
-/* ... (Rest of dashboard card styles remain the same) ... */
+.dashboard-card { /* Apply enhanced card style */ background: var(--card-bg); border-radius: var(--card-radius); border: 1px solid var(--border-color-light); box-shadow: var(--shadow-hud); padding: 1.9rem; display: flex; flex-direction: column; min-height: 190px; transition: all var(--transition-medium); position: relative; overflow: hidden; }
+.dashboard-card:hover { transform: translateY(-7px) scale(1.02); box-shadow: var(--shadow-card-hover-enhanced); border-color: var(--border-color-strong); background-color: rgba(var(--card-solid-rgb), 0.95); }
+/* Dashboard card corners */
+.dashboard-card::before, .dashboard-card::after { content: ''; position: absolute; width: 15px; height: 15px; border-color: var(--accent-primary); border-style: solid; opacity: 0; transition: all 0.4s ease; pointer-events: none; z-index: 1; filter: drop-shadow(0 0 3px var(--accent-glow)); }
+.dashboard-card::before { top: 8px; left: 8px; border-width: 3px 0 0 3px; }
+.dashboard-card::after { bottom: 8px; right: 8px; border-width: 0 3px 3px 0; }
+.dashboard-card:hover::before, .dashboard-card:hover::after { opacity: 0.8; }
+.dashboard-card:hover::before { transform: translate(-4px, -4px) rotate(-5deg); }
+.dashboard-card:hover::after { transform: translate(4px, 4px) rotate(5deg); }
+.card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.2rem; }
+.card-title { font-size: 1.05rem; font-weight: 600; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.8px; }
+.card-badge { font-size: 0.8rem; font-weight: 600; padding: 0.35rem 0.9rem; border-radius: 14px; background-color: rgba(var(--accent-primary-rgb), 0.15); color: var(--accent-primary); border: 1px solid rgba(var(--accent-primary-rgb), 0.3); text-shadow: 0 0 3px rgba(var(--accent-primary-rgb), 0.4); }
+.card-badge.success { background-color: rgba(var(--accent-lime-rgb), 0.15); color: var(--accent-lime); border-color: rgba(var(--accent-lime-rgb), 0.3); text-shadow: 0 0 3px rgba(var(--accent-lime-rgb), 0.4); }
+.card-badge.warning { background-color: rgba(var(--accent-orange-rgb), 0.15); color: var(--accent-orange); border-color: rgba(var(--accent-orange-rgb), 0.3); text-shadow: 0 0 3px rgba(var(--accent-orange-rgb), 0.4); }
+.card-badge.info { background-color: rgba(var(--accent-secondary-rgb), 0.15); color: var(--accent-secondary); border-color: rgba(var(--accent-secondary-rgb), 0.3); text-shadow: 0 0 3px rgba(var(--accent-secondary-rgb), 0.4); }
+.card-content { flex-grow: 1; margin-bottom: 1.4rem; }
+.card-value { font-size: 2.6rem; font-weight: 700; color: var(--text-heading); margin-bottom: 0.6rem; line-height: 1.1; min-height: 42px; text-shadow: 0 0 10px rgba(var(--white-rgb), 0.4); }
+.progress-info, .card-description { font-size: 0.95rem; color: var(--text-medium); display: flex; justify-content: space-between; align-items: center; }
+.card-footer { font-size: 0.9rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.5rem; padding-top: 1rem; border-top: 1px solid var(--border-color-light); margin-top: auto; font-weight: 500; }
+.card-footer.positive { color: var(--accent-lime); }
+.card-footer.negative { color: var(--accent-pink); }
+.card-footer i { font-size: 0.9em; }
+.progress-container { width: 100%; height: 10px; background-color: rgba(var(--accent-primary-rgb), 0.15); border-radius: 5px; overflow: hidden; margin: 0.7rem 0; box-shadow: inset 0 2px 4px rgba(0,0,0,0.4); }
+.progress-bar { height: 100%; border-radius: 5px; background: var(--gradient-button); transition: width 0.6s ease-out; box-shadow: 0 0 10px var(--accent-glow); }
 
-/* --- Tab Styles (FIX: Ensure horizontal scrolling and clean scrollbar) --- */
-.content-tabs {
-    display: flex;
-    border-bottom: 1px solid var(--border-color-light);
-    margin-bottom: 2rem;
-    overflow-x: auto; /* Allow horizontal scroll */
-    white-space: nowrap; /* Prevent tabs from wrapping */
-    padding-bottom: 1px; /* Prevent border cutting off bottom pixels */
-    /* Custom scrollbar for tabs */
-    scrollbar-width: thin;
-    scrollbar-color: rgba(var(--accent-primary-rgb), 0.5) transparent;
-}
-.content-tabs::-webkit-scrollbar { height: 6px; }
+/* Other specific styles from main.css */
+.diagnostic-prompt { padding: 1.5rem 2rem; margin-top: 2rem; background-color: rgba(var(--accent-info-rgb, 72, 149, 239), 0.1); border: 1px solid rgba(var(--accent-info-rgb, 72, 149, 239), 0.3); border-radius: var(--card-radius); display: flex; flex-direction: column; align-items: center; text-align: center; gap: 1rem; box-shadow: var(--shadow-sm); }
+.diagnostic-prompt i { font-size: 2rem; color: var(--accent-info); margin-bottom: 0.5rem; }
+.diagnostic-prompt p { margin: 0; flex-grow: 1; color: var(--text-light); font-size: 1rem; }
+.diagnostic-prompt .btn i { margin-right: 0.5rem; }
+
+/* Content Tabs */
+.content-tabs { display: flex; border-bottom: 1px solid var(--border-color-light); margin-bottom: 2rem; overflow-x: auto; padding-bottom: 1px; scrollbar-width: thin; scrollbar-color: rgba(var(--accent-primary-rgb), 0.5) transparent; }
+.content-tabs::-webkit-scrollbar { height: 4px; }
 .content-tabs::-webkit-scrollbar-track { background: transparent; }
-.content-tabs::-webkit-scrollbar-thumb { background-color: rgba(var(--accent-primary-rgb), 0.5); border-radius: 3px; }
-.content-tabs::-webkit-scrollbar-thumb:hover { background-color: rgba(var(--accent-primary-rgb), 0.7); }
-
-.content-tab { padding: 1rem 1.75rem; font-weight: 600; color: var(--text-muted); cursor: pointer; transition: all 0.3s ease; border-bottom: 3px solid transparent; font-size: 1rem; display: inline-flex; /* Changed to inline-flex */ align-items: center; gap: 0.6rem; position: relative; }
+.content-tabs::-webkit-scrollbar-thumb { background-color: rgba(var(--accent-primary-rgb), 0.5); border-radius: 2px; }
+.content-tab { padding: 1rem 1.75rem; font-weight: 600; color: var(--text-muted); cursor: pointer; transition: all 0.3s ease; border-bottom: 3px solid transparent; white-space: nowrap; font-size: 1rem; display: flex; align-items: center; gap: 0.6rem; position: relative; }
 .content-tab i { font-size: 1.1rem; transition: color 0.3s ease; }
 .content-tab::after { content: ''; position: absolute; left: 0; bottom: -2px; width: 100%; height: 3px; background: var(--accent-primary); border-radius: 1.5px; opacity: 0; transform: scaleX(0.5); box-shadow: 0 0 10px var(--accent-glow); transition: opacity 0.3s ease, transform 0.3s ease; transform-origin: center; }
 .content-tab:hover { color: var(--text-light); }
@@ -463,11 +431,7 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
 .tab-content.active { display: block; animation: fadeInContent 0.6s ease-out forwards; }
 @keyframes fadeInContent { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-/* --- Other specific styles from main.css (unchanged) --- */
-.diagnostic-prompt { padding: 1.5rem 2rem; margin-top: 2rem; background-color: rgba(var(--accent-info-rgb, 72, 149, 239), 0.1); border: 1px solid rgba(var(--accent-info-rgb, 72, 149, 239), 0.3); border-radius: var(--card-radius); display: flex; flex-direction: column; align-items: center; text-align: center; gap: 1rem; box-shadow: var(--shadow-sm); }
-.diagnostic-prompt i { font-size: 2rem; color: var(--accent-info); margin-bottom: 0.5rem; }
-.diagnostic-prompt p { margin: 0; flex-grow: 1; color: var(--text-light); font-size: 1rem; }
-.diagnostic-prompt .btn i { margin-right: 0.5rem; }
+/* Test Results specific styles (if needed, copied from test1.css) */
 .test-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
 .stats-card { background: var(--card-solid); padding: 1.5rem; text-align: center; border: 1px solid var(--border-color-medium); border-radius: var(--card-radius); }
 .stats-icon { width: 50px; height: 50px; border-radius: 14px; margin: 0 auto 1rem auto; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: var(--white); box-shadow: 0 3px 8px rgba(0,0,0,0.2); }
@@ -493,6 +457,8 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
 .test-meta { font-size: 0.8rem; color: var(--text-muted); display: flex; gap: 0.8rem; flex-wrap: wrap; }
 .test-meta span { display: inline-flex; align-items: center; gap: 0.3rem; }
 .test-score { font-size: 1.1rem; font-weight: 600; color: var(--accent-primary); margin-left: 1rem; flex-shrink: 0; }
+
+/* Study Plan / Topic Analysis */
 .main-weekly-schedule, .topic-analysis-section { padding: 1.5rem 0 0 0; }
 .schedule-grid, .topic-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.8rem; margin-top: 1.5rem; }
 .schedule-day, .topic-card { background-color: var(--card-solid); border-radius: var(--card-radius); padding: 1.5rem; box-shadow: var(--shadow-hud); border: 1px solid var(--border-color-medium); display: flex; flex-direction: column; transition: all 0.3s ease; }
@@ -613,7 +579,7 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
 	.main-content-wrapper [data-animate] { opacity: 1 !important; transform: none !important; transition: none !important; }
 	.mouse-follower-glow { display: none !important; }
 	body::before, body::after { animation: none !important; }
-	.refresh-btn i.fa-spin { animation: none !important; } /* Stop spin */
+	.refresh-btn.loading i { animation: none !important; }
 	.loading-spinner, .initial-loading-overlay .loading-spinner { animation: none !important; border: 4px solid var(--accent-primary) !important; }
 	.card:hover, .shortcut-card:hover, .btn:hover, .btn-outline:hover, .welcome-button:hover, .refresh-btn:hover, .view-all-link:hover, .dashboard-card:hover { transform: none !important; }
 	.skeleton::after { animation: none !important; background: var(--skeleton-highlight) !important; }
