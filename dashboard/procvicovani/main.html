@@ -1,24 +1,29 @@
 <!DOCTYPE html>
-<html lang="cs" class="dark">
-<head>
+<html lang="cs" class="dark"> <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Justax Kyber-Nástěnka v19</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <title>Justax Kyber-Nástěnka v19</title> <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/date-fns@2.29.3/index.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/date-fns/locale/cs/index.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/css/tooltipster.bundle.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/js/tooltipster.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <link rel="stylesheet" href="main.css">
-</head>
-<body class="dark">
-    <div class="initial-loading-overlay" id="initial-loader">
-        <div class="loading-spinner"></div>
-        <p>SYNCHRONIZACE...</p>
-    </div>
 
-    <div class="offline-banner" id="offline-banner"> <i class="fas fa-plug"></i> OFFLINE // SPOJENÍ ZTRACENO.</div>
+</head>
+<body class="dark"> <div class="initial-loading-overlay" id="initial-loader">
+         <div class="loading-spinner"></div>
+         <p>SYNCHRONIZACE...</p> </div>
+
+     <div class="offline-banner" id="offline-banner"> <i class="fas fa-plug"></i> OFFLINE // SPOJENÍ ZTRACENO.</div>
 
     <div class="sidebar-overlay" id="sidebar-overlay"></div>
 
@@ -43,10 +48,9 @@
             <div class="user-avatar" id="sidebar-avatar">?</div>
             <div class="user-info">
                 <div class="user-name" id="sidebar-name">Načítání...</div>
-                <div class="user-role">Pilot</div>
-            </div>
+                <div class="user-role">Pilot</div> </div>
         </div>
-        <div class="sidebar-footer"> &copy; <span id="currentYearSidebar">2025</span> Justax Systems </div>
+        <div class="sidebar-footer"> &copy; 2025 Justax Systems </div>
     </aside>
 
     <main id="main-content">
@@ -58,13 +62,11 @@
                       <button class="mobile-menu-toggle" id="main-mobile-menu-toggle" aria-label="Otevřít menu">
                           <i class="fas fa-bars"></i>
                      </button>
-                     <h1 id="dashboard-title">Nástěnka // STATUS</h1>
-                 </div>
+                     <h1 id="dashboard-title">Nástěnka // STATUS</h1> </div>
                 <div class="header-actions">
                     <button class="refresh-btn" id="refresh-data-btn" title="Obnovit data">
                         <i class="fas fa-sync-alt"></i>
-                        <span class="refresh-text">RELOAD</span>
-                    </button>
+                        <span class="refresh-text">RELOAD</span> </button>
                     <div class="notifications">
                         <div class="notification-bell" id="notification-bell" title="Oznámení">
                              <i class="far fa-bell"></i>
@@ -91,8 +93,7 @@
 
         <div class="main-content-wrapper">
             <div class="main-content-grid">
-                 <section class="welcome-banner card" data-animate style="--animation-order: 0;">
-                     <div class="welcome-content">
+                 <section class="welcome-banner card" data-animate style="--animation-order: 0;"> <div class="welcome-content">
                          <div class="welcome-text-content">
                              <h2 class="welcome-title" id="welcome-title">Vítejte!</h2>
                              <p class="welcome-text">Přehled vašeho kyber-profilu a rychlé akce.</p>
@@ -111,17 +112,17 @@
                              <div class="loading-skeleton"> <div class="skeleton-info"> <div class="skeleton title"></div> <div class="skeleton value"></div> <div class="skeleton text text-short"></div> </div> <div class="skeleton icon-placeholder"></div> </div>
                              <div class="stat-card-content"> <div class="stat-card-info"> <div class="stat-card-title"><i class="fas fa-tasks"></i>Celkový Progress</div> <div class="stat-card-value">- %</div> <div class="stat-card-change"><i class="fas fa-minus"></i> Načítání...</div> </div> </div>
                              <div class="stat-card-icon-bg progress-icon"><i class="fas fa-chart-line"></i></div>
-                         </div>
+                             </div>
                         <div class="stat-card card loading" id="points-card" data-animate style="--animation-order: 3;">
                              <div class="loading-skeleton"> <div class="skeleton-info"> <div class="skeleton title"></div> <div class="skeleton value"></div> <div class="skeleton text text-short"></div> </div> <div class="skeleton icon-placeholder"></div> </div>
                               <div class="stat-card-content"> <div class="stat-card-info"> <div class="stat-card-title"><i class="fas fa-coins"></i>Kredity</div> <div class="stat-card-value">-</div> <div class="stat-card-change"><i class="fas fa-minus"></i> Načítání...</div> </div> </div>
                               <div class="stat-card-icon-bg points-icon"><i class="fas fa-star"></i></div>
-                         </div>
+                             </div>
                          <div class="stat-card card loading" id="streak-card" data-animate style="--animation-order: 4;">
                              <div class="loading-skeleton"> <div class="skeleton-info"> <div class="skeleton title"></div> <div class="skeleton value"></div> <div class="skeleton text text-short"></div> </div> <div class="skeleton icon-placeholder"></div> </div>
                                <div class="stat-card-content"> <div class="stat-card-info"> <div class="stat-card-title"><i class="fas fa-calendar-check"></i>Série</div> <div class="stat-card-value">-</div> <div class="stat-card-change">MAX: - dní</div> </div> </div>
                               <div class="stat-card-icon-bg streak-icon"><i class="fas fa-fire"></i></div>
-                         </div>
+                             </div>
                     </div>
                 </section>
 
