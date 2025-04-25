@@ -1,30 +1,29 @@
-/* --- START: Киберпанк CSS Тема (Merged & Adapted for /procvicovani/main.html - v2) --- */
+/* --- START: Киберпанк CSS Тема (Unified & Optimized for /procvicovani/main.html - v3) --- */
 /* --- Base Theme from dashboard.html & Enhancements from other CSS --- */
-/* --- FIX: Scrolling & Notification Styles --- */
-/* --- FIX v2: Enhanced Reload Button Styles & Scrolling --- */
+/* --- FIX: Scrolling, Notification Styles, Reload Button, Unified Background & Theme --- */
 
-/* --- Глобальные Настройки и Переменные --- */
+/* --- Глобальные Настройки и Переменные (Унифицированные) --- */
 :root {
 	/* Основа */
-	--bg-color: #03020c;
-	--bg-secondary: #0a071f;
-	--bg-secondary-rgb: 10, 7, 31; /* Added RGB version */
-	--card-bg: rgba(15, 10, 45, 0.9); /* More purple, slightly more opaque */
-	--card-solid: #0f0a2d;
-	--card-solid-rgb: 18, 10, 55; /* Added RGB version */
-	--interface-bg: rgba(6, 4, 22, 0.92);
-	--interface-border: rgba(0, 240, 255, 0.45); /* Slightly stronger border */
-	--dark-purple-accent: #1a0f4a; /* Darker purple */
+	--bg-color: #03020c; /* Темный базовый фон */
+	--bg-secondary: #0a071f; /* Темный вторичный фон */
+	--bg-secondary-rgb: 10, 7, 31;
+	--card-bg: rgba(15, 10, 45, 0.9); /* Фиолетовая полупрозрачная карта */
+	--card-solid: #0f0a2d; /* Непрозрачная карта */
+	--card-solid-rgb: 15, 10, 45;
+	--interface-bg: rgba(6, 4, 22, 0.92); /* Фон интерфейсов */
+	--interface-border: rgba(0, 240, 255, 0.45); /* Ярче рамка */
+	--dark-purple-accent: #1a0f4a; /* Темный фиолетовый */
 	--dark-purple-accent-rgb: 26, 15, 74;
 
 	/* Акценты */
-	--accent-primary: #00f0ff; /* Brighter Cyan */
+	--accent-primary: #00f0ff; /* Яркий Циан */
 	--accent-primary-rgb: 0, 240, 255;
-	--accent-secondary: #a85eff; /* Slightly brighter Purple */
+	--accent-secondary: #a85eff; /* Яркий Пурпурный */
 	--accent-secondary-rgb: 168, 94, 255;
-	--accent-pink: #ff33cc; /* Brighter Pink */
+	--accent-pink: #ff33cc; /* Яркий Розовый */
 	--accent-pink-rgb: 255, 51, 204;
-	--accent-lime: #7fff4d; /* Brighter Lime */
+	--accent-lime: #7fff4d; /* Яркий Лайм */
 	--accent-lime-rgb: 127, 255, 77;
 	--accent-cyan: var(--accent-primary);
 	--accent-cyan-rgb: var(--accent-primary-rgb);
@@ -34,25 +33,25 @@
 	--accent-pink-glow: rgba(var(--accent-pink-rgb), 0.55);
 	--accent-lime-glow: rgba(var(--accent-lime-rgb), 0.65);
 	--accent-border-glow: rgba(var(--accent-primary-rgb), 0.85);
-	--accent-orange: #ff9933; /* Brighter Orange */
+	--accent-orange: #ff9933; /* Яркий Оранжевый */
 	--accent-orange-rgb: 255, 153, 51;
 	--accent-orange-glow: rgba(var(--accent-orange-rgb), 0.65);
 
 	/* Текст */
 	--text-light: #f5f7fa;
-	--text-medium: #c0c8e7; /* Adjusted medium */
-	--text-muted: #8899cc; /* Adjusted muted */
-	--text-muted-rgb: 136, 153, 204; /* Added RGB version */
-	--text-heading: #ffffff; /* White */
+	--text-medium: #c0c8e7; /* Светлый синевато-серый */
+	--text-muted: #8899cc; /* Приглушенный синеватый */
+	--text-muted-rgb: 136, 153, 204;
+	--text-heading: #ffffff; /* Чистый белый */
 	--text-link: var(--accent-primary);
 	--text-link-hover: #ffffff;
-	--text-fixed-dark: #02010a; /* For text on light/bright backgrounds */
+	--text-fixed-dark: #02010a; /* Для текста на светлом фоне */
 	--white: #ffffff;
-	--white-rgb: 255, 255, 255; /* Added RGB version */
+	--white-rgb: 255, 255, 255;
 	--black: #000000;
 
 	/* Границы */
-	--border-color-light: rgba(var(--accent-secondary-rgb), 0.30); /* Slightly lighter */
+	--border-color-light: rgba(var(--accent-secondary-rgb), 0.30);
 	--border-color-medium: rgba(var(--accent-secondary-rgb), 0.50);
 	--border-color-strong: rgba(var(--accent-primary-rgb), 0.70);
 	--border-interactive: var(--accent-primary);
@@ -65,15 +64,9 @@
 	--gradient-button: linear-gradient(100deg, var(--accent-secondary) 0%, var(--accent-primary) 100%);
 	--gradient-button-hover: linear-gradient(100deg, var(--accent-primary) 0%, var(--accent-pink) 100%);
 	--gradient-sidebar: linear-gradient(190deg, var(--bg-secondary) 0%, var(--dark-purple-accent) 100%);
-	--gradient-level-up: linear-gradient(45deg, var(--accent-pink), var(--accent-secondary)); /* Для Level Up */
-	--gradient-welcome: linear-gradient(135deg, rgba(var(--accent-primary-rgb), 0.2), rgba(var(--accent-secondary-rgb), 0.25)); /* Для Welcome Banner */
+	--gradient-level-up: linear-gradient(45deg, var(--accent-pink), var(--accent-secondary));
+	--gradient-welcome: linear-gradient(135deg, rgba(var(--accent-primary-rgb), 0.2), rgba(var(--accent-secondary-rgb), 0.25));
 	--gradient-cta: linear-gradient(110deg, var(--accent-secondary) 0%, var(--accent-pink) 100%);
-	/* Gradients from Oceneni/Plan */
-	--gradient-math: linear-gradient(135deg, var(--accent-cyan), var(--accent-secondary));
-	--gradient-lang: linear-gradient(135deg, var(--accent-pink), var(--accent-secondary));
-	--gradient-special: linear-gradient(135deg, var(--accent-orange), var(--accent-pink));
-	--gradient-streak: linear-gradient(135deg, var(--accent-pink), #d90429);
-	--gradient-locked: linear-gradient(135deg, #334155, #1e293b);
 	--gradient-success: linear-gradient(135deg, var(--accent-lime), #45a247);
 	--gradient-warning: linear-gradient(135deg, var(--accent-orange), #f3722c);
 	--gradient-danger: linear-gradient(135deg, var(--accent-pink), #b5179e);
@@ -81,30 +74,30 @@
 
 	/* Шрифты */
 	--font-primary: 'Inter', sans-serif;
-	--font-secondary: 'Poppins', sans-serif; /* Заголовки, кнопки */
-	--font-mono: 'Roboto Mono', monospace; /* AI демо, код */
+	--font-secondary: 'Poppins', sans-serif;
+	--font-mono: 'Roboto Mono', monospace;
 
 	/* Тени */
-	--shadow-glow: 0 0 30px var(--accent-glow); /* Increased glow */
-	--shadow-card: 0 15px 45px rgba(0, 0, 0, 0.5); /* Stronger card shadow */
-	--shadow-interactive: 0 8px 25px rgba(var(--accent-primary-rgb), 0.45); /* Stronger button shadow */
+	--shadow-glow: 0 0 30px var(--accent-glow);
+	--shadow-card: 0 15px 45px rgba(0, 0, 0, 0.5);
+	--shadow-interactive: 0 8px 25px rgba(var(--accent-primary-rgb), 0.45);
 	--shadow-interactive-hover: 0 12px 35px rgba(var(--accent-pink-rgb), 0.50);
 	--shadow-card-hover-enhanced: 0 20px 60px rgba(0, 0, 0, 0.55), 0 0 40px var(--accent-glow), inset 0 0 18px rgba(var(--accent-primary-rgb), 0.2);
 	--shadow-hud: 0 5px 18px rgba(0,0,0,0.35), inset 0 1px 3px rgba(var(--accent-primary-rgb), 0.15);
-	--shadow-text-glow: 0 0 10px rgba(var(--accent-primary-rgb), 0.75); /* Brighter text glow */
+	--shadow-text-glow: 0 0 10px rgba(var(--accent-primary-rgb), 0.75);
     --shadow-sm: 0 2px 5px rgba(0, 0, 0, 0.25);
     --shadow-md: 0 6px 15px rgba(0, 0, 0, 0.35);
 
 	/* Размеры и переходы */
 	--sidebar-width: 260px;
-	--card-radius: 16px; /* Slightly larger */
+	--card-radius: 16px;
 	--button-radius: 10px;
-	--form-element-radius: 8px; /* Unified radius */
+	--form-element-radius: 8px;
 	--section-padding-y: clamp(2rem, 5vh, 3rem);
 	--container-padding-x: 2rem;
 	--transition-speed: 0.3s;
-	--transition-fast: all 0.25s ease-out; /* Slightly faster */
-	--transition-medium: all 0.4s ease-out; /* Slightly slower */
+	--transition-fast: all 0.25s ease-out;
+	--transition-medium: all 0.4s ease-out;
 	--transition-long: all 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
 	--transition-bounce: all 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 	--transition-entrance: all 0.7s cubic-bezier(0.165, 0.84, 0.44, 1);
@@ -123,11 +116,12 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 html { scroll-behavior: smooth; font-size: 16px; -webkit-text-size-adjust: 100%; }
 body {
-	background-color: var(--bg-color); color: var(--text-medium);
+	background-color: var(--bg-color); /* Consistent Background */
+    color: var(--text-medium);
 	font-family: var(--font-primary); line-height: 1.7;
 	min-height: 100vh;
-    display: flex; /* FIX: Added for sidebar layout */
-    overflow: hidden; /* FIX: Added for sidebar layout - prevent body scroll */
+    display: flex;
+    overflow: hidden; /* Prevent body scroll */
 	-webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
 	position: relative;
 }
@@ -284,7 +278,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .user-role { font-size: 0.8rem; color: var(--text-muted); white-space: nowrap; }
 .sidebar-footer { margin-top: 1.5rem; padding: 1rem; font-size: 0.8rem; color: var(--text-muted); text-align: center; flex-shrink: 0; opacity: 0.7; }
 
-/* --- Основной контент (FIX: Ensure scrolling) --- */
+/* --- Основной контент --- */
 main {
     flex: 1;
     margin-left: var(--sidebar-width);
@@ -304,6 +298,7 @@ main.loaded { animation: fadeInMain 0.6s ease-out forwards; }
 .main-content-wrapper {
     padding: var(--section-padding-y) var(--container-padding-x);
     flex-grow: 1; /* Allow wrapper to take remaining space */
+    /* Removed overflow-y: auto; scrolling is handled by 'main' now */
 }
 .main-content-grid { display: grid; gap: 2rem; }
 
@@ -331,7 +326,7 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
 .header-content h1 { font-size: 1.8rem; font-weight: 700; color: var(--text-heading); margin: 0; text-shadow: 0 0 12px var(--accent-glow); }
 .header-actions { display: flex; align-items: center; gap: 0.85rem; flex-shrink: 0; }
 
-/* --- START: Notification Styles (from dashboard.html) --- */
+/* --- START: Notification Styles (Identical to other pages) --- */
 .notifications { position: relative; }
 .notification-bell { cursor: pointer; padding: 0.7rem; position: relative; display: inline-block; line-height: 1; transition: transform 0.2s ease; }
 .notification-bell:hover { transform: scale(1.05); }
@@ -498,7 +493,6 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
 .skeleton.activity-line { height: 16px; width: 70%; margin-bottom: 0.5rem; }
 .skeleton.activity-line-short { width: 40%; margin-top: 0.4rem; height: 12px; }
 .dashboard-card .loading-skeleton { display: none; padding: 1.9rem; align-items: flex-start; justify-content: space-between; width: 100%; }
-.dashboard-card .loading-skeleton .skeleton-info { flex-grow: 1; }
 .dashboard-card.loading .loading-skeleton { display: flex; }
 .activity-list-container .loading-placeholder { padding: 0.5rem 0; display: none; }
 .activity-list-container.loading .loading-placeholder { display: block; }
@@ -519,7 +513,7 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
 .tooltipster-shadow { border-radius: 8px; background: var(--interface-bg); color: var(--text-light); box-shadow: var(--shadow-card); border: 1px solid var(--border-color-medium); }
 .tooltipster-shadow .tooltipster-content { padding: 8px 14px; font-size: 0.88rem; font-family: var(--font-primary); }
 
-/* --- Reload Button Enhancement --- */
+/* --- Reload Button Enhancement (from previous step) --- */
 .refresh-btn {
     background: rgba(var(--accent-secondary-rgb), 0.12);
     border: 1px solid rgba(var(--accent-secondary-rgb), 0.4);
