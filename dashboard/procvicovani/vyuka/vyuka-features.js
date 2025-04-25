@@ -87,8 +87,8 @@ window.VyukaApp = window.VyukaApp || {};
 			const plainText = text
 				.replace(/<[^>]*>/g, ' ')        // Remove HTML tags
 				.replace(/[`*#_~[\]()]/g, '')    // Remove Markdown formatting chars
-				.replace(/\$\$(.*?)\$\$/g, 'matematický vzorec') // Replace MathJax display math
-				.replace(/\$(.*?)\$/g, 'vzorec') // Replace MathJax inline math
+				.replace(/\<span class="math-inline">\\$\(\.\*?\)\\$\\$/g, 'matematický vzorec'\) // Replace MathJax display math
+\.replace\(/\\$\(\.\*?\)\\</span>/g, 'vzorec') // Replace MathJax inline math
 				.replace(/\s+/g, ' ')            // Normalize whitespace
 				.trim();
 
@@ -353,8 +353,11 @@ window.VyukaApp = window.VyukaApp || {};
 			// Scroll to the new content
 			// Use smooth scrolling if available
             if (typeof chunkDiv.scrollIntoView === 'function') {
-                chunkDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                console.log("Scrolled to start of new whiteboard chunk.");
+                // Use a timeout to allow rendering before scrolling
+                setTimeout(() => {
+                    chunkDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    console.log("Scrolled to start of new whiteboard chunk.");
+                }, 100); // Small delay
             } else {
                 // Fallback for older browsers or environments where scrollIntoView might be limited
                 ui.whiteboardContainer.scrollTop = chunkDiv.offsetTop;
@@ -499,86 +502,79 @@ window.VyukaApp = window.VyukaApp || {};
 			}
 		};
 
-        // --- MODIFIED: handleMarkTopicComplete (v22 - Improved error handling and logging) ---
+        // --- VERSION 22: MODIFIED handleMarkTopicComplete with enhanced logging ---
 		VyukaApp.handleMarkTopicComplete = async () => {
-            const state = VyukaApp.state;
-            const config = VyukaApp.config;
-            const ui = VyukaApp.ui;
+			const state = VyukaApp.state;
+			const config = VyukaApp.config;
+			const ui = VyukaApp.ui;
 
-            // Pre-checks
-            if (!state.currentTopic || !state.currentTopic.activity_id) {
-                 console.error("[MarkComplete v22] Error: Missing currentTopic or activity_id in state.", state.currentTopic);
-                 VyukaApp.showToast("Chyba: Chybí informace o aktuálním tématu.", "error");
-                 return;
-            }
-            if (!state.supabase) {
-                 console.error("[MarkComplete v22] Error: Supabase client not available.");
-                 VyukaApp.showToast("Chyba: Databáze není dostupná.", "error");
-                 return;
-            }
-             if (state.topicLoadInProgress) {
-                  console.warn("[MarkComplete v22] Blocked: Topic operation already in progress.");
-                  return; // Prevent concurrent operations
-             }
+			if (!state.currentTopic || !state.currentTopic.activity_id) {
+				 console.error("[MarkComplete v22] Error: Missing currentTopic or activity_id in state.", state.currentTopic);
+				 VyukaApp.showToast("Chyba: Chybí informace o aktuálním tématu.", "error");
+				 return;
+			}
+			if (!state.supabase) {
+				 console.error("[MarkComplete v22] Error: Supabase client not available.");
+				 VyukaApp.showToast("Chyba: Databáze není dostupná.", "error");
+				 return;
+			}
+			 if (state.topicLoadInProgress) {
+				  console.warn("[MarkComplete v22] Blocked: Topic operation already in progress.");
+				  return; // Prevent concurrent operations
+			 }
 
-            console.log(`[MarkComplete v22] Attempting to mark activity ID: ${state.currentTopic.activity_id} (${state.currentTopic.name}) as complete.`);
-            state.topicLoadInProgress = true;
-            state.aiSuggestedCompletion = false; // Reset suggestion flag
-            VyukaApp.manageButtonStates(); // Disable buttons during operation
+			console.log(`[MarkComplete v22] Attempting to mark activity ID: ${state.currentTopic.activity_id} (${state.currentTopic.name}) as complete.`);
+			state.topicLoadInProgress = true;
+			state.aiSuggestedCompletion = false; // Reset suggestion flag
+			VyukaApp.manageButtonStates(); // Disable buttons during operation
 
-            try {
-                // Log the specific activity ID being updated
-                console.log(`[MarkComplete v22] Preparing to update activity ID: ${state.currentTopic.activity_id} in plan ID: ${state.currentTopic.plan_id}`);
-                console.log(`[MarkComplete v22] Points to award: ${config.POINTS_TOPIC_COMPLETE}`);
+			try {
+				console.log(`[MarkComplete v22] Preparing to update activity ID: ${state.currentTopic.activity_id} in plan ID: ${state.currentTopic.plan_id}`);
+				console.log(`[MarkComplete v22] Points to award: ${config.POINTS_TOPIC_COMPLETE}`);
 
-                // Mark activity as completed in the database
-                const { error: updateError } = await state.supabase
-                    .from('plan_activities')
-                    .update({ completed: true, updated_at: new Date().toISOString() })
-                    .eq('id', state.currentTopic.activity_id); // Match the specific activity ID
+				// Mark activity as completed in the database
+				const { error: updateError } = await state.supabase
+					.from('plan_activities')
+					.update({ completed: true, updated_at: new Date().toISOString() })
+					.eq('id', state.currentTopic.activity_id); // Match the specific activity ID
 
-                if (updateError) {
-                     // Log the detailed error from Supabase
-                     console.error(`[MarkComplete v22] Supabase update FAILED for activity ${state.currentTopic.activity_id}:`, updateError);
-                     // Throw the error to be caught by the catch block
-                     throw updateError;
-                }
-                // Log success only if error didn't happen
-                console.log(`[MarkComplete v22] Activity ${state.currentTopic.activity_id} marked as completed successfully in DB.`);
+				if (updateError) {
+					 console.error(`[MarkComplete v22] Supabase update FAILED for activity ${state.currentTopic.activity_id}:`, updateError);
+					 throw updateError; // Throw to be caught below
+				}
+                // *Explicit Success Log*
+				console.log(`[MarkComplete v22] >>> DB UPDATE SUCCESS for activity ${state.currentTopic.activity_id} <<<`);
 
-                // Award points (if applicable)
-                await VyukaApp.awardPoints(config.POINTS_TOPIC_COMPLETE);
+				// Award points
+				await VyukaApp.awardPoints(config.POINTS_TOPIC_COMPLETE);
 
-                // Check for achievements (if function exists)
-                if (typeof VyukaApp.checkAndAwardAchievements === 'function') {
-                    await VyukaApp.checkAndAwardAchievements(state.currentUser.id);
-                } else {
-                    console.warn("[MarkComplete v22] Achievement checking function not found.");
-                }
+				// Check achievements
+				if (typeof VyukaApp.checkAndAwardAchievements === 'function') {
+					await VyukaApp.checkAndAwardAchievements(state.currentUser.id);
+				} else {
+					console.warn("[MarkComplete v22] Achievement checking function not found.");
+				}
 
-                // Show success message
-                VyukaApp.showToast(`Téma "${state.currentTopic.name}" dokončeno! Přesměrovávám...`, "success", 2500);
+				VyukaApp.showToast(`Téma "${state.currentTopic.name}" dokončeno! Přesměrovávám...`, "success", 2500);
 
-                // Redirect only AFTER successful DB update, points, and achievements check
-                console.log("[MarkComplete v22] Scheduling redirect to main.html");
-                setTimeout(() => {
-                    console.log("[MarkComplete v22] Redirecting to main.html...");
-                    window.location.href = '/dashboard/procvicovani/main.html';
-                }, 500); // Short delay for toast visibility
+				// Redirect after successful operations
+                console.log("[MarkComplete v22] Scheduling redirect after success.");
+				setTimeout(() => {
+                     console.log("[MarkComplete v22] Redirecting now...");
+                     window.location.href = '/dashboard/procvicovani/main.html';
+                 }, 500); // Short delay
 
-            } catch (error) {
-                 // This block now catches errors from the Supabase update as well
-                console.error(`[MarkComplete v22] CATCH BLOCK: Error marking topic complete (activity ID: ${state.currentTopic?.activity_id}):`, error);
-                // Show a more specific error message to the user
-                VyukaApp.showToast(`Chyba uložení: ${error.message || 'Neznámá chyba'}`, "error", 5000);
-                // Reset loading state and re-enable buttons ON ERROR
-                state.topicLoadInProgress = false;
-                VyukaApp.manageButtonStates();
-                // DO NOT redirect on error
-            }
-            // No 'finally' block needed, success path redirects, error path resets state in catch
-        };
-        // --- END MODIFIED: handleMarkTopicComplete ---
+			} catch (error) {
+				console.error(`[MarkComplete v22] CATCH BLOCK: Error during topic completion (Activity ID: ${state.currentTopic?.activity_id}):`, error);
+				VyukaApp.showToast(`Chyba uložení dokončení tématu: ${error.message || 'Neznámá chyba'}`, "error", 6000);
+				// Reset state on error
+				state.topicLoadInProgress = false;
+				VyukaApp.manageButtonStates(); // Re-enable buttons
+			}
+			// Removed finally block - success path redirects, error path handles state in catch
+		};
+        // --- END VERSION 22 MODIFICATION ---
+
 
         // --- Points System ---
         VyukaApp.awardPoints = async (pointsValue) => {
@@ -743,8 +739,8 @@ window.VyukaApp = window.VyukaApp || {};
 			ui.chatMessages.appendChild(div);
 
 			// Trigger MathJax for the new message if needed
-			// Check for '$' or '\' which indicate potential MathJax content
-			if (window.MathJax && typeof window.MathJax.typesetPromise === 'function' && (displayMessage.includes('$') || displayMessage.includes('\\'))) {
+			// Check for '<span class="math-inline">' or '\\' which indicate potential MathJax content
+if \(window\.MathJax && typeof window\.MathJax\.typesetPromise \=\=\= 'function' && \(displayMessage\.includes\('</span>') || displayMessage.includes('\\'))) {
                 console.log(`[MathJax v19] Queueing typeset for chat message bubble: ${id}`);
 				// Use timeout 0 to queue the typesetting after the current JS execution cycle
 				setTimeout(() => {
@@ -1276,15 +1272,15 @@ POŽADOVANÝ FORMÁT ODPOVĚDI (pro první krok):
 ## ${topicName} - Základy
 
 ### [Krátký, výstižný podnadpis, např. Definice Lineární Rovnice]
-(Zde napiš stručnou, přesnou definici nebo úvodní koncept. Použij **tučné písmo** pro termíny a $$...$$ pro matematiku.)
+(Zde napiš stručnou, přesnou definici nebo úvodní koncept. Použij **tučné písmo** pro termíny a <span class="math-block">\.\.\.</span> pro matematiku.)
 
 ### První řešený příklad (Základní)
 (Zde uveď první VELMI JEDNODUCHÝ řešený příklad ilustrující definici. Jasně odděl zadání a kroky řešení.)
 **Zadání:** ...
 **Řešení:**
-* Krok 1: ... ($$...$$)
-* Krok 2: ... ($$...$$)
-* Výsledek: $$...$$
+* Krok 1: ... (<span class="math-block">\.\.\.</span>)
+* Krok 2: ... (<span class="math-block">\.\.\.</span>)
+* Výsledek: <span class="math-block">\.\.\.</span>
 \`\`\`
 [TTS_COMMENTARY]:
 (Zde napiš hlasový komentář: Stručné představení tématu a shrnutí toho, co je na tabuli – definice a první příklad. Zdůrazni klíčový bod. NEPOKLÁDEJ OTÁZKU a nezdrav.)
@@ -1319,7 +1315,7 @@ POŽADOVANÝ FORMÁT ODPOVĚDI (Pokud NEPOSÍLÁŠ signál):
 [BOARD_MARKDOWN]:
 \`\`\`markdown
 ### [Nadpis další části / Řešené příklady (Typ) / Úloha k řešení (Typ)]
-(Zde uveď text vysvětlení NEBO zadání a PODROBNÁ řešení příkladů NEBO POUZE ZADÁNÍ úlohy k řešení. Používej Markdown, $$...$$.)
+(Zde uveď text vysvětlení NEBO zadání a PODROBNÁ řešení příkladů NEBO POUZE ZADÁNÍ úlohy k řešení. Používej Markdown, <span class="math-block">\.\.\.</span>.)
 \`\`\`
 [TTS_COMMENTARY]:
 (Zde napiš hlasový komentář k NOVÉMU obsahu. Pokud jsi zadal ÚLOHU K ŘEŠENÍ, **JASNĚ řekni:** "Nyní zkuste tuto úlohu vyřešit vy a napište mi výsledek/postup do chatu." Pokud jde o teorii/řešený příklad, stručně shrň hlavní myšlenku nebo upozorni na klíčový krok. **NEPOKLÁDEJ OTÁZKU.**)
@@ -1602,11 +1598,11 @@ PRAVIDLA CHATU (PŘIPOMENUTÍ): Odpovídej POUZE běžným textem do chatu. Nepo
         // --- END Achievement Logic ---
 
         // --- Notification Logic ---
-        VyukaApp.fetchNotifications = async (userId, limit = VyukaApp.config.NOTIFICATION_FETCH_LIMIT) => { /* ... Same as before ... */ const state = VyukaApp.state; if (!state.supabase || !userId) { console.error("[Notifications] Missing Supabase or User ID."); return { unreadCount: 0, notifications: [] }; } console.log(`[Notifications] Fetching unread notifications for user ${userId}`); VyukaApp.setLoadingState('notifications', true); try { const { data, error, count } = await state.supabase.from('user_notifications').select('*', { count: 'exact' }).eq('user_id', userId).eq('is_read', false).order('created_at', { ascending: false }).limit(limit); if (error) throw error; console.log(`[Notifications] Fetched ${data?.length || 0} notifications. Total unread: ${count}`); return { unreadCount: count ?? 0, notifications: data || [] }; } catch (error) { console.error("[Notifications] Exception fetching notifications:", error); VyukaApp.showToast('Chyba', 'Nepodařilo se načíst oznámení.', 'error'); return { unreadCount: 0, notifications: [] }; } finally { VyukaApp.setLoadingState('notifications', false); } };
-    	VyukaApp.renderNotifications = (count, notifications) => { /* ... Same as before ... */ const ui = VyukaApp.ui; console.log("[Render Notifications] Start, Count:", count, "Notifications:", notifications); if (!ui.notificationCount || !ui.notificationsList || !ui.noNotificationsMsg || !ui.markAllReadBtn) { console.error("[Render Notifications] Missing UI elements for notifications."); return; } ui.notificationCount.textContent = count > 9 ? '9+' : (count > 0 ? String(count) : ''); ui.notificationCount.classList.toggle('visible', count > 0); if (notifications && notifications.length > 0) { ui.notificationsList.innerHTML = notifications.map(n => { const visual = activityVisuals[n.type?.toLowerCase()] || activityVisuals.default; const isReadClass = n.is_read ? 'is-read' : ''; const linkAttr = n.link ? `data-link="${VyukaApp.sanitizeHTML(n.link)}"` : ''; return `<div class="notification-item ${isReadClass}" data-id="${n.id}" ${linkAttr}>${!n.is_read ? '<span class="unread-dot"></span>' : ''}<div class="notification-icon ${visual.class}"><i class="fas ${visual.icon}"></i></div><div class="notification-content"><div class="notification-title">${VyukaApp.sanitizeHTML(n.title)}</div><div class="notification-message">${VyukaApp.sanitizeHTML(n.message)}</div><div class="notification-time">${VyukaApp.formatRelativeTime(n.created_at)}</div></div></div>`; }).join(''); ui.noNotificationsMsg.style.display = 'none'; ui.notificationsList.style.display = 'block'; ui.markAllReadBtn.disabled = count === 0; } else { ui.notificationsList.innerHTML = ''; ui.noNotificationsMsg.style.display = 'block'; ui.notificationsList.style.display = 'none'; ui.markAllReadBtn.disabled = true; } console.log("[Render Notifications] Finished rendering."); };
-    	VyukaApp.renderNotificationSkeletons = (count = 2) => { /* ... Same as before ... */ const ui = VyukaApp.ui; if (!ui.notificationsList || !ui.noNotificationsMsg) return; let skeletonHTML = ''; for (let i = 0; i < count; i++) { skeletonHTML += `<div class="notification-item skeleton"><div class="notification-icon skeleton" style="background-color: var(--skeleton-bg);"></div><div class="notification-content"><div class="skeleton" style="height: 16px; width: 70%; margin-bottom: 6px;"></div><div class="skeleton" style="height: 12px; width: 90%;"></div><div class="skeleton" style="height: 10px; width: 40%; margin-top: 6px;"></div></div></div>`; } ui.notificationsList.innerHTML = skeletonHTML; ui.noNotificationsMsg.style.display = 'none'; ui.notificationsList.style.display = 'block'; };
-    	VyukaApp.markNotificationRead = async (notificationId) => { /* ... Same as before ... */ const state = VyukaApp.state; console.log("[Notifications] Marking notification as read:", notificationId); if (!state.currentUser || !notificationId || !state.supabase) return false; try { const { error } = await state.supabase.from('user_notifications').update({ is_read: true }).eq('user_id', state.currentUser.id).eq('id', notificationId); if (error) throw error; console.log("[Notifications] Mark as read successful for ID:", notificationId); return true; } catch (error) { console.error("[Notifications] Mark as read error:", error); VyukaApp.showToast('Chyba', 'Nepodařilo se označit oznámení jako přečtené.', 'error'); return false; } };
-    	VyukaApp.markAllNotificationsRead = async () => { /* ... Same as before ... */ const state = VyukaApp.state; const ui = VyukaApp.ui; console.log("[Notifications] Marking all as read for user:", state.currentUser?.id); if (!state.currentUser || !ui.markAllReadBtn || !state.supabase) return; VyukaApp.setLoadingState('notifications', true); ui.markAllReadBtn.disabled = true; try { const { error } = await state.supabase.from('user_notifications').update({ is_read: true }).eq('user_id', state.currentUser.id).eq('is_read', false); if (error) throw error; console.log("[Notifications] Mark all as read successful in DB."); const { unreadCount, notifications } = await VyukaApp.fetchNotifications(state.currentUser.id, VyukaApp.config.NOTIFICATION_FETCH_LIMIT); VyukaApp.renderNotifications(unreadCount, notifications); VyukaApp.showToast('SIGNÁLY VYMAZÁNY', 'Všechna oznámení byla označena jako přečtená.', 'success'); } catch (error) { console.error("[Notifications] Mark all as read error:", error); VyukaApp.showToast('CHYBA PŘENOSU', 'Nepodařilo se označit všechna oznámení.', 'error'); const currentCount = parseInt(ui.notificationCount?.textContent?.replace('+', '') || '0'); ui.markAllReadBtn.disabled = currentCount === 0; } finally { VyukaApp.setLoadingState('notifications', false); } };
+        VyukaApp.fetchNotifications = async (userId, limit = VyukaApp.config.NOTIFICATION_FETCH_LIMIT) => { const state = VyukaApp.state; if (!state.supabase || !userId) { console.error("[Notifications] Missing Supabase or User ID."); return { unreadCount: 0, notifications: [] }; } console.log(`[Notifications] Fetching unread notifications for user ${userId}`); VyukaApp.setLoadingState('notifications', true); try { const { data, error, count } = await state.supabase.from('user_notifications').select('*', { count: 'exact' }).eq('user_id', userId).eq('is_read', false).order('created_at', { ascending: false }).limit(limit); if (error) throw error; console.log(`[Notifications] Fetched ${data?.length || 0} notifications. Total unread: ${count}`); return { unreadCount: count ?? 0, notifications: data || [] }; } catch (error) { console.error("[Notifications] Exception fetching notifications:", error); VyukaApp.showToast('Chyba', 'Nepodařilo se načíst oznámení.', 'error'); return { unreadCount: 0, notifications: [] }; } finally { VyukaApp.setLoadingState('notifications', false); } };
+    	VyukaApp.renderNotifications = (count, notifications) => { const ui = VyukaApp.ui; console.log("[Render Notifications] Start, Count:", count, "Notifications:", notifications); if (!ui.notificationCount || !ui.notificationsList || !ui.noNotificationsMsg || !ui.markAllReadBtn) { console.error("[Render Notifications] Missing UI elements for notifications."); return; } ui.notificationCount.textContent = count > 9 ? '9+' : (count > 0 ? String(count) : ''); ui.notificationCount.classList.toggle('visible', count > 0); if (notifications && notifications.length > 0) { ui.notificationsList.innerHTML = notifications.map(n => { const visual = activityVisuals[n.type?.toLowerCase()] || activityVisuals.default; const isReadClass = n.is_read ? 'is-read' : ''; const linkAttr = n.link ? `data-link="${VyukaApp.sanitizeHTML(n.link)}"` : ''; return `<div class="notification-item ${isReadClass}" data-id="${n.id}" ${linkAttr}>${!n.is_read ? '<span class="unread-dot"></span>' : ''}<div class="notification-icon ${visual.class}"><i class="fas ${visual.icon}"></i></div><div class="notification-content"><div class="notification-title">${VyukaApp.sanitizeHTML(n.title)}</div><div class="notification-message">${VyukaApp.sanitizeHTML(n.message)}</div><div class="notification-time">${VyukaApp.formatRelativeTime(n.created_at)}</div></div></div>`; }).join(''); ui.noNotificationsMsg.style.display = 'none'; ui.notificationsList.style.display = 'block'; ui.markAllReadBtn.disabled = count === 0; } else { ui.notificationsList.innerHTML = ''; ui.noNotificationsMsg.style.display = 'block'; ui.notificationsList.style.display = 'none'; ui.markAllReadBtn.disabled = true; } console.log("[Render Notifications] Finished rendering."); };
+    	VyukaApp.renderNotificationSkeletons = (count = 2) => { const ui = VyukaApp.ui; if (!ui.notificationsList || !ui.noNotificationsMsg) return; let skeletonHTML = ''; for (let i = 0; i < count; i++) { skeletonHTML += `<div class="notification-item skeleton"><div class="notification-icon skeleton" style="background-color: var(--skeleton-bg);"></div><div class="notification-content"><div class="skeleton" style="height: 16px; width: 70%; margin-bottom: 6px;"></div><div class="skeleton" style="height: 12px; width: 90%;"></div><div class="skeleton" style="height: 10px; width: 40%; margin-top: 6px;"></div></div></div>`; } ui.notificationsList.innerHTML = skeletonHTML; ui.noNotificationsMsg.style.display = 'none'; ui.notificationsList.style.display = 'block'; };
+    	VyukaApp.markNotificationRead = async (notificationId) => { const state = VyukaApp.state; console.log("[Notifications] Marking notification as read:", notificationId); if (!state.currentUser || !notificationId || !state.supabase) return false; try { const { error } = await state.supabase.from('user_notifications').update({ is_read: true }).eq('user_id', state.currentUser.id).eq('id', notificationId); if (error) throw error; console.log("[Notifications] Mark as read successful for ID:", notificationId); return true; } catch (error) { console.error("[Notifications] Mark as read error:", error); VyukaApp.showToast('Chyba', 'Nepodařilo se označit oznámení jako přečtené.', 'error'); return false; } };
+    	VyukaApp.markAllNotificationsRead = async () => { const state = VyukaApp.state; const ui = VyukaApp.ui; console.log("[Notifications] Marking all as read for user:", state.currentUser?.id); if (!state.currentUser || !ui.markAllReadBtn || !state.supabase) return; VyukaApp.setLoadingState('notifications', true); ui.markAllReadBtn.disabled = true; try { const { error } = await state.supabase.from('user_notifications').update({ is_read: true }).eq('user_id', state.currentUser.id).eq('is_read', false); if (error) throw error; console.log("[Notifications] Mark all as read successful in DB."); const { unreadCount, notifications } = await VyukaApp.fetchNotifications(state.currentUser.id, VyukaApp.config.NOTIFICATION_FETCH_LIMIT); VyukaApp.renderNotifications(unreadCount, notifications); VyukaApp.showToast('SIGNÁLY VYMAZÁNY', 'Všechna oznámení byla označena jako přečtená.', 'success'); } catch (error) { console.error("[Notifications] Mark all as read error:", error); VyukaApp.showToast('CHYBA PŘENOSU', 'Nepodařilo se označit všechna oznámení.', 'error'); const currentCount = parseInt(ui.notificationCount?.textContent?.replace('+', '') || '0'); ui.markAllReadBtn.disabled = currentCount === 0; } finally { VyukaApp.setLoadingState('notifications', false); } };
 
 		// --- Feature Specific Event Listeners ---
 		VyukaApp.setupFeatureListeners = () => {
