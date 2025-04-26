@@ -64,27 +64,49 @@
      }
 
     /**
-     * НОВАЯ ВЕРСИЯ (v7 - агрессивная очистка)
+     * НОВАЯ ВЕРСИЯ (v8) - Улучшенное сравнение текста для "ano"/"ne" с учетом символов и пробелов.
      */
+     /**
+      * Pokročilé porovnání textových odpovědí s důrazem na varianty "ano"/"ne".
+      * Vylepšeno pro ignorování nadbytečného textu a interpunkce kolem klíčových slov.
+      * @param {string|number|null} value1 Uživatelská odpověď.
+      * @param {string|number|null} value2 Správná odpověď.
+      * @returns {boolean} True, pokud jsou odpovědi ekvivalentní, jinak false.
+      */
      function compareTextAdvanced(value1, value2) {
+         console.log(`[compareText v8] Porovnávám: '${value1}' vs '${value2}'`);
          if (value1 === null || value1 === undefined || value2 === null || value2 === undefined) {
+             console.log("[compareText v8] Alespoň jedna hodnota je null/undefined. Výsledek: false.");
              return false;
          }
-         const normalizeAndExtractAnoNe = (inputValue) => {
+
+         const normalizeAndExtractKeyword = (inputValue) => {
              if (typeof inputValue !== 'string' && typeof inputValue !== 'number') { return null; }
-             let processedString = String(inputValue).toLowerCase();
-             // Удаляем ВСЕ небуквенные символы
-             processedString = processedString.replace(/[^a-zřčšžýáíéúůťďňě]/g, '');
-             if (processedString === 'ano' || processedString === 'a') { return 'ano'; }
-             if (processedString === 'ne' || processedString === 'n') { return 'ne'; }
-             console.log(`[normalizeAndExtractAnoNe v7] Po очистке осталось: '${processedString}'.`);
-             return processedString; // Возвращаем очищенную строку
+             let processedString = String(inputValue).toLowerCase().trim();
+
+             // Check specifically for "ano" or "ne" allowing variations and surrounding text/punctuation
+             // Remove leading/trailing punctuation and whitespace
+             processedString = processedString.replace(/^[^a-zčšžřďťňýáíéúů\s]+|[^a-zčšžřďťňýáíéúů\s]+$/g, '');
+             processedString = processedString.trim();
+
+             // Use word boundary (\b) to ensure 'ano' matches "ano." but not "vanoce"
+             if (/\bano\b/.test(processedString) || processedString === 'a') { return 'ano'; }
+             if (/\bne\b/.test(processedString) || processedString === 'n') { return 'ne'; }
+
+             // Fallback to a more general normalization if "ano"/"ne" not found
+             processedString = processedString.replace(/\s+/g, ''); // Remove all whitespace
+             processedString = processedString.replace(/[^a-zčšžřďťňýáíéúů0-9]/g, ''); // Remove non-alphanumeric (keeping Czech chars)
+
+             console.log(`[compareText v8] Normalizovaná/Extrahovaná klíčová slova: '${processedString}'`);
+             return processedString;
          };
-         const normalized1 = normalizeAndExtractAnoNe(value1);
-         const normalized2 = normalizeAndExtractAnoNe(value2);
-         console.log(`[compareText v7] Porovnávám normalizované/extrahované: '${normalized1}' vs '${normalized2}'`);
-         const areEquivalent = (normalized1 !== null && normalized2 !== null && normalized1 === normalized2);
-         console.log(`[compareText v7] Výsledek: ${areEquivalent}`);
+
+         const normalized1 = normalizeAndExtractKeyword(value1);
+         const normalized2 = normalizeAndExtractKeyword(value2);
+
+         const areEquivalent = (normalized1 !== null && normalized2 !== null && normalized1 === normalized2 && normalized1 !== ''); // Ensure not empty string match
+
+         console.log(`[compareText v8] Normalizované 1: '${normalized1}', Normalizované 2: '${normalized2}'. Výsledek: ${areEquivalent}`);
          return areEquivalent;
      }
     // --- END: Вспомогательные функции ---
@@ -148,6 +170,7 @@
         if (selectedTypes.includes('construction')) { console.error("[Logic v8] KRITICKÁ CHYBA: Otázka typu 'construction' pronikla do finálního výběru navzdory filtru!"); }
         // --- КОНЕЦ ЛОГГИРОВАНИЯ ---
 
+
         console.log(`[Logic v8] Vybráno ${formattedQuestions.length} unikátních otázek (bez 'construction').`);
         return formattedQuestions;
     }
@@ -182,7 +205,7 @@
          if (['text', 'ano_ne'].includes(questionType)) {
              console.log(`[Logic v8 Q#${currentQuestionIndex + 1}] Provádím lokální srovnání pro typ '${questionType}'...`);
              const numericCheck = compareNumericAdvanced(userAnswer, correctAnswerOrExplanation);
-             const textCheck = compareTextAdvanced(userAnswer, correctAnswerOrExplanation);
+             const textCheck = compareTextAdvanced(userAnswer, correctAnswerOrAnswerExplanation); // Использование compareTextAdvanced v8
 
              if (numericCheck === true || textCheck === true) {
                  localComparisonResult = true;
@@ -370,7 +393,7 @@ ${inputData}
     // --- START: Логика расчета и сохранения результатов ---
     function calculateFinalResultsLogic(userAnswers, questions) {
         // ... (код этой функции остается без изменений, как в v7) ...
-        let totalRawPointsAchieved = 0; let totalRawMaxPossiblePoints = 0; let correctCount = 0; let incorrectCount = 0; let partialCount = 0; let skippedCount = 0; let topicStats = {};
+         let totalRawPointsAchieved = 0; let totalRawMaxPossiblePoints = 0; let correctCount = 0; let incorrectCount = 0; let partialCount = 0; let skippedCount = 0; let topicStats = {};
         userAnswers.forEach((answer, index) => {
             if (!answer) { console.warn(`[Logic Calc v8] Chybí data odpovědi pro index ${index}.`); skippedCount++; return; }
             const topicKey = answer.topic_id || answer.topic_name || 'unknown'; const topicName = answer.topic_name || 'Neznámé téma';
