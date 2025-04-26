@@ -1,7 +1,7 @@
 // Файл: test1-logic.js
 // Содержит основную логику для загрузки теста, оценки ответов, сохранения результатов и загрузки уведомлений.
 // FIX v2: Улучшено сравнение числовых и текстовых ответов, уточнены инструкции для Gemini.
-// FIX v3: Добавлена функция compareTextAdvanced с улучшенной обработкой префиксов.
+// FIX v4: Переписана compareTextAdvanced для поиска ключевых слов "ano"/"ne".
 
 // Используем IIFE для изоляции области видимости
 (function(global) {
@@ -109,69 +109,62 @@
      }
 
     /**
-     * Расширенное сравнение текстовых значений, включая "ano/ne" и удаление префиксов типа "A)", "B.".
+     * НОВАЯ ВЕРСИЯ: Сравнение текстовых значений с извлечением ключевых слов "ano"/"ne".
      * @param {string|null} val1 Первое значение (например, ответ студента)
      * @param {string|null} val2 Второе значение (например, правильный ответ)
      * @returns {boolean} true если эквивалентны, false иначе.
      */
      function compareTextAdvanced(val1, val2) {
-         // Проверка на null или undefined входные значения
          if (val1 === null || val1 === undefined || val2 === null || val2 === undefined) {
              return false;
          }
 
-         // Функция для нормализации строки
-         const normalize = (value) => {
-             // Преобразуем значение в строку
-             let stringValue = String(value);
-
-             // 1. Убираем пробелы с начала и конца
-             let trimmedValue = stringValue.trim();
-
-             // 2. Преобразуем к нижнему регистру для нечувствительности к регистру
-             let lowerCaseValue = trimmedValue.toLowerCase();
-
-             // 3. Удаляем стандартные префиксы вариантов ответа (A., B), C:, D.), и т.д.)
-             //    Используем регулярное выражение для удаления:
-             //    - ^ : начало строки
-             //    - [a-zřčšžýáíéúůťďňě] : одна буква (чешский алфавит + стандартный латинский)
-             //    - \s* : ноль или более пробельных символов
-             //    - [\.\)\:]* : ноль или более символов точки, скобки или двоеточия
-             //    - \s* : ноль или более пробельных символов после пунктуации
-             let prefixRemovedValue = lowerCaseValue.replace(/^[a-zřčšžýáíéúůťďňě]\s*[\.\)\:]*\s*/, '');
-
-             // 4. Удаляем возможную точку в самом конце строки
-             let finalDotRemovedValue = prefixRemovedValue.replace(/\.$/, '');
-
-             // 5. Убираем пробелы с начала и конца еще раз (на случай, если что-то осталось после удаления префикса)
-             let finalTrimmedValue = finalDotRemovedValue.trim();
-
-             // 6. Специальная нормализация для "ano" / "ne"
-             if (finalTrimmedValue === 'ano' || finalTrimmedValue === 'a') {
-                 return 'ano';
+         // Функция для извлечения ключевого слова "ano" или "ne" или нормализованной строки
+         const extractKeywordOrNormalize = (value) => {
+             if (typeof value !== 'string' && typeof value !== 'number') {
+                 return null; // Не можем обработать не-строки/числа
              }
-             if (finalTrimmedValue === 'ne' || finalTrimmedValue === 'n') {
-                 return 'ne';
+             // 1. Преобразуем в строку, убираем пробелы, переводим в нижний регистр
+             const processedString = String(value).trim().toLowerCase();
+
+             // 2. Ищем "ano" или "ne" как отдельные слова (могут быть окружены чем угодно)
+             //    Используем \b для границ слова
+             const matchAnoNe = processedString.match(/\b(ano|ne)\b/);
+
+             if (matchAnoNe) {
+                 // Если найдено "ano" или "ne", возвращаем его
+                 return matchAnoNe[1];
              }
 
-             // Возвращаем окончательно обработанную строку
-             return finalTrimmedValue;
+             // 3. Если "ano"/"ne" не найдены, нормализуем одиночные 'a'/'n'
+             //    (проверяем, что строка состоит ТОЛЬКО из буквы варианта и 'a'/'n' с возможной пунктуацией)
+             //    Пример: "B. n", "A) a."
+             const singleLetterMatch = processedString.match(/^[a-zřčšžýáíéúůťďňě]?\s*[\.\)\:]*\s*(a|n)\.?$/);
+              if (singleLetterMatch) {
+                  if (singleLetterMatch[1] === 'a') return 'ano';
+                  if (singleLetterMatch[1] === 'n') return 'ne';
+             }
+
+              // 4. Если ключевые слова не найдены, выполняем стандартную нормализацию
+              //    (убираем префикс, точку в конце) для сравнения других текстовых ответов
+              let fallbackValue = processedString.replace(/^[a-zřčšžýáíéúůťďňě]\s*[\.\)\:]*\s*/, '');
+              fallbackValue = fallbackValue.replace(/\.$/, '').trim();
+
+             return fallbackValue; // Возвращаем нормализованную строку
          };
 
-         // Нормализуем оба входных значения
-         const normalizedValue1 = normalize(val1);
-         const normalizedValue2 = normalize(val2);
+         const keyword1 = extractKeywordOrNormalize(val1);
+         const keyword2 = extractKeywordOrNormalize(val2);
 
-         // Выводим в консоль для отладки (можно удалить в продакшене)
-         console.log(`[compareText] Porovnávám normalizované: '${normalizedValue1}' vs '${normalizedValue2}'`);
+         // Выводим в консоль для отладки
+         console.log(`[compareText v4] Porovnávám extrahované/normalizované: '${keyword1}' vs '${keyword2}'`);
 
-         // Сравниваем нормализованные строки
-         const areEquivalent = normalizedValue1 === normalizedValue2;
+         // Сравниваем результат (либо ключевые слова, либо нормализованные строки)
+         // Проверяем, что оба значения не null перед сравнением
+         const areEquivalent = (keyword1 !== null && keyword2 !== null && keyword1 === keyword2);
 
-         // Выводим результат сравнения в консоль (можно удалить в продакшене)
-         console.log(`[compareText] Výsledek: ${areEquivalent}`);
-
-         // Возвращаем результат сравнения
+         // Выводим результат сравнения в консоль
+         console.log(`[compareText v4] Výsledek: ${areEquivalent}`);
          return areEquivalent;
      }
     // --- END: Вспомогательные функции ---
@@ -241,7 +234,7 @@
     // --- START: Логика оценки ответов (Gemini) ---
     async function checkAnswerWithGeminiLogic(questionType, questionText, correctAnswerOrExplanation, userAnswer, maxScore = 1, currentQuestionIndex) {
          console.log(`--- [Logic v2] Vyhodnocování Q#${currentQuestionIndex + 1} (Typ: ${questionType}, Max bodů: ${maxScore}) ---`);
-         console.log(`   Otázka: ${questionText ? questionText.substring(0, 100) + '...' : 'N/A'}`); // Добавлена проверка на null/undefined
+         console.log(`   Otázka: ${questionText ? questionText.substring(0, 100) + '...' : 'N/A'}`);
          console.log(`   Správně: `, correctAnswerOrExplanation);
          console.log(`   Uživatel: `, userAnswer);
 
@@ -274,6 +267,7 @@
 
              try {
                  if (questionType === 'multiple_choice') {
+                     // Fallback для multiple choice: сравнение букв
                      const correctLetter = String(correctAnswerOrExplanation).trim().toUpperCase().charAt(0);
                      const userLetter = String(userAnswer).trim().toUpperCase().charAt(0);
                      isEquivalent = correctLetter === userLetter;
@@ -285,26 +279,26 @@
                          fallbackReasoning = "Odpověď (písmeno) se neshoduje se správnou možností.";
                      }
                  } else if (['numeric', 'text', 'ano_ne'].includes(questionType)) {
-                     // Сначала пробуем числовое сравнение
+                     // Fallback для других типов: используем УЛУЧШЕННОЕ сравнение
                      const numericComparison = compareNumericAdvanced(userAnswer, correctAnswerOrExplanation);
                      if (numericComparison === true) { // Явное совпадение чисел
                          isEquivalent = true;
                          fallbackScore = maxScore;
                          fallbackCorrectness = "correct";
-                         fallbackReasoning = "Odpověď je numericky ekvivalentní správné odpovědi.";
-                     } else { // Если не числа или не совпали, пробуем текст
-                         isEquivalent = compareTextAdvanced(userAnswer, correctAnswerOrExplanation);
+                         fallbackReasoning = "Odpověď je numericky ekvivalentní správné odpovědi (fallback).";
+                     } else { // Если не числа или не совпали, пробуем текст с НОВОЙ функцией
+                         isEquivalent = compareTextAdvanced(userAnswer, correctAnswerOrExplanation); // Используем новую функцию
                          if (isEquivalent) {
                              fallbackScore = maxScore;
                              fallbackCorrectness = "correct";
-                             fallbackReasoning = "Odpověď se textově shoduje (po normalizaci).";
+                             fallbackReasoning = "Odpověď se textově shoduje (po normalizaci) (fallback).";
                          } else {
-                             fallbackReasoning = "Odpověď se neshoduje se správnou odpovědí (ani numericky, ani textově).";
+                             fallbackReasoning = "Odpověď se neshoduje se správnou odpovědí (ani numericky, ani textově) (fallback).";
                          }
                      }
                  } else if (questionType === 'construction') {
-                     isEquivalent = false;
                      // Fallback для конструкции: дать 1 балл, если ответ не пустой (минимальная попытка)
+                     isEquivalent = false;
                      fallbackScore = (String(userAnswer).trim().length > 10) ? Math.min(1, maxScore) : 0;
                      fallbackCorrectness = fallbackScore > 0 ? "partial" : "incorrect";
                      fallbackReasoning = "Základní fallback hodnocení pro popis konstrukce (kontrola délky).";
@@ -871,6 +865,7 @@ ${inputData}
     }
     // --- END: Логика Уведомлений ---
 
+
     // --- START: Глобальный Экспорт ---
     // Экспортируем функции и константы в глобальное пространство имен
     global.TestLogic = {
@@ -886,7 +881,7 @@ ${inputData}
         compareNumericAdvanced: compareNumericAdvanced, // Экспорт для возможного использования в UI (хотя не рекомендуется)
         compareTextAdvanced: compareTextAdvanced, // Экспорт для возможного использования в UI (хотя не рекомендуется)
     };
-    console.log("test1-logic.js loaded and TestLogic exposed (v3 - Achievement Triggers + Evaluation Fix).");
+    console.log("test1-logic.js loaded and TestLogic exposed (v4 - Keyword Extraction).");
     // --- END: Глобальный Экспорт ---
 
 })(window); // Передаем глобальный объект (window в браузере)
