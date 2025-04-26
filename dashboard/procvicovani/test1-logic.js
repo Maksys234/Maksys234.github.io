@@ -3,6 +3,7 @@
 // FIX v2: Улучшено сравнение числовых и текстовых ответов, уточнены инструкции для Gemini.
 // FIX v4: Переписана compareTextAdvanced для поиска ключевых слов "ano"/"ne".
 // FIX v5: Добавлена проверка уникальности вопросов в loadTestQuestionsLogic и дальнейшее улучшение compareTextAdvanced.
+// FIX v6: Усилена нормализация в compareTextAdvanced, добавлена проверка на дубликаты ID при загрузке.
 
 // Используем IIFE для изоляции области видимости
 (function(global) {
@@ -122,34 +123,31 @@
      }
 
     /**
-     * НОВАЯ ВЕРСИЯ (v5): Сравнение текстовых значений с извлечением ключевых слов "ano"/"ne" и агрессивной нормализацией.
+     * НОВАЯ ВЕРСИЯ (v6): Сравнение текстовых значений с агрессивной очисткой для "ano"/"ne".
      * @param {string|null} value1 Первое значение (например, ответ студента)
      * @param {string|null} value2 Второе значение (например, правильный ответ)
      * @returns {boolean} true если эквивалентны, false иначе.
      */
      function compareTextAdvanced(value1, value2) {
-         // Начальная проверка на null или undefined
          if (value1 === null || value1 === undefined || value2 === null || value2 === undefined) {
              return false;
          }
 
-         // Функция для максимальной очистки и извлечения ключевого слова
-         const normalizeAndExtract = (inputValue) => {
+         // Функция для агрессивной нормализации и извлечения "ano" или "ne"
+         const normalizeAndExtractAnoNe = (inputValue) => {
+             if (typeof inputValue !== 'string' && typeof inputValue !== 'number') {
+                 return null; // Обрабатываем только строки или числа
+             }
+
              // 1. Преобразование в строку и нижний регистр
              let processedString = String(inputValue).toLowerCase();
 
-             // 2. Агрессивное удаление знаков пунктуации и пробелов в начале/конце
-             //    Удаляем точки, запятые, скобки, двоеточия, пробелы, неразрывные пробелы (\u00A0)
-             //    с начала и конца строки.
-             processedString = processedString.replace(/^[\s.,():\u00A0]+|[\s.,():\u00A0]+$/g, '');
+             // 2. Удаляем ВСЕ небуквенные символы (кроме букв чешского/латинского алфавита)
+             //    Regex [^a-z...] означает "любой символ, НЕ являющийся буквой"
+             //    Флаг 'g' означает глобальную замену (все вхождения)
+             processedString = processedString.replace(/[^a-zřčšžýáíéúůťďňě]/g, '');
 
-              // 3. Удаляем стандартные префиксы вариантов ответа (A., B), C:, D.) и т.п.
-             processedString = processedString.replace(/^[a-zřčšžýáíéúůťďňě]\s*[\.\)\:]*\s*/, '');
-
-             // 4. Снова убираем пробелы/пунктуацию, которые могли остаться после удаления префикса
-              processedString = processedString.replace(/^[\s.,():\u00A0]+|[\s.,():\u00A0]+$/g, '');
-
-             // 5. Нормализация ключевых слов "ano" / "ne"
+             // 3. Проверяем, является ли результат "ano" или "ne" (или "a"/"n")
              if (processedString === 'ano' || processedString === 'a') {
                  return 'ano';
              }
@@ -157,22 +155,25 @@
                  return 'ne';
              }
 
-             // 6. Если это не "ano"/"ne", возвращаем максимально очищенную строку
-             return processedString;
+             // 4. Если после очистки не осталось "ano" или "ne", значит,
+             //    исходный ответ не был простым "да/нет". Возвращаем null,
+             //    чтобы указать, что это не тот случай, который мы обрабатываем как ano/ne.
+             //    Или можно вернуть исходную очищенную строку для общего сравнения,
+             //    но для вопросов ANO/NE лучше вернуть null, если нечетко.
+              console.log(`[normalizeAndExtractAnoNe v6] Po очистке осталось: '${processedString}'. Nejde o jasné ano/ne.`);
+             return processedString; // Возвращаем очищенную строку для общего сравнения
+             // return null; // Вариант: если не ano/ne, то считаем невалидным для этого типа сравнения
          };
 
-         // Применяем очистку к обоим значениям
-         const normalized1 = normalizeAndExtract(value1);
-         const normalized2 = normalizeAndExtract(value2);
+         const normalized1 = normalizeAndExtractAnoNe(value1);
+         const normalized2 = normalizeAndExtractAnoNe(value2);
 
-         // Выводим в консоль для отладки
-         console.log(`[compareText v5] Porovnávám normalizované: '${normalized1}' vs '${normalized2}'`);
+         console.log(`[compareText v6] Porovnávám normalizované/extrahované: '${normalized1}' vs '${normalized2}'`);
 
-         // Сравниваем очищенные строки
-         const areEquivalent = (normalized1 === normalized2);
+         // Сравниваем только если оба значения успешно нормализовались (не null)
+         const areEquivalent = (normalized1 !== null && normalized2 !== null && normalized1 === normalized2);
 
-         // Выводим результат сравнения в консоль
-         console.log(`[compareText v5] Výsledek: ${areEquivalent}`);
+         console.log(`[compareText v6] Výsledek: ${areEquivalent}`);
          return areEquivalent;
      }
     // --- END: Вспомогательные функции ---
@@ -208,13 +209,20 @@
             `);
 
         if (fetchError) {
-            // Если произошла ошибка при запросе, выбрасываем ее
             throw fetchError;
         }
         if (!allQuestions || allQuestions.length === 0) {
-            // Если база данных не вернула вопросов
             throw new Error("V databázi nejsou žádné otázky pro tento test.");
         }
+
+        // --- ДОБАВЛЕНА ПРОВЕРКА НА ДУБЛИКАТЫ ID В ИСХОДНЫХ ДАННЫХ ---
+        const initialIds = allQuestions.map(q => q.id);
+        const uniqueInitialIds = new Set(initialIds);
+        if (initialIds.length !== uniqueInitialIds.size) {
+            console.warn(`[Logic] POZOR: Data načtená z databáze obsahují ${initialIds.length - uniqueInitialIds.size} duplicitních ID otázek!`);
+            // Можно добавить более детальный вывод дубликатов при необходимости
+        }
+        // --- КОНЕЦ ПРОВЕРКИ НА ДУБЛИКАТЫ ---
 
         // 2. Перемешиваем полученный массив вопросов
         const shuffledQuestions = shuffleArray(allQuestions);
@@ -229,9 +237,11 @@
                 break;
             }
             // Если вопрос с таким ID еще не был добавлен
-            if (!selectedIds.has(question.id)) {
+            if (question.id !== null && question.id !== undefined && !selectedIds.has(question.id)) {
                 selectedIds.add(question.id); // Добавляем ID в набор выбранных
                 selectedQuestions.push(question); // Добавляем вопрос в результат
+            } else if (question.id === null || question.id === undefined) {
+                 console.warn("[Logic] Přeskakuji otázku bez ID:", question);
             }
         }
 
@@ -239,7 +249,6 @@
         if (selectedQuestions.length < questionCount) {
             console.warn(`[Logic] Nalezeno pouze ${selectedQuestions.length} unikátních otázek, požadováno ${questionCount}. Používám ${selectedQuestions.length}.`);
             if (selectedQuestions.length === 0) {
-                // Это маловероятно, если allQuestions не пустой, но на всякий случай
                 throw new Error("Nepodařilo se vybrat žádné unikátní otázky.");
             }
         }
@@ -270,7 +279,7 @@
 
     // --- START: Логика оценки ответов (Gemini) ---
     async function checkAnswerWithGeminiLogic(questionType, questionText, correctAnswerOrExplanation, userAnswer, maxScore = 1, currentQuestionIndex) {
-         console.log(`--- [Logic v5] Vyhodnocování Q#${currentQuestionIndex + 1} (Typ: ${questionType}, Max bodů: ${maxScore}) ---`);
+         console.log(`--- [Logic v6] Vyhodnocování Q#${currentQuestionIndex + 1} (Typ: ${questionType}, Max bodů: ${maxScore}) ---`);
          console.log(`   Otázka: ${questionText ? questionText.substring(0, 100) + '...' : 'N/A'}`);
          console.log(`   Správně: `, correctAnswerOrExplanation);
          console.log(`   Uživatel: `, userAnswer);
@@ -324,13 +333,13 @@
                          fallbackCorrectness = "correct";
                          fallbackReasoning = "Odpověď je numericky ekvivalentní správné odpovědi (fallback).";
                      } else { // Если не числа или не совпали, пробуем текст с НОВОЙ функцией
-                         isEquivalent = compareTextAdvanced(userAnswer, correctAnswerOrExplanation); // Используем v5 функцию
+                         isEquivalent = compareTextAdvanced(userAnswer, correctAnswerOrExplanation); // Используем v6 функцию
                          if (isEquivalent) {
                              fallbackScore = maxScore;
                              fallbackCorrectness = "correct";
-                             fallbackReasoning = "Odpověď se textově shoduje (po normalizaci v5) (fallback)."; // Указываем версию
+                             fallbackReasoning = "Odpověď se textově shoduje (po normalizaci v6) (fallback)."; // Указываем версию
                          } else {
-                             fallbackReasoning = "Odpověď se neshoduje se správnou odpovědí (ani numericky, ani textově v5) (fallback).";
+                             fallbackReasoning = "Odpověď se neshoduje se správnou odpovědí (ani numericky, ani textově v6) (fallback).";
                          }
                      }
                  } else if (questionType === 'construction') {
@@ -502,7 +511,7 @@ ${inputData}
 
     // --- START: Логика расчета и сохранения результатов ---
     function calculateFinalResultsLogic(userAnswers, questions) {
-        // ... (код этой функции остается без изменений, как в v4) ...
+        // ... (код этой функции остается без изменений, как в v5) ...
         let totalRawPointsAchieved = 0;
         let totalRawMaxPossiblePoints = 0;
         let correctCount = 0;
@@ -549,32 +558,32 @@ ${inputData}
     }
 
     function generateDetailedAnalysisLogic(results, answers, questionsData) {
-        // ... (код этой функции остается без изменений, как в v4) ...
+        // ... (код этой функции остается без изменений, как в v5) ...
         const analysis = { summary: { score: results.score, total_points_achieved: results.totalPointsAchieved, total_max_possible_points: results.totalMaxPossiblePoints, percentage: results.percentage, time_spent_seconds: results.timeSpent, total_questions: results.totalQuestions, correct: results.correctAnswers, incorrect: results.incorrectAnswers, partial: results.partiallyCorrectAnswers, skipped: results.skippedAnswers, evaluation_errors: results.evaluationErrors, }, strengths: [], weaknesses: [], performance_by_topic: {}, performance_by_type: {}, performance_by_difficulty: {}, incorrectly_answered_details: [] };
         for (const [topicKey, stats] of Object.entries(results.topicResults || {})) { analysis.performance_by_topic[stats.name] = { points_achieved: stats.points_achieved, max_points: stats.max_points, score_percent: stats.score_percent, total_questions: stats.total_questions, fully_correct: stats.fully_correct }; if (stats.strength === 'strength') analysis.strengths.push({ topic: stats.name, score: stats.score_percent }); else if (stats.strength === 'weakness') analysis.weaknesses.push({ topic: stats.name, score: stats.score_percent }); } analysis.strengths.sort((a, b) => b.score - a.score); analysis.weaknesses.sort((a, b) => a.score - b.score); answers.forEach((answer) => { if (!answer || answer.correctness === 'error') return; const qType = answer.question_type; const difficulty = answer.difficulty; const maxQScore = answer.maxScore; const awardedScore = answer.scoreAwarded ?? 0; if (!analysis.performance_by_type[qType]) analysis.performance_by_type[qType] = { points_achieved: 0, max_points: 0, count: 0 }; analysis.performance_by_type[qType].points_achieved += awardedScore; analysis.performance_by_type[qType].max_points += maxQScore; analysis.performance_by_type[qType].count++; if (difficulty !== null && difficulty !== undefined) { if (!analysis.performance_by_difficulty[difficulty]) analysis.performance_by_difficulty[difficulty] = { points_achieved: 0, max_points: 0, count: 0 }; analysis.performance_by_difficulty[difficulty].points_achieved += awardedScore; analysis.performance_by_difficulty[difficulty].max_points += maxQScore; analysis.performance_by_difficulty[difficulty].count++; } if (answer.correctness === 'incorrect' || answer.correctness === 'partial') { analysis.incorrectly_answered_details.push({ question_number: answer.question_number_in_test, question_text: answer.question_text, topic: answer.topic_name, type: answer.question_type, user_answer: answer.userAnswerValue, correct_answer: answer.correct_answer, score_awarded: awardedScore, max_score: maxQScore, explanation: answer.reasoning, error_identified: answer.error_analysis }); } }); if (results.score >= 43) analysis.overall_assessment = "Vynikající výkon!"; else if (results.score >= 33) analysis.overall_assessment = "Dobrý výkon, solidní základ."; else if (results.score >= 20) analysis.overall_assessment = "Průměrný výkon, zaměřte se na slabiny."; else analysis.overall_assessment = `Výkon ${results.score < 10 ? 'výrazně ' : ''}pod průměrem. Nutné opakování.`; if (results.score < SCORE_THRESHOLD_FOR_SAVING) analysis.overall_assessment += " Skóre je příliš nízké pro uložení a generování plánu."; analysis.recommendations = analysis.weaknesses.length > 0 ? [`Intenzivně se zaměřte na nejslabší témata: ${analysis.weaknesses.map(w => w.topic).slice(0, 2).join(', ')}.`] : ["Pokračujte v upevňování znalostí."]; if (analysis.incorrectly_answered_details.length > 3) analysis.recommendations.push(`Projděte si ${analysis.incorrectly_answered_details.length} otázek s nízkým nebo částečným skóre.`); console.log("[Logic Analysis] Vygenerována detailní analýza:", analysis); return analysis;
     }
 
     async function saveTestResultsLogic(supabase, currentUser, testResultsData, userAnswers, questions, testEndTime) {
-        // ... (код этой функции остается без изменений, как в v4) ...
+        // ... (код этой функции остается без изменений, как в v5) ...
         if (!currentUser || currentUser.id === 'PLACEHOLDER_USER_ID' || !supabase) { console.warn("[Logic Save] Neukládám: Chybí uživatel nebo Supabase."); return { success: false, error: "Uživatel není přihlášen." }; } if (testResultsData.score < SCORE_THRESHOLD_FOR_SAVING) { console.log(`[Logic Save] Skóre (${testResultsData.score}/50) < ${SCORE_THRESHOLD_FOR_SAVING}. Přeskakuji ukládání.`); return { success: false, error: `Skóre je příliš nízké (<${SCORE_THRESHOLD_FOR_SAVING}) pro uložení.` }; } console.log(`[Logic Save] Pokouším se uložit výsledky...`); let savedDiagnosticId = null; try { const detailedAnalysis = generateDetailedAnalysisLogic(testResultsData, userAnswers, questions); const answersToSave = userAnswers.map(a => ({ question_db_id: a.question_db_id, question_number_in_test: a.question_number_in_test, question_type: a.question_type, topic_id: a.topic_id, difficulty: a.difficulty, userAnswerValue: a.userAnswerValue, scoreAwarded: a.scoreAwarded, maxScore: a.maxScore, correctness: a.correctness, reasoning: a.reasoning, error_analysis: a.error_analysis, feedback: a.feedback, checked_by: a.checked_by })); const dataToSave = { user_id: currentUser.id, completed_at: testEndTime ? testEndTime.toISOString() : new Date().toISOString(), total_score: testResultsData.score, total_questions: testResultsData.totalQuestions, answers: answersToSave, topic_results: testResultsData.topicResults, analysis: detailedAnalysis, time_spent: testResultsData.timeSpent }; console.log("[Logic Save] Data k uložení:", dataToSave); const { data, error } = await supabase.from('user_diagnostics').insert(dataToSave).select('id').single(); if (error) throw error; savedDiagnosticId = data.id; console.log("[Logic Save] Diagnostika uložena, ID:", savedDiagnosticId); if (typeof window.VyukaApp?.checkAndAwardAchievements === 'function') { console.log('[Achievements] Triggering check after saving test results...'); window.VyukaApp.checkAndAwardAchievements(currentUser.id); } else { console.warn("[Achievements] Check function (window.VyukaApp.checkAndAwardAchievements) not found after saving test results."); } return { success: true, diagnosticId: savedDiagnosticId }; } catch (error) { console.error('[Logic Save] Chyba při ukládání:', error); return { success: false, error: `Nepodařilo se uložit výsledky: ${error.message}`, diagnosticId: savedDiagnosticId }; }
     }
 
     async function awardPointsLogic(supabase, currentUser, currentProfile, selectedTestType, testResultsData, testTypeConfig) {
-        // ... (код этой функции остается без изменений, как в v4) ...
+        // ... (код этой функции остается без изменений, как в v5) ...
         if (!selectedTestType || !testResultsData || testResultsData.totalQuestions <= 0 || !currentUser || !currentProfile || !supabase) { console.warn("[Logic Points] Nelze vypočítat/uložit body: Chybí data."); return { success: false, awardedPoints: 0, newTotal: currentProfile?.points ?? 0 }; } const config = testTypeConfig[selectedTestType]; if (!config) { console.warn(`[Logic Points] Neznámá konfigurace testu: ${selectedTestType}`); return { success: false, awardedPoints: 0, newTotal: currentProfile.points }; } const multiplier = config.multiplier; const correctAnswers = testResultsData.correctAnswers; const totalQuestions = testResultsData.totalQuestions; if (totalQuestions === 0) { console.warn("[Logic Points] Počet otázek je 0, nelze vypočítat body."); return { success: true, awardedPoints: 0, newTotal: currentProfile.points }; } const calculatedPoints = Math.round(multiplier * (correctAnswers / totalQuestions) * 10); if (calculatedPoints <= 0) { console.log("[Logic Points] Nebyly získány žádné body."); return { success: true, awardedPoints: 0, newTotal: currentProfile.points }; } console.log(`[Logic Points] Vypočítané body: ${calculatedPoints} (multiplier=${multiplier}, correct=${correctAnswers}, total=${totalQuestions})`); const currentPoints = currentProfile.points || 0; const newPoints = currentPoints + calculatedPoints; try { const { error } = await supabase.from('profiles').update({ points: newPoints, updated_at: new Date().toISOString() }).eq('id', currentUser.id); if (error) { throw error; } console.log(`[Logic Points] Body uživatele ${currentUser.id} aktualizovány na ${newPoints} (+${calculatedPoints})`); if (typeof window.VyukaApp?.checkAndAwardAchievements === 'function') { console.log('[Achievements] Triggering check after awarding points...'); window.VyukaApp.checkAndAwardAchievements(currentUser.id); } else { console.warn("[Achievements] Check function (window.VyukaApp.checkAndAwardAchievements) not found after awarding points."); } return { success: true, awardedPoints: calculatedPoints, newTotal: newPoints }; } catch (error) { console.error("[Logic Points] Chyba při aktualizaci bodů:", error); return { success: false, error: error.message, awardedPoints: 0, newTotal: currentPoints }; }
     }
     // --- END: Логика расчета и сохранения результатов ---
 
     // --- START: Проверка существующего теста ---
     async function checkExistingDiagnosticLogic(supabase, userId) {
-        // ... (код этой функции остается без изменений, как в v4) ...
+        // ... (код этой функции остается без изменений, как в v5) ...
         if (!userId || userId === 'PLACEHOLDER_USER_ID' || !supabase) { console.warn("[Logic Check] Kontrola testu přeskočena (není user/supabase)."); return false; } try { const { data: existingDiagnostic, error } = await supabase.from('user_diagnostics').select('id, completed_at').eq('user_id', userId).limit(1); if (error) { console.error("[Logic Check] Chyba při kontrole existujícího testu:", error); return false; } return existingDiagnostic && existingDiagnostic.length > 0; } catch (err) { console.error("[Logic Check] Neočekávaná chyba při kontrole testu:", err); return false; }
     }
     // --- END: Проверка существующего теста ---
 
     // --- START: Логика Уведомлений ---
     async function fetchNotificationsLogic(supabase, userId, limit = NOTIFICATION_FETCH_LIMIT) {
-        // ... (код этой функции остается без изменений, как в v4) ...
+        // ... (код этой функции остается без изменений, как в v5) ...
         if (!supabase || !userId) { console.error("[Notifications Logic] Chybí Supabase nebo ID uživatele."); return { unreadCount: 0, notifications: [] }; } console.log(`[Notifications Logic] Načítání nepřečtených oznámení pro uživatele ${userId}`); try { const { data, error, count } = await supabase.from('user_notifications').select('*', { count: 'exact' }).eq('user_id', userId).eq('is_read', false).order('created_at', { ascending: false }).limit(limit); if (error) { throw error; } console.log(`[Notifications Logic] Načteno ${data?.length || 0} oznámení. Celkem nepřečtených: ${count}`); return { unreadCount: count ?? 0, notifications: data || [] }; } catch (error) { console.error("[Notifications Logic] Výjimka při načítání oznámení:", error); return { unreadCount: 0, notifications: [] }; }
     }
     // --- END: Логика Уведомлений ---
@@ -593,9 +602,9 @@ ${inputData}
         fetchNotifications: fetchNotificationsLogic,
         SCORE_THRESHOLD_FOR_SAVING: SCORE_THRESHOLD_FOR_SAVING,
         compareNumericAdvanced: compareNumericAdvanced,
-        compareTextAdvanced: compareTextAdvanced, // Обновленная функция v5
+        compareTextAdvanced: compareTextAdvanced, // Обновленная функция v6
     };
-    console.log("test1-logic.js loaded and TestLogic exposed (v5 - Unique Questions + Text Compare Fix).");
+    console.log("test1-logic.js loaded and TestLogic exposed (v6 - Unique Questions Check + Text Compare Fix).");
     // --- END: Глобальный Экспорт ---
 
 })(window); // Передаем глобальный объект (window в браузере)
