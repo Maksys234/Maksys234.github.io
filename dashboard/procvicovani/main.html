@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Justax - Přehled Procvičování // Kyber-Verze</title> {/* Изменено название */}
+    <title>Justax - Přehled Procvičování // Kyber-Verze</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
@@ -17,18 +17,14 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/css/tooltipster.bundle.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/js/tooltipster.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-
-    <link rel="stylesheet" href="main.css"> {/* Связь с CSS файлом */}
-
+    <link rel="stylesheet" href="main.css">
 </head>
 <body class="dark">
     <div class="initial-loading-overlay" id="initial-loader">
          <div class="loading-spinner"></div>
-         <p>SYNCHRONIZACE PROCVIČOVÁNÍ...</p> {/* Изменен текст загрузчика */}
-    </div>
-
+         <p>SYNCHRONIZACE PROCVIČOVÁNÍ...</p>
+     </div>
     <div class="sidebar-overlay" id="sidebar-overlay"></div>
-
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <button class="mobile-menu-toggle" id="sidebar-close-toggle" aria-label="Zavřít menu">
@@ -54,10 +50,8 @@
         </div>
         <div class="sidebar-footer"> &copy; <span id="currentYearFooter">2025</span> Justax Systems </div>
     </aside>
-
     <main id="main-content">
         <div class="error-container" id="global-error"></div>
-
         <header class="dashboard-header">
             <div class="header-content">
                  <div>
@@ -92,7 +86,6 @@
                 </div>
             </div>
         </header>
-
         <div class="main-content-wrapper">
             <div class="tabs-wrapper">
                 <div class="content-tabs">
@@ -110,38 +103,34 @@
                     </div>
                 </div>
             </div>
-
-            <div class="tab-content-container">                 <div class="tab-content active" id="practice-tab">
-                    {/* Сообщение о диагностике */}
+            <div class="tab-content-container">
+                <div class="tab-content active" id="practice-tab">
                      <div class="diagnostic-prompt card" id="diagnostic-prompt" style="display: none;" data-animate>
                          <i class="fas fa-exclamation-circle"></i>
                          <p>Pro odemčení personalizovaného obsahu a studijního plánu je potřeba absolvovat <strong>diagnostický test</strong>.</p>
-                         <a href="test1.html" class="btn btn-primary" id="start-test-btn-prompt"><i class="fas fa-play"></i> Spustit test</a>                      </div>
+                         <a href="test1.html" class="btn btn-primary" id="start-test-btn-prompt"><i class="fas fa-play"></i> Spustit test</a>
+                     </div>
                     <section class="stats-section">
                         <h2 class="section-title" data-animate style="--animation-order: 1;"><i class="fas fa-chart-pie"></i>Celkový Přehled</h2>
                         <div class="dashboard-grid" id="stats-cards">
-                            {/* Карточка 1: Прогресс */}
                             <div class="dashboard-card card loading" data-animate style="--animation-order: 2;">
                                 <div class="loading-skeleton"> <div class="skeleton title" style="width: 60%;"></div> <div class="skeleton value"></div> <div class="skeleton text" style="width: 70%;"></div> <div class="skeleton text text-short"></div> <div class="skeleton icon-placeholder"></div> </div>
                                 <div class="card-header"> <div class="card-title">Celkový Progress</div> <span class="card-badge info">Odhad</span> </div>
                                 <div class="card-content"> <div class="card-value" id="stats-progress">- %</div> <div class="progress-container"> <div class="progress-bar" id="progress-bar-main" style="width: 0%;"></div> </div> </div>
                                 <div class="card-footer" id="stats-progress-change"><i class="fas fa-minus"></i> N/A</div>
                             </div>
-                            {/* Карточка 2: Тесты */}
                             <div class="dashboard-card card loading" data-animate style="--animation-order: 3;">
                                  <div class="loading-skeleton"> <div class="skeleton title" style="width: 70%;"></div> <div class="skeleton value"></div> <div class="skeleton text" style="width: 80%;"></div> <div class="skeleton text text-short"></div> <div class="skeleton icon-placeholder"></div> </div>
                                  <div class="card-header"> <div class="card-title">Absolvované Testy</div> <span class="card-badge info">Počet</span> </div>
                                  <div class="card-content"> <div class="card-value" id="stats-tests">-</div> <div class="card-description" id="stats-tests-avg">Průměrné skóre: -%</div> </div>
                                  <div class="card-footer" id="stats-tests-change"><i class="fas fa-chart-line"></i> Data nedostupná</div>
                             </div>
-                             {/* Карточка 3: Кредиты */}
                             <div class="dashboard-card card loading" data-animate style="--animation-order: 4;">
                                  <div class="loading-skeleton"> <div class="skeleton title" style="width: 65%;"></div> <div class="skeleton value"></div> <div class="skeleton text" style="width: 75%;"></div> <div class="skeleton text text-short"></div> <div class="skeleton icon-placeholder"></div> </div>
                                  <div class="card-header"> <div class="card-title">Získané Kredity</div> <span class="card-badge success">Měna</span> </div>
                                  <div class="card-content"> <div class="card-value" id="stats-points">-</div> <div class="card-description">Za testy a cvičení</div> </div>
                                  <div class="card-footer positive" id="stats-points-change"><i class="fas fa-minus"></i> N/A</div>
                             </div>
-                            {/* Карточка 4: Серия */}
                             <div class="dashboard-card card loading" data-animate style="--animation-order: 5;">
                                  <div class="loading-skeleton"> <div class="skeleton title" style="width: 55%;"></div> <div class="skeleton value"></div> <div class="skeleton text" style="width: 90%;"></div> <div class="skeleton text text-short"></div> <div class="skeleton icon-placeholder"></div> </div>
                                  <div class="card-header"> <div class="card-title">Studijní Série</div> <span class="card-badge warning">Motivace</span> </div>
@@ -150,7 +139,6 @@
                             </div>
                         </div>
                     </section>
-                    {/* Секция быстрых действий */}
                     <section class="shortcuts-section">
                         <h2 class="section-title" data-animate style="--animation-order: 6;"><i class="fas fa-rocket"></i>Rychlé Akce</h2>
                         <div class="shortcut-grid">
@@ -160,8 +148,6 @@
                         </div>
                     </section>
                 </div>
-
-                {/* Таб 2: Výsledky Testů */}
                 <div class="tab-content" id="test-results-tab">
                     <section class="test-results-section card loading" id="test-results-container">
                         <h2 class="section-title"><i class="fas fa-poll"></i>Historie Testů</h2>
@@ -190,8 +176,6 @@
                         </div>
                     </section>
                 </div>
-
-                {/* Таб 3: Aktivní Plán */}
                 <div class="tab-content" id="study-plan-tab">
                     <section class="study-plan-section card loading" id="study-plan-container">
                         <h2 class="section-title"><i class="fas fa-route"></i>Aktuální Studijní Plán</h2>
@@ -214,8 +198,6 @@
                         </div>
                    </section>
                 </div>
-
-                {/* Таб 4: Analýza Témat */}
                 <div class="tab-content" id="topic-analysis-tab">
                     <section class="topic-analysis-section card loading" id="topic-analysis-container">
                         <h2 class="section-title"><i class="fas fa-atom"></i>Analýza podle Témat</h2>
@@ -235,15 +217,12 @@
                         </div>
                     </section>
                 </div>
-
-            </div> {/* Конец tab-content-container */}
-
+            </div>
             <footer class="dashboard-footer">
                  <p>&copy; <span id="currentYearFooter">2025</span> Justax Systems // Secure Channel</p>
             </footer>
-        </div> 
+        </div>
     </main>
-
     <div class="toast-container" id="toast-container"></div>
     <div id="mouse-follower" class="mouse-follower-glow"></div>
     <script src="main.js" defer></script>
