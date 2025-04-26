@@ -71,6 +71,7 @@ window.VyukaApp = window.VyukaApp || {};
 			}
 		};
 
+        // ZMĚNA: Přidán argument targetChunkElement pro zvýraznění
         VyukaApp.speakText = (text, targetChunkElement = null) => {
 			const state = VyukaApp.state;
 			const ui = VyukaApp.ui;
@@ -125,6 +126,7 @@ window.VyukaApp = window.VyukaApp || {};
 				console.log("TTS started.");
 				ui.aiAvatarCorner?.classList.add('speaking');
 				ui.boardSpeakingIndicator?.classList.add('active');
+                // ZMĚNA: Zvýraznění konkrétního bloku, pokud je předán
 				if (targetChunkElement) {
 					targetChunkElement.classList.add('speaking-highlight');
 					state.currentlyHighlightedChunk = targetChunkElement;
@@ -313,6 +315,7 @@ window.VyukaApp = window.VyukaApp || {};
 			VyukaApp.manageButtonStates(); // Update button states (e.g., disable clear if empty)
 		};
 
+        // ZMĚNA: Přidání TTS tlačítka a listeneru přímo zde
     	VyukaApp.appendToWhiteboard = (markdownContent, commentaryText) => {
 			const ui = VyukaApp.ui;
 			const state = VyukaApp.state;
@@ -335,12 +338,21 @@ window.VyukaApp = window.VyukaApp || {};
 			ttsButton.innerHTML = '<i class="fas fa-volume-up"></i>';
 			// Use commentary if provided, otherwise use the original markdown text for speech
 			const textForSpeech = commentaryText || originalText;
-			ttsButton.dataset.textToSpeak = textForSpeech; // Store text for the listener
+            // ZMĚNA: Uložení textu pro TTS do data atributu tlačítka
+			ttsButton.dataset.textToSpeak = textForSpeech;
 
-			if (state.speechSynthesisSupported) {
+			if (state.speechSynthesisSupported && textForSpeech.trim()) {
+                // ZMĚNA: Přidání listeneru přímo zde
 				ttsButton.addEventListener('click', (e) => {
 					e.stopPropagation(); // Prevent potential parent clicks
-					VyukaApp.speakText(textForSpeech, chunkDiv); // Pass the chunk for highlighting
+                    const buttonElement = e.currentTarget; // Get the button that was clicked
+                    const text = buttonElement.dataset.textToSpeak;
+                    const parentChunk = buttonElement.closest('.whiteboard-chunk'); // Find the parent chunk
+                    if (text) {
+					    VyukaApp.speakText(text, parentChunk); // Pass the chunk for highlighting
+                    } else {
+                        console.warn("No text found for TTS button in whiteboard chunk.");
+                    }
 				});
 				chunkDiv.appendChild(ttsButton); // Add TTS button to the chunk
 			}
@@ -722,10 +734,18 @@ window.VyukaApp = window.VyukaApp || {};
 				ttsButton.title = 'Poslechnout';
 				ttsButton.innerHTML = '<i class="fas fa-volume-up"></i>';
 				const textForSpeech = ttsText || displayMessage; // Use specific TTS text if provided
+                // ZMĚNA: Uložení textu pro TTS do data atributu
 				ttsButton.dataset.textToSpeak = textForSpeech;
+                // ZMĚNA: Přidání listeneru přímo zde
 				ttsButton.addEventListener('click', (e) => {
 					e.stopPropagation(); // Prevent bubbling
-					VyukaApp.speakText(textForSpeech);
+                    const buttonElement = e.currentTarget;
+                    const text = buttonElement.dataset.textToSpeak;
+                    if (text) {
+					    VyukaApp.speakText(text); // V chatu není potřeba highlight
+                    } else {
+                        console.warn("No text found for TTS button in chat.");
+                    }
 				});
 				bubbleContentDiv.appendChild(ttsButton); // Add button next to text content
 			}
@@ -1149,6 +1169,7 @@ window.VyukaApp = window.VyukaApp || {};
 			return { boardMarkdown, ttsCommentary, chatText, actionSignal };
 		};
 
+        // ZMĚNA: Odebráno automatické spouštění TTS
     	VyukaApp.processGeminiResponse = (rawText, timestamp) => {
 			const state = VyukaApp.state;
 			VyukaApp.removeThinkingIndicator(); // Stop the "..." indicator
@@ -1176,19 +1197,20 @@ window.VyukaApp = window.VyukaApp || {};
 			if (actionSignal === 'SUGGEST_COMPLETION') {
 				VyukaApp.promptTopicCompletion(); // Show the modal
 				aiResponded = true;
-				// Optionally play TTS commentary associated with the suggestion
-				if (ttsCommentary) { VyukaApp.speakText(ttsCommentary); }
+                // ODEBRÁNO: Automatické spuštění TTS pro návrh dokončení
+				// if (ttsCommentary) { VyukaApp.speakText(ttsCommentary); }
                 VyukaApp.manageUIState('suggestedCompletion'); // Update UI state
 			}
 
 			// 2. Handle Whiteboard Content
 			if (boardMarkdown) {
 				// Append content to the whiteboard. Pass commentary for the TTS button.
+                // ZMĚNA: Předání komentáře do appendToWhiteboard, ale nevolání speakText zde
 				VyukaApp.appendToWhiteboard(boardMarkdown, ttsCommentary || boardMarkdown);
-				// Speak the commentary if provided AND if we are not suggesting completion
-				if (ttsCommentary && actionSignal !== 'SUGGEST_COMPLETION') {
-					VyukaApp.speakText(ttsCommentary);
-				}
+                // ODEBRÁNO: Automatické spuštění TTS pro obsah tabule
+				// if (ttsCommentary && actionSignal !== 'SUGGEST_COMPLETION') {
+				// 	VyukaApp.speakText(ttsCommentary);
+				// }
 				aiResponded = true;
                 if (actionSignal !== 'SUGGEST_COMPLETION') {
                      state.aiIsWaitingForAnswer = false; // Board content usually doesn't require immediate answer
@@ -1215,20 +1237,28 @@ window.VyukaApp = window.VyukaApp || {};
 			// 3. Handle Chat Text
 			if (cleanedChatText) {
 				// If there was *only* TTS commentary (no board), use it for the chat message's TTS
+                // ZMĚNA: Předání TTS textu do addChatMessage, ale nevolání speakText
 				const ttsForChat = (!boardMarkdown && ttsCommentary && actionSignal !== 'SUGGEST_COMPLETION') ? ttsCommentary : null;
 				VyukaApp.addChatMessage(cleanedChatText, 'gemini', true, timestamp, ttsForChat, chatText); // Save original chatText
 				aiResponded = true;
 			}
 			// 4. Handle TTS Commentary Only (if no board or chat text was generated, but TTS was)
-			else if (ttsCommentary && !boardMarkdown && actionSignal !== 'SUGGEST_COMPLETION') {
-				VyukaApp.speakText(ttsCommentary); // Play the commentary
-				aiResponded = true;
-			}
+            // ODEBRÁNO: Automatické přehrávání TTS, pokud bylo jediné
+			// else if (ttsCommentary && !boardMarkdown && actionSignal !== 'SUGGEST_COMPLETION') {
+			// 	VyukaApp.speakText(ttsCommentary); // Play the commentary
+			// 	aiResponded = true;
+			// }
 
 			// 5. Handle cases where AI response was empty or unusable
 			if (!aiResponded && !actionSignal) {
-				VyukaApp.addChatMessage("(AI neodpovědělo očekávaným formátem nebo odpověď byla prázdná)", 'gemini', false, timestamp, null, rawText || "(Prázdná/neplatná odpověď)");
-				console.warn("AI sent no usable content and no action signal.");
+                // ZMĚNA: Pokud nebylo nic jiného, a byl jen TTS komentář, přidej ho alespoň do chatu jako fallback
+                if (ttsCommentary) {
+                    VyukaApp.addChatMessage(`(Komentář k tabuli: ${ttsCommentary})`, 'gemini', true, timestamp, ttsCommentary, `(Komentář: ${ttsCommentary})`);
+                     aiResponded = true;
+                } else {
+				    VyukaApp.addChatMessage("(AI neodpovědělo očekávaným formátem nebo odpověď byla prázdná)", 'gemini', false, timestamp, null, rawText || "(Prázdná/neplatná odpověď)");
+				    console.warn("AI sent no usable content and no action signal.");
+                }
                 state.aiIsWaitingForAnswer = false; // Ensure user isn't stuck waiting
 			}
 
@@ -1539,7 +1569,8 @@ PRAVIDLA CHATU (PŘIPOMENUTÍ): Odpovídej POUZE běžným textem do chatu. Nepo
                     case 'streak_days': currentValue = profileData.streak_days ?? 0; break;
                     case 'exercises_completed': currentValue = profileData.completed_exercises ?? 0; break;
                     case 'level_reached': currentValue = profileData.level ?? 1; break;
-                    case 'tests_completed': currentValue = profileData.completed_tests ?? VyukaApp.state.currentUserStats?.completed_tests ?? 0; break;
+                    // ZMĚNA: Odebráno completed_tests
+                    // case 'tests_completed': currentValue = profileData.completed_tests ?? VyukaApp.state.currentUserStats?.completed_tests ?? 0; break;
                     default: console.warn(`[Achievements CheckReq] Unknown requirement type: ${reqType}`); return false;
                 }
                 return currentValue >= reqTarget;
@@ -1575,26 +1606,57 @@ PRAVIDLA CHATU (PŘIPOMENUTÍ): Odpovídej POUZE běžným textem do chatu. Nepo
                 VyukaApp.showToast(notificationTitle, notificationMessage, 'success', 6000);
             } catch (error) { console.error(`[AwardBadge] Error awarding badge ${badgeId} to user ${userId}:`, error); }
         };
+        // ZMĚNA: Odebrán sloupec completed_tests z dotazu
         VyukaApp.checkAndAwardAchievements = async (userId) => {
             const supabase = VyukaApp.state.supabase;
             if (!supabase || !userId) { console.error("[Achievements Check] Missing Supabase client or userId."); return; }
             console.log(`[Achievements Check] Starting check for user ${userId}...`);
             try {
-                const { data: profileData, error: profileError } = await supabase.from('profiles').select('points, level, streak_days, completed_exercises, completed_tests').eq('id', userId).single();
-                if (profileError) throw profileError;
+                // ZMĚNA: Odebráno completed_tests ze SELECT
+                const { data: profileData, error: profileError } = await supabase
+                    .from('profiles')
+                    .select('points, level, streak_days, completed_exercises') // Odebráno completed_tests
+                    .eq('id', userId)
+                    .single();
+
+                if (profileError) {
+                     // ZMĚNA: Detailnější logování chyby profilu
+                    console.error(`[Achievements Check] Supabase profile fetch error for user ${userId}:`, profileError);
+                    // Pokud je chyba specifická 42703 (sloupec neexistuje), dej vědět
+                    if (profileError.code === '42703') {
+                         console.error(`[Achievements Check] POTENTIAL ISSUE: Query tried to access a non-existent column. Check the SELECT statement.`);
+                    }
+                    throw profileError;
+                }
+
                 if (!profileData) throw new Error(`Profile data not found for user ${userId} during achievement check.`);
+
                 const { data: allBadgesData, error: badgesError } = await supabase.from('badges').select('id, title, requirements, points').order('id');
                 if (badgesError) throw badgesError;
                 if (!allBadgesData || allBadgesData.length === 0) { console.log("[Achievements Check] No badge definitions found."); return; }
+
                 const { data: earnedBadgesData, error: earnedError } = await supabase.from('user_badges').select('badge_id').eq('user_id', userId);
                 if (earnedError) throw earnedError;
+
                 const earnedBadgeIds = new Set((earnedBadgesData || []).map(b => b.badge_id));
                 const unearnedBadges = allBadgesData.filter(b => !earnedBadgeIds.has(b.id));
                 console.log(`[Achievements Check] Found ${unearnedBadges.length} unearned badges to check.`);
                 if (unearnedBadges.length === 0) { console.log("[Achievements Check] No new badges to check."); return; }
-                for (const badge of unearnedBadges) { if (VyukaApp.checkRequirements(profileData, badge.requirements)) { console.log(`[Achievements Check] Criteria MET for badge ID: ${badge.id} (${badge.title})! Triggering award...`); VyukaApp.awardBadge(userId, badge.id, badge.title, badge.points || 0); } }
+
+                for (const badge of unearnedBadges) {
+                    // ZMĚNA: Předání profileData do checkRequirements
+                    if (VyukaApp.checkRequirements(profileData, badge.requirements)) {
+                         console.log(`[Achievements Check] Criteria MET for badge ID: ${badge.id} (${badge.title})! Triggering award...`);
+                         // ZMĚNA: Předání userId, badgeId, badgeTitle, badge.points
+                         await VyukaApp.awardBadge(userId, badge.id, badge.title, badge.points || 0);
+                    }
+                }
                 console.log(`[Achievements Check] Finished checking for user ${userId}.`);
-            } catch (error) { console.error("[Achievements Check] Error during check/award process:", error); }
+            } catch (error) {
+                 // ZMĚNA: Detailnější logování obecné chyby
+                 console.error(`[Achievements Check] Error during check/award process for user ${userId}:`, error);
+                 // Zde by se nemělo zobrazovat toast uživateli, logování by mělo stačit
+            }
         };
         // --- END Achievement Logic ---
 
@@ -1606,6 +1668,7 @@ PRAVIDLA CHATU (PŘIPOMENUTÍ): Odpovídej POUZE běžným textem do chatu. Nepo
     	VyukaApp.markAllNotificationsRead = async () => { /* ... Same as before ... */ const state = VyukaApp.state; const ui = VyukaApp.ui; console.log("[Notifications] Marking all as read for user:", state.currentUser?.id); if (!state.currentUser || !ui.markAllReadBtn || !state.supabase) return; VyukaApp.setLoadingState('notifications', true); ui.markAllReadBtn.disabled = true; try { const { error } = await state.supabase.from('user_notifications').update({ is_read: true }).eq('user_id', state.currentUser.id).eq('is_read', false); if (error) throw error; console.log("[Notifications] Mark all as read successful in DB."); const { unreadCount, notifications } = await VyukaApp.fetchNotifications(state.currentUser.id, VyukaApp.config.NOTIFICATION_FETCH_LIMIT); VyukaApp.renderNotifications(unreadCount, notifications); VyukaApp.showToast('SIGNÁLY VYMAZÁNY', 'Všechna oznámení byla označena jako přečtená.', 'success'); } catch (error) { console.error("[Notifications] Mark all as read error:", error); VyukaApp.showToast('CHYBA PŘENOSU', 'Nepodařilo se označit všechna oznámení.', 'error'); const currentCount = parseInt(ui.notificationCount?.textContent?.replace('+', '') || '0'); ui.markAllReadBtn.disabled = currentCount === 0; } finally { VyukaApp.setLoadingState('notifications', false); } };
 
 		// --- Feature Specific Event Listeners ---
+        // ZMĚNA: Odebrány delegované listenery pro TTS, nyní jsou přímo v appendToWhiteboard a addChatMessage
 		VyukaApp.setupFeatureListeners = () => {
 			const ui = VyukaApp.ui;
 			console.log("[SETUP Features] Setting up feature event listeners...");
@@ -1617,9 +1680,9 @@ PRAVIDLA CHATU (PŘIPOMENUTÍ): Odpovídej POUZE běžným textem do chatu. Nepo
 			// STT/TTS Listeners
 			if (ui.micBtn) ui.micBtn.addEventListener('click', VyukaApp.handleMicClick);
 			if (ui.stopSpeechBtn) ui.stopSpeechBtn.addEventListener('click', VyukaApp.stopSpeech);
-			// TTS listeners within dynamically added content (chat/board)
-			if (ui.chatMessages) { ui.chatMessages.addEventListener('click', (event) => { const button = event.target.closest('.tts-listen-btn'); if (button) { const text = button.dataset.textToSpeak; if (text) { VyukaApp.speakText(text); } else { console.warn("No text found for TTS button in chat."); } } }); }
-			// Whiteboard Listeners (TTS button added dynamically in appendToWhiteboard)
+            // ODEBRÁNO: Delegovaný listener pro TTS v chatu, nyní je v addChatMessage
+			// if (ui.chatMessages) { ui.chatMessages.addEventListener('click', (event) => { /* ... listener logic ... */ }); }
+            // ODEBRÁNO: Delegovaný listener pro TTS na tabuli, nyní je v appendToWhiteboard
 
 			// Learning Flow Listeners
 			if (ui.continueBtn) ui.continueBtn.addEventListener('click', VyukaApp.requestContinue);
