@@ -1,5 +1,5 @@
 /* --- START: Cyberpunk CSS Theme (Adapted for vyuka.html) --- */
-/* --- Версия 20: Rebalanced Width (Presenter 55%, Chat 45%), Height Optimized, v19 Fixes Kept --- */
+/* --- Версия 21: Chat Larger (Presenter 40%, Chat 60%), Height Optimized, v19/v20 Fixes Kept --- */
 
 /* --- Global Settings & Variables (Enhanced) --- */
 :root {
@@ -477,9 +477,9 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
 .main-content-wrapper { padding: 0; flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 0; /* Crucial for flexbox layout */ }
 .call-interface { flex-grow: 1; display: flex; overflow: hidden; padding: 1.8rem var(--container-padding-x); gap: 1.8rem; min-height: 0; /* Important */ }
 
-/* *** MODIFICATION v20: Rebalanced Width (Presenter 55%, Chat 45%) *** */
+/* *** MODIFICATION v21: Chat Larger (Presenter 40%, Chat 60%) *** */
 .ai-presenter-area {
-	flex: 1 1 55%; /* Presenter gets slightly more base width */
+	flex: 1 1 40%; /* Presenter gets less base width */
 	display: flex;
 	flex-direction: column;
 	background-color: var(--card-bg);
@@ -489,13 +489,13 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
 	border: 1px solid var(--border-color-light);
 	min-height: 0;
 	position: relative;
-	min-width: 450px; /* Keep a decent min width for presenter */
+	min-width: 350px; /* Adjusted min width */
     transition: box-shadow var(--transition-medium);
 }
 .interaction-panel {
-	flex: 1 1 45%; /* Chat gets slightly less base width, but equal grow factor */
+	flex: 1 1 60%; /* Chat gets more base width */
     max-width: none; /* Ensure no max width */
-	min-width: 400px; /* Keep a reasonable min width */
+	min-width: 450px; /* Adjusted min width */
 	display: flex;
 	flex-direction: column;
 	background-color: var(--chat-bg);
@@ -507,7 +507,7 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
     transition: box-shadow var(--transition-medium);
 }
 .ai-presenter-area:hover, .interaction-panel:hover { box-shadow: var(--shadow-card); }
-/* *** END MODIFICATION v20 *** */
+/* *** END MODIFICATION v21 *** */
 
 /* AI Presenter (Whiteboard Area) */
 .ai-presenter-header { padding: 0.9rem 1.3rem; border-bottom: 1px solid var(--border-color-light); display: flex; align-items: center; justify-content: space-between; background-color: rgba(var(--dark-purple-accent-rgb), 0.5); flex-shrink: 0; min-height: 60px; }
@@ -751,9 +751,9 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
 .sidebar-overlay { display: none; position: fixed; inset: 0; background-color: rgba(3, 2, 12, 0.7); z-index: 999; opacity: 0; transition: opacity var(--transition-medium) ease; backdrop-filter: blur(5px); }
 .sidebar-overlay.active { display: block; opacity: 1; }
 @media (max-width: 1200px) {
-	/* Slightly adjust proportions if needed on smaller desktops */
-	.ai-presenter-area { flex-basis: 50%; min-width: 400px;} /* Re-balanced slightly */
-	.interaction-panel { flex-basis: 50%; min-width: 380px;}
+	/* Adjusted proportions for chat larger */
+	.ai-presenter-area { flex-basis: 45%; min-width: 380px;} /* Slightly adjusted */
+	.interaction-panel { flex-basis: 55%; min-width: 420px;} /* Slightly adjusted */
 	.call-interface { padding: 1rem; gap: 1rem; }
 }
 @media (max-width: 992px) {
@@ -827,7 +827,7 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
 }
 /* --- END: Cyberpunk CSS Theme --- */
 
-/* --- START MODIFICATION v19/v20: MathJax specific styles --- */
+/* --- START MODIFICATION v19/v20/v21: MathJax specific styles --- */
 /* Style for MathJax containers in chat bubbles */
 .message-bubble mjx-container {
     overflow-x: auto; /* Allow horizontal scroll for wide equations */
@@ -861,4 +861,4 @@ mjx-math {
 .chat-message.model .message-bubble mjx-math { color: var(--accent-cyan); }
 .chat-message.user .message-bubble mjx-math { color: #e8e8ff; } /* Brighter for user */
 #whiteboard-content mjx-math { color: var(--accent-cyan); }
-/* --- END MODIFICATION v19/v20: MathJax specific styles --- */
+/* --- END MODIFICATION v19/v20/v21: MathJax specific styles --- */
