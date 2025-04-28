@@ -1,5 +1,5 @@
 /* --- START: Cyberpunk CSS Theme (Adapted for vyuka.html) --- */
-/* --- Версия 21: Chat Larger (Presenter 40%, Chat 60%), Height Optimized, v19/v20 Fixes Kept --- */
+/* --- Версия 21: Chat message size adjustments (Padding, Font Size, Max Width) --- */
 
 /* --- Global Settings & Variables (Enhanced) --- */
 :root {
@@ -477,9 +477,9 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
 .main-content-wrapper { padding: 0; flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 0; /* Crucial for flexbox layout */ }
 .call-interface { flex-grow: 1; display: flex; overflow: hidden; padding: 1.8rem var(--container-padding-x); gap: 1.8rem; min-height: 0; /* Important */ }
 
-/* *** MODIFICATION v21: Chat Larger (Presenter 40%, Chat 60%) *** */
+/* *** MODIFICATION v20: Rebalanced Width (Presenter 55%, Chat 45%) *** */
 .ai-presenter-area {
-	flex: 1 1 40%; /* Presenter gets less base width */
+	flex: 1 1 55%; /* Presenter gets slightly more base width */
 	display: flex;
 	flex-direction: column;
 	background-color: var(--card-bg);
@@ -489,13 +489,13 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
 	border: 1px solid var(--border-color-light);
 	min-height: 0;
 	position: relative;
-	min-width: 350px; /* Adjusted min width */
+	min-width: 450px; /* Keep a decent min width for presenter */
     transition: box-shadow var(--transition-medium);
 }
 .interaction-panel {
-	flex: 1 1 60%; /* Chat gets more base width */
+	flex: 1 1 45%; /* Chat gets slightly less base width, but equal grow factor */
     max-width: none; /* Ensure no max width */
-	min-width: 450px; /* Adjusted min width */
+	min-width: 400px; /* Keep a reasonable min width */
 	display: flex;
 	flex-direction: column;
 	background-color: var(--chat-bg);
@@ -507,7 +507,7 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
     transition: box-shadow var(--transition-medium);
 }
 .ai-presenter-area:hover, .interaction-panel:hover { box-shadow: var(--shadow-card); }
-/* *** END MODIFICATION v21 *** */
+/* *** END MODIFICATION v20 *** */
 
 /* AI Presenter (Whiteboard Area) */
 .ai-presenter-header { padding: 0.9rem 1.3rem; border-bottom: 1px solid var(--border-color-light); display: flex; align-items: center; justify-content: space-between; background-color: rgba(var(--dark-purple-accent-rgb), 0.5); flex-shrink: 0; min-height: 60px; }
@@ -557,9 +557,11 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
 #board-speaking-indicator .dot:nth-child(2) { animation-delay: -0.15s; }
 @keyframes boardSpeaking { 0%, 80%, 100% { transform: scale(0.4); opacity: 0.6; } 40% { transform: scale(1.0); opacity: 1; } }
 /* TTS Button (Enhanced) */
-.tts-listen-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 0.3rem 0.5rem; margin-left: 0.7rem; font-size: 0.95em; opacity: 0.65; transition: opacity 0.25s ease, color 0.25s ease, transform 0.2s ease; vertical-align: middle; position: absolute; top: 1.2rem; right: 1.2rem; z-index: 5; } /* Increased z-index */
+.tts-listen-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 0.3rem 0.5rem; margin-left: 0.7rem; font-size: 0.95em; opacity: 0.65; transition: opacity 0.25s ease, color 0.25s ease, transform 0.2s ease; vertical-align: middle; }
 .tts-listen-btn:hover { opacity: 1; color: var(--accent-primary); transform: scale(1.15); filter: drop-shadow(0 0 3px var(--accent-glow)); }
 .tts-listen-btn i { pointer-events: none; }
+/* Specific positioning for whiteboard TTS button */
+.whiteboard-chunk .tts-listen-btn { position: absolute; top: 1.2rem; right: 1.2rem; z-index: 5; }
 
 /* Chat Panel (Enhanced) */
 .interaction-tabs { display: flex; border-bottom: 1px solid var(--border-color-medium); background-color: rgba(var(--dark-purple-accent-rgb), 0.5); flex-shrink: 0; }
@@ -580,62 +582,84 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
 .chat-messages::-webkit-scrollbar-track { background: var(--chat-scrollbar-track); }
 .chat-messages::-webkit-scrollbar-thumb { background-color: var(--chat-scrollbar-thumb); border-radius: 3.5px; }
 .chat-messages::-webkit-scrollbar-thumb:hover { background-color: var(--chat-scrollbar-thumb-hover); }
-.chat-message { display: flex; gap: 0.9rem; max-width: 88%; align-items: flex-end; margin-bottom: 1.3rem; animation: popInMessage 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; opacity: 0; transform: scale(0.95); }
-@keyframes popInMessage { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+
+/* Chat Message Adjustments START v21 */
+.chat-message {
+	display: flex;
+	gap: 0.9rem;
+	/* max-width: 88%; /* Original */
+    max-width: 85%; /* Reduced max width */
+	align-items: flex-end;
+	margin-bottom: 1.1rem; /* Slightly reduced margin */
+	animation: popInMessage 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+	opacity: 0;
+	transform: scale(0.95);
+}
 .chat-message.user { margin-left: auto; flex-direction: row-reverse; }
-/* --- START MODIFICATION v19: Message Avatar Styling --- */
 .message-avatar {
-	width: 40px; height: 40px; border-radius: 50%;
+	width: 38px; /* Slightly smaller avatar */
+    height: 38px;
+	border-radius: 50%;
 	display: flex; align-items: center; justify-content: center;
-	font-weight: 600; font-size: 1.1rem; flex-shrink: 0;
+	font-weight: 600;
+    font-size: 1rem; /* Slightly smaller font in avatar */
+    flex-shrink: 0;
 	box-shadow: 0 3px 6px rgba(0,0,0,0.35);
 	border: 2px solid rgba(var(--white-rgb), 0.08);
 	background-color: var(--accent-secondary); /* Default/Fallback */
 	color: var(--white);
 }
-.chat-message.user .message-avatar {
-	background: var(--gradient-success); /* Use gradient for user */
-	color: var(--text-fixed-dark); /* Ensure text contrast on gradient */
-}
-.chat-message.model .message-avatar {
-	background: var(--gradient-button); /* Use AI gradient */
-	color: var(--text-fixed-dark); /* Ensure text contrast on gradient */
-}
-/* Add this if you use images */
+.chat-message.user .message-avatar { background: var(--gradient-success); color: var(--text-fixed-dark); }
+.chat-message.model .message-avatar { background: var(--gradient-button); color: var(--text-fixed-dark); }
 .message-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
-/* --- END MODIFICATION v19: Message Avatar Styling --- */
-.message-bubble { padding: 0.9rem 1.3rem; border-radius: 20px; line-height: 1.65; word-wrap: break-word; box-shadow: 0 4px 10px rgba(0,0,0,0.3); position: relative; }
-.message-bubble-content { display: flex; align-items: flex-start; gap: 0.7rem; }
+.message-bubble {
+	/* padding: 0.9rem 1.3rem; /* Original */
+    padding: 0.75rem 1.1rem; /* Reduced padding */
+	border-radius: 18px; /* Slightly smaller radius */
+	line-height: 1.6; /* Adjusted line height */
+	word-wrap: break-word;
+	box-shadow: 0 3px 8px rgba(0,0,0,0.25); /* Slightly reduced shadow */
+	position: relative;
+    font-size: 0.98rem; /* Explicitly set font size, slightly smaller */
+}
+.message-bubble-content { display: flex; align-items: flex-start; gap: 0.6rem; /* Reduced gap */ }
 .message-text-content { flex-grow: 1; }
 .chat-message.model .message-bubble { background: var(--chat-bubble-model-bg); color: var(--chat-bubble-model-text); border: 1px solid var(--border-color-light); border-bottom-left-radius: 8px; }
 .chat-message.user .message-bubble { background: var(--chat-bubble-user-bg); color: var(--chat-bubble-user-text); border: none; border-bottom-right-radius: 8px; }
-.message-timestamp { font-size: 0.78rem; color: var(--text-muted); margin-top: 6px; display: block; text-align: left; opacity: 0.75; }
+.message-timestamp { font-size: 0.75rem; /* Slightly smaller timestamp */ color: var(--text-muted); margin-top: 5px; display: block; text-align: left; opacity: 0.75; }
 .chat-message.user .message-timestamp { text-align: right; }
-/* MathJax in chat */
-.message-bubble mjx-container { background: rgba(var(--white-rgb), 0.05); border: none; padding: 0.3rem; margin: 0.3rem 0; overflow-x: auto; overflow-y: hidden; max-width: 100%; border-radius: 6px; } /* Added style for MathJax in chat */
-.message-bubble mjx-math { font-size: 1.08em !important; display: inline-block; white-space: normal;} /* Ensure MathJax size and wrapping */
+/* MathJax in chat - size adjustment */
+.message-bubble mjx-container {
+    padding: 0.4rem; /* Reduced padding */
+    margin: 0.4rem 0; /* Reduced margin */
+    overflow-x: auto; overflow-y: hidden; max-width: 100%; border-radius: 5px; background: rgba(var(--white-rgb), 0.05); display: block;
+}
+.message-bubble mjx-math { font-size: 1.05em !important; /* Slightly smaller than whiteboard math */ display: inline-block; white-space: normal; }
 .chat-message.model .message-bubble mjx-math { color: var(--accent-cyan); }
-.chat-message.user .message-bubble mjx-math { color: #e8e8ff; } /* Brighter user math */
+.chat-message.user .message-bubble mjx-math { color: #e8e8ff; }
 /* Chat TTS button */
-.message-bubble-content .tts-listen-btn { position: static; margin-left: 0.7rem; align-self: center; font-size: 1.05em; opacity: 0.7; }
+.message-bubble-content .tts-listen-btn { position: static; margin-left: 0.6rem; align-self: center; font-size: 1em; /* Slightly smaller */ opacity: 0.7; }
 .message-bubble-content .tts-listen-btn:hover { opacity: 1; color: var(--accent-primary); }
+/* Chat Message Adjustments END v21 */
+
+@keyframes popInMessage { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
 /* Thinking Indicator */
-.message-thinking-indicator { background: var(--chat-bubble-model-bg); display: flex; align-items: center; padding: 0.9rem 1.1rem; border-radius: 18px; border-bottom-left-radius: 8px; box-shadow: 0 3px 8px rgba(0,0,0,0.25); border: 1px solid var(--border-color-light); width: fit-content; }
-.typing-dot { width: 8px; height: 8px; background-color: var(--chat-thinking-dot-color); border-radius: 50%; margin: 0 3.5px; display: inline-block; animation: typing 1.3s infinite ease-in-out; }
+.message-thinking-indicator { background: var(--chat-bubble-model-bg); display: flex; align-items: center; padding: 0.8rem 1rem; /* Slightly smaller */ border-radius: 18px; border-bottom-left-radius: 8px; box-shadow: 0 3px 8px rgba(0,0,0,0.25); border: 1px solid var(--border-color-light); width: fit-content; }
+.typing-dot { width: 7px; height: 7px; /* Smaller dots */ background-color: var(--chat-thinking-dot-color); border-radius: 50%; margin: 0 3px; display: inline-block; animation: typing 1.3s infinite ease-in-out; }
 .typing-dot:nth-child(2) { animation-delay: 0.18s; }
 .typing-dot:nth-child(3) { animation-delay: 0.36s; }
-@keyframes typing { 0%, 60%, 100% { transform: translateY(0) scale(0.9); opacity: 0.7; } 30% { transform: translateY(-5px) scale(1); opacity: 1; } }
+@keyframes typing { 0%, 60%, 100% { transform: translateY(0) scale(0.9); opacity: 0.7; } 30% { transform: translateY(-4px) scale(1); opacity: 1; } }
 /* Chat Input Area */
 .chat-input-area { flex-shrink: 0; padding: 0.9rem 1.1rem; background-color: var(--chat-input-area-bg); border-top: 1px solid var(--border-color-medium); display: flex; flex-direction: column; gap: 0.6rem; }
 .chat-input-wrapper { display: flex; gap: 0.8rem; align-items: flex-end; }
-.chat-input { flex-grow: 1; padding: 0.9rem 1.3rem; border: 1px solid var(--chat-input-border); border-radius: 22px; font-size: 1rem; resize: none; max-height: 115px; overflow-y: auto; transition: all 0.25s ease; line-height: 1.5; background-color: var(--chat-input-bg); color: var(--chat-input-text); font-family: var(--font-primary); box-shadow: inset 0 2px 5px rgba(0,0,0,0.45); }
+.chat-input { flex-grow: 1; padding: 0.8rem 1.2rem; /* Adjusted padding */ border: 1px solid var(--chat-input-border); border-radius: 20px; /* Adjusted radius */ font-size: 0.98rem; /* Match bubble font size */ resize: none; max-height: 110px; /* Adjusted max height */ overflow-y: auto; transition: all 0.25s ease; line-height: 1.5; background-color: var(--chat-input-bg); color: var(--chat-input-text); font-family: var(--font-primary); box-shadow: inset 0 2px 5px rgba(0,0,0,0.45); }
 .chat-input:focus { outline: none; border-color: var(--accent-primary); box-shadow: 0 0 0 3.5px rgba(var(--accent-primary-rgb), 0.35), inset 0 1px 4px rgba(0,0,0,0.25); background-color: rgba(var(--accent-primary-rgb), 0.05); }
 .chat-input::placeholder { color: var(--text-muted); opacity: 0.6; }
-.send-button { padding: 0 1.1rem; border-radius: 22px; font-weight: 600; font-size: 0.95rem; cursor: pointer; border: none; background: var(--gradient-button); color: var(--text-fixed-dark); transition: all 0.3s ease; flex-shrink: 0; height: 46px; display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-interactive); }
+.send-button { padding: 0 1rem; /* Adjusted padding */ border-radius: 20px; /* Match input radius */ font-weight: 600; font-size: 0.9rem; /* Adjusted font size */ cursor: pointer; border: none; background: var(--gradient-button); color: var(--text-fixed-dark); transition: all 0.3s ease; flex-shrink: 0; height: 42px; /* Adjusted height */ display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-interactive); }
 .send-button:hover:not(:disabled) { transform: translateY(-3px) scale(1.03); box-shadow: var(--shadow-interactive-hover); background: var(--gradient-button-hover); }
 .send-button:active:not(:disabled) { transform: translateY(-1px) scale(0.98); box-shadow: inset 0 2px 5px rgba(0,0,0,0.35); }
-.send-button i { font-size: 1.15em; }
-.send-button .fa-spinner { margin: 0; font-size: 1.15em; }
+.send-button i { font-size: 1.1em; }
+.send-button .fa-spinner { margin: 0; font-size: 1.1em; }
 .send-button:disabled { opacity: 0.55; cursor: not-allowed; background: var(--text-muted); box-shadow: none; transform: none; }
 /* Chat Controls */
 .chat-controls { flex-shrink: 0; padding: 0.5rem 0.6rem 0.9rem 0.6rem; display: flex; align-items: center; justify-content: flex-end; gap: 0.6rem; border-top: 1px solid var(--border-color-light); }
@@ -751,9 +775,9 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
 .sidebar-overlay { display: none; position: fixed; inset: 0; background-color: rgba(3, 2, 12, 0.7); z-index: 999; opacity: 0; transition: opacity var(--transition-medium) ease; backdrop-filter: blur(5px); }
 .sidebar-overlay.active { display: block; opacity: 1; }
 @media (max-width: 1200px) {
-	/* Adjusted proportions for chat larger */
-	.ai-presenter-area { flex-basis: 45%; min-width: 380px;} /* Slightly adjusted */
-	.interaction-panel { flex-basis: 55%; min-width: 420px;} /* Slightly adjusted */
+	/* Slightly adjust proportions if needed on smaller desktops */
+	.ai-presenter-area { flex-basis: 50%; min-width: 400px;} /* Re-balanced slightly */
+	.interaction-panel { flex-basis: 50%; min-width: 380px;}
 	.call-interface { padding: 1rem; gap: 1rem; }
 }
 @media (max-width: 992px) {
@@ -795,7 +819,7 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
 	.interaction-panel { flex-basis: auto; min-height: 350px; } /* Further reduced min height */
 	.chat-input { padding: 0.7rem 1rem; font-size: 0.9rem; }
 	.send-button { height: 38px; padding: 0 1rem; }
-	.message-bubble { padding: 0.7rem 1rem; }
+	.message-bubble { padding: 0.7rem 1rem; font-size: 0.95rem; } /* Adjusted bubble padding/font on small screens */
 	.toast-container { max-width: calc(100% - 1.5rem); }
 	#ai-avatar-corner { width: 50px; height: 50px; font-size: 1.8rem; bottom: 1rem; right: 1rem; }
     .modal-content { padding: 1.5rem; max-width: calc(100% - 2rem); } /* Adjust modal padding on small screens */
@@ -827,18 +851,9 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
 }
 /* --- END: Cyberpunk CSS Theme --- */
 
-/* --- START MODIFICATION v19/v20/v21: MathJax specific styles --- */
+/* --- START MODIFICATION v19/v20: MathJax specific styles --- */
 /* Style for MathJax containers in chat bubbles */
-.message-bubble mjx-container {
-    overflow-x: auto; /* Allow horizontal scroll for wide equations */
-    overflow-y: hidden;
-    max-width: 100%; /* Prevent breaking bubble layout */
-    padding: 0.5rem; /* Add some internal padding */
-    border-radius: 6px;
-    background-color: rgba(var(--white-rgb), 0.05); /* Subtle background */
-    margin: 0.5rem 0; /* Vertical spacing */
-    display: block; /* Ensure it behaves like a block */
-}
+/* .message-bubble mjx-container already adjusted above in v21 */
 /* Style for MathJax containers on the whiteboard */
 #whiteboard-content mjx-container {
     background: rgba(var(--accent-primary-rgb), 0.04);
@@ -852,13 +867,13 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
 }
 /* General MathJax math element styling */
 mjx-math {
-    font-size: 1.1em !important; /* Ensure consistent size */
+    /* font-size: 1.1em !important; /* Ensure consistent size - adjusted per context now */
     display: inline-block; /* Prevent breaks in simple formulas */
     white-space: normal; /* Allow wrapping for complex formulas */
     vertical-align: middle; /* Align better with surrounding text */
 }
 /* Specific MathJax colors based on context */
-.chat-message.model .message-bubble mjx-math { color: var(--accent-cyan); }
-.chat-message.user .message-bubble mjx-math { color: #e8e8ff; } /* Brighter for user */
-#whiteboard-content mjx-math { color: var(--accent-cyan); }
-/* --- END MODIFICATION v19/v20/v21: MathJax specific styles --- */
+/* .chat-message.model .message-bubble mjx-math already styled above */
+/* .chat-message.user .message-bubble mjx-math already styled above */
+#whiteboard-content mjx-math { color: var(--accent-cyan); font-size: 1.1em !important; } /* Whiteboard math size */
+/* --- END MODIFICATION v19/v20: MathJax specific styles --- */
