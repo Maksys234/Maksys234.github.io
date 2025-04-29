@@ -12,7 +12,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 </head>
-<body class="dark">
+<body class="dark"> {/* Добавим класс 'sidebar-collapsed' сюда через JS */}
 
     <div class="initial-loading-overlay" id="initial-loader">
         <div class="loading-spinner"></div>
@@ -23,8 +23,9 @@
 
     <div class="sidebar-overlay" id="sidebar-overlay"></div>
 
-    <aside class="sidebar" id="sidebar">
+    <aside class="sidebar" id="sidebar"> {/* Добавим класс 'collapsed' сюда через JS */}
         <div class="sidebar-header">
+            {/* Эта кнопка уже есть для мобильных, возможно, ее нужно скрыть на десктопе? Оставим пока */}
             <button class="mobile-menu-toggle" id="sidebar-close-toggle" aria-label="Zavřít menu">
                 <i class="fas fa-times"></i>
             </button>
@@ -49,18 +50,24 @@
         <div class="sidebar-footer"> &copy; <span id="currentYearSidebar">2025</span> Justax Systems </div>
     </aside>
 
-    <main id="main-content" style="display: none;">
+    <main id="main-content" style="display: none;"> {/* Добавим класс 'sidebar-collapsed' сюда через JS */}
         <div class="error-container" id="global-error"></div>
 
         <header class="dashboard-header">
             <div class="header-content">
-                 <div>
+                 <div class="header-left-group"> {/* Обертка для кнопок и заголовка */}
+                     {/* Кнопка для переключения сайдбара (новая) */}
+                     <button class="btn btn-icon-only sidebar-toggle-btn" id="sidebar-toggle-btn" aria-label="Přepnout postranní panel" title="Přepnout postranní panel">
+                         <i class="fas fa-chevron-left"></i>
+                     </button>
+                     {/* Кнопка для мобильного меню (старая) */}
                      <button class="mobile-menu-toggle" id="main-mobile-menu-toggle" aria-label="Otevřít menu">
                          <i class="fas fa-bars"></i>
                      </button>
                      <h1><i class="fas fa-id-card"></i> Profil // NASTAVENÍ</h1>
                  </div>
                 <div class="header-actions">
+                    {/* Уведомления и кнопка выхода остаются здесь */}
                     <div class="notifications">
                         <div class="notification-bell" id="notification-bell" title="Oznámení">
                              <i class="far fa-bell"></i>
@@ -101,15 +108,15 @@
                             <h2 class="profile-name" id="profile-name">Načítání...</h2>
                             <p class="profile-email" id="profile-email">Načítání...</p>
 
-                             <div class="level-xp-widget">
+                            <div class="level-xp-widget">
                                 <div class="level-xp-header">
                                     <span class="level-xp-label">Úroveň</span>
                                     <span class="level-xp-value" id="profile-level-main">1</span>
                                 </div>
-                                <div class="xp-bar-area">
-                                    <div class="xp-bar-track">
-                                        <div class="xp-bar-progress" id="exp-progress-bar-fill" style="width: 0%;">
-                                            <div class="xp-bar-shine"></div>
+                                <div class="exp-bar-area">
+                                    <div class="exp-bar-track">
+                                        <div class="exp-bar-progress" id="exp-progress-bar-fill" style="width: 0%;">
+                                            <div class="exp-bar-shine"></div>
                                         </div>
                                     </div>
                                 </div>
@@ -118,6 +125,7 @@
                                     (<span id="exp-percentage">0</span>%)
                                 </div>
                             </div>
+
                             <div class="profile-stats">
                                 <div class="stat-item">
                                      <div class="stat-value" id="profile-points">0</div>
