@@ -11,10 +11,11 @@
         avatar: false, delete: false, notifications: false
     };
     // Leveling Formula Constants
-    const BASE_XP = 100; // Базовое XP для формулы
-    const INCREMENT_XP = 25; // Прирост XP для формулы
+    const BASE_XP = 100;
+    const INCREMENT_XP = 25;
+    const SIDEBAR_STATE_KEY = 'sidebarCollapsedState'; // Key for localStorage
 
-    // DOM Elements Cache (Updated with EXP elements)
+    // DOM Elements Cache (Updated with new XP elements and sidebar toggle)
     const ui = {
         initialLoader: document.getElementById('initial-loader'),
         sidebarOverlay: document.getElementById('sidebar-overlay'),
@@ -22,6 +23,7 @@
         sidebar: document.getElementById('sidebar'),
         mainMobileMenuToggle: document.getElementById('main-mobile-menu-toggle'),
         sidebarCloseToggle: document.getElementById('sidebar-close-toggle'),
+        sidebarToggleBtn: document.getElementById('sidebar-toggle-btn'), // <<< NEW: Sidebar toggle button
         sidebarAvatar: document.getElementById('sidebar-avatar'),
         sidebarName: document.getElementById('sidebar-name'),
         logoutBtn: document.getElementById('logout-btn'),
@@ -30,7 +32,7 @@
         profileEmail: document.getElementById('profile-email'),
         profileAvatar: document.getElementById('profile-avatar'),
         // Profile Header Stats
-        profilePoints: document.getElementById('profile-points'), // Keep for currency display
+        profilePoints: document.getElementById('profile-points'),
         profileBadges: document.getElementById('profile-badges'),
         profileStreak: document.getElementById('profile-streak'),
         // --- Level/EXP Elements ---
@@ -93,13 +95,14 @@
     } else {
         console.log("Avatar grid container (#builtin-avatar-grid) found.");
     }
+    if (!ui.sidebarToggleBtn) {
+        console.warn("Sidebar toggle button (#sidebar-toggle-btn) not found.");
+    }
     // --- END: Initialization and Configuration ---
 
     // --- START: Helper Functions ---
     // (showToast, showError, hideError, showFieldError, clearFieldError, clearAllErrors, showModal, hideModal, updateOnlineStatus, getInitials, sanitizeHTML, openMenu, closeMenu, initMouseFollower, initHeaderScrollDetection, updateCopyrightYear, validators, setLoadingState)
-    // These functions remain the same as in the previous version. I've omitted them here for brevity,
-    // but make sure they are present in your actual file.
-    // ... (Previous Helper Functions Go Here) ...
+    // ... (Все вспомогательные функции из предыдущего шага остаются здесь) ...
     function showToast(title, message, type = 'info', duration = 4500) {
         if (!ui.toastContainer) return;
         try {
@@ -203,8 +206,20 @@
     function updateOnlineStatus() { if (ui.offlineBanner) ui.offlineBanner.style.display = navigator.onLine ? 'none' : 'block'; if (!navigator.onLine) showToast('Offline', 'Spojení ztraceno.', 'warning'); }
     function getInitials(userData) { if (!userData) return '?'; const f = userData.first_name?.[0] || ''; const l = userData.last_name?.[0] || ''; const nameInitial = (f + l).toUpperCase(); const usernameInitial = userData.username?.[0].toUpperCase() || ''; const emailInitial = userData.email?.[0].toUpperCase() || ''; return nameInitial || usernameInitial || emailInitial || '?'; }
     function sanitizeHTML(str) { const temp = document.createElement('div'); temp.textContent = str || ''; return temp.innerHTML; }
-    function openMenu() { if (ui.sidebar && ui.sidebarOverlay) { ui.sidebar.classList.add('active'); ui.sidebarOverlay.classList.add('active'); } }
-    function closeMenu() { if (ui.sidebar && ui.sidebarOverlay) { ui.sidebar.classList.remove('active'); ui.sidebarOverlay.classList.remove('active'); } }
+    function openMenu() { // Mobile menu open
+        if (ui.sidebar && ui.sidebarOverlay) {
+             // Ensure sidebar is not in collapsed desktop state when opening mobile menu
+             document.body.classList.remove('sidebar-collapsed');
+             ui.sidebar.classList.add('active'); // Mobile active class
+             ui.sidebarOverlay.classList.add('active');
+        }
+    }
+    function closeMenu() { // Mobile menu close
+        if (ui.sidebar && ui.sidebarOverlay) {
+            ui.sidebar.classList.remove('active'); // Mobile active class
+            ui.sidebarOverlay.classList.remove('active');
+        }
+    }
     const initMouseFollower = () => { const follower = ui.mouseFollower; if (!follower || window.innerWidth <= 576) return; let hasMoved = false; const updatePosition = (event) => { if (!hasMoved) { document.body.classList.add('mouse-has-moved'); hasMoved = true; } requestAnimationFrame(() => { follower.style.left = `${event.clientX}px`; follower.style.top = `${event.clientY}px`; }); }; window.addEventListener('mousemove', updatePosition, { passive: true }); document.body.addEventListener('mouseleave', () => { if (hasMoved) follower.style.opacity = '0'; }); document.body.addEventListener('mouseenter', () => { if (hasMoved) follower.style.opacity = '1'; }); window.addEventListener('touchstart', () => { if(follower) follower.style.display = 'none'; }, { passive: true, once: true }); };
     const initHeaderScrollDetection = () => { let lastScrollY = window.scrollY; const mainEl = ui.mainContent; if (!mainEl) return; mainEl.addEventListener('scroll', () => { const currentScrollY = mainEl.scrollTop; document.body.classList.toggle('scrolled', currentScrollY > 10); lastScrollY = currentScrollY <= 0 ? 0 : currentScrollY; }, { passive: true }); if (mainEl.scrollTop > 10) document.body.classList.add('scrolled'); };
     const updateCopyrightYear = () => { const year = new Date().getFullYear(); if (ui.currentYearSidebar) ui.currentYearSidebar.textContent = year; if (ui.currentYearFooter) ui.currentYearFooter.textContent = year; };
@@ -303,7 +318,7 @@
         if (!profileData) { console.warn("updateProfileDisplay: Missing profile data."); return; }
         console.log("[UI Update] Updating profile display...");
 
-        // Sidebar Update
+        // --- Sidebar Update ---
         const sidebarDisplayName = `${profileData.first_name || ''} ${profileData.last_name || ''}`.trim() || profileData.username || currentUser?.email?.split('@')[0] || 'Pilot';
         if (ui.sidebarName) ui.sidebarName.textContent = sanitizeHTML(sidebarDisplayName);
         if (ui.sidebarAvatar) {
@@ -320,7 +335,7 @@
              if (sidebarImg) { sidebarImg.onerror = function() { console.error(`[UI Update] Failed to load sidebar avatar: ${this.src}`); ui.sidebarAvatar.innerHTML = sanitizeHTML(initials); }; }
         }
 
-        // Main Profile Section Update
+        // --- Main Profile Section Update ---
         const profileDisplayName = `${profileData.first_name || ''} ${profileData.last_name || ''}`.trim() || profileData.username || 'Uživatel';
         if (ui.profileName) ui.profileName.textContent = sanitizeHTML(profileDisplayName);
         if (ui.profileEmail) ui.profileEmail.textContent = sanitizeHTML(profileData.email);
@@ -359,7 +374,7 @@
 
         // --- Level and Experience Update ---
         const currentLevel = profileData.level ?? 1; // Read LEVEL from profile
-        const currentExperience = profileData.experience ?? 0; // Read EXPERIENCE from profile
+        const currentExperience = profileData.experience ?? 0; // Use experience column now
 
         const currentLevelExpThreshold = getTotalExpThreshold(currentLevel);
         const nextLevelExpThreshold = getTotalExpThreshold(currentLevel + 1);
@@ -370,8 +385,8 @@
         if (expNeededForLevelSpan > 0) {
             percentage = Math.min(100, Math.max(0, Math.round((currentExpInLevel / expNeededForLevelSpan) * 100)));
         } else {
-            percentage = (currentExperience >= currentLevelExpThreshold && currentLevel > 0) ? 100 : 0; // Handle level 1 or max level
-             if (currentLevel > 0) { // Avoid warning for level 0 or negative
+            percentage = (currentExperience >= currentLevelExpThreshold && currentLevel > 0) ? 100 : 0;
+             if (currentLevel > 0) {
                  console.warn(`Experience span for level ${currentLevel} is zero or negative. Exp needed: ${expNeededForLevelSpan}. Next Threshold: ${nextLevelExpThreshold}, Current Threshold: ${currentLevelExpThreshold}`);
              }
         }
@@ -482,6 +497,26 @@
     function validatePasswordForm() { clearAllErrors('password-form'); let isValid = true; const newPassword = ui.newPasswordField.value; const confirmPassword = ui.confirmPasswordField.value; const currentPassword = ui.currentPasswordField.value; if (!validators.required(currentPassword, 'current_password')) isValid = false; if (!validators.required(newPassword, 'new_password', 'Zadejte nové heslo.')) isValid = false; else if (!validators.minLength(newPassword, 'new_password', 8)) isValid = false; if (!validators.required(confirmPassword, 'confirm_password', 'Potvrďte nové heslo.')) isValid = false; else if (newPassword && !validators.match(confirmPassword, 'confirm_password', newPassword, 'Hesla se neshodují.')) isValid = false; return isValid; }
     // --- END: Form Validation ---
 
+    // --- START: Sidebar Toggle Logic ---
+    function applyInitialSidebarState() {
+        const savedState = localStorage.getItem(SIDEBAR_STATE_KEY);
+        if (savedState === 'collapsed') {
+            document.body.classList.add('sidebar-collapsed');
+             console.log("[Sidebar State] Initial state applied: collapsed");
+        } else {
+             document.body.classList.remove('sidebar-collapsed');
+             console.log("[Sidebar State] Initial state applied: expanded");
+        }
+    }
+
+    function toggleSidebar() {
+        const isCollapsed = document.body.classList.toggle('sidebar-collapsed');
+        localStorage.setItem(SIDEBAR_STATE_KEY, isCollapsed ? 'collapsed' : 'expanded');
+        console.log(`[Sidebar Toggle] Sidebar toggled. New state: ${isCollapsed ? 'collapsed' : 'expanded'}`);
+    }
+    // --- END: Sidebar Toggle Logic ---
+
+
     // --- START: Main Logic ---
     async function loadAndDisplayProfile() {
         console.log("[MAIN] Loading and displaying profile...");
@@ -492,7 +527,7 @@
         try {
             currentProfile = await fetchUserProfile(currentUser.id);
             if (!currentProfile) { throw new Error("Nepodařilo se načíst nebo vytvořit profil."); }
-            updateProfileDisplay(currentProfile); // This now updates level and XP bar too
+            updateProfileDisplay(currentProfile); // Now updates level and EXP bar too
 
             try {
                 console.log("[Notifications] Fetching notifications...");
@@ -516,11 +551,12 @@
     }
 
     function setupEventListeners() {
-        console.log("[SETUP] Nastavování posluchačů událostí...");
+        console.log("[SETUP] Setting up event listeners...");
         // --- Sidebar/Menu ---
         if (ui.mainMobileMenuToggle) ui.mainMobileMenuToggle.addEventListener('click', openMenu);
         if (ui.sidebarCloseToggle) ui.sidebarCloseToggle.addEventListener('click', closeMenu);
         if (ui.sidebarOverlay) ui.sidebarOverlay.addEventListener('click', closeMenu);
+        if (ui.sidebarToggleBtn) ui.sidebarToggleBtn.addEventListener('click', toggleSidebar); // <<< NEW Listener
         document.querySelectorAll('.sidebar-link').forEach(link => { link.addEventListener('click', () => { if (window.innerWidth <= 992) closeMenu(); }); });
         // --- Forms ---
         if (ui.profileForm) { ui.profileForm.addEventListener('submit', async (e) => { e.preventDefault(); if (!validateProfileForm() || isLoading.profile) return; setLoadingState('profile', true); await updateProfileData({ first_name: ui.firstNameField.value, last_name: ui.lastNameField.value, username: ui.usernameField.value, school: ui.schoolField.value, grade: ui.gradeField.value, bio: ui.bioField.value }); setLoadingState('profile', false); }); }
@@ -548,7 +584,6 @@
         document.querySelectorAll('.form-control').forEach(input => { input.addEventListener('input', () => clearFieldError(input.id)); input.addEventListener('change', () => clearFieldError(input.id)); });
         // --- Online/Offline ---
         window.addEventListener('online', updateOnlineStatus); window.addEventListener('offline', updateOnlineStatus);
-        updateOnlineStatus();
         // --- Init UI Enhancements ---
         initMouseFollower();
         initHeaderScrollDetection();
@@ -567,6 +602,7 @@
         console.log("[INIT] Spouštění inicializace aplikace profilu...");
         if (!initializeSupabase()) { return; }
         setupEventListeners();
+        applyInitialSidebarState(); // <<< NEW: Apply saved sidebar state on load
 
         if (ui.initialLoader) { ui.initialLoader.classList.remove('hidden'); ui.initialLoader.style.display = 'flex'; }
         if (ui.mainContent) ui.mainContent.style.display = 'none';
