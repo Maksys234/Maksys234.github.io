@@ -11,8 +11,8 @@
         avatar: false, delete: false, notifications: false
     };
     // Leveling Formula Constants
-    const BASE_XP = 100;
-    const INCREMENT_XP = 25;
+    const BASE_XP = 100; // Базовое XP для формулы
+    const INCREMENT_XP = 25; // Прирост XP для формулы
 
     // DOM Elements Cache (Updated with EXP elements)
     const ui = {
@@ -87,6 +87,7 @@
         markAllReadBtn: document.getElementById('mark-all-read'),
     };
 
+    // Check for critical UI elements
     if (!ui.builtinAvatarGrid) {
         console.error("CRITICAL: Avatar grid container (#builtin-avatar-grid) not found in HTML!");
     } else {
@@ -95,6 +96,10 @@
     // --- END: Initialization and Configuration ---
 
     // --- START: Helper Functions ---
+    // (showToast, showError, hideError, showFieldError, clearFieldError, clearAllErrors, showModal, hideModal, updateOnlineStatus, getInitials, sanitizeHTML, openMenu, closeMenu, initMouseFollower, initHeaderScrollDetection, updateCopyrightYear, validators, setLoadingState)
+    // These functions remain the same as in the previous version. I've omitted them here for brevity,
+    // but make sure they are present in your actual file.
+    // ... (Previous Helper Functions Go Here) ...
     function showToast(title, message, type = 'info', duration = 4500) {
         if (!ui.toastContainer) return;
         try {
@@ -226,7 +231,6 @@
         if (button) {
             button.disabled = isLoadingFlag;
             const icon = button.querySelector('i');
-            // Store original state only if it doesn't exist
              if (isLoadingFlag && !button.dataset.originalContent) {
                  button.dataset.originalContent = button.innerHTML;
              }
@@ -239,12 +243,11 @@
                 else if (section === 'avatar') button.innerHTML = `${spinnerIcon} Ukládám...`;
                 else if (section === 'delete') button.innerHTML = `${spinnerIcon} Mažu...`;
                 else if (section === 'notifications') button.textContent = 'MAŽU...';
-                else { button.innerHTML = `${spinnerIcon} Načítám...`; } // Generic loading
+                else { button.innerHTML = `${spinnerIcon} Načítám...`; }
             } else {
-                 // Restore original state if it exists
                  if (button.dataset.originalContent) {
                      button.innerHTML = button.dataset.originalContent;
-                     delete button.dataset.originalContent; // Clean up dataset
+                     delete button.dataset.originalContent;
                  }
             }
         }
@@ -262,29 +265,23 @@
     // --- START: Leveling Logic ---
     /**
      * Calculates the total XP threshold required to reach the beginning of a target level.
-     * Uses the formula: XP needed for the span between level L-1 and L is 100 + (25 * (L - 2)) for L>=2.
-     * @param {number} targetLevel The level for which to calculate the *starting* XP threshold.
-     * @returns {number} The total accumulated XP needed to reach the beginning of targetLevel. Returns 0 for level 1 or less.
      */
     function getTotalExpThreshold(targetLevel) {
         if (targetLevel <= 1) {
             return 0;
         }
         let totalExp = 0;
-        // Loop from level 1 up to (targetLevel - 1) to sum the XP required for each level span
         for (let level = 1; level < targetLevel; level++) {
-            // XP needed to go from level 'level' to 'level + 1'
             const expNeededForThisLevelSpan = BASE_XP + (INCREMENT_XP * (level - 1));
             totalExp += expNeededForThisLevelSpan;
         }
-        // console.log(`[getTotalExpThreshold] XP needed to reach level ${targetLevel}: ${totalExp}`);
         return totalExp;
     }
     // --- END: Leveling Logic ---
 
     // --- START: Supabase Interaction Functions ---
     function initializeSupabase() { try { if (typeof window.supabase === 'undefined' || typeof window.supabase.createClient !== 'function') { throw new Error("Knihovna Supabase nebyla správně načtena."); } supabase = window.supabase.createClient(supabaseUrl, supabaseKey); if (!supabase) throw new Error("Vytvoření klienta Supabase selhalo."); console.log('[Supabase] Klient úspěšně inicializován.'); return true; } catch (error) { console.error('[Supabase] Inicializace selhala:', error); showError("Kritická chyba: Nepodařilo se připojit k databázi.", true); return false; } }
-    async function fetchUserProfile(userId) { if (!supabase || !userId) return null; console.log(`[Profile] Načítání profilu pro ID: ${userId}`); try { const { data: profile, error } = await supabase.from('profiles').select('*').eq('id', userId).single(); if (error && error.code !== 'PGRST116') throw error; if (!profile) { console.warn(`[Profile] Profil nenalezen pro ${userId}. Vytváření výchozího...`); const defaultProfileData = { id: userId, email: currentUser.email, username: currentUser.email.split('@')[0], level: 1, points: 0, experience: 0, // Add default experience badges_count: 0, streak_days: 0, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), preferences: { dark_mode: window.matchMedia('(prefers-color-scheme: dark)').matches, language: 'cs' }, notifications: { email: true, study_tips: true, content_updates: true, practice_reminders: true } }; const { data: newProfile, error: createError } = await supabase.from('profiles').insert([defaultProfileData]).select().single(); if (createError) throw createError; console.log("[Profile] Výchozí profil úspěšně vytvořen."); return newProfile; } console.log("[Profile] Profil úspěšně načten."); return profile; } catch (error) { console.error('[Profile] Chyba při načítání/vytváření profilu:', error); showToast('Chyba Profilu', 'Nepodařilo se načíst data profilu.', 'error'); return null; } }
+    async function fetchUserProfile(userId) { if (!supabase || !userId) return null; console.log(`[Profile] Načítání profilu pro ID: ${userId}`); try { const { data: profile, error } = await supabase.from('profiles').select('*').eq('id', userId).single(); if (error && error.code !== 'PGRST116') throw error; if (!profile) { console.warn(`[Profile] Profil nenalezen pro ${userId}. Vytváření výchozího...`); const defaultProfileData = { id: userId, email: currentUser.email, username: currentUser.email.split('@')[0], level: 1, points: 0, experience: 0, badges_count: 0, streak_days: 0, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), preferences: { dark_mode: window.matchMedia('(prefers-color-scheme: dark)').matches, language: 'cs' }, notifications: { email: true, study_tips: true, content_updates: true, practice_reminders: true } }; const { data: newProfile, error: createError } = await supabase.from('profiles').insert([defaultProfileData]).select().single(); if (createError) throw createError; console.log("[Profile] Výchozí profil úspěšně vytvořen."); return newProfile; } console.log("[Profile] Profil úspěšně načten."); return profile; } catch (error) { console.error('[Profile] Chyba při načítání/vytváření profilu:', error); showToast('Chyba Profilu', 'Nepodařilo se načíst data profilu.', 'error'); return null; } }
     async function updateProfileData(data) { if (!currentUser || !supabase) { showToast('Chyba', 'Nejste přihlášeni.', 'error'); return false; } console.log("[Profile Update] Aktualizace dat:", data); setLoadingState('profile', true); try { const { data: updatedProfile, error } = await supabase.from('profiles').update({ first_name: data.first_name, last_name: data.last_name, username: data.username, school: data.school, grade: data.grade, bio: data.bio, updated_at: new Date().toISOString() }).eq('id', currentUser.id).select().single(); if (error) throw error; currentProfile = updatedProfile; updateProfileDisplay(currentProfile); showToast('ÚSPĚCH', 'Profil byl úspěšně aktualizován.', 'success'); console.log("[Profile Update] Úspěšně aktualizováno."); return true; } catch (error) { console.error('[Profile Update] Chyba:', error); showToast('CHYBA', `Aktualizace profilu selhala: ${error.message}`, 'error'); return false; } finally { setLoadingState('profile', false); } }
     async function updateUserPassword(currentPassword, newPassword) { if (!currentUser || !supabase) { showToast('Chyba', 'Nejste přihlášeni.', 'error'); return false; } console.log("[Password Update] Pokus o změnu hesla."); setLoadingState('password', true); try { console.warn("Password Update: Client-side update doesn't verify current password securely."); const { error } = await supabase.auth.updateUser({ password: newPassword }); if (error) { let message = 'Změna hesla selhala.'; if (error.message.includes('requires recent login')) message = 'Vyžadováno nedávné přihlášení. Přihlaste se znovu.'; else if (error.message.includes('weak_password')) message = 'Heslo je příliš slabé.'; else if (error.message.includes('same password')) message = 'Nové heslo musí být jiné než současné.'; showToast('CHYBA HESLA', message, 'error'); console.error('[Password Update] Chyba Supabase:', error); if (message.includes('jiné')) { showFieldError('new_password', message); } else { showFieldError('current_password', 'Ověření selhalo nebo je vyžadováno nové přihlášení.'); } return false; } ui.passwordForm.reset(); clearAllErrors('password-form'); showToast('ÚSPĚCH', 'Heslo bylo úspěšně změněno.', 'success'); console.log("[Password Update] Heslo úspěšně změněno."); return true; } catch (error) { console.error('[Password Update] Neočekávaná chyba:', error); showToast('CHYBA', 'Došlo k neočekávané chybě při změně hesla.', 'error'); return false; } finally { setLoadingState('password', false); } }
     async function updatePreferencesData() { if (!currentUser || !supabase) { showToast('Chyba', 'Nejste přihlášeni.', 'error'); return false; } console.log("[Preferences Update] Aktualizace nastavení."); setLoadingState('preferences', true); try { const preferences = { dark_mode: ui.darkModeToggle.checked, language: ui.languageSelect.value, }; const notifications = { email: ui.emailNotificationsToggle.checked, study_tips: ui.studyTipsToggle.checked, content_updates: ui.contentUpdatesToggle.checked, practice_reminders: ui.practiceRemindersToggle.checked }; const { data: updatedProfile, error } = await supabase.from('profiles').update({ preferences: preferences, notifications: notifications, updated_at: new Date().toISOString() }).eq('id', currentUser.id).select().single(); if (error) throw error; currentProfile = updatedProfile; applyPreferences(currentProfile.preferences); showToast('ÚSPĚCH', 'Nastavení byla uložena.', 'success'); console.log("[Preferences Update] Nastavení uložena."); return true; } catch (error) { console.error('[Preferences Update] Chyba:', error); showToast('CHYBA', 'Uložení nastavení selhalo.', 'error'); return false; } finally { setLoadingState('preferences', false); } }
@@ -306,31 +303,24 @@
         if (!profileData) { console.warn("updateProfileDisplay: Missing profile data."); return; }
         console.log("[UI Update] Updating profile display...");
 
-        // --- Sidebar Update ---
+        // Sidebar Update
         const sidebarDisplayName = `${profileData.first_name || ''} ${profileData.last_name || ''}`.trim() || profileData.username || currentUser?.email?.split('@')[0] || 'Pilot';
         if (ui.sidebarName) ui.sidebarName.textContent = sanitizeHTML(sidebarDisplayName);
         if (ui.sidebarAvatar) {
             const initials = getInitials(profileData);
             const avatarUrl = profileData.avatar_url;
-             // IMPORTANT: Handle relative vs absolute paths
             let finalSidebarUrl = avatarUrl;
-            if (avatarUrl && !avatarUrl.startsWith('http') && avatarUrl.includes('/')) { // Likely a relative path to our assets
+            if (avatarUrl && !avatarUrl.startsWith('http') && avatarUrl.includes('/')) {
                 finalSidebarUrl = sanitizeHTML(avatarUrl);
-            } else if (avatarUrl) { // Likely an external URL from storage
-                finalSidebarUrl = `${sanitizeHTML(avatarUrl)}?t=${new Date().getTime()}`; // Cache bust
+            } else if (avatarUrl) {
+                finalSidebarUrl = `${sanitizeHTML(avatarUrl)}?t=${new Date().getTime()}`;
             }
              ui.sidebarAvatar.innerHTML = finalSidebarUrl ? `<img src="${finalSidebarUrl}" alt="${sanitizeHTML(initials)}">` : sanitizeHTML(initials);
-             // Add error handler for sidebar avatar image
              const sidebarImg = ui.sidebarAvatar.querySelector('img');
-             if (sidebarImg) {
-                 sidebarImg.onerror = function() {
-                     console.error(`[UI Update] Failed to load sidebar avatar: ${this.src}`);
-                     ui.sidebarAvatar.innerHTML = sanitizeHTML(initials); // Fallback
-                 };
-             }
+             if (sidebarImg) { sidebarImg.onerror = function() { console.error(`[UI Update] Failed to load sidebar avatar: ${this.src}`); ui.sidebarAvatar.innerHTML = sanitizeHTML(initials); }; }
         }
 
-        // --- Main Profile Section Update ---
+        // Main Profile Section Update
         const profileDisplayName = `${profileData.first_name || ''} ${profileData.last_name || ''}`.trim() || profileData.username || 'Uživatel';
         if (ui.profileName) ui.profileName.textContent = sanitizeHTML(profileDisplayName);
         if (ui.profileEmail) ui.profileEmail.textContent = sanitizeHTML(profileData.email);
@@ -348,78 +338,64 @@
             ui.profileAvatar.innerHTML += overlayHTML;
             const editBtn = ui.profileAvatar.querySelector('#edit-avatar-btn');
             if (editBtn) editBtn.addEventListener('click', () => showModal('avatar-modal'));
-             // Add error handler for main profile avatar image
              const profileImg = ui.profileAvatar.querySelector('img');
              if (profileImg) {
                  profileImg.onerror = function() {
                      console.error(`[UI Update] Failed to load main profile avatar: ${this.src}`);
-                     // Re-add overlay if it got removed
                      const currentOverlay = ui.profileAvatar.querySelector('.edit-avatar-overlay');
                      ui.profileAvatar.innerHTML = `<span>${sanitizeHTML(initials)}</span>` + (currentOverlay ? currentOverlay.outerHTML : overlayHTML);
-                     // Re-attach listener
                       const newEditBtn = ui.profileAvatar.querySelector('#edit-avatar-btn');
                       if (newEditBtn) newEditBtn.addEventListener('click', () => showModal('avatar-modal'));
                  };
              }
         }
 
-        updateAvatarPreviewFromProfile(); // Update preview in modal too
+        updateAvatarPreviewFromProfile();
 
-        // Update basic stats
+        // Update basic stats (Points, Badges, Streak)
         if (ui.profilePoints) ui.profilePoints.textContent = profileData.points ?? 0;
         if (ui.profileBadges) ui.profileBadges.textContent = profileData.badges_count ?? 0;
         if (ui.profileStreak) ui.profileStreak.textContent = profileData.streak_days ?? 0;
 
         // --- Level and Experience Update ---
-        const currentLevel = profileData.level ?? 1;
-        const currentExperience = profileData.experience ?? 0; // Use experience column now
+        const currentLevel = profileData.level ?? 1; // Read LEVEL from profile
+        const currentExperience = profileData.experience ?? 0; // Read EXPERIENCE from profile
 
         const currentLevelExpThreshold = getTotalExpThreshold(currentLevel);
         const nextLevelExpThreshold = getTotalExpThreshold(currentLevel + 1);
-        // Calculate XP needed within the current level span
         const expNeededForLevelSpan = nextLevelExpThreshold - currentLevelExpThreshold;
-        // Calculate XP earned since the last level up
         const currentExpInLevel = Math.max(0, currentExperience - currentLevelExpThreshold);
 
         let percentage = 0;
         if (expNeededForLevelSpan > 0) {
             percentage = Math.min(100, Math.max(0, Math.round((currentExpInLevel / expNeededForLevelSpan) * 100)));
         } else {
-            // Handle max level or formula issue (e.g., level 1 needing 0)
-            percentage = (currentExperience >= currentLevelExpThreshold) ? 100 : 0;
-            // If span is 0, it usually means it's the max level or level 1 calculation
-             if (currentLevel > 1) {
-                console.warn(`Experience span for level ${currentLevel} is zero or negative. Exp needed for span: ${expNeededForLevelSpan}.`);
+            percentage = (currentExperience >= currentLevelExpThreshold && currentLevel > 0) ? 100 : 0; // Handle level 1 or max level
+             if (currentLevel > 0) { // Avoid warning for level 0 or negative
+                 console.warn(`Experience span for level ${currentLevel} is zero or negative. Exp needed: ${expNeededForLevelSpan}. Next Threshold: ${nextLevelExpThreshold}, Current Threshold: ${currentLevelExpThreshold}`);
              }
         }
 
         console.log(`[EXP Update] Level: ${currentLevel}, Experience: ${currentExperience}`);
-        console.log(`[EXP Update] Current Threshold: ${currentLevelExpThreshold}, Next Threshold: ${nextLevelExpThreshold}`);
-        console.log(`[EXP Update] EXP in Level: ${currentExpInLevel}, EXP Span: ${expNeededForLevelSpan}, Percentage: ${percentage}%`);
+        console.log(`[EXP Update] Thresholds: Current=${currentLevelExpThreshold}, Next=${nextLevelExpThreshold}`);
+        console.log(`[EXP Update] Progress in Level: ${currentExpInLevel} / ${expNeededForLevelSpan > 0 ? expNeededForLevelSpan : 'N/A'} (${percentage}%)`);
 
-        // Update UI elements (ensure elements exist before updating)
-        if (ui.profileLevelMain) {
-            ui.profileLevelMain.textContent = currentLevel;
-        } else { console.warn("Element profile-level-main not found"); }
+        // Update UI elements
+        if (ui.profileLevelMain) { ui.profileLevelMain.textContent = currentLevel; }
+        else { console.warn("Element profile-level-main not found"); }
 
-        if (ui.expProgressBarFill) {
-            ui.expProgressBarFill.style.width = `${percentage}%`;
-        } else { console.warn("Element exp-progress-bar-fill not found"); }
+        if (ui.expProgressBarFill) { ui.expProgressBarFill.style.width = `${percentage}%`; }
+        else { console.warn("Element exp-progress-bar-fill not found"); }
 
-        if (ui.expCurrentValue) {
-            ui.expCurrentValue.textContent = currentExpInLevel;
-        } else { console.warn("Element exp-current-value not found"); }
+        if (ui.expCurrentValue) { ui.expCurrentValue.textContent = currentExpInLevel; }
+        else { console.warn("Element exp-current-value not found"); }
 
-        if (ui.expRequiredValue) {
-            // Display infinity symbol if span is zero or negative (likely max level)
-            ui.expRequiredValue.textContent = expNeededForLevelSpan > 0 ? expNeededForLevelSpan : '∞';
-        } else { console.warn("Element exp-required-value not found"); }
+        if (ui.expRequiredValue) { ui.expRequiredValue.textContent = expNeededForLevelSpan > 0 ? expNeededForLevelSpan : '∞'; }
+        else { console.warn("Element exp-required-value not found"); }
 
-        if (ui.expPercentage) {
-            ui.expPercentage.textContent = percentage;
-        } else { console.warn("Element exp-percentage not found"); }
+        if (ui.expPercentage) { ui.expPercentage.textContent = percentage; }
+        else { console.warn("Element exp-percentage not found"); }
         // --- End Level and Experience Update ---
-
 
         // Update form fields
         if (ui.firstNameField) ui.firstNameField.value = profileData.first_name || '';
@@ -508,15 +484,15 @@
 
     // --- START: Main Logic ---
     async function loadAndDisplayProfile() {
-        console.log("[MAIN] Načítání a zobrazování profilu...");
-        if (!currentUser) { console.error("[MAIN] Není přihlášený uživatel."); showError("Pro přístup k profilu se musíte přihlásit.", true); return; }
+        console.log("[MAIN] Loading and displaying profile...");
+        if (!currentUser) { console.error("[MAIN] No logged-in user."); showError("Pro přístup k profilu se musíte přihlásit.", true); return; }
         if(ui.profileContent) ui.profileContent.style.display = 'none';
         hideError();
 
         try {
             currentProfile = await fetchUserProfile(currentUser.id);
             if (!currentProfile) { throw new Error("Nepodařilo se načíst nebo vytvořit profil."); }
-            updateProfileDisplay(currentProfile);
+            updateProfileDisplay(currentProfile); // This now updates level and XP bar too
 
             try {
                 console.log("[Notifications] Fetching notifications...");
