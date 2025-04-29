@@ -1,4 +1,4 @@
-/* --- START: Киберпанк CSS Тема (v3 - Улучшения + Сворачивание сайдбара) --- */
+/* --- START: Киберпанк CSS Тема (v4 - Улучшения + Сворачивание сайдбара + Дизайн) --- */
 /* --- Глобальные Настройки и Переменные --- */
 :root {
     /* Основа */
@@ -306,7 +306,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
     box-shadow: 5px 0 30px rgba(0, 0, 0, 0.4);
     border-right: 1px solid var(--border-color-light);
     transition: width var(--transition-medium) cubic-bezier(0.4, 0, 0.2, 1); /* Apply transition to width */
-    overflow-x: hidden; /* Prevent horizontal scrollbar during transition */
+    overflow: hidden; /* Hide overflow during transition */
 }
 .sidebar-header { display: flex; align-items: center; margin-bottom: 2.5rem; padding: 0 0.5rem; position: relative; min-height: 45px; transition: padding var(--transition-medium) ease; }
 #sidebar-close-toggle {
@@ -324,6 +324,15 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .sidebar-logo i { font-size: 1.8rem; color: var(--accent-secondary); flex-shrink: 0; /* Prevent icon shrinking */}
 .sidebar-logo span { transition: opacity 0.1s linear, max-width 0.2s linear 0.1s; opacity: 1; max-width: 150px; overflow: hidden; white-space: nowrap; display: inline-block; } /* Adjusted transition */
 .sidebar-menu { list-style: none; padding: 0; margin: 0; flex-grow: 1; overflow-y: auto; overflow-x: hidden; } /* Hide horizontal scroll */
+/* --- Скрыть скроллбар в свернутом состоянии --- */
+body.sidebar-collapsed .sidebar-menu {
+    overflow-y: hidden;
+    scrollbar-width: none; /* Firefox */
+}
+body.sidebar-collapsed .sidebar-menu::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+}
+/* --------------------------------------------- */
 .sidebar-item { margin-bottom: 0.6rem; }
 .sidebar-link {
     display: flex; align-items: center; padding: 0.85rem 1rem;
@@ -336,7 +345,8 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 }
 .sidebar-link i {
     margin-right: 0.85rem; font-size: 1.25rem; width: 25px; text-align: center;
-    transition: color 0.25s ease, margin-right var(--transition-medium) ease; color: var(--text-muted); flex-shrink: 0; /* Prevent icon shrinking */
+    transition: color 0.25s ease, margin-right var(--transition-medium) ease, font-size var(--transition-medium) ease; /* Added font-size */
+    color: var(--text-muted); flex-shrink: 0; /* Prevent icon shrinking */
 }
 .sidebar-link span { transition: opacity 0.1s linear, max-width 0.2s linear 0.1s; opacity: 1; max-width: 150px; overflow: hidden; white-space: nowrap; display: inline-block; vertical-align: middle;} /* Adjusted transition and alignment */
 .sidebar-link:hover {
@@ -365,7 +375,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
     font-weight: 600; font-size: 1.1rem; overflow: hidden; color: var(--white);
     border: 2px solid rgba(var(--accent-primary-rgb), 0.3); flex-shrink: 0;
     box-shadow: 0 0 8px rgba(var(--accent-secondary-rgb), 0.4);
-    transition: margin-right var(--transition-medium) ease, width var(--transition-medium) ease, height var(--transition-medium) ease;
+    transition: all var(--transition-medium) ease; /* Animate size and margin */
 }
 .user-avatar img { width: 100%; height: 100%; object-fit: cover; }
 .user-info { flex-grow: 1; overflow: hidden; transition: opacity 0.1s linear, max-width 0.2s linear 0.1s; opacity: 1; max-width: 150px; }
@@ -374,7 +384,8 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .sidebar-footer {
     margin-top: 1.5rem; padding: 1rem; font-size: 0.8rem; color: var(--text-muted);
     text-align: center; flex-shrink: 0; opacity: 0.7;
-    transition: opacity 0.2s ease;
+    transition: opacity 0.2s ease, max-width 0.2s linear 0.1s;
+    overflow: hidden; white-space: nowrap; max-width: 200px;
 }
 /* --- Конец Sidebar --- */
 
@@ -400,35 +411,37 @@ body.sidebar-collapsed .user-info,
 body.sidebar-collapsed .sidebar-footer {
     opacity: 0;
     max-width: 0;
-    overflow: hidden; /* Ensure content is clipped */
-    white-space: nowrap; /* Prevent wrapping during transition */
-    pointer-events: none; /* Prevent interaction */
+    overflow: hidden;
+    white-space: nowrap;
+    pointer-events: none;
 }
 body.sidebar-collapsed .sidebar-header {
     padding: 0 0.5rem;
-    justify-content: center; /* Center logo icon */
+    justify-content: center;
 }
 body.sidebar-collapsed .sidebar-logo {
     gap: 0;
     justify-content: center;
 }
 body.sidebar-collapsed .sidebar-link {
-    justify-content: center; /* Center icon */
-    padding: 0.85rem 0.5rem; /* Adjust padding */
+    justify-content: center;
+    padding: 0.85rem 0.5rem;
 }
 body.sidebar-collapsed .sidebar-link i {
-    margin-right: 0; /* Remove margin */
+    margin-right: 0;
     font-size: 1.4rem; /* Slightly larger icon */
 }
 body.sidebar-collapsed .user-profile {
-    padding: 0.8rem 0.5rem; /* Adjust padding */
+    padding: 0.8rem 0; /* Vertical padding only */
     justify-content: center;
+    border-left: none; /* Remove side borders if they exist */
+    border-right: none;
 }
 body.sidebar-collapsed .user-avatar {
     margin-right: 0; /* Remove margin */
     width: 40px; /* Slightly smaller avatar */
     height: 40px;
-    font-size: 1rem;
+    font-size: 1rem; /* Smaller initials font */
 }
 body.sidebar-collapsed main#main-content {
     margin-left: var(--sidebar-collapsed-width);
@@ -504,6 +517,7 @@ body.scrolled .dashboard-header {
 .notification-item.is-read:hover { opacity: 0.8; }
 .notification-item.is-read .unread-dot { display: none; }
 .notification-icon { width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 1rem; color: var(--white); box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+/* Specific Icon Styles */
 .notification-icon.info { background-color: var(--accent-primary); } .notification-icon.success { background-color: var(--accent-lime); color: var(--text-fixed-dark); } .notification-icon.warning { background-color: var(--accent-orange); } .notification-icon.danger { background-color: var(--accent-pink); } .notification-icon.badge { background: linear-gradient(45deg, var(--accent-orange), var(--accent-pink)); } .notification-icon.level_up { background: var(--gradient-level-up); } .notification-icon.plan_generated { background: linear-gradient(45deg, var(--accent-secondary), var(--accent-cyan)); } .notification-icon.exercise { background: linear-gradient(45deg, #2a9d8f, var(--accent-lime)); } .notification-icon.test { background: linear-gradient(45deg, var(--accent-secondary), var(--accent-pink)); } .notification-icon.default { background-color: var(--text-muted); }
 .notification-content { flex-grow: 1; }
 .notification-title { font-weight: 600; color: var(--text-light); margin-bottom: 0.25rem; font-size: 0.95rem; }
@@ -1058,7 +1072,7 @@ input:checked + .slider:before { background-color: var(--white); transform: tran
     .sidebar-link i { margin-right: 0; font-size: 1.6rem; }
     .sidebar-logo i { margin-right: 0; }
     .sidebar-header, .sidebar-link { justify-content: center; }
-    .user-profile { justify-content: center; padding: 0.8rem; }
+    .user-profile { justify-content: center; padding: 0.8rem 0; } /* Adjusted padding */
     .user-avatar { margin-right: 0; width: 45px; height: 45px; }
     .mobile-menu-toggle#main-mobile-menu-toggle { display: block; }
     /* Keep sidebar toggle visible on tablet */
