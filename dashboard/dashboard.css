@@ -1,4 +1,4 @@
-        /* --- START: Киберпанк CSS Тема (из index.html v19) --- */
+/* --- START: Киберпанк CSS Тема (из index.html v19 + sidebar toggle) --- */
         /* --- Глобальные Настройки и Переменные --- */
         :root {
             /* Основа */
@@ -82,6 +82,7 @@
 
             /* Размеры и переходы */
             --sidebar-width: 260px; /* Оставляем переменную */
+            --sidebar-collapsed-width: 80px; /* <<< NEW: Width for collapsed sidebar */
             --card-radius: 14px;
             --button-radius: 10px;
             --section-padding-y: clamp(2rem, 5vh, 3rem); /* Паддинги для секций дашборда */
@@ -188,6 +189,49 @@
         .btn-outline:hover:not(:disabled) { background: rgba(var(--accent-secondary-rgb), 0.12); border-color: var(--accent-pink); color: var(--accent-pink); box-shadow: 0 0 18px var(--accent-pink-glow); transform: translateY(-3px); }
         .btn-outline:active:not(:disabled) { transform: translateY(0px) scale(0.97); box-shadow: 0 0 8px var(--accent-pink-glow), inset 0 0 10px rgba(0,0,0,0.15); background: rgba(var(--accent-pink-rgb), 0.18); transition-duration: 0.08s; }
 
+        /* --- NEW: Styles for Sidebar Toggle Button --- */
+        .btn-icon-only { /* Style for icon-only buttons like the toggle */
+            padding: 0.5rem; /* Reduced padding */
+            width: 38px; /* Slightly smaller */
+            height: 38px; /* Slightly smaller */
+            border-radius: 50%; /* Make it circular */
+            border: 1px solid var(--border-color-medium); /* Subtle border */
+            color: var(--text-muted);
+            background-color: rgba(var(--bg-secondary-rgb, 10, 7, 31), 0.3); /* Darker background */
+            box-shadow: none;
+            line-height: 1;
+            display: inline-flex; /* Ensure flex properties apply */
+            align-items: center;
+            justify-content: center;
+        }
+        .btn-icon-only i {
+            margin-right: 0; /* No margin for icon-only */
+            font-size: 1rem; /* Adjusted size */
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); /* Smooth rotate */
+        }
+        .btn-icon-only:hover:not(:disabled) {
+            background-color: rgba(var(--accent-primary-rgb), 0.15);
+            border-color: var(--accent-primary);
+            color: var(--accent-primary);
+            box-shadow: 0 0 12px rgba(var(--accent-glow), 0.5); /* Adjusted glow */
+            transform: translateY(-2px) scale(1.05); /* Slight lift */
+        }
+        .btn-icon-only:active:not(:disabled) {
+            transform: translateY(0) scale(0.95);
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.4); /* Inset shadow on press */
+        }
+        .sidebar-toggle-btn {
+             margin-right: 0.8rem; /* Space between toggle and title/mobile btn */
+             display: none; /* Hide by default, show on larger screens */
+        }
+        @media (min-width: 993px) {
+             .sidebar-toggle-btn {
+                 display: inline-flex; /* Show on desktop */
+             }
+        }
+        /* --- END: Sidebar Toggle Button --- */
+
+
         /* Карточки (базовый стиль) */
         .card {
             background: var(--card-bg); border-radius: var(--card-radius);
@@ -223,9 +267,10 @@
             padding: 1.5rem 1rem; display: flex; flex-direction: column; z-index: 1000;
             box-shadow: 5px 0 30px rgba(0, 0, 0, 0.4); /* Тень */
             border-right: 1px solid var(--border-color-light);
-            transition: transform var(--transition-medium) ease, width var(--transition-medium) ease;
+            transition: width var(--transition-medium) cubic-bezier(0.4, 0, 0.2, 1), transform var(--transition-medium) ease; /* Added transform transition for mobile */
+            overflow: hidden; /* Hide overflow during transition */
         }
-        .sidebar-header { display: flex; align-items: center; margin-bottom: 2.5rem; padding: 0 0.5rem; position: relative; min-height: 45px; }
+        .sidebar-header { display: flex; align-items: center; margin-bottom: 2.5rem; padding: 0 0.5rem; position: relative; min-height: 45px; transition: padding var(--transition-medium) ease; }
         #sidebar-close-toggle { /* Кнопка закрытия на мобильных */
              display: none; position: absolute; right: 0px; top: 50%; transform: translateY(-50%);
              background: none; border: none; color: var(--text-muted); font-size: 1.8rem; cursor: pointer;
@@ -235,11 +280,21 @@
         .sidebar-logo {
              font-size: 1.7rem; font-weight: 700; color: var(--text-heading); text-decoration: none;
              display: flex; align-items: center; gap: 0.8rem; text-shadow: 0 0 8px var(--accent-secondary-glow);
+             transition: gap var(--transition-medium) ease;
+             width: 100%; /* Ensure it takes full width for centering */
         }
-        .sidebar-logo i { font-size: 1.8rem; color: var(--accent-secondary); }
-        .sidebar-logo span { transition: opacity 0.2s ease; } /* Для скрытия на узком экране */
-        .sidebar-menu { list-style: none; padding: 0; margin: 0; flex-grow: 1; overflow-y: auto; }
-        /* Скроллбар сайдбара уже стилизован глобально */
+        .sidebar-logo i { font-size: 1.8rem; color: var(--accent-secondary); flex-shrink: 0; /* Prevent icon shrinking */}
+        .sidebar-logo span { transition: opacity 0.1s linear, max-width 0.2s linear 0.1s; opacity: 1; max-width: 150px; overflow: hidden; white-space: nowrap; display: inline-block; } /* Adjusted transition */
+        .sidebar-menu { list-style: none; padding: 0; margin: 0; flex-grow: 1; overflow-y: auto; overflow-x: hidden; } /* Hide horizontal scroll */
+        /* --- Скрыть скроллбар в свернутом состоянии --- */
+        body.sidebar-collapsed .sidebar-menu {
+            overflow-y: hidden;
+            scrollbar-width: none; /* Firefox */
+        }
+        body.sidebar-collapsed .sidebar-menu::-webkit-scrollbar {
+            display: none; /* Chrome, Safari, Opera */
+        }
+        /* --------------------------------------------- */
         .sidebar-item { margin-bottom: 0.6rem; }
         .sidebar-link {
             display: flex; align-items: center; padding: 0.85rem 1rem; /* Немного больше */
@@ -247,12 +302,15 @@
             transition: background-color 0.25s ease, color 0.25s ease, box-shadow 0.25s ease, border-left-color 0.25s ease;
             font-weight: 500; position: relative;
             border-left: 4px solid transparent; /* Основа для активной метки */
+            overflow: hidden; /* Prevent text wrapping */
+            white-space: nowrap; /* Keep icon and text on one line */
         }
         .sidebar-link i {
             margin-right: 0.85rem; font-size: 1.25rem; width: 25px; text-align: center;
-            transition: color 0.25s ease; color: var(--text-muted);
+            transition: color 0.25s ease, margin-right var(--transition-medium) ease, font-size var(--transition-medium) ease; /* Added font-size */
+            color: var(--text-muted); flex-shrink: 0; /* Prevent icon shrinking */
         }
-        .sidebar-link span { transition: opacity 0.2s ease; } /* Для скрытия текста */
+        .sidebar-link span { transition: opacity 0.1s linear, max-width 0.2s linear 0.1s; opacity: 1; max-width: 150px; overflow: hidden; white-space: nowrap; display: inline-block; vertical-align: middle;} /* Adjusted transition and alignment */
         .sidebar-link:hover {
             background-color: rgba(var(--accent-primary-rgb), 0.1); color: var(--text-light);
             box-shadow: inset 3px 0 8px -2px rgba(var(--accent-primary-rgb), 0.3);
@@ -270,6 +328,8 @@
             display: flex; align-items: center; padding: 1rem; margin-top: 1.5rem;
             background-color: rgba(var(--accent-secondary-rgb), 0.1); border-radius: 12px;
             border: 1px solid var(--border-color-light); flex-shrink: 0;
+            transition: padding var(--transition-medium) ease; overflow: hidden;
+            white-space: nowrap; /* Prevent wrapping inside */
         }
         .user-avatar {
             width: 42px; height: 42px; border-radius: 50%;
@@ -278,57 +338,163 @@
             font-weight: 600; font-size: 1.1rem; overflow: hidden; color: var(--white);
             border: 2px solid rgba(var(--accent-primary-rgb), 0.3); flex-shrink: 0;
             box-shadow: 0 0 8px rgba(var(--accent-secondary-rgb), 0.4);
+            transition: all var(--transition-medium) ease; /* Animate size and margin */
         }
         .user-avatar img { width: 100%; height: 100%; object-fit: cover; }
-        .user-info { flex-grow: 1; overflow: hidden; }
+        .user-info { flex-grow: 1; overflow: hidden; transition: opacity 0.1s linear, max-width 0.2s linear 0.1s; opacity: 1; max-width: 150px; }
         .user-name { font-weight: 600; font-size: 1rem; color: var(--text-light); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .user-role { font-size: 0.8rem; color: var(--text-muted); white-space: nowrap; }
         .sidebar-footer { /* Подвал сайдбара */
             margin-top: 1.5rem; padding: 1rem; font-size: 0.8rem; color: var(--text-muted);
             text-align: center; flex-shrink: 0; opacity: 0.7;
+            transition: opacity 0.2s ease, max-width 0.2s linear 0.1s;
+            overflow: hidden; white-space: nowrap; max-width: 200px;
         }
         /* --- Конец Sidebar --- */
 
         /* --- Основной контент --- */
         main {
-            flex: 1; margin-left: var(--sidebar-width); padding: 0 var(--container-padding-x); /* Только горизонтальный паддинг */
-            transition: margin-left var(--transition-medium) ease;
+            flex: 1; margin-left: var(--sidebar-width);
+            transition: margin-left var(--transition-medium) cubic-bezier(0.4, 0, 0.2, 1), width var(--transition-medium) cubic-bezier(0.4, 0, 0.2, 1); /* Apply transition */
             width: calc(100% - var(--sidebar-width)); overflow-y: auto; height: 100vh;
-            display: none; /* Скрыто по умолчанию */
-             /* Скроллбар уже стилизован глобально */
+            display: none; /* Initially hidden by default */
+            padding: 0 var(--container-padding-x); /* Add padding back */
         }
         main.loaded { display: block; animation: fadeInMain 0.5s ease-out forwards; }
         @keyframes fadeInMain { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Хедер дашборда */
+
+        /* --- START: Collapsed Sidebar Styles --- */
+        body.sidebar-collapsed .sidebar {
+            width: var(--sidebar-collapsed-width);
+        }
+        body.sidebar-collapsed .sidebar-logo span,
+        body.sidebar-collapsed .sidebar-link span,
+        body.sidebar-collapsed .user-info,
+        body.sidebar-collapsed .sidebar-footer {
+            opacity: 0;
+            max-width: 0;
+            overflow: hidden;
+            white-space: nowrap;
+            pointer-events: none;
+        }
+        body.sidebar-collapsed .sidebar-header {
+            padding: 0 0.5rem;
+            justify-content: center;
+        }
+        body.sidebar-collapsed .sidebar-logo {
+            gap: 0;
+            justify-content: center;
+        }
+        body.sidebar-collapsed .sidebar-link {
+            justify-content: center;
+            padding: 0.85rem 0.5rem;
+        }
+        body.sidebar-collapsed .sidebar-link i {
+            margin-right: 0;
+            font-size: 1.4rem; /* Slightly larger icon */
+        }
+        body.sidebar-collapsed .user-profile {
+            padding: 0.8rem 0; /* Vertical padding only */
+            justify-content: center;
+            border-left: none; /* Remove side borders if they exist */
+            border-right: none;
+        }
+        body.sidebar-collapsed .user-avatar {
+            margin-right: 0; /* Remove margin */
+            width: 40px; /* Slightly smaller avatar */
+            height: 40px;
+            font-size: 1rem; /* Smaller initials font */
+        }
+        body.sidebar-collapsed main#main-content {
+            margin-left: var(--sidebar-collapsed-width);
+            width: calc(100% - var(--sidebar-collapsed-width));
+        }
+        body.sidebar-collapsed .sidebar-toggle-btn i {
+            transform: rotate(180deg); /* Rotate arrow */
+        }
+        /* Hide mobile-specific close button when collapsed on desktop */
+        body.sidebar-collapsed #sidebar-close-toggle {
+             display: none;
+        }
+        /* Hide the main mobile menu toggle when sidebar is collapsed on desktop */
+        @media (min-width: 993px) {
+             body.sidebar-collapsed .mobile-menu-toggle#main-mobile-menu-toggle {
+                 display: none;
+             }
+        }
+        /* --- END: Collapsed Sidebar Styles --- */
+
+
+        /* Хедер дашборда (используется в профиле) */
         .dashboard-header {
-            margin-bottom: var(--section-padding-y); /* Отступ снизу */
-            background-color: rgba(var(--bg-secondary-rgb, 10, 7, 31), 0.7); /* Полупрозрачный фон */
-            backdrop-filter: blur(12px); border-radius: 0 0 var(--card-radius) var(--card-radius); /* Скругление только снизу */
+            margin-bottom: var(--section-padding-y);
+            background-color: rgba(var(--bg-secondary-rgb, 10, 7, 31), 0.7);
+            backdrop-filter: blur(12px); border-radius: 0 0 var(--card-radius) var(--card-radius);
             padding: 1rem var(--container-padding-x); box-shadow: var(--shadow-hud);
             display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;
             position: sticky; top: 0; z-index: 900;
             border-bottom: 1px solid var(--border-color-light);
             transition: background-color 0.3s ease, box-shadow 0.3s ease;
+            margin-left: calc(var(--container-padding-x) * -1); /* Extend to edges */
+             margin-right: calc(var(--container-padding-x) * -1);
         }
-        body.scrolled .dashboard-header { /* Стиль при скролле */
+        body.scrolled .dashboard-header {
              background-color: rgba(var(--bg-secondary-rgb, 10, 7, 31), 0.85);
              box-shadow: 0 6px 20px rgba(0,0,0,0.3);
         }
-        .header-content { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; width: 100%; }
-        .header-content > div:first-child { display: flex; align-items: center; gap: 1rem; flex-grow: 1; }
-        /* Мобильное меню */
-        .mobile-menu-toggle {
-             display: none; background: none; border: none; color: var(--text-medium); font-size: 1.6rem; cursor: pointer; padding: 0.5rem; margin-right: 0.5rem; z-index: 1010; transition: color 0.2s ease;
+        .header-content { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; width: 100%; padding: 0 var(--container-padding-x); /* Add padding here */ }
+        .header-left-group { display: flex; align-items: center; gap: 0.8rem; flex-grow: 1; } /* Style for the new wrapper */
+        .mobile-menu-toggle#main-mobile-menu-toggle { /* Specific ID for main toggle */
+             display: none; background: none; border: none; color: var(--text-medium); font-size: 1.6rem; cursor: pointer; padding: 0.5rem; z-index: 1010; transition: color 0.2s ease;
         }
-        .mobile-menu-toggle:hover { color: var(--accent-primary); }
-        @media (max-width: 992px) { .mobile-menu-toggle { display: block; } } /* Показать на планшетах/мобильных */
+        .mobile-menu-toggle#main-mobile-menu-toggle:hover { color: var(--accent-primary); }
+        @media (max-width: 992px) { .mobile-menu-toggle#main-mobile-menu-toggle { display: block; } }
 
-        .header-content h1 { /* Заголовок страницы */
+        .header-content h1 {
              font-size: 1.7rem; font-weight: 700; color: var(--text-heading); margin: 0;
-             text-shadow: 0 0 10px var(--accent-glow); /* Свечение заголовка */
+             text-shadow: 0 0 10px var(--accent-glow);
         }
         .header-actions { display: flex; align-items: center; gap: 1rem; }
+
+        /* --- START: Notification Styles --- */
+        .notifications { position: relative; }
+        .notification-bell { cursor: pointer; padding: 0.6rem; position: relative; display: inline-block; line-height: 1; }
+        .notification-bell i { font-size: 1.4rem; color: var(--text-muted); transition: color 0.2s, transform 0.2s; }
+        .notification-bell:hover i { color: var(--accent-primary); transform: scale(1.1); }
+        .notification-badge { position: absolute; top: 0px; right: 0px; width: 18px; height: 18px; background-color: var(--accent-pink); color: var(--white); font-size: 0.65rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; border: 2px solid var(--bg-secondary); pointer-events: none; opacity: 0; transform: scale(0.5); transition: opacity 0.2s, transform 0.2s; box-shadow: 0 0 8px var(--accent-pink-glow); }
+        .notification-badge.visible { opacity: 1; transform: scale(1); }
+        .notifications-dropdown-wrapper { position: absolute; top: calc(100% + 12px); right: -10px; width: 380px; background-color: var(--interface-bg); border-radius: 12px; box-shadow: var(--shadow-card); border: 1px solid var(--border-color-medium); z-index: 1010; opacity: 0; visibility: hidden; transform: translateY(15px) scale(0.98); transform-origin: top right; transition: opacity 0.3s ease, transform 0.3s ease, visibility 0s 0.3s; backdrop-filter: blur(5px); }
+        .notifications-dropdown-wrapper.active { opacity: 1; visibility: visible; transform: translateY(0) scale(1); transition-delay: 0s; }
+        .notifications-header { padding: 1rem 1.25rem; border-bottom: 1px solid var(--border-color-light); display: flex; justify-content: space-between; align-items: center; }
+        .notifications-title { font-size: 1rem; font-weight: 600; color: var(--text-light); }
+        .mark-all-read-btn { font-size: 0.8rem; color: var(--accent-primary); background: none; border: none; cursor: pointer; font-weight: 500; padding: 0.25rem 0; opacity: 0.8; transition: opacity 0.2s; }
+        .mark-all-read-btn:hover:not(:disabled) { text-decoration: underline; opacity: 1; }
+        .mark-all-read-btn:disabled { opacity: 0.4; cursor: not-allowed; text-decoration: none !important; }
+        #notifications-list { max-height: 350px; overflow-y: auto; padding: 0.5rem 0; }
+        #notifications-list::-webkit-scrollbar { width: 6px; }
+        #notifications-list::-webkit-scrollbar-track { background: transparent; }
+        #notifications-list::-webkit-scrollbar-thumb { background-color: var(--border-color-medium); border-radius: 3px; }
+        .notification-item { display: flex; padding: 0.9rem 1.25rem; gap: 1rem; border-bottom: 1px solid var(--border-color-light); transition: background-color 0.2s ease; cursor: pointer; position: relative; }
+        .notification-item:last-child { border-bottom: none; }
+        .notification-item:hover { background-color: rgba(var(--accent-primary-rgb), 0.08); }
+        .notification-item.is-read { opacity: 0.6; }
+        .notification-item.is-read:hover { opacity: 0.8; }
+        .notification-item.is-read .unread-dot { display: none; }
+        .notification-icon { width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 1rem; color: var(--white); box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        /* Specific Icon Styles */
+        .notification-icon.info { background-color: var(--accent-primary); } .notification-icon.success { background-color: var(--accent-lime); color: var(--text-fixed-dark); } .notification-icon.warning { background-color: var(--accent-orange); } .notification-icon.danger { background-color: var(--accent-pink); } .notification-icon.badge { background: linear-gradient(45deg, var(--accent-orange), var(--accent-pink)); } .notification-icon.level_up { background: var(--gradient-level-up); } .notification-icon.plan_generated { background: linear-gradient(45deg, var(--accent-secondary), var(--accent-cyan)); } .notification-icon.exercise { background: linear-gradient(45deg, #2a9d8f, var(--accent-lime)); } .notification-icon.test { background: linear-gradient(45deg, var(--accent-secondary), var(--accent-pink)); } .notification-icon.default { background-color: var(--text-muted); }
+        .notification-content { flex-grow: 1; }
+        .notification-title { font-weight: 600; color: var(--text-light); margin-bottom: 0.25rem; font-size: 0.95rem; }
+        .notification-message { font-size: 0.88rem; color: var(--text-medium); line-height: 1.45; margin-bottom: 0.3rem; }
+        .notification-time { font-size: 0.78rem; color: var(--text-muted); }
+        .unread-dot { position: absolute; top: 50%; right: 1.25rem; transform: translateY(-50%); width: 9px; height: 9px; background-color: var(--accent-primary); border-radius: 50%; box-shadow: 0 0 8px var(--accent-glow); }
+        .notifications-footer { padding: 0.8rem 1.25rem; border-top: 1px solid var(--border-color-light); text-align: center; background-color: rgba(var(--bg-secondary-rgb, 10, 7, 31), 0.5); border-radius: 0 0 12px 12px; }
+        .view-all-notifications-link { font-size: 0.9rem; color: var(--accent-primary); text-decoration: none; font-weight: 500; }
+        .view-all-notifications-link:hover { color: var(--white); text-decoration: underline; }
+        #no-notifications-msg { padding: 2rem 1rem; text-align: center; color: var(--text-muted); font-size: 0.9rem; display: none; }
+        /* --- END: Notification Styles --- */
+
 
         /* Кнопка Refresh */
         .refresh-btn {
@@ -344,85 +510,6 @@
         .refresh-btn.loading i { animation: spin 1s linear infinite; }
         .refresh-btn:disabled { opacity: 0.5; cursor: not-allowed; background-color: transparent !important; border-color: var(--text-muted) !important; color: var(--text-muted) !important; box-shadow: none !important; }
         @keyframes spin { to { transform: rotate(360deg); } }
-
-        /* Уведомления */
-        .notifications { position: relative; }
-        .notification-bell { cursor: pointer; padding: 0.6rem; position: relative; display: inline-block; line-height: 1; }
-        .notification-bell i { font-size: 1.4rem; color: var(--text-medium); transition: color 0.2s, transform 0.2s; }
-        .notification-bell:hover i { color: var(--accent-primary); transform: scale(1.1); }
-        .notification-badge {
-            position: absolute; top: 0px; right: 0px; width: 18px; height: 18px;
-            background-color: var(--accent-pink); /* Используем розовый акцент */
-            color: var(--white); font-size: 0.65rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600;
-            border: 2px solid var(--bg-secondary); /* Фон хедера */
-            pointer-events: none; opacity: 0; transform: scale(0.5); transition: opacity 0.2s, transform 0.2s;
-            box-shadow: 0 0 8px var(--accent-pink-glow);
-        }
-        .notification-badge.visible { opacity: 1; transform: scale(1); }
-
-        /* Выпадающий список уведомлений */
-        .notifications-dropdown-wrapper {
-            position: absolute; top: calc(100% + 12px); right: -10px; /* Сдвинуто правее */
-            width: 380px; background-color: var(--interface-bg); /* Темный фон */
-            border-radius: 12px; box-shadow: var(--shadow-card);
-            border: 1px solid var(--border-color-medium); /* Заметнее граница */
-            z-index: 1010; opacity: 0; visibility: hidden;
-            transform: translateY(15px) scale(0.98); transform-origin: top right;
-            transition: opacity 0.3s ease, transform 0.3s ease, visibility 0s 0.3s;
-            backdrop-filter: blur(5px);
-        }
-        .notifications-dropdown-wrapper.active { opacity: 1; visibility: visible; transform: translateY(0) scale(1); transition-delay: 0s; }
-        .notifications-header {
-            padding: 1rem 1.25rem; border-bottom: 1px solid var(--border-color-light);
-            display: flex; justify-content: space-between; align-items: center;
-        }
-        .notifications-title { font-size: 1rem; font-weight: 600; color: var(--text-light); }
-        .mark-all-read-btn {
-            font-size: 0.8rem; color: var(--accent-primary); background: none; border: none;
-            cursor: pointer; font-weight: 500; padding: 0.25rem 0; opacity: 0.8; transition: opacity 0.2s;
-        }
-        .mark-all-read-btn:hover:not(:disabled) { text-decoration: underline; opacity: 1; }
-        .mark-all-read-btn:disabled { opacity: 0.4; cursor: not-allowed; text-decoration: none !important; }
-        #notifications-list { max-height: 350px; overflow-y: auto; padding: 0.5rem 0; }
-        /* Скроллбар для списка уведомлений */
-         #notifications-list::-webkit-scrollbar { width: 6px; }
-         #notifications-list::-webkit-scrollbar-track { background: transparent; }
-         #notifications-list::-webkit-scrollbar-thumb { background-color: var(--border-color-medium); border-radius: 3px; }
-        .notification-item {
-            display: flex; padding: 0.9rem 1.25rem; gap: 1rem; border-bottom: 1px solid var(--border-color-light);
-            transition: background-color 0.2s ease; cursor: pointer; position: relative;
-        }
-        .notification-item:last-child { border-bottom: none; }
-        .notification-item:hover { background-color: rgba(var(--accent-primary-rgb), 0.08); }
-        .notification-item.is-read { opacity: 0.6; }
-        .notification-item.is-read:hover { opacity: 0.8; } /* Делаем читаемые чуть ярче при ховере */
-        .notification-item.is-read .unread-dot { display: none; }
-        .notification-icon { /* Используем акцентные цвета */
-            width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 1rem; color: var(--white); box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-        }
-        .notification-icon.info { background-color: var(--accent-primary); }
-        .notification-icon.success { background-color: var(--accent-lime); color: var(--text-fixed-dark); }
-        .notification-icon.warning { background-color: var(--accent-orange); }
-        .notification-icon.danger { background-color: var(--accent-pink); }
-        .notification-icon.badge { background: linear-gradient(45deg, var(--accent-orange), var(--accent-pink)); }
-        .notification-icon.level_up { background: var(--gradient-level-up); }
-        .notification-content { flex-grow: 1; }
-        .notification-title { font-weight: 600; color: var(--text-light); margin-bottom: 0.25rem; font-size: 0.95rem; }
-        .notification-message { font-size: 0.88rem; color: var(--text-medium); line-height: 1.45; margin-bottom: 0.3rem; }
-        .notification-time { font-size: 0.78rem; color: var(--text-muted); }
-        .unread-dot { /* Яркая точка */
-             position: absolute; top: 50%; right: 1.25rem; transform: translateY(-50%); width: 9px; height: 9px;
-             background-color: var(--accent-primary); border-radius: 50%;
-             box-shadow: 0 0 8px var(--accent-glow);
-        }
-        .notifications-footer {
-            padding: 0.8rem 1.25rem; border-top: 1px solid var(--border-color-light); text-align: center;
-            background-color: rgba(var(--bg-secondary-rgb, 10, 7, 31), 0.5); /* Полупрозрачный */
-            border-radius: 0 0 12px 12px;
-        }
-        .view-all-notifications-link { font-size: 0.9rem; color: var(--accent-primary); text-decoration: none; font-weight: 500; }
-        .view-all-notifications-link:hover { color: var(--white); text-decoration: underline; }
-        #no-notifications-msg { padding: 2rem 1rem; text-align: center; color: var(--text-muted); font-size: 0.9rem; display: none; }
 
         /* --- Основной контент дашборда --- */
         .main-content-wrapper { padding: var(--section-padding-y) 0; /* Вертикальные отступы для контента */ }
@@ -675,16 +762,8 @@
 
         /* Адаптивность для киберпанк темы */
         @media (max-width: 992px) { /* Планшет - сжатый сайдбар */
-            :root { --sidebar-width: 85px; }
-            main { margin-left: 85px; width: calc(100% - 85px); }
-            .sidebar { width: 85px; }
-            .sidebar-logo span, .sidebar-link span, .user-info, .sidebar-footer { display: none; }
-            .sidebar-link i { margin-right: 0; font-size: 1.6rem; } /* Крупнее иконки */
-            .sidebar-logo i { margin-right: 0; }
-            .sidebar-header, .sidebar-link { justify-content: center; }
-            .user-profile { justify-content: center; padding: 0.8rem; }
-            .user-avatar { margin-right: 0; width: 45px; height: 45px; }
-            .mobile-menu-toggle#main-mobile-menu-toggle { display: block; } /* Показать кнопку меню в хедере */
+            /* :root { --sidebar-width: 85px; } Already handled by .sidebar-collapsed */
+            .stat-cards, .shortcut-grid { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
         }
         @media (max-width: 768px) { /* Мобильный */
              main { padding: 0 1rem; } /* Меньше паддинг */
@@ -702,8 +781,7 @@
              .section-title { font-size: 1.3rem; }
         }
         @media (max-width: 576px) { /* Маленький мобильный */
-            :root { --sidebar-width: 0; }
-            main { margin-left: 0; width: 100%; padding: 0 0.75rem; }
+            /* Mobile menu toggling is handled by JS adding .active */
             .sidebar { transform: translateX(-110%); width: 280px; z-index: 1000; } /* Скрыт по умолчанию */
             .sidebar.active { transform: translateX(0); }
             /* Восстанавливаем вид активного сайдбара */
@@ -714,9 +792,13 @@
             .sidebar.active .user-profile { padding: 1rem; }
             .sidebar.active .user-avatar { margin-right: 0.85rem; width: 42px; height: 42px; }
             .sidebar.active #sidebar-close-toggle { display: block; } /* Показать кнопку закрытия */
+            main { margin-left: 0; width: 100%; padding: 0 0.75rem; }
             .header-actions { gap: 0.5rem; }
             .stat-card-value { font-size: 2rem; }
             .mouse-follower-glow { display: none !important; } /* Отключить свечение мыши */
+            .toast-container { bottom: 1rem; right: 1rem; max-width: calc(100% - 2rem); }
+            /* Hide desktop sidebar toggle on small mobile */
+            .sidebar-toggle-btn { display: none; }
         }
 
          /* Оверлей для мобильного меню */
@@ -748,7 +830,8 @@
                 transition-duration: 0.01ms !important; animation-delay: -0.01ms !important;
                 transition-delay: 0ms !important; will-change: auto !important;
             }
-            .sidebar { transition: transform 0.01ms !important; }
+            .sidebar { transition: transform 0.01ms !important, width 0.01ms !important; } /* Added width */
+            main { transition: margin-left 0.01ms !important, width 0.01ms !important; } /* Added width */
             .main-content-wrapper [data-animate] { opacity: 1 !important; transform: none !important; transition: none !important; }
             .mouse-follower-glow { display: none !important; }
             body::before, body::after { animation: none !important; }
@@ -756,5 +839,6 @@
             .loading-spinner, .initial-loading-overlay .loading-spinner { animation: none !important; border: 4px solid var(--accent-primary) !important; } /* Просто рамка */
             .card:hover, .shortcut-card:hover, .btn:hover, .btn-outline:hover, .welcome-button:hover, .refresh-btn:hover, .view-all-link:hover { transform: none !important; }
             .skeleton::after { animation: none !important; background: var(--skeleton-highlight) !important; }
+             .btn-icon-only i { transition: none !important; } /* Disable icon rotation */
         }
         /* --- END: Киберпанк CSS Тема --- */
