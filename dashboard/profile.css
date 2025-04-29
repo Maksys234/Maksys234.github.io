@@ -1,4 +1,4 @@
-/* --- START: Киберпанк CSS Тема (from dashboard.html v19) --- */
+/* --- START: Киберпанк CSS Тема (v3 - Улучшения + Сворачивание сайдбара) --- */
 /* --- Глобальные Настройки и Переменные --- */
 :root {
     /* Основа */
@@ -99,7 +99,7 @@
     --container-padding-x: 2rem; /* Паддинги контейнера дашборда */
     --transition-speed: 0.3s; /* Совпадает с --transition-medium */
     --transition-fast: all 0.2s ease-out;
-    --transition-medium: all 0.35s ease-out;
+    --transition-medium: all 0.35s ease-out; /* Сделаем переход чуть быстрее */
     --transition-long: all 0.5s cubic-bezier(0.165, 0.84, 0.44, 1);
     --transition-bounce: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     --transition-entrance: all 0.6s cubic-bezier(0.165, 0.84, 0.44, 1); /* Немного быстрее */
@@ -229,30 +229,33 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 /* --- START: Sidebar Toggle Styles --- */
 .btn-icon-only { /* Style for icon-only buttons like the toggle */
     padding: 0.5rem; /* Reduced padding */
-    width: 40px; /* Fixed width */
-    height: 40px; /* Fixed height */
+    width: 38px; /* Slightly smaller */
+    height: 38px; /* Slightly smaller */
     border-radius: 50%; /* Make it circular */
-    border-color: var(--border-color-medium);
+    border: 1px solid var(--border-color-medium); /* Subtle border */
     color: var(--text-muted);
-    background-color: rgba(var(--accent-secondary-rgb), 0.1);
+    background-color: rgba(var(--bg-secondary-rgb), 0.3); /* Darker background */
     box-shadow: none;
     line-height: 1;
+    display: inline-flex; /* Ensure flex properties apply */
+    align-items: center;
+    justify-content: center;
 }
 .btn-icon-only i {
     margin-right: 0; /* No margin for icon-only */
-    font-size: 1.1rem;
+    font-size: 1rem; /* Adjusted size */
     transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); /* Smooth rotate */
 }
 .btn-icon-only:hover:not(:disabled) {
     background-color: rgba(var(--accent-primary-rgb), 0.15);
     border-color: var(--accent-primary);
     color: var(--accent-primary);
-    box-shadow: 0 0 12px var(--accent-glow);
+    box-shadow: 0 0 12px rgba(var(--accent-glow), 0.5); /* Adjusted glow */
     transform: translateY(-2px) scale(1.05); /* Slight lift */
 }
 .btn-icon-only:active:not(:disabled) {
     transform: translateY(0) scale(0.95);
-    box-shadow: inset 0 0 8px rgba(0,0,0,0.3);
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.4); /* Inset shadow on press */
 }
 /* Specific toggle button placement */
 .sidebar-toggle-btn {
@@ -303,6 +306,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
     box-shadow: 5px 0 30px rgba(0, 0, 0, 0.4);
     border-right: 1px solid var(--border-color-light);
     transition: width var(--transition-medium) cubic-bezier(0.4, 0, 0.2, 1); /* Apply transition to width */
+    overflow-x: hidden; /* Prevent horizontal scrollbar during transition */
 }
 .sidebar-header { display: flex; align-items: center; margin-bottom: 2.5rem; padding: 0 0.5rem; position: relative; min-height: 45px; transition: padding var(--transition-medium) ease; }
 #sidebar-close-toggle {
@@ -315,9 +319,10 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
         font-size: 1.7rem; font-weight: 700; color: var(--text-heading); text-decoration: none;
         display: flex; align-items: center; gap: 0.8rem; text-shadow: 0 0 8px var(--accent-secondary-glow);
         transition: gap var(--transition-medium) ease;
+        width: 100%; /* Ensure it takes full width for centering */
 }
-.sidebar-logo i { font-size: 1.8rem; color: var(--accent-secondary); }
-.sidebar-logo span { transition: opacity 0.2s ease 0.1s, max-width 0.3s ease; opacity: 1; max-width: 100px; overflow: hidden; white-space: nowrap; } /* Smooth fade for text */
+.sidebar-logo i { font-size: 1.8rem; color: var(--accent-secondary); flex-shrink: 0; /* Prevent icon shrinking */}
+.sidebar-logo span { transition: opacity 0.1s linear, max-width 0.2s linear 0.1s; opacity: 1; max-width: 150px; overflow: hidden; white-space: nowrap; display: inline-block; } /* Adjusted transition */
 .sidebar-menu { list-style: none; padding: 0; margin: 0; flex-grow: 1; overflow-y: auto; overflow-x: hidden; } /* Hide horizontal scroll */
 .sidebar-item { margin-bottom: 0.6rem; }
 .sidebar-link {
@@ -327,12 +332,13 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
     font-weight: 500; position: relative;
     border-left: 4px solid transparent;
     overflow: hidden; /* Prevent text wrapping */
+    white-space: nowrap; /* Keep icon and text on one line */
 }
 .sidebar-link i {
     margin-right: 0.85rem; font-size: 1.25rem; width: 25px; text-align: center;
     transition: color 0.25s ease, margin-right var(--transition-medium) ease; color: var(--text-muted); flex-shrink: 0; /* Prevent icon shrinking */
 }
-.sidebar-link span { transition: opacity 0.2s ease 0.1s, max-width 0.3s ease; opacity: 1; max-width: 150px; overflow: hidden; white-space: nowrap; } /* Smooth fade for text */
+.sidebar-link span { transition: opacity 0.1s linear, max-width 0.2s linear 0.1s; opacity: 1; max-width: 150px; overflow: hidden; white-space: nowrap; display: inline-block; vertical-align: middle;} /* Adjusted transition and alignment */
 .sidebar-link:hover {
     background-color: rgba(var(--accent-primary-rgb), 0.1); color: var(--text-light);
     box-shadow: inset 3px 0 8px -2px rgba(var(--accent-primary-rgb), 0.3);
@@ -350,6 +356,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
     background-color: rgba(var(--accent-secondary-rgb), 0.1); border-radius: 12px;
     border: 1px solid var(--border-color-light); flex-shrink: 0;
     transition: padding var(--transition-medium) ease; overflow: hidden;
+    white-space: nowrap; /* Prevent wrapping inside */
 }
 .user-avatar {
     width: 42px; height: 42px; border-radius: 50%;
@@ -358,10 +365,10 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
     font-weight: 600; font-size: 1.1rem; overflow: hidden; color: var(--white);
     border: 2px solid rgba(var(--accent-primary-rgb), 0.3); flex-shrink: 0;
     box-shadow: 0 0 8px rgba(var(--accent-secondary-rgb), 0.4);
-    transition: margin-right var(--transition-medium) ease;
+    transition: margin-right var(--transition-medium) ease, width var(--transition-medium) ease, height var(--transition-medium) ease;
 }
 .user-avatar img { width: 100%; height: 100%; object-fit: cover; }
-.user-info { flex-grow: 1; overflow: hidden; transition: opacity 0.2s ease, max-width 0.3s ease; opacity: 1; max-width: 150px; }
+.user-info { flex-grow: 1; overflow: hidden; transition: opacity 0.1s linear, max-width 0.2s linear 0.1s; opacity: 1; max-width: 150px; }
 .user-name { font-weight: 600; font-size: 1rem; color: var(--text-light); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .user-role { font-size: 0.8rem; color: var(--text-muted); white-space: nowrap; }
 .sidebar-footer {
@@ -383,35 +390,6 @@ main.loaded { display: block; animation: fadeInMain 0.5s ease-out forwards; }
 @keyframes fadeInMain { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
 
-/* Хедер дашборда (используется в профиле) */
-.dashboard-header {
-    margin-bottom: var(--section-padding-y);
-    background-color: rgba(var(--bg-secondary-rgb, 10, 7, 31), 0.7);
-    backdrop-filter: blur(12px); border-radius: 0 0 var(--card-radius) var(--card-radius);
-    padding: 1rem var(--container-padding-x); box-shadow: var(--shadow-hud);
-    display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;
-    position: sticky; top: 0; z-index: 900;
-    border-bottom: 1px solid var(--border-color-light);
-    transition: background-color 0.3s ease, box-shadow 0.3s ease;
-}
-body.scrolled .dashboard-header {
-        background-color: rgba(var(--bg-secondary-rgb, 10, 7, 31), 0.85);
-        box-shadow: 0 6px 20px rgba(0,0,0,0.3);
-}
-.header-content { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; width: 100%; }
-.header-left-group { display: flex; align-items: center; gap: 0.8rem; flex-grow: 1; } /* Style for the new wrapper */
-.mobile-menu-toggle {
-        display: none; background: none; border: none; color: var(--text-medium); font-size: 1.6rem; cursor: pointer; padding: 0.5rem; z-index: 1010; transition: color 0.2s ease;
-}
-.mobile-menu-toggle:hover { color: var(--accent-primary); }
-@media (max-width: 992px) { .mobile-menu-toggle#main-mobile-menu-toggle { display: block; } } /* Only show main mobile toggle */
-
-.header-content h1 {
-        font-size: 1.7rem; font-weight: 700; color: var(--text-heading); margin: 0;
-        text-shadow: 0 0 10px var(--accent-glow);
-}
-.header-actions { display: flex; align-items: center; gap: 1rem; }
-
 /* --- START: Collapsed Sidebar Styles --- */
 body.sidebar-collapsed .sidebar {
     width: var(--sidebar-collapsed-width);
@@ -422,14 +400,16 @@ body.sidebar-collapsed .user-info,
 body.sidebar-collapsed .sidebar-footer {
     opacity: 0;
     max-width: 0;
-    pointer-events: none; /* Prevent interaction with hidden elements */
+    overflow: hidden; /* Ensure content is clipped */
+    white-space: nowrap; /* Prevent wrapping during transition */
+    pointer-events: none; /* Prevent interaction */
 }
 body.sidebar-collapsed .sidebar-header {
-    padding: 0 0.5rem; /* Adjust padding if needed */
+    padding: 0 0.5rem;
     justify-content: center; /* Center logo icon */
 }
 body.sidebar-collapsed .sidebar-logo {
-    gap: 0; /* Remove gap */
+    gap: 0;
     justify-content: center;
 }
 body.sidebar-collapsed .sidebar-link {
@@ -466,14 +446,38 @@ body.sidebar-collapsed #sidebar-close-toggle {
      body.sidebar-collapsed .mobile-menu-toggle#main-mobile-menu-toggle {
          display: none;
      }
-     /* Ensure sidebar toggle is hidden when mobile menu is active (and vice versa) */
-      .sidebar.active ~ main .sidebar-toggle-btn {
-         /* Optional: hide desktop toggle if mobile menu is open */
-         /* display: none; */
-     }
 }
 /* --- END: Collapsed Sidebar Styles --- */
 
+
+/* Хедер дашборда (используется в профиле) */
+.dashboard-header {
+    margin-bottom: var(--section-padding-y);
+    background-color: rgba(var(--bg-secondary-rgb, 10, 7, 31), 0.7);
+    backdrop-filter: blur(12px); border-radius: 0 0 var(--card-radius) var(--card-radius);
+    padding: 1rem var(--container-padding-x); box-shadow: var(--shadow-hud);
+    display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;
+    position: sticky; top: 0; z-index: 900;
+    border-bottom: 1px solid var(--border-color-light);
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+body.scrolled .dashboard-header {
+        background-color: rgba(var(--bg-secondary-rgb, 10, 7, 31), 0.85);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+}
+.header-content { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; width: 100%; }
+.header-left-group { display: flex; align-items: center; gap: 0.8rem; flex-grow: 1; } /* Style for the new wrapper */
+.mobile-menu-toggle {
+        display: none; background: none; border: none; color: var(--text-medium); font-size: 1.6rem; cursor: pointer; padding: 0.5rem; z-index: 1010; transition: color 0.2s ease;
+}
+.mobile-menu-toggle:hover { color: var(--accent-primary); }
+@media (max-width: 992px) { .mobile-menu-toggle#main-mobile-menu-toggle { display: block; } } /* Only show main mobile toggle */
+
+.header-content h1 {
+        font-size: 1.7rem; font-weight: 700; color: var(--text-heading); margin: 0;
+        text-shadow: 0 0 10px var(--accent-glow);
+}
+.header-actions { display: flex; align-items: center; gap: 1rem; }
 
 /* --- START: Notification Styles --- */
 .notifications { position: relative; }
@@ -500,7 +504,6 @@ body.sidebar-collapsed #sidebar-close-toggle {
 .notification-item.is-read:hover { opacity: 0.8; }
 .notification-item.is-read .unread-dot { display: none; }
 .notification-icon { width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 1rem; color: var(--white); box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
-/* Specific Icon Styles */
 .notification-icon.info { background-color: var(--accent-primary); } .notification-icon.success { background-color: var(--accent-lime); color: var(--text-fixed-dark); } .notification-icon.warning { background-color: var(--accent-orange); } .notification-icon.danger { background-color: var(--accent-pink); } .notification-icon.badge { background: linear-gradient(45deg, var(--accent-orange), var(--accent-pink)); } .notification-icon.level_up { background: var(--gradient-level-up); } .notification-icon.plan_generated { background: linear-gradient(45deg, var(--accent-secondary), var(--accent-cyan)); } .notification-icon.exercise { background: linear-gradient(45deg, #2a9d8f, var(--accent-lime)); } .notification-icon.test { background: linear-gradient(45deg, var(--accent-secondary), var(--accent-pink)); } .notification-icon.default { background-color: var(--text-muted); }
 .notification-content { flex-grow: 1; }
 .notification-title { font-weight: 600; color: var(--text-light); margin-bottom: 0.25rem; font-size: 0.95rem; }
