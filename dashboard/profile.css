@@ -11,6 +11,8 @@
     --interface-bg: rgba(6, 4, 22, 0.92);
     --interface-border: rgba(0, 240, 255, 0.35);
     --dark-purple-accent: #160c41;
+    --dark-purple-accent-rgb: 22, 12, 65; /* Added RGB */
+
 
     /* Акценты */
     --accent-primary: #00e0ff; /* Циан - основной интерактивный */
@@ -44,7 +46,7 @@
     --text-link-hover: #ffffff;
     --text-fixed-dark: #03020c; /* Для текста на светлых/ярких фонах */
     --white: #ffffff;
-    --white-rgb: 255, 255, 255;
+    --white-rgb: 255, 255, 255; /* Added RGB */
     --black: #000000; /* Иногда нужен чистый черный */
 
     /* Границы */
@@ -69,7 +71,7 @@
     --gradient-level-up: linear-gradient(45deg, var(--accent-pink), var(--accent-secondary)); /* Для Level Up */
         --gradient-welcome: linear-gradient(135deg, rgba(var(--accent-primary-rgb), 0.2), rgba(var(--accent-secondary-rgb), 0.25)); /* Для Welcome Banner */
         --gradient-profile-avatar: linear-gradient(145deg, var(--accent-primary), var(--accent-secondary)); /* Gradient for profile avatar */
-        --gradient-xp-bar: linear-gradient(90deg, var(--accent-secondary) 0%, var(--accent-primary) 100%); /* Новый для XP бара */
+        --gradient-xp-bar: linear-gradient(90deg, var(--accent-secondary) 0%, var(--accent-primary) 100%); /* Новый для EXP бара */
 
 
     /* Шрифты */
@@ -403,6 +405,13 @@ body.scrolled .dashboard-header {
 /* --- END: Notification Styles --- */
 
 
+#logout-btn {
+    background: none; border: none; color: var(--text-medium);
+    cursor: pointer; font-size: 1.4rem;
+    padding: 0.6rem; display: flex; align-items: center; transition: color 0.2s ease;
+}
+#logout-btn:hover { color: var(--accent-pink); }
+
 /* --- Основной контент дашборда --- */
 .main-content-wrapper { padding: var(--section-padding-y) 0; }
 .main-content-grid { display: grid; gap: 2rem; }
@@ -479,70 +488,127 @@ body.scrolled .dashboard-header {
 .profile-name { font-size: 1.8rem; font-weight: 700; margin-bottom: 0.3rem; color: var(--text-heading); text-shadow: var(--shadow-text-glow); }
 .profile-email { font-size: 1rem; color: var(--text-muted); margin-bottom: 1.5rem; /* Reduced margin */ }
 
-/* --- START: New Level/XP Styles --- */
-.level-progress-container {
+/* --- START: New Level/XP Styles (v2) --- */
+.level-progress-block {
     width: 100%;
-    max-width: 450px; /* Limit width for better appearance */
-    margin: 1.5rem auto 2rem auto; /* Center and add vertical spacing */
-    padding: 1rem 1.5rem;
-    background-color: rgba(var(--card-solid-rgb), 0.5);
+    max-width: 480px; /* Slightly wider */
+    margin: 1.8rem auto 2.2rem auto; /* Adjusted spacing */
+    padding: 1.2rem 1.8rem; /* Adjusted padding */
+    background: linear-gradient(145deg, rgba(var(--dark-purple-accent-rgb), 0.4), rgba(var(--card-solid-rgb), 0.6)); /* Subtle gradient background */
     border-radius: var(--card-radius);
     border: 1px solid var(--border-color-light);
-    box-shadow: var(--shadow-hud);
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.4), 0 2px 8px rgba(0,0,0,0.3); /* Inner and outer shadow */
     display: flex;
     flex-direction: column;
     align-items: center;
 }
-.level-info {
+
+.level-display {
     display: flex;
-    align-items: baseline; /* Align text nicely */
-    gap: 0.75rem;
-    margin-bottom: 0.8rem;
+    align-items: baseline;
+    gap: 0.8rem;
+    margin-bottom: 1rem; /* More space before bar */
+    background: rgba(var(--bg-secondary-rgb), 0.3);
+    padding: 0.4rem 1.2rem;
+    border-radius: 20px;
+    border: 1px solid var(--border-color-medium);
 }
-.level-label {
+
+.level-label-text {
     font-size: 0.9rem;
     font-weight: 600;
     color: var(--accent-secondary);
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: 1.2px;
+    text-shadow: 0 0 5px var(--accent-secondary-glow);
 }
-.level-value {
-    font-size: 1.8rem;
+
+.level-value-main {
+    font-size: 2rem; /* Slightly larger level number */
     font-weight: 700;
+    font-family: var(--font-mono); /* Use mono for numbers */
     color: var(--white);
     line-height: 1;
-    text-shadow: 0 0 8px var(--accent-secondary-glow);
+    filter: drop-shadow(0 0 6px var(--accent-secondary-glow)); /* Drop shadow for effect */
 }
-.xp-progress-bar-container {
+
+.exp-bar-wrapper {
     width: 100%;
-    margin-top: 0.5rem;
 }
-.xp-progress-bar {
+
+.exp-bar-background {
     width: 100%;
-    height: 12px; /* Slightly thicker */
-    background-color: var(--dark-purple-accent); /* Darker background track */
-    border-radius: 6px;
+    height: 14px; /* Even thicker */
+    background-color: #08051a; /* Darker base */
+    border-radius: 7px;
     overflow: hidden;
-    border: 1px solid rgba(var(--border-color-light), 0.5);
-    box-shadow: inset 0 2px 4px rgba(0,0,0,0.4);
+    border: 1px solid rgba(var(--black), 0.5); /* Darker border */
+    box-shadow: inset 0 2px 5px rgba(0,0,0,0.6); /* Deeper inset shadow */
+    position: relative; /* For gloss */
 }
-.xp-progress-bar-fill {
+
+.exp-bar-fill {
     height: 100%;
     width: 0%; /* Controlled by JS */
-    background: var(--gradient-xp-bar); /* Use the new gradient */
-    border-radius: 6px;
-    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1); /* Smooth transition */
-    box-shadow: 0 0 12px var(--accent-glow); /* Add glow to the fill */
+    background: var(--gradient-xp-bar);
+    border-radius: 7px;
+    transition: width 0.7s cubic-bezier(0.25, 0.8, 0.25, 1); /* Smoother, slightly slower */
+    box-shadow: 0 0 15px var(--accent-glow), 0 0 8px var(--accent-secondary-glow); /* Dual glow */
+    position: relative;
+    overflow: hidden;
 }
-.xp-progress-text {
-    font-size: 0.85rem;
+/* Animated stripes effect on fill */
+.exp-bar-fill::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; bottom: 0; right: 0;
+    background-image: linear-gradient(
+        -45deg,
+        rgba(255, 255, 255, 0.12) 25%,
+        transparent 25%,
+        transparent 50%,
+        rgba(255, 255, 255, 0.12) 50%,
+        rgba(255, 255, 255, 0.12) 75%,
+        transparent 75%,
+        transparent
+    );
+    background-size: 30px 30px; /* Size of stripes */
+    z-index: 1;
+    animation: progress-stripes 1.5s linear infinite;
+}
+@keyframes progress-stripes {
+    0% { background-position: 0 0; }
+    100% { background-position: 30px 0; }
+}
+
+
+.exp-bar-gloss { /* Gloss effect */
+    content: '';
+    position: absolute;
+    top: 1px; /* Offset slightly */
+    left: 1px;
+    right: 1px;
+    height: 50%;
+    border-radius: 6px 6px 0 0;
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.05) 100%);
+    pointer-events: none;
+    z-index: 2;
+}
+
+.exp-text {
+    font-size: 0.9rem; /* Larger text */
     font-family: var(--font-mono);
-    color: var(--text-muted);
+    color: var(--text-medium); /* Brighter text */
     text-align: center;
-    margin-top: 0.6rem;
-    letter-spacing: 0.5px;
+    margin-top: 0.8rem; /* More space */
+    letter-spacing: 0.8px; /* Wider spacing */
+    text-shadow: 0 1px 2px rgba(0,0,0,0.6);
 }
-/* --- END: New Level/XP Styles --- */
+.exp-text span {
+    font-weight: 500; /* Slightly bolder numbers */
+    color: var(--text-light);
+}
+/* --- END: New Level/XP Styles (v2) --- */
 
 
 .profile-stats { display: flex; gap: clamp(1.5rem, 4vw, 2.5rem); flex-wrap: wrap; justify-content: center; margin-bottom: 3rem; }
@@ -562,7 +628,6 @@ body.scrolled .dashboard-header {
 
 .profile-tabs {
         display: flex; border-bottom: 1px solid var(--border-color-light); margin-bottom: 2.5rem; overflow-x: auto; padding-bottom: 1px;
-        /* Scrollbar for tabs */
         scrollbar-width: thin; scrollbar-color: rgba(var(--accent-primary-rgb), 0.5) transparent;
     }
     .profile-tabs::-webkit-scrollbar { height: 4px; }
@@ -903,6 +968,21 @@ input:checked + .slider:before { background-color: var(--white); transform: tran
     .card:hover, .shortcut-card:hover, .btn:hover, .btn-outline:hover, .welcome-button:hover, .refresh-btn:hover, .view-all-link:hover, .profile-avatar:hover, .modal-close:hover { transform: none !important; }
         .modal.active .modal-content { transform: translateY(0) scale(1) !important; transition: none !important;}
         .tab-content.active { animation: none !important; }
+        .exp-bar-fill::after { animation: none !important; } /* Disable stripe animation */
 }
 
 /* --- END: Киберпанк CSS Тема --- */
+
+/* Tooltipster Cyberpunk Theme */
+.tooltipster-shadow {
+    border-radius: 8px;
+    background: var(--interface-bg);
+    color: var(--text-light);
+    box-shadow: var(--shadow-card);
+    border: 1px solid var(--border-color-medium);
+}
+.tooltipster-shadow .tooltipster-content {
+    padding: 8px 14px;
+    font-size: 0.88rem;
+    font-family: var(--font-primary);
+}
