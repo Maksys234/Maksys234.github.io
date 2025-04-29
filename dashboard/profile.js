@@ -10,10 +10,11 @@
         profile: false, password: false, preferences: false,
         avatar: false, delete: false, notifications: false
     };
-    const BASE_XP = 100; // Базовое XP для формулы
-    const INCREMENT_XP = 25; // Прирост XP для формулы
+    // Leveling Formula Constants
+    const BASE_XP = 100;
+    const INCREMENT_XP = 25;
 
-    // DOM Elements Cache (Updated with new XP elements)
+    // DOM Elements Cache (Updated with EXP elements)
     const ui = {
         initialLoader: document.getElementById('initial-loader'),
         sidebarOverlay: document.getElementById('sidebar-overlay'),
@@ -29,17 +30,16 @@
         profileEmail: document.getElementById('profile-email'),
         profileAvatar: document.getElementById('profile-avatar'),
         // Profile Header Stats
-        profileLevel: document.getElementById('profile-level'), // Старый (в статс) - возможно, удалить или оставить для совместимости
-        profilePoints: document.getElementById('profile-points'),
+        profilePoints: document.getElementById('profile-points'), // Keep for currency display
         profileBadges: document.getElementById('profile-badges'),
         profileStreak: document.getElementById('profile-streak'),
-        // --- NEW Level/XP Elements ---
-        profileLevelMain: document.getElementById('profile-level-main'), // Новый главный дисплей уровня
-        xpProgressBarFill: document.getElementById('xp-progress-bar-fill'),
-        xpCurrentValue: document.getElementById('xp-current-value'),
-        xpRequiredValue: document.getElementById('xp-required-value'),
-        xpPercentage: document.getElementById('xp-percentage'),
-        // --- End NEW ---
+        // --- Level/EXP Elements ---
+        profileLevelMain: document.getElementById('profile-level-main'),
+        expProgressBarFill: document.getElementById('exp-progress-bar-fill'),
+        expCurrentValue: document.getElementById('exp-current-value'),
+        expRequiredValue: document.getElementById('exp-required-value'),
+        expPercentage: document.getElementById('exp-percentage'),
+        // --- End Level/EXP ---
         profileForm: document.getElementById('profile-form'),
         passwordForm: document.getElementById('password-form'),
         firstNameField: document.getElementById('first_name'),
@@ -163,11 +163,9 @@
              console.log(`[Modal] Opening modal: ${modalId}`); // Log opening
              m.style.display = 'flex';
              requestAnimationFrame(() => m.classList.add('active'));
-             // Populate built-in avatars only for avatar modal
              if (modalId === 'avatar-modal') {
                  console.log("[Modal] Populating built-in avatars..."); // Log population start
                  populateBuiltInAvatars();
-                 // Reset selection state
                  selectedBuiltInAvatarPath = null;
                  if (ui.avatarUploadInput) ui.avatarUploadInput.value = ''; // Clear file input
                  if (ui.saveAvatarBtn) ui.saveAvatarBtn.disabled = true; // Disable save initially
@@ -185,7 +183,6 @@
              setTimeout(() => {
                  m.style.display = 'none';
                  if (modalId === 'delete-account-modal' && ui.confirmDeletePasswordField) ui.confirmDeletePasswordField.value = '';
-                 // Clear avatar selections/preview when closing avatar modal
                  if (modalId === 'avatar-modal') {
                       selectedBuiltInAvatarPath = null;
                      if (ui.avatarUploadInput) ui.avatarUploadInput.value = '';
@@ -193,7 +190,7 @@
                      if(ui.builtinAvatarGrid) ui.builtinAvatarGrid.querySelectorAll('.selected').forEach(el => el.classList.remove('selected')); // Clear grid selection
                      if (ui.saveAvatarBtn) ui.saveAvatarBtn.disabled = true;
                  }
-             }, 400); // Match CSS transition duration
+             }, 400);
          } else {
               console.error(`[Modal] Modal element not found to hide: ${modalId}`);
          }
@@ -229,13 +226,10 @@
         if (button) {
             button.disabled = isLoadingFlag;
             const icon = button.querySelector('i');
-            const originalIconClass = button.dataset.originalIconClass || (icon ? icon.className.replace(' fa-spin', '') : null);
-            const originalText = button.dataset.originalText || button.textContent.trim();
-
-            if (isLoadingFlag) {
-                if (icon && !button.dataset.originalIconClass) { button.dataset.originalIconClass = icon.className; }
-                if (!button.dataset.originalText) { button.dataset.originalText = originalText; }
-            }
+            // Store original state only if it doesn't exist
+             if (isLoadingFlag && !button.dataset.originalContent) {
+                 button.dataset.originalContent = button.innerHTML;
+             }
 
             if (isLoadingFlag) {
                 const spinnerIcon = '<i class="fas fa-spinner fa-spin"></i>';
@@ -245,17 +239,13 @@
                 else if (section === 'avatar') button.innerHTML = `${spinnerIcon} Ukládám...`;
                 else if (section === 'delete') button.innerHTML = `${spinnerIcon} Mažu...`;
                 else if (section === 'notifications') button.textContent = 'MAŽU...';
-                else if(icon) { button.innerHTML = `${spinnerIcon} ${originalText}`; }
-                else { button.textContent = 'Načítám...'; }
+                else { button.innerHTML = `${spinnerIcon} Načítám...`; } // Generic loading
             } else {
-                if (icon && button.dataset.originalIconClass) {
-                    button.innerHTML = `<i class="${button.dataset.originalIconClass}"></i> ${button.dataset.originalText || originalText}`;
-                    delete button.dataset.originalIconClass;
-                    delete button.dataset.originalText;
-                } else if (button.dataset.originalText) {
-                    button.textContent = button.dataset.originalText;
-                    delete button.dataset.originalText;
-                }
+                 // Restore original state if it exists
+                 if (button.dataset.originalContent) {
+                     button.innerHTML = button.dataset.originalContent;
+                     delete button.dataset.originalContent; // Clean up dataset
+                 }
             }
         }
 
@@ -271,28 +261,30 @@
 
     // --- START: Leveling Logic ---
     /**
-     * Calculates the total XP threshold required to reach a specific target level.
-     * Uses the formula: XP for next level = 100 + (25 * (currentLevel - 1))
-     * @param {number} targetLevel The level to calculate the threshold for.
-     * @returns {number} The total accumulated XP needed to reach the beginning of targetLevel.
+     * Calculates the total XP threshold required to reach the beginning of a target level.
+     * Uses the formula: XP needed for the span between level L-1 and L is 100 + (25 * (L - 2)) for L>=2.
+     * @param {number} targetLevel The level for which to calculate the *starting* XP threshold.
+     * @returns {number} The total accumulated XP needed to reach the beginning of targetLevel. Returns 0 for level 1 or less.
      */
-    function getTotalXpThreshold(targetLevel) {
+    function getTotalExpThreshold(targetLevel) {
         if (targetLevel <= 1) {
             return 0;
         }
-        let totalXp = 0;
-        // Calculate XP needed for each level from 1 up to targetLevel - 1
+        let totalExp = 0;
+        // Loop from level 1 up to (targetLevel - 1) to sum the XP required for each level span
         for (let level = 1; level < targetLevel; level++) {
-            const xpNeededForThisLevelSpan = BASE_XP + (INCREMENT_XP * (level - 1));
-            totalXp += xpNeededForThisLevelSpan;
+            // XP needed to go from level 'level' to 'level + 1'
+            const expNeededForThisLevelSpan = BASE_XP + (INCREMENT_XP * (level - 1));
+            totalExp += expNeededForThisLevelSpan;
         }
-        return totalXp;
+        // console.log(`[getTotalExpThreshold] XP needed to reach level ${targetLevel}: ${totalExp}`);
+        return totalExp;
     }
     // --- END: Leveling Logic ---
 
     // --- START: Supabase Interaction Functions ---
     function initializeSupabase() { try { if (typeof window.supabase === 'undefined' || typeof window.supabase.createClient !== 'function') { throw new Error("Knihovna Supabase nebyla správně načtena."); } supabase = window.supabase.createClient(supabaseUrl, supabaseKey); if (!supabase) throw new Error("Vytvoření klienta Supabase selhalo."); console.log('[Supabase] Klient úspěšně inicializován.'); return true; } catch (error) { console.error('[Supabase] Inicializace selhala:', error); showError("Kritická chyba: Nepodařilo se připojit k databázi.", true); return false; } }
-    async function fetchUserProfile(userId) { if (!supabase || !userId) return null; console.log(`[Profile] Načítání profilu pro ID: ${userId}`); try { const { data: profile, error } = await supabase.from('profiles').select('*').eq('id', userId).single(); if (error && error.code !== 'PGRST116') throw error; if (!profile) { console.warn(`[Profile] Profil nenalezen pro ${userId}. Vytváření výchozího...`); const defaultProfileData = { id: userId, email: currentUser.email, username: currentUser.email.split('@')[0], level: 1, points: 0, badges_count: 0, streak_days: 0, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), preferences: { dark_mode: window.matchMedia('(prefers-color-scheme: dark)').matches, language: 'cs' }, notifications: { email: true, study_tips: true, content_updates: true, practice_reminders: true } }; const { data: newProfile, error: createError } = await supabase.from('profiles').insert([defaultProfileData]).select().single(); if (createError) throw createError; console.log("[Profile] Výchozí profil úspěšně vytvořen."); return newProfile; } console.log("[Profile] Profil úspěšně načten."); return profile; } catch (error) { console.error('[Profile] Chyba při načítání/vytváření profilu:', error); showToast('Chyba Profilu', 'Nepodařilo se načíst data profilu.', 'error'); return null; } }
+    async function fetchUserProfile(userId) { if (!supabase || !userId) return null; console.log(`[Profile] Načítání profilu pro ID: ${userId}`); try { const { data: profile, error } = await supabase.from('profiles').select('*').eq('id', userId).single(); if (error && error.code !== 'PGRST116') throw error; if (!profile) { console.warn(`[Profile] Profil nenalezen pro ${userId}. Vytváření výchozího...`); const defaultProfileData = { id: userId, email: currentUser.email, username: currentUser.email.split('@')[0], level: 1, points: 0, experience: 0, // Add default experience badges_count: 0, streak_days: 0, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), preferences: { dark_mode: window.matchMedia('(prefers-color-scheme: dark)').matches, language: 'cs' }, notifications: { email: true, study_tips: true, content_updates: true, practice_reminders: true } }; const { data: newProfile, error: createError } = await supabase.from('profiles').insert([defaultProfileData]).select().single(); if (createError) throw createError; console.log("[Profile] Výchozí profil úspěšně vytvořen."); return newProfile; } console.log("[Profile] Profil úspěšně načten."); return profile; } catch (error) { console.error('[Profile] Chyba při načítání/vytváření profilu:', error); showToast('Chyba Profilu', 'Nepodařilo se načíst data profilu.', 'error'); return null; } }
     async function updateProfileData(data) { if (!currentUser || !supabase) { showToast('Chyba', 'Nejste přihlášeni.', 'error'); return false; } console.log("[Profile Update] Aktualizace dat:", data); setLoadingState('profile', true); try { const { data: updatedProfile, error } = await supabase.from('profiles').update({ first_name: data.first_name, last_name: data.last_name, username: data.username, school: data.school, grade: data.grade, bio: data.bio, updated_at: new Date().toISOString() }).eq('id', currentUser.id).select().single(); if (error) throw error; currentProfile = updatedProfile; updateProfileDisplay(currentProfile); showToast('ÚSPĚCH', 'Profil byl úspěšně aktualizován.', 'success'); console.log("[Profile Update] Úspěšně aktualizováno."); return true; } catch (error) { console.error('[Profile Update] Chyba:', error); showToast('CHYBA', `Aktualizace profilu selhala: ${error.message}`, 'error'); return false; } finally { setLoadingState('profile', false); } }
     async function updateUserPassword(currentPassword, newPassword) { if (!currentUser || !supabase) { showToast('Chyba', 'Nejste přihlášeni.', 'error'); return false; } console.log("[Password Update] Pokus o změnu hesla."); setLoadingState('password', true); try { console.warn("Password Update: Client-side update doesn't verify current password securely."); const { error } = await supabase.auth.updateUser({ password: newPassword }); if (error) { let message = 'Změna hesla selhala.'; if (error.message.includes('requires recent login')) message = 'Vyžadováno nedávné přihlášení. Přihlaste se znovu.'; else if (error.message.includes('weak_password')) message = 'Heslo je příliš slabé.'; else if (error.message.includes('same password')) message = 'Nové heslo musí být jiné než současné.'; showToast('CHYBA HESLA', message, 'error'); console.error('[Password Update] Chyba Supabase:', error); if (message.includes('jiné')) { showFieldError('new_password', message); } else { showFieldError('current_password', 'Ověření selhalo nebo je vyžadováno nové přihlášení.'); } return false; } ui.passwordForm.reset(); clearAllErrors('password-form'); showToast('ÚSPĚCH', 'Heslo bylo úspěšně změněno.', 'success'); console.log("[Password Update] Heslo úspěšně změněno."); return true; } catch (error) { console.error('[Password Update] Neočekávaná chyba:', error); showToast('CHYBA', 'Došlo k neočekávané chybě při změně hesla.', 'error'); return false; } finally { setLoadingState('password', false); } }
     async function updatePreferencesData() { if (!currentUser || !supabase) { showToast('Chyba', 'Nejste přihlášeni.', 'error'); return false; } console.log("[Preferences Update] Aktualizace nastavení."); setLoadingState('preferences', true); try { const preferences = { dark_mode: ui.darkModeToggle.checked, language: ui.languageSelect.value, }; const notifications = { email: ui.emailNotificationsToggle.checked, study_tips: ui.studyTipsToggle.checked, content_updates: ui.contentUpdatesToggle.checked, practice_reminders: ui.practiceRemindersToggle.checked }; const { data: updatedProfile, error } = await supabase.from('profiles').update({ preferences: preferences, notifications: notifications, updated_at: new Date().toISOString() }).eq('id', currentUser.id).select().single(); if (error) throw error; currentProfile = updatedProfile; applyPreferences(currentProfile.preferences); showToast('ÚSPĚCH', 'Nastavení byla uložena.', 'success'); console.log("[Preferences Update] Nastavení uložena."); return true; } catch (error) { console.error('[Preferences Update] Chyba:', error); showToast('CHYBA', 'Uložení nastavení selhalo.', 'error'); return false; } finally { setLoadingState('preferences', false); } }
@@ -311,77 +303,122 @@
 
     // --- START: UI Update Functions ---
     function updateProfileDisplay(profileData) {
-        if (!profileData) { console.warn("updateProfileDisplay: Chybí data profilu."); return; }
-        console.log("[UI Update] Aktualizace zobrazení profilu...");
+        if (!profileData) { console.warn("updateProfileDisplay: Missing profile data."); return; }
+        console.log("[UI Update] Updating profile display...");
+
+        // --- Sidebar Update ---
         const sidebarDisplayName = `${profileData.first_name || ''} ${profileData.last_name || ''}`.trim() || profileData.username || currentUser?.email?.split('@')[0] || 'Pilot';
         if (ui.sidebarName) ui.sidebarName.textContent = sanitizeHTML(sidebarDisplayName);
         if (ui.sidebarAvatar) {
             const initials = getInitials(profileData);
             const avatarUrl = profileData.avatar_url;
-            const finalUrl = avatarUrl && !avatarUrl.startsWith('assets/') ? `${avatarUrl}?t=${new Date().getTime()}` : avatarUrl;
-            ui.sidebarAvatar.innerHTML = finalUrl ? `<img src="${sanitizeHTML(finalUrl)}" alt="${sanitizeHTML(initials)}">` : sanitizeHTML(initials);
+             // IMPORTANT: Handle relative vs absolute paths
+            let finalSidebarUrl = avatarUrl;
+            if (avatarUrl && !avatarUrl.startsWith('http') && avatarUrl.includes('/')) { // Likely a relative path to our assets
+                finalSidebarUrl = sanitizeHTML(avatarUrl);
+            } else if (avatarUrl) { // Likely an external URL from storage
+                finalSidebarUrl = `${sanitizeHTML(avatarUrl)}?t=${new Date().getTime()}`; // Cache bust
+            }
+             ui.sidebarAvatar.innerHTML = finalSidebarUrl ? `<img src="${finalSidebarUrl}" alt="${sanitizeHTML(initials)}">` : sanitizeHTML(initials);
+             // Add error handler for sidebar avatar image
+             const sidebarImg = ui.sidebarAvatar.querySelector('img');
+             if (sidebarImg) {
+                 sidebarImg.onerror = function() {
+                     console.error(`[UI Update] Failed to load sidebar avatar: ${this.src}`);
+                     ui.sidebarAvatar.innerHTML = sanitizeHTML(initials); // Fallback
+                 };
+             }
         }
+
+        // --- Main Profile Section Update ---
         const profileDisplayName = `${profileData.first_name || ''} ${profileData.last_name || ''}`.trim() || profileData.username || 'Uživatel';
         if (ui.profileName) ui.profileName.textContent = sanitizeHTML(profileDisplayName);
         if (ui.profileEmail) ui.profileEmail.textContent = sanitizeHTML(profileData.email);
         if (ui.profileAvatar) {
             const initials = getInitials(profileData);
             const avatarUrl = profileData.avatar_url;
-            const finalUrl = avatarUrl && !avatarUrl.startsWith('assets/') ? `${avatarUrl}?t=${new Date().getTime()}` : avatarUrl;
+             let finalProfileUrl = avatarUrl;
+            if (avatarUrl && !avatarUrl.startsWith('http') && avatarUrl.includes('/')) {
+                finalProfileUrl = sanitizeHTML(avatarUrl);
+            } else if (avatarUrl) {
+                finalProfileUrl = `${sanitizeHTML(avatarUrl)}?t=${new Date().getTime()}`;
+            }
             const overlayHTML = ui.profileAvatar.querySelector('.edit-avatar-overlay')?.outerHTML || `<div class="edit-avatar-overlay" id="edit-avatar-btn"><i class="fas fa-camera-retro"></i><span>Změnit</span></div>`;
-            ui.profileAvatar.innerHTML = finalUrl ? `<img src="${sanitizeHTML(finalUrl)}" alt="Avatar">` : `<span>${sanitizeHTML(initials)}</span>`;
+            ui.profileAvatar.innerHTML = finalProfileUrl ? `<img src="${finalProfileUrl}" alt="Avatar">` : `<span>${sanitizeHTML(initials)}</span>`;
             ui.profileAvatar.innerHTML += overlayHTML;
             const editBtn = ui.profileAvatar.querySelector('#edit-avatar-btn');
             if (editBtn) editBtn.addEventListener('click', () => showModal('avatar-modal'));
+             // Add error handler for main profile avatar image
+             const profileImg = ui.profileAvatar.querySelector('img');
+             if (profileImg) {
+                 profileImg.onerror = function() {
+                     console.error(`[UI Update] Failed to load main profile avatar: ${this.src}`);
+                     // Re-add overlay if it got removed
+                     const currentOverlay = ui.profileAvatar.querySelector('.edit-avatar-overlay');
+                     ui.profileAvatar.innerHTML = `<span>${sanitizeHTML(initials)}</span>` + (currentOverlay ? currentOverlay.outerHTML : overlayHTML);
+                     // Re-attach listener
+                      const newEditBtn = ui.profileAvatar.querySelector('#edit-avatar-btn');
+                      if (newEditBtn) newEditBtn.addEventListener('click', () => showModal('avatar-modal'));
+                 };
+             }
         }
 
-        updateAvatarPreviewFromProfile();
+        updateAvatarPreviewFromProfile(); // Update preview in modal too
 
         // Update basic stats
         if (ui.profilePoints) ui.profilePoints.textContent = profileData.points ?? 0;
         if (ui.profileBadges) ui.profileBadges.textContent = profileData.badges_count ?? 0;
         if (ui.profileStreak) ui.profileStreak.textContent = profileData.streak_days ?? 0;
 
-        // --- START: XP Progress Update ---
+        // --- Level and Experience Update ---
         const currentLevel = profileData.level ?? 1;
-        const currentPoints = profileData.points ?? 0;
+        const currentExperience = profileData.experience ?? 0; // Use experience column now
 
-        const currentLevelXpThreshold = getTotalXpThreshold(currentLevel);
-        const nextLevelXpThreshold = getTotalXpThreshold(currentLevel + 1);
-        const xpForLevelSpan = nextLevelXpThreshold - currentLevelXpThreshold; // XP needed to get from current to next
-        const currentPointsInLevel = Math.max(0, currentPoints - currentLevelXpThreshold); // XP earned within this level span
+        const currentLevelExpThreshold = getTotalExpThreshold(currentLevel);
+        const nextLevelExpThreshold = getTotalExpThreshold(currentLevel + 1);
+        // Calculate XP needed within the current level span
+        const expNeededForLevelSpan = nextLevelExpThreshold - currentLevelExpThreshold;
+        // Calculate XP earned since the last level up
+        const currentExpInLevel = Math.max(0, currentExperience - currentLevelExpThreshold);
 
         let percentage = 0;
-        if (xpForLevelSpan > 0) {
-            percentage = Math.min(100, Math.max(0, Math.round((currentPointsInLevel / xpForLevelSpan) * 100)));
+        if (expNeededForLevelSpan > 0) {
+            percentage = Math.min(100, Math.max(0, Math.round((currentExpInLevel / expNeededForLevelSpan) * 100)));
         } else {
-            // Handle edge case (e.g., max level or formula issue)
-            percentage = (currentPoints >= currentLevelXpThreshold) ? 100 : 0; // If they met threshold, show 100%
-            console.warn(`XP span for level ${currentLevel} is zero or negative. Next threshold: ${nextLevelXpThreshold}, Current threshold: ${currentLevelXpThreshold}`);
+            // Handle max level or formula issue (e.g., level 1 needing 0)
+            percentage = (currentExperience >= currentLevelExpThreshold) ? 100 : 0;
+            // If span is 0, it usually means it's the max level or level 1 calculation
+             if (currentLevel > 1) {
+                console.warn(`Experience span for level ${currentLevel} is zero or negative. Exp needed for span: ${expNeededForLevelSpan}.`);
+             }
         }
 
-        console.log(`[XP Update] Level: ${currentLevel}, Points: ${currentPoints}`);
-        console.log(`[XP Update] Current Threshold: ${currentLevelXpThreshold}, Next Threshold: ${nextLevelXpThreshold}`);
-        console.log(`[XP Update] XP in Level: ${currentPointsInLevel}, XP Span: ${xpForLevelSpan}, Percentage: ${percentage}%`);
+        console.log(`[EXP Update] Level: ${currentLevel}, Experience: ${currentExperience}`);
+        console.log(`[EXP Update] Current Threshold: ${currentLevelExpThreshold}, Next Threshold: ${nextLevelExpThreshold}`);
+        console.log(`[EXP Update] EXP in Level: ${currentExpInLevel}, EXP Span: ${expNeededForLevelSpan}, Percentage: ${percentage}%`);
 
-        // Update UI elements
+        // Update UI elements (ensure elements exist before updating)
         if (ui.profileLevelMain) {
             ui.profileLevelMain.textContent = currentLevel;
-        }
-        if (ui.xpProgressBarFill) {
-            ui.xpProgressBarFill.style.width = `${percentage}%`;
-        }
-        if (ui.xpCurrentValue) {
-            ui.xpCurrentValue.textContent = currentPointsInLevel;
-        }
-        if (ui.xpRequiredValue) {
-             // Display infinity symbol if span is 0 (max level?)
-            ui.xpRequiredValue.textContent = xpForLevelSpan > 0 ? xpForLevelSpan : '∞';
-        }
-        if (ui.xpPercentage) {
-            ui.xpPercentage.textContent = percentage;
-        }
-        // --- END: XP Progress Update ---
+        } else { console.warn("Element profile-level-main not found"); }
+
+        if (ui.expProgressBarFill) {
+            ui.expProgressBarFill.style.width = `${percentage}%`;
+        } else { console.warn("Element exp-progress-bar-fill not found"); }
+
+        if (ui.expCurrentValue) {
+            ui.expCurrentValue.textContent = currentExpInLevel;
+        } else { console.warn("Element exp-current-value not found"); }
+
+        if (ui.expRequiredValue) {
+            // Display infinity symbol if span is zero or negative (likely max level)
+            ui.expRequiredValue.textContent = expNeededForLevelSpan > 0 ? expNeededForLevelSpan : '∞';
+        } else { console.warn("Element exp-required-value not found"); }
+
+        if (ui.expPercentage) {
+            ui.expPercentage.textContent = percentage;
+        } else { console.warn("Element exp-percentage not found"); }
+        // --- End Level and Experience Update ---
 
 
         // Update form fields
@@ -403,7 +440,7 @@
             if (ui.contentUpdatesToggle) ui.contentUpdatesToggle.checked = profileData.notifications.content_updates ?? true;
             if (ui.practiceRemindersToggle) ui.practiceRemindersToggle.checked = profileData.notifications.practice_reminders ?? true;
         }
-        console.log("[UI Update] Zobrazení profilu dokončeno.");
+        console.log("[UI Update] Profile display update complete.");
     }
     function updateAvatarPreviewFromProfile() {
         if (!ui.avatarPreview || !currentProfile) {
@@ -413,7 +450,7 @@
         const initials = getInitials(currentProfile);
         const avatarUrl = currentProfile.avatar_url;
         let finalUrl = avatarUrl;
-        if (avatarUrl && !avatarUrl.startsWith('http') && !avatarUrl.startsWith('//') && avatarUrl.includes('/')) {
+        if (avatarUrl && !avatarUrl.startsWith('http') && avatarUrl.includes('/')) {
              finalUrl = sanitizeHTML(avatarUrl);
         } else if (avatarUrl) {
              finalUrl = `${sanitizeHTML(avatarUrl)}?t=${new Date().getTime()}`;
@@ -439,9 +476,7 @@
         const fragment = document.createDocumentFragment();
         console.log("[Avatars] Populating built-in avatars...");
         for (let i = 1; i <= 9; i++) {
-             // *** IMPORTANT: Adjust path if necessary ***
-             // Assumes 'assets' is in the SAME directory as profile.html
-            const avatarPath = `assets/avatar${i}.jpeg`;
+             const avatarPath = `assets/avatar${i}.jpeg`;
             const item = document.createElement('div');
             item.className = 'builtin-avatar-item';
             item.dataset.path = avatarPath;
@@ -481,7 +516,7 @@
         try {
             currentProfile = await fetchUserProfile(currentUser.id);
             if (!currentProfile) { throw new Error("Nepodařilo se načíst nebo vytvořit profil."); }
-            updateProfileDisplay(currentProfile); // Now updates level and XP bar too
+            updateProfileDisplay(currentProfile);
 
             try {
                 console.log("[Notifications] Fetching notifications...");
