@@ -91,6 +91,7 @@
 
     /* Размеры и переходы */
     --sidebar-width: 260px; /* Оставляем переменную */
+    --sidebar-collapsed-width: 80px; /* Новая переменная для свернутого сайдбара */
     --card-radius: 14px;
     --button-radius: 10px;
     --form-element-radius: 8px;
@@ -225,6 +226,47 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
     .btn-secondary:hover:not(:disabled) { background: rgba(var(--accent-secondary-rgb), 0.1); border-color: var(--accent-secondary); color: var(--accent-secondary); box-shadow: 0 0 10px rgba(var(--accent-secondary-rgb), 0.2); transform: translateY(-2px); }
     .btn-secondary:active:not(:disabled) { transform: translateY(0px) scale(0.97); background: rgba(var(--accent-secondary-rgb), 0.15); }
 
+/* --- START: Sidebar Toggle Styles --- */
+.btn-icon-only { /* Style for icon-only buttons like the toggle */
+    padding: 0.5rem; /* Reduced padding */
+    width: 40px; /* Fixed width */
+    height: 40px; /* Fixed height */
+    border-radius: 50%; /* Make it circular */
+    border-color: var(--border-color-medium);
+    color: var(--text-muted);
+    background-color: rgba(var(--accent-secondary-rgb), 0.1);
+    box-shadow: none;
+    line-height: 1;
+}
+.btn-icon-only i {
+    margin-right: 0; /* No margin for icon-only */
+    font-size: 1.1rem;
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); /* Smooth rotate */
+}
+.btn-icon-only:hover:not(:disabled) {
+    background-color: rgba(var(--accent-primary-rgb), 0.15);
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+    box-shadow: 0 0 12px var(--accent-glow);
+    transform: translateY(-2px) scale(1.05); /* Slight lift */
+}
+.btn-icon-only:active:not(:disabled) {
+    transform: translateY(0) scale(0.95);
+    box-shadow: inset 0 0 8px rgba(0,0,0,0.3);
+}
+/* Specific toggle button placement */
+.sidebar-toggle-btn {
+     margin-right: 0.8rem; /* Space between toggle and title/mobile btn */
+     display: none; /* Hide by default, show on larger screens */
+}
+@media (min-width: 993px) {
+     .sidebar-toggle-btn {
+         display: inline-flex; /* Show on desktop */
+     }
+}
+/* --- END: Sidebar Toggle Styles --- */
+
+
 /* Карточки (базовый стиль) */
 .card {
     background: var(--card-bg); border-radius: var(--card-radius);
@@ -260,9 +302,9 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
     padding: 1.5rem 1rem; display: flex; flex-direction: column; z-index: 1000;
     box-shadow: 5px 0 30px rgba(0, 0, 0, 0.4);
     border-right: 1px solid var(--border-color-light);
-    transition: transform var(--transition-medium) ease, width var(--transition-medium) ease;
+    transition: width var(--transition-medium) cubic-bezier(0.4, 0, 0.2, 1); /* Apply transition to width */
 }
-.sidebar-header { display: flex; align-items: center; margin-bottom: 2.5rem; padding: 0 0.5rem; position: relative; min-height: 45px; }
+.sidebar-header { display: flex; align-items: center; margin-bottom: 2.5rem; padding: 0 0.5rem; position: relative; min-height: 45px; transition: padding var(--transition-medium) ease; }
 #sidebar-close-toggle {
         display: none; position: absolute; right: 0px; top: 50%; transform: translateY(-50%);
         background: none; border: none; color: var(--text-muted); font-size: 1.8rem; cursor: pointer;
@@ -272,10 +314,11 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .sidebar-logo {
         font-size: 1.7rem; font-weight: 700; color: var(--text-heading); text-decoration: none;
         display: flex; align-items: center; gap: 0.8rem; text-shadow: 0 0 8px var(--accent-secondary-glow);
+        transition: gap var(--transition-medium) ease;
 }
 .sidebar-logo i { font-size: 1.8rem; color: var(--accent-secondary); }
-.sidebar-logo span { transition: opacity 0.2s ease; }
-.sidebar-menu { list-style: none; padding: 0; margin: 0; flex-grow: 1; overflow-y: auto; }
+.sidebar-logo span { transition: opacity 0.2s ease 0.1s, max-width 0.3s ease; opacity: 1; max-width: 100px; overflow: hidden; white-space: nowrap; } /* Smooth fade for text */
+.sidebar-menu { list-style: none; padding: 0; margin: 0; flex-grow: 1; overflow-y: auto; overflow-x: hidden; } /* Hide horizontal scroll */
 .sidebar-item { margin-bottom: 0.6rem; }
 .sidebar-link {
     display: flex; align-items: center; padding: 0.85rem 1rem;
@@ -283,12 +326,13 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
     transition: background-color 0.25s ease, color 0.25s ease, box-shadow 0.25s ease, border-left-color 0.25s ease;
     font-weight: 500; position: relative;
     border-left: 4px solid transparent;
+    overflow: hidden; /* Prevent text wrapping */
 }
 .sidebar-link i {
     margin-right: 0.85rem; font-size: 1.25rem; width: 25px; text-align: center;
-    transition: color 0.25s ease; color: var(--text-muted);
+    transition: color 0.25s ease, margin-right var(--transition-medium) ease; color: var(--text-muted); flex-shrink: 0; /* Prevent icon shrinking */
 }
-.sidebar-link span { transition: opacity 0.2s ease; }
+.sidebar-link span { transition: opacity 0.2s ease 0.1s, max-width 0.3s ease; opacity: 1; max-width: 150px; overflow: hidden; white-space: nowrap; } /* Smooth fade for text */
 .sidebar-link:hover {
     background-color: rgba(var(--accent-primary-rgb), 0.1); color: var(--text-light);
     box-shadow: inset 3px 0 8px -2px rgba(var(--accent-primary-rgb), 0.3);
@@ -305,6 +349,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
     display: flex; align-items: center; padding: 1rem; margin-top: 1.5rem;
     background-color: rgba(var(--accent-secondary-rgb), 0.1); border-radius: 12px;
     border: 1px solid var(--border-color-light); flex-shrink: 0;
+    transition: padding var(--transition-medium) ease; overflow: hidden;
 }
 .user-avatar {
     width: 42px; height: 42px; border-radius: 50%;
@@ -313,28 +358,28 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
     font-weight: 600; font-size: 1.1rem; overflow: hidden; color: var(--white);
     border: 2px solid rgba(var(--accent-primary-rgb), 0.3); flex-shrink: 0;
     box-shadow: 0 0 8px rgba(var(--accent-secondary-rgb), 0.4);
+    transition: margin-right var(--transition-medium) ease;
 }
 .user-avatar img { width: 100%; height: 100%; object-fit: cover; }
-.user-info { flex-grow: 1; overflow: hidden; }
+.user-info { flex-grow: 1; overflow: hidden; transition: opacity 0.2s ease, max-width 0.3s ease; opacity: 1; max-width: 150px; }
 .user-name { font-weight: 600; font-size: 1rem; color: var(--text-light); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .user-role { font-size: 0.8rem; color: var(--text-muted); white-space: nowrap; }
 .sidebar-footer {
     margin-top: 1.5rem; padding: 1rem; font-size: 0.8rem; color: var(--text-muted);
     text-align: center; flex-shrink: 0; opacity: 0.7;
+    transition: opacity 0.2s ease;
 }
 /* --- Конец Sidebar --- */
 
 /* --- Основной контент --- */
 main {
-    flex: 1; margin-left: var(--sidebar-width); padding: 0 var(--container-padding-x);
-    transition: margin-left var(--transition-medium) ease;
+    flex: 1; margin-left: var(--sidebar-width);
+    transition: margin-left var(--transition-medium) cubic-bezier(0.4, 0, 0.2, 1), width var(--transition-medium) cubic-bezier(0.4, 0, 0.2, 1); /* Apply transition */
     width: calc(100% - var(--sidebar-width)); overflow-y: auto; height: 100vh;
     display: none; /* Initially hidden by default */
+    padding: 0 var(--container-padding-x); /* Add padding back */
 }
-main.loaded {
-    display: block;
-    animation: fadeInMain 0.5s ease-out forwards;
-}
+main.loaded { display: block; animation: fadeInMain 0.5s ease-out forwards; }
 @keyframes fadeInMain { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
 
@@ -354,18 +399,81 @@ body.scrolled .dashboard-header {
         box-shadow: 0 6px 20px rgba(0,0,0,0.3);
 }
 .header-content { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; width: 100%; }
-.header-content > div:first-child { display: flex; align-items: center; gap: 1rem; flex-grow: 1; }
+.header-left-group { display: flex; align-items: center; gap: 0.8rem; flex-grow: 1; } /* Style for the new wrapper */
 .mobile-menu-toggle {
-        display: none; background: none; border: none; color: var(--text-medium); font-size: 1.6rem; cursor: pointer; padding: 0.5rem; margin-right: 0.5rem; z-index: 1010; transition: color 0.2s ease;
+        display: none; background: none; border: none; color: var(--text-medium); font-size: 1.6rem; cursor: pointer; padding: 0.5rem; z-index: 1010; transition: color 0.2s ease;
 }
 .mobile-menu-toggle:hover { color: var(--accent-primary); }
-@media (max-width: 992px) { .mobile-menu-toggle { display: block; } }
+@media (max-width: 992px) { .mobile-menu-toggle#main-mobile-menu-toggle { display: block; } } /* Only show main mobile toggle */
 
 .header-content h1 {
         font-size: 1.7rem; font-weight: 700; color: var(--text-heading); margin: 0;
         text-shadow: 0 0 10px var(--accent-glow);
 }
 .header-actions { display: flex; align-items: center; gap: 1rem; }
+
+/* --- START: Collapsed Sidebar Styles --- */
+body.sidebar-collapsed .sidebar {
+    width: var(--sidebar-collapsed-width);
+}
+body.sidebar-collapsed .sidebar-logo span,
+body.sidebar-collapsed .sidebar-link span,
+body.sidebar-collapsed .user-info,
+body.sidebar-collapsed .sidebar-footer {
+    opacity: 0;
+    max-width: 0;
+    pointer-events: none; /* Prevent interaction with hidden elements */
+}
+body.sidebar-collapsed .sidebar-header {
+    padding: 0 0.5rem; /* Adjust padding if needed */
+    justify-content: center; /* Center logo icon */
+}
+body.sidebar-collapsed .sidebar-logo {
+    gap: 0; /* Remove gap */
+    justify-content: center;
+}
+body.sidebar-collapsed .sidebar-link {
+    justify-content: center; /* Center icon */
+    padding: 0.85rem 0.5rem; /* Adjust padding */
+}
+body.sidebar-collapsed .sidebar-link i {
+    margin-right: 0; /* Remove margin */
+    font-size: 1.4rem; /* Slightly larger icon */
+}
+body.sidebar-collapsed .user-profile {
+    padding: 0.8rem 0.5rem; /* Adjust padding */
+    justify-content: center;
+}
+body.sidebar-collapsed .user-avatar {
+    margin-right: 0; /* Remove margin */
+    width: 40px; /* Slightly smaller avatar */
+    height: 40px;
+    font-size: 1rem;
+}
+body.sidebar-collapsed main#main-content {
+    margin-left: var(--sidebar-collapsed-width);
+    width: calc(100% - var(--sidebar-collapsed-width));
+}
+body.sidebar-collapsed .sidebar-toggle-btn i {
+    transform: rotate(180deg); /* Rotate arrow */
+}
+/* Hide mobile-specific close button when collapsed on desktop */
+body.sidebar-collapsed #sidebar-close-toggle {
+     display: none;
+}
+/* Hide the main mobile menu toggle when sidebar is collapsed on desktop */
+@media (min-width: 993px) {
+     body.sidebar-collapsed .mobile-menu-toggle#main-mobile-menu-toggle {
+         display: none;
+     }
+     /* Ensure sidebar toggle is hidden when mobile menu is active (and vice versa) */
+      .sidebar.active ~ main .sidebar-toggle-btn {
+         /* Optional: hide desktop toggle if mobile menu is open */
+         /* display: none; */
+     }
+}
+/* --- END: Collapsed Sidebar Styles --- */
+
 
 /* --- START: Notification Styles --- */
 .notifications { position: relative; }
@@ -493,7 +601,7 @@ body.scrolled .dashboard-header {
 .level-xp-widget {
     width: 100%;
     max-width: 450px; /* Or adjust as needed */
-    margin: 1.5rem auto 2.5rem auto;
+    margin: 1.5rem auto 2.5rem auto; /* Center and provide spacing */
     padding: 1rem 1.2rem;
     background: rgba(var(--card-solid-rgb), 0.6);
     border-radius: var(--button-radius); /* Slightly smaller radius */
@@ -556,6 +664,8 @@ body.scrolled .dashboard-header {
     color: var(--accent-primary); /* Bright cyan level */
     line-height: 1;
     text-shadow: 0 0 12px var(--accent-glow), 0 0 5px var(--white-rgb); /* Stronger glow */
+    margin-left: auto; /* Push to the right */
+    padding-left: 1rem;
 }
 
 .exp-bar-area {
@@ -569,11 +679,11 @@ body.scrolled .dashboard-header {
     border-radius: 9px;
     overflow: hidden;
     border: 1px solid rgba(0,0,0, 0.7);
-    box-shadow: inset 0 3px 6px rgba(0,0,0,0.7);
+    box-shadow: inset 0 3px 6px rgba(0,0,0,0.5);
     position: relative;
 }
 
-.exp-bar-progress {
+.exp-bar-progress { /* The fill element */
     height: 100%;
     width: 0%;
     background: var(--gradient-exp-bar-alt); /* Use alternative vibrant gradient */
@@ -584,7 +694,7 @@ body.scrolled .dashboard-header {
     overflow: hidden;
 }
 
-/* Removed animated stripes, replaced with shimmer */
+/* Shimmer effect on fill */
 .exp-bar-progress::after {
     content: '';
     position: absolute;
@@ -616,20 +726,35 @@ body.scrolled .dashboard-header {
     z-index: 2;
 }
 
-/* Removed scanline effect from track */
-/* .exp-bar-track::after { display: none; } */
+/* Optional: Animated scanline on the track */
+.exp-bar-track::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%; /* Start off-screen */
+    width: 50%; /* Width of the scanline */
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(var(--accent-primary-rgb), 0.1), transparent); /* Subtle scanline */
+    border-radius: 9px;
+    animation: scanline 3s linear infinite 0.5s; /* Delay start */
+    z-index: 0;
+}
+@keyframes scanline {
+    0% { left: -50%; }
+    100% { left: 150%; }
+}
 
 .xp-info-text {
     font-size: 0.9rem;
-    font-family: var(--font-mono);
-    color: var(--text-medium);
+    font-family: var(--font-mono); /* Use mono for numbers */
+    color: var(--text-medium); /* Brighter text */
     text-align: right; /* Align text to the right */
     margin-top: 0.75rem;
-    letter-spacing: 0.5px;
+    letter-spacing: 1px; /* Wider spacing */
     text-shadow: 0 1px 1px var(--bg-color);
 }
 .xp-info-text span {
-    font-weight: 600;
+    font-weight: 600; /* Bolder numbers */
     color: var(--text-light);
     background: rgba(var(--bg-secondary-rgb), 0.3); /* Subtle background for numbers */
     padding: 0.1em 0.3em;
@@ -933,6 +1058,8 @@ input:checked + .slider:before { background-color: var(--white); transform: tran
     .user-profile { justify-content: center; padding: 0.8rem; }
     .user-avatar { margin-right: 0; width: 45px; height: 45px; }
     .mobile-menu-toggle#main-mobile-menu-toggle { display: block; }
+    /* Keep sidebar toggle visible on tablet */
+    .sidebar-toggle-btn { display: inline-flex; }
 }
 @media (max-width: 768px) { /* Мобильный */
         main { padding: 0 1rem; }
@@ -954,6 +1081,7 @@ input:checked + .slider:before { background-color: var(--white); transform: tran
         .level-xp-value { font-size: 1.8rem; }
         .xp-info-text { font-size: 0.8rem;}
         .exp-bar-track { height: 16px; } /* Thinner bar for smaller screens */
+        .header-left-group { justify-content: flex-start; } /* Adjust group on mobile */
 }
 @media (max-width: 576px) { /* Маленький мобильный */
     :root { --sidebar-width: 0; }
@@ -983,6 +1111,8 @@ input:checked + .slider:before { background-color: var(--white); transform: tran
      .level-xp-value { font-size: 1.6rem; }
      .exp-bar-track { height: 14px; }
      .xp-info-text { font-size: 0.75rem; }
+    /* Hide desktop sidebar toggle on small mobile */
+    .sidebar-toggle-btn { display: none; }
 }
 
     /* Оверлей для мобильного меню */
@@ -1003,16 +1133,18 @@ input:checked + .slider:before { background-color: var(--white); transform: tran
         transition-duration: 0.01ms !important; animation-delay: -0.01ms !important;
         transition-delay: 0ms !important; will-change: auto !important;
     }
-    .sidebar { transition: transform 0.01ms !important; }
+    .sidebar { transition: transform 0.01ms !important, width 0.01ms !important; } /* Added width */
+    main { transition: margin-left 0.01ms !important, width 0.01ms !important; } /* Added width */
     .mouse-follower-glow { display: none !important; }
     body::before, body::after { animation: none !important; }
     .loading-spinner, .loading::after { animation: none !important; border: 3px solid var(--accent-primary) !important; }
     .card:hover, .shortcut-card:hover, .btn:hover, .btn-outline:hover, .welcome-button:hover, .refresh-btn:hover, .view-all-link:hover, .profile-avatar:hover, .modal-close:hover { transform: none !important; }
         .modal.active .modal-content { transform: translateY(0) scale(1) !important; transition: none !important;}
         .tab-content.active { animation: none !important; }
-        .exp-bar-fill::after { animation: none !important; } /* Disable stripe animation */
+        .exp-bar-fill::after { animation: none !important; } /* Disable stripe/shimmer animation */
         .exp-bar-track::after { animation: none !important; } /* Disable scanline animation */
         .section-title::after { animation: none !important; background: var(--accent-primary) !important; } /* Disable gradient animation */
+        .btn-icon-only i { transition: none !important; } /* Disable icon rotation */
 }
 
 /* --- END: Киберпанк CSS Тема --- */
