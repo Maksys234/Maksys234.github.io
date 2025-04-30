@@ -8,22 +8,20 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-
-    <link rel="stylesheet" href="oceneni.css">
-
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/css/tooltipster.bundle.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/js/tooltipster.bundle.min.js"></script>
-
-    </head>
+    <link rel="stylesheet" href="oceneni.css">
+</head>
 <body class="dark">
+
     <div class="initial-loading-overlay" id="initial-loader">
         <div class="loading-spinner"></div>
         <p>NAČÍTÁNÍ OCENĚNÍ...</p>
     </div>
 
-    <div class="offline-banner" id="offline-banner"> <i class="fas fa-plug"></i> OFFLINE // SPOJENÍ ZTRACENO.</div>
+    <div class="offline-banner" id="offline-banner"> <i class="fas fa-plug"></i> OFFLINE // SPOJENÍ ZTRACENO. </div>
 
     <div class="sidebar-overlay" id="sidebar-overlay"></div>
 
@@ -32,7 +30,9 @@
             <button class="mobile-menu-toggle" id="sidebar-close-toggle" aria-label="Zavřít menu">
                 <i class="fas fa-times"></i>
             </button>
-            <a href="/dashboard/dashboard.html" class="sidebar-logo"> <i class="fas fa-atom"></i> <span>Justax</span> </a>
+            <a href="/dashboard/dashboard.html" class="sidebar-logo">
+                <i class="fas fa-atom"></i> <span>Justax</span>
+            </a>
         </div>
         <ul class="sidebar-menu">
             <li class="sidebar-item"> <a href="/dashboard/dashboard.html" class="sidebar-link"> <i class="fas fa-tachometer-alt"></i> <span>Nástěnka</span> </a> </li>
@@ -52,7 +52,7 @@
         <div class="sidebar-footer"> &copy; <span id="currentYearSidebar">2025</span> Justax Systems </div>
     </aside>
 
-    <main id="main-content">
+    <main id="main-content" style="display: none;">
         <div class="error-container" id="global-error"></div>
 
         <header class="dashboard-header">
@@ -161,7 +161,7 @@
                      <h2 class="section-title" style="padding: 1.5rem 1.5rem 0; margin-bottom: 0;"><i class="fas fa-tasks"></i>Dostupné Výzvy</h2>
                      <div style="padding: 1.5rem;">
                          <div class="achievement-grid" id="available-badges-grid">
-                              <div class="achievement-card loading"> <div class="loading-skeleton"> <div class="skeleton achievement-icon-placeholder"></div> <div class="skeleton achievement-content-placeholder"> <div class="skeleton achievement-title-placeholder"></div> <div class="skeleton achievement-desc-placeholder"></div> <div class="skeleton achievement-desc-placeholder"></div> <div class="skeleton achievement-progress-placeholder"></div> </div> </div> </div>
+                             <div class="achievement-card loading"> <div class="loading-skeleton"> <div class="skeleton achievement-icon-placeholder"></div> <div class="skeleton achievement-content-placeholder"> <div class="skeleton achievement-title-placeholder"></div> <div class="skeleton achievement-desc-placeholder"></div> <div class="skeleton achievement-desc-placeholder"></div> <div class="skeleton achievement-progress-placeholder"></div> </div> </div> </div>
                               <div class="achievement-card loading"> <div class="loading-skeleton"> <div class="skeleton achievement-icon-placeholder"></div> <div class="skeleton achievement-content-placeholder"> <div class="skeleton achievement-title-placeholder"></div> <div class="skeleton achievement-desc-placeholder"></div> <div class="skeleton achievement-desc-placeholder"></div> <div class="skeleton achievement-progress-placeholder"></div> </div> </div> </div>
                          </div>
                          <div class="empty-state" id="empty-available-badges" style="display: none;">
@@ -172,19 +172,30 @@
                      </div>
                 </section>
 
+                <section class="section title-shop-section card" id="title-shop-container" data-animate style="--animation-order: 8;">
+                    <h2 class="section-title">
+                        <i class="fas fa-store"></i> Obchod s Tituly
+                    </h2>
+                    <div class="current-credits" style="text-align: right; margin-bottom: 1.5rem; font-size: 1rem; color: var(--text-medium);">
+                        Vaše kredity: <strong id="shop-user-credits" style="color: var(--accent-orange); font-size: 1.2em;">Načítání...</strong> <i class="fas fa-coins"></i>
+                    </div>
+
+                    <div id="title-shop-loading" class="loader-container visible-loader"> <div class="loading-spinner"></div>
+                        <p>Načítání nabídky titulů...</p>
+                    </div>
+
+                    <div id="title-shop-grid" class="title-shop-grid" style="display: none;">
+                        </div>
+                    <div class="empty-state" id="title-shop-empty" style="display: none;">
+                        <i class="fas fa-store-slash empty-state-icon"></i>
+                        <h3 class="empty-state-title">Obchod je prázdný</h3>
+                        <p class="empty-state-desc">Momentálně nejsou k dispozici žádné tituly k zakoupení.</p>
+                    </div>
+                </section>
                 <section class="leaderboard-section card loading" id="leaderboard-container" data-animate style="--animation-order: 7;">
-                     <div class="loading-skeleton leaderboard-skeleton">
-                         <div class="leaderboard-header-skeleton">
-                             <div class="skeleton" style="height: 24px; width: 40%; border-radius: 6px;"></div>
-                             </div>
-                         <div class="leaderboard-table-skeleton">
-                             <div class="skeleton-row"> <div class="skeleton rank-placeholder"></div> <div class="skeleton avatar-placeholder"></div> <div class="skeleton name-placeholder"></div> <div class="skeleton score-placeholder"></div> <div class="skeleton badges-placeholder"></div> <div class="skeleton" style="width: 40px; height: 16px; border-radius: 4px;"></div> </div>
-                             <div class="skeleton-row"> <div class="skeleton rank-placeholder"></div> <div class="skeleton avatar-placeholder"></div> <div class="skeleton name-placeholder"></div> <div class="skeleton score-placeholder"></div> <div class="skeleton badges-placeholder"></div> <div class="skeleton" style="width: 40px; height: 16px; border-radius: 4px;"></div> </div>
-                             <div class="skeleton-row"> <div class="skeleton rank-placeholder"></div> <div class="skeleton avatar-placeholder"></div> <div class="skeleton name-placeholder"></div> <div class="skeleton score-placeholder"></div> <div class="skeleton badges-placeholder"></div> <div class="skeleton" style="width: 40px; height: 16px; border-radius: 4px;"></div> </div>
-                             <div class="skeleton-row"> <div class="skeleton rank-placeholder"></div> <div class="skeleton avatar-placeholder"></div> <div class="skeleton name-placeholder"></div> <div class="skeleton score-placeholder"></div> <div class="skeleton badges-placeholder"></div> <div class="skeleton" style="width: 40px; height: 16px; border-radius: 4px;"></div> </div>
-                         </div>
-                     </div>
-                     <div class="leaderboard-header">
+                    <div class="loading-skeleton leaderboard-skeleton">
+                        </div>
+                    <div class="leaderboard-header">
                         <h2 class="section-title leaderboard-title"><i class="fas fa-trophy"></i>Síň Slávy</h2>
                         </div>
                     <div class="leaderboard-table-container">
@@ -207,14 +218,13 @@
                         <p>ŽÁDNÁ DATA V SÍNI SLÁVY.</p>
                     </div>
                 </section>
-                <section class="recent-achievements card loading" id="recent-achievements-section" style="display: none;" data-animate style="--animation-order: 8;">
+
+                <section class="recent-achievements card loading" id="recent-achievements-section" style="display: none;" data-animate style="--animation-order: 9;">
                       <div class="recent-achievements-header">
                          <h2 class="section-title" style="margin: 0; padding: 0; border: none;"><i class="fas fa-history"></i>Nedávné Úspěchy</h2>
                       </div>
                      <div class="loading-skeleton">
-                          <div class="skeleton-item"> <div class="skeleton recent-icon-placeholder"></div> <div class="skeleton recent-content-placeholder"> <div class="skeleton recent-title-placeholder"></div> <div class="skeleton recent-desc-placeholder"></div> <div class="skeleton recent-time-placeholder"></div> </div> </div>
-                          <div class="skeleton-item"> <div class="skeleton recent-icon-placeholder"></div> <div class="skeleton recent-content-placeholder"> <div class="skeleton recent-title-placeholder"></div> <div class="skeleton recent-desc-placeholder"></div> <div class="skeleton recent-time-placeholder"></div> </div> </div>
-                     </div>
+                          </div>
                      <div class="achievements-list" id="recent-achievements-list">
                          </div>
                  </section>
@@ -227,7 +237,6 @@
     </main>
 
     <div class="toast-container" id="toast-container"></div>
-
     <div id="mouse-follower" class="mouse-follower-glow"></div>
 
     <script src="oceneni.js" defer></script>
