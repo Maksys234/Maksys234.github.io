@@ -115,7 +115,7 @@
         sectionsToUpdate.forEach(secKey => {
             if (!sectionsMap[secKey] || isLoading[secKey] === isLoadingFlag) return;
             isLoading[secKey] = isLoadingFlag;
-            // console.log(`[setLoadingState] Section: ${secKey}, isLoading: ${isLoadingFlag}`); // Removed console log for brevity
+            // console.log(`[setLoadingState] Section: ${secKey}, isLoading: ${isLoadingFlag}`); // Log removed
             const config = sectionsMap[secKey];
 
             if (config.container) {
@@ -152,7 +152,7 @@
                     ui.markAllReadBtn.disabled = isLoadingFlag || currentUnreadCount === 0;
                 }
             } else {
-                // console.warn(`setLoadingState: Container for section "${secKey}" not found.`); // Removed console log for brevity
+                // console.warn(`setLoadingState: Container for section "${secKey}" not found.`); // Log removed
             }
         });
     }
@@ -163,57 +163,151 @@
 
     // <<< ДОБАВЛЕНО: Функция переключения десктопного сайдбара >>>
     function toggleSidebar() {
-        if (!ui.sidebarToggleBtn) return;
-        document.body.classList.toggle('sidebar-collapsed');
-        const isCollapsed = document.body.classList.contains('sidebar-collapsed');
-        localStorage.setItem(SIDEBAR_STATE_KEY, isCollapsed ? 'collapsed' : 'expanded');
-        const icon = ui.sidebarToggleBtn.querySelector('i');
-        if (icon) {
-            if (isCollapsed) {
-                icon.classList.remove('fa-chevron-left');
-                icon.classList.add('fa-chevron-right');
-                ui.sidebarToggleBtn.setAttribute('aria-label', 'Rozbalit postranní panel');
-                ui.sidebarToggleBtn.setAttribute('title', 'Rozbalit postranní panel');
+        // console.log("[Sidebar Toggle] Clicked."); // Log removed
+        if (!ui.sidebarToggleBtn) {
+            console.warn("[Sidebar Toggle] Button element not found in UI cache.");
+            return;
+        }
+        try {
+            document.body.classList.toggle('sidebar-collapsed');
+            const isCollapsed = document.body.classList.contains('sidebar-collapsed');
+            localStorage.setItem(SIDEBAR_STATE_KEY, isCollapsed ? 'collapsed' : 'expanded');
+            const icon = ui.sidebarToggleBtn.querySelector('i');
+            if (icon) {
+                if (isCollapsed) {
+                    icon.classList.remove('fa-chevron-left');
+                    icon.classList.add('fa-chevron-right');
+                    ui.sidebarToggleBtn.setAttribute('aria-label', 'Rozbalit postranní panel');
+                    ui.sidebarToggleBtn.setAttribute('title', 'Rozbalit postranní panel');
+                } else {
+                    icon.classList.remove('fa-chevron-right');
+                    icon.classList.add('fa-chevron-left');
+                    ui.sidebarToggleBtn.setAttribute('aria-label', 'Sbalit postranní panel');
+                    ui.sidebarToggleBtn.setAttribute('title', 'Sbalit postranní panel');
+                }
+                // console.log(`[Sidebar Toggle] State set to: ${isCollapsed ? 'collapsed' : 'expanded'}`); // Log removed
             } else {
-                icon.classList.remove('fa-chevron-right');
-                icon.classList.add('fa-chevron-left');
+                console.warn("[Sidebar Toggle] Icon element not found inside button.");
+            }
+        } catch (error) {
+            console.error("[Sidebar Toggle] Error toggling sidebar:", error);
+            showToast('Chyba UI', 'Nepodařilo se přepnout boční panel.', 'error');
+        }
+    }
+
+    // <<< ДОБАВЛЕНО: Функция применения начального состояния сайдбара (с проверками и try-catch) >>>
+    function applyInitialSidebarState() {
+        // console.log("[Sidebar Init] Applying initial state..."); // Log removed
+        if (!ui.sidebarToggleBtn) {
+            // console.warn("[Sidebar Init] Toggle button not found. Cannot apply initial state."); // Log removed
+            // It's possible the button isn't rendered yet if called too early,
+            // but this function is now called very late in initializeApp.
+            // If it's still not found, there might be an issue with the HTML or ui object caching.
+            return;
+        }
+
+        try {
+            const savedState = localStorage.getItem(SIDEBAR_STATE_KEY);
+            const shouldBeCollapsed = savedState === 'collapsed';
+            // console.log(`[Sidebar Init] Saved state: ${savedState}, Should be collapsed: ${shouldBeCollapsed}`); // Log removed
+
+            // Ensure class is correctly added or removed
+            if (shouldBeCollapsed) {
+                if (!document.body.classList.contains('sidebar-collapsed')) {
+                    document.body.classList.add('sidebar-collapsed');
+                }
+            } else {
+                if (document.body.classList.contains('sidebar-collapsed')) {
+                    document.body.classList.remove('sidebar-collapsed');
+                }
+            }
+
+            const icon = ui.sidebarToggleBtn.querySelector('i');
+            if (icon) {
+                // Update icon and attributes based on the final state
+                if (shouldBeCollapsed) {
+                    icon.className = 'fas fa-chevron-right'; // More direct assignment
+                    ui.sidebarToggleBtn.setAttribute('aria-label', 'Rozbalit postranní panel');
+                    ui.sidebarToggleBtn.setAttribute('title', 'Rozbalit postranní panel');
+                } else {
+                    icon.className = 'fas fa-chevron-left'; // More direct assignment
+                    ui.sidebarToggleBtn.setAttribute('aria-label', 'Sbalit postranní panel');
+                    ui.sidebarToggleBtn.setAttribute('title', 'Sbalit postranní panel');
+                }
+                // console.log("[Sidebar Init] Icon and attributes updated."); // Log removed
+            } else {
+                console.warn("[Sidebar Init] Icon element not found inside button during initial state application.");
+            }
+            // console.log("[Sidebar Init] Initial state applied successfully."); // Log removed
+
+        } catch (error) {
+            console.error("[Sidebar Init] Error applying initial sidebar state:", error);
+            showToast('Chyba UI', 'Nepodařilo se nastavit počáteční stav bočního panelu.', 'error');
+            // Attempt to reset to default (expanded) state in case of error
+            document.body.classList.remove('sidebar-collapsed');
+            const icon = ui.sidebarToggleBtn.querySelector('i');
+            if (icon) {
+                icon.className = 'fas fa-chevron-left';
                  ui.sidebarToggleBtn.setAttribute('aria-label', 'Sbalit postranní panel');
                  ui.sidebarToggleBtn.setAttribute('title', 'Sbalit postranní panel');
             }
         }
     }
-
-    // <<< ДОБАВЛЕНО: Функция применения начального состояния сайдбара >>>
-    function applyInitialSidebarState() {
-        const savedState = localStorage.getItem(SIDEBAR_STATE_KEY);
-        const shouldBeCollapsed = savedState === 'collapsed';
-         if (!ui.sidebarToggleBtn) return; // Safety check
-
-        if (shouldBeCollapsed) {
-             document.body.classList.add('sidebar-collapsed');
-        } else {
-             document.body.classList.remove('sidebar-collapsed');
-        }
-
-        const icon = ui.sidebarToggleBtn.querySelector('i');
-         if (icon) {
-            if (shouldBeCollapsed) {
-                icon.classList.remove('fa-chevron-left');
-                icon.classList.add('fa-chevron-right');
-                ui.sidebarToggleBtn.setAttribute('aria-label', 'Rozbalit postranní panel');
-                ui.sidebarToggleBtn.setAttribute('title', 'Rozbalit postranní panel');
-            } else {
-                icon.classList.remove('fa-chevron-right');
-                icon.classList.add('fa-chevron-left');
-                ui.sidebarToggleBtn.setAttribute('aria-label', 'Sbalit postranní panel');
-                ui.sidebarToggleBtn.setAttribute('title', 'Sbalit postranní panel');
-            }
-         }
-    }
     // --- END: Helper Functions ---
 
     // --- START: Data Loading Functions (Updated/Added) ---
-    async function initializeApp() { console.log("🚀 [Init Oceneni - Kyber v6 - Fix] Initializing Awards Page..."); if (!initializeSupabase()) return; setupUIEventListeners(); if (ui.initialLoader) { ui.initialLoader.classList.remove('hidden'); ui.initialLoader.style.display = 'flex'; } if (ui.mainContent) ui.mainContent.style.display = 'none'; try { console.log("[Init Oceneni - Kyber] Checking auth session..."); const { data: { session }, error: sessionError } = await supabase.auth.getSession(); if (sessionError) throw new Error(`Nepodařilo se ověřit přihlášení: ${sessionError.message}`); if (session?.user) { currentUser = session.user; console.log(`[Init Oceneni - Kyber] User authenticated (ID: ${currentUser.id}). Loading data...`); currentProfile = await fetchUserProfile(currentUser.id); if (!currentProfile) throw new Error("Nepodařilo se načíst profil uživatele."); allTitles = await fetchTitleShopData(); updateSidebarProfile(currentProfile, allTitles); if (ui.initialLoader) { ui.initialLoader.classList.add('hidden'); setTimeout(() => { if (ui.initialLoader) ui.initialLoader.style.display = 'none'; }, 500); } if (ui.mainContent) { ui.mainContent.style.display = 'block'; requestAnimationFrame(() => ui.mainContent.classList.add('loaded')); } await loadAllAwardData(); console.log("✅ [Init Oceneni - Kyber] Page fully loaded and initialized."); requestAnimationFrame(() => { initScrollAnimations(); initMouseFollower(); initHeaderScrollDetection(); updateCopyrightYear(); }); applyInitialSidebarState(); // <<< ДОБАВЛЕНО: Применение состояния сайдбара после инициализации >>> } else { console.log("[Init Oceneni - Kyber] User not logged in. Redirecting..."); window.location.href = '/auth/index.html'; } } catch (error) { console.error("❌ [Init Oceneni - Kyber] Critical initialization error:", error); if (ui.initialLoader && !ui.initialLoader.classList.contains('hidden')) { ui.initialLoader.innerHTML = `<p style="color: var(--accent-pink);">CHYBA SYSTÉMU (${error.message}). OBNOVTE STRÁNKU.</p>`; } else { showError(`Chyba při inicializaci: ${error.message}`, true); } if (ui.mainContent) ui.mainContent.style.display = 'none'; } }
+    async function initializeApp() {
+        console.log("🚀 [Init Oceneni - Kyber v7 - Fix] Initializing Awards Page...");
+        if (!initializeSupabase()) return;
+        setupUIEventListeners(); // Setup listeners early, including sidebar toggle
+
+        if (ui.initialLoader) { ui.initialLoader.classList.remove('hidden'); ui.initialLoader.style.display = 'flex'; }
+        if (ui.mainContent) ui.mainContent.style.display = 'none';
+
+        try {
+            console.log("[Init Oceneni - Kyber] Checking auth session...");
+            const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+            if (sessionError) throw new Error(`Nepodařilo se ověřit přihlášení: ${sessionError.message}`);
+
+            if (session?.user) {
+                currentUser = session.user;
+                console.log(`[Init Oceneni - Kyber] User authenticated (ID: ${currentUser.id}). Loading data...`);
+                currentProfile = await fetchUserProfile(currentUser.id);
+                if (!currentProfile) throw new Error("Nepodařilo se načíst profil uživatele.");
+                allTitles = await fetchTitleShopData(); // Fetch titles needed for sidebar update
+                updateSidebarProfile(currentProfile, allTitles); // Update sidebar ASAP after profile load
+
+                if (ui.initialLoader) { ui.initialLoader.classList.add('hidden'); setTimeout(() => { if (ui.initialLoader) ui.initialLoader.style.display = 'none'; }, 500); }
+                if (ui.mainContent) { ui.mainContent.style.display = 'block'; requestAnimationFrame(() => ui.mainContent.classList.add('loaded')); }
+
+                await loadAllAwardData(); // Load the rest of the page data
+
+                console.log("✅ [Init Oceneni - Kyber] Page fully loaded and initialized.");
+
+                requestAnimationFrame(() => {
+                    initScrollAnimations();
+                    initMouseFollower();
+                    initHeaderScrollDetection();
+                    updateCopyrightYear();
+                     // <<< ИЗМЕНЕНО: Вызов applyInitialSidebarState перенесен сюда, в самый конец >>>
+                     applyInitialSidebarState();
+                     console.log("✅ [Init Oceneni - Kyber] Final UI initializations complete (incl. Sidebar State).");
+                });
+
+            } else {
+                console.log("[Init Oceneni - Kyber] User not logged in. Redirecting...");
+                window.location.href = '/auth/index.html'; // Redirect happens here if no session
+            }
+        } catch (error) {
+            console.error("❌ [Init Oceneni - Kyber] Critical initialization error:", error);
+            if (ui.initialLoader && !ui.initialLoader.classList.contains('hidden')) {
+                ui.initialLoader.innerHTML = `<p style="color: var(--accent-pink);">CHYBA SYSTÉMU (${error.message}). OBNOVTE STRÁNKU.</p>`;
+            } else {
+                showError(`Chyba při inicializaci: ${error.message}`, true);
+            }
+            if (ui.mainContent) ui.mainContent.style.display = 'none';
+        }
+    }
     function initializeSupabase() { try { if (typeof window.supabase === 'undefined' || typeof window.supabase.createClient !== 'function') { throw new Error("Knihovna Supabase nebyla správně načtena."); } supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY); if (!supabase) throw new Error("Vytvoření klienta Supabase selhalo."); console.log('[Supabase] Klient úspěšně inicializován.'); return true; } catch (error) { console.error('[Supabase] Inicializace selhala:', error); showError("Kritická chyba: Nepodařilo se připojit k databázi.", true); return false; } }
     async function fetchUserProfile(userId) { if (!supabase || !userId) return null; console.log(`[Profile] Fetching profile for user ID: ${userId}`); try { const { data: profile, error } = await supabase .from('profiles') .select('id, first_name, last_name, username, email, avatar_url, points, streak_days, badges_count, level, completed_exercises, created_at, purchased_titles, selected_title') .eq('id', userId) .single(); if (error && error.code !== 'PGRST116') throw error; if (!profile) { console.warn(`[Profile] Profile not found for user ${userId}.`); return null; } console.log("[Profile] Profile data fetched successfully (including titles)."); if (profile.purchased_titles === null) { profile.purchased_titles = []; } return profile; } catch (error) { console.error('[Profile] Caught exception fetching profile:', error); showToast('Chyba', 'Nepodařilo se načíst data profilu.', 'error'); return null; } }
     async function fetchUserStats(userId) { if (!supabase || !userId) { console.error("[Stats Fetch] Missing Supabase client or User ID."); return null; } console.log(`[Stats Fetch] Fetching stats for user ID: ${userId}`); try { const { data: statsData, error } = await supabase .from('user_stats') .select('progress, progress_weekly, points_weekly, streak_longest, completed_tests') .eq('user_id', userId) .maybeSingle(); if (error) { console.warn("[Stats Fetch] Supabase error fetching user_stats:", error.message); return null; } console.log("[Stats Fetch] Stats fetched successfully:", statsData); return statsData || {}; } catch (error) { console.error("[Stats Fetch] Caught exception fetching user_stats:", error); showToast('Chyba', 'Nepodařilo se načíst statistiky uživatele.', 'error'); return null; } }
@@ -232,7 +326,7 @@
                 fetchLeaderboardData('points', currentLeaderboardPeriod),
                 fetchUserStats(currentUser.id),
                 fetchNotifications(currentUser.id, NOTIFICATION_FETCH_LIMIT),
-                fetchTitleShopData()
+                // fetchTitleShopData() // Removed from here, fetched earlier in initializeApp
             ]);
             console.log("[LoadAwards] Fetch results (settled):", results);
 
@@ -241,8 +335,8 @@
                 userBadgesResult,
                 leaderboardResult,
                 statsResult,
-                notificationsResult,
-                titlesResult
+                notificationsResult
+                // No titlesResult here
             ] = results;
 
             allBadges = badgesDefResult.status === 'fulfilled' ? badgesDefResult.value : [];
@@ -250,21 +344,21 @@
             leaderboardData = leaderboardResult.status === 'fulfilled' ? leaderboardResult.value : [];
             currentUserStats = statsResult.status === 'fulfilled' ? statsResult.value || {} : {};
             const fetchedNotifications = notificationsResult.status === 'fulfilled' ? notificationsResult.value : { unreadCount: 0, notifications: [] };
-            allTitles = titlesResult.status === 'fulfilled' ? titlesResult.value : [];
+            // allTitles are already fetched
 
             if (badgesDefResult.status === 'rejected') { console.error("❌ Error fetching all badges:", badgesDefResult.reason); showError("Nepodařilo se načíst definice odznaků."); }
             if (userBadgesResult.status === 'rejected') { console.error("❌ Error fetching user badges:", userBadgesResult.reason); showError("Nepodařilo se načíst získané odznaky."); }
             if (leaderboardResult.status === 'rejected') { console.error("❌ Error fetching leaderboard:", leaderboardResult.reason); showError("Nepodařilo se načíst žebříček."); }
             if (statsResult.status === 'rejected') { console.error("❌ Error fetching user stats:", statsResult.reason); showError("Nepodařilo se načíst statistiky."); }
             if (notificationsResult.status === 'rejected') { console.error("❌ Error fetching notifications:", notificationsResult.reason); showError("Nepodařilo se načíst oznámení."); }
-            if (titlesResult.status === 'rejected') { console.error("❌ Error fetching titles:", titlesResult.reason); showError("Nepodařilo se načíst obchod s tituly."); }
+            // No need to check titlesResult here
 
             setLoadingState('userBadges', false);
             setLoadingState('recentBadges', false);
             setLoadingState('leaderboard', false);
             setLoadingState('stats', false);
             setLoadingState('notifications', false);
-            setLoadingState('titleShop', false);
+            setLoadingState('titleShop', false); // Title shop rendering depends on already fetched data
 
             renderAvailableBadges(allBadges, userBadges, currentProfile);
             setLoadingState('availableBadges', false); // Needs to be after renderAvailableBadges finishes its calculation
@@ -273,7 +367,7 @@
             renderRecentBadges(userBadges);
             renderLeaderboard(leaderboardData);
             renderNotifications(fetchedNotifications.unreadCount, fetchedNotifications.notifications);
-            renderTitleShop(allTitles, currentProfile);
+            renderTitleShop(allTitles, currentProfile); // Render title shop using already fetched data
 
         } catch (error) { // Catch unexpected errors during processing/rendering
             console.error("❌ Unexpected error in loadAllAwardData during processing:", error);
@@ -295,9 +389,9 @@
 
     // --- START: UI Update Functions (Updated/Added) ---
     function updateSidebarProfile(profile, titlesData = allTitles) {
-        // console.log("[UI Update] Updating sidebar profile..."); // Removed console log for brevity
+        // console.log("[UI Update] Updating sidebar profile..."); // Log removed
         if (!ui.sidebarName || !ui.sidebarAvatar || !ui.sidebarRole) {
-            // console.warn("[UI Update] Sidebar elements (name, avatar, or role) not found."); // Removed console log for brevity
+            // console.warn("[UI Update] Sidebar elements (name, avatar, or role) not found."); // Log removed
             return;
         }
         if (profile) {
@@ -315,14 +409,14 @@
                 if (foundTitle && foundTitle.name) {
                     displayTitle = foundTitle.name;
                 } else {
-                    // console.warn(`[UI Update] Selected title key "${selectedTitleKey}" not found in titles data.`); // Removed console log for brevity
+                    // console.warn(`[UI Update] Selected title key "${selectedTitleKey}" not found in titles data.`); // Log removed
                 }
             }
             ui.sidebarRole.textContent = sanitizeHTML(displayTitle);
-            // console.log(`[UI Update] Sidebar updated. Role set to: ${displayTitle}`); // Removed console log for brevity
+            // console.log(`[UI Update] Sidebar updated. Role set to: ${displayTitle}`); // Log removed
 
         } else {
-            // console.warn("[UI Update] Missing profile data."); // Removed console log for brevity
+            // console.warn("[UI Update] Missing profile data."); // Log removed
             ui.sidebarName.textContent = "Pilot";
             ui.sidebarAvatar.textContent = '?';
             ui.sidebarRole.textContent = 'Pilot';
@@ -345,7 +439,7 @@
             setLoadingState('titleShop', false);
             return;
         }
-        // console.log("[Render Title Shop] Rendering titles:", titles); // Removed console log for brevity
+        // console.log("[Render Title Shop] Rendering titles:", titles); // Log removed
         setLoadingState('titleShop', false);
 
         ui.shopUserCredits.textContent = userProfile.points ?? 0;
@@ -354,7 +448,7 @@
         if (!titles || titles.length === 0) {
             ui.titleShopEmpty.style.display = 'block';
             ui.titleShopGrid.style.display = 'none';
-            // console.log("[Render Title Shop] No titles available."); // Removed console log for brevity
+            // console.log("[Render Title Shop] No titles available."); // Log removed
             return;
         }
 
@@ -406,14 +500,14 @@
         });
 
         ui.titleShopGrid.appendChild(fragment);
-        // console.log(`[Render Title Shop] Rendered ${titles.length} titles.`); // Removed console log for brevity
+        // console.log(`[Render Title Shop] Rendered ${titles.length} titles.`); // Log removed
         requestAnimationFrame(initScrollAnimations);
     }
     // --- END: UI Update Functions ---
 
     // --- START: Event Listeners & Handlers (Updated/Added) ---
     function setupUIEventListeners() {
-        // console.log("[SETUP] setupUIEventListeners: Start"); // Removed console log for brevity
+        // console.log("[SETUP] setupUIEventListeners: Start"); // Log removed
         if (ui.mainMobileMenuToggle) ui.mainMobileMenuToggle.addEventListener('click', openMenu);
         if (ui.sidebarCloseToggle) ui.sidebarCloseToggle.addEventListener('click', closeMenu);
         if (ui.sidebarOverlay) ui.sidebarOverlay.addEventListener('click', closeMenu);
@@ -458,16 +552,19 @@
         // <<< ДОБАВЛЕНО: Listener для кнопки переключения десктопного сайдбара >>>
         if (ui.sidebarToggleBtn) {
             ui.sidebarToggleBtn.addEventListener('click', toggleSidebar);
+             // console.log("[SETUP] Sidebar toggle listener added."); // Log removed
+        } else {
+             console.warn("[SETUP] Sidebar toggle button not found during listener setup.");
         }
 
-        // console.log("[SETUP] setupUIEventListeners: Listeners set (including Title Shop & Sidebar Toggle)."); // Removed console log for brevity
+        // console.log("[SETUP] setupUIEventListeners: Listeners set (including Title Shop & Sidebar Toggle)."); // Log removed
     }
 
     async function handleGlobalRetry() { console.log("🔄 Global retry triggered..."); if (!currentUser || !currentProfile) { showToast("Chyba", "Pro obnovení je nutné být přihlášen a mít načtený profil.", "error"); if (!currentProfile) await initializeApp(); return; } if (Object.values(isLoading).some(state => state)) { showToast("PROBÍHÁ SYNCHRONIZACE", "Data se již načítají.", "info"); return; } hideError(); if (ui.refreshDataBtn) { const icon = ui.refreshDataBtn.querySelector('i'); const text = ui.refreshDataBtn.querySelector('.refresh-text'); if (icon) icon.classList.add('fa-spin'); if (text) text.textContent = 'RELOADING...'; ui.refreshDataBtn.disabled = true; } await loadAllAwardData(); if (ui.refreshDataBtn) { const icon = ui.refreshDataBtn.querySelector('i'); const text = ui.refreshDataBtn.querySelector('.refresh-text'); if (icon) icon.classList.remove('fa-spin'); if (text) text.textContent = 'RELOAD'; ui.refreshDataBtn.disabled = false; } }
 
     // <<< CORRECTED: handleBuyTitle with proper try-catch >>>
     async function handleBuyTitle(titleKey, cost, buttonElement) {
-        // console.log(`[Title Shop] Attempting to buy title: ${titleKey} for ${cost} credits.`); // Removed console log for brevity
+        // console.log(`[Title Shop] Attempting to buy title: ${titleKey} for ${cost} credits.`); // Log removed
         if (!currentProfile || !supabase || !currentUser) {
             showToast('Chyba', 'Nelze provést nákup, chybí data uživatele.', 'error');
             return;
@@ -524,7 +621,7 @@
             renderTitleShop(allTitles, currentProfile);
 
             showToast('Nákup Úspěšný', `Titul "${titleName}" byl zakoupen!`, 'success');
-            // console.log(`[Title Shop] Successfully bought title: ${titleKey}`); // Removed console log for brevity
+            // console.log(`[Title Shop] Successfully bought title: ${titleKey}`); // Log removed
 
         // --- End of try block ---
         } catch (error) { // --- Start of catch block (Handles errors from try) ---
@@ -549,7 +646,7 @@
 
     // <<< CORRECTED: handleEquipTitle with proper try-catch >>>
     async function handleEquipTitle(titleKey, buttonElement) {
-        // console.log(`[Title Shop] Attempting to equip title: ${titleKey}.`); // Removed console log for brevity
+        // console.log(`[Title Shop] Attempting to equip title: ${titleKey}.`); // Log removed
          if (!currentProfile || !supabase || !currentUser) {
             showToast('Chyba', 'Nelze nastavit titul, chybí data uživatele.', 'error');
             return;
@@ -591,7 +688,7 @@
             const titleData = allTitles.find(t => t.title_key === titleKey);
             const titleName = titleData?.name || titleKey;
             showToast('Titul Nastaven', `Nyní používáte titul "${titleName}".`, 'success');
-            // console.log(`[Title Shop] Successfully equipped title: ${titleKey}`); // Removed console log for brevity
+            // console.log(`[Title Shop] Successfully equipped title: ${titleKey}`); // Log removed
 
          // --- End of try block ---
          } catch (error) { // --- Start of catch block (Handles errors from try) ---
