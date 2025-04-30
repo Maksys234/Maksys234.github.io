@@ -23,20 +23,21 @@
     <div class="initial-loading-overlay" id="initial-loader">
          <div class="loading-spinner"></div>
          <p>SYNCHRONIZACE PROCVIČOVÁNÍ...</p>
-     </div>
+    </div>
     <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
-            <button class="mobile-menu-toggle" id="sidebar-close-toggle" aria-label="Zavřít menu">
+             <button class="mobile-menu-toggle" id="sidebar-close-toggle" aria-label="Zavřít menu">
                 <i class="fas fa-times"></i>
             </button>
-            <a href="/dashboard/dashboard.html" class="sidebar-logo">
-                <i class="fas fa-atom"></i> <span>Justax</span>
-            </a>
-        </div>
+             <a href="/dashboard/dashboard.html" class="sidebar-logo">
+                 <i class="fas fa-atom"></i> <span>Justax</span>
+             </a>
+         </div>
         <ul class="sidebar-menu">
-             <li class="sidebar-item"> <a href="/dashboard/dashboard.html" class="sidebar-link"> <i class="fas fa-tachometer-alt"></i> <span>Nástěnka</span> </a> </li>
-             <li class="sidebar-item"> <a href="/dashboard/procvicovani/main.html" class="sidebar-link active"> <i class="fas fa-laptop-code"></i> <span>Procvičování</span> </a> </li>
+            <li class="sidebar-item"> <a href="/dashboard/dashboard.html" class="sidebar-link"> <i class="fas fa-tachometer-alt"></i> <span>Nástěnka</span> </a> </li>
+            <li class="sidebar-item"> <a href="/dashboard/procvicovani/main.html" class="sidebar-link active"> <i class="fas fa-laptop-code"></i> <span>Procvičování</span> </a> </li>
             <li class="sidebar-item"> <a href="/dashboard/pokrok.html" class="sidebar-link"> <i class="fas fa-chart-line"></i> <span>Pokrok</span> </a> </li>
             <li class="sidebar-item"> <a href="/dashboard/oceneni.html" class="sidebar-link"> <i class="fas fa-medal"></i> <span>Ocenění</span> </a> </li>
             <li class="sidebar-item"> <a href="/dashboard/materialy.html" class="sidebar-link"> <i class="fas fa-database"></i> <span>Databanka</span> </a> </li>
@@ -46,7 +47,8 @@
             <div class="user-avatar" id="sidebar-avatar">?</div>
             <div class="user-info">
                 <div class="user-name" id="sidebar-name">Načítání...</div>
-                <div class="user-role">Pilot</div> </div>
+                 <div class="user-role" id="sidebar-user-title">Načítání...</div>
+            </div>
         </div>
         <div class="sidebar-footer"> &copy; <span id="currentYearFooter">2025</span> Justax Systems </div>
     </aside>
@@ -54,13 +56,16 @@
         <div class="error-container" id="global-error"></div>
         <header class="dashboard-header">
             <div class="header-content">
-                 <div>
-                      <button class="mobile-menu-toggle" id="main-mobile-menu-toggle" aria-label="Otevřít menu">
-                          <i class="fas fa-bars"></i>
-                     </button>
+                 <div class="header-left-group">
+                     <button class="btn btn-icon-only sidebar-toggle-btn" id="sidebar-toggle-btn" aria-label="Sbalit postranní panel" title="Přepnout postranní panel">
+                          <i class="fas fa-chevron-left"></i>
+                      </button>
+                     <button class="mobile-menu-toggle" id="main-mobile-menu-toggle" aria-label="Otevřít menu">
+                         <i class="fas fa-bars"></i>
+                    </button>
                      <h1><i class="fas fa-laptop-code"></i> Procvičování // Přehled</h1>
                  </div>
-                <div class="header-actions">
+                 <div class="header-actions">
                     <button class="refresh-btn" id="refresh-data-btn" title="Obnovit data">
                         <i class="fas fa-sync-alt"></i>
                         <span class="refresh-text">RELOAD</span> </button>
@@ -138,7 +143,7 @@
                                  <div class="card-footer" id="stats-streak-longest">Nejdelší: - dní</div>
                             </div>
                         </div>
-                    </section>
+                        </section>
                     <section class="shortcuts-section">
                         <h2 class="section-title" data-animate style="--animation-order: 6;"><i class="fas fa-rocket"></i>Rychlé Akce</h2>
                         <div class="shortcut-grid">
@@ -149,7 +154,7 @@
                     </section>
                 </div>
                 <div class="tab-content" id="test-results-tab">
-                    <section class="test-results-section card loading" id="test-results-container">
+                     <section class="test-results-section card loading" id="test-results-container">
                         <h2 class="section-title"><i class="fas fa-poll"></i>Historie Testů</h2>
                         <div class="loading-overlay hidden" id="test-results-loading"> <div class="loading-spinner"></div> </div>
                         <div id="test-results-content" style="display: none;">
@@ -177,7 +182,7 @@
                     </section>
                 </div>
                 <div class="tab-content" id="study-plan-tab">
-                    <section class="study-plan-section card loading" id="study-plan-container">
+                     <section class="study-plan-section card loading" id="study-plan-container">
                         <h2 class="section-title"><i class="fas fa-route"></i>Aktuální Studijní Plán</h2>
                         <div class="loading-overlay hidden" id="study-plan-loading"> <div class="loading-spinner"></div> </div>
                         <div id="study-plan-content" style="display: none;">
@@ -208,7 +213,7 @@
                                 <div class="topic-card card loading"><div class="loading-skeleton"> <div class="skeleton topic-header"></div> <div class="skeleton progress-container" style="height: 8px;"></div> <div class="skeleton text-sm" style="width: 60%;"></div> <div class="skeleton text-sm" style="width: 50%;"></div> </div></div>
                                 <div class="topic-card card loading"><div class="loading-skeleton"> <div class="skeleton topic-header"></div> <div class="skeleton progress-container" style="height: 8px;"></div> <div class="skeleton text-sm" style="width: 60%;"></div> <div class="skeleton text-sm" style="width: 50%;"></div> </div></div>
                             </div>
-                        </div>
+                            </div>
                         <div class="empty-state" id="topic-analysis-empty" style="display: none;">
                             <i class="fas fa-search-minus"></i>
                             <h3>Chybí data pro analýzu</h3>
