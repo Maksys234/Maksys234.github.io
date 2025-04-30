@@ -12,6 +12,7 @@
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/css/tooltipster.bundle.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/js/tooltipster.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <link rel="stylesheet" href="oceneni.css">
 </head>
 <body class="dark">
@@ -57,14 +58,17 @@
 
         <header class="dashboard-header">
             <div class="header-content">
-                 <div>
-                      <button class="mobile-menu-toggle" id="main-mobile-menu-toggle" aria-label="Otevřít menu">
-                          <i class="fas fa-bars"></i>
-                     </button>
-                     <h1 id="page-title"><i class="fas fa-medal"></i> Ocenění // KOLEKCE</h1>
+                 <div class="header-left-group">
+                     <button class="btn btn-icon-only sidebar-toggle-btn" id="sidebar-toggle-btn" aria-label="Přepnout postranní panel" title="Přepnout postranní panel">
+                          <i class="fas fa-chevron-left"></i>
+                      </button>
+                     <button class="mobile-menu-toggle" id="main-mobile-menu-toggle" aria-label="Otevřít menu">
+                         <i class="fas fa-bars"></i>
+                    </button>
+                    <h1><i class="fas fa-medal"></i> Ocenění // KOLEKCE</h1>
                  </div>
                 <div class="header-actions">
-                    <button class="refresh-btn btn btn-secondary btn-tooltip" id="refresh-data-btn" title="Obnovit data">
+                    <button class="refresh-btn btn btn-tooltip" id="refresh-data-btn" title="Obnovit data">
                         <i class="fas fa-sync-alt"></i>
                         <span class="refresh-text">RELOAD</span>
                     </button>
@@ -172,7 +176,7 @@
                      </div>
                 </section>
 
-                <section class="section title-shop-section card" id="title-shop-container" data-animate style="--animation-order: 8;">
+                <section class="section title-shop-section card loading" id="title-shop-container" data-animate style="--animation-order: 8;">
                     <h2 class="section-title">
                         <i class="fas fa-store"></i> Obchod s Tituly
                     </h2>
@@ -184,20 +188,46 @@
                         <p>Načítání nabídky titulů...</p>
                     </div>
 
-                    <div id="title-shop-grid" class="title-shop-grid" style="display: none;">
-                        </div>
-                    <div class="empty-state" id="title-shop-empty" style="display: none;">
+                    <div id="title-shop-grid" class="title-shop-grid" style="display: none; padding: 0 1.5rem 1.5rem;">
+                         <div class="title-item card loading">
+                              <div class="loading-skeleton">
+                                 <div style="display: flex; gap: 1.2rem; align-items: flex-start;">
+                                     <div class="skeleton" style="width: 60px; height: 60px; border-radius: 14px; flex-shrink: 0;"></div>
+                                     <div style="flex-grow: 1;">
+                                         <div class="skeleton" style="height: 20px; width: 60%; margin-bottom: 0.7rem;"></div>
+                                         <div class="skeleton" style="height: 14px; width: 90%; margin-bottom: 0.5rem;"></div>
+                                         <div class="skeleton" style="height: 14px; width: 75%;"></div>
+                                     </div>
+                                 </div>
+                                 <div style="margin-top: 1rem; padding-top: 0.8rem; border-top: 1px solid transparent; display: flex; justify-content: space-between; align-items: center;">
+                                     <div class="skeleton" style="height: 16px; width: 70px;"></div>
+                                     <div class="skeleton" style="height: 30px; width: 90px; border-radius: var(--button-radius);"></div>
+                                 </div>
+                              </div>
+                         </div>
+                     </div>
+                    <div class="empty-state" id="title-shop-empty" style="display: none; margin: 1.5rem;">
                         <i class="fas fa-store-slash empty-state-icon"></i>
                         <h3 class="empty-state-title">Obchod je prázdný</h3>
                         <p class="empty-state-desc">Momentálně nejsou k dispozici žádné tituly k zakoupení.</p>
                     </div>
                 </section>
+
                 <section class="leaderboard-section card loading" id="leaderboard-container" data-animate style="--animation-order: 7;">
                     <div class="loading-skeleton leaderboard-skeleton">
-                        </div>
+                         <div class="leaderboard-header-skeleton">
+                            <div class="skeleton" style="height: 24px; width: 150px;"></div>
+                            <div class="skeleton" style="height: 30px; width: 200px; border-radius: 8px;"></div>
+                         </div>
+                         <div class="leaderboard-table-skeleton">
+                             <div class="skeleton-row"> <div class="skeleton rank-placeholder"></div> <div class="skeleton avatar-placeholder"></div> <div class="skeleton name-placeholder"></div> <div class="skeleton score-placeholder"></div> <div class="skeleton badges-placeholder"></div> <div class="skeleton streak-placeholder"></div> </div>
+                              <div class="skeleton-row"> <div class="skeleton rank-placeholder"></div> <div class="skeleton avatar-placeholder"></div> <div class="skeleton name-placeholder"></div> <div class="skeleton score-placeholder"></div> <div class="skeleton badges-placeholder"></div> <div class="skeleton streak-placeholder"></div> </div>
+                             <div class="skeleton-row"> <div class="skeleton rank-placeholder"></div> <div class="skeleton avatar-placeholder"></div> <div class="skeleton name-placeholder"></div> <div class="skeleton score-placeholder"></div> <div class="skeleton badges-placeholder"></div> <div class="skeleton streak-placeholder"></div> </div>
+                         </div>
+                     </div>
                     <div class="leaderboard-header">
                         <h2 class="section-title leaderboard-title"><i class="fas fa-trophy"></i>Síň Slávy</h2>
-                        </div>
+                     </div>
                     <div class="leaderboard-table-container">
                         <table class="leaderboard-table">
                             <thead>
@@ -224,7 +254,9 @@
                          <h2 class="section-title" style="margin: 0; padding: 0; border: none;"><i class="fas fa-history"></i>Nedávné Úspěchy</h2>
                       </div>
                      <div class="loading-skeleton">
-                          </div>
+                           <div class="skeleton-item"> <div class="skeleton recent-icon-placeholder"></div> <div class="skeleton recent-content-placeholder"> <div class="skeleton recent-title-placeholder"></div> <div class="skeleton recent-desc-placeholder"></div> <div class="skeleton recent-time-placeholder"></div> </div> </div>
+                           <div class="skeleton-item"> <div class="skeleton recent-icon-placeholder"></div> <div class="skeleton recent-content-placeholder"> <div class="skeleton recent-title-placeholder"></div> <div class="skeleton recent-desc-placeholder"></div> <div class="skeleton recent-time-placeholder"></div> </div> </div>
+                      </div>
                      <div class="achievements-list" id="recent-achievements-list">
                          </div>
                  </section>
