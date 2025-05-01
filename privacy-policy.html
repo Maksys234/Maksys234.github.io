@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="cs" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JUSTAX | Zásady Ochrany Osobních Údajů</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="index.css">
+    <style>
+        /* Dodatečné styly specifické pro tuto stránku, pokud jsou potřeba */
+        main {
+            padding-top: 10rem; /* Větší odsazení shora kvůli fixnímu headeru */
+            padding-bottom: 5rem;
+        }
+        .policy-content {
+            max-width: 900px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            border: 1px solid var(--interface-border);
+            border-radius: var(--card-radius);
+            padding: clamp(2rem, 5vw, 3.5rem);
+            box-shadow: var(--shadow-card);
+            color: var(--text-medium);
+            position: relative; /* Pro případné pseudo-elementy */
+        }
+         /* HUD Corners for policy content */
+        .policy-content::before, .policy-content::after {
+            content: ''; position: absolute; width: 20px; height: 20px;
+            border-color: var(--accent-primary); border-style: solid; opacity: 0.5;
+            transition: all 0.3s ease; pointer-events: none; z-index: 1;
+        }
+        .policy-content::before { top: 15px; left: 15px; border-width: 2px 0 0 2px; }
+        .policy-content::after { bottom: 15px; right: 15px; border-width: 0 2px 2px 0; }
+
+        .policy-content h1, .policy-content h2, .policy-content h3 {
+            color: var(--text-heading);
+            margin-bottom: 1.5rem;
+            margin-top: 2.5rem;
+             padding-bottom: 0.5rem;
+             border-bottom: 1px solid var(--border-color-light);
+        }
+         .policy-content h1 {
+             font-size: clamp(2rem, 5vw, 2.8rem);
+             text-align: center;
+             margin-top: 0;
+             margin-bottom: 2.5rem;
+             border-bottom: 2px solid var(--accent-primary);
+             display: inline-block; /* Aby border fungoval správně */
+             padding-bottom: 0.8rem;
+              text-shadow: 0 0 10px var(--accent-glow);
+         }
+         .policy-content h2 {
+             font-size: clamp(1.5rem, 4vw, 1.9rem);
+             color: var(--accent-secondary);
+         }
+         .policy-content h3 {
+             font-size: clamp(1.2rem, 3vw, 1.4rem);
+             color: var(--accent-primary);
+             border-bottom: none;
+         }
+        .policy-content p, .policy-content li {
+            margin-bottom: 1.3rem;
+            line-height: 1.75;
+             color: var(--text-medium);
+             font-size: 1.05rem;
+        }
+        .policy-content ul {
+            list-style: none;
+            padding-left: 1.5rem;
+        }
+        .policy-content ul li::before {
+            content: '\\f058'; /* FontAwesome check-circle ikona */
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            color: var(--accent-lime);
+            position: absolute;
+            left: -0.5rem;
+             font-size: 0.9em;
+             top: 0.3em;
+        }
+        .policy-content li {
+            position: relative;
+            padding-left: 1.5rem;
+        }
+        .policy-content a {
+            color: var(--accent-primary);
+            font-weight: 500;
+        }
+        .policy-content a:hover {
+            color: var(--white);
+            text-shadow: 0 0 6px var(--accent-glow);
+        }
+        .last-updated {
+            text-align: center;
+            margin-top: 3rem;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+             border-top: 1px dashed var(--border-color-medium);
+             padding-top: 1.5rem;
+        }
+    </style>
+</head>
+<body class="dark">
+    <div id="mouse-follower" class="mouse-follower-glow"></div>
+
+    <header id="header">
+        <div class="container nav-container">
+            <a href="/" class="logo" aria-label="Justax Home">
+                <i class="fas fa-atom" aria-hidden="true"></i> <span>JUSTAX</span>
+            </a>
+            <nav>
+                <ul class="nav-links" id="navLinks">
+                    <li><a href="/#features" class="nav-item">Power Ups</a></li>
+                    <li><a href="/#ai-demo" class="nav-item">AI Core</a></li>
+                    <li><a href="/#how-it-works" class="nav-item">Start Engine</a></li>
+                    <li><a href="/#pricing" class="nav-item">Plány</a></li>
+                    <li><a href="/#contact" class="nav-item">Kontakt</a></li>
+                    </ul>
+           </nav>
+           <div class="header-actions">
+               <button class="hamburger" id="hamburger" aria-label="Menu" aria-expanded="false" aria-controls="navLinks">
+                    <span></span><span></span><span></span>
+                </button>
+           </div>
+        </div>
+    </header>
+
+    <div class="menu-overlay" id="menuOverlay"></div>
+
+    <main>
+        <section class="policy-section">
+            <div class="container">
+                <div class="policy-content">
+                    <h1>Zásady Ochrany Osobních Údajů</h1>
+
+                    <p>Vítejte na stránce zásad ochrany osobních údajů pro Justax (dále jen "Služba", "my", "nás" nebo "naše"). Tyto zásady vysvětlují, jak shromažďujeme, používáme, zveřejňujeme a chráníme vaše osobní údaje, když používáte naši webovou stránku a služby.</p>
+
+                    <h2>1. Jaké informace shromažďujeme</h2>
+                    <p>Můžeme shromažďovat následující typy informací:</p>
+                    <ul>
+                        <li><strong>Osobní identifikační údaje:</strong> Vaše jméno, příjmení, e-mailová adresa, uživatelské jméno, pokud se rozhodnete je poskytnout při registraci nebo úpravě profilu.</li>
+                        <li><strong>Údaje o používání:</strong> Informace o tom, jak přistupujete k Službě a jak ji používáte, včetně vašeho postupu v testech, cvičeních, dokončených tématech a nastavení preferencí.</li>
+                        <li><strong>Technické údaje:</strong> Můžeme shromažďovat informace, které váš prohlížeč odesílá při návštěvě naší Služby, jako je IP adresa, typ prohlížeče, verze prohlížeče, navštívené stránky, čas a datum návštěvy, čas strávený na stránkách a další diagnostická data. (Toto je standardní; pokud nepoužíváte analytické nástroje, nemusí být relevantní).</li>
+                        <li><strong>Cookies a sledovací technologie:</strong> Můžeme používat cookies a podobné technologie pro sledování aktivity na naší Službě a uchovávání určitých informací. (Upravte, pokud cookies používáte/nepoužíváte).</li>
+                    </ul>
+
+                    <h2>2. Jak používáme vaše informace</h2>
+                    <p>Shromážděné údaje používáme pro různé účely:</p>
+                    <ul>
+                        <li>K poskytování a údržbě naší Služby.</li>
+                        <li>K personalizaci vašeho zážitku a poskytování obsahu na míru (např. studijní plány).</li>
+                        <li>K informování o změnách v naší Službě.</li>
+                        <li>K umožnění účasti v interaktivních funkcích Služby, pokud si to přejete.</li>
+                        <li>K poskytování zákaznické podpory.</li>
+                        <li>Ke shromažďování analýz nebo cenných informací, abychom mohli Službu zlepšovat.</li>
+                        <li>Ke sledování používání naší Služby.</li>
+                        <li>K detekci, prevenci a řešení technických problémů.</li>
+                        <li>K zasílání oznámení týkajících se vašeho účtu a studijního postupu (pokud jsou povoleny).</li>
+                    </ul>
+
+                    <h2>3. Uchovávání údajů</h2>
+                    <p>Vaše osobní údaje budeme uchovávat pouze po dobu nezbytně nutnou pro účely stanovené v těchto zásadách ochrany osobních údajů. Budeme uchovávat a používat vaše údaje v rozsahu nezbytném pro splnění našich zákonných povinností, řešení sporů a vymáhání našich právních dohod a zásad.</p>
+                    <p>Údaje o používání jsou obecně uchovávány po kratší dobu, s výjimkou případů, kdy jsou tyto údaje použity k posílení bezpečnosti nebo zlepšení funkčnosti naší Služby, nebo pokud jsme ze zákona povinni uchovávat tyto údaje po delší dobu.</p>
+
+                    <h2>4. Přenos údajů</h2>
+                    <p>Vaše informace, včetně osobních údajů, mohou být přenášeny – a uchovávány – na počítačích umístěných mimo váš stát, provincii, zemi nebo jinou vládní jurisdikci, kde se zákony o ochraně údajů mohou lišit od zákonů vaší jurisdikce.</p>
+                    <p>Váš souhlas s těmito zásadami ochrany osobních údajů následovaný odesláním takových informací představuje váš souhlas s tímto přenosem. Podnikneme všechny přiměřeně nezbytné kroky, abychom zajistili, že vaše údaje budou zpracovávány bezpečně a v souladu s těmito zásadami.</p>
+                    <p>Vaše data jsou uložena pomocí služeb Supabase. Jejich zásady ochrany osobních údajů naleznete na <a href="https://supabase.com/privacy" target="_blank" rel="noopener noreferrer">supabase.com/privacy</a>.</p>
+
+                    <h2>5. Zveřejnění údajů</h2>
+                    <p>Vaše osobní údaje můžeme zveřejnit pouze za následujících okolností:</p>
+                    <ul>
+                        <li><strong>Právní požadavek:</strong> Pokud jsme k tomu povinni ze zákona nebo v reakci na platné žádosti orgánů veřejné moci (např. soud nebo vládní agentura).</li>
+                        <li><strong>Ochrana práv:</strong> K ochraně a obhajobě našich práv nebo majetku.</li>
+                        <li><strong>Prevence protiprávního jednání:</strong> K prevenci nebo vyšetřování možného protiprávního jednání v souvislosti se Službou.</li>
+                        <li><strong>Osobní bezpečnost:</strong> K ochraně osobní bezpečnosti uživatelů Služby nebo veřejnosti.</li>
+                        <li><strong>Proti právní odpovědnosti:</strong> K ochraně proti právní odpovědnosti.</li>
+                    </ul>
+
+                    <h2>6. Zabezpečení údajů</h2>
+                    <p>Bezpečnost vašich údajů je pro nás důležitá, ale pamatujte, že žádný způsob přenosu přes internet nebo způsob elektronického ukládání není 100% bezpečný. I když se snažíme používat komerčně přijatelné prostředky k ochraně vašich osobních údajů, nemůžeme zaručit jejich absolutní bezpečnost.</p>
+
+                    <h2>7. Vaše práva na ochranu údajů (GDPR)</h2>
+                    <p>Pokud jste obyvatelem Evropského hospodářského prostoru (EHP), máte určitá práva na ochranu údajů:</p>
+                    <ul>
+                        <li>Právo na přístup, aktualizaci nebo smazání informací, které o vás máme.</li>
+                        <li>Právo na opravu.</li>
+                        <li>Právo vznést námitku.</li>
+                        <li>Právo na omezení zpracování.</li>
+                        <li>Právo na přenositelnost údajů.</li>
+                        <li>Právo odvolat souhlas.</li>
+                    </ul>
+                    <p>Pokud si přejete uplatnit některé z těchto práv, kontaktujte nás prosím na [Vložte kontaktní e-mail].</p>
+
+                    <h2>8. Cookies</h2>
+                    <p>Používáme cookies a podobné sledovací technologie ke sledování aktivity na naší Službě a uchovávání určitých informací. Cookies jsou soubory s malým množstvím dat. Můžete instruovat svůj prohlížeč, aby odmítl všechny cookies nebo aby indikoval, kdy je cookie odesílána. Pokud však cookies nepřijmete, nemusíte být schopni používat některé části naší Služby.</p>
+                    <p>(Specifikujte, jaké typy cookies používáte - nezbytné, analytické, marketingové, pokud nějaké používáte).</p>
+
+                    <h2>9. Odkazy na jiné stránky</h2>
+                    <p>Naše Služba může obsahovat odkazy na jiné stránky, které nejsou provozovány námi. Pokud kliknete na odkaz třetí strany, budete přesměrováni na stránku této třetí strany. Důrazně doporučujeme přečíst si zásady ochrany osobních údajů každé stránky, kterou navštívíte.</p>
+                    <p>Nemáme žádnou kontrolu nad obsahem, zásadami ochrany osobních údajů nebo postupy jakýchkoli stránek nebo služeb třetích stran a nepřebíráme za ně žádnou odpovědnost.</p>
+
+                    <h2>10. Změny těchto zásad ochrany osobních údajů</h2>
+                    <p>Tyto zásady ochrany osobních údajů můžeme čas od času aktualizovat. O jakýchkoli změnách vás budeme informovat zveřejněním nových zásad ochrany osobních údajů na této stránce.</p>
+                    <p>Doporučujeme vám pravidelně kontrolovat tyto zásady ochrany osobních údajů pro případné změny. Změny těchto zásad ochrany osobních údajů jsou účinné, jakmile jsou zveřejněny na této stránce.</p>
+
+                    <h2>11. Kontaktujte nás</h2>
+                    <p>Pokud máte jakékoli dotazy týkající se těchto zásad ochrany osobních údajů, kontaktujte nás prosím:</p>
+                    <ul>
+                        <li>E-mailem: [Vložte váš kontaktní e-mail zde]</li>
+                        <li>(Případně další kontaktní metody)</li>
+                    </ul>
+
+                    <div class="last-updated">
+                        Poslední aktualizace: 1. května 2025
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer id="contact">
+        <div class="container">
+            <div class="footer-grid">
+                 <div class="footer-column">
+                     <a href="/" class="logo" aria-label="Justax Home"> <i class="fas fa-atom" aria-hidden="true"></i> <span>JUSTAX</span> </a>
+                    <p>AI Augmentace Vzdělávání.</p>
+                    <div class="social-links">
+                        <a href="#" class="social-link" aria-label="Facebook"><i class="fab fa-facebook-f" aria-hidden="true"></i></a>
+                        <a href="#" class="social-link" aria-label="Instagram"><i class="fab fa-instagram" aria-hidden="true"></i></a>
+                         <a href="#" class="social-link" aria-label="LinkedIn"><i class="fab fa-linkedin-in" aria-hidden="true"></i></a>
+                         <a href="#" class="social-link" aria-label="X (formerly Twitter)"><i class="fab fa-xing" aria-hidden="true"></i></a>
+                    </div>
+                </div>
+                 <div class="footer-column">
+                    <h3>Navigace</h3>
+                    <ul class="footer-links">
+                        <li><a href="/#features">Power Ups</a></li>
+                        <li><a href="/#ai-demo">AI Core</a></li>
+                        <li><a href="/#pricing">Plány</a></li>
+                         <li><a href="#">Blog</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h3>Systém</h3>
+                    <ul class="footer-links">
+                        <li><a href="/privacy-policy.html">Privacy Protokol</a></li>
+                        <li><a href="#">Podmínky Připojení</a></li>
+                        <li><a href="#">Cookies</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h3>Support</h3>
+                    <ul class="footer-links">
+                        <li><a href="mailto:podpora@justax.space">podpora@justax.space</a></li>
+                        <li><i class="fas fa-map-marker-alt" aria-hidden="true" style="margin-right: 5px;"></i>HQ: Praha, CZ</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="copyright">
+                &copy; <span id="currentYear">2025</span> Justax AI Systems. Všechna práva vyhrazena. // Protokol v19.0
+                 // Sestaveno s <i class="fas fa-heart" style="color: var(--accent-pink);" aria-hidden="true"></i> v CZ.
+            </div>
+        </div>
+    </footer>
+
+    <script src="index.js" defer></script>
+    <script>
+        // Případný specifický JS pro tuto stránku
+        document.addEventListener('DOMContentLoaded', () => {
+            const currentYearSpan = document.getElementById('currentYear');
+            if (currentYearSpan) { currentYearSpan.textContent = new Date().getFullYear(); }
+        });
+    </script>
+</body>
+</html>
