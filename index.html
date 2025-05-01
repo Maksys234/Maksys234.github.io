@@ -1,231 +1,311 @@
 <!DOCTYPE html>
-<html lang="cs" class="dark">
+<html lang="cs">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Justax - Přehled Procvičování // Kyber-Verze</title>
+    <title>Justax - AI Platforma pro Vzdělávání</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/date-fns@2.29.3/index.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/date-fns/locale/cs/index.js"></script>
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/css/tooltipster.bundle.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/js/tooltipster.bundle.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <link rel="stylesheet" href="main.css">
+    <link rel="stylesheet" href="index.css">
 </head>
 <body class="dark">
-    <div class="initial-loading-overlay" id="initial-loader">
-         <div class="loading-spinner"></div>
-         <p>SYNCHRONIZACE PROCVIČOVÁNÍ...</p>
-     </div>
 
-    <div class="sidebar-overlay" id="sidebar-overlay"></div>
-    <aside class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <button class="mobile-menu-toggle" id="sidebar-close-toggle" aria-label="Zavřít menu">
-                <i class="fas fa-times"></i>
-            </button>
-            <a href="/dashboard/dashboard.html" class="sidebar-logo">
-                <i class="fas fa-atom"></i> <span>Justax</span>
-            </a>
-        </div>
-        <ul class="sidebar-menu">
-             <li class="sidebar-item"> <a href="/dashboard/dashboard.html" class="sidebar-link"> <i class="fas fa-tachometer-alt"></i> <span>Nástěnka</span> </a> </li>
-             <li class="sidebar-item"> <a href="/dashboard/procvicovani/main.html" class="sidebar-link active"> <i class="fas fa-laptop-code"></i> <span>Procvičování</span> </a> </li>
-            <li class="sidebar-item"> <a href="/dashboard/pokrok.html" class="sidebar-link"> <i class="fas fa-chart-line"></i> <span>Pokrok</span> </a> </li>
-            <li class="sidebar-item"> <a href="/dashboard/oceneni.html" class="sidebar-link"> <i class="fas fa-medal"></i> <span>Ocenění</span> </a> </li>
-            <li class="sidebar-item"> <a href="/dashboard/materialy.html" class="sidebar-link"> <i class="fas fa-database"></i> <span>Databanka</span> </a> </li>
-            <li class="sidebar-item"> <a href="/dashboard/profile.html" class="sidebar-link"> <i class="fas fa-user-astronaut"></i> <span>Profil</span> </a> </li>
-        </ul>
-        <div class="user-profile">
-            <div class="user-avatar" id="sidebar-avatar">?</div>
-            <div class="user-info">
-                <div class="user-name" id="sidebar-name">Načítání...</div>
-                <div class="user-role" id="sidebar-user-title">Pilot</div>
-            </div>
-        </div>
-        <div class="sidebar-footer"> &copy; <span id="currentYearFooter">2025</span> Justax Systems </div>
-    </aside>
-
-    <main id="main-content">
-        <div class="error-container" id="global-error"></div>
-
-        <header class="dashboard-header">
-            <div class="header-content">
-                 <div class="header-left-group">  {/* <<< ADDED WRAPPER */}
-                      {/* <<< START: ADDED Sidebar Toggle Button */}
-                      <button class="btn btn-icon-only sidebar-toggle-btn" id="sidebar-toggle-btn" aria-label="Sbalit postranní panel" title="Přepnout postranní panel">
-                           <i class="fas fa-chevron-left"></i>
-                       </button>
-                       {/* --- END: ADDED Sidebar Toggle Button */}
-                      <button class="mobile-menu-toggle" id="main-mobile-menu-toggle" aria-label="Otevřít menu">
-                          <i class="fas fa-bars"></i>
-                     </button>
-                     <h1><i class="fas fa-laptop-code"></i> Procvičování // Přehled</h1>
-                 </div> {/* <<< END ADDED WRAPPER */}
-                <div class="header-actions">
-                    <button class="refresh-btn" id="refresh-data-btn" title="Obnovit data">
-                        <i class="fas fa-sync-alt"></i>
-                        <span class="refresh-text">RELOAD</span> </button>
-                    <div class="notifications">
-                        <div class="notification-bell" id="notification-bell" title="Oznámení">
-                             <i class="far fa-bell"></i>
-                             <span class="notification-badge" id="notification-count">0</span>
-                        </div>
-                        <div class="notifications-dropdown-wrapper" id="notifications-dropdown">
-                             <div class="notifications-header">
-                                 <span class="notifications-title">PŘÍCHOZÍ SIGNÁLY</span>
-                                 <button class="mark-all-read-btn" id="mark-all-read" disabled>Vymazat vše</button>
-                             </div>
-                             <div id="notifications-list">
-                                 {/* */}
-                                 <div class="notification-item skeleton"> <div class="notification-icon skeleton"></div> <div class="notification-content"> <div class="skeleton" style="height: 16px; width: 70%; margin-bottom: 6px;"></div> <div class="skeleton" style="height: 12px; width: 90%;"></div> <div class="skeleton" style="height: 10px; width: 40%; margin-top: 6px;"></div> </div> </div>
-                                 <div id="no-notifications-msg" style="display: none;">ŽÁDNÉ NOVÉ SIGNÁLY</div>
-                             </div>
-                             <div class="notifications-footer">
-                                 <a href="/dashboard/notifications.html" class="view-all-notifications-link">ZOBRAZIT ARCHIV</a> </div>
-                        </div>
-                     </div>
-                </div>
-            </div>
-        </header>
-
-        <div class="main-content-wrapper">
-            <div class="tabs-wrapper">
-                <div class="content-tabs">
-                    <div class="content-tab active" data-tab="practice-tab">
-                        <i class="fas fa-laptop-code"></i> Přehled Procvičování
-                    </div>
-                    <div class="content-tab" data-tab="test-results-tab">
-                        <i class="fas fa-poll"></i> Výsledky Testů
-                    </div>
-                    <div class="content-tab" data-tab="study-plan-tab">
-                        <i class="fas fa-route"></i> Aktivní Plán
-                    </div>
-                    <div class="content-tab" data-tab="topic-analysis-tab">
-                        <i class="fas fa-atom"></i> Analýza Témat
-                    </div>
-                </div>
-            </div>
-
-            <div class="tab-content-container">
-                {/* */}
-                <div class="tab-content active" id="practice-tab">
-                     <div class="diagnostic-prompt card" id="diagnostic-prompt" style="display: none;" data-animate>
-                         <i class="fas fa-exclamation-circle"></i>
-                         <p>Pro odemčení personalizovaného obsahu a studijního plánu je potřeba absolvovat <strong>diagnostický test</strong>.</p>
-                         <a href="test1.html" class="btn btn-primary" id="start-test-btn-prompt"><i class="fas fa-play"></i> Spustit test</a>
-                     </div>
-                    <section class="stats-section">
-                        <h2 class="section-title" data-animate style="--animation-order: 1;"><i class="fas fa-chart-pie"></i>Celkový Přehled</h2>
-                        <div class="dashboard-grid loading" id="stats-cards">
-                            {/* */}
-                            <div class="dashboard-card card loading" data-animate style="--animation-order: 2;"> <div class="loading-skeleton"><div class="skeleton title"></div><div class="skeleton value"></div><div class="skeleton text"></div><div class="skeleton footer-sm"></div></div> </div>
-                            <div class="dashboard-card card loading" data-animate style="--animation-order: 3;"> <div class="loading-skeleton"><div class="skeleton title"></div><div class="skeleton value"></div><div class="skeleton text"></div><div class="skeleton footer-sm"></div></div> </div>
-                            <div class="dashboard-card card loading" data-animate style="--animation-order: 4;"> <div class="loading-skeleton"><div class="skeleton title"></div><div class="skeleton value"></div><div class="skeleton text"></div><div class="skeleton footer-sm"></div></div> </div>
-                            <div class="dashboard-card card loading" data-animate style="--animation-order: 5;"> <div class="loading-skeleton"><div class="skeleton title"></div><div class="skeleton value"></div><div class="skeleton text"></div><div class="skeleton footer-sm"></div></div> </div>
-                        </div>
-                    </section>
-                    <section class="shortcuts-section">
-                        <h2 class="section-title" data-animate style="--animation-order: 6;"><i class="fas fa-rocket"></i>Rychlé Akce</h2>
-                        <div class="shortcut-grid loading" id="shortcuts-grid">
-                            {/* */}
-                            <div class="shortcut-card card loading" data-animate style="--animation-order: 7;"> <div class="loading-skeleton"><div class="skeleton icon-placeholder"></div><div class="skeleton title"></div><div class="skeleton text"></div><div class="skeleton text-short"></div></div> </div>
-                            <div class="shortcut-card card loading" data-animate style="--animation-order: 8;"> <div class="loading-skeleton"><div class="skeleton icon-placeholder"></div><div class="skeleton title"></div><div class="skeleton text"></div><div class="skeleton text-short"></div></div> </div>
-                            <div class="shortcut-card card loading" data-animate style="--animation-order: 9;"> <div class="loading-skeleton"><div class="skeleton icon-placeholder"></div><div class="skeleton title"></div><div class="skeleton text"></div><div class="skeleton text-short"></div></div> </div>
-                        </div>
-                    </section>
-                </div>
-
-                {/* */}
-                <div class="tab-content" id="test-results-tab">
-                    <section class="test-results-section card loading" id="test-results-container">
-                        <h2 class="section-title"><i class="fas fa-poll"></i>Historie Testů</h2>
-                        <div class="loading-overlay hidden" id="test-results-loading"> <div class="loading-spinner"></div> </div>
-                        <div id="test-results-content" style="display: none;">
-                            {/* */}
-                            <div class="test-stats loading" id="test-stats">
-                                <div class="stats-card loading"><div class="loading-skeleton"></div></div>
-                                <div class="stats-card loading"><div class="loading-skeleton"></div></div>
-                                <div class="stats-card loading"><div class="loading-skeleton"></div></div>
-                            </div>
-                            <div class="chart-container"> <canvas id="testsChart"></canvas> </div>
-                            <div class="last-test-result card loading" id="last-test-result"><div class="loading-skeleton"></div></div>
-                            <div class="test-list loading" id="test-history"><div class="loading-skeleton"></div></div>
-                        </div>
-                        <div class="empty-state" id="test-results-empty" style="display: none;">
-                            {/* */}
-                            <i class="fas fa-clipboard-question"></i>
-                            <h3 id="empty-state-title">Žádné výsledky testů</h3>
-                            <p id="empty-state-message">Zatím jste neabsolvovali žádný diagnostický test.</p>
-                            <a href="test1.html" class="btn btn-primary" id="start-test-btn-results">
-                                <i class="fas fa-play"></i> <span id="empty-state-button-text">Spustit diagnostický test</span>
-                            </a>
-                        </div>
-                    </section>
-                </div>
-
-                {/* */}
-                <div class="tab-content" id="study-plan-tab">
-                    <section class="study-plan-section card loading" id="study-plan-container">
-                        <h2 class="section-title"><i class="fas fa-route"></i>Aktuální Studijní Plán</h2>
-                        <div class="loading-overlay hidden" id="study-plan-loading"> <div class="loading-spinner"></div> </div>
-                        <div id="study-plan-content" style="display: none;">
-                            {/* */}
-                            <div class="schedule-grid loading" id="main-plan-schedule">
-                                <div class="schedule-day card loading"><div class="loading-skeleton"></div></div>
-                                <div class="schedule-day card loading"><div class="loading-skeleton"></div></div>
-                            </div>
-                            <div class="full-plan-link-container">
-                                <a href="plan.html" class="btn btn-secondary">Zobrazit celý plán a detaily</a>
-                            </div>
-                        </div>
-                        <div class="empty-state" id="study-plan-empty" style="display: none;">
-                            {/* */}
-                            <i class="far fa-calendar-times"></i>
-                            <h3>Žádný aktivní plán</h3>
-                            <p>Vytvořte si nový plán absolvováním diagnostického testu.</p>
-                            <a href="test1.html" class="btn btn-primary" id="start-test-btn-plan"> <i class="fas fa-play"></i> Spustit test </a>
-                        </div>
-                   </section>
-                </div>
-
-                {/* */}
-                <div class="tab-content" id="topic-analysis-tab">
-                    <section class="topic-analysis-section card loading" id="topic-analysis-container">
-                        <h2 class="section-title"><i class="fas fa-atom"></i>Analýza podle Témat</h2>
-                        <div class="loading-overlay hidden" id="topic-analysis-loading"> <div class="loading-spinner"></div> </div>
-                        <div id="topic-analysis-content" style="display: none;">
-                            {/* */}
-                            <div class="topic-grid loading" id="topic-grid">
-                                <div class="topic-card card loading"><div class="loading-skeleton"></div></div>
-                                <div class="topic-card card loading"><div class="loading-skeleton"></div></div>
-                                <div class="topic-card card loading"><div class="loading-skeleton"></div></div>
-                            </div>
-                        </div>
-                        <div class="empty-state" id="topic-analysis-empty" style="display: none;">
-                            {/* */}
-                             <i class="fas fa-search-minus"></i>
-                            <h3>Chybí data pro analýzu</h3>
-                            <p>Absolvujte nejprve diagnostický test, abychom mohli analyzovat vaše silné a slabé stránky.</p>
-                            <a href="test1.html" class="btn btn-primary" id="start-test-btn-analysis"> <i class="fas fa-play"></i> Spustit test </a>
-                        </div>
-                    </section>
-                </div>
-            </div>
-            <footer class="dashboard-footer">
-                 <p>&copy; <span id="currentYearFooter">2025</span> Justax Systems // Secure Channel</p>
-            </footer>
-        </div>
-    </main>
-    <div class="toast-container" id="toast-container"></div>
     <div id="mouse-follower" class="mouse-follower-glow"></div>
-    <script src="main.js" defer></script>
+
+    <header id="header">
+        <div class="container nav-container">
+            <a href="/" class="logo" aria-label="Justax Domů">
+                <i class="fas fa-atom" aria-hidden="true"></i> <span>JUSTAX</span>
+            </a>
+            <nav>
+                <ul class="nav-links" id="navLinks">
+                    <li><a href="#features" class="nav-item">Funkce</a></li>
+                    <li><a href="#ai-demo" class="nav-item">AI v akci</a></li>
+                    <li><a href="#how-it-works" class="nav-item">Jak to funguje</a></li>
+                    <li><a href="#testimonials" class="nav-item">Recenze</a></li>
+                    <li><a href="#contact" class="nav-item">Kontakt</a></li>
+                    <li><a href="/auth/index.html" class="btn auth-link mobile-auth-link">Připojit se</a></li>
+               </ul>
+           </nav>
+           <div class="header-actions">
+               <a href="/auth/index.html" class="btn auth-link desktop-auth-link">Připojit se</a>
+                <button class="hamburger" id="hamburger" aria-label="Menu" aria-expanded="false" aria-controls="navLinks">
+                    <span></span><span></span><span></span>
+                </button>
+           </div>
+        </div>
+    </header>
+
+    <div class="menu-overlay" id="menuOverlay"></div>
+
+    <main>
+        <section class="hero" id="hero">
+            <div id="particles-js"></div>
+            <div class="container hero-content">
+                <h1 data-animate-letters>
+                    Učení <span class="highlight" data-text="Budoucnosti">Budoucnosti</span><br>s Umělou Inteligencí
+                </h1>
+                <p data-animate style="--animation-order: 1;">
+                    Připravte se na přijímací zkoušky a získejte náskok s naší adaptivní AI platformou. Personalizované plány, interaktivní cvičení a okamžitá zpětná vazba.
+                </p>
+                <div class="hero-buttons" data-animate style="--animation-order: 2;">
+                    <a href="/auth/index.html" class="btn auth-link"><i class="fas fa-user-plus" aria-hidden="true"></i> Začít ZDARMA</a>
+                    <a href="#features" class="btn btn-outline"><i class="fas fa-info-circle" aria-hidden="true"></i> Více informací</a>
+                </div>
+            </div>
+        </section>
+
+        <section id="features" class="features">
+            <div class="container">
+                <h2 class="section-title animated" data-animate><span><i class="fas fa-cogs" aria-hidden="true"></i> Klíčové Funkce</span></h2>
+                <p class="section-subtitle" data-animate style="--animation-order: 1;">
+                    Objevte nástroje navržené pro maximalizaci vašeho studijního potenciálu.
+                </p>
+                <div class="features-grid">
+                    <div class="feature-card" data-animate style="--animation-order: 2;">
+                        <div class="feature-icon"><i class="fas fa-brain" aria-hidden="true"></i></div>
+                        <div class="feature-card-header">
+                            <h3>Adaptivní Učení</h3>
+                            <p>AI analyzuje váš pokrok a přizpůsobuje obsah vašim potřebám.</p>
+                        </div>
+                    </div>
+                    <div class="feature-card" data-animate style="--animation-order: 3;">
+                        <div class="feature-icon"><i class="fas fa-tasks" aria-hidden="true"></i></div>
+                        <div class="feature-card-header">
+                            <h3>Interaktivní Cvičení</h3>
+                            <p>Procvičujte s okamžitou zpětnou vazbou a vysvětlením.</p>
+                        </div>
+                    </div>
+                    <div class="feature-card" data-animate style="--animation-order: 4;">
+                        <div class="feature-icon"><i class="fas fa-chart-line" aria-hidden="true"></i></div>
+                        <div class="feature-card-header">
+                            <h3>Sledování Pokroku</h3>
+                            <p>Vizualizujte své výsledky a identifikujte oblasti ke zlepšení.</p>
+                        </div>
+                    </div>
+                    <div class="feature-card" data-animate style="--animation-order: 5;">
+                         <div class="feature-icon"><i class="fas fa-robot" aria-hidden="true"></i></div>
+                         <div class="feature-card-header">
+                            <h3>AI Tutor</h3>
+                            <p>Získejte personalizované rady a vysvětlení kdykoliv.</p>
+                        </div>
+                    </div>
+                    <div class="feature-card" data-animate style="--animation-order: 6;">
+                         <div class="feature-icon"><i class="fas fa-calendar-alt" aria-hidden="true"></i></div>
+                         <div class="feature-card-header">
+                            <h3>Studijní Plány</h3>
+                             <p>Nechte AI vytvořit efektivní plán na míru vašim cílům.</p>
+                        </div>
+                    </div>
+                     <div class="feature-card" data-animate style="--animation-order: 7;">
+                         <div class="feature-icon"><i class="fas fa-database" aria-hidden="true"></i></div>
+                         <div class="feature-card-header">
+                             <h3>Databanka Znalostí</h3>
+                             <p>Přístup k rozsáhlé knihovně materiálů a vysvětlení.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="ai-demo" class="ai-interface-section">
+            <div class="container">
+                <h2 class="section-title animated" data-animate><span><i class="fas fa-terminal" aria-hidden="true"></i> AI v Akci</span></h2>
+                <p class="section-subtitle" data-animate style="--animation-order: 1;">
+                    Nahlédněte, jak naše AI zpracovává data a generuje personalizované strategie.
+                </p>
+                <div class="ai-interface-wrapper" data-animate style="--animation-order: 2;">
+                    <div class="ai-interface-header">
+                        <div class="ai-interface-title">
+                             <i class="fas fa-microchip" aria-hidden="true"></i> Analytické Jádro Justax v19
+                        </div>
+                        <div class="ai-status-indicator" id="ai-status">AKTIVNÍ</div>
+                    </div>
+                    <div class="ai-content-area">
+                        <div class="ai-log-window" id="ai-demo-output">
+                            </div>
+                        <div class="ai-input-area">
+                            <span id="ai-fake-input"></span><span class="fake-input-cursor"></span>
+                        </div>
+                        <div class="ai-progress-bar-container">
+                            <div class="ai-progress-bar-label" id="ai-progress-label">Inicializace // Čekání na data...</div>
+                            <div class="ai-progress-bar">
+                                <div class="ai-progress-bar-inner" id="ai-progress-bar" style="width: 0%;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="how-it-works" class="how-it-works">
+            <div class="container">
+                <h2 class="section-title animated" data-animate><span><i class="fas fa-rocket" aria-hidden="true"></i> Jak začít?</span></h2>
+                <p class="section-subtitle" data-animate style="--animation-order: 1;">
+                    Jednoduché kroky k nastartování vaší cesty za lepším vzděláním.
+                </p>
+                <div class="timeline-container">
+                    <div class="timeline-item" data-animate data-animate-timeline style="--animation-order: 2;">
+                        <div class="timeline-icon">1</div>
+                        <div class="timeline-content">
+                            <h3>Registrace</h3>
+                            <p>Vytvořte si účet zdarma během několika sekund a získejte přístup.</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item" data-animate data-animate-timeline style="--animation-order: 3;">
+                        <div class="timeline-icon">2</div>
+                        <div class="timeline-content">
+                            <h3>Diagnostický Test</h3>
+                            <p>Absolvujte vstupní test, aby AI poznalo vaše znalosti.</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item" data-animate data-animate-timeline style="--animation-order: 4;">
+                        <div class="timeline-icon">3</div>
+                        <div class="timeline-content">
+                            <h3>Personalizace</h3>
+                            <p>AI analyzuje výsledky a navrhne vám studijní plán na míru.</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item" data-animate data-animate-timeline style="--animation-order: 5;">
+                        <div class="timeline-icon">4</div>
+                        <div class="timeline-content">
+                            <h3>Učení a Procvičování</h3>
+                             <p>Sledujte svůj plán, plňte úkoly a sledujte svůj pokrok v reálném čase.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="testimonials" class="testimonials">
+            <div class="container">
+                <h2 class="section-title animated" data-animate><span><i class="fas fa-comments" aria-hidden="true"></i> Recenze Rodičů</span></h2>
+                <p class="section-subtitle" data-animate style="--animation-order: 1;">
+                    Co si o Justax myslí ti, kteří to s námi zkusili?
+                </p>
+                <div class="testimonials-grid">
+                    <div class="testimonial-card" data-animate style="--animation-order: 2;">
+                        <div class="testimonial-content">
+                            <div class="testimonial-rating">
+                                <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i>
+                            </div>
+                            <p class="testimonial-text">
+                                Měla jsem obavy, jestli to syna bude bavit, ale Justax ho fakt chytl! Líbí se mi, jak mu AI vysvětlí přesně to, s čím bojuje. Výsledky se zlepšily skoro hned.
+                            </p>
+                        </div>
+                        <div class="testimonial-author">
+                            <div class="testimonial-avatar" style="background-image: url('https://via.placeholder.com/100x100/A05CFF/FFFFFF?text=JP');"></div>
+                            <div class="testimonial-author-info">
+                                <div class="testimonial-name">Jana P.</div>
+                                <div class="testimonial-role">Maminka deváťáka</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="testimonial-card" data-animate style="--animation-order: 3;">
+                         <div class="testimonial-content">
+                             <div class="testimonial-rating">
+                                <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                             </div>
+                            <p class="testimonial-text">
+                                Konečně něco, co na dceru funguje. Předtím jsme zkoušeli doučování, ale tohle je mnohem efektivnější. Plán na míru je super věc, nemusím nic hlídat.
+                             </p>
+                        </div>
+                        <div class="testimonial-author">
+                            <div class="testimonial-avatar" style="background-image: url('https://via.placeholder.com/100x100/00E0FF/03020C?text=MK');"></div>
+                            <div class="testimonial-author-info">
+                                <div class="testimonial-name">Martin K.</div>
+                                <div class="testimonial-role">Otec studentky</div>
+                            </div>
+                        </div>
+                    </div>
+                     <div class="testimonial-card" data-animate style="--animation-order: 4;">
+                         <div class="testimonial-content">
+                            <div class="testimonial-rating">
+                                <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i>
+                             </div>
+                             <p class="testimonial-text">
+                                Syn si pochvaluje hlavně tu okamžitou zpětnou vazbu. Když něco neví, AI mu to hned vysvětlí jinak. Ušetřilo nám to spoustu nervů před přijímačkami. Doporučuju!
+                            </p>
+                        </div>
+                        <div class="testimonial-author">
+                            <div class="testimonial-avatar" style="background-image: url('https://via.placeholder.com/100x100/FF33A8/FFFFFF?text=LS');"></div>
+                             <div class="testimonial-author-info">
+                                <div class="testimonial-name">Lucie S.</div>
+                                <div class="testimonial-role">Máma (syn 9. třída)</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="cta">
+            <div class="container">
+                <h2 data-animate>Připraveni změnit způsob učení?</h2>
+                <p data-animate style="--animation-order: 1;">
+                    Připojte se k Justax ještě dnes a odemkněte svůj plný potenciál s pomocí AI.
+                </p>
+                <a href="/auth/index.html" class="btn auth-link" data-animate style="--animation-order: 2;"><i class="fas fa-rocket" aria-hidden="true"></i> Vytvořit účet ZDARMA</a>
+            </div>
+        </section>
+    </main>
+
+    <footer id="contact">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-column">
+                    <a href="/" class="logo" aria-label="Justax Domů"> <i class="fas fa-atom" aria-hidden="true"></i> <span>JUSTAX</span> </a>
+                    <p>AI Augmentace Vzdělávání.</p>
+                    <div class="social-links">
+                         <a href="#" class="social-link" aria-label="Telegram"><i class="fab fa-telegram-plane" aria-hidden="true"></i></a>
+                         <a href="#" class="social-link" aria-label="Instagram"><i class="fab fa-instagram" aria-hidden="true"></i></a>
+                         <a href="mailto:podpora@justax.space" class="social-link" aria-label="Email"><i class="fas fa-envelope" aria-hidden="true"></i></a>
+                    </div>
+                </div>
+                <div class="footer-column">
+                    <h3>Navigace</h3>
+                    <ul class="footer-links">
+                        <li><a href="#features">Funkce</a></li>
+                        <li><a href="#ai-demo">AI v Akci</a></li>
+                        <li><a href="#how-it-works">Jak začít</a></li>
+                         <li><a href="/auth/index.html">Přihlášení</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h3>Právní</h3>
+                    <ul class="footer-links">
+                        <li><a href="privacy-policy.html">Ochrana Údajů</a></li>
+                        <li><a href="terms.html">Podmínky Použití</a></li>
+                         <li><a href="#">Nastavení Cookies</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h3>Podpora</h3>
+                    <ul class="footer-links">
+                        <li><a href="mailto:podpora@justax.space">podpora@justax.space</a></li>
+                        <li><i class="fas fa-map-marker-alt" aria-hidden="true" style="margin-right: 5px;"></i>Centrála: Praha, CZ</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="copyright">
+                &copy; <span id="currentYear">2025</span> Justax AI Systems. Všechna práva vyhrazena. // Protokol v2.1
+                 // Sestaveno s <i class="fas fa-heart" style="color: var(--accent-pink);" aria-hidden="true"></i> v CZ.
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script src="index.js" defer></script>
+    <script>
+        // Inicializace particles.js (nebo jiné skripty specifické pro tuto stránku)
+        if (document.getElementById('particles-js')) {
+            particlesJS.load('particles-js', 'particles-config.json', function() {
+                console.log('callback - particles.js config loaded');
+            });
+        }
+    </script>
+
 </body>
 </html>
