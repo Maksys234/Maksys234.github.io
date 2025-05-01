@@ -1,396 +1,357 @@
-       // --- START: JavaScript v19 (Maximum Overdrive) ---
+document.addEventListener('DOMContentLoaded', () => {
+    console.log("DOM Ready. Initializing JUSTAX Interface v19...");
 
-       // --- Вспомогательные Функции ---
+    // --- Глобальные переменные и хелперы ---
+    const body = document.body;
+    const currentYear = new Date().getFullYear();
+    const yearSpan = document.getElementById('currentYear');
+    if (yearSpan) {
+        yearSpan.textContent = currentYear;
+    }
 
-       const toggleMenu = (forceClose = false) => { /* ... (код без изменений) ... */
-           const hamburger = document.getElementById('hamburger');
-           const navLinks = document.getElementById('navLinks');
-           const menuOverlay = document.getElementById('menuOverlay');
-           const body = document.body;
-           if (!hamburger || !navLinks || !menuOverlay) { console.warn("Элементы мобильного меню не найдены."); return; }
-           const isActive = navLinks.classList.contains('active');
-           if (forceClose || isActive) {
-               hamburger.classList.remove('active'); navLinks.classList.remove('active'); menuOverlay.classList.remove('active'); body.classList.remove('menu-open'); hamburger.setAttribute('aria-expanded', 'false');
-           } else {
-               hamburger.classList.add('active'); navLinks.classList.add('active'); menuOverlay.classList.add('active'); body.classList.add('menu-open'); hamburger.setAttribute('aria-expanded', 'true');
-           }
-       };
-
-       const handleHeaderScroll = () => { /* ... (код без изменений, можно добавить логику hide/show) ... */
-           const header = document.getElementById('header');
-           if (!header) return;
-           const currentScrollY = window.scrollY;
-           if (currentScrollY > 50) { header.classList.add('scrolled'); } else { header.classList.remove('scrolled'); }
-           // Optional: Hide header on scroll down
-           // static let lastScrollY = 0; // Needs to be managed outside if used
-           // if (currentScrollY > lastScrollY && currentScrollY > header.offsetHeight + 50) { header.classList.add('hidden'); } else { header.classList.remove('hidden'); }
-           // lastScrollY = currentScrollY <= 0 ? 0 : currentScrollY;
-       };
-
-       const initScrollAnimations = () => { /* ... (код без изменений, но теперь есть data-animate-timeline) ... */
-           const animatedElements = document.querySelectorAll('[data-animate]');
-           if (animatedElements.length && 'IntersectionObserver' in window) {
-               const observer = new IntersectionObserver((entries, observerInstance) => {
-                   entries.forEach(entry => { if (entry.isIntersecting) { entry.target.classList.add('animated'); observerInstance.unobserve(entry.target); } });
-               }, { threshold: 0.1 });
-               animatedElements.forEach(element => observer.observe(element));
-           } else { animatedElements.forEach(element => element.classList.add('animated')); }
-       };
-
-        // NEW: Анимация таймлайна
-        const initTimelineAnimation = () => {
-            const timelineContainer = document.getElementById('timelineContainer');
-            const timelineItems = document.querySelectorAll('[data-animate-timeline]');
-            if (!timelineContainer || !timelineItems.length || !('IntersectionObserver' in window)) return;
-
-            // Анимация линии
-            const lineObserver = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        timelineContainer.classList.add('in-view');
-                    } else {
-                         // Можно добавить сброс анимации при выходе из вида, если нужно
-                         // timelineContainer.classList.remove('in-view');
-                    }
-                });
-            }, { threshold: 0.2 }); // Запускать, когда 20% контейнера видно
-
-            lineObserver.observe(timelineContainer);
-
-            // Анимация элементов
-            const itemObserver = new IntersectionObserver((entries, observerInstance) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.classList.add('in-view');
-                        observerInstance.unobserve(entry.target); // Анимировать один раз
-                    }
-                });
-            }, { threshold: 0.5 }); // Запускать, когда 50% элемента видно
-
-            timelineItems.forEach(item => itemObserver.observe(item));
-        };
-
-        // NEW: Анимация букв в заголовке
-        const initLetterAnimation = () => {
-            const elements = document.querySelectorAll('[data-animate-letters]');
-            elements.forEach(element => {
-                const text = element.textContent?.trim() ?? '';
-                const highlightSpan = element.querySelector('.highlight');
-                const highlightText = highlightSpan?.dataset.text ?? highlightSpan?.textContent?.trim() ?? '';
-
-                let content = '';
-                let charIndex = 0;
-
-                // Обработка текста ДО span.highlight
-                const textBeforeHighlight = text.substring(0, text.indexOf(highlightText));
-                textBeforeHighlight.split('').forEach(char => {
-                    if (char.trim()) { // Пропускаем пробелы
-                        content += `<span class="char" style="--char-index:${charIndex};">${char}</span>`;
-                        charIndex++;
-                    } else { content += ' '; }
-                });
-
-                // Обработка span.highlight
-                if (highlightSpan) {
-                    content += `<span class="highlight" data-text="${highlightText}">`; // Оставляем highlight обертку
-                    highlightText.split('<br>').forEach((line, lineIndex) => {
-                        if(lineIndex > 0) content += '<br>'; // Сохраняем <br>
-                         line.split('').forEach(char => {
-                             if (char.trim()) {
-                                 content += `<span class="char" style="--char-index:${charIndex};">${char}</span>`;
-                                 charIndex++;
-                             } else { content += ' '; }
-                         });
-                    });
-                    content += `</span>`;
-                }
-
-                 // Обработка текста ПОСЛЕ span.highlight (если есть)
-                const textAfterHighlight = text.substring(text.indexOf(highlightText) + highlightText.length);
-                textAfterHighlight.split('').forEach(char => {
-                    if (char.trim()) {
-                        content += `<span class="char" style="--char-index:${charIndex};">${char}</span>`;
-                        charIndex++;
-                    } else { content += ' '; }
-                });
-
-
-                element.innerHTML = content;
-
-                // Optional: Trigger glitch effect after letters revealed
-                 const highlight = element.querySelector('.highlight');
-                 if(highlight) {
-                     setTimeout(() => {
-                         highlight.classList.add('glitch-effect');
-                         // Remove after some time if you want it temporary
-                         setTimeout(() => highlight.classList.remove('glitch-effect'), 1500);
-                     }, charIndex * 30 + 500); // Wait for letters + delay
-                 }
-            });
-        };
-
-
-       const handleSmoothScroll = (event) => { /* ... (код без изменений) ... */
-            const link = event.target.closest('a[href^="#"]'); if (!link) return;
-            const hrefAttribute = link.getAttribute('href');
-            if (hrefAttribute && hrefAttribute.length > 1) {
-                try {
-                    const targetElement = document.querySelector(hrefAttribute);
-                    if (targetElement) { event.preventDefault(); targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); if (link.closest('#navLinks.active')) { toggleMenu(true); } }
-                } catch (error) { console.error(`Ошибка поиска элемента для селектора: ${hrefAttribute}`, error); }
-            } else if (link.classList.contains('nav-item') && link.closest('#navLinks.active')) { toggleMenu(true); }
-       };
-
-       const updateCopyrightYear = () => { /* ... (код без изменений) ... */
-            const currentYearSpan = document.getElementById('currentYear');
-            if (currentYearSpan) { currentYearSpan.textContent = new Date().getFullYear(); }
-       };
-
-       const updateActiveNav = () => { /* ... (код без изменений) ... */
-            const header = document.getElementById('header'); const navItems = document.querySelectorAll('#navLinks a.nav-item[href^="#"]'); const sections = document.querySelectorAll('section[id]');
-            if (!navItems || !header || !sections) return;
-            let currentSectionId = null; const scrollPosition = window.scrollY + header.offsetHeight + 50;
-            sections.forEach(section => { if (section && typeof section.offsetTop === 'number') { if (scrollPosition >= section.offsetTop) { currentSectionId = section.id; } } });
-            navItems.forEach(item => { item.classList.remove('active'); const itemHref = item.getAttribute('href'); if (itemHref && itemHref === `#${currentSectionId}`) { item.classList.add('active'); } });
-       };
-
-        const runAiDemo = () => { /* ... (Обновленная версия с доп. шагами и фейковым инпутом) ... */
-            const aiDemoOutput = document.getElementById('ai-demo-output');
-            const aiProgressBarElement = document.getElementById('ai-progress-bar');
-            const aiProgressBarContainer = document.querySelector('.ai-progress-bar[role="progressbar"]');
-            const aiFakeInput = document.getElementById('ai-fake-input'); // NEW
-
-            if (!aiDemoOutput || !aiProgressBarElement || !aiProgressBarContainer || !aiFakeInput) {
-                console.warn("Элементы AI демо не найдены."); return;
+    // Функция для добавления/удаления класса с задержкой (для анимаций и т.д.)
+    const delayedToggleClass = (element, className, delay, add = true) => {
+        setTimeout(() => {
+            if (element) {
+                element.classList.toggle(className, add);
             }
+        }, delay);
+    };
 
-            const demoSteps = [
-                { text: { type: 'system', content: 'Initializing JX CORE v19...'}, delay: 300 },
-                { progress: 5, delay: 200 },
-                { text: { type: 'system', content: 'Neural link established. Ready for input.'}, delay: 500 },
-                { progress: 10, delay: 150 },
-                { text: { type: 'user', content: 'Problém: Najdi diskriminant: 2x² + 5x - 3 = 0'}, delay: 1200, fakeInput: true }, // Input this
-                { progress: 15, delay: 200 },
-                { text: { type: 'analysis', content: 'Query received. Analyzing quadratic equation...'}, delay: 600 },
-                { progress: 30, delay: 300 },
-                { text: { type: 'analysis', content: 'Identifikace: Kvadratická rovnice. Požadavek: Výpočet diskriminantu (D).'}, delay: 500 },
-                { progress: 40, delay: 200 },
-                { text: { type: 'ai', content: 'Vzorec pro diskriminant: D = b² - 4ac', typing: true }, delay: 900 },
-                { progress: 50, delay: 200 },
-                { text: { type: 'analysis', content: 'Parametry extrahovány: a=2, b=5, c=-3'}, delay: 400 },
-                { progress: 60, delay: 300 },
-                { text: { type: 'ai', content: 'Dosazení parametrů: D = (5)² - 4 * (2) * (-3)', typing: true }, delay: 1000 },
-                { progress: 75, delay: 200 },
-                { text: { type: 'ai', content: 'Výpočet: D = 25 - (-24) = 25 + 24', typing: true }, delay: 900 },
-                { progress: 90, delay: 200 },
-                { text: { type: 'ai', content: 'Finální výsledek: D = 49', typing: true }, delay: 600 },
-                { progress: 100, delay: 300 },
-                { text: { type: 'analysis', content: 'Úloha vyřešena. D > 0 => 2 reálné kořeny. Čekání na další příkaz...'}, delay: 1000 },
-                { progress: 0, delay: 7000 } // Еще больше задержка
-            ];
-            let currentStepIndex = 0; let charIndex = 0; let typeInterval; let sequenceTimeout; let fakeInputTimeout;
+    // --- Эффект следования за мышью ---
+    const follower = document.getElementById('mouse-follower');
+    let mouseX = 0, mouseY = 0;
+    let followerX = 0, followerY = 0;
+    const followSpeed = 0.1; // Плавность следования (0 до 1)
 
-            function sanitizeHTML(str) { /* ... (код без изменений) ... */
-                 const temp = document.createElement('div'); temp.textContent = str; return temp.innerHTML.replace(/</g, "&lt;").replace(/>/g, "&gt;");
-            }
+    if (follower) {
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+        });
 
-            function typeWriter(lineElement, text, speed = 45, onComplete) { /* Добавлен коллбэк */
-                 const textContainer = lineElement?.querySelector('.text-content'); if (!textContainer) return;
-                 if (charIndex < text.length) {
-                      textContainer.innerHTML = sanitizeHTML(text.substring(0, charIndex + 1)) + '<span class="typing-cursor"></span>';
-                      charIndex++; const currentSpeed = speed + (Math.random() * speed * 0.4 - speed * 0.2);
-                      typeInterval = setTimeout(() => typeWriter(lineElement, text, speed, onComplete), currentSpeed);
-                 } else {
-                      textContainer.innerHTML = sanitizeHTML(text); clearTimeout(typeInterval);
-                      if (onComplete) onComplete(); // Вызвать коллбэк
-                      else scheduleNextStep();
-                 }
-             }
+        // Добавляем эффект при нажатии кнопки мыши
+        document.addEventListener('mousedown', () => {
+            follower.style.transform = 'translate(-50%, -50%) scale(0.8)'; // Уменьшаем размер
+            follower.style.transition = 'transform 0.1s ease-out'; // Быстрая анимация
+        });
 
-             // NEW: Печать в фейковый инпут
-            function typeInFakeInput(text, speed = 60, onComplete) {
-                 let currentInputChar = 0;
-                 aiFakeInput.textContent = ''; // Очистить перед началом
-                 clearTimeout(fakeInputTimeout);
+        document.addEventListener('mouseup', () => {
+            follower.style.transform = 'translate(-50%, -50%) scale(1)'; // Возвращаем нормальный размер
+            follower.style.transition = 'transform 0.2s ease-in-out'; // Плавное возвращение
+        });
 
-                 function typeChar() {
-                     if (currentInputChar < text.length) {
-                         aiFakeInput.textContent += text[currentInputChar];
-                         currentInputChar++;
-                         fakeInputTimeout = setTimeout(typeChar, speed + (Math.random() * speed * 0.5 - speed * 0.25));
-                     } else {
-                         if (onComplete) onComplete();
+
+        const updateFollowerPosition = () => {
+            const dx = mouseX - followerX;
+            const dy = mouseY - followerY;
+
+            followerX += dx * followSpeed;
+            followerY += dy * followSpeed;
+
+            // Округляем значения для производительности
+            const roundedX = Math.round(followerX);
+            const roundedY = Math.round(followerY);
+
+            // Используем requestAnimationFrame для плавности и производительности
+            requestAnimationFrame(() => {
+                 if (follower) {
+                     follower.style.left = `${roundedX}px`;
+                     follower.style.top = `${roundedY}px`;
+                     // Переустанавливаем transform, чтобы он не конфликтовал с mouseup/down
+                     if (!body.matches(':active')) { // Проверяем, не нажата ли кнопка мыши
+                         follower.style.transform = 'translate(-50%, -50%) scale(1)';
                      }
                  }
-                 typeChar();
-             }
+                 requestAnimationFrame(updateFollowerPosition);
+            });
+        };
+
+        // Запускаем анимацию следования
+        requestAnimationFrame(updateFollowerPosition);
+
+        console.log("Mouse follower activated.");
+    } else {
+        console.warn("Mouse follower element not found.");
+    }
 
 
-            function addDemoLine(lineData, onComplete) { /* Добавлен коллбэк */
-                const lineElement = document.createElement('div'); lineElement.className = `ai-demo-line ${lineData.type || 'ai'}`; lineElement.style.opacity = '0';
-                lineElement.innerHTML = `<span class="text-content"></span>`; aiDemoOutput.appendChild(lineElement);
-                const isScrolledToBottom = aiDemoOutput.scrollHeight - aiDemoOutput.clientHeight <= aiDemoOutput.scrollTop + 10;
-                if (isScrolledToBottom) { aiDemoOutput.scrollTop = aiDemoOutput.scrollHeight; }
-                requestAnimationFrame(() => { lineElement.style.opacity = '1'; });
-                if (lineData.typing) {
-                    const textContainer = lineElement.querySelector('.text-content'); if(textContainer) textContainer.innerHTML = '<span class="typing-cursor"></span>';
-                    charIndex = 0; clearTimeout(typeInterval);
-                    setTimeout(() => typeWriter(lineElement, lineData.content, 45, onComplete), 150);
+    // --- Навигация (гамбургер меню) ---
+    const hamburger = document.getElementById('hamburger');
+    const navLinks = document.getElementById('navLinks');
+    const menuOverlay = document.getElementById('menuOverlay');
+    const header = document.getElementById('header'); // Получаем хедер
+
+    if (hamburger && navLinks && menuOverlay && header) {
+        hamburger.addEventListener('click', () => {
+            const isExpanded = hamburger.getAttribute('aria-expanded') === 'true';
+            hamburger.setAttribute('aria-expanded', !isExpanded);
+            hamburger.classList.toggle('active');
+            navLinks.classList.toggle('active');
+            menuOverlay.classList.toggle('active');
+            body.classList.toggle('no-scroll'); // Блокировка скролла при открытом меню
+            header.classList.toggle('menu-open'); // Добавляем класс на хедер
+            console.log(`Mobile menu toggled: ${!isExpanded ? 'Open' : 'Closed'}`);
+        });
+
+        menuOverlay.addEventListener('click', () => {
+            hamburger.setAttribute('aria-expanded', 'false');
+            hamburger.classList.remove('active');
+            navLinks.classList.remove('active');
+            menuOverlay.classList.remove('active');
+            body.classList.remove('no-scroll');
+            header.classList.remove('menu-open');
+            console.log("Mobile menu closed via overlay click.");
+        });
+
+        // Закрытие меню при клике на ссылку (для SPA-подобной навигации)
+        navLinks.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', () => {
+                if (navLinks.classList.contains('active')) {
+                    hamburger.setAttribute('aria-expanded', 'false');
+                    hamburger.classList.remove('active');
+                    navLinks.classList.remove('active');
+                    menuOverlay.classList.remove('active');
+                    body.classList.remove('no-scroll');
+                    header.classList.remove('menu-open');
+                    console.log("Mobile menu closed via link click.");
+                }
+            });
+        });
+        console.log("Hamburger menu initialized.");
+    } else {
+         console.warn("Hamburger menu elements not found. Menu might not function.");
+     }
+
+    // --- Демонстрация работы AI ---
+    const aiOutput = document.getElementById('ai-demo-output');
+    const aiProgressBar = document.getElementById('ai-progress-bar');
+    const aiProgressLabel = document.getElementById('ai-progress-label');
+    const aiFakeInput = document.getElementById('ai-fake-input'); // Элемент для имитации ввода
+
+    // Расширенный список текстов для демо + имитация команд и ошибок
+    const demoTexts = [
+        { text: "Boot Sequence Initiated...", type: "status" },
+        { text: "Loading AI Core v19...", type: "status" },
+        { text: "Accessing Neural Network...", type: "status" },
+        { text: "Analyzing Query: 'Optimal Learning Path - Math'", type: "input" }, // Имитация ввода
+        { text: "Processing User Profile: CyberMike_77...", type: "process" },
+        { text: "Scanning Knowledge Base...", type: "process" },
+        { text: "Identifying Weak Points: Algebra, Geometry...", type: "analysis" },
+        { text: "WARNING: High error rate detected in Polynomials.", type: "warning" }, // Добавлено предупреждение
+        { text: "Initiating Correction Subroutine...", type: "process" },
+        { text: "Generating Adaptive Lesson Plan...", type: "process" },
+        { text: "Module 1: Polynomial Refresher Activated.", type: "output" },
+        { text: "Module 2: Geometric Proofs - Interactive.", type: "output" },
+        { text: "Calculating Optimal Time Allocation...", type: "analysis" },
+        { text: "Simulating CERMAT Exam Conditions...", type: "process" },
+        { text: "Cross-referencing with known exam patterns...", type: "process" },
+        { text: "Optimization Complete.", type: "status" },
+        { text: "Ready for User Input.", type: "status" }
+    ];
+
+    let currentTextIndex = 0;
+    let currentProgress = 0;
+    const progressIncrement = 100 / demoTexts.length; // Инкремент прогресса на каждый шаг
+
+    // Функция для имитации печатания текста
+    const typeText = (element, text, speed = 50) => {
+         return new Promise((resolve) => {
+            let i = 0;
+            element.textContent = ''; // Очищаем перед началом
+            const intervalId = setInterval(() => {
+                if (i < text.length) {
+                    element.textContent += text.charAt(i);
+                    i++;
                 } else {
-                    const textContainer = lineElement.querySelector('.text-content'); if(textContainer) textContainer.textContent = lineData.content;
-                    if (onComplete) onComplete(); // Вызвать коллбэк для непечатаемых строк
-                    else scheduleNextStep();
+                    clearInterval(intervalId);
+                     resolve(); // Завершаем промис после печати
                 }
+            }, speed);
+        });
+    };
+
+    const runAIDemo = async () => {
+        if (!aiOutput || !aiProgressBar || !aiProgressLabel || !aiFakeInput) {
+            console.warn("AI Demo elements missing. Demo aborted.");
+            return; // Выходим, если элементы не найдены
+        }
+
+        if (currentTextIndex >= demoTexts.length) {
+            // Демо завершено, можно перезапустить или остановиться
+            aiOutput.innerHTML += `<p class="ai-log-line status">[Session End]</p>`;
+            aiProgressLabel.textContent = "Processing Complete";
+            console.log("AI Demo sequence finished.");
+            // Можно добавить кнопку для перезапуска
+            // setTimeout(resetAndRunDemo, 5000); // Пример перезапуска через 5 сек
+            return;
+        }
+
+        const item = demoTexts[currentTextIndex];
+        const logLine = document.createElement('p');
+        logLine.classList.add('ai-log-line', item.type || 'status'); // Добавляем класс типа
+
+        if (item.type === 'input') {
+            // Имитируем ввод в поле fake-input
+            await typeText(aiFakeInput, item.text, 70); // Печатаем в поле ввода
+            await new Promise(resolve => setTimeout(resolve, 300)); // Пауза после ввода
+             logLine.textContent = `> ${item.text}`; // Отображаем как введенную команду в логе
+            aiFakeInput.textContent = ''; // Очищаем поле ввода
+        } else {
+            // Имитируем вывод в лог
+            logLine.textContent = item.text;
+         }
+
+        aiOutput.appendChild(logLine);
+        aiOutput.scrollTop = aiOutput.scrollHeight; // Автопрокрутка вниз
+
+        // Обновляем прогресс-бар и метку
+        currentProgress += progressIncrement;
+        aiProgressBar.style.width = `${Math.min(currentProgress, 100)}%`; // Ограничиваем 100%
+         // Динамическое изменение текста прогресс бара
+         let progressText = "Processing";
+         if (item.type === 'analysis') progressText = "Analyzing Data";
+         if (item.type === 'warning') progressText = "System Alert";
+         if (item.type === 'output') progressText = "Generating Output";
+         aiProgressLabel.textContent = `${progressText} // ${item.text.substring(0, 25)}...`; // Краткое описание задачи
+
+        currentTextIndex++;
+
+        // Случайная задержка перед следующим шагом для реализма
+        const randomDelay = Math.random() * 500 + 200; // от 200 до 700 мс
+        setTimeout(runAIDemo, randomDelay);
+    };
+
+    // Наблюдатель для запуска AI демо при появлении блока на экране
+    const demoSection = document.getElementById('ai-demo');
+    let demoStarted = false;
+    const demoObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting && !demoStarted) {
+                console.log("AI Demo section intersecting, starting simulation...");
+                demoStarted = true; // Запускаем только один раз
+                // Очищаем перед запуском (если нужно перезапускать)
+                if (aiOutput) aiOutput.innerHTML = '';
+                if (aiProgressBar) aiProgressBar.style.width = '0%';
+                currentTextIndex = 0;
+                currentProgress = 0;
+                if (aiFakeInput) aiFakeInput.textContent = '';
+                runAIDemo(); // Запускаем демо
+                // demoObserver.unobserve(entry.target); // Раскомментировать, если нужно запустить только 1 раз за сессию
             }
+        });
+    }, { threshold: 0.6 }); // Запускать, когда 60% секции видно
 
-            function updateProgressBar(percentage) { /* ... (код без изменений) ... */
-                 aiProgressBarElement.style.width = `${percentage}%`; aiProgressBarContainer.setAttribute('aria-valuenow', percentage);
+    if (demoSection) {
+        demoObserver.observe(demoSection);
+         console.log("AI Demo observer attached.");
+     } else {
+         console.warn("AI Demo section (#ai-demo) not found.");
+     }
+
+
+    // --- Анимации при прокрутке ---
+    const animatedElements = document.querySelectorAll('[data-animate], [data-animate-letters], [data-animate-timeline]');
+
+    const scrollObserver = new IntersectionObserver((entries, observer) => {
+        entries.forEach((entry, index) => {
+            if (entry.isIntersecting) {
+                const element = entry.target;
+                const delay = (parseInt(element.style.getPropertyValue('--animation-order') || '0', 10)) * 100; // Задержка на основе --animation-order
+
+                // Анимация букв
+                if (element.hasAttribute('data-animate-letters') && !element.classList.contains('letters-animated')) {
+                    element.classList.add('letters-animating'); // Класс для начала анимации
+                     const text = element.textContent?.trim() ?? ''; // Используем textContent и удаляем пробелы
+                     element.innerHTML = ''; // Очищаем элемент
+
+                    text.split('').forEach((char, charIndex) => {
+                         const span = document.createElement('span');
+                         span.textContent = char === ' ' ? '\u00A0' : char; // Заменяем пробел на неразрывный
+                        span.style.display = 'inline-block'; // Важно для transform
+                         span.style.opacity = '0';
+                         // Добавляем случайное смещение и задержку для "крутого" эффекта
+                        const randomY = (Math.random() - 0.5) * 10; // Случайное смещение по Y (-5px до +5px)
+                        const randomDelay = Math.random() * 300; // Случайная доп. задержка до 300ms
+                         span.style.transform = `translateY(${randomY}px)`;
+                         span.style.animation = `letterFadeIn 0.6s ${delay + charIndex * 50 + randomDelay}ms forwards cubic-bezier(0.2, 0.8, 0.2, 1)`;
+                         element.appendChild(span);
+                    });
+                    element.classList.add('letters-animated'); // Отмечаем, что анимация запущена
+                    console.log("Letter animation triggered for:", element);
+                 }
+                // Обычная анимация появления
+                else if (element.hasAttribute('data-animate') && !element.classList.contains('animated')) {
+                    delayedToggleClass(element, 'animated', delay);
+                    console.log("General animation triggered for:", element, "with delay:", delay);
+                 }
+                 // Анимация таймлайна
+                else if (element.hasAttribute('data-animate-timeline') && !element.classList.contains('timeline-animated')) {
+                    delayedToggleClass(element, 'timeline-animated', delay);
+                    console.log("Timeline animation triggered for:", element, "with delay:", delay);
+                 }
+
+                // Отключаем наблюдение после анимации для производительности
+                // observer.unobserve(element); // Пока закомментировано, если нужна повторная анимация при прокрутке
             }
+            // Можно добавить логику для скрытия элементов при прокрутке вверх (если нужно)
+             // else {
+             //     if (entry.target.classList.contains('animated')) {
+             //         entry.target.classList.remove('animated');
+             //     }
+             //     // ... и для других типов анимаций
+             // }
+        });
+    }, {
+         threshold: 0.1, // Запускать, когда 10% элемента видно
+         // rootMargin: "0px 0px -50px 0px" // Можно настроить отступы, чтобы анимация начиналась чуть раньше/позже
+     });
 
-            function executeNextStep() {
-                if (currentStepIndex >= demoSteps.length) {
-                    sequenceTimeout = setTimeout(() => {
-                        aiDemoOutput.innerHTML = ''; updateProgressBar(0); currentStepIndex = 0; aiFakeInput.textContent = ''; // Очистить инпут
-                        executeNextStep();
-                    }, demoSteps[demoSteps.length - 1]?.delay || 7000);
-                    return;
-                }
+    animatedElements.forEach(el => {
+        scrollObserver.observe(el);
+    });
+    console.log(`Scroll observer attached to ${animatedElements.length} elements.`);
 
-                const step = demoSteps[currentStepIndex];
-                let blockExecution = false; // Флаг блокировки до завершения асинхронной операции
+    // --- Плавная прокрутка к якорям ---
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            const href = this.getAttribute('href');
 
-                if (step.progress !== undefined) { updateProgressBar(step.progress); }
+             // Исключаем пустые якоря или якоря только с #
+            if (href === '#' || href === '') return;
 
-                if (step.text) {
-                    blockExecution = step.text.typing || step.fakeInput; // Блокировать, если печатаем или вводим в инпут
-                    if (step.fakeInput && step.text.type === 'user') {
-                        // Сначала напечатать в инпут, потом добавить строку в лог
-                        typeInFakeInput(step.text.content, 60, () => {
-                             addDemoLine(step.text, scheduleNextStep); // Добавить строку и запланировать след. шаг
-                             aiFakeInput.textContent = ''; // Очистить инпут после добавления в лог
-                        });
-                    } else {
-                         // Просто добавить строку (печать обработается внутри addDemoLine)
-                         addDemoLine(step.text, blockExecution ? scheduleNextStep : null); // Если печатаем, запланировать шаг после печати
+             // Исключаем ссылки на другие страницы или элементы управления (например, гамбургер)
+             if (href.startsWith('#') && href.length > 1) {
+                const targetElement = document.querySelector(href);
+                if (targetElement) {
+                    e.preventDefault(); // Отменяем стандартное поведение только если якорь найден
+                    console.log(`Smooth scrolling to ${href}`);
+                    const headerOffset = document.getElementById('header')?.offsetHeight || 70; // Учитываем высоту хедера
+                    const elementPosition = targetElement.getBoundingClientRect().top;
+                    const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+                    window.scrollTo({
+                        top: offsetPosition,
+                        behavior: "smooth" // Плавная прокрутка
+                    });
+
+                    // Закрываем мобильное меню, если оно открыто
+                    if (navLinks && navLinks.classList.contains('active')) {
+                         hamburger?.classList.remove('active');
+                         navLinks.classList.remove('active');
+                         menuOverlay?.classList.remove('active');
+                         body.classList.remove('no-scroll');
+                         header?.classList.remove('menu-open');
+                         hamburger?.setAttribute('aria-expanded', 'false');
+                        console.log("Mobile menu closed after anchor link click.");
                     }
-                }
+                 } else {
+                     console.warn(`Smooth scroll target element not found for selector: ${href}`);
+                 }
+            }
+        });
+    });
+    console.log("Smooth scroll initialized for anchor links.");
 
-                currentStepIndex++;
-
-                if (!blockExecution) { scheduleNextStep(); } // Если шаг не блокировал, планируем следующий
-             }
-
-             function scheduleNextStep() {
-                  clearTimeout(sequenceTimeout);
-                  if (currentStepIndex < demoSteps.length) {
-                      const nextStepDelay = demoSteps[currentStepIndex]?.delay || 250;
-                      sequenceTimeout = setTimeout(executeNextStep, nextStepDelay);
-                  } else {
-                      executeNextStep(); // Запустить логику перезапуска
-                  }
-              }
-
-             // --- Инициализация Демо ---
-             aiDemoOutput.innerHTML = ''; updateProgressBar(0); currentStepIndex = 0; aiFakeInput.textContent = '';
-             executeNextStep(); // Старт
-        };
-
-        // NEW: Mouse Follower Logic
-        const initMouseFollower = () => {
-            const follower = document.getElementById('mouse-follower');
-            if (!follower) return;
-
-            let hasMoved = false;
-
-            const updatePosition = (event) => {
-                if (!hasMoved) {
-                    document.body.classList.add('mouse-has-moved'); // Показать элемент после первого движения
-                    hasMoved = true;
-                }
-                // Использование pageX/pageY для учета прокрутки
-                follower.style.left = `${event.pageX}px`;
-                follower.style.top = `${event.pageY}px`;
-            };
-
-            // Обновлять позицию при движении мыши
-            window.addEventListener('mousemove', updatePosition, { passive: true });
-
-            // Скрывать/показывать при уходе/возвращении мыши из окна (опционально)
-            document.body.addEventListener('mouseleave', () => {
-                if (hasMoved) follower.style.opacity = '0';
-            });
-            document.body.addEventListener('mouseenter', () => {
-                 if (hasMoved) follower.style.opacity = '1';
-            });
-             // Скрывать при касании на тач-устройствах
-             window.addEventListener('touchstart', () => {
-                 follower.style.display = 'none';
-             }, { passive: true });
-        };
-
-        // NEW: Hero Parallax Effect
-        const initHeroParallax = () => {
-            const hero = document.getElementById('hero');
-            if (!hero) return;
-
-            hero.addEventListener('mousemove', (e) => {
-                const { clientWidth, clientHeight } = hero;
-                const xRelativeToCenter = (e.clientX - clientWidth / 2) / (clientWidth / 2); // -1 to 1
-                const yRelativeToCenter = (e.clientY - clientHeight / 2) / (clientHeight / 2); // -1 to 1
-
-                const maxOffset = 1; // Max percentage offset for background-position
-
-                // Небольшое смещение фона в противоположную сторону от курсора
-                const bgPosX = 50 + xRelativeToCenter * maxOffset * -1; // %
-                const bgPosY = 50 + yRelativeToCenter * maxOffset * -1; // %
-
-                 // Плавное обновление через requestAnimationFrame
-                 requestAnimationFrame(() => {
-                     hero.style.backgroundPosition = `${bgPosX}% ${bgPosY}%`;
-                 });
-
-            }, { passive: true });
-
-             // Сброс позиции, когда мышь уходит
-            hero.addEventListener('mouseleave', () => {
-                 requestAnimationFrame(() => {
-                     hero.style.backgroundPosition = `center center`;
-                 });
-             });
-        };
-
-
-       // --- Инициализация после загрузки DOM ---
-       document.addEventListener('DOMContentLoaded', () => {
-            const hamburger = document.getElementById('hamburger');
-            const menuOverlay = document.getElementById('menuOverlay');
-
-            // --- Обработчики событий ---
-            hamburger?.addEventListener('click', () => toggleMenu());
-            menuOverlay?.addEventListener('click', () => toggleMenu(true));
-            document.body.addEventListener('click', handleSmoothScroll);
-            document.addEventListener('keydown', (e) => {
-                 if (e.key === 'Escape' && document.getElementById('navLinks')?.classList.contains('active')) { toggleMenu(true); }
-            });
-
-            let scrollTimeout;
-            window.addEventListener('scroll', () => {
-                handleHeaderScroll();
-                clearTimeout(scrollTimeout); scrollTimeout = setTimeout(updateActiveNav, 100);
-            }, { passive: true });
-
-
-            // --- Вызов инициализирующих функций ---
-            handleHeaderScroll();
-            updateActiveNav();
-            initScrollAnimations(); // Общие анимации появления
-            initTimelineAnimation(); // Анимация таймлайна
-            initLetterAnimation(); // Анимация букв заголовка
-            initMouseFollower(); // Свечение за мышью
-            initHeroParallax(); // Параллакс в Hero
-            updateCopyrightYear();
-            runAiDemo(); // Запуск AI демо
-
-       }); // Конец DOMContentLoaded
-
-       // --- END: JavaScript ---
+    console.log("JUSTAX Interface v19 Initialization Complete.");
+}); // Конец DOMContentLoaded
