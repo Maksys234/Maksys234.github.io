@@ -1,1193 +1,1284 @@
-/* === Základní Nastavení a Proměnné === */
+/* === IMPORTS === */
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;700&display=swap');
-@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css'); /* Ujisti se, že FontAwesome je načteno */
+@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css');
 
+/* === BASE STYLES & VARIABLES === */
 :root {
-    --primary-font: 'Inter', sans-serif;
-    --heading-font: 'Poppins', sans-serif;
-    --mono-font: 'Roboto Mono', monospace;
+	/* Colors */
+	--primary-bg: #03020c;
+	--secondary-bg: #1a1a2e;
+	--tertiary-bg: #16213e;
+	--primary-text: #e8e8e8; /* Slightly brighter text */
+	--secondary-text: #a8a8b3; /* Slightly lighter secondary text */
+	--accent-cyan: #00e0ff;
+	--accent-pink: #ff33a8;
+	--accent-purple: #a05cff;
+	--accent-green: #00ffaa;
+	--accent-red: #ff4d4d;
+	--accent-yellow: #f0e14a;
+	--accent-orange: #ff9a00; /* Новый акцентный цвет */
 
-    /* Barevné schéma (Tmavý režim jako výchozí) */
-    --bg-color: #03020c; /* Tmavě modro-černá */
-    --surface-color: #101329; /* Mírně světlejší povrch */
-    --text-color: #e0e0e0;
-    --heading-color: #ffffff;
-    --primary-color: #8A2BE2; /* Fialová (příklad - můžeš změnit) */
-    --secondary-color: #00E0FF; /* Světle modrá/Tyrkysová */
-    --accent-pink: #FF33A8;
-    --accent-glow: rgba(138, 43, 226, 0.6); /* Záře pro primární barvu */
-    --secondary-glow: rgba(0, 224, 255, 0.5);
-    --border-color: rgba(255, 255, 255, 0.1);
-    --card-bg: rgba(255, 255, 255, 0.03);
-    --card-hover-bg: rgba(255, 255, 255, 0.06);
-    --card-border: rgba(255, 255, 255, 0.1);
-    --shadow-color: rgba(0, 0, 0, 0.3);
-    --link-hover-color: var(--secondary-color);
+	/* Shadows & Glows - Further Enhanced */
+	--glow-cyan: 0 0 12px rgba(0, 224, 255, 0.7), 0 0 24px rgba(0, 224, 255, 0.5);
+	--glow-pink: 0 0 12px rgba(255, 51, 168, 0.7), 0 0 24px rgba(255, 51, 168, 0.5);
+	--glow-purple: 0 0 12px rgba(160, 92, 255, 0.7), 0 0 24px rgba(160, 92, 255, 0.5);
+	--glow-green: 0 0 8px rgba(0, 255, 170, 0.6), 0 0 16px rgba(0, 255, 170, 0.4);
+	--card-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+	--card-hover-shadow: 0 10px 35px rgba(0, 0, 0, 0.8); /* Усилена тень при наведении */
 
-    /* Velikosti a Odsazení */
-    --header-height: 70px;
-    --container-width: 1140px;
-    --gutter: 20px; /* Mezera mezi prvky v gridu/flex */
+	/* Typography */
+	--font-primary: 'Poppins', sans-serif;
+	--font-secondary: 'Inter', sans-serif;
+	--font-mono: 'Roboto Mono', monospace;
 
-    /* Přechody a Animace */
-    --transition-speed: 0.3s;
-    --transition-timing: ease-in-out;
+	/* Transitions & Timing */
+	--transition-fast: 0.2s ease; /* Changed easing */
+	--transition-smooth: 0.35s cubic-bezier(0.4, 0, 0.2, 1); /* Custom cubic bezier */
+	--transition-slow: 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+	--transition-gooey: 0.5s cubic-bezier(0.86, 0, 0.07, 1); /* For dramatic effects */
 
-    /* Z-indexy */
-    --z-header: 1000;
-    --z-overlay: 900;
-    --z-mouse-follower: 1100;
-    --z-particles: -1; /* Aby byly částice pod obsahem */
+	/* Layout */
+	--container-width: 1200px;
+	--gutter: 20px;
+	--header-height: 70px;
 }
 
-/* === Globální Styly === */
-*, *::before, *::after {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
+/* Basic Reset */
+* {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
 }
 
 html {
-    scroll-behavior: smooth;
-    font-size: 16px; /* Základní velikost písma */
+	scroll-behavior: smooth;
+	font-size: 16px;
 }
 
 body {
-    font-family: var(--primary-font);
-    background-color: var(--bg-color);
-    color: var(--text-color);
-    line-height: 1.7;
-    overflow-x: hidden; /* Zamezení horizontálního scrollbaru */
-    position: relative; /* Potřebné pro mouse follower */
+	font-family: var(--font-secondary);
+	background-color: var(--primary-bg);
+	color: var(--primary-text);
+	line-height: 1.7;
+	overflow-x: hidden;
+	position: relative;
+	/* Apply noise directly to body background */
+	background-image: linear-gradient(rgba(3, 2, 12, 0.95), rgba(3, 2, 12, 1)),
+					  url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100"><filter id="noise"><feTurbulence type="fractalNoise" baseFrequency="0.7" numOctaves="3" stitchTiles="stitch"/></filter><rect width="100%" height="100%" filter="url(%23noise)" opacity="0.05"/></svg>');
 }
 
-body.dark { /* Výchozí tmavý režim */
-    /* Všechny barvy jsou již nastaveny ve :root pro tmavý režim */
+/* Animated Background Grid Overlay - Added */
+@keyframes animatedGrid {
+	0% { background-position: 0 0; }
+	100% { background-position: 50px 50px; } /* Control speed and distance */
+}
+body::after {
+	content: "";
+	position: fixed;
+	top: 0; left: 0; right: 0; bottom: 0;
+	width: 100%; height: 100%;
+	background-image: linear-gradient(rgba(160, 92, 255, 0.08) 1px, transparent 1px),
+					  linear-gradient(90deg, rgba(0, 224, 255, 0.08) 1px, transparent 1px);
+	background-size: 50px 50px; /* Size of grid cells */
+	animation: animatedGrid 5s linear infinite; /* Animation */
+	z-index: -1; /* Behind content */
+	pointer-events: none;
+	opacity: 0.5; /* Adjust visibility */
 }
 
-/* Můžeš přidat .light třídu pro světlý režim, pokud bude potřeba */
-/* body.light { ... } */
 
-
-h1, h2, h3, h4, h5, h6 {
-    font-family: var(--heading-font);
-    color: var(--heading-color);
-    font-weight: 600;
-    margin-bottom: 0.8em;
-    line-height: 1.3;
+body.no-scroll {
+	overflow: hidden;
 }
 
-h1 { font-size: clamp(2.5rem, 6vw, 4.5rem); font-weight: 700; }
-h2 { font-size: clamp(2rem, 5vw, 3rem); }
-h3 { font-size: clamp(1.4rem, 4vw, 1.8rem); }
-h4 { font-size: clamp(1.1rem, 3vw, 1.4rem); }
-
-p {
-    margin-bottom: 1.2em;
-    opacity: 0.9; /* Mírně průhlednější text pro lepší čitelnost */
-}
-
-a {
-    color: var(--primary-color);
-    text-decoration: none;
-    transition: color var(--transition-speed) var(--transition-timing);
-}
-
-a:hover, a:focus {
-    color: var(--link-hover-color);
-    text-decoration: none; /* Nikdy nepodtrhávat */
-}
-
-img, svg {
-    max-width: 100%;
-    height: auto;
-    display: block;
-}
-
-ul {
-    list-style: none;
-}
-
-/* === Kontejner === */
+/* Container */
 .container {
-    width: 100%;
-    max-width: var(--container-width);
-    margin-left: auto;
-    margin-right: auto;
-    padding-left: var(--gutter);
-    padding-right: var(--gutter);
+	width: 90%;
+	max-width: var(--container-width);
+	margin: 0 auto;
+	padding: 0 var(--gutter);
 }
 
-/* === Hlavička (Header) === */
+/* Headings and Text */
+h1, h2, h3, h4, h5, h6 {
+	font-family: var(--font-primary);
+	font-weight: 700;
+	color: #fff;
+	margin-bottom: 1.2rem;
+	line-height: 1.3;
+}
+h1 { font-size: clamp(2.6rem, 6.5vw, 4.8rem); letter-spacing: -1.5px; }
+h2 { font-size: clamp(2.1rem, 5.5vw, 3.2rem); }
+h3 { font-size: clamp(1.4rem, 4.5vw, 1.9rem); }
+p { margin-bottom: 1.3rem; color: var(--secondary-text); }
+a { color: var(--accent-cyan); text-decoration: none; transition: color var(--transition-fast), filter var(--transition-fast); }
+a:hover, a:focus { color: var(--accent-pink); text-decoration: none; outline: none; filter: drop-shadow(0 0 3px var(--accent-pink)); } /* Added drop shadow */
+
+/* Buttons - More Reactive Hover */
+.btn {
+	display: inline-block;
+	font-family: var(--font-mono);
+	font-size: 0.95rem; /* Slightly larger */
+	font-weight: 700;
+	text-transform: uppercase;
+	padding: 0.9em 2em; /* Slightly larger padding */
+	border-radius: 5px;
+	border: 2px solid transparent;
+	cursor: pointer;
+	transition: all var(--transition-smooth);
+	letter-spacing: 1.2px;
+	position: relative;
+	overflow: hidden;
+	z-index: 1;
+	will-change: transform, box-shadow; /* Optimize animation */
+}
+
+/* Reactive Hover/Focus State */
+.btn::before { /* Shine/Wipe Effect */
+	content: '';
+	position: absolute;
+	top: 0;
+	left: -150%; /* Further off-screen */
+	width: 50%; /* Narrower shine */
+	height: 100%;
+	background: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0));
+	transform: skewX(-25deg); /* Angled shine */
+	transition: left var(--transition-gooey); /* Faster, gooey transition */
+	z-index: 1; /* Above base background but below text */
+}
+.btn:hover::before, .btn:focus::before {
+	left: 150%; /* Move across quickly */
+}
+.btn span {
+	position: relative;
+	z-index: 2; /* Ensure text is above shine */
+}
+
+/* Primary Button */
+.btn.auth-link {
+	background: linear-gradient(45deg, var(--accent-cyan), var(--accent-purple)); /* Gradient background */
+	color: #fff; /* White text */
+	border: none; /* Remove border for gradient */
+	padding: calc(0.9em + 2px) calc(2em + 2px); /* Adjust padding because no border */
+	box-shadow: 0 0 15px rgba(0, 224, 255, 0.5), 0 0 15px rgba(160, 92, 255, 0.3); /* Combined glow */
+}
+.btn.auth-link:hover, .btn.auth-link:focus {
+	background: linear-gradient(45deg, var(--accent-pink), var(--accent-orange)); /* Different gradient on hover */
+	color: #fff;
+	box-shadow: 0 0 20px rgba(255, 51, 168, 0.6), 0 0 20px rgba(255, 154, 0, 0.4);
+	transform: translateY(-4px) scale(1.05); /* More pronounced */
+}
+
+/* Outline Button */
+.btn.btn-outline {
+	background-color: transparent;
+	color: var(--accent-cyan);
+	border-color: var(--accent-cyan);
+	text-shadow: 0 0 5px rgba(0, 224, 255, 0.5); /* Text glow */
+}
+.btn.btn-outline:hover, .btn.btn-outline:focus {
+	background-color: rgba(0, 224, 255, 0.2);
+	color: #fff;
+	border-color: var(--accent-pink); /* Change border color on hover */
+	box-shadow: var(--glow-pink);
+	text-shadow: 0 0 8px var(--accent-pink);
+	transform: translateY(-3px) scale(1.02);
+}
+
+/* --- HEADER --- */
 #header {
-    position: fixed; /* Změněno na fixed pro přilepení */
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: var(--header-height);
-    background-color: rgba(3, 2, 12, 0.8); /* Průhlednější pozadí */
-    backdrop-filter: blur(10px); /* Efekt rozostření */
-    -webkit-backdrop-filter: blur(10px);
-    border-bottom: 1px solid var(--border-color);
-    z-index: var(--z-header);
-    transition: background-color var(--transition-speed) var(--transition-timing),
-                box-shadow var(--transition-speed) var(--transition-timing);
-    display: flex; /* Přidáno pro zarovnání */
-    align-items: center; /* Přidáno pro vertikální zarovnání */
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	padding: 15px 0;
+	background-color: rgba(3, 2, 12, 0.85);
+	backdrop-filter: blur(15px) saturate(1.2); /* More blur, slight saturation */
+	z-index: 1000;
+	transition: all var(--transition-smooth);
+	border-bottom: 1px solid transparent; /* Start transparent */
+	border-image: linear-gradient(90deg, rgba(160, 92, 255, 0), rgba(160, 92, 255, 0.3), rgba(160, 92, 255, 0)) 1; /* Gradient border */
 }
-
 #header.scrolled {
-    background-color: rgba(3, 2, 12, 0.95);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+	background-color: rgba(3, 2, 12, 0.98);
+	box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+	border-image: linear-gradient(90deg, rgba(160, 92, 255, 0.1), rgba(160, 92, 255, 0.5), rgba(160, 92, 255, 0.1)) 1; /* More visible border */
 }
-
 .nav-container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    height: 100%;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
 }
-
 .logo {
-    display: flex;
-    align-items: center;
-    font-family: var(--heading-font);
-    font-size: 1.6rem;
-    font-weight: 700;
-    color: var(--heading-color);
-    transition: transform var(--transition-speed) ease;
-}
-.logo:hover {
-    transform: scale(1.05);
-    color: var(--heading-color); /* Udržet barvu při hoveru */
+	font-family: var(--font-primary);
+	font-size: 1.9rem;
+	font-weight: 800;
+	color: #fff;
+	text-decoration: none;
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	transition: color var(--transition-fast), filter var(--transition-fast);
+	filter: drop-shadow(0 0 5px var(--accent-cyan));
 }
 .logo i {
-    color: var(--primary-color);
-    margin-right: 8px;
-    font-size: 1.8rem;
-    transition: transform var(--transition-speed) ease;
+	color: var(--accent-cyan);
+	transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55); /* Bounce effect */
 }
-.logo:hover i {
-    transform: rotate(360deg);
+.logo:hover i, .logo:focus i {
+	transform: rotate(360deg) scale(1.1);
+}
+.logo:hover, .logo:focus {
+	color: var(--accent-cyan);
+	filter: drop-shadow(0 0 10px var(--accent-cyan));
 }
 
 .nav-links {
-    display: flex;
-    align-items: center;
-    gap: 25px;
+	list-style: none;
+	display: flex;
+	gap: 35px;
+	align-items: center;
 }
-
 .nav-item {
-    color: var(--text-color);
-    font-weight: 500;
-    padding: 8px 12px;
-    border-radius: 6px;
-    position: relative;
-    overflow: hidden; /* Pro ::before efekt */
+	font-family: var(--font-mono);
+	font-size: 0.9rem;
+	font-weight: 500;
+	color: var(--primary-text);
+	text-transform: uppercase;
+	padding: 8px 0;
+	position: relative;
+	transition: color var(--transition-fast), text-shadow var(--transition-fast);
 }
-
-.nav-item::before {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: -100%; /* Začíná mimo */
-    width: 100%;
-    height: 2px;
-    background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
-    transition: left var(--transition-speed) var(--transition-timing);
+.nav-item::after {
+	content: '';
+	position: absolute;
+	bottom: 0;
+	left: 50%;
+	transform: translateX(-50%);
+	width: 0;
+	height: 3px;
+	background: linear-gradient(90deg, var(--accent-cyan), var(--accent-pink));
+	transition: width var(--transition-smooth);
+	border-radius: 1px;
 }
-
-.nav-item:hover::before,
-.nav-item.active::before { /* Přidáno .active pro označení aktivní sekce */
-    left: 0; /* Posune se dovnitř */
+.nav-item:hover, .nav-item:focus, .nav-item.active {
+	color: #fff;
+	text-shadow: 0 0 5px var(--accent-pink);
+	text-decoration: none;
 }
-
-.nav-item:hover {
-    color: var(--heading-color);
-    background-color: rgba(255, 255, 255, 0.05); /* Jemné pozadí při hoveru */
+.nav-item:hover::after, .nav-item:focus::after, .nav-item.active::after {
+	width: 110%; /* Slightly wider */
 }
 
 .header-actions {
-    display: flex;
-    align-items: center;
-    gap: 15px;
+	display: flex;
+	align-items: center;
+	gap: 15px;
 }
+.desktop-auth-link { display: block; }
+.mobile-auth-link { display: none; }
 
-.auth-link { /* Používá se pro .btn a .nav-item */
-    display: inline-flex;
-    align-items: center;
-    gap: 8px; /* Mezera mezi ikonou a textem */
-}
-
+/* Hamburger Menu */
 .hamburger {
-    display: none; /* Skryto na desktopu */
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 5px;
-    z-index: 10; /* Nad ostatními prvky headeru */
+	display: none; /* Скрыт по умолчанию */
+	cursor: pointer;
+	background: none;
+	border: none;
+	padding: 10px;
+	z-index: 1001; /* Выше навигации */
 }
-
 .hamburger span {
-    display: block;
-    width: 25px;
-    height: 3px;
-    background-color: var(--heading-color);
-    margin: 5px 0;
-    border-radius: 3px;
-    transition: all var(--transition-speed) var(--transition-timing);
+	display: block;
+	width: 25px;
+	height: 3px;
+	background-color: var(--primary-text);
+	margin: 5px 0;
+	transition: all var(--transition-smooth);
+	border-radius: 3px;
 }
-
-/* Hamburger Animace (při otevření) */
 .hamburger.active span:nth-child(1) {
-    transform: translateY(8px) rotate(45deg);
+	transform: translateY(8px) rotate(45deg);
+	background-color: var(--accent-pink); /* Change color when active */
 }
-.hamburger.active span:nth-child(2) {
-    opacity: 0;
-}
+.hamburger.active span:nth-child(2) { opacity: 0; }
 .hamburger.active span:nth-child(3) {
-    transform: translateY(-8px) rotate(-45deg);
+	transform: translateY(-8px) rotate(-45deg);
+	background-color: var(--accent-pink);
 }
 
-
+/* Menu Overlay */
 .menu-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(3, 2, 12, 0.6);
-    backdrop-filter: blur(5px);
-    -webkit-backdrop-filter: blur(5px);
-    z-index: var(--z-overlay);
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity var(--transition-speed) var(--transition-timing),
-                visibility var(--transition-speed) var(--transition-timing);
+	display: none;
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background-color: rgba(0, 0, 0, 0.7);
+	z-index: 998; /* Ниже хедера, но выше контента */
+	opacity: 0;
+	transition: opacity var(--transition-smooth);
 }
 .menu-overlay.active {
-    opacity: 1;
-    visibility: visible;
+	display: block;
+	opacity: 1;
 }
 
-/* === Tlačítka === */
-.btn {
-    display: inline-block; /* Místo inline-flex, pokud není potřeba align-items */
-    padding: 12px 28px;
-    font-family: var(--heading-font);
-    font-weight: 600;
-    font-size: 1rem;
-    border: none;
-    border-radius: 50px; /* Zaoblenější tlačítka */
-    cursor: pointer;
-    transition: all var(--transition-speed) var(--transition-timing);
-    background: linear-gradient(45deg, var(--primary-color), var(--accent-pink));
-    color: var(--heading-color);
-    box-shadow: 0 4px 15px rgba(138, 43, 226, 0.3); /* Jemný stín */
-    position: relative;
-    overflow: hidden;
-    z-index: 1; /* Nad ::before */
-    text-align: center;
-}
-.btn i { /* Styl pro ikony v tlačítkách */
-    margin-right: 8px;
-}
 
-/* Efekt lesku při hoveru */
-.btn::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
-    transition: left var(--transition-speed) ease-in-out;
-    z-index: -1;
+/* === HERO SECTION - "Freezing" Effects === */
+.hero {
+	min-height: 100vh;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	text-align: center;
+	padding-top: calc(var(--header-height) + 50px);
+	padding-bottom: 70px;
+	position: relative;
+	overflow: hidden;
+	background: linear-gradient(rgba(3, 2, 12, 0.9), rgba(3, 2, 12, 1)),
+				url('https://via.placeholder.com/1920x1080/03020C/16213E?text=Abstract+Circuitry') no-repeat center center / cover; /* Placeholder background */
 }
-
-.btn:hover::before {
-    left: 100%;
-}
-
-.btn:hover {
-    transform: translateY(-3px); /* Mírný posun nahoru */
-    box-shadow: 0 8px 20px rgba(138, 43, 226, 0.4);
-    color: var(--heading-color); /* Udržet barvu textu */
-}
-
-.btn-outline {
-    background: transparent;
-    color: var(--secondary-color);
-    border: 2px solid var(--secondary-color);
-    box-shadow: none;
-}
-
-.btn-outline:hover {
-    background: var(--secondary-color);
-    color: var(--bg-color);
-    box-shadow: 0 4px 15px rgba(0, 224, 255, 0.3);
-}
-
-.btn.auth-link { /* Specifické pro auth link, pokud je potřeba */
-    /* Může mít jiné styly */
-}
-
-.mobile-auth-link {
-    display: none; /* Skryto na desktopu */
-    width: 100%; /* V mobilním menu zabere celou šířku */
-    text-align: center;
-    margin-top: 15px;
-}
-
-/* === Hero Sekce === */
-#hero {
-    position: relative;
-    min-height: 100vh; /* Minimálně výška obrazovky */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding: 120px var(--gutter) 60px; /* Větší padding nahoře */
-    overflow: hidden; /* Skryje přesahující částice */
-    color: var(--heading-color); /* Hlavní text bude bílý */
-}
-
 #particles-js {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    top: 0;
-    left: 0;
-    z-index: var(--z-particles);
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	top: 0;
+	left: 0;
+	z-index: 0; /* Ensure particles.js config reflects more activity */
+	filter: brightness(1.2); /* Make particles brighter */
 }
-
 .hero-content {
-    position: relative; /* Nad částicemi */
-    z-index: 1;
+	position: relative;
+	z-index: 1;
 }
 
+/* Digital Glitch/Freeze Text Animation */
+@keyframes digital-glitch-text {
+  0%, 100% { text-shadow: 0 0 5px var(--accent-cyan), 0 0 10px var(--accent-cyan); filter: none; }
+  25% { text-shadow: 2px 2px 2px var(--accent-pink), -2px -2px 2px var(--accent-green); filter: brightness(1.5) contrast(1.3) blur(0.5px); }
+  50% { text-shadow: 1px -1px 3px var(--accent-purple), -1px 1px 3px var(--accent-cyan); filter: brightness(0.8) contrast(1.1); transform: skewX(-3deg); }
+  75% { text-shadow: -3px 2px 5px var(--accent-red), 3px -2px 5px var(--accent-cyan); filter: brightness(1.3); transform: skewX(3deg); }
+}
+.hero h1[data-animate-letters].letters-animating {
+	/* Apply this animation to the container while letters animate */
+	animation: digital-glitch-text 1.5s steps(4, end) infinite;
+}
 .hero h1 {
-    margin-bottom: 0.5em;
-    text-shadow: 0 0 15px rgba(0, 0, 0, 0.5); /* Stín pro lepší čitelnost */
+	margin-bottom: 2rem;
+	font-weight: 800;
 }
 
-.hero h1 .highlight {
-    position: relative;
-    color: var(--primary-color);
-    /* Efekt podtržení textu */
-    /* background: linear-gradient(to top, rgba(138, 43, 226, 0.3) 30%, transparent 30%); */
-    display: inline-block;
+/* Animated Gradient for Highlight */
+@keyframes animated-gradient {
+	0% { background-position: 0% 50%; }
+	50% { background-position: 100% 50%; }
+	100% { background-position: 0% 50%; }
 }
-/* Alternativa: Animovaný textový klip */
 .hero h1 .highlight {
-    background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    -webkit-text-fill-color: transparent; /* Pro Safari */
+	background: linear-gradient(90deg, var(--accent-cyan), var(--accent-pink), var(--accent-purple), var(--accent-cyan));
+	background-size: 300% 100%; /* Make gradient wider than element */
+	-webkit-background-clip: text;
+	background-clip: text;
+	color: transparent; /* Make original text transparent */
+	animation: animated-gradient 6s linear infinite; /* Apply animation */
+	position: relative;
+	display: inline-block; /* Necessary for background-clip: text */
+	/* data-text attribute should be set in HTML/JS for glitch effect */
 }
+
+/* Glitch Effect Layers (Requires data-text attribute on .highlight) */
+@keyframes glitch-anim-1 {
+  0%, 100% { clip-path: inset(0 0 0 0); } 20% { clip-path: inset(30% 0 40% 0); transform: translateX(-3px) } 40% { clip-path: inset(10% 0 80% 0); transform: translateX(2px) } 60% { clip-path: inset(70% 0 10% 0); transform: translateX(-1px) } 80% { clip-path: inset(40% 0 30% 0); transform: translateX(1px) }
+}
+@keyframes glitch-anim-2 {
+  0%, 100% { clip-path: inset(0 0 0 0); } 15% { clip-path: inset(60% 0 10% 0); transform: translateX(2px) } 35% { clip-path: inset(85% 0 5% 0); transform: translateX(-2px) } 55% { clip-path: inset(25% 0 50% 0); transform: translateX(1px) } 75% { clip-path: inset(50% 0 20% 0); transform: translateX(-1px) }
+}
+.hero h1[data-animate-letters].letters-animating .highlight::before,
+.hero h1[data-animate-letters].letters-animating .highlight::after {
+	content: attr(data-text);
+	position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+	background: var(--primary-bg); overflow: hidden;
+	/* Apply the gradient text color to the glitch layers too */
+	background: linear-gradient(90deg, var(--accent-cyan), var(--accent-pink), var(--accent-purple), var(--accent-cyan));
+	background-size: 300% 100%;
+	-webkit-background-clip: text;
+	background-clip: text;
+	color: transparent;
+	animation-duration: 0.8s; animation-timing-function: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+	animation-iteration-count: infinite; animation-fill-mode: both;
+}
+.hero h1[data-animate-letters].letters-animating .highlight::before { animation-name: glitch-anim-1; }
+.hero h1[data-animate-letters].letters-animating .highlight::after { animation-name: glitch-anim-2; animation-delay: 0.2s; }
 
 .hero p {
-    font-size: clamp(1rem, 2.5vw, 1.2rem);
-    max-width: 650px;
-    margin: 0 auto 1.8em; /* Zarovnat na střed a přidat spodní margin */
-    color: var(--text-color);
-    opacity: 0.9;
+	font-size: 1.2rem;
+	max-width: 700px;
+	margin: 0 auto 3rem auto;
+	color: var(--primary-text);
+	opacity: 0.95;
 }
 
-.hero-buttons {
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-    flex-wrap: wrap; /* Zalomení na menších obrazovkách */
+/* Pulsating Buttons */
+@keyframes pulse-button {
+	0%, 100% { transform: scale(1); box-shadow: 0 0 15px rgba(0, 224, 255, 0.5), 0 0 15px rgba(160, 92, 255, 0.3); }
+	50% { transform: scale(1.03); box-shadow: 0 0 25px rgba(0, 224, 255, 0.8), 0 0 25px rgba(160, 92, 255, 0.5); }
+}
+.hero .hero-buttons .btn {
+	animation: pulse-button 2.5s infinite ease-in-out;
+}
+.hero .hero-buttons .btn:nth-child(2) {
+	animation-delay: 0.3s; /* Stagger pulse */
+}
+.hero .hero-buttons {
+	display: flex;
+	justify-content: center;
+	gap: 25px;
+	flex-wrap: wrap;
 }
 
-/* === Společné Styly Sekcí === */
+/* Enhanced Entry Animation for Hero Content */
+.hero h1[data-animate-letters], .hero p[data-animate], .hero .hero-buttons[data-animate] {
+	opacity: 0;
+	filter: blur(5px); /* Start blurred */
+	transform: translateY(40px) scale(0.95);
+	transition: opacity 1s var(--transition-slow), transform 1s var(--transition-slow), filter 1s var(--transition-slow);
+}
+.hero h1[data-animate-letters].letters-animating, /* Use animating class for h1 */
+.hero p[data-animate].animated,
+.hero .hero-buttons[data-animate].animated {
+	opacity: 1;
+	filter: blur(0);
+	transform: translateY(0) scale(1);
+}
+.hero p[data-animate].animated { transition-delay: 0.3s; }
+.hero .hero-buttons[data-animate].animated { transition-delay: 0.6s; }
+
+
+/* === SECTIONS GENERAL STYLES === */
 section {
-    padding: 80px 0;
-    position: relative;
-    overflow: hidden; /* Zabrání přesahu animací */
+	padding: 100px 0;
+	overflow: hidden; /* Prevent content spill during animations */
 }
 
-/* Střídání pozadí sekcí pro lepší oddělení */
-section:nth-of-type(odd) {
-    /* background-color: var(--surface-color); */ /* Pokud chceš střídat pozadí */
-}
-
+/* Section Title Animation */
 .section-title {
-    text-align: center;
-    margin-bottom: 15px;
-    position: relative;
-    display: inline-block; /* Aby se ::after zarovnal pod text */
-    left: 50%;
-    transform: translateX(-50%);
+	text-align: center;
+	margin-bottom: 1rem;
+	font-weight: 700;
+	position: relative;
+	display: inline-block;
+	left: 50%;
+	transform: translateX(-50%);
 }
-
-.section-title span { /* Obalení textu a ikony */
-    display: flex;
-    align-items: center;
-    gap: 12px; /* Mezera mezi ikonou a textem */
-    justify-content: center; /* Zarovnání na střed */
+.section-title span {
+	display: inline-block;
+	position: relative;
+	padding-bottom: 12px; /* Increased padding */
 }
-
-.section-title i {
-    color: var(--primary-color);
-    font-size: 0.9em; /* Ikona o něco menší než text */
+.section-title span::after {
+	content: '';
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	width: 0;
+	height: 4px; /* Thicker line */
+	background: linear-gradient(90deg, var(--accent-cyan), var(--accent-pink));
+	transition: width 0.8s cubic-bezier(0.165, 0.84, 0.44, 1); /* Slower, more easing */
+	border-radius: 2px;
 }
-
-/* Dekorativní podtržení nadpisu */
-.section-title::after {
-    content: '';
-    position: absolute;
-    bottom: -10px; /* Umístění pod textem */
-    left: 50%;
-    transform: translateX(-50%);
-    width: 60px;
-    height: 3px;
-    background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
-    border-radius: 2px;
+/* Trigger underline animation when section is visible */
+section:has(.section-title.animated) .section-title span::after {
+	width: 100%;
+}
+/* Add hover effect to title underline */
+.section-title:hover span::after {
+	background: linear-gradient(90deg, var(--accent-pink), var(--accent-orange)); /* Change gradient on hover */
+	filter: drop-shadow(0 0 5px var(--accent-pink));
 }
 
 .section-subtitle {
-    text-align: center;
-    max-width: 600px;
-    margin: 0 auto 50px; /* Větší spodní margin */
-    color: var(--text-color);
-    opacity: 0.8;
-    font-size: 1.1rem;
+	text-align: center;
+	max-width: 750px;
+	margin: 0 auto 4.5rem auto; /* Increased bottom margin */
+	font-size: 1.15rem;
+	color: var(--secondary-text);
 }
 
-/* === Funkce (Features) === */
+
+/* === FEATURES SECTION - "Holographic" Cards === */
 .features-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* Responzivní mřížka */
-    gap: 30px; /* Větší mezery */
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+	gap: 40px;
 }
 
 .feature-card {
-    background-color: var(--card-bg);
-    border: 1px solid var(--card-border);
-    border-radius: 12px; /* Zaoblenější rohy */
-    padding: 30px;
-    transition: transform var(--transition-speed) var(--transition-timing),
-                box-shadow var(--transition-speed) var(--transition-timing),
-                background-color var(--transition-speed) var(--transition-timing);
-    position: relative;
-    overflow: hidden; /* Pro efekty */
-    display: flex; /* Pro lepší zarovnání ikony a textu */
-    flex-direction: column; /* Obsah pod sebou */
-    align-items: center; /* Zarovnání na střed */
-    text-align: center;
+	background: rgba(26, 26, 46, 0.7); /* More transparency */
+	backdrop-filter: blur(5px); /* Background blur */
+	border: 1px solid transparent; /* Transparent base border */
+	/* Holographic Border */
+	border-image: linear-gradient(45deg, rgba(0, 224, 255, 0.3), rgba(160, 92, 255, 0.3)) 1;
+	padding: 35px;
+	border-radius: 10px;
+	transition: all var(--transition-slow); /* Slower transition for complex effect */
+	box-shadow: var(--card-shadow);
+	position: relative;
+	overflow: hidden;
+	transform-style: preserve-3d; /* Needed for 3D rotation */
+	will-change: transform, box-shadow, border-image;
 }
-.feature-card:hover {
-    transform: translateY(-8px) scale(1.02); /* Výraznější zdvih */
-    background-color: var(--card-hover-bg);
-    box-shadow: 0 10px 30px var(--shadow-color);
-    border-color: var(--primary-color); /* Zvýraznění okraje při hoveru */
+/* Animated Background Pattern */
+@keyframes pattern-scroll {
+	0% { background-position: 0 0; }
+	100% { background-position: -40px -40px; }
+}
+.feature-card::before {
+	content: '';
+	position: absolute;
+	top: 0; left: 0; right: 0; bottom: 0;
+	background-image: linear-gradient(rgba(160, 92, 255, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 224, 255, 0.1) 1px, transparent 1px);
+	background-size: 40px 40px;
+	opacity: 0;
+	transition: opacity var(--transition-smooth), transform var(--transition-smooth);
+	z-index: 0;
+	animation: pattern-scroll 3s linear infinite paused; /* Paused initially */
 }
 
+.feature-card:hover {
+	transform: perspective(1000px) rotateY(5deg) rotateX(3deg) scale(1.03) translateY(-10px); /* 3D tilt */
+	box-shadow: var(--card-hover-shadow), 0 0 30px rgba(160, 92, 255, 0.5);
+	border-image: linear-gradient(45deg, var(--accent-cyan), var(--accent-pink), var(--accent-purple)) 1; /* Brighter border */
+}
+.feature-card:hover::before {
+	opacity: 1;
+	animation-play-state: running; /* Show and animate pattern */
+}
+
+.feature-card-header, .feature-card p {
+	position: relative;
+	z-index: 1;
+	transform: translateZ(20px); /* Bring content forward slightly */
+}
 .feature-icon {
-    font-size: 2.8rem;
-    color: var(--primary-color);
-    margin-bottom: 20px;
-    /* Přidání gradientu ikonám */
-    background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    transition: transform var(--transition-speed) ease;
+	font-size: 2.2rem;
+	color: var(--accent-cyan);
+	width: 50px;
+	text-align: center;
+	transition: transform var(--transition-smooth), filter var(--transition-smooth);
+	filter: drop-shadow(0 0 5px var(--accent-cyan));
 }
 .feature-card:hover .feature-icon {
-    transform: scale(1.1); /* Mírné zvětšení ikony při hoveru karty */
+	transform: scale(1.15) rotate(-10deg) translateZ(30px);
+	filter: drop-shadow(0 0 10px var(--accent-cyan));
 }
-
-
 .feature-card h3 {
-    font-size: 1.4rem;
-    margin-bottom: 10px;
-    color: var(--heading-color);
+	margin-bottom: 5px;
+	font-size: 1.4rem;
+	color: #fff;
 }
-
 .feature-card p {
-    font-size: 0.95rem;
-    margin-bottom: 0; /* Odstranit spodní margin odstavce */
-    opacity: 0.8;
+	font-size: 0.95rem;
+	color: var(--secondary-text);
+	margin-bottom: 0;
 }
 
-/* === AI Demo Sekce === */
+
+/* === AI INTERFACE SECTION - "CRT" Effect === */
 .ai-interface-section {
-    background-color: var(--surface-color); /* Odlišné pozadí */
-    padding-bottom: 100px; /* Více místa dole */
+	background-color: var(--secondary-bg); /* Отдельный фон для секции */
+	border-top: 1px solid rgba(160, 92, 255, 0.2);
+	border-bottom: 1px solid rgba(160, 92, 255, 0.2);
 }
 
+/* CRT Effect Wrapper */
+@keyframes flicker {
+  0%, 100% { opacity: 1; filter: brightness(1) contrast(1); }
+  25% { opacity: 0.98; filter: brightness(1.02) contrast(1.01); }
+  50% { opacity: 0.99; filter: brightness(0.98) contrast(0.99); }
+  75% { opacity: 1; filter: brightness(1.01) contrast(1); }
+}
 .ai-interface-wrapper {
-    background-color: var(--bg-color); /* Tmavší než sekce */
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
-    max-width: 800px; /* Omezení šířky */
-    margin: 0 auto; /* Centrování */
+	background-color: #080710; /* Slightly different dark bg */
+	border: 2px solid var(--accent-purple);
+	border-radius: 15px / 30px; /* Simulate screen curve */
+	overflow: hidden;
+	box-shadow: 0 0 30px rgba(160, 92, 255, 0.4), 0 0 15px rgba(0, 224, 255, 0.2) inset, 0 0 10px rgba(0,0,0,0.5);
+	transform: perspective(500px) rotateX(1deg); /* Slight perspective tilt */
+	animation: flicker 0.15s infinite alternate; /* Subtle flicker */
 }
 
 .ai-interface-header {
-    background-color: rgba(255, 255, 255, 0.05); /* Lehce světlejší hlavička */
-    padding: 12px 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid var(--border-color);
+	background-color: rgba(160, 92, 255, 0.1); /* Шапка с легким фиолетовым оттенком */
+	padding: 12px 20px;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	border-bottom: 1px solid var(--accent-purple);
 }
-
 .ai-interface-title {
-    font-family: var(--mono-font);
-    font-weight: 500;
-    color: var(--secondary-color);
-    display: flex;
-    align-items: center;
-    gap: 8px;
+	font-family: var(--font-mono);
+	font-size: 0.9rem;
+	color: #fff;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+@keyframes pulse-green {
+	0%, 100% { opacity: 1; transform: scale(1); }
+	50% { opacity: 0.7; transform: scale(1.1); }
 }
 .ai-interface-title i {
-    font-size: 1.2em;
+	color: var(--accent-green);
+	animation: pulse-green 2s infinite; /* Pulse icon */
 }
-
 
 .ai-status-indicator {
-    font-family: var(--mono-font);
-    font-size: 0.9rem;
-    font-weight: 700;
-    color: #00ff00; /* Zelená pro aktivní */
-    text-shadow: 0 0 8px rgba(0, 255, 0, 0.7);
-    letter-spacing: 1px;
+	font-family: var(--font-mono);
+	font-size: 0.8rem;
+	color: var(--accent-green);
+	text-transform: uppercase;
+	padding: 4px 10px;
+	background-color: rgba(0, 255, 170, 0.15);
+	border-radius: 4px;
+	border: 1px solid rgba(0, 255, 170, 0.35);
 }
-
 .ai-content-area {
-    padding: 25px;
+	padding: 30px;
 }
 
+/* CRT Log Window */
+@keyframes scanline-crt {
+	0% { transform: translateY(-5%); }
+	100% { transform: translateY(5%); }
+} /* Slower, smoother scanline */
 .ai-log-window {
-    background-color: rgba(0, 0, 0, 0.2); /* Tmavší okno logu */
-    border-radius: 8px;
-    height: 250px;
-    overflow-y: auto; /* Scrollbar pro log */
-    padding: 15px;
-    font-family: var(--mono-font);
-    font-size: 0.9rem;
-    line-height: 1.6;
-    margin-bottom: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
+	height: 380px; /* Increased height */
+	overflow-y: auto;
+	background-color: rgba(0, 0, 0, 0.5); /* Darker */
+	border: 1px solid rgba(160, 92, 255, 0.4);
+	border-radius: 4px;
+	padding: 20px;
+	margin-bottom: 20px;
+	font-family: var(--font-mono);
+	font-size: 0.9rem;
+	position: relative; /* For scanlines */
+	overflow: hidden; /* Hide overflowing scanlines */
+	scrollbar-width: thin;
+	scrollbar-color: var(--accent-green) rgba(0,0,0,0.4); /* Green scrollbar */
+	box-shadow: inset 0 0 10px rgba(0,0,0,0.7); /* Inner shadow */
 }
-/* Custom Scrollbar pro Webkit prohlížeče */
+.ai-log-window::before { /* Scanline Layer */
+	content: '';
+	position: absolute;
+	top: 0; left: 0; right: 0; bottom: 0;
+	background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.4) 50%);
+	background-size: 100% 3px; /* Thinner lines */
+	z-index: 2; /* Above content but below scrollbar potentially */
+	pointer-events: none;
+	animation: scanline-crt 8s linear infinite alternate; /* Slower alternating movement */
+	opacity: 0.3;
+}
 .ai-log-window::-webkit-scrollbar { width: 8px; }
-.ai-log-window::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.05); border-radius: 4px;}
-.ai-log-window::-webkit-scrollbar-thumb { background-color: var(--primary-color); border-radius: 4px; }
-.ai-log-window::-webkit-scrollbar-thumb:hover { background-color: var(--accent-pink); }
+.ai-log-window::-webkit-scrollbar-track { background: rgba(0,0,0,0.4); border-radius: 4px; }
+.ai-log-window::-webkit-scrollbar-thumb { background-color: var(--accent-green); border-radius: 4px; border: 2px solid rgba(0,0,0,0.4); } /* Green thumb */
+.ai-log-window::-webkit-scrollbar-thumb:hover { background-color: #33ffcc; }
 
-.ai-log-window div { /* Jednotlivé řádky logu */
-    margin-bottom: 5px;
-    word-break: break-all; /* Zalomí dlouhá slova */
-    opacity: 0; /* Start hidden for animation */
-    animation: fadeInLog 0.5s forwards;
+/* CRT Text Glow */
+.ai-log-line {
+	margin-bottom: 8px;
+	line-height: 1.6;
+	position: relative;
+	z-index: 1; /* Ensure text is above scanlines */
+	text-shadow: 0 0 3px rgba(0, 255, 170, 0.3); /* Subtle green glow */
 }
-@keyframes fadeInLog { to { opacity: 1; } }
-
+.ai-log-line.status { color: #b0b0c0; }
+.ai-log-line.input { color: var(--accent-cyan); text-shadow: 0 0 5px var(--accent-cyan); }
+.ai-log-line.process { color: #f0f0f0; }
+.ai-log-line.analysis { color: var(--accent-purple); text-shadow: 0 0 5px var(--accent-purple); }
+.ai-log-line.warning { color: var(--accent-yellow); font-weight: bold; text-shadow: 0 0 6px var(--accent-yellow); }
+.ai-log-line.error { color: var(--accent-red); font-weight: bold; text-shadow: 0 0 6px var(--accent-red); }
+.ai-log-line.output { color: var(--accent-green); text-shadow: 0 0 5px var(--accent-green); }
 
 .ai-input-area {
-    background-color: rgba(0, 0, 0, 0.1);
-    border-radius: 6px;
-    padding: 10px 15px;
-    font-family: var(--mono-font);
-    font-size: 0.95rem;
-    color: var(--text-color);
-    min-height: 40px; /* Minimální výška */
-    display: flex; /* Pro kurzor */
-    align-items: center; /* Pro kurzor */
-    border: 1px solid rgba(255, 255, 255, 0.08);
+	font-family: var(--font-mono);
+	color: var(--accent-cyan);
+	margin-bottom: 15px;
+	min-height: 1.5em; /* Ensure space for cursor */
+	display: flex;
+	align-items: center;
 }
-
+/* Fake Input Blinking Cursor - Added */
 .fake-input-cursor {
-    display: inline-block;
-    width: 8px;
-    height: 1.2em; /* Výška řádku */
-    background-color: var(--secondary-color);
-    margin-left: 3px;
-    animation: blinkCursor 1s infinite step-end;
-    vertical-align: middle; /* Zarovnání s textem */
+	display: inline-block;
+	width: 9px;
+	height: 1.3em;
+	background-color: var(--accent-cyan);
+	margin-left: 3px;
+	animation: blink 1s step-end infinite;
+	box-shadow: var(--glow-cyan); /* Added glow */
+}
+@keyframes blink {
+	from, to { background-color: transparent; box-shadow: none; }
+	50% { background-color: var(--accent-cyan); box-shadow: var(--glow-cyan); }
 }
 
-@keyframes blinkCursor {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0; }
-}
-
+/* AI Progress Bar */
 .ai-progress-bar-container {
-    margin-top: 20px;
+	margin-top: 20px;
 }
-
 .ai-progress-bar-label {
-    font-family: var(--mono-font);
-    font-size: 0.85rem;
-    margin-bottom: 8px;
-    opacity: 0.8;
+	font-family: var(--font-mono);
+	font-size: 0.8rem;
+	color: var(--secondary-text);
+	margin-bottom: 8px;
+	text-transform: uppercase;
 }
-
 .ai-progress-bar {
-    width: 100%;
-    height: 8px;
-    background-color: rgba(255, 255, 255, 0.1);
-    border-radius: 4px;
-    overflow: hidden;
+	width: 100%;
+	height: 14px; /* Thicker bar */
+	background-color: rgba(160, 92, 255, 0.15);
+	border-radius: 7px; /* Adjusted radius */
+	overflow: hidden;
+	border: 1px solid rgba(160, 92, 255, 0.3);
 }
-
 .ai-progress-bar-inner {
-    height: 100%;
-    width: 0%; /* Start at 0 */
-    background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
-    border-radius: 4px;
-    transition: width 0.5s ease-out; /* Plynulá animace progress baru */
+	width: 0; /* Starts at 0 */
+	height: 100%;
+	background: linear-gradient(90deg, var(--accent-purple), var(--accent-cyan));
+	border-radius: 7px;
+	transition: width 0.5s cubic-bezier(0.65, 0, 0.35, 1); /* Smooth transition */
+	box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.6), 0 0 5px var(--accent-cyan); /* Add outer glow */
 }
 
 
-/* === Jak to funguje (Timeline) === */
-.how-it-works {
-     background-color: var(--bg-color); /* Může být stejné jako body */
-}
-
+/* === HOW IT WORKS (TIMELINE) - Enhanced === */
 .timeline-container {
-    position: relative;
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 30px 0;
+	position: relative;
+	max-width: 800px;
+	margin: 0 auto;
+	padding: 40px 0;
 }
-
-/* Centrální linie časové osy */
-.timeline-container::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 50px; /* Odsazení od levého kraje */
-    width: 4px;
-    background: linear-gradient(180deg, var(--primary-color), var(--secondary-color));
-    border-radius: 2px;
-    z-index: 0;
+/* Central timeline line */
+.timeline-container::after {
+	content: '';
+	position: absolute;
+	width: 4px;
+	background: linear-gradient(var(--accent-purple), var(--accent-cyan)); /* Gradient line */
+	top: 0;
+	bottom: 0;
+	left: 50%;
+	margin-left: -2px;
+	z-index: -1; /* Behind items */
+	border-radius: 2px;
 }
 
 .timeline-item {
-    position: relative;
-    margin-bottom: 50px; /* Mezera mezi položkami */
-    padding-left: 100px; /* Prostor pro ikonu a mezeru */
-    opacity: 0; /* Start hidden for animation */
-    transform: translateX(-20px); /* Start position for animation */
-    transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+	padding: 10px 40px;
+	position: relative;
+	background-color: transparent; /* Items are transparent */
+	width: 50%;
+	/* Animation handled by [data-animate] now */
 }
-.timeline-item:last-child {
-    margin-bottom: 0;
+/* Position items left/right */
+.timeline-item:nth-child(odd) { left: 0; }
+.timeline-item:nth-child(even) { left: 50%; }
+
+/* Arrow pointers */
+.timeline-item::after {
+	content: '';
+	position: absolute;
+	width: 0;
+	height: 0;
+	border-style: solid;
+	top: 28px; /* Adjust vertical position */
+	filter: drop-shadow(0 0 3px rgba(0, 0, 0, 0.5)); /* Shadow for arrow */
+}
+.timeline-item:nth-child(odd)::after { /* Right arrow */
+	right: 28px; /* Adjust horizontal position */
+	border-width: 10px 0 10px 12px;
+	border-color: transparent transparent transparent var(--secondary-bg); /* Pointing left */
+}
+.timeline-item:nth-child(even)::after { /* Left arrow */
+	left: 28px; /* Adjust horizontal position */
+	border-width: 10px 12px 10px 0;
+	border-color: transparent var(--secondary-bg) transparent transparent; /* Pointing right */
 }
 
-.timeline-item.animate {
-    opacity: 1;
-    transform: translateX(0);
-}
-
-.timeline-icon {
-    position: absolute;
-    left: 25px; /* Zarovnání na střed čáry */
-    top: 0;
-    transform: translateX(-50%);
-    width: 50px;
-    height: 50px;
-    background-color: var(--primary-color);
-    border-radius: 50%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 1.4rem;
-    font-weight: 700;
-    color: var(--heading-color);
-    border: 3px solid var(--bg-color); /* Okraj pro oddělení od čáry */
-    box-shadow: 0 0 15px var(--accent-glow);
-    z-index: 1; /* Nad čárou */
-}
-
+/* Timeline Content Box */
 .timeline-content {
-    background-color: var(--card-bg);
-    padding: 25px;
-    border-radius: 10px;
-    border: 1px solid var(--card-border);
-    position: relative; /* Pro případné dekorace */
-    transition: background-color var(--transition-speed) ease;
+	padding: 25px 35px;
+	background-color: var(--secondary-bg); /* Background for the content box */
+	position: relative;
+	border-radius: 6px;
+	border: 1px solid rgba(160, 92, 255, 0.3);
+	box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+	transition: box-shadow var(--transition-smooth), transform var(--transition-smooth);
 }
 .timeline-item:hover .timeline-content {
-    background-color: var(--card-hover-bg);
-    border-color: var(--secondary-color);
+	box-shadow: 0 8px 25px rgba(0,0,0,0.6), var(--glow-purple); /* Glow on hover */
+	transform: scale(1.02);
 }
-
-
 .timeline-content h3 {
-    color: var(--secondary-color); /* Odlišení nadpisu kroku */
-    margin-top: 0;
-    margin-bottom: 8px;
+	margin-top: 0;
+	color: var(--accent-cyan);
+	font-size: 1.3rem;
 }
-
 .timeline-content p {
-    margin-bottom: 0;
-    opacity: 0.8;
+	font-size: 0.95rem;
+	margin-bottom: 0;
 }
 
-/* === Recenze (Testimonials) === */
+/* Timeline Icon (Number) */
+.timeline-icon {
+	position: absolute;
+	width: 55px;
+	height: 55px;
+	line-height: 55px;
+	font-size: 1.3rem;
+	font-weight: bold;
+	color: #fff;
+	background: linear-gradient(45deg, var(--accent-purple), var(--accent-pink)); /* Gradient BG */
+	border: 4px solid var(--primary-bg); /* Border matching page background */
+	top: 12px;
+	border-radius: 50%;
+	z-index: 10; /* Above the line */
+	text-align: center;
+	font-family: var(--font-mono);
+	box-shadow: 0 0 15px rgba(160, 92, 255, 0.7);
+	transition: transform var(--transition-smooth), box-shadow var(--transition-smooth);
+}
+.timeline-item:hover .timeline-icon {
+	transform: scale(1.15) rotate(10deg); /* Scale icon on hover */
+	box-shadow: 0 0 20px var(--accent-pink);
+}
+
+/* Position icons on the line */
+.timeline-item:nth-child(odd) .timeline-icon {
+	right: -27.5px; /* Half the width */
+}
+.timeline-item:nth-child(even) .timeline-icon {
+	left: -27.5px; /* Half the width */
+}
+
+
+/* === TESTIMONIALS - "Holographic" Cards === */
 .testimonials {
-    background-color: var(--surface-color); /* Odlišné pozadí */
+	background-color: var(--tertiary-bg);
 }
-
 .testimonials-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 30px;
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+	gap: 40px;
 }
 
 .testimonial-card {
-    background-color: var(--card-bg);
-    border: 1px solid var(--card-border);
-    border-radius: 12px;
-    padding: 30px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between; /* Obsah a autor odděleně */
-    transition: transform var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
+	background: rgba(22, 33, 62, 0.7); /* tertiary-bg with alpha */
+	backdrop-filter: blur(6px);
+	border: 1px solid transparent;
+	border-image: linear-gradient(135deg, rgba(0, 224, 255, 0.4), rgba(255, 51, 168, 0.4)) 1; /* Diagonal border */
+	padding: 40px;
+	border-radius: 12px;
+	transition: all var(--transition-slow);
+	box-shadow: var(--card-shadow);
+	position: relative;
+	overflow: hidden;
+	transform-style: preserve-3d;
+	will-change: transform, box-shadow, border-image;
+	min-height: 300px; /* Ensure space */
 }
+/* Animated Background Pattern */
+.testimonial-card::before {
+	content: '';
+	position: absolute;
+	top: 0; left: 0; right: 0; bottom: 0;
+	background-image: linear-gradient(rgba(0, 224, 255, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 51, 168, 0.1) 1px, transparent 1px);
+	background-size: 45px 45px; /* Slightly larger grid */
+	opacity: 0;
+	transition: opacity var(--transition-smooth), transform var(--transition-smooth);
+	z-index: 0;
+	animation: pattern-scroll 4s linear infinite paused;
+}
+
 .testimonial-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 25px var(--shadow-color);
+	transform: perspective(1200px) rotateY(-6deg) rotateX(4deg) scale(1.04) translateY(-12px);
+	box-shadow: var(--card-hover-shadow), 0 0 35px rgba(0, 224, 255, 0.5);
+	border-image: linear-gradient(135deg, var(--accent-cyan), var(--accent-pink), var(--accent-orange)) 1;
+}
+.testimonial-card:hover::before {
+	opacity: 1;
+	animation-play-state: running;
 }
 
-.testimonial-content {
-    margin-bottom: 20px;
+.testimonial-content, .testimonial-author {
+	position: relative;
+	z-index: 1;
+	transform: translateZ(25px);
 }
-
 .testimonial-rating {
-    color: #FFD700; /* Zlatá barva pro hvězdičky */
-    margin-bottom: 15px;
-    font-size: 1.1rem;
+	color: var(--accent-yellow);
+	margin-bottom: 15px;
+	font-size: 1.1rem;
 }
-.testimonial-rating i {
-    margin-right: 3px;
-}
+.testimonial-rating i { margin-right: 4px; }
 
 .testimonial-text {
-    font-style: italic;
-    opacity: 0.9;
-    margin-bottom: 0; /* Text zabere dostupný prostor */
-    position: relative;
-    padding-left: 20px; /* Prostor pro uvozovky */
+	font-size: 1rem;
+	line-height: 1.8; /* Increased line height */
+	margin-bottom: 25px;
+	font-style: italic;
+	color: var(--primary-text);
+	flex-grow: 1; /* Allow text to take available space */
 }
-
-/* Dekorativní uvozovky */
-.testimonial-text::before {
-    content: '“';
-    position: absolute;
-    left: -5px;
-    top: -10px;
-    font-size: 3rem;
-    color: var(--primary-color);
-    opacity: 0.3;
-    font-family: serif; /* Lepší vzhled uvozovek */
-    line-height: 1;
-}
-
+/* Adding quote symbols */
+.testimonial-text::before { content: '“'; margin-right: 5px; font-size: 1.6em; color: var(--accent-cyan); line-height: 0; display: inline-block; vertical-align: bottom; }
+.testimonial-text::after { content: '”'; margin-left: 5px; font-size: 1.6em; color: var(--accent-cyan); line-height: 0; display: inline-block; vertical-align: bottom;}
 
 .testimonial-author {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    margin-top: auto; /* Přitlačí autora dolů, pokud je místo */
-    padding-top: 20px; /* Odsazení od textu */
-    border-top: 1px solid var(--border-color); /* Jemné oddělení */
+	display: flex;
+	align-items: center;
+	gap: 15px;
+	margin-top: auto; /* Push author to the bottom */
 }
-
 .testimonial-avatar {
-    width: 60px; /* Větší avatar */
-    height: 60px;
-    border-radius: 50%;
-    background-color: var(--primary-color); /* Fallback barva */
-    background-size: cover;
-    background-position: center;
-    flex-shrink: 0; /* Zabrání zmenšení avataru */
-    border: 2px solid var(--secondary-color); /* Zvýraznění avataru */
+	width: 70px;
+	height: 70px; /* Larger avatar */
+	border-radius: 50%;
+	background-size: cover;
+	background-position: center;
+	border: 4px solid var(--accent-pink); /* Thicker border */
+	flex-shrink: 0; /* Prevent avatar from shrinking */
+	transition: transform var(--transition-smooth), box-shadow var(--transition-smooth);
 }
-
-.testimonial-author-info {
-    line-height: 1.4;
+.testimonial-card:hover .testimonial-avatar {
+	transform: scale(1.1) translateZ(40px); /* More pronounced effect */
+	box-shadow: var(--glow-pink);
 }
-
+.testimonial-author-info { }
 .testimonial-name {
-    font-weight: 600;
-    color: var(--heading-color);
+	font-weight: 600;
+	color: #fff;
+	font-size: 1.05rem;
 }
-
 .testimonial-role {
-    font-size: 0.9rem;
-    opacity: 0.7;
+	font-size: 0.85rem;
+	color: var(--secondary-text);
+	font-family: var(--font-mono);
 }
 
-/* === Výzva k Akci (CTA) === */
+/* === PRICING SECTION (REMOVED) === */
+/* Styles for .pricing, .pricing-grid, .price-card are intentionally removed */
+
+/* === CALL TO ACTION (CTA) === */
 .cta {
-    background: linear-gradient(45deg, rgba(138, 43, 226, 0.8), rgba(255, 51, 168, 0.8)), /* Překrytí gradientem */
-               url('https://via.placeholder.com/1500x500/03020C/FFFFFF?text=Pozad%C3%AD+CTA') center/cover no-repeat; /* Placeholder obrázek pozadí */
-    background-attachment: fixed; /* Parallax efekt */
-    text-align: center;
-    padding: 100px var(--gutter);
-    color: var(--heading-color);
+	background: linear-gradient(45deg, var(--accent-cyan), var(--accent-pink), var(--accent-purple)); /* Added purple */
+	color: #fff;
+	text-align: center;
+	padding: 70px 0;
+	position: relative;
+	overflow: hidden;
 }
-
+/* Add moving shapes/gradients background effect */
+.cta::before {
+	content: "";
+	position: absolute;
+	top: -50%; left: -50%;
+	width: 200%; height: 200%;
+	background: radial-gradient(circle, rgba(255,255,255,0.1) 10%, transparent 40%),
+				radial-gradient(circle, rgba(255,255,255,0.05) 10%, transparent 30%);
+	background-size: 30% 30%, 20% 20%;
+	animation: move-glow 12s linear infinite; /* Faster animation */
+	z-index: 0;
+	opacity: 0.6;
+}
+@keyframes move-glow {
+	0% { transform: translate(0, 0) rotate(0deg); }
+	50% { transform: translate(10px, 20px) rotate(180deg); }
+	100% { transform: translate(0, 0) rotate(360deg); }
+}
+.cta .container {
+	position: relative;
+	z-index: 1; /* Ensure content is above effect */
+}
 .cta h2 {
-    font-size: clamp(2.2rem, 5vw, 3.2rem);
-    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+	color: #fff; /* Changed back to white for better contrast with moving bg */
+	font-size: clamp(1.8rem, 4vw, 2.8rem); /* Slightly larger */
+	text-shadow: 0 2px 5px rgba(0,0,0,0.3);
+	margin-bottom: 1.5rem;
 }
-
 .cta p {
-    font-size: 1.15rem;
-    margin-bottom: 30px;
-    max-width: 600px;
-    margin-left: auto;
-    margin-right: auto;
-    opacity: 0.9;
+	color: rgba(255, 255, 255, 0.9); /* Lighter text */
+	margin-bottom: 2.5rem;
+	font-size: 1.15rem;
+}
+.cta .btn.auth-link {
+	background-color: #fff;
+	color: var(--accent-pink);
+	border-color: #fff;
+	box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+	font-size: 1rem;
+	padding: 1em 2em;
+}
+.cta .btn.auth-link:hover {
+	background-color: var(--primary-bg);
+	color: #fff;
+	border-color: var(--primary-bg);
+	box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+	transform: translateY(-3px) scale(1.05);
 }
 
-.cta .btn {
-    padding: 15px 35px; /* Větší tlačítko */
-    font-size: 1.1rem;
-    background: var(--secondary-color); /* Jiná barva pro odlišení */
-    color: var(--bg-color);
-    box-shadow: 0 5px 20px rgba(0, 224, 255, 0.4);
-}
-.cta .btn:hover {
-    background: #ffffff; /* Bílá při hoveru */
-    color: var(--primary-color);
-    box-shadow: 0 8px 25px rgba(255, 255, 255, 0.4);
-}
 
-
-/* === Patička (Footer) === */
-#contact { /* Přejmenováno z footer na #contact (dle HTML) */
-    background-color: #080a1a; /* Trochu světlejší než hlavní pozadí */
-    padding: 60px 0 30px;
-    border-top: 1px solid var(--border-color);
+/* === FOOTER - Enhanced === */
+#contact { /* Footer is acting as contact section */
+	background-color: var(--primary-bg);
+	/* Enhanced Gradient Border */
+	border-top: 3px solid transparent; /* Make space for gradient */
+	border-image: linear-gradient(90deg, var(--accent-purple), var(--accent-cyan), var(--accent-pink)) 1;
+	background-clip: padding-box; /* Important for border-image */
+	padding: 70px 0 30px 0;
+	font-size: 0.9rem;
+	position: relative; /* For potential effects */
 }
-
 .footer-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 40px;
-    margin-bottom: 40px;
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+	gap: 45px;
+	margin-bottom: 50px;
 }
-
+.footer-column h3 {
+	font-family: var(--font-primary);
+	font-size: 1.15rem;
+	color: #fff;
+	margin-bottom: 20px;
+	text-transform: uppercase;
+	letter-spacing: 1.5px;
+}
 .footer-column .logo {
-    font-size: 1.8rem;
-    margin-bottom: 15px;
+	font-size: 1.5rem;
+	margin-bottom: 15px;
 }
 .footer-column p {
-    font-size: 0.95rem;
-    opacity: 0.7;
-    margin-bottom: 20px;
-    max-width: 250px; /* Omezit šířku popisku */
+	font-size: 0.9rem;
+	margin-bottom: 20px;
+	color: var(--secondary-text);
 }
-
-.footer-column h3 {
-    font-size: 1.3rem;
-    color: var(--secondary-color); /* Nadpisy v patičce */
-    margin-bottom: 20px;
+.footer-links {
+	list-style: none;
 }
-
 .footer-links li {
-    margin-bottom: 12px;
+	margin-bottom: 12px;
 }
-.footer-links a,
-.footer-column li { /* Pro položky bez odkazu */
-    color: var(--text-color);
-    opacity: 0.8;
-    font-size: 0.95rem;
-    transition: color var(--transition-speed) ease, padding-left var(--transition-speed) ease;
+.footer-links a {
+	color: var(--secondary-text);
+	transition: color var(--transition-fast), padding-left var(--transition-fast), letter-spacing var(--transition-fast), filter var(--transition-fast);
 }
-.footer-links a:hover {
-    color: var(--secondary-color);
-    padding-left: 5px; /* Malý posun textu při hoveru */
+.footer-links a:hover, .footer-links a:focus {
+	color: var(--accent-cyan);
+	padding-left: 8px;
+	letter-spacing: 0.5px;
+	filter: drop-shadow(0 0 3px var(--accent-cyan));
 }
-.footer-column li i { /* Ikony v patičce */
-    margin-right: 8px;
-    color: var(--primary-color); /* Sjednotit barvu ikon */
-    width: 15px; /* Zajistit stejnou šířku pro ikony */
-    text-align: center;
-}
-
-
 .social-links {
-    display: flex;
-    gap: 15px;
-    margin-top: 20px;
+	display: flex;
+	gap: 18px;
+	margin-top: 20px;
 }
-
 .social-link {
-    color: var(--text-color);
-    font-size: 1.5rem;
-    opacity: 0.7;
-    transition: color var(--transition-speed) ease, transform var(--transition-speed) ease;
+	color: var(--secondary-text);
+	font-size: 1.5rem;
+	transition: color var(--transition-fast), transform var(--transition-fast), filter var(--transition-fast);
 }
-.social-link:hover {
-    color: var(--secondary-color);
-    transform: scale(1.1) translateY(-2px);
+.social-link:hover, .social-link:focus {
+	color: var(--accent-cyan);
+	transform: scale(1.2) translateY(-3px); /* Enhanced hover effect */
+	filter: drop-shadow(0 0 5px var(--accent-cyan));
 }
+.social-link[aria-label="Telegram"]:hover { color: #2AABEE; filter: drop-shadow(0 0 5px #2AABEE); }
+.social-link[aria-label="Instagram"]:hover { color: #E4405F; filter: drop-shadow(0 0 5px #E4405F); }
+.social-link[aria-label="Email"]:hover { color: var(--accent-pink); filter: drop-shadow(0 0 5px var(--accent-pink); }
 
 .copyright {
-    text-align: center;
-    padding-top: 30px;
-    border-top: 1px solid var(--border-color);
-    font-size: 0.9rem;
-    opacity: 0.6;
-    font-family: var(--mono-font);
+	text-align: center;
+	padding-top: 40px;
+	border-top: 1px solid rgba(160, 92, 255, 0.15);
+	font-size: 0.85rem;
+	color: var(--secondary-text);
+	font-family: var(--font-mono);
 }
-.copyright i {
-    font-size: 0.8em; /* Zmenšit srdce */
-}
+.copyright i { margin: 0 3px; }
 
 
-/* === Mouse Follower === */
+/* === MOUSE FOLLOWER - Reactive === */
+@keyframes follower-trail {
+	0% { opacity: 1; transform: scale(1); }
+	100% { opacity: 0; transform: scale(0.5); }
+}
 .mouse-follower-glow {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 500px; /* Velikost záře */
-    height: 500px;
-    background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
-    border-radius: 50%;
-    pointer-events: none; /* Ignoruje kliknutí */
-    transform: translate(-50%, -50%); /* Centrování */
-    z-index: var(--z-mouse-follower);
-    opacity: 0; /* Skryto, dokud JS nepřidá souřadnice */
-    transition: opacity 0.5s ease, transform 0.1s ease-out; /* Plynulý pohyb */
-    filter: blur(30px); /* Rozostření pro jemnější efekt */
+	position: fixed;
+	width: 25px; height: 25px; /* Smaller core */
+	background: var(--accent-cyan); /* Solid core */
+	border-radius: 50%;
+	pointer-events: none;
+	z-index: 9999;
+	transform: translate(-50%, -50%);
+	transition: transform 0.1s ease-out, background 0.2s ease, width 0.2s ease, height 0.2s ease, box-shadow 0.2s ease; /* Faster follow, added shadow transition */
+	box-shadow: 0 0 15px 5px var(--accent-cyan), 0 0 25px 15px rgba(0, 224, 255, 0.5); /* Stronger glow */
+	will-change: left, top, transform, box-shadow;
+}
+/* Trail Effect (Experimental) - Requires JS to add/remove trail elements */
+/* .mouse-follower-trail { ... styles for trail elements ... animation: follower-trail ... } */
+
+body:active .mouse-follower-glow { /* Click effect */
+	transform: translate(-50%, -50%) scale(0.8);
+	background: var(--accent-pink);
+	box-shadow: 0 0 20px 8px var(--accent-pink), 0 0 30px 20px rgba(255, 51, 168, 0.5);
 }
 
 
-/* === Pomocné třídy a Animace === */
-/* Jednoduché fadeIn animace pro elementy při scrollu */
+/* === ANIMATIONS - More Dramatic === */
+
+/* General Section Animation */
 [data-animate] {
-    opacity: 0;
-    transform: translateY(30px);
-    transition: opacity 0.6s ease-out, transform 0.6s ease-out;
-    transition-delay: calc(var(--animation-order, 0) * 0.1s); /* Opoždění podle pořadí */
+	opacity: 0;
+	filter: blur(8px);
+	transform: perspective(1500px) translateY(50px) rotateY(15deg) scale(0.9); /* More dramatic start */
+	transform-origin: 50% 50%;
+	transition: opacity 0.8s var(--transition-slow), transform 0.8s var(--transition-slow), filter 0.8s var(--transition-slow);
 }
-[data-animate].animate {
-    opacity: 1;
-    transform: translateY(0);
-}
-
-/* Animace pro písmena v H1 */
-[data-animate-letters] span {
-    display: inline-block; /* Aby transform fungoval */
-    opacity: 0;
-    transform: translateY(20px) scale(0.8) rotate(10deg);
-    transition: opacity 0.5s ease, transform 0.5s ease;
+[data-animate].animated {
+	opacity: 1;
+	filter: blur(0);
+	transform: perspective(1500px) translateY(0) rotateY(0) scale(1);
+	transition-delay: calc(var(--animation-order, 0) * 150ms); /* Increased stagger */
 }
 
-/* Animace pro timeline (upravena v JS) */
-[data-animate-timeline].animate {
-    opacity: 1;
-    transform: translateX(0);
+/* Letter Animation (Keyframes triggered by JS) */
+@keyframes letterFadeIn {
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+/* Letter Animation setup (target spans created by JS) */
+[data-animate-letters] {
+	opacity: 1; /* Container should be visible once animation starts */
+	filter: none; /* Reset filter applied by [data-animate] */
+	transform: none; /* Reset transform applied by [data-animate] */
+}
+[data-animate-letters].letters-animating span {
+	/* Base styles for spans before JS applies random delays/transforms */
+	 opacity: 0;
+	 transform: translateY(10px);
+	 display: inline-block; /* Essential for transforms */
+	 /* Animation properties will be set dynamically by JS */
+}
+
+/* Timeline Animation uses general [data-animate] now */
+[data-animate-timeline] {
+	/* Inherits base animation from [data-animate] */
+}
+/* Adjust starting rotation for timeline items based on side */
+.timeline-item:nth-child(odd)[data-animate] {
+	 transform: perspective(1500px) translateY(50px) rotateY(15deg) scale(0.9);
+	 transform-origin: 0% 50%; /* Rotate from left edge */
+}
+.timeline-item:nth-child(even)[data-animate] {
+	 transform: perspective(1500px) translateY(50px) rotateY(-15deg) scale(0.9);
+	  transform-origin: 100% 50%; /* Rotate from right edge */
+}
+/* Reset transform on animation end is handled by .animated state */
+.timeline-item[data-animate].animated {
+	transform: perspective(1500px) translateY(0) rotateY(0) scale(1);
 }
 
 
-/* === Responzivita === */
-
-/* Menší desktopy a tablety na šířku */
-@media (max-width: 1200px) {
-    .container {
-        max-width: 960px;
-    }
-}
-
-/* Tablety */
+/* === RESPONSIVE DESIGN === */
 @media (max-width: 992px) {
-    .container {
-        max-width: 720px;
-    }
-    .features-grid {
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    }
-    .footer-grid {
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-        gap: 30px;
-    }
-    .nav-links {
-        display: none; /* Skrýt navigační odkazy */
-        position: fixed; /* Mobilní menu */
-        top: var(--header-height);
-        left: 0;
-        width: 100%;
-        background-color: rgba(3, 2, 12, 0.98); /* Neprůhledné pozadí menu */
-        flex-direction: column;
-        align-items: center;
-        padding: 30px 0;
-        height: calc(100vh - var(--header-height)); /* Výška zbytku obrazovky */
-        overflow-y: auto;
-        transform: translateX(-100%);
-        transition: transform var(--transition-speed) var(--transition-timing);
-        border-top: 1px solid var(--border-color);
-    }
-    .nav-links.active {
-        display: flex; /* Zobrazit, když je aktivní */
-        transform: translateX(0);
-    }
-    .nav-links li {
-        width: 100%;
-        text-align: center;
-        margin-bottom: 10px;
-    }
-    .nav-item {
-        display: block; /* Celá šířka */
-        padding: 15px 20px;
-        font-size: 1.2rem;
-    }
-    .nav-item::before { display: none; } /* Skrýt podtržení v mobilním menu */
-    .nav-item:hover { background-color: var(--primary-color); color: white;} /* Jiný hover efekt */
-
-    .hamburger {
-        display: block; /* Zobrazit hamburger ikonu */
-    }
-    .desktop-auth-link {
-        display: none; /* Skrýt desktopové tlačítko */
-    }
-    .mobile-auth-link {
-        display: block; /* Zobrazit mobilní tlačítko v menu */
-        margin: 20px auto 0;
-    }
-
-    .timeline-container::before {
-        left: 30px; /* Posunout čáru vlevo */
-    }
-    .timeline-item {
-        padding-left: 70px; /* Upravit odsazení obsahu */
-    }
-    .timeline-icon {
-        left: 30px; /* Posunout ikonu na novou pozici čáry */
-        width: 40px;
-        height: 40px;
-        font-size: 1.1rem;
-    }
-
-    .ai-interface-wrapper {
-        margin-left: var(--gutter);
-        margin-right: var(--gutter);
-    }
-
+	h1 { font-size: clamp(2.2rem, 7vw, 3.5rem); }
+	h2 { font-size: clamp(1.8rem, 6vw, 2.5rem); }
+	.features-grid { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px; }
+	.testimonials-grid { grid-template-columns: 1fr; gap: 30px; }
+	.ai-log-window { height: 300px; } /* Adjust height */
 }
 
-/* Mobily */
 @media (max-width: 768px) {
-    .container {
-        max-width: 540px;
-        padding-left: 15px;
-        padding-right: 15px;
-    }
-    h1 { font-size: 2.2rem; }
-    h2 { font-size: 1.8rem; }
-    h3 { font-size: 1.3rem; }
+	:root { --header-height: 60px; }
+	/* Mobile Navigation */
+	.nav-links {
+		position: fixed; top: 0; right: -100%; width: 75%; max-width: 320px; height: 100vh;
+		background-color: var(--secondary-bg);
+		flex-direction: column; padding: 80px 30px 30px 30px; gap: 25px; align-items: flex-start;
+		transition: right var(--transition-smooth); box-shadow: -5px 0 15px rgba(0, 0, 0, 0.4);
+		z-index: 999; border-left: 1px solid rgba(160, 92, 255, 0.25);
+	}
+	.nav-links.active { right: 0; }
+	.nav-item { font-size: 1rem; width: 100%; padding: 10px 0; }
+	.nav-item::after { display: none; }
+	.nav-item:hover, .nav-item:focus { color: var(--accent-cyan); }
+	.hamburger { display: block; }
+	.desktop-auth-link { display: none; }
+	.mobile-auth-link { display: block; margin-top: 35px; width: 100%; text-align: center; }
+	#header.menu-open { background-color: transparent; backdrop-filter: none; border-bottom-color: transparent; }
 
-    #hero {
-        padding-top: 100px; /* Menší padding */
-        min-height: 80vh;
-    }
-    .hero p {
-        font-size: 1rem;
-    }
-    .hero-buttons {
-        flex-direction: column; /* Tlačítka pod sebou */
-        align-items: center;
-        gap: 15px;
-    }
-    .hero-buttons .btn {
-        width: 80%; /* Širší tlačítka */
-        max-width: 300px;
-    }
+	.hero { min-height: 85vh; padding-top: calc(var(--header-height) + 30px); }
+	.hero h1 { font-size: clamp(2rem, 8vw, 3rem); }
+	.hero p { font-size: 1rem; }
+	.hero-buttons { flex-direction: column; gap: 15px; align-items: center; }
+	.hero-buttons .btn { width: 85%; max-width: 320px; animation: none; /* Disable pulse on mobile */ }
 
-    section {
-        padding: 60px 0;
-    }
-    .section-subtitle {
-        margin-bottom: 40px;
-        font-size: 1rem;
-    }
+	section { padding: 70px 0; }
+	.section-subtitle { margin-bottom: 3.5rem; }
 
-    .features-grid,
-    .testimonials-grid {
-        grid-template-columns: 1fr; /* Jeden sloupec */
-        gap: 25px;
-    }
+	/* Disable heavier animations/transforms on mobile */
+	.feature-card:hover, .testimonial-card:hover {
+		transform: translateY(-5px) scale(1.01); /* Simpler hover */
+		box-shadow: var(--card-hover-shadow), var(--glow-purple); /* Keep glow */
+		border-image: linear-gradient(45deg, var(--accent-cyan), var(--accent-pink)) 1; /* Simpler border */
+	}
+	.feature-card:hover::before, .testimonial-card:hover::before {
+		 opacity: 0.8; /* Slightly reduce pattern opacity */
+		 animation-play-state: running;
+	}
+	[data-animate] { /* Simpler entry animation */
+		transform: translateY(30px); filter: blur(3px); opacity: 0;
+		/* Keep perspective for timeline */
+		transform-origin: 50% 50%;
+	}
+	.timeline-item:nth-child(odd)[data-animate] { transform: perspective(1000px) translateY(30px) rotateY(10deg) scale(0.95); }
+	.timeline-item:nth-child(even)[data-animate] { transform: perspective(1000px) translateY(30px) rotateY(-10deg) scale(0.95); }
 
-    .footer-grid {
-         grid-template-columns: 1fr; /* Jeden sloupec */
-         text-align: center; /* Centrovat obsah ve sloupci */
-    }
-    .footer-column p {
-        margin-left: auto;
-        margin-right: auto;
-    }
-    .footer-column .logo,
-    .social-links {
-        justify-content: center; /* Centrovat logo a ikony */
-    }
-    .footer-links {
-        padding-left: 0; /* Odebrat odsazení seznamu */
-    }
-    .footer-column li {
-        text-align: center; /* Centrovat text položek */
-    }
-     .footer-column li i {
-        display: none; /* Skrýt ikony u adresy/emailu, pokud jsou v textu */
-    }
+	[data-animate].animated {
+		transform: translateY(0) rotateY(0) scale(1); filter: blur(0); opacity: 1;
+	}
+	/* Keep timeline perspective reset */
+	 .timeline-item[data-animate].animated { transform: perspective(1000px) translateY(0) rotateY(0) scale(1); }
 
-     .timeline-container::before {
-        left: 20px; /* Ještě více vlevo */
-    }
-    .timeline-item {
-        padding-left: 50px; /* Menší odsazení */
-    }
-    .timeline-icon {
-        left: 20px;
-        width: 35px;
-        height: 35px;
-        font-size: 1rem;
-    }
+
+	/* Timeline adjustments */
+	.timeline-container::after { left: 25px; margin-left: 0; }
+	.timeline-item { width: 100%; padding-left: 75px; padding-right: 10px; margin-bottom: 35px; }
+	.timeline-item:nth-child(odd), .timeline-item:nth-child(even) { left: 0; }
+	.timeline-icon { left: 0; width: 50px; height: 50px; line-height: 50px; font-size: 1.2rem; }
+	.timeline-item::after { left: 62px; /* Adjust arrow */ border-width: 8px 10px 8px 0; } /* Adjust arrow size */
+	.timeline-item:nth-child(odd)::after { border-color: transparent; }
+
+
+	.footer-grid { grid-template-columns: 1fr; text-align: center; gap: 35px; }
+	.social-links { justify-content: center; }
+	.footer-column .logo { justify-content: center; }
+
+	/* Hide mouse follower on likely touch devices */
+	.mouse-follower-glow { display: none; }
 }
 
-@media (max-width: 576px) {
-     .container {
-        padding-left: 10px;
-        padding-right: 10px;
-    }
-    :root { --header-height: 60px; }
-    #header { height: 60px; }
-    .nav-links { top: 60px; height: calc(100vh - 60px); }
-    .logo { font-size: 1.4rem; }
-    .logo i { font-size: 1.6rem; }
-    .btn { padding: 10px 22px; font-size: 0.9rem; }
-    .hero p { max-width: 90%; }
-    .cta h2 { font-size: 1.8rem; }
-    .cta p { font-size: 1rem; }
-    .cta .btn { padding: 12px 25px; font-size: 1rem; }
-
-    /* Ještě menší odsazení pro timeline */
-    .timeline-container::before { left: 15px; width: 3px;}
-    .timeline-item { padding-left: 40px;}
-    .timeline-icon { left: 15px; width: 30px; height: 30px; font-size: 0.9rem; border-width: 2px;}
-
-    .ai-interface-wrapper {
-        margin-left: 5px;
-        margin-right: 5px;
-    }
-     .ai-log-window { height: 200px; font-size: 0.8rem; }
-     .ai-input-area { font-size: 0.85rem; min-height: 35px;}
-
-     .testimonial-avatar { width: 50px; height: 50px; }
+@media (max-width: 480px) {
+	html { font-size: 15px; }
+	body { line-height: 1.6; }
+	.container { width: 95%; padding: 0 15px; }
+	.btn { padding: 0.8em 1.6em; font-size: 0.9rem; }
+	.features-grid { grid-template-columns: 1fr; }
+	.testimonial-card { padding: 25px; min-height: auto; } /* Adjust padding */
+	.testimonial-text { font-size: 0.95rem; }
+	.ai-content-area { padding: 15px; }
+	.ai-log-window { padding: 15px; font-size: 0.85rem; height: 280px; }
 }
