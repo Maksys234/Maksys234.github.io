@@ -9,6 +9,7 @@
 	--interface-bg: rgba(6, 4, 22, 0.92);
 	--interface-border: rgba(0, 240, 255, 0.35);
 	--dark-purple-accent: #160c41;
+    --dark-purple-accent-rgb: 22, 12, 65; /* Added from profile.css */
 	--accent-primary: #00e0ff;
 	--accent-primary-rgb: 0, 224, 255;
 	--accent-secondary: #a05cff;
@@ -48,13 +49,11 @@
 	--gradient-border-anim: linear-gradient(90deg, var(--accent-secondary), var(--accent-primary), var(--accent-pink), var(--accent-primary), var(--accent-secondary));
 	--gradient-button: linear-gradient(100deg, var(--accent-secondary) 0%, var(--accent-primary) 100%);
 	--gradient-button-hover: linear-gradient(100deg, var(--accent-primary) 0%, var(--accent-pink) 100%);
-	--gradient-hero-bg: radial-gradient(ellipse at 15% 15%, rgba(var(--accent-primary-rgb), 0.18), transparent 55%), radial-gradient(ellipse at 85% 85%, rgba(var(--accent-secondary-rgb), 0.15), transparent 60%), var(--bg-color);
-	--gradient-card-highlight: linear-gradient(160deg, rgba(var(--accent-primary-rgb), 0.15), rgba(var(--accent-secondary-rgb), 0.12));
-	--gradient-cta: linear-gradient(110deg, var(--accent-secondary) 0%, var(--accent-pink) 100%);
-	--shimmer-gradient: linear-gradient(90deg, transparent, rgba(var(--accent-primary-rgb), 0.2), transparent);
-	--gradient-sidebar: linear-gradient(190deg, var(--bg-secondary) 0%, var(--dark-purple-accent) 100%);
+	--gradient-sidebar: linear-gradient(190deg, var(--bg-secondary) 0%, var(--dark-purple-accent) 100%); /* Consistent sidebar gradient */
 	--gradient-level-up: linear-gradient(45deg, var(--accent-pink), var(--accent-secondary));
 	--gradient-welcome: linear-gradient(135deg, rgba(var(--accent-primary-rgb), 0.2), rgba(var(--accent-secondary-rgb), 0.25));
+    --gradient-profile-avatar: linear-gradient(145deg, var(--accent-primary), var(--accent-secondary)); /* Added from profile.css */
+    --gradient-exp-bar: linear-gradient(90deg, var(--accent-secondary) 0%, var(--accent-primary) 50%, var(--accent-cyan) 100%); /* Added from profile.css */
 	--gradient-math: linear-gradient(135deg, var(--accent-cyan), var(--accent-secondary));
 	--gradient-lang: linear-gradient(135deg, var(--accent-pink), var(--accent-secondary));
 	--gradient-special: linear-gradient(135deg, var(--accent-orange), var(--accent-pink));
@@ -83,7 +82,7 @@
 	--container-padding-x: 2rem;
 	--transition-speed: 0.3s;
 	--transition-fast: all 0.2s ease-out;
-	--transition-medium: all 0.35s ease-out;
+	--transition-medium: all 0.35s ease-out; /* Matched from profile.css */
 	--transition-long: all 0.5s cubic-bezier(0.165, 0.84, 0.44, 1);
 	--transition-bounce: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 	--transition-entrance: all 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
@@ -91,6 +90,19 @@
 	--skeleton-highlight: rgba(var(--accent-secondary-rgb), 0.2);
 	--card-bg-color: var(--card-bg);
 	--card-bg-color-rgb: 15, 10, 45;
+    --info-bg: rgba(var(--accent-primary-rgb), 0.1); /* Added from profile.css */
+    --info-border: rgba(var(--accent-primary-rgb), 0.3); /* Added from profile.css */
+    --info-color: var(--accent-primary); /* Added from profile.css */
+    --warning-bg: rgba(var(--accent-orange-rgb), 0.1); /* Added from profile.css */
+    --warning-border: rgba(var(--accent-orange-rgb), 0.3); /* Added from profile.css */
+    --warning-color: var(--accent-orange); /* Added from profile.css */
+    --error-bg: rgba(var(--accent-pink-rgb), 0.1); /* Added from profile.css */
+    --error-border: rgba(var(--accent-pink-rgb), 0.3); /* Added from profile.css */
+    --error-color: var(--accent-pink); /* Added from profile.css */
+    --input-bg-color: rgba(var(--accent-secondary-rgb), 0.08); /* Added from profile.css */
+    --input-border-color: var(--border-color-light); /* Added from profile.css */
+    --input-focus-border-color: var(--accent-primary); /* Added from profile.css */
+    --input-focus-shadow: 0 0 0 3px rgba(var(--accent-primary-rgb), 0.25); /* Added from profile.css */
 	--danger-color: #ff4d6d;
 	--success-color: var(--accent-lime);
 }
@@ -151,46 +163,135 @@ body { scrollbar-width: thin; scrollbar-color: rgba(var(--accent-primary-rgb), 0
 .card:hover::before { transform: translate(-3px, -3px); }
 .card:hover::after { transform: translate(3px, 3px); }
 
-/* --- Sidebar --- */
-/* Add transitions to sidebar and its children */
-.sidebar { width: var(--sidebar-width); height: 100vh; position: fixed; top: 0; left: 0; background: var(--gradient-sidebar); color: var(--text-medium); padding: 1.5rem 1rem; display: flex; flex-direction: column; z-index: 1000; box-shadow: 5px 0 30px rgba(0, 0, 0, 0.4); border-right: 1px solid var(--border-color-light); transition: width var(--transition-medium) cubic-bezier(0.4, 0, 0.2, 1), transform var(--transition-medium) ease; overflow: hidden; }
-.sidebar-header { transition: padding var(--transition-medium) ease; /* ... rest of styles */ display: flex; align-items: center; margin-bottom: 2.5rem; padding: 0 0.5rem; position: relative; min-height: 45px; }
-.sidebar-logo { transition: gap var(--transition-medium) ease; /* ... rest of styles */ font-size: 1.7rem; font-weight: 700; color: var(--text-heading); text-decoration: none; display: flex; align-items: center; gap: 0.8rem; text-shadow: 0 0 8px var(--accent-secondary-glow); width: 100%; }
-.sidebar-logo span { transition: opacity 0.1s linear, max-width 0.2s linear 0.1s; /* ... rest of styles */ opacity: 1; max-width: 150px; overflow: hidden; white-space: nowrap; display: inline-block; }
-.sidebar-link { transition: background-color 0.25s ease, color 0.25s ease, box-shadow 0.25s ease, border-left-color 0.25s ease; /* ... rest of styles */ display: flex; align-items: center; padding: 0.85rem 1rem; color: var(--text-medium); text-decoration: none; border-radius: var(--button-radius); font-weight: 500; position: relative; border-left: 4px solid transparent; overflow: hidden; white-space: nowrap; }
-.sidebar-link i { transition: color 0.25s ease, margin-right var(--transition-medium) ease, font-size var(--transition-medium) ease; /* ... rest of styles */ margin-right: 0.85rem; font-size: 1.25rem; width: 25px; text-align: center; color: var(--text-muted); flex-shrink: 0; }
-.sidebar-link span { transition: opacity 0.1s linear, max-width 0.2s linear 0.1s; /* ... rest of styles */ opacity: 1; max-width: 150px; overflow: hidden; white-space: nowrap; display: inline-block; vertical-align: middle; }
-.user-profile { transition: padding var(--transition-medium) ease; /* ... rest of styles */ display: flex; align-items: center; padding: 1rem; margin-top: 1.5rem; background-color: rgba(var(--accent-secondary-rgb), 0.1); border-radius: 12px; border: 1px solid var(--border-color-light); flex-shrink: 0; overflow: hidden; white-space: nowrap; }
-.user-avatar { transition: all var(--transition-medium) ease; /* ... rest of styles */ width: 42px; height: 42px; border-radius: 50%; background-color: var(--accent-secondary); display: flex; align-items: center; justify-content: center; margin-right: 0.85rem; font-weight: 600; font-size: 1.1rem; overflow: hidden; color: var(--white); border: 2px solid rgba(var(--accent-primary-rgb), 0.3); flex-shrink: 0; box-shadow: 0 0 8px rgba(var(--accent-secondary-rgb), 0.4); }
-.user-info { transition: opacity 0.1s linear, max-width 0.2s linear 0.1s; /* ... rest of styles */ flex-grow: 1; overflow: hidden; opacity: 1; max-width: 150px; }
-.sidebar-footer { transition: opacity 0.2s ease, max-width 0.2s linear 0.1s; /* ... rest of styles */ margin-top: 1.5rem; padding: 1rem; font-size: 0.8rem; color: var(--text-muted); text-align: center; flex-shrink: 0; opacity: 0.7; overflow: hidden; white-space: nowrap; max-width: 200px; }
-#sidebar-close-toggle { display: none; position: absolute; right: 0px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-muted); font-size: 1.8rem; cursor: pointer; padding: 0.5rem; line-height: 1; transition: color 0.2s ease; }
+/* --- START: Sidebar Styles (Matched from profile.css v4) --- */
+.sidebar {
+    width: var(--sidebar-width); height: 100vh; position: fixed; top: 0; left: 0;
+    background: var(--gradient-sidebar);
+    color: var(--text-medium);
+    padding: 1.5rem 1rem; display: flex; flex-direction: column; z-index: 1000;
+    box-shadow: 5px 0 30px rgba(0, 0, 0, 0.4);
+    border-right: 1px solid var(--border-color-light);
+    transition: width var(--transition-medium) cubic-bezier(0.4, 0, 0.2, 1), transform var(--transition-medium) ease;
+    overflow: hidden; /* Hide overflow during transition */
+}
+.sidebar-header {
+    display: flex; align-items: center; margin-bottom: 2.5rem; padding: 0 0.5rem;
+    position: relative; min-height: 45px; transition: padding var(--transition-medium) ease;
+}
+#sidebar-close-toggle {
+    display: none; position: absolute; right: 0px; top: 50%; transform: translateY(-50%);
+    background: none; border: none; color: var(--text-muted); font-size: 1.8rem; cursor: pointer;
+    padding: 0.5rem; line-height: 1; transition: color 0.2s ease;
+}
 #sidebar-close-toggle:hover { color: var(--accent-primary); }
-.sidebar-logo i { font-size: 1.8rem; color: var(--accent-secondary); }
-.sidebar-menu { list-style: none; padding: 0; margin: 0; flex-grow: 1; overflow-y: auto; }
+.sidebar-logo {
+    font-size: 1.7rem; font-weight: 700; color: var(--text-heading); text-decoration: none;
+    display: flex; align-items: center; gap: 0.8rem; text-shadow: 0 0 8px var(--accent-secondary-glow);
+    transition: gap var(--transition-medium) ease;
+    width: 100%; /* Ensure it takes full width for centering */
+}
+.sidebar-logo i { font-size: 1.8rem; color: var(--accent-secondary); flex-shrink: 0; /* Prevent icon shrinking */}
+.sidebar-logo span {
+    transition: opacity 0.1s linear, max-width 0.2s linear 0.1s;
+    opacity: 1; max-width: 150px; overflow: hidden; white-space: nowrap; display: inline-block;
+}
+.sidebar-menu {
+    list-style: none; padding: 0; margin: 0; flex-grow: 1; overflow-y: auto; overflow-x: hidden;
+    scrollbar-width: thin; scrollbar-color: rgba(var(--accent-primary-rgb), 0.4) rgba(255, 255, 255, 0.05);
+}
 .sidebar-menu::-webkit-scrollbar { width: 5px; }
 .sidebar-menu::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.05); border-radius: 3px;}
 .sidebar-menu::-webkit-scrollbar-thumb { background-color: rgba(var(--accent-primary-rgb), 0.4); border-radius: 3px; }
 .sidebar-menu::-webkit-scrollbar-thumb:hover { background-color: rgba(var(--accent-primary-rgb), 0.6); }
-.sidebar-menu { scrollbar-width: thin; scrollbar-color: rgba(var(--accent-primary-rgb), 0.4) rgba(255, 255, 255, 0.05); }
 .sidebar-item { margin-bottom: 0.6rem; }
+.sidebar-link {
+    display: flex; align-items: center; padding: 0.85rem 1rem;
+    color: var(--text-medium); text-decoration: none; border-radius: var(--button-radius);
+    transition: background-color 0.25s ease, color 0.25s ease, box-shadow 0.25s ease, border-left-color 0.25s ease;
+    font-weight: 500; position: relative;
+    border-left: 4px solid transparent;
+    overflow: hidden; white-space: nowrap;
+}
+.sidebar-link i {
+    margin-right: 0.85rem; font-size: 1.25rem; width: 25px; text-align: center;
+    transition: color 0.25s ease, margin-right var(--transition-medium) ease, font-size var(--transition-medium) ease;
+    color: var(--text-muted); flex-shrink: 0;
+}
+.sidebar-link span {
+    transition: opacity 0.1s linear, max-width 0.2s linear 0.1s;
+    opacity: 1; max-width: 150px; overflow: hidden; white-space: nowrap; display: inline-block; vertical-align: middle;
+}
 .sidebar-link:hover { background-color: rgba(var(--accent-primary-rgb), 0.1); color: var(--text-light); box-shadow: inset 3px 0 8px -2px rgba(var(--accent-primary-rgb), 0.3); }
 .sidebar-link:hover i { color: var(--accent-primary); }
 .sidebar-link.active { background-color: rgba(var(--accent-primary-rgb), 0.15); color: var(--white); font-weight: 600; border-left-color: var(--accent-primary); box-shadow: inset 4px 0 10px -3px rgba(var(--accent-primary-rgb), 0.4); }
 .sidebar-link.active i { color: var(--accent-primary); }
+.user-profile {
+    display: flex; align-items: center; padding: 1rem; margin-top: 1.5rem;
+    background-color: rgba(var(--accent-secondary-rgb), 0.1); border-radius: 12px;
+    border: 1px solid var(--border-color-light); flex-shrink: 0;
+    transition: padding var(--transition-medium) ease; overflow: hidden; white-space: nowrap;
+}
+.user-avatar {
+    width: 42px; height: 42px; border-radius: 50%;
+    background-color: var(--accent-secondary);
+    display: flex; align-items: center; justify-content: center; margin-right: 0.85rem;
+    font-weight: 600; font-size: 1.1rem; overflow: hidden; color: var(--white);
+    border: 2px solid rgba(var(--accent-primary-rgb), 0.3); flex-shrink: 0;
+    box-shadow: 0 0 8px rgba(var(--accent-secondary-rgb), 0.4);
+    transition: all var(--transition-medium) ease;
+}
 .user-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.user-info {
+    flex-grow: 1; overflow: hidden; transition: opacity 0.1s linear, max-width 0.2s linear 0.1s;
+    opacity: 1; max-width: 150px;
+}
 .user-name { font-weight: 600; font-size: 1rem; color: var(--text-light); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.user-role { font-size: 0.8rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } /* Added overflow and ellipsis */
+.user-role { font-size: 0.8rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } /* Added overflow/ellipsis */
+.sidebar-footer {
+    margin-top: 1.5rem; padding: 1rem; font-size: 0.8rem; color: var(--text-muted);
+    text-align: center; flex-shrink: 0; opacity: 0.7;
+    transition: opacity 0.2s ease, max-width 0.2s linear 0.1s;
+    overflow: hidden; white-space: nowrap; max-width: 200px;
+}
+/* --- END: Sidebar Styles --- */
 
-/* --- Main Content Area --- */
-main { flex: 1; margin-left: var(--sidebar-width); transition: margin-left var(--transition-medium) cubic-bezier(0.4, 0, 0.2, 1), width var(--transition-medium) cubic-bezier(0.4, 0, 0.2, 1); width: calc(100% - var(--sidebar-width)); overflow-y: auto; height: 100vh; display: none; padding: 0 var(--container-padding-x); }
-main.loaded { display: block; animation: fadeInMain 0.5s ease-out forwards; }
-@keyframes fadeInMain { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-.main-content-wrapper { padding: var(--section-padding-y) 0; }
+/* --- START: Sidebar Toggle Button Styles (from profile.css) --- */
+.btn-icon-only {
+	padding: 0.5rem; width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--border-color-medium);
+	color: var(--text-muted); background-color: rgba(var(--bg-secondary-rgb), 0.3); box-shadow: none;
+	line-height: 1; display: inline-flex; align-items: center; justify-content: center; cursor: pointer;
+	transition: all var(--transition-fast);
+}
+.btn-icon-only i { margin-right: 0; font-size: 1rem; transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+.btn-icon-only:hover:not(:disabled) { background-color: rgba(var(--accent-primary-rgb), 0.15); border-color: var(--accent-primary); color: var(--accent-primary); box-shadow: 0 0 12px rgba(var(--accent-glow), 0.5); transform: translateY(-2px) scale(1.05); }
+.btn-icon-only:active:not(:disabled) { transform: translateY(0) scale(0.95); box-shadow: inset 0 1px 3px rgba(0,0,0,0.4); }
+.sidebar-toggle-btn { margin-right: 0.8rem; display: none; /* Hide by default */ }
+@media (min-width: 993px) { .sidebar-toggle-btn { display: inline-flex; } }
+/* --- END: Sidebar Toggle Button Styles --- */
+
+/* --- START: Main Content & Header (Matched from profile.css) --- */
+main#main-content { /* Use ID for specificity */
+	flex: 1; margin-left: var(--sidebar-width);
+	transition: margin-left var(--transition-medium) cubic-bezier(0.4, 0, 0.2, 1), width var(--transition-medium) cubic-bezier(0.4, 0, 0.2, 1);
+	width: calc(100% - var(--sidebar-width)); overflow-y: auto; height: 100vh;
+	display: none; /* Initially hidden */
+	padding: 0 var(--container-padding-x); /* Padding for main content */
+}
+.main-content-wrapper { padding: var(--section-padding-y) 0; } /* Only vertical padding */
 .main-content-grid { display: grid; gap: 2rem; }
 
-/* --- Header --- */
-.dashboard-header { margin-bottom: var(--section-padding-y); background-color: rgba(var(--bg-secondary-rgb, 10, 7, 31), 0.7); backdrop-filter: blur(12px); border-radius: 0 0 var(--card-radius) var(--card-radius); padding: 1rem var(--container-padding-x); box-shadow: var(--shadow-hud); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; position: sticky; top: 0; z-index: 900; border-bottom: 1px solid var(--border-color-light); transition: background-color 0.3s ease, box-shadow 0.3s ease; margin-left: calc(var(--container-padding-x) * -1); margin-right: calc(var(--container-padding-x) * -1); }
+.dashboard-header {
+	margin-bottom: var(--section-padding-y);
+	background-color: rgba(var(--bg-secondary-rgb, 10, 7, 31), 0.7);
+	backdrop-filter: blur(12px); border-radius: 0 0 var(--card-radius) var(--card-radius);
+	padding: 1rem var(--container-padding-x); box-shadow: var(--shadow-hud);
+	display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;
+	position: sticky; top: 0; z-index: 900;
+	border-bottom: 1px solid var(--border-color-light);
+	transition: background-color 0.3s ease, box-shadow 0.3s ease;
+	margin-left: calc(var(--container-padding-x) * -1); /* Extend to edges */
+	margin-right: calc(var(--container-padding-x) * -1);
+}
 body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb, 10, 7, 31), 0.85); box-shadow: 0 6px 20px rgba(0,0,0,0.3); }
 .header-content { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; width: 100%; padding: 0 var(--container-padding-x); }
 .header-left-group { display: flex; align-items: center; gap: 0.8rem; flex-grow: 1; }
@@ -210,9 +311,8 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb,
 @media (min-width: 768px) { .refresh-btn .refresh-text { display: inline; } }
 .refresh-btn.loading i { animation: spin 1s linear infinite; }
 .refresh-btn:disabled { opacity: 0.5; cursor: not-allowed; background-color: transparent !important; border-color: var(--text-muted) !important; color: var(--text-muted) !important; box-shadow: none !important; }
-@keyframes spin { to { transform: rotate(360deg); } }
 
-/* --- Notification Styles --- */
+/* --- START: Notification Styles (from profile.css) --- */
 .notifications { position: relative; }
 .notification-bell { cursor: pointer; padding: 0.6rem; position: relative; display: inline-block; line-height: 1; }
 .notification-bell i { font-size: 1.4rem; color: var(--text-muted); transition: color 0.2s, transform 0.2s; }
@@ -248,8 +348,30 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb,
 .view-all-notifications-link { font-size: 0.9rem; color: var(--accent-primary); text-decoration: none; font-weight: 500; }
 .view-all-notifications-link:hover { color: var(--white); text-decoration: underline; }
 #no-notifications-msg { padding: 2rem 1rem; text-align: center; color: var(--text-muted); font-size: 0.9rem; display: none; }
+/* --- END: Notification Styles --- */
+/* --- END: Main Content & Header --- */
 
-/* --- Section Styles --- */
+/* --- START: Collapsed Sidebar Styles (from profile.css) --- */
+body.sidebar-collapsed .sidebar { width: var(--sidebar-collapsed-width); }
+body.sidebar-collapsed .sidebar-logo span,
+body.sidebar-collapsed .sidebar-link span,
+body.sidebar-collapsed .user-info,
+body.sidebar-collapsed .sidebar-footer { opacity: 0; max-width: 0; overflow: hidden; white-space: nowrap; pointer-events: none; }
+body.sidebar-collapsed .sidebar-header { padding: 0 0.5rem; justify-content: center; }
+body.sidebar-collapsed .sidebar-logo { gap: 0; justify-content: center; }
+body.sidebar-collapsed .sidebar-link { justify-content: center; padding: 0.85rem 0.5rem; }
+body.sidebar-collapsed .sidebar-link i { margin-right: 0; font-size: 1.4rem; /* Slightly larger icon */ }
+body.sidebar-collapsed .user-profile { padding: 0.8rem 0; /* Vertical padding only */ justify-content: center; border-left: none; border-right: none; margin: 0 0.5rem; border-radius: 8px; } /* Added margin and radius */
+body.sidebar-collapsed .user-avatar { margin-right: 0; /* Remove margin */ width: 40px; /* Slightly smaller avatar */ height: 40px; font-size: 1rem; /* Smaller initials font */ }
+body.sidebar-collapsed main#main-content { margin-left: var(--sidebar-collapsed-width); width: calc(100% - var(--sidebar-collapsed-width)); }
+body.sidebar-collapsed .sidebar-toggle-btn i { transform: rotate(180deg); /* Rotate arrow */ }
+body.sidebar-collapsed #sidebar-close-toggle { display: none; }
+@media (min-width: 993px) { body.sidebar-collapsed .mobile-menu-toggle#main-mobile-menu-toggle { display: none; } }
+body.sidebar-collapsed .sidebar-menu { overflow-y: hidden; scrollbar-width: none; padding: 0 0.5rem; } /* Hide scrollbar */
+body.sidebar-collapsed .sidebar-menu::-webkit-scrollbar { display: none; }
+/* --- END: Collapsed Sidebar Styles --- */
+
+/* Pokrok Specific Styles (Keep existing from pokrok.css, remove chart styles) */
 .section-title { font-size: 1.5rem; font-weight: 600; margin-bottom: 1.5rem; color: var(--text-heading); padding-bottom: 0.8rem; position: relative; display: flex; align-items: center; gap: 0.7rem; }
 .section-title i { font-size: 1.1em; color: var(--accent-secondary); text-shadow: 0 0 8px var(--accent-secondary-glow); }
 .section-title::after { content: ''; position: absolute; bottom: 0; left: 0; width: 60px; height: 3px; background: var(--gradient-border-anim); background-size: 300% 100%; animation: gradient-move 4s linear infinite; border-radius: 1.5px; filter: drop-shadow(0 0 5px var(--accent-primary)); }
@@ -263,7 +385,7 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb,
 .stats-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; }
 .stats-card-title { font-size: 0.9rem; font-weight: 500; color: var(--text-muted); display: flex; align-items: center; gap: 0.6rem; text-transform: uppercase; letter-spacing: 0.8px; }
 .stats-card-title i { font-size: 1em; }
-.stats-card[data-type="progress"] .stats-card-title i { color: var(--info); }
+.stats-card[data-type="progress"] .stats-card-title i { color: var(--info-color); }
 .stats-card[data-type="points"] .stats-card-title i { color: var(--accent-orange); }
 .stats-card[data-type="streak"] .stats-card-title i { color: var(--accent-pink); }
 .stats-card[data-type="exercises"] .stats-card-title i { color: var(--success-color); }
@@ -274,9 +396,6 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb,
 .stats-card-footer i { font-size: 0.8em; }
 .stats-card-footer.positive { color: var(--accent-lime); font-weight: 500; }
 .stats-card-footer.negative { color: var(--accent-pink); font-weight: 500; }
-
-/* --- Removed Chart Styles --- */
-
 .data-table-section { background: var(--card-bg); border-radius: var(--card-radius); box-shadow: var(--shadow-hud); padding: 0; margin-bottom: 2.5rem; position: relative; min-height: 350px; overflow: hidden; border: 1px solid var(--border-color-light); }
 .data-table-header { padding: 1.5rem 2rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color-light); flex-wrap: wrap; gap: 1rem; background-color: rgba(var(--dark-purple-accent-rgb), 0.3); }
 .data-table-title { font-size: 1.35rem; font-weight: 600; color: var(--text-light); display: flex; align-items: center; gap: 0.6rem; }
@@ -352,6 +471,7 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb,
 .initial-loading-overlay { position: fixed; inset: 0; background-color: var(--bg-color); z-index: 1100; display: flex; justify-content: center; align-items: center; flex-direction: column; gap: 1.2rem; transition: opacity 0.6s ease-out, visibility 0s 0.6s; opacity: 1; visibility: visible; }
 .initial-loading-overlay.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
 .initial-loading-overlay .loading-spinner { width: 40px; height: 40px; border-width: 5px; border-color: var(--accent-primary); border-top-color: transparent; border-right-color: transparent; animation: loading-spinner 0.9s linear infinite; }
+@keyframes loading-spinner { to { transform: rotate(360deg); } }
 .initial-loading-overlay p { color: var(--text-medium); font-size: 1.1rem; font-weight: 500; letter-spacing: 0.5px; }
 @media (max-width: 992px) { /* Handled by class */ main { width: calc(100% - var(--sidebar-width)); } .stats-grid { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); } }
 @media (max-width: 768px) { main { padding: 0 1rem; } .dashboard-header { padding: 1rem 1.25rem; } body.scrolled .dashboard-header { margin: 0 -1rem 1.5rem -1rem; padding: 1rem 1.25rem; } .header-left-group { flex-grow: 1; } .header-actions { flex-shrink: 1; } .header-title h1 { font-size: 1.5rem; } .stats-grid { grid-template-columns: 1fr; gap: 1.25rem; } .stats-card, .chart-section, .data-table-section { padding: 1.5rem; } .chart-header, .data-table-header { flex-direction: column; align-items: flex-start; gap: 1rem; margin-bottom: 1.5rem; } .chart-title, .data-table-title { font-size: 1.25rem; } .chart-actions, .data-table-actions { width: 100%; justify-content: flex-start; } .chart-container { height: 300px; } .data-table th, .data-table td { padding: 0.8rem 1rem; } .dashboard-footer { margin-top: 1.5rem; padding-top: 1rem;} }
@@ -363,7 +483,7 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb,
 .tooltipster-shadow .tooltipster-content { padding: 8px 12px; font-size: 0.85rem; }
 .dashboard-footer { margin-top: 3rem; padding: 1.5rem 0; text-align: center; color: var(--text-muted); font-size: 0.9rem; border-top: 1px solid var(--border-color-light); opacity: 0.6; }
 
-/* --- START: Sidebar Toggle Specific Styles --- */
+/* --- START: Sidebar Toggle Specific Styles (Copied from profile.css) --- */
 .btn-icon-only {
     padding: 0.5rem; width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--border-color-medium);
     color: var(--text-muted); background-color: rgba(var(--bg-secondary-rgb), 0.3); box-shadow: none;
@@ -376,7 +496,7 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb,
 .sidebar-toggle-btn { margin-right: 0.8rem; display: none; /* Hide by default */ }
 @media (min-width: 993px) { .sidebar-toggle-btn { display: inline-flex; } }
 
-/* Collapsed State Styles */
+/* Collapsed State Styles (Copied from profile.css) */
 body.sidebar-collapsed .sidebar { width: var(--sidebar-collapsed-width); }
 body.sidebar-collapsed .sidebar-logo span,
 body.sidebar-collapsed .sidebar-link span,
@@ -385,13 +505,13 @@ body.sidebar-collapsed .sidebar-footer { opacity: 0; max-width: 0; overflow: hid
 body.sidebar-collapsed .sidebar-header { padding: 0 0.5rem; justify-content: center; }
 body.sidebar-collapsed .sidebar-logo { gap: 0; justify-content: center; }
 body.sidebar-collapsed .sidebar-link { justify-content: center; padding: 0.85rem 0.5rem; }
-body.sidebar-collapsed .sidebar-link i { margin-right: 0; font-size: 1.4rem; }
-body.sidebar-collapsed .user-profile { padding: 0.8rem 0; justify-content: center; border-left: none; border-right: none; margin: 0 0.5rem; border-radius: 8px; }
-body.sidebar-collapsed .user-avatar { margin-right: 0; width: 40px; height: 40px; font-size: 1rem; }
+body.sidebar-collapsed .sidebar-link i { margin-right: 0; font-size: 1.4rem; /* Slightly larger icon */ }
+body.sidebar-collapsed .user-profile { padding: 0.8rem 0; /* Vertical padding only */ justify-content: center; border-left: none; border-right: none; margin: 0 0.5rem; border-radius: 8px; } /* Added margin and radius */
+body.sidebar-collapsed .user-avatar { margin-right: 0; /* Remove margin */ width: 40px; /* Slightly smaller avatar */ height: 40px; font-size: 1rem; /* Smaller initials font */ }
 body.sidebar-collapsed main#main-content { margin-left: var(--sidebar-collapsed-width); width: calc(100% - var(--sidebar-collapsed-width)); }
-body.sidebar-collapsed .sidebar-toggle-btn i { transform: rotate(180deg); }
+body.sidebar-collapsed .sidebar-toggle-btn i { transform: rotate(180deg); /* Rotate arrow */ }
 body.sidebar-collapsed #sidebar-close-toggle { display: none; }
 @media (min-width: 993px) { body.sidebar-collapsed .mobile-menu-toggle#main-mobile-menu-toggle { display: none; } }
-body.sidebar-collapsed .sidebar-menu { overflow-y: hidden; scrollbar-width: none; padding: 0 0.5rem; }
+body.sidebar-collapsed .sidebar-menu { overflow-y: hidden; scrollbar-width: none; padding: 0 0.5rem; } /* Hide scrollbar */
 body.sidebar-collapsed .sidebar-menu::-webkit-scrollbar { display: none; }
 /* --- END: Sidebar Toggle Specific Styles --- */
