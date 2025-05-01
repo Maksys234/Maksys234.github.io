@@ -11,15 +11,16 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/date-fns@2.29.3/index.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/date-fns/locale/cs/index.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/css/tooltipster.bundle.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/js/tooltipster.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
-    <link rel="stylesheet" href="pokrok.css"> </head>
+    <link rel="stylesheet" href="pokrok.css">
+</head>
 
 <body class="dark">
     <div class="initial-loading-overlay" id="initial-loader">
@@ -33,12 +34,8 @@
 
     <aside id="sidebar" class="sidebar">
         <div class="sidebar-header">
-            <button class="mobile-menu-toggle" id="sidebar-close-toggle" aria-label="Zavřít menu">
-                <i class="fas fa-times"></i>
-            </button>
-            <a href="/dashboard/dashboard.html" class="sidebar-logo">
-                <i class="fas fa-atom"></i> <span>Justax</span>
-            </a>
+            <button class="mobile-menu-toggle" id="sidebar-close-toggle" aria-label="Zavřít menu"> <i class="fas fa-times"></i> </button>
+            <a href="/dashboard/dashboard.html" class="sidebar-logo"> <i class="fas fa-atom"></i> <span>Justax</span> </a>
         </div>
         <ul class="sidebar-menu">
              <li class="sidebar-item"> <a href="/dashboard/dashboard.html" class="sidebar-link"> <i class="fas fa-tachometer-alt"></i> <span>Nástěnka</span> </a> </li>
@@ -62,38 +59,19 @@
         <header class="dashboard-header">
             <div class="header-content">
                 <div class="header-left-group">
-                     <button class="btn btn-icon-only sidebar-toggle-btn" id="sidebar-toggle-btn" aria-label="Sbalit postranní panel" title="Přepnout postranní panel">
-                          <i class="fas fa-chevron-left"></i>
-                      </button>
-                     <button class="mobile-menu-toggle" id="main-mobile-menu-toggle" aria-label="Otevřít menu">
-                         <i class="fas fa-bars"></i>
-                    </button>
+                     <button class="btn btn-icon-only sidebar-toggle-btn btn-tooltip" id="sidebar-toggle-btn" aria-label="Sbalit postranní panel" title="Přepnout postranní panel"> <i class="fas fa-chevron-left"></i> </button>
+                     <button class="mobile-menu-toggle" id="main-mobile-menu-toggle" aria-label="Otevřít menu"> <i class="fas fa-bars"></i> </button>
                     <h1><i class="fas fa-chart-line"></i> Přehled pokroku</h1>
                  </div>
                  <div class="header-actions">
-                    <div id="user-credits-display" class="header-meta-item" style="font-weight: 600; color: var(--accent-orange); text-shadow: 0 0 6px var(--accent-orange-glow);">
-                        <i class="fas fa-coins"></i> <span id="credits-value">-</span> kr.
-                    </div>
-                    <button class="refresh-btn btn-tooltip" id="refresh-btn" title="Obnovit data">
-                        <i class="fas fa-sync-alt"></i>
-                        <span class="refresh-text">Obnovit</span>
-                    </button>
+                    <div id="user-credits-display" class="header-meta-item" style="font-weight: 600; color: var(--accent-orange); text-shadow: 0 0 6px var(--accent-orange-glow);"> <i class="fas fa-coins"></i> <span id="credits-value">-</span> kr. </div>
+                    <button class="refresh-btn btn-tooltip" id="refresh-btn" title="Obnovit data"> <i class="fas fa-sync-alt"></i> <span class="refresh-text">Obnovit</span> </button>
                      <div class="notifications">
-                         <div class="notification-bell" id="notification-bell" title="Oznámení">
-                              <i class="far fa-bell"></i>
-                              <span class="notification-badge" id="notification-count">0</span>
-                          </div>
+                         <div class="notification-bell" id="notification-bell" title="Oznámení"> <i class="far fa-bell"></i> <span class="notification-badge" id="notification-count">0</span> </div>
                           <div class="notifications-dropdown-wrapper" id="notifications-dropdown">
-                              <div class="notifications-header">
-                                  <span class="notifications-title">PŘÍCHOZÍ SIGNÁLY</span>
-                                  <button class="mark-all-read-btn" id="mark-all-read" disabled>Vymazat vše</button>
-                              </div>
-                              <div id="notifications-list">
-                                   <div id="no-notifications-msg" style="display: none; padding: 1rem; text-align: center; color: var(--text-muted);">ŽÁDNÉ NOVÉ SIGNÁLY</div>
-                              </div>
-                              <div class="notifications-footer">
-                                  <a href="/dashboard/notifications.html" class="view-all-notifications-link">ZOBRAZIT ARCHIV</a>
-                              </div>
+                              <div class="notifications-header"> <span class="notifications-title">PŘÍCHOZÍ SIGNÁLY</span> <button class="mark-all-read-btn" id="mark-all-read" disabled>Vymazat vše</button> </div>
+                              <div id="notifications-list"> <div id="no-notifications-msg" style="display: none; padding: 1rem; text-align: center; color: var(--text-muted);">ŽÁDNÉ NOVÉ SIGNÁLY</div> </div>
+                              <div class="notifications-footer"> <a href="/dashboard/notifications.html" class="view-all-notifications-link">ZOBRAZIT ARCHIV</a> </div>
                           </div>
                      </div>
                 </div>
@@ -107,131 +85,58 @@
                 <section class="section card stats-section" data-animate style="--animation-order: 1;">
                      <h2 class="section-title"><i class="fas fa-tachometer-alt"></i> Klíčové Metriky</h2>
                     <div class="stats-grid" id="stats-grid">
-                        <div class="stats-card loading card" data-type="progress">
-                            <div class="loading-skeleton"> <div class="skeleton-info"> <div class="skeleton title-sm" style="width: 70%;"></div> <div class="skeleton value-lg" style="width: 50%;"></div> <div class="skeleton text-md" style="width: 90%;"></div> </div> <div style="margin-top: auto; border-top: 1px solid transparent; padding-top: 1rem;"> <div class="skeleton text-sm" style="width: 65%;"></div> </div> </div>
+                        <div class="stats-card" data-type="progress">
                             <div class="stats-card-header"> <h3 class="stats-card-title"><i class="fas fa-tasks"></i>Celkový pokrok</h3> </div>
-                            <div class="stats-card-content"> <div class="stats-card-value" id="overall-progress-value">- %</div> <div class="stats-card-description" id="overall-progress-desc">Průměr ze všech oblastí</div> </div>
-                            <div class="stats-card-footer" id="overall-progress-footer"><i class="fas fa-minus"></i> Načítání...</div>
+                            <div class="stats-card-content"> <div class="stats-card-value">- %</div> <div class="stats-card-description">Data nedostupná</div> </div>
+                            <div class="stats-card-footer"><i class="fas fa-database"></i> Chyba DB</div>
                         </div>
-                        <div class="stats-card loading card" data-type="points">
-                            <div class="loading-skeleton"> <div class="skeleton-info"> <div class="skeleton title-sm" style="width: 60%;"></div> <div class="skeleton value-lg" style="width: 40%;"></div> <div class="skeleton text-md" style="width: 80%;"></div> </div> <div style="margin-top: auto; border-top: 1px solid transparent; padding-top: 1rem;"> <div class="skeleton text-sm" style="width: 70%;"></div> </div> </div>
+                        <div class="stats-card" data-type="points">
                             <div class="stats-card-header"> <h3 class="stats-card-title"><i class="fas fa-star"></i>Celkem bodů</h3> </div>
-                            <div class="stats-card-content"> <div class="stats-card-value" id="total-points-value">-</div> <div class="stats-card-description" id="total-points-desc">Získané za aktivity a testy</div> </div>
-                            <div class="stats-card-footer" id="total-points-footer"><i class="fas fa-minus"></i> Načítání...</div>
+                            <div class="stats-card-content"> <div class="stats-card-value">-</div> <div class="stats-card-description">Data nedostupná</div> </div>
+                            <div class="stats-card-footer"><i class="fas fa-database"></i> Chyba DB</div>
                         </div>
-                        <div class="stats-card loading card" data-type="streak">
-                            <div class="loading-skeleton"> <div class="skeleton-info"> <div class="skeleton title-sm" style="width: 65%;"></div> <div class="skeleton value-lg" style="width: 30%;"></div> <div class="skeleton text-md" style="width: 85%;"></div> </div> <div style="margin-top: auto; border-top: 1px solid transparent; padding-top: 1rem;"> <div class="skeleton text-sm" style="width: 60%;"></div> </div> </div>
+                        <div class="stats-card" data-type="streak">
                             <div class="stats-card-header"> <h3 class="stats-card-title"><i class="fas fa-fire"></i>Studijní série</h3> </div>
-                            <div class="stats-card-content"> <div class="stats-card-value" id="streak-value">-</div> <div class="stats-card-description" id="streak-desc">Počet dnů studia v řadě</div> </div>
-                            <div class="stats-card-footer" id="streak-footer">Nejdelší série: -</div>
+                            <div class="stats-card-content"> <div class="stats-card-value">-</div> <div class="stats-card-description">Data nedostupná</div> </div>
+                            <div class="stats-card-footer">Nejdelší série: -</div>
                         </div>
-                        <div class="stats-card loading card" data-type="exercises">
-                            <div class="loading-skeleton"> <div class="skeleton-info"> <div class="skeleton title-sm" style="width: 80%;"></div> <div class="skeleton value-lg" style="width: 45%;"></div> <div class="skeleton text-md" style="width: 75%;"></div> </div> <div style="margin-top: auto; border-top: 1px solid transparent; padding-top: 1rem;"> <div class="skeleton text-sm" style="width: 55%;"></div> </div> </div>
+                        <div class="stats-card" data-type="exercises">
                             <div class="stats-card-header"> <h3 class="stats-card-title"><i class="fas fa-check-double"></i>Dokončené aktivity</h3> </div>
-                            <div class="stats-card-content"> <div class="stats-card-value" id="completed-count-value">-</div> <div class="stats-card-description" id="completed-count-desc">Počet testů a cvičení</div> </div>
-                            <div class="stats-card-footer" id="completed-count-footer"><i class="fas fa-minus"></i> Načítání...</div>
+                            <div class="stats-card-content"> <div class="stats-card-value">-</div> <div class="stats-card-description">Data nedostupná</div> </div>
+                            <div class="stats-card-footer"><i class="fas fa-database"></i> Chyba DB</div>
                         </div>
                     </div>
                 </section>
 
                 <section class="section card chart-section" id="progress-chart-section" data-animate style="--animation-order: 2;">
-                    <div class="loading-overlay hidden" id="chart-loading-overlay"> <div class="loading-spinner"></div> </div>
                     <div class="chart-header">
                         <h2 class="section-title chart-title"><i class="fas fa-chart-line"></i>Vývoj pokroku v čase</h2>
-                        <div class="chart-actions">
-                            <select id="chart-period-select" class="form-control btn-sm btn-secondary" aria-label="Vyberte období grafu">
-                                <option value="week">Poslední týden</option>
-                                <option value="month" selected>Poslední měsíc</option>
-                                <option value="3months">Poslední 3 měsíce</option>
-                                <option value="all">Celkově</option>
-                            </select>
-                        </div>
+                        <div class="chart-actions"> <select id="chart-period-select" class="form-control btn-sm btn-secondary" aria-label="Vyberte období grafu"> <option value="week">Týden</option> <option value="month" selected>Měsíc</option> <option value="3months">3 Měsíce</option> <option value="all">Celkově</option> </select> </div>
                     </div>
                     <div class="chart-container">
-                        <canvas id="progressChart"></canvas>
-                        <div class="empty-chart-message" id="chart-empty-state" style="display: none;">
-                            <i class="fas fa-chart-line"></i>
-                            <p>Nedostatek dat pro graf.</p>
-                        </div>
+                        <div class="empty-chart-message" id="chart-empty-state" style="display: flex;"> <i class="fas fa-database"></i> <p>Data pro graf nedostupná (Chyba DB).</p> </div>
                     </div>
                 </section>
 
                 <section class="section card data-table-section" id="activities-section" data-animate style="--animation-order: 3;">
-                    <div class="loading-overlay hidden" id="table-loading-overlay"> <div class="loading-spinner"></div> </div>
                     <div class="data-table-header">
                         <h2 class="section-title data-table-title"><i class="fas fa-history"></i>Historie aktivit</h2>
-                        <div class="data-table-actions">
-                            <button class="btn btn-secondary btn-sm btn-tooltip" id="export-table-btn" title="Exportovat tabulku jako CSV">
-                                <i class="fas fa-download"></i>
-                                <span class="button-text">Export</span>
-                            </button>
-                            <select id="activity-type-filter" class="form-control btn-sm btn-secondary" aria-label="Filtrovat typ aktivity">
-                                <option value="all">Všechny typy</option>
-                                <option value="test">Testy</option>
-                                <option value="diagnostic">Diagnostika</option>
-                                <option value="exercise">Cvičení</option>
-                                <option value="lesson">Lekce</option>
-                                <option value="badge">Odznaky</option>
-                                <option value="plan_generated">Plány</option>
-                                <option value="level_up">Postup</option>
-                                <option value="other">Jiné</option>
-                            </select>
-                        </div>
+                        <div class="data-table-actions"> <button class="btn btn-secondary btn-sm btn-tooltip" id="export-table-btn" title="Exportovat tabulku jako CSV" disabled> <i class="fas fa-download"></i> <span class="button-text">Export</span> </button> <select id="activity-type-filter" class="form-control btn-sm btn-secondary" aria-label="Filtrovat typ aktivity" disabled> <option value="all">Všechny typy</option> </select> </div>
                     </div>
                     <div class="table-responsive">
-                        <table class="data-table" id="activities-table" style="display: none;">
-                            <thead>
-                                <tr>
-                                    <th data-sort="created_at">Datum <i class="fas fa-sort"></i></th>
-                                    <th data-sort="type">Typ <i class="fas fa-filter"></i></th>
-                                    <th data-sort="title">Název / Popis</th>
-                                    <th data-sort="points_earned">Body <i class="fas fa-sort"></i></th>
-                                    <th data-sort="status">Stav</th>
-                                </tr>
-                            </thead>
-                            <tbody id="activities-body">
-                                <tr class="skeleton-row"><td><div class="skeleton text-sm" style="width: 70px;"></div></td><td><div class="skeleton text-sm" style="width: 80px;"></div></td><td><div class="skeleton text-sm" style="width: 150px;"></div></td><td><div class="skeleton text-sm" style="width: 40px;"></div></td><td><div class="skeleton text-sm" style="width: 90px;"></div></td></tr>
-                                <tr class="skeleton-row"><td><div class="skeleton text-sm" style="width: 70px;"></div></td><td><div class="skeleton text-sm" style="width: 80px;"></div></td><td><div class="skeleton text-sm" style="width: 150px;"></div></td><td><div class="skeleton text-sm" style="width: 40px;"></div></td><td><div class="skeleton text-sm" style="width: 90px;"></div></td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="empty-state" id="activities-empty-state" style="display: none;">
-                        <i class="fas fa-box-open"></i>
-                         <h3>Žádné aktivity</h3>
-                        <p>Zatím jste neprovedli žádné aktivity. Začněte procvičovat!</p>
-                    </div>
-                    <div class="pagination-controls" id="pagination-controls" style="display: none;">
-                        <button class="btn btn-secondary btn-sm" id="prev-page-btn" disabled><i class="fas fa-chevron-left"></i></button>
-                        <span id="page-info">Strana 1 z 1</span>
-                        <button class="btn btn-secondary btn-sm" id="next-page-btn" disabled><i class="fas fa-chevron-right"></i></button>
-                    </div>
+                         </div>
+                    <div class="empty-state" id="activities-empty-state" style="display: block; margin: 1.5rem 2rem;"> <i class="fas fa-database"></i> <h3>Historie nedostupná</h3> <p>Nelze načíst data aktivit (Chyba DB).</p> </div>
+                    <div class="pagination-controls" id="pagination-controls" style="display: none;"> </div>
                 </section>
 
             </div>
-            <footer class="dashboard-footer">
-                <p>&copy; <span id="currentYearFooter">2025</span> Justax Systems // Secure Channel</p>
-            </footer>
+            <footer class="dashboard-footer"> <p>&copy; <span id="currentYearFooter">2025</span> Justax Systems // Secure Channel</p> </footer>
         </div>
     </main>
 
     <div id="mouse-follower" class="mouse-follower-glow"></div>
 
     <script src="pokrok.js" defer></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // Initialize tooltips if the library and function exist
-            if (window.jQuery && typeof window.jQuery.fn.tooltipster === 'function' && typeof window.VyukaApp?.initTooltips === 'function') {
-                 window.VyukaApp.initTooltips();
-            } else if (typeof $ !== 'undefined' && typeof $.fn.tooltipster !== 'undefined') {
-                 $('.btn-tooltip').tooltipster({
-                     theme: 'tooltipster-shadow',
-                     animation: 'fade',
-                     delay: 150,
-                     distance: 6,
-                     side: 'top'
-                 });
-            }
-        });
-    </script>
-</body>
+
+    </body>
 </html>
