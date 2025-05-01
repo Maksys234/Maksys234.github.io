@@ -49,7 +49,7 @@
                 <div class="user-name" id="sidebar-name">Načítání...</div>
                 <div class="user-role" id="sidebar-user-title" title="Váš titul">Pilot</div> </div>
         </div>
-        <div class="sidebar-footer"> &copy; <span id="currentYearFooter">2025</span> Justax Systems </div>
+        <div class="sidebar-footer"> &copy; <span id="currentYearSidebar">2025</span> Justax Systems </div>
     </aside>
 
     <main id="main-content">
@@ -114,13 +114,15 @@
                         </div>
                         <div class="daily-reward-info">
                             <h3 class="daily-reward-title">Denní Odměna za Přihlášení</h3>
-                            <p class="daily-reward-day" id="daily-reward-day">Den 1</p>
+                            <p class="daily-reward-day" id="daily-reward-day">Den ?</p>
                             <p class="daily-reward-amount-info">
-                                Odměna: <strong id="daily-reward-amount">100</strong> kr.
+                                Odměna: <strong id="daily-reward-amount">---</strong> kr.
+                            </p>
+                            <p class="daily-reward-timer" id="daily-reward-timer" style="display: none;">
+                                Další odměna za: <span id="reward-countdown">--:--:--</span>
                             </p>
                         </div>
-                        <button class="btn btn-success claim-reward-btn" id="claim-reward-btn" disabled>
-                            <i class="fas fa-gift"></i> Vyzvednout
+                        <button class="btn btn-success claim-reward-btn btn-tooltip" id="claim-reward-btn" disabled title="Vyzvednout denní odměnu"> <i class="fas fa-gift"></i> Vyzvednout
                         </button>
                     </div>
                 </section>
@@ -193,7 +195,26 @@
 
     <div class="toast-container" id="toast-container"></div>
 
-     <div id="mouse-follower" class="mouse-follower-glow"></div>
+    <div class="modal" id="reward-preview-modal">
+        <div class="modal-content reward-preview">
+            <div class="modal-header">
+                <h2 class="modal-title"><i class="fas fa-calendar-alt"></i> Náhled Odměn (7 dní)</h2>
+                <button type="button" class="modal-close" id="close-preview-modal-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="reward-preview-info">Odměny se zvyšují s délkou vaší přihlašovací série:</p>
+                <ul class="reward-preview-list" id="reward-preview-list">
+                    <li class="skeleton" style="height: 30px; width: 80%; margin-bottom: 0.5rem;"></li>
+                    <li class="skeleton" style="height: 30px; width: 75%; margin-bottom: 0.5rem;"></li>
+                    <li class="skeleton" style="height: 30px; width: 85%; margin-bottom: 0.5rem;"></li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="document.getElementById('reward-preview-modal').style.display='none'; document.getElementById('reward-preview-modal').classList.remove('active');">Zavřít</button>
+             </div>
+        </div>
+    </div>
+    <div id="mouse-follower" class="mouse-follower-glow"></div>
 
     <script src="dashboard.js" defer></script>
 </body>
