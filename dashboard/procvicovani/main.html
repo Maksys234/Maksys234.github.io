@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Justax - Procvičování // Kyber-Verze</title> 
+    <title>Justax - Přehled Procvičování // Kyber-Verze</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
@@ -19,9 +19,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <link rel="stylesheet" href="main.css">
 </head>
-<body class="dark"> <div class="initial-loading-overlay" id="initial-loader">
+<body class="dark">
+    <div class="initial-loading-overlay" id="initial-loader">
          <div class="loading-spinner"></div>
-         <p>SYNCHRONIZACE PROCVIČOVÁNÍ...</p> 
+         <p>SYNCHRONIZACE PROCVIČOVÁNÍ...</p>
      </div>
     <div class="sidebar-overlay" id="sidebar-overlay"></div>
     <aside class="sidebar" id="sidebar">
@@ -32,10 +33,7 @@
             <a href="/dashboard/dashboard.html" class="sidebar-logo">
                 <i class="fas fa-atom"></i> <span>Justax</span>
             </a>
-            <button class="btn btn-icon-only sidebar-toggle-btn desktop-only" id="sidebar-toggle-btn" aria-label="Sbalit postranní panel" title="Přepnout postranní panel">
-                 <i class="fas fa-chevron-left"></i>
-             </button>
-             </div>
+        </div>
         <ul class="sidebar-menu">
              <li class="sidebar-item"> <a href="/dashboard/dashboard.html" class="sidebar-link"> <i class="fas fa-tachometer-alt"></i> <span>Nástěnka</span> </a> </li>
              <li class="sidebar-item"> <a href="/dashboard/procvicovani/main.html" class="sidebar-link active"> <i class="fas fa-laptop-code"></i> <span>Procvičování</span> </a> </li>
@@ -48,7 +46,7 @@
             <div class="user-avatar" id="sidebar-avatar">?</div>
             <div class="user-info">
                 <div class="user-name" id="sidebar-name">Načítání...</div>
-                <div class="user-role" id="sidebar-user-title" title="Pilot">Pilot</div>
+                <div class="user-role" id="sidebar-user-title">Pilot</div>
             </div>
         </div>
         <div class="sidebar-footer"> &copy; <span id="currentYearFooter">2025</span> Justax Systems </div>
@@ -57,13 +55,15 @@
         <div class="error-container" id="global-error"></div>
         <header class="dashboard-header">
             <div class="header-content">
-                 <div> <button class="mobile-menu-toggle" id="main-mobile-menu-toggle" aria-label="Otevřít menu">
+                 <div>
+                      <button class="mobile-menu-toggle" id="main-mobile-menu-toggle" aria-label="Otevřít menu">
                           <i class="fas fa-bars"></i>
-                      </button>
-                      <h1 id="dashboard-title"><i class="fas fa-laptop-code"></i> Procvičování // Přehled</h1>
+                     </button>
+                     <h1><i class="fas fa-laptop-code"></i> Procvičování // Přehled</h1>
                  </div>
                 <div class="header-actions">
-                    <button class="refresh-btn btn-tooltip" id="refresh-data-btn" title="Obnovit data"> <i class="fas fa-sync-alt"></i>
+                    <button class="refresh-btn" id="refresh-data-btn" title="Obnovit data">
+                        <i class="fas fa-sync-alt"></i>
                         <span class="refresh-text">RELOAD</span> </button>
                     <div class="notifications">
                         <div class="notification-bell" id="notification-bell" title="Oznámení">
@@ -76,8 +76,8 @@
                                  <button class="mark-all-read-btn" id="mark-all-read" disabled>Vymazat vše</button>
                              </div>
                              <div id="notifications-list">
-                                  <div class="notification-item skeleton"> <div class="notification-icon skeleton" style="background-color: var(--skeleton-bg);"></div> <div class="notification-content"> <div class="skeleton" style="height: 16px; width: 70%; margin-bottom: 6px;"></div> <div class="skeleton" style="height: 12px; width: 90%;"></div> <div class="skeleton" style="height: 10px; width: 40%; margin-top: 6px;"></div> </div> </div>
-                                  <div class="notification-item skeleton"> <div class="notification-icon skeleton" style="background-color: var(--skeleton-bg);"></div> <div class="notification-content"> <div class="skeleton" style="height: 16px; width: 60%; margin-bottom: 6px;"></div> <div class="skeleton" style="height: 12px; width: 80%;"></div> <div class="skeleton" style="height: 10px; width: 50%; margin-top: 6px;"></div> </div> </div>
+                                 <div class="notification-item skeleton"> <div class="notification-icon skeleton" style="background-color: var(--skeleton-bg);"></div> <div class="notification-content"> <div class="skeleton" style="height: 16px; width: 70%; margin-bottom: 6px;"></div> <div class="skeleton" style="height: 12px; width: 90%;"></div> <div class="skeleton" style="height: 10px; width: 40%; margin-top: 6px;"></div> </div> </div>
+                                 <div class="notification-item skeleton"> <div class="notification-icon skeleton" style="background-color: var(--skeleton-bg);"></div> <div class="notification-content"> <div class="skeleton" style="height: 16px; width: 60%; margin-bottom: 6px;"></div> <div class="skeleton" style="height: 12px; width: 80%;"></div> <div class="skeleton" style="height: 10px; width: 50%; margin-top: 6px;"></div> </div> </div>
                                  <div id="no-notifications-msg" style="display: none;">ŽÁDNÉ NOVÉ SIGNÁLY</div>
                              </div>
                              <div class="notifications-footer">
@@ -278,9 +278,10 @@
             <footer class="dashboard-footer">
                  <p>&copy; <span id="currentYearFooter">2025</span> Justax Systems // Secure Channel</p>
             </footer>
-        </div> 
+        </div>
     </main>
     <div class="toast-container" id="toast-container"></div>
     <div id="mouse-follower" class="mouse-follower-glow"></div>
-    <script src="main.js" defer></script> </body>
+    <script src="main.js" defer></script>
+</body>
 </html>
