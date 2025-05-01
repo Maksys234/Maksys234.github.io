@@ -1,4 +1,3 @@
-<script>
        // --- START: JavaScript v19 (Maximum Overdrive) ---
 
        // --- Вспомогательные Функции ---
@@ -395,4 +394,3 @@
        }); // Конец DOMContentLoaded
 
        // --- END: JavaScript ---
-    </script>
