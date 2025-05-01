@@ -8,8 +8,27 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link rel="stylesheet" href="index.css"> </head>
-<body class="dark"> <div id="mouse-follower" class="mouse-follower-glow"></div>
+    <link rel="stylesheet" href="index.css">
+    <style>
+        #particles-js {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: 0; /* За контентом героя */
+        }
+        .hero {
+             position: relative; /* Нужно для позиционирования частиц */
+        }
+        .hero-content {
+             position: relative; /* Нужно, чтобы контент был над частицами */
+             z-index: 1;
+        }
+    </style>
+</head>
+<body class="dark">
+    <div id="mouse-follower" class="mouse-follower-glow"></div>
 
     <header id="header">
         <div class="container nav-container">
@@ -21,7 +40,6 @@
                      <li><a href="#features" class="nav-item">Power Ups</a></li>
                      <li><a href="#ai-demo" class="nav-item">AI Core</a></li>
                      <li><a href="#how-it-works" class="nav-item">Start Engine</a></li>
-                     <li><a href="#pricing" class="nav-item">Plány</a></li>
                      <li><a href="#testimonials" class="nav-item">Důkazy</a></li>
                      <li><a href="#contact" class="nav-item">Kontakt</a></li>
                      <li><a href="auth/index.html" class="btn auth-link mobile-auth-link">Připojit se</a></li>
@@ -39,7 +57,9 @@
     <div class="menu-overlay" id="menuOverlay"></div>
 
     <main>
-        <section class="hero" id="hero"> <div class="container hero-content"> <h1 data-animate-letters>ZNIČ ZKOUŠKY.<br> <span class="highlight" data-text="OVLÁDNI VĚDĚNÍ.">OVLÁDNI VĚDĚNÍ.</span></h1>
+        <section class="hero" id="hero">
+            <div id="particles-js"></div>
+             <div class="container hero-content"> <h1 data-animate-letters>ZNIČ ZKOUŠKY.<br> <span class="highlight" data-text="OVLÁDNI VĚDĚNÍ.">OVLÁDNI VĚDĚNÍ.</span></h1>
                 <p data-animate>Zapomeň na stres. Justax AI je tvůj osobní kybernetický augment pro učení. Personalizace. Efektivita. Výsledky.</p>
                 <div class="hero-buttons" data-animate>
                     <a href="auth/index.html" class="btn auth-link">AKTIVOVAT AI ZDARMA</a>
@@ -88,12 +108,19 @@
                         </div>
                         <p>AI najde a opraví tvé systémové chyby. Zvyš level.</p>
                     </div>
-                     <div class="feature-card" data-animate style="--animation-order: 6;">
+                    <div class="feature-card" data-animate style="--animation-order: 6;">
                          <div class="feature-card-header">
                              <div class="feature-icon"><i class="fas fa-clock" aria-hidden="true"></i></div>
                             <h3>24/7 Připravenost</h3>
                         </div>
                         <p>Tvůj AI augment nespí. Uč se kdykoliv a kdekoliv.</p>
+                    </div>
+                    <div class="feature-card" data-animate style="--animation-order: 7;">
+                         <div class="feature-card-header">
+                             <div class="feature-icon"><i class="fas fa-gift" aria-hidden="true"></i></div>
+                             <h3>Zcela Zdarma</h3>
+                         </div>
+                         <p>Tento projekt je plně funkční a <strong>zdarma</strong>. Použij jej bez jakýchkoliv omezení.</p>
                     </div>
                 </div>
             </div>
@@ -206,57 +233,6 @@
             </div>
         </section>
 
-        <section class="pricing" id="pricing">
-             <div class="container">
-                <h2 class="section-title" data-animate><span>ZVOL SI SVŮJ UPGRADE</span></h2>
-                <p class="section-subtitle" data-animate>Žádný bullshit, jen čistá síla AI. Vyber plán a odemkni svůj potenciál.</p>
-                <div class="pricing-grid">
-                     <div class="pricing-card" data-animate style="--animation-order: 1;">
-                         <div class="pricing-icon"><i class="fas fa-rocket" aria-hidden="true"></i></div>
-                        <h3>BASIC IMPLANT</h3>
-                        <div class="pricing-price">499 Kč<span class="pricing-period"> / měsíc</span></div>
-                        <ul class="pricing-features">
-                            <li class="pricing-feature"><i class="fas fa-check" aria-hidden="true"></i><span>Adaptivní AI jádro</span></li>
-                            <li class="pricing-feature"><i class="fas fa-check" aria-hidden="true"></i><span>Personalizovaná cvičení</span></li>
-                            <li class="pricing-feature"><i class="fas fa-check" aria-hidden="true"></i><span>Základní diagnostika</span></li>
-                            <li class="pricing-feature disabled"><i class="fas fa-times" aria-hidden="true"></i><span>Analýza chyb</span></li>
-                            <li class="pricing-feature disabled"><i class="fas fa-times" aria-hidden="true"></i><span>Dynamický plán</span></li>
-                        </ul>
-                        <a href="auth/index.html" class="btn btn-outline auth-link">Aktivovat Základ</a>
-                    </div>
-                     <div class="pricing-card popular" data-animate style="--animation-order: 2;">
-                        <div class="popular-badge">NEJLEPŠÍ DEAL</div>
-                        <div class="pricing-icon"><i class="fas fa-brain" aria-hidden="true"></i></div>
-                        <h3>PRO CORE</h3>
-                        <div class="pricing-price">999 Kč<span class="pricing-period"> / měsíc</span></div>
-                        <ul class="pricing-features">
-                            <li class="pricing-feature"><i class="fas fa-check" aria-hidden="true"></i><span><strong>Vše z BASIC +</strong></span></li>
-                            <li class="pricing-feature"><i class="fas fa-check" aria-hidden="true"></i><span>Pokročilé AI (Gemini+)</span></li>
-                            <li class="pricing-feature"><i class="fas fa-check" aria-hidden="true"></i><span>Full CERMAT Databáze</span></li>
-                            <li class="pricing-feature"><i class="fas fa-check" aria-hidden="true"></i><span>Detailní Reporting</span></li>
-                            <li class="pricing-feature"><i class="fas fa-check" aria-hidden="true"></i><span>Hloubková Analýza Chyb</span></li>
-                            <li class="pricing-feature"><i class="fas fa-check" aria-hidden="true"></i><span>Dynamický Studijní Plán</span></li>
-                        </ul>
-                        <a href="auth/index.html" class="btn auth-link">Upgrade na PRO</a>
-                    </div>
-                    <div class="pricing-card" data-animate style="--animation-order: 3;">
-                         <div class="pricing-icon"><i class="fas fa-infinity" aria-hidden="true"></i></div>
-                        <h3>ULTIMATE AUGMENT</h3>
-                        <div class="pricing-price">1499 Kč<span class="pricing-period"> / měsíc</span></div>
-                        <ul class="pricing-features">
-                             <li class="pricing-feature"><i class="fas fa-check" aria-hidden="true"></i><span><strong>Vše z PRO +</strong></span></li>
-                            <li class="pricing-feature"><i class="fas fa-check" aria-hidden="true"></i><span>Top AI Jádro (GPT-4o+)</span></li>
-                            <li class="pricing-feature"><i class="fas fa-check" aria-hidden="true"></i><span>Neomezené Lekce</span></li>
-                            <li class="pricing-feature"><i class="fas fa-check" aria-hidden="true"></i><span>Prediktivní Analýza</span></li>
-                            <li class="pricing-feature"><i class="fas fa-check" aria-hidden="true"></i><span>Realistické Simulace</span></li>
-                            <li class="pricing-feature"><i class="fas fa-check" aria-hidden="true"></i><span>Prioritní Support Linka</span></li>
-                        </ul>
-                        <a href="auth/index.html" class="btn btn-outline auth-link">Odemknout Maximum</a>
-                    </div>
-                </div>
-            </div>
-        </section>
-
         <section class="cta" id="cta">
              <div class="container">
                 <h2 data-animate>PŘESTAŇ SE SRÁT. ZAČNI DOMINOVAT.</h2>
@@ -284,8 +260,7 @@
                         <li><a href="#features">Power Ups</a></li>
                         <li><a href="#ai-demo">AI Core</a></li>
                         <li><a href="#how-it-works">Start Engine</a></li>
-                        <li><a href="#pricing">Plány</a></li>
-                         <li><a href="#">Blog</a></li> {/* Замени на реальную ссылку */}
+                        <li><a href="#">Blog</a></li> {/* Замени на реальную ссылку */}
                     </ul>
                 </div>
                 <div class="footer-column" data-animate style="--animation-order: 3;">
@@ -311,5 +286,33 @@
         </div>
     </footer>
 
-    <script src="index.js" defer></script> </body>
+    <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+    <script>
+        // Конфигурация Particles.js (примерная, можно настроить)
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof particlesJS !== 'undefined') {
+                 particlesJS('particles-js', {
+                    particles: {
+                        number: { value: 60, density: { enable: true, value_area: 800 } },
+                        color: { value: "#00e0ff" }, // Основной цвет акцента
+                        shape: { type: "circle", stroke: { width: 0, color: "#000000" }, polygon: { nb_sides: 5 } },
+                        opacity: { value: 0.4, random: true, anim: { enable: true, speed: 0.2, opacity_min: 0.1, sync: false } },
+                        size: { value: 2, random: true, anim: { enable: false, speed: 40, size_min: 0.1, sync: false } },
+                        line_linked: { enable: true, distance: 130, color: "#a05cff", opacity: 0.2, width: 1 }, // Связующие линии
+                        move: { enable: true, speed: 2, direction: "none", random: true, straight: false, out_mode: "out", bounce: false, attract: { enable: false, rotateX: 600, rotateY: 1200 } }
+                    },
+                    interactivity: {
+                        detect_on: "canvas",
+                        events: { onhover: { enable: true, mode: "grab" }, onclick: { enable: true, mode: "push" }, resize: true },
+                        modes: { grab: { distance: 140, line_opacity: 0.5 }, bubble: { distance: 400, size: 40, duration: 2, opacity: 8, speed: 3 }, repulse: { distance: 200, duration: 0.4 }, push: { particles_nb: 4 }, remove: { particles_nb: 2 } }
+                    },
+                    retina_detect: true
+                });
+             } else {
+                 console.warn("Particles.js library not loaded.");
+             }
+        });
+    </script>
+    <script src="index.js" defer></script>
+</body>
 </html>
