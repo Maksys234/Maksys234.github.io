@@ -1,5 +1,5 @@
 /* dashboard.css */
-/* --- START: Киберпанк CSS Тема (v19 + sidebar toggle + Daily Reward v2 - Enhanced Design) --- */
+/* --- START: Киберпанк CSS Тема (v19 + sidebar toggle + Daily Reward v3 - Countdown & Preview) --- */
         /* --- Глобальные Настройки и Переменные --- */
         :root {
             /* Основа */
@@ -44,6 +44,7 @@
             --text-link-hover: #ffffff;
             --text-fixed-dark: #03020c; /* Для текста на светлых/ярких фонах */
             --white: #ffffff;
+            --white-rgb: 255, 255, 255; /* Added RGB */
             --black: #000000; /* Иногда нужен чистый черный */
 
             /* Границы */
@@ -87,7 +88,7 @@
             --shadow-card-hover-enhanced: 0 18px 50px rgba(0, 0, 0, 0.45), 0 0 30px var(--accent-glow), inset 0 0 15px rgba(var(--accent-primary-rgb), 0.15);
             --shadow-hud: 0 4px 15px rgba(0,0,0,0.3), inset 0 1px 2px rgba(var(--accent-primary-rgb), 0.1); /* Тень для элементов интерфейса */
             --shadow-text-glow: 0 0 8px rgba(var(--accent-primary-rgb), 0.6); /* Свечение текста */
-             --shadow-success-glow: 0 0 18px var(--accent-lime-glow);
+            --shadow-success-glow: 0 0 18px var(--accent-lime-glow);
             --shadow-claimed-inset: inset 0 2px 5px rgba(0,0,0,0.4);
 
 
@@ -190,12 +191,15 @@
         .btn:hover:not(:disabled) { color: var(--text-fixed-dark); border-color: var(--accent-secondary); box-shadow: 0 0 20px var(--accent-secondary-glow), inset 0 0 10px rgba(var(--accent-secondary-rgb), 0.15); transform: translateY(-3px); }
         .btn:hover:not(:disabled)::before { left: 0; background: var(--gradient-button-hover); }
         .btn:active:not(:disabled) { transform: translateY(0px) scale(0.97); box-shadow: 0 0 8px var(--accent-secondary-glow), inset 0 0 12px rgba(0,0,0,0.3); transition-duration: 0.08s; }
-        .btn:disabled { opacity: 0.5; cursor: not-allowed; background-color: transparent !important; border-color: var(--text-muted) !important; color: var(--text-muted) !important; box-shadow: none !important; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; background-color: transparent !important; border-color: var(--text-muted) !important; color: var(--text-muted) !important; box-shadow: none !important; transform: none !important; } /* Added transform: none */
         .btn:disabled::before { display: none; }
         /* Success button style */
         .btn-success { background: var(--gradient-success); color: var(--text-fixed-dark); border: none; box-shadow: 0 0 15px -2px var(--accent-lime-glow); }
         .btn-success::before { display: none; }
         .btn-success:hover:not(:disabled) { box-shadow: 0 0 22px var(--accent-lime-glow); filter: brightness(1.05); }
+        .btn-secondary { background-color: rgba(var(--text-muted-rgb), 0.1); border: 1px solid rgba(var(--text-muted-rgb), 0.3); color: var(--text-medium); box-shadow: none; }
+        .btn-secondary::before { display: none; }
+        .btn-secondary:hover:not(:disabled) { background-color: rgba(var(--text-muted-rgb), 0.2); border-color: rgba(var(--text-muted-rgb), 0.5); color: var(--text-light); box-shadow: 0 0 15px rgba(var(--text-muted-rgb), 0.2); transform: translateY(-2px); }
 
         .btn-outline { /* Контурная кнопка */
             border-color: var(--accent-secondary); color: var(--accent-secondary); box-shadow: 0 0 10px -3px var(--accent-secondary-glow), inset 0 0 8px -5px var(--accent-secondary-glow);
@@ -777,89 +781,6 @@
         @keyframes loading-spinner { to { transform: rotate(360deg); } }
         .initial-loading-overlay p { color: var(--text-medium); font-size: 1.1rem; font-weight: 500; letter-spacing: 0.5px; }
 
-        /* Адаптивность для киберпанк темы */
-        @media (max-width: 992px) { /* Планшет - сжатый сайдбар */
-            /* :root { --sidebar-width: 85px; } Already handled by .sidebar-collapsed */
-             .stat-cards, .shortcut-grid { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
-        }
-        @media (max-width: 768px) { /* Мобильный */
-             main { padding: 0 1rem; } /* Меньше паддинг */
-             .header-content { flex-direction: column; align-items: stretch; }
-             .header-content > div:first-child { justify-content: space-between;}
-             .header-actions { justify-content: flex-end; margin-top: 0.5rem; gap: 0.8rem; }
-             .refresh-btn { padding: 0.6rem; }
-             .refresh-btn .refresh-text { display: none; }
-             .notification-bell { padding: 0.6rem; }
-             .welcome-content { flex-direction: column; text-align: center; padding: 1.5rem; }
-             .welcome-text-content { max-width: 100%; }
-             .welcome-image { display: none; }
-             .stat-cards, .shortcut-grid { grid-template-columns: 1fr; gap: 1.5rem; }
-             .dashboard-header { padding: 0.8rem 1rem; }
-             .section-title { font-size: 1.3rem; }
-        }
-        @media (max-width: 576px) { /* Маленький мобильный */
-            /* Mobile menu toggling is handled by JS adding .active */
-             .sidebar { transform: translateX(-110%); width: 280px; z-index: 1000; } /* Скрыт по умолчанию */
-             .sidebar.active { transform: translateX(0); }
-             /* Восстанавливаем вид активного сайдбара */
-             .sidebar.active .sidebar-logo span, .sidebar.active .sidebar-link span,
-             .sidebar.active .user-info, .sidebar.active .sidebar-footer { display: block; }
-             .sidebar.active .sidebar-link i { margin-right: 0.85rem; font-size: 1.25rem; }
-             .sidebar.active .sidebar-header, .sidebar.active .sidebar-link { justify-content: flex-start; }
-             .sidebar.active .user-profile { padding: 1rem; }
-             .sidebar.active .user-avatar { margin-right: 0.85rem; width: 42px; height: 42px; }
-             .sidebar.active #sidebar-close-toggle { display: block; } /* Показать кнопку закрытия */
-             main { margin-left: 0; width: 100%; padding: 0 0.75rem; }
-             .header-actions { gap: 0.5rem; }
-             .stat-card-value { font-size: 2rem; }
-             .mouse-follower-glow { display: none !important; } /* Отключить свечение мыши */
-             .toast-container { bottom: 1rem; right: 1rem; max-width: calc(100% - 2rem); }
-             /* Hide desktop sidebar toggle on small mobile */
-             .sidebar-toggle-btn { display: none; }
-        }
-
-         /* Оверлей для мобильного меню */
-         .sidebar-overlay {
-             display: none; position: fixed; inset: 0;
-             background-color: rgba(3, 2, 12, 0.7); /* Темный полупрозрачный */
-             z-index: 999; opacity: 0;
-             transition: opacity var(--transition-medium) ease;
-             backdrop-filter: blur(5px);
-         }
-         .sidebar-overlay.active { display: block; opacity: 1; }
-
-        /* --- Анимации появления --- */
-        .main-content-wrapper [data-animate] { /* Применяем только к контенту */
-             opacity: 0;
-             transform: translateY(25px) scale(0.98) rotateX(-4deg);
-             transform-origin: center bottom;
-             transition: opacity var(--transition-entrance) ease-out, transform var(--transition-entrance) ease-out;
-             will-change: opacity, transform;
-        }
-        .main-content-wrapper [data-animate].animated { opacity: 1; transform: translateY(0) scale(1) rotateX(0); }
-        .stat-cards [data-animate], .shortcut-grid [data-animate], .activity-list-container [data-animate] { transition-delay: calc(var(--animation-order, 0) * 0.1s); }
-
-        /* --- Уменьшение движения --- */
-        @media (prefers-reduced-motion: reduce) {
-            html { scroll-behavior: auto; }
-            *, *::before, *::after {
-                animation-duration: 0.01ms !important; animation-iteration-count: 1 !important;
-                transition-duration: 0.01ms !important; animation-delay: -0.01ms !important;
-                transition-delay: 0ms !important; will-change: auto !important;
-            }
-            .sidebar { transition: transform 0.01ms !important, width 0.01ms !important; } /* Added width */
-            main { transition: margin-left 0.01ms !important, width 0.01ms !important; } /* Added width */
-            .main-content-wrapper [data-animate] { opacity: 1 !important; transform: none !important; transition: none !important; }
-            .mouse-follower-glow { display: none !important; }
-            body::before, body::after { animation: none !important; }
-            .refresh-btn.loading i { animation: none !important; }
-            .loading-spinner, .initial-loading-overlay .loading-spinner { animation: none !important; border: 4px solid var(--accent-primary) !important; } /* Просто рамка */
-            .card:hover, .shortcut-card:hover, .btn:hover, .btn-outline:hover, .welcome-button:hover, .refresh-btn:hover, .view-all-link:hover { transform: none !important; }
-            .skeleton::after { animation: none !important; background: var(--skeleton-highlight) !important; }
-             .btn-icon-only i { transition: none !important; } /* Disable icon rotation */
-        }
-        /* --- END: Киберпанк CSS Тема --- */
-
         /* === NEW: Daily Reward Styles v2 - Enhanced Design === */
         .daily-reward-section {
             position: relative; /* For loader overlay */
@@ -870,13 +791,18 @@
             padding: 0; /* Remove card padding, handled by inner content */
             background: var(--gradient-welcome); /* Base gradient */
             display: none; /* Hidden by default */
-            transition: background var(--transition-medium), border-color var(--transition-medium), box-shadow var(--transition-medium);
+            transition: background var(--transition-medium), border-color var(--transition-medium), box-shadow var(--transition-medium), transform var(--transition-medium) ease;
+            cursor: pointer; /* Make the whole card clickable for preview */
         }
-        .daily-reward-section.loading .loading-overlay {
+         .daily-reward-section:hover {
+             transform: translateY(-4px);
+             box-shadow: var(--shadow-card-hover-enhanced);
+         }
+        .daily-reward-section .loading-overlay {
             position: absolute;
             inset: 0;
             background-color: rgba(var(--card-solid-rgb), 0.85);
-            display: flex;
+            display: none; /* Hidden by default */
             justify-content: center;
             align-items: center;
             z-index: 10;
@@ -885,7 +811,7 @@
             opacity: 1;
             backdrop-filter: blur(4px);
         }
-        .daily-reward-section.loading .loading-overlay.hidden { display: none; }
+        .daily-reward-section.loading .loading-overlay { display: flex; }
         .daily-reward-section.loading .loading-spinner { /* Adjusted spinner style */
              width: 36px;
              height: 36px;
@@ -963,7 +889,7 @@
         .daily-reward-amount-info {
             font-size: 1.1rem; /* Larger amount info */
             color: var(--text-medium);
-            margin: 0;
+            margin: 0 0 0.5rem 0; /* Added margin below amount */
         }
         #daily-reward-amount {
             font-weight: 700;
@@ -972,6 +898,26 @@
             margin: 0 0.25em;
             text-shadow: 0 0 8px var(--accent-lime-glow);
         }
+        /* NEW: Countdown Timer Style */
+        .daily-reward-timer {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin: 0.5rem 0 0 0; /* Spacing above timer */
+            font-weight: 500;
+        }
+        #reward-countdown {
+            color: var(--accent-orange);
+            font-weight: 700;
+            font-family: var(--font-mono);
+            letter-spacing: 1px;
+            text-shadow: 0 0 5px var(--accent-orange-glow);
+            margin-left: 0.5em;
+            background: rgba(var(--accent-orange-rgb), 0.1);
+            padding: 0.1em 0.4em;
+            border-radius: 4px;
+            border: 1px solid rgba(var(--accent-orange-rgb), 0.2);
+        }
+
         .claim-reward-btn {
             margin-left: 1.5rem; /* More space */
             flex-shrink: 0;
@@ -980,14 +926,20 @@
             letter-spacing: 1px;
         }
         /* Claimed state */
-        .daily-reward-section.claimed .daily-reward-content {
-            background: var(--gradient-claimed); /* Specific gradient for claimed */
-            opacity: 0.7; /* More muted */
-            box-shadow: var(--shadow-claimed-inset);
-        }
-         .daily-reward-section.claimed {
+        .daily-reward-section.claimed {
+            cursor: default; /* No pointer if claimed */
              border-color: var(--border-color-light);
+             background: var(--gradient-claimed); /* Specific gradient for claimed */
+             opacity: 0.7; /* More muted */
+             box-shadow: var(--shadow-claimed-inset);
          }
+        .daily-reward-section.claimed:hover { /* Disable hover effect when claimed */
+              transform: none;
+              box-shadow: var(--shadow-claimed-inset);
+          }
+        .daily-reward-section.claimed .daily-reward-content {
+            /* background stays as set by the main section */
+        }
         .daily-reward-section.claimed .daily-reward-icon {
             background: var(--text-muted);
             box-shadow: none;
@@ -1009,7 +961,7 @@
         .daily-reward-section.claimed .claim-reward-btn::before { display: none; }
         /* Available state */
         .daily-reward-section.available {
-            border-color: var(--accent-lime);
+            border-color: var(--accent-lime); /* Changed border */
             box-shadow: 0 0 25px rgba(var(--accent-lime-rgb), 0.25), inset 0 0 10px rgba(var(--accent-lime-rgb), 0.1);
              background: var(--gradient-available);
         }
@@ -1023,11 +975,85 @@
               box-shadow: 0 0 28px var(--accent-lime-glow);
               filter: brightness(1.1);
               transform: translateY(-3px);
-              color: var(--white); /* Keep text visible */
+              color: var(--white); /* Keep text visible on hover */
               background: linear-gradient(135deg, #80ff50, var(--accent-lime)); /* Slightly brighter hover */
          }
-         .daily-reward-section.available .claim-reward-btn::before { display: none; }
+         .daily-reward-section.available .claim-reward-btn::before { display: none; /* Success button doesn't use the ::before typically */ }
         /* --- END: Daily Reward Styles --- */
+
+        /* === NEW: Modal Styles (Basic Structure) === */
+        .modal {
+            display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(var(--bg-secondary-rgb, 10, 7, 31), 0.7);
+            z-index: 1050; /* Below toasts, above content */
+            align-items: center; justify-content: center;
+            opacity: 0; transition: opacity 0.4s ease, backdrop-filter 0.4s ease;
+            backdrop-filter: blur(0px);
+        }
+        .modal.active { display: flex; opacity: 1; backdrop-filter: blur(8px); }
+        .modal-content {
+            background-color: var(--interface-bg); border-radius: var(--card-radius);
+            width: 90%; max-width: 550px; /* Adjusted max-width */
+            box-shadow: var(--shadow-card);
+            transform: translateY(-30px) scale(0.95); transform-origin: center;
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            overflow: hidden;
+            border: 1px solid var(--border-color-medium);
+            display: flex; flex-direction: column;
+        }
+        .modal.active .modal-content { transform: translateY(0) scale(1); }
+        .modal-header {
+            padding: 1.2rem 1.8rem; border-bottom: 1px solid var(--border-color-light);
+            display: flex; justify-content: space-between; align-items: center;
+            background: rgba(var(--accent-secondary-rgb), 0.08); flex-shrink: 0;
+        }
+        .modal-title { font-size: 1.3rem; font-weight: 600; color: var(--text-heading); text-shadow: var(--shadow-text-glow); margin: 0; display: flex; align-items: center; gap: 0.6em;}
+         .modal-title i { color: var(--accent-primary); }
+        .modal-close {
+            background: none; border: none; font-size: 1.7rem; cursor: pointer;
+            color: var(--text-muted); transition: color 0.2s ease, transform 0.2s ease; line-height: 1; padding: 0.3rem;
+        }
+        .modal-close:hover { color: var(--accent-pink); transform: rotate(90deg); }
+        .modal-body { padding: 1.8rem 2rem; max-height: 65vh; overflow-y: auto; flex-grow: 1; }
+         /* Scrollbar for modal body */
+        .modal-body::-webkit-scrollbar { width: 6px; }
+        .modal-body::-webkit-scrollbar-track { background: transparent; }
+        .modal-body::-webkit-scrollbar-thumb { background-color: var(--border-color-medium); border-radius: 3px; }
+        .modal-footer {
+            padding: 1.2rem 1.8rem; border-top: 1px solid var(--border-color-light);
+            background-color: rgba(var(--bg-secondary-rgb, 10, 7, 31), 0.4);
+            display: flex; justify-content: flex-end; gap: 0.8rem; flex-shrink: 0;
+        }
+        /* === END: Modal Styles === */
+
+        /* === NEW: Reward Preview Modal Specific Styles === */
+        .modal-content.reward-preview { max-width: 450px; /* Smaller modal for preview */ }
+        .reward-preview-info { font-size: 0.95rem; color: var(--text-medium); margin-bottom: 1.5rem; text-align: center; }
+        .reward-preview-list { list-style: none; padding: 0; margin: 0; }
+        .reward-preview-list li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.9rem 0.5rem;
+            border-bottom: 1px dashed var(--border-color-light);
+            font-size: 1rem;
+        }
+        .reward-preview-list li:last-child { border-bottom: none; }
+        .preview-day { color: var(--text-light); font-weight: 500; }
+        .preview-reward { color: var(--accent-lime); font-weight: 700; display: inline-flex; align-items: center; gap: 0.3em; font-size: 1.05em;}
+        .preview-reward i { font-size: 0.9em; opacity: 0.8; }
+         /* Skeleton for preview list */
+        .reward-preview-list li.skeleton {
+             background: var(--skeleton-bg);
+             border-radius: 4px;
+             margin-bottom: 0.6rem !important; /* Override default margin */
+             height: 35px;
+             border-bottom: none;
+             width: 90%;
+         }
+         .reward-preview-list li.skeleton:last-child { width: 75%; }
+        /* === END: Reward Preview Modal Specific Styles === */
+
 
          /* Tooltipster Theme */
          .tooltipster-shadow {
@@ -1043,3 +1069,96 @@
              font-family: var(--font-primary);
          }
          .dashboard-footer { margin-top: 3rem; padding: 1.5rem 0; text-align: center; color: var(--text-muted); font-size: 0.9rem; border-top: 1px solid var(--border-color-light); opacity: 0.6; }
+
+         /* Адаптивность для киберпанк темы */
+        @media (max-width: 992px) { /* Планшет - сжатый сайдбар */
+            /* :root { --sidebar-width: 85px; } Already handled by .sidebar-collapsed */
+             .stat-cards, .shortcut-grid { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+        }
+        @media (max-width: 768px) { /* Мобильный */
+             main { padding: 0 1rem; } /* Меньше паддинг */
+             .header-content { flex-direction: column; align-items: stretch; }
+             .header-content > div:first-child { justify-content: space-between;}
+             .header-actions { justify-content: flex-end; margin-top: 0.5rem; gap: 0.8rem; }
+             .refresh-btn { padding: 0.6rem; }
+             .refresh-btn .refresh-text { display: none; }
+             .notification-bell { padding: 0.6rem; }
+             .welcome-content { flex-direction: column; text-align: center; padding: 1.5rem; }
+             .welcome-text-content { max-width: 100%; }
+             .welcome-image { display: none; }
+             .stat-cards, .shortcut-grid { grid-template-columns: 1fr; gap: 1.5rem; }
+             .dashboard-header { padding: 0.8rem 1rem; }
+             .section-title { font-size: 1.3rem; }
+             .daily-reward-content { flex-direction: column; text-align: center; gap: 1rem; padding: 1.5rem; }
+             .claim-reward-btn { margin-left: 0; margin-top: 1rem; width: 100%; }
+             .modal-content { width: 95%; }
+        }
+        @media (max-width: 576px) { /* Маленький мобильный */
+            /* Mobile menu toggling is handled by JS adding .active */
+             .sidebar { transform: translateX(-110%); width: 280px; z-index: 1000; } /* Скрыт по умолчанию */
+             .sidebar.active { transform: translateX(0); }
+             /* Восстанавливаем вид активного сайдбара */
+             .sidebar.active .sidebar-logo span, .sidebar.active .sidebar-link span,
+             .sidebar.active .user-info, .sidebar.active .sidebar-footer { display: block; }
+             .sidebar.active .sidebar-link i { margin-right: 0.85rem; font-size: 1.25rem; }
+             .sidebar.active .sidebar-header, .sidebar.active .sidebar-link { justify-content: flex-start; }
+             .sidebar.active .user-profile { padding: 1rem; }
+             .sidebar.active .user-avatar { margin-right: 0.85rem; width: 42px; height: 42px; }
+             .sidebar.active #sidebar-close-toggle { display: block; } /* Показать кнопку закрытия */
+             main { margin-left: 0; width: 100%; padding: 0 0.75rem; }
+             .header-actions { gap: 0.5rem; }
+             .stat-card-value { font-size: 2rem; }
+             .mouse-follower-glow { display: none !important; } /* Отключить свечение мыши */
+             .toast-container { bottom: 1rem; right: 1rem; max-width: calc(100% - 2rem); }
+             /* Hide desktop sidebar toggle on small mobile */
+             .sidebar-toggle-btn { display: none; }
+             .daily-reward-icon { width: 55px; height: 55px; }
+             .daily-reward-title { font-size: 1.1rem; }
+             .daily-reward-day, .daily-reward-amount-info { font-size: 0.9rem; }
+             .claim-reward-btn { padding: 0.7rem 1.4rem !important; }
+        }
+
+         /* Оверлей для мобильного меню */
+         .sidebar-overlay {
+             display: none; position: fixed; inset: 0;
+             background-color: rgba(3, 2, 12, 0.7); /* Темный полупрозрачный */
+             z-index: 999; opacity: 0;
+             transition: opacity var(--transition-medium) ease;
+             backdrop-filter: blur(5px);
+         }
+         .sidebar-overlay.active { display: block; opacity: 1; }
+
+        /* --- Анимации появления --- */
+        .main-content-wrapper [data-animate] { /* Применяем только к контенту */
+             opacity: 0;
+             transform: translateY(25px) scale(0.98) rotateX(-4deg);
+             transform-origin: center bottom;
+             transition: opacity var(--transition-entrance) ease-out, transform var(--transition-entrance) ease-out;
+             will-change: opacity, transform;
+        }
+        .main-content-wrapper [data-animate].animated { opacity: 1; transform: translateY(0) scale(1) rotateX(0); }
+        .stat-cards [data-animate], .shortcut-grid [data-animate], .activity-list-container [data-animate], .daily-reward-section[data-animate] { transition-delay: calc(var(--animation-order, 0) * 0.1s); } /* Added daily reward */
+
+        /* --- Уменьшение движения --- */
+        @media (prefers-reduced-motion: reduce) {
+            html { scroll-behavior: auto; }
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important; animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important; animation-delay: -0.01ms !important;
+                transition-delay: 0ms !important; will-change: auto !important;
+            }
+            .sidebar { transition: transform 0.01ms !important, width 0.01ms !important; } /* Added width */
+            main { transition: margin-left 0.01ms !important, width 0.01ms !important; } /* Added width */
+            .main-content-wrapper [data-animate] { opacity: 1 !important; transform: none !important; transition: none !important; }
+            .mouse-follower-glow { display: none !important; }
+            body::before, body::after { animation: none !important; }
+            .refresh-btn.loading i { animation: none !important; }
+            .loading-spinner, .initial-loading-overlay .loading-spinner { animation: none !important; border: 4px solid var(--accent-primary) !important; } /* Просто рамка */
+            .card:hover, .shortcut-card:hover, .btn:hover, .btn-outline:hover, .welcome-button:hover, .refresh-btn:hover, .view-all-link:hover, .daily-reward-section:hover { transform: none !important; } /* Added daily reward */
+            .skeleton::after { animation: none !important; background: var(--skeleton-highlight) !important; }
+            .section-title::after { animation: none !important; background: var(--accent-primary) !important; }
+             .btn-icon-only i { transition: none !important; } /* Disable icon rotation */
+            .daily-reward-section.available::after { animation: none !important; opacity: 0.3; } /* Static glow */
+             .modal.active, .modal.active .modal-content { transition: none !important; opacity: 1; transform: none; }
+         }
+        /* --- END: Киберпанк CSS Тема --- */
