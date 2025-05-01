@@ -70,10 +70,10 @@
             --gradient-sidebar: linear-gradient(190deg, var(--bg-secondary) 0%, var(--dark-purple-accent) 100%); /* Новый для сайдбара */
             --gradient-level-up: linear-gradient(45deg, var(--accent-pink), var(--accent-secondary)); /* Для Level Up */
              --gradient-welcome: linear-gradient(135deg, rgba(var(--accent-primary-rgb), 0.2), rgba(var(--accent-secondary-rgb), 0.25)); /* Для Welcome Banner */
-             --gradient-success: linear-gradient(135deg, var(--accent-lime), #45a247);
-             --gradient-warning: linear-gradient(135deg, var(--accent-orange), #f3722c);
-             --gradient-danger: linear-gradient(135deg, var(--accent-pink), #b5179e);
-             --gradient-info: linear-gradient(135deg, var(--accent-cyan), var(--accent-primary));
+            --gradient-success: linear-gradient(135deg, var(--accent-lime), #45a247);
+            --gradient-warning: linear-gradient(135deg, var(--accent-orange), #f3722c);
+            --gradient-danger: linear-gradient(135deg, var(--accent-pink), #b5179e);
+            --gradient-info: linear-gradient(135deg, var(--accent-cyan), var(--accent-primary));
 
 
             /* Шрифты */
@@ -89,8 +89,8 @@
             --shadow-card-hover-enhanced: 0 18px 50px rgba(0, 0, 0, 0.45), 0 0 30px var(--accent-glow), inset 0 0 15px rgba(var(--accent-primary-rgb), 0.15);
             --shadow-hud: 0 4px 15px rgba(0,0,0,0.3), inset 0 1px 2px rgba(var(--accent-primary-rgb), 0.1); /* Тень для элементов интерфейса */
             --shadow-text-glow: 0 0 8px rgba(var(--accent-primary-rgb), 0.6); /* Свечение текста */
-            --shadow-sm: 0 2px 5px rgba(0, 0, 0, 0.25); /* Added */
-            --shadow-md: 0 6px 15px rgba(0, 0, 0, 0.35); /* Added */
+            --shadow-sm: 0 2px 5px rgba(0, 0, 0, 0.25);
+            --shadow-md: 0 6px 15px rgba(0, 0, 0, 0.35);
 
             /* Размеры и переходы */
             --sidebar-width: 260px; /* Оставляем переменную */
@@ -101,14 +101,14 @@
             --container-padding-x: 2rem; /* Паддинги контейнера дашборда */
             --transition-speed: 0.3s; /* Совпадает с --transition-medium */
             --transition-fast: all 0.2s ease-out;
-            --transition-medium: all 0.35s ease-out;
+            --transition-medium: all 0.35s cubic-bezier(0.4, 0, 0.2, 1); /* Smoother transition */
             --transition-long: all 0.5s cubic-bezier(0.165, 0.84, 0.44, 1);
             --transition-bounce: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             --transition-entrance: all 0.6s cubic-bezier(0.165, 0.84, 0.44, 1); /* Немного быстрее */
 
             /* Skeleton Loader Colors */
-             --skeleton-bg: rgba(var(--accent-secondary-rgb), 0.12);
-             --skeleton-highlight: rgba(var(--accent-secondary-rgb), 0.22);
+            --skeleton-bg: rgba(var(--accent-secondary-rgb), 0.12);
+            --skeleton-highlight: rgba(var(--accent-secondary-rgb), 0.22);
 
             /* Chat Scrollbar */
             --chat-scrollbar-track: transparent;
@@ -190,7 +190,7 @@
             border: 2px solid var(--accent-primary); border-radius: var(--button-radius);
             font-family: var(--font-secondary); font-weight: 600; font-size: 0.95rem;
             text-align: center; text-transform: uppercase; letter-spacing: 1.1px;
-            cursor: pointer; transition: all var(--transition-medium), transform 0.15s ease-out;
+            cursor: pointer; transition: all var(--transition-medium), transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
             position: relative; overflow: hidden; z-index: 1;
             box-shadow: 0 0 14px -4px var(--accent-glow), inset 0 0 9px -6px var(--accent-glow);
             backdrop-filter: blur(3px); will-change: transform, box-shadow, color, border-color; line-height: 1.5;
@@ -198,7 +198,7 @@
         .btn::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: var(--gradient-button); transition: left 0.4s ease-in-out; z-index: -1; }
         .btn:hover:not(:disabled) { color: var(--text-fixed-dark); border-color: var(--accent-secondary); box-shadow: 0 0 25px var(--accent-secondary-glow), inset 0 0 12px rgba(var(--accent-secondary-rgb), 0.2); transform: translateY(-4px) scale(1.02); filter: brightness(1.1); }
         .btn:hover:not(:disabled)::before { left: 0; background: var(--gradient-button-hover); }
-        .btn:active:not(:disabled) { transform: translateY(-1px) scale(0.98); box-shadow: 0 0 8px var(--accent-secondary-glow), inset 0 0 15px rgba(0,0,0,0.4); transition-duration: 0.08s; filter: brightness(0.95); }
+        .btn:active:not(:disabled) { transform: translateY(-1px) scale(0.98); box-shadow: 0 0 8px var(--accent-secondary-glow), inset 0 0 15px rgba(0,0,0,0.4); transition-duration: 0.1s; filter: brightness(0.95); }
         .btn:disabled { opacity: 0.45; cursor: not-allowed; background-color: transparent !important; border-color: var(--text-muted) !important; color: var(--text-muted) !important; box-shadow: none !important; transform: none !important; filter: grayscale(50%); }
         .btn:disabled::before { display: none; }
         .btn i { transition: transform 0.3s ease; margin-right: 0.5em;}
@@ -263,41 +263,42 @@
             background: var(--card-bg); border-radius: var(--card-radius);
             border: 1px solid var(--border-color-light);
             box-shadow: var(--shadow-hud);
-            transition: transform var(--transition-medium), box-shadow var(--transition-medium), border-color var(--transition-medium);
+            transition: transform var(--transition-medium), box-shadow var(--transition-medium), border-color var(--transition-medium), background-color 0.3s ease;
             position: relative; overflow: hidden;
             will-change: transform, box-shadow;
         }
         .card:hover {
-             transform: translateY(-5px) scale(1.01);
+             transform: translateY(-6px) scale(1.015);
              box-shadow: var(--shadow-card-hover-enhanced);
-             border-color: var(--border-color-medium);
+             border-color: var(--border-color-strong);
+             background-color: rgba(var(--card-solid-rgb), 0.95);
         }
          /* Уголки для карточек */
          .card::before, .card::after {
-             content: ''; position: absolute; width: 12px; height: 12px;
+             content: ''; position: absolute; width: 15px; height: 15px;
              border-color: var(--accent-primary); border-style: solid; opacity: 0;
-             transition: all 0.3s ease; pointer-events: none; z-index: 1;
+             transition: all 0.4s ease; pointer-events: none; z-index: 1;
+             filter: drop-shadow(0 0 3px var(--accent-glow));
          }
-         .card::before { top: 10px; left: 10px; border-width: 2px 0 0 2px; }
-         .card::after { bottom: 10px; right: 10px; border-width: 0 2px 2px 0; }
-         .card:hover::before, .card:hover::after { opacity: 0.6; }
-         .card:hover::before { transform: translate(-3px, -3px); }
-         .card:hover::after { transform: translate(3px, 3px); }
+         .card::before { top: 8px; left: 8px; border-width: 3px 0 0 3px; }
+         .card::after { bottom: 8px; right: 8px; border-width: 0 3px 3px 0; }
+         .card:hover::before, .card:hover::after { opacity: 0.8; }
+         .card:hover::before { transform: translate(-4px, -4px) rotate(-5deg); }
+         .card:hover::after { transform: translate(4px, 4px) rotate(5deg); }
 
-
-        /* --- START: Updated Sidebar Styles --- */
+        /* --- Sidebar (Переделанный под киберпанк) --- */
         .sidebar {
             width: var(--sidebar-width); height: 100vh; position: fixed; top: 0; left: 0;
-            background: var(--gradient-sidebar);
-            color: var(--text-medium);
+            background: var(--gradient-sidebar); /* Новый градиент */
+            color: var(--text-medium); /* Базовый цвет текста */
             padding: 1.5rem 1rem; display: flex; flex-direction: column; z-index: 1000;
-            box-shadow: 5px 0 30px rgba(0, 0, 0, 0.4);
+            box-shadow: 5px 0 30px rgba(0, 0, 0, 0.4); /* Тень */
             border-right: 1px solid var(--border-color-light);
-            transition: width var(--transition-medium) cubic-bezier(0.4, 0, 0.2, 1), transform var(--transition-medium) ease;
-            overflow: hidden;
+            transition: width var(--transition-medium) cubic-bezier(0.4, 0, 0.2, 1), transform var(--transition-medium) ease; /* Added transform transition for mobile */
+            overflow: hidden; /* Hide overflow during transition */
         }
         .sidebar-header { display: flex; align-items: center; margin-bottom: 2.5rem; padding: 0 0.5rem; position: relative; min-height: 45px; transition: padding var(--transition-medium) ease; }
-        #sidebar-close-toggle {
+        #sidebar-close-toggle { /* Кнопка закрытия на мобильных */
              display: none; position: absolute; right: 0px; top: 50%; transform: translateY(-50%);
              background: none; border: none; color: var(--text-muted); font-size: 1.8rem; cursor: pointer;
              padding: 0.5rem; line-height: 1; transition: color 0.2s ease;
@@ -307,61 +308,76 @@
              font-size: 1.7rem; font-weight: 700; color: var(--text-heading); text-decoration: none;
              display: flex; align-items: center; gap: 0.8rem; text-shadow: 0 0 8px var(--accent-secondary-glow);
              transition: gap var(--transition-medium) ease;
-             width: 100%;
+             width: 100%; /* Ensure it takes full width for centering */
         }
-        .sidebar-logo i { font-size: 1.8rem; color: var(--accent-secondary); flex-shrink: 0; }
-        .sidebar-logo span { transition: opacity 0.1s linear, max-width 0.2s linear 0.1s; opacity: 1; max-width: 150px; overflow: hidden; white-space: nowrap; display: inline-block; }
-        .sidebar-menu { list-style: none; padding: 0; margin: 0; flex-grow: 1; overflow-y: auto; overflow-x: hidden; }
-        body.sidebar-collapsed .sidebar-menu { overflow-y: hidden; scrollbar-width: none; }
-        body.sidebar-collapsed .sidebar-menu::-webkit-scrollbar { display: none; }
+        .sidebar-logo i { font-size: 1.8rem; color: var(--accent-secondary); flex-shrink: 0; /* Prevent icon shrinking */}
+        .sidebar-logo span { transition: opacity 0.1s linear, max-width 0.2s linear 0.1s; opacity: 1; max-width: 150px; overflow: hidden; white-space: nowrap; display: inline-block; } /* Adjusted transition */
+        .sidebar-menu { list-style: none; padding: 0; margin: 0; flex-grow: 1; overflow-y: auto; overflow-x: hidden; } /* Hide horizontal scroll */
+        /* --- Скрыть скроллбар в свернутом состоянии --- */
+        body.sidebar-collapsed .sidebar-menu {
+            overflow-y: hidden;
+            scrollbar-width: none; /* Firefox */
+        }
+        body.sidebar-collapsed .sidebar-menu::-webkit-scrollbar {
+            display: none; /* Chrome, Safari, Opera */
+        }
+        /* --------------------------------------------- */
         .sidebar-item { margin-bottom: 0.6rem; }
         .sidebar-link {
-            display: flex; align-items: center; padding: 0.85rem 1rem;
+            display: flex; align-items: center; padding: 0.85rem 1rem; /* Немного больше */
             color: var(--text-medium); text-decoration: none; border-radius: var(--button-radius);
             transition: background-color 0.25s ease, color 0.25s ease, box-shadow 0.25s ease, border-left-color 0.25s ease;
             font-weight: 500; position: relative;
-            border-left: 4px solid transparent;
-            overflow: hidden;
-            white-space: nowrap;
+            border-left: 4px solid transparent; /* Основа для активной метки */
+            overflow: hidden; /* Prevent text wrapping */
+            white-space: nowrap; /* Keep icon and text on one line */
         }
         .sidebar-link i {
             margin-right: 0.85rem; font-size: 1.25rem; width: 25px; text-align: center;
-            transition: color 0.25s ease, margin-right var(--transition-medium) ease, font-size var(--transition-medium) ease;
-            color: var(--text-muted); flex-shrink: 0;
+            transition: color 0.25s ease, margin-right var(--transition-medium) ease, font-size var(--transition-medium) ease; /* Added font-size */
+            color: var(--text-muted); flex-shrink: 0; /* Prevent icon shrinking */
         }
-        .sidebar-link span { transition: opacity 0.1s linear, max-width 0.2s linear 0.1s; opacity: 1; max-width: 150px; overflow: hidden; white-space: nowrap; display: inline-block; vertical-align: middle;}
-        .sidebar-link:hover { background-color: rgba(var(--accent-primary-rgb), 0.1); color: var(--text-light); box-shadow: inset 3px 0 8px -2px rgba(var(--accent-primary-rgb), 0.3); }
+        .sidebar-link span { transition: opacity 0.1s linear, max-width 0.2s linear 0.1s; opacity: 1; max-width: 150px; overflow: hidden; white-space: nowrap; display: inline-block; vertical-align: middle;} /* Adjusted transition and alignment */
+        .sidebar-link:hover {
+            background-color: rgba(var(--accent-primary-rgb), 0.1); color: var(--text-light);
+            box-shadow: inset 3px 0 8px -2px rgba(var(--accent-primary-rgb), 0.3);
+        }
         .sidebar-link:hover i { color: var(--accent-primary); }
-        .sidebar-link.active { background-color: rgba(var(--accent-primary-rgb), 0.15); color: var(--white); font-weight: 600; border-left-color: var(--accent-primary); box-shadow: inset 4px 0 10px -3px rgba(var(--accent-primary-rgb), 0.4); }
+        .sidebar-link.active {
+            background-color: rgba(var(--accent-primary-rgb), 0.15); color: var(--white);
+            font-weight: 600; border-left-color: var(--accent-primary);
+            box-shadow: inset 4px 0 10px -3px rgba(var(--accent-primary-rgb), 0.4);
+        }
         .sidebar-link.active i { color: var(--accent-primary); }
+        /* Убираем ::before, используем border-left */
 
-        .user-profile {
+        .user-profile { /* Профиль пользователя */
             display: flex; align-items: center; padding: 1rem; margin-top: 1.5rem;
             background-color: rgba(var(--accent-secondary-rgb), 0.1); border-radius: 12px;
             border: 1px solid var(--border-color-light); flex-shrink: 0;
             transition: padding var(--transition-medium) ease; overflow: hidden;
-            white-space: nowrap;
+            white-space: nowrap; /* Prevent wrapping inside */
         }
         .user-avatar {
             width: 42px; height: 42px; border-radius: 50%;
-            background-color: var(--accent-secondary);
+            background-color: var(--accent-secondary); /* Цвет фона аватарки */
             display: flex; align-items: center; justify-content: center; margin-right: 0.85rem;
             font-weight: 600; font-size: 1.1rem; overflow: hidden; color: var(--white);
             border: 2px solid rgba(var(--accent-primary-rgb), 0.3); flex-shrink: 0;
             box-shadow: 0 0 8px rgba(var(--accent-secondary-rgb), 0.4);
-            transition: all var(--transition-medium) ease;
+            transition: all var(--transition-medium) ease; /* Animate size and margin */
         }
         .user-avatar img { width: 100%; height: 100%; object-fit: cover; }
         .user-info { flex-grow: 1; overflow: hidden; transition: opacity 0.1s linear, max-width 0.2s linear 0.1s; opacity: 1; max-width: 150px; }
         .user-name { font-weight: 600; font-size: 1rem; color: var(--text-light); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .user-role { font-size: 0.8rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .sidebar-footer {
+        .user-role { font-size: 0.8rem; color: var(--text-muted); white-space: nowrap; }
+        .sidebar-footer { /* Подвал сайдбара */
             margin-top: 1.5rem; padding: 1rem; font-size: 0.8rem; color: var(--text-muted);
             text-align: center; flex-shrink: 0; opacity: 0.7;
             transition: opacity 0.2s ease, max-width 0.2s linear 0.1s;
             overflow: hidden; white-space: nowrap; max-width: 200px;
         }
-        /* --- END: Updated Sidebar Styles --- */
+        /* --- Конец Sidebar --- */
 
         /* --- Основной контент --- */
         main {
@@ -417,7 +433,7 @@
             height: 40px;
             font-size: 1rem; /* Smaller initials font */
         }
-        body.sidebar-collapsed main#main-content {
+        body.sidebar-collapsed main#main-content { /* Use ID */
             margin-left: var(--sidebar-collapsed-width);
             width: calc(100% - var(--sidebar-collapsed-width));
         }
@@ -436,6 +452,37 @@
         }
         /* --- END: Collapsed Sidebar Styles --- */
 
+
+        /* Хедер дашборда (используется в профиле) */
+        .dashboard-header {
+            margin-bottom: var(--section-padding-y);
+            background-color: rgba(var(--bg-secondary-rgb, 10, 7, 31), 0.7);
+            backdrop-filter: blur(12px); border-radius: 0 0 var(--card-radius) var(--card-radius);
+            padding: 1rem var(--container-padding-x); box-shadow: var(--shadow-hud);
+            display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;
+            position: sticky; top: 0; z-index: 900;
+            border-bottom: 1px solid var(--border-color-light);
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+            margin-left: calc(var(--container-padding-x) * -1); /* Extend to edges */
+             margin-right: calc(var(--container-padding-x) * -1);
+        }
+        body.scrolled .dashboard-header {
+             background-color: rgba(var(--bg-secondary-rgb, 10, 7, 31), 0.85);
+             box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+        .header-content { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; width: 100%; padding: 0 var(--container-padding-x); /* Add padding here */ }
+        .header-left-group { display: flex; align-items: center; gap: 0.8rem; flex-grow: 1; } /* Style for the new wrapper */
+        .mobile-menu-toggle#main-mobile-menu-toggle { /* Specific ID for main toggle */
+             display: none; background: none; border: none; color: var(--text-medium); font-size: 1.6rem; cursor: pointer; padding: 0.5rem; z-index: 1010; transition: color 0.2s ease;
+        }
+        .mobile-menu-toggle#main-mobile-menu-toggle:hover { color: var(--accent-primary); }
+        @media (max-width: 992px) { .mobile-menu-toggle#main-mobile-menu-toggle { display: block; } }
+
+        .header-content h1 {
+             font-size: 1.7rem; font-weight: 700; color: var(--text-heading); margin: 0;
+             text-shadow: 0 0 10px var(--accent-glow);
+        }
+        .header-actions { display: flex; align-items: center; gap: 1rem; }
 
         /* --- START: Notification Styles --- */
         .notifications { position: relative; }
@@ -476,7 +523,7 @@
         /* --- END: Notification Styles --- */
 
 
-        /* Refresh Button */
+        /* Кнопка Refresh */
         .refresh-btn {
             background: rgba(var(--accent-primary-rgb), 0.1); border: 1px solid rgba(var(--accent-primary-rgb), 0.3);
             color: var(--accent-primary); font-size: 0.9rem; cursor: pointer; padding: 0.5rem 1rem;
@@ -491,7 +538,7 @@
         .refresh-btn:disabled { opacity: 0.5; cursor: not-allowed; background-color: transparent !important; border-color: var(--text-muted) !important; color: var(--text-muted) !important; box-shadow: none !important; }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* Tabs */
+        /* --- Procvičování - Main Page Styles --- */
         .tabs-wrapper {
             background: var(--card-bg);
             border-radius: var(--card-radius) var(--card-radius) 0 0;
@@ -551,16 +598,17 @@
             padding-bottom: 0.8rem; position: relative;
             display: flex; align-items: center; gap: 0.7rem;
         }
-         .section-title i {
+         .section-title i { /* Section icon */
              font-size: 1.1em; color: var(--accent-secondary);
              text-shadow: 0 0 8px var(--accent-secondary-glow);
          }
-         .section-title::after {
+         .section-title::after { /* Animated underline */
             content: ''; position: absolute; bottom: 0; left: 0; width: 60px; height: 3px;
             background: var(--gradient-border-anim); background-size: 300% 100%;
             animation: gradient-move 4s linear infinite; border-radius: 1.5px;
             filter: drop-shadow(0 0 5px var(--accent-primary));
         }
+        @keyframes gradient-move { 0% { background-position: 0% 50%; } 100% { background-position: 100% 50%; } }
 
         /* Diagnostic Prompt */
         .diagnostic-prompt {
@@ -613,7 +661,7 @@
         .shortcut-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--text-light); }
         .shortcut-desc { font-size: 0.88rem; color: var(--text-muted); line-height: 1.5; }
 
-        /* Test Results Tab */
+        /* Styles for Test Results Tab */
         .test-results-section, .study-plan-section, .topic-analysis-section {
             padding: 0; /* Remove padding from main section */
             position: relative;
@@ -634,8 +682,8 @@
          }
          @keyframes loading-spinner { to { transform: rotate(360deg); } }
 
-         /* Test Results Specific */
-        .test-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; padding: 0 1rem; }
+        /* Test Results Specific */
+        .test-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; padding: 0 1rem; /* Add padding */ }
         .stats-card { background: var(--card-solid); padding: 1.5rem; text-align: center; border: 1px solid var(--border-color-medium); border-radius: var(--card-radius); }
         .stats-icon { width: 50px; height: 50px; border-radius: 14px; margin: 0 auto 1rem auto; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: var(--white); box-shadow: 0 3px 8px rgba(0,0,0,0.2); }
         .stats-icon.primary { background: var(--gradient-info); }
@@ -719,20 +767,19 @@
         .skeleton.value { height: 35px; width: 40%; margin-bottom: 0.8rem; border-radius: 8px; }
         .skeleton.text { height: 14px; width: 80%; margin-bottom: 0.5rem; }
         .skeleton.text-short { width: 50%; }
-        .skeleton.icon-placeholder { width: 40px; height: 40px; border-radius: 12px; flex-shrink: 0; } /* For icons */
-        .skeleton.activity-line { height: 16px; width: 70%; margin-bottom: 0.5rem; }
-        .skeleton.activity-line-short { width: 40%; margin-top: 0.4rem; height: 12px; }
+        .skeleton.footer-sm { height: 14px; width: 70%; }
+        .skeleton.icon-placeholder { width: 40px; height: 40px; border-radius: 12px; flex-shrink: 0; }
         .skeleton.day-header { height: 24px; width: 100px; margin-bottom: 1rem; }
         .skeleton.activity-item { height: 50px; width: 100%; margin-bottom: 0.8rem; }
         .skeleton.topic-header { height: 24px; width: 150px; margin-bottom: 1rem; }
-        .skeleton.progress-container { height: 10px; width: 100%; margin: 0.75rem 0;}
 
         /* Footer */
         .dashboard-footer { margin-top: 2.5rem; padding: 1.5rem 0; text-align: center; color: var(--text-muted); font-size: 0.9rem; border-top: 1px solid var(--border-color-light); opacity: 0.6; flex-shrink: 0; }
 
         /* Responsiveness */
         @media (max-width: 992px) {
-             /* Tablet - Sidebar collapsed state handled by body class */
+            /* Tablet - Sidebar collapsed */
+             body.sidebar-collapsed main { margin-left: var(--sidebar-collapsed-width); width: calc(100% - var(--sidebar-collapsed-width)); }
              body:not(.sidebar-collapsed) main { margin-left: var(--sidebar-width); width: calc(100% - var(--sidebar-width)); } /* Explicitly set when not collapsed */
              .dashboard-grid, .schedule-grid, .topic-grid, .test-stats { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
         }
@@ -749,18 +796,20 @@
              body.scrolled .dashboard-header { margin: 0 -1rem 1.5rem -1rem; padding: 0.8rem 1rem; }
              .section-title { font-size: 1.3rem; }
              .dashboard-grid, .shortcut-grid, .schedule-grid, .topic-grid, .test-stats { grid-template-columns: 1fr; }
+             .chart-container { height: 300px; }
+             .test-list { margin-top: 1rem;}
+             .test-item { padding: 1rem;}
         }
         @media (max-width: 576px) {
              /* Small Mobile */
-             /* Mobile menu toggling is handled by JS adding .active class to sidebar */
-             main { margin-left: 0; width: 100%; padding: 0 0.75rem; } /* No margin when sidebar is hidden */
+             /* Sidebar toggling handles main margin */
+             main { padding: 0 0.75rem; }
              body.scrolled .dashboard-header { margin: 0 -0.75rem 1rem -0.75rem; padding: 0.75rem 1rem; }
              .header-actions { gap: 0.5rem; }
              .card-value { font-size: 2.1rem; }
              .toast-container { bottom: 1rem; right: 1rem; max-width: calc(100% - 1.5rem); }
              .mouse-follower-glow { display: none !important; }
-             /* Hide desktop toggle on small screens */
-             .sidebar-toggle-btn { display: none; }
+             .tab-content { padding: 1.5rem; }
         }
         .sidebar-overlay { display: none; position: fixed; inset: 0; background-color: rgba(3, 2, 12, 0.7); z-index: 999; opacity: 0; transition: opacity var(--transition-medium) ease; backdrop-filter: blur(5px); }
         .sidebar-overlay.active { display: block; opacity: 1; }
