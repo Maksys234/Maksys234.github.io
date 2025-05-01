@@ -21,6 +21,7 @@
         notifications: false
     };
     const NOTIFICATION_FETCH_LIMIT = 5;
+    const SIDEBAR_STATE_KEY = 'sidebarCollapsedState'; // <<< NEW: Key for localStorage
 
     const topicIcons = {
         "Algebra": "fa-square-root-alt",
@@ -55,9 +56,10 @@
         sidebar: document.getElementById('sidebar'),
         mainMobileMenuToggle: document.getElementById('main-mobile-menu-toggle'),
         sidebarCloseToggle: document.getElementById('sidebar-close-toggle'),
+        sidebarToggleBtn: document.getElementById('sidebar-toggle-btn'), // <<< NEW: Sidebar toggle button
         sidebarAvatar: document.getElementById('sidebar-avatar'),
         sidebarName: document.getElementById('sidebar-name'),
-        sidebarUserTitle: document.getElementById('sidebar-user-title'), // <<< NEW: Added ID in HTML
+        sidebarUserTitle: document.getElementById('sidebar-user-title'), // <<< Reference to added ID
         dashboardHeader: document.querySelector('.dashboard-header'),
         dashboardTitle: document.getElementById('dashboard-title'),
         refreshDataBtn: document.getElementById('refresh-data-btn'),
@@ -111,8 +113,8 @@
         toastContainer: document.getElementById('toast-container'),
         globalError: document.getElementById('global-error'),
         offlineBanner: document.getElementById('offline-banner'),
-        currentYearSidebar: document.getElementById('currentYearSidebar'), // <<< Corrected ID
-        currentYearFooter: document.getElementById('currentYearFooter'), // <<< Corrected ID
+        currentYearSidebar: document.getElementById('currentYearSidebar'),
+        currentYearFooter: document.getElementById('currentYearFooter'),
         mouseFollower: document.getElementById('mouse-follower')
     };
 
@@ -134,10 +136,59 @@
     function initScrollAnimations() { const animatedElements = document.querySelectorAll('.main-content-wrapper [data-animate]'); if (!animatedElements.length || !('IntersectionObserver' in window)) { console.log("Scroll animations not initialized."); return; } const observer = new IntersectionObserver((entries, observerInstance) => { entries.forEach(entry => { if (entry.isIntersecting) { entry.target.classList.add('animated'); observerInstance.unobserve(entry.target); } }); }, { threshold: 0.1, rootMargin: "0px 0px -30px 0px" }); animatedElements.forEach(element => observer.observe(element)); console.log(`Scroll animations initialized for ${animatedElements.length} elements.`); }
     function initHeaderScrollDetection() { let lastScrollY = window.scrollY; const mainEl = ui.mainContent; if (!mainEl) return; mainEl.addEventListener('scroll', () => { const currentScrollY = mainEl.scrollTop; document.body.classList.toggle('scrolled', currentScrollY > 10); lastScrollY = currentScrollY <= 0 ? 0 : currentScrollY; }, { passive: true }); if (mainEl.scrollTop > 10) document.body.classList.add('scrolled'); }
 
+    // --- ДОБАВЛЕНО: Функции управления боковой панелью ---
+    function applyInitialSidebarState() {
+        if (!ui.sidebarToggleBtn) {
+             console.warn("[Sidebar State] Sidebar toggle button not found for initial state.");
+             return;
+        }
+        try {
+            const savedState = localStorage.getItem(SIDEBAR_STATE_KEY);
+            const shouldBeCollapsed = savedState === 'collapsed';
+            console.log(`[Sidebar State] Initial read state: ${savedState}, Applying collapsed: ${shouldBeCollapsed}`);
+            if (shouldBeCollapsed) {
+                document.body.classList.add('sidebar-collapsed');
+            } else {
+                document.body.classList.remove('sidebar-collapsed');
+            }
+            // Update button icon and label based on initial state
+            const icon = ui.sidebarToggleBtn.querySelector('i');
+            if (icon) {
+                icon.className = shouldBeCollapsed ? 'fas fa-chevron-right' : 'fas fa-chevron-left';
+                ui.sidebarToggleBtn.setAttribute('aria-label', shouldBeCollapsed ? 'Rozbalit postranní panel' : 'Sbalit postranní panel');
+                ui.sidebarToggleBtn.setAttribute('title', shouldBeCollapsed ? 'Rozbalit postranní panel' : 'Sbalit postranní panel');
+            }
+        } catch (error) {
+            console.error("[Sidebar State] Error applying initial state:", error);
+            document.body.classList.remove('sidebar-collapsed'); // Default to expanded on error
+        }
+    }
+
+    function toggleSidebar() {
+        if (!ui.sidebarToggleBtn) return;
+        try {
+            const isCollapsed = document.body.classList.toggle('sidebar-collapsed');
+            localStorage.setItem(SIDEBAR_STATE_KEY, isCollapsed ? 'collapsed' : 'expanded');
+            console.log(`[Sidebar Toggle] Sidebar toggled. New state: ${isCollapsed ? 'collapsed' : 'expanded'}`);
+            // Update button icon and label
+            const icon = ui.sidebarToggleBtn.querySelector('i');
+            if (icon) {
+                icon.className = isCollapsed ? 'fas fa-chevron-right' : 'fas fa-chevron-left';
+                ui.sidebarToggleBtn.setAttribute('aria-label', isCollapsed ? 'Rozbalit postranní panel' : 'Sbalit postranní panel');
+                ui.sidebarToggleBtn.setAttribute('title', isCollapsed ? 'Rozbalit postranní panel' : 'Sbalit postranní panel');
+            }
+        } catch (error) {
+            console.error("[Sidebar Toggle] Error:", error);
+            showToast('Chyba UI', 'Nepodařilo se přepnout boční panel.', 'error');
+        }
+    }
+    // --- КОНЕЦ: Функции управления боковой панелью ---
+
+
     // --- ИЗМЕНЕНИЕ: Логика setLoadingState для управления скелетонами ---
     function setLoadingState(sectionKey, isLoadingFlag) {
         if (isLoading[sectionKey] === isLoadingFlag && sectionKey !== 'all') return;
-        if (sectionKey === 'all') { Object.keys(isLoading).forEach(key => setLoadingState(key, isLoadingFlag)); return; } // Cascade 'all'
+        if (sectionKey === 'all') { Object.keys(isLoading).forEach(key => setLoadingState(key, isLoadingFlag)); return; }
 
         isLoading[sectionKey] = isLoadingFlag;
         console.log(`[SetLoading] Section: ${sectionKey}, isLoading: ${isLoadingFlag}`);
@@ -163,18 +214,18 @@
             });
         }
 
-        // Toggle specific loader elements
+        // Toggle specific loader elements (if they exist)
         if (config.loader) {
             config.loader.style.display = isLoadingFlag ? 'flex' : 'none';
         }
 
-        // Hide/Show content and empty states
+        // Hide/Show content and empty states based on loading AND data availability
         if (isLoadingFlag) {
             if (config.content) config.content.style.display = 'none';
             if (config.empty) config.empty.style.display = 'none';
-            if (sectionKey === 'notifications' && ui.notificationsList) renderNotificationSkeletons(2); // Render notification skeletons when loading
+            if (sectionKey === 'notifications' && ui.notificationsList) renderNotificationSkeletons(2);
         } else {
-             // After loading, visibility depends on whether content exists
+             // After loading, decide visibility based on data presence
              if (sectionKey !== 'stats' && sectionKey !== 'notifications') {
                  const hasContent = (sectionKey === 'tests' && diagnosticResultsData.length > 0) ||
                                    (sectionKey === 'plan' && studyPlanData) ||
@@ -183,7 +234,10 @@
                  if (config.content) config.content.style.display = hasContent ? 'block' : 'none';
                  if (config.empty) config.empty.style.display = hasContent ? 'none' : 'block';
              } else if (sectionKey === 'notifications') {
-                 // Render notifications handles showing/hiding empty state
+                 // renderNotifications function should handle empty state display
+                 const hasNotifications = ui.notificationsList && ui.notificationsList.children.length > 0 && !ui.notificationsList.querySelector('.skeleton');
+                  if (config.empty) config.empty.style.display = hasNotifications ? 'none' : 'block';
+                  if (config.container) config.container.style.display = hasNotifications ? 'block' : 'none';
              }
         }
 
@@ -199,7 +253,6 @@
 
     async function initializeSupabase() { try { if (typeof window.supabase === 'undefined' || typeof window.supabase.createClient !== 'function') { throw new Error("Supabase library not loaded."); } supabase = window.supabase.createClient(supabaseUrl, supabaseKey); if (!supabase) throw new Error("Supabase client creation failed."); return true; } catch (error) { console.error('[Supabase] Initialization failed:', error); showError("Kritická chyba: Nelze se připojit.", true); return false; } }
 
-    // --- ИЗМЕНЕНИЕ: Добавлена загрузка selected_title ---
     async function fetchUserProfile(userId) {
         if (!supabase || !userId) return null;
         console.log(`[Profile] Fetching profile for user ID: ${userId}`);
@@ -260,10 +313,10 @@
     async function loadPageData() {
         if (!currentUser || !currentProfile) { showError("Chybí data profilu.", true); setLoadingState('all', false); return; }
         setLoadingState('all', true); hideError();
-        // --- ИЗМЕНЕНИЕ: Передаем profileData в fetchDashboardStats ---
         try {
+            // --- ИЗМЕНЕНИЕ: Передаем currentProfile в fetchDashboardStats ---
             const results = await Promise.allSettled([
-                fetchDashboardStats(currentUser.id, currentProfile), // Pass profile
+                fetchDashboardStats(currentUser.id, currentProfile),
                 fetchDiagnosticResults(currentUser.id),
                 fetchActiveStudyPlan(currentUser.id),
                 fetchTopicProgress(currentUser.id),
@@ -319,6 +372,7 @@
          if (ui.mainMobileMenuToggle) ui.mainMobileMenuToggle.addEventListener('click', openMenu);
          if (ui.sidebarCloseToggle) ui.sidebarCloseToggle.addEventListener('click', closeMenu);
          if (ui.sidebarOverlay) ui.sidebarOverlay.addEventListener('click', closeMenu);
+         if (ui.sidebarToggleBtn) ui.sidebarToggleBtn.addEventListener('click', toggleSidebar); // <<< NEW
          document.querySelectorAll('.sidebar-link').forEach(link => { link.addEventListener('click', () => { if (window.innerWidth <= 992) closeMenu(); }); });
          ui.contentTabs?.forEach(tab => { tab.addEventListener('click', handleTabSwitch); });
           if (ui.refreshDataBtn) { ui.refreshDataBtn.addEventListener('click', handleRefreshClick); }
@@ -352,7 +406,7 @@
             const avatarUrl = profile.avatar_url;
             ui.sidebarAvatar.innerHTML = avatarUrl ? `<img src="${sanitizeHTML(avatarUrl)}" alt="${sanitizeHTML(initials)}">` : sanitizeHTML(initials);
 
-            // Title Logic
+            // --- Title Logic ---
             const selectedTitleKey = profile.selected_title;
             let displayTitle = 'Pilot'; // Default
             if (selectedTitleKey && titlesData && titlesData.length > 0) {
@@ -366,7 +420,8 @@
                  console.warn(`[UI Update] Selected title key "${selectedTitleKey}" exists but title list is empty or not fetched yet.`);
             }
             ui.sidebarUserTitle.textContent = sanitizeHTML(displayTitle);
-            ui.sidebarUserTitle.setAttribute('title', sanitizeHTML(displayTitle)); // Add tooltip
+            ui.sidebarUserTitle.setAttribute('title', sanitizeHTML(displayTitle));
+            // --- End Title Logic ---
 
         } else {
             ui.sidebarName.textContent = "Nepřihlášen";
@@ -376,12 +431,12 @@
         }
     }
 
-
+    // --- ИЗМЕНЕНИЕ: initializeApp теперь загружает титулы ---
     async function initializeApp() {
         if (!initializeSupabase()) return;
 
-        setupEventListeners(); // <<< Setup listeners BEFORE applying state
-        // applyInitialSidebarState(); // <<< Moved after profile fetch
+        setupEventListeners(); // Setup basic listeners first
+        // applyInitialSidebarState(); // Moved after profile fetch
 
         if (ui.initialLoader) { ui.initialLoader.classList.remove('hidden'); ui.initialLoader.style.display = 'flex'; }
         if (ui.mainContent) ui.mainContent.style.display = 'none';
@@ -394,7 +449,7 @@
                 currentUser = session.user;
                 console.log(`[INIT] User authenticated (ID: ${currentUser.id}). Loading profile and titles...`);
 
-                // --- ИЗМЕНЕНИЕ: Загружаем профиль и титулы параллельно ---
+                // Fetch profile and titles concurrently
                 const [profileResult, titlesResult] = await Promise.allSettled([
                     fetchUserProfile(currentUser.id),
                     fetchTitles() // Fetch titles
@@ -414,10 +469,8 @@
                     console.warn("[INIT] Failed to load titles:", titlesResult.reason);
                     allTitles = []; // Default to empty array if fetch fails
                 }
-                // --- Конец Изменения ---
 
                 updateUserInfoUI(currentProfile, allTitles); // <<< Update UI with profile AND titles
-
                 applyInitialSidebarState(); // <<< Apply sidebar state AFTER profile/title data is available for UI update
 
                 await loadPageData(); // Load the rest of the page data
@@ -448,7 +501,7 @@
             console.error("❌ [Init Procvičování - Kyber v21] Error:", error);
             if (ui.initialLoader && !ui.initialLoader.classList.contains('hidden')) { ui.initialLoader.innerHTML = `<p style="color: var(--accent-pink);">Chyba (${error.message}). Obnovte.</p>`; }
             else { showError(`Chyba inicializace: ${error.message}`, true); }
-            if (ui.mainContent) ui.mainContent.style.display = 'block'; // Show main content to display error
+            if (ui.mainContent) ui.mainContent.style.display = 'block'; // Show content to display error
             setLoadingState('all', false); // Ensure loaders are hidden on critical error
         }
     }
