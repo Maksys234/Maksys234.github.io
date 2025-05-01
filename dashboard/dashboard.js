@@ -8,8 +8,8 @@ let currentUserStats = null;
 let availableTitles = {}; // Pro uložení načtených titulů
 
 // Konstanti pro API klíče a URL (z konfigurace nebo env proměnných)
-const SUPABASE_URL = 'YOUR_SUPABASE_URL'; // Nahraďte skutečným URL
-const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY'; // Nahraďte skutečným ANON klíčem
+const SUPABASE_URL = 'https://qcimhjjwvsbgjsitmvuh.supabase.co'; // Nahraďte skutečným URL
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10'; // Nahraďte skutečným ANON klíčem
 
 // Prvky DOM
 const sidebar = document.getElementById('sidebar');
