@@ -136,7 +136,7 @@
     function initScrollAnimations() { const animatedElements = document.querySelectorAll('.main-content-wrapper [data-animate]'); if (!animatedElements.length || !('IntersectionObserver' in window)) { console.log("Scroll animations not initialized."); return; } const observer = new IntersectionObserver((entries, observerInstance) => { entries.forEach(entry => { if (entry.isIntersecting) { entry.target.classList.add('animated'); observerInstance.unobserve(entry.target); } }); }, { threshold: 0.1, rootMargin: "0px 0px -30px 0px" }); animatedElements.forEach(element => observer.observe(element)); console.log(`Scroll animations initialized for ${animatedElements.length} elements.`); }
     function initHeaderScrollDetection() { let lastScrollY = window.scrollY; const mainEl = ui.mainContent; if (!mainEl) return; mainEl.addEventListener('scroll', () => { const currentScrollY = mainEl.scrollTop; document.body.classList.toggle('scrolled', currentScrollY > 10); lastScrollY = currentScrollY <= 0 ? 0 : currentScrollY; }, { passive: true }); if (mainEl.scrollTop > 10) document.body.classList.add('scrolled'); }
 
-    // --- ДОБАВЛЕНО: Функции управления боковой панелью ---
+    // --- START: Added Sidebar Toggle Functions ---
     function applyInitialSidebarState() {
         if (!ui.sidebarToggleBtn) {
              console.warn("[Sidebar State] Sidebar toggle button not found for initial state.");
@@ -182,8 +182,7 @@
             showToast('Chyba UI', 'Nepodařilo se přepnout boční panel.', 'error');
         }
     }
-    // --- КОНЕЦ: Функции управления боковой панелью ---
-
+    // --- END: Added Sidebar Toggle Functions ---
 
     function setLoadingState(section, isLoadingFlag) {
         if (isLoading[section] === isLoadingFlag && section !== 'all') return;
@@ -268,7 +267,7 @@
     async function fetchTitles() {
         if (!supabase) return [];
         console.log("[Titles] Fetching available titles...");
-        // setLoadingState('titles', true); // No separate loader for this, happens during init
+        setLoadingState('titles', true);
         try {
             const { data, error } = await supabase
                 .from('title_shop') // Assuming table name is 'title_shop'
@@ -280,8 +279,9 @@
             console.error("[Titles] Error fetching titles:", error);
             showToast("Chyba načítání dostupných titulů.", "error");
             return [];
-        } //finally { setLoadingState('titles', false); }
+        } finally { setLoadingState('titles', false); }
     }
+    // --- End NEW ---
 
     async function fetchDashboardStats(userId, profileData) { if (!supabase || !userId || !profileData) { return null; } let fetchedStats = null; let statsError = null; try { const { data, error } = await supabase.from('user_stats').select('progress, progress_weekly, points_weekly, streak_longest, completed_tests').eq('user_id', userId).maybeSingle(); fetchedStats = data; statsError = error; if (statsError) { console.warn("[Stats Fetch] Supabase error fetching user_stats:", statsError.message); } } catch (error) { console.error("[Stats Fetch] Exception fetching user_stats:", error); statsError = error; } const finalStats = { progress: fetchedStats?.progress ?? profileData.progress ?? 0, progress_weekly: fetchedStats?.progress_weekly ?? 0, points: profileData.points ?? 0, points_weekly: fetchedStats?.points_weekly ?? 0, streak_current: profileData.streak_days ?? 0, streak_longest: Math.max(fetchedStats?.streak_longest ?? 0, profileData.streak_days ?? 0), completed_exercises: profileData.completed_exercises ?? 0, completed_tests: profileData.completed_tests ?? fetchedStats?.completed_tests ?? 0 }; if (statsError) { console.warn("[Stats Fetch] Returning stats based primarily on profile due to fetch error."); } return finalStats; }
     async function fetchDiagnosticResults(userId) { try { const { data, error } = await supabase.from('user_diagnostics').select('id, completed_at, total_score, total_questions, time_spent').eq('user_id', userId).order('completed_at', { ascending: false }); if (error) throw error; return data || []; } catch (err) { console.error("Error fetching diagnostic results:", err); showToast(`Chyba načítání testů: ${err.message}`, "error"); return []; } }
@@ -300,9 +300,13 @@
     function renderNotificationSkeletons(count = 2) { if (!ui.notificationsList || !ui.noNotificationsMsg) return; let skeletonHTML = ''; for (let i = 0; i < count; i++) { skeletonHTML += `<div class="notification-item skeleton"><div class="notification-icon skeleton" style="background-color: var(--skeleton-bg);"></div><div class="notification-content"><div class="skeleton" style="height: 16px; width: 70%; margin-bottom: 6px;"></div><div class="skeleton" style="height: 12px; width: 90%;"></div><div class="skeleton" style="height: 10px; width: 40%; margin-top: 6px;"></div></div></div>`; } ui.notificationsList.innerHTML = skeletonHTML; ui.noNotificationsMsg.style.display = 'none'; ui.notificationsList.style.display = 'block'; }
     async function markNotificationRead(notificationId) { if (!currentUser || !notificationId) return false; try { const { error } = await supabase.from('user_notifications').update({ is_read: true }).eq('user_id', currentUser.id).eq('id', notificationId); if (error) throw error; return true; } catch (error) { console.error("[FUNC] markNotificationRead: Error:", error); showToast('Chyba', 'Nepodařilo se označit oznámení jako přečtené.', 'error'); return false; } }
     async function markAllNotificationsRead() { if (!currentUser || !supabase || !ui.markAllReadBtn) return; if (isLoading.notifications) return; setLoadingState('notifications', true); ui.markAllReadBtn.disabled = true; try { const { error } = await supabase .from('user_notifications') .update({ is_read: true }) .eq('user_id', currentUser.id) .eq('is_read', false); if (error) throw error; const { unreadCount, notifications } = await fetchNotifications(currentUser.id, NOTIFICATION_FETCH_LIMIT); renderNotifications(unreadCount, notifications); showToast('Oznámení Vymazána', 'Všechna oznámení byla označena jako přečtená.', 'success'); } catch (error) { console.error("[FUNC] markAllNotificationsRead: Error:", error); showToast('Chyba', 'Nepodařilo se označit všechna oznámení.', 'error'); const currentCount = parseInt(ui.notificationCount?.textContent?.replace('+', '') || '0'); ui.markAllReadBtn.disabled = currentCount === 0; } finally { setLoadingState('notifications', false); } }
-    // --- ИЗМЕНЕНИЕ: updateUserInfoUI теперь принимает titlesData ---
+    // --- Updated updateUserInfoUI to include title ---
     function updateUserInfoUI(profile, titlesData = []) {
-        if (!ui.sidebarName || !ui.sidebarAvatar || !ui.sidebarUserTitle) return;
+        console.log("[UI Update] Updating sidebar user info...");
+        if (!ui.sidebarName || !ui.sidebarAvatar || !ui.sidebarUserTitle) {
+            console.warn("[UI Update] Sidebar elements not found.");
+            return;
+        }
         if (profile) {
             const firstName = profile.first_name ?? '';
             const displayName = firstName || profile.username || currentUser?.email?.split('@')[0] || 'Pilot';
@@ -326,15 +330,17 @@
                  console.warn(`[UI Update] Selected title key "${selectedTitleKey}" exists but title list is empty or not fetched yet.`);
             }
             ui.sidebarUserTitle.textContent = sanitizeHTML(displayTitle);
-            ui.sidebarUserTitle.setAttribute('title', sanitizeHTML(displayTitle));
+            ui.sidebarUserTitle.setAttribute('title', sanitizeHTML(displayTitle)); // Add tooltip for title
             // --- End Title Logic ---
 
             if (ui.welcomeTitle) { ui.welcomeTitle.textContent = `Vítej zpět, ${sanitizeHTML(displayName)}!`; }
+             console.log("[UI Update] Sidebar UI updated.");
 
         } else {
+            console.warn("[UI Update] Profile data missing, setting defaults.");
             ui.sidebarName.textContent = "Nepřihlášen";
             ui.sidebarAvatar.textContent = '?';
-            ui.sidebarUserTitle.textContent = 'Pilot';
+            ui.sidebarUserTitle.textContent = 'Pilot'; // Default title
             ui.sidebarUserTitle.removeAttribute('title');
             if (ui.welcomeTitle) { ui.welcomeTitle.textContent = `Vítejte!`; }
         }
@@ -344,7 +350,7 @@
         if (!currentUser || !currentProfile) { showError("Chybí data profilu.", true); setLoadingState('all', false); return; }
         setLoadingState('all', true); hideError();
         try {
-            // --- ИЗМЕНЕНИЕ: Передаем currentProfile в fetchDashboardStats ---
+            // --- Pass currentProfile to fetchDashboardStats ---
             const results = await Promise.allSettled([
                 fetchDashboardStats(currentUser.id, currentProfile),
                 fetchDiagnosticResults(currentUser.id),
@@ -394,6 +400,7 @@
         }
     }
 
+    // --- Updated setupEventListeners to include sidebar toggle ---
     function setupEventListeners() {
          if (ui.mainMobileMenuToggle) ui.mainMobileMenuToggle.addEventListener('click', openMenu);
          if (ui.sidebarCloseToggle) ui.sidebarCloseToggle.addEventListener('click', closeMenu);
@@ -419,25 +426,26 @@
     async function handleNotificationClick(event) { const item = event.target.closest('.notification-item'); if (!item) return; const notificationId = item.dataset.id; const link = item.dataset.link; const isRead = item.classList.contains('is-read'); if (!isRead && notificationId) { const success = await markNotificationRead(notificationId); if (success) { item.classList.add('is-read'); item.querySelector('.unread-dot')?.remove(); const currentCountText = ui.notificationCount.textContent.replace('+', ''); const currentCount = parseInt(currentCountText) || 0; const newCount = Math.max(0, currentCount - 1); ui.notificationCount.textContent = newCount > 9 ? '9+' : (newCount > 0 ? String(newCount) : ''); ui.notificationCount.classList.toggle('visible', newCount > 0); ui.markAllReadBtn.disabled = newCount === 0; } } if (link) { window.location.href = link; } }
     function closeNotificationDropdownOnClickOutside(event) { if (ui.notificationsDropdown?.classList.contains('active') && !ui.notificationsDropdown.contains(event.target) && !ui.notificationBell?.contains(event.target)) { ui.notificationsDropdown.classList.remove('active'); } }
 
-    // --- ИЗМЕНЕНИЕ: initializeApp теперь загружает титулы ---
+    // --- Updated initializeApp to include sidebar state ---
     async function initializeApp() {
+        console.log("[INIT Procvičování] initializeApp: Start...");
         if (!initializeSupabase()) return;
 
-        setupEventListeners(); // Setup basic listeners first
-        applyInitialSidebarState(); // Apply state before rendering potentially affected elements
+        applyInitialSidebarState(); // <<< NEW: Apply saved sidebar state EARLY
+        setupEventListeners(); // Setup listeners AFTER applying state
 
         if (ui.initialLoader) { ui.initialLoader.classList.remove('hidden'); ui.initialLoader.style.display = 'flex'; }
         if (ui.mainContent) ui.mainContent.style.display = 'none';
 
         try {
+            console.log("[INIT Procvičování] Checking auth session...");
             const { data: { session }, error: sessionError } = await supabase.auth.getSession();
             if (sessionError) throw new Error(`Nepodařilo se ověřit přihlášení: ${sessionError.message}`);
 
             if (session?.user) {
                 currentUser = session.user;
-                console.log(`[INIT] User authenticated (ID: ${currentUser.id}). Loading profile and titles...`);
+                console.log(`[INIT Procvičování] User authenticated (ID: ${currentUser.id}). Loading profile and titles...`);
 
-                // Fetch profile and titles concurrently
                 const [profileResult, titlesResult] = await Promise.allSettled([
                     fetchUserProfile(currentUser.id),
                     fetchTitles()
@@ -445,21 +453,20 @@
 
                 if (profileResult.status === 'fulfilled' && profileResult.value) {
                     currentProfile = profileResult.value;
-                    console.log("[INIT] Profile loaded:", currentProfile);
+                    console.log("[INIT Procvičování] Profile loaded:", currentProfile);
                 } else {
                     throw new Error(`Nepodařilo se načíst profil uživatele. Důvod: ${profileResult.reason || 'Nenalezen'}`);
                 }
 
                 if (titlesResult.status === 'fulfilled') {
                     allTitles = titlesResult.value || [];
-                    console.log("[INIT] Titles loaded:", allTitles.length);
+                    console.log("[INIT Procvičování] Titles loaded:", allTitles.length);
                 } else {
-                    console.warn("[INIT] Failed to load titles:", titlesResult.reason);
+                    console.warn("[INIT Procvičování] Failed to load titles:", titlesResult.reason);
                     allTitles = [];
                 }
 
-                updateUserInfoUI(currentProfile, allTitles); // <<< Update UI with profile AND titles
-                // Note: applyInitialSidebarState is already called before this
+                updateUserInfoUI(currentProfile, allTitles); // Update sidebar
 
                 await loadPageData(); // Load the rest of the page data
 
@@ -486,7 +493,7 @@
                 window.location.href = '/auth/index.html';
             }
         } catch (error) {
-            console.error("❌ [Init Procvičování - Kyber v21] Error:", error);
+            console.error("❌ [Init Procvičování] Error:", error);
             if (ui.initialLoader && !ui.initialLoader.classList.contains('hidden')) { ui.initialLoader.innerHTML = `<p style="color: var(--accent-pink);">Chyba (${error.message}). Obnovte.</p>`; }
             else { showError(`Chyba inicializace: ${error.message}`, true); }
             if (ui.mainContent) ui.mainContent.style.display = 'block'; // Show content to display error
