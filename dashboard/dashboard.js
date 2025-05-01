@@ -8,55 +8,44 @@
     let supabase = null;
     let currentUser = null;
     let currentProfile = null;
-    let allTitles = []; // Store fetched titles globally
+    let allTitles = [];
     let isLoading = { stats: false, activities: false, notifications: false, titles: false };
     const SIDEBAR_STATE_KEY = 'sidebarCollapsedState';
-    // Daily login constants removed as the feature is removed for now
+    // Daily login constants removed
 
     // DOM Elements Cache
     const ui = {
-        // Loaders & Overlays
         initialLoader: document.getElementById('initial-loader'),
         sidebarOverlay: document.getElementById('sidebar-overlay'),
-        // Main Layout & Sidebar
         mainContent: document.getElementById('main-content'),
         sidebar: document.getElementById('sidebar'),
         mainMobileMenuToggle: document.getElementById('main-mobile-menu-toggle'),
         sidebarCloseToggle: document.getElementById('sidebar-close-toggle'),
         sidebarToggleBtn: document.getElementById('sidebar-toggle-btn'),
-        // Sidebar Profile
         sidebarAvatar: document.getElementById('sidebar-avatar'),
         sidebarName: document.getElementById('sidebar-name'),
-        sidebarUserTitle: document.getElementById('sidebar-user-title'), // Target for user title
-        // Header
+        sidebarUserTitle: document.getElementById('sidebar-user-title'),
         dashboardTitle: document.getElementById('dashboard-title'),
         refreshDataBtn: document.getElementById('refresh-data-btn'),
-        // Notifications
         notificationBell: document.getElementById('notification-bell'),
         notificationCount: document.getElementById('notification-count'),
         notificationsDropdown: document.getElementById('notifications-dropdown'),
         notificationsList: document.getElementById('notifications-list'),
         noNotificationsMsg: document.getElementById('no-notifications-msg'),
         markAllReadBtn: document.getElementById('mark-all-read'),
-        // Welcome Banner
         welcomeTitle: document.getElementById('welcome-title'),
         startPracticeBtn: document.getElementById('start-practice-btn'),
-        // Stat Cards
         progressCard: document.getElementById('progress-card'),
         pointsCard: document.getElementById('points-card'),
         streakCard: document.getElementById('streak-card'),
-        // Activity List
         activityListContainer: document.getElementById('activity-list-container'),
         activityList: document.getElementById('activity-list'),
         activityListEmptyState: document.querySelector('#activity-list-container .empty-state'),
         activityListErrorState: document.querySelector('#activity-list-container .card-error-state'),
-        // Feedback & Status
         toastContainer: document.getElementById('toast-container'),
         globalError: document.getElementById('global-error'),
         offlineBanner: document.getElementById('offline-banner'),
-        // Mouse Follower
         mouseFollower: document.getElementById('mouse-follower'),
-        // Footer Year Spans
         currentYearSidebar: document.getElementById('currentYearSidebar'),
         currentYearFooter: document.getElementById('currentYearFooter')
     };
@@ -102,7 +91,42 @@
     const updateCopyrightYear = () => { const currentYearSpan = document.getElementById('currentYearFooter'); const currentYearSidebar = document.getElementById('currentYearSidebar'); const year = new Date().getFullYear(); if (currentYearSpan) { currentYearSpan.textContent = year; } if (currentYearSidebar) { currentYearSidebar.textContent = year; } };
     function applyInitialSidebarState() { const savedState = localStorage.getItem(SIDEBAR_STATE_KEY); const shouldBeCollapsed = savedState === 'collapsed'; if (shouldBeCollapsed) { document.body.classList.add('sidebar-collapsed'); } else { document.body.classList.remove('sidebar-collapsed'); } const icon = ui.sidebarToggleBtn?.querySelector('i'); if (icon) { icon.className = shouldBeCollapsed ? 'fas fa-chevron-right' : 'fas fa-chevron-left'; } console.log(`[Sidebar State] Initial state applied: ${shouldBeCollapsed ? 'collapsed' : 'expanded'}`); }
     function toggleSidebar() { const isCollapsed = document.body.classList.toggle('sidebar-collapsed'); localStorage.setItem(SIDEBAR_STATE_KEY, isCollapsed ? 'collapsed' : 'expanded'); const icon = ui.sidebarToggleBtn?.querySelector('i'); if (icon) { icon.className = isCollapsed ? 'fas fa-chevron-right' : 'fas fa-chevron-left'; } console.log(`[Sidebar Toggle] Sidebar toggled. New state: ${isCollapsed ? 'collapsed' : 'expanded'}`); }
-    // Date helpers removed as handleDailyLoginCheck is removed
+
+    // *** NEW: initTooltips Function Definition ***
+    function initTooltips() {
+        console.log("[Tooltips] Initializing...");
+        try {
+            // Check if jQuery and tooltipster are loaded
+            if (window.jQuery && typeof window.jQuery.fn.tooltipster === 'function') {
+                // Destroy existing tooltips first to avoid conflicts on refresh
+                window.jQuery('.btn-tooltip.tooltipstered').each(function() {
+                    // Check if the element is still in the DOM before destroying
+                    if (document.body.contains(this)) {
+                         try {
+                             window.jQuery(this).tooltipster('destroy');
+                         } catch (destroyError) {
+                              console.warn("Tooltipster destroy error:", destroyError);
+                         }
+                    }
+                 });
+                 // Initialize new tooltips
+                window.jQuery('.btn-tooltip').tooltipster({
+                    theme: 'tooltipster-shadow', // Use the theme defined in dashboard.css
+                    animation: 'fade',
+                    delay: 150,
+                    distance: 6,
+                    side: 'top'
+                });
+                console.log("[Tooltips] Initialized/Re-initialized.");
+            } else {
+                console.warn("[Tooltips] jQuery or Tooltipster library not loaded.");
+            }
+        } catch (e) {
+            console.error("[Tooltips] Error initializing Tooltipster:", e);
+        }
+    }
+    // *** END: initTooltips Function Definition ***
+
     // --- END: Helper Functions ---
 
     // --- START: Data Loading and Processing Functions ---
@@ -114,8 +138,7 @@
         try {
             const { data: profile, error } = await supabase
                 .from('profiles')
-                // REMOVED: last_daily_login, consecutive_login_days from select
-                .select('*, selected_title')
+                .select('*, selected_title') // Removed daily login fields
                 .eq('id', userId)
                 .single();
             if (error && error.code !== 'PGRST116') { throw error; }
@@ -132,7 +155,7 @@
             const defaultData = {
                  id: userId, email: userEmail, username: userEmail.split('@')[0] || `user_${userId.substring(0, 6)}`,
                  level: 1, points: 0, experience: 0, badges_count: 0, streak_days: 0,
-                 // REMOVED: last_daily_login, consecutive_login_days initialization
+                 // Removed daily login fields
                  created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
                  preferences: { dark_mode: window.matchMedia('(prefers-color-scheme: dark)').matches, language: 'cs' },
                  notifications: { email: true, study_tips: true, content_updates: true, practice_reminders: true }
@@ -140,8 +163,7 @@
             const { data: newProfile, error } = await supabase
                 .from('profiles')
                 .insert(defaultData)
-                 // REMOVED: last_daily_login, consecutive_login_days from select
-                .select('*, selected_title')
+                .select('*, selected_title') // Removed daily login fields
                 .single();
             if (error) { if (error.code === '23505') { console.warn("[Profile Create] Profile likely already exists, fetching again."); return await fetchUserProfile(userId); } throw error; }
             console.log("[Profile Create] Default profile created:", newProfile);
@@ -168,7 +190,7 @@
     async function fetchRecentActivities(userId, limit = 5) { if (!supabase || !userId) { console.error("[Activities] Chybí Supabase nebo ID uživatele."); return []; } console.log(`[Activities] Načítání posledních ${limit} aktivit pro uživatele ${userId}`); try { const { data, error } = await supabase .from('activities') .select('*') .eq('user_id', userId) .order('created_at', { ascending: false }) .limit(limit); if (error) throw error; console.log(`[Activities] Načteno ${data?.length || 0} aktivit.`); return data || []; } catch (error) { console.error('[Activities] Výjimka při načítání aktivit:', error); return []; } }
     async function fetchNotifications(userId, limit = 5) { if (!supabase || !userId) { console.error("[Notifications] Chybí Supabase nebo ID uživatele."); return { unreadCount: 0, notifications: [] }; } console.log(`[Notifications] Načítání nepřečtených oznámení pro uživatele ${userId}`); try { const { data, error, count } = await supabase .from('user_notifications') .select('*', { count: 'exact' }) .eq('user_id', userId) .eq('is_read', false) .order('created_at', { ascending: false }) .limit(limit); if (error) throw error; console.log(`[Notifications] Načteno ${data?.length || 0} oznámení. Celkem nepřečtených: ${count}`); return { unreadCount: count ?? 0, notifications: data || [] }; } catch (error) { console.error("[Notifications] Výjimka při načítání oznámení:", error); return { unreadCount: 0, notifications: [] }; } }
 
-    // REMOVED handleDailyLoginCheck function entirely
+    // Daily Login Check Function REMOVED
 
     async function loadDashboardData(user, profile) {
          if (!user || !profile) { showError("Chyba: Nelze načíst data bez profilu uživatele."); setLoadingState('all', false); return; }
@@ -178,10 +200,10 @@
          renderActivitySkeletons(5);
 
          try {
-             updateSidebarProfile(profile); // Update sidebar with profile data (including title)
+             updateSidebarProfile(profile); // Update sidebar (already has profile data)
              console.log("[MAIN] loadDashboardData: Načítání statistik, aktivit, oznámení souběžně...");
              const results = await Promise.allSettled([
-                 fetchUserStats(user.id, profile), // Pass profile
+                 fetchUserStats(user.id, profile),
                  fetchRecentActivities(user.id, 5),
                  fetchNotifications(user.id, 5)
              ]);
@@ -217,7 +239,7 @@
             ui.sidebarAvatar.innerHTML = avatarUrl ? `<img src="${sanitizeHTML(avatarUrl)}" alt="${sanitizeHTML(initials)}">` : sanitizeHTML(initials);
 
             const selectedTitleKey = profile.selected_title;
-            let displayTitle = 'Pilot'; // Default
+            let displayTitle = 'Pilot';
             if (selectedTitleKey && allTitles && allTitles.length > 0) {
                 const foundTitle = allTitles.find(t => t.title_key === selectedTitleKey);
                 if (foundTitle && foundTitle.name) { displayTitle = foundTitle.name; }
@@ -332,7 +354,7 @@
                 initMouseFollower();
                 initHeaderScrollDetection();
                 updateCopyrightYear();
-                initTooltips();
+                initTooltips(); // Initialize tooltips after content is loaded
 
                 console.log("✅ [INIT Dashboard] Page fully loaded and initialized.");
 
