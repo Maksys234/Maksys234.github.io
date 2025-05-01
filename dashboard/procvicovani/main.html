@@ -24,6 +24,7 @@
          <div class="loading-spinner"></div>
          <p>SYNCHRONIZACE PROCVIČOVÁNÍ...</p>
      </div>
+
     <div class="sidebar-overlay" id="sidebar-overlay"></div>
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
@@ -51,8 +52,10 @@
         </div>
         <div class="sidebar-footer"> &copy; <span id="currentYearFooter">2025</span> Justax Systems </div>
     </aside>
+
     <main id="main-content">
         <div class="error-container" id="global-error"></div>
+
         <header class="dashboard-header">
             <div class="header-content">
                  <div>
@@ -87,6 +90,7 @@
                 </div>
             </div>
         </header>
+
         <div class="main-content-wrapper">
             <div class="tabs-wrapper">
                 <div class="content-tabs">
@@ -104,6 +108,7 @@
                     </div>
                 </div>
             </div>
+
             <div class="tab-content-container">
                 <div class="tab-content active" id="practice-tab">
                      <div class="diagnostic-prompt card" id="diagnostic-prompt" style="display: none;" data-animate>
@@ -113,7 +118,7 @@
                      </div>
                     <section class="stats-section">
                         <h2 class="section-title" data-animate style="--animation-order: 1;"><i class="fas fa-chart-pie"></i>Celkový Přehled</h2>
-                        <div class="dashboard-grid" id="stats-cards">
+                        <div class="dashboard-grid loading" id="stats-cards">
                             <div class="dashboard-card card loading" data-animate style="--animation-order: 2;">
                                 <div class="loading-skeleton">
                                     <div class="skeleton title" style="width: 60%;"></div>
@@ -162,25 +167,32 @@
                     </section>
                     <section class="shortcuts-section">
                         <h2 class="section-title" data-animate style="--animation-order: 6;"><i class="fas fa-rocket"></i>Rychlé Akce</h2>
-                        <div class="shortcut-grid">
-                            <a href="/dashboard/procvicovani/test1.html" class="shortcut-card card" data-animate style="--animation-order: 7;"> <div class="shortcut-icon"> <i class="fas fa-vial"></i> </div> <h3 class="shortcut-title">Diagnostický Test</h3> <p class="shortcut-desc">Zjistěte své znalosti a získejte plán na míru.</p> </a>
-                            <a href="/dashboard/procvicovani/plan.html" class="shortcut-card card" data-animate style="--animation-order: 8;"> <div class="shortcut-icon"> <i class="fas fa-route"></i> </div> <h3 class="shortcut-title">Studijní Plán</h3> <p class="shortcut-desc">Prohlédněte si svůj personalizovaný rozvrh.</p> </a>
-                            <a href="/dashboard/procvicovani/vyuka/vyuka.html" class="shortcut-card card" data-animate style="--animation-order: 9;"> <div class="shortcut-icon"> <i class="fas fa-chalkboard-teacher"></i> </div> <h3 class="shortcut-title">Výuka s AI</h3> <p class="shortcut-desc">Nechte si vysvětlit látku od AI tutora.</p> </a>
+                        <div class="shortcut-grid loading" id="shortcuts-grid">
+                            <div class="shortcut-card card loading" data-animate style="--animation-order: 7;">
+                                <div class="loading-skeleton"><div class="skeleton icon-placeholder" style="width: 60px; height: 60px; border-radius: 16px; margin-bottom: 1.2rem;"></div><div class="skeleton title" style="height: 20px; width: 70%; margin: 0 auto 0.5rem auto;"></div><div class="skeleton text" style="width: 90%; margin: 0 auto;"></div><div class="skeleton text-short" style="width: 60%; margin: 0 auto;"></div></div>
+                            </div>
+                            <div class="shortcut-card card loading" data-animate style="--animation-order: 8;">
+                                <div class="loading-skeleton"><div class="skeleton icon-placeholder" style="width: 60px; height: 60px; border-radius: 16px; margin-bottom: 1.2rem;"></div><div class="skeleton title" style="height: 20px; width: 70%; margin: 0 auto 0.5rem auto;"></div><div class="skeleton text" style="width: 90%; margin: 0 auto;"></div><div class="skeleton text-short" style="width: 60%; margin: 0 auto;"></div></div>
+                            </div>
+                            <div class="shortcut-card card loading" data-animate style="--animation-order: 9;">
+                                <div class="loading-skeleton"><div class="skeleton icon-placeholder" style="width: 60px; height: 60px; border-radius: 16px; margin-bottom: 1.2rem;"></div><div class="skeleton title" style="height: 20px; width: 70%; margin: 0 auto 0.5rem auto;"></div><div class="skeleton text" style="width: 90%; margin: 0 auto;"></div><div class="skeleton text-short" style="width: 60%; margin: 0 auto;"></div></div>
+                            </div>
                         </div>
                     </section>
                 </div>
+
                 <div class="tab-content" id="test-results-tab">
                     <section class="test-results-section card loading" id="test-results-container">
                         <h2 class="section-title"><i class="fas fa-poll"></i>Historie Testů</h2>
                         <div class="loading-overlay hidden" id="test-results-loading"> <div class="loading-spinner"></div> </div>
                         <div id="test-results-content" style="display: none;">
-                            <div class="test-stats" id="test-stats">
+                            <div class="test-stats loading" id="test-stats">
                                 <div class="stats-card loading"><div class="loading-skeleton"><div class="skeleton icon-placeholder" style="width: 50px; height: 50px;"></div><div class="skeleton value" style="width: 50%;"></div><div class="skeleton text-short"></div></div></div>
                                 <div class="stats-card loading"><div class="loading-skeleton"><div class="skeleton icon-placeholder" style="width: 50px; height: 50px;"></div><div class="skeleton value" style="width: 50%;"></div><div class="skeleton text-short"></div></div></div>
                                 <div class="stats-card loading"><div class="loading-skeleton"><div class="skeleton icon-placeholder" style="width: 50px; height: 50px;"></div><div class="skeleton value" style="width: 50%;"></div><div class="skeleton text-short"></div></div></div>
                             </div>
                             <div class="chart-container"> <canvas id="testsChart"></canvas> </div>
-                            <div class="last-test-result card" id="last-test-result">
+                            <div class="last-test-result card loading" id="last-test-result">
                                 <div class="loading-skeleton" style="display: flex; align-items: center; justify-content: space-between;">
                                     <div style="flex-grow: 1;">
                                         <div class="skeleton" style="height: 18px; width: 60%; margin-bottom: 8px;"></div>
@@ -189,12 +201,20 @@
                                     <div class="skeleton" style="height: 24px; width: 50px;"></div>
                                 </div>
                             </div>
-                            <div class="test-list" id="test-history">
+                            <div class="test-list loading" id="test-history">
                                 <div class="loading-skeleton" style="display: flex; align-items: center; justify-content: space-between; padding: 1rem 0; border-bottom: 1px solid var(--border-color-light);">
                                     <div class="skeleton icon-placeholder" style="width: 40px; height: 40px; border-radius: 10px;"></div>
                                     <div style="flex-grow: 1; margin-left: 1rem;">
                                         <div class="skeleton" style="height: 16px; width: 70%; margin-bottom: 6px;"></div>
                                         <div class="skeleton" style="height: 12px; width: 50%;"></div>
+                                    </div>
+                                    <div class="skeleton" style="height: 18px; width: 40px;"></div>
+                                </div>
+                                <div class="loading-skeleton" style="display: flex; align-items: center; justify-content: space-between; padding: 1rem 0;">
+                                    <div class="skeleton icon-placeholder" style="width: 40px; height: 40px; border-radius: 10px;"></div>
+                                    <div style="flex-grow: 1; margin-left: 1rem;">
+                                        <div class="skeleton" style="height: 16px; width: 60%; margin-bottom: 6px;"></div>
+                                        <div class="skeleton" style="height: 12px; width: 45%;"></div>
                                     </div>
                                     <div class="skeleton" style="height: 18px; width: 40px;"></div>
                                 </div>
@@ -215,7 +235,7 @@
                         <h2 class="section-title"><i class="fas fa-route"></i>Aktuální Studijní Plán</h2>
                         <div class="loading-overlay hidden" id="study-plan-loading"> <div class="loading-spinner"></div> </div>
                         <div id="study-plan-content" style="display: none;">
-                            <div class="schedule-grid" id="main-plan-schedule">
+                            <div class="schedule-grid loading" id="main-plan-schedule">
                                 <div class="schedule-day card loading">
                                     <div class="loading-skeleton">
                                         <div class="skeleton day-header"></div>
@@ -247,7 +267,7 @@
                         <h2 class="section-title"><i class="fas fa-atom"></i>Analýza podle Témat</h2>
                         <div class="loading-overlay hidden" id="topic-analysis-loading"> <div class="loading-spinner"></div> </div>
                         <div id="topic-analysis-content" style="display: none;">
-                            <div class="topic-grid" id="topic-grid">
+                            <div class="topic-grid loading" id="topic-grid">
                                 <div class="topic-card card loading">
                                     <div class="loading-skeleton">
                                         <div class="skeleton topic-header"></div>
@@ -257,6 +277,14 @@
                                     </div>
                                 </div>
                                 <div class="topic-card card loading">
+                                    <div class="loading-skeleton">
+                                        <div class="skeleton topic-header"></div>
+                                        <div class="skeleton progress-container" style="height: 8px;"></div>
+                                        <div class="skeleton text-sm" style="width: 60%;"></div>
+                                        <div class="skeleton text-sm" style="width: 50%;"></div>
+                                    </div>
+                                </div>
+                                 <div class="topic-card card loading">
                                     <div class="loading-skeleton">
                                         <div class="skeleton topic-header"></div>
                                         <div class="skeleton progress-container" style="height: 8px;"></div>
