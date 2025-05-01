@@ -10,9 +10,11 @@
     let currentUser = null;
     let currentProfile = null;
     let allTitles = [];
-    let isLoading = { stats: false, activities: false, notifications: false, titles: false, dailyReward: false }; // Added dailyReward
+    let isLoading = { stats: false, activities: false, notifications: false, titles: false, dailyReward: false };
     const SIDEBAR_STATE_KEY = 'sidebarCollapsedState';
-    const DAILY_REWARD_BASE = 100; // Base credits per day of streak
+    const DAILY_REWARD_BASE = 100;
+    const CLAIM_COOLDOWN_HOURS = 24; // Cooldown period in hours
+    let rewardCountdownInterval = null; // <<< NEW: Interval timer ID
 
     // DOM Elements Cache
     const ui = {
@@ -49,12 +51,17 @@
         mouseFollower: document.getElementById('mouse-follower'),
         currentYearSidebar: document.getElementById('currentYearSidebar'),
         currentYearFooter: document.getElementById('currentYearFooter'),
-        // --- NEW: Daily Reward UI Elements ---
+        // Daily Reward UI
         dailyRewardCard: document.getElementById('daily-reward-card'),
         dailyRewardDay: document.getElementById('daily-reward-day'),
         dailyRewardAmount: document.getElementById('daily-reward-amount'),
-        claimRewardBtn: document.getElementById('claim-reward-btn')
-        // --- END: Daily Reward UI Elements ---
+        claimRewardBtn: document.getElementById('claim-reward-btn'),
+        dailyRewardTimer: document.getElementById('daily-reward-timer'), // <<< NEW
+        rewardCountdownSpan: document.getElementById('reward-countdown'), // <<< NEW
+        // Reward Preview Modal UI
+        rewardPreviewModal: document.getElementById('reward-preview-modal'), // <<< NEW
+        rewardPreviewList: document.getElementById('reward-preview-list'),   // <<< NEW
+        closePreviewModalBtn: document.getElementById('close-preview-modal-btn') // <<< NEW
     };
 
     // Visual settings for activities (No change)
@@ -71,7 +78,7 @@
     };
     // --- END: Initialization and Configuration ---
 
-    // --- START: Helper Functions (No change unless necessary) ---
+    // --- START: Helper Functions ---
     function sanitizeHTML(str) { const temp = document.createElement('div'); temp.textContent = str || ''; return temp.innerHTML; }
     function showToast(title, message, type = 'info', duration = 4500) { if (!ui.toastContainer) return; try { const toastId = `toast-${Date.now()}`; const toastElement = document.createElement('div'); toastElement.className = `toast ${type}`; toastElement.id = toastId; toastElement.setAttribute('role', 'alert'); toastElement.setAttribute('aria-live', 'assertive'); toastElement.innerHTML = `<i class="toast-icon"></i><div class="toast-content">${title ? `<div class="toast-title">${sanitizeHTML(title)}</div>` : ''}<div class="toast-message">${sanitizeHTML(message)}</div></div><button type="button" class="toast-close" aria-label="Zavřít">&times;</button>`; const icon = toastElement.querySelector('.toast-icon'); icon.className = `toast-icon fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle'}`; toastElement.querySelector('.toast-close').addEventListener('click', () => { toastElement.classList.remove('show'); setTimeout(() => toastElement.remove(), 400); }); ui.toastContainer.appendChild(toastElement); requestAnimationFrame(() => { toastElement.classList.add('show'); }); setTimeout(() => { if (toastElement.parentElement) { toastElement.classList.remove('show'); setTimeout(() => toastElement.remove(), 400); } }, duration); } catch (e) { console.error("Chyba při zobrazování toastu:", e); } }
     function showError(message, isGlobal = false) { console.error("Došlo k chybě:", message); if (isGlobal && ui.globalError) { ui.globalError.innerHTML = `<div class="error-message"><i class="fas fa-exclamation-triangle"></i><div>${sanitizeHTML(message)}</div><button class="retry-button btn" id="global-retry-btn">Obnovit Stránku</button></div>`; ui.globalError.style.display = 'block'; const retryBtn = document.getElementById('global-retry-btn'); if (retryBtn) { retryBtn.addEventListener('click', () => { location.reload(); }); } } else { showToast('CHYBA SYSTÉMU', message, 'error', 6000); } }
@@ -81,54 +88,19 @@
     function formatRelativeTime(timestamp) { if (!timestamp) return ''; try { const now = new Date(); const date = new Date(timestamp); if (isNaN(date.getTime())) return '-'; const diffMs = now - date; const diffSec = Math.round(diffMs / 1000); const diffMin = Math.round(diffSec / 60); const diffHour = Math.round(diffMin / 60); const diffDay = Math.round(diffHour / 24); const diffWeek = Math.round(diffDay / 7); if (diffSec < 60) return 'Nyní'; if (diffMin < 60) return `Před ${diffMin} min`; if (diffHour < 24) return `Před ${diffHour} hod`; if (diffDay === 1) return `Včera`; if (diffDay < 7) return `Před ${diffDay} dny`; if (diffWeek <= 4) return `Před ${diffWeek} týdny`; return date.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric' }); } catch (e) { console.error("Chyba formátování času:", e, "Timestamp:", timestamp); return '-'; } }
     function openMenu() { if (ui.sidebar && ui.sidebarOverlay) { document.body.classList.remove('sidebar-collapsed'); ui.sidebar.classList.add('active'); ui.sidebarOverlay.classList.add('active'); } }
     function closeMenu() { if (ui.sidebar && ui.sidebarOverlay) { ui.sidebar.classList.remove('active'); ui.sidebarOverlay.classList.remove('active'); } }
-    function setLoadingState(section, isLoadingFlag) {
-         const sections = section === 'all' ? Object.keys(isLoading) : [section];
-         sections.forEach(sec => {
-             if (isLoading[sec] === isLoadingFlag && section !== 'all') return;
-             isLoading[sec] = isLoadingFlag;
-             console.log(`[setLoadingState] Section: ${sec}, isLoading: ${isLoadingFlag}`);
-             if (sec === 'stats') { [ui.progressCard, ui.pointsCard, ui.streakCard].forEach(card => card?.classList.toggle('loading', isLoadingFlag)); }
-             else if (sec === 'activities' && ui.activityListContainer) { ui.activityListContainer.classList.toggle('loading', isLoadingFlag); if (isLoadingFlag) { renderActivitySkeletons(5); if(ui.activityListEmptyState) ui.activityListEmptyState.style.display = 'none'; if(ui.activityListErrorState) ui.activityListErrorState.style.display = 'none'; if(ui.activityList) ui.activityList.innerHTML = ''; } }
-             else if (sec === 'notifications' && ui.notificationBell) { ui.notificationBell.style.opacity = isLoadingFlag ? 0.5 : 1; if(ui.markAllReadBtn) { const currentUnreadCount = parseInt(ui.notificationCount?.textContent?.replace('+', '') || '0'); ui.markAllReadBtn.disabled = isLoadingFlag || currentUnreadCount === 0; } if(isLoadingFlag && ui.notificationsList) { renderNotificationSkeletons(2); } }
-             // --- NEW: Handle daily reward loading state ---
-             else if (sec === 'dailyReward' && ui.dailyRewardCard) { ui.dailyRewardCard.classList.toggle('loading', isLoadingFlag); if (ui.claimRewardBtn) ui.claimRewardBtn.disabled = isLoadingFlag; }
-             // --- END ---
-         });
-     }
+    function setLoadingState(section, isLoadingFlag) { const sections = section === 'all' ? Object.keys(isLoading) : [section]; sections.forEach(sec => { if (isLoading[sec] === isLoadingFlag && section !== 'all') return; isLoading[sec] = isLoadingFlag; console.log(`[setLoadingState] Section: ${sec}, isLoading: ${isLoadingFlag}`); if (sec === 'stats') { [ui.progressCard, ui.pointsCard, ui.streakCard].forEach(card => card?.classList.toggle('loading', isLoadingFlag)); } else if (sec === 'activities' && ui.activityListContainer) { ui.activityListContainer.classList.toggle('loading', isLoadingFlag); if (isLoadingFlag) { renderActivitySkeletons(5); if(ui.activityListEmptyState) ui.activityListEmptyState.style.display = 'none'; if(ui.activityListErrorState) ui.activityListErrorState.style.display = 'none'; if(ui.activityList) ui.activityList.innerHTML = ''; } } else if (sec === 'notifications' && ui.notificationBell) { ui.notificationBell.style.opacity = isLoadingFlag ? 0.5 : 1; if(ui.markAllReadBtn) { const currentUnreadCount = parseInt(ui.notificationCount?.textContent?.replace('+', '') || '0'); ui.markAllReadBtn.disabled = isLoadingFlag || currentUnreadCount === 0; } if(isLoadingFlag && ui.notificationsList) { renderNotificationSkeletons(2); } } else if (sec === 'dailyReward' && ui.dailyRewardCard) { ui.dailyRewardCard.classList.toggle('loading', isLoadingFlag); if (ui.claimRewardBtn) ui.claimRewardBtn.disabled = isLoadingFlag; } }); }
     const initMouseFollower = () => { const follower = ui.mouseFollower; if (!follower || window.innerWidth <= 576) return; let hasMoved = false; const updatePosition = (event) => { if (!hasMoved) { document.body.classList.add('mouse-has-moved'); hasMoved = true; } requestAnimationFrame(() => { follower.style.left = `${event.clientX}px`; follower.style.top = `${event.clientY}px`; }); }; window.addEventListener('mousemove', updatePosition, { passive: true }); document.body.addEventListener('mouseleave', () => { if (hasMoved) follower.style.opacity = '0'; }); document.body.addEventListener('mouseenter', () => { if (hasMoved) follower.style.opacity = '1'; }); window.addEventListener('touchstart', () => { if(follower) follower.style.display = 'none'; }, { passive: true, once: true }); };
     const initScrollAnimations = () => { const animatedElements = document.querySelectorAll('.main-content-wrapper [data-animate]'); if (!animatedElements.length || !('IntersectionObserver' in window)) return; const observer = new IntersectionObserver((entries, observerInstance) => { entries.forEach(entry => { if (entry.isIntersecting) { entry.target.classList.add('animated'); observerInstance.unobserve(entry.target); } }); }, { threshold: 0.15, rootMargin: "0px 0px -50px 0px" }); animatedElements.forEach(element => observer.observe(element)); };
     const initHeaderScrollDetection = () => { let lastScrollY = window.scrollY; const mainEl = ui.mainContent; if (!mainEl) return; mainEl.addEventListener('scroll', () => { const currentScrollY = mainEl.scrollTop; document.body.classList.toggle('scrolled', currentScrollY > 50); lastScrollY = currentScrollY <= 0 ? 0 : currentScrollY; }, { passive: true }); if (mainEl && mainEl.scrollTop > 50) document.body.classList.add('scrolled'); };
     const updateCopyrightYear = () => { const currentYearSpan = document.getElementById('currentYearFooter'); const currentYearSidebar = document.getElementById('currentYearSidebar'); const year = new Date().getFullYear(); if (currentYearSpan) { currentYearSpan.textContent = year; } if (currentYearSidebar) { currentYearSidebar.textContent = year; } };
     function applyInitialSidebarState() { const savedState = localStorage.getItem(SIDEBAR_STATE_KEY); const shouldBeCollapsed = savedState === 'collapsed'; if (shouldBeCollapsed) { document.body.classList.add('sidebar-collapsed'); } else { document.body.classList.remove('sidebar-collapsed'); } const icon = ui.sidebarToggleBtn?.querySelector('i'); if (icon) { icon.className = shouldBeCollapsed ? 'fas fa-chevron-right' : 'fas fa-chevron-left'; } console.log(`[Sidebar State] Initial state applied: ${shouldBeCollapsed ? 'collapsed' : 'expanded'}`); }
     function toggleSidebar() { const isCollapsed = document.body.classList.toggle('sidebar-collapsed'); localStorage.setItem(SIDEBAR_STATE_KEY, isCollapsed ? 'collapsed' : 'expanded'); const icon = ui.sidebarToggleBtn?.querySelector('i'); if (icon) { icon.className = isCollapsed ? 'fas fa-chevron-right' : 'fas fa-chevron-left'; } console.log(`[Sidebar Toggle] Sidebar toggled. New state: ${isCollapsed ? 'collapsed' : 'expanded'}`); }
-    // *** NEW: initTooltips Function Definition ***
-    function initTooltips() {
-        console.log("[Tooltips] Initializing...");
-        try {
-            if (window.jQuery && typeof window.jQuery.fn.tooltipster === 'function') {
-                window.jQuery('.btn-tooltip.tooltipstered').each(function() { if (document.body.contains(this)) { try { window.jQuery(this).tooltipster('destroy'); } catch (destroyError) { console.warn("Tooltipster destroy error:", destroyError); } } });
-                window.jQuery('.btn-tooltip').tooltipster({
-                    theme: 'tooltipster-shadow', animation: 'fade', delay: 150, distance: 6, side: 'top'
-                });
-                console.log("[Tooltips] Initialized/Re-initialized.");
-            } else { console.warn("[Tooltips] jQuery or Tooltipster library not loaded."); }
-        } catch (e) { console.error("[Tooltips] Error initializing Tooltipster:", e); }
-    }
-    // --- NEW: Date Comparison Helper ---
-    function isSameDate(date1, date2) {
-        if (!date1 || !date2) return false;
-        const d1 = new Date(date1);
-        const d2 = new Date(date2);
-        return d1.getFullYear() === d2.getFullYear() &&
-               d1.getMonth() === d2.getMonth() &&
-               d1.getDate() === d2.getDate();
-    }
-    function isYesterday(date1, date2) {
-        if (!date1 || !date2) return false;
-        const yesterday = new Date(date2);
-        yesterday.setDate(yesterday.getDate() - 1);
-        return isSameDate(date1, yesterday);
-    }
+    function initTooltips() { try { if (window.jQuery && typeof window.jQuery.fn.tooltipster === 'function') { window.jQuery('.btn-tooltip.tooltipstered').each(function() { if (document.body.contains(this)) { try { window.jQuery(this).tooltipster('destroy'); } catch (destroyError) { console.warn("Tooltipster destroy error:", destroyError); } } }); window.jQuery('.btn-tooltip').tooltipster({ theme: 'tooltipster-shadow', animation: 'fade', delay: 150, distance: 6, side: 'top' }); console.log("[Tooltips] Initialized/Re-initialized."); } else { console.warn("[Tooltips] jQuery or Tooltipster library not loaded."); } } catch (e) { console.error("[Tooltips] Error initializing Tooltipster:", e); } }
+    // --- NEW: Date Comparison Helpers ---
+    function isSameDate(date1, date2) { if (!date1 || !date2) return false; const d1 = new Date(date1); const d2 = new Date(date2); return d1.getFullYear() === d2.getFullYear() && d1.getMonth() === d2.getMonth() && d1.getDate() === d2.getDate(); }
+    function isYesterday(date1, date2) { if (!date1 || !date2) return false; const yesterday = new Date(date2); yesterday.setDate(yesterday.getDate() - 1); return isSameDate(date1, yesterday); }
+    // --- NEW: Time Formatting Helper ---
+    function formatTimeRemaining(ms) { if (ms <= 0) return "00:00:00"; const totalSeconds = Math.floor(ms / 1000); const hours = Math.floor(totalSeconds / 3600); const minutes = Math.floor((totalSeconds % 3600) / 60); const seconds = totalSeconds % 60; return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`; }
     // --- END: Helper Functions ---
 
     // --- START: Data Loading and Processing Functions ---
@@ -138,10 +110,9 @@
         if (!supabase || !userId) return null;
         console.log(`[Profile] Načítání profilu pro uživatele ID: ${userId}`);
         try {
-            // Fetch needed fields, including the new last_reward_claimed_at
             const { data: profile, error } = await supabase
                 .from('profiles')
-                .select('*, selected_title, last_login, streak_days, last_reward_claimed_at') // ADD last_reward_claimed_at
+                .select('*, selected_title, last_login, streak_days, last_reward_claimed_at') // Already fetching needed columns
                 .eq('id', userId)
                 .single();
             if (error && error.code !== 'PGRST116') { throw error; }
@@ -158,8 +129,8 @@
             const defaultData = {
                  id: userId, email: userEmail, username: userEmail.split('@')[0] || `user_${userId.substring(0, 6)}`,
                  level: 1, points: 0, experience: 0, badges_count: 0, streak_days: 0,
-                 last_login: new Date().toISOString(), // Set initial login
-                 last_reward_claimed_at: null, // Reward not claimed initially
+                 last_login: new Date().toISOString(),
+                 last_reward_claimed_at: null,
                  created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
                  preferences: { dark_mode: window.matchMedia('(prefers-color-scheme: dark)').matches, language: 'cs' },
                  notifications: { email: true, study_tips: true, content_updates: true, practice_reminders: true }
@@ -167,7 +138,7 @@
             const { data: newProfile, error } = await supabase
                 .from('profiles')
                 .insert(defaultData)
-                .select('*, selected_title, last_login, streak_days, last_reward_claimed_at') // Select new fields
+                .select('*, selected_title, last_login, streak_days, last_reward_claimed_at')
                 .single();
             if (error) { if (error.code === '23505') { console.warn("[Profile Create] Profile likely already exists, fetching again."); return await fetchUserProfile(userId); } throw error; }
             console.log("[Profile Create] Default profile created:", newProfile);
@@ -192,7 +163,7 @@
     async function fetchRecentActivities(userId, limit = 5) { if (!supabase || !userId) { console.error("[Activities] Chybí Supabase nebo ID uživatele."); return []; } console.log(`[Activities] Načítání posledních ${limit} aktivit pro uživatele ${userId}`); try { const { data, error } = await supabase .from('activities') .select('*') .eq('user_id', userId) .order('created_at', { ascending: false }) .limit(limit); if (error) throw error; console.log(`[Activities] Načteno ${data?.length || 0} aktivit.`); return data || []; } catch (error) { console.error('[Activities] Výjimka při načítání aktivit:', error); return []; } }
     async function fetchNotifications(userId, limit = 5) { if (!supabase || !userId) { console.error("[Notifications] Chybí Supabase nebo ID uživatele."); return { unreadCount: 0, notifications: [] }; } console.log(`[Notifications] Načítání nepřečtených oznámení pro uživatele ${userId}`); try { const { data, error, count } = await supabase .from('user_notifications') .select('*', { count: 'exact' }) .eq('user_id', userId) .eq('is_read', false) .order('created_at', { ascending: false }) .limit(limit); if (error) throw error; console.log(`[Notifications] Načteno ${data?.length || 0} oznámení. Celkem nepřečtených: ${count}`); return { unreadCount: count ?? 0, notifications: data || [] }; } catch (error) { console.error("[Notifications] Výjimka při načítání oznámení:", error); return { unreadCount: 0, notifications: [] }; } }
 
-    // --- NEW: Daily Login & Reward Check ---
+    // --- NEW: Daily Login & Reward Check (Modified for Countdown) ---
     async function handleDailyLoginCheck() {
         if (!currentUser || !currentProfile || !supabase) {
             console.warn("[DailyCheck] Cannot perform daily check: missing user, profile, or supabase.");
@@ -205,88 +176,138 @@
         let currentStreak = currentProfile.streak_days || 0;
         let canClaimToday = false;
         let rewardAmount = 0;
+        let nextClaimTime = null; // <<< NEW: Time when next claim is possible
         let updateData = {};
 
         if (!lastLogin || !isSameDate(today, lastLogin)) {
             // First login today
             console.log("[DailyCheck] First login of the day.");
             if (lastLogin && isYesterday(lastLogin, today)) {
-                // Consecutive day
                 currentStreak++;
                 console.log(`[DailyCheck] Streak continued! New streak: ${currentStreak}`);
             } else if (lastLogin) {
-                // Missed a day or more
                 currentStreak = 1;
                 console.log("[DailyCheck] Streak broken. Resetting to 1.");
             } else {
-                // Very first login ever
                 currentStreak = 1;
                 console.log("[DailyCheck] First login ever. Setting streak to 1.");
             }
             updateData.streak_days = currentStreak;
             updateData.last_login = today.toISOString();
-            canClaimToday = true; // Can claim on the first login of the day
+            // On the first login of the day, check if the *previous* day's reward was claimed *late*
+            // (i.e., claimed less than 24h ago, potentially blocking today's claim initially)
+            if (lastClaimed) {
+                nextClaimTime = new Date(lastClaimed.getTime() + CLAIM_COOLDOWN_HOURS * 60 * 60 * 1000);
+                canClaimToday = today >= nextClaimTime;
+            } else {
+                 canClaimToday = true; // No previous claim, definitely can claim
+            }
+
         } else {
             // Already logged in today
             console.log("[DailyCheck] Already logged in today.");
             currentStreak = currentProfile.streak_days || 0; // Use existing streak
-            // Check if reward for today was already claimed
-            canClaimToday = !lastClaimed || !isSameDate(today, lastClaimed);
+            // Check if reward for today was already claimed or if cooldown is active
+            if (lastClaimed) {
+                nextClaimTime = new Date(lastClaimed.getTime() + CLAIM_COOLDOWN_HOURS * 60 * 60 * 1000);
+                canClaimToday = today >= nextClaimTime;
+            } else {
+                 canClaimToday = true; // Should not happen if logged in today, but safety check
+            }
         }
 
         if (canClaimToday) {
             rewardAmount = DAILY_REWARD_BASE * currentStreak;
             console.log(`[DailyCheck] Reward available: Day ${currentStreak}, Amount ${rewardAmount}`);
+            // Clear any existing countdown timer if reward becomes available
+             if (rewardCountdownInterval) {
+                clearInterval(rewardCountdownInterval);
+                rewardCountdownInterval = null;
+            }
         } else {
-             console.log("[DailyCheck] Reward for today already claimed or not available.");
+             console.log(`[DailyCheck] Reward not available yet. Next claim possible at: ${nextClaimTime ? nextClaimTime.toLocaleString('cs-CZ') : 'N/A'}`);
              rewardAmount = 0;
+             // Start or continue the countdown timer
+             startRewardCountdown(nextClaimTime);
         }
 
-        // Update profile if needed (streak or last_login changed)
+        // Update profile if needed
         if (Object.keys(updateData).length > 0) {
              console.log("[DailyCheck] Updating profile with:", updateData);
             try {
-                const { error: updateError } = await supabase
-                    .from('profiles')
-                    .update(updateData)
-                    .eq('id', currentUser.id);
+                const { error: updateError } = await supabase.from('profiles').update(updateData).eq('id', currentUser.id);
                 if (updateError) throw updateError;
-                // Update local profile state
                 currentProfile.streak_days = updateData.streak_days ?? currentProfile.streak_days;
                 currentProfile.last_login = updateData.last_login ?? currentProfile.last_login;
                 console.log("[DailyCheck] Profile updated successfully.");
-            } catch (error) {
-                console.error("[DailyCheck] Error updating profile:", error);
-                showToast('Chyba', 'Nepodařilo se aktualizovat data přihlášení.', 'error');
-            }
+            } catch (error) { console.error("[DailyCheck] Error updating profile:", error); showToast('Chyba', 'Nepodařilo se aktualizovat data přihlášení.', 'error'); }
         }
 
-        // Update the UI for daily reward
+        // Update the UI
         updateDailyRewardUI(canClaimToday, currentStreak, rewardAmount);
-
-         // Update streak card UI immediately (using possibly updated local profile)
-         updateStreakCardUI(currentProfile.streak_days);
+        updateStreakCardUI(currentProfile.streak_days); // Update main streak card
     }
     // --- END: Daily Login & Reward Check ---
 
-    // --- NEW: Claim Reward Logic ---
+    // --- NEW: Countdown Timer Logic ---
+    function startRewardCountdown(nextAvailableTime) {
+        if (!nextAvailableTime || !ui.rewardCountdownSpan || !ui.dailyRewardTimer) {
+            console.warn("[Countdown] Cannot start: Missing nextAvailableTime or UI elements.");
+            return;
+        }
+        console.log(`[Countdown] Starting countdown until ${nextAvailableTime.toLocaleString('cs-CZ')}`);
+
+        // Clear any previous interval
+        if (rewardCountdownInterval) {
+            clearInterval(rewardCountdownInterval);
+        }
+
+        function updateTimer() {
+            const now = new Date();
+            const timeLeft = nextAvailableTime - now;
+
+            if (timeLeft <= 0) {
+                clearInterval(rewardCountdownInterval);
+                rewardCountdownInterval = null;
+                console.log("[Countdown] Timer finished. Refreshing reward state.");
+                updateDailyRewardUI(true, currentProfile?.streak_days || 1, DAILY_REWARD_BASE * (currentProfile?.streak_days || 1)); // Refresh UI
+            } else {
+                if (ui.rewardCountdownSpan) {
+                     ui.rewardCountdownSpan.textContent = formatTimeRemaining(timeLeft);
+                }
+            }
+        }
+
+        ui.dailyRewardTimer.style.display = 'block'; // Show the timer element
+        updateTimer(); // Initial call
+        rewardCountdownInterval = setInterval(updateTimer, 1000); // Update every second
+    }
+    // --- END: Countdown Timer Logic ---
+
+    // --- NEW: Claim Reward Logic (Modified) ---
     async function claimDailyReward() {
         if (!currentUser || !currentProfile || !supabase || isLoading.dailyReward) return;
         console.log("[ClaimReward] Attempting to claim reward...");
         setLoadingState('dailyReward', true);
         if (ui.claimRewardBtn) ui.claimRewardBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Zpracování...';
 
-        const today = new Date();
+        const now = new Date();
         const lastClaimed = currentProfile.last_reward_claimed_at ? new Date(currentProfile.last_reward_claimed_at) : null;
+        let nextClaimTime = null;
+        if(lastClaimed) {
+             nextClaimTime = new Date(lastClaimed.getTime() + CLAIM_COOLDOWN_HOURS * 60 * 60 * 1000);
+        }
 
-        if (lastClaimed && isSameDate(today, lastClaimed)) {
-            showToast("Odměna již byla vyzvednuta", "Dnešní odměnu jste si již vyzvedli.", "info");
+        // Double-check if claim is allowed (time might have passed since page load)
+        if (lastClaimed && now < nextClaimTime) {
+            showToast("Odměna ještě není dostupná", `Další odměna bude k dispozici za ${formatTimeRemaining(nextClaimTime - now)}.`, "warning");
             setLoadingState('dailyReward', false);
-            if (ui.claimRewardBtn) { ui.claimRewardBtn.textContent = 'Dnes Vyzvednuto'; ui.claimRewardBtn.disabled = true; }
+            startRewardCountdown(nextClaimTime); // Restart countdown if needed
+            updateDailyRewardUI(false, currentProfile.streak_days || 0, 0); // Ensure UI shows claimed/timer state
             return;
         }
 
-        const currentStreak = currentProfile.streak_days || 1; // Use 1 if streak is 0 somehow
+        const currentStreak = currentProfile.streak_days || 1;
         const rewardAmount = DAILY_REWARD_BASE * currentStreak;
         const currentPoints = currentProfile.points || 0;
         const newPoints = currentPoints + rewardAmount;
@@ -296,26 +317,28 @@
                 .from('profiles')
                 .update({
                     points: newPoints,
-                    last_reward_claimed_at: today.toISOString()
+                    last_reward_claimed_at: now.toISOString() // Use current timestamp
                 })
                 .eq('id', currentUser.id);
             if (updateError) throw updateError;
 
             // Update local state
             currentProfile.points = newPoints;
-            currentProfile.last_reward_claimed_at = today.toISOString();
+            currentProfile.last_reward_claimed_at = now.toISOString();
 
             console.log(`[ClaimReward] Reward claimed! Amount: ${rewardAmount}, New total: ${newPoints}`);
             showToast("Odměna Vyzvednuta!", `+ ${rewardAmount} kreditů přidáno. Nový zůstatek: ${newPoints}`, "success");
 
             // Update UI elements
             updatePointsCardUI(newPoints);
-            updateDailyRewardUI(false, currentStreak, 0); // Update reward UI to 'claimed' state
+            const nextAvailable = new Date(now.getTime() + CLAIM_COOLDOWN_HOURS * 60 * 60 * 1000);
+            updateDailyRewardUI(false, currentStreak, 0); // Set to claimed state
+            startRewardCountdown(nextAvailable); // Start countdown immediately
 
         } catch (error) {
             console.error("[ClaimReward] Error claiming reward:", error);
             showToast("Chyba", "Nepodařilo se vyzvednout odměnu.", "error");
-             if (ui.claimRewardBtn) ui.claimRewardBtn.innerHTML = '<i class="fas fa-gift"></i> Vyzvednout'; // Reset button text on error
+             if (ui.claimRewardBtn) ui.claimRewardBtn.innerHTML = '<i class="fas fa-gift"></i> Vyzvednout';
         } finally {
             setLoadingState('dailyReward', false);
         }
@@ -330,9 +353,8 @@
          setLoadingState('all', true);
          renderActivitySkeletons(5);
 
-         // --- ADDED: Perform daily login check before fetching other data ---
+         // Perform daily login check FIRST
          await handleDailyLoginCheck();
-         // --- END ADDED ---
 
          try {
              updateSidebarProfile(profile); // Update sidebar (already has profile data)
@@ -388,34 +410,67 @@
     function renderActivitySkeletons(count = 5) { if (!ui.activityList || !ui.activityListContainer) return; ui.activityListContainer.classList.add('loading'); ui.activityList.innerHTML = ''; let skeletonHTML = '<div class="loading-placeholder">'; for (let i = 0; i < count; i++) { skeletonHTML += `<div class="skeleton-activity-item"> <div class="skeleton icon-placeholder"></div> <div style="flex-grow: 1;"> <div class="skeleton activity-line"></div> <div class="skeleton activity-line text-short"></div> <div class="skeleton activity-line-short"></div> </div> </div>`; } skeletonHTML += '</div>'; ui.activityList.innerHTML = skeletonHTML; }
     function renderNotifications(count, notifications) { console.log("[Render Notifications] Start, Počet:", count, "Oznámení:", notifications); if (!ui.notificationCount || !ui.notificationsList || !ui.noNotificationsMsg || !ui.markAllReadBtn) { console.error("[Render Notifications] Chybí UI elementy."); setLoadingState('notifications', false); return; } ui.notificationCount.textContent = count > 9 ? '9+' : (count > 0 ? String(count) : ''); ui.notificationCount.classList.toggle('visible', count > 0); if (notifications && notifications.length > 0) { ui.notificationsList.innerHTML = notifications.map(n => { const iconMap = { info: 'fa-info-circle', success: 'fa-check-circle', warning: 'fa-exclamation-triangle', danger: 'fa-exclamation-circle', badge: 'fa-medal', level_up: 'fa-angle-double-up' }; const iconClass = iconMap[n.type] || 'fa-info-circle'; const typeClass = n.type || 'info'; const isReadClass = n.is_read ? 'is-read' : ''; const linkAttr = n.link ? `data-link="${sanitizeHTML(n.link)}"` : ''; return `<div class="notification-item ${isReadClass}" data-id="${n.id}" ${linkAttr}> ${!n.is_read ? '<span class="unread-dot"></span>' : ''} <div class="notification-icon ${typeClass}"><i class="fas ${iconClass}"></i></div> <div class="notification-content"> <div class="notification-title">${sanitizeHTML(n.title)}</div> <div class="notification-message">${sanitizeHTML(n.message)}</div> <div class="notification-time">${formatRelativeTime(n.created_at)}</div> </div> </div>`; }).join(''); ui.noNotificationsMsg.style.display = 'none'; ui.notificationsList.style.display = 'block'; ui.markAllReadBtn.disabled = count === 0; } else { ui.notificationsList.innerHTML = ''; ui.noNotificationsMsg.style.display = 'block'; ui.notificationsList.style.display = 'none'; ui.markAllReadBtn.disabled = true; } console.log("[Render Notifications] Hotovo"); setLoadingState('notifications', false); }
     function renderNotificationSkeletons(count = 2) { if (!ui.notificationsList || !ui.noNotificationsMsg) return; let skeletonHTML = ''; for (let i = 0; i < count; i++) { skeletonHTML += `<div class="notification-item skeleton"><div class="notification-icon skeleton" style="background-color: var(--skeleton-bg);"></div><div class="notification-content"><div class="skeleton" style="height: 16px; width: 70%; margin-bottom: 6px;"></div><div class="skeleton" style="height: 12px; width: 90%;"></div><div class="skeleton" style="height: 10px; width: 40%; margin-top: 6px;"></div></div></div>`; } ui.notificationsList.innerHTML = skeletonHTML; ui.noNotificationsMsg.style.display = 'none'; ui.notificationsList.style.display = 'block'; }
-    // --- NEW: Render Daily Reward UI ---
+    // --- NEW: Render Daily Reward UI (Modified for Countdown) ---
     function updateDailyRewardUI(canClaim, streak, rewardAmount) {
-        if (!ui.dailyRewardCard || !ui.dailyRewardDay || !ui.dailyRewardAmount || !ui.claimRewardBtn) {
+        if (!ui.dailyRewardCard || !ui.dailyRewardDay || !ui.dailyRewardAmount || !ui.claimRewardBtn || !ui.dailyRewardTimer) {
             console.warn("[DailyReward UI] Missing elements. Cannot update.");
-            if (ui.dailyRewardCard) ui.dailyRewardCard.style.display = 'none'; // Hide if elements missing
+            if (ui.dailyRewardCard) ui.dailyRewardCard.style.display = 'none';
             return;
         }
-
         console.log(`[DailyReward UI] Updating: canClaim=${canClaim}, streak=${streak}, reward=${rewardAmount}`);
-        ui.dailyRewardCard.style.display = 'block'; // Make sure card is visible
+        ui.dailyRewardCard.style.display = 'block';
 
         if (canClaim) {
+            // Stop any existing countdown timer
+            if (rewardCountdownInterval) {
+                clearInterval(rewardCountdownInterval);
+                rewardCountdownInterval = null;
+            }
             ui.dailyRewardDay.textContent = `${streak}. den`;
             ui.dailyRewardAmount.textContent = `${rewardAmount}`;
             ui.claimRewardBtn.disabled = false;
             ui.claimRewardBtn.innerHTML = '<i class="fas fa-gift"></i> Vyzvednout';
             ui.dailyRewardCard.classList.remove('claimed');
             ui.dailyRewardCard.classList.add('available');
+            ui.dailyRewardTimer.style.display = 'none'; // Hide timer when claimable
         } else {
-            // Reward already claimed or streak broken (handled by streak value)
-            ui.dailyRewardDay.textContent = `${streak > 0 ? streak : '?'}. den`; // Show current streak or '?'
-            ui.dailyRewardAmount.textContent = '---'; // Placeholder
+            // Reward already claimed or on cooldown
+            ui.dailyRewardDay.textContent = `${streak > 0 ? streak : '?'}. den`;
+            ui.dailyRewardAmount.textContent = '---';
             ui.claimRewardBtn.disabled = true;
             ui.claimRewardBtn.innerHTML = '<i class="fas fa-check-circle"></i> Dnes Vyzvednuto';
             ui.dailyRewardCard.classList.add('claimed');
             ui.dailyRewardCard.classList.remove('available');
+            // Timer display is handled by startRewardCountdown()
         }
-         setLoadingState('dailyReward', false); // Ensure loading state is off
+        setLoadingState('dailyReward', false);
+    }
+    // --- NEW: Show Reward Preview Modal ---
+    function showRewardPreview() {
+        if (!ui.rewardPreviewModal || !ui.rewardPreviewList || !currentProfile) {
+            console.error("Cannot show reward preview: Missing UI elements or profile data.");
+            return;
+        }
+        console.log("[Reward Preview] Showing next 7 days...");
+        const currentStreak = currentProfile.streak_days || 0;
+        let previewHTML = '';
+        for (let i = 1; i <= 7; i++) {
+            const dayNumber = currentStreak + i;
+            const reward = DAILY_REWARD_BASE * dayNumber;
+            previewHTML += `<li>
+                <span class="preview-day">Den ${dayNumber}:</span>
+                <span class="preview-reward">${reward} <i class="fas fa-coins"></i></span>
+            </li>`;
+        }
+        ui.rewardPreviewList.innerHTML = previewHTML;
+        ui.rewardPreviewModal.style.display = 'flex';
+        requestAnimationFrame(() => ui.rewardPreviewModal.classList.add('active'));
+    }
+    // --- NEW: Hide Reward Preview Modal ---
+    function hideRewardPreview() {
+        if (!ui.rewardPreviewModal) return;
+        ui.rewardPreviewModal.classList.remove('active');
+        setTimeout(() => { ui.rewardPreviewModal.style.display = 'none'; }, 400); // Match CSS transition
     }
     // --- END: UI Update ---
 
@@ -441,10 +496,17 @@
          if(ui.notificationsList) { ui.notificationsList.addEventListener('click', async (event) => { const item = event.target.closest('.notification-item'); if (item) { const notificationId = item.dataset.id; const link = item.dataset.link; const isRead = item.classList.contains('is-read'); if (!isRead && notificationId) { const success = await markNotificationRead(notificationId); if (success) { item.classList.add('is-read'); item.querySelector('.unread-dot')?.remove(); const currentCountText = ui.notificationCount.textContent.replace('+', ''); const currentCount = parseInt(currentCountText) || 0; const newCount = Math.max(0, currentCount - 1); ui.notificationCount.textContent = newCount > 9 ? '9+' : (newCount > 0 ? newCount : ''); ui.notificationCount.classList.toggle('visible', newCount > 0); ui.markAllReadBtn.disabled = newCount === 0; } } if (link) window.location.href = link; } }); }
          document.addEventListener('click', (event) => { if (ui.notificationsDropdown?.classList.contains('active') && !ui.notificationsDropdown.contains(event.target) && !ui.notificationBell?.contains(event.target)) { ui.notificationsDropdown?.classList.remove('active'); } });
 
-         // --- NEW: Claim Reward Button Listener ---
-         if (ui.claimRewardBtn) {
-             ui.claimRewardBtn.addEventListener('click', claimDailyReward);
-         }
+         // --- NEW: Listeners for Daily Reward and Preview ---
+         if (ui.claimRewardBtn) { ui.claimRewardBtn.addEventListener('click', claimDailyReward); }
+         // Add listener to the card to open the preview modal
+         if (ui.dailyRewardCard) { ui.dailyRewardCard.addEventListener('click', (event) => { // Open preview only if not clicking the button itself
+                 if (!event.target.closest('#claim-reward-btn')) {
+                     showRewardPreview();
+                 }
+         }); }
+         if (ui.closePreviewModalBtn) { ui.closePreviewModalBtn.addEventListener('click', hideRewardPreview); }
+         // Close modal on overlay click
+         if (ui.rewardPreviewModal) { ui.rewardPreviewModal.addEventListener('click', (event) => { if (event.target === ui.rewardPreviewModal) { hideRewardPreview(); } }); }
          // --- END NEW ---
 
          console.log("[SETUP] setupUIEventListeners: Posluchači nastaveni.");
@@ -455,10 +517,8 @@
     async function initializeApp() {
         console.log("[INIT Dashboard] initializeApp: Start");
         if (!initializeSupabase()) { console.error("[INIT Dashboard] Supabase initialization failed. Aborting."); return; }
-
-        // Setup base listeners first
         setupUIEventListeners();
-        applyInitialSidebarState(); // Apply sidebar state early
+        applyInitialSidebarState();
 
         if (ui.initialLoader) { ui.initialLoader.classList.remove('hidden'); ui.initialLoader.style.display = 'flex'; }
         if (ui.mainContent) ui.mainContent.style.display = 'none';
@@ -472,9 +532,8 @@
                 currentUser = session.user;
                 console.log(`[INIT Dashboard] User authenticated (ID: ${currentUser.id}). Loading profile and titles...`);
 
-                // Fetch profile and titles concurrently
                 const [profileResult, titlesResult] = await Promise.allSettled([
-                    fetchUserProfile(currentUser.id), // Now fetches reward/login info
+                    fetchUserProfile(currentUser.id),
                     fetchTitles()
                 ]);
 
@@ -483,49 +542,29 @@
                     console.log("[INIT Dashboard] Profile loaded:", currentProfile);
                 } else {
                     console.warn("[INIT Dashboard] Profile not found or fetch failed, attempting to create default...");
-                    currentProfile = await createDefaultProfile(currentUser.id, currentUser.email); // Creates with reward info
+                    currentProfile = await createDefaultProfile(currentUser.id, currentUser.email);
                     if (!currentProfile) throw new Error("Nepodařilo se vytvořit/načíst profil uživatele.");
                     console.log("[INIT Dashboard] Default profile created/retrieved.");
                 }
 
-                if (titlesResult.status === 'fulfilled') {
-                    allTitles = titlesResult.value || [];
-                    console.log("[INIT Dashboard] Titles loaded:", allTitles.length);
-                } else { console.warn("[INIT Dashboard] Failed to load titles:", titlesResult.reason); allTitles = []; }
+                if (titlesResult.status === 'fulfilled') { allTitles = titlesResult.value || []; console.log("[INIT Dashboard] Titles loaded:", allTitles.length); }
+                else { console.warn("[INIT Dashboard] Failed to load titles:", titlesResult.reason); allTitles = []; }
 
-                // Update UI elements that only depend on profile/titles
                 updateSidebarProfile(currentProfile);
+                await loadDashboardData(currentUser, currentProfile); // Includes daily check
 
-                // --- MODIFIED: Load dashboard data AFTER profile/title load ---
-                await loadDashboardData(currentUser, currentProfile); // This now handles daily login check internally
-                // --- END MODIFIED ---
-
-                // Hide loader and show content after data is loaded
                 if (ui.initialLoader) { ui.initialLoader.classList.add('hidden'); setTimeout(() => { if (ui.initialLoader) ui.initialLoader.style.display = 'none'; }, 500); }
-                if (ui.mainContent) {
-                    ui.mainContent.style.display = 'block';
-                    requestAnimationFrame(() => { ui.mainContent.classList.add('loaded'); initScrollAnimations(); });
-                }
+                if (ui.mainContent) { ui.mainContent.style.display = 'block'; requestAnimationFrame(() => { ui.mainContent.classList.add('loaded'); initScrollAnimations(); }); }
                 initMouseFollower();
                 initHeaderScrollDetection();
                 updateCopyrightYear();
-                initTooltips(); // Initialize tooltips after content is loaded
+                initTooltips();
 
                 console.log("✅ [INIT Dashboard] Page fully loaded and initialized.");
 
-            } else {
-                console.log('[INIT Dashboard] V sezení není uživatel, přesměrování.');
-                window.location.href = '/auth/index.html';
-            }
-        } catch (error) {
-            console.error("❌ [INIT Dashboard] Kritická chyba inicializace:", error);
-            if (ui.initialLoader && !ui.initialLoader.classList.contains('hidden')) { ui.initialLoader.innerHTML = `<p style="color: var(--accent-pink);">CHYBA (${error.message}). OBNOVTE STRÁNKU.</p>`; }
-            else { showError(`Chyba inicializace: ${error.message}`, true); }
-            if (ui.mainContent) ui.mainContent.style.display = 'none';
-             // Reset loading states on critical error
-             setLoadingState('all', false);
-        }
-    } // End of initializeApp
+            } else { console.log('[INIT Dashboard] V sezení není uživatel, přesměrování.'); window.location.href = '/auth/index.html'; }
+        } catch (error) { console.error("❌ [INIT Dashboard] Kritická chyba inicializace:", error); if (ui.initialLoader && !ui.initialLoader.classList.contains('hidden')) { ui.initialLoader.innerHTML = `<p style="color: var(--accent-pink);">CHYBA (${error.message}). OBNOVTE STRÁNKU.</p>`; } else { showError(`Chyba inicializace: ${error.message}`, true); } if (ui.mainContent) ui.mainContent.style.display = 'none'; setLoadingState('all', false); }
+    }
 
     document.addEventListener('DOMContentLoaded', initializeApp);
 
