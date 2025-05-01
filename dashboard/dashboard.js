@@ -8,49 +8,60 @@
     let supabase = null;
     let currentUser = null;
     let currentProfile = null;
-    let allTitles = [];
+    let allTitles = []; // Store fetched titles globally
     let isLoading = { stats: false, activities: false, notifications: false, titles: false };
     const SIDEBAR_STATE_KEY = 'sidebarCollapsedState';
-    const DAILY_LOGIN_BASE_REWARD = 5;
-    const DAILY_LOGIN_STREAK_MULTIPLIER = 2;
+    // Daily login constants removed as the feature is removed for now
 
     // DOM Elements Cache
     const ui = {
+        // Loaders & Overlays
         initialLoader: document.getElementById('initial-loader'),
         sidebarOverlay: document.getElementById('sidebar-overlay'),
+        // Main Layout & Sidebar
         mainContent: document.getElementById('main-content'),
         sidebar: document.getElementById('sidebar'),
         mainMobileMenuToggle: document.getElementById('main-mobile-menu-toggle'),
         sidebarCloseToggle: document.getElementById('sidebar-close-toggle'),
         sidebarToggleBtn: document.getElementById('sidebar-toggle-btn'),
+        // Sidebar Profile
         sidebarAvatar: document.getElementById('sidebar-avatar'),
         sidebarName: document.getElementById('sidebar-name'),
-        sidebarUserTitle: document.getElementById('sidebar-user-title'),
+        sidebarUserTitle: document.getElementById('sidebar-user-title'), // Target for user title
+        // Header
         dashboardTitle: document.getElementById('dashboard-title'),
         refreshDataBtn: document.getElementById('refresh-data-btn'),
+        // Notifications
         notificationBell: document.getElementById('notification-bell'),
         notificationCount: document.getElementById('notification-count'),
         notificationsDropdown: document.getElementById('notifications-dropdown'),
         notificationsList: document.getElementById('notifications-list'),
         noNotificationsMsg: document.getElementById('no-notifications-msg'),
         markAllReadBtn: document.getElementById('mark-all-read'),
+        // Welcome Banner
         welcomeTitle: document.getElementById('welcome-title'),
         startPracticeBtn: document.getElementById('start-practice-btn'),
+        // Stat Cards
         progressCard: document.getElementById('progress-card'),
         pointsCard: document.getElementById('points-card'),
         streakCard: document.getElementById('streak-card'),
+        // Activity List
         activityListContainer: document.getElementById('activity-list-container'),
         activityList: document.getElementById('activity-list'),
         activityListEmptyState: document.querySelector('#activity-list-container .empty-state'),
         activityListErrorState: document.querySelector('#activity-list-container .card-error-state'),
+        // Feedback & Status
         toastContainer: document.getElementById('toast-container'),
         globalError: document.getElementById('global-error'),
         offlineBanner: document.getElementById('offline-banner'),
+        // Mouse Follower
         mouseFollower: document.getElementById('mouse-follower'),
+        // Footer Year Spans
         currentYearSidebar: document.getElementById('currentYearSidebar'),
         currentYearFooter: document.getElementById('currentYearFooter')
     };
 
+    // Visual settings for activities
     const activityVisuals = {
         exercise: { name: 'Trénink', icon: 'fa-laptop-code', class: 'exercise' },
         test: { name: 'Test', icon: 'fa-vial', class: 'test' },
@@ -89,10 +100,9 @@
     const initScrollAnimations = () => { const animatedElements = document.querySelectorAll('.main-content-wrapper [data-animate]'); if (!animatedElements.length || !('IntersectionObserver' in window)) return; const observer = new IntersectionObserver((entries, observerInstance) => { entries.forEach(entry => { if (entry.isIntersecting) { entry.target.classList.add('animated'); observerInstance.unobserve(entry.target); } }); }, { threshold: 0.15, rootMargin: "0px 0px -50px 0px" }); animatedElements.forEach(element => observer.observe(element)); };
     const initHeaderScrollDetection = () => { let lastScrollY = window.scrollY; const mainEl = ui.mainContent; if (!mainEl) return; mainEl.addEventListener('scroll', () => { const currentScrollY = mainEl.scrollTop; document.body.classList.toggle('scrolled', currentScrollY > 50); lastScrollY = currentScrollY <= 0 ? 0 : currentScrollY; }, { passive: true }); if (mainEl && mainEl.scrollTop > 50) document.body.classList.add('scrolled'); };
     const updateCopyrightYear = () => { const currentYearSpan = document.getElementById('currentYearFooter'); const currentYearSidebar = document.getElementById('currentYearSidebar'); const year = new Date().getFullYear(); if (currentYearSpan) { currentYearSpan.textContent = year; } if (currentYearSidebar) { currentYearSidebar.textContent = year; } };
-    function applyInitialSidebarState() { const savedState = localStorage.getItem(SIDEBAR_STATE_KEY); if (savedState === 'collapsed') { document.body.classList.add('sidebar-collapsed'); console.log("[Sidebar State] Initial state applied: collapsed"); } else { document.body.classList.remove('sidebar-collapsed'); console.log("[Sidebar State] Initial state applied: expanded"); } }
-    function toggleSidebar() { const isCollapsed = document.body.classList.toggle('sidebar-collapsed'); localStorage.setItem(SIDEBAR_STATE_KEY, isCollapsed ? 'collapsed' : 'expanded'); console.log(`[Sidebar Toggle] Sidebar toggled. New state: ${isCollapsed ? 'collapsed' : 'expanded'}`); }
-    function isSameDay(date1, date2) { if (!date1 || !date2) return false; const d1 = new Date(date1); const d2 = new Date(date2); return d1.getFullYear() === d2.getFullYear() && d1.getMonth() === d2.getMonth() && d1.getDate() === d2.getDate(); }
-    function isYesterday(date1, date2) { if (!date1 || !date2) return false; const yesterday = new Date(date2); yesterday.setDate(yesterday.getDate() - 1); return isSameDay(date1, yesterday); }
+    function applyInitialSidebarState() { const savedState = localStorage.getItem(SIDEBAR_STATE_KEY); const shouldBeCollapsed = savedState === 'collapsed'; if (shouldBeCollapsed) { document.body.classList.add('sidebar-collapsed'); } else { document.body.classList.remove('sidebar-collapsed'); } const icon = ui.sidebarToggleBtn?.querySelector('i'); if (icon) { icon.className = shouldBeCollapsed ? 'fas fa-chevron-right' : 'fas fa-chevron-left'; } console.log(`[Sidebar State] Initial state applied: ${shouldBeCollapsed ? 'collapsed' : 'expanded'}`); }
+    function toggleSidebar() { const isCollapsed = document.body.classList.toggle('sidebar-collapsed'); localStorage.setItem(SIDEBAR_STATE_KEY, isCollapsed ? 'collapsed' : 'expanded'); const icon = ui.sidebarToggleBtn?.querySelector('i'); if (icon) { icon.className = isCollapsed ? 'fas fa-chevron-right' : 'fas fa-chevron-left'; } console.log(`[Sidebar Toggle] Sidebar toggled. New state: ${isCollapsed ? 'collapsed' : 'expanded'}`); }
+    // Date helpers removed as handleDailyLoginCheck is removed
     // --- END: Helper Functions ---
 
     // --- START: Data Loading and Processing Functions ---
@@ -104,7 +114,8 @@
         try {
             const { data: profile, error } = await supabase
                 .from('profiles')
-                .select('*, selected_title, last_daily_login, consecutive_login_days')
+                // REMOVED: last_daily_login, consecutive_login_days from select
+                .select('*, selected_title')
                 .eq('id', userId)
                 .single();
             if (error && error.code !== 'PGRST116') { throw error; }
@@ -121,7 +132,7 @@
             const defaultData = {
                  id: userId, email: userEmail, username: userEmail.split('@')[0] || `user_${userId.substring(0, 6)}`,
                  level: 1, points: 0, experience: 0, badges_count: 0, streak_days: 0,
-                 consecutive_login_days: 0, last_daily_login: null,
+                 // REMOVED: last_daily_login, consecutive_login_days initialization
                  created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
                  preferences: { dark_mode: window.matchMedia('(prefers-color-scheme: dark)').matches, language: 'cs' },
                  notifications: { email: true, study_tips: true, content_updates: true, practice_reminders: true }
@@ -129,7 +140,8 @@
             const { data: newProfile, error } = await supabase
                 .from('profiles')
                 .insert(defaultData)
-                .select('*, selected_title, last_daily_login, consecutive_login_days')
+                 // REMOVED: last_daily_login, consecutive_login_days from select
+                .select('*, selected_title')
                 .single();
             if (error) { if (error.code === '23505') { console.warn("[Profile Create] Profile likely already exists, fetching again."); return await fetchUserProfile(userId); } throw error; }
             console.log("[Profile Create] Default profile created:", newProfile);
@@ -156,72 +168,7 @@
     async function fetchRecentActivities(userId, limit = 5) { if (!supabase || !userId) { console.error("[Activities] Chybí Supabase nebo ID uživatele."); return []; } console.log(`[Activities] Načítání posledních ${limit} aktivit pro uživatele ${userId}`); try { const { data, error } = await supabase .from('activities') .select('*') .eq('user_id', userId) .order('created_at', { ascending: false }) .limit(limit); if (error) throw error; console.log(`[Activities] Načteno ${data?.length || 0} aktivit.`); return data || []; } catch (error) { console.error('[Activities] Výjimka při načítání aktivit:', error); return []; } }
     async function fetchNotifications(userId, limit = 5) { if (!supabase || !userId) { console.error("[Notifications] Chybí Supabase nebo ID uživatele."); return { unreadCount: 0, notifications: [] }; } console.log(`[Notifications] Načítání nepřečtených oznámení pro uživatele ${userId}`); try { const { data, error, count } = await supabase .from('user_notifications') .select('*', { count: 'exact' }) .eq('user_id', userId) .eq('is_read', false) .order('created_at', { ascending: false }) .limit(limit); if (error) throw error; console.log(`[Notifications] Načteno ${data?.length || 0} oznámení. Celkem nepřečtených: ${count}`); return { unreadCount: count ?? 0, notifications: data || [] }; } catch (error) { console.error("[Notifications] Výjimka při načítání oznámení:", error); return { unreadCount: 0, notifications: [] }; } }
 
-    async function handleDailyLoginCheck() {
-        if (!currentUser || !currentProfile || !supabase) { console.warn("[Login Check] Cannot perform check: Missing user, profile, or supabase client."); return; }
-        console.log("[Login Check] Checking daily login status...");
-
-        const lastLoginTimestamp = currentProfile.last_daily_login;
-        const consecutiveDays = currentProfile.consecutive_login_days || 0;
-        const currentPoints = currentProfile.points || 0;
-        const now = new Date();
-        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-        const lastLoginDate = lastLoginTimestamp ? new Date(new Date(lastLoginTimestamp).getFullYear(), new Date(lastLoginTimestamp).getMonth(), new Date(lastLoginTimestamp).getDate()) : null;
-
-        console.log(`[Login Check] Last Login Date: ${lastLoginDate}, Today: ${today}, Consecutive Days: ${consecutiveDays}`);
-
-        let newConsecutiveDays = consecutiveDays;
-        let pointsToAdd = 0;
-        let showRewardToast = false;
-        let needsDbUpdate = false;
-
-        if (!lastLoginDate || !isSameDay(lastLoginDate, today)) {
-             needsDbUpdate = true;
-             if (lastLoginDate && isYesterday(lastLoginDate, today)) {
-                 newConsecutiveDays++;
-                 pointsToAdd = DAILY_LOGIN_BASE_REWARD + (newConsecutiveDays - 1) * DAILY_LOGIN_STREAK_MULTIPLIER;
-                 console.log(`[Login Check] Consecutive login! Day ${newConsecutiveDays}, Awarding ${pointsToAdd} points.`);
-                 showRewardToast = true;
-             } else {
-                 newConsecutiveDays = 1;
-                 pointsToAdd = DAILY_LOGIN_BASE_REWARD;
-                 console.log(`[Login Check] First login today or broken streak. Awarding Day 1 reward: ${pointsToAdd} points.`);
-                 showRewardToast = true;
-             }
-         } else {
-             console.log("[Login Check] Already logged in today. No reward.");
-         }
-
-        if (needsDbUpdate && pointsToAdd > 0) {
-            try {
-                const updates = {
-                    last_daily_login: now.toISOString(),
-                    consecutive_login_days: newConsecutiveDays,
-                    points: currentPoints + pointsToAdd,
-                    updated_at: now.toISOString()
-                };
-                console.log("[Login Check] Updating profile with:", updates);
-                const { data: updatedProfileData, error } = await supabase
-                    .from('profiles')
-                    .update(updates)
-                    .eq('id', currentUser.id)
-                    .select('*, selected_title, last_daily_login, consecutive_login_days')
-                    .single();
-
-                if (error) throw error;
-
-                console.log("[Login Check] Profile updated successfully in DB.");
-                currentProfile = updatedProfileData; // Update global profile state
-
-                if (showRewardToast) {
-                    showToast(`Denní Odměna! (+${pointsToAdd} kr.)`, `Vaše série je ${newConsecutiveDays} ${newConsecutiveDays === 1 ? 'den' : 'dní'}!`, 'success', 5000);
-                }
-
-            } catch (error) {
-                console.error("[Login Check] Error updating profile after login check:", error);
-                showToast('Chyba', 'Nepodařilo se zaznamenat denní přihlášení.', 'error');
-            }
-        }
-    }
+    // REMOVED handleDailyLoginCheck function entirely
 
     async function loadDashboardData(user, profile) {
          if (!user || !profile) { showError("Chyba: Nelze načíst data bez profilu uživatele."); setLoadingState('all', false); return; }
@@ -231,10 +178,10 @@
          renderActivitySkeletons(5);
 
          try {
-             updateSidebarProfile(profile);
+             updateSidebarProfile(profile); // Update sidebar with profile data (including title)
              console.log("[MAIN] loadDashboardData: Načítání statistik, aktivit, oznámení souběžně...");
              const results = await Promise.allSettled([
-                 fetchUserStats(user.id, profile),
+                 fetchUserStats(user.id, profile), // Pass profile
                  fetchRecentActivities(user.id, 5),
                  fetchNotifications(user.id, 5)
              ]);
@@ -260,10 +207,7 @@
     // --- START: UI Update Functions ---
     function updateSidebarProfile(profile) {
         console.log("[UI Update] Aktualizace sidebaru...");
-        if (!ui.sidebarName || !ui.sidebarAvatar || !ui.sidebarUserTitle) {
-            console.warn("[UI Update] Elementy sidebaru nenalezeny.");
-            return;
-        }
+        if (!ui.sidebarName || !ui.sidebarAvatar || !ui.sidebarUserTitle) { console.warn("[UI Update] Elementy sidebaru nenalezeny."); return; }
         if (profile) {
             const firstName = profile.first_name ?? '';
             const displayName = firstName || profile.username || currentUser?.email?.split('@')[0] || 'Pilot';
@@ -276,9 +220,8 @@
             let displayTitle = 'Pilot'; // Default
             if (selectedTitleKey && allTitles && allTitles.length > 0) {
                 const foundTitle = allTitles.find(t => t.title_key === selectedTitleKey);
-                if (foundTitle && foundTitle.name) {
-                    displayTitle = foundTitle.name;
-                } else { console.warn(`[UI Update] Title with key "${selectedTitleKey}" not found.`); }
+                if (foundTitle && foundTitle.name) { displayTitle = foundTitle.name; }
+                else { console.warn(`[UI Update] Title with key "${selectedTitleKey}" not found.`); }
             } else if (selectedTitleKey) { console.warn(`[UI Update] Selected title key "${selectedTitleKey}" exists but titles not loaded.`); }
             ui.sidebarUserTitle.textContent = sanitizeHTML(displayTitle);
             ui.sidebarUserTitle.setAttribute('title', sanitizeHTML(displayTitle));
@@ -295,14 +238,14 @@
         }
     }
     function updateStatsCards(stats) { console.log("[UI Update] Aktualizace karet statistik:", stats); const statElements = { progress: ui.progressCard?.querySelector('.stat-card-value'), progressChange: ui.progressCard?.querySelector('.stat-card-change'), points: ui.pointsCard?.querySelector('.stat-card-value'), pointsChange: ui.pointsCard?.querySelector('.stat-card-change'), streak: ui.streakCard?.querySelector('.stat-card-value'), streakLongest: ui.streakCard?.querySelector('.stat-card-change') }; const cards = [ui.progressCard, ui.pointsCard, ui.streakCard]; const displayError = (cardElement) => { if (cardElement) { const content = cardElement.querySelector('.stat-card-content'); const skel = cardElement.querySelector('.loading-skeleton'); const errorState = cardElement.querySelector('.card-error-state'); if (!errorState) { const errorDiv = document.createElement('div'); errorDiv.className = 'card-error-state'; errorDiv.style.display = 'block'; errorDiv.innerHTML = `<i class="fas fa-exclamation-triangle"></i><p>Chyba</p>`; cardElement.appendChild(errorDiv); } else { errorState.style.display = 'block'; } if(content) content.style.visibility = 'hidden'; if(skel) skel.style.display = 'none'; cardElement.classList.remove('loading'); } }; if (!stats) { console.warn("[UI Update] Chybí data statistik, zobrazení chybového stavu."); cards.forEach(displayError); return; } cards.forEach(card => { if (card) { const skel = card.querySelector('.loading-skeleton'); const cont = card.querySelector('.stat-card-content'); card.querySelector('.card-error-state')?.remove(); if(skel) skel.style.display = 'none'; if(cont) cont.style.visibility = 'visible'; card.classList.remove('loading'); } }); if (statElements.progress && statElements.progressChange) { statElements.progress.textContent = `${stats.progress ?? 0}%`; const weeklyChange = stats.progress_weekly ?? 0; statElements.progressChange.classList.remove('positive', 'negative'); statElements.progressChange.innerHTML = weeklyChange > 0 ? `<i class="fas fa-arrow-up"></i> +${weeklyChange}% týdně` : weeklyChange < 0 ? `<i class="fas fa-arrow-down"></i> ${weeklyChange}% týdně` : `<i class="fas fa-minus"></i> --`; if (weeklyChange > 0) statElements.progressChange.classList.add('positive'); else if (weeklyChange < 0) statElements.progressChange.classList.add('negative'); } if (statElements.points && statElements.pointsChange) { statElements.points.textContent = stats.points ?? 0; const weeklyPoints = stats.points_weekly ?? 0; statElements.pointsChange.classList.remove('positive', 'negative'); statElements.pointsChange.innerHTML = weeklyPoints > 0 ? `<i class="fas fa-arrow-up"></i> +${weeklyPoints} týdně` : weeklyPoints < 0 ? `<i class="fas fa-arrow-down"></i> ${weeklyPoints} týdně` : `<i class="fas fa-minus"></i> --`; if (weeklyPoints > 0) statElements.pointsChange.classList.add('positive'); else if (weeklyPoints < 0) statElements.pointsChange.classList.add('negative'); } if (statElements.streak && statElements.streakLongest) { statElements.streak.textContent = stats.streak_current ?? 0; statElements.streakLongest.textContent = `MAX: ${stats.streak_longest ?? 0} dní`; statElements.streakLongest.classList.remove('positive', 'negative'); } console.log("[UI Update] Karty statistik aktualizovány."); }
-    function renderActivities(activities) { if (!ui.activityList || !ui.activityListContainer || !ui.activityListEmptyState || !ui.activityListErrorState) { console.error("[Render Activities] Chybí UI elementy."); return; } ui.activityList.innerHTML = ''; ui.activityListEmptyState.style.display = 'none'; ui.activityListErrorState.style.display = 'none'; if (activities === null) { ui.activityListErrorState.style.display = 'block'; console.log("[Render Activities] Zobrazení chybového stavu (null data)."); return; } if (activities.length === 0) { ui.activityListEmptyState.style.display = 'block'; console.log("[Render Activities] Zobrazení prázdného stavu."); return; } const fragment = document.createDocumentFragment(); activities.forEach(activity => { const visual = activityVisuals[activity.type?.toLowerCase()] || activityVisuals.default; const title = sanitizeHTML(activity.title || 'Neznámá aktivita'); const description = sanitizeHTML(activity.description || ''); const timeAgo = formatRelativeTime(activity.created_at); const item = document.createElement('div'); item.className = 'activity-item'; item.innerHTML = `<div class="activity-icon ${visual.class}"><i class="fas ${visual.icon}"></i></div><div class="activity-content"><div class="activity-title">${title}</div><div class="activity-desc">${description}</div><div class="activity-time"><i class="far fa-clock"></i> ${timeAgo}</div></div>`; fragment.appendChild(item); }); ui.activityList.appendChild(fragment); ui.activityListContainer.classList.remove('loading'); console.log(`[Render Activities] Vykresleno ${activities.length} položek.`); }
+    function renderActivities(activities) { if (!ui.activityList || !ui.activityListContainer || !ui.activityListEmptyState || !ui.activityListErrorState) { console.error("[Render Activities] Chybí UI elementy."); setLoadingState('activities', false); return; } ui.activityList.innerHTML = ''; ui.activityListEmptyState.style.display = 'none'; ui.activityListErrorState.style.display = 'none'; if (activities === null) { ui.activityListErrorState.style.display = 'block'; console.log("[Render Activities] Zobrazení chybového stavu (null data)."); setLoadingState('activities', false); return; } if (activities.length === 0) { ui.activityListEmptyState.style.display = 'block'; console.log("[Render Activities] Zobrazení prázdného stavu."); setLoadingState('activities', false); return; } const fragment = document.createDocumentFragment(); activities.forEach(activity => { const visual = activityVisuals[activity.type?.toLowerCase()] || activityVisuals.default; const title = sanitizeHTML(activity.title || 'Neznámá aktivita'); const description = sanitizeHTML(activity.description || ''); const timeAgo = formatRelativeTime(activity.created_at); const item = document.createElement('div'); item.className = 'activity-item'; item.innerHTML = `<div class="activity-icon ${visual.class}"><i class="fas ${visual.icon}"></i></div><div class="activity-content"><div class="activity-title">${title}</div><div class="activity-desc">${description}</div><div class="activity-time"><i class="far fa-clock"></i> ${timeAgo}</div></div>`; fragment.appendChild(item); }); ui.activityList.appendChild(fragment); ui.activityListContainer.classList.remove('loading'); console.log(`[Render Activities] Vykresleno ${activities.length} položek.`); setLoadingState('activities', false); }
     function renderActivitySkeletons(count = 5) { if (!ui.activityList || !ui.activityListContainer) return; ui.activityListContainer.classList.add('loading'); ui.activityList.innerHTML = ''; let skeletonHTML = '<div class="loading-placeholder">'; for (let i = 0; i < count; i++) { skeletonHTML += `<div class="skeleton-activity-item"> <div class="skeleton icon-placeholder"></div> <div style="flex-grow: 1;"> <div class="skeleton activity-line"></div> <div class="skeleton activity-line text-short"></div> <div class="skeleton activity-line-short"></div> </div> </div>`; } skeletonHTML += '</div>'; ui.activityList.innerHTML = skeletonHTML; }
     function renderNotifications(count, notifications) { console.log("[Render Notifications] Start, Počet:", count, "Oznámení:", notifications); if (!ui.notificationCount || !ui.notificationsList || !ui.noNotificationsMsg || !ui.markAllReadBtn) { console.error("[Render Notifications] Chybí UI elementy."); setLoadingState('notifications', false); return; } ui.notificationCount.textContent = count > 9 ? '9+' : (count > 0 ? String(count) : ''); ui.notificationCount.classList.toggle('visible', count > 0); if (notifications && notifications.length > 0) { ui.notificationsList.innerHTML = notifications.map(n => { const iconMap = { info: 'fa-info-circle', success: 'fa-check-circle', warning: 'fa-exclamation-triangle', danger: 'fa-exclamation-circle', badge: 'fa-medal', level_up: 'fa-angle-double-up' }; const iconClass = iconMap[n.type] || 'fa-info-circle'; const typeClass = n.type || 'info'; const isReadClass = n.is_read ? 'is-read' : ''; const linkAttr = n.link ? `data-link="${sanitizeHTML(n.link)}"` : ''; return `<div class="notification-item ${isReadClass}" data-id="${n.id}" ${linkAttr}> ${!n.is_read ? '<span class="unread-dot"></span>' : ''} <div class="notification-icon ${typeClass}"><i class="fas ${iconClass}"></i></div> <div class="notification-content"> <div class="notification-title">${sanitizeHTML(n.title)}</div> <div class="notification-message">${sanitizeHTML(n.message)}</div> <div class="notification-time">${formatRelativeTime(n.created_at)}</div> </div> </div>`; }).join(''); ui.noNotificationsMsg.style.display = 'none'; ui.notificationsList.style.display = 'block'; ui.markAllReadBtn.disabled = count === 0; } else { ui.notificationsList.innerHTML = ''; ui.noNotificationsMsg.style.display = 'block'; ui.notificationsList.style.display = 'none'; ui.markAllReadBtn.disabled = true; } console.log("[Render Notifications] Hotovo"); setLoadingState('notifications', false); }
     function renderNotificationSkeletons(count = 2) { if (!ui.notificationsList || !ui.noNotificationsMsg) return; let skeletonHTML = ''; for (let i = 0; i < count; i++) { skeletonHTML += `<div class="notification-item skeleton"><div class="notification-icon skeleton" style="background-color: var(--skeleton-bg);"></div><div class="notification-content"><div class="skeleton" style="height: 16px; width: 70%; margin-bottom: 6px;"></div><div class="skeleton" style="height: 12px; width: 90%;"></div><div class="skeleton" style="height: 10px; width: 40%; margin-top: 6px;"></div></div></div>`; } ui.notificationsList.innerHTML = skeletonHTML; ui.noNotificationsMsg.style.display = 'none'; ui.notificationsList.style.display = 'block'; }
     // --- END: UI Update ---
 
     // --- START: Notification Logic ---
-    async function markNotificationRead(notificationId) { console.log("[FUNC] markNotificationRead: Označení ID:", notificationId); if (!currentUser || !notificationId) return false; try { const { error } = await supabase.from('user_notifications').update({ is_read: true }).eq('user_id', currentUser.id).eq('id', notificationId); if (error) throw error; console.log("[FUNC] markNotificationRead: Úspěch pro ID:", notificationId); return true; } catch (error) { console.error("[FUNC] markNotificationRead: Chyba:", error); showToast('Chyba', 'Nepodařilo se označit oznámení jako přečtené.', 'error'); return false; } }
+    async function markNotificationRead(notificationId) { console.log("[FUNC] markNotificationRead: Označení ID:", notificationId); if (!currentUser || !notificationId || !supabase) return false; try { const { error } = await supabase.from('user_notifications').update({ is_read: true }).eq('user_id', currentUser.id).eq('id', notificationId); if (error) throw error; console.log("[FUNC] markNotificationRead: Úspěch pro ID:", notificationId); return true; } catch (error) { console.error("[FUNC] markNotificationRead: Chyba:", error); showToast('Chyba', 'Nepodařilo se označit oznámení jako přečtené.', 'error'); return false; } }
     async function markAllNotificationsRead() { console.log("[FUNC] markAllNotificationsRead: Start pro uživatele:", currentUser?.id); if (!currentUser || !ui.markAllReadBtn || !supabase) return; setLoadingState('notifications', true); ui.markAllReadBtn.disabled = true; ui.markAllReadBtn.textContent = 'MAŽU...'; try { const { error } = await supabase.from('user_notifications').update({ is_read: true }).eq('user_id', currentUser.id).eq('is_read', false); if (error) throw error; console.log("[FUNC] markAllNotificationsRead: Úspěch"); const { unreadCount, notifications } = await fetchNotifications(currentUser.id, 5); renderNotifications(unreadCount, notifications); showToast('SIGNÁLY VYMAZÁNY', 'Všechna oznámení byla označena jako přečtená.', 'success'); } catch (error) { console.error("[FUNC] markAllNotificationsRead: Chyba:", error); showToast('CHYBA PŘENOSU', 'Nepodařilo se označit všechna oznámení.', 'error'); } finally { setLoadingState('notifications', false); if(ui.markAllReadBtn) ui.markAllReadBtn.textContent = 'Vymazat vše'; } }
     // --- END: Notification Logic ---
 
@@ -336,10 +279,7 @@
     // --- START THE APP ---
     async function initializeApp() {
         console.log("[INIT Dashboard] initializeApp: Start");
-        if (!initializeSupabase()) {
-            console.error("[INIT Dashboard] Supabase initialization failed. Aborting.");
-            return;
-        }
+        if (!initializeSupabase()) { console.error("[INIT Dashboard] Supabase initialization failed. Aborting."); return; }
         setupUIEventListeners();
         applyInitialSidebarState();
 
@@ -377,9 +317,10 @@
                     allTitles = [];
                 }
 
-                await handleDailyLoginCheck(); // Check for daily login rewards
+                // Daily login check REMOVED
+                // await handleDailyLoginCheck();
 
-                updateSidebarProfile(currentProfile); // Update sidebar with potentially updated profile
+                updateSidebarProfile(currentProfile); // Update sidebar
 
                 await loadDashboardData(currentUser, currentProfile); // Load main dashboard data
 
@@ -405,7 +346,7 @@
             else { showError(`Chyba inicializace: ${error.message}`, true); }
             if (ui.mainContent) ui.mainContent.style.display = 'none';
         }
-    }
+    } // End of initializeApp
 
     // Call initializeApp after the DOM is fully loaded
     document.addEventListener('DOMContentLoaded', initializeApp);
