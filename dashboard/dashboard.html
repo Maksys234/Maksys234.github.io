@@ -9,6 +9,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/css/tooltipster.bundle.min.css">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script> <script src="https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/js/tooltipster.bundle.min.js"></script>
+
     <link rel="stylesheet" href="dashboard.css">
 </head>
 <body class="dark">
@@ -46,7 +49,7 @@
                 <div class="user-name" id="sidebar-name">Načítání...</div>
                 <div class="user-role" id="sidebar-user-title" title="Váš titul">Pilot</div> </div>
         </div>
-        <div class="sidebar-footer"> &copy; <span id="currentYearSidebar">2025</span> Justax Systems </div>
+        <div class="sidebar-footer"> &copy; <span id="currentYearFooter">2025</span> Justax Systems </div>
     </aside>
 
     <main id="main-content">
@@ -63,13 +66,11 @@
                       <h1 id="dashboard-title">Nástěnka // STATUS</h1>
                  </div>
                 <div class="header-actions">
-                    <button class="refresh-btn" id="refresh-data-btn" title="Obnovit data">
-                        <i class="fas fa-sync-alt"></i>
+                    <button class="refresh-btn btn-tooltip" id="refresh-data-btn" title="Obnovit data"> <i class="fas fa-sync-alt"></i>
                         <span class="refresh-text">RELOAD</span>
                     </button>
                     <div class="notifications">
-                        <div class="notification-bell" id="notification-bell" title="Oznámení">
-                             <i class="far fa-bell"></i>
+                        <div class="notification-bell btn-tooltip" id="notification-bell" title="Oznámení"> <i class="far fa-bell"></i>
                              <span class="notification-badge" id="notification-count">0</span>
                         </div>
                         <div class="notifications-dropdown-wrapper" id="notifications-dropdown">
@@ -104,6 +105,25 @@
                      </div>
                  </section>
 
+                 <section class="daily-reward-section card" id="daily-reward-card" data-animate style="--animation-order: 1; display: none;">
+                    <div class="loading-overlay hidden"> <div class="loading-spinner"></div>
+                    </div>
+                    <div class="daily-reward-content">
+                        <div class="daily-reward-icon">
+                            <i class="fas fa-gift"></i>
+                        </div>
+                        <div class="daily-reward-info">
+                            <h3 class="daily-reward-title">Denní Odměna za Přihlášení</h3>
+                            <p class="daily-reward-day" id="daily-reward-day">Den 1</p>
+                            <p class="daily-reward-amount-info">
+                                Odměna: <strong id="daily-reward-amount">100</strong> kr.
+                            </p>
+                        </div>
+                        <button class="btn btn-success claim-reward-btn" id="claim-reward-btn" disabled>
+                            <i class="fas fa-gift"></i> Vyzvednout
+                        </button>
+                    </div>
+                </section>
                 <section class="stats-section">
                     <h2 class="section-title" data-animate style="--animation-order: 1;"><i class="fas fa-chart-pie"></i>BOJOVÉ STATISTIKY</h2>
                     <div class="stat-cards">
@@ -150,15 +170,17 @@
                 <section class="activity-section">
                     <h2 class="section-title" data-animate style="--animation-order: 10;"><i class="fas fa-history"></i>POSLEDNÍ ZÁZNAMY V LOGU</h2>
                     <div class="activity-list-container card loading" id="activity-list-container" data-animate style="--animation-order: 11;">
+                        <div class="loading-placeholder">
+                             </div>
                         <div class="activity-list" id="activity-list">
-                            <div class="empty-state" style="display: none;">
-                                <i class="fas fa-satellite-dish"></i><p>LOG PRÁZDNÝ // ŽÁDNÉ AKTIVITY</p>
                              </div>
-                             <div class="card-error-state" style="display: none;">
-                                 <i class="fas fa-exclamation-triangle"></i><p>CHYBA // NELZE NAČÍST LOG</p>
-                             </div>
+                        <div class="empty-state" style="display: none;">
+                             <i class="fas fa-satellite-dish"></i><p>LOG PRÁZDNÝ // ŽÁDNÉ AKTIVITY</p>
                         </div>
-                         <a href="/dashboard/pokrok.html" class="view-all-link">Zobrazit Kompletní LOG <i class="fas fa-angle-double-right"></i></a>
+                        <div class="card-error-state" style="display: none;">
+                            <i class="fas fa-exclamation-triangle"></i><p>CHYBA // NELZE NAČÍST LOG</p>
+                        </div>
+                        <a href="/dashboard/pokrok.html" class="view-all-link">Zobrazit Kompletní LOG <i class="fas fa-angle-double-right"></i></a>
                      </div>
                 </section>
             </div>
