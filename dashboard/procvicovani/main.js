@@ -1,5 +1,5 @@
 // dashboard/procvicovani/main.js
-// Version: 2.1 (Fixes handleScroll is not defined error)
+// Version: 2.2 (Fixes Supabase query, uses corrected selectors, removes time stat)
 (function() {
 	'use strict';
 
@@ -21,7 +21,6 @@
         mainContent: document.getElementById('main-content'),
         globalError: document.getElementById('global-error'),
         offlineBanner: document.getElementById('offline-banner'),
-        // Sidebar elements
 		sidebarOverlay: document.getElementById('sidebar-overlay'),
 		sidebar: document.getElementById('sidebar'),
 		mainMobileMenuToggle: document.getElementById('main-mobile-menu-toggle'),
@@ -32,7 +31,6 @@
         sidebarUserTitle: document.getElementById('sidebar-user-title'),
 		currentYearSidebar: document.getElementById('currentYearSidebar'),
 		currentYearFooter: document.getElementById('currentYearFooter'),
-		// Header elements
 		dashboardHeader: document.querySelector('.dashboard-header'),
 		refreshDataBtn: document.getElementById('refresh-data-btn'),
 		notificationBell: document.getElementById('notification-bell'),
@@ -41,22 +39,17 @@
 		notificationsList: document.getElementById('notifications-list'),
 		noNotificationsMsg: document.getElementById('no-notifications-msg'),
 		markAllReadBtn: document.getElementById('mark-all-read'),
-		// Page specific elements
 		tabsWrapper: document.querySelector('.tabs-wrapper'),
 		contentTabs: document.querySelectorAll('.content-tab'),
 		tabContents: document.querySelectorAll('.tab-content'),
-        // **Celkový Přehled (Stats/Overview) Elements**
-        statsCardsContainer: document.getElementById('stats-cards'), // Container for stats cards
-        statsProgressCard: document.getElementById('stats-card-progress'),
-        statsAccuracyCard: document.getElementById('stats-card-accuracy'),
-        statsTimeCard: document.getElementById('stats-card-time'),
-        statsCompletedCard: document.getElementById('stats-card-completed'),
-        // **Rychlé Akce (Quick Actions) Elements**
+        // **Celkový Přehled (Stats/Overview) Elements** - Using assumed IDs from dashboard.html structure
+        statsCardsContainer: document.getElementById('stats-cards'), // Main container for stats
+        statsProgressCard: document.getElementById('progress-card'), // Card for Progress
+        statsPointsCard: document.getElementById('points-card'),     // Card for Points
+        statsStreakCard: document.getElementById('streak-card'),     // Card for Streak
+        statsExercisesCard: document.getElementById('exercises-card'), // Card for Exercises (Added Assumption)
+        // **Rychlé Akce (Quick Actions) Elements** - Using assumed container ID
         shortcutsGrid: document.getElementById('shortcuts-grid'),
-        startMathBtn: document.getElementById('start-math-btn'),
-        startLangBtn: document.getElementById('start-lang-btn'),
-        startRandomBtn: document.getElementById('start-random-btn'),
-        viewHistoryBtn: document.getElementById('view-history-btn'),
         // Content Area for Exercises/Tests
         exerciseListContainer: document.getElementById('exercise-list-container'),
         exerciseList: document.getElementById('exercise-list'),
@@ -111,7 +104,6 @@
          if (section === 'exercises' || section === 'all') {
              if (ui.exerciseListContainer) {
                  ui.exerciseListContainer.classList.toggle('loading', isLoadingFlag);
-                 // Add skeleton logic here if needed
              }
          }
          // Handle notifications loading
@@ -128,24 +120,14 @@
      }
 	 const initMouseFollower = () => { const follower = ui.mouseFollower; if (!follower || window.innerWidth <= 576) return; let hasMoved = false; const updatePosition = (event) => { if (!hasMoved) { document.body.classList.add('mouse-has-moved'); hasMoved = true; } requestAnimationFrame(() => { follower.style.left = `${event.clientX}px`; follower.style.top = `${event.clientY}px`; }); }; window.addEventListener('mousemove', updatePosition, { passive: true }); document.body.addEventListener('mouseleave', () => { if (hasMoved) follower.style.opacity = '0'; }); document.body.addEventListener('mouseenter', () => { if (hasMoved) follower.style.opacity = '1'; }); window.addEventListener('touchstart', () => { if(follower) follower.style.display = 'none'; }, { passive: true, once: true }); };
 	 const initScrollAnimations = () => { const animatedElements = document.querySelectorAll('.main-content-wrapper [data-animate]'); if (!animatedElements.length || !('IntersectionObserver' in window)) return; const observer = new IntersectionObserver((entries, observerInstance) => { entries.forEach(entry => { if (entry.isIntersecting) { entry.target.classList.add('animated'); observerInstance.unobserve(entry.target); } }); }, { threshold: 0.1, rootMargin: "0px 0px -30px 0px" }); animatedElements.forEach(element => observer.observe(element)); };
-     // **FIX:** Define handleScroll or initHeaderScrollDetection
      const initHeaderScrollDetection = () => {
          let lastScrollY = window.scrollY;
-         const mainEl = ui.mainContent; // Use cached element
-         if (!mainEl) {
-             console.warn("Main content element not found for scroll detection.");
-             return;
-         }
-         const handleScroll = () => {
-             const currentScrollY = mainEl.scrollTop;
-             document.body.classList.toggle('scrolled', currentScrollY > 10);
-             lastScrollY = currentScrollY <= 0 ? 0 : currentScrollY;
-         };
+         const mainEl = ui.mainContent;
+         if (!mainEl) { console.warn("Main content element not found for scroll detection."); return; }
+         const handleScroll = () => { const currentScrollY = mainEl.scrollTop; document.body.classList.toggle('scrolled', currentScrollY > 10); lastScrollY = currentScrollY <= 0 ? 0 : currentScrollY; };
          mainEl.addEventListener('scroll', handleScroll, { passive: true });
-         // Initial check in case page loads scrolled
-         if (mainEl.scrollTop > 10) {
-             document.body.classList.add('scrolled');
-         }
+         if (mainEl.scrollTop > 10) { document.body.classList.add('scrolled'); }
+         console.log("Header scroll detection initialized.");
      };
 	 const updateCopyrightYear = () => { const year = new Date().getFullYear(); if (ui.currentYearSidebar) ui.currentYearSidebar.textContent = year; if (ui.currentYearFooter) ui.currentYearFooter.textContent = year; };
 	 function applyInitialSidebarState() { const savedState = localStorage.getItem(SIDEBAR_STATE_KEY); const shouldBeCollapsed = savedState === 'collapsed'; if (shouldBeCollapsed) { document.body.classList.add('sidebar-collapsed'); } else { document.body.classList.remove('sidebar-collapsed'); } const icon = ui.sidebarToggleBtn?.querySelector('i'); if (icon) { icon.className = shouldBeCollapsed ? 'fas fa-chevron-right' : 'fas fa-chevron-left'; } }
@@ -162,57 +144,51 @@
      async function markAllNotificationsRead() { if (!currentUser || !ui.markAllReadBtn || !supabase) return; setLoadingState('notifications', true); ui.markAllReadBtn.disabled = true; try { const { error } = await supabase.from('user_notifications').update({ is_read: true }).eq('user_id', currentUser.id).eq('is_read', false); if (error) throw error; const { unreadCount, notifications } = await fetchNotifications(currentUser.id, NOTIFICATION_FETCH_LIMIT); renderNotifications(unreadCount, notifications); showToast('SIGNÁLY VYMAZÁNY', 'Všechna oznámení byla označena jako přečtená.', 'success'); } catch (error) { console.error("[FUNC] markAllNotificationsRead: Error:", error); showToast('CHYBA PŘENOSU', 'Nepodařilo se označit všechna oznámení.', 'error'); const currentCount = parseInt(ui.notificationCount?.textContent?.replace('+', '') || '0'); ui.markAllReadBtn.disabled = currentCount === 0; } finally { setLoadingState('notifications', false); } }
 
      /**
-      * Fetches practice statistics for the user.
-      * Replace this with actual Supabase query for user_exercises or similar table.
+      * Fetches practice statistics for the user. (Corrected Version 2.2)
       */
      async function fetchPracticeStats(userId) {
         if (!supabase || !userId) return null;
         console.log(`[Practice Stats] Fetching for user ${userId}...`);
         try {
-            // Fetch completed exercises count and average score from profiles (or user_stats if available)
+            // Fetch basic user info (points, exercises completed from profile)
             const { data: profileData, error: profileError } = await supabase
                 .from('profiles')
-                .select('progress, completed_exercises, points') // Assuming progress and points are relevant
+                .select('points, completed_exercises, level') // Select relevant fields from profiles
                 .eq('id', userId)
                 .single();
 
-            if (profileError && profileError.code !== 'PGRST116') throw profileError;
+            if (profileError && profileError.code !== 'PGRST116') {
+                console.error("[Practice Stats] Error fetching profile data:", profileError);
+                // Don't throw, try to continue with other data if possible
+            }
 
-            // Example: Get average score from past diagnostic tests if relevant
-             const { data: diagnostics, error: diagError } = await supabase
-                 .from('user_diagnostics')
-                 .select('total_score, total_questions')
-                 .eq('user_id', userId);
+            // Fetch user exercise details (status, score)
+            const { data: exercises, error: exercisesError } = await supabase
+                .from('user_exercises')
+                .select('status, score') // Select only needed fields
+                .eq('user_id', userId);
 
-             if (diagError) console.warn("Could not fetch diagnostic data for accuracy", diagError);
+            if (exercisesError) {
+                console.error("[Practice Stats] Error fetching user_exercises:", exercisesError);
+                // Don't throw, try to calculate based on profile if possible
+            }
 
-             let avgAccuracy = 0;
-             if (diagnostics && diagnostics.length > 0) {
-                 const validDiags = diagnostics.filter(d => d.total_questions > 0);
-                 if (validDiags.length > 0) {
-                    avgAccuracy = Math.round(validDiags.reduce((sum, d) => sum + (d.total_score / d.total_questions), 0) / validDiags.length * 100);
-                 }
-             }
+            const completedExercisesData = exercises?.filter(ex => ex.status === 'completed' && ex.score !== null) ?? [];
+            const completedCount = completedExercisesData.length; // More reliable count
+            const averageAccuracy = completedCount > 0
+                ? Math.round(completedExercisesData.reduce((sum, ex) => sum + (ex.score ?? 0), 0) / completedCount)
+                : 0; // Assume score is out of 100 or needs scaling
 
-             // Example: Fetch total time spent from an 'activities' log (like in pokrok.js)
-             const { data: timeData, error: timeError } = await supabase
-                 .from('activities') // Assuming this table exists and logs time
-                 .select('duration_minutes') // Assuming duration_minutes exists
-                 .eq('user_id', userId)
-                 .in('type', ['exercise', 'test', 'lesson']); // Filter relevant types
-
-             if (timeError) console.warn("Could not fetch activity time data", timeError);
-
-             const totalTimeMinutes = timeData ? timeData.reduce((sum, act) => sum + (act.duration_minutes || 0), 0) : 0;
+            // Note: Total Time calculation removed as there's no reliable source in provided tables.
 
             const stats = {
-                totalProgress: profileData?.progress ?? 0,
-                averageAccuracy: avgAccuracy, // Use calculated accuracy
-                totalTimeMinutes: totalTimeMinutes,
-                completedExercisesCount: profileData?.completed_exercises ?? 0,
+                totalProgress: profileData?.level ?? 1, // Use level as a proxy for progress? Or fetch from user_stats if available
+                averageAccuracy: averageAccuracy,
+                totalTimeMinutes: '?', // Indicate that time is unavailable
+                completedExercisesCount: profileData?.completed_exercises ?? completedCount, // Prefer profile count if available, else use calculated
             };
-            console.log("[Practice Stats] Fetched stats:", stats);
-            userPracticeStats = stats; // Store fetched stats
+            console.log("[Practice Stats] Fetched/calculated stats:", stats);
+            userPracticeStats = stats;
             return stats;
 
         } catch (error) {
@@ -249,84 +225,109 @@
 	 function renderNotificationSkeletons(count = 2) { if (!ui.notificationsList || !ui.noNotificationsMsg) return; let skeletonHTML = ''; for (let i = 0; i < count; i++) { skeletonHTML += `<div class="notification-item skeleton"><div class="notification-icon skeleton" style="background-color: var(--skeleton-bg);"></div><div class="notification-content"><div class="skeleton" style="height: 16px; width: 70%; margin-bottom: 6px;"></div><div class="skeleton" style="height: 12px; width: 90%;"></div><div class="skeleton" style="height: 10px; width: 40%; margin-top: 6px;"></div></div></div>`; } ui.notificationsList.innerHTML = skeletonHTML; ui.noNotificationsMsg.style.display = 'none'; ui.notificationsList.style.display = 'block'; }
 
      /**
-      * Renders the "Celkový Přehled" (Overall Overview) section.
+      * Renders the "Celkový Přehled" (Overall Overview) section. (Corrected Version 2.2)
+      * Uses corrected card IDs based on dashboard.html structure.
       */
      function renderOverviewStats(stats) {
-         if (!ui.statsCardsContainer) return;
+         if (!ui.statsCardsContainer) { console.warn("[Overview Stats] Stats container #stats-cards not found."); return; }
          setLoadingState('stats', false);
 
+         // **Using IDs assumed from dashboard.html structure**
          const statCards = {
-             progress: ui.statsCardsContainer.querySelector('#stats-card-progress'),
-             accuracy: ui.statsCardsContainer.querySelector('#stats-card-accuracy'),
-             time: ui.statsCardsContainer.querySelector('#stats-card-time'),
-             completed: ui.statsCardsContainer.querySelector('#stats-card-completed'),
+             progress: ui.statsCardsContainer.querySelector('#progress-card'),
+             accuracy: ui.statsCardsContainer.querySelector('#points-card'), // Assuming points card shows accuracy/score
+             time: ui.statsCardsContainer.querySelector('#streak-card'),     // Assuming streak card shows time (or remove time)
+             completed: ui.statsCardsContainer.querySelector('#exercises-card'), // Assuming a 4th card for exercises
          };
 
-         // Helper to safely update card content, reused from previous code
-         const updateCard = (card, title, value, description, footer, iconClass = 'fa-question-circle', badge = null) => {
-            if (!card) { console.warn(`Card element for "${title}" not found`); return; }
-            card.classList.remove('loading'); // Remove loading state from the card
+         const updateCard = (card, titleHTML, valueHTML, descriptionHTML, footerHTML, iconClass = 'fa-question-circle', badge = null) => {
+            if (!card) { console.warn(`[Overview Stats Update] Card element not found for title "${titleHTML}".`); return; }
+            card.classList.remove('loading');
             let badgeHTML = badge ? `<span class="card-badge ${badge.class}">${badge.text}</span>` : '';
+            // Using the structure from dashboard.css/html for .dashboard-card
             card.innerHTML = `
                 <div class="loading-skeleton" style="display: none;"> ... </div>
                 <div class="card-header">
-                    <h3 class="card-title">${title}</h3>
+                    <h3 class="card-title">${titleHTML}</h3>
                     ${badgeHTML}
                 </div>
                 <div class="card-content">
-                    <div class="card-value">${value}</div>
-                    <div class="card-description">${description}</div>
+                    <div class="card-value">${valueHTML}</div>
+                    <div class="card-description">${descriptionHTML}</div>
                 </div>
-                <div class="card-footer ${footer.class || ''}"><i class="fas ${footer.icon || 'fa-info-circle'}"></i> ${footer.text}</div>
+                <div class="card-footer ${footerHTML.class || ''}">${footerHTML.text}</div>
             `;
          };
 
          if (!stats) { // Handle error/no data case
-             console.warn("[Overview Stats] No stats data provided. Rendering error state.");
-             updateCard(statCards.progress, '<i class="fas fa-chart-line"></i> Celkový pokrok', '<i class="fas fa-exclamation-triangle"></i> Chyba', 'Nelze načíst data', { text: 'Zkuste obnovit', class: 'negative', icon: 'fa-redo'});
-             updateCard(statCards.accuracy, '<i class="fas fa-bullseye"></i> Průměrná přesnost', '<i class="fas fa-exclamation-triangle"></i> Chyba', 'Nelze načíst data', { text: 'Zkuste obnovit', class: 'negative', icon: 'fa-redo'});
-             updateCard(statCards.time, '<i class="fas fa-stopwatch"></i> Celkový čas', '<i class="fas fa-exclamation-triangle"></i> Chyba', 'Nelze načíst data', { text: 'Zkuste obnovit', class: 'negative', icon: 'fa-redo'});
-             updateCard(statCards.completed, '<i class="fas fa-check-double"></i> Dokončeno cvičení', '<i class="fas fa-exclamation-triangle"></i> Chyba', 'Nelze načíst data', { text: 'Zkuste obnovit', class: 'negative', icon: 'fa-redo'});
+             console.warn("[Overview Stats] No stats data. Rendering error state.");
+             updateCard(statCards.progress, '<i class="fas fa-tasks"></i> Celkový pokrok', '<i class="fas fa-exclamation-triangle"></i> Err', 'Nelze načíst', { text: '<i class="fas fa-redo"></i> Zkusit znovu', class: 'negative'});
+             updateCard(statCards.accuracy, '<i class="fas fa-bullseye"></i> Prům. přesnost', '<i class="fas fa-exclamation-triangle"></i> Err', 'Nelze načíst', { text: '<i class="fas fa-redo"></i> Zkusit znovu', class: 'negative'});
+             updateCard(statCards.time, '<i class="fas fa-stopwatch"></i> Celkový čas', '<i class="fas fa-ban"></i> N/A', 'Čas není sledován', { text: '<i class="fas fa-info-circle"></i>--', class: ''}); // Indicate time is N/A
+             updateCard(statCards.completed, '<i class="fas fa-check-double"></i> Dokončeno cvičení', '<i class="fas fa-exclamation-triangle"></i> Err', 'Nelze načíst', { text: '<i class="fas fa-redo"></i> Zkusit znovu', class: 'negative'});
              return;
          }
 
-         // Populate cards with actual data
-         updateCard(statCards.progress, '<i class="fas fa-chart-line"></i> Celkový pokrok', `${stats.totalProgress}%`, 'Průměr ze všech cvičení', { text: 'Na základě vašeho profilu', icon: 'fa-user-check' });
-         updateCard(statCards.accuracy, '<i class="fas fa-bullseye"></i> Průměrná přesnost', `${stats.averageAccuracy}%`, 'Prům. skóre v dokončených úlohách', { text: 'Vyšší je lepší', icon: 'fa-thumbs-up'}, stats.averageAccuracy >= 80 ? { text: 'Výborné', class: 'success'} : stats.averageAccuracy >= 60 ? { text: 'Dobré', class: 'info'} : { text: 'Zlepšit', class: 'warning'} );
-         updateCard(statCards.time, '<i class="fas fa-stopwatch"></i> Celkový čas', `${stats.totalTimeMinutes} min`, 'Čas strávený procvičováním', { text: 'Souhrn všech aktivit', icon: 'fa-hourglass-half' });
-         updateCard(statCards.completed, '<i class="fas fa-check-double"></i> Dokončeno cvičení', `${stats.completedExercisesCount}`, 'Počet úspěšně dokončených cvičení', { text: 'Včetně testů a úloh', icon: 'fa-tasks' });
+         // Populate cards with actual data (Adapt based on available stats)
+         const progress = stats.totalProgress || 0; // Use level or profile progress?
+         updateCard(statCards.progress, '<i class="fas fa-chart-line"></i> Pokrok (Úroveň)', `${progress}`, 'Aktuální úroveň uživatele', { text: 'Vyšší je lepší', icon: 'fa-user-check', class: 'positive'});
+
+         const accuracy = stats.averageAccuracy || 0;
+         updateCard(statCards.accuracy, '<i class="fas fa-bullseye"></i> Prům. přesnost', `${accuracy}%`, 'Prům. skóre v úlohách', { text: 'Na základě dokončených úloh', icon: 'fa-history'}, accuracy >= 80 ? { text: 'Výborné', class: 'success'} : accuracy >= 60 ? { text: 'Dobré', class: 'info'} : { text: 'Zlepšit', class: 'warning'} );
+
+         // Time card is now N/A
+         updateCard(statCards.time, '<i class="fas fa-stopwatch"></i> Celkový čas', '<i class="fas fa-ban"></i> N/A', 'Čas cvičení není sledován', { text: '<i class="fas fa-info-circle"></i> --', class: ''});
+
+         const completedCount = stats.completedExercisesCount || 0;
+         updateCard(statCards.completed, '<i class="fas fa-check-double"></i> Dokončená cvičení', `${completedCount}`, 'Počet zvládnutých cvičení', { text: 'Celkový počet', icon: 'fa-tasks' });
 
          console.log("[Overview Stats] Stats cards rendered.");
      }
 
      /**
-      * Sets up the "Rychlé Akce" (Quick Actions) section.
+      * Sets up the "Rychlé Akce" (Quick Actions) section. (Corrected Version 2.2)
+      * Uses data-action attributes assumed from dashboard.html structure.
       */
      function setupQuickActions() {
-         if (!ui.shortcutsGrid) return;
+         if (!ui.shortcutsGrid) { console.warn("[Quick Actions] Shortcuts grid #shortcuts-grid not found."); return; }
          setLoadingState('shortcuts', false);
 
          // Remove loading class from skeleton cards first
           ui.shortcutsGrid.querySelectorAll('.shortcut-card').forEach(card => card.classList.remove('loading'));
 
          // Function to update a shortcut card
-         const updateShortcut = (btnElement, href, iconClass, title, description) => {
-             if (!btnElement) { console.warn(`Shortcut element for "${title}" not found.`); return; }
+         const updateShortcut = (action, href, iconClass, title, description) => {
+             const btnElement = ui.shortcutsGrid.querySelector(`[data-action="${action}"]`);
+             if (!btnElement) { console.warn(`[Quick Actions] Shortcut element with data-action="${action}" not found.`); return; }
              const iconEl = btnElement.querySelector('.shortcut-icon i');
              const titleEl = btnElement.querySelector('.shortcut-title');
              const descEl = btnElement.querySelector('.shortcut-desc');
 
-             btnElement.href = href; // Set the link destination
+             // Set href for <a> tags, or add click listener for other elements
+             if (btnElement.tagName === 'A') {
+                 btnElement.href = href;
+             } else {
+                 btnElement.addEventListener('click', () => {
+                     if (href.startsWith('/')) {
+                         window.location.href = href;
+                     } else {
+                          // Handle non-link actions if necessary
+                          console.log(`Action "${action}" triggered.`);
+                          showToast('Info', `Akce "${title}" zatím není plně implementována.`, 'info');
+                     }
+                 });
+             }
+
              if (iconEl) iconEl.className = `fas ${iconClass}`;
              if (titleEl) titleEl.textContent = title;
              if (descEl) descEl.textContent = description;
          };
 
-         // Update each shortcut card
-         updateShortcut(ui.shortcutsGrid.querySelector('[data-action="start-math"]'), 'vyuka/vyuka.html?topic=matematika', 'fa-calculator', 'Procvičit Matematiku', 'Spusťte cvičení zaměřené na matematiku.');
-         updateShortcut(ui.shortcutsGrid.querySelector('[data-action="start-lang"]'), 'vyuka/vyuka.html?topic=jazyky', 'fa-language', 'Procvičit Jazyky', 'Zaměřte se na český jazyk a gramatiku.');
-         updateShortcut(ui.shortcutsGrid.querySelector('[data-action="start-random"]'), 'vyuka/vyuka.html?topic=random', 'fa-random', 'Náhodné Cvičení', 'Spusťte náhodně vybrané cvičení.');
-         updateShortcut(ui.shortcutsGrid.querySelector('[data-action="view-history"]'), '/dashboard/pokrok.html', 'fa-history', 'Historie Cvičení', 'Prohlédněte si své předchozí výsledky.');
+         // Update each shortcut card based on assumed data-action attributes
+         updateShortcut('start-math', 'vyuka/vyuka.html?topic=matematika', 'fa-calculator', 'Procvičit Matematiku', 'Spusťte cvičení zaměřené na matematiku.');
+         updateShortcut('start-lang', 'vyuka/vyuka.html?topic=jazyky', 'fa-language', 'Procvičit Jazyky', 'Zaměřte se na český jazyk a gramatiku.');
+         updateShortcut('start-random', '#', 'fa-random', 'Náhodné Cvičení', 'Spusťte náhodně vybrané cvičení.'); // '#' or JS function
+         updateShortcut('view-history', '/dashboard/pokrok.html', 'fa-history', 'Historie Cvičení', 'Prohlédněte si své předchozí výsledky.');
 
          console.log("[Quick Actions] Setup complete.");
      }
@@ -335,9 +336,11 @@
       * Renders the list of available exercises (Placeholder).
       */
      function renderExerciseList(exercises) {
-         // Placeholder - implement if needed later
          console.log("[Exercise List] Rendering is currently a placeholder.");
          setLoadingState('exercises', false);
+         if (ui.exerciseList) {
+             ui.exerciseList.innerHTML = '<p class="empty-state" style="display:block; border:none; padding: 2rem;">Seznam cvičení bude dostupný brzy.</p>';
+         }
      }
 	 // --- END: UI Update Functions ---
 
@@ -351,7 +354,7 @@
 		 if (ui.sidebarToggleBtn) ui.sidebarToggleBtn.addEventListener('click', toggleSidebar);
 		 document.querySelectorAll('.sidebar-link').forEach(link => { link.addEventListener('click', () => { if (window.innerWidth <= 992) closeMenu(); }); });
 		 // Refresh
-		 if (ui.refreshDataBtn) ui.refreshDataBtn.addEventListener('click', () => loadPageData(true)); // Pass true to force refresh
+		 if (ui.refreshDataBtn) ui.refreshDataBtn.addEventListener('click', () => loadPageData(true));
 		 // Notifications
 		 if (ui.notificationBell) { ui.notificationBell.addEventListener('click', (event) => { event.stopPropagation(); ui.notificationsDropdown?.classList.toggle('active'); }); }
 		 if (ui.markAllReadBtn) { ui.markAllReadBtn.addEventListener('click', markAllNotificationsRead); }
@@ -372,8 +375,8 @@
 		 // Online/Offline
 		 window.addEventListener('online', updateOnlineStatus);
 		 window.addEventListener('offline', updateOnlineStatus);
-		 // Scroll
-		 if (ui.mainContent) ui.mainContent.addEventListener('scroll', initHeaderScrollDetection, { passive: true }); // **FIX**: Call initHeaderScrollDetection which defines handleScroll
+         // Scroll - Call initHeaderScrollDetection once, not as the listener
+         // initHeaderScrollDetection(); // Moved to initializeApp
 		 console.log("[SETUP] Event listeners set up.");
 	 }
 	 // --- END: Event Listener Setup ---
@@ -381,47 +384,38 @@
 	// --- START: Main Application Logic ---
 	 async function loadPageData(forceRefresh = false) {
 		 if (!currentUser || !currentProfile || !supabase) { showError("Chyba: Uživatel není přihlášen nebo chybí spojení."); setLoadingState('all', false); return; }
-		 if (Object.values(isLoading).some(s => s && s !== isLoading.page && s !== isLoading.notifications) && !forceRefresh) { console.log("[LoadPageData] Skipping load, data is already loading/fresh."); showToast('Info', 'Data jsou aktuální.', 'info', 2000); return; }
+		 if (Object.values(isLoading).some(s => s && s !== isLoading.page && s !== isLoading.notifications) && !forceRefresh) { console.log("[LoadPageData] Skipping load, data is already loading/fresh."); showToast('Info', 'Data jsou aktuální.', 'info', 2000); if (ui.refreshDataBtn) { const icon = ui.refreshDataBtn.querySelector('i'); const text = ui.refreshDataBtn.querySelector('.refresh-text'); if (icon?.classList.contains('fa-spin')) icon.classList.remove('fa-spin'); if (text?.textContent.includes('RELOADING')) text.textContent = 'RELOAD'; ui.refreshDataBtn.disabled = false; } return; }
 
 		 console.log(`🔄 [LoadPageData] Starting data fetch (forceRefresh: ${forceRefresh})...`);
 		 hideError();
 		 setLoadingState('stats', true);
-         setLoadingState('shortcuts', true); // Set loading for shortcuts as well
+         setLoadingState('shortcuts', true);
 		 setLoadingState('notifications', true);
-         // setLoadingState('exercises', true); // If exercises list is implemented
+         // setLoadingState('exercises', true); // Uncomment if exercises are loaded
 
 		 try {
 			 const [statsResult, notificationsResult] = await Promise.allSettled([
 				 fetchPracticeStats(currentUser.id),
 				 fetchNotifications(currentUser.id, NOTIFICATION_FETCH_LIMIT)
-				 // Add fetchExercisesList promise here if needed
 			 ]);
 
-			 // Process Stats
 			 if (statsResult.status === 'fulfilled') { renderOverviewStats(statsResult.value); }
 			 else { console.error("❌ Error fetching practice stats:", statsResult.reason); showError("Nepodařilo se načíst přehled statistik.", false); renderOverviewStats(null); }
 
-			 // Process Notifications
 			 if (notificationsResult.status === 'fulfilled') { const { unreadCount, notifications } = notificationsResult.value || { unreadCount: 0, notifications: [] }; renderNotifications(unreadCount, notifications); }
 			 else { console.error("❌ Error fetching notifications:", notificationsResult.reason); showError("Nepodařilo se načíst oznámení.", false); renderNotifications(0, []); }
 
-             // Setup Quick Actions (runs after stats are loaded, but doesn't depend on them)
-             setupQuickActions();
+             setupQuickActions(); // Setup static actions
 
-             // Render Exercise List (if fetched)
-             // if (exercisesResult.status === 'fulfilled') { renderExerciseList(exercisesResult.value); }
-             // else { console.error("❌ Error fetching exercises:", exercisesResult.reason); renderExerciseList(null); }
-
-			 initTooltips(); // Re-initialize after rendering potentially new elements
+			 initTooltips();
 			 console.log("✅ [LoadPageData] All data fetched and rendered.");
 
 		 } catch (error) {
 			 console.error("❌ Unexpected error in loadPageData:", error);
 			 showError(`Nastala neočekávaná chyba při načítání stránky: ${error.message}`, true);
 			 renderOverviewStats(null);
-             setupQuickActions(); // Still attempt to setup actions
+             setupQuickActions();
 			 renderNotifications(0, []);
-             // renderExerciseList(null);
 		 } finally {
 			 setLoadingState('stats', false);
              setLoadingState('shortcuts', false);
@@ -431,11 +425,11 @@
 	 }
 
 	 async function initializeApp() {
-		 console.log("🚀 [Init Procvičování Main - Kyber v2.1] Starting...");
+		 console.log("🚀 [Init Procvičování Main - Kyber v2.2] Starting...");
 		 if (!initializeSupabase()) return;
 
 		 applyInitialSidebarState();
-		 setupEventListeners(); // Setup base listeners
+		 setupEventListeners();
 
 		 if (ui.initialLoader) { ui.initialLoader.style.display = 'flex'; ui.initialLoader.classList.remove('hidden'); }
 		 if (ui.mainContent) ui.mainContent.style.display = 'none';
@@ -449,7 +443,6 @@
 			 currentUser = session.user;
 			 console.log(`[INIT] User authenticated (ID: ${currentUser.id}). Loading profile and titles...`);
 
-			 // Fetch profile and titles concurrently
 			 const [profileResult, titlesResult] = await Promise.allSettled([
 				 fetchUserProfile(currentUser.id),
 				 fetchTitles()
@@ -461,25 +454,23 @@
 			 if (titlesResult.status === 'fulfilled') { allTitles = titlesResult.value || []; console.log("[INIT] Titles loaded."); }
 			 else { console.warn("[INIT] Failed to load titles:", titlesResult.reason); allTitles = []; }
 
-			 updateUserInfoUI(); // Update sidebar
+			 updateUserInfoUI();
 
-			 // Load page-specific data
 			 await loadPageData();
 
-			 // Initialize UI enhancements
 			 initTooltips();
 			 initMouseFollower();
-			 initHeaderScrollDetection(); // **FIX**: Call the function that defines handleScroll
+			 initHeaderScrollDetection(); // **FIX**: Call this ONCE here
 			 updateCopyrightYear();
 			 updateOnlineStatus();
 
 			 if (ui.initialLoader) { ui.initialLoader.classList.add('hidden'); setTimeout(() => { if(ui.initialLoader) ui.initialLoader.style.display = 'none'; }, 300); }
 			 if (ui.mainContent) { ui.mainContent.style.display = 'block'; requestAnimationFrame(() => { ui.mainContent.classList.add('loaded'); initScrollAnimations(); }); }
 
-			 console.log("✅ [Init Procvičování Main - Kyber v2.1] Page initialized.");
+			 console.log("✅ [Init Procvičování Main - Kyber v2.2] Page initialized.");
 
 		 } catch (error) {
-			 console.error("❌ [Init Procvičování Main - Kyber v2.1] Critical initialization error:", error);
+			 console.error("❌ [Init Procvičování Main - Kyber v2.2] Critical initialization error:", error);
 			 if (ui.initialLoader && !ui.initialLoader.classList.contains('hidden')) { ui.initialLoader.innerHTML = `<p style="color: var(--accent-pink);">CHYBA (${error.message}). Obnovte.</p>`; }
 			 else { showError(`Chyba inicializace: ${error.message}`, true); }
 			 if (ui.mainContent) ui.mainContent.style.display = 'block';
