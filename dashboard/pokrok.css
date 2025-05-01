@@ -1,5 +1,7 @@
-/* --- START: Cyberpunk CSS Theme (Combined & Adapted) --- */
+/* --- START: Cyberpunk CSS Theme (Base + Sidebar/Header from profile.css v4 + Pokrok Content) --- */
+/* --- Глобальные Настройки и Переменные (из profile.css) --- */
 :root {
+	/* Основа */
 	--bg-color: #03020c;
 	--bg-secondary: #0a071f;
 	--bg-secondary-rgb: 10, 7, 31;
@@ -9,14 +11,16 @@
 	--interface-bg: rgba(6, 4, 22, 0.92);
 	--interface-border: rgba(0, 240, 255, 0.35);
 	--dark-purple-accent: #160c41;
-    --dark-purple-accent-rgb: 22, 12, 65; /* Added from profile.css */
-	--accent-primary: #00e0ff;
+	--dark-purple-accent-rgb: 22, 12, 65;
+
+	/* Акценты */
+	--accent-primary: #00e0ff; /* Циан - основной интерактивный */
 	--accent-primary-rgb: 0, 224, 255;
-	--accent-secondary: #a05cff;
+	--accent-secondary: #a05cff; /* Фиолетовый */
 	--accent-secondary-rgb: 160, 92, 255;
-	--accent-pink: #ff33a8;
+	--accent-pink: #ff33a8; /* Розовый - для Danger/Streak */
 	--accent-pink-rgb: 255, 51, 168;
-	--accent-lime: #6fff3a;
+	--accent-lime: #6fff3a; /* Лайм - для Success */
 	--accent-lime-rgb: 111, 255, 58;
 	--accent-cyan: var(--accent-primary);
 	--accent-cyan-rgb: var(--accent-primary-rgb);
@@ -26,89 +30,107 @@
 	--accent-pink-glow: rgba(var(--accent-pink-rgb), 0.4);
 	--accent-lime-glow: rgba(var(--accent-lime-rgb), 0.5);
 	--accent-border-glow: rgba(var(--accent-primary-rgb), 0.7);
-	--accent-orange: #f8961e;
+	--accent-orange: #f8961e; /* Оранжевый для Warning */
 	--accent-orange-rgb: 248, 150, 30;
 	--accent-orange-glow: rgba(var(--accent-orange-rgb), 0.5);
-	--text-light: #f1f5f9;
-	--text-medium: #b8c4e0;
-	--text-muted: #808db0;
+
+	/* Текст */
+	--text-light: #f1f5f9; /* Почти белый */
+	--text-medium: #b8c4e0; /* Светло-серый/голубой */
+	--text-muted: #808db0; /* Приглушенный */
 	--text-muted-rgb: 128, 141, 176;
-	--text-heading: #ffffff;
+	--text-heading: #ffffff; /* Белый */
 	--text-link: var(--accent-primary);
 	--text-link-hover: #ffffff;
-	--text-fixed-dark: #03020c;
+	--text-fixed-dark: #03020c; /* Для текста на светлых/ярких фонах */
 	--white: #ffffff;
-	--black: #000000;
 	--white-rgb: 255, 255, 255;
-	--border-color-light: rgba(var(--accent-secondary-rgb), 0.25);
-	--border-color-medium: rgba(var(--accent-secondary-rgb), 0.45);
-	--border-color-strong: rgba(var(--accent-primary-rgb), 0.65);
+	--black: #000000;
+
+	/* Границы */
+	--border-color-light: rgba(var(--accent-secondary-rgb), 0.25); /* Тонкие разделители */
+	--border-color-medium: rgba(var(--accent-secondary-rgb), 0.45); /* Заметнее */
+	--border-color-strong: rgba(var(--accent-primary-rgb), 0.65); /* Для ховеров/активных */
 	--border-interactive: var(--accent-primary);
 	--border-glow-gradient: linear-gradient(90deg, transparent, var(--accent-primary), var(--accent-pink), var(--accent-primary), transparent);
+
+	/* Градиенты */
 	--gradient-header: linear-gradient(180deg, rgba(3, 2, 12, 0.97) 0%, rgba(3, 2, 12, 0.9) 100%);
 	--gradient-border-anim: linear-gradient(90deg, var(--accent-secondary), var(--accent-primary), var(--accent-pink), var(--accent-primary), var(--accent-secondary));
 	--gradient-button: linear-gradient(100deg, var(--accent-secondary) 0%, var(--accent-primary) 100%);
 	--gradient-button-hover: linear-gradient(100deg, var(--accent-primary) 0%, var(--accent-pink) 100%);
-	--gradient-sidebar: linear-gradient(190deg, var(--bg-secondary) 0%, var(--dark-purple-accent) 100%); /* Consistent sidebar gradient */
+	--gradient-sidebar: linear-gradient(190deg, var(--bg-secondary) 0%, var(--dark-purple-accent) 100%);
 	--gradient-level-up: linear-gradient(45deg, var(--accent-pink), var(--accent-secondary));
 	--gradient-welcome: linear-gradient(135deg, rgba(var(--accent-primary-rgb), 0.2), rgba(var(--accent-secondary-rgb), 0.25));
-    --gradient-profile-avatar: linear-gradient(145deg, var(--accent-primary), var(--accent-secondary)); /* Added from profile.css */
-    --gradient-exp-bar: linear-gradient(90deg, var(--accent-secondary) 0%, var(--accent-primary) 50%, var(--accent-cyan) 100%); /* Added from profile.css */
-	--gradient-math: linear-gradient(135deg, var(--accent-cyan), var(--accent-secondary));
-	--gradient-lang: linear-gradient(135deg, var(--accent-pink), var(--accent-secondary));
-	--gradient-special: linear-gradient(135deg, var(--accent-orange), var(--accent-pink));
-	--gradient-streak: linear-gradient(135deg, var(--accent-pink), #d90429);
-	--gradient-locked: linear-gradient(135deg, #334155, #1e293b);
-	--gradient-success: linear-gradient(135deg, var(--accent-lime), #45a247);
+	--gradient-profile-avatar: linear-gradient(145deg, var(--accent-primary), var(--accent-secondary));
+	--gradient-exp-bar: linear-gradient(90deg, var(--accent-secondary) 0%, var(--accent-primary) 50%, var(--accent-cyan) 100%);
+	--gradient-exp-bar-alt: linear-gradient(90deg, #ff33a8 0%, #a05cff 50%, #00e0ff 100%);
+    --gradient-success: linear-gradient(135deg, var(--accent-lime), #45a247);
 	--gradient-warning: linear-gradient(135deg, var(--accent-orange), #f3722c);
 	--gradient-danger: linear-gradient(135deg, var(--accent-pink), #b5179e);
 	--gradient-info: linear-gradient(135deg, var(--accent-cyan), var(--accent-primary));
+
+	/* Шрифты */
 	--font-primary: 'Inter', sans-serif;
-	--font-secondary: 'Poppins', sans-serif;
-	--font-mono: 'Roboto Mono', monospace;
+	--font-secondary: 'Poppins', sans-serif; /* Заголовки, кнопки */
+	--font-mono: 'Roboto Mono', monospace; /* AI демо, код */
+
+	/* Тени */
 	--shadow-glow: 0 0 25px var(--accent-glow);
 	--shadow-card: 0 12px 40px rgba(0, 0, 0, 0.4);
 	--shadow-interactive: 0 8px 20px rgba(var(--accent-primary-rgb), 0.4);
 	--shadow-interactive-hover: 0 10px 28px rgba(var(--accent-pink-rgb), 0.45);
 	--shadow-card-hover-enhanced: 0 18px 50px rgba(0, 0, 0, 0.45), 0 0 30px var(--accent-glow), inset 0 0 15px rgba(var(--accent-primary-rgb), 0.15);
-	--shadow-hud: 0 4px 15px rgba(0,0,0,0.3), inset 0 1px 2px rgba(var(--accent-primary-rgb), 0.1);
-	--shadow-text-glow: 0 0 8px rgba(var(--accent-primary-rgb), 0.6);
+	--shadow-hud: 0 4px 15px rgba(0,0,0,0.3), inset 0 1px 2px rgba(var(--accent-primary-rgb), 0.1); /* Тень для элементов интерфейса */
+	--shadow-text-glow: 0 0 8px rgba(var(--accent-primary-rgb), 0.6); /* Свечение текста */
+
+	/* Размеры и переходы */
 	--sidebar-width: 260px;
-    --sidebar-collapsed-width: 80px; /* Width for collapsed sidebar */
+	--sidebar-collapsed-width: 80px; /* Новая переменная для свернутого сайдбара */
 	--card-radius: 14px;
 	--button-radius: 10px;
-	--form-element-radius: 8px;
+	--form-element-radius: var(--button-radius); /* Use button radius */
 	--section-padding-y: clamp(2rem, 5vh, 3rem);
 	--container-padding-x: 2rem;
 	--transition-speed: 0.3s;
 	--transition-fast: all 0.2s ease-out;
-	--transition-medium: all 0.35s ease-out; /* Matched from profile.css */
+	--transition-medium: all 0.35s ease-out; /* Согласовано с profile.css */
 	--transition-long: all 0.5s cubic-bezier(0.165, 0.84, 0.44, 1);
 	--transition-bounce: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 	--transition-entrance: all 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
-	--skeleton-bg: rgba(var(--accent-secondary-rgb), 0.1);
-	--skeleton-highlight: rgba(var(--accent-secondary-rgb), 0.2);
-	--card-bg-color: var(--card-bg);
-	--card-bg-color-rgb: 15, 10, 45;
-    --info-bg: rgba(var(--accent-primary-rgb), 0.1); /* Added from profile.css */
-    --info-border: rgba(var(--accent-primary-rgb), 0.3); /* Added from profile.css */
-    --info-color: var(--accent-primary); /* Added from profile.css */
-    --warning-bg: rgba(var(--accent-orange-rgb), 0.1); /* Added from profile.css */
-    --warning-border: rgba(var(--accent-orange-rgb), 0.3); /* Added from profile.css */
-    --warning-color: var(--accent-orange); /* Added from profile.css */
-    --error-bg: rgba(var(--accent-pink-rgb), 0.1); /* Added from profile.css */
-    --error-border: rgba(var(--accent-pink-rgb), 0.3); /* Added from profile.css */
-    --error-color: var(--accent-pink); /* Added from profile.css */
-    --input-bg-color: rgba(var(--accent-secondary-rgb), 0.08); /* Added from profile.css */
-    --input-border-color: var(--border-color-light); /* Added from profile.css */
-    --input-focus-border-color: var(--accent-primary); /* Added from profile.css */
-    --input-focus-shadow: 0 0 0 3px rgba(var(--accent-primary-rgb), 0.25); /* Added from profile.css */
+
+	/* Skeleton Loader Colors */
+    --skeleton-bg: rgba(var(--accent-secondary-rgb), 0.1);
+    --skeleton-highlight: rgba(var(--accent-secondary-rgb), 0.2);
+
+	/* Form Inputs */
+	--input-bg-color: rgba(var(--accent-secondary-rgb), 0.08);
+	--input-border-color: var(--border-color-light);
+	--input-focus-border-color: var(--accent-primary);
+	--input-focus-shadow: 0 0 0 3px rgba(var(--accent-primary-rgb), 0.25);
+
+	/* Specific */
 	--danger-color: #ff4d6d;
 	--success-color: var(--accent-lime);
+    --info-bg: rgba(var(--accent-primary-rgb), 0.1);
+    --info-border: rgba(var(--accent-primary-rgb), 0.3);
+    --info-color: var(--accent-primary);
+    --warning-bg: rgba(var(--accent-orange-rgb), 0.1);
+    --warning-border: rgba(var(--accent-orange-rgb), 0.3);
+    --warning-color: var(--accent-orange);
+    --error-bg: rgba(var(--accent-pink-rgb), 0.1);
+    --error-border: rgba(var(--accent-pink-rgb), 0.3);
+    --error-color: var(--accent-pink);
 }
+
+/* --- Базовые Стили --- */
 * { margin: 0; padding: 0; box-sizing: border-box; }
 html { scroll-behavior: smooth; font-size: 16px; -webkit-text-size-adjust: 100%; }
-body { background-color: var(--bg-color); color: var(--text-medium); font-family: var(--font-primary); line-height: 1.7; min-height: 100vh; display: flex; overflow: hidden; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; position: relative; }
+body {
+	background-color: var(--bg-color); color: var(--text-medium); font-family: var(--font-primary); line-height: 1.7;
+	min-height: 100vh; display: flex; overflow: hidden;
+	-webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; position: relative;
+}
 body::before { content: ""; position: fixed; inset: 0; width: 100%; height: 100%; z-index: -3; background-image: linear-gradient(rgba(var(--accent-secondary-rgb), 0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(var(--accent-secondary-rgb), 0.04) 1px, transparent 1px); background-size: 40px 40px; opacity: 0.6; animation: bg-grid-pan 100s linear infinite; pointer-events: none; }
 body::after { content: ""; position: fixed; inset: 0; width: 100%; height: 100%; z-index: -2; background: linear-gradient( to bottom, rgba(10, 7, 31, 0) 50%, rgba(0, 0, 0, 0.08) 50% ); background-size: 100% 3px; opacity: 0.15; animation: scanlines 25s linear infinite; pointer-events: none; }
 @keyframes bg-grid-pan { 0% { background-position: 0 0; } 100% { background-position: 800px 400px; } }
@@ -129,20 +151,17 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 ::-webkit-scrollbar-thumb { background-color: rgba(var(--accent-primary-rgb), 0.5); border-radius: 4px; border: 2px solid transparent; background-clip: content-box; }
 ::-webkit-scrollbar-thumb:hover { background-color: rgba(var(--accent-primary-rgb), 0.8); }
 body { scrollbar-width: thin; scrollbar-color: rgba(var(--accent-primary-rgb), 0.5) rgba(var(--accent-secondary-rgb), 0.08); }
-.btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.5em; padding: 0.6rem 1.2rem; background: transparent; color: var(--accent-primary); border: 2px solid var(--accent-primary); border-radius: var(--button-radius); font-family: var(--font-secondary); font-weight: 600; font-size: 0.9rem; text-align: center; text-transform: uppercase; letter-spacing: 1px; cursor: pointer; transition: all var(--transition-medium), transform 0.15s ease-out; position: relative; overflow: hidden; z-index: 1; box-shadow: 0 0 10px -3px var(--accent-glow), inset 0 0 8px -5px var(--accent-glow); backdrop-filter: blur(2px); will-change: transform, box-shadow, color, border-color; }
+
+/* --- Утилиты --- */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.6em; padding: 0.7rem 1.4rem; background: transparent; color: var(--accent-primary); border: 2px solid var(--accent-primary); border-radius: var(--button-radius); font-family: var(--font-secondary); font-weight: 600; font-size: 0.9rem; text-align: center; text-transform: uppercase; letter-spacing: 1px; cursor: pointer; transition: all var(--transition-medium), transform 0.15s ease-out; position: relative; overflow: hidden; z-index: 1; box-shadow: 0 0 12px -4px var(--accent-glow), inset 0 0 8px -6px var(--accent-glow); backdrop-filter: blur(2px); will-change: transform, box-shadow, color, border-color; }
 .btn::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: var(--gradient-button); transition: left 0.35s ease-in-out; z-index: -1; }
 .btn:hover:not(:disabled) { color: var(--text-fixed-dark); border-color: var(--accent-secondary); box-shadow: 0 0 20px var(--accent-secondary-glow), inset 0 0 10px rgba(var(--accent-secondary-rgb), 0.15); transform: translateY(-3px); }
 .btn:hover:not(:disabled)::before { left: 0; background: var(--gradient-button-hover); }
 .btn:active:not(:disabled) { transform: translateY(0px) scale(0.97); box-shadow: 0 0 8px var(--accent-secondary-glow), inset 0 0 12px rgba(0,0,0,0.3); transition-duration: 0.08s; }
 .btn:disabled { opacity: 0.5; cursor: not-allowed; background-color: transparent !important; border-color: var(--text-muted) !important; color: var(--text-muted) !important; box-shadow: none !important; transform: none !important; }
 .btn:disabled::before { display: none; }
-.btn-outline { border-color: var(--accent-secondary); color: var(--accent-secondary); box-shadow: 0 0 10px -3px var(--accent-secondary-glow), inset 0 0 8px -5px var(--accent-secondary-glow); }
-.btn-outline::before { display: none; }
-.btn-outline:hover:not(:disabled) { background: rgba(var(--accent-secondary-rgb), 0.12); border-color: var(--accent-pink); color: var(--accent-pink); box-shadow: 0 0 18px var(--accent-pink-glow); transform: translateY(-3px); }
-.btn-outline:active:not(:disabled) { transform: translateY(0px) scale(0.97); box-shadow: 0 0 8px var(--accent-pink-glow), inset 0 0 10px rgba(0,0,0,0.15); background: rgba(var(--accent-pink-rgb), 0.18); transition-duration: 0.08s; }
-.btn-primary { background: var(--gradient-button); border-color: transparent; color: var(--text-fixed-dark); box-shadow: 0 0 15px -2px var(--accent-glow); }
-.btn-primary::before { display: none; }
-.btn-primary:hover:not(:disabled) { background: var(--gradient-button-hover); border-color: transparent; color: var(--white); box-shadow: 0 0 22px var(--accent-pink-glow); transform: translateY(-3px); }
+.btn i.fa-spinner { margin-right: 0.5em; animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
 .btn-secondary { border-color: var(--text-muted); color: var(--text-muted); box-shadow: none; }
 .btn-secondary::before { display: none; }
 .btn-secondary:hover:not(:disabled) { background: rgba(var(--accent-secondary-rgb), 0.1); border-color: var(--accent-secondary); color: var(--accent-secondary); box-shadow: 0 0 10px rgba(var(--accent-secondary-rgb), 0.2); transform: translateY(-2px); }
@@ -152,8 +171,6 @@ body { scrollbar-width: thin; scrollbar-color: rgba(var(--accent-primary-rgb), 0
 .btn:hover:not(:disabled) i.fa-sync-alt { transform: rotate(90deg); }
 .btn .button-text { display: inline; }
 @media (max-width: 768px) { .btn .button-text { display: none; } .btn { padding: 0.6rem 0.8rem; } }
-.btn.loading i { animation: spin 1s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
 .card { background: var(--card-bg); border-radius: var(--card-radius); border: 1px solid var(--border-color-light); box-shadow: var(--shadow-hud); transition: transform var(--transition-medium), box-shadow var(--transition-medium), border-color var(--transition-medium); position: relative; overflow: hidden; will-change: transform, box-shadow; }
 .card:hover { transform: translateY(-5px) scale(1.01); box-shadow: var(--shadow-card-hover-enhanced); border-color: var(--border-color-medium); }
 .card::before, .card::after { content: ''; position: absolute; width: 12px; height: 12px; border-color: var(--accent-primary); border-style: solid; opacity: 0; transition: all 0.3s ease; pointer-events: none; z-index: 1; }
@@ -162,8 +179,7 @@ body { scrollbar-width: thin; scrollbar-color: rgba(var(--accent-primary-rgb), 0
 .card:hover::before, .card:hover::after { opacity: 0.6; }
 .card:hover::before { transform: translate(-3px, -3px); }
 .card:hover::after { transform: translate(3px, 3px); }
-
-/* --- START: Sidebar Styles (Matched from profile.css v4) --- */
+/* --- START: Sidebar Styles (Copied from profile.css v4) --- */
 .sidebar {
     width: var(--sidebar-width); height: 100vh; position: fixed; top: 0; left: 0;
     background: var(--gradient-sidebar);
@@ -228,8 +244,9 @@ body { scrollbar-width: thin; scrollbar-color: rgba(var(--accent-primary-rgb), 0
 .user-profile {
     display: flex; align-items: center; padding: 1rem; margin-top: 1.5rem;
     background-color: rgba(var(--accent-secondary-rgb), 0.1); border-radius: 12px;
-    border: 1px solid var(--border-color-light); flex-shrink: 0;
-    transition: padding var(--transition-medium) ease; overflow: hidden; white-space: nowrap;
+    border: 1px solid var(--border-color-light); flex-shrink: 0; /* Prevent shrinking */
+    transition: padding var(--transition-medium) ease; overflow: hidden;
+    white-space: nowrap; /* Prevent wrapping inside */
 }
 .user-avatar {
     width: 42px; height: 42px; border-radius: 50%;
@@ -238,7 +255,7 @@ body { scrollbar-width: thin; scrollbar-color: rgba(var(--accent-primary-rgb), 0
     font-weight: 600; font-size: 1.1rem; overflow: hidden; color: var(--white);
     border: 2px solid rgba(var(--accent-primary-rgb), 0.3); flex-shrink: 0;
     box-shadow: 0 0 8px rgba(var(--accent-secondary-rgb), 0.4);
-    transition: all var(--transition-medium) ease;
+    transition: all var(--transition-medium) ease; /* Animate size and margin */
 }
 .user-avatar img { width: 100%; height: 100%; object-fit: cover; }
 .user-info {
@@ -249,13 +266,13 @@ body { scrollbar-width: thin; scrollbar-color: rgba(var(--accent-primary-rgb), 0
 .user-role { font-size: 0.8rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } /* Added overflow/ellipsis */
 .sidebar-footer {
     margin-top: 1.5rem; padding: 1rem; font-size: 0.8rem; color: var(--text-muted);
-    text-align: center; flex-shrink: 0; opacity: 0.7;
+    text-align: center; flex-shrink: 0; /* Prevent shrinking */ opacity: 0.7;
     transition: opacity 0.2s ease, max-width 0.2s linear 0.1s;
     overflow: hidden; white-space: nowrap; max-width: 200px;
 }
 /* --- END: Sidebar Styles --- */
 
-/* --- START: Sidebar Toggle Button Styles (from profile.css) --- */
+/* --- START: Sidebar Toggle Button Styles (Copied from profile.css v4) --- */
 .btn-icon-only {
 	padding: 0.5rem; width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--border-color-medium);
 	color: var(--text-muted); background-color: rgba(var(--bg-secondary-rgb), 0.3); box-shadow: none;
@@ -269,7 +286,8 @@ body { scrollbar-width: thin; scrollbar-color: rgba(var(--accent-primary-rgb), 0
 @media (min-width: 993px) { .sidebar-toggle-btn { display: inline-flex; } }
 /* --- END: Sidebar Toggle Button Styles --- */
 
-/* --- START: Main Content & Header (Matched from profile.css) --- */
+
+/* --- START: Main Content & Header (Matched from profile.css v4) --- */
 main#main-content { /* Use ID for specificity */
 	flex: 1; margin-left: var(--sidebar-width);
 	transition: margin-left var(--transition-medium) cubic-bezier(0.4, 0, 0.2, 1), width var(--transition-medium) cubic-bezier(0.4, 0, 0.2, 1);
@@ -312,7 +330,7 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb,
 .refresh-btn.loading i { animation: spin 1s linear infinite; }
 .refresh-btn:disabled { opacity: 0.5; cursor: not-allowed; background-color: transparent !important; border-color: var(--text-muted) !important; color: var(--text-muted) !important; box-shadow: none !important; }
 
-/* --- START: Notification Styles (from profile.css) --- */
+/* --- START: Notification Styles (Copied from profile.css v4) --- */
 .notifications { position: relative; }
 .notification-bell { cursor: pointer; padding: 0.6rem; position: relative; display: inline-block; line-height: 1; }
 .notification-bell i { font-size: 1.4rem; color: var(--text-muted); transition: color 0.2s, transform 0.2s; }
@@ -351,7 +369,8 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb,
 /* --- END: Notification Styles --- */
 /* --- END: Main Content & Header --- */
 
-/* --- START: Collapsed Sidebar Styles (from profile.css) --- */
+
+/* --- START: Collapsed Sidebar Styles (Copied from profile.css v4) --- */
 body.sidebar-collapsed .sidebar { width: var(--sidebar-collapsed-width); }
 body.sidebar-collapsed .sidebar-logo span,
 body.sidebar-collapsed .sidebar-link span,
@@ -371,13 +390,12 @@ body.sidebar-collapsed .sidebar-menu { overflow-y: hidden; scrollbar-width: none
 body.sidebar-collapsed .sidebar-menu::-webkit-scrollbar { display: none; }
 /* --- END: Collapsed Sidebar Styles --- */
 
-/* Pokrok Specific Styles (Keep existing from pokrok.css, remove chart styles) */
+/* --- Pokrok Page Content Styles (Keep existing from pokrok.css) --- */
 .section-title { font-size: 1.5rem; font-weight: 600; margin-bottom: 1.5rem; color: var(--text-heading); padding-bottom: 0.8rem; position: relative; display: flex; align-items: center; gap: 0.7rem; }
 .section-title i { font-size: 1.1em; color: var(--accent-secondary); text-shadow: 0 0 8px var(--accent-secondary-glow); }
 .section-title::after { content: ''; position: absolute; bottom: 0; left: 0; width: 60px; height: 3px; background: var(--gradient-border-anim); background-size: 300% 100%; animation: gradient-move 4s linear infinite; border-radius: 1.5px; filter: drop-shadow(0 0 5px var(--accent-primary)); }
-@keyframes gradient-move { 0% { background-position: 0% 50%; } 100% { background-position: 100% 50%; } }
 .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.8rem; margin-bottom: 2.5rem; }
-.stats-card { min-height: 170px; position: relative; display: flex; flex-direction: column; padding: 1.5rem; }
+.stats-card { min-height: 170px; position: relative; display: flex; flex-direction: column; padding: 1.5rem; background: var(--card-bg); border-radius: var(--card-radius); border: 1px solid var(--border-color-light); box-shadow: var(--shadow-hud); transition: transform var(--transition-medium), box-shadow var(--transition-medium), border-color var(--transition-medium); overflow: hidden; will-change: transform, box-shadow; }
 .stats-card .loading-skeleton { display: none; padding: 1.5rem; align-items: flex-start; justify-content: space-between; width: 100%; position: absolute; inset: 0; background: var(--card-bg); z-index: 5; backdrop-filter: blur(2px); }
 .stats-card .loading-skeleton .skeleton-info { flex-grow: 1; }
 .stats-card.loading .loading-skeleton { display: flex; background-color: rgba(var(--card-solid-rgb), 0.7); }
@@ -385,10 +403,10 @@ body.sidebar-collapsed .sidebar-menu::-webkit-scrollbar { display: none; }
 .stats-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; }
 .stats-card-title { font-size: 0.9rem; font-weight: 500; color: var(--text-muted); display: flex; align-items: center; gap: 0.6rem; text-transform: uppercase; letter-spacing: 0.8px; }
 .stats-card-title i { font-size: 1em; }
-.stats-card[data-type="progress"] .stats-card-title i { color: var(--info-color); }
+.stats-card[data-type="progress"] .stats-card-title i { color: var(--info-color); } /* Corrected variable name */
 .stats-card[data-type="points"] .stats-card-title i { color: var(--accent-orange); }
 .stats-card[data-type="streak"] .stats-card-title i { color: var(--accent-pink); }
-.stats-card[data-type="exercises"] .stats-card-title i { color: var(--success-color); }
+.stats-card[data-type="exercises"] .stats-card-title i { color: var(--success-color); } /* Corrected variable name */
 .stats-card-content { flex-grow: 1; margin-bottom: 1rem; position: relative; z-index: 1; }
 .stats-card-value { font-size: 2.4rem; font-weight: 700; color: var(--text-heading); margin-bottom: 0.4rem; line-height: 1.1; min-height: 40px; text-shadow: 0 0 8px rgba(var(--white-rgb, 255,255,255), 0.3); }
 .stats-card-description { font-size: 0.9rem; color: var(--text-medium); min-height: 18px; }
@@ -482,36 +500,4 @@ body.sidebar-collapsed .sidebar-menu::-webkit-scrollbar { display: none; }
 .tooltipster-shadow { border-radius: 6px; background: var(--interface-bg); color: var(--text-light); box-shadow: var(--shadow-card); border: 1px solid var(--border-color-medium); }
 .tooltipster-shadow .tooltipster-content { padding: 8px 12px; font-size: 0.85rem; }
 .dashboard-footer { margin-top: 3rem; padding: 1.5rem 0; text-align: center; color: var(--text-muted); font-size: 0.9rem; border-top: 1px solid var(--border-color-light); opacity: 0.6; }
-
-/* --- START: Sidebar Toggle Specific Styles (Copied from profile.css) --- */
-.btn-icon-only {
-    padding: 0.5rem; width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--border-color-medium);
-    color: var(--text-muted); background-color: rgba(var(--bg-secondary-rgb), 0.3); box-shadow: none;
-    line-height: 1; display: inline-flex; align-items: center; justify-content: center; cursor: pointer;
-    transition: all var(--transition-fast);
-}
-.btn-icon-only i { margin-right: 0; font-size: 1rem; transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
-.btn-icon-only:hover:not(:disabled) { background-color: rgba(var(--accent-primary-rgb), 0.15); border-color: var(--accent-primary); color: var(--accent-primary); box-shadow: 0 0 12px rgba(var(--accent-glow), 0.5); transform: translateY(-2px) scale(1.05); }
-.btn-icon-only:active:not(:disabled) { transform: translateY(0) scale(0.95); box-shadow: inset 0 1px 3px rgba(0,0,0,0.4); }
-.sidebar-toggle-btn { margin-right: 0.8rem; display: none; /* Hide by default */ }
-@media (min-width: 993px) { .sidebar-toggle-btn { display: inline-flex; } }
-
-/* Collapsed State Styles (Copied from profile.css) */
-body.sidebar-collapsed .sidebar { width: var(--sidebar-collapsed-width); }
-body.sidebar-collapsed .sidebar-logo span,
-body.sidebar-collapsed .sidebar-link span,
-body.sidebar-collapsed .user-info,
-body.sidebar-collapsed .sidebar-footer { opacity: 0; max-width: 0; overflow: hidden; white-space: nowrap; pointer-events: none; }
-body.sidebar-collapsed .sidebar-header { padding: 0 0.5rem; justify-content: center; }
-body.sidebar-collapsed .sidebar-logo { gap: 0; justify-content: center; }
-body.sidebar-collapsed .sidebar-link { justify-content: center; padding: 0.85rem 0.5rem; }
-body.sidebar-collapsed .sidebar-link i { margin-right: 0; font-size: 1.4rem; /* Slightly larger icon */ }
-body.sidebar-collapsed .user-profile { padding: 0.8rem 0; /* Vertical padding only */ justify-content: center; border-left: none; border-right: none; margin: 0 0.5rem; border-radius: 8px; } /* Added margin and radius */
-body.sidebar-collapsed .user-avatar { margin-right: 0; /* Remove margin */ width: 40px; /* Slightly smaller avatar */ height: 40px; font-size: 1rem; /* Smaller initials font */ }
-body.sidebar-collapsed main#main-content { margin-left: var(--sidebar-collapsed-width); width: calc(100% - var(--sidebar-collapsed-width)); }
-body.sidebar-collapsed .sidebar-toggle-btn i { transform: rotate(180deg); /* Rotate arrow */ }
-body.sidebar-collapsed #sidebar-close-toggle { display: none; }
-@media (min-width: 993px) { body.sidebar-collapsed .mobile-menu-toggle#main-mobile-menu-toggle { display: none; } }
-body.sidebar-collapsed .sidebar-menu { overflow-y: hidden; scrollbar-width: none; padding: 0 0.5rem; } /* Hide scrollbar */
-body.sidebar-collapsed .sidebar-menu::-webkit-scrollbar { display: none; }
-/* --- END: Sidebar Toggle Specific Styles --- */
+/* --- END: Cyberpunk CSS Theme --- */
