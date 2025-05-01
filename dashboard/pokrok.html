@@ -24,6 +24,9 @@
     </div>
 
     <div class="toast-container" id="toast-container"></div>
+
+    <div id="sidebar-overlay" class="sidebar-overlay"></div>
+
     <aside id="sidebar" class="sidebar">
         <div class="sidebar-header">
             <button class="mobile-menu-toggle" id="sidebar-close-toggle" aria-label="Zavřít menu"> <i class="fas fa-times"></i> </button>
@@ -49,82 +52,80 @@
 
     <main id="main-content">
         <header class="dashboard-header">
-            <div class="header-content">
-                <div class="header-left-group">
-                     <button class="btn btn-icon-only sidebar-toggle-btn btn-tooltip" id="sidebar-toggle-btn" aria-label="Sbalit postranní panel" title="Přepnout postranní panel"> <i class="fas fa-chevron-left"></i> </button>
-                     <button class="mobile-menu-toggle" id="main-mobile-menu-toggle" aria-label="Otevřít menu"> <i class="fas fa-bars"></i> </button>
-                    <h1><i class="fas fa-chart-line"></i> Přehled pokroku</h1>
+             <div class="header-content">
+                 <div class="header-left-group">
+                      <button class="btn btn-icon-only sidebar-toggle-btn btn-tooltip" id="sidebar-toggle-btn" aria-label="Sbalit postranní panel" title="Přepnout postranní panel"> <i class="fas fa-chevron-left"></i> </button>
+                      <button class="mobile-menu-toggle" id="main-mobile-menu-toggle" aria-label="Otevřít menu"> <i class="fas fa-bars"></i> </button>
+                     <h1><i class="fas fa-chart-line"></i> Přehled pokroku</h1>
+                  </div>
+                  <div class="header-actions">
+                     <div id="user-credits-display" class="header-meta-item" style="font-weight: 600; color: var(--accent-orange); text-shadow: 0 0 6px var(--accent-orange-glow);"> <i class="fas fa-coins"></i> <span id="credits-value">-</span> kr. </div>
+                     <button class="refresh-btn btn-tooltip" id="refresh-btn" title="Obnovit data"> <i class="fas fa-sync-alt"></i> <span class="refresh-text">Obnovit</span> </button>
+                      <div class="notifications">
+                          <div class="notification-bell" id="notification-bell" title="Oznámení"> <i class="far fa-bell"></i> <span class="notification-badge" id="notification-count">0</span> </div>
+                           <div class="notifications-dropdown-wrapper" id="notifications-dropdown">
+                               <div class="notifications-header"> <span class="notifications-title">PŘÍCHOZÍ SIGNÁLY</span> <button class="mark-all-read-btn" id="mark-all-read" disabled>Vymazat vše</button> </div>
+                               <div id="notifications-list"> <div id="no-notifications-msg" style="display: none; padding: 1rem; text-align: center; color: var(--text-muted);">ŽÁDNÉ NOVÉ SIGNÁLY</div> </div>
+                               <div class="notifications-footer"> <a href="/dashboard/notifications.html" class="view-all-notifications-link">ZOBRAZIT ARCHIV</a> </div>
+                           </div>
+                      </div>
                  </div>
-                 <div class="header-actions">
-                    <div id="user-credits-display" class="header-meta-item" style="font-weight: 600; color: var(--accent-orange); text-shadow: 0 0 6px var(--accent-orange-glow);"> <i class="fas fa-coins"></i> <span id="credits-value">-</span> kr. </div>
-                    <button class="refresh-btn btn-tooltip" id="refresh-btn" title="Obnovit data"> <i class="fas fa-sync-alt"></i> <span class="refresh-text">Obnovit</span> </button>
-                     <div class="notifications">
-                         <div class="notification-bell" id="notification-bell" title="Oznámení"> <i class="far fa-bell"></i> <span class="notification-badge" id="notification-count">0</span> </div>
-                          <div class="notifications-dropdown-wrapper" id="notifications-dropdown">
-                              <div class="notifications-header"> <span class="notifications-title">PŘÍCHOZÍ SIGNÁLY</span> <button class="mark-all-read-btn" id="mark-all-read" disabled>Vymazat vše</button> </div>
-                              <div id="notifications-list"> <div id="no-notifications-msg" style="display: none; padding: 1rem; text-align: center; color: var(--text-muted);">ŽÁDNÉ NOVÉ SIGNÁLY</div> </div>
-                              <div class="notifications-footer"> <a href="/dashboard/notifications.html" class="view-all-notifications-link">ZOBRAZIT ARCHIV</a> </div>
-                          </div>
-                     </div>
-                </div>
-            </div>
-        </header>
+             </div>
+         </header>
         <div class="error-container" id="global-error"></div>
         <div class="main-content-wrapper">
             <div class="main-content-grid">
                 <section class="section card stats-section" data-animate style="--animation-order: 1;">
                      <h2 class="section-title"><i class="fas fa-tachometer-alt"></i> Klíčové Metriky</h2>
-                    <div class="stats-grid" id="stats-grid">
-                        <div class="stats-card" data-type="progress">
-                             <div class="stats-card-header"> <h3 class="stats-card-title"><i class="fas fa-tasks"></i>Celkový pokrok</h3> </div>
-                             <div class="stats-card-content"> <div class="stats-card-value" id="overall-progress-value">- %</div> <div class="stats-card-description" id="overall-progress-desc">Odhadovaný postup</div> </div>
-                             <div class="stats-card-footer" id="overall-progress-footer"><i class="fas fa-minus"></i> --</div>
-                         </div>
-                         <div class="stats-card" data-type="points">
-                             <div class="stats-card-header"> <h3 class="stats-card-title"><i class="fas fa-star"></i>Celkem bodů</h3> </div>
-                             <div class="stats-card-content"> <div class="stats-card-value" id="total-points-value">-</div> <div class="stats-card-description" id="total-points-desc">Získané kredity</div> </div>
-                             <div class="stats-card-footer" id="total-points-footer"><i class="fas fa-minus"></i> --</div>
-                         </div>
-                         <div class="stats-card" data-type="streak">
-                             <div class="stats-card-header"> <h3 class="stats-card-title"><i class="fas fa-fire"></i>Studijní série</h3> </div>
-                             <div class="stats-card-content"> <div class="stats-card-value" id="streak-value">-</div> <div class="stats-card-description" id="streak-desc">Po sobě jdoucích dní</div> </div>
-                             <div class="stats-card-footer" id="streak-footer">Nejdelší série: -</div>
-                         </div>
-                         <div class="stats-card" data-type="exercises">
-                             <div class="stats-card-header"> <h3 class="stats-card-title"><i class="fas fa-check-double"></i>Dokončené aktivity</h3> </div>
-                             <div class="stats-card-content"> <div class="stats-card-value" id="completed-count-value">-</div> <div class="stats-card-description" id="completed-count-desc">Cvičení, testy, lekce</div> </div>
-                             <div class="stats-card-footer" id="completed-count-footer"><i class="fas fa-minus"></i> --</div>
-                         </div>
-                    </div>
-                </section>
-
-                <section class="section card chart-section" id="progress-chart-section" data-animate style="--animation-order: 2;">
-                    <div class="chart-header">
-                        <h2 class="section-title chart-title"><i class="fas fa-chart-line"></i>Vývoj pokroku v čase</h2>
-                        <div class="chart-actions"> <select id="chart-period-select" class="form-control btn-sm btn-secondary" aria-label="Vyberte období grafu"> <option value="week">Týden</option> <option value="month" selected>Měsíc</option> <option value="3months">3 Měsíce</option> <option value="all">Celkově</option> </select> </div>
-                    </div>
-                    <div class="chart-container">
-                         <div class="loading-overlay hidden" id="chart-loading-overlay"> <div class="loading-spinner"></div> </div>
-                         <canvas id="progressChart"></canvas> <div class="empty-chart-message" id="chart-empty-state" style="display: none;"> <i class="fas fa-chart-bar"></i> <p>Pro zobrazení grafu nejsou k dispozici data.</p> </div>
+                     <div class="stats-grid" id="stats-grid">
+                         <div class="stats-card" data-type="progress">
+                              <div class="stats-card-header"> <h3 class="stats-card-title"><i class="fas fa-tasks"></i>Celkový pokrok</h3> </div>
+                              <div class="stats-card-content"> <div class="stats-card-value" id="overall-progress-value">- %</div> <div class="stats-card-description" id="overall-progress-desc">Odhadovaný postup</div> </div>
+                              <div class="stats-card-footer" id="overall-progress-footer"><i class="fas fa-minus"></i> --</div>
+                          </div>
+                          <div class="stats-card" data-type="points">
+                              <div class="stats-card-header"> <h3 class="stats-card-title"><i class="fas fa-star"></i>Celkem bodů</h3> </div>
+                              <div class="stats-card-content"> <div class="stats-card-value" id="total-points-value">-</div> <div class="stats-card-description" id="total-points-desc">Získané kredity</div> </div>
+                              <div class="stats-card-footer" id="total-points-footer"><i class="fas fa-minus"></i> --</div>
+                          </div>
+                          <div class="stats-card" data-type="streak">
+                              <div class="stats-card-header"> <h3 class="stats-card-title"><i class="fas fa-fire"></i>Studijní série</h3> </div>
+                              <div class="stats-card-content"> <div class="stats-card-value" id="streak-value">-</div> <div class="stats-card-description" id="streak-desc">Po sobě jdoucích dní</div> </div>
+                              <div class="stats-card-footer" id="streak-footer">Nejdelší série: -</div>
+                          </div>
+                          <div class="stats-card" data-type="exercises">
+                              <div class="stats-card-header"> <h3 class="stats-card-title"><i class="fas fa-check-double"></i>Dokončené aktivity</h3> </div>
+                              <div class="stats-card-content"> <div class="stats-card-value" id="completed-count-value">-</div> <div class="stats-card-description" id="completed-count-desc">Cvičení, testy, lekce</div> </div>
+                              <div class="stats-card-footer" id="completed-count-footer"><i class="fas fa-minus"></i> --</div>
+                          </div>
                      </div>
-                </section>
-
-                <section class="section card data-table-section" id="activities-section" data-animate style="--animation-order: 3;">
-                     <div class="data-table-header">
-                         <h2 class="section-title data-table-title"><i class="fas fa-history"></i>Historie aktivit</h2>
-                         <div class="data-table-actions"> <button class="btn btn-secondary btn-sm btn-tooltip" id="export-table-btn" title="Exportovat tabulku jako CSV"> <i class="fas fa-download"></i> <span class="button-text">Export</span> </button> <select id="activity-type-filter" class="form-control btn-sm btn-secondary" aria-label="Filtrovat typ aktivity"> <option value="all">Všechny typy</option></select> </div>
-                     </div>
-                     <div class="table-responsive">
-                          <div class="loading-overlay hidden" id="table-loading-overlay"> <div class="loading-spinner"></div> </div>
-                          <table class="data-table" id="activities-table">
-                              <thead> <tr> <th data-sort="created_at" class="sortable sorted-desc">Datum <i class="fas fa-sort"></i></th> <th data-sort="type" class="sortable">Typ <i class="fas fa-sort"></i></th> <th data-sort="title">Popis <i class="fas fa-sort"></i></th> <th data-sort="points_earned" class="sortable">Body <i class="fas fa-sort"></i></th> <th data-sort="status">Stav <i class="fas fa-sort"></i></th> </tr> </thead>
-                              <tbody id="activities-body"> </tbody>
-                          </table>
-                         <div class="empty-state" id="activities-empty-state" style="display: none; margin: 1.5rem 2rem;"> <i class="fas fa-box-open"></i> <h3>Žádné aktivity</h3> <p>Zatím zde nejsou žádné zaznamenané aktivity.</p> </div>
-                      </div>
-                     <div class="pagination-controls" id="pagination-controls" style="display: none;"> <button id="prev-page-btn" class="btn btn-secondary btn-sm" disabled><i class="fas fa-chevron-left"></i></button> <span id="page-info">Stránka 1 / 1</span> <button id="next-page-btn" class="btn btn-secondary btn-sm" disabled><i class="fas fa-chevron-right"></i></button> </div>
                  </section>
-
+                 <section class="section card chart-section" id="progress-chart-section" data-animate style="--animation-order: 2;">
+                     <div class="chart-header">
+                         <h2 class="section-title chart-title"><i class="fas fa-chart-line"></i>Vývoj pokroku v čase</h2>
+                         <div class="chart-actions"> <select id="chart-period-select" class="form-control btn-sm btn-secondary" aria-label="Vyberte období grafu"> <option value="week">Týden</option> <option value="month" selected>Měsíc</option> <option value="3months">3 Měsíce</option> <option value="all">Celkově</option> </select> </div>
+                     </div>
+                     <div class="chart-container">
+                          <div class="loading-overlay hidden" id="chart-loading-overlay"> <div class="loading-spinner"></div> </div>
+                          <canvas id="progressChart"></canvas>
+                          <div class="empty-chart-message" id="chart-empty-state" style="display: none;"> <i class="fas fa-chart-bar"></i> <p>Pro zobrazení grafu nejsou k dispozici data.</p> </div>
+                      </div>
+                 </section>
+                 <section class="section card data-table-section" id="activities-section" data-animate style="--animation-order: 3;">
+                      <div class="data-table-header">
+                          <h2 class="section-title data-table-title"><i class="fas fa-history"></i>Historie aktivit</h2>
+                          <div class="data-table-actions"> <button class="btn btn-secondary btn-sm btn-tooltip" id="export-table-btn" title="Exportovat tabulku jako CSV"> <i class="fas fa-download"></i> <span class="button-text">Export</span> </button> <select id="activity-type-filter" class="form-control btn-sm btn-secondary" aria-label="Filtrovat typ aktivity"> <option value="all">Všechny typy</option></select> </div>
+                      </div>
+                      <div class="table-responsive">
+                           <div class="loading-overlay hidden" id="table-loading-overlay"> <div class="loading-spinner"></div> </div>
+                           <table class="data-table" id="activities-table">
+                               <thead> <tr> <th data-sort="created_at" class="sortable sorted-desc">Datum <i class="fas fa-sort"></i></th> <th data-sort="type" class="sortable">Typ <i class="fas fa-sort"></i></th> <th data-sort="title">Popis <i class="fas fa-sort"></i></th> <th data-sort="points_earned" class="sortable">Body <i class="fas fa-sort"></i></th> <th data-sort="status">Stav <i class="fas fa-sort"></i></th> </tr> </thead>
+                               <tbody id="activities-body"> </tbody>
+                           </table>
+                          <div class="empty-state" id="activities-empty-state" style="display: none; margin: 1.5rem 2rem;"> <i class="fas fa-box-open"></i> <h3>Žádné aktivity</h3> <p>Zatím zde nejsou žádné zaznamenané aktivity.</p> </div>
+                       </div>
+                      <div class="pagination-controls" id="pagination-controls" style="display: none;"> <button id="prev-page-btn" class="btn btn-secondary btn-sm" disabled><i class="fas fa-chevron-left"></i></button> <span id="page-info">Stránka 1 / 1</span> <button id="next-page-btn" class="btn btn-secondary btn-sm" disabled><i class="fas fa-chevron-right"></i></button> </div>
+                  </section>
             </div>
             <footer class="dashboard-footer"> <p>&copy; <span id="currentYearFooter">2025</span> Justax Systems // Secure Channel</p> </footer>
         </div>
@@ -136,10 +137,6 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js" defer></script>
 
     <script src="https://cdn.jsdelivr.net/npm/date-fns@2.30.0/index.min.js" defer></script>
-    <script src="https://cdn.jsdelivr.net/npm/date-fns@2.30.0/locale/cs/index.min.js" defer></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@2.0.1/dist/chartjs-adapter-date-fns.bundle.min.js" defer></script>
-
-
     <script src="https://code.jquery.com/jquery-3.7.1.min.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/js/tooltipster.bundle.min.js" defer></script>
 
