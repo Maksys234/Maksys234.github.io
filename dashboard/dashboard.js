@@ -1,10 +1,11 @@
+
 // ============================================================================
 // dashboard.js -- Hlavní skript pro stránku Dashboard
 // ============================================================================
 // Globální proměnné pro Supabase klienta a data
 let supabase;
-let currentProfile = null; // Will store data from 'profiles' table
-let currentUserStats = null; // Will store data from 'user_stats' table
+let currentProfile = null;
+let currentUserStats = null;
 let availableTitles = {}; // Pro uložení načtených titulů
 
 // Konstanti pro API klíče a URL (z konfigurace nebo env proměnných)
@@ -57,8 +58,7 @@ function initializeSupabase() {
             } else if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
                 console.log("Uživatel přihlášen nebo session obnovena.");
                 // Při úspěšném přihlášení nebo obnovení session můžeme načíst data
-                // Added a small delay to ensure Supabase client might be fully ready after auth event
-                setTimeout(initializeDashboard, 100);
+                initializeDashboard();
             } else if (event === 'TOKEN_REFRESHED') {
                 console.log('Supabase token obnoven.');
             } else if (event === 'PASSWORD_RECOVERY') {
@@ -121,72 +121,61 @@ async function loadUserProfile() {
         if (userError) throw userError;
         if (!user) throw new Error("Uživatel není přihlášen.");
 
-        const userId = user.id; // This is the auth.users.id (UUID)
+        const userId = user.id;
 
         // Načtení profilu (včetně nových polí)
-        // *** CORRECTION: Use 'id' instead of 'user_id' for profiles table ***
         const { data: profileData, error: profileError } = await supabase
             .from('profiles')
-            .select('id, username, avatar_url, points, selected_title, last_login_date, streak_days') // Select 'id'
-            .eq('id', userId) // Filter by 'id' matching the auth user ID
+            .select('user_id, username, avatar_url, points, selected_title, last_login_date, streak_days')
+            .eq('user_id', userId)
             .single();
 
         if (profileError) {
             // Pokud profil neexistuje (např. nová registrace), vytvoříme ho? Nebo chyba?
             if (profileError.code === 'PGRST116') { // 'PGRST116' = row not found
-                console.warn(`Profil pro id ${userId} nenalezen. Možná nový uživatel nebo chyba synchronizace?`);
+                console.warn(`Profil pro user_id ${userId} nenalezen. Možná nový uživatel?`);
                  // Zde by mohla být logika pro vytvoření základního profilu, pokud je potřeba
-                 // Například:
-                 // const { error: createError } = await supabase.from('profiles').insert([{ id: userId, username: 'Nový Pilot' }]);
-                 // if (createError) throw new Error(`Nepodařilo se vytvořit profil: ${createError.message}`);
-                 // else return loadUserProfile(); // Zkusit načíst znovu po vytvoření
-                 throw new Error("Profil uživatele nenalezen. Kontaktujte podporu, pokud problém přetrvává.");
+                 throw new Error("Profil uživatele nenalezen.");
             } else {
-                // Re-throw other errors, including potential column errors if 'id' is also wrong
                 throw profileError;
             }
         }
-        if (!profileData) throw new Error("Profilová data nebyla nalezena po dotazu.");
-
-        // *** Store profile data, assuming 'id' is the primary key here ***
+        if (!profileData) throw new Error("Profilová data nebyla nalezena.");
         currentProfile = profileData;
-        // Add user_id from auth context for consistency if needed elsewhere,
-        // but database operations on 'profiles' will use 'id'.
-        currentProfile.user_id = userId;
-
         console.log("Profil načten:", currentProfile);
 
         // Načtení statistik (včetně nového pole)
-        // Assuming 'user_stats' table uses 'user_id' as the foreign key to profiles.id / auth.users.id
-        // If 'user_stats' also uses 'id', change 'user_id' to 'id' here too.
+        // Použijeme 'upsert', abychom zajistili, že záznam existuje
         const { data: statsData, error: statsError } = await supabase
             .from('user_stats')
-            .upsert({ user_id: userId }, { onConflict: 'user_id', ignoreDuplicates: false }) // Create row if not exists, based on user_id
-            .select('user_id, total_exercises_completed, total_correct_answers, total_incorrect_answers, average_accuracy, streak_longest') // Selecting user_id here
-            .eq('user_id', userId) // Filtering by user_id
+            .upsert({ user_id: userId }, { onConflict: 'user_id', ignoreDuplicates: false }) // Vytvoří řádek, pokud neexistuje
+            .select('user_id, total_exercises_completed, total_correct_answers, total_incorrect_answers, average_accuracy, streak_longest') // Přidáno streak_longest
+            .eq('user_id', userId)
             .single();
 
 
-        if (statsError && statsError.code !== 'PGRST116') { // Ignore "not found" after upsert
+        if (statsError && statsError.code !== 'PGRST116') { // Ignorovat chybu "not found" po upsertu, pokud by nastala zvláštním způsobem
             console.error("Chyba při načítání/upsertu statistik:", statsError);
+            // Možná použít výchozí hodnoty místo selhání?
              currentUserStats = { // Fallback stats
                  user_id: userId,
                  total_exercises_completed: 0,
                  total_correct_answers: 0,
                  total_incorrect_answers: 0,
                  average_accuracy: 0,
-                 streak_longest: 0
+                 streak_longest: 0 // Přidáno
              };
              showToast("Nepodařilo se načíst statistiky uživatele.", "warning");
         } else {
-            currentUserStats = statsData || { // Ensure stats object exists
+            currentUserStats = statsData || { // Zajistíme, že stats existují, i kdyby upsert vrátil null (což by neměl)
                 user_id: userId,
                 total_exercises_completed: 0,
                 total_correct_answers: 0,
                 total_incorrect_answers: 0,
                 average_accuracy: 0,
-                streak_longest: 0
+                streak_longest: 0 // Přidáno
             };
+             // Pokud statsData byly null (což by po upsertu nemělo nastat, ale pro jistotu)
              if (!statsData) console.warn("Upsert pro statistiky nevrátil data, použity výchozí.");
         }
         console.log("Statistiky načteny:", currentUserStats);
@@ -195,19 +184,12 @@ async function loadUserProfile() {
         updateWelcomeMessage();
 
         // Nyní, když máme profil, zkontrolujeme denní odměnu
-        // Make sure profile is fully loaded before proceeding
-        if (currentProfile && currentUserStats) {
-            await handleDailyLoginReward();
-        } else {
-            console.error("Denní odměna přeskočena: Profil nebo statistiky nejsou kompletní.");
-        }
-
+        await handleDailyLoginReward();
 
     } catch (error) {
         console.error("Chyba při načítání profilu nebo statistik:", error);
-        // Display the specific error message if available
-        const errorMessage = error.message || "Neznámá chyba";
-        displayGlobalError(`Chyba při načítání dat uživatele: ${errorMessage}`);
+        displayGlobalError(`Chyba při načítání dat uživatele: ${error.message}`);
+        // Zde bychom mohli zvážit odhlášení uživatele nebo zobrazení trvalé chyby
          hideElementLoading(sidebarName, 'Chyba');
          hideElementLoading(sidebarUserTitle, '-');
     }
@@ -274,7 +256,7 @@ function updateStatCards() {
     console.log("Aktualizace statistických karet...");
     if (!currentProfile || !currentUserStats) {
         console.warn("Profil nebo statistiky nejsou k dispozici pro aktualizaci karet.");
-        // Zobrazit chybový stav v kartách
+        // Můžeme zobrazit chybový stav v kartách
         updateSingleStatCard(progressCard, { error: true, message: "Data profilu chybí" });
         updateSingleStatCard(pointsCard, { error: true, message: "Data profilu chybí" });
         updateSingleStatCard(streakCard, { error: true, message: "Data profilu chybí" });
@@ -323,30 +305,28 @@ function updateStatCards() {
 function updateSingleStatCard(cardElement, data) {
     const content = cardElement.querySelector('.stat-card-content');
     const loadingSkeleton = cardElement.querySelector('.loading-skeleton');
-    const errorIcon = cardElement.querySelector('.stat-card-error-icon'); // Předpokládáme, že přidáme prvek pro ikonu chyby
-
-    // Clean previous states
-    cardElement.classList.remove('loading', 'error');
-    if(errorIcon) errorIcon.style.display = 'none';
 
     if (data.loading) {
         cardElement.classList.add('loading');
+        cardElement.classList.remove('error');
         if (content) content.style.display = 'none';
         if (loadingSkeleton) loadingSkeleton.style.display = 'flex'; // Nebo 'block' podle stylů
         return;
     }
 
      if (data.error) {
-         cardElement.classList.add('error');
+         cardElement.classList.remove('loading');
+         cardElement.classList.add('error'); // Přidat třídu pro error styl
          if (content) content.style.display = 'none'; // Skrýt obsah
          if (loadingSkeleton) loadingSkeleton.style.display = 'none'; // Skrýt skeleton
-         if (errorIcon) errorIcon.style.display = 'block'; // Zobrazit ikonu chyby
-         // Zobrazit chybovou zprávu uvnitř karty? Může být v tooltipu ikony nebo textu.
+         // Zobrazit chybovou zprávu uvnitř karty?
+         // Např. cardElement.innerHTML = `<div class="error-message">${data.message}</div>`;
+         // Prozatím jen třída 'error'
          console.error("Chyba v kartě:", data.title || cardElement.id, data.message);
          return;
      }
 
-    // Success state
+    cardElement.classList.remove('loading', 'error');
     if (loadingSkeleton) loadingSkeleton.style.display = 'none';
     if (content) {
         content.style.display = 'flex'; // Nebo 'block'
@@ -373,14 +353,14 @@ function updateSingleStatCard(cardElement, data) {
 
 // Příklad funkce pro výpočet celkového progressu (nahraďte reálnou logikou)
 function calculateOverallProgress(stats) {
-    if (!stats || !stats.total_exercises_completed || stats.total_exercises_completed === 0) return 0;
+    if (!stats || stats.total_exercises_completed === 0) return 0;
     // Velmi zjednodušený příklad:
+    // Můžeme vážit různé faktory: počet cvičení, přesnost atd.
+    // Nebo to může být hodnota načtená z jiné tabulky (např. 'user_progress')
     const accuracyWeight = 0.6;
     const completionWeight = 0.4;
-    // Ensure average_accuracy is a number between 0 and 100
-    const safeAccuracy = Math.max(0, Math.min(100, stats.average_accuracy || 0));
     const normalizedCompletion = Math.min(stats.total_exercises_completed / 100, 1); // Max 100 cvičení = 100%
-    const progress = (safeAccuracy * accuracyWeight) + (normalizedCompletion * 100 * completionWeight);
+    const progress = (stats.average_accuracy * accuracyWeight) + (normalizedCompletion * completionWeight);
     return Math.round(progress);
 }
 
@@ -400,20 +380,17 @@ async function loadRecentActivity() {
     if(errorState) errorState.style.display = 'none';
     actualList.innerHTML = ''; // Vyčistit staré aktivity (pokud tam není skeleton)
 
-    // Use currentProfile.user_id which we added after loading profile
-    if (!currentProfile || !currentProfile.user_id) {
-        console.warn("Profil nebo user_id nenalezen pro načtení aktivit.");
+    if (!currentProfile) {
+        console.warn("Profil nenalezen pro načtení aktivit.");
         displayActivityError("Uživatel není identifikován.");
         return;
     }
-    const userId = currentProfile.user_id;
 
     try {
-        // Assuming 'user_activity' table uses 'user_id' column
         const { data, error } = await supabase
             .from('user_activity')
             .select('activity_id, timestamp, type, description, related_data')
-            .eq('user_id', userId) // Filter by user_id
+            .eq('user_id', currentProfile.user_id)
             .order('timestamp', { ascending: false })
             .limit(5); // Načteme posledních 5 záznamů
 
@@ -522,8 +499,7 @@ function getActivityIcon(type) {
         case 'points_added': return '<i class="fas fa-plus-circle"></i>';
         case 'level_up': return '<i class="fas fa-arrow-alt-circle-up"></i>';
         case 'profile_updated': return '<i class="fas fa-user-edit"></i>';
-        case 'login_reward': return '<i class="fas fa-gift"></i>'; // New type for reward
-        case 'login': return '<i class="fas fa-sign-in-alt"></i>';
+        case 'login': return '<i class="fas fa-sign-in-alt"></i>'; // Nový typ pro login?
         default: return '<i class="fas fa-history"></i>';
     }
 }
@@ -531,33 +507,21 @@ function getActivityIcon(type) {
 
 // Formátuje časový údaj relativně k současnosti
 function formatRelativeTime(timestamp) {
-    if (!timestamp) return '';
-    try {
-        const now = new Date();
-        const past = new Date(timestamp);
-        // Check if date is valid
-        if (isNaN(past.getTime())) {
-             console.warn("Neplatný timestamp pro formátování:", timestamp);
-             return 'neznámo kdy';
-        }
+    const now = new Date();
+    const past = new Date(timestamp);
+    const diffInSeconds = Math.floor((now - past) / 1000);
+    const diffInMinutes = Math.floor(diffInSeconds / 60);
+    const diffInHours = Math.floor(diffInMinutes / 60);
+    const diffInDays = Math.floor(diffInHours / 24);
 
-        const diffInSeconds = Math.floor((now - past) / 1000);
-        const diffInMinutes = Math.floor(diffInSeconds / 60);
-        const diffInHours = Math.floor(diffInMinutes / 60);
-        const diffInDays = Math.floor(diffInHours / 24);
+    if (diffInSeconds < 60) return "právě teď";
+    if (diffInMinutes < 60) return `před ${diffInMinutes} min`;
+    if (diffInHours < 24) return `před ${diffInHours} hod`;
+    if (diffInDays === 1) return "včera";
+    if (diffInDays < 7) return `před ${diffInDays} dny`;
 
-        if (diffInSeconds < 60) return "právě teď";
-        if (diffInMinutes < 60) return `před ${diffInMinutes} min`;
-        if (diffInHours < 24) return `před ${diffInHours} hod`;
-        if (diffInDays === 1) return "včera";
-        if (diffInDays < 7) return `před ${diffInDays} dny`;
-
-        // Pro starší záznamy vrátíme normální datum
-        return past.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric' });
-    } catch (e) {
-         console.error("Chyba formátování času:", e, "Timestamp:", timestamp);
-         return 'chyba data';
-    }
+    // Pro starší záznamy vrátíme normální datum
+    return past.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric' });
 }
 
 // ============================================================================
@@ -569,14 +533,12 @@ function formatRelativeTime(timestamp) {
  */
 async function handleDailyLoginReward() {
     console.log("Kontrola denní odměny za přihlášení...");
-    // Ensure profile and stats are loaded and profile has 'id'
-    if (!currentProfile || !currentProfile.id || !currentUserStats) {
-        console.error("Profil (s ID) nebo statistiky nejsou načteny pro kontrolu denní odměny.");
+    if (!currentProfile || !currentUserStats) {
+        console.error("Profil nebo statistiky nejsou načteny pro kontrolu denní odměny.");
         return;
     }
 
-    const profileId = currentProfile.id; // Use the 'id' from profiles table
-    const userId = currentProfile.user_id; // Use the auth user id for other tables (like user_stats)
+    const userId = currentProfile.user_id;
     const lastLoginDateStr = currentProfile.last_login_date; // Očekává 'YYYY-MM-DD' nebo null
     const currentStreak = currentProfile.streak_days || 0;
     const currentPoints = currentProfile.points || 0;
@@ -642,7 +604,6 @@ async function handleDailyLoginReward() {
     try {
         // Aktualizace databáze v jedné transakci (pokud Supabase podporuje, jinak postupně)
         // 1. Aktualizace profilu
-        // *** CORRECTION: Use 'id' to identify the profile row ***
         const { error: profileUpdateError } = await supabase
             .from('profiles')
             .update({
@@ -650,29 +611,21 @@ async function handleDailyLoginReward() {
                 streak_days: newStreak,
                 points: newPoints
             })
-            .eq('id', profileId); // Filter by 'id'
+            .eq('user_id', userId);
 
         if (profileUpdateError) throw new Error(`Chyba aktualizace profilu: ${profileUpdateError.message}`);
         console.log("Profil aktualizován (datum, série, body).");
 
         // 2. Aktualizace nejdelší série (pouze pokud se zvýšila)
-        // Assuming 'user_stats' uses 'user_id'
         if (newLongestStreak > longestStreak) {
             const { error: statsUpdateError } = await supabase
                 .from('user_stats')
                 .update({ streak_longest: newLongestStreak })
-                .eq('user_id', userId); // Filter by 'user_id' for stats table
+                .eq('user_id', userId);
 
-            // Check if stats update failed because row didn't exist (shouldn't happen after upsert)
-            if (statsUpdateError && statsUpdateError.code === 'PGRST116') {
-                 console.warn(`Řádek pro user_stats (user_id: ${userId}) nenalezen pro update nejdelší série. Upsert mohl selhat.`);
-                 // Try inserting the whole stats record again? Or just log it.
-            } else if (statsUpdateError) {
-                 throw new Error(`Chyba aktualizace statistik: ${statsUpdateError.message}`);
-            } else {
-                console.log("Nejdelší série ve statistikách aktualizována.");
-                currentUserStats.streak_longest = newLongestStreak; // Aktualizace lokálního stavu
-            }
+            if (statsUpdateError) throw new Error(`Chyba aktualizace statistik: ${statsUpdateError.message}`);
+            console.log("Nejdelší série ve statistikách aktualizována.");
+            currentUserStats.streak_longest = newLongestStreak; // Aktualizace lokálního stavu
         }
 
         // Aktualizace lokálního stavu profilu
@@ -703,11 +656,9 @@ async function handleDailyLoginReward() {
 
 
         // Přidat záznam do logu aktivit?
-        // Assuming 'user_activity' uses 'user_id'
         await logActivity('login_reward', `Získána denní odměna a aktualizována série na ${newStreak} dní.`, { points_change: pointsToAdd, current_streak: newStreak });
 
         // Zkontrolovat odznaky za sérii
-        // Assuming 'user_badges' uses 'user_id'
         await checkAndAwardStreakBadges(userId, newStreak);
 
 
@@ -721,14 +672,9 @@ async function handleDailyLoginReward() {
 /**
  * Kontroluje, zda uživatel dosáhl nové série pro získání odznaku.
  * (Tato funkce vyžaduje tabulky 'badges' a 'user_badges')
- * Assuming 'user_badges' uses 'user_id'.
  */
 async function checkAndAwardStreakBadges(userId, currentStreak) {
-    console.log(`Kontrola odznaků pro sérii ${currentStreak} dní pro user_id: ${userId}`);
-    if (!userId) {
-         console.warn("checkAndAwardStreakBadges přeskočeno: Chybí user_id.");
-         return;
-    }
+    console.log(`Kontrola odznaků pro sérii ${currentStreak} dní.`);
     try {
         // 1. Získat odznaky typu 'streak', které uživatel ještě nemá
         const { data: potentialBadges, error: badgesError } = await supabase
@@ -739,28 +685,22 @@ async function checkAndAwardStreakBadges(userId, currentStreak) {
 
         if (badgesError) throw new Error(`Chyba načítání odznaků: ${badgesError.message}`);
         if (!potentialBadges || potentialBadges.length === 0) {
-            console.log("Žádné relevantní odznaky za sérii nenalezeny.");
+            console.log("Žádné relevantní odznaky za sérii nenalezeny nebo již dosaženy.");
             return;
         }
 
         // 2. Získat odznaky, které uživatel již vlastní
-        // Assuming 'user_badges' uses 'user_id'
         const { data: userBadges, error: userBadgesError } = await supabase
             .from('user_badges')
             .select('badge_id')
-            .eq('user_id', userId); // Filter by user_id
+            .eq('user_id', userId);
 
         if (userBadgesError) throw new Error(`Chyba načítání uživatelských odznaků: ${userBadgesError.message}`);
 
         const userBadgeIds = new Set(userBadges.map(b => b.badge_id));
-        console.log("Uživatel vlastní odznaky:", userBadgeIds);
-        console.log("Potenciální odznaky k udělení:", potentialBadges);
-
 
         // 3. Najít nové odznaky k udělení
         const badgesToAward = potentialBadges.filter(badge => !userBadgeIds.has(badge.badge_id));
-        console.log("Odznaky k udělení:", badgesToAward);
-
 
         if (badgesToAward.length === 0) {
             console.log("Uživatel již vlastní všechny dosažené odznaky za sérii.");
@@ -768,9 +708,8 @@ async function checkAndAwardStreakBadges(userId, currentStreak) {
         }
 
         // 4. Udělit nové odznaky
-        // Assuming 'user_badges' uses 'user_id'
         const newBadgeRecords = badgesToAward.map(badge => ({
-            user_id: userId, // Use user_id here
+            user_id: userId,
             badge_id: badge.badge_id,
             earned_at: new Date().toISOString()
         }));
@@ -785,9 +724,8 @@ async function checkAndAwardStreakBadges(userId, currentStreak) {
         for (const badge of badgesToAward) {
             console.log(`Udělen nový odznak: ${badge.name}`);
             showToast(`NOVÉ OCENĚNÍ: ${badge.name}! <i class="${badge.icon || 'fas fa-medal'}"></i>`, 'info', 8000);
-            // Assuming 'user_activity' uses 'user_id'
             await logActivity('badge_earned', `Získáno ocenění "${badge.name}" za dosažení série ${badge.requirement} dní.`, { badge_id: badge.badge_id, badge_name: badge.name });
-            // Assuming 'notifications' uses 'user_id'
+            // Zde můžeme přidat i notifikaci
             await addNotification(userId, 'badge', `Gratulujeme! Získali jste ocenění "${badge.name}" za vaši úžasnou sérii přihlášení!`, `/dashboard/oceneni.html#badge-${badge.badge_id}`);
 
         }
@@ -805,21 +743,14 @@ async function checkAndAwardStreakBadges(userId, currentStreak) {
 let notifications = []; // Pole pro uchování načtených notifikací
 
 // Načte notifikace pro uživatele
-// Assuming 'notifications' table uses 'user_id'
 async function loadNotifications() {
-    // Use currentProfile.user_id which we added after loading profile
-    if (!currentProfile || !currentProfile.user_id) {
-        console.warn("Profil nebo user_id nenalezen pro načtení notifikací.");
-        return;
-    }
-    const userId = currentProfile.user_id;
-    console.log("Načítání notifikací pro user_id:", userId);
-
+    if (!currentProfile) return;
+    console.log("Načítání notifikací...");
     try {
         const { data, error } = await supabase
             .from('notifications')
             .select('notification_id, type, message, link, created_at, is_read')
-            .eq('user_id', userId) // Filter by user_id
+            .eq('user_id', currentProfile.user_id)
             .order('created_at', { ascending: false })
             .limit(20); // Omezit na posledních 20
 
@@ -881,13 +812,10 @@ function createNotificationElement(notification) {
     item.appendChild(content);
 
     // Přidání click listeneru pro označení jako přečtené a navigaci
-    item.addEventListener('click', async (event) => {
-        event.stopPropagation(); // Prevent dropdown close if click was handled
+    item.addEventListener('click', async () => {
         if (!notification.is_read) {
             markNotificationAsRead(notification.notification_id);
-            // Optimistic UI update
-            const localNotif = notifications.find(n => n.notification_id === notification.notification_id);
-            if (localNotif) localNotif.is_read = true;
+            notification.is_read = true; // Optimistické UI
              item.classList.remove('unread');
              item.classList.add('read');
              updateNotificationBadge(); // Snížit počítadlo
@@ -927,49 +855,28 @@ function updateNotificationBadge() {
 }
 
 // Označí notifikaci jako přečtenou v DB
-// Assuming 'notifications' uses 'user_id'
 async function markNotificationAsRead(notificationId) {
-     if (!currentProfile || !currentProfile.user_id) {
-         console.warn("Nelze označit notifikaci: Chybí user_id.");
-         return;
-     }
-     const userId = currentProfile.user_id;
     try {
         const { error } = await supabase
             .from('notifications')
             .update({ is_read: true })
             .eq('notification_id', notificationId)
-             .eq('user_id', userId); // Důležité: zajistit, že uživatel mění jen svoje
+             .eq('user_id', currentProfile.user_id); // Důležité: zajistit, že uživatel mění jen svoje
 
         if (error) throw error;
-        console.log(`Notifikace ${notificationId} označena jako přečtená v DB.`);
+        console.log(`Notifikace ${notificationId} označena jako přečtená.`);
 
     } catch (error) {
-        console.error(`Chyba při označování notifikace ${notificationId} jako přečtené v DB:`, error);
+        console.error(`Chyba při označování notifikace ${notificationId} jako přečtené:`, error);
         showToast("Chyba při aktualizaci stavu notifikace.", "error");
         // Zde můžeme zvážit vrácení UI do původního stavu, pokud selže DB update
-         const localNotif = notifications.find(n => n.notification_id === notificationId);
-            if (localNotif) {
-                localNotif.is_read = false; // Revert optimistic update
-                 const itemElement = notificationsList.querySelector(`.notification-item[data-id="${notificationId}"]`);
-                 if(itemElement) {
-                     itemElement.classList.add('unread');
-                     itemElement.classList.remove('read');
-                 }
-                 updateNotificationBadge();
-            }
     }
 }
 
 // Označí všechny notifikace jako přečtené
-// Assuming 'notifications' uses 'user_id'
 async function markAllNotificationsAsRead() {
-     if (!currentProfile || !currentProfile.user_id) {
-         console.warn("Nelze označit vše: Chybí user_id.");
-         return;
-     }
-     const userId = currentProfile.user_id;
-     console.log("Označování všech notifikací jako přečtených pro user_id:", userId);
+     if (!currentProfile) return;
+     console.log("Označování všech notifikací jako přečtených...");
      markAllReadBtn.disabled = true; // Deaktivovat během operace
      markAllReadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; // Zobrazit loader
 
@@ -977,17 +884,17 @@ async function markAllNotificationsAsRead() {
         const { error } = await supabase
             .from('notifications')
             .update({ is_read: true })
-            .eq('user_id', userId) // Filter by user_id
+            .eq('user_id', currentProfile.user_id)
             .eq('is_read', false); // Označit jen ty, co jsou nepřečtené
 
         if (error) throw error;
 
          // Aktualizovat lokální stav a UI
-         notifications.forEach(n => { if (!n.is_read) n.is_read = true; });
+         notifications.forEach(n => n.is_read = true);
          renderNotifications(); // Překreslit seznam (všechny budou 'read')
          updateNotificationBadge(); // Počítadlo bude 0
 
-        console.log("Všechny notifikace označeny jako přečtené v DB.");
+        console.log("Všechny notifikace označeny jako přečtené.");
         showToast("Všechny signály označeny jako přijaté.", "success");
 
     } catch (error) {
@@ -1004,23 +911,22 @@ async function markAllNotificationsAsRead() {
 
 /**
  * Přidá novou notifikaci pro uživatele do DB.
- * @param {string} userId - Auth ID uživatele (UUID).
+ * @param {string} userId - ID uživatele.
  * @param {string} type - Typ notifikace (badge, system, message, alert, reward).
  * @param {string} message - Text notifikace.
  * @param {string|null} link - Odkaz pro kliknutí (nepovinný).
- * Assuming 'notifications' uses 'user_id'.
  */
 async function addNotification(userId, type, message, link = null) {
     if (!supabase || !userId) {
         console.error("Supabase klient nebo user ID není k dispozici pro přidání notifikace.");
         return;
     }
-    console.log(`Přidávání notifikace typu ${type} pro user_id ${userId}`);
+    console.log(`Přidávání notifikace typu ${type} pro uživatele ${userId}`);
     try {
         const { data, error } = await supabase
             .from('notifications')
             .insert([{
-                user_id: userId, // Use user_id here
+                user_id: userId,
                 type: type,
                 message: message,
                 link: link,
@@ -1033,6 +939,7 @@ async function addNotification(userId, type, message, link = null) {
 
         console.log("Notifikace úspěšně přidána:", data);
         // Můžeme zde i aktualizovat UI notifikací v reálném čase, pokud je potřeba
+        // Např. přidat notifikaci do lokálního pole 'notifications' a překreslit
          if (data && data.length > 0) {
             // Přidat na začátek pole pro zobrazení nahoře
              notifications.unshift(data[0]);
@@ -1087,11 +994,9 @@ function showToast(message, type = 'info', duration = 4000) {
     toastContainer.appendChild(toast);
 
     // Trigger animace
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
+    setTimeout(() => {
         toast.classList.add('show');
-      });
-    });
+    }, 100); // malý delay pro CSS transition
 
     // Automatické odstranění toastu
     setTimeout(() => {
@@ -1101,13 +1006,13 @@ function showToast(message, type = 'info', duration = 4000) {
              if(toast.parentNode === toastContainer) { // Check if it wasn't removed already
                  toastContainer.removeChild(toast);
              }
-        }, { once: true }); // Ensure listener is removed after firing once
+        });
          // Failsafe remove if transitionend doesn't fire (e.g., element hidden)
          setTimeout(() => {
              if (toast.parentNode === toastContainer) {
                  toastContainer.removeChild(toast);
              }
-         }, duration + 500); // Add buffer for transition time
+         }, 500); // Should match transition duration
     }, duration);
 }
 
@@ -1124,22 +1029,20 @@ function showInitialLoader(show) {
  * @param {string} type - Typ aktivity (např. 'exercise_completed', 'badge_earned').
  * @param {string} description - Popis aktivity.
  * @param {object|null} relatedData - JSON objekt s dalšími detaily (nepovinný).
- * Assuming 'user_activity' uses 'user_id'.
  */
 async function logActivity(type, description, relatedData = null) {
-    // Use currentProfile.user_id which we added after loading profile
-    if (!supabase || !currentProfile || !currentProfile.user_id) {
-        console.warn("Nelze zaznamenat aktivitu: Supabase nebo user_id není k dispozici.");
+    if (!supabase || !currentProfile) {
+        console.warn("Nelze zaznamenat aktivitu: Supabase nebo profil není k dispozici.");
         return;
     }
     const userId = currentProfile.user_id;
-    console.log(`Logování aktivity: Typ=${type}, UserID=${userId}, Popis=${description}`);
+    console.log(`Logování aktivity: Typ=${type}, Popis=${description}`);
 
     try {
         const { error } = await supabase
             .from('user_activity')
             .insert([{
-                user_id: userId, // Use user_id here
+                user_id: userId,
                 type: type,
                 description: description,
                 related_data: relatedData
@@ -1148,6 +1051,10 @@ async function logActivity(type, description, relatedData = null) {
 
         if (error) throw error;
         console.log("Aktivita úspěšně zaznamenána.");
+
+        // Můžeme zvážit okamžitou aktualizaci UI seznamu aktivit,
+        // ale pro dashboard stačí při příštím načtení nebo refresh.
+        // Pokud chceme realtime, museli bychom aktivitu přidat do UI zde.
 
     } catch (error) {
         console.error("Chyba při zaznamenávání aktivity:", error);
@@ -1167,9 +1074,9 @@ function setupEventListeners() {
 
     // Ošetření kliknutí mimo sidebar pro zavření na mobilu
     document.addEventListener('click', (event) => {
-        if (window.innerWidth < 992 && sidebar?.classList.contains('open')) {
+        if (window.innerWidth < 768 && sidebar.classList.contains('open')) {
             const isClickInsideSidebar = sidebar.contains(event.target);
-            const isClickOnMobileToggle = mainMobileMenuToggle?.contains(event.target);
+            const isClickOnMobileToggle = mainMobileMenuToggle.contains(event.target);
             if (!isClickInsideSidebar && !isClickOnMobileToggle) {
                 closeSidebar();
             }
@@ -1181,16 +1088,6 @@ function setupEventListeners() {
          console.log("Manuální refresh dat...");
          showToast("SYNCHRONIZACE DAT...", "info", 2000);
          hideGlobalError(); // Skrýt případné staré chyby
-         // Reset cards to loading state immediately for better UX
-         updateSingleStatCard(progressCard, { loading: true });
-         updateSingleStatCard(pointsCard, { loading: true });
-         updateSingleStatCard(streakCard, { loading: true });
-         activityListContainer.classList.add('loading');
-         activityListContainer.classList.remove('error-state-visible', 'empty-state-visible');
-         activityListContainer.querySelector('#activity-list').innerHTML = ''; // Clear old list
-         activityListContainer.querySelector('.loading-placeholder').style.display = 'flex';
-
-
          loadDashboardData(); // Znovu načíst všechna data
     });
 
@@ -1228,8 +1125,6 @@ function setupEventListeners() {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
                 entry.target.classList.add('in-view');
-                // Optional: unobserve after animating once
-                // observer.unobserve(entry.target);
             }
         });
     }, { threshold: 0.1 }); // Spustit animaci, když je 10% prvku vidět
@@ -1238,7 +1133,7 @@ function setupEventListeners() {
 
 
      // --- Mouse Follower Effect ---
-     if (mouseFollower && window.matchMedia('(pointer: fine)').matches) { // Only for fine pointers (mice)
+     if (mouseFollower) {
          document.body.addEventListener('mousemove', (e) => {
              // Použijeme requestAnimationFrame pro plynulejší výkon
              window.requestAnimationFrame(() => {
@@ -1252,8 +1147,6 @@ function setupEventListeners() {
          document.body.addEventListener('mouseenter', () => {
               mouseFollower.style.opacity = '1';
          });
-     } else if (mouseFollower) {
-         mouseFollower.style.display = 'none'; // Hide on touch devices
      }
 
 
@@ -1283,28 +1176,22 @@ function openSidebar() {
 // ============================================================================
 // Online/Offline Handling
 // ============================================================================
-let wasOffline = !navigator.onLine; // Track if we were previously offline
-
 function handleConnectionChange(isOnline) {
     if (offlineBanner) {
         offlineBanner.style.display = isOnline ? 'none' : 'flex';
     }
     if (isOnline) {
         console.log("Spojení obnoveno.");
-        if (wasOffline) { // Only show toast and reload if we *were* offline
-            showToast("ONLINE // SPOJENÍ OBNOVENO", "success");
-            hideGlobalError(); // Skrýt případné chyby způsobené offline stavem
-            // Můžeme zkusit znovu načíst data, pokud předchozí pokus selhal kvůli offline
-            if (!currentProfile) { // Pokud profil nebyl načten
-                console.log("Pokus o opětovné načtení dat po obnovení spojení...");
-                loadDashboardData();
-            }
-            wasOffline = false; // Reset flag
+        showToast("ONLINE // SPOJENÍ OBNOVENO", "success");
+        hideGlobalError(); // Skrýt případné chyby způsobené offline stavem
+        // Můžeme zkusit znovu načíst data, pokud předchozí pokus selhal kvůli offline
+        if (!currentProfile) { // Pokud profil nebyl načten
+             console.log("Pokus o opětovné načtení dat po obnovení spojení...");
+             loadDashboardData();
         }
     } else {
         console.warn("Spojení ztraceno.");
         showToast("OFFLINE // SPOJENÍ ZTRACENO", "warning", 6000);
-        wasOffline = true; // Set flag
         // Nezobrazujeme globální chybu hned, jen banner
     }
 }
@@ -1327,10 +1214,7 @@ async function loadDashboardData() {
 
         // Pokud se profil nebo statistiky nepodařilo načíst, nemá smysl pokračovat
          if (!currentProfile || !currentUserStats) {
-             // loadUserProfile should have already displayed an error
-             console.error("loadDashboardData přerušeno: Nepodařilo se načíst profil nebo statistiky.");
-             // Don't throw here again, let the UI show the error from loadUserProfile
-             return; // Exit the function gracefully
+             throw new Error("Nepodařilo se načíst základní data uživatele. Načítání dashboardu přerušeno.");
          }
 
         // 2. Aktualizovat statistické karty (už by měly být aktualizované po handleDailyLoginReward, ale pro jistotu)
@@ -1345,11 +1229,10 @@ async function loadDashboardData() {
         console.log("Všechna data pro dashboard načtena úspěšně.");
 
     } catch (error) {
-        // Catch errors from loadTitles, loadRecentActivity, loadNotifications
-        console.error("Chyba při načítání doplňkových dat dashboardu (tituly, aktivity, notifikace):", error);
-        // Zobrazit globální chybu, pokud již není zobrazena z loadUserProfile
+        console.error("Celková chyba při načítání dat dashboardu:", error);
+        // Zobrazit globální chybu, pokud již není zobrazena z podřízené funkce
         if (globalErrorContainer && globalErrorContainer.style.display !== 'block') {
-             displayGlobalError(`Nepodařilo se načíst všechna data nástěnky: ${error.message}`);
+             displayGlobalError(`Nepodařilo se načíst data nástěnky: ${error.message}`);
         }
     } finally {
         showInitialLoader(false); // Skrýt hlavní loader po dokončení (i v případě chyby)
@@ -1363,14 +1246,7 @@ async function loadDashboardData() {
 // Inicializace stránky
 // ============================================================================
 function initializeDashboard() {
-    // Prevent multiple initializations if auth state changes rapidly
-    if (window.dashboardInitialized) {
-         console.log("Dashboard již byl inicializován, přeskočení.");
-         return;
-    }
-    window.dashboardInitialized = true;
     console.log("Inicializace Dashboardu...");
-
     // Nastavit aktuální rok v patičce
     const currentYear = new Date().getFullYear();
     if(currentYearSidebar) currentYearSidebar.textContent = currentYear;
@@ -1384,9 +1260,6 @@ function initializeDashboard() {
 
     // Načíst všechna potřebná data
     loadDashboardData();
-
-    // Reset flag after a delay to allow for potential re-initialization if needed after full sign-out/sign-in
-    setTimeout(() => { window.dashboardInitialized = false; }, 3000);
 }
 
 
@@ -1399,7 +1272,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Pokud Supabase není dostupný (např. chyba skriptu), initializeDashboard se nezavolá.
     // Můžeme přidat fallback po určité době?
      setTimeout(() => {
-         if (!supabase && initialLoader && initialLoader.style.display !== 'none') { // Pokud Supabase stále není inicializován po 5s a loader je vidět
+         if (!supabase && initialLoader) { // Pokud Supabase stále není inicializován po 5 sekundách
              console.error("Supabase se nepodařilo inicializovat v časovém limitu.");
              displayGlobalError("Kritická chyba: Systémové jádro (Supabase) není dostupné.");
              showInitialLoader(false);
