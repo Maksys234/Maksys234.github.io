@@ -450,12 +450,11 @@ section:has(.section-title.animated) .section-title span::after,
   80% { text-shadow: 0 0 5px var(--clr-accent-cyan), 0 0 10px var(--clr-accent-cyan); }
 }
 .hero h1[data-animate-letters].letters-animating {
-	animation: digital-glitch-subtle 2s steps(5, end) infinite alternate;
+	/* MODIFIED: Removed glitch animation from main H1 text for cleaner look */
+	/* animation: digital-glitch-subtle 2s steps(5, end) infinite alternate; */
 }
 
 /* --- Hero H1 Styling --- */
-/* REVIEWED: This section styles the main title (H1) requested by the user. */
-/* The font-size is large and responsive, and the text-shadow enhances visibility. */
 .hero h1 {
 	margin-bottom: 2rem;
 	font-weight: 800;
@@ -475,15 +474,15 @@ section:has(.section-title.animated) .section-title span::after,
 	100% { background-position: 0% 50%; }
 }
 .hero h1 .highlight {
-	background: linear-gradient(90deg, var(--clr-accent-cyan), var(--clr-accent-pink), var(--clr-accent-purple), var(--clr-accent-cyan));
+    /* MODIFIED: Changed gradient colors for highlight text design */
+	background: linear-gradient(90deg, var(--clr-accent-green), var(--clr-accent-purple), var(--clr-accent-orange), var(--clr-accent-green));
 	background-size: 300% 100%;
 	-webkit-background-clip: text;
 	background-clip: text;
 	color: transparent;
-	animation: animated-gradient 5s linear infinite;
+	animation: animated-gradient 6s linear infinite; /* Slightly slowed down animation */
 	position: relative;
 	display: inline-block;
-    /* Ensure highlight shadow is also subtle or none */
     text-shadow: none; /* Remove potential inherited shadow */
 }
 
@@ -499,18 +498,19 @@ section:has(.section-title.animated) .section-title span::after,
 	content: attr(data-text);
 	position: absolute; top: 0; left: 0; width: 100%; height: 100%;
 	background: var(--clr-bg-primary); overflow: hidden;
-	/* Gradient for glitch layers */
-	background: linear-gradient(90deg, var(--clr-accent-cyan), var(--clr-accent-pink), var(--clr-accent-purple), var(--clr-accent-cyan));
+	/* MODIFIED: Ensure glitch layers use the new gradient */
+	background: linear-gradient(90deg, var(--clr-accent-green), var(--clr-accent-purple), var(--clr-accent-orange), var(--clr-accent-green));
 	background-size: 300% 100%;
 	-webkit-background-clip: text;
 	background-clip: text;
 	color: transparent;
-	animation-duration: 1s; animation-timing-function: steps(4, end);
+	animation-duration: 1.2s; /* Slightly slower glitch */
+    animation-timing-function: steps(4, end);
 	animation-iteration-count: infinite;
     opacity: 0.9;
 }
 .hero h1[data-animate-letters].letters-animating .highlight::before { animation-name: glitch-layer-1; }
-.hero h1[data-animate-letters].letters-animating .highlight::after { animation-name: glitch-layer-2; animation-delay: 0.15s; }
+.hero h1[data-animate-letters].letters-animating .highlight::after { animation-name: glitch-layer-2; animation-delay: 0.18s; }
 
 .hero p {
 	font-size: clamp(1rem, 2vw, 1.2rem); /* Responsive size */
@@ -985,8 +985,6 @@ section:has(.section-title.animated) .section-title span::after,
     width: clamp(280px, 28vw, 340px); /* Define card width. Adjust as needed. Needs to be fixed for calculations. */
     margin-right: clamp(25px, 4vw, 40px); /* Use margin for gap between cards */
 }
-/* Remove margin from the last card in the track (managed by JS logic, not strictly needed here) */
-/* .testimonial-slider-track > .testimonial-card:last-child { margin-right: 0; } */
 
 /* --- Loading State for Cards --- */
 .testimonial-card.is-loading {
@@ -1333,7 +1331,8 @@ body:active .mouse-follower-glow {
 /* Hover effect over links/buttons */
 a:hover ~ .mouse-follower-glow,
 button:hover ~ .mouse-follower-glow,
-.btn:hover ~ .mouse-follower-glow {
+.btn:hover ~ .mouse-follower-glow,
+.slider-btn:hover ~ .mouse-follower-glow { /* Added slider-btn */
      width: 45px; height: 45px;
      background: rgba(255, 51, 168, 0.7); /* Pinkish */
      box-shadow: 0 0 20px 8px var(--clr-accent-pink), 0 0 30px 20px rgba(255, 51, 168, 0.3);
