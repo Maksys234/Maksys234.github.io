@@ -41,7 +41,7 @@
 	/* --- Transitions --- */
 	--transition-fast: 0.2s ease-in-out;
 	--transition-smooth: 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-	/* Original value for slider */
+	/* Variable for slider transition duration and easing */
 	--transition-smooth-slider: 0.5s cubic-bezier(0.65, 0, 0.35, 1);
 	--transition-slow: 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 	--transition-bounce: 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
@@ -426,9 +426,8 @@ section:has(.section-title.animated) .section-title span::after,
 	padding-bottom: 70px;
 	position: relative;
 	overflow: hidden;
-    /* FIXED: Corrected placeholder URL */
 	background: linear-gradient(rgba(3, 2, 12, 0.9), rgba(3, 2, 12, 1)),
-				url('https://placehold.co/1920x1080/03020c/16213e/png?text=Abstract+Circuitry') no-repeat center center / cover;
+				url('https://placehold.co/1920x1080/03020c/16213e/png?text=Abstract+Circuitry') no-repeat center center / cover; /* Placeholder URL corrected */
 }
 #particles-js {
 	position: absolute;
@@ -453,12 +452,19 @@ section:has(.section-title.animated) .section-title span::after,
 .hero h1[data-animate-letters].letters-animating {
 	animation: digital-glitch-subtle 2s steps(5, end) infinite alternate;
 }
+
+/* --- Hero H1 Styling --- */
+/* REVIEWED: This section styles the main title (H1) requested by the user. */
+/* The font-size is large and responsive, and the text-shadow enhances visibility. */
 .hero h1 {
 	margin-bottom: 2rem;
 	font-weight: 800;
-	color: var(--clr-text-highlight); /* Ensure base color is set */
-    /* MODIFIED: Stronger text shadow for better contrast */
+	color: var(--clr-text-highlight); /* Base color */
+    /* Stronger text shadow for better contrast against background */
     text-shadow: 0px 1px 4px rgba(0, 0, 0, 0.8), 0px 0px 1px rgba(0, 0, 0, 0.8);
+    /* Optional: Add a subtle stroke for even more definition */
+    /* -webkit-text-stroke: 1px rgba(0, 0, 0, 0.3); */
+    /* paint-order: stroke fill; */
 }
 
 
@@ -512,7 +518,7 @@ section:has(.section-title.animated) .section-title span::after,
 	margin: 0 auto 3rem auto;
 	color: var(--clr-text-primary);
 	opacity: 0.9;
-    /* MODIFIED: Stronger text shadow for better contrast */
+    /* Stronger text shadow for better contrast */
     text-shadow: 0px 1px 3px rgba(0, 0, 0, 0.7), 0px 0px 1px rgba(0, 0, 0, 0.7);
 }
 
@@ -949,8 +955,7 @@ section:has(.section-title.animated) .section-title span::after,
 .testimonial-slider-track {
     display: flex; /* Layout cards horizontally */
     /* Width will be very large, calculated by JS based on number of cards */
-    /* gap: defined below for specificity */
-    /* Use original variable for transition */
+    /* Use the CSS variable for the transition */
     transition: transform var(--transition-smooth-slider);
     will-change: transform; /* Optimize animation performance */
     position: relative; /* For correct positioning calculations */
@@ -980,7 +985,7 @@ section:has(.section-title.animated) .section-title span::after,
     width: clamp(280px, 28vw, 340px); /* Define card width. Adjust as needed. Needs to be fixed for calculations. */
     margin-right: clamp(25px, 4vw, 40px); /* Use margin for gap between cards */
 }
-/* Remove margin from the last card in the track (though it might get complex with infinite cloning) */
+/* Remove margin from the last card in the track (managed by JS logic, not strictly needed here) */
 /* .testimonial-slider-track > .testimonial-card:last-child { margin-right: 0; } */
 
 /* --- Loading State for Cards --- */
