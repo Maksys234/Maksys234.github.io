@@ -17,8 +17,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/css/tooltipster.bundle.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/js/tooltipster.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <link rel="stylesheet" href="main.css">
-</head>
+    <link rel="stylesheet" href="../dashboard.css"> <link rel="stylesheet" href="main.css"> </head>
 <body class="dark">
     <div class="initial-loading-overlay" id="initial-loader">
          <div class="loading-spinner"></div>
@@ -50,7 +49,7 @@
                 <div class="user-role" id="sidebar-user-title">Pilot</div>
             </div>
         </div>
-        <div class="sidebar-footer"> &copy; <span id="currentYearFooter">2025</span> Justax Systems </div>
+        <div class="sidebar-footer"> &copy; <span id="currentYearSidebar">2025</span> Justax Systems </div>
     </aside>
 
     <main id="main-content">
@@ -68,9 +67,10 @@
                      <h1><i class="fas fa-laptop-code"></i> Procvičování // Přehled</h1>
                  </div>
                 <div class="header-actions">
-                    <button class="refresh-btn" id="refresh-data-btn" title="Obnovit data">
+                    <button class="refresh-btn btn-tooltip" id="refresh-data-btn" title="Obnovit data">
                         <i class="fas fa-sync-alt"></i>
-                        <span class="refresh-text">RELOAD</span> </button>
+                        <span class="refresh-text">RELOAD</span>
+                    </button>
                     <div class="notifications">
                         <div class="notification-bell" id="notification-bell" title="Oznámení">
                              <i class="far fa-bell"></i>
@@ -82,11 +82,19 @@
                                  <button class="mark-all-read-btn" id="mark-all-read" disabled>Vymazat vše</button>
                              </div>
                              <div id="notifications-list">
-                                 <div class="notification-item skeleton"> <div class="notification-icon skeleton"></div> <div class="notification-content"> <div class="skeleton" style="height: 16px; width: 70%; margin-bottom: 6px;"></div> <div class="skeleton" style="height: 12px; width: 90%;"></div> <div class="skeleton" style="height: 10px; width: 40%; margin-top: 6px;"></div> </div> </div>
+                                 <div class="notification-item skeleton">
+                                     <div class="notification-icon skeleton" style="background-color: var(--skeleton-bg);"></div>
+                                     <div class="notification-content">
+                                         <div class="skeleton" style="height: 16px; width: 70%; margin-bottom: 6px;"></div>
+                                         <div class="skeleton" style="height: 12px; width: 90%;"></div>
+                                         <div class="skeleton" style="height: 10px; width: 40%; margin-top: 6px;"></div>
+                                     </div>
+                                 </div>
                                  <div id="no-notifications-msg" style="display: none;">ŽÁDNÉ NOVÉ SIGNÁLY</div>
                              </div>
                              <div class="notifications-footer">
-                                 <a href="/dashboard/notifications.html" class="view-all-notifications-link">ZOBRAZIT ARCHIV</a> </div>
+                                 <a href="/dashboard/notifications.html" class="view-all-notifications-link">ZOBRAZIT ARCHIV</a>
+                             </div>
                         </div>
                      </div>
                 </div>
@@ -120,73 +128,106 @@
                      </div>
                     <section class="stats-section">
                         <h2 class="section-title" data-animate style="--animation-order: 1;"><i class="fas fa-chart-pie"></i>Celkový Přehled</h2>
-                        <div class="dashboard-grid" id="stats-cards">
-                            <div class="dashboard-card card" data-animate style="--animation-order: 2;">
-                                <div class="card-header">
-                                    <h3 class="card-title">Dokončená Cvičení</h3>
-                                    </div>
-                                <div class="card-content">
-                                    <div class="card-value" id="stats-completed">0</div>
-                                    <p class="card-description">Celkový počet vyřešených cvičení</p>
+                        <div class="dashboard-grid loading" id="stats-cards">
+                            <div class="dashboard-card card loading">
+                                <div class="loading-skeleton">
+                                    <div class="skeleton" style="height: 20px; width: 60%; margin-bottom: 1rem;"></div>
+                                    <div class="skeleton" style="height: 35px; width: 40%; margin-bottom: 0.8rem;"></div>
+                                    <div class="skeleton" style="height: 16px; width: 80%; margin-bottom: 1.5rem;"></div>
+                                    <div class="skeleton" style="height: 14px; width: 50%;"></div>
                                 </div>
+                                <div class="card-header"> <h3 class="card-title">Dokončená Cvičení</h3> </div>
+                                <div class="card-content"> <div class="card-value" id="stats-completed">0</div> <p class="card-description">Celkový počet vyřešených cvičení</p> </div>
                                 <div class="card-footer" id="stats-completed-change"><i class="fas fa-check"></i> Žádná změna</div>
                             </div>
-                            <div class="dashboard-card card" data-animate style="--animation-order: 3;">
-                                <div class="card-header">
-                                    <h3 class="card-title">Průměrné Skóre</h3>
-                                    </div>
-                                <div class="card-content">
-                                    <div class="card-value" id="stats-avg-score">-%</div>
-                                    <p class="card-description">Průměrná úspěšnost v testech/cvičeních</p>
-                                </div>
-                                <div class="card-footer" id="stats-avg-score-change"><i class="fas fa-chart-line"></i> Tento týden</div>
+                            <div class="dashboard-card card loading">
+                                 <div class="loading-skeleton">
+                                     <div class="skeleton" style="height: 20px; width: 55%; margin-bottom: 1rem;"></div>
+                                     <div class="skeleton" style="height: 35px; width: 35%; margin-bottom: 0.8rem;"></div>
+                                     <div class="skeleton" style="height: 16px; width: 90%; margin-bottom: 1.5rem;"></div>
+                                     <div class="skeleton" style="height: 14px; width: 60%;"></div>
+                                 </div>
+                                 <div class="card-header"> <h3 class="card-title">Průměrné Skóre</h3> </div>
+                                 <div class="card-content"> <div class="card-value" id="stats-avg-score">-%</div> <p class="card-description">Průměrná úspěšnost v testech/cvičeních</p> </div>
+                                 <div class="card-footer" id="stats-avg-score-change"><i class="fas fa-chart-line"></i> Tento týden</div>
+                             </div>
+                             <div class="dashboard-card card loading">
+                                 <div class="loading-skeleton">
+                                     <div class="skeleton" style="height: 20px; width: 60%; margin-bottom: 1rem;"></div>
+                                     <div class="skeleton" style="height: 35px; width: 45%; margin-bottom: 0.8rem;"></div>
+                                     <div class="skeleton" style="height: 16px; width: 75%; margin-bottom: 1.5rem;"></div>
+                                     <div class="skeleton" style="height: 14px; width: 55%;"></div>
+                                 </div>
+                                 <div class="card-header"> <h3 class="card-title">Čas Cvičení</h3> </div>
+                                 <div class="card-content"> <div class="card-value" id="stats-time-spent">0h 0m</div> <p class="card-description">Celkový čas strávený procvičováním</p> </div>
+                                 <div class="card-footer" id="stats-time-change"><i class="fas fa-hourglass-half"></i> Tento měsíc</div>
+                             </div>
+                             <div class="dashboard-card card loading">
+                                 <div class="loading-skeleton">
+                                     <div class="skeleton" style="height: 20px; width: 70%; margin-bottom: 1rem;"></div>
+                                     <div class="skeleton" style="height: 35px; width: 50%; margin-bottom: 0.8rem;"></div>
+                                     <div class="skeleton" style="height: 16px; width: 85%; margin-bottom: 1.5rem;"></div>
+                                     <div class="skeleton" style="height: 14px; width: 65%;"></div>
+                                 </div>
+                                 <div class="card-header"> <h3 class="card-title">Nejslabší Téma</h3> </div>
+                                 <div class="card-content"> <div class="card-value" id="stats-weakest-topic" style="font-size: 1.8rem;">-</div> <p class="card-description">Oblast s nejnižší úspěšností</p> </div>
+                                 <div class="card-footer"><i class="fas fa-atom"></i> Na základě posledního testu</div>
                             </div>
-                            <div class="dashboard-card card" data-animate style="--animation-order: 4;">
-                                <div class="card-header">
-                                    <h3 class="card-title">Čas Cvičení</h3>
-                                    </div>
-                                <div class="card-content">
-                                    <div class="card-value" id="stats-time-spent">0h 0m</div>
-                                    <p class="card-description">Celkový čas strávený procvičováním</p>
-                                </div>
-                                <div class="card-footer" id="stats-time-change"><i class="fas fa-hourglass-half"></i> Tento měsíc</div>
-                            </div>
-                            <div class="dashboard-card card" data-animate style="--animation-order: 5;">
-                                <div class="card-header">
-                                    <h3 class="card-title">Nejslabší Téma</h3>
-                                    </div>
-                                <div class="card-content">
-                                    <div class="card-value" id="stats-weakest-topic" style="font-size: 1.8rem;">-</div> <p class="card-description">Oblast s nejnižší úspěšností</p>
-                                </div>
-                                <div class="card-footer"><i class="fas fa-atom"></i> Na základě posledního testu</div>
-                            </div>
-                            </div>
-                    </section>
+                        </div>
+                        </section>
                     <section class="shortcuts-section">
                         <h2 class="section-title" data-animate style="--animation-order: 6;"><i class="fas fa-rocket"></i>Rychlé Akce</h2>
-                        <div class="shortcut-grid" id="shortcuts-grid">
-                            <a href="/dashboard/procvicovani/cviceni.html" class="shortcut-card card" data-animate style="--animation-order: 7;">
+                         <div class="shortcut-grid loading" id="shortcuts-grid">
+                             <div class="shortcut-card card loading">
+                                <div class="loading-skeleton" style="align-items: center; padding: 1.8rem;">
+                                     <div class="skeleton" style="width: 60px; height: 60px; border-radius: 16px; margin-bottom: 1.2rem;"></div>
+                                     <div class="skeleton" style="height: 18px; width: 70%; margin-bottom: 0.8rem;"></div>
+                                     <div class="skeleton" style="height: 14px; width: 90%; margin-bottom: 0.4rem;"></div>
+                                     <div class="skeleton" style="height: 14px; width: 80%;"></div>
+                                </div>
                                 <div class="shortcut-icon"><i class="fas fa-dumbbell"></i></div>
                                 <h3 class="shortcut-title">Spustit Cvičení</h3>
                                 <p class="shortcut-desc">Vyberte si téma a počet otázek pro rychlé procvičení.</p>
-                            </a>
-                            <a href="/dashboard/procvicovani/test1.html" class="shortcut-card card" data-animate style="--animation-order: 8;">
-                                <div class="shortcut-icon"><i class="fas fa-vial"></i></div>
-                                <h3 class="shortcut-title">Diagnostický Test</h3>
-                                <p class="shortcut-desc">Ověřte své znalosti a získejte personalizovaný plán.</p>
-                            </a>
-                            <a href="/dashboard/procvicovani/temata.html" class="shortcut-card card" data-animate style="--animation-order: 9;">
-                                <div class="shortcut-icon"><i class="fas fa-stream"></i></div>
-                                <h3 class="shortcut-title">Procházet Témata</h3>
-                                <p class="shortcut-desc">Projděte si jednotlivá témata a procvičujte cíleně.</p>
-                            </a>
-                            <a href="/dashboard/procvicovani/chyby.html" class="shortcut-card card" data-animate style="--animation-order: 10;">
-                                <div class="shortcut-icon"><i class="fas fa-bomb"></i></div>
-                                <h3 class="shortcut-title">Moje Chyby</h3>
-                                <p class="shortcut-desc">Zopakujte si otázky, ve kterých jste v minulosti chybovali.</p>
-                            </a>
+                                <a href="/dashboard/procvicovani/cviceni.html" class="btn btn-secondary btn-sm" style="margin-top: auto;">Vybrat</a>
+                             </div>
+                             <div class="shortcut-card card loading">
+                                 <div class="loading-skeleton" style="align-items: center; padding: 1.8rem;">
+                                     <div class="skeleton" style="width: 60px; height: 60px; border-radius: 16px; margin-bottom: 1.2rem;"></div>
+                                     <div class="skeleton" style="height: 18px; width: 65%; margin-bottom: 0.8rem;"></div>
+                                     <div class="skeleton" style="height: 14px; width: 85%; margin-bottom: 0.4rem;"></div>
+                                     <div class="skeleton" style="height: 14px; width: 75%;"></div>
+                                 </div>
+                                 <div class="shortcut-icon"><i class="fas fa-vial"></i></div>
+                                 <h3 class="shortcut-title">Diagnostický Test</h3>
+                                 <p class="shortcut-desc">Ověřte své znalosti a získejte personalizovaný plán.</p>
+                                 <a href="/dashboard/procvicovani/test1.html" class="btn btn-primary btn-sm" style="margin-top: auto;">Spustit</a>
+                             </div>
+                             <div class="shortcut-card card loading">
+                                 <div class="loading-skeleton" style="align-items: center; padding: 1.8rem;">
+                                     <div class="skeleton" style="width: 60px; height: 60px; border-radius: 16px; margin-bottom: 1.2rem;"></div>
+                                     <div class="skeleton" style="height: 18px; width: 70%; margin-bottom: 0.8rem;"></div>
+                                     <div class="skeleton" style="height: 14px; width: 90%; margin-bottom: 0.4rem;"></div>
+                                     <div class="skeleton" style="height: 14px; width: 80%;"></div>
+                                 </div>
+                                 <div class="shortcut-icon"><i class="fas fa-stream"></i></div>
+                                 <h3 class="shortcut-title">Procházet Témata</h3>
+                                 <p class="shortcut-desc">Projděte si jednotlivá témata a procvičujte cíleně.</p>
+                                 <a href="/dashboard/procvicovani/temata.html" class="btn btn-secondary btn-sm" style="margin-top: auto;">Procházet</a>
+                             </div>
+                             <div class="shortcut-card card loading">
+                                 <div class="loading-skeleton" style="align-items: center; padding: 1.8rem;">
+                                     <div class="skeleton" style="width: 60px; height: 60px; border-radius: 16px; margin-bottom: 1.2rem;"></div>
+                                     <div class="skeleton" style="height: 18px; width: 60%; margin-bottom: 0.8rem;"></div>
+                                     <div class="skeleton" style="height: 14px; width: 80%; margin-bottom: 0.4rem;"></div>
+                                     <div class="skeleton" style="height: 14px; width: 70%;"></div>
+                                 </div>
+                                 <div class="shortcut-icon"><i class="fas fa-bomb"></i></div>
+                                 <h3 class="shortcut-title">Moje Chyby</h3>
+                                 <p class="shortcut-desc">Zopakujte si otázky, ve kterých jste v minulosti chybovali.</p>
+                                 <a href="/dashboard/procvicovani/chyby.html" class="btn btn-secondary btn-sm" style="margin-top: auto;">Opakovat</a>
                             </div>
-                    </section>
+                        </div>
+                        </section>
                 </div>
 
                 <div class="tab-content" id="test-results-tab">
@@ -194,14 +235,14 @@
                         <h2 class="section-title"><i class="fas fa-poll"></i>Historie Testů</h2>
                         <div class="loading-overlay hidden" id="test-results-loading"> <div class="loading-spinner"></div> </div>
                         <div id="test-results-content" style="display: none;">
-                            <div class="test-stats loading" id="test-stats">
-                                <div class="stats-card loading"><div class="loading-skeleton"></div></div>
-                                <div class="stats-card loading"><div class="loading-skeleton"></div></div>
-                                <div class="stats-card loading"><div class="loading-skeleton"></div></div>
+                             <div class="test-stats loading" id="test-stats">
+                                <div class="stats-card loading"><div class="loading-skeleton" style="padding: 1.5rem; align-items: center;"><div class="skeleton" style="width: 50px; height: 50px; border-radius: 14px; margin-bottom: 1rem;"></div><div class="skeleton" style="height: 28px; width: 50%; margin-bottom: 0.5rem;"></div><div class="skeleton" style="height: 14px; width: 70%;"></div></div></div>
+                                <div class="stats-card loading"><div class="loading-skeleton" style="padding: 1.5rem; align-items: center;"><div class="skeleton" style="width: 50px; height: 50px; border-radius: 14px; margin-bottom: 1rem;"></div><div class="skeleton" style="height: 28px; width: 45%; margin-bottom: 0.5rem;"></div><div class="skeleton" style="height: 14px; width: 65%;"></div></div></div>
+                                <div class="stats-card loading"><div class="loading-skeleton" style="padding: 1.5rem; align-items: center;"><div class="skeleton" style="width: 50px; height: 50px; border-radius: 14px; margin-bottom: 1rem;"></div><div class="skeleton" style="height: 28px; width: 55%; margin-bottom: 0.5rem;"></div><div class="skeleton" style="height: 14px; width: 75%;"></div></div></div>
                             </div>
-                            <div class="chart-container"> <canvas id="testsChart"></canvas> </div>
-                            <div class="last-test-result card loading" id="last-test-result"><div class="loading-skeleton"></div></div>
-                            <div class="test-list loading" id="test-history"><div class="loading-skeleton"></div></div>
+                            <div class="chart-container loading"> <div class="skeleton" style="height: 350px; width: 100%;"></div> </div>
+                             <div class="last-test-result card loading" id="last-test-result"> <div class="loading-skeleton" style="padding: 1.5rem;"><div class="skeleton" style="height: 20px; width: 60%; margin-bottom: 1rem;"></div><div class="skeleton" style="height: 14px; width: 40%; margin-bottom: 0.5rem;"></div><div class="skeleton" style="height: 28px; width: 30%; margin-left: auto;"></div></div> </div>
+                            <div class="test-list loading" id="test-history"><div class="skeleton" style="height: 70px; width: 100%; margin-bottom: 1rem;"></div><div class="skeleton" style="height: 70px; width: 100%;"></div></div>
                         </div>
                         <div class="empty-state" id="test-results-empty" style="display: none;">
                             <i class="fas fa-clipboard-question"></i>
@@ -214,14 +255,25 @@
                     </section>
                 </div>
 
-                <div class="tab-content" id="study-plan-tab">
+                 <div class="tab-content" id="study-plan-tab">
                     <section class="study-plan-section card loading" id="study-plan-container">
                         <h2 class="section-title"><i class="fas fa-route"></i>Aktuální Studijní Plán</h2>
                         <div class="loading-overlay hidden" id="study-plan-loading"> <div class="loading-spinner"></div> </div>
                         <div id="study-plan-content" style="display: none;">
-                            <div class="schedule-grid loading" id="main-plan-schedule">
-                                <div class="schedule-day card loading"><div class="loading-skeleton"></div></div>
-                                <div class="schedule-day card loading"><div class="loading-skeleton"></div></div>
+                             <div class="schedule-grid loading" id="main-plan-schedule">
+                                <div class="schedule-day card loading">
+                                    <div class="loading-skeleton" style="padding: 1.5rem;">
+                                        <div class="skeleton" style="height: 24px; width: 40%; margin-bottom: 1rem;"></div>
+                                        <div class="skeleton" style="height: 50px; width: 100%; margin-bottom: 0.8rem;"></div>
+                                        <div class="skeleton" style="height: 50px; width: 100%;"></div>
+                                    </div>
+                                </div>
+                                <div class="schedule-day card loading">
+                                     <div class="loading-skeleton" style="padding: 1.5rem;">
+                                         <div class="skeleton" style="height: 24px; width: 50%; margin-bottom: 1rem;"></div>
+                                         <div class="skeleton" style="height: 50px; width: 100%; margin-bottom: 0.8rem;"></div>
+                                     </div>
+                                 </div>
                             </div>
                             <div class="full-plan-link-container">
                                 <a href="plan.html" class="btn btn-secondary">Zobrazit celý plán a detaily</a>
@@ -236,15 +288,36 @@
                    </section>
                 </div>
 
-                <div class="tab-content" id="topic-analysis-tab">
+                 <div class="tab-content" id="topic-analysis-tab">
                     <section class="topic-analysis-section card loading" id="topic-analysis-container">
                         <h2 class="section-title"><i class="fas fa-atom"></i>Analýza podle Témat</h2>
                         <div class="loading-overlay hidden" id="topic-analysis-loading"> <div class="loading-spinner"></div> </div>
                         <div id="topic-analysis-content" style="display: none;">
                             <div class="topic-grid loading" id="topic-grid">
-                                <div class="topic-card card loading"><div class="loading-skeleton"></div></div>
-                                <div class="topic-card card loading"><div class="loading-skeleton"></div></div>
-                                <div class="topic-card card loading"><div class="loading-skeleton"></div></div>
+                                <div class="topic-card card loading">
+                                    <div class="loading-skeleton" style="padding: 1.5rem;">
+                                        <div style="display: flex; gap: 0.8rem; margin-bottom: 1rem;"> <div class="skeleton" style="width: 50px; height: 50px; border-radius: 14px; flex-shrink: 0;"></div> <div class="skeleton" style="height: 20px; width: 60%; margin-top: 5px;"></div> </div>
+                                        <div class="skeleton" style="height: 14px; width: 70%; margin-bottom: 0.5rem;"></div>
+                                        <div class="skeleton" style="height: 9px; width: 100%; margin-bottom: 0.75rem;"></div>
+                                        <div class="skeleton" style="height: 14px; width: 50%;"></div>
+                                    </div>
+                                </div>
+                                <div class="topic-card card loading">
+                                     <div class="loading-skeleton" style="padding: 1.5rem;">
+                                         <div style="display: flex; gap: 0.8rem; margin-bottom: 1rem;"> <div class="skeleton" style="width: 50px; height: 50px; border-radius: 14px; flex-shrink: 0;"></div> <div class="skeleton" style="height: 20px; width: 75%; margin-top: 5px;"></div> </div>
+                                         <div class="skeleton" style="height: 14px; width: 60%; margin-bottom: 0.5rem;"></div>
+                                         <div class="skeleton" style="height: 9px; width: 100%; margin-bottom: 0.75rem;"></div>
+                                         <div class="skeleton" style="height: 14px; width: 55%;"></div>
+                                     </div>
+                                 </div>
+                                 <div class="topic-card card loading">
+                                     <div class="loading-skeleton" style="padding: 1.5rem;">
+                                         <div style="display: flex; gap: 0.8rem; margin-bottom: 1rem;"> <div class="skeleton" style="width: 50px; height: 50px; border-radius: 14px; flex-shrink: 0;"></div> <div class="skeleton" style="height: 20px; width: 65%; margin-top: 5px;"></div> </div>
+                                         <div class="skeleton" style="height: 14px; width: 65%; margin-bottom: 0.5rem;"></div>
+                                         <div class="skeleton" style="height: 9px; width: 100%; margin-bottom: 0.75rem;"></div>
+                                         <div class="skeleton" style="height: 14px; width: 50%;"></div>
+                                     </div>
+                                 </div>
                             </div>
                         </div>
                         <div class="empty-state" id="topic-analysis-empty" style="display: none;">
@@ -263,6 +336,5 @@
     </main>
     <div class="toast-container" id="toast-container"></div>
     <div id="mouse-follower" class="mouse-follower-glow"></div>
-    <script src="main.js" defer></script>
-</body>
+    <script src="../dashboard.js" defer></script> <script src="main.js" defer></script> </body>
 </html>
