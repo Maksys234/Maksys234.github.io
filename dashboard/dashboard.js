@@ -1,124 +1,122 @@
 // dashboard.js
-// Версия: 23.5 - Upraven dispatch 'dashboardReady' eventu pro zahrnutí titulů
-// v23.6 - Added checks for element existence before manipulation to improve robustness on other pages.
+// Версия: 23.6 - Improved robustness for missing elements and handlers
+// v23.7 - Defined stub handlers directly in dashboard.js
 (function() {
-	'use strict';
+    'use strict';
 
-	// --- START: Initialization and Configuration ---
-	const supabaseUrl = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
-	const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10';
-	let supabase = null;
-	let currentUser = null;
-	let currentProfile = null;
-	let allTitles = []; // Holds the fetched titles
+    // --- START: Initialization and Configuration ---
+    const supabaseUrl = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10';
+    let supabase = null;
+    let currentUser = null;
+    let currentProfile = null;
+    let allTitles = []; // Holds the fetched titles
 
-	let isLoading = { stats: false, activities: false, notifications: false, titles: false, monthlyRewards: false, streakMilestones: false };
-	const SIDEBAR_STATE_KEY = 'sidebarCollapsedState';
+    let isLoading = { stats: false, activities: false, notifications: false, titles: false, monthlyRewards: false, streakMilestones: false };
+    const SIDEBAR_STATE_KEY = 'sidebarCollapsedState';
 
-	const MONTHLY_REWARD_DAYS = 31; // Example, adjust if needed
-	const MILESTONE_REWARDS_CONFIG = { // Example, adjust rewards
-		5: { name: "První Krůčky", description: "Gratulujeme k 5 dnům v řadě!", icon: "fa-shoe-prints", reward_type: "placeholder", reward_value: 5 },
-		10: { name: "Stabilních 10", description: "Udržujete tempo!", icon: "fa-star", reward_type: "placeholder", reward_value: 10 },
-		15: { name: "Patnáctka", description: "Půl cesty k měsíci!", icon: "fa-adjust", reward_type: "placeholder", reward_value: 15 },
-		20: { name: "Dvacítka!", description: "Pěkná série!", icon: "fa-angle-double-up", reward_type: "placeholder", reward_value: 20 },
-		30: { name: "Měsíc Bez Přestávky!", description: "Stabilita se vyplácí.", icon: "fa-calendar-check", reward_type: "placeholder", reward_value: 30 },
-		50: { name: "Půl Století Dnů!", description: "Jste na půli cesty ke stovce!", icon: "fa-award", reward_type: "placeholder", reward_value: 50 },
-		75: { name: "Tři Čtvrtě Stovky", description: "Blížíte se k velkému milníku.", icon: "fa-hourglass-half", reward_type: "placeholder", reward_value: 75 },
-		100: { name: "Legendární Stovka!", description: "Váš závazek je inspirující!", icon: "fa-crown", reward_type: "placeholder", reward_value: 100 },
-		125: { name: "Stovka a Čtvrt", description: "Stále silní!", icon: "fa-thumbs-up", reward_type: "placeholder", reward_value: 125 },
-		150: { name: "Věrný Pilot", description: "Jste skutečným veteránem systému.", icon: "fa-shield-alt", reward_type: "placeholder", reward_value: 150 },
-		200: { name: "Dvojitá Stovka!", description: "Úžasná vytrvalost!", icon: "fa-gem", reward_type: "placeholder", reward_value: 200 },
-		250: { name: "Čtvrt Tisíciletí Dnů", description: "Síla je s vámi.", icon: "fa-meteor", reward_type: "placeholder", reward_value: 250 },
-		300: { name: "Téměř Rok!", description: "Neuvěřitelná disciplína!", icon: "fa-trophy", reward_type: "placeholder", reward_value: 300 },
-		365: { name: "Roční Výročí!", description: "Jste absolutní legenda Justax!", icon: "fa-rocket", reward_type: "placeholder", reward_value: 365 }
-	};
-	const milestoneDays = Object.keys(MILESTONE_REWARDS_CONFIG).map(Number).sort((a, b) => a - b);
+    const MONTHLY_REWARD_DAYS = 31; // Example, adjust if needed
+    const MILESTONE_REWARDS_CONFIG = { // Example, adjust rewards
+        5: { name: "První Krůčky", description: "Gratulujeme k 5 dnům v řadě!", icon: "fa-shoe-prints", reward_type: "placeholder", reward_value: 5 },
+        10: { name: "Stabilních 10", description: "Udržujete tempo!", icon: "fa-star", reward_type: "placeholder", reward_value: 10 },
+        15: { name: "Patnáctka", description: "Půl cesty k měsíci!", icon: "fa-adjust", reward_type: "placeholder", reward_value: 15 },
+        20: { name: "Dvacítka!", description: "Pěkná série!", icon: "fa-angle-double-up", reward_type: "placeholder", reward_value: 20 },
+        30: { name: "Měsíc Bez Přestávky!", description: "Stabilita se vyplácí.", icon: "fa-calendar-check", reward_type: "placeholder", reward_value: 30 },
+        50: { name: "Půl Století Dnů!", description: "Jste na půli cesty ke stovce!", icon: "fa-award", reward_type: "placeholder", reward_value: 50 },
+        75: { name: "Tři Čtvrtě Stovky", description: "Blížíte se k velkému milníku.", icon: "fa-hourglass-half", reward_type: "placeholder", reward_value: 75 },
+        100: { name: "Legendární Stovka!", description: "Váš závazek je inspirující!", icon: "fa-crown", reward_type: "placeholder", reward_value: 100 },
+        125: { name: "Stovka a Čtvrt", description: "Stále silní!", icon: "fa-thumbs-up", reward_type: "placeholder", reward_value: 125 },
+        150: { name: "Věrný Pilot", description: "Jste skutečným veteránem systému.", icon: "fa-shield-alt", reward_type: "placeholder", reward_value: 150 },
+        200: { name: "Dvojitá Stovka!", description: "Úžasná vytrvalost!", icon: "fa-gem", reward_type: "placeholder", reward_value: 200 },
+        250: { name: "Čtvrt Tisíciletí Dnů", description: "Síla je s vámi.", icon: "fa-meteor", reward_type: "placeholder", reward_value: 250 },
+        300: { name: "Téměř Rok!", description: "Neuvěřitelná disciplína!", icon: "fa-trophy", reward_type: "placeholder", reward_value: 300 },
+        365: { name: "Roční Výročí!", description: "Jste absolutní legenda Justax!", icon: "fa-rocket", reward_type: "placeholder", reward_value: 365 }
+    };
+    const milestoneDays = Object.keys(MILESTONE_REWARDS_CONFIG).map(Number).sort((a, b) => a - b);
 
-	let ui = {}; // UI Cache
+    let ui = {}; // UI Cache
 
-	// Activity visuals (example, may need updates)
-	const activityVisuals = {
-		exercise: { name: 'Trénink', icon: 'fa-laptop-code', class: 'exercise' },
-		test: { name: 'Test', icon: 'fa-vial', class: 'test' },
-		badge: { name: 'Odznak Získán', icon: 'fa-medal', class: 'badge' },
-		diagnostic: { name: 'Diagnostika', icon: 'fa-microscope', class: 'diagnostic' },
-		lesson: { name: 'Nová Data', icon: 'fa-book-open', class: 'lesson' },
-		plan_generated: { name: 'Plán Aktualizován', icon: 'fa-route', class: 'plan_generated' },
-		level_up: { name: 'Level UP!', icon: 'fa-angle-double-up', class: 'level_up' },
-		other: { name: 'Systémová Zpráva', icon: 'fa-info-circle', class: 'other' },
-		default: { name: 'Aktivita', icon: 'fa-check-circle', class: 'default' }
-	};
-	// --- END: Initialization and Configuration ---
+    // Activity visuals (example, may need updates)
+    const activityVisuals = {
+        exercise: { name: 'Trénink', icon: 'fa-laptop-code', class: 'exercise' },
+        test: { name: 'Test', icon: 'fa-vial', class: 'test' },
+        badge: { name: 'Odznak Získán', icon: 'fa-medal', class: 'badge' },
+        diagnostic: { name: 'Diagnostika', icon: 'fa-microscope', class: 'diagnostic' },
+        lesson: { name: 'Nová Data', icon: 'fa-book-open', class: 'lesson' },
+        plan_generated: { name: 'Plán Aktualizován', icon: 'fa-route', class: 'plan_generated' },
+        level_up: { name: 'Level UP!', icon: 'fa-angle-double-up', class: 'level_up' },
+        other: { name: 'Systémová Zpráva', icon: 'fa-info-circle', class: 'other' },
+        default: { name: 'Aktivita', icon: 'fa-check-circle', class: 'default' }
+    };
+    // --- END: Initialization and Configuration ---
 
-	// --- START: DOM Element Caching ---
-	function cacheDOMElements() {
-		console.log("[CACHE DOM] Caching elements...");
-		const idsToCache = [
-			// Core Layout & Sidebar
-			'initial-loader', 'sidebar-overlay', 'main-content', 'sidebar', 'main-mobile-menu-toggle',
-			'sidebar-close-toggle', 'sidebar-toggle-btn', 'sidebar-avatar', 'sidebar-name',
-			'sidebar-user-title', 'currentYearSidebar',
-			// Header
-			'dashboard-header', // Use querySelector later if needed
-			'dashboard-title', 'refresh-data-btn',
-			// Notifications
-			'notification-bell', 'notification-count', 'notifications-dropdown', 'notifications-list',
-			'no-notifications-msg', 'mark-all-read',
-			// Welcome & Shortcuts (Dashboard specific)
-			'welcome-title', 'start-practice-btn', 'open-monthly-modal-btn', 'open-streak-modal-btn',
-			// Stat Cards (Dashboard specific)
-			'progress-card', 'overall-progress-value', 'overall-progress-footer',
-			'points-card', 'total-points-value', 'total-points-footer',
-			'streak-card', 'streak-value', 'streak-footer',
-			// Activity List (Dashboard specific)
-			'activity-list-container', 'activity-list', 'activity-list-empty-state', 'activity-list-error-state',
-			// Modals (Dashboard specific)
-			'monthly-reward-modal', 'modal-monthly-calendar-grid', 'modal-monthly-calendar-empty',
-			'modal-current-month-year', 'close-monthly-modal-btn',
-			'streak-milestones-modal', 'modal-milestones-grid', 'modal-milestones-empty',
-			'modal-current-streak-value', 'close-streak-modal-btn',
-			// Utility/Other
-			'toast-container', 'global-error', 'offline-banner',
-			'mouse-follower', 'currentYearFooter'
-		];
+    // --- START: DOM Element Caching ---
+    function cacheDOMElements() {
+        console.log("[CACHE DOM] Caching elements...");
+        const idsToCache = [
+            // Core Layout & Sidebar
+            'initial-loader', 'sidebar-overlay', 'main-content', 'sidebar', 'main-mobile-menu-toggle',
+            'sidebar-close-toggle', 'sidebar-toggle-btn', 'sidebar-avatar', 'sidebar-name',
+            'sidebar-user-title', 'currentYearSidebar',
+            // Header
+            'dashboard-header', // Use querySelector later if needed
+            'dashboard-title', 'refresh-data-btn',
+            // Notifications
+            'notification-bell', 'notification-count', 'notifications-dropdown', 'notifications-list',
+            'no-notifications-msg', 'mark-all-read',
+            // Welcome & Shortcuts (Dashboard specific)
+            'welcome-title', 'start-practice-btn', 'open-monthly-modal-btn', 'open-streak-modal-btn',
+            // Stat Cards (Dashboard specific)
+            'progress-card', 'overall-progress-value', 'overall-progress-footer',
+            'points-card', 'total-points-value', 'total-points-footer',
+            'streak-card', 'streak-value', 'streak-footer',
+            // Activity List (Dashboard specific)
+            'activity-list-container', 'activity-list', 'activity-list-empty-state', 'activity-list-error-state',
+            // Modals (Dashboard specific)
+            'monthly-reward-modal', 'modal-monthly-calendar-grid', 'modal-monthly-calendar-empty',
+            'modal-current-month-year', 'close-monthly-modal-btn',
+            'streak-milestones-modal', 'modal-milestones-grid', 'modal-milestones-empty',
+            'modal-current-streak-value', 'close-streak-modal-btn',
+            // Utility/Other
+            'toast-container', 'global-error', 'offline-banner',
+            'mouse-follower', 'currentYearFooter'
+        ];
 
-		ui = {}; // Reset cache object
-		const missingElements = [];
+        ui = {}; // Reset cache object
+        const missingElements = [];
 
-		idsToCache.forEach(id => {
-			const element = document.getElementById(id);
-			// Convert kebab-case id to camelCase key
-			const key = id.replace(/-([a-z])/g, g => g[1].toUpperCase());
-			ui[key] = element; // Store element or null
-			if (!element) {
-				missingElements.push(id);
-			}
-		});
+        idsToCache.forEach(id => {
+            const element = document.getElementById(id);
+            const key = id.replace(/-([a-z])/g, g => g[1].toUpperCase());
+            ui[key] = element; // Store element or null
+            if (!element) {
+                missingElements.push(id);
+            }
+        });
 
-		// Query Selectors if needed (example)
-		if (!ui.dashboardHeader) ui.dashboardHeader = document.querySelector('.dashboard-header');
-		if (!ui.dashboardHeader) missingElements.push('.dashboard-header');
+        // Query Selectors if needed (example)
+        if (!ui.dashboardHeader) ui.dashboardHeader = document.querySelector('.dashboard-header');
+        if (!ui.dashboardHeader) missingElements.push('.dashboard-header');
 
-		if (missingElements.length > 0) {
-			console.warn(`[CACHE DOM] Следующие элементы не были найдены: (${missingElements.length})`, missingElements);
-		} else {
-			console.log("[CACHE DOM] Caching complete.");
-		}
-	}
-	// --- END: DOM Element Caching ---
+        if (missingElements.length > 0) {
+            console.warn(`[CACHE DOM] Следующие элементы не были найдены: (${missingElements.length})`, missingElements);
+        } else {
+            console.log("[CACHE DOM] Caching complete.");
+        }
+    }
+    // --- END: DOM Element Caching ---
 
-	// --- START: Helper Functions ---
-	function sanitizeHTML(str) { const temp = document.createElement('div'); temp.textContent = str || ''; return temp.innerHTML; }
-	function showToast(title, message, type = 'info', duration = 4500) { if (!ui.toastContainer) { console.warn("Toast container not found."); return; } try { const toastId = `toast-${Date.now()}`; const toastElement = document.createElement('div'); toastElement.className = `toast ${type}`; toastElement.id = toastId; toastElement.setAttribute('role', 'alert'); toastElement.setAttribute('aria-live', 'assertive'); toastElement.innerHTML = `<i class="toast-icon"></i><div class="toast-content">${title ? `<div class="toast-title">${sanitizeHTML(title)}</div>` : ''}<div class="toast-message">${sanitizeHTML(message)}</div></div><button type="button" class="toast-close" aria-label="Zavřít">&times;</button>`; const icon = toastElement.querySelector('.toast-icon'); icon.className = `toast-icon fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle'}`; toastElement.querySelector('.toast-close').addEventListener('click', () => { toastElement.classList.remove('show'); setTimeout(() => toastElement.remove(), 400); }); ui.toastContainer.appendChild(toastElement); requestAnimationFrame(() => { toastElement.classList.add('show'); }); setTimeout(() => { if (toastElement.parentElement) { toastElement.classList.remove('show'); setTimeout(() => toastElement.remove(), 400); } }, duration); } catch (e) { console.error("Chyba při zobrazování toastu:", e); } }
-	function showError(message, isGlobal = false) { console.error("Došlo k chybě:", message); if (isGlobal && ui.globalError) { ui.globalError.innerHTML = `<div class="error-message"><i class="fas fa-exclamation-triangle"></i><div>${sanitizeHTML(message)}</div><button class="retry-button btn" id="global-retry-btn">Obnovit Stránku</button></div>`; ui.globalError.style.display = 'block'; const retryBtn = document.getElementById('global-retry-btn'); if (retryBtn) { retryBtn.addEventListener('click', () => { location.reload(); }); } } else { showToast('CHYBA SYSTÉMU', message, 'error', 6000); } }
-	function hideError() { if (ui.globalError) ui.globalError.style.display = 'none'; }
-	function getInitials(userData) { if (!userData) return '?'; const f = userData.first_name?.[0] || ''; const l = userData.last_name?.[0] || ''; const nameInitial = (f + l).toUpperCase(); const usernameInitial = userData.username?.[0].toUpperCase() || ''; const emailInitial = userData.email?.[0].toUpperCase() || ''; return nameInitial || usernameInitial || emailInitial || '?'; }
-	function formatRelativeTime(timestamp) { if (!timestamp) return ''; try { const now = new Date(); const date = new Date(timestamp); if (isNaN(date.getTime())) return '-'; const diffMs = now - date; const diffSec = Math.round(diffMs / 1000); const diffMin = Math.round(diffSec / 60); const diffHour = Math.round(diffMin / 60); const diffDay = Math.round(diffHour / 24); const diffWeek = Math.round(diffDay / 7); if (diffSec < 60) return 'Nyní'; if (diffMin < 60) return `Před ${diffMin} min`; if (diffHour < 24) return `Před ${diffHour} hod`; if (diffDay === 1) return `Včera`; if (diffDay < 7) return `Před ${diffDay} dny`; if (diffWeek <= 4) return `Před ${diffWeek} týdny`; return date.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric' }); } catch (e) { console.error("Chyba formátování času:", e, "Timestamp:", timestamp); return '-'; } }
-	function openMenu() { if (ui.sidebar && ui.sidebarOverlay) { document.body.classList.remove('sidebar-collapsed'); ui.sidebar.classList.add('active'); ui.sidebarOverlay.classList.add('active'); } }
-	function closeMenu() { if (ui.sidebar && ui.sidebarOverlay) { ui.sidebar.classList.remove('active'); ui.sidebarOverlay.classList.remove('active'); } }
-	function updateOnlineStatus() { if (ui.offlineBanner) ui.offlineBanner.style.display = navigator.onLine ? 'none' : 'block'; if (!navigator.onLine) showToast('Offline', 'Spojení ztraceno.', 'warning'); }
+    // --- START: Helper Functions ---
+    function sanitizeHTML(str) { const temp = document.createElement('div'); temp.textContent = str || ''; return temp.innerHTML; }
+    function showToast(title, message, type = 'info', duration = 4500) { if (!ui.toastContainer) { console.warn("Toast container not found."); return; } try { const toastId = `toast-${Date.now()}`; const toastElement = document.createElement('div'); toastElement.className = `toast ${type}`; toastElement.id = toastId; toastElement.setAttribute('role', 'alert'); toastElement.setAttribute('aria-live', 'assertive'); toastElement.innerHTML = `<i class="toast-icon"></i><div class="toast-content">${title ? `<div class="toast-title">${sanitizeHTML(title)}</div>` : ''}<div class="toast-message">${sanitizeHTML(message)}</div></div><button type="button" class="toast-close" aria-label="Zavřít">&times;</button>`; const icon = toastElement.querySelector('.toast-icon'); icon.className = `toast-icon fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle'}`; toastElement.querySelector('.toast-close').addEventListener('click', () => { toastElement.classList.remove('show'); setTimeout(() => toastElement.remove(), 400); }); ui.toastContainer.appendChild(toastElement); requestAnimationFrame(() => { toastElement.classList.add('show'); }); setTimeout(() => { if (toastElement.parentElement) { toastElement.classList.remove('show'); setTimeout(() => toastElement.remove(), 400); } }, duration); } catch (e) { console.error("Chyba při zobrazování toastu:", e); } }
+    function showError(message, isGlobal = false) { console.error("Došlo k chybě:", message); if (isGlobal && ui.globalError) { ui.globalError.innerHTML = `<div class="error-message"><i class="fas fa-exclamation-triangle"></i><div>${sanitizeHTML(message)}</div><button class="retry-button btn" id="global-retry-btn">Obnovit Stránku</button></div>`; ui.globalError.style.display = 'block'; const retryBtn = document.getElementById('global-retry-btn'); if (retryBtn) { retryBtn.addEventListener('click', () => { location.reload(); }); } } else { showToast('CHYBA SYSTÉMU', message, 'error', 6000); } }
+    function hideError() { if (ui.globalError) ui.globalError.style.display = 'none'; }
+    function getInitials(userData) { if (!userData) return '?'; const f = userData.first_name?.[0] || ''; const l = userData.last_name?.[0] || ''; const nameInitial = (f + l).toUpperCase(); const usernameInitial = userData.username?.[0].toUpperCase() || ''; const emailInitial = userData.email?.[0].toUpperCase() || ''; return nameInitial || usernameInitial || emailInitial || '?'; }
+    function formatRelativeTime(timestamp) { if (!timestamp) return ''; try { const now = new Date(); const date = new Date(timestamp); if (isNaN(date.getTime())) return '-'; const diffMs = now - date; const diffSec = Math.round(diffMs / 1000); const diffMin = Math.round(diffSec / 60); const diffHour = Math.round(diffMin / 60); const diffDay = Math.round(diffHour / 24); const diffWeek = Math.round(diffDay / 7); if (diffSec < 60) return 'Nyní'; if (diffMin < 60) return `Před ${diffMin} min`; if (diffHour < 24) return `Před ${diffHour} hod`; if (diffDay === 1) return `Včera`; if (diffDay < 7) return `Před ${diffDay} dny`; if (diffWeek <= 4) return `Před ${diffWeek} týdny`; return date.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric' }); } catch (e) { console.error("Chyba formátování času:", e, "Timestamp:", timestamp); return '-'; } }
+    function openMenu() { if (ui.sidebar && ui.sidebarOverlay) { document.body.classList.remove('sidebar-collapsed'); ui.sidebar.classList.add('active'); ui.sidebarOverlay.classList.add('active'); } }
+    function closeMenu() { if (ui.sidebar && ui.sidebarOverlay) { ui.sidebar.classList.remove('active'); ui.sidebarOverlay.classList.remove('active'); } }
+    function updateOnlineStatus() { if (ui.offlineBanner) ui.offlineBanner.style.display = navigator.onLine ? 'none' : 'block'; if (!navigator.onLine) showToast('Offline', 'Spojení ztraceno.', 'warning'); }
 
-	// --- MODIFIED: setLoadingState ---
 	function setLoadingState(section, isLoadingFlag) {
 		const sections = section === 'all' ? Object.keys(isLoading) : [section];
 		sections.forEach(sec => {
@@ -130,8 +128,6 @@
 			if (sec === 'stats') {
 				 [ui.progressCard, ui.pointsCard, ui.streakCard].forEach(card => {
 					 if (card) { card.classList.toggle('loading', isLoadingFlag); }
-					 // MODIFIED: Log warning only if element was expected on this page type (or always log if structure is unknown)
-					 // Assume these cards are specific to dashboard.html
 					 else if (window.location.pathname.includes('dashboard.html')) {
 						  console.warn(`[setLoadingState] Stat card element not found for section '${sec}'.`);
 					 }
@@ -174,7 +170,6 @@
 					 }
 					 if (isLoadingFlag && ui.notificationsList && typeof renderNotificationSkeletons === 'function') { renderNotificationSkeletons(2); }
 				}
-				// MODIFIED: Added a check for 'activities' section specifically
 				else if (sec === 'activities') {
 					 if (isLoadingFlag) {
 						  // Attempt to render skeletons only if function exists and container exists
@@ -192,13 +187,11 @@
 			}
 		});
 	}
-	// --- END MODIFIED: setLoadingState ---
 
 	const initMouseFollower = () => { const follower = ui.mouseFollower; if (!follower || window.innerWidth <= 576) return; let hasMoved = false; const updatePosition = (event) => { if (!hasMoved) { document.body.classList.add('mouse-has-moved'); hasMoved = true; } requestAnimationFrame(() => { follower.style.left = `${event.clientX}px`; follower.style.top = `${event.clientY}px`; }); }; window.addEventListener('mousemove', updatePosition, { passive: true }); document.body.addEventListener('mouseleave', () => { if (hasMoved) follower.style.opacity = '0'; }); document.body.addEventListener('mouseenter', () => { if (hasMoved) follower.style.opacity = '1'; }); window.addEventListener('touchstart', () => { if(follower) follower.style.display = 'none'; }, { passive: true, once: true }); };
 	const initScrollAnimations = () => { const animatedElements = document.querySelectorAll('.main-content-wrapper [data-animate]'); if (!animatedElements.length || !('IntersectionObserver' in window)) return; const observer = new IntersectionObserver((entries, observerInstance) => { entries.forEach(entry => { if (entry.isIntersecting) { entry.target.classList.add('animated'); observerInstance.unobserve(entry.target); } }); }, { threshold: 0.15, rootMargin: "0px 0px -50px 0px" }); animatedElements.forEach(element => observer.observe(element)); };
 	const initHeaderScrollDetection = () => { let lastScrollY = window.scrollY; const mainEl = ui.mainContent; if (!mainEl) return; mainEl.addEventListener('scroll', () => { const currentScrollY = mainEl.scrollTop; document.body.classList.toggle('scrolled', currentScrollY > 50); lastScrollY = currentScrollY <= 0 ? 0 : currentScrollY; }, { passive: true }); if (mainEl && mainEl.scrollTop > 50) document.body.classList.add('scrolled'); };
 	const updateCopyrightYear = () => { const currentYearSpan = ui.currentYearFooter; const currentYearSidebar = ui.currentYearSidebar; const year = new Date().getFullYear(); if (currentYearSpan) { currentYearSpan.textContent = year; } if (currentYearSidebar) { currentYearSidebar.textContent = year; } };
-	// --- MODIFIED: applyInitialSidebarState ---
 	function applyInitialSidebarState() {
 		const savedState = localStorage.getItem(SIDEBAR_STATE_KEY);
 		const shouldBeCollapsed = savedState === 'collapsed';
@@ -208,10 +201,10 @@
 		} else {
 			document.body.classList.remove('sidebar-collapsed');
 		}
-		const icon = ui.sidebarToggleBtn?.querySelector('i'); // Use optional chaining
+		const icon = ui.sidebarToggleBtn?.querySelector('i');
 		if (icon) {
 			icon.className = shouldBeCollapsed ? 'fas fa-chevron-right' : 'fas fa-chevron-left';
-			if (ui.sidebarToggleBtn) { // Check button exists before setting attributes
+			if (ui.sidebarToggleBtn) {
 				ui.sidebarToggleBtn.setAttribute('aria-label', shouldBeCollapsed ? 'Rozbalit panel' : 'Sbalit panel');
 				ui.sidebarToggleBtn.setAttribute('title', shouldBeCollapsed ? 'Rozbalit panel' : 'Sbalit panel');
 			}
@@ -220,15 +213,13 @@
 			console.warn("[Sidebar State] Sidebar toggle button or its icon not found for initial state.");
 		}
 	}
-	// --- END MODIFIED ---
-	// --- MODIFIED: toggleSidebar ---
 	function toggleSidebar() {
 		const isCollapsed = document.body.classList.toggle('sidebar-collapsed');
 		localStorage.setItem(SIDEBAR_STATE_KEY, isCollapsed ? 'collapsed' : 'expanded');
-		const icon = ui.sidebarToggleBtn?.querySelector('i'); // Use optional chaining
+		const icon = ui.sidebarToggleBtn?.querySelector('i');
 		if (icon) {
 			icon.className = isCollapsed ? 'fas fa-chevron-right' : 'fas fa-chevron-left';
-			if (ui.sidebarToggleBtn) { // Check button exists
+			if (ui.sidebarToggleBtn) {
 				ui.sidebarToggleBtn.setAttribute('aria-label', isCollapsed ? 'Rozbalit panel' : 'Sbalit panel');
 				ui.sidebarToggleBtn.setAttribute('title', isCollapsed ? 'Rozbalit panel' : 'Sbalit panel');
 			}
@@ -237,7 +228,6 @@
 		}
 		console.log(`[Sidebar Toggle] Sidebar toggled. New state: ${isCollapsed ? 'collapsed' : 'expanded'}`);
 	}
-	// --- END MODIFIED ---
 	function initTooltips() { try { if (window.jQuery && typeof window.jQuery.fn.tooltipster === 'function') { window.jQuery('.btn-tooltip.tooltipstered').each(function() { if (document.body.contains(this)) { try { window.jQuery(this).tooltipster('destroy'); } catch (destroyError) { console.warn("Tooltipster destroy error:", destroyError); } } }); window.jQuery('.btn-tooltip:not(.tooltipstered)').tooltipster({ theme: 'tooltipster-shadow', animation: 'fade', delay: 150, distance: 6, side: 'top' }); console.log("[Tooltips] Initialized/Re-initialized."); } else { console.warn("[Tooltips] jQuery or Tooltipster library not loaded."); } } catch (e) { console.error("[Tooltips] Error initializing Tooltipster:", e); } }
 	function isSameDate(date1, date2) { if (!date1 || !date2) return false; const d1 = new Date(date1); const d2 = new Date(date2); return d1.getFullYear() === d2.getFullYear() && d1.getMonth() === d2.getMonth() && d1.getDate() === d2.getDate(); }
 	function isYesterday(date1, date2) { if (!date1 || !date2) return false; const yesterday = new Date(date2); yesterday.setDate(yesterday.getDate() - 1); return isSameDate(date1, yesterday); }
@@ -261,293 +251,54 @@
 	async function updateMonthlyClaimsInDB(newClaimsData) { if (!currentUser || !supabase) return false; console.log("[DB Update] Updating monthly claims in DB:", newClaimsData); try { const { error } = await supabase.from('profiles').update({ monthly_claims: newClaimsData, updated_at: new Date().toISOString() }).eq('id', currentUser.id); if (error) throw error; console.log("[DB Update] Monthly claims update successful."); return true; } catch (error) { console.error("[DB Update] Error updating monthly claims:", error); showToast('Chyba', 'Nepodařilo se uložit vyzvednutí měsíční odměny.', 'error'); return false; } }
 	async function updateLastMilestoneClaimedInDB(milestoneDay) { if (!currentUser || !supabase) return false; console.log(`[DB Update] Updating last_milestone_claimed to ${milestoneDay}`); try { const { error } = await supabase.from('profiles').update({ last_milestone_claimed: milestoneDay, updated_at: new Date().toISOString() }).eq('id', currentUser.id); if (error) throw error; console.log(`[DB Update] Last claimed milestone update successful.`); return true; } catch (error) { console.error(`[DB Update] Error updating last_milestone_claimed:`, error); showToast('Chyba', 'Nepodařilo se uložit vyzvednutí milníkové odměny.', 'error'); return false; } }
 
-	// --- MODIFIED: loadDashboardData ---
-	async function loadDashboardData(user, profile) {
-		if (!user || !profile) { showError("Chyba: Nelze načíst data bez profilu uživatele.", true); setLoadingState('all', false); return; }
-		console.log("[MAIN] loadDashboardData: Start pro uživatele:", user.id);
-		hideError();
-		setLoadingState('stats', true);
-		setLoadingState('activities', true);
-		setLoadingState('notifications', true);
-		// Render skeletons only if elements exist
-		if (ui.activityList && typeof renderActivitySkeletons === 'function') renderActivitySkeletons(5);
-		try {
-			await checkAndUpdateLoginStreak();
-			updateSidebarProfile(profile); // Update sidebar info
-
-			console.log("[MAIN] loadDashboardData: Načítání statistik, aktivit, oznámení...");
-			const [statsResult, activitiesResult, notificationsResult] = await Promise.allSettled([
-				fetchUserStats(user.id, profile),
-				fetchRecentActivities(user.id, 5),
-				fetchNotifications(user.id, 5)
-			]);
-			console.log("[MAIN] loadDashboardData: Souběžné načítání dokončeno:", [statsResult, activitiesResult, notificationsResult]);
-
-			// Process and render stats
-			if (statsResult.status === 'fulfilled') {
-				 updateStatsCards(statsResult.value || profile); // Pass profile as fallback
-			} else {
-				console.error("❌ Chyba při načítání statistik:", statsResult.reason);
-				showError("Nepodařilo se načíst statistiky.", false);
-				updateStatsCards(profile); // Show profile data as fallback
-			}
-			setLoadingState('stats', false);
-
-			// Process and render activities
-			if (activitiesResult.status === 'fulfilled') {
-				 renderActivities(activitiesResult.value || []); // Render activities or empty state
-			} else {
-				console.error("❌ Chyba při načítání aktivit:", activitiesResult.reason);
-				showError("Nepodařilo se načíst aktivity.", false);
-				renderActivities(null); // Render error state
-			}
-			setLoadingState('activities', false);
-
-			// Process and render notifications
-			if (notificationsResult.status === 'fulfilled') {
-				const { unreadCount, notifications } = notificationsResult.value || { unreadCount: 0, notifications: [] };
-				renderNotifications(unreadCount, notifications);
-			} else {
-				console.error("❌ Chyba při načítání oznámení:", notificationsResult.reason);
-				showError("Nepodařilo se načíst oznámení.", false);
-				renderNotifications(0, []); // Render empty state
-			}
-			setLoadingState('notifications', false);
-
-			console.log("[MAIN] loadDashboardData: Statické sekce обработаны.");
-		} catch (error) {
-			console.error('[MAIN] loadDashboardData: Zachycena hlavní chyba:', error);
-			showError('Nepodařilo se kompletně načíst data nástěnky: ' + error.message);
-			// Render fallback states on error
-			updateStatsCards(profile);
-			renderActivities(null);
-			renderNotifications(0, []);
-			setLoadingState('all', false);
-		} finally {
-			setLoadingState('stats', false);
-			setLoadingState('activities', false);
-			setLoadingState('notifications', false);
-			if (typeof initTooltips === 'function') initTooltips();
-		}
-	}
-	// --- END MODIFIED ---
+	async function loadDashboardData(user, profile) { if (!user || !profile) { showError("Chyba: Nelze načíst data bez profilu uživatele.", true); setLoadingState('all', false); return; } console.log("[MAIN] loadDashboardData: Start pro uživatele:", user.id); hideError(); setLoadingState('stats', true); setLoadingState('activities', true); setLoadingState('notifications', true); if (ui.activityList && typeof renderActivitySkeletons === 'function') renderActivitySkeletons(5); try { await checkAndUpdateLoginStreak(); updateSidebarProfile(profile); console.log("[MAIN] loadDashboardData: Načítání statistik, aktivit, oznámení..."); const [statsResult, activitiesResult, notificationsResult] = await Promise.allSettled([ fetchUserStats(user.id, profile), fetchRecentActivities(user.id, 5), fetchNotifications(user.id, 5) ]); console.log("[MAIN] loadDashboardData: Souběžné načítání dokončeno:", [statsResult, activitiesResult, notificationsResult]); if (statsResult.status === 'fulfilled') { updateStatsCards(statsResult.value || profile); } else { console.error("❌ Chyba při načítání statistik:", statsResult.reason); showError("Nepodařilo se načíst statistiky.", false); updateStatsCards(profile); } setLoadingState('stats', false); if (activitiesResult.status === 'fulfilled') { renderActivities(activitiesResult.value || []); } else { console.error("❌ Chyba při načítání aktivit:", activitiesResult.reason); showError("Nepodařilo se načíst aktivity.", false); renderActivities(null); } setLoadingState('activities', false); if (notificationsResult.status === 'fulfilled') { const { unreadCount, notifications } = notificationsResult.value || { unreadCount: 0, notifications: [] }; renderNotifications(unreadCount, notifications); } else { console.error("❌ Chyba při načítání oznámení:", notificationsResult.reason); showError("Nepodařilo se načíst oznámení.", false); renderNotifications(0, []); } setLoadingState('notifications', false); console.log("[MAIN] loadDashboardData: Statické sekce обработаны."); } catch (error) { console.error('[MAIN] loadDashboardData: Zachycena hlavní chyba:', error); showError('Nepodařilo se kompletně načíst data nástěnky: ' + error.message); updateStatsCards(profile); renderActivities(null); renderNotifications(0, []); setLoadingState('all', false); } finally { setLoadingState('stats', false); setLoadingState('activities', false); setLoadingState('notifications', false); if (typeof initTooltips === 'function') initTooltips(); } }
 	// --- END: Data Loading ---
 
 	// --- START: UI Update Functions ---
-	// --- MODIFIED: updateSidebarProfile ---
-	function updateSidebarProfile(profile) {
-		if (!ui.sidebarName || !ui.sidebarAvatar || !ui.sidebarUserTitle) {
-			 // Attempt re-cache if elements missing, only once.
-			 if (!ui.sidebarName && !ui.sidebarAvatar) {
-				  console.warn("[UI Update Sidebar] Sidebar elements missing, attempting re-cache.");
-				  cacheDOMElements();
-				  if (!ui.sidebarName || !ui.sidebarAvatar || !ui.sidebarUserTitle) {
-					  console.error("[UI Update Sidebar] Sidebar elements still missing after re-cache.");
-					  return;
-				  }
-			 } else if (!ui.sidebarUserTitle) {
-				 console.warn("[UI Update Sidebar] Sidebar user title element missing.");
-			 }
-		}
-		console.log("[UI Update] Aktualizace sidebaru...");
-		if (profile) {
-			const firstName = profile.first_name ?? '';
-			const displayName = firstName || profile.username || currentUser?.email?.split('@')[0] || 'Pilot';
-			if (ui.sidebarName) ui.sidebarName.textContent = sanitizeHTML(displayName);
-
-			const initials = getInitials(profile);
-			const avatarUrl = profile.avatar_url;
-			if (ui.sidebarAvatar) {
-				ui.sidebarAvatar.innerHTML = avatarUrl ? `<img src="${sanitizeHTML(avatarUrl)}" alt="${sanitizeHTML(initials)}">` : sanitizeHTML(initials);
-			}
-
-			const selectedTitleKey = profile.selected_title;
-			let displayTitle = 'Pilot'; // Default
-			if (selectedTitleKey && allTitles && allTitles.length > 0) {
-				const foundTitle = allTitles.find(t => t.title_key === selectedTitleKey);
-				if (foundTitle && foundTitle.name) {
-					displayTitle = foundTitle.name;
-				} else {
-					console.warn(`[UI Update Sidebar] Title key "${selectedTitleKey}" not found in titles list.`);
-				}
-			} else if (selectedTitleKey) {
-				 console.warn(`[UI Update Sidebar] Selected title key present, but titles list is empty or not loaded.`);
-			}
-			if (ui.sidebarUserTitle) { // Check if element exists before setting
-				ui.sidebarUserTitle.textContent = sanitizeHTML(displayTitle);
-				ui.sidebarUserTitle.setAttribute('title', sanitizeHTML(displayTitle));
-			}
-
-			if (ui.welcomeTitle) { // Check if welcome title exists
-				ui.welcomeTitle.textContent = `Vítej zpět, ${sanitizeHTML(displayName)}!`;
-			}
-			console.log("[UI Update] Sidebar aktualizován.");
-		} else {
-			console.warn("[UI Update Sidebar] Missing profile data. Setting defaults.");
-			if (ui.sidebarName) ui.sidebarName.textContent = "Pilot";
-			if (ui.sidebarAvatar) ui.sidebarAvatar.textContent = '?';
-			if (ui.sidebarUserTitle) { ui.sidebarUserTitle.textContent = 'Pilot'; ui.sidebarUserTitle.removeAttribute('title'); }
-			if (ui.welcomeTitle) ui.welcomeTitle.textContent = `Vítejte!`;
-		}
-	}
-	// --- END MODIFIED ---
-	// --- MODIFIED: updateStatsCards ---
-	function updateStatsCards(stats) {
-		console.log("[UI Update] Aktualizace karet statistik:", stats);
-		// Explicitly check if all required elements exist before proceeding
-		const elementsExist = ui.overallProgressValue && ui.totalPointsValue && ui.streakValue &&
-							 ui.overallProgressFooter && ui.totalPointsFooter && ui.streakFooter &&
-							 ui.progressCard && ui.pointsCard && ui.streakCard;
-
-		if (!elementsExist) {
-			 // Log only if on dashboard page, otherwise these elements are expected to be missing
-			 if (window.location.pathname.includes('dashboard.html')) {
-				 const missing = [];
-				 if (!ui.overallProgressValue) missing.push('overallProgressValue');
-				 if (!ui.totalPointsValue) missing.push('totalPointsValue');
-				 // ... add other checks
-				 console.error("[UI Update Stats] Chybějící elementy statistik:", missing);
-			 }
-			 // Attempt to remove loading class if cards exist, even if inner elements don't
-			 [ui.progressCard, ui.pointsCard, ui.streakCard].forEach(card => card?.classList.remove('loading'));
-			 return; // Exit the function
-		}
-
-		[ui.progressCard, ui.pointsCard, ui.streakCard].forEach(card => card.classList.remove('loading'));
-
-		if (!stats) {
-			console.warn("[UI Update Stats] Chybí data statistik.");
-			ui.overallProgressValue.textContent = '- %';
-			ui.totalPointsValue.textContent = '-';
-			ui.streakValue.textContent = '-';
-			ui.overallProgressFooter.innerHTML = `<i class="fas fa-exclamation-circle"></i> Data nenalezena`;
-			ui.totalPointsFooter.innerHTML = `<i class="fas fa-exclamation-circle"></i> Data nenalezena`;
-			ui.streakFooter.textContent = `MAX: - dní`;
-			return;
-		}
-
-		ui.overallProgressValue.textContent = `${stats.progress ?? 0}%`;
-		const weeklyProgress = stats.progress_weekly ?? 0;
-		ui.overallProgressFooter.classList.remove('positive', 'negative');
-		ui.overallProgressFooter.innerHTML = weeklyProgress > 0 ? `<i class="fas fa-arrow-up"></i> +${weeklyProgress}% týdně` : weeklyProgress < 0 ? `<i class="fas fa-arrow-down"></i> ${weeklyProgress}% týdně` : `<i class="fas fa-minus"></i> --`;
-		if (weeklyProgress > 0) ui.overallProgressFooter.classList.add('positive'); else if (weeklyProgress < 0) ui.overallProgressFooter.classList.add('negative');
-
-		ui.totalPointsValue.textContent = stats.points ?? 0;
-		const weeklyPoints = stats.points_weekly ?? 0;
-		ui.totalPointsFooter.classList.remove('positive', 'negative');
-		ui.totalPointsFooter.innerHTML = weeklyPoints > 0 ? `<i class="fas fa-arrow-up"></i> +${weeklyPoints} týdně` : weeklyPoints < 0 ? `<i class="fas fa-arrow-down"></i> ${weeklyPoints} týdně` : `<i class="fas fa-minus"></i> --`;
-		if (weeklyPoints > 0) ui.totalPointsFooter.classList.add('positive'); else if (weeklyPoints < 0) ui.totalPointsFooter.classList.add('negative');
-
-		ui.streakValue.textContent = stats.streak_current ?? 0;
-		ui.streakFooter.textContent = `MAX: ${stats.streak_longest ?? 0} dní`;
-		console.log("[UI Update] Karty statistik aktualizovány.");
-	}
-	// --- END MODIFIED ---
-	// --- MODIFIED: renderActivities ---
-	function renderActivities(activities) {
-		// Check for essential elements first
-		if (!ui.activityList || !ui.activityListContainer || !ui.activityListEmptyState || !ui.activityListErrorState) {
-			 // Log only if on dashboard page
-			 if (window.location.pathname.includes('dashboard.html')) {
-				 console.error("[Render Activities] Essential UI elements for activity list are missing. Rendering cancelled.");
-			 }
-			setLoadingState('activities', false); // Ensure loading state is turned off
-			return;
-		}
-		console.log("[Render Activities] Start rendering, activities count:", activities?.length);
-		ui.activityList.innerHTML = '';
-		ui.activityListEmptyState.style.display = 'none';
-		ui.activityListErrorState.style.display = 'none';
-		ui.activityList.style.display = 'none'; // Hide list initially
-
-		if (activities === null) {
-			ui.activityListErrorState.style.display = 'block';
-			console.warn("[Render Activities] Received null data, showing error state.");
-		} else if (activities.length === 0) {
-			ui.activityListEmptyState.style.display = 'block';
-			console.log("[Render Activities] No activities to display, showing empty state.");
-		} else {
-			const fragment = document.createDocumentFragment();
-			activities.forEach(activity => {
-				const visual = activityVisuals[activity.type?.toLowerCase()] || activityVisuals.default;
-				const title = sanitizeHTML(activity.title || 'Neznámá aktivita');
-				const description = sanitizeHTML(activity.description || '');
-				const timeAgo = formatRelativeTime(activity.created_at);
-				const item = document.createElement('div');
-				item.className = 'activity-item';
-				item.innerHTML = `
-					<div class="activity-icon ${visual.class}"><i class="fas ${visual.icon}"></i></div>
-					<div class="activity-content">
-						<div class="activity-title">${title}</div>
-						${description ? `<div class="activity-desc">${description}</div>` : ''}
-						<div class="activity-time"><i class="far fa-clock"></i> ${timeAgo}</div>
-					</div>`;
-				fragment.appendChild(item);
-			});
-			ui.activityList.appendChild(fragment);
-			ui.activityList.style.display = 'block'; // Show list with content
-			console.log(`[Render Activities] Rendered ${activities.length} items.`);
-		}
-		ui.activityListContainer.classList.remove('loading');
-		setLoadingState('activities', false);
-	}
-	// --- END MODIFIED ---
-	// --- MODIFIED: renderActivitySkeletons ---
-	function renderActivitySkeletons(count = 5) {
-		if (!ui.activityList || !ui.activityListContainer) {
-			 // Log only if on dashboard page
-			 if (window.location.pathname.includes('dashboard.html')) {
-				 console.warn("Cannot render activity skeletons: List or container not found.");
-			 }
-			return;
-		}
-		ui.activityListContainer.classList.add('loading');
-		ui.activityList.innerHTML = ''; // Clear previous content
-		if(ui.activityListEmptyState) ui.activityListEmptyState.style.display = 'none';
-		if(ui.activityListErrorState) ui.activityListErrorState.style.display = 'none';
-		let skeletonHTML = '<div class="loading-placeholder">'; // Wrapper for skeletons
-		for (let i = 0; i < count; i++) {
-			skeletonHTML += `
-				<div class="skeleton-activity-item">
-					<div class="skeleton icon-placeholder"></div>
-					<div style="flex-grow: 1;">
-						<div class="skeleton activity-line"></div>
-						<div class="skeleton activity-line text-short"></div>
-						<div class="skeleton activity-line-short"></div>
-					</div>
-				</div>`;
-		}
-		skeletonHTML += '</div>';
-		ui.activityList.innerHTML = skeletonHTML;
-		ui.activityList.style.display = 'block'; // Show skeleton container
-		console.log(`[Render Skeletons] Rendered ${count} activity skeletons.`);
-	}
-	// --- END MODIFIED ---
+	function updateSidebarProfile(profile) { if (!ui.sidebarName || !ui.sidebarAvatar || !ui.sidebarUserTitle) { cacheDOMElements(); if (!ui.sidebarName || !ui.sidebarAvatar || !ui.sidebarUserTitle) { console.warn("[UI Update Sidebar] Sidebar elements not found in cache."); return; } } console.log("[UI Update] Aktualizace sidebaru..."); if (profile) { const firstName = profile.first_name ?? ''; const displayName = firstName || profile.username || currentUser?.email?.split('@')[0] || 'Pilot'; if (ui.sidebarName) ui.sidebarName.textContent = sanitizeHTML(displayName); const initials = getInitials(profile); const avatarUrl = profile.avatar_url; if (ui.sidebarAvatar) { ui.sidebarAvatar.innerHTML = avatarUrl ? `<img src="${sanitizeHTML(avatarUrl)}" alt="${sanitizeHTML(initials)}">` : sanitizeHTML(initials); } const selectedTitleKey = profile.selected_title; let displayTitle = 'Pilot'; if (selectedTitleKey && allTitles && allTitles.length > 0) { const foundTitle = allTitles.find(t => t.title_key === selectedTitleKey); if (foundTitle && foundTitle.name) displayTitle = foundTitle.name; else console.warn(`[UI Update Sidebar] Title key "${selectedTitleKey}" not found in titles list.`); } else if (selectedTitleKey) { console.warn(`[UI Update Sidebar] Selected title key present, but titles list is empty or not loaded.`); } if (ui.sidebarUserTitle) { ui.sidebarUserTitle.textContent = sanitizeHTML(displayTitle); ui.sidebarUserTitle.setAttribute('title', sanitizeHTML(displayTitle)); } if (ui.welcomeTitle) { ui.welcomeTitle.textContent = `Vítej zpět, ${sanitizeHTML(displayName)}!`; } console.log("[UI Update] Sidebar aktualizován."); } else { console.warn("[UI Update Sidebar] Missing profile data. Setting defaults."); if (ui.sidebarName) ui.sidebarName.textContent = "Pilot"; if (ui.sidebarAvatar) ui.sidebarAvatar.textContent = '?'; if (ui.sidebarUserTitle) { ui.sidebarUserTitle.textContent = 'Pilot'; ui.sidebarUserTitle.removeAttribute('title'); } if (ui.welcomeTitle) ui.welcomeTitle.textContent = `Vítejte!`; } }
+	function updateStatsCards(stats) { console.log("[UI Update] Aktualizace karet statistik:", stats); const elementsExist = ui.overallProgressValue && ui.totalPointsValue && ui.streakValue && ui.overallProgressFooter && ui.totalPointsFooter && ui.streakFooter && ui.progressCard && ui.pointsCard && ui.streakCard; if (!elementsExist) { if (window.location.pathname.includes('dashboard.html')) { const missing = []; if (!ui.overallProgressValue) missing.push('overallProgressValue'); if (!ui.totalPointsValue) missing.push('totalPointsValue'); /*...*/ console.error("[UI Update Stats] Chybějící elementy statistik:", missing); } [ui.progressCard, ui.pointsCard, ui.streakCard].forEach(card => card?.classList.remove('loading')); return; } [ui.progressCard, ui.pointsCard, ui.streakCard].forEach(card => card.classList.remove('loading')); if (!stats) { console.warn("[UI Update Stats] Chybí data statistik."); ui.overallProgressValue.textContent = '- %'; ui.totalPointsValue.textContent = '-'; ui.streakValue.textContent = '-'; ui.overallProgressFooter.innerHTML = `<i class="fas fa-exclamation-circle"></i> Data nenalezena`; ui.totalPointsFooter.innerHTML = `<i class="fas fa-exclamation-circle"></i> Data nenalezena`; ui.streakFooter.textContent = `MAX: - dní`; return; } ui.overallProgressValue.textContent = `${stats.progress ?? 0}%`; const weeklyProgress = stats.progress_weekly ?? 0; ui.overallProgressFooter.classList.remove('positive', 'negative'); ui.overallProgressFooter.innerHTML = weeklyProgress > 0 ? `<i class="fas fa-arrow-up"></i> +${weeklyProgress}% týdně` : weeklyProgress < 0 ? `<i class="fas fa-arrow-down"></i> ${weeklyProgress}% týdně` : `<i class="fas fa-minus"></i> --`; if (weeklyProgress > 0) ui.overallProgressFooter.classList.add('positive'); else if (weeklyProgress < 0) ui.overallProgressFooter.classList.add('negative'); ui.totalPointsValue.textContent = stats.points ?? 0; const weeklyPoints = stats.points_weekly ?? 0; ui.totalPointsFooter.classList.remove('positive', 'negative'); ui.totalPointsFooter.innerHTML = weeklyPoints > 0 ? `<i class="fas fa-arrow-up"></i> +${weeklyPoints} týdně` : weeklyPoints < 0 ? `<i class="fas fa-arrow-down"></i> ${weeklyPoints} týdně` : `<i class="fas fa-minus"></i> --`; if (weeklyPoints > 0) ui.totalPointsFooter.classList.add('positive'); else if (weeklyPoints < 0) ui.totalPointsFooter.classList.add('negative'); ui.streakValue.textContent = stats.streak_current ?? 0; ui.streakFooter.textContent = `MAX: ${stats.streak_longest ?? 0} dní`; console.log("[UI Update] Karty statistik aktualizovány."); }
+	function renderActivities(activities) { if (!ui.activityList || !ui.activityListContainer || !ui.activityListEmptyState || !ui.activityListErrorState) { if (window.location.pathname.includes('dashboard.html')) { console.error("[Render Activities] Essential UI elements for activity list are missing. Rendering cancelled."); } setLoadingState('activities', false); return; } console.log("[Render Activities] Start rendering, activities count:", activities?.length); ui.activityList.innerHTML = ''; ui.activityListEmptyState.style.display = 'none'; ui.activityListErrorState.style.display = 'none'; ui.activityList.style.display = 'none'; if (activities === null) { ui.activityListErrorState.style.display = 'block'; console.warn("[Render Activities] Received null data, showing error state."); } else if (activities.length === 0) { ui.activityListEmptyState.style.display = 'block'; console.log("[Render Activities] No activities to display, showing empty state."); } else { const fragment = document.createDocumentFragment(); activities.forEach(activity => { const visual = activityVisuals[activity.type?.toLowerCase()] || activityVisuals.default; const title = sanitizeHTML(activity.title || 'Neznámá aktivita'); const description = sanitizeHTML(activity.description || ''); const timeAgo = formatRelativeTime(activity.created_at); const item = document.createElement('div'); item.className = 'activity-item'; item.innerHTML = `<div class="activity-icon ${visual.class}"><i class="fas ${visual.icon}"></i></div><div class="activity-content"><div class="activity-title">${title}</div>${description ? `<div class="activity-desc">${description}</div>` : ''}<div class="activity-time"><i class="far fa-clock"></i> ${timeAgo}</div></div>`; fragment.appendChild(item); }); ui.activityList.appendChild(fragment); ui.activityList.style.display = 'block'; console.log(`[Render Activities] Rendered ${activities.length} items.`); } if(ui.activityListContainer) ui.activityListContainer.classList.remove('loading'); setLoadingState('activities', false); }
+	function renderActivitySkeletons(count = 5) { if (!ui.activityList || !ui.activityListContainer) { if (window.location.pathname.includes('dashboard.html')) { console.warn("Cannot render activity skeletons: List or container not found."); } return; } if(ui.activityListContainer) ui.activityListContainer.classList.add('loading'); ui.activityList.innerHTML = ''; if(ui.activityListEmptyState) ui.activityListEmptyState.style.display = 'none'; if(ui.activityListErrorState) ui.activityListErrorState.style.display = 'none'; let skeletonHTML = '<div class="loading-placeholder">'; for (let i = 0; i < count; i++) { skeletonHTML += `<div class="skeleton-activity-item"> <div class="skeleton icon-placeholder"></div> <div style="flex-grow: 1;"> <div class="skeleton activity-line"></div> <div class="skeleton activity-line text-short"></div> <div class="skeleton activity-line-short"></div> </div> </div>`; } skeletonHTML += '</div>'; ui.activityList.innerHTML = skeletonHTML; ui.activityList.style.display = 'block'; console.log(`[Render Skeletons] Rendered ${count} activity skeletons.`); }
 	function renderNotifications(count, notifications) { if (!ui.notificationCount || !ui.notificationsList || !ui.noNotificationsMsg || !ui.markAllReadBtn) { cacheDOMElements(); if (!ui.notificationCount || !ui.notificationsList || !ui.noNotificationsMsg || !ui.markAllReadBtn) { console.error("[Render Notifications] Notification UI elements are still missing after re-cache. Cannot render."); setLoadingState('notifications', false); return; } } console.log("[Render Notifications] Start, Počet:", count, "Oznámení:", notifications); ui.notificationCount.textContent = count > 9 ? '9+' : (count > 0 ? String(count) : ''); ui.notificationCount.classList.toggle('visible', count > 0); if (notifications && notifications.length > 0) { ui.notificationsList.innerHTML = notifications.map(n => { const visual = activityVisuals[n.type?.toLowerCase()] || activityVisuals.default; const isReadClass = n.is_read ? 'is-read' : ''; const linkAttr = n.link ? `data-link="${sanitizeHTML(n.link)}"` : ''; return `<div class="notification-item ${isReadClass}" data-id="${n.id}" ${linkAttr}> ${!n.is_read ? '<span class="unread-dot"></span>' : ''} <div class="notification-icon ${visual.class}"><i class="fas ${visual.icon}"></i></div> <div class="notification-content"> <div class="notification-title">${sanitizeHTML(n.title)}</div> <div class="notification-message">${sanitizeHTML(n.message)}</div> <div class="notification-time">${formatRelativeTime(n.created_at)}</div> </div> </div>`; }).join(''); ui.noNotificationsMsg.style.display = 'none'; ui.notificationsList.style.display = 'block'; ui.markAllReadBtn.disabled = count === 0; } else { ui.notificationsList.innerHTML = ''; ui.noNotificationsMsg.style.display = 'block'; ui.notificationsList.style.display = 'none'; ui.markAllReadBtn.disabled = true; } console.log("[Render Notifications] Hotovo"); }
 	function renderNotificationSkeletons(count = 2) { if (!ui.notificationsList || !ui.noNotificationsMsg) return; let skeletonHTML = ''; for (let i = 0; i < count; i++) { skeletonHTML += `<div class="notification-item skeleton"><div class="notification-icon skeleton"></div><div class="notification-content"><div class="skeleton" style="height: 16px; width: 70%; margin-bottom: 6px;"></div><div class="skeleton" style="height: 12px; width: 90%;"></div><div class="skeleton" style="height: 10px; width: 40%; margin-top: 6px;"></div></div></div>`; } ui.notificationsList.innerHTML = skeletonHTML; ui.noNotificationsMsg.style.display = 'none'; ui.notificationsList.style.display = 'block'; }
 	// --- END: UI Update Functions ---
 
-	// --- START: Event Listeners Setup ---
-	// --- MODIFIED: setupUIEventListeners ---
+	// --- START: Event Handlers ---
+	// Stub functions for handlers defined elsewhere but potentially attached here
+	async function markNotificationRead(notificationId) { console.warn("[Dashboard Stub] markNotificationRead called with ID:", notificationId, " - No specific action defined here."); return true; }
+	async function markAllNotificationsRead() { console.warn("[Dashboard Stub] markAllNotificationsRead called - No specific action defined here."); if (ui.notificationsList) ui.notificationsList.innerHTML = ''; if(ui.noNotificationsMsg) ui.noNotificationsMsg.style.display = 'block'; if(ui.notificationCount) { ui.notificationCount.textContent = ''; ui.notificationCount.classList.remove('visible'); } if(ui.markAllReadBtn) ui.markAllReadBtn.disabled = true; }
+	async function handleNotificationClick(event) { const item = event.target.closest('.notification-item'); if (!item) return; const notificationId = item.dataset.id; const link = item.dataset.link; const isRead = item.classList.contains('is-read'); if (!isRead && notificationId) { const success = await markNotificationRead(notificationId); if (success) { item.classList.add('is-read'); item.querySelector('.unread-dot')?.remove(); const currentCountText = ui.notificationCount?.textContent?.replace('+', '') || '0'; const currentCount = parseInt(currentCountText) || 0; const newCount = Math.max(0, currentCount - 1); if(ui.notificationCount) { ui.notificationCount.textContent = newCount > 9 ? '9+' : (newCount > 0 ? String(newCount) : ''); ui.notificationCount.classList.toggle('visible', newCount > 0); } if(ui.markAllReadBtn) ui.markAllReadBtn.disabled = newCount === 0; } } if (link) window.location.href = link; }
+	async function handleRefreshClick() { if (!currentUser || !currentProfile) { showToast("Chyba", "Pro obnovení je nutné se přihlásit.", "error"); return; } if (Object.values(isLoading).some(state => state)) { showToast("PROBÍHÁ SYNCHRONIZACE", "Data se již načítají.", "info"); return; } const icon = ui.refreshDataBtn?.querySelector('i'); const text = ui.refreshDataBtn?.querySelector('.refresh-text'); if (ui.refreshDataBtn) ui.refreshDataBtn.disabled = true; if (icon) icon.classList.add('fa-spin'); if (text) text.textContent = 'RELOADING...'; await loadDashboardData(currentUser, currentProfile); if (icon) icon.classList.remove('fa-spin'); if (text) text.textContent = 'RELOAD'; if (ui.refreshDataBtn) ui.refreshDataBtn.disabled = false; }
+	// (renderMonthlyCalendar and renderStreakMilestones would be defined in the page-specific script using the modal)
+
 	function setupUIEventListeners() {
 		console.log("[SETUP] setupUIEventListeners: Start");
-		if (!ui || Object.keys(ui).length === 0) {
-			console.error("[SETUP] UI cache is empty! Cannot setup listeners.");
-			return;
-		}
-		const listenersAdded = new Set();
+		if (!ui || Object.keys(ui).length === 0) { console.error("[SETUP] UI cache is empty! Cannot setup listeners."); return; }
+		const listenersAdded = new Set(); // Track added listeners
 
-		// Helper to safely add listeners, checks if element exists
+		// Helper to safely add listeners
 		const safeAddListener = (element, eventType, handler, key) => {
-			if (element) { // Check if the element exists in the cache
-				element.removeEventListener(eventType, handler); // Prevent duplicates
-				element.addEventListener(eventType, handler);
-				listenersAdded.add(key);
-			} else {
-				// Log missing listener only if on the dashboard page
-				if (window.location.pathname.includes('dashboard.html')) {
-					 console.warn(`[SETUP] Element not found for listener: ${key}`);
+			if (element && typeof handler === 'function') {
+				// Basic check to prevent adding the exact same handler multiple times
+				// Note: This doesn't perfectly prevent all duplicates if anonymous functions are used inline.
+				const listenerKey = `${key}-${eventType}`;
+				if (!listenersAdded.has(listenerKey)) {
+					 element.addEventListener(eventType, handler);
+					 listenersAdded.add(listenerKey);
+					 console.log(`[SETUP] Listener added for: ${key} (${eventType})`);
 				}
+			} else if (element && typeof handler !== 'function') {
+				console.warn(`[SETUP] Handler function for listener key "${key}" is not defined or not a function.`);
+				// Optionally disable the element
+				// element.disabled = true;
+				// element.title = "Funkce dočasně nedostupná";
+			} else if (!element) {
+				// Log missing elements only if on the main dashboard page
+				// if (window.location.pathname.includes('dashboard.html')) {
+				//     console.warn(`[SETUP] Element not found for listener: ${key}`);
+				// }
+				// Keep console cleaner on other pages:
+				// console.log(`[SETUP] Element skipped (not found on this page): ${key}`);
 			}
 		};
 
@@ -564,47 +315,12 @@
 		safeAddListener(ui.startPracticeBtn, 'click', () => { window.location.href = '/dashboard/procvicovani/main.html'; }, 'startPracticeBtn');
 		safeAddListener(ui.openMonthlyModalBtn, 'click', () => showModal('monthly-reward-modal'), 'openMonthlyModalBtn');
 		safeAddListener(ui.openStreakModalBtn, 'click', () => showModal('streak-milestones-modal'), 'openStreakModalBtn');
-		safeAddListener(ui.refreshDataBtn, 'click', async () => {
-			if (!currentUser || !currentProfile) { showToast("Chyba", "Pro obnovení je nutné se přihlásit.", "error"); return; }
-			if (Object.values(isLoading).some(state => state)) { showToast("PROBÍHÁ SYNCHRONIZACE", "Data se již načítají.", "info"); return; }
-			const icon = ui.refreshDataBtn?.querySelector('i');
-			const text = ui.refreshDataBtn?.querySelector('.refresh-text');
-			if (ui.refreshDataBtn) ui.refreshDataBtn.disabled = true;
-			if (icon) icon.classList.add('fa-spin');
-			if (text) text.textContent = 'RELOADING...';
-			await loadDashboardData(currentUser, currentProfile);
-			if (icon) icon.classList.remove('fa-spin');
-			if (text) text.textContent = 'RELOAD';
-			if (ui.refreshDataBtn) ui.refreshDataBtn.disabled = false;
-		}, 'refreshDataBtn');
+		safeAddListener(ui.refreshDataBtn, 'click', handleRefreshClick, 'refreshDataBtn');
 
-		// Notifications
+		// Notifications (Attach handlers defined within this script)
 		safeAddListener(ui.notificationBell, 'click', (event) => { event.stopPropagation(); ui.notificationsDropdown?.classList.toggle('active'); }, 'notificationBell');
-		safeAddListener(ui.markAllReadBtn, 'click', markAllNotificationsRead, 'markAllReadBtn'); // Assuming markAllNotificationsRead exists
-		safeAddListener(ui.notificationsList, 'click', async (event) => {
-			const item = event.target.closest('.notification-item');
-			if (item) {
-				const notificationId = item.dataset.id;
-				const link = item.dataset.link;
-				const isRead = item.classList.contains('is-read');
-				if (!isRead && notificationId && typeof markNotificationRead === 'function') { // Check function exists
-					const success = await markNotificationRead(notificationId);
-					if (success) {
-						item.classList.add('is-read');
-						item.querySelector('.unread-dot')?.remove();
-						const currentCountText = ui.notificationCount?.textContent?.replace('+', '') || '0';
-						const currentCount = parseInt(currentCountText) || 0;
-						const newCount = Math.max(0, currentCount - 1);
-						if(ui.notificationCount) {
-							ui.notificationCount.textContent = newCount > 9 ? '9+' : (newCount > 0 ? String(newCount) : '');
-							ui.notificationCount.classList.toggle('visible', newCount > 0);
-						}
-						if(ui.markAllReadBtn) ui.markAllReadBtn.disabled = newCount === 0;
-					}
-				}
-				if (link) window.location.href = link;
-			}
-		}, 'notificationsList');
+		safeAddListener(ui.markAllReadBtn, 'click', markAllNotificationsRead, 'markAllReadBtn');
+		safeAddListener(ui.notificationsList, 'click', handleNotificationClick, 'notificationsList');
 		document.addEventListener('click', (event) => { // Close dropdown on outside click
 			if (ui.notificationsDropdown?.classList.contains('active') && !ui.notificationsDropdown.contains(event.target) && !ui.notificationBell?.contains(event.target)) {
 				ui.notificationsDropdown?.classList.remove('active');
@@ -620,30 +336,25 @@
 		// Global
 		window.addEventListener('online', updateOnlineStatus);
 		window.addEventListener('offline', updateOnlineStatus);
-		if (ui.mainContent) ui.mainContent.addEventListener('scroll', initHeaderScrollDetection, { passive: true });
+		// Header scroll detection is better handled in initializeApp after mainContent is confirmed present
 
-		console.log(`[SETUP] Event listeners set up. Added: ${listenersAdded.size}`);
+		console.log(`[SETUP] Event listeners setup finished. Added: ${listenersAdded.size}`);
 	}
-	// --- END MODIFIED ---
 	// --- END: Event Listeners ---
-
 
 	// --- START: App Initialization ---
 	async function initializeApp() {
 		console.log("[INIT Dashboard] initializeApp: Start v23.5 - Event Dispatch Updated");
 		cacheDOMElements(); // Cache elements early
 
-		// Wait for Supabase library to load
 		const waitForSupabase = new Promise((resolve, reject) => { const maxAttempts = 10; let attempts = 0; const intervalId = setInterval(() => { attempts++; if (typeof window.supabase !== 'undefined' && typeof window.supabase.createClient === 'function') { console.log(`[INIT Dashboard] Supabase library found after ${attempts} attempts.`); clearInterval(intervalId); resolve(); } else if (attempts >= maxAttempts) { console.error("[INIT Dashboard] Supabase library not found after waiting. Aborting."); clearInterval(intervalId); reject(new Error("Knihovna Supabase nebyla nalezena včas.")); } else { console.log(`[INIT Dashboard] Waiting for Supabase library... (Attempt ${attempts}/${maxAttempts})`); } }, 200); });
 		try { await waitForSupabase; }
 		catch (waitError) { showError(waitError.message, true); if(ui.initialLoader) ui.initialLoader.classList.add('hidden'); return; }
 
 		if (!initializeSupabase()) { console.error("[INIT Dashboard] Supabase init function failed. Aborting."); return; }
 
-		// Apply sidebar state early
 		applyInitialSidebarState();
-		// Setup base listeners
-		setupUIEventListeners();
+		setupUIEventListeners(); // Setup base listeners AFTER caching and Supabase init
 
 		if (ui.initialLoader) { ui.initialLoader.classList.remove('hidden'); ui.initialLoader.style.display = 'flex'; }
 		if (ui.mainContent) ui.mainContent.style.display = 'none'; // Hide main until ready
@@ -685,8 +396,21 @@
 				updateCopyrightYear();
 				updateOnlineStatus();
 
-				// Load main dashboard data (stats, activities, notifications)
-				await loadDashboardData(currentUser, currentProfile);
+				// Load main dashboard data (stats, activities, notifications) - only if on dashboard.html
+				if (window.location.pathname.includes('dashboard.html')) {
+				    await loadDashboardData(currentUser, currentProfile);
+				} else {
+				     console.log("[INIT Dashboard] Not on dashboard.html, skipping loadDashboardData.");
+                     // Ensure loading states are off if skipped
+                     setLoadingState('stats', false);
+                     setLoadingState('activities', false);
+                     setLoadingState('notifications', false);
+                     // Still might need notifications on other pages? Fetch them separately if needed.
+                     const { unreadCount, notifications } = await fetchNotifications(currentUser.id, 5);
+                     renderNotifications(unreadCount, notifications);
+                     setLoadingState('notifications', false);
+				}
+
 
 				// Hide loader and show main content
 				if (ui.initialLoader) { ui.initialLoader.classList.add('hidden'); setTimeout(() => { if (ui.initialLoader) ui.initialLoader.style.display = 'none'; }, 500); }
@@ -694,7 +418,7 @@
 
 				// Initialize remaining UI features
 				initMouseFollower();
-				initHeaderScrollDetection();
+				initHeaderScrollDetection(); // Needs mainContent to be visible
 				initTooltips();
 
 				// Dispatch the 'dashboardReady' event AFTER all essential data is loaded
