@@ -1,5 +1,5 @@
 // main.js for dashboard/procvicovani/main.html
-// Version: 23.6 - SyntaxError fix re-attempt
+// Version: 23.7 - Use DOMContentLoaded, final syntax check
 
 (function() { // Start IIFE
     'use strict';
@@ -24,6 +24,7 @@
     };
 
     // Cache UI elements for this specific page (main.html)
+    // Ensure all elements exist in main.html or handle potential null values
     const ui = {
         initialLoader: document.getElementById('initial-loader'),
         sidebarOverlay: document.getElementById('sidebar-overlay'),
@@ -153,13 +154,13 @@
                 if (config.content) config.content.style.display = hasContent ? 'block' : 'none';
                 if (config.empty) config.empty.style.display = hasContent ? 'none' : 'block';
             }
-            if (section === 'stats' && config?.container && config?.childrenSelector) {
+             if (section === 'stats' && config?.container && config?.childrenSelector) {
                 config.container.querySelectorAll(config.childrenSelector).forEach(child => { child.classList.toggle('loading', !hasContent); });
             }
             if (section === 'stats' && ui.shortcutsGrid) {
                  ui.shortcutsGrid.classList.remove('loading');
                  renderShortcuts();
-            }
+             }
         }
     }
 
@@ -216,7 +217,7 @@
             renderTestResults(diagnosticResultsData);
             renderStudyPlanOverview(studyPlanData, planActivitiesData);
             renderTopicAnalysis(topicProgressData);
-            renderShortcuts(); // Render actual shortcuts now
+            renderShortcuts();
 
             if (diagnosticResultsData.length === 0 && ui.diagnosticPrompt) {
                 ui.diagnosticPrompt.style.display = 'flex';
@@ -289,9 +290,9 @@
 
             if (!supabase || !currentUser || !currentProfile) {
                 console.error("[INIT Procvičování] Critical data missing from dashboardReady event.");
-                 showError("Chyba načítání základních dat. Zkuste obnovit stránku.", true);
-                 if (ui.initialLoader && !ui.initialLoader.classList.contains('hidden')) { ui.initialLoader.classList.add('hidden'); setTimeout(() => { if (ui.initialLoader) ui.initialLoader.style.display = 'none'; }, 300); }
-                 return;
+                showError("Chyba načítání základních dat. Zkuste obnovit stránku.", true);
+                if (ui.initialLoader && !ui.initialLoader.classList.contains('hidden')) { ui.initialLoader.classList.add('hidden'); setTimeout(() => { if (ui.initialLoader) ui.initialLoader.style.display = 'none'; }, 300); }
+                return;
             }
 
             console.log(`[INIT Procvičování] User authenticated (ID: ${currentUser.id}). Profile and titles received.`);
@@ -331,6 +332,7 @@
     }
 
     // --- Run ---
-    initializeApp(); // Setup the event listener
+    // Wait for the DOM to be fully loaded before setting up the dashboardReady listener
+    document.addEventListener('DOMContentLoaded', initializeApp);
 
 })(); // End IIFE
