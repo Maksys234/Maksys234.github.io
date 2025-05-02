@@ -224,13 +224,28 @@
         supabase = detail?.client; currentUser = detail?.user; currentProfile = detail?.profile; allTitles = detail?.titles || [];
         if (!supabase || !currentUser || !currentProfile) { console.error("[Oceneni] Critical data missing from dashboardReady event detail:", detail); showError("Chyba načítání základních dat pro stránku Ocenění.", true); return; }
         console.log("[Oceneni] Core data received from dashboard. Initializing page specific content...");
-        cacheDOMElements(); setupUIEventListeners(); applyInitialSidebarState(); updateCopyrightYear(); initMouseFollower(); updateSidebarProfile(currentProfile, allTitles); loadAllAwardData();
-        if (ui.mainContent) { ui.mainContent.style.display = 'block'; requestAnimationFrame(() => { ui.mainContent.classList.add('loaded'); initScrollAnimations(); }); }
-        initTooltips(); console.log("✅ [Oceneni] Page fully initialized.");
+        cacheDOMElements();
+        if (typeof PlanApp !== 'undefined' && typeof PlanApp.initializeUI === 'function') {
+            PlanApp.initializeUI(); // Setup base listeners before load
+        } else {
+            console.warn("PlanApp or PlanApp.initializeUI not found. Skipping UI init.");
+        }
+        setupUIEventListeners(); // Setup specific listeners for this page
+        applyInitialSidebarState();
+        updateCopyrightYear();
+        initMouseFollower();
+        updateSidebarProfile(currentProfile, allTitles); // Update sidebar with profile and title info
+        loadAllAwardData();
+        if (ui.mainContent) {
+            ui.mainContent.style.display = 'block';
+            requestAnimationFrame(() => { ui.mainContent.classList.add('loaded'); initScrollAnimations(); });
+        }
+        initTooltips();
+        console.log("✅ [Oceneni] Page fully initialized.");
     });
 
     // Initial setup
-    cacheDOMElements();
+    cacheDOMElements(); // Cache elements early
     console.log("[Oceneni] Waiting for 'dashboardReady' event...");
 
 })(); // End of IIFE
