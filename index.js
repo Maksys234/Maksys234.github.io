@@ -1,9 +1,9 @@
 /**
  * JUSTAX Landing Page Script
- * Handles UI interactions, animations, and **INFINITE** testimonial slider.
- * Version: v2.6 (Fixed Init Dimension Calculation - INSECURE DEMO)
+ * Handles UI interactions, animations, and **INFINITE** testimonial slider with pre-fetching.
+ * Version: v2.7 (Pre-fetching Implementation - INSECURE DEMO)
  * Author: Gemini Modification
- * Date: 2025-05-02 // Updated init logic
+ * Date: 2025-05-02 // Added pre-fetching on button click
  *
  * !!! SECURITY WARNING !!!
  * This code demonstrates calling the Gemini API directly from the client-side
@@ -16,7 +16,7 @@
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log("DOM Ready. Initializing JUSTAX Interface v2.6 (Fixed Init - INSECURE DEMO)...");
+    console.log("DOM Ready. Initializing JUSTAX Interface v2.7 (Pre-fetching - INSECURE DEMO)...");
 
     // --- Global Variables & DOM References ---
     const body = document.body;
@@ -52,7 +52,6 @@ document.addEventListener('DOMContentLoaded', () => {
             // --- Infinite Slider Config ---
             visibleCardsDesktop: 3, // How many cards are fully visible on desktop
             bufferCards: 2,         // How many extra cards to load on each side (before/after visible ones)
-            // fetchBatchSize: 3,      // How many new testimonials to fetch at once when needed (can be added later)
             slideDuration: 500      // Corresponds to CSS transition duration in ms
         }
     };
@@ -64,9 +63,10 @@ document.addEventListener('DOMContentLoaded', () => {
     let totalCardsInDOM = 0; // Actual number of card elements in the DOM track
     let cardWidthAndMargin = 0; // Calculated width + margin of a single card
     let isSliding = false; // Flag to prevent multiple clicks during animation
-    let isFetching = false; // Flag to prevent concurrent API calls
+    let isFetching = false; // Flag to prevent concurrent API calls (global lock for simplicity)
     let resizeTimeout; // Timeout ID for debounced resize handling
     let initialLoadComplete = false; // Flag to indicate successful initialization
+    let prefetchPromise = null; // Holds the promise for the ongoing pre-fetch request
 
     // --- Utility Functions ---
     const setYear = () => { if (yearSpan) yearSpan.textContent = new Date().getFullYear(); };
@@ -89,6 +89,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Feature Initializations ---
 
+    // [Code for Year, Header Scroll, Hamburger, Mouse Follower, AI Demo, Scroll Animations, Smooth Scroll remains the same as v2.6]
+    // ... (sections 1-7 are identical to previous version) ...
     // 1. Update Copyright Year
     setYear();
 
@@ -119,38 +121,22 @@ document.addEventListener('DOMContentLoaded', () => {
     // 5. AI Demo Simulation (Keep existing logic)
     if (config.aiDemo.enabled && demoSection && aiOutput && aiProgressBar && aiProgressLabel && aiFakeInput && aiStatusIndicator) {
         let currentTextIndex = 0; let currentProgress = 0; let demoIsRunning = false; let demoTimeoutId = null;
-        const demoTexts = [
-             { text: "Boot Sequence Initiated...", type: "status", delay: 500 }, { text: "Loading AI Core v19...", type: "status" }, { text: "Accessing Neural Network Interface...", type: "status" }, { text: "Query Received: 'Optimal Learning Path - Math (Grade 9)'", type: "input", inputSpeed: 60 }, { text: "Processing User Profile: CyberMike_77...", type: "process" }, { text: "Scanning Knowledge Base (Algebra, Geometry, Functions)...", type: "process", progressText: "Scanning KB" }, { text: "Analyzing performance metrics...", type: "analysis" }, { text: "Identified Weak Points: Polynomial Factoring, Circle Theorems.", type: "analysis", progressText: "Analyzing Weaknesses" }, { text: "WARNING: Low confidence score in Trigonometric Identities.", type: "warning", delay: 300 }, { text: "Executing Adaptive Path Correction Subroutine...", type: "process" }, { text: "Generating Personalized Lesson Plan...", type: "process", progressText: "Generating Plan" }, { text: "Module 1: Interactive Polynomial Factoring Drill.", type: "output" }, { text: "Module 2: Visual Proofs for Circle Theorems.", type: "output" }, { text: "Module 3: Targeted Practice: Trig Identities.", type: "output" }, { text: "Calculating Optimal Time Allocation...", type: "analysis" }, { text: "Simulating CERMAT Exam Conditions (Difficulty Level: High)...", type: "process", progressText: "Simulating Exam" }, { text: "Cross-referencing with historical exam patterns...", type: "process" }, { text: "Optimization Complete. Learning Path Ready.", type: "status", delay: 500, final: true },
-        ];
+        const demoTexts = [ { text: "Boot Sequence Initiated...", type: "status", delay: 500 }, { text: "Loading AI Core v19...", type: "status" }, { text: "Accessing Neural Network Interface...", type: "status" }, { text: "Query Received: 'Optimal Learning Path - Math (Grade 9)'", type: "input", inputSpeed: 60 }, { text: "Processing User Profile: CyberMike_77...", type: "process" }, { text: "Scanning Knowledge Base (Algebra, Geometry, Functions)...", type: "process", progressText: "Scanning KB" }, { text: "Analyzing performance metrics...", type: "analysis" }, { text: "Identified Weak Points: Polynomial Factoring, Circle Theorems.", type: "analysis", progressText: "Analyzing Weaknesses" }, { text: "WARNING: Low confidence score in Trigonometric Identities.", type: "warning", delay: 300 }, { text: "Executing Adaptive Path Correction Subroutine...", type: "process" }, { text: "Generating Personalized Lesson Plan...", type: "process", progressText: "Generating Plan" }, { text: "Module 1: Interactive Polynomial Factoring Drill.", type: "output" }, { text: "Module 2: Visual Proofs for Circle Theorems.", type: "output" }, { text: "Module 3: Targeted Practice: Trig Identities.", type: "output" }, { text: "Calculating Optimal Time Allocation...", type: "analysis" }, { text: "Simulating CERMAT Exam Conditions (Difficulty Level: High)...", type: "process", progressText: "Simulating Exam" }, { text: "Cross-referencing with historical exam patterns...", type: "process" }, { text: "Optimization Complete. Learning Path Ready.", type: "status", delay: 500, final: true }, ];
         const progressIncrement = 100 / (demoTexts.length - 1 || 1);
-        const typeText = (element, text, speed) => new Promise((resolve) => {
-             let i = 0; element.textContent = ''; const intervalId = setInterval(() => { if (i < text.length) { element.textContent += text.charAt(i); i++; } else { clearInterval(intervalId); resolve(); } }, speed);
-         });
-        const runAIDemoStep = async () => {
-             if (currentTextIndex >= demoTexts.length || !demoIsRunning) { aiStatusIndicator.textContent = "IDLE"; aiProgressLabel.textContent = currentTextIndex >= demoTexts.length ? "Processing Complete" : "Demo Stopped"; if(currentTextIndex >= demoTexts.length) aiProgressBar.style.width = '100%'; demoIsRunning = false; if (demoTimeoutId) clearTimeout(demoTimeoutId); return; } const item = demoTexts[currentTextIndex]; const logLine = document.createElement('p'); logLine.classList.add('ai-log-line', item.type || 'status'); logLine.setAttribute('role', 'logitem'); aiStatusIndicator.textContent = item.progressText || "PROCESSING"; if (item.type === 'input') { aiFakeInput.parentElement?.classList.add('typing'); await typeText(aiFakeInput, item.text, item.inputSpeed || config.aiDemo.typingSpeed); await new Promise(resolve => setTimeout(resolve, 300)); logLine.textContent = `> ${item.text}`; aiFakeInput.textContent = ''; aiFakeInput.parentElement?.classList.remove('typing'); } else { await typeText(logLine, item.text, config.aiDemo.typingSpeed); } aiOutput.appendChild(logLine); aiOutput.scrollTo({ top: aiOutput.scrollHeight, behavior: 'smooth' }); if (currentTextIndex > 0 || demoTexts.length === 1) currentProgress += progressIncrement; const displayProgress = Math.min(currentProgress, 100); aiProgressBar.style.width = `${displayProgress}%`; aiProgressBar.setAttribute('aria-valuenow', Math.round(displayProgress)); aiProgressLabel.textContent = `${item.progressText || item.type || 'Status'} // ${item.text.substring(0, 30)}...`; currentTextIndex++; const delay = (item.delay || 0) + config.aiDemo.stepBaseDelay + Math.random() * config.aiDemo.stepRandomDelay; if (demoIsRunning) demoTimeoutId = setTimeout(runAIDemoStep, delay);
-         };
-        const startDemo = () => {
-             if (demoIsRunning) return; console.log("AI Demo section intersecting, starting simulation..."); demoIsRunning = true; aiOutput.innerHTML = ''; aiFakeInput.textContent = ''; aiProgressBar.style.width = '0%'; aiProgressBar.setAttribute('aria-valuenow', '0'); aiStatusIndicator.textContent = "INITIALIZING"; aiProgressLabel.textContent = "Initializing // Please wait..."; currentTextIndex = 0; currentProgress = 0; if (demoTimeoutId) clearTimeout(demoTimeoutId); runAIDemoStep();
-         };
-        const stopDemo = () => {
-             if (!demoIsRunning) return; console.log("AI Demo section out of view, stopping simulation."); demoIsRunning = false; if (demoTimeoutId) clearTimeout(demoTimeoutId); aiStatusIndicator.textContent = "PAUSED"; aiProgressLabel.textContent = "Demo Paused // Scroll down to resume";
-        };
+        const typeText = (element, text, speed) => new Promise((resolve) => { let i = 0; element.textContent = ''; const intervalId = setInterval(() => { if (i < text.length) { element.textContent += text.charAt(i); i++; } else { clearInterval(intervalId); resolve(); } }, speed); });
+        const runAIDemoStep = async () => { if (currentTextIndex >= demoTexts.length || !demoIsRunning) { aiStatusIndicator.textContent = "IDLE"; aiProgressLabel.textContent = currentTextIndex >= demoTexts.length ? "Processing Complete" : "Demo Stopped"; if(currentTextIndex >= demoTexts.length) aiProgressBar.style.width = '100%'; demoIsRunning = false; if (demoTimeoutId) clearTimeout(demoTimeoutId); return; } const item = demoTexts[currentTextIndex]; const logLine = document.createElement('p'); logLine.classList.add('ai-log-line', item.type || 'status'); logLine.setAttribute('role', 'logitem'); aiStatusIndicator.textContent = item.progressText || "PROCESSING"; if (item.type === 'input') { aiFakeInput.parentElement?.classList.add('typing'); await typeText(aiFakeInput, item.text, item.inputSpeed || config.aiDemo.typingSpeed); await new Promise(resolve => setTimeout(resolve, 300)); logLine.textContent = `> ${item.text}`; aiFakeInput.textContent = ''; aiFakeInput.parentElement?.classList.remove('typing'); } else { await typeText(logLine, item.text, config.aiDemo.typingSpeed); } aiOutput.appendChild(logLine); aiOutput.scrollTo({ top: aiOutput.scrollHeight, behavior: 'smooth' }); if (currentTextIndex > 0 || demoTexts.length === 1) currentProgress += progressIncrement; const displayProgress = Math.min(currentProgress, 100); aiProgressBar.style.width = `${displayProgress}%`; aiProgressBar.setAttribute('aria-valuenow', Math.round(displayProgress)); aiProgressLabel.textContent = `${item.progressText || item.type || 'Status'} // ${item.text.substring(0, 30)}...`; currentTextIndex++; const delay = (item.delay || 0) + config.aiDemo.stepBaseDelay + Math.random() * config.aiDemo.stepRandomDelay; if (demoIsRunning) demoTimeoutId = setTimeout(runAIDemoStep, delay); };
+        const startDemo = () => { if (demoIsRunning) return; console.log("AI Demo section intersecting, starting simulation..."); demoIsRunning = true; aiOutput.innerHTML = ''; aiFakeInput.textContent = ''; aiProgressBar.style.width = '0%'; aiProgressBar.setAttribute('aria-valuenow', '0'); aiStatusIndicator.textContent = "INITIALIZING"; aiProgressLabel.textContent = "Initializing // Please wait..."; currentTextIndex = 0; currentProgress = 0; if (demoTimeoutId) clearTimeout(demoTimeoutId); runAIDemoStep(); };
+        const stopDemo = () => { if (!demoIsRunning) return; console.log("AI Demo section out of view, stopping simulation."); demoIsRunning = false; if (demoTimeoutId) clearTimeout(demoTimeoutId); aiStatusIndicator.textContent = "PAUSED"; aiProgressLabel.textContent = "Demo Paused // Scroll down to resume"; };
         const demoObserver = new IntersectionObserver((entries) => entries.forEach(entry => { if (entry.isIntersecting) startDemo(); else stopDemo(); }), { threshold: 0.5 });
         if (demoSection) demoObserver.observe(demoSection);
         console.log("AI Demo observer attached.");
     } else console.warn("AI Demo elements or section not found, or demo disabled in config.");
 
-
     // 6. Scroll Animations (Intersection Observer - Keep existing logic)
-    const scrollObserver = new IntersectionObserver((entries, observer) => {
-        entries.forEach((entry) => {
-             if (entry.isIntersecting) { const element = entry.target; const delay = (parseInt(element.style.getPropertyValue('--animation-order') || '0', 10)) * config.animations.staggerDelay; if (element.hasAttribute('data-animate-letters') && !element.classList.contains('letters-animated')) { element.classList.add('letters-animating'); const text = element.textContent?.trim() ?? ''; element.innerHTML = ''; text.split('').forEach((char, charIndex) => { const span = document.createElement('span'); span.textContent = char === ' ' ? '\u00A0' : char; const randomDelay = Math.random() * config.animations.letterRandomOffset; span.style.animation = `letter-pop-in 0.6s ${delay + charIndex * config.animations.letterDelay + randomDelay}ms forwards cubic-bezier(0.2, 0.8, 0.2, 1.2)`; element.appendChild(span); }); element.classList.add('letters-animated'); observer.unobserve(element); } else if (element.hasAttribute('data-animate') && !element.classList.contains('animated')) { setTimeout(() => { element.classList.add('animated'); observer.unobserve(element); }, delay); } else { observer.unobserve(element); } }
-         });
-    }, {
-        threshold: config.animations.scrollThreshold,
-    });
+    const scrollObserver = new IntersectionObserver((entries, observer) => { entries.forEach((entry) => { if (entry.isIntersecting) { const element = entry.target; const delay = (parseInt(element.style.getPropertyValue('--animation-order') || '0', 10)) * config.animations.staggerDelay; if (element.hasAttribute('data-animate-letters') && !element.classList.contains('letters-animated')) { element.classList.add('letters-animating'); const text = element.textContent?.trim() ?? ''; element.innerHTML = ''; text.split('').forEach((char, charIndex) => { const span = document.createElement('span'); span.textContent = char === ' ' ? '\u00A0' : char; const randomDelay = Math.random() * config.animations.letterRandomOffset; span.style.animation = `letter-pop-in 0.6s ${delay + charIndex * config.animations.letterDelay + randomDelay}ms forwards cubic-bezier(0.2, 0.8, 0.2, 1.2)`; element.appendChild(span); }); element.classList.add('letters-animated'); /* observer.unobserve(element); NO unobserve for glitch */ } else if (element.hasAttribute('data-animate') && !element.classList.contains('animated')) { setTimeout(() => { element.classList.add('animated'); observer.unobserve(element); }, delay); } else { /* observer.unobserve(element); */ } } }); }, { threshold: config.animations.scrollThreshold, }); // Removed rootMargin
     document.querySelectorAll('[data-animate], [data-animate-letters]').forEach(el => scrollObserver.observe(el));
     console.log(`Scroll observer attached for entry animations.`);
+
 
     // 7. Smooth Scroll for Anchor Links (Keep existing logic)
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
@@ -160,21 +146,22 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     console.log("Smooth scroll initialized.");
 
+
     // ========================================================
-    // 8. Infinite Testimonial Slider Implementation
+    // 8. Infinite Testimonial Slider Implementation (v2.7 - Pre-fetching)
     //    !!! USES INSECURE Client-Side Gemini API Call !!!
     // ========================================================
     if (sliderContainer && sliderTrack && prevBtn && nextBtn) {
-        console.log("Initializing Infinite Testimonial Slider v2.6...");
+        console.log("Initializing Infinite Testimonial Slider v2.7...");
 
         // --- Helper Functions for Slider ---
 
-        const getRandomColorPair = () => {
+        const getRandomColorPair = () => { /* ... same as v2.6 ... */
             const colors = [ { bg: 'a05cff', text: 'FFFFFF' }, { bg: '00e0ff', text: '03020c' }, { bg: 'ff33a8', text: 'FFFFFF' }, { bg: 'f0e14a', text: '03020c' }, { bg: '00ffaa', text: '03020c' }, { bg: 'ff9a00', text: 'FFFFFF' } ];
             return colors[Math.floor(Math.random() * colors.length)];
         };
 
-        const generateStarsHTML = (rating) => {
+        const generateStarsHTML = (rating) => { /* ... same as v2.6 ... */
             let starsHTML = '';
             const clampedRating = Math.max(0, Math.min(5, rating || 0));
             const fullStars = Math.floor(clampedRating);
@@ -186,21 +173,27 @@ document.addEventListener('DOMContentLoaded', () => {
             return starsHTML;
         };
 
-        // Creates a placeholder testimonial card element
-        const createPlaceholderCard = () => {
+        const createPlaceholderCard = () => { /* ... same as v2.6 ... */
             const card = document.createElement('article');
             card.className = 'testimonial-card is-loading';
             card.innerHTML = '<div class="spinner"></div>';
-            card.setAttribute('aria-hidden', 'true'); // Hide placeholders from screen readers initially
+            card.setAttribute('aria-hidden', 'true');
             return card;
         };
 
-        // Updates the content of an existing card element with new data
-        const updateCardContent = (cardElement, testimonialData) => {
-            if (!cardElement || !testimonialData) return; // Exit if no element or data
+        const updateCardContent = (cardElement, testimonialData) => { /* ... same as v2.6 ... */
+             if (!cardElement || !testimonialData) {
+                 console.warn("updateCardContent called with invalid element or data.");
+                 // Optionally make the card display an error state if element exists but data is bad
+                 if(cardElement) {
+                     cardElement.classList.remove('is-loading');
+                     cardElement.innerHTML = `<p style="color: var(--clr-accent-red); padding: 1em;">Chyba zobrazení dat.</p>`;
+                 }
+                 return;
+             }
 
             cardElement.classList.remove('is-loading');
-            cardElement.removeAttribute('aria-hidden'); // Make visible to screen readers
+            cardElement.removeAttribute('aria-hidden');
             cardElement.innerHTML = `
                 <div class="testimonial-content">
                     <div class="testimonial-rating" aria-label="Hodnocení"></div>
@@ -245,11 +238,8 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         // ***** INSECURE FUNCTION to call Gemini API Directly *****
-        // ***** MUST BE REPLACED by a call to your secure backend *****
-        const fetchTestimonialFromGeminiAPI = async () => {
-             // NOTE: isFetching flag is managed outside this function now before calling
-             console.log("Fetching new testimonial directly from Gemini API (INSECURE)...");
-             // Buttons are disabled by the caller (moveSlider or initialize)
+        const fetchTestimonialFromGeminiAPI = async () => { /* ... same as v2.6 ... */
+            console.log("Fetching new testimonial directly from Gemini API (INSECURE)...");
 
             const apiKey = config.testimonials.geminiApiKeyPlaceholder;
              if (!apiKey || apiKey === "YOUR_GEMINI_API_KEY" || apiKey.length < 20) {
@@ -305,7 +295,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (data.candidates && data.candidates[0]?.content?.parts?.[0]?.text) {
                     const generatedText = data.candidates[0].content.parts[0].text;
-                    // console.log("Generated Text:", generatedText); // Less verbose logging
 
                     const lines = generatedText.split('\n');
                     const parsedData = { name: null, role: null, rating: null, text: null };
@@ -323,17 +312,12 @@ document.addEventListener('DOMContentLoaded', () => {
                      testimonialData.name = parsedData.name || `AI Uživatel #${Math.floor(Math.random() * 1000)}`;
                      testimonialData.role = parsedData.role || "Student";
                      testimonialData.rating = (parsedData.rating >= 3 && parsedData.rating <= 5) ? parsedData.rating : 4.5;
-                     // Ensure text isn't empty if parsing failed but text was generated
                      testimonialData.text = parsedData.text || generatedText.trim().split('\n').pop() || "Generovaný text bez specifikace.";
-
-
-                    // console.log("Parsed Testimonial Data:", testimonialData); // Less verbose logging
 
                 } else if (data.promptFeedback?.blockReason) {
                      console.error("Gemini API Blocked:", data.promptFeedback.blockReason, data.promptFeedback.safetyRatings);
                      testimonialData.text = `Obsah blokován API (${data.promptFeedback.blockReason})`;
-                }
-                 else {
+                } else {
                     console.error("Unexpected Gemini API response structure:", data);
                     testimonialData.text = "Chyba při zpracování odpovědi API.";
                 }
@@ -341,24 +325,23 @@ document.addEventListener('DOMContentLoaded', () => {
             } catch (error) {
                 console.error("Error calling/parsing Gemini API:", error);
                  testimonialData.text = `Nepodařilo se kontaktovat AI (${error.name === 'TimeoutError' ? 'časový limit vypršel' : error.message})`;
+                 // Ensure critical fields exist even on error, maybe use defaults
+                 testimonialData.name = testimonialData.name || "Chyba API";
+                 testimonialData.role = testimonialData.role || "Systém";
+                 testimonialData.rating = testimonialData.rating || 0;
             } finally {
-                // isFetching flag and button state are managed by the caller
                 console.log("Gemini API fetch attempt finished.");
             }
              return testimonialData;
         };
         // ***** END OF INSECURE FUNCTION *****
 
-
-        // Calculates the full width of a card including its right margin
-        const calculateCardWidthAndMargin = () => {
-            // Try to find the first card that IS NOT a placeholder anymore
+        const calculateCardWidthAndMargin = () => { /* ... same as v2.6 ... */
             const firstCard = sliderTrack.querySelector('.testimonial-card:not(.is-loading)');
             if (!firstCard) {
                 console.warn("calculateCardWidthAndMargin: No non-loading card found yet.");
-                // Fallback: try measuring a placeholder if available
                 const placeholderCard = sliderTrack.querySelector('.testimonial-card');
-                if (!placeholderCard) return 0; // No cards at all
+                if (!placeholderCard) return 0;
                 const pStyle = window.getComputedStyle(placeholderCard);
                 const pWidth = placeholderCard.offsetWidth;
                 const pMarginRight = parseFloat(pStyle.marginRight);
@@ -367,7 +350,7 @@ document.addEventListener('DOMContentLoaded', () => {
                      console.log(`Recalculated cardWidthAndMargin from placeholder: ${cardWidthAndMargin}px (Width: ${pWidth}, Margin: ${pMarginRight})`);
                      return cardWidthAndMargin;
                 }
-                return 0; // Still couldn't measure
+                return 0;
             }
 
             const style = window.getComputedStyle(firstCard);
@@ -384,51 +367,51 @@ document.addEventListener('DOMContentLoaded', () => {
             return cardWidthAndMargin;
         };
 
-        // Sets the slider track's position instantly (without transition)
-        const setTrackPosition = (cardIndex) => {
+        const setTrackPosition = (cardIndex) => { /* ... same as v2.6 ... */
             if (!initialLoadComplete || cardWidthAndMargin === 0) {
-                console.warn("Cannot set track position: Initial load incomplete or card width unknown.");
+                console.warn(`Cannot set track position: initialLoadComplete=${initialLoadComplete}, cardWidthAndMargin=${cardWidthAndMargin}`);
                 return;
             }
-            sliderTrack.style.transition = 'none'; // Disable animation for instant jump
-            // We position based on the start of the *buffer* cards before the visible ones
+            sliderTrack.style.transition = 'none';
             const position = -cardIndex * cardWidthAndMargin;
             sliderTrack.style.transform = `translateX(${position}px)`;
-            // Force reflow to apply the change immediately before re-enabling transition
-            void sliderTrack.offsetHeight; // Reading offsetHeight forces reflow
-            sliderTrack.style.transition = `transform ${config.testimonials.slideDuration / 1000}s cubic-bezier(0.65, 0, 0.35, 1)`; // Re-enable animation
+            void sliderTrack.offsetHeight;
+            sliderTrack.style.transition = `transform ${config.testimonials.slideDuration / 1000}s cubic-bezier(0.65, 0, 0.35, 1)`;
             console.log(`Track position instantly set to index ${cardIndex} (translateX: ${position}px)`);
         };
 
-        // Handles the end of the slide animation for infinite looping
+        // Handles the end of the slide animation for infinite looping (NOW waits for prefetch)
         const handleTransitionEnd = async () => {
-            if (!initialLoadComplete) return; // Don't run if slider hasn't initialized
+            if (!initialLoadComplete) return;
 
             const direction = parseInt(sliderTrack.dataset.slideDirection || "0");
-            console.log(`Transition ended. Direction: ${direction}`);
+            console.log(`Transition ended. Direction: ${direction}. Waiting for prefetch...`);
 
             if (direction === 0) {
-                 isSliding = false; // Ensure flag is reset if no slide occurred
-                 // Re-enable buttons if not fetching (safety check)
-                 if (!isFetching) {
+                 isSliding = false;
+                 if (!isFetching) { // Re-enable buttons if no fetch is ongoing
                      prevBtn.disabled = false;
                      nextBtn.disabled = false;
                  }
                  return;
             }
 
-            sliderTrack.style.transition = 'none'; // Disable transition for DOM manipulation
-
-            // Start fetching the next required testimonial in the background
-            let fetchPromise = null;
-            if (!isFetching) { // Only fetch if not already fetching
-                isFetching = true; // Set fetching flag
-                fetchPromise = fetchTestimonialFromGeminiAPI();
-            } else {
-                 console.warn("Transition end: Already fetching, skipping new fetch.");
-                 fetchPromise = Promise.resolve(null); // Resolve immediately if already fetching
+            // --- Wait for the prefetch to complete ---
+            let newData = null;
+            try {
+                 // prefetchPromise was started in moveSlider
+                 newData = await prefetchPromise;
+                 console.log("Prefetch completed.", newData);
+            } catch (error) {
+                 console.error("Error during prefetch await:", error);
+                 // Use default error data if prefetch failed
+                 newData = { name: "Chyba Načítání", text: `Chyba (${error.message})`, rating: 0, role: "Systém" };
             }
+             isFetching = false; // Reset fetching flag AFTER await finishes or errors
+             prefetchPromise = null; // Clear the promise
 
+            // --- Proceed with DOM manipulation and updates ---
+            sliderTrack.style.transition = 'none'; // Disable transition
 
             if (direction > 0) { // Moved Right (Next)
                 const firstCard = cardsInTrack.shift();
@@ -436,20 +419,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 sliderTrack.appendChild(firstCard);
                 cardsInTrack.push(firstCard);
 
-                // Adjust position instantly
                 currentVisibleStartIndex++;
                 const currentTranslateX = parseFloat(sliderTrack.style.transform.replace(/[^-\d.]/g, '')) || 0;
                 const newTranslateX = currentTranslateX + cardWidthAndMargin;
                 sliderTrack.style.transform = `translateX(${newTranslateX}px)`;
-                console.log(`Moved card first->last. New logical start index: ${currentVisibleStartIndex}. Adjusted translateX to: ${newTranslateX}px`);
+                 console.log(`Moved card first->last. New logical start index: ${currentVisibleStartIndex}. Adjusted translateX to: ${newTranslateX}px`);
 
-                 // Wait for the fetch to complete (or resolve immediately if skipped)
-                 const newData = await fetchPromise;
-                 isFetching = false; // Reset fetching flag AFTER await
-
-                // Update cache & card content
+                // Update cache & card content with PREFETCHED data
                 testimonialDataCache.shift();
-                testimonialDataCache.push(newData || { name: "...", text: "Načítání...", rating: 0, role:""});
+                testimonialDataCache.push(newData || { name: "...", text: "Chyba dat", rating: 0, role:""}); // Use fetched or error data
                 updateCardContent(firstCard, testimonialDataCache[testimonialDataCache.length - 1]);
 
 
@@ -459,20 +437,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 sliderTrack.insertBefore(lastCard, sliderTrack.firstChild);
                 cardsInTrack.unshift(lastCard);
 
-                // Adjust position instantly
                 currentVisibleStartIndex--;
                 const currentTranslateX = parseFloat(sliderTrack.style.transform.replace(/[^-\d.]/g, '')) || 0;
                 const newTranslateX = currentTranslateX - cardWidthAndMargin;
                 sliderTrack.style.transform = `translateX(${newTranslateX}px)`;
                  console.log(`Moved card last->first. New logical start index: ${currentVisibleStartIndex}. Adjusted translateX to: ${newTranslateX}px`);
 
-                 // Wait for the fetch to complete
-                 const newData = await fetchPromise;
-                 isFetching = false; // Reset fetching flag AFTER await
-
-                // Update cache & card content
+                // Update cache & card content with PREFETCHED data
                 testimonialDataCache.pop();
-                testimonialDataCache.unshift(newData || { name: "...", text: "Načítání...", rating: 0, role:""});
+                testimonialDataCache.unshift(newData || { name: "...", text: "Chyba dat", rating: 0, role:""}); // Use fetched or error data
                 updateCardContent(lastCard, testimonialDataCache[0]);
             }
 
@@ -480,73 +453,94 @@ document.addEventListener('DOMContentLoaded', () => {
             void sliderTrack.offsetHeight;
             sliderTrack.style.transition = `transform ${config.testimonials.slideDuration / 1000}s cubic-bezier(0.65, 0, 0.35, 1)`;
 
-            // Reset slide direction state
-            sliderTrack.dataset.slideDirection = "0";
+            sliderTrack.dataset.slideDirection = "0"; // Reset direction
             isSliding = false; // Allow next slide
 
-             // Re-enable buttons (final state after fetch and DOM manipulation)
-             prevBtn.disabled = false;
-             nextBtn.disabled = false;
-             console.log("handleTransitionEnd complete. Buttons enabled.");
+            // Re-enable buttons (should be safe now as fetch is complete)
+            prevBtn.disabled = false;
+            nextBtn.disabled = false;
+            console.log("handleTransitionEnd complete. Buttons enabled.");
         };
 
 
-        // Moves the slider track visually
+        // Moves the slider track visually AND starts pre-fetching the next testimonial
         const moveSlider = (direction) => {
              if (isSliding || !initialLoadComplete) {
                  console.warn(`Slide attempt blocked: isSliding=${isSliding}, initialLoadComplete=${initialLoadComplete}`);
                  return;
              }
+             // Prevent starting a new fetch if one from a previous (unfinished) slide is still running
+             if (isFetching) {
+                 console.warn(`Slide attempt blocked: isFetching=${isFetching}`);
+                 return;
+             }
+
              isSliding = true;
              prevBtn.disabled = true;
              nextBtn.disabled = true;
-             console.log(`Moving slider. Direction: ${direction}`);
+             console.log(`Moving slider. Direction: ${direction}. Starting prefetch...`);
 
-            sliderTrack.dataset.slideDirection = direction.toString(); // Store direction
+             // --- Start pre-fetching the next testimonial ---
+             isFetching = true; // Set fetching flag
+             prefetchPromise = fetchTestimonialFromGeminiAPI();
+             // Add a catch handler to the prefetch promise *here* to prevent unhandled rejections
+             // if the user navigates away or something interrupts before handleTransitionEnd awaits it.
+              prefetchPromise.catch(error => {
+                  console.error("Prefetch background error:", error);
+                  // isFetching might need to be reset here too if the await in handleTransitionEnd never happens
+                  if (prefetchPromise) isFetching = false; // Reset if this specific promise caused error
+                  prefetchPromise = null;
+              });
+              // Also reset isFetching if the API call itself returns an error object quickly
+              prefetchPromise.then(data => {
+                  if (data && (data.name === "Chyba Konfigurace" || data.name === "Chyba API")) {
+                      isFetching = false; // Reset early if known error
+                      prefetchPromise = Promise.resolve(data); // Ensure it still resolves for await
+                  }
+              });
 
-            const currentTranslateX = parseFloat(sliderTrack.style.transform.replace(/[^-\d.]/g, '')) || (-currentVisibleStartIndex * cardWidthAndMargin); // Recalculate offset based on index if needed
-            const newTranslateX = currentTranslateX - (direction * cardWidthAndMargin);
+             // --- Start the visual slide animation ---
+             sliderTrack.dataset.slideDirection = direction.toString(); // Store direction
 
-             // Apply the transition class if not already present (it should be set in setTrackPosition and after transitionend)
+             const currentTranslateX = parseFloat(sliderTrack.style.transform.replace(/[^-\d.]/g, '')) || (-currentVisibleStartIndex * cardWidthAndMargin);
+             const newTranslateX = currentTranslateX - (direction * cardWidthAndMargin);
+
              if (!sliderTrack.style.transition || sliderTrack.style.transition === 'none') {
                  sliderTrack.style.transition = `transform ${config.testimonials.slideDuration / 1000}s cubic-bezier(0.65, 0, 0.35, 1)`;
              }
-
-            sliderTrack.style.transform = `translateX(${newTranslateX}px)`;
+             sliderTrack.style.transform = `translateX(${newTranslateX}px)`;
              console.log(`Animating transform to: ${newTranslateX}px`);
 
-             // handleTransitionEnd will be called automatically by the browser when the CSS transition finishes
+             // handleTransitionEnd will wait for prefetchPromise before finishing
         };
 
         // Initializes the slider - fetches initial data, creates cards, sets position
-        const initializeInfiniteSlider = async () => {
-            console.log("Starting infinite slider initialization v2.6...");
-            isSliding = true; // Prevent interaction during init
+        const initializeInfiniteSlider = async () => { /* ... same as v2.6 ... */
+            console.log("Starting infinite slider initialization v2.7...");
+            isSliding = true;
             initialLoadComplete = false;
             prevBtn.disabled = true;
             nextBtn.disabled = true;
-            sliderTrack.innerHTML = ''; // Clear any existing placeholders
+            sliderTrack.innerHTML = '';
             testimonialDataCache = [];
             cardsInTrack = [];
-            cardWidthAndMargin = 0; // Reset width
+            cardWidthAndMargin = 0;
 
-            const numVisible = config.testimonials.visibleCardsDesktop; // Base on desktop view for initial load
+            const numVisible = config.testimonials.visibleCardsDesktop;
             const numBuffer = config.testimonials.bufferCards;
-            totalCardsInDOM = numVisible + 2 * numBuffer; // Total cards to keep in DOM
-            currentVisibleStartIndex = numBuffer; // Start showing cards after the initial buffer
+            totalCardsInDOM = numVisible + 2 * numBuffer;
+            currentVisibleStartIndex = numBuffer;
 
             console.log(`Initial setup: Visible=${numVisible}, Buffer=${numBuffer}, TotalInDOM=${totalCardsInDOM}`);
 
-             // 1. Create and Append the FIRST placeholder card
              const firstPlaceholder = createPlaceholderCard();
              sliderTrack.appendChild(firstPlaceholder);
-             cardsInTrack.push(firstPlaceholder); // Add to our array tracker
+             cardsInTrack.push(firstPlaceholder);
 
-             // 2. Fetch data ONLY for the first card
              console.log("Fetching data for the first card...");
-             isFetching = true; // Set fetching flag
+             isFetching = true;
              const firstCardData = await fetchTestimonialFromGeminiAPI();
-             isFetching = false; // Reset fetching flag
+             isFetching = false;
 
              if (!firstCardData || firstCardData.name === "Chyba Konfigurace" || firstCardData.name === "Chyba API") {
                  console.error("Failed to fetch data for the first card. Aborting initialization.", firstCardData);
@@ -555,68 +549,72 @@ document.addEventListener('DOMContentLoaded', () => {
                  return;
              }
 
-             // 3. Update the first card with its data
              updateCardContent(firstPlaceholder, firstCardData);
-             testimonialDataCache.push(firstCardData); // Add the fetched data to cache
+             testimonialDataCache.push(firstCardData);
              console.log("First card loaded and updated.");
 
-             // 4. NOW, calculate dimensions based on the loaded first card
-             // Use requestAnimationFrame to wait for the next paint cycle after update
              await new Promise(resolve => requestAnimationFrame(resolve));
 
              if (!calculateCardWidthAndMargin() || cardWidthAndMargin <= 0) {
                  console.error("Could not calculate card dimensions AFTER loading first card. Aborting slider setup.");
                  sliderTrack.innerHTML = '<p style="color: var(--clr-accent-red);">Chyba layoutu slideru i po načtení karty.</p>';
                  isSliding = false;
-                 return; // Abort
+                 return;
              }
 
-             // 5. Create and append the REMAINING placeholder cards
              const remainingCardsToCreate = totalCardsInDOM - 1;
              for (let i = 0; i < remainingCardsToCreate; i++) {
                  const placeholderCard = createPlaceholderCard();
                  sliderTrack.appendChild(placeholderCard);
                  cardsInTrack.push(placeholderCard);
-                 testimonialDataCache.push(null); // Add null placeholders to cache
+                 testimonialDataCache.push(null);
              }
              console.log(`Added ${remainingCardsToCreate} more placeholder cards.`);
 
-             // 6. Fetch data for the remaining cards in the background
              console.log("Fetching data for remaining cards...");
              const remainingFetchPromises = [];
-             // Start fetching from index 1 (since index 0 is already fetched)
-             for (let i = 1; i < totalCardsInDOM; i++) {
-                 remainingFetchPromises.push(
-                     (async (index) => {
-                         isFetching = true; // Manage flag per fetch potentially (or keep global)
-                         const data = await fetchTestimonialFromGeminiAPI();
-                         isFetching = false; // Manage flag per fetch potentially
-                         if (data && cardsInTrack[index]) {
-                             testimonialDataCache[index] = data; // Update cache
-                             updateCardContent(cardsInTrack[index], data); // Update card content
-                         } else {
-                              testimonialDataCache[index] = { name: "Chyba", text: "Nepodařilo se načíst.", rating: 0, role:"" }; // Cache error
-                              if(cardsInTrack[index]) updateCardContent(cardsInTrack[index], testimonialDataCache[index]); // Show error on card
-                         }
-                     })(i) // Immediately invoke async function with index
-                 );
-             }
-             // We don't strictly need to wait for all fetches here for initialization
-             // Promise.all(remainingFetchPromises).then(() => console.log("All remaining initial fetches complete."));
+             const fetchedIndices = new Set([0]); // Keep track of indices being fetched
 
-             // 7. Set the initial track position *without* animation
-             initialLoadComplete = true; // Mark load as complete HERE before setting position
-             setTrackPosition(currentVisibleStartIndex); // Position to show the 'visible' section (index `numBuffer`)
+             const fetchAndUpdate = async (index) => {
+                 if (isFetching) { // Simple global lock for initial fetches too
+                     console.warn(`Initial fetch for index ${index} skipped, already fetching.`);
+                     return; // Skip if another fetch is running
+                 }
+                 isFetching = true;
+                 fetchedIndices.add(index); // Mark as being fetched
+                 console.log(`Starting initial fetch for index ${index}`);
+                 const data = await fetchTestimonialFromGeminiAPI();
+                 isFetching = false;
+                 console.log(`Finished initial fetch for index ${index}`);
 
-             // 8. Add the transitionend listener *after* initial setup and positioning
-             sliderTrack.removeEventListener('transitionend', handleTransitionEnd); // Remove if already exists
+                 if (data && cardsInTrack[index]) {
+                     testimonialDataCache[index] = data;
+                     updateCardContent(cardsInTrack[index], data);
+                 } else {
+                     testimonialDataCache[index] = { name: "Chyba", text: "Nepodařilo se načíst.", rating: 0, role:"" };
+                     if(cardsInTrack[index]) updateCardContent(cardsInTrack[index], testimonialDataCache[index]);
+                 }
+                 fetchedIndices.delete(index); // Mark as done
+             };
+
+             // Sequentially trigger fetches to avoid overwhelming API potentially? Or run concurrently?
+             // Let's run concurrently but manage the isFetching flag more carefully (or accept potential overlaps initially)
+              isFetching = false; // Reset flag before loop
+              for (let i = 1; i < totalCardsInDOM; i++) {
+                  remainingFetchPromises.push(fetchAndUpdate(i));
+              }
+             // Don't wait for all promises here, let them fill in background
+
+             initialLoadComplete = true;
+             setTrackPosition(currentVisibleStartIndex);
+
+             sliderTrack.removeEventListener('transitionend', handleTransitionEnd);
              sliderTrack.addEventListener('transitionend', handleTransitionEnd);
 
-             console.log("Infinite slider initialized successfully.");
-             isSliding = false; // Re-enable interaction
-             prevBtn.disabled = false; // Enable buttons
+             console.log("Infinite slider initialized successfully (background fetches ongoing).");
+             isSliding = false;
+             prevBtn.disabled = false; // Enable buttons immediately after positioning
              nextBtn.disabled = false;
-
         };
 
 
@@ -626,10 +624,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
          // Debounced resize handler
          window.addEventListener('resize', debounce(() => {
-             if (!initialLoadComplete) return; // Don't run on resize if not initialized
+             if (!initialLoadComplete) return;
              console.log("Window resized, recalculating slider dimensions...");
              if (calculateCardWidthAndMargin()) {
-                 // Reposition instantly based on current logical index
                  setTrackPosition(currentVisibleStartIndex);
              } else {
                  console.error("Failed to recalculate dimensions on resize.");
@@ -648,6 +645,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // --- Final Initialization ---
-    console.log("JUSTAX Interface v2.6 Initialization Complete (Fixed Init - INSECURE DEMO).");
+    console.log("JUSTAX Interface v2.7 Initialization Complete (Pre-fetching - INSECURE DEMO).");
 
 }); // End DOMContentLoaded
