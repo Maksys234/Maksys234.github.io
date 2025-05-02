@@ -12,7 +12,7 @@
     let topicProgressData = [];
     let studyPlanData = null;
     let planActivitiesData = [];
-    let allTitles = []; // <<< NEW: Store fetched titles
+    let allTitles = []; // For user titles
     let isLoading = {
         stats: false,
         tests: false,
@@ -21,7 +21,7 @@
         notifications: false
     };
     const NOTIFICATION_FETCH_LIMIT = 5;
-    const SIDEBAR_STATE_KEY = 'sidebarCollapsedState'; // <<< NEW: Key for localStorage
+    // const SIDEBAR_STATE_KEY = 'sidebarCollapsedState'; // Removed, handled by dashboard.js
 
     const topicIcons = {
         "Algebra": "fa-square-root-alt",
@@ -56,10 +56,10 @@
         sidebar: document.getElementById('sidebar'),
         mainMobileMenuToggle: document.getElementById('main-mobile-menu-toggle'),
         sidebarCloseToggle: document.getElementById('sidebar-close-toggle'),
-        sidebarToggleBtn: document.getElementById('sidebar-toggle-btn'), // <<< NEW: Sidebar toggle button
+        // sidebarToggleBtn: document.getElementById('sidebar-toggle-btn'), // Removed, handled by dashboard.js
         sidebarAvatar: document.getElementById('sidebar-avatar'),
         sidebarName: document.getElementById('sidebar-name'),
-        sidebarUserTitle: document.getElementById('sidebar-user-title'), // <<< Reference to added ID
+        sidebarUserTitle: document.getElementById('sidebar-user-title'), // Reference to added ID
         dashboardHeader: document.querySelector('.dashboard-header'),
         dashboardTitle: document.getElementById('dashboard-title'),
         refreshDataBtn: document.getElementById('refresh-data-btn'),
@@ -75,14 +75,14 @@
         diagnosticPrompt: document.getElementById('diagnostic-prompt'),
         startTestBtnPrompt: document.getElementById('start-test-btn-prompt'),
         statsCardsContainer: document.getElementById('stats-cards'),
-        statsProgress: document.getElementById('stats-progress'),
-        statsProgressChange: document.getElementById('stats-progress-change'),
-        statsTests: document.getElementById('stats-tests'),
-        statsTestsAvg: document.getElementById('stats-tests-avg'),
-        statsPoints: document.getElementById('stats-points'),
-        statsPointsChange: document.getElementById('stats-points-change'),
-        statsStreak: document.getElementById('stats-streak'),
-        statsStreakLongest: document.getElementById('stats-streak-longest'),
+        statsProgress: document.getElementById('stats-completed'), // *** CORRECTED ID FOR COMPLETED EXERCISES ***
+        statsProgressChange: document.getElementById('stats-completed-change'), // *** CORRECTED ID FOR COMPLETED EXERCISES ***
+        statsTests: document.getElementById('stats-avg-score'), // *** CORRECTED ID FOR AVG SCORE ***
+        statsTestsAvg: document.getElementById('stats-avg-score-change'), // *** CORRECTED ID FOR AVG SCORE ***
+        statsPoints: document.getElementById('stats-time-spent'), // *** CORRECTED ID FOR TIME SPENT ***
+        statsPointsChange: document.getElementById('stats-time-change'), // *** CORRECTED ID FOR TIME SPENT ***
+        statsStreak: document.getElementById('stats-weakest-topic'), // *** CORRECTED ID FOR WEAKEST TOPIC ***
+        statsStreakLongest: document.querySelector('#stats-weakest-topic + .card-description + .card-footer'), // *** CORRECTED Selector for weakest topic footer ***
         testResultsTab: document.getElementById('test-results-tab'),
         testResultsContainer: document.getElementById('test-results-container'),
         testResultsLoading: document.getElementById('test-results-loading'),
@@ -90,10 +90,7 @@
         testResultsEmpty: document.getElementById('test-results-empty'),
         startTestBtnResults: document.getElementById('start-test-btn-results'),
         testStatsContainer: document.getElementById('test-stats'),
-        testAvgScore: document.getElementById('test-avg-score'),
-        testBestScore: document.getElementById('test-best-score'),
-        testAvgTime: document.getElementById('test-avg-time'),
-        testsChartCanvas: document.getElementById('testsChart'),
+        testsChartCanvas: document.getElementById('testsChart'), // Keep reference, even if logic removed temporarily
         lastTestResultContainer: document.getElementById('last-test-result'),
         testHistoryContainer: document.getElementById('test-history'),
         studyPlanTab: document.getElementById('study-plan-tab'),
@@ -136,56 +133,10 @@
     function initScrollAnimations() { const animatedElements = document.querySelectorAll('.main-content-wrapper [data-animate]'); if (!animatedElements.length || !('IntersectionObserver' in window)) { console.log("Scroll animations not initialized."); return; } const observer = new IntersectionObserver((entries, observerInstance) => { entries.forEach(entry => { if (entry.isIntersecting) { entry.target.classList.add('animated'); observerInstance.unobserve(entry.target); } }); }, { threshold: 0.1, rootMargin: "0px 0px -30px 0px" }); animatedElements.forEach(element => observer.observe(element)); console.log(`Scroll animations initialized for ${animatedElements.length} elements.`); }
     function initHeaderScrollDetection() { let lastScrollY = window.scrollY; const mainEl = ui.mainContent; if (!mainEl) return; mainEl.addEventListener('scroll', () => { const currentScrollY = mainEl.scrollTop; document.body.classList.toggle('scrolled', currentScrollY > 10); lastScrollY = currentScrollY <= 0 ? 0 : currentScrollY; }, { passive: true }); if (mainEl.scrollTop > 10) document.body.classList.add('scrolled'); }
 
-    // --- ДОБАВЛЕНО: Функции управления боковой панелью ---
-    function applyInitialSidebarState() {
-        if (!ui.sidebarToggleBtn) {
-             console.warn("[Sidebar State] Sidebar toggle button not found for initial state.");
-             return;
-        }
-        try {
-            const savedState = localStorage.getItem(SIDEBAR_STATE_KEY);
-            const shouldBeCollapsed = savedState === 'collapsed';
-            console.log(`[Sidebar State] Initial read state: ${savedState}, Applying collapsed: ${shouldBeCollapsed}`);
-            if (shouldBeCollapsed) {
-                document.body.classList.add('sidebar-collapsed');
-            } else {
-                document.body.classList.remove('sidebar-collapsed');
-            }
-            // Update button icon and label based on initial state
-            const icon = ui.sidebarToggleBtn.querySelector('i');
-            if (icon) {
-                icon.className = shouldBeCollapsed ? 'fas fa-chevron-right' : 'fas fa-chevron-left';
-                ui.sidebarToggleBtn.setAttribute('aria-label', shouldBeCollapsed ? 'Rozbalit postranní panel' : 'Sbalit postranní panel');
-                ui.sidebarToggleBtn.setAttribute('title', shouldBeCollapsed ? 'Rozbalit postranní panel' : 'Sbalit postranní panel');
-            }
-        } catch (error) {
-            console.error("[Sidebar State] Error applying initial state:", error);
-            document.body.classList.remove('sidebar-collapsed'); // Default to expanded on error
-        }
-    }
-
-    function toggleSidebar() {
-        if (!ui.sidebarToggleBtn) return;
-        try {
-            const isCollapsed = document.body.classList.toggle('sidebar-collapsed');
-            localStorage.setItem(SIDEBAR_STATE_KEY, isCollapsed ? 'collapsed' : 'expanded');
-            console.log(`[Sidebar Toggle] Sidebar toggled. New state: ${isCollapsed ? 'collapsed' : 'expanded'}`);
-            // Update button icon and label
-            const icon = ui.sidebarToggleBtn.querySelector('i');
-            if (icon) {
-                icon.className = isCollapsed ? 'fas fa-chevron-right' : 'fas fa-chevron-left';
-                ui.sidebarToggleBtn.setAttribute('aria-label', isCollapsed ? 'Rozbalit postranní panel' : 'Sbalit postranní panel');
-                ui.sidebarToggleBtn.setAttribute('title', isCollapsed ? 'Rozbalit postranní panel' : 'Sbalit postranní panel');
-            }
-        } catch (error) {
-            console.error("[Sidebar Toggle] Error:", error);
-            showToast('Chyba UI', 'Nepodařilo se přepnout boční panel.', 'error');
-        }
-    }
-    // --- КОНЕЦ: Функции управления боковой панелью ---
-
+    // Removed applyInitialSidebarState and toggleSidebar functions
 
     function setLoadingState(section, isLoadingFlag) {
+        // ... (Keep existing setLoadingState logic from main.js) ...
         if (isLoading[section] === isLoadingFlag && section !== 'all') return;
         if (section === 'all') { Object.keys(isLoading).forEach(key => setLoadingState(key, isLoadingFlag)); return; }
 
@@ -241,8 +192,24 @@
         }
     }
 
-
-    async function initializeSupabase() { try { if (typeof window.supabase === 'undefined' || typeof window.supabase.createClient !== 'function') { throw new Error("Supabase library not loaded."); } supabase = window.supabase.createClient(supabaseUrl, supabaseKey); if (!supabase) throw new Error("Supabase client creation failed."); return true; } catch (error) { console.error('[Supabase] Initialization failed:', error); showError("Kritická chyba: Nelze se připojit.", true); return false; } }
+    // Commented out Supabase initialization, assuming it's done in dashboard.js
+    /*
+    async function initializeSupabase() {
+        try {
+            if (typeof window.supabase === 'undefined' || typeof window.supabase.createClient !== 'function') {
+                throw new Error("Supabase library not loaded.");
+            }
+            supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+            if (!supabase) throw new Error("Supabase client creation failed.");
+            console.log('[Supabase] Client initialized.');
+            return true;
+        } catch (error) {
+            console.error('[Supabase] Initialization failed:', error);
+            showError("Kritická chyba: Nelze se připojit.", true);
+            return false;
+        }
+    }
+    */
 
     async function fetchUserProfile(userId) {
         if (!supabase || !userId) return null;
@@ -250,7 +217,7 @@
         try {
             const { data: profile, error } = await supabase
                 .from('profiles')
-                .select('*, selected_title') // <<< Fetch selected_title
+                .select('*, selected_title') // Fetch selected_title
                 .eq('id', userId)
                 .single();
             if (error && error.code !== 'PGRST116') throw error;
@@ -264,15 +231,14 @@
         }
     }
 
-    // --- NEW: Function to fetch titles ---
     async function fetchTitles() {
         if (!supabase) return [];
         console.log("[Titles] Fetching available titles...");
-        // setLoadingState('titles', true); // No separate loader for this, happens during init
+        // setLoadingState('titles', true); // No loader for titles
         try {
             const { data, error } = await supabase
-                .from('title_shop') // Assuming table name is 'title_shop'
-                .select('title_key, name'); // Select key and display name
+                .from('title_shop') // Assuming table name
+                .select('title_key, name');
             if (error) throw error;
             console.log("[Titles] Fetched titles:", data);
             return data || [];
@@ -280,39 +246,97 @@
             console.error("[Titles] Error fetching titles:", error);
             showToast("Chyba načítání dostupných titulů.", "error");
             return [];
-        } //finally { setLoadingState('titles', false); }
+        } // finally { setLoadingState('titles', false); }
     }
 
-    async function fetchDashboardStats(userId, profileData) { if (!supabase || !userId || !profileData) { return null; } let fetchedStats = null; let statsError = null; try { const { data, error } = await supabase.from('user_stats').select('progress, progress_weekly, points_weekly, streak_longest, completed_tests').eq('user_id', userId).maybeSingle(); fetchedStats = data; statsError = error; if (statsError) { console.warn("[Stats Fetch] Supabase error fetching user_stats:", statsError.message); } } catch (error) { console.error("[Stats Fetch] Exception fetching user_stats:", error); statsError = error; } const finalStats = { progress: fetchedStats?.progress ?? profileData.progress ?? 0, progress_weekly: fetchedStats?.progress_weekly ?? 0, points: profileData.points ?? 0, points_weekly: fetchedStats?.points_weekly ?? 0, streak_current: profileData.streak_days ?? 0, streak_longest: Math.max(fetchedStats?.streak_longest ?? 0, profileData.streak_days ?? 0), completed_exercises: profileData.completed_exercises ?? 0, completed_tests: profileData.completed_tests ?? fetchedStats?.completed_tests ?? 0 }; if (statsError) { console.warn("[Stats Fetch] Returning stats based primarily on profile due to fetch error."); } return finalStats; }
+    async function fetchDashboardStats(userId, profileData) { if (!supabase || !userId || !profileData) { return null; } let fetchedStats = null; let statsError = null; try { const { data, error } = await supabase.from('user_stats').select('progress, progress_weekly, points_weekly, streak_longest, completed_tests').eq('user_id', userId).maybeSingle(); fetchedStats = data; statsError = error; if (statsError) { console.warn("[Stats Fetch] Supabase error fetching user_stats:", statsError.message); } } catch (error) { console.error("[Stats Fetch] Exception fetching user_stats:", error); statsError = error; } const finalStats = { progress: fetchedStats?.progress ?? profileData.progress ?? 0, progress_weekly: fetchedStats?.progress_weekly ?? 0, points: profileData.points ?? 0, points_weekly: fetchedStats?.points_weekly ?? 0, streak_current: profileData.streak_days ?? 0, streak_longest: Math.max(fetchedStats?.streak_longest ?? 0, profileData.streak_days ?? 0), completed_exercises: profileData.completed_exercises ?? 0, // *** USE PROFILE'S completed_exercises ***
+        completed_tests: profileData.completed_tests ?? fetchedStats?.completed_tests ?? 0, // *** USE PROFILE'S completed_tests ***
+        total_study_seconds: fetchedStats?.total_study_seconds ?? 0, // *** INCLUDE NEW total_study_seconds ***
+        weakest_topic_name: fetchedStats?.weakest_topic_name ?? null, // *** INCLUDE NEW weakest_topic_name ***
+    }; if (statsError) { console.warn("[Stats Fetch] Returning stats based primarily on profile due to fetch error."); } return finalStats; }
     async function fetchDiagnosticResults(userId) { try { const { data, error } = await supabase.from('user_diagnostics').select('id, completed_at, total_score, total_questions, time_spent').eq('user_id', userId).order('completed_at', { ascending: false }); if (error) throw error; return data || []; } catch (err) { console.error("Error fetching diagnostic results:", err); showToast(`Chyba načítání testů: ${err.message}`, "error"); return []; } }
     async function fetchActiveStudyPlan(userId) { try { const { data: plans, error } = await supabase.from('study_plans').select('id, title, created_at').eq('user_id', userId).eq('status', 'active').order('created_at', { ascending: false }).limit(1); if (error) throw error; return plans?.[0] || null; } catch (err) { console.error("Error fetching active study plan:", err); return null; } }
     async function fetchPlanActivities(planId) { if (!planId) return []; try { const { data, error } = await supabase.from('plan_activities').select('id, title, day_of_week, time_slot, completed, description, type').eq('plan_id', planId).order('day_of_week').order('time_slot'); if (error) throw error; return data || []; } catch (err) { console.error("Error fetching plan activities:", err); return []; } }
     async function fetchTopicProgress(userId) { try { const { data, error } = await supabase .from('user_topic_progress') .select(` topic_id, progress, strength, questions_attempted, questions_correct, topic:exam_topics!inner( name, subject ) `) .eq('user_id', userId); if (error) throw error; return data || []; } catch (err) { console.error("Error fetching topic progress:", err); showToast(`Chyba načítání pokroku v tématech: ${err.message}`, "error"); return []; } }
     async function fetchNotifications(userId, limit = NOTIFICATION_FETCH_LIMIT) { if (!supabase || !userId) { return { unreadCount: 0, notifications: [] }; } try { const { data, error, count } = await supabase.from('user_notifications').select('*', { count: 'exact' }).eq('user_id', userId).eq('is_read', false).order('created_at', { ascending: false }).limit(limit); if (error) throw error; return { unreadCount: count ?? 0, notifications: data || [] }; } catch (error) { console.error("[Notifications] Exception fetching notifications:", error); showToast('Chyba', 'Nepodařilo se načíst oznámení.', 'error'); return { unreadCount: 0, notifications: [] }; } }
 
-    function renderStatsCards(stats) { if (!stats) { ui.statsCardsContainer?.querySelectorAll('.dashboard-card').forEach(c => { c.classList.remove('loading'); c.classList.add('error-state'); }); if(ui.statsProgress) ui.statsProgress.textContent = "ERR"; if(ui.statsProgressChange) ui.statsProgressChange.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Chyba'; if(ui.statsTests) ui.statsTests.textContent = "ERR"; if(ui.statsTestsAvg) ui.statsTestsAvg.textContent = "Prům: ERR"; if(ui.statsPoints) ui.statsPoints.textContent = "ERR"; if(ui.statsPointsChange) ui.statsPointsChange.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Chyba'; if(ui.statsStreak) ui.statsStreak.textContent = "ERR"; if(ui.statsStreakLongest) ui.statsStreakLongest.textContent = "MAX: ERR"; return; } if(ui.statsProgress) ui.statsProgress.textContent = `${stats.progress ?? 0}%`; if(ui.statsProgressChange) { const change = stats.progress_weekly ?? 0; ui.statsProgressChange.innerHTML = change > 0 ? `<i class="fas fa-arrow-up"></i> +${change}%` : change < 0 ? `<i class="fas fa-arrow-down"></i> ${change}%` : `<i class="fas fa-minus"></i> Beze změny`; ui.statsProgressChange.className = `card-footer ${change > 0 ? 'positive' : change < 0 ? 'negative' : ''}`; } if(ui.statsTests) ui.statsTests.textContent = stats.completed_tests ?? 0; const avgScore = calculateAverageScore(diagnosticResultsData); if(ui.statsTestsAvg) ui.statsTestsAvg.textContent = `Prům. skóre: ${avgScore}%`; if(ui.statsPoints) ui.statsPoints.textContent = stats.points ?? 0; if(ui.statsPointsChange) { const change = stats.points_weekly ?? 0; ui.statsPointsChange.innerHTML = change > 0 ? `<i class="fas fa-arrow-up"></i> +${change} b.` : change < 0 ? `<i class="fas fa-arrow-down"></i> ${change} b.` : `<i class="fas fa-minus"></i> Beze změny`; ui.statsPointsChange.className = `card-footer ${change > 0 ? 'positive' : change < 0 ? 'negative' : ''}`; } if(ui.statsStreak) ui.statsStreak.textContent = stats.streak_current ?? 0; if(ui.statsStreakLongest) ui.statsStreakLongest.textContent = `Nejdelší: ${stats.streak_longest ?? 0} dní`; ui.statsCardsContainer?.querySelectorAll('.dashboard-card').forEach(c => c.classList.remove('loading')); }
+    // *** UPDATED renderStatsCards to use correct IDs and display new data ***
+    function renderStatsCards(stats) {
+        if (!stats) {
+            // Handle error state - make skeleton visible or show error text
+            ui.statsCardsContainer?.querySelectorAll('.dashboard-card').forEach(c => {
+                c.classList.add('loading'); // Or add an 'error' class
+                c.querySelector('.card-value').textContent = 'ERR';
+                c.querySelector('.card-description').textContent = 'Data nedostupná';
+                const footer = c.querySelector('.card-footer');
+                if(footer) footer.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Chyba';
+            });
+             // Clear the specific corrected elements too
+             if(ui.statsProgress) ui.statsProgress.textContent = 'ERR';
+             if(ui.statsProgressChange) ui.statsProgressChange.innerHTML = '';
+             if(ui.statsTests) ui.statsTests.textContent = 'ERR';
+             if(ui.statsTestsAvg) ui.statsTestsAvg.innerHTML = '';
+             if(ui.statsPoints) ui.statsPoints.textContent = 'ERR';
+             if(ui.statsPointsChange) ui.statsPointsChange.innerHTML = '';
+             if(ui.statsStreak) ui.statsStreak.textContent = 'ERR';
+             if(ui.statsStreakLongest) ui.statsStreakLongest.innerHTML = '';
+            return;
+        }
+
+        ui.statsCardsContainer?.querySelectorAll('.dashboard-card').forEach(c => c.classList.remove('loading'));
+
+        // Completed Exercises
+        if (ui.statsProgress) ui.statsProgress.textContent = stats.completed_exercises ?? 0;
+        if (ui.statsProgressChange) ui.statsProgressChange.innerHTML = `<i class="fas fa-check"></i> Celkový počet`; // Static footer for completed
+
+        // Average Score (Assuming this comes from test results, calculate if needed)
+        const avgScore = calculateAverageScore(diagnosticResultsData);
+        if (ui.statsTests) ui.statsTests.textContent = `${avgScore}%`;
+        if (ui.statsTestsAvg) ui.statsTestsAvg.innerHTML = `<i class="fas fa-poll"></i> V testech`; // Static footer
+
+        // Time Spent (Display new total_study_seconds)
+        const totalSeconds = stats.total_study_seconds ?? 0;
+        const hours = Math.floor(totalSeconds / 3600);
+        const minutes = Math.floor((totalSeconds % 3600) / 60);
+        if (ui.statsPoints) ui.statsPoints.textContent = `${hours}h ${minutes}m`;
+        if (ui.statsPointsChange) ui.statsPointsChange.innerHTML = `<i class="fas fa-stopwatch"></i> Celkem stráveno`; // Static footer
+
+        // Weakest Topic (Display new weakest_topic_name)
+        if (ui.statsStreak) ui.statsStreak.textContent = stats.weakest_topic_name || '-';
+        if (ui.statsStreakLongest) ui.statsStreakLongest.innerHTML = `<i class="fas fa-atom"></i> Poslední analýza`; // Static footer
+    }
+
     function calculateAverageScore(results) { if (!results || results.length === 0) return '-'; const validScores = results.filter(r => typeof r.total_score === 'number' && typeof r.total_questions === 'number' && r.total_questions > 0); if (validScores.length === 0) return '-'; const avgPercentage = validScores.reduce((sum, r) => sum + (r.total_score / r.total_questions) * 100, 0) / validScores.length; return Math.round(avgPercentage); }
-    function renderTestResults(results) { if (!ui.testResultsContainer || !ui.testResultsContent || !ui.testResultsEmpty || !ui.testStatsContainer) return; if (!results || results.length === 0) { if(ui.testResultsContent) ui.testResultsContent.style.display = 'none'; if(ui.testResultsEmpty) ui.testResultsEmpty.style.display = 'block'; return; } if(ui.testResultsContent) ui.testResultsContent.style.display = 'block'; if(ui.testResultsEmpty) ui.testResultsEmpty.style.display = 'none'; const avgScore = calculateAverageScore(results); const validScores = results.filter(r => typeof r.total_score === 'number' && typeof r.total_questions === 'number' && r.total_questions > 0); const bestScore = validScores.length > 0 ? Math.round(Math.max(...validScores.map(r => (r.total_score / r.total_questions) * 100))) : '-'; const validTimes = results.filter(r => r.time_spent != null && typeof r.time_spent === 'number' && r.time_spent > 0); const avgTime = validTimes.length > 0 ? formatTime(validTimes.reduce((sum, r) => sum + r.time_spent, 0) / validTimes.length) : '--:--'; if(ui.testStatsContainer) { ui.testStatsContainer.innerHTML = ` <div class="stats-card"> <div class="stats-icon primary"><i class="fas fa-percentage"></i></div><div class="stats-value">${avgScore}%</div><div class="stats-label">Prům. Skóre</div></div> <div class="stats-card"> <div class="stats-icon success"><i class="fas fa-trophy"></i></div><div class="stats-value">${bestScore}%</div><div class="stats-label">Nejlepší Skóre</div></div> <div class="stats-card"> <div class="stats-icon warning"><i class="fas fa-clock"></i></div><div class="stats-value">${avgTime}</div><div class="stats-label">Prům. Čas</div></div> `; } const chartDataPoints = results.filter(r => r.completed_at && typeof r.total_score === 'number' && typeof r.total_questions === 'number' && r.total_questions > 0).sort((a, b) => new Date(a.completed_at) - new Date(b.completed_at)).map(r => ({ date: new Date(r.completed_at + 'T00:00:00Z'), score: Math.round((r.total_score / r.total_questions) * 100) })); renderTestChart({ labels: chartDataPoints.map(p => p.date), data: chartDataPoints.map(p => p.score) }); if(ui.lastTestResultContainer && results[0]) { const lastTest = results[0]; const scorePercent = calculateAverageScore([lastTest]); ui.lastTestResultContainer.innerHTML = `<div class="test-result-header"><div class="test-result-title"><h3>Diagnostický Test</h3><div class="test-result-meta">Dokončeno ${formatDate(lastTest.completed_at)}</div></div><div class="test-result-score"><div class="test-result-score-value">${scorePercent}%</div><div class="test-result-score-label">(${lastTest.total_score}/${lastTest.total_questions})</div></div></div>`; } else if(ui.lastTestResultContainer) { ui.lastTestResultContainer.innerHTML = `<p>Žádný výsledek.</p>`; } if(ui.testHistoryContainer) { if (results.length > 1) { ui.testHistoryContainer.innerHTML = results.slice(1).map(test => { const scorePercentHist = calculateAverageScore([test]); const timeSpent = test.time_spent != null ? formatTime(test.time_spent) : '--:--'; return `<div class="test-item"><div class="test-info"><div class="test-icon"><i class="fas fa-clipboard-check"></i></div><div class="test-details"><h4>Diagnostický Test</h4><div class="test-meta"><span><i class="far fa-calendar"></i> ${formatDate(test.completed_at)}</span><span><i class="far fa-clock"></i> ${timeSpent}</span></div></div></div><div class="test-score">${scorePercentHist}%</div></div>`; }).join(''); } else { ui.testHistoryContainer.innerHTML = `<p style="text-align: center; color: var(--text-muted); padding: 1rem;">Žádná další historie.</p>`; } } }
-    function renderTestChart(chartData) { if (!ui.testsChartCanvas) { return; } const ctx = ui.testsChartCanvas.getContext('2d'); if (testsChartInstance) testsChartInstance.destroy(); if (!chartData || !chartData.labels || !chartData.data || chartData.labels.length < 2) { if (ui.testsChartCanvas) ui.testsChartCanvas.style.display = 'none'; return; } ui.testsChartCanvas.style.display = 'block'; const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches; const gridColor = 'rgba(var(--accent-secondary-rgb), 0.15)'; const textColor = 'var(--text-muted)'; const pointColor = 'var(--accent-primary)'; const lineColor = 'var(--accent-primary)'; const bgColor = 'rgba(var(--accent-primary-rgb), 0.1)'; testsChartInstance = new Chart(ctx, { type: 'line', data: { labels: chartData.labels, datasets: [{ label: 'Skóre (%)', data: chartData.data, borderColor: lineColor, backgroundColor: bgColor, borderWidth: 2.5, pointBackgroundColor: pointColor, pointRadius: 4, pointHoverRadius: 6, tension: 0.3, fill: true }] }, options: { responsive: true, maintainAspectRatio: false, scales: { x: { type: 'time', time: { unit: 'day', tooltipFormat: 'P', displayFormats: { day: 'd.M.' } }, ticks: { color: textColor, maxRotation: 0, autoSkipPadding: 15 }, grid: { display: false } }, y: { beginAtZero: true, max: 100, ticks: { stepSize: 25, color: textColor, callback: (v) => v + '%' }, grid: { color: gridColor } } }, plugins: { legend: { display: false }, tooltip: { mode: 'index', intersect: false, backgroundColor: 'var(--interface-bg)', titleColor: 'var(--text-heading)', bodyColor: 'var(--text-medium)', borderColor: 'var(--border-color-medium)', borderWidth: 1, padding: 10, displayColors: false, callbacks: { title: (items) => dateFns.format(new Date(items[0].parsed.x), 'PPP', { locale: dateFns.locale.cs || dateFns.locale.enUS }), label: (ctx) => `Skóre: ${ctx.parsed.y.toFixed(0)}%` } } }, interaction: { mode: 'nearest', axis: 'x', intersect: false } } }); }
-    function renderStudyPlanOverview(plan, activities) { if (!ui.studyPlanContainer || !ui.studyPlanContent || !ui.studyPlanEmpty || !ui.mainPlanScheduleGrid) return; if (!plan) { if(ui.studyPlanContent) ui.studyPlanContent.style.display = 'none'; if(ui.studyPlanEmpty) ui.studyPlanEmpty.style.display = 'block'; return; } if(ui.studyPlanContent) ui.studyPlanContent.style.display = 'block'; if(ui.studyPlanEmpty) ui.studyPlanEmpty.style.display = 'none'; ui.mainPlanScheduleGrid.innerHTML = ''; const daysOrder = [1, 2, 3, 4, 5, 6, 0]; const dayNames = { 0: 'Neděle', 1: 'Pondělí', 2: 'Úterý', 3: 'Středa', 4: 'Čtvrtek', 5: 'Pátek', 6: 'Sobota' }; const activitiesByDay = {}; daysOrder.forEach(dayIndex => activitiesByDay[dayIndex] = []); (activities || []).forEach(activity => { if (activitiesByDay[activity.day_of_week] !== undefined) activitiesByDay[activity.day_of_week].push(activity); }); daysOrder.forEach(dayIndex => { const dayName = dayNames[dayIndex]; const dayDiv = document.createElement('div'); dayDiv.className = 'schedule-day card'; const headerDiv = document.createElement('div'); headerDiv.className = 'schedule-day-header'; headerDiv.textContent = dayName; dayDiv.appendChild(headerDiv); const activitiesDiv = document.createElement('div'); activitiesDiv.className = 'schedule-activities'; const dayActivities = activitiesByDay[dayIndex].sort((a, b) => (a.time_slot || '').localeCompare(b.time_slot || '')); if (dayActivities.length > 0) { dayActivities.forEach(activity => { const visual = activityVisuals[activity.type?.toLowerCase()] || activityVisuals.default; const title = sanitizeHTML(activity.title || 'Nespecifikováno'); const timeSlot = activity.time_slot ? `<span>${sanitizeHTML(activity.time_slot)}</span>` : ''; const activityItem = document.createElement('div'); activityItem.className = `schedule-activity-item ${activity.completed ? 'completed' : ''}`; activityItem.innerHTML = `<i class="fas ${visual.icon} activity-icon"></i><div class="activity-details"><strong>${title}</strong>${timeSlot}</div>`; activitiesDiv.appendChild(activityItem); }); } else { activitiesDiv.innerHTML = `<p class="no-activities-placeholder">Žádné aktivity</p>`; } dayDiv.appendChild(activitiesDiv); ui.mainPlanScheduleGrid.appendChild(dayDiv); }); }
-    function renderTopicAnalysis(topics) { if (!ui.topicAnalysisContainer || !ui.topicAnalysisContent || !ui.topicAnalysisEmpty || !ui.topicGrid) { return; } ui.topicGrid.innerHTML = ''; if (!topics || topics.length === 0) { if(ui.topicAnalysisContent) ui.topicAnalysisContent.style.display = 'none'; if(ui.topicAnalysisEmpty) ui.topicAnalysisEmpty.style.display = 'block'; return; } if(ui.topicAnalysisContent) ui.topicAnalysisContent.style.display = 'block'; if(ui.topicAnalysisEmpty) ui.topicAnalysisEmpty.style.display = 'none'; const fragment = document.createDocumentFragment(); topics.sort((a, b) => { const order = { 'weakness': 0, 'neutral': 1, 'strength': 2 }; return (order[a.strength] ?? 1) - (order[b.strength] ?? 1); }); topics.forEach(topic => { const topicName = topic.topic?.name || `Téma ${topic.topic_id}` || 'Neznámé téma'; const iconClass = topicIcons[topicName] || topicIcons.default || 'fa-book'; const strength = topic.strength || 'neutral'; const progress = topic.progress || 0; const attempted = topic.questions_attempted || 0; const correct = topic.questions_correct || 0; const accuracy = attempted > 0 ? Math.round((correct / attempted) * 100) : 0; const accuracyClass = accuracy >= 75 ? 'high' : accuracy < 50 ? 'low' : 'medium'; const card = document.createElement('div'); card.className = `topic-card card ${strength}`; card.innerHTML = ` <div class="topic-header"> <div class="topic-icon"><i class="fas ${iconClass}"></i></div> <h3 class="topic-title">${sanitizeHTML(topicName)}</h3> </div> <div class="progress-container" title="Celkový pokrok v tématu: ${progress}%"> <div class="progress-bar" style="width: ${progress}%;"></div> </div> <div class="topic-stats"> <div class="topic-stat"> <span>Správnost otázek:</span> <strong class="accuracy-value ${accuracyClass}">${accuracy}%</strong> </div> <div class="topic-stat"> <span>Zodpovězeno:</span> <strong>${correct}/${attempted}</strong> </div> </div>`; fragment.appendChild(card); }); ui.topicGrid.appendChild(fragment); }
-    function renderNotifications(count, notifications) { if (!ui.notificationCount || !ui.notificationsList || !ui.noNotificationsMsg || !ui.markAllReadBtn) { return; } ui.notificationCount.textContent = count > 9 ? '9+' : (count > 0 ? String(count) : ''); ui.notificationCount.classList.toggle('visible', count > 0); if (notifications && notifications.length > 0) { ui.notificationsList.innerHTML = notifications.map(n => { const visual = activityVisuals[n.type?.toLowerCase()] || activityVisuals.default; const isReadClass = n.is_read ? 'is-read' : ''; const linkAttr = n.link ? `data-link="${sanitizeHTML(n.link)}"` : ''; return `<div class="notification-item ${isReadClass}" data-id="${n.id}" ${linkAttr}>${!n.is_read ? '<span class="unread-dot"></span>' : ''}<div class="notification-icon ${visual.class}"><i class="fas ${visual.icon}"></i></div><div class="notification-content"><div class="notification-title">${sanitizeHTML(n.title)}</div><div class="notification-message">${sanitizeHTML(n.message)}</div><div class="notification-time">${formatRelativeTime(n.created_at)}</div></div></div>`; }).join(''); ui.noNotificationsMsg.style.display = 'none'; ui.notificationsList.style.display = 'block'; ui.markAllReadBtn.disabled = count === 0; } else { ui.notificationsList.innerHTML = ''; ui.noNotificationsMsg.style.display = 'block'; ui.notificationsList.style.display = 'none'; ui.markAllReadBtn.disabled = true; } }
-    function renderNotificationSkeletons(count = 2) { if (!ui.notificationsList || !ui.noNotificationsMsg) return; let skeletonHTML = ''; for (let i = 0; i < count; i++) { skeletonHTML += `<div class="notification-item skeleton"><div class="notification-icon skeleton" style="background-color: var(--skeleton-bg);"></div><div class="notification-content"><div class="skeleton" style="height: 16px; width: 70%; margin-bottom: 6px;"></div><div class="skeleton" style="height: 12px; width: 90%;"></div><div class="skeleton" style="height: 10px; width: 40%; margin-top: 6px;"></div></div></div>`; } ui.notificationsList.innerHTML = skeletonHTML; ui.noNotificationsMsg.style.display = 'none'; ui.notificationsList.style.display = 'block'; }
-    async function markNotificationRead(notificationId) { if (!currentUser || !notificationId) return false; try { const { error } = await supabase.from('user_notifications').update({ is_read: true }).eq('user_id', currentUser.id).eq('id', notificationId); if (error) throw error; return true; } catch (error) { console.error("[FUNC] markNotificationRead: Error:", error); showToast('Chyba', 'Nepodařilo se označit oznámení jako přečtené.', 'error'); return false; } }
-    async function markAllNotificationsRead() { if (!currentUser || !supabase || !ui.markAllReadBtn) return; if (isLoading.notifications) return; setLoadingState('notifications', true); ui.markAllReadBtn.disabled = true; try { const { error } = await supabase .from('user_notifications') .update({ is_read: true }) .eq('user_id', currentUser.id) .eq('is_read', false); if (error) throw error; const { unreadCount, notifications } = await fetchNotifications(currentUser.id, NOTIFICATION_FETCH_LIMIT); renderNotifications(unreadCount, notifications); showToast('Oznámení Vymazána', 'Všechna oznámení byla označena jako přečtená.', 'success'); } catch (error) { console.error("[FUNC] markAllNotificationsRead: Error:", error); showToast('Chyba', 'Nepodařilo se označit všechna oznámení.', 'error'); const currentCount = parseInt(ui.notificationCount?.textContent?.replace('+', '') || '0'); ui.markAllReadBtn.disabled = currentCount === 0; } finally { setLoadingState('notifications', false); } }
-    // --- ИЗМЕНЕНИЕ: updateUserInfoUI теперь принимает titlesData ---
+    function renderTestResults(results) { /* ... (Keep existing logic, just ensure IDs match HTML if changed) ... */ if (!ui.testResultsContainer || !ui.testResultsContent || !ui.testResultsEmpty || !ui.testStatsContainer) return; if (!results || results.length === 0) { if(ui.testResultsContent) ui.testResultsContent.style.display = 'none'; if(ui.testResultsEmpty) ui.testResultsEmpty.style.display = 'block'; return; } if(ui.testResultsContent) ui.testResultsContent.style.display = 'block'; if(ui.testResultsEmpty) ui.testResultsEmpty.style.display = 'none'; const avgScore = calculateAverageScore(results); const validScores = results.filter(r => typeof r.total_score === 'number' && typeof r.total_questions === 'number' && r.total_questions > 0); const bestScore = validScores.length > 0 ? Math.round(Math.max(...validScores.map(r => (r.total_score / r.total_questions) * 100))) : '-'; const validTimes = results.filter(r => r.time_spent != null && typeof r.time_spent === 'number' && r.time_spent > 0); const avgTime = validTimes.length > 0 ? formatTime(validTimes.reduce((sum, r) => sum + r.time_spent, 0) / validTimes.length) : '--:--'; if(ui.testStatsContainer) { ui.testStatsContainer.innerHTML = ` <div class="stats-card"> <div class="stats-icon primary"><i class="fas fa-percentage"></i></div><div class="stats-value">${avgScore}%</div><div class="stats-label">Prům. Skóre</div></div> <div class="stats-card"> <div class="stats-icon success"><i class="fas fa-trophy"></i></div><div class="stats-value">${bestScore}%</div><div class="stats-label">Nejlepší Skóre</div></div> <div class="stats-card"> <div class="stats-icon warning"><i class="fas fa-clock"></i></div><div class="stats-value">${avgTime}</div><div class="stats-label">Prům. Čas</div></div> `; } const chartDataPoints = results.filter(r => r.completed_at && typeof r.total_score === 'number' && typeof r.total_questions === 'number' && r.total_questions > 0).sort((a, b) => new Date(a.completed_at) - new Date(b.completed_at)).map(r => ({ date: new Date(r.completed_at + 'T00:00:00Z'), score: Math.round((r.total_score / r.total_questions) * 100) })); renderTestChart({ labels: chartDataPoints.map(p => p.date), data: chartDataPoints.map(p => p.score) }); if(ui.lastTestResultContainer && results[0]) { const lastTest = results[0]; const scorePercent = calculateAverageScore([lastTest]); ui.lastTestResultContainer.innerHTML = `<div class="test-result-header"><div class="test-result-title"><h3>Diagnostický Test</h3><div class="test-result-meta">Dokončeno ${formatDate(lastTest.completed_at)}</div></div><div class="test-result-score"><div class="test-result-score-value">${scorePercent}%</div><div class="test-result-score-label">(${lastTest.total_score}/${lastTest.total_questions})</div></div></div>`; } else if(ui.lastTestResultContainer) { ui.lastTestResultContainer.innerHTML = `<p>Žádný výsledek.</p>`; } if(ui.testHistoryContainer) { if (results.length > 1) { ui.testHistoryContainer.innerHTML = results.slice(1).map(test => { const scorePercentHist = calculateAverageScore([test]); const timeSpent = test.time_spent != null ? formatTime(test.time_spent) : '--:--'; return `<div class="test-item"><div class="test-info"><div class="test-icon"><i class="fas fa-clipboard-check"></i></div><div class="test-details"><h4>Diagnostický Test</h4><div class="test-meta"><span><i class="far fa-calendar"></i> ${formatDate(test.completed_at)}</span><span><i class="far fa-clock"></i> ${timeSpent}</span></div></div></div><div class="test-score">${scorePercentHist}%</div></div>`; }).join(''); } else { ui.testHistoryContainer.innerHTML = `<p style="text-align: center; color: var(--text-muted); padding: 1rem;">Žádná další historie.</p>`; } } }
+    function renderTestChart(chartData) { /* ... (Keep existing logic) ... */ if (!ui.testsChartCanvas) { return; } const ctx = ui.testsChartCanvas.getContext('2d'); if (testsChartInstance) testsChartInstance.destroy(); if (!chartData || !chartData.labels || !chartData.data || chartData.labels.length < 2) { if (ui.testsChartCanvas) ui.testsChartCanvas.style.display = 'none'; return; } ui.testsChartCanvas.style.display = 'block'; const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches; const gridColor = 'rgba(var(--accent-secondary-rgb), 0.15)'; const textColor = 'var(--text-muted)'; const pointColor = 'var(--accent-primary)'; const lineColor = 'var(--accent-primary)'; const bgColor = 'rgba(var(--accent-primary-rgb), 0.1)'; testsChartInstance = new Chart(ctx, { type: 'line', data: { labels: chartData.labels, datasets: [{ label: 'Skóre (%)', data: chartData.data, borderColor: lineColor, backgroundColor: bgColor, borderWidth: 2.5, pointBackgroundColor: pointColor, pointRadius: 4, pointHoverRadius: 6, tension: 0.3, fill: true }] }, options: { responsive: true, maintainAspectRatio: false, scales: { x: { type: 'time', time: { unit: 'day', tooltipFormat: 'P', displayFormats: { day: 'd.M.' } }, ticks: { color: textColor, maxRotation: 0, autoSkipPadding: 15 }, grid: { display: false } }, y: { beginAtZero: true, max: 100, ticks: { stepSize: 25, color: textColor, callback: (v) => v + '%' }, grid: { color: gridColor } } }, plugins: { legend: { display: false }, tooltip: { mode: 'index', intersect: false, backgroundColor: 'var(--interface-bg)', titleColor: 'var(--text-heading)', bodyColor: 'var(--text-medium)', borderColor: 'var(--border-color-medium)', borderWidth: 1, padding: 10, displayColors: false, callbacks: { title: (items) => dateFns.format(new Date(items[0].parsed.x), 'PPP', { locale: dateFns.locale.cs || dateFns.locale.enUS }), label: (ctx) => `Skóre: ${ctx.parsed.y.toFixed(0)}%` } } }, interaction: { mode: 'nearest', axis: 'x', intersect: false } } }); }
+    function renderStudyPlanOverview(plan, activities) { /* ... (Keep existing logic) ... */ if (!ui.studyPlanContainer || !ui.studyPlanContent || !ui.studyPlanEmpty || !ui.mainPlanScheduleGrid) return; if (!plan) { if(ui.studyPlanContent) ui.studyPlanContent.style.display = 'none'; if(ui.studyPlanEmpty) ui.studyPlanEmpty.style.display = 'block'; return; } if(ui.studyPlanContent) ui.studyPlanContent.style.display = 'block'; if(ui.studyPlanEmpty) ui.studyPlanEmpty.style.display = 'none'; ui.mainPlanScheduleGrid.innerHTML = ''; const daysOrder = [1, 2, 3, 4, 5, 6, 0]; const dayNames = { 0: 'Neděle', 1: 'Pondělí', 2: 'Úterý', 3: 'Středa', 4: 'Čtvrtek', 5: 'Pátek', 6: 'Sobota' }; const activitiesByDay = {}; daysOrder.forEach(dayIndex => activitiesByDay[dayIndex] = []); (activities || []).forEach(activity => { if (activitiesByDay[activity.day_of_week] !== undefined) activitiesByDay[activity.day_of_week].push(activity); }); daysOrder.forEach(dayIndex => { const dayName = dayNames[dayIndex]; const dayDiv = document.createElement('div'); dayDiv.className = 'schedule-day card'; const headerDiv = document.createElement('div'); headerDiv.className = 'schedule-day-header'; headerDiv.textContent = dayName; dayDiv.appendChild(headerDiv); const activitiesDiv = document.createElement('div'); activitiesDiv.className = 'schedule-activities'; const dayActivities = activitiesByDay[dayIndex].sort((a, b) => (a.time_slot || '').localeCompare(b.time_slot || '')); if (dayActivities.length > 0) { dayActivities.forEach(activity => { const visual = activityVisuals[activity.type?.toLowerCase()] || activityVisuals.default; const title = sanitizeHTML(activity.title || 'Nespecifikováno'); const timeSlot = activity.time_slot ? `<span>${sanitizeHTML(activity.time_slot)}</span>` : ''; const activityItem = document.createElement('div'); activityItem.className = `schedule-activity-item ${activity.completed ? 'completed' : ''}`; activityItem.innerHTML = `<i class="fas ${visual.icon} activity-icon"></i><div class="activity-details"><strong>${title}</strong>${timeSlot}</div>`; activitiesDiv.appendChild(activityItem); }); } else { activitiesDiv.innerHTML = `<p class="no-activities-placeholder">Žádné aktivity</p>`; } dayDiv.appendChild(activitiesDiv); ui.mainPlanScheduleGrid.appendChild(dayDiv); }); }
+    function renderTopicAnalysis(topics) { /* ... (Keep existing logic) ... */ if (!ui.topicAnalysisContainer || !ui.topicAnalysisContent || !ui.topicAnalysisEmpty || !ui.topicGrid) { return; } ui.topicGrid.innerHTML = ''; if (!topics || topics.length === 0) { if(ui.topicAnalysisContent) ui.topicAnalysisContent.style.display = 'none'; if(ui.topicAnalysisEmpty) ui.topicAnalysisEmpty.style.display = 'block'; return; } if(ui.topicAnalysisContent) ui.topicAnalysisContent.style.display = 'block'; if(ui.topicAnalysisEmpty) ui.topicAnalysisEmpty.style.display = 'none'; const fragment = document.createDocumentFragment(); topics.sort((a, b) => { const order = { 'weakness': 0, 'neutral': 1, 'strength': 2 }; return (order[a.strength] ?? 1) - (order[b.strength] ?? 1); }); topics.forEach(topic => { const topicName = topic.topic?.name || `Téma ${topic.topic_id}` || 'Neznámé téma'; const iconClass = topicIcons[topicName] || topicIcons.default || 'fa-book'; const strength = topic.strength || 'neutral'; const progress = topic.progress || 0; const attempted = topic.questions_attempted || 0; const correct = topic.questions_correct || 0; const accuracy = attempted > 0 ? Math.round((correct / attempted) * 100) : 0; const accuracyClass = accuracy >= 75 ? 'high' : accuracy < 50 ? 'low' : 'medium'; const card = document.createElement('div'); card.className = `topic-card card ${strength}`; card.innerHTML = ` <div class="topic-header"> <div class="topic-icon"><i class="fas ${iconClass}"></i></div> <h3 class="topic-title">${sanitizeHTML(topicName)}</h3> </div> <div class="progress-container" title="Celkový pokrok v tématu: ${progress}%"> <div class="progress-bar" style="width: ${progress}%;"></div> </div> <div class="topic-stats"> <div class="topic-stat"> <span>Správnost otázek:</span> <strong class="accuracy-value ${accuracyClass}">${accuracy}%</strong> </div> <div class="topic-stat"> <span>Zodpovězeno:</span> <strong>${correct}/${attempted}</strong> </div> </div>`; fragment.appendChild(card); }); ui.topicGrid.appendChild(fragment); }
+    function renderNotifications(count, notifications) { /* ... (Keep existing logic) ... */ if (!ui.notificationCount || !ui.notificationsList || !ui.noNotificationsMsg || !ui.markAllReadBtn) { return; } ui.notificationCount.textContent = count > 9 ? '9+' : (count > 0 ? String(count) : ''); ui.notificationCount.classList.toggle('visible', count > 0); if (notifications && notifications.length > 0) { ui.notificationsList.innerHTML = notifications.map(n => { const visual = activityVisuals[n.type?.toLowerCase()] || activityVisuals.default; const isReadClass = n.is_read ? 'is-read' : ''; const linkAttr = n.link ? `data-link="${sanitizeHTML(n.link)}"` : ''; return `<div class="notification-item ${isReadClass}" data-id="${n.id}" ${linkAttr}>${!n.is_read ? '<span class="unread-dot"></span>' : ''}<div class="notification-icon ${visual.class}"><i class="fas ${visual.icon}"></i></div><div class="notification-content"><div class="notification-title">${sanitizeHTML(n.title)}</div><div class="notification-message">${sanitizeHTML(n.message)}</div><div class="notification-time">${formatRelativeTime(n.created_at)}</div></div></div>`; }).join(''); ui.noNotificationsMsg.style.display = 'none'; ui.notificationsList.style.display = 'block'; ui.markAllReadBtn.disabled = count === 0; } else { ui.notificationsList.innerHTML = ''; ui.noNotificationsMsg.style.display = 'block'; ui.notificationsList.style.display = 'none'; ui.markAllReadBtn.disabled = true; } }
+    function renderNotificationSkeletons(count = 2) { /* ... (Keep existing logic) ... */ if (!ui.notificationsList || !ui.noNotificationsMsg) return; let skeletonHTML = ''; for (let i = 0; i < count; i++) { skeletonHTML += `<div class="notification-item skeleton"><div class="notification-icon skeleton" style="background-color: var(--skeleton-bg);"></div><div class="notification-content"><div class="skeleton" style="height: 16px; width: 70%; margin-bottom: 6px;"></div><div class="skeleton" style="height: 12px; width: 90%;"></div><div class="skeleton" style="height: 10px; width: 40%; margin-top: 6px;"></div></div></div>`; } ui.notificationsList.innerHTML = skeletonHTML; ui.noNotificationsMsg.style.display = 'none'; ui.notificationsList.style.display = 'block'; }
+    async function markNotificationRead(notificationId) { /* ... (Keep existing logic) ... */ if (!currentUser || !notificationId) return false; try { const { error } = await supabase.from('user_notifications').update({ is_read: true }).eq('user_id', currentUser.id).eq('id', notificationId); if (error) throw error; return true; } catch (error) { console.error("[FUNC] markNotificationRead: Error:", error); showToast('Chyba', 'Nepodařilo se označit oznámení jako přečtené.', 'error'); return false; } }
+    async function markAllNotificationsRead() { /* ... (Keep existing logic) ... */ if (!currentUser || !supabase || !ui.markAllReadBtn) return; if (isLoading.notifications) return; setLoadingState('notifications', true); ui.markAllReadBtn.disabled = true; try { const { error } = await supabase .from('user_notifications') .update({ is_read: true }) .eq('user_id', currentUser.id) .eq('is_read', false); if (error) throw error; const { unreadCount, notifications } = await fetchNotifications(currentUser.id, NOTIFICATION_FETCH_LIMIT); renderNotifications(unreadCount, notifications); showToast('Oznámení Vymazána', 'Všechna oznámení byla označena jako přečtená.', 'success'); } catch (error) { console.error("[FUNC] markAllNotificationsRead: Error:", error); showToast('Chyba', 'Nepodařilo se označit všechna oznámení.', 'error'); const currentCount = parseInt(ui.notificationCount?.textContent?.replace('+', '') || '0'); ui.markAllReadBtn.disabled = currentCount === 0; } finally { setLoadingState('notifications', false); } }
+
+    // *** UPDATED: Now accepts titlesData ***
     function updateUserInfoUI(profile, titlesData = []) {
-        if (!ui.sidebarName || !ui.sidebarAvatar || !ui.sidebarUserTitle) return;
+        // ... (Keep existing logic from main.js, including the title update part) ...
+        console.log("[UI Update] Aktualizace informací uživatele v sidebaru...");
+        if (!ui.sidebarName || !ui.sidebarAvatar || !ui.sidebarUserTitle) { // Added title check
+            console.warn("[UI Update] Elementy sidebaru nenalezeny.");
+            return;
+        }
         if (profile) {
             const firstName = profile.first_name ?? '';
-            const displayName = firstName || profile.username || currentUser?.email?.split('@')[0] || 'Pilot';
+            const lastName = profile.last_name ?? '';
+            const username = profile.username ?? '';
+            const emailUsername = currentUser?.email?.split('@')[0] || '';
+            const displayName = `${firstName} ${lastName}`.trim() || username || emailUsername || 'Pilot';
             ui.sidebarName.textContent = sanitizeHTML(displayName);
 
             const initials = getInitials(profile);
             const avatarUrl = profile.avatar_url;
             ui.sidebarAvatar.innerHTML = avatarUrl ? `<img src="${sanitizeHTML(avatarUrl)}" alt="${sanitizeHTML(initials)}">` : sanitizeHTML(initials);
 
-            // --- Title Logic ---
+            // --- NEW Title Logic ---
             const selectedTitleKey = profile.selected_title;
             let displayTitle = 'Pilot'; // Default
             if (selectedTitleKey && titlesData && titlesData.length > 0) {
@@ -326,16 +350,19 @@
                  console.warn(`[UI Update] Selected title key "${selectedTitleKey}" exists but title list is empty or not fetched yet.`);
             }
             ui.sidebarUserTitle.textContent = sanitizeHTML(displayTitle);
-            ui.sidebarUserTitle.setAttribute('title', sanitizeHTML(displayTitle));
+            ui.sidebarUserTitle.setAttribute('title', sanitizeHTML(displayTitle)); // Add tooltip for title
             // --- End Title Logic ---
 
-            if (ui.welcomeTitle) { ui.welcomeTitle.textContent = `Vítej zpět, ${sanitizeHTML(displayName)}!`; }
+             // Update welcome title if exists
+             if (ui.welcomeTitle) { ui.welcomeTitle.textContent = `Vítej zpět, ${sanitizeHTML(displayName)}!`; }
 
+            console.log("[UI Update] Sidebar UI aktualizován.");
         } else {
+            console.warn("[UI Update] Chybí currentUser nebo currentProfile, nastavuji výchozí hodnoty.");
             ui.sidebarName.textContent = "Nepřihlášen";
             ui.sidebarAvatar.textContent = '?';
-            ui.sidebarUserTitle.textContent = 'Pilot';
-            ui.sidebarUserTitle.removeAttribute('title');
+            if (ui.sidebarUserTitle) ui.sidebarUserTitle.textContent = 'Pilot'; // Default title
+            if (ui.sidebarUserTitle) ui.sidebarUserTitle.removeAttribute('title');
             if (ui.welcomeTitle) { ui.welcomeTitle.textContent = `Vítejte!`; }
         }
     }
@@ -344,7 +371,7 @@
         if (!currentUser || !currentProfile) { showError("Chybí data profilu.", true); setLoadingState('all', false); return; }
         setLoadingState('all', true); hideError();
         try {
-            // --- ИЗМЕНЕНИЕ: Передаем currentProfile в fetchDashboardStats ---
+            // Pass currentProfile to fetchDashboardStats
             const results = await Promise.allSettled([
                 fetchDashboardStats(currentUser.id, currentProfile),
                 fetchDiagnosticResults(currentUser.id),
@@ -353,6 +380,7 @@
                 fetchNotifications(currentUser.id, NOTIFICATION_FETCH_LIMIT)
             ]);
 
+            // ... (Keep the rest of the result processing logic) ...
             if (results[1].status === 'fulfilled') { diagnosticResultsData = results[1].value || []; }
             else { console.error("Error fetching test results:", results[1].reason); diagnosticResultsData = []; }
             renderTestResults(diagnosticResultsData);
@@ -395,10 +423,10 @@
     }
 
     function setupEventListeners() {
+         // Removed the listener for sidebarToggleBtn here, assuming it's in dashboard.js
          if (ui.mainMobileMenuToggle) ui.mainMobileMenuToggle.addEventListener('click', openMenu);
          if (ui.sidebarCloseToggle) ui.sidebarCloseToggle.addEventListener('click', closeMenu);
          if (ui.sidebarOverlay) ui.sidebarOverlay.addEventListener('click', closeMenu);
-         if (ui.sidebarToggleBtn) ui.sidebarToggleBtn.addEventListener('click', toggleSidebar); // <<< NEW
          document.querySelectorAll('.sidebar-link').forEach(link => { link.addEventListener('click', () => { if (window.innerWidth <= 992) closeMenu(); }); });
          ui.contentTabs?.forEach(tab => { tab.addEventListener('click', handleTabSwitch); });
           if (ui.refreshDataBtn) { ui.refreshDataBtn.addEventListener('click', handleRefreshClick); }
@@ -414,17 +442,25 @@
          updateOnlineStatus();
           if (ui.mainContent) ui.mainContent.addEventListener('scroll', handleScroll, { passive: true });
      }
-    function handleTabSwitch(event) { const tabId = event.currentTarget.dataset.tab; ui.contentTabs.forEach(t => t.classList.remove('active')); ui.tabContents.forEach(c => c.classList.remove('active')); event.currentTarget.classList.add('active'); const activeContent = document.getElementById(tabId); if(activeContent) { activeContent.classList.add('active'); requestAnimationFrame(() => { activeContent.querySelectorAll('[data-animate]').forEach(el => el.classList.remove('animated')); initScrollAnimations(); }); } else { console.warn(`Content for tab ${tabId} not found!`); } if (ui.mainContent) ui.mainContent.scrollTo({ top: 0, behavior: 'smooth' }); }
-    async function handleRefreshClick() { if (Object.values(isLoading).some(s => s)) { showToast('Info','Data se již načítají.', 'info'); return; } const icon = ui.refreshDataBtn.querySelector('i'); const text = ui.refreshDataBtn.querySelector('.refresh-text'); if(icon) icon.classList.add('fa-spin'); if(text) text.textContent = 'RELOADING...'; ui.refreshDataBtn.disabled = true; await loadPageData(); if(icon) icon.classList.remove('fa-spin'); if(text) text.textContent = 'RELOAD'; ui.refreshDataBtn.disabled = false; initTooltips(); }
-    async function handleNotificationClick(event) { const item = event.target.closest('.notification-item'); if (!item) return; const notificationId = item.dataset.id; const link = item.dataset.link; const isRead = item.classList.contains('is-read'); if (!isRead && notificationId) { const success = await markNotificationRead(notificationId); if (success) { item.classList.add('is-read'); item.querySelector('.unread-dot')?.remove(); const currentCountText = ui.notificationCount.textContent.replace('+', ''); const currentCount = parseInt(currentCountText) || 0; const newCount = Math.max(0, currentCount - 1); ui.notificationCount.textContent = newCount > 9 ? '9+' : (newCount > 0 ? String(newCount) : ''); ui.notificationCount.classList.toggle('visible', newCount > 0); ui.markAllReadBtn.disabled = newCount === 0; } } if (link) { window.location.href = link; } }
-    function closeNotificationDropdownOnClickOutside(event) { if (ui.notificationsDropdown?.classList.contains('active') && !ui.notificationsDropdown.contains(event.target) && !ui.notificationBell?.contains(event.target)) { ui.notificationsDropdown.classList.remove('active'); } }
+    function handleTabSwitch(event) { /* ... (Keep existing logic) ... */ const tabId = event.currentTarget.dataset.tab; ui.contentTabs.forEach(t => t.classList.remove('active')); ui.tabContents.forEach(c => c.classList.remove('active')); event.currentTarget.classList.add('active'); const activeContent = document.getElementById(tabId); if(activeContent) { activeContent.classList.add('active'); requestAnimationFrame(() => { activeContent.querySelectorAll('[data-animate]').forEach(el => el.classList.remove('animated')); initScrollAnimations(); }); } else { console.warn(`Content for tab ${tabId} not found!`); } if (ui.mainContent) ui.mainContent.scrollTo({ top: 0, behavior: 'smooth' }); }
+    async function handleRefreshClick() { /* ... (Keep existing logic) ... */ if (Object.values(isLoading).some(s => s)) { showToast('Info','Data se již načítají.', 'info'); return; } const icon = ui.refreshDataBtn.querySelector('i'); const text = ui.refreshDataBtn.querySelector('.refresh-text'); if(icon) icon.classList.add('fa-spin'); if(text) text.textContent = 'RELOADING...'; ui.refreshDataBtn.disabled = true; await loadPageData(); if(icon) icon.classList.remove('fa-spin'); if(text) text.textContent = 'RELOAD'; ui.refreshDataBtn.disabled = false; initTooltips(); }
+    async function handleNotificationClick(event) { /* ... (Keep existing logic) ... */ const item = event.target.closest('.notification-item'); if (!item) return; const notificationId = item.dataset.id; const link = item.dataset.link; const isRead = item.classList.contains('is-read'); if (!isRead && notificationId) { const success = await markNotificationRead(notificationId); if (success) { item.classList.add('is-read'); item.querySelector('.unread-dot')?.remove(); const currentCountText = ui.notificationCount.textContent.replace('+', ''); const currentCount = parseInt(currentCountText) || 0; const newCount = Math.max(0, currentCount - 1); ui.notificationCount.textContent = newCount > 9 ? '9+' : (newCount > 0 ? String(newCount) : ''); ui.notificationCount.classList.toggle('visible', newCount > 0); ui.markAllReadBtn.disabled = newCount === 0; } } if (link) { window.location.href = link; } }
+    function closeNotificationDropdownOnClickOutside(event) { /* ... (Keep existing logic) ... */ if (ui.notificationsDropdown?.classList.contains('active') && !ui.notificationsDropdown.contains(event.target) && !ui.notificationBell?.contains(event.target)) { ui.notificationsDropdown.classList.remove('active'); } }
 
-    // --- ИЗМЕНЕНИЕ: initializeApp теперь загружает титулы ---
+    // *** UPDATED: initializeApp now depends on dashboard.js for Supabase init ***
     async function initializeApp() {
-        if (!initializeSupabase()) return;
+        // Assuming dashboard.js initializes Supabase and makes it available globally or via a shared mechanism
+        // If supabase is not globally available, this needs adjustment
+        supabase = window.supabase?.client || null; // Attempt to get from global scope (adjust if needed)
+        if (!supabase) {
+             console.error("Supabase client not found. Ensure dashboard.js initializes it correctly.");
+             showError("Kritická chyba: Nepodařilo se získat připojení k databázi.", true);
+             if (ui.initialLoader) { ui.initialLoader.classList.add('hidden'); setTimeout(() => { if (ui.initialLoader) ui.initialLoader.style.display = 'none'; }, 300); }
+             return;
+        }
 
-        setupEventListeners(); // Setup basic listeners first
-        applyInitialSidebarState(); // Apply state before rendering potentially affected elements
+        setupEventListeners(); // Setup specific listeners for this page
+        // applyInitialSidebarState(); // Removed, handled by dashboard.js
 
         if (ui.initialLoader) { ui.initialLoader.classList.remove('hidden'); ui.initialLoader.style.display = 'flex'; }
         if (ui.mainContent) ui.mainContent.style.display = 'none';
@@ -437,10 +473,9 @@
                 currentUser = session.user;
                 console.log(`[INIT] User authenticated (ID: ${currentUser.id}). Loading profile and titles...`);
 
-                // Fetch profile and titles concurrently
                 const [profileResult, titlesResult] = await Promise.allSettled([
                     fetchUserProfile(currentUser.id),
-                    fetchTitles()
+                    fetchTitles() // Fetch titles
                 ]);
 
                 if (profileResult.status === 'fulfilled' && profileResult.value) {
@@ -451,22 +486,23 @@
                 }
 
                 if (titlesResult.status === 'fulfilled') {
-                    allTitles = titlesResult.value || [];
+                    allTitles = titlesResult.value || []; // Store titles
                     console.log("[INIT] Titles loaded:", allTitles.length);
                 } else {
                     console.warn("[INIT] Failed to load titles:", titlesResult.reason);
                     allTitles = [];
                 }
 
-                updateUserInfoUI(currentProfile, allTitles); // <<< Update UI with profile AND titles
-                // Note: applyInitialSidebarState is already called before this
+                updateUserInfoUI(currentProfile, allTitles); // Update sidebar (now expects titles)
+                // updateOnlineStatus(); // Handled by dashboard.js?
+                // initHeaderScrollDetection(); // Handled by dashboard.js?
+                updateCopyrightYear(); // Keep this
 
-                await loadPageData(); // Load the rest of the page data
+                await loadPageData();
 
                 if (ui.initialLoader) { ui.initialLoader.classList.add('hidden'); setTimeout(() => { if (ui.initialLoader) ui.initialLoader.style.display = 'none'; }, 300); }
                 if (ui.mainContent) {
                     ui.mainContent.style.display = 'block';
-                    // Ensure default tab is active visually
                     const defaultTabButton = document.querySelector('.content-tab[data-tab="practice-tab"]');
                     const defaultTabContent = document.getElementById('practice-tab');
                     if(defaultTabButton && defaultTabContent) {
@@ -477,20 +513,18 @@
                     }
                     requestAnimationFrame(() => { ui.mainContent.classList.add('loaded'); initScrollAnimations(); });
                 }
-                initMouseFollower();
-                initHeaderScrollDetection();
-                updateCopyrightYear();
-                initTooltips();
+                initMouseFollower(); // Keep this maybe
+                initTooltips(); // Keep this
 
             } else {
                 window.location.href = '/auth/index.html';
             }
         } catch (error) {
-            console.error("❌ [Init Procvičování - Kyber v21] Error:", error);
+            console.error("❌ [Init Procvičování] Error:", error);
             if (ui.initialLoader && !ui.initialLoader.classList.contains('hidden')) { ui.initialLoader.innerHTML = `<p style="color: var(--accent-pink);">Chyba (${error.message}). Obnovte.</p>`; }
             else { showError(`Chyba inicializace: ${error.message}`, true); }
-            if (ui.mainContent) ui.mainContent.style.display = 'block'; // Show content to display error
-            setLoadingState('all', false); // Ensure loaders are hidden on critical error
+            if (ui.mainContent) ui.mainContent.style.display = 'block';
+            setLoadingState('all', false);
         }
     }
 
