@@ -41,6 +41,7 @@
 	/* --- Transitions --- */
 	--transition-fast: 0.2s ease-in-out;
 	--transition-smooth: 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+	--transition-smooth-slider: 0.5s cubic-bezier(0.65, 0, 0.35, 1); /* Transition for slider */
 	--transition-slow: 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 	--transition-bounce: 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
 
@@ -917,13 +918,38 @@ section:has(.section-title.animated) .section-title span::after,
    ========================================================================== */
 .testimonials {
 	background-color: var(--clr-bg-tertiary);
-}
-.testimonials-grid {
-	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
-	gap: clamp(30px, 4vw, 40px);
+    position: relative; /* Needed for button positioning */
 }
 
+/* --- Testimonial Slider Wrapper --- */
+.testimonial-slider-wrapper {
+    position: relative; /* Context for absolute positioned buttons */
+    width: 100%;
+    max-width: 1100px; /* Adjust max-width to comfortably fit 3 cards + spacing */
+    margin: 0 auto;
+    padding: 0 40px; /* Add padding to prevent buttons overlapping cards */
+}
+
+/* --- Testimonial Slider Container (Viewport) --- */
+.testimonial-slider-container {
+    overflow: hidden; /* Crucial: Hides the parts of the track outside the viewport */
+    width: 100%;
+    position: relative; /* Optional: if needed for pseudo-elements */
+}
+
+/* --- Testimonial Slider Track --- */
+.testimonial-slider-track {
+    display: flex; /* Layout cards horizontally */
+    /* Width will be very large, calculated by JS based on number of cards */
+    /* gap: defined below for specificity */
+    /* Add smooth transition for the sliding effect */
+    transition: transform var(--transition-smooth-slider);
+    will-change: transform; /* Optimize animation performance */
+    position: relative; /* For correct positioning calculations */
+    padding-inline: 5px; /* Slight padding if cards might touch edges */
+}
+
+/* --- Individual Testimonial Card --- */
 .testimonial-card {
 	background: rgba(22, 33, 62, 0.7); /* tertiary-bg with alpha */
 	backdrop-filter: blur(7px) saturate(1.05);
@@ -931,16 +957,44 @@ section:has(.section-title.animated) .section-title span::after,
 	border-image: linear-gradient(135deg, rgba(0, 224, 255, 0.3), rgba(255, 51, 168, 0.3)) 1;
 	padding: clamp(30px, 5vw, 40px);
 	border-radius: var(--layout-border-radius-lg);
-	transition: all var(--transition-slow);
+	transition: all var(--transition-slow); /* Keep hover transitions */
 	box-shadow: var(--shadow-card);
 	position: relative;
 	overflow: hidden;
 	transform-style: preserve-3d;
 	will-change: transform, box-shadow, border-image;
-	display: flex; /* Use flexbox for layout */
-    flex-direction: column; /* Stack content vertically */
-    min-height: 320px; /* Ensure minimum height */
+	display: flex;
+	flex-direction: column;
+    min-height: 320px;
+
+    /* --- Infinite Slider Specific Styles --- */
+    flex: 0 0 auto; /* Prevent cards from shrinking or growing */
+    width: clamp(280px, 28vw, 340px); /* Define card width. Adjust as needed. Needs to be fixed for calculations. */
+    margin-right: clamp(25px, 4vw, 40px); /* Use margin for gap between cards */
 }
+/* Remove margin from the last card in the track (though it might get complex with infinite cloning) */
+/* .testimonial-slider-track > .testimonial-card:last-child { margin-right: 0; } */
+
+/* --- Loading State for Cards --- */
+.testimonial-card.is-loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: rgba(22, 33, 62, 0.5); /* Dimmed background */
+    border: 1px dashed rgba(160, 92, 255, 0.3);
+    box-shadow: none;
+    backdrop-filter: none;
+}
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+.testimonial-card.is-loading .spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid rgba(255, 255, 255, 0.2);
+    border-top-color: var(--clr-accent-cyan);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
 /* Animated Grid Pattern */
 .testimonial-card::before {
 	content: '';
@@ -1026,6 +1080,53 @@ section:has(.section-title.animated) .section-title span::after,
 	color: var(--clr-text-secondary);
 	font-family: var(--font-mono);
 }
+
+/* --- Slider Navigation Buttons --- */
+.slider-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: rgba(26, 26, 46, 0.6); /* Semi-transparent */
+    backdrop-filter: blur(5px);
+    color: var(--clr-accent-cyan);
+    border: 1px solid rgba(0, 224, 255, 0.4);
+    border-radius: 50%;
+    width: 45px;
+    height: 45px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    z-index: 10; /* Ensure buttons are above cards */
+    transition: all var(--transition-fast);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.slider-btn:hover, .slider-btn:focus {
+    background-color: rgba(0, 224, 255, 0.2);
+    color: var(--clr-text-highlight);
+    border-color: var(--clr-accent-pink);
+    box-shadow: var(--glow-pink);
+    transform: translateY(-50%) scale(1.1);
+}
+.slider-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    pointer-events: none; /* Prevent hover effects when disabled */
+    box-shadow: none;
+    transform: translateY(-50%) scale(1);
+}
+.slider-btn.prev-btn { left: 0px; } /* Adjust positioning */
+.slider-btn.next-btn { right: 0px; } /* Adjust positioning */
+
+/* --- Testimonial Note --- */
+.testimonial-note {
+    text-align: center;
+    margin-top: 2rem;
+    font-size: 0.9em;
+    opacity: 0.7;
+    font-family: var(--font-mono);
+}
+
 
 /* ==========================================================================
    Call to Action (CTA) Section
@@ -1280,8 +1381,10 @@ button:hover ~ .mouse-follower-glow,
 	h1 { font-size: clamp(2.2rem, 7vw, 3.5rem); }
 	h2 { font-size: clamp(1.8rem, 6vw, 2.5rem); }
 	.features-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr)); }
-	.testimonials-grid { grid-template-columns: 1fr; gap: 30px; } /* Stack testimonials earlier */
-	.ai-log-window { height: clamp(250px, 35vh, 320px); }
+	/* Testimonial adjustments for 2 visible cards */
+    .testimonial-slider-wrapper { max-width: 740px; padding: 0 35px; }
+    .testimonial-card { width: clamp(270px, 38vw, 320px); margin-right: clamp(20px, 3vw, 30px); }
+    .slider-btn { width: 40px; height: 40px; font-size: 1rem; }
 }
 
 @media (max-width: 768px) {
@@ -1317,6 +1420,14 @@ button:hover ~ .mouse-follower-glow,
 	section { padding-block: clamp(50px, 8vh, 70px); }
 	.section-subtitle { margin-bottom: 3rem; max-width: 90%; }
 
+    /* Testimonial adjustments for 1 visible card */
+    .testimonial-slider-wrapper { max-width: 400px; padding: 0 45px; /* Wider padding for buttons */ }
+    .testimonial-card { width: clamp(260px, 70vw, 320px); margin-right: 0; /* No margin needed when only one is visible */ }
+    .slider-btn { width: 38px; height: 38px; }
+    .slider-btn.prev-btn { left: 5px; }
+    .slider-btn.next-btn { right: 5px; }
+
+
 	/* Simplify hover effects on mobile */
 	.feature-card:hover, .testimonial-card:hover {
 		transform: translateY(-6px) scale(1.01);
@@ -1349,7 +1460,8 @@ button:hover ~ .mouse-follower-glow,
 	.container { width: 92%; padding-inline: 15px; }
 	.btn { padding: 0.8em 1.6em; font-size: 0.9rem; }
 	.features-grid { grid-template-columns: 1fr; } /* Stack features */
-	.testimonial-card { padding: 25px; min-height: auto; }
+	.testimonial-card { padding: 25px; min-height: auto; width: clamp(240px, 75vw, 280px); }
+    .testimonial-slider-wrapper { padding: 0 40px; } /* Adjust padding again if needed */
 	.testimonial-text { font-size: 0.95rem; }
 	.ai-content-area { padding: 15px; }
 	.ai-log-window { padding: 15px; font-size: 0.8rem; height: 250px; }
@@ -1358,10 +1470,13 @@ button:hover ~ .mouse-follower-glow,
 /* --- Print Styles --- */
 @media print {
 	body { background: #fff; color: #000; }
-	#header, #footer, .hero #particles-js, .mouse-follower-glow, .cta, .ai-interface-section { display: none; }
+	#header, #footer, .hero #particles-js, .mouse-follower-glow, .cta, .ai-interface-section, .testimonial-slider-wrapper .slider-btn { display: none; } /* Hide slider buttons */
 	.container { width: 100%; max-width: none; margin: 0; padding: 0 1cm; }
 	a { color: #000; text-decoration: underline; }
 	h1, h2, h3 { color: #000; }
 	p { color: #333; }
-	.feature-card, .testimonial-card, .how-it-works-step { border: 1px solid #ccc; box-shadow: none; backdrop-filter: none; background: #f8f8f8; padding: 15px; break-inside: avoid; }
+	.feature-card, .how-it-works-step { border: 1px solid #ccc; box-shadow: none; backdrop-filter: none; background: #f8f8f8; padding: 15px; break-inside: avoid; }
+    .testimonial-slider-container { overflow: visible; } /* Show all cards on print */
+    .testimonial-slider-track { display: block; /* Stack cards vertically */ transform: none !important; /* Reset transform */ }
+    .testimonial-card { border: 1px solid #ccc; box-shadow: none; backdrop-filter: none; background: #f8f8f8; padding: 15px; break-inside: avoid; width: 100%; margin-bottom: 1cm; margin-right: 0; }
 }
