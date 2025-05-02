@@ -1,26 +1,23 @@
-/* dashboard.css */
-/* --- START: Киберпанк CSS Тема (v19 + sidebar toggle + Daily Reward v3 - Countdown & Preview) --- */
+/* --- START: Киберпанк CSS Тема (из index.html v19 + sidebar toggle) --- */
         /* --- Глобальные Настройки и Переменные --- */
         :root {
             /* Основа */
             --bg-color: #03020c;
             --bg-secondary: #0a071f;
-            --bg-secondary-rgb: 10, 7, 31;
-            --card-bg: rgba(15, 10, 45, 0.88); /* Slightly less opaque */
+            --card-bg: rgba(15, 10, 45, 0.88);
             --card-solid: #0f0a2d;
-            --card-solid-rgb: 15, 10, 45;
-            --interface-bg: rgba(6, 4, 22, 0.92); /* For modals, tooltips */
-            --interface-border: rgba(0, 240, 255, 0.35); /* Light cyan border */
+            --interface-bg: rgba(6, 4, 22, 0.92);
+            --interface-border: rgba(0, 240, 255, 0.35);
             --dark-purple-accent: #160c41;
 
             /* Акценты */
-            --accent-primary: #00e0ff; /* Cyan - main interactive */
+            --accent-primary: #00e0ff; /* Циан - основной интерактивный */
             --accent-primary-rgb: 0, 224, 255;
-            --accent-secondary: #a05cff; /* Purple */
+            --accent-secondary: #a05cff; /* Фиолетовый */
             --accent-secondary-rgb: 160, 92, 255;
-            --accent-pink: #ff33a8; /* Pink - for Danger/Streak */
+            --accent-pink: #ff33a8; /* Розовый - для Danger/Streak */
             --accent-pink-rgb: 255, 51, 168;
-            --accent-lime: #6fff3a; /* Lime - for Success */
+            --accent-lime: #6fff3a; /* Лайм - для Success */
             --accent-lime-rgb: 111, 255, 58;
             --accent-cyan: var(--accent-primary);
             --accent-cyan-rgb: var(--accent-primary-rgb);
@@ -30,7 +27,7 @@
             --accent-pink-glow: rgba(var(--accent-pink-rgb), 0.4);
             --accent-lime-glow: rgba(var(--accent-lime-rgb), 0.5);
             --accent-border-glow: rgba(var(--accent-primary-rgb), 0.7);
-            --accent-orange: #f8961e; /* Orange for Warning */
+            --accent-orange: #f8961e; /* Оранжевый для Warning */
             --accent-orange-rgb: 248, 150, 30;
             --accent-orange-glow: rgba(var(--accent-orange-rgb), 0.5);
 
@@ -44,7 +41,6 @@
             --text-link-hover: #ffffff;
             --text-fixed-dark: #03020c; /* Для текста на светлых/ярких фонах */
             --white: #ffffff;
-            --white-rgb: 255, 255, 255; /* Added RGB */
             --black: #000000; /* Иногда нужен чистый черный */
 
             /* Границы */
@@ -68,11 +64,6 @@
             --gradient-sidebar: linear-gradient(190deg, var(--bg-secondary) 0%, var(--dark-purple-accent) 100%); /* Новый для сайдбара */
             --gradient-level-up: linear-gradient(45deg, var(--accent-pink), var(--accent-secondary)); /* Для Level Up */
              --gradient-welcome: linear-gradient(135deg, rgba(var(--accent-primary-rgb), 0.2), rgba(var(--accent-secondary-rgb), 0.25)); /* Для Welcome Banner */
-             --gradient-success: linear-gradient(135deg, var(--accent-lime), #45a247); /* Added */
-            --gradient-warning: linear-gradient(135deg, var(--accent-orange), #f3722c); /* Added */
-            --gradient-danger: linear-gradient(135deg, var(--accent-pink), #b5179e); /* Added */
-            --gradient-claimed: linear-gradient(135deg, rgba(var(--text-muted-rgb, 128, 141, 176), 0.15), rgba(var(--card-solid-rgb, 15, 10, 45), 0.25)); /* Gradient for claimed reward */
-            --gradient-available: linear-gradient(135deg, rgba(var(--accent-primary-rgb), 0.2), rgba(var(--accent-lime-rgb), 0.15)); /* Gradient for available reward */
 
 
             /* Шрифты */
@@ -88,9 +79,6 @@
             --shadow-card-hover-enhanced: 0 18px 50px rgba(0, 0, 0, 0.45), 0 0 30px var(--accent-glow), inset 0 0 15px rgba(var(--accent-primary-rgb), 0.15);
             --shadow-hud: 0 4px 15px rgba(0,0,0,0.3), inset 0 1px 2px rgba(var(--accent-primary-rgb), 0.1); /* Тень для элементов интерфейса */
             --shadow-text-glow: 0 0 8px rgba(var(--accent-primary-rgb), 0.6); /* Свечение текста */
-            --shadow-success-glow: 0 0 18px var(--accent-lime-glow);
-            --shadow-claimed-inset: inset 0 2px 5px rgba(0,0,0,0.4);
-
 
             /* Размеры и переходы */
             --sidebar-width: 260px; /* Оставляем переменную */
@@ -191,15 +179,8 @@
         .btn:hover:not(:disabled) { color: var(--text-fixed-dark); border-color: var(--accent-secondary); box-shadow: 0 0 20px var(--accent-secondary-glow), inset 0 0 10px rgba(var(--accent-secondary-rgb), 0.15); transform: translateY(-3px); }
         .btn:hover:not(:disabled)::before { left: 0; background: var(--gradient-button-hover); }
         .btn:active:not(:disabled) { transform: translateY(0px) scale(0.97); box-shadow: 0 0 8px var(--accent-secondary-glow), inset 0 0 12px rgba(0,0,0,0.3); transition-duration: 0.08s; }
-        .btn:disabled { opacity: 0.5; cursor: not-allowed; background-color: transparent !important; border-color: var(--text-muted) !important; color: var(--text-muted) !important; box-shadow: none !important; transform: none !important; } /* Added transform: none */
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; background-color: transparent !important; border-color: var(--text-muted) !important; color: var(--text-muted) !important; box-shadow: none !important; }
         .btn:disabled::before { display: none; }
-        /* Success button style */
-        .btn-success { background: var(--gradient-success); color: var(--text-fixed-dark); border: none; box-shadow: 0 0 15px -2px var(--accent-lime-glow); }
-        .btn-success::before { display: none; }
-        .btn-success:hover:not(:disabled) { box-shadow: 0 0 22px var(--accent-lime-glow); filter: brightness(1.05); }
-        .btn-secondary { background-color: rgba(var(--text-muted-rgb), 0.1); border: 1px solid rgba(var(--text-muted-rgb), 0.3); color: var(--text-medium); box-shadow: none; }
-        .btn-secondary::before { display: none; }
-        .btn-secondary:hover:not(:disabled) { background-color: rgba(var(--text-muted-rgb), 0.2); border-color: rgba(var(--text-muted-rgb), 0.5); color: var(--text-light); box-shadow: 0 0 15px rgba(var(--text-muted-rgb), 0.2); transform: translateY(-2px); }
 
         .btn-outline { /* Контурная кнопка */
             border-color: var(--accent-secondary); color: var(--accent-secondary); box-shadow: 0 0 10px -3px var(--accent-secondary-glow), inset 0 0 8px -5px var(--accent-secondary-glow);
@@ -286,7 +267,7 @@
             padding: 1.5rem 1rem; display: flex; flex-direction: column; z-index: 1000;
             box-shadow: 5px 0 30px rgba(0, 0, 0, 0.4); /* Тень */
             border-right: 1px solid var(--border-color-light);
-            transition: width var(--transition-medium) cubic-bezier(0.4, 0, 0.2, 1), transform var(--transition-medium) ease; /* Apply transition to width */
+            transition: width var(--transition-medium) cubic-bezier(0.4, 0, 0.2, 1), transform var(--transition-medium) ease; /* Added transform transition for mobile */
             overflow: hidden; /* Hide overflow during transition */
         }
         .sidebar-header { display: flex; align-items: center; margin-bottom: 2.5rem; padding: 0 0.5rem; position: relative; min-height: 45px; transition: padding var(--transition-medium) ease; }
@@ -548,7 +529,6 @@
             animation: gradient-move 4s linear infinite; border-radius: 1.5px;
             filter: drop-shadow(0 0 5px var(--accent-primary));
         }
-        @keyframes gradient-move { 0% { background-position: 0% 50%; } 100% { background-position: 100% 50%; } }
 
         /* Welcome баннер */
         .welcome-banner {
@@ -778,302 +758,12 @@
              width: 40px; height: 40px; border-width: 5px; border-color: var(--accent-primary); border-top-color: transparent; border-right-color: transparent;
              animation: loading-spinner 0.9s linear infinite;
         }
-        @keyframes loading-spinner { to { transform: rotate(360deg); } }
         .initial-loading-overlay p { color: var(--text-medium); font-size: 1.1rem; font-weight: 500; letter-spacing: 0.5px; }
 
-        /* === NEW: Daily Reward Styles v2 - Enhanced Design === */
-        .daily-reward-section {
-            position: relative; /* For loader overlay */
-            margin-bottom: 2rem;
-            border: 1px solid var(--border-color-medium);
-            border-radius: var(--card-radius);
-            overflow: hidden; /* Ensure gradients don't leak */
-            padding: 0; /* Remove card padding, handled by inner content */
-            background: var(--gradient-welcome); /* Base gradient */
-            display: none; /* Hidden by default */
-            transition: background var(--transition-medium), border-color var(--transition-medium), box-shadow var(--transition-medium), transform var(--transition-medium) ease;
-            cursor: pointer; /* Make the whole card clickable for preview */
-        }
-         .daily-reward-section:hover {
-             transform: translateY(-4px);
-             box-shadow: var(--shadow-card-hover-enhanced);
-         }
-        .daily-reward-section .loading-overlay {
-            position: absolute;
-            inset: 0;
-            background-color: rgba(var(--card-solid-rgb), 0.85);
-            display: none; /* Hidden by default */
-            justify-content: center;
-            align-items: center;
-            z-index: 10;
-            border-radius: var(--card-radius);
-            transition: opacity 0.3s ease-out;
-            opacity: 1;
-            backdrop-filter: blur(4px);
-        }
-        .daily-reward-section.loading .loading-overlay { display: flex; }
-        .daily-reward-section.loading .loading-spinner { /* Adjusted spinner style */
-             width: 36px;
-             height: 36px;
-             border: 4px solid var(--accent-primary);
-             border-radius: 50%;
-             border-top-color: transparent;
-             border-right-color: transparent;
-             animation: loading-spinner 0.8s linear infinite;
-         }
-        .daily-reward-section.loading .daily-reward-content { visibility: hidden; }
-
-        .daily-reward-content {
-            display: flex;
-            align-items: center;
-            gap: 1.8rem; /* Increased gap */
-            padding: 1.5rem 2.2rem; /* Increased padding */
-            visibility: visible; /* Ensure content is visible when not loading */
-            position: relative; /* For pseudo elements */
-            z-index: 1;
-        }
-         /* Decorative Glitch Effect (Optional) */
-        .daily-reward-section.available::after {
-             content: '';
-             position: absolute;
-             top: -5px; left: 50%; transform: translateX(-50%);
-             width: 80%; height: 10px;
-             background: linear-gradient(90deg, transparent, var(--accent-lime), transparent);
-             filter: blur(10px);
-             opacity: 0.4;
-             animation: pulseGlow 2.5s infinite ease-in-out;
-             z-index: 0;
-         }
-         @keyframes pulseGlow {
-              0%, 100% { opacity: 0.4; transform: translateX(-50%) scaleX(1); }
-              50% { opacity: 0.7; transform: translateX(-50%) scaleX(1.1); }
-         }
-
-        .daily-reward-icon {
-            width: 65px; /* Larger icon */
-            height: 65px;
-            background: var(--gradient-cta);
-            border-radius: 16px; /* Squarish */
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            box-shadow: 0 6px 18px rgba(var(--accent-pink-rgb), 0.35), 0 0 15px var(--accent-secondary-glow);
-            border: 2px solid rgba(var(--white), 0.15);
-            transition: transform 0.3s ease;
-        }
-         .daily-reward-section:hover .daily-reward-icon {
-             transform: scale(1.05) rotate(-3deg);
-         }
-        .daily-reward-icon i {
-            font-size: 2rem;
-            color: var(--white);
-            text-shadow: 0 2px 4px rgba(0,0,0,0.4);
-        }
-        .daily-reward-info {
-            flex-grow: 1;
-        }
-        .daily-reward-title {
-            font-size: 1.2rem; /* Slightly larger */
-            font-weight: 700;
-            color: var(--text-heading);
-            margin: 0 0 0.3rem 0;
-        }
-        .daily-reward-day {
-            font-size: 1rem; /* Larger day */
-            color: var(--accent-primary);
-            margin: 0 0 0.6rem 0;
-            font-weight: 600;
-            text-shadow: 0 0 5px var(--accent-glow);
-        }
-        .daily-reward-amount-info {
-            font-size: 1.1rem; /* Larger amount info */
-            color: var(--text-medium);
-            margin: 0 0 0.5rem 0; /* Added margin below amount */
-        }
-        #daily-reward-amount {
-            font-weight: 700;
-            color: var(--accent-lime);
-            font-size: 1.2em; /* Emphasize amount */
-            margin: 0 0.25em;
-            text-shadow: 0 0 8px var(--accent-lime-glow);
-        }
-        /* NEW: Countdown Timer Style */
-        .daily-reward-timer {
-            font-size: 0.9rem;
-            color: var(--text-muted);
-            margin: 0.5rem 0 0 0; /* Spacing above timer */
-            font-weight: 500;
-        }
-        #reward-countdown {
-            color: var(--accent-orange);
-            font-weight: 700;
-            font-family: var(--font-mono);
-            letter-spacing: 1px;
-            text-shadow: 0 0 5px var(--accent-orange-glow);
-            margin-left: 0.5em;
-            background: rgba(var(--accent-orange-rgb), 0.1);
-            padding: 0.1em 0.4em;
-            border-radius: 4px;
-            border: 1px solid rgba(var(--accent-orange-rgb), 0.2);
-        }
-
-        .claim-reward-btn {
-            margin-left: 1.5rem; /* More space */
-            flex-shrink: 0;
-            padding: 0.8rem 1.6rem !important; /* Larger button */
-            font-size: 0.95rem;
-            letter-spacing: 1px;
-        }
-        /* Claimed state */
-        .daily-reward-section.claimed {
-            cursor: default; /* No pointer if claimed */
-             border-color: var(--border-color-light);
-             background: var(--gradient-claimed); /* Specific gradient for claimed */
-             opacity: 0.7; /* More muted */
-             box-shadow: var(--shadow-claimed-inset);
-         }
-        .daily-reward-section.claimed:hover { /* Disable hover effect when claimed */
-              transform: none;
-              box-shadow: var(--shadow-claimed-inset);
-          }
-        .daily-reward-section.claimed .daily-reward-content {
-            /* background stays as set by the main section */
-        }
-        .daily-reward-section.claimed .daily-reward-icon {
-            background: var(--text-muted);
-            box-shadow: none;
-            opacity: 0.5;
-            transform: scale(0.95);
-        }
-        .daily-reward-section.claimed .claim-reward-btn {
-            background: rgba(var(--text-muted-rgb), 0.2) !important;
-            border-color: rgba(var(--text-muted-rgb), 0.4) !important;
-            color: var(--text-muted) !important;
-            cursor: not-allowed;
-            opacity: 0.8;
-            box-shadow: none;
-            transform: none;
-        }
-        .daily-reward-section.claimed .claim-reward-btn i {
-             margin-right: 0.5em; /* Ensure icon is visible */
-        }
-        .daily-reward-section.claimed .claim-reward-btn::before { display: none; }
-        /* Available state */
-        .daily-reward-section.available {
-            border-color: var(--accent-lime); /* Changed border */
-            box-shadow: 0 0 25px rgba(var(--accent-lime-rgb), 0.25), inset 0 0 10px rgba(var(--accent-lime-rgb), 0.1);
-             background: var(--gradient-available);
-        }
-        .daily-reward-section.available .claim-reward-btn {
-             background: var(--gradient-success);
-             border-color: transparent;
-             color: var(--text-fixed-dark);
-             box-shadow: var(--shadow-success-glow);
-        }
-         .daily-reward-section.available .claim-reward-btn:hover:not(:disabled) {
-              box-shadow: 0 0 28px var(--accent-lime-glow);
-              filter: brightness(1.1);
-              transform: translateY(-3px);
-              color: var(--white); /* Keep text visible on hover */
-              background: linear-gradient(135deg, #80ff50, var(--accent-lime)); /* Slightly brighter hover */
-         }
-         .daily-reward-section.available .claim-reward-btn::before { display: none; /* Success button doesn't use the ::before typically */ }
-        /* --- END: Daily Reward Styles --- */
-
-        /* === NEW: Modal Styles (Basic Structure) === */
-        .modal {
-            display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background-color: rgba(var(--bg-secondary-rgb, 10, 7, 31), 0.7);
-            z-index: 1050; /* Below toasts, above content */
-            align-items: center; justify-content: center;
-            opacity: 0; transition: opacity 0.4s ease, backdrop-filter 0.4s ease;
-            backdrop-filter: blur(0px);
-        }
-        .modal.active { display: flex; opacity: 1; backdrop-filter: blur(8px); }
-        .modal-content {
-            background-color: var(--interface-bg); border-radius: var(--card-radius);
-            width: 90%; max-width: 550px; /* Adjusted max-width */
-            box-shadow: var(--shadow-card);
-            transform: translateY(-30px) scale(0.95); transform-origin: center;
-            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            overflow: hidden;
-            border: 1px solid var(--border-color-medium);
-            display: flex; flex-direction: column;
-        }
-        .modal.active .modal-content { transform: translateY(0) scale(1); }
-        .modal-header {
-            padding: 1.2rem 1.8rem; border-bottom: 1px solid var(--border-color-light);
-            display: flex; justify-content: space-between; align-items: center;
-            background: rgba(var(--accent-secondary-rgb), 0.08); flex-shrink: 0;
-        }
-        .modal-title { font-size: 1.3rem; font-weight: 600; color: var(--text-heading); text-shadow: var(--shadow-text-glow); margin: 0; display: flex; align-items: center; gap: 0.6em;}
-         .modal-title i { color: var(--accent-primary); }
-        .modal-close {
-            background: none; border: none; font-size: 1.7rem; cursor: pointer;
-            color: var(--text-muted); transition: color 0.2s ease, transform 0.2s ease; line-height: 1; padding: 0.3rem;
-        }
-        .modal-close:hover { color: var(--accent-pink); transform: rotate(90deg); }
-        .modal-body { padding: 1.8rem 2rem; max-height: 65vh; overflow-y: auto; flex-grow: 1; }
-         /* Scrollbar for modal body */
-        .modal-body::-webkit-scrollbar { width: 6px; }
-        .modal-body::-webkit-scrollbar-track { background: transparent; }
-        .modal-body::-webkit-scrollbar-thumb { background-color: var(--border-color-medium); border-radius: 3px; }
-        .modal-footer {
-            padding: 1.2rem 1.8rem; border-top: 1px solid var(--border-color-light);
-            background-color: rgba(var(--bg-secondary-rgb, 10, 7, 31), 0.4);
-            display: flex; justify-content: flex-end; gap: 0.8rem; flex-shrink: 0;
-        }
-        /* === END: Modal Styles === */
-
-        /* === NEW: Reward Preview Modal Specific Styles === */
-        .modal-content.reward-preview { max-width: 450px; /* Smaller modal for preview */ }
-        .reward-preview-info { font-size: 0.95rem; color: var(--text-medium); margin-bottom: 1.5rem; text-align: center; }
-        .reward-preview-list { list-style: none; padding: 0; margin: 0; }
-        .reward-preview-list li {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0.9rem 0.5rem;
-            border-bottom: 1px dashed var(--border-color-light);
-            font-size: 1rem;
-        }
-        .reward-preview-list li:last-child { border-bottom: none; }
-        .preview-day { color: var(--text-light); font-weight: 500; }
-        .preview-reward { color: var(--accent-lime); font-weight: 700; display: inline-flex; align-items: center; gap: 0.3em; font-size: 1.05em;}
-        .preview-reward i { font-size: 0.9em; opacity: 0.8; }
-         /* Skeleton for preview list */
-        .reward-preview-list li.skeleton {
-             background: var(--skeleton-bg);
-             border-radius: 4px;
-             margin-bottom: 0.6rem !important; /* Override default margin */
-             height: 35px;
-             border-bottom: none;
-             width: 90%;
-         }
-         .reward-preview-list li.skeleton:last-child { width: 75%; }
-        /* === END: Reward Preview Modal Specific Styles === */
-
-
-         /* Tooltipster Theme */
-         .tooltipster-shadow {
-             border-radius: 8px;
-             background: var(--interface-bg);
-             color: var(--text-light);
-             box-shadow: var(--shadow-card);
-             border: 1px solid var(--border-color-medium);
-         }
-         .tooltipster-shadow .tooltipster-content {
-             padding: 8px 14px;
-             font-size: 0.88rem;
-             font-family: var(--font-primary);
-         }
-         .dashboard-footer { margin-top: 3rem; padding: 1.5rem 0; text-align: center; color: var(--text-muted); font-size: 0.9rem; border-top: 1px solid var(--border-color-light); opacity: 0.6; }
-
-         /* Адаптивность для киберпанк темы */
+        /* Адаптивность для киберпанк темы */
         @media (max-width: 992px) { /* Планшет - сжатый сайдбар */
             /* :root { --sidebar-width: 85px; } Already handled by .sidebar-collapsed */
-             .stat-cards, .shortcut-grid { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+            .stat-cards, .shortcut-grid { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
         }
         @media (max-width: 768px) { /* Мобильный */
              main { padding: 0 1rem; } /* Меньше паддинг */
@@ -1089,33 +779,26 @@
              .stat-cards, .shortcut-grid { grid-template-columns: 1fr; gap: 1.5rem; }
              .dashboard-header { padding: 0.8rem 1rem; }
              .section-title { font-size: 1.3rem; }
-             .daily-reward-content { flex-direction: column; text-align: center; gap: 1rem; padding: 1.5rem; }
-             .claim-reward-btn { margin-left: 0; margin-top: 1rem; width: 100%; }
-             .modal-content { width: 95%; }
         }
         @media (max-width: 576px) { /* Маленький мобильный */
             /* Mobile menu toggling is handled by JS adding .active */
-             .sidebar { transform: translateX(-110%); width: 280px; z-index: 1000; } /* Скрыт по умолчанию */
-             .sidebar.active { transform: translateX(0); }
-             /* Восстанавливаем вид активного сайдбара */
-             .sidebar.active .sidebar-logo span, .sidebar.active .sidebar-link span,
-             .sidebar.active .user-info, .sidebar.active .sidebar-footer { display: block; }
-             .sidebar.active .sidebar-link i { margin-right: 0.85rem; font-size: 1.25rem; }
-             .sidebar.active .sidebar-header, .sidebar.active .sidebar-link { justify-content: flex-start; }
-             .sidebar.active .user-profile { padding: 1rem; }
-             .sidebar.active .user-avatar { margin-right: 0.85rem; width: 42px; height: 42px; }
-             .sidebar.active #sidebar-close-toggle { display: block; } /* Показать кнопку закрытия */
-             main { margin-left: 0; width: 100%; padding: 0 0.75rem; }
-             .header-actions { gap: 0.5rem; }
-             .stat-card-value { font-size: 2rem; }
-             .mouse-follower-glow { display: none !important; } /* Отключить свечение мыши */
-             .toast-container { bottom: 1rem; right: 1rem; max-width: calc(100% - 2rem); }
-             /* Hide desktop sidebar toggle on small mobile */
-             .sidebar-toggle-btn { display: none; }
-             .daily-reward-icon { width: 55px; height: 55px; }
-             .daily-reward-title { font-size: 1.1rem; }
-             .daily-reward-day, .daily-reward-amount-info { font-size: 0.9rem; }
-             .claim-reward-btn { padding: 0.7rem 1.4rem !important; }
+            .sidebar { transform: translateX(-110%); width: 280px; z-index: 1000; } /* Скрыт по умолчанию */
+            .sidebar.active { transform: translateX(0); }
+            /* Восстанавливаем вид активного сайдбара */
+            .sidebar.active .sidebar-logo span, .sidebar.active .sidebar-link span,
+            .sidebar.active .user-info, .sidebar.active .sidebar-footer { display: block; }
+            .sidebar.active .sidebar-link i { margin-right: 0.85rem; font-size: 1.25rem; }
+            .sidebar.active .sidebar-header, .sidebar.active .sidebar-link { justify-content: flex-start; }
+            .sidebar.active .user-profile { padding: 1rem; }
+            .sidebar.active .user-avatar { margin-right: 0.85rem; width: 42px; height: 42px; }
+            .sidebar.active #sidebar-close-toggle { display: block; } /* Показать кнопку закрытия */
+            main { margin-left: 0; width: 100%; padding: 0 0.75rem; }
+            .header-actions { gap: 0.5rem; }
+            .stat-card-value { font-size: 2rem; }
+            .mouse-follower-glow { display: none !important; } /* Отключить свечение мыши */
+            .toast-container { bottom: 1rem; right: 1rem; max-width: calc(100% - 2rem); }
+            /* Hide desktop sidebar toggle on small mobile */
+            .sidebar-toggle-btn { display: none; }
         }
 
          /* Оверлей для мобильного меню */
@@ -1137,7 +820,7 @@
              will-change: opacity, transform;
         }
         .main-content-wrapper [data-animate].animated { opacity: 1; transform: translateY(0) scale(1) rotateX(0); }
-        .stat-cards [data-animate], .shortcut-grid [data-animate], .activity-list-container [data-animate], .daily-reward-section[data-animate] { transition-delay: calc(var(--animation-order, 0) * 0.1s); } /* Added daily reward */
+        .stat-cards [data-animate], .shortcut-grid [data-animate], .activity-list-container [data-animate] { transition-delay: calc(var(--animation-order, 0) * 0.1s); }
 
         /* --- Уменьшение движения --- */
         @media (prefers-reduced-motion: reduce) {
@@ -1154,11 +837,377 @@
             body::before, body::after { animation: none !important; }
             .refresh-btn.loading i { animation: none !important; }
             .loading-spinner, .initial-loading-overlay .loading-spinner { animation: none !important; border: 4px solid var(--accent-primary) !important; } /* Просто рамка */
-            .card:hover, .shortcut-card:hover, .btn:hover, .btn-outline:hover, .welcome-button:hover, .refresh-btn:hover, .view-all-link:hover, .daily-reward-section:hover { transform: none !important; } /* Added daily reward */
+            .card:hover, .shortcut-card:hover, .btn:hover, .btn-outline:hover, .welcome-button:hover, .refresh-btn:hover, .view-all-link:hover { transform: none !important; }
             .skeleton::after { animation: none !important; background: var(--skeleton-highlight) !important; }
-            .section-title::after { animation: none !important; background: var(--accent-primary) !important; }
              .btn-icon-only i { transition: none !important; } /* Disable icon rotation */
-            .daily-reward-section.available::after { animation: none !important; opacity: 0.3; } /* Static glow */
-             .modal.active, .modal.active .modal-content { transition: none !important; opacity: 1; transform: none; }
-         }
+        }
+/* ============================================= */
+/* === НОВЫЕ СТИЛИ ДЛЯ СИСТЕМЫ НАГРАД v22 === */
+/* ============================================= */
+
+/* --- 1. Кнопка открытия Модального окна (в Баннере) --- */
+/* Используем существующий стиль .welcome-button, ID добавлен в HTML */
+#open-monthly-modal-btn {
+    /* Можно добавить специфичные стили при необходимости, но пока наследует .welcome-button */
+    display: inline-flex; /* Убедимся, что кнопка видна */
+}
+
+/* --- 2. Модальное Окно (Общие стили, можно доработать существующие) --- */
+.modal {
+	display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+	background-color: rgba(var(--bg-secondary-rgb, 10, 7, 31), 0.75); /* Темнее фон */
+	z-index: 1050; /* Выше большинства элементов */
+    align-items: center; justify-content: center;
+	opacity: 0; transition: opacity 0.4s ease, backdrop-filter 0.4s ease;
+	backdrop-filter: blur(0px);
+	padding: 1rem; /* Отступы для мобильных */
+}
+.modal.active { display: flex; opacity: 1; backdrop-filter: blur(8px); }
+.modal-content {
+	background-color: var(--interface-bg); border-radius: var(--card-radius);
+	width: 90%;
+    max-width: 800px; /* Шире для календаря */
+	box-shadow: var(--shadow-card);
+	transform: translateY(-30px) scale(0.95); transform-origin: center;
+	transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+	overflow: hidden;
+	border: 1px solid var(--border-color-medium);
+	display: flex; flex-direction: column;
+    max-height: 90vh; /* Ограничение высоты */
+}
+.modal.active .modal-content { transform: translateY(0) scale(1); }
+.modal-header {
+	padding: 1.2rem 1.8rem; border-bottom: 1px solid var(--border-color-light);
+	display: flex; justify-content: space-between; align-items: center;
+    background: rgba(var(--dark-purple-accent-rgb), 0.4); /* Немного фона */
+    flex-shrink: 0;
+}
+.modal-title { font-size: 1.3rem; font-weight: 600; color: var(--text-heading); text-shadow: var(--shadow-text-glow); margin: 0; display: flex; align-items: center; gap: 0.6em;}
+ .modal-title i { color: var(--accent-primary); }
+.modal-close { background: none; border: none; font-size: 1.7rem; cursor: pointer; color: var(--text-muted); transition: color 0.2s ease, transform 0.2s ease; line-height: 1; padding: 0.3rem; }
+.modal-close:hover { color: var(--accent-pink); transform: rotate(90deg); }
+.modal-body { padding: 1.5rem 2rem; overflow-y: auto; flex-grow: 1; position: relative; }
+ /* Скроллбар для модального окна */
+.modal-body::-webkit-scrollbar { width: 6px; }
+.modal-body::-webkit-scrollbar-track { background: transparent; }
+.modal-body::-webkit-scrollbar-thumb { background-color: var(--border-color-medium); border-radius: 3px; }
+.modal-footer { padding: 1.2rem 1.8rem; border-top: 1px solid var(--border-color-light); background-color: rgba(var(--bg-secondary-rgb), 0.4); display: flex; justify-content: flex-end; gap: 0.8rem; flex-shrink: 0;}
+
+/* Стили для оверлея загрузки ВНУТРИ модального окна */
+.modal-body .loading-overlay {
+    position: absolute; /* Позиционируется относительно modal-body */
+    inset: 0;
+    background-color: rgba(var(--card-solid-rgb), 0.9); /* Полупрозрачный фон */
+    display: none; /* Скрыт по умолчанию */
+    justify-content: center;
+    align-items: center;
+    z-index: 10;
+    border-radius: 0; /* Без скругления внутри */
+    transition: opacity 0.3s ease-out;
+    backdrop-filter: blur(3px);
+}
+.modal-body.loading .loading-overlay { display: flex; } /* Показываем при загрузке */
+.modal-body .loading-spinner { /* Стили спиннера остаются */
+    width: 36px; height: 36px; border: 4px solid var(--accent-primary); border-radius: 50%;
+    border-top-color: transparent; border-right-color: transparent;
+    animation: loading-spinner 0.8s linear infinite;
+}
+@keyframes loading-spinner { to { transform: rotate(360deg); } }
+
+/* --- 3. Стили Месячного Календаря (в Модальном Окне) --- */
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr); /* 7 дней в неделе */
+    gap: 0.8rem; /* Пространство между днями */
+}
+
+.calendar-day {
+    aspect-ratio: 1 / 1.1; /* Соотношение сторон, чуть выше */
+    background-color: rgba(var(--card-solid-rgb), 0.7);
+    border: 1px solid var(--border-color-light);
+    border-radius: 10px; /* Менее скругленные углы */
+    padding: 0.8rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between; /* Распределяем контент */
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    cursor: default; /* По умолчанию не кликабельно */
+    min-height: 100px; /* Минимальная высота */
+}
+
+.calendar-day::before { /* Декоративный верхний уголок */
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 0; height: 0;
+    border-style: solid;
+    border-width: 10px 10px 0 0;
+    border-color: transparent transparent transparent transparent; /* Изначально невидимый */
+    transition: border-color 0.3s ease;
+}
+
+.day-number {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--text-light);
+    align-self: flex-start; /* Номер в левом верхнем углу */
+    line-height: 1;
+    background: rgba(var(--bg-secondary-rgb), 0.5);
+    padding: 0.2rem 0.4rem;
+    border-radius: 4px;
+}
+
+.reward-icon {
+    font-size: 1.8rem; /* Крупнее иконка */
+    margin: 0.5rem 0;
+    color: var(--accent-secondary); /* Фиолетовый по умолчанию */
+    transition: color 0.3s ease, transform 0.3s ease;
+}
+
+.reward-text {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    line-height: 1.3;
+    margin-bottom: 0.5rem; /* Отступ перед статусом */
+}
+
+.reward-status {
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    position: absolute;
+    bottom: 0.6rem; /* Ближе к низу */
+    left: 0;
+    right: 0;
+    opacity: 0.7;
+    transition: opacity 0.3s ease;
+}
+
+.calendar-day .claim-button {
+    display: none; /* Скрыта по умолчанию */
+    position: absolute;
+    bottom: 0.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 0.3rem 0.7rem !important; /* Меньше паддинг */
+    font-size: 0.75rem !important;
+    box-shadow: var(--shadow-interactive);
+    z-index: 2;
+    white-space: nowrap; /* Предотвратить перенос */
+    border-color: var(--accent-lime); /* Зеленая рамка */
+    color: var(--accent-lime); /* Зеленый текст */
+}
+.calendar-day .claim-button i { font-size: 0.9em; margin-right: 0.3em; }
+.calendar-day .claim-button:hover:not(:disabled) {
+     color: var(--text-fixed-dark);
+     background: var(--gradient-success);
+     border-color: transparent;
+     box-shadow: 0 0 15px var(--accent-lime-glow);
+}
+
+/* Состояния дней */
+.calendar-day.available {
+    border-color: var(--accent-primary);
+    background: linear-gradient(160deg, rgba(var(--accent-primary-rgb), 0.1), rgba(var(--card-solid-rgb), 0.9));
+    cursor: pointer;
+    box-shadow: 0 0 15px rgba(var(--accent-primary-rgb), 0.15);
+}
+.calendar-day.available::before { border-left-color: var(--accent-primary); }
+.calendar-day.available .reward-icon { color: var(--accent-primary); }
+.calendar-day.available .reward-status { display: none; } /* Статус не нужен, есть кнопка */
+.calendar-day.available:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 25px rgba(var(--accent-primary-rgb), 0.3);
+    border-color: var(--accent-cyan);
+    z-index: 5; /* Поверх других */
+}
+.calendar-day.available:hover .reward-icon { transform: scale(1.1); }
+
+.calendar-day.claimed {
+    opacity: 0.7;
+    background-color: rgba(var(--accent-lime-rgb), 0.05);
+    border-color: rgba(var(--accent-lime-rgb), 0.2);
+}
+.calendar-day.claimed::before { border-left-color: var(--accent-lime); }
+.calendar-day.claimed .reward-icon { color: var(--accent-lime); }
+.calendar-day.claimed .reward-status { color: var(--accent-lime); }
+
+.calendar-day.missed {
+    opacity: 0.4;
+    background-color: rgba(var(--text-muted-rgb), 0.05);
+    border-color: rgba(var(--text-muted-rgb), 0.2);
+}
+.calendar-day.missed::before { border-left-color: var(--text-muted); }
+.calendar-day.missed .reward-icon { color: var(--text-muted); }
+.calendar-day.missed .reward-status { color: var(--text-muted); }
+
+.calendar-day.upcoming {
+    opacity: 0.5;
+    background-color: rgba(var(--card-solid-rgb), 0.5);
+    border-style: dashed;
+}
+.calendar-day.upcoming .reward-icon { color: var(--text-muted); opacity: 0.6; }
+.calendar-day.upcoming .reward-status { color: var(--text-muted); }
+
+.calendar-day.today {
+     border-width: 2px;
+     border-color: var(--accent-orange);
+     box-shadow: inset 0 0 10px rgba(var(--accent-orange-rgb), 0.1), 0 0 10px rgba(var(--accent-orange-rgb), 0.1);
+}
+.calendar-day.today .day-number {
+     color: var(--accent-orange);
+     box-shadow: 0 0 6px var(--accent-orange-glow);
+}
+.calendar-day.today.available { border-color: var(--accent-lime); /* Если доступно, приоритет зеленой рамке */}
+
+/* Skeleton для дней календаря */
+.calendar-day.skeleton {
+    background: var(--skeleton-bg);
+    position: relative;
+    overflow: hidden;
+    border-radius: 10px; /* Match day radius */
+}
+.calendar-day.skeleton::after {
+    content: ''; position: absolute; top: 0; left: -150%; width: 100%; height: 100%;
+    background: linear-gradient(90deg, transparent, var(--skeleton-highlight), transparent);
+    animation: skeleton-loading 1.5s infinite linear;
+}
+@keyframes skeleton-loading { 0% { left: -150%; } 100% { left: 150%; } }
+
+/* --- 4. Стили Наград за Серию (Milestones) --- */
+.streak-rewards-section .loading-overlay { /* Overlay specific to this section */
+    position: absolute; inset: 0; background-color: rgba(var(--card-solid-rgb), 0.8); display: none; justify-content: center; align-items: center; z-index: 10; border-radius: var(--card-radius); transition: opacity 0.3s ease-out; backdrop-filter: blur(3px);
+}
+.streak-rewards-section.loading .loading-overlay { display: flex; }
+.streak-rewards-section.loading .milestone-list { visibility: hidden; }
+
+.milestone-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem; /* Отступ между этапами */
+}
+
+.milestone-item {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    background-color: rgba(var(--card-solid-rgb), 0.7);
+    padding: 1.2rem 1.5rem;
+    border-radius: 12px;
+    border: 1px solid var(--border-color-light);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+.milestone-item::before { /* Декоративная линия */
+    content: '';
+    position: absolute;
+    top: 10px; bottom: 10px; left: 10px;
+    width: 4px;
+    background: var(--border-color-medium);
+    border-radius: 2px;
+    opacity: 0.5;
+    transition: background 0.3s ease;
+}
+
+.milestone-icon {
+    width: 55px; height: 55px;
+    flex-shrink: 0;
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.6rem;
+    color: var(--white);
+    background: var(--gradient-cta); /* Default gradient */
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    border: 1px solid rgba(var(--white-rgb), 0.1);
+    text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+}
+
+.milestone-info { flex-grow: 1; }
+.milestone-title { font-size: 1.1rem; font-weight: 600; color: var(--text-light); margin: 0 0 0.4rem 0; }
+.milestone-desc { font-size: 0.88rem; color: var(--text-medium); line-height: 1.5; margin: 0 0 0.5rem 0; }
+.milestone-req { font-size: 0.8rem; color: var(--text-muted); font-weight: 500; }
+
+.milestone-status-action { display: flex; flex-direction: column; align-items: flex-end; gap: 0.5rem; text-align: right; margin-left: auto; }
+.milestone-status { font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; padding: 0.3rem 0.7rem; border-radius: 15px; display: inline-flex; align-items: center; gap: 0.4em; }
+.milestone-status i { font-size: 0.9em; }
+
+/* Состояния этапов */
+.milestone-item.locked { opacity: 0.6; filter: grayscale(30%); }
+.milestone-item.locked::before { background: var(--text-muted); }
+.milestone-item.locked .milestone-icon { background: var(--gradient-locked); opacity: 0.7; }
+.milestone-status.locked { color: var(--text-muted); background: rgba(var(--text-muted-rgb), 0.1); border: 1px solid rgba(var(--text-muted-rgb), 0.2); }
+
+.milestone-item.available { border-color: var(--accent-primary); }
+.milestone-item.available::before { background: var(--accent-primary); opacity: 0.8; box-shadow: 0 0 8px var(--accent-glow); }
+.milestone-item.available .milestone-icon { background: var(--gradient-button); box-shadow: 0 5px 12px rgba(var(--accent-primary-rgb), 0.25); }
+.milestone-status.available { color: var(--accent-primary); background: rgba(var(--accent-primary-rgb), 0.1); border: 1px solid rgba(var(--accent-primary-rgb), 0.3); }
+.milestone-item.available .claim-button { /* Inherits .btn-success */ }
+
+.milestone-item.claimed { border-color: var(--accent-lime); }
+.milestone-item.claimed::before { background: var(--accent-lime); opacity: 0.7; }
+.milestone-item.claimed .milestone-icon { background: var(--gradient-success); box-shadow: 0 5px 12px rgba(var(--accent-lime-rgb), 0.25); }
+.milestone-status.claimed { color: var(--accent-lime); background: rgba(var(--accent-lime-rgb), 0.1); border: 1px solid rgba(var(--accent-lime-rgb), 0.3); }
+
+/* Skeleton для этапов */
+.milestone-item.skeleton {
+    background: var(--skeleton-bg);
+    position: relative;
+    overflow: hidden;
+    padding: 1.2rem 1.5rem;
+    border-radius: 12px;
+    border: 1px solid var(--border-color-light);
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+.milestone-item.skeleton::before, .milestone-item.skeleton::after { display: none; } /* Hide decorative elements */
+.milestone-item.skeleton::after { /* Loading shimmer */
+    content: ''; position: absolute; top: 0; left: -150%; width: 100%; height: 100%;
+    background: linear-gradient(90deg, transparent, var(--skeleton-highlight), transparent);
+    animation: skeleton-loading 1.5s infinite linear;
+}
+.milestone-item.skeleton .milestone-icon { background: var(--skeleton-bg); width: 55px; height: 55px; border-radius: 14px; }
+.milestone-item.skeleton .milestone-info { flex-grow: 1; display: flex; flex-direction: column; gap: 0.6rem; }
+.milestone-item.skeleton .milestone-title { height: 18px; width: 60%; background: var(--skeleton-bg); border-radius: 4px; }
+.milestone-item.skeleton .milestone-desc { height: 14px; width: 90%; background: var(--skeleton-bg); border-radius: 4px; }
+.milestone-item.skeleton .milestone-req { height: 12px; width: 45%; background: var(--skeleton-bg); border-radius: 4px; }
+.milestone-item.skeleton .milestone-status-action { display: flex; flex-direction: column; align-items: flex-end; gap: 0.5rem; }
+.milestone-item.skeleton .milestone-status { height: 24px; width: 80px; background: var(--skeleton-bg); border-radius: 15px; }
+
+/* Empty state */
+.empty-state { /* Shared styles for empty states */
+    padding: 3rem 2rem; text-align: center; color: var(--text-muted); display: none;
+    background-color: transparent; border-radius: var(--card-radius);
+    border: 1px dashed var(--border-color-medium); margin-top: 1rem;
+}
+.empty-state i { font-size: 3rem; margin-bottom: 1.2rem; color: var(--accent-secondary); opacity: 0.6; }
+.empty-state p { margin: 0 auto; font-size: 1rem; max-width: 450px; color: var(--text-medium); }
+
+/* --- Адаптивность (Дополнения) --- */
+@media (max-width: 768px) {
+    .modal-content { max-width: 95%; }
+    .calendar-grid { gap: 0.5rem; }
+    .calendar-day { padding: 0.6rem; min-height: 90px; }
+    .day-number { font-size: 0.8rem; padding: 0.15rem 0.3rem; }
+    .reward-icon { font-size: 1.5rem; }
+    .reward-text { font-size: 0.7rem; }
+    .reward-status { font-size: 0.65rem; bottom: 0.4rem; }
+    .calendar-day .claim-button { font-size: 0.7rem !important; padding: 0.25rem 0.6rem !important; }
+    .milestone-item { flex-direction: column; align-items: flex-start; gap: 1rem; }
+    .milestone-status-action { flex-direction: row; width: 100%; justify-content: space-between; align-items: center; margin-top: 0.5rem; }
+}
+@media (max-width: 576px) {
+    .calendar-grid { grid-template-columns: repeat(4, 1fr); gap: 0.4rem; } /* 4 колонки на моб */
+    .modal-body { padding: 1rem 1.2rem; }
+    .modal-header, .modal-footer { padding: 1rem 1.2rem; }
+}
+
+/* --- Конец Новых Стилей --- */
         /* --- END: Киберпанк CSS Тема --- */
