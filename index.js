@@ -40,7 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
             placeholderAvatarBaseUrl: 'https://placehold.co/100x100/',
             visibleCardsDesktop: 3,
             bufferCards: 2,
-            slideDuration: 500
+            slideDuration: 500 // Note: CSS duration is now 600ms, this value is only used internally if needed
         }
     };
 
@@ -253,14 +253,16 @@ document.addEventListener('DOMContentLoaded', () => {
         sliderTrack.style.transition = 'none';
         const position = -stableVisibleStartIndex * cardWidthAndMargin;
         sliderTrack.style.transform = `translateX(${position}px)`;
-        void sliderTrack.offsetHeight;
-        if (!isSliding) { // Re-enable only if not sliding
-            sliderTrack.style.transition = `transform ${config.testimonials.slideDuration / 1000}s cubic-bezier(0.65, 0, 0.35, 1)`;
+        void sliderTrack.offsetHeight; // Force reflow
+        // Only re-enable transition if not currently meant to be sliding (avoids race condition)
+        if (!isSliding) {
+            sliderTrack.style.transition = `transform ${config.testimonials.slideDuration / 1000}s ease-in-out`; // Use updated CSS timing
         }
         sliderTrack.removeEventListener('transitionend', handleTransitionEnd); // Ensure clean
         sliderTrack.addEventListener('transitionend', handleTransitionEnd);
         // console.log(`Track position INSTANTLY set for stable index ${stableVisibleStartIndex} (translateX: ${position}px)`);
      };
+
     const handleTransitionEnd = (event) => {
         if (event.target !== sliderTrack || event.propertyName !== 'transform' || !initialLoadComplete || !isSliding) {
             return;
@@ -274,141 +276,492 @@ document.addEventListener('DOMContentLoaded', () => {
             isSliding = false;
             prevBtn.disabled = false;
             nextBtn.disabled = false;
+            // Explicitly re-enable transition here as well
+            sliderTrack.style.transition = `transform ${config.testimonials.slideDuration / 1000}s ease-in-out`; // Use updated CSS timing
             return;
         }
 
         const newData = getRandomLocalTestimonial();
 
+        // Disable transition for DOM manipulation
         sliderTrack.style.transition = 'none';
 
         try {
-            if (direction > 0) { // Moved Right
-                const firstCard = cardsInTrack.shift();
+            if (direction > 0) { // Moved Right (Next button clicked)
+                const firstCard = cardsInTrack.shift(); // Remove from beginning
                 if (!firstCard) throw new Error("Cannot get first card");
-                testimonialDataCache.shift();
-                testimonialDataCache.push(newData);
-                updateCardContent(firstCard, newData);
-                sliderTrack.appendChild(firstCard);
-                cardsInTrack.push(firstCard);
-            } else { // Moved Left
-                const lastCard = cardsInTrack.pop();
+                testimonialDataCache.shift(); // Remove corresponding data
+                testimonialDataCache.push(newData); // Add new data to end
+                updateCardContent(firstCard, newData); // Update the removed card
+                sliderTrack.appendChild(firstCard); // Add to end of track
+                cardsInTrack.push(firstCard); // Add to end of JS array
+            } else { // Moved Left (Prev button clicked)
+                const lastCard = cardsInTrack.pop(); // Remove from end
                 if (!lastCard) throw new Error("Cannot get last card");
-                testimonialDataCache.pop();
-                testimonialDataCache.unshift(newData);
-                updateCardContent(lastCard, newData);
-                sliderTrack.insertBefore(lastCard, sliderTrack.firstChild);
-                cardsInTrack.unshift(lastCard);
+                testimonialDataCache.pop(); // Remove corresponding data
+                testimonialDataCache.unshift(newData); // Add new data to beginning
+                updateCardContent(lastCard, newData); // Update the removed card
+                sliderTrack.insertBefore(lastCard, sliderTrack.firstChild); // Add to beginning of track
+                cardsInTrack.unshift(lastCard); // Add to beginning of JS array
             }
         } catch (error) {
             console.error("Error during DOM manipulation in handleTransitionEnd:", error);
-            isSliding = false;
-            prevBtn.disabled = true;
-            nextBtn.disabled = true;
-            return;
+            // Try to recover state if possible, otherwise disable slider
+             isSliding = false;
+             prevBtn.disabled = true; // Disable buttons on error
+             nextBtn.disabled = true;
+             // Attempt to restore a visual state if possible
+             setTrackPositionInstantly(); // Reset to stable index visually
+             sliderTrack.style.transition = `transform ${config.testimonials.slideDuration / 1000}s ease-in-out`; // Re-enable transition
+            return; // Stop execution here after error
         }
 
-        setTrackPositionInstantly(); // Reset position based on stable index
+        // Reset position based on the stable buffer index *after* DOM manipulation
+        setTrackPositionInstantly();
 
-        sliderTrack.dataset.slideDirection = "0";
-        isSliding = false;
+        // Re-enable transitions AFTER the instant position set + reflow
+         void sliderTrack.offsetHeight; // Reflow might be needed again
+         sliderTrack.style.transition = `transform ${config.testimonials.slideDuration / 1000}s ease-in-out`; // Use updated CSS timing
 
+        sliderTrack.dataset.slideDirection = "0"; // Reset direction marker
+        isSliding = false; // Allow new slides
+
+        // Re-enable buttons
         prevBtn.disabled = false;
         nextBtn.disabled = false;
         // console.log("handleTransitionEnd complete.");
      };
     const moveSlider = (direction) => {
-         if (isSliding || !initialLoadComplete) { return; }
+         if (isSliding || !initialLoadComplete) {
+             console.warn(`Slide attempt blocked: isSliding=${isSliding}, initialLoadComplete=${initialLoadComplete}`);
+             return;
+        }
         isSliding = true;
         prevBtn.disabled = true;
         nextBtn.disabled = true;
         // console.log(`Moving slider. Direction: ${direction}.`);
 
-        sliderTrack.dataset.slideDirection = direction.toString();
+        sliderTrack.dataset.slideDirection = direction.toString(); // Mark direction for transitionEnd
+
+        // Ensure transition is enabled before transforming
+        sliderTrack.style.transition = `transform ${config.testimonials.slideDuration / 1000}s ease-in-out`; // Use updated CSS timing
 
         const currentTransform = sliderTrack.style.transform;
+        // Default to stable position if transform is not set or invalid
         const currentTranslateX = parseFloat(currentTransform.replace(/[^-\d.]/g, '')) || (-stableVisibleStartIndex * cardWidthAndMargin);
         const newTranslateX = currentTranslateX - (direction * cardWidthAndMargin);
 
-        sliderTrack.style.transition = `transform ${config.testimonials.slideDuration / 1000}s cubic-bezier(0.65, 0, 0.35, 1)`;
+        // Apply the smooth transform
         sliderTrack.style.transform = `translateX(${newTranslateX}px)`;
         // console.log(`Animating transform to: ${newTranslateX}px`);
      };
     const initializeInfiniteSlider = async () => {
          console.log("Starting infinite slider initialization v2.12 (Simplified Roles)...");
-        isSliding = true;
+        isSliding = true; // Block interactions during init
         initialLoadComplete = false;
         prevBtn.disabled = true;
         nextBtn.disabled = true;
-        sliderTrack.innerHTML = '';
+        sliderTrack.innerHTML = ''; // Clear previous content
         testimonialDataCache = [];
         cardsInTrack = [];
         cardWidthAndMargin = 0;
         stableVisibleStartIndex = config.testimonials.bufferCards;
 
         if (localTestimonials.length === 0) {
-            console.error("Local testimonial data is empty!");
-            sliderTrack.innerHTML = `<p style="color: var(--clr-accent-red);">Chyba: Chybí data pro recenze.</p>`;
-             isSliding = false;
-            return;
+            console.error("Local testimonial data is empty! Cannot initialize slider.");
+            sliderTrack.innerHTML = `<p style="color: var(--clr-accent-red); padding: 20px; text-align: center;">Chyba: Chybí data pro recenze.</p>`;
+             isSliding = false; // Unblock (though slider is unusable)
+            return; // Stop initialization
         }
-        const numVisible = config.testimonials.visibleCardsDesktop;
+        const numVisible = config.testimonials.visibleCardsDesktop; // Assuming desktop for calculation base
         const numBuffer = config.testimonials.bufferCards;
         totalCardsInDOM = numVisible + 2 * numBuffer;
         console.log(`Initial setup: Visible=${numVisible}, Buffer=${numBuffer}, TotalInDOM=${totalCardsInDOM}, StableStartIdx=${stableVisibleStartIndex}`);
 
         if (localTestimonials.length < totalCardsInDOM) {
             console.warn(`Warning: Not enough unique testimonials (${localTestimonials.length}) to fill the initial track (${totalCardsInDOM}) without potential immediate reuse.`);
+            // Consider allowing initialization anyway, as reuse might be acceptable.
         }
 
+        // Create placeholder cards first
         for (let i = 0; i < totalCardsInDOM; i++) {
-            const cardData = getRandomLocalTestimonial(); // Get random initial data
-            testimonialDataCache.push(cardData); // Add to cache first
             const cardElement = createPlaceholderCard();
             sliderTrack.appendChild(cardElement);
-            cardsInTrack.push(cardElement);
-            updateCardContent(cardElement, cardData); // Update immediately
+            cardsInTrack.push(cardElement); // Add placeholder element to array
         }
-        console.log(`Created and populated ${totalCardsInDOM} initial cards from local data.`);
 
-        await new Promise(resolve => setTimeout(resolve, 60));
+        // Populate the data cache ensuring minimal immediate repeats if possible
+        const initialDataIndices = new Set();
+        while (testimonialDataCache.length < totalCardsInDOM && localTestimonials.length > 0) {
+            let randomIndex = Math.floor(Math.random() * localTestimonials.length);
+            // Simple attempt to avoid immediate duplicate names if enough unique ones exist
+            let attempt = 0;
+            while (testimonialDataCache.some(d => d.name === localTestimonials[randomIndex].name) && attempt < 5 && testimonialDataCache.length + localTestimonials.length > totalCardsInDOM ) {
+                 randomIndex = Math.floor(Math.random() * localTestimonials.length);
+                 attempt++;
+             }
+            testimonialDataCache.push(localTestimonials[randomIndex]);
+        }
+         // If still not enough, fill with potential duplicates
+         while (testimonialDataCache.length < totalCardsInDOM && localTestimonials.length > 0) {
+             testimonialDataCache.push(localTestimonials[Math.floor(Math.random() * localTestimonials.length)]);
+         }
+
+        // Update the placeholder cards with initial data
+        cardsInTrack.forEach((card, index) => {
+            if (testimonialDataCache[index]) {
+                updateCardContent(card, testimonialDataCache[index]);
+            } else {
+                console.warn(`Missing data for card index ${index} during initial population.`);
+                 updateCardContent(card, { name: "Chyba", text: "Data nenalezena.", rating: 0, role: "Systém" });
+             }
+        });
+
+        console.log(`Created and populated ${cardsInTrack.length} initial cards from local data.`);
+
+        // Wait briefly for cards to render before calculating dimensions
+        await new Promise(resolve => setTimeout(resolve, 100)); // Increased delay slightly
 
         if (!calculateCardWidthAndMargin() || cardWidthAndMargin <= 0) {
-            console.error("Could not calculate card dimensions. Aborting slider setup.");
-            sliderTrack.innerHTML = '<p style="color: var(--clr-accent-red);">Chyba layoutu slideru.</p>';
+            console.error("Could not calculate card dimensions after initial population. Aborting slider setup.");
+            sliderTrack.innerHTML = '<p style="color: var(--clr-accent-red); padding: 20px; text-align: center;">Chyba layoutu slideru.</p>';
             isSliding = false;
             return;
         }
 
-        initialLoadComplete = true;
-        setTrackPositionInstantly();
+        // Set initial position without animation
+        initialLoadComplete = true; // Mark as ready BEFORE setting position
+        setTrackPositionInstantly(); // Position based on stable index
 
-        sliderTrack.removeEventListener('transitionend', handleTransitionEnd);
+        // Add the transitionend listener *after* initial setup is complete
+        sliderTrack.removeEventListener('transitionend', handleTransitionEnd); // Clear any previous
         sliderTrack.addEventListener('transitionend', handleTransitionEnd);
 
         console.log("Infinite slider initialized successfully (Local Data).");
-        isSliding = false;
+        isSliding = false; // Ready for user interaction
         prevBtn.disabled = false;
         nextBtn.disabled = false;
      };
 
-    // --- Event Listeners ---
-    prevBtn.addEventListener('click', () => moveSlider(-1));
-    nextBtn.addEventListener('click', () => moveSlider(1));
-    window.addEventListener('resize', debounce(() => {
-        if (!initialLoadComplete) return;
-        // console.log("Window resized, recalculating..."); // Less verbose
-        const oldWidth = cardWidthAndMargin;
-        if (calculateCardWidthAndMargin() && cardWidthAndMargin !== oldWidth) {
-            // console.log("Dimensions changed, resetting track position instantly.");
-            setTrackPositionInstantly();
-        } else if (cardWidthAndMargin <= 0) {
-             console.error("Failed to recalculate dimensions on resize.");
+    // --- Other Initializations (Header Scroll, Mobile Menu, etc.) ---
+
+    // Header scroll effect
+    const handleScroll = () => {
+        if (header) {
+            if (window.scrollY > 50) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
         }
-    }, 250));
+         // Add active class to nav links based on scroll position
+         const sections = document.querySelectorAll('main section[id]');
+         let currentSectionId = '';
+         sections.forEach(section => {
+             const sectionTop = section.offsetTop;
+             const sectionHeight = section.clientHeight;
+             // Adjust trigger point (e.g., activate when section is 1/3 visible)
+             if (window.scrollY >= sectionTop - window.innerHeight / 3) {
+                 currentSectionId = section.getAttribute('id');
+             }
+         });
+
+         const navItems = navLinks.querySelectorAll('.nav-item');
+         navItems.forEach(item => {
+             item.classList.remove('active');
+              // Check if the item's href matches the current section ID
+             if (item.getAttribute('href') === `#${currentSectionId}`) {
+                 item.classList.add('active');
+             }
+         });
+    };
+
+    // Mobile Menu Toggle
+    const toggleMenu = () => {
+        if (hamburger && navLinks && menuOverlay && body && header) {
+            const isActive = hamburger.classList.toggle('active');
+            navLinks.classList.toggle('active', isActive);
+            menuOverlay.classList.toggle('active', isActive);
+            body.classList.toggle('no-scroll', isActive); // Prevent body scroll
+            header.classList.toggle('menu-open', isActive); // Style header when menu is open
+            hamburger.setAttribute('aria-expanded', isActive ? 'true' : 'false');
+        }
+    };
+
+    // Close menu when clicking a link or overlay
+    const closeMenu = () => {
+        if (hamburger && navLinks && menuOverlay && body && header) {
+            if (hamburger.classList.contains('active')) {
+                 hamburger.classList.remove('active');
+                 navLinks.classList.remove('active');
+                 menuOverlay.classList.remove('active');
+                 body.classList.remove('no-scroll');
+                 header.classList.remove('menu-open');
+                 hamburger.setAttribute('aria-expanded', 'false');
+             }
+        }
+    };
+
+    if (hamburger && navLinks && menuOverlay) {
+        hamburger.addEventListener('click', toggleMenu);
+        menuOverlay.addEventListener('click', closeMenu);
+        navLinks.addEventListener('click', (e) => {
+            // Close menu only if a link inside was clicked
+            if (e.target.classList.contains('nav-item') || e.target.closest('.mobile-auth-link')) {
+                closeMenu();
+            }
+        });
+    }
+
+    // Mouse Follower
+    let mouseX = 0, mouseY = 0;
+    let followerX = 0, followerY = 0;
+    let isHoveringInteractable = false;
+
+    const updateFollower = () => {
+        if (!follower || !config.mouseFollower.enabled) return;
+
+        const dx = mouseX - followerX;
+        const dy = mouseY - followerY;
+        followerX += dx * config.mouseFollower.followSpeed;
+        followerY += dy * config.mouseFollower.followSpeed;
+
+        follower.style.transform = `translate(${followerX - follower.offsetWidth / 2}px, ${followerY - follower.offsetHeight / 2}px) scale(${isHoveringInteractable ? config.mouseFollower.hoverScale : 1})`;
+        requestAnimationFrame(updateFollower);
+    };
+
+     // Check if touch device (basic check)
+     const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+
+    if (!isTouchDevice && follower && config.mouseFollower.enabled) {
+        console.log("Initializing mouse follower.");
+        window.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+            follower.style.opacity = '1'; // Make visible on first move
+        });
+
+        // Hide follower if mouse leaves window
+        document.addEventListener('mouseleave', () => {
+             if (follower) follower.style.opacity = '0';
+        });
+         document.addEventListener('mouseenter', () => {
+             if (follower) follower.style.opacity = '0.7'; // Restore default opacity
+         });
+
+        // Hover effect scaling
+        document.querySelectorAll('a, button, .btn').forEach(el => {
+            el.addEventListener('mouseenter', () => isHoveringInteractable = true);
+            el.addEventListener('mouseleave', () => isHoveringInteractable = false);
+        });
+        requestAnimationFrame(updateFollower);
+    } else if (follower) {
+        follower.style.display = 'none'; // Hide follower completely on touch devices
+        console.log("Mouse follower disabled (touch device or config).");
+    }
+
+
+    // Scroll Animations (Intersection Observer)
+    const animatedElements = document.querySelectorAll('[data-animate], [data-animate-letters]');
+    const observerOptions = {
+        root: null, // viewport
+        rootMargin: '0px',
+        threshold: config.animations.scrollThreshold // Trigger when 15% visible
+    };
+
+    const animationObserver = new IntersectionObserver((entries, observer) => {
+        entries.forEach((entry, index) => {
+            if (entry.isIntersecting) {
+                const element = entry.target;
+                if (element.dataset.animateLetters !== undefined) {
+                    // Handle letter animation
+                    if (!element.classList.contains('letters-animating')) {
+                         animateLetters(element);
+                    }
+                } else {
+                     // Handle general fade/slide animation
+                    element.classList.add('animated');
+                 }
+                 observer.unobserve(element); // Stop observing once animated
+             }
+        });
+    }, observerOptions);
+
+    if (animatedElements.length > 0) {
+        animatedElements.forEach(el => {
+             // Set initial animation order delay if defined
+             const delay = parseInt(el.style.getPropertyValue('--animation-order') || '0') * config.animations.staggerDelay;
+             el.style.transitionDelay = `${delay}ms`;
+             animationObserver.observe(el);
+         });
+         console.log(`Observing ${animatedElements.length} elements for scroll animations.`);
+     }
+
+    // Function to animate letters
+    const animateLetters = (element) => {
+        const text = element.textContent;
+         const highlightElement = element.querySelector('.highlight');
+         const highlightText = highlightElement ? highlightElement.dataset.text || highlightElement.textContent : '';
+        element.innerHTML = ''; // Clear original content
+
+        let charIndex = 0;
+        text.split('').forEach(char => {
+            const span = document.createElement('span');
+            span.textContent = char === ' ' ? '\u00A0' : char; // Use non-breaking space
+            span.style.opacity = '0'; // Initially hidden
+            span.style.display = 'inline-block'; // Needed for transform
+
+            // Check if this character is part of the highlight
+            if (highlightElement && text.includes(highlightText) && text.indexOf(highlightText) <= charIndex && charIndex < text.indexOf(highlightText) + highlightText.length) {
+                 if (!element.querySelector('.highlight-wrapper')) {
+                     const wrapper = document.createElement('span');
+                     wrapper.className = 'highlight highlight-wrapper'; // Keep original class + add wrapper class
+                     wrapper.dataset.text = highlightText; // Copy data-text
+                     element.appendChild(wrapper);
+                 }
+                 element.querySelector('.highlight-wrapper').appendChild(span);
+             } else {
+                 element.appendChild(span);
+             }
+
+             // Apply animation with delay
+             const delay = Math.random() * config.animations.letterRandomOffset + charIndex * config.animations.letterDelay;
+             span.style.animation = `letter-pop-in 0.6s ${delay}ms forwards ease-out`;
+
+            charIndex++;
+        });
+         element.classList.add('letters-animating'); // Mark as animating/animated
+    };
+
+    // Footer Year
+    if (yearSpan) {
+        yearSpan.textContent = new Date().getFullYear();
+    }
+
+    // --- AI Demo Simulation ---
+    const aiDemoSteps = [
+        { type: 'status', text: 'AI jádro aktivní. Monitoruji interakce...' },
+        { type: 'status', text: 'Detekováno načtení dat o výkonu studenta ID: 734B' },
+        { type: 'input', text: 'getUserPerformance("734B") --area=algebra --level=základní' },
+        { type: 'process', text: 'Zpracování požadavku...', duration: 800, progress: 15 },
+        { type: 'analysis', text: 'Analýza dat: Nalezeno 156 záznamů...' },
+        { type: 'analysis', text: 'Identifikace slabých míst: Zlomky (úspěšnost 45%), Rovnice (úspěšnost 58%)' },
+        { type: 'analysis', text: 'Silné stránky: Procenta (úspěšnost 92%)' },
+        { type: 'process', text: 'Generování doporučení...', duration: 1200, progress: 40 },
+        { type: 'output', text: 'Doporučení: 3x cvičení na sčítání zlomků, 2x cvičení na lineární rovnice.' },
+        { type: 'input', text: 'generateAdaptivePlan("734B", ["zlomky", "rovnice"])' },
+        { type: 'process', text: 'Vytváření personalizovaného plánu...', duration: 1500, progress: 75 },
+        { type: 'output', text: 'Plán vygenerován: 5 kroků, odhadovaná doba 45 minut.' },
+        { type: 'status', text: 'Aktualizace profilu studenta...' },
+        { type: 'process', text: 'Synchronizace s databází...', duration: 600, progress: 90 },
+        { type: 'status', text: 'Systém připraven pro další vstup.', progress: 100 }
+    ];
+
+    let currentAiStep = 0;
+    let isAiDemoRunning = false;
+    let aiDemoTimeout;
+
+    // Function to add a line to the AI log
+    const addAiLogLine = (text, type) => {
+        if (!aiOutput) return;
+        const line = document.createElement('div');
+        line.className = `ai-log-line ${type}`;
+        line.textContent = `[${new Date().toLocaleTimeString()}] ${text}`;
+        aiOutput.appendChild(line);
+        // Auto-scroll to bottom
+        aiOutput.scrollTop = aiOutput.scrollHeight;
+    };
+
+    // Function to simulate typing in the fake input
+    const simulateTyping = (text, onComplete) => {
+        if (!aiFakeInput) { onComplete(); return; }
+        let index = 0;
+        aiFakeInput.textContent = ''; // Clear previous
+        const interval = setInterval(() => {
+            if (index < text.length) {
+                aiFakeInput.textContent += text.charAt(index);
+                index++;
+            } else {
+                clearInterval(interval);
+                if (onComplete) setTimeout(onComplete, 200); // Short pause after typing
+            }
+        }, config.aiDemo.typingSpeed);
+    };
+
+    // Function to update the progress bar
+    const updateAiProgress = (percentage) => {
+        if (aiProgressBar && aiProgressLabel) {
+            aiProgressBar.style.width = `${percentage}%`;
+            aiProgressBar.setAttribute('aria-valuenow', percentage);
+            // Update label dynamically (optional, could be complex)
+            // aiProgressLabel.textContent = `Průběh: ${percentage}%`;
+        }
+    };
+
+     // Function to run a single step of the AI demo
+     const runAiDemoStep = () => {
+         if (currentAiStep >= aiDemoSteps.length || !aiOutput) {
+             console.log("AI Demo finished or output element not found.");
+             isAiDemoRunning = false;
+             if(aiStatusIndicator) aiStatusIndicator.textContent = 'ČEKÁ';
+             return; // End of demo
+         }
+
+         const step = aiDemoSteps[currentAiStep];
+         const delay = config.aiDemo.stepBaseDelay + Math.random() * config.aiDemo.stepRandomDelay;
+
+         if (step.type === 'input') {
+             simulateTyping(step.text, () => {
+                 addAiLogLine(`> ${step.text}`, step.type);
+                 if (step.progress) updateAiProgress(step.progress);
+                 if (aiProgressLabel) aiProgressLabel.textContent = step.text; // Update label for context
+                 currentAiStep++;
+                 aiDemoTimeout = setTimeout(runAiDemoStep, delay / 2); // Shorter delay after typing
+             });
+         } else {
+             addAiLogLine(step.text, step.type);
+             if (step.progress) updateAiProgress(step.progress);
+             if (aiProgressLabel && step.type !== 'status') aiProgressLabel.textContent = step.text; // Update label
+             currentAiStep++;
+             aiDemoTimeout = setTimeout(runAiDemoStep, delay + (step.duration || 0));
+         }
+         if(aiStatusIndicator) aiStatusIndicator.textContent = 'ZPRACOVÁVÁ';
+     };
+
+     // Intersection Observer for AI Demo section
+     const aiDemoObserver = new IntersectionObserver((entries) => {
+         entries.forEach(entry => {
+             if (config.aiDemo.enabled && entry.isIntersecting && !isAiDemoRunning) {
+                 console.log("AI Demo section intersecting, starting simulation.");
+                 isAiDemoRunning = true;
+                 currentAiStep = 0; // Reset demo
+                 if (aiOutput) aiOutput.innerHTML = ''; // Clear previous logs
+                 updateAiProgress(0); // Reset progress bar
+                 if (aiProgressLabel) aiProgressLabel.textContent = 'Inicializace...';
+                 if (aiFakeInput) aiFakeInput.textContent = '';
+                 runAiDemoStep(); // Start the demo
+             } else if (!entry.isIntersecting && isAiDemoRunning) {
+                 console.log("AI Demo section left viewport, pausing simulation.");
+                 clearTimeout(aiDemoTimeout); // Pause demo
+                 isAiDemoRunning = false;
+                 if(aiStatusIndicator) aiStatusIndicator.textContent = 'POZASTAVENO';
+             }
+         });
+     }, { threshold: 0.5 }); // Trigger when 50% visible
+
+     if (demoSection && config.aiDemo.enabled) {
+         aiDemoObserver.observe(demoSection);
+     } else {
+         console.log("AI Demo disabled or section not found.");
+          if (aiProgressLabel) aiProgressLabel.textContent = 'AI Demo není aktivní';
+          if (aiOutput) addAiLogLine('AI Demo je momentálně neaktivní.', 'status');
+     }
+
+    // Add scroll listener
+    window.addEventListener('scroll', debounce(handleScroll, 50));
+    handleScroll(); // Initial check
 
     // --- Initialize Components ---
-    // [Ensure other initializations like AI Demo etc. are called if needed]
-    // ...
     initializeInfiniteSlider(); // Initialize the slider
 
     // --- Final Log ---
