@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
@@ -17,16 +18,20 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/css/tooltipster.bundle.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/js/tooltipster.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <link rel="stylesheet" href="../dashboard.css">
-    <link rel="stylesheet" href="main.css">
-</head>
+
+    <link rel="stylesheet" href="../dashboard.css"> <link rel="stylesheet" href="main.css">      </head>
 <body class="dark">
     <div class="initial-loading-overlay" id="initial-loader">
          <div class="loading-spinner"></div>
          <p>SYNCHRONIZACE PROCVIČOVÁNÍ...</p>
      </div>
 
+    <div class="offline-banner" id="offline-banner" style="display: none;">
+         <i class="fas fa-plug"></i> OFFLINE // SPOJENÍ ZTRACENO.
+     </div>
+
     <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <button class="mobile-menu-toggle" id="sidebar-close-toggle" aria-label="Zavřít menu">
@@ -54,8 +59,7 @@
         <div class="sidebar-footer"> &copy; <span id="currentYearSidebar">2025</span> Justax Systems </div>
     </aside>
 
-    <main id="main-content">
-        <div class="error-container" id="global-error"></div>
+    <main id="main-content" style="display: none;"> <div class="error-container" id="global-error" style="display: none;"></div>
 
         <header class="dashboard-header">
             <div class="header-content">
@@ -104,8 +108,14 @@
         </header>
 
         <div class="main-content-wrapper">
+            <div class="diagnostic-prompt card" id="diagnostic-prompt" style="display: none;" data-animate>
+                 <i class="fas fa-exclamation-circle"></i>
+                 <p>Pro odemčení personalizovaného obsahu a studijního plánu je potřeba absolvovat <strong>diagnostický test</strong>.</p>
+                 <a href="test1.html" class="btn btn-primary" id="start-test-btn-prompt"><i class="fas fa-play"></i> Spustit test</a>
+             </div>
+
             <div class="tabs-wrapper">
-                <div class="content-tabs">
+                <div class="content-tabs" id="content-tabs">
                     <div class="content-tab active" data-tab="practice-tab">
                         <i class="fas fa-laptop-code"></i> Přehled Procvičování
                     </div>
@@ -123,11 +133,6 @@
 
             <div class="tab-content-container">
                 <div class="tab-content active" id="practice-tab">
-                     <div class="diagnostic-prompt card" id="diagnostic-prompt" style="display: none;" data-animate>
-                         <i class="fas fa-exclamation-circle"></i>
-                         <p>Pro odemčení personalizovaného obsahu a studijního plánu je potřeba absolvovat <strong>diagnostický test</strong>.</p>
-                         <a href="test1.html" class="btn btn-primary" id="start-test-btn-prompt"><i class="fas fa-play"></i> Spustit test</a>
-                     </div>
                     <section class="stats-section">
                         <h2 class="section-title" data-animate style="--animation-order: 1;"><i class="fas fa-chart-pie"></i>Celkový Přehled</h2>
                         <div class="dashboard-grid loading" id="stats-cards">
@@ -173,10 +178,10 @@
                                  </div>
                                  <div class="card-header"> <h3 class="card-title">Nejslabší Téma</h3> </div>
                                  <div class="card-content"> <div class="card-value" id="stats-weakest-topic" style="font-size: 1.8rem;">-</div> <p class="card-description">Oblast s nejnižší úspěšností</p> </div>
-                                 <div class="card-footer"><i class="fas fa-atom"></i> Na základě posledního testu</div>
+                                 <div class="card-footer"><i class="fas fa-atom"></i> Poslední analýza</div>
                             </div>
                         </div>
-                        </section>
+                    </section>
                     <section class="shortcuts-section">
                         <h2 class="section-title" data-animate style="--animation-order: 6;"><i class="fas fa-rocket"></i>Rychlé Akce</h2>
                          <div class="shortcut-grid loading" id="shortcuts-grid">
@@ -204,8 +209,8 @@
                                  <p class="shortcut-desc">Ověřte své znalosti a získejte personalizovaný plán.</p>
                                  <a href="/dashboard/procvicovani/test1.html" class="btn btn-secondary btn-sm" style="margin-top: auto;">Spustit</a>
                              </div>
-                             </div>
-                        </section>
+                         </div>
+                    </section>
                 </div>
 
                 <div class="tab-content" id="test-results-tab">
@@ -213,107 +218,42 @@
                         <h2 class="section-title"><i class="fas fa-poll"></i>Historie Testů</h2>
                         <div class="loading-overlay hidden" id="test-results-loading"> <div class="loading-spinner"></div> </div>
                         <div id="test-results-content" style="display: none;">
-                             <div class="test-stats loading" id="test-stats">
-                                <div class="stats-card loading"><div class="loading-skeleton" style="padding: 1.5rem; align-items: center;"><div class="skeleton" style="width: 50px; height: 50px; border-radius: 14px; margin-bottom: 1rem;"></div><div class="skeleton" style="height: 28px; width: 50%; margin-bottom: 0.5rem;"></div><div class="skeleton" style="height: 14px; width: 70%;"></div></div></div>
-                                <div class="stats-card loading"><div class="loading-skeleton" style="padding: 1.5rem; align-items: center;"><div class="skeleton" style="width: 50px; height: 50px; border-radius: 14px; margin-bottom: 1rem;"></div><div class="skeleton" style="height: 28px; width: 45%; margin-bottom: 0.5rem;"></div><div class="skeleton" style="height: 14px; width: 65%;"></div></div></div>
-                                <div class="stats-card loading"><div class="loading-skeleton" style="padding: 1.5rem; align-items: center;"><div class="skeleton" style="width: 50px; height: 50px; border-radius: 14px; margin-bottom: 1rem;"></div><div class="skeleton" style="height: 28px; width: 55%; margin-bottom: 0.5rem;"></div><div class="skeleton" style="height: 14px; width: 75%;"></div></div></div>
                             </div>
-                            <div class="chart-container loading"> <div class="skeleton" style="height: 350px; width: 100%;"></div> </div>
-                             <div class="last-test-result card loading" id="last-test-result"> <div class="loading-skeleton" style="padding: 1.5rem;"><div class="skeleton" style="height: 20px; width: 60%; margin-bottom: 1rem;"></div><div class="skeleton" style="height: 14px; width: 40%; margin-bottom: 0.5rem;"></div><div class="skeleton" style="height: 28px; width: 30%; margin-left: auto;"></div></div> </div>
-                            <div class="test-list loading" id="test-history"><div class="skeleton" style="height: 70px; width: 100%; margin-bottom: 1rem;"></div><div class="skeleton" style="height: 70px; width: 100%;"></div></div>
-                        </div>
                         <div class="empty-state" id="test-results-empty" style="display: none;">
-                            <i class="fas fa-clipboard-question"></i>
-                            <h3 id="empty-state-title">Žádné výsledky testů</h3>
-                            <p id="empty-state-message">Zatím jste neabsolvovali žádný diagnostický test.</p>
-                            <a href="test1.html" class="btn btn-primary" id="start-test-btn-results">
-                                <i class="fas fa-play"></i> <span id="empty-state-button-text">Spustit diagnostický test</span>
-                            </a>
-                        </div>
+                            </div>
                     </section>
                 </div>
 
-                 <div class="tab-content" id="study-plan-tab">
-                    <section class="study-plan-section card loading" id="study-plan-container">
+                <div class="tab-content" id="study-plan-tab">
+                     <section class="study-plan-section card loading" id="study-plan-container">
                         <h2 class="section-title"><i class="fas fa-route"></i>Aktuální Studijní Plán</h2>
                         <div class="loading-overlay hidden" id="study-plan-loading"> <div class="loading-spinner"></div> </div>
                         <div id="study-plan-content" style="display: none;">
-                             <div class="schedule-grid loading" id="main-plan-schedule">
-                                <div class="schedule-day card loading">
-                                    <div class="loading-skeleton" style="padding: 1.5rem;">
-                                        <div class="skeleton" style="height: 24px; width: 40%; margin-bottom: 1rem;"></div>
-                                        <div class="skeleton" style="height: 50px; width: 100%; margin-bottom: 0.8rem;"></div>
-                                        <div class="skeleton" style="height: 50px; width: 100%;"></div>
-                                    </div>
-                                </div>
-                                <div class="schedule-day card loading">
-                                     <div class="loading-skeleton" style="padding: 1.5rem;">
-                                         <div class="skeleton" style="height: 24px; width: 50%; margin-bottom: 1rem;"></div>
-                                         <div class="skeleton" style="height: 50px; width: 100%; margin-bottom: 0.8rem;"></div>
-                                     </div>
-                                 </div>
                             </div>
-                            <div class="full-plan-link-container">
-                                <a href="plan.html" class="btn btn-secondary">Zobrazit celý plán a detaily</a>
-                            </div>
-                        </div>
                         <div class="empty-state" id="study-plan-empty" style="display: none;">
-                            <i class="far fa-calendar-times"></i>
-                            <h3>Žádný aktivní plán</h3>
-                            <p>Vytvořte si nový plán absolvováním diagnostického testu.</p>
-                            <a href="test1.html" class="btn btn-primary" id="start-test-btn-plan"> <i class="fas fa-play"></i> Spustit test </a>
-                        </div>
-                   </section>
+                            </div>
+                    </section>
                 </div>
 
-                 <div class="tab-content" id="topic-analysis-tab">
+                <div class="tab-content" id="topic-analysis-tab">
                     <section class="topic-analysis-section card loading" id="topic-analysis-container">
                         <h2 class="section-title"><i class="fas fa-atom"></i>Analýza podle Témat</h2>
                         <div class="loading-overlay hidden" id="topic-analysis-loading"> <div class="loading-spinner"></div> </div>
                         <div id="topic-analysis-content" style="display: none;">
-                            <div class="topic-grid loading" id="topic-grid">
-                                <div class="topic-card card loading">
-                                    <div class="loading-skeleton" style="padding: 1.5rem;">
-                                        <div style="display: flex; gap: 0.8rem; margin-bottom: 1rem;"> <div class="skeleton" style="width: 50px; height: 50px; border-radius: 14px; flex-shrink: 0;"></div> <div class="skeleton" style="height: 20px; width: 60%; margin-top: 5px;"></div> </div>
-                                        <div class="skeleton" style="height: 14px; width: 70%; margin-bottom: 0.5rem;"></div>
-                                        <div class="skeleton" style="height: 9px; width: 100%; margin-bottom: 0.75rem;"></div>
-                                        <div class="skeleton" style="height: 14px; width: 50%;"></div>
-                                    </div>
-                                </div>
-                                <div class="topic-card card loading">
-                                     <div class="loading-skeleton" style="padding: 1.5rem;">
-                                         <div style="display: flex; gap: 0.8rem; margin-bottom: 1rem;"> <div class="skeleton" style="width: 50px; height: 50px; border-radius: 14px; flex-shrink: 0;"></div> <div class="skeleton" style="height: 20px; width: 75%; margin-top: 5px;"></div> </div>
-                                         <div class="skeleton" style="height: 14px; width: 60%; margin-bottom: 0.5rem;"></div>
-                                         <div class="skeleton" style="height: 9px; width: 100%; margin-bottom: 0.75rem;"></div>
-                                         <div class="skeleton" style="height: 14px; width: 55%;"></div>
-                                     </div>
-                                 </div>
-                                 <div class="topic-card card loading">
-                                     <div class="loading-skeleton" style="padding: 1.5rem;">
-                                         <div style="display: flex; gap: 0.8rem; margin-bottom: 1rem;"> <div class="skeleton" style="width: 50px; height: 50px; border-radius: 14px; flex-shrink: 0;"></div> <div class="skeleton" style="height: 20px; width: 65%; margin-top: 5px;"></div> </div>
-                                         <div class="skeleton" style="height: 14px; width: 65%; margin-bottom: 0.5rem;"></div>
-                                         <div class="skeleton" style="height: 9px; width: 100%; margin-bottom: 0.75rem;"></div>
-                                         <div class="skeleton" style="height: 14px; width: 50%;"></div>
-                                     </div>
-                                 </div>
-                            </div>
-                        </div>
+                           </div>
                         <div class="empty-state" id="topic-analysis-empty" style="display: none;">
-                             <i class="fas fa-search-minus"></i>
-                            <h3>Chybí data pro analýzu</h3>
-                            <p>Absolvujte nejprve diagnostický test, abychom mohli analyzovat vaše silné a slabé stránky.</p>
-                            <a href="test1.html" class="btn btn-primary" id="start-test-btn-analysis"> <i class="fas fa-play"></i> Spustit test </a>
-                        </div>
+                           </div>
                     </section>
                 </div>
-            </div>
-            <footer class="dashboard-footer">
+            </div> <footer class="dashboard-footer">
                  <p>&copy; <span id="currentYearFooter">2025</span> Justax Systems // Secure Channel</p>
             </footer>
-        </div>
-    </main>
+        </div> </main>
+
     <div class="toast-container" id="toast-container"></div>
+
     <div id="mouse-follower" class="mouse-follower-glow"></div>
+
     <script src="../dashboard.js" defer></script>
     <script src="main.js" defer></script>
 </body>
