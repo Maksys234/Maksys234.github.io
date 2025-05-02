@@ -1,14 +1,14 @@
 /**
  * JUSTAX Landing Page Script
  * Handles UI interactions, animations, and **INFINITE** testimonial slider using a local data array.
- * Version: v2.13 (Czech AI Demo + Testimonial Text Check)
+ * Version: v2.12 (Simplified Roles - FINAL)
  * Author: Gemini Modification
- * Date: 2025-05-02 // Updated AI Demo, added text logging
+ * Date: 2025-05-02 // Removed teachers, simplified roles
  *
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log("DOM Ready. Initializing JUSTAX Interface v2.13 (Czech AI Demo)...");
+    console.log("DOM Ready. Initializing JUSTAX Interface v2.12 (Simplified Roles - Local Data)...");
 
     // --- Global Variables & DOM References ---
     const body = document.body;
@@ -35,13 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const config = {
         mouseFollower: { enabled: true, followSpeed: 0.1, clickScale: 0.8, hoverScale: 1.6 },
         animations: { scrollThreshold: 0.15, staggerDelay: 120, letterDelay: 40, letterRandomOffset: 250 },
-        // --- AI Demo Config ---
-        aiDemo: {
-            enabled: true,
-            typingSpeed: 45, // Slightly adjusted speed
-            stepBaseDelay: 250, // Base delay between steps
-            stepRandomDelay: 500 // Random additional delay
-        },
+        aiDemo: { enabled: true, typingSpeed: 40, stepBaseDelay: 200, stepRandomDelay: 450 },
         testimonials: {
             placeholderAvatarBaseUrl: 'https://placehold.co/100x100/',
             visibleCardsDesktop: 3,
@@ -62,9 +56,9 @@ document.addEventListener('DOMContentLoaded', () => {
     let initialLoadComplete = false;
     let transitionEndCounter = 0;
 
-    // --- Hardcoded Testimonial Data (Simplified Roles) ---
-    // [~70+ Testimonials from v2.12]
+    // --- REVISED Hardcoded Testimonial Data (Teachers Removed, Roles Simplified) ---
     localTestimonials = [
+        // Students (Mix of names, nicknames, initials) - Role always 'Student' or 'Studentka'
         { name: "Petra N.", role: "Studentka", rating: 5, text: "Skvělá příprava na přijímačky! AI mi přesně ukázala, co potřebuju dohnat. Doporučuji!" },
         { name: "Tomáš 'Vory' V.", role: "Student", rating: 4.5, text: "Adaptivní učení je super. Nemusím procházet to, co už umím. Ušetřilo mi to spoustu času." },
         { name: "Aneta", role: "Studentka", rating: 5, text: "Konečně chápu zlomky! Interaktivní cvičení jsou zábavná a vysvětlení jasná." },
@@ -124,6 +118,8 @@ document.addEventListener('DOMContentLoaded', () => {
         { name: "Hedvika D.", role: "Studentka", rating: 5, text: "Platforma mi pomohla zorganizovat si učení a dodržovat studijní plán." },
         { name: "Radim J.", role: "Student", rating: 4.5, text: "AI je skvělá v identifikaci mých slabých míst a doporučení cvičení." },
         { name: "Alice K.", role: "Studentka", rating: 5, text: "Stoprocentně doporučuji všem, kdo bojují s matematikou!" },
+
+        // Parents (Role always 'Rodič')
         { name: "Jana K.", role: "Rodič", rating: 5, text: "Syn se výrazně zlepšil v matematice. Platforma ho baví a motivuje." },
         { name: "Petr S.", role: "Rodič", rating: 4.5, text: "Oceňuji přehled o pokroku dcery. Vidím, na čem pracuje a jak jí to jde." },
         { name: "Lenka P.", role: "Rodič", rating: 5, text: "Investice, která se vyplatila. Dcera zvládla přijímačky bez stresu a doučování." },
@@ -153,14 +149,14 @@ document.addEventListener('DOMContentLoaded', () => {
         { name: "Dalibor P.", role: "Rodič", rating: 4.5, text: "Líbí se nám podrobná analýza chyb, kterou AI poskytuje." },
         { name: "Luděk R.", role: "Rodič", rating: 4.5, text: "Cena za roční předplatné je velmi rozumná vzhledem k možnostem." },
         { name: "Helena", role: "Rodič", rating: 4.5, text: "Syn si konečně věří v matice. Platforma mu dodala sebevědomí." },
-        { name: "Ludmila K.", role: "Rodič", rating: 5, text: "Koupila jsem vnukovi k Vánocům a je nadšený. Pomáhá mu to." },
+        { name: "Ludmila K.", role: "Rodič", rating: 5, text: "Koupila jsem vnukovi k Vánocům a je nadšený. Pomáhá mu to." }, // Assuming Babička = Rodič
         { name: "Věra", role: "Rodič", rating: 5, text: "Klidnější rána před písemkou. Dcera je lépe připravená." },
         { name: "Oldřich P.", role: "Rodič", rating: 4, text: "Dobrá investice do budoucnosti dítěte." },
         { name: "Božena M.", role: "Rodič", rating: 4.5, text: "Syn se učí rychleji a efektivněji než s učebnicí." }
     ];
     console.log(`Loaded ${localTestimonials.length} revised (Student/Rodič only) local testimonials.`);
 
-    // --- Utility Functions & Core Logic ---
+    // --- Utility Functions & Core Logic (Identical to v2.10) ---
 
     const debounce = (func, wait) => {
         let timeout;
@@ -209,20 +205,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const roleEl = cardElement.querySelector('.testimonial-role');
         const avatarEl = cardElement.querySelector('.testimonial-avatar');
         const name = data.name || 'Uživatel';
-        const role = data.role || 'Neznámý';
+        const role = data.role || 'Neznámý'; // Use simplified role from data
         const rating = data.rating;
         const text = data.text || 'Chybí text recenze.';
-
-        // --- Logging for text issue ---
-        if (!text || text.trim() === '') {
-            console.warn(`updateCardContent: Empty text received for card. Name: ${name}, Role: ${role}`);
-        }
-        // --- End Logging ---
-
         if (ratingEl) { ratingEl.innerHTML = generateStarsHTML(rating); ratingEl.setAttribute('aria-label', `Hodnocení: ${rating?.toFixed(1) || 0} z 5 hvězdiček`); }
-        if (textEl) textEl.textContent = text; // Assign text here
+        if (textEl) textEl.textContent = text;
         if (nameEl) nameEl.textContent = name;
-        if (roleEl) roleEl.textContent = role;
+        if (roleEl) roleEl.textContent = role; // Display the role (Student/Rodič)
         if (avatarEl) { const initials = name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase() || '??'; const colors = getRandomColorPair(); const avatarUrl = `${config.testimonials.placeholderAvatarBaseUrl}${colors.bg}/${colors.text}/png?text=${encodeURIComponent(initials)}&font=poppins`; avatarEl.style.backgroundImage = `url('${avatarUrl}')`; avatarEl.setAttribute('aria-label', `Avatar ${name}`); }
      };
     const getRandomLocalTestimonial = () => {
@@ -232,6 +221,7 @@ document.addEventListener('DOMContentLoaded', () => {
             console.warn("No unique testimonials available outside the current cache. Falling back to any random item.");
             availableTestimonials = localTestimonials;
         }
+         // Ensure we don't crash if localTestimonials is empty for some reason
          if (availableTestimonials.length === 0) {
              return { name: "Chyba", text: "Žádné dostupné recenze.", rating: 0, role: "Systém" };
          }
@@ -245,15 +235,16 @@ document.addEventListener('DOMContentLoaded', () => {
              if (!placeholderCard) return 0;
              const pStyle = window.getComputedStyle(placeholderCard);
              const pWidth = placeholderCard.offsetWidth;
-             const pMarginRight = parseFloat(pStyle.marginRight) || 0;
+             const pMarginRight = parseFloat(pStyle.marginRight) || 0; // Ensure default 0 if margin not set
              if (pWidth > 0) { cardWidthAndMargin = pWidth + pMarginRight; return cardWidthAndMargin; }
              return 0;
          }
          const style = window.getComputedStyle(firstCard);
          const width = firstCard.offsetWidth;
-         const marginRight = parseFloat(style.marginRight) || 0;
+         const marginRight = parseFloat(style.marginRight) || 0; // Ensure default 0
          if (width === 0) { console.warn("calculateCardWidthAndMargin: First non-loading card has zero width."); return 0; }
          cardWidthAndMargin = width + marginRight;
+         // console.log(`Recalculated cardWidthAndMargin: ${cardWidthAndMargin}px (Width: ${width}, Margin: ${marginRight})`);
          return cardWidthAndMargin;
      };
     const setTrackPositionInstantly = () => {
@@ -263,11 +254,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const position = -stableVisibleStartIndex * cardWidthAndMargin;
         sliderTrack.style.transform = `translateX(${position}px)`;
         void sliderTrack.offsetHeight;
-        if (!isSliding) {
+        if (!isSliding) { // Re-enable only if not sliding
             sliderTrack.style.transition = `transform ${config.testimonials.slideDuration / 1000}s cubic-bezier(0.65, 0, 0.35, 1)`;
         }
-        sliderTrack.removeEventListener('transitionend', handleTransitionEnd);
+        sliderTrack.removeEventListener('transitionend', handleTransitionEnd); // Ensure clean
         sliderTrack.addEventListener('transitionend', handleTransitionEnd);
+        // console.log(`Track position INSTANTLY set for stable index ${stableVisibleStartIndex} (translateX: ${position}px)`);
      };
     const handleTransitionEnd = (event) => {
         if (event.target !== sliderTrack || event.propertyName !== 'transform' || !initialLoadComplete || !isSliding) {
@@ -275,15 +267,20 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         const direction = parseInt(sliderTrack.dataset.slideDirection || "0");
         transitionEndCounter++;
+        // console.log(`Transition ended (#${transitionEndCounter}). Direction: ${direction}.`);
+
         if (direction === 0) {
-            console.warn(`Transition ended (#${transitionEndCounter}) but direction was 0. Resetting state.`);
+            console.warn("Transition ended but direction was 0. Resetting state.");
             isSliding = false;
             prevBtn.disabled = false;
             nextBtn.disabled = false;
             return;
         }
+
         const newData = getRandomLocalTestimonial();
+
         sliderTrack.style.transition = 'none';
+
         try {
             if (direction > 0) { // Moved Right
                 const firstCard = cardsInTrack.shift();
@@ -309,26 +306,35 @@ document.addEventListener('DOMContentLoaded', () => {
             nextBtn.disabled = true;
             return;
         }
-        setTrackPositionInstantly();
+
+        setTrackPositionInstantly(); // Reset position based on stable index
+
         sliderTrack.dataset.slideDirection = "0";
         isSliding = false;
+
         prevBtn.disabled = false;
         nextBtn.disabled = false;
+        // console.log("handleTransitionEnd complete.");
      };
     const moveSlider = (direction) => {
          if (isSliding || !initialLoadComplete) { return; }
         isSliding = true;
         prevBtn.disabled = true;
         nextBtn.disabled = true;
+        // console.log(`Moving slider. Direction: ${direction}.`);
+
         sliderTrack.dataset.slideDirection = direction.toString();
+
         const currentTransform = sliderTrack.style.transform;
         const currentTranslateX = parseFloat(currentTransform.replace(/[^-\d.]/g, '')) || (-stableVisibleStartIndex * cardWidthAndMargin);
         const newTranslateX = currentTranslateX - (direction * cardWidthAndMargin);
+
         sliderTrack.style.transition = `transform ${config.testimonials.slideDuration / 1000}s cubic-bezier(0.65, 0, 0.35, 1)`;
         sliderTrack.style.transform = `translateX(${newTranslateX}px)`;
+        // console.log(`Animating transform to: ${newTranslateX}px`);
      };
     const initializeInfiniteSlider = async () => {
-         console.log("Starting infinite slider initialization v2.12...");
+         console.log("Starting infinite slider initialization v2.12 (Simplified Roles)...");
         isSliding = true;
         initialLoadComplete = false;
         prevBtn.disabled = true;
@@ -355,12 +361,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         for (let i = 0; i < totalCardsInDOM; i++) {
-            const cardData = getRandomLocalTestimonial();
-            testimonialDataCache.push(cardData);
+            const cardData = getRandomLocalTestimonial(); // Get random initial data
+            testimonialDataCache.push(cardData); // Add to cache first
             const cardElement = createPlaceholderCard();
             sliderTrack.appendChild(cardElement);
             cardsInTrack.push(cardElement);
-            updateCardContent(cardElement, cardData);
+            updateCardContent(cardElement, cardData); // Update immediately
         }
         console.log(`Created and populated ${totalCardsInDOM} initial cards from local data.`);
 
@@ -385,101 +391,23 @@ document.addEventListener('DOMContentLoaded', () => {
         nextBtn.disabled = false;
      };
 
-    // --- AI Demo Simulation (REVISED for Czech & 9th Grade Topic) ---
-    if (config.aiDemo.enabled && demoSection && aiOutput && aiProgressBar && aiProgressLabel && aiFakeInput && aiStatusIndicator) {
-        let currentTextIndex = 0;
-        let currentProgress = 0;
-        let demoIsRunning = false;
-        let demoTimeoutId = null;
+    // --- Event Listeners ---
+    prevBtn.addEventListener('click', () => moveSlider(-1));
+    nextBtn.addEventListener('click', () => moveSlider(1));
+    window.addEventListener('resize', debounce(() => {
+        if (!initialLoadComplete) return;
+        // console.log("Window resized, recalculating..."); // Less verbose
+        const oldWidth = cardWidthAndMargin;
+        if (calculateCardWidthAndMargin() && cardWidthAndMargin !== oldWidth) {
+            // console.log("Dimensions changed, resetting track position instantly.");
+            setTrackPositionInstantly();
+        } else if (cardWidthAndMargin <= 0) {
+             console.error("Failed to recalculate dimensions on resize.");
+        }
+    }, 250));
 
-        // --- NEW Czech Demo Texts (Linear Equations Example) ---
-        const demoTexts = [
-            { text: "Inicializace systému Justax AI...", type: "status", delay: 500 },
-            { text: "Načítání kognitivního jádra v21...", type: "status" },
-            { text: "Připojování k databázi znalostí (Algebra)...", type: "status" },
-            { text: "Požadavek přijat: Vysvětlit 'Lineární rovnice' (9. třída)", type: "input", inputSpeed: 50 },
-            { text: "Analyzuji profil studenta: 'Lucie_P'", type: "process" },
-            { text: "Identifikuji klíčové koncepty: neznámá, koeficient, ekvivalentní úpravy...", type: "analysis", progressText: "Analýza konceptů" },
-            { text: "Detekuji časté chyby: nesprávné převádění členů, znaménkové chyby.", type: "warning", progressText: "Detekce chyb" },
-            { text: "Generuji vysvětlení...", type: "process", progressText: "Generování..." },
-            { text: "Lineární rovnice je rovnost se dvěma výrazy, kde neznámá (obvykle 'x') je v první mocnině.", type: "output" },
-            { text: "Cílem je najít hodnotu neznámé, pro kterou rovnost platí.", type: "output" },
-            { text: "Používáme ekvivalentní úpravy (přičítání/odčítání stejného čísla k oběma stranám, násobení/dělení nenulovým číslem).", type: "output", delay: 400 },
-            { text: "Příklad: 3x + 5 = 11", type: "input", inputSpeed: 40 },
-            { text: "Krok 1: Odečteme 5 od obou stran.", type: "process", progressText: "Řešení příkladu" },
-            { text: "   3x + 5 - 5 = 11 - 5", type: "output" },
-            { text: "   3x = 6", type: "output" },
-            { text: "Krok 2: Vydělíme obě strany 3.", type: "process" },
-            { text: "   3x / 3 = 6 / 3", type: "output" },
-            { text: "   x = 2", type: "output" },
-            { text: "Zkouška: Dosadíme x=2 do původní rovnice: 3*(2) + 5 = 6 + 5 = 11. Platí.", type: "analysis", progressText: "Ověření" },
-            { text: "Navrhuji interaktivní cvičení na ekvivalentní úpravy...", type: "process", progressText: "Návrh cvičení" },
-            { text: "Vysvětlení kompletní. Připraveno k procvičování.", type: "status", delay: 500, final: true },
-        ];
-        // --- End NEW Demo Texts ---
-
-        const progressIncrement = 100 / (demoTexts.length - 1 || 1);
-        const typeText = (element, text, speed) => new Promise((resolve) => {
-             let i = 0; element.textContent = ''; const intervalId = setInterval(() => { if (i < text.length) { element.textContent += text.charAt(i); i++; } else { clearInterval(intervalId); resolve(); } }, speed);
-         });
-        const runAIDemoStep = async () => {
-             if (currentTextIndex >= demoTexts.length || !demoIsRunning) { aiStatusIndicator.textContent = "NEAKTIVNÍ"; aiProgressLabel.textContent = currentTextIndex >= demoTexts.length ? "Zpracování dokončeno" : "Simulace zastavena"; if(currentTextIndex >= demoTexts.length) aiProgressBar.style.width = '100%'; demoIsRunning = false; if (demoTimeoutId) clearTimeout(demoTimeoutId); return; }
-             const item = demoTexts[currentTextIndex];
-             const logLine = document.createElement('p');
-             logLine.classList.add('ai-log-line', item.type || 'status');
-             logLine.setAttribute('role', 'logitem');
-             aiStatusIndicator.textContent = item.progressText || "ZPRACOVÁVÁM";
-             if (item.type === 'input') {
-                 aiFakeInput.parentElement?.classList.add('typing');
-                 await typeText(aiFakeInput, item.text, item.inputSpeed || config.aiDemo.typingSpeed);
-                 await new Promise(resolve => setTimeout(resolve, 300));
-                 logLine.textContent = `> ${item.text}`;
-                 aiFakeInput.textContent = '';
-                 aiFakeInput.parentElement?.classList.remove('typing');
-             } else {
-                 await typeText(logLine, item.text, config.aiDemo.typingSpeed);
-             }
-             aiOutput.appendChild(logLine);
-             aiOutput.scrollTo({ top: aiOutput.scrollHeight, behavior: 'smooth' });
-             if (currentTextIndex > 0 || demoTexts.length === 1) currentProgress += progressIncrement;
-             const displayProgress = Math.min(currentProgress, 100);
-             aiProgressBar.style.width = `${displayProgress}%`;
-             aiProgressBar.setAttribute('aria-valuenow', Math.round(displayProgress));
-             aiProgressLabel.textContent = `${item.progressText || item.type.toUpperCase() || 'STATUS'} // ${item.text.substring(0, 35)}...`;
-             currentTextIndex++;
-             const delay = (item.delay || 0) + config.aiDemo.stepBaseDelay + Math.random() * config.aiDemo.stepRandomDelay;
-             if (demoIsRunning) demoTimeoutId = setTimeout(runAIDemoStep, delay);
-         };
-        const startDemo = () => {
-             if (demoIsRunning) return;
-             console.log("AI Demo section intersecting, starting simulation...");
-             demoIsRunning = true;
-             aiOutput.innerHTML = '';
-             aiFakeInput.textContent = '';
-             aiProgressBar.style.width = '0%';
-             aiProgressBar.setAttribute('aria-valuenow', '0');
-             aiStatusIndicator.textContent = "INICIALIZACE";
-             aiProgressLabel.textContent = "Inicializace // Čekání...";
-             currentTextIndex = 0;
-             currentProgress = 0;
-             if (demoTimeoutId) clearTimeout(demoTimeoutId);
-             runAIDemoStep();
-         };
-        const stopDemo = () => {
-             if (!demoIsRunning) return;
-             console.log("AI Demo section out of view, stopping simulation.");
-             demoIsRunning = false;
-             if (demoTimeoutId) clearTimeout(demoTimeoutId);
-             aiStatusIndicator.textContent = "POZASTAVENO";
-             aiProgressLabel.textContent = "Simulace pozastavena // Posuňte se dolů pro pokračování";
-        };
-        const demoObserver = new IntersectionObserver((entries) => entries.forEach(entry => { if (entry.isIntersecting) startDemo(); else stopDemo(); }), { threshold: 0.5 });
-        if (demoSection) demoObserver.observe(demoSection);
-        console.log("AI Demo observer attached.");
-    } else console.warn("AI Demo elements or section not found, or demo disabled in config.");
-
-    // --- Event Listeners & Initializations ---
-    // [Header, Menu, Mouse, Scroll Anim, Smooth Scroll initializations remain the same]
+    // --- Initialize Components ---
+    // [Ensure other initializations like AI Demo etc. are called if needed]
     // ...
     initializeInfiniteSlider(); // Initialize the slider
 
