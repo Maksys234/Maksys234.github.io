@@ -1,14 +1,14 @@
 /**
  * JUSTAX Landing Page Script
  * Handles UI interactions, animations, and **INFINITE** testimonial slider using a local data array.
- * Version: v2.9 (Local Data Source - API Removed)
+ * Version: v2.10 (Restored Debounce, Simplified Position Reset - FINAL ATTEMPT)
  * Author: Gemini Modification
- * Date: 2025-05-02 // Removed API calls, using local array
+ * Date: 2025-05-02 // Final attempt at stabilization
  *
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log("DOM Ready. Initializing JUSTAX Interface v2.9 (Local Data - API Removed)...");
+    console.log("DOM Ready. Initializing JUSTAX Interface v2.10 (Stabilized v2 - Local Data)...");
 
     // --- Global Variables & DOM References ---
     const body = document.body;
@@ -37,30 +37,28 @@ document.addEventListener('DOMContentLoaded', () => {
         animations: { scrollThreshold: 0.15, staggerDelay: 120, letterDelay: 40, letterRandomOffset: 250 },
         aiDemo: { enabled: true, typingSpeed: 40, stepBaseDelay: 200, stepRandomDelay: 450 },
         testimonials: {
-            // --- Local Data Config ---
             placeholderAvatarBaseUrl: 'https://placehold.co/100x100/',
             visibleCardsDesktop: 3,
-            bufferCards: 2,         // Buffer cards on EACH side
+            bufferCards: 2,
             slideDuration: 500
         }
     };
 
-    // --- Testimonial Slider State (Infinite Scroll - Local Data) ---
-    let localTestimonials = []; // Will be populated with hardcoded data
-    let testimonialDataCache = []; // Holds data objects currently used by cards in track
-    let cardsInTrack = []; // Holds the actual DOM elements of the cards
+    // --- Testimonial Slider State ---
+    let localTestimonials = [];
+    let testimonialDataCache = [];
+    let cardsInTrack = [];
     let stableVisibleStartIndex = config.testimonials.bufferCards;
     let totalCardsInDOM = 0;
     let cardWidthAndMargin = 0;
-    let isSliding = false; // Flag to prevent multiple clicks during animation
+    let isSliding = false;
     let resizeTimeout;
     let initialLoadComplete = false;
-    let transitionEndCounter = 0; // Debug counter
+    let transitionEndCounter = 0;
 
     // --- Hardcoded Testimonial Data ---
-    // !!! Approximately 100 unique testimonials !!!
+    // [Existing ~100 testimonials remain here]
     localTestimonials = [
-        // Students
         { name: "Petra N.", role: "Studentka (Gymnázium)", rating: 5, text: "Skvělá příprava na přijímačky! AI mi přesně ukázala, co potřebuju dohnat. Doporučuji!" },
         { name: "Tomáš V.", role: "Student (SŠ)", rating: 4.5, text: "Adaptivní učení je super. Nemusím procházet to, co už umím. Ušetřilo mi to spoustu času." },
         { name: "Aneta K.", role: "Studentka (9. třída)", rating: 5, text: "Konečně chápu zlomky! Interaktivní cvičení jsou zábavná a vysvětlení jasná." },
@@ -91,7 +89,6 @@ document.addEventListener('DOMContentLoaded', () => {
         { name: "Dominik Z.", role: "Student (Gymnázium)", rating: 4, text: "Uvítal bych možnost vytvářet si vlastní testy z vybraných okruhů." },
         { name: "Nikola B.", role: "Studentka (SŠ)", rating: 5, text: "Intuitivní ovládání a moderní design. Radost používat." },
         { name: "Jiří D.", role: "Student (9. třída)", rating: 4.5, text: "AI mi pomohla pochopit geometrii, se kterou jsem vždycky bojoval." },
-        // Parents
         { name: "Jana K.", role: "Rodič", rating: 5, text: "Syn se výrazně zlepšil v matematice. Platforma ho baví a motivuje." },
         { name: "Petr S.", role: "Rodič", rating: 4.5, text: "Oceňuji přehled o pokroku dcery. Vidím, na čem pracuje a jak jí to jde." },
         { name: "Lenka P.", role: "Rodič", rating: 5, text: "Investice, která se vyplatila. Dcera zvládla přijímačky bez stresu a doučování." },
@@ -112,7 +109,6 @@ document.addEventListener('DOMContentLoaded', () => {
         { name: "Aleš Z.", role: "Rodič", rating: 4.5, text: "Platforma pomohla dceři objevit zájem o matematiku." },
         { name: "Monika V.", role: "Rodič", rating: 5, text: "Bezpečná a kontrolovaná online aktivita pro naše dítě." },
         { name: "Radek N.", role: "Rodič", rating: 4, text: "Mohla by být i mobilní aplikace, ale webová verze funguje dobře i na tabletu." },
-        // Teachers
         { name: "Mgr. Nováková", role: "Učitelka (ZŠ)", rating: 4.5, text: "Využívám Justax jako doplněk k výuce. Studenti si mohou procvičovat látku svým tempem." },
         { name: "Ing. Černý", role: "Učitel (SŠ)", rating: 5, text: "Skvělý nástroj pro diferenciaci výuky. AI pomáhá slabším studentům a nabízí výzvy těm nadanějším." },
         { name: "Mgr. Dvořáková", role: "Učitelka (Gymnázium)", rating: 4, text: "Databanka příkladů je rozsáhlá, i když bych ocenila více úloh zaměřených na logické myšlení." },
@@ -133,7 +129,6 @@ document.addEventListener('DOMContentLoaded', () => {
         { name: "PaedDr. Kučera", role: "Učitel (Gymnázium)", rating: 4, text: "Grafické rozhraní je moderní, ale občas může působit trochu zahlcujícím dojmem." },
         { name: "Mgr. Červená", role: "Učitelka (ZŠ)", rating: 5, text: "Justax je skvělý nástroj, jak udělat matematiku pro děti zábavnější a přístupnější." },
         { name: "Ing. Urban", role: "Učitel (SŠ)", rating: 4.5, text: "Adaptivní systém skutečně funguje a přizpůsobuje se potřebám studentů." },
-        // Additional variations
         { name: "Eva H.", role: "Studentka (SŠ)", rating: 4.5, text: "Konečně způsob, jak se učit matiku bez nudných učebnic. Interaktivita je klíč!" },
         { name: "Robert P.", role: "Rodič", rating: 5, text: "Syn si oblíbil AI tutora, ptá se ho na věci, na které se stydí zeptat ve škole." },
         { name: "Mgr. Sedláčková", role: "Učitelka (Gymnázium)", rating: 4.5, text: "Používám pro zadávání dobrovolných domácích úkolů, studenti to vítají." },
@@ -165,50 +160,36 @@ document.addEventListener('DOMContentLoaded', () => {
     ];
     console.log(`Loaded ${localTestimonials.length} local testimonials.`);
 
-    // --- Utility Functions & Core Logic (mostly same as v2.8) ---
-    const calculateCardWidthAndMargin = () => { /* ... same ... */
-         const firstCard = sliderTrack.querySelector('.testimonial-card:not(.is-loading)');
-         if (!firstCard) {
-             console.warn("calculateCardWidthAndMargin: No non-loading card found yet.");
-             const placeholderCard = sliderTrack.querySelector('.testimonial-card');
-             if (!placeholderCard) return 0;
-             const pStyle = window.getComputedStyle(placeholderCard);
-             const pWidth = placeholderCard.offsetWidth;
-             const pMarginRight = parseFloat(pStyle.marginRight);
-             if (pWidth > 0) {
-                  cardWidthAndMargin = pWidth + pMarginRight;
-                  console.log(`Recalculated cardWidthAndMargin from placeholder: ${cardWidthAndMargin}px (Width: ${pWidth}, Margin: ${pMarginRight})`);
-                  return cardWidthAndMargin;
-             }
-             return 0;
-         }
-         const style = window.getComputedStyle(firstCard);
-         const width = firstCard.offsetWidth;
-         const marginRight = parseFloat(style.marginRight);
-         if (width === 0) {
-             console.warn("calculateCardWidthAndMargin: First non-loading card has zero width.");
-             return 0;
-         }
-         cardWidthAndMargin = width + marginRight;
-         console.log(`Recalculated cardWidthAndMargin: ${cardWidthAndMargin}px (Width: ${width}, Margin: ${marginRight})`);
-         return cardWidthAndMargin;
-     };
+    // --- Utility Functions & Core Logic ---
 
-    const setTrackPosition = () => { /* ... same ... */
-        if (!initialLoadComplete || cardWidthAndMargin === 0) {
-             console.warn(`Cannot set track position: initialLoadComplete=${initialLoadComplete}, cardWidthAndMargin=${cardWidthAndMargin}`);
-             return;
-         }
-         sliderTrack.style.transition = 'none';
-         const position = -stableVisibleStartIndex * cardWidthAndMargin;
-         sliderTrack.style.transform = `translateX(${position}px)`;
-         void sliderTrack.offsetHeight;
-         if (!isSliding) {
-              sliderTrack.style.transition = `transform ${config.testimonials.slideDuration / 1000}s cubic-bezier(0.65, 0, 0.35, 1)`;
-         }
-         console.log(`Track position instantly set for index ${stableVisibleStartIndex} (translateX: ${position}px)`);
-     };
+    // --- NEW: Added Debounce function back ---
+    const debounce = (func, wait) => {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    };
 
+    const getRandomColorPair = () => { /* ... same ... */
+        const colors = [ { bg: 'a05cff', text: 'FFFFFF' }, { bg: '00e0ff', text: '03020c' }, { bg: 'ff33a8', text: 'FFFFFF' }, { bg: 'f0e14a', text: '03020c' }, { bg: '00ffaa', text: '03020c' }, { bg: 'ff9a00', text: 'FFFFFF' } ];
+        return colors[Math.floor(Math.random() * colors.length)];
+    };
+    const generateStarsHTML = (rating) => { /* ... same ... */
+         let starsHTML = '';
+        const clampedRating = Math.max(0, Math.min(5, rating || 0));
+        const fullStars = Math.floor(clampedRating);
+        const halfStar = clampedRating % 1 >= 0.45;
+        const emptyStars = 5 - fullStars - (halfStar ? 1 : 0);
+        for (let i = 0; i < fullStars; i++) starsHTML += '<i class="fas fa-star" aria-hidden="true"></i>';
+        if (halfStar) starsHTML += '<i class="fas fa-star-half-alt" aria-hidden="true"></i>';
+        for (let i = 0; i < emptyStars; i++) starsHTML += '<i class="far fa-star" aria-hidden="true"></i>';
+        return starsHTML;
+    };
     const createPlaceholderCard = () => { /* ... same ... */
         const card = document.createElement('article');
         card.className = 'testimonial-card is-loading';
@@ -216,9 +197,8 @@ document.addEventListener('DOMContentLoaded', () => {
         card.setAttribute('aria-hidden', 'true');
         return card;
     };
-
     const updateCardContent = (cardElement, testimonialData) => { /* ... same ... */
-        if (!cardElement) { console.warn("updateCardContent: null cardElement received"); return; }
+         if (!cardElement) { console.warn("updateCardContent: null cardElement received"); return; }
          const data = testimonialData && typeof testimonialData === 'object' ? testimonialData :
              { name: "Chyba Dat", text: "Neplatná data pro kartu.", rating: 0, role: "Systém" };
 
@@ -243,35 +223,86 @@ document.addEventListener('DOMContentLoaded', () => {
         if (roleEl) roleEl.textContent = role;
         if (avatarEl) { const initials = name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase() || '??'; const colors = getRandomColorPair(); const avatarUrl = `${config.testimonials.placeholderAvatarBaseUrl}${colors.bg}/${colors.text}/png?text=${encodeURIComponent(initials)}&font=poppins`; avatarEl.style.backgroundImage = `url('${avatarUrl}')`; avatarEl.setAttribute('aria-label', `Avatar ${name}`); }
     };
-
-    // --- NEW: Function to get a random testimonial from local data ---
-    // Avoids testimonials currently in the cache for better variety
-    const getRandomLocalTestimonial = () => {
+    const getRandomLocalTestimonial = () => { /* ... same ... */
         const currentCacheNames = new Set(testimonialDataCache.map(item => item?.name));
-        const availableTestimonials = localTestimonials.filter(item => !currentCacheNames.has(item.name));
+        let availableTestimonials = localTestimonials.filter(item => !currentCacheNames.has(item.name));
 
-        if (availableTestimonials.length > 0) {
-            // Prefer unused testimonials
-            const randomIndex = Math.floor(Math.random() * availableTestimonials.length);
-            return availableTestimonials[randomIndex];
-        } else {
-            // Fallback if all testimonials are somehow in the cache (unlikely with 100 items)
+        // If filtering removed all options (e.g., cache is larger than unique items, unlikely here), use the full list
+        if (availableTestimonials.length === 0) {
             console.warn("No unique testimonials available outside the current cache. Falling back to any random item.");
-            const randomIndex = Math.floor(Math.random() * localTestimonials.length);
-            return localTestimonials[randomIndex];
+            availableTestimonials = localTestimonials;
         }
+
+        const randomIndex = Math.floor(Math.random() * availableTestimonials.length);
+        return availableTestimonials[randomIndex];
+    };
+    const calculateCardWidthAndMargin = () => { /* ... same ... */
+         const firstCard = sliderTrack.querySelector('.testimonial-card:not(.is-loading)');
+         if (!firstCard) {
+             console.warn("calculateCardWidthAndMargin: No non-loading card found yet.");
+             const placeholderCard = sliderTrack.querySelector('.testimonial-card');
+             if (!placeholderCard) return 0;
+             const pStyle = window.getComputedStyle(placeholderCard);
+             const pWidth = placeholderCard.offsetWidth;
+             const pMarginRight = parseFloat(pStyle.marginRight);
+             if (pWidth > 0) {
+                  cardWidthAndMargin = pWidth + pMarginRight;
+                  // console.log(`Recalculated cardWidthAndMargin from placeholder: ${cardWidthAndMargin}px (Width: ${pWidth}, Margin: ${pMarginRight})`);
+                  return cardWidthAndMargin;
+             }
+             return 0;
+         }
+         const style = window.getComputedStyle(firstCard);
+         const width = firstCard.offsetWidth;
+         const marginRight = parseFloat(style.marginRight);
+         if (width === 0) {
+             console.warn("calculateCardWidthAndMargin: First non-loading card has zero width.");
+             return 0;
+         }
+         cardWidthAndMargin = width + marginRight;
+         console.log(`Recalculated cardWidthAndMargin: ${cardWidthAndMargin}px (Width: ${width}, Margin: ${marginRight})`);
+         return cardWidthAndMargin;
+     };
+
+    // --- Simplified and Stabilized Slider Logic ---
+
+    // Sets the track position INSTANTLY based on the stable index
+    const setTrackPositionInstantly = () => {
+        if (!initialLoadComplete || cardWidthAndMargin === 0) return;
+
+        // Temporarily remove the listener to prevent transitionend firing on instant set
+        sliderTrack.removeEventListener('transitionend', handleTransitionEnd);
+
+        sliderTrack.style.transition = 'none'; // Disable animation
+        const position = -stableVisibleStartIndex * cardWidthAndMargin;
+        sliderTrack.style.transform = `translateX(${position}px)`;
+        void sliderTrack.offsetHeight; // Force browser reflow
+
+        // Re-add the listener AFTER the instant position set
+        // Use { once: true } maybe? No, need it repeatedly.
+        // Ensure no duplicates if somehow added before
+        sliderTrack.removeEventListener('transitionend', handleTransitionEnd);
+        sliderTrack.addEventListener('transitionend', handleTransitionEnd);
+
+        console.log(`Track position INSTANTLY set for stable index ${stableVisibleStartIndex} (translateX: ${position}px)`);
     };
 
-    // --- Modified Slider Logic ---
 
+    // Handles the end of the slide animation
     const handleTransitionEnd = (event) => {
-        if (event.propertyName !== 'transform' || !sliderTrack.contains(event.target) || !initialLoadComplete || !isSliding) {
+         // Ensure the event fired on the track itself and for the transform property
+        if (event.target !== sliderTrack || event.propertyName !== 'transform') {
             return;
+        }
+        // Prevent handling if slider not ready or if somehow called when not sliding
+        if (!initialLoadComplete || !isSliding) {
+             console.warn(`handleTransitionEnd skipped: initialLoadComplete=${initialLoadComplete}, isSliding=${isSliding}`);
+             return;
         }
 
         const direction = parseInt(sliderTrack.dataset.slideDirection || "0");
         transitionEndCounter++;
-        console.log(`Transition ended (#${transitionEndCounter}). Target: ${event.target.id}, Direction: ${direction}.`);
+        console.log(`Transition ended (#${transitionEndCounter}). Direction: ${direction}.`);
 
         if (direction === 0) {
             console.warn("Transition ended but direction was 0. Resetting state.");
@@ -281,54 +312,51 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // --- Get the NEW data (instantly available) ---
+        // Get the new data (instant from local array)
         const newData = getRandomLocalTestimonial();
         console.log("Got new local data:", newData?.name);
 
-        // --- Proceed with DOM manipulation and updates ---
-        sliderTrack.style.transition = 'none'; // Disable transition
-
+        // --- DOM Manipulation and Cache Update ---
         try {
             if (direction > 0) { // Moved Right (Next)
-                const firstCard = cardsInTrack.shift();
+                const firstCard = cardsInTrack.shift(); // Remove first card from array
                 if (!firstCard) throw new Error("Cannot get first card from cardsInTrack");
-                sliderTrack.removeChild(firstCard);
-                sliderTrack.appendChild(firstCard);
-                cardsInTrack.push(firstCard);
 
-                testimonialDataCache.shift();
-                testimonialDataCache.push(newData); // Use new local data
-                updateCardContent(firstCard, newData);
+                testimonialDataCache.shift(); // Remove first data from cache
+                testimonialDataCache.push(newData); // Add new data to end of cache
+                updateCardContent(firstCard, newData); // Update the card's content BEFORE appending
 
-                const currentTranslateX = parseFloat(sliderTrack.style.transform.replace(/[^-\d.]/g, '')) || 0;
-                const newTranslateX = currentTranslateX + cardWidthAndMargin;
-                sliderTrack.style.transform = `translateX(${newTranslateX}px)`;
-                console.log(`Moved card first->last. Adjusted translateX by +${cardWidthAndMargin} to: ${newTranslateX}px`);
+                sliderTrack.appendChild(firstCard); // Add card to the end of DOM
+                cardsInTrack.push(firstCard); // Add card back to the end of array
+                console.log(`Moved card first->last.`);
 
             } else { // Moved Left (Prev)
-                const lastCard = cardsInTrack.pop();
+                const lastCard = cardsInTrack.pop(); // Remove last card from array
                 if (!lastCard) throw new Error("Cannot get last card from cardsInTrack");
-                sliderTrack.removeChild(lastCard);
-                sliderTrack.insertBefore(lastCard, sliderTrack.firstChild);
-                cardsInTrack.unshift(lastCard);
 
-                testimonialDataCache.pop();
-                testimonialDataCache.unshift(newData); // Use new local data
-                updateCardContent(lastCard, newData);
+                testimonialDataCache.pop(); // Remove last data from cache
+                testimonialDataCache.unshift(newData); // Add new data to start of cache
+                updateCardContent(lastCard, newData); // Update the card's content BEFORE inserting
 
-                const currentTranslateX = parseFloat(sliderTrack.style.transform.replace(/[^-\d.]/g, '')) || 0;
-                const newTranslateX = currentTranslateX - cardWidthAndMargin;
-                sliderTrack.style.transform = `translateX(${newTranslateX}px)`;
-                console.log(`Moved card last->first. Adjusted translateX by -${cardWidthAndMargin} to: ${newTranslateX}px`);
+                sliderTrack.insertBefore(lastCard, sliderTrack.firstChild); // Add card to the beginning of DOM
+                cardsInTrack.unshift(lastCard); // Add card back to the beginning of array
+                console.log(`Moved card last->first.`);
             }
         } catch (error) {
             console.error("Error during DOM manipulation in handleTransitionEnd:", error);
+            // Attempt to recover state? Maybe just log and disable buttons to prevent further errors.
+            isSliding = false; // Allow potential recovery attempt? Or keep disabled?
+            prevBtn.disabled = true;
+            nextBtn.disabled = true;
+            return; // Stop processing this transition end
         }
 
-        void sliderTrack.offsetHeight; // Force reflow
-        sliderTrack.style.transition = `transform ${config.testimonials.slideDuration / 1000}s cubic-bezier(0.65, 0, 0.35, 1)`;
+        // --- Reset Position Instantly ---
+        // After moving cards, reset the track's visual position back to the stable starting point
+        setTrackPositionInstantly();
 
-        sliderTrack.dataset.slideDirection = "0";
+        // --- Finalize ---
+        sliderTrack.dataset.slideDirection = "0"; // Reset direction state
         isSliding = false; // Allow next slide
 
         // Re-enable buttons
@@ -337,7 +365,8 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log("handleTransitionEnd complete. Buttons enabled.");
     };
 
-    // Moves the slider track visually (No pre-fetching needed now)
+
+    // Moves the slider track visually
     const moveSlider = (direction) => {
         if (isSliding || !initialLoadComplete) {
             console.warn(`Slide attempt blocked: isSliding=${isSliding}, initialLoadComplete=${initialLoadComplete}`);
@@ -349,24 +378,24 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log(`Moving slider. Direction: ${direction}.`);
 
         // --- Start the visual slide animation ---
-        sliderTrack.dataset.slideDirection = direction.toString();
+        sliderTrack.dataset.slideDirection = direction.toString(); // Store direction
 
-        const currentTransform = sliderTrack.style.transform;
-        const currentTranslateX = parseFloat(currentTransform.replace(/[^-\d.]/g, '')) || (-stableVisibleStartIndex * cardWidthAndMargin);
-        const newTranslateX = currentTranslateX - (direction * cardWidthAndMargin);
+        // Calculate target position based on stable index and direction
+        // We slide one card width from the current stable position
+        const targetIndex = stableVisibleStartIndex + direction;
+        const newTranslateX = -targetIndex * cardWidthAndMargin;
 
-        if (!sliderTrack.style.transition || sliderTrack.style.transition === 'none') {
-            sliderTrack.style.transition = `transform ${config.testimonials.slideDuration / 1000}s cubic-bezier(0.65, 0, 0.35, 1)`;
-        }
+        // Ensure transition is set
+        sliderTrack.style.transition = `transform ${config.testimonials.slideDuration / 1000}s cubic-bezier(0.65, 0, 0.35, 1)`;
         sliderTrack.style.transform = `translateX(${newTranslateX}px)`;
-        console.log(`Animating transform from ${currentTranslateX} to: ${newTranslateX}px`);
+        console.log(`Animating transform to show index ${targetIndex} (translateX: ${newTranslateX}px)`);
 
-        // handleTransitionEnd will update the content AFTER animation
+        // handleTransitionEnd will fire after animation to reposition and update
     };
 
     // Initializes the slider using local data
     const initializeInfiniteSlider = async () => {
-        console.log("Starting infinite slider initialization v2.9 (Local Data)...");
+        console.log("Starting infinite slider initialization v2.10 (Local Data)...");
         isSliding = true;
         initialLoadComplete = false;
         prevBtn.disabled = true;
@@ -392,17 +421,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // 1. Create cards and fill cache with initial random data
         for (let i = 0; i < totalCardsInDOM; i++) {
-            const cardData = getRandomLocalTestimonial(); // Get random data immediately
-            testimonialDataCache.push(cardData); // Add to cache
-            const cardElement = createPlaceholderCard(); // Create card element
+            const cardData = getRandomLocalTestimonial();
+            testimonialDataCache.push(cardData);
+            const cardElement = createPlaceholderCard();
             sliderTrack.appendChild(cardElement);
             cardsInTrack.push(cardElement);
-            updateCardContent(cardElement, cardData); // Update content right away
+             // Update content immediately, no need for placeholders if data is local
+             updateCardContent(cardElement, cardData);
         }
         console.log(`Created and populated ${totalCardsInDOM} initial cards from local data.`);
 
         // 2. Calculate dimensions (wait for render)
-        await new Promise(resolve => requestAnimationFrame(resolve));
+        // Give browser a moment to render the populated cards
+        await new Promise(resolve => setTimeout(resolve, 50)); // Small delay
+        // await new Promise(resolve => requestAnimationFrame(resolve)); // Alternative: wait for next frame
+
         if (!calculateCardWidthAndMargin() || cardWidthAndMargin <= 0) {
             console.error("Could not calculate card dimensions. Aborting slider setup.");
             sliderTrack.innerHTML = '<p style="color: var(--clr-accent-red);">Chyba layoutu slideru.</p>';
@@ -412,9 +445,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // 3. Set initial position and finalize
         initialLoadComplete = true;
-        setTrackPosition(); // Set position based on stableVisibleStartIndex
+        setTrackPositionInstantly(); // Set position based on stableVisibleStartIndex
 
-        // 4. Add event listener
+        // 4. Add event listener (ensure it's added only once)
         sliderTrack.removeEventListener('transitionend', handleTransitionEnd);
         sliderTrack.addEventListener('transitionend', handleTransitionEnd);
 
@@ -423,6 +456,7 @@ document.addEventListener('DOMContentLoaded', () => {
         prevBtn.disabled = false;
         nextBtn.disabled = false;
     };
+
 
     // --- Event Listeners ---
     prevBtn.addEventListener('click', () => moveSlider(-1));
@@ -434,22 +468,19 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log("Window resized, recalculating slider dimensions...");
         const oldWidth = cardWidthAndMargin;
         if (calculateCardWidthAndMargin() && cardWidthAndMargin !== oldWidth) {
-            console.log("Dimensions changed, resetting track position.");
-            setTrackPosition(); // Reset position based on new width and stable index
+            console.log("Dimensions changed, resetting track position instantly.");
+            // Reset position based on new width and the stable index
+            setTrackPositionInstantly();
         } else if (cardWidthAndMargin <= 0) {
              console.error("Failed to recalculate dimensions on resize.");
         }
-    }, 250));
+    }, 250)); // Use the restored debounce function
 
     // Start the initialization
     initializeInfiniteSlider();
 
-    // ========================================================
-    // End of Infinite Testimonial Slider Implementation
-    // ========================================================
-
 
     // --- Final Initialization ---
-    console.log("JUSTAX Interface v2.9 Initialization Complete (Local Data - API Removed).");
+    console.log("JUSTAX Interface v2.10 Initialization Complete (Stabilized v2 - Local Data).");
 
 }); // End DOMContentLoaded
