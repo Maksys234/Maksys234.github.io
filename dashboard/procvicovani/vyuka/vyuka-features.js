@@ -11,7 +11,7 @@ window.VyukaApp = window.VyukaApp || {};
 		// --- Constants & Configuration (Features) ---
 		const config = VyukaApp.config; // Access core config
 		config.GEMINI_API_KEY = 'AIzaSyDQboM6qtC_O2sqqpaKZZffNf2zk6HrhEs'; // !!! Production: Use a secure method !!!
-		config.GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${config.GEMINI_API_KEY}`;
+		config.GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${config.GEMINI_API_KEY}`;
 		config.MAX_GEMINI_HISTORY_TURNS = 12;
         config.ACTION_SUGGEST_COMPLETION = "[ACTION:SUGGEST_COMPLETION]";
 
