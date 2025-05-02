@@ -1,5 +1,5 @@
 // dashboard.js
-// Версия: 23.4 - Исправлена проверка элементов в renderNotifications, исправлена загрузка stats
+// Версия: 23.5 - Повышена устойчивость к отсутствующим элементам DOM, улучшена передача данных через dashboardReady
 (function() {
     'use strict';
 
@@ -49,81 +49,63 @@
     // --- END: Initialization and Configuration ---
 
     // --- START: DOM Element Caching ---
+    // ИСПРАВЛЕНО: Улучшено кеширование для устойчивости к отсутствующим элементам
     function cacheDOMElements() {
         console.log("[CACHE DOM] Caching elements...");
-        ui = {
+        const tempUi = {};
+        const idsToCache = [
             // Core Layout & Sidebar
-            initialLoader: document.getElementById('initial-loader'),
-            sidebarOverlay: document.getElementById('sidebar-overlay'),
-            mainContent: document.getElementById('main-content'),
-            sidebar: document.getElementById('sidebar'),
-            mainMobileMenuToggle: document.getElementById('main-mobile-menu-toggle'),
-            sidebarCloseToggle: document.getElementById('sidebar-close-toggle'),
-            sidebarToggleBtn: document.getElementById('sidebar-toggle-btn'),
-            sidebarAvatar: document.getElementById('sidebar-avatar'),
-            sidebarName: document.getElementById('sidebar-name'),
-            sidebarUserTitle: document.getElementById('sidebar-user-title'),
-            currentYearSidebar: document.getElementById('currentYearSidebar'),
+            'initial-loader', 'sidebar-overlay', 'main-content', 'sidebar',
+            'main-mobile-menu-toggle', 'sidebar-close-toggle', 'sidebar-toggle-btn',
+            'sidebar-avatar', 'sidebar-name', 'sidebar-user-title', 'currentYearSidebar',
             // Header
-            dashboardHeader: document.querySelector('.dashboard-header'),
-            dashboardTitle: document.getElementById('dashboard-title'),
-            refreshDataBtn: document.getElementById('refresh-data-btn'),
+            // '.dashboard-header', // Use querySelector if needed, handle carefully
+            'dashboard-title', 'refresh-data-btn',
             // Notifications
-            notificationBell: document.getElementById('notification-bell'),
-            notificationCount: document.getElementById('notification-count'),
-            notificationsDropdown: document.getElementById('notifications-dropdown'),
-            notificationsList: document.getElementById('notifications-list'),
-            noNotificationsMsg: document.getElementById('no-notifications-msg'),
-            markAllReadBtn: document.getElementById('mark-all-read'),
-            // Welcome & Shortcuts
-            welcomeTitle: document.getElementById('welcome-title'),
-            startPracticeBtn: document.getElementById('start-practice-btn'),
-            openMonthlyModalBtn: document.getElementById('open-monthly-modal-btn'),
-            openStreakModalBtn: document.getElementById('open-streak-modal-btn'),
-            // Stat Cards
-            progressCard: document.getElementById('progress-card'),
-            overallProgressValue: document.getElementById('overall-progress-value'),
-            overallProgressFooter: document.getElementById('overall-progress-footer'),
-            pointsCard: document.getElementById('points-card'),
-            totalPointsValue: document.getElementById('total-points-value'),
-            totalPointsFooter: document.getElementById('total-points-footer'),
-            streakCard: document.getElementById('streak-card'),
-            streakValue: document.getElementById('streak-value'),
-            streakFooter: document.getElementById('streak-footer'),
-            // Activity List
-            activityListContainer: document.getElementById('activity-list-container'),
-            activityList: document.getElementById('activity-list'),
-            activityListEmptyState: document.getElementById('activity-list-empty-state'),
-            activityListErrorState: document.getElementById('activity-list-error-state'),
-            // Modals
-            monthlyRewardModal: document.getElementById('monthly-reward-modal'),
-            modalMonthlyCalendarGrid: document.getElementById('modal-monthly-calendar-grid'),
-            modalMonthlyCalendarEmpty: document.getElementById('modal-monthly-calendar-empty'),
-            modalCurrentMonthYearSpan: document.getElementById('modal-current-month-year'),
-            closeMonthlyModalBtn: document.getElementById('close-monthly-modal-btn'),
-            streakMilestonesModal: document.getElementById('streak-milestones-modal'),
-            modalMilestonesGrid: document.getElementById('modal-milestones-grid'),
-            modalMilestonesEmpty: document.getElementById('modal-milestones-empty'),
-            modalCurrentStreakValue: document.getElementById('modal-current-streak-value'),
-            closeStreakModalBtn: document.getElementById('close-streak-modal-btn'),
+            'notification-bell', 'notification-count', 'notifications-dropdown',
+            'notifications-list', 'no-notifications-msg', 'mark-all-read',
+            // Welcome & Shortcuts (might be missing on some pages)
+            'welcome-title', 'start-practice-btn', 'open-monthly-modal-btn', 'open-streak-modal-btn',
+            // Stat Cards (might be missing on some pages)
+            'progress-card', 'overall-progress-value', 'overall-progress-footer',
+            'points-card', 'total-points-value', 'total-points-footer',
+            'streak-card', 'streak-value', 'streak-footer',
+            // Activity List (might be missing on some pages)
+            'activity-list-container', 'activity-list', 'activity-list-empty-state', 'activity-list-error-state',
+            // Modals (might be missing on some pages)
+            'monthly-reward-modal', 'modal-monthly-calendar-grid', 'modal-monthly-calendar-empty',
+            'modal-current-month-year', 'close-monthly-modal-btn',
+            'streak-milestones-modal', 'modal-milestones-grid', 'modal-milestones-empty',
+            'modal-current-streak-value', 'close-streak-modal-btn',
             // Utility/Other
-            toastContainer: document.getElementById('toast-container'),
-            globalError: document.getElementById('global-error'),
-            offlineBanner: document.getElementById('offline-banner'),
-            mouseFollower: document.getElementById('mouse-follower'),
-            currentYearFooter: document.getElementById('currentYearFooter')
-        };
+            'toast-container', 'global-error', 'offline-banner', 'mouse-follower', 'currentYearFooter'
+        ];
 
-        // Check for missing elements
-        const missingElements = Object.entries(ui)
-            .filter(([key, element]) => element === null)
-            .map(([key]) => key);
+        const missingElements = [];
+        idsToCache.forEach(id => {
+            const element = document.getElementById(id);
+            if (element) {
+                // Convert kebab-case id to camelCase key
+                const key = id.replace(/-([a-z])/g, g => g[1].toUpperCase());
+                tempUi[key] = element;
+            } else {
+                missingElements.push(id);
+            }
+        });
+
+        // Assign the successfully cached elements to the global ui object
+        ui = tempUi;
 
         if (missingElements.length > 0) {
             console.warn(`[CACHE DOM] Следующие элементы не были найдены: (${missingElements.length})`, missingElements);
         } else {
             console.log("[CACHE DOM] Caching complete.");
         }
+
+        // Handle elements selected by class if needed (less reliable)
+        const headerElement = document.querySelector('.dashboard-header');
+        if(headerElement) ui.dashboardHeader = headerElement;
+        else console.warn("[CACHE DOM] Element '.dashboard-header' not found.");
     }
     // --- END: DOM Element Caching ---
 
@@ -137,66 +119,103 @@
     function openMenu() { if (ui.sidebar && ui.sidebarOverlay) { document.body.classList.remove('sidebar-collapsed'); ui.sidebar.classList.add('active'); ui.sidebarOverlay.classList.add('active'); } }
     function closeMenu() { if (ui.sidebar && ui.sidebarOverlay) { ui.sidebar.classList.remove('active'); ui.sidebarOverlay.classList.remove('active'); } }
     function updateOnlineStatus() { if (ui.offlineBanner) ui.offlineBanner.style.display = navigator.onLine ? 'none' : 'block'; if (!navigator.onLine) showToast('Offline', 'Spojení ztraceno.', 'warning'); }
+    // ИСПРАВЛЕНО: Проверка на существование элементов в setLoadingState
     function setLoadingState(section, isLoadingFlag) {
         const sections = section === 'all' ? Object.keys(isLoading) : [section];
+
         sections.forEach(sec => {
-             if (!ui || Object.keys(ui).length === 0) { console.warn("UI cache not ready for setLoadingState"); return; }
-            if (isLoading[sec] === isLoadingFlag && section !== 'all') return;
+             // Check if UI cache is populated
+             if (!ui || Object.keys(ui).length === 0) {
+                 console.warn("UI cache not ready for setLoadingState");
+                 // Optionally try to cache again, but be cautious of loops
+                 // cacheDOMElements();
+                 // if (!ui || Object.keys(ui).length === 0) return; // Exit if still not ready
+                 return;
+             }
+
+            // Avoid redundant state changes
+            if (isLoading.hasOwnProperty(sec) && isLoading[sec] === isLoadingFlag && section !== 'all') return;
+
+            // Update internal state
             isLoading[sec] = isLoadingFlag;
             console.log(`[setLoadingState] Section: ${sec}, isLoading: ${isLoadingFlag}`);
 
-            // --- ИСПРАВЛЕНИЕ: Используем ui.progressCard и т.д. для 'stats' ---
+            // Handle 'stats' section (check if cards exist)
             if (sec === 'stats') {
                  [ui.progressCard, ui.pointsCard, ui.streakCard].forEach(card => {
-                     if (card) { // Проверяем, найден ли элемент
+                     if (card) { // Check if the card element exists in the cache
                          card.classList.toggle('loading', isLoadingFlag);
                      } else {
-                         console.warn(`[setLoadingState] Stat card element not found in UI cache.`);
+                         // Log only once or less frequently if needed
+                         // console.warn(`[setLoadingState] Stat card element for '${sec}' not found in UI cache.`);
                      }
                  });
             }
-            // --- Конец исправления ---
+            // Handle other sections
             else {
-                const loaderOverlayMap = { monthlyRewards: ui.monthlyRewardModal?.querySelector('.loading-overlay'), streakMilestones: ui.streakMilestonesModal?.querySelector('.loading-overlay'), activities: null, notifications: null, titles: null };
-                const contentContainerMap = { monthlyRewards: ui.modalMonthlyCalendarGrid, streakMilestones: ui.modalMilestonesGrid, activities: ui.activityList, notifications: ui.notificationsList, titles: null };
-                const emptyStateMap = { monthlyRewards: ui.modalMonthlyCalendarEmpty, streakMilestones: ui.modalMilestonesEmpty, activities: ui.activityListEmptyState, notifications: ui.noNotificationsMsg };
-                const parentSectionMap = { monthlyRewards: ui.monthlyRewardModal?.querySelector('.modal-body'), streakMilestones: ui.streakMilestonesModal?.querySelector('.modal-body'), activities: ui.activityListContainer, notifications: ui.notificationsDropdown, titles: null };
+                // Define maps *conditionally* based on element existence in ui cache
+                const loaderOverlayMap = {};
+                if(ui.monthlyRewardModal) loaderOverlayMap.monthlyRewards = ui.monthlyRewardModal.querySelector('.loading-overlay');
+                if(ui.streakMilestonesModal) loaderOverlayMap.streakMilestones = ui.streakMilestonesModal.querySelector('.loading-overlay');
 
+                const contentContainerMap = {
+                    monthlyRewards: ui.modalMonthlyCalendarGrid,
+                    streakMilestones: ui.modalMilestonesGrid,
+                    activities: ui.activityList,
+                    notifications: ui.notificationsList
+                };
+                const emptyStateMap = {
+                    monthlyRewards: ui.modalMonthlyCalendarEmpty,
+                    streakMilestones: ui.modalMilestonesEmpty,
+                    activities: ui.activityListEmptyState,
+                    notifications: ui.noNotificationsMsg
+                };
+                const parentSectionMap = {
+                    monthlyRewards: ui.monthlyRewardModal?.querySelector('.modal-body'),
+                    streakMilestones: ui.streakMilestonesModal?.querySelector('.modal-body'),
+                    activities: ui.activityListContainer,
+                    notifications: ui.notificationsDropdown
+                };
+
+                // Get elements for the current section, only if they exist
                 const loaderOverlay = loaderOverlayMap[sec];
-                const contentContainer = contentContainerMap[sec];
-                const emptyStateContainer = emptyStateMap[sec];
-                const parentSection = parentSectionMap[sec];
+                const contentContainer = contentContainerMap[sec]; // Might be undefined if element missing
+                const emptyStateContainer = emptyStateMap[sec]; // Might be undefined
+                const parentSection = parentSectionMap[sec]; // Might be undefined
 
-                 if (loaderOverlay || parentSection) {
-                    parentSection?.classList.toggle('loading', isLoadingFlag);
+                 // Proceed only if a relevant container exists
+                 if (parentSection || loaderOverlay || (sec === 'notifications' && ui.notificationBell)) {
+                    parentSection?.classList.toggle('loading', isLoadingFlag); // Toggle on parent if exists
                     if (loaderOverlay) loaderOverlay.classList.toggle('hidden', !isLoadingFlag);
 
                     if (isLoadingFlag) {
-                        if (contentContainer && typeof contentContainer !== 'string') contentContainer.innerHTML = '';
+                        // Clear content and hide empty state if containers exist
+                        if (contentContainer) contentContainer.innerHTML = '';
                         if (emptyStateContainer) emptyStateContainer.style.display = 'none';
 
-                        // Render skeletons
-                        if (sec === 'activities' && typeof renderActivitySkeletons === 'function') renderActivitySkeletons(5);
-                        else if (sec === 'monthlyRewards' && typeof renderMonthlyCalendarSkeletons === 'function') renderMonthlyCalendarSkeletons();
-                        else if (sec === 'streakMilestones' && typeof renderMilestoneSkeletons === 'function') renderMilestoneSkeletons();
-                        else if (sec === 'notifications' && typeof renderNotificationSkeletons === 'function') renderNotificationSkeletons(2);
+                        // Render skeletons only if relevant functions exist and containers are present
+                        if (sec === 'activities' && typeof renderActivitySkeletons === 'function' && ui.activityList) renderActivitySkeletons(5);
+                        else if (sec === 'monthlyRewards' && typeof renderMonthlyCalendarSkeletons === 'function' && ui.modalMonthlyCalendarGrid) renderMonthlyCalendarSkeletons();
+                        else if (sec === 'streakMilestones' && typeof renderMilestoneSkeletons === 'function' && ui.modalMilestonesGrid) renderMilestoneSkeletons();
+                        else if (sec === 'notifications' && typeof renderNotificationSkeletons === 'function' && ui.notificationsList) renderNotificationSkeletons(2);
                     } else {
-                         // After loading, check if content is empty and show empty state if necessary
+                         // After loading, check if content is empty and show empty state if necessary and elements exist
                          if (contentContainer && !contentContainer.hasChildNodes() && emptyStateContainer) {
                              emptyStateContainer.style.display = 'block';
                          } else if (emptyStateContainer) {
                               emptyStateContainer.style.display = 'none';
                          }
                     }
-                } else if (sec === 'notifications' && ui.notificationBell) {
+                }
+
+                // Special handling for notifications bell/button if they exist
+                if (sec === 'notifications' && ui.notificationBell) {
                      ui.notificationBell.style.opacity = isLoadingFlag ? 0.5 : 1;
                      if(ui.markAllReadBtn) {
                          const currentUnreadCount = parseInt(ui.notificationCount?.textContent?.replace('+', '') || '0');
                          ui.markAllReadBtn.disabled = isLoadingFlag || currentUnreadCount === 0;
                      }
-                     if (isLoadingFlag && ui.notificationsList && typeof renderNotificationSkeletons === 'function') {
-                         renderNotificationSkeletons(2);
-                     }
+                     // Render skeleton handled above if list exists
                 }
              }
         });
@@ -204,14 +223,17 @@
     const initMouseFollower = () => { const follower = ui.mouseFollower; if (!follower || window.innerWidth <= 576) return; let hasMoved = false; const updatePosition = (event) => { if (!hasMoved) { document.body.classList.add('mouse-has-moved'); hasMoved = true; } requestAnimationFrame(() => { follower.style.left = `${event.clientX}px`; follower.style.top = `${event.clientY}px`; }); }; window.addEventListener('mousemove', updatePosition, { passive: true }); document.body.addEventListener('mouseleave', () => { if (hasMoved) follower.style.opacity = '0'; }); document.body.addEventListener('mouseenter', () => { if (hasMoved) follower.style.opacity = '1'; }); window.addEventListener('touchstart', () => { if(follower) follower.style.display = 'none'; }, { passive: true, once: true }); };
     const initScrollAnimations = () => { const animatedElements = document.querySelectorAll('.main-content-wrapper [data-animate]'); if (!animatedElements.length || !('IntersectionObserver' in window)) return; const observer = new IntersectionObserver((entries, observerInstance) => { entries.forEach(entry => { if (entry.isIntersecting) { entry.target.classList.add('animated'); observerInstance.unobserve(entry.target); } }); }, { threshold: 0.15, rootMargin: "0px 0px -50px 0px" }); animatedElements.forEach(element => observer.observe(element)); };
     const initHeaderScrollDetection = () => { let lastScrollY = window.scrollY; const mainEl = ui.mainContent; if (!mainEl) return; mainEl.addEventListener('scroll', () => { const currentScrollY = mainEl.scrollTop; document.body.classList.toggle('scrolled', currentScrollY > 50); lastScrollY = currentScrollY <= 0 ? 0 : currentScrollY; }, { passive: true }); if (mainEl && mainEl.scrollTop > 50) document.body.classList.add('scrolled'); };
-    const updateCopyrightYear = () => { const currentYearSpan = ui.currentYearFooter; const currentYearSidebar = ui.currentYearSidebar; const year = new Date().getFullYear(); if (currentYearSpan) { currentYearSpan.textContent = year; } if (currentYearSidebar) { currentYearSidebar.textContent = year; } };
-    function applyInitialSidebarState() { const savedState = localStorage.getItem(SIDEBAR_STATE_KEY); const shouldBeCollapsed = savedState === 'collapsed'; console.log(`[Sidebar State] Initial read state: ${savedState}, Applying collapsed: ${shouldBeCollapsed}`); if (shouldBeCollapsed) { document.body.classList.add('sidebar-collapsed'); } else { document.body.classList.remove('sidebar-collapsed'); } const icon = ui.sidebarToggleBtn?.querySelector('i'); if (icon) { icon.className = shouldBeCollapsed ? 'fas fa-chevron-right' : 'fas fa-chevron-left'; ui.sidebarToggleBtn.setAttribute('aria-label', shouldBeCollapsed ? 'Rozbalit panel' : 'Sbalit panel'); ui.sidebarToggleBtn.setAttribute('title', shouldBeCollapsed ? 'Rozbalit panel' : 'Sbalit panel'); console.log(`[Sidebar State] Initial icon/attributes set.`); } else { console.warn("[Sidebar State] Sidebar toggle button icon not found for initial state."); } }
-    function toggleSidebar() { const isCollapsed = document.body.classList.toggle('sidebar-collapsed'); localStorage.setItem(SIDEBAR_STATE_KEY, isCollapsed ? 'collapsed' : 'expanded'); const icon = ui.sidebarToggleBtn?.querySelector('i'); if (icon) { icon.className = isCollapsed ? 'fas fa-chevron-right' : 'fas fa-chevron-left'; ui.sidebarToggleBtn.setAttribute('aria-label', isCollapsed ? 'Rozbalit panel' : 'Sbalit panel'); ui.sidebarToggleBtn.setAttribute('title', isCollapsed ? 'Rozbalit panel' : 'Sbalit panel'); } console.log(`[Sidebar Toggle] Sidebar toggled. New state: ${isCollapsed ? 'collapsed' : 'expanded'}`); }
+    const updateCopyrightYear = () => { const year = new Date().getFullYear(); if (ui.currentYearFooter) { ui.currentYearFooter.textContent = year; } if (ui.currentYearSidebar) { ui.currentYearSidebar.textContent = year; } };
+    function applyInitialSidebarState() { const savedState = localStorage.getItem(SIDEBAR_STATE_KEY); const shouldBeCollapsed = savedState === 'collapsed'; console.log(`[Sidebar State] Initial read state: ${savedState}, Applying collapsed: ${shouldBeCollapsed}`); if (shouldBeCollapsed) { document.body.classList.add('sidebar-collapsed'); } else { document.body.classList.remove('sidebar-collapsed'); } if(ui.sidebarToggleBtn) { const icon = ui.sidebarToggleBtn.querySelector('i'); if (icon) { icon.className = shouldBeCollapsed ? 'fas fa-chevron-right' : 'fas fa-chevron-left'; ui.sidebarToggleBtn.setAttribute('aria-label', shouldBeCollapsed ? 'Rozbalit panel' : 'Sbalit panel'); ui.sidebarToggleBtn.setAttribute('title', shouldBeCollapsed ? 'Rozbalit panel' : 'Sbalit panel'); console.log(`[Sidebar State] Initial icon/attributes set.`); } else { console.warn("[Sidebar State] Sidebar toggle button icon not found for initial state."); } } else { console.warn("[Sidebar State] Sidebar toggle button not found in UI cache."); } }
+    function toggleSidebar() { const isCollapsed = document.body.classList.toggle('sidebar-collapsed'); localStorage.setItem(SIDEBAR_STATE_KEY, isCollapsed ? 'collapsed' : 'expanded'); if (ui.sidebarToggleBtn) { const icon = ui.sidebarToggleBtn.querySelector('i'); if (icon) { icon.className = isCollapsed ? 'fas fa-chevron-right' : 'fas fa-chevron-left'; ui.sidebarToggleBtn.setAttribute('aria-label', isCollapsed ? 'Rozbalit panel' : 'Sbalit panel'); ui.sidebarToggleBtn.setAttribute('title', isCollapsed ? 'Rozbalit panel' : 'Sbalit panel'); } } console.log(`[Sidebar Toggle] Sidebar toggled. New state: ${isCollapsed ? 'collapsed' : 'expanded'}`); }
     function initTooltips() { try { if (window.jQuery && typeof window.jQuery.fn.tooltipster === 'function') { window.jQuery('.btn-tooltip.tooltipstered').each(function() { if (document.body.contains(this)) { try { window.jQuery(this).tooltipster('destroy'); } catch (destroyError) { console.warn("Tooltipster destroy error:", destroyError); } } }); window.jQuery('.btn-tooltip').tooltipster({ theme: 'tooltipster-shadow', animation: 'fade', delay: 150, distance: 6, side: 'top' }); console.log("[Tooltips] Initialized/Re-initialized."); } else { console.warn("[Tooltips] jQuery or Tooltipster library not loaded."); } } catch (e) { console.error("[Tooltips] Error initializing Tooltipster:", e); } }
     function isSameDate(date1, date2) { if (!date1 || !date2) return false; const d1 = new Date(date1); const d2 = new Date(date2); return d1.getFullYear() === d2.getFullYear() && d1.getMonth() === d2.getMonth() && d1.getDate() === d2.getDate(); }
     function isYesterday(date1, date2) { if (!date1 || !date2) return false; const yesterday = new Date(date2); yesterday.setDate(yesterday.getDate() - 1); return isSameDate(date1, yesterday); }
     function getCurrentMonthYearString() { const now = new Date(); const year = now.getFullYear(); const month = String(now.getMonth() + 1).padStart(2, '0'); return `${year}-${month}`; }
-    function showModal(modalId) { const modal = document.getElementById(modalId); if (modal) { console.log(`[Modal] Opening modal: ${modalId}`); modal.style.display = 'flex'; if (modalId === 'monthly-reward-modal') { renderMonthlyCalendar(); } else if (modalId === 'streak-milestones-modal') { renderStreakMilestones(); } requestAnimationFrame(() => { modal.classList.add('active'); }); } else { console.error(`[Modal] Modal element not found: #${modalId}`); } }
+    function showModal(modalId) { const modal = document.getElementById(modalId); if (modal) { console.log(`[Modal] Opening modal: ${modalId}`); modal.style.display = 'flex'; // Check if render functions exist and modal elements are cached
+        if (modalId === 'monthly-reward-modal' && typeof renderMonthlyCalendar === 'function' && ui.monthlyRewardModal) { renderMonthlyCalendar(); }
+        else if (modalId === 'streak-milestones-modal' && typeof renderStreakMilestones === 'function' && ui.streakMilestonesModal) { renderStreakMilestones(); }
+        requestAnimationFrame(() => { modal.classList.add('active'); }); } else { console.error(`[Modal] Modal element not found or not cached: #${modalId}`); } }
     function hideModal(modalId) { const modal = document.getElementById(modalId); if (modal) { console.log(`[Modal] Closing modal: ${modalId}`); modal.classList.remove('active'); setTimeout(() => { modal.style.display = 'none'; }, 300); } }
     // --- END: Helper Functions ---
 
@@ -219,26 +241,21 @@
     function initializeSupabase() {
         console.log("[Supabase] Attempting initialization...");
         try {
-            // Проверка на существование библиотеки перед созданием клиента
             if (typeof window.supabase === 'undefined' || typeof window.supabase.createClient !== 'function') {
                 throw new Error("Supabase library not loaded or createClient is not a function.");
             }
-            // Создаем клиент
             supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
             if (!supabase) {
                 throw new Error("Supabase client creation failed (returned null/undefined).");
             }
-            // Делаем клиент доступным глобально (опционально, но может помочь другим скриптам)
-            window.supabaseClient = supabase;
+            window.supabaseClient = supabase; // Make accessible globally
             console.log('[Supabase] Klient úspěšně inicializován a globálně dostupný.');
             return true;
         } catch (error) {
             console.error('[Supabase] Initialization failed:', error);
-            // Попытка показать ошибку пользователю, если функция showError доступна
             if (typeof showError === 'function') {
                 showError("Kritická chyba: Nepodařilo se připojit k databázi. Zkuste obnovit stránku.", true);
             } else {
-                // Fallback alert if showError isn't ready
                 alert("Kritická chyba: Nepodařilo se připojit k databázi. Zkuste obnovit stránku.");
             }
             return false;
@@ -273,7 +290,7 @@
         } else { console.log("[StreakCheck] Already logged in today. No streak update needed."); currentStreak = currentProfile.streak_days || 0; }
 
         currentProfile.streak_days = currentStreak; // Update local state immediately
-        if (ui.modalCurrentStreakValue) ui.modalCurrentStreakValue.textContent = currentStreak;
+        if (ui.modalCurrentStreakValue) ui.modalCurrentStreakValue.textContent = currentStreak; // Update modal if exists
 
         currentProfile.monthly_claims = currentProfile.monthly_claims || {};
         if (!currentProfile.monthly_claims[currentMonth]) {
@@ -299,8 +316,13 @@
         if (!user || !profile) { showError("Chyba: Nelze načíst data bez profilu uživatele.", true); setLoadingState('all', false); return; }
         console.log("[MAIN] loadDashboardData: Start pro uživatele:", user.id);
         hideError();
-        setLoadingState('stats', true); setLoadingState('activities', true); setLoadingState('notifications', true);
-        if (typeof renderActivitySkeletons === 'function') renderActivitySkeletons(5); // Show skeletons immediately
+        // Set loading states only if the corresponding sections exist
+        if(ui.progressCard || ui.pointsCard || ui.streakCard) setLoadingState('stats', true);
+        if(ui.activityListContainer) setLoadingState('activities', true);
+        if(ui.notificationsList) setLoadingState('notifications', true);
+
+        // Render activity skeletons only if the container exists and function is defined
+        if (ui.activityListContainer && typeof renderActivitySkeletons === 'function') renderActivitySkeletons(5);
 
         try {
             await checkAndUpdateLoginStreak();
@@ -315,98 +337,230 @@
             console.log("[MAIN] loadDashboardData: Souběžné načítání dokončeno:", [statsResult, activitiesResult, notificationsResult]);
 
             if (statsResult.status === 'fulfilled') { updateStatsCards(statsResult.value || profile); }
-            else { console.error("❌ Chyba při načítání statistik:", statsResult.reason); showError("Nepodařilo se načíst statistiky.", false); updateStatsCards(profile); }
-             setLoadingState('stats', false);
+            else { console.error("❌ Chyba při načítání statistik:", statsResult.reason); showError("Nepodařilo se načíst statistiky.", false); updateStatsCards(profile); } // Update with profile as fallback
+            if(ui.progressCard || ui.pointsCard || ui.streakCard) setLoadingState('stats', false); // Only unset if section exists
 
             if (activitiesResult.status === 'fulfilled') { renderActivities(activitiesResult.value || []); }
-            else { console.error("❌ Chyba při načítání aktivit:", activitiesResult.reason); showError("Nepodařilo se načíst aktivity.", false); renderActivities(null); }
-             setLoadingState('activities', false);
+            else { console.error("❌ Chyba při načítání aktivit:", activitiesResult.reason); showError("Nepodařilo se načíst aktivity.", false); renderActivities(null); } // Pass null to indicate error
+            if(ui.activityListContainer) setLoadingState('activities', false); // Only unset if section exists
 
             if (notificationsResult.status === 'fulfilled') { const { unreadCount, notifications } = notificationsResult.value || { unreadCount: 0, notifications: [] }; renderNotifications(unreadCount, notifications); }
             else { console.error("❌ Chyba při načítání oznámení:", notificationsResult.reason); showError("Nepodařilo se načíst oznámení.", false); renderNotifications(0, []); }
-             setLoadingState('notifications', false); // Ensure this is set regardless of the outcome
+            if(ui.notificationsList) setLoadingState('notifications', false); // Only unset if section exists
 
             console.log("[MAIN] loadDashboardData: Statické sekce обработаны.");
         } catch (error) {
             console.error('[MAIN] loadDashboardData: Zachycena hlavní chyba:', error);
             showError('Nepodařilo se kompletně načíst data nástěnky: ' + error.message);
-            updateStatsCards(profile); renderActivities(null); renderNotifications(0, []);
-            setLoadingState('all', false);
+            updateStatsCards(profile); // Fallback updates
+            renderActivities(null);
+            renderNotifications(0, []);
+            setLoadingState('all', false); // Ensure all are false in case of error
         } finally {
-             // Ensure all loading states are false, even if some parts failed
-             setLoadingState('stats', false);
-             setLoadingState('activities', false);
-             setLoadingState('notifications', false);
-             if (typeof initTooltips === 'function') initTooltips();
+             // Ensure all potentially set loading states are false
+             if(ui.progressCard || ui.pointsCard || ui.streakCard) setLoadingState('stats', false);
+             if(ui.activityListContainer) setLoadingState('activities', false);
+             if(ui.notificationsList) setLoadingState('notifications', false);
+             if (typeof initTooltips === 'function') initTooltips(); // Re-init tooltips after content changes
         }
     }
     // --- END: Data Loading ---
 
     // --- START: UI Update Functions ---
+    // ИСПРАВЛЕНО: Проверка на существование элементов в updateSidebarProfile
     function updateSidebarProfile(profile) {
-        if (!ui.sidebarName || !ui.sidebarAvatar || !ui.sidebarUserTitle) { cacheDOMElements(); if (!ui.sidebarName || !ui.sidebarAvatar || !ui.sidebarUserTitle) { console.warn("[UI Update Sidebar] Sidebar elements not found in cache."); return; } }
+        // Check for essential sidebar elements cached in `ui`
+        if (!ui.sidebarName || !ui.sidebarAvatar || !ui.sidebarUserTitle) {
+            // Optionally re-cache if elements might appear later, but usually indicates an HTML issue
+            // cacheDOMElements();
+            // if (!ui.sidebarName || !ui.sidebarAvatar || !ui.sidebarUserTitle) {
+                 console.warn("[UI Update Sidebar] Sidebar elements (name, avatar, title) not found in cache.");
+                 return; // Exit if elements are missing
+            // }
+        }
         console.log("[UI Update] Aktualizace sidebaru...");
         if (profile) {
-            const firstName = profile.first_name ?? ''; const displayName = firstName || profile.username || currentUser?.email?.split('@')[0] || 'Pilot'; ui.sidebarName.textContent = sanitizeHTML(displayName); const initials = getInitials(profile); const avatarUrl = profile.avatar_url; ui.sidebarAvatar.innerHTML = avatarUrl ? `<img src="${sanitizeHTML(avatarUrl)}" alt="${sanitizeHTML(initials)}">` : sanitizeHTML(initials);
-            const selectedTitleKey = profile.selected_title; let displayTitle = 'Pilot'; if (selectedTitleKey && allTitles && allTitles.length > 0) { const foundTitle = allTitles.find(t => t.title_key === selectedTitleKey); if (foundTitle && foundTitle.name) displayTitle = foundTitle.name; else console.warn(`[UI Update Sidebar] Title key "${selectedTitleKey}" not found in titles list.`); } else if (selectedTitleKey) { console.warn(`[UI Update Sidebar] Selected title key present, but titles list is empty or not loaded.`); } ui.sidebarUserTitle.textContent = sanitizeHTML(displayTitle); ui.sidebarUserTitle.setAttribute('title', sanitizeHTML(displayTitle));
+            const firstName = profile.first_name ?? '';
+            const displayName = firstName || profile.username || currentUser?.email?.split('@')[0] || 'Pilot';
+            ui.sidebarName.textContent = sanitizeHTML(displayName);
+            const initials = getInitials(profile);
+            const avatarUrl = profile.avatar_url;
+            ui.sidebarAvatar.innerHTML = avatarUrl ? `<img src="${sanitizeHTML(avatarUrl)}" alt="${sanitizeHTML(initials)}">` : sanitizeHTML(initials);
+
+            const selectedTitleKey = profile.selected_title;
+            let displayTitle = 'Pilot';
+            if (selectedTitleKey && allTitles && allTitles.length > 0) {
+                const foundTitle = allTitles.find(t => t.title_key === selectedTitleKey);
+                if (foundTitle && foundTitle.name) displayTitle = foundTitle.name;
+                else console.warn(`[UI Update Sidebar] Title key "${selectedTitleKey}" not found in titles list.`);
+            } else if (selectedTitleKey) {
+                console.warn(`[UI Update Sidebar] Selected title key present, but titles list is empty or not loaded.`);
+            }
+            ui.sidebarUserTitle.textContent = sanitizeHTML(displayTitle);
+            ui.sidebarUserTitle.setAttribute('title', sanitizeHTML(displayTitle));
+
+            // Update welcome title only if it exists
             if (ui.welcomeTitle) ui.welcomeTitle.textContent = `Vítej zpět, ${sanitizeHTML(displayName)}!`;
+
             console.log("[UI Update] Sidebar aktualizován.");
-        } else { console.warn("[UI Update Sidebar] Missing profile data. Setting defaults."); ui.sidebarName.textContent = "Pilot"; ui.sidebarAvatar.textContent = '?'; if (ui.sidebarUserTitle) ui.sidebarUserTitle.textContent = 'Pilot'; if (ui.sidebarUserTitle) ui.sidebarUserTitle.removeAttribute('title'); if (ui.welcomeTitle) ui.welcomeTitle.textContent = `Vítejte!`; }
+        } else {
+            console.warn("[UI Update Sidebar] Missing profile data. Setting defaults.");
+            ui.sidebarName.textContent = "Pilot";
+            ui.sidebarAvatar.textContent = '?';
+            if (ui.sidebarUserTitle) ui.sidebarUserTitle.textContent = 'Pilot';
+            if (ui.sidebarUserTitle) ui.sidebarUserTitle.removeAttribute('title');
+            if (ui.welcomeTitle) ui.welcomeTitle.textContent = `Vítejte!`;
+        }
     }
+    // ИСПРАВЛЕНО: Проверка на существование элементов в updateStatsCards
     function updateStatsCards(stats) {
         console.log("[UI Update] Aktualizace karet statistik:", stats);
-        const statElements = { progress: ui.overallProgressValue, points: ui.totalPointsValue, streak: ui.streakValue, progressFooter: ui.overallProgressFooter, pointsFooter: ui.totalPointsFooter, streakFooter: ui.streakFooter };
-        const cards = [ui.progressCard, ui.pointsCard, ui.streakCard];
-        const requiredElements = Object.values(statElements);
 
-        // Check if elements exist
-         if (requiredElements.some(el => !el)) {
-             console.error("[UI Update Stats] Chybějící elementy statistik:", requiredElements.filter(el => !el).map(el => 'unknown element'));
-             cards.forEach(card => card?.classList.remove('loading')); // Attempt to remove loading class from found cards
-             return; // Prevent further processing
-         }
+        // Check if *any* stat card elements exist before proceeding
+        if (!ui.overallProgressValue && !ui.totalPointsValue && !ui.streakValue) {
+             console.warn("[UI Update Stats] No stat card elements found in UI cache. Skipping update.");
+             // Ensure loading class is removed if the parent cards exist
+             if (ui.progressCard) ui.progressCard.classList.remove('loading');
+             if (ui.pointsCard) ui.pointsCard.classList.remove('loading');
+             if (ui.streakCard) ui.streakCard.classList.remove('loading');
+             return;
+        }
 
-        cards.forEach(card => card?.classList.remove('loading'));
+        // Remove loading classes from existing cards
+        if (ui.progressCard) ui.progressCard.classList.remove('loading');
+        if (ui.pointsCard) ui.pointsCard.classList.remove('loading');
+        if (ui.streakCard) ui.streakCard.classList.remove('loading');
 
-        if (!stats) { console.warn("[UI Update Stats] Chybí data statistik."); statElements.progress.textContent = '- %'; statElements.points.textContent = '-'; statElements.streak.textContent = '-'; statElements.progressFooter.innerHTML = `<i class="fas fa-exclamation-circle"></i> Data nenalezena`; statElements.pointsFooter.innerHTML = `<i class="fas fa-exclamation-circle"></i> Data nenalezena`; statElements.streakFooter.textContent = `MAX: - dní`; return; }
+        if (!stats) {
+            console.warn("[UI Update Stats] Chybí data statistik. Setting defaults.");
+            if(ui.overallProgressValue) ui.overallProgressValue.textContent = '- %';
+            if(ui.totalPointsValue) ui.totalPointsValue.textContent = '-';
+            if(ui.streakValue) ui.streakValue.textContent = '-';
+            if(ui.overallProgressFooter) ui.overallProgressFooter.innerHTML = `<i class="fas fa-exclamation-circle"></i> Data nenalezena`;
+            if(ui.totalPointsFooter) ui.totalPointsFooter.innerHTML = `<i class="fas fa-exclamation-circle"></i> Data nenalezena`;
+            if(ui.streakFooter) ui.streakFooter.textContent = `MAX: - dní`;
+            return;
+        }
 
-        statElements.progress.textContent = `${stats.progress ?? 0}%`;
-        const weeklyProgress = stats.progress_weekly ?? 0; statElements.progressFooter.classList.remove('positive', 'negative'); statElements.progressFooter.innerHTML = weeklyProgress > 0 ? `<i class="fas fa-arrow-up"></i> +${weeklyProgress}% týdně` : weeklyProgress < 0 ? `<i class="fas fa-arrow-down"></i> ${weeklyProgress}% týdně` : `<i class="fas fa-minus"></i> --`; if (weeklyProgress > 0) statElements.progressFooter.classList.add('positive'); else if (weeklyProgress < 0) statElements.progressFooter.classList.add('negative');
+        // Update Progress Card (if elements exist)
+        if (ui.overallProgressValue) ui.overallProgressValue.textContent = `${stats.progress ?? 0}%`;
+        if (ui.overallProgressFooter) {
+            const weeklyProgress = stats.progress_weekly ?? 0;
+            ui.overallProgressFooter.classList.remove('positive', 'negative');
+            ui.overallProgressFooter.innerHTML = weeklyProgress > 0 ? `<i class="fas fa-arrow-up"></i> +${weeklyProgress}% týdně` : weeklyProgress < 0 ? `<i class="fas fa-arrow-down"></i> ${weeklyProgress}% týdně` : `<i class="fas fa-minus"></i> --`;
+            if (weeklyProgress > 0) ui.overallProgressFooter.classList.add('positive');
+            else if (weeklyProgress < 0) ui.overallProgressFooter.classList.add('negative');
+        }
 
-        statElements.points.textContent = stats.points ?? 0;
-        const weeklyPoints = stats.points_weekly ?? 0; statElements.pointsFooter.classList.remove('positive', 'negative'); statElements.pointsFooter.innerHTML = weeklyPoints > 0 ? `<i class="fas fa-arrow-up"></i> +${weeklyPoints} týdně` : weeklyPoints < 0 ? `<i class="fas fa-arrow-down"></i> ${weeklyPoints} týdně` : `<i class="fas fa-minus"></i> --`; if (weeklyPoints > 0) statElements.pointsFooter.classList.add('positive'); else if (weeklyPoints < 0) statElements.pointsFooter.classList.add('negative');
+        // Update Points Card (if elements exist)
+        if (ui.totalPointsValue) ui.totalPointsValue.textContent = stats.points ?? 0;
+        if (ui.totalPointsFooter) {
+             const weeklyPoints = stats.points_weekly ?? 0;
+             ui.totalPointsFooter.classList.remove('positive', 'negative');
+             ui.totalPointsFooter.innerHTML = weeklyPoints > 0 ? `<i class="fas fa-arrow-up"></i> +${weeklyPoints} týdně` : weeklyPoints < 0 ? `<i class="fas fa-arrow-down"></i> ${weeklyPoints} týdně` : `<i class="fas fa-minus"></i> --`;
+             if (weeklyPoints > 0) ui.totalPointsFooter.classList.add('positive');
+             else if (weeklyPoints < 0) ui.totalPointsFooter.classList.add('negative');
+        }
 
-        statElements.streak.textContent = stats.streak_current ?? 0;
-        statElements.streakFooter.textContent = `MAX: ${stats.streak_longest ?? 0} dní`;
-        console.log("[UI Update] Karty statistik aktualizovány.");
+        // Update Streak Card (if elements exist)
+        if (ui.streakValue) ui.streakValue.textContent = stats.streak_current ?? 0;
+        if (ui.streakFooter) ui.streakFooter.textContent = `MAX: ${stats.streak_longest ?? 0} dní`;
+
+        console.log("[UI Update] Karty statistik (pokud existují) aktualizovány.");
     }
+     // ИСПРАВЛЕНО: Проверка на существование элементов в renderActivities
     function renderActivities(activities) {
-        if (!ui.activityList || !ui.activityListContainer || !ui.activityListEmptyState || !ui.activityListErrorState) { console.error("[Render Activities] Essential UI elements for activity list are missing. Rendering cancelled."); setLoadingState('activities', false); return; }
+        // Check if essential elements for rendering activities exist
+        if (!ui.activityList || !ui.activityListContainer || !ui.activityListEmptyState || !ui.activityListErrorState) {
+            console.error("[Render Activities] Essential UI elements for activity list are missing from cache. Rendering cancelled.");
+            // Ensure loading state is turned off if the container was targeted
+            if(ui.activityListContainer) setLoadingState('activities', false);
+            return;
+        }
         console.log("[Render Activities] Start rendering, activities count:", activities?.length);
-        ui.activityList.innerHTML = ''; ui.activityListEmptyState.style.display = 'none'; ui.activityListErrorState.style.display = 'none'; ui.activityList.style.display = 'none';
 
-        if (activities === null) { ui.activityListErrorState.style.display = 'block'; console.warn("[Render Activities] Received null data, showing error state."); }
-        else if (activities.length === 0) { ui.activityListEmptyState.style.display = 'block'; console.log("[Render Activities] No activities to display, showing empty state."); }
-        else { const fragment = document.createDocumentFragment(); activities.forEach(activity => { const visual = activityVisuals[activity.type?.toLowerCase()] || activityVisuals.default; const title = sanitizeHTML(activity.title || 'Neznámá aktivita'); const description = sanitizeHTML(activity.description || ''); const timeAgo = formatRelativeTime(activity.created_at); const item = document.createElement('div'); item.className = 'activity-item'; item.innerHTML = `<div class="activity-icon ${visual.class}"><i class="fas ${visual.icon}"></i></div><div class="activity-content"><div class="activity-title">${title}</div>${description ? `<div class="activity-desc">${description}</div>` : ''}<div class="activity-time"><i class="far fa-clock"></i> ${timeAgo}</div></div>`; fragment.appendChild(item); }); ui.activityList.appendChild(fragment); ui.activityList.style.display = 'block'; console.log(`[Render Activities] Rendered ${activities.length} items.`); }
-        ui.activityListContainer.classList.remove('loading'); setLoadingState('activities', false);
+        // Clear previous content and states
+        ui.activityList.innerHTML = '';
+        ui.activityListEmptyState.style.display = 'none';
+        ui.activityListErrorState.style.display = 'none';
+        ui.activityList.style.display = 'none'; // Hide list initially
+
+        if (activities === null) { // Handle error case (null passed)
+            ui.activityListErrorState.style.display = 'block';
+            console.warn("[Render Activities] Received null data, showing error state.");
+        } else if (activities.length === 0) { // Handle empty list
+            ui.activityListEmptyState.style.display = 'block';
+            console.log("[Render Activities] No activities to display, showing empty state.");
+        } else { // Render activities
+            const fragment = document.createDocumentFragment();
+            activities.forEach(activity => {
+                const visual = activityVisuals[activity.type?.toLowerCase()] || activityVisuals.default;
+                const title = sanitizeHTML(activity.title || 'Neznámá aktivita');
+                const description = sanitizeHTML(activity.description || '');
+                const timeAgo = formatRelativeTime(activity.created_at);
+                const item = document.createElement('div');
+                item.className = 'activity-item';
+                item.innerHTML = `<div class="activity-icon ${visual.class}"><i class="fas ${visual.icon}"></i></div><div class="activity-content"><div class="activity-title">${title}</div>${description ? `<div class="activity-desc">${description}</div>` : ''}<div class="activity-time"><i class="far fa-clock"></i> ${timeAgo}</div></div>`;
+                fragment.appendChild(item);
+            });
+            ui.activityList.appendChild(fragment);
+            ui.activityList.style.display = 'block'; // Show list with content
+            console.log(`[Render Activities] Rendered ${activities.length} items.`);
+        }
+        // Ensure loading class is removed from container
+        ui.activityListContainer.classList.remove('loading');
+        // Final loading state update handled by caller (loadDashboardData)
+        // setLoadingState('activities', false);
     }
-    function renderActivitySkeletons(count = 5) { if (!ui.activityList || !ui.activityListContainer) { console.warn("Cannot render activity skeletons: List or container not found."); return; } ui.activityListContainer.classList.add('loading'); ui.activityList.innerHTML = ''; if(ui.activityListEmptyState) ui.activityListEmptyState.style.display = 'none'; if(ui.activityListErrorState) ui.activityListErrorState.style.display = 'none'; let skeletonHTML = '<div class="loading-placeholder">'; for (let i = 0; i < count; i++) { skeletonHTML += `<div class="skeleton-activity-item"> <div class="skeleton icon-placeholder"></div> <div style="flex-grow: 1;"> <div class="skeleton activity-line"></div> <div class="skeleton activity-line text-short"></div> <div class="skeleton activity-line-short"></div> </div> </div>`; } skeletonHTML += '</div>'; ui.activityList.innerHTML = skeletonHTML; ui.activityList.style.display = 'block'; console.log(`[Render Skeletons] Rendered ${count} activity skeletons.`); }
+    // ИСПРАВЛЕНО: Проверка на существование элементов в renderActivitySkeletons
+    function renderActivitySkeletons(count = 5) {
+        if (!ui.activityList || !ui.activityListContainer) {
+            console.warn("Cannot render activity skeletons: List or container not found in UI cache.");
+            return;
+        }
+        ui.activityListContainer.classList.add('loading');
+        ui.activityList.innerHTML = ''; // Clear previous content
+        // Hide empty/error states if they exist
+        if(ui.activityListEmptyState) ui.activityListEmptyState.style.display = 'none';
+        if(ui.activityListErrorState) ui.activityListErrorState.style.display = 'none';
 
-    // --- ИСПРАВЛЕНО: renderNotifications с улучшенной проверкой ---
+        let skeletonHTML = '<div class="loading-placeholder">'; // Wrapper for skeletons
+        for (let i = 0; i < count; i++) {
+            skeletonHTML += `
+                <div class="skeleton-activity-item">
+                    <div class="skeleton icon-placeholder"></div>
+                    <div style="flex-grow: 1;">
+                        <div class="skeleton activity-line"></div>
+                        <div class="skeleton activity-line text-short"></div>
+                        <div class="skeleton activity-line-short"></div>
+                    </div>
+                </div>`;
+        }
+        skeletonHTML += '</div>';
+        ui.activityList.innerHTML = skeletonHTML;
+        ui.activityList.style.display = 'block'; // Ensure list is visible for skeletons
+        console.log(`[Render Skeletons] Rendered ${count} activity skeletons.`);
+    }
+
+    // ИСПРАВЛЕНО: Улучшена проверка элементов в renderNotifications
     function renderNotifications(count, notifications) {
-        // Ensure elements are cached (double check)
+        // Check for essential notification elements
         if (!ui.notificationCount || !ui.notificationsList || !ui.noNotificationsMsg || !ui.markAllReadBtn) {
-            cacheDOMElements(); // Try caching again
-            if (!ui.notificationCount || !ui.notificationsList || !ui.noNotificationsMsg || !ui.markAllReadBtn) {
-                console.error("[Render Notifications] Notification UI elements are still missing after re-cache. Cannot render.");
-                setLoadingState('notifications', false); // Stop loading state if rendering fails
+             // Optionally try caching again, but likely indicates HTML structure issue
+             // cacheDOMElements();
+             // if (!ui.notificationCount || !ui.notificationsList || !ui.noNotificationsMsg || !ui.markAllReadBtn) {
+                console.error("[Render Notifications] Notification UI elements (count, list, emptyMsg, markReadBtn) are missing from cache. Cannot render.");
+                setLoadingState('notifications', false); // Ensure loading state is off
                 return;
-            }
+             // }
         }
         console.log("[Render Notifications] Start, Počet:", count, "Oznámení:", notifications);
+
+        // Update count badge
         ui.notificationCount.textContent = count > 9 ? '9+' : (count > 0 ? String(count) : '');
         ui.notificationCount.classList.toggle('visible', count > 0);
 
+        // Render notification items or empty state
         if (notifications && notifications.length > 0) {
             ui.notificationsList.innerHTML = notifications.map(n => {
                 const visual = activityVisuals[n.type?.toLowerCase()] || activityVisuals.default;
@@ -427,70 +581,142 @@
             }).join('');
             ui.noNotificationsMsg.style.display = 'none';
             ui.notificationsList.style.display = 'block';
-            ui.markAllReadBtn.disabled = count === 0;
+            ui.markAllReadBtn.disabled = count === 0; // Enable/disable based on actual unread count
         } else {
-            ui.notificationsList.innerHTML = '';
-            ui.noNotificationsMsg.style.display = 'block';
-            ui.notificationsList.style.display = 'none';
-            ui.markAllReadBtn.disabled = true;
+            ui.notificationsList.innerHTML = ''; // Clear list
+            ui.noNotificationsMsg.style.display = 'block'; // Show empty message
+            ui.notificationsList.style.display = 'none'; // Hide list container
+            ui.markAllReadBtn.disabled = true; // Disable button if no notifications
         }
         console.log("[Render Notifications] Hotovo");
-        // setLoadingState('notifications', false); // Set by the caller function (loadDashboardData)
+        // Loading state is typically managed by the caller (loadDashboardData)
+        // setLoadingState('notifications', false);
     }
     function renderNotificationSkeletons(count = 2) { if (!ui.notificationsList || !ui.noNotificationsMsg) return; let skeletonHTML = ''; for (let i = 0; i < count; i++) { skeletonHTML += `<div class="notification-item skeleton"><div class="notification-icon skeleton"></div><div class="notification-content"><div class="skeleton" style="height: 16px; width: 70%; margin-bottom: 6px;"></div><div class="skeleton" style="height: 12px; width: 90%;"></div><div class="skeleton" style="height: 10px; width: 40%; margin-top: 6px;"></div></div></div>`; } ui.notificationsList.innerHTML = skeletonHTML; ui.noNotificationsMsg.style.display = 'none'; ui.notificationsList.style.display = 'block'; }
-    function renderMonthlyCalendar() { if (!ui.modalMonthlyCalendarGrid || !ui.modalCurrentMonthYearSpan || !ui.modalMonthlyCalendarEmpty) { console.error("Monthly calendar MODAL UI elements missing. Cannot render."); setLoadingState('monthlyRewards', false); return; } console.log("[RenderMonthly] Rendering calendar..."); setLoadingState('monthlyRewards', true); const gridContainer = ui.modalMonthlyCalendarGrid; const modalTitleSpan = ui.modalCurrentMonthYearSpan; const emptyState = ui.modalMonthlyCalendarEmpty; const now = new Date(); const year = now.getFullYear(); const month = now.getMonth(); const today = now.getDate(); const daysInMonth = new Date(year, month + 1, 0).getDate(); const monthString = getCurrentMonthYearString(); const monthName = now.toLocaleString('cs-CZ', { month: 'long', year: 'numeric' }); const claimedDaysThisMonth = currentProfile?.monthly_claims?.[monthString] || []; console.log(`[RenderMonthly] Claimed days for ${monthString}:`, claimedDaysThisMonth); modalTitleSpan.textContent = monthName; gridContainer.innerHTML = ''; emptyState.style.display = 'none'; gridContainer.style.display = 'grid'; const fragment = document.createDocumentFragment(); let daysRendered = 0; for (let day = 1; day <= daysInMonth; day++) { const dayElement = document.createElement('div'); dayElement.classList.add('calendar-day'); dayElement.dataset.day = day; const isClaimed = claimedDaysThisMonth.includes(day); const isClaimable = (day === today && !isClaimed); const isUpcoming = day > today; const isMissed = day < today && !isClaimed; let rewardIconHtml = '<i class="fas fa-gift"></i>'; let rewardText = `Den ${day}`; dayElement.innerHTML = `<span class="day-number">${day}</span><div class="reward-icon">${rewardIconHtml}</div><span class="reward-text">${rewardText}</span><span class="reward-status"></span><button class="claim-button btn btn-sm" style="display: none;"><i class="fas fa-check"></i> Vyzvednout</button>`; const statusSpan = dayElement.querySelector('.reward-status'); const claimButton = dayElement.querySelector('.claim-button'); if (isClaimed) { dayElement.classList.add('claimed'); if (statusSpan) statusSpan.textContent = 'Získáno'; } else if (isClaimable) { dayElement.classList.add('available'); if (statusSpan) statusSpan.textContent = 'Dostupné'; if (claimButton) { claimButton.style.display = 'block'; claimButton.addEventListener('click', (e) => { e.stopPropagation(); claimMonthlyReward(day, claimButton); }); } } else if (isUpcoming) { dayElement.classList.add('upcoming'); if (statusSpan) statusSpan.textContent = 'Připravuje se'; } else { dayElement.classList.add('missed'); if (statusSpan) statusSpan.textContent = 'Zmeškáno'; } if(day === today) { dayElement.classList.add('today'); } fragment.appendChild(dayElement); daysRendered++; } if (daysRendered > 0) { gridContainer.appendChild(fragment); } else { emptyState.style.display = 'block'; gridContainer.style.display = 'none'; } ui.monthlyRewardModal?.querySelector('.modal-body')?.classList.remove('loading'); console.log("[RenderMonthly] Modal calendar rendered."); setLoadingState('monthlyRewards', false); initTooltips(); }
+    function renderMonthlyCalendar() { if (!ui.modalMonthlyCalendarGrid || !ui.modalCurrentMonthYearSpan || !ui.modalMonthlyCalendarEmpty) { console.error("Monthly calendar MODAL UI elements missing. Cannot render."); setLoadingState('monthlyRewards', false); return; } console.log("[RenderMonthly] Rendering calendar..."); setLoadingState('monthlyRewards', true); const gridContainer = ui.modalMonthlyCalendarGrid; const modalTitleSpan = ui.modalCurrentMonthYearSpan; const emptyState = ui.modalMonthlyCalendarEmpty; const now = new Date(); const year = now.getFullYear(); const month = now.getMonth(); const today = now.getDate(); const daysInMonth = new Date(year, month + 1, 0).getDate(); const monthString = getCurrentMonthYearString(); const monthName = now.toLocaleString('cs-CZ', { month: 'long', year: 'numeric' }); const claimedDaysThisMonth = currentProfile?.monthly_claims?.[monthString] || []; console.log(`[RenderMonthly] Claimed days for ${monthString}:`, claimedDaysThisMonth); modalTitleSpan.textContent = monthName; gridContainer.innerHTML = ''; emptyState.style.display = 'none'; gridContainer.style.display = 'grid'; const fragment = document.createDocumentFragment(); let daysRendered = 0; for (let day = 1; day <= daysInMonth; day++) { const dayElement = document.createElement('div'); dayElement.classList.add('calendar-day'); dayElement.dataset.day = day; const isClaimed = claimedDaysThisMonth.includes(day); const isClaimable = (day === today && !isClaimed); const isUpcoming = day > today; const isMissed = day < today && !isClaimed; let rewardIconHtml = '<i class="fas fa-gift"></i>'; let rewardText = `Den ${day}`; dayElement.innerHTML = `<span class="day-number">${day}</span><div class="reward-icon">${rewardIconHtml}</div><span class="reward-text">${rewardText}</span><span class="reward-status"></span><button class="claim-button btn btn-sm" style="display: none;"><i class="fas fa-check"></i> Vyzvednout</button>`; const statusSpan = dayElement.querySelector('.reward-status'); const claimButton = dayElement.querySelector('.claim-button'); if (isClaimed) { dayElement.classList.add('claimed'); if (statusSpan) statusSpan.textContent = 'Získáno'; } else if (isClaimable) { dayElement.classList.add('available'); if (statusSpan) statusSpan.textContent = 'Dostupné'; if (claimButton) { claimButton.style.display = 'block'; claimButton.addEventListener('click', (e) => { e.stopPropagation(); claimMonthlyReward(day, claimButton); }); } } else if (isUpcoming) { dayElement.classList.add('upcoming'); if (statusSpan) statusSpan.textContent = 'Připravuje se'; } else { dayElement.classList.add('missed'); if (statusSpan) statusSpan.textContent = 'Zmeškáno'; } if(day === today) { dayElement.classList.add('today'); } fragment.appendChild(dayElement); daysRendered++; } if (daysRendered > 0) { gridContainer.appendChild(fragment); } else { emptyState.style.display = 'block'; gridContainer.style.display = 'none'; } if(ui.monthlyRewardModal) ui.monthlyRewardModal.querySelector('.modal-body')?.classList.remove('loading'); console.log("[RenderMonthly] Modal calendar rendered."); setLoadingState('monthlyRewards', false); initTooltips(); }
     function renderMonthlyCalendarSkeletons() { const gridContainer = ui.modalMonthlyCalendarGrid; if (!gridContainer) return; gridContainer.innerHTML = ''; gridContainer.style.display = 'grid'; const skeletonCount = 21; let skeletonHTML = ''; for(let i=0; i < skeletonCount; i++) { skeletonHTML += '<div class="calendar-day skeleton"></div>'; } gridContainer.innerHTML = skeletonHTML; }
-    function renderStreakMilestones() { if (!ui.modalMilestonesGrid || !ui.modalMilestonesEmpty || !ui.modalCurrentStreakValue) { console.error("Streak milestones MODAL UI elements missing. Cannot render."); setLoadingState('streakMilestones', false); return; } console.log("[RenderMilestones] Rendering streak milestones..."); setLoadingState('streakMilestones', true); const gridContainer = ui.modalMilestonesGrid; const emptyState = ui.modalMilestonesEmpty; const streakSpan = ui.modalCurrentStreakValue; const currentStreak = currentProfile?.streak_days || 0; const lastClaimed = currentProfile?.last_milestone_claimed || 0; streakSpan.textContent = currentStreak; gridContainer.innerHTML = ''; emptyState.style.display = 'none'; gridContainer.style.display = 'grid'; const fragment = document.createDocumentFragment(); let milestonesToShow = 0; milestoneDays.forEach(milestoneDay => { const config = MILESTONE_REWARDS_CONFIG[milestoneDay]; if (!config) return; const milestoneElement = document.createElement('div'); milestoneElement.classList.add('milestone-card'); milestoneElement.dataset.milestone = milestoneDay; const isClaimed = lastClaimed >= milestoneDay; const isClaimable = currentStreak >= milestoneDay && !isClaimed; const isLocked = currentStreak < milestoneDay; let statusHTML = ''; let buttonHTML = ''; if (isClaimed) { milestoneElement.classList.add('claimed'); statusHTML = `<span class="reward-status">Získáno</span>`; } else if (isClaimable) { milestoneElement.classList.add('available'); statusHTML = `<span class="reward-status">Dostupné</span>`; buttonHTML = `<button class="claim-button btn btn-sm btn-success"><i class="fas fa-check"></i> Vyzvednout</button>`; } else { milestoneElement.classList.add('locked'); const daysNeeded = milestoneDay - currentStreak; statusHTML = `<span class="reward-status">Ještě ${daysNeeded} ${daysNeeded === 1 ? 'den' : (daysNeeded < 5 ? 'dny' : 'dní')}</span>`; } milestoneElement.innerHTML = `<span class="day-number">Série ${milestoneDay}</span><div class="reward-icon"><i class="fas ${config.icon || 'fa-award'}"></i></div><span class="reward-text" title="${sanitizeHTML(config.description)}">${sanitizeHTML(config.name)}</span>${statusHTML}${buttonHTML}`; const claimButton = milestoneElement.querySelector('.claim-button'); if (claimButton) { claimButton.addEventListener('click', (e) => { e.stopPropagation(); claimMilestoneReward(milestoneDay, claimButton); }); } fragment.appendChild(milestoneElement); milestonesToShow++; }); if (milestonesToShow > 0) { gridContainer.appendChild(fragment); } else { emptyState.style.display = 'block'; gridContainer.style.display = 'none'; } ui.streakMilestonesModal?.querySelector('.modal-body')?.classList.remove('loading'); console.log("[RenderMilestones] Milestones rendered in modal."); setLoadingState('streakMilestones', false); initTooltips(); }
+    function renderStreakMilestones() { if (!ui.modalMilestonesGrid || !ui.modalMilestonesEmpty || !ui.modalCurrentStreakValue) { console.error("Streak milestones MODAL UI elements missing. Cannot render."); setLoadingState('streakMilestones', false); return; } console.log("[RenderMilestones] Rendering streak milestones..."); setLoadingState('streakMilestones', true); const gridContainer = ui.modalMilestonesGrid; const emptyState = ui.modalMilestonesEmpty; const streakSpan = ui.modalCurrentStreakValue; const currentStreak = currentProfile?.streak_days || 0; const lastClaimed = currentProfile?.last_milestone_claimed || 0; streakSpan.textContent = currentStreak; gridContainer.innerHTML = ''; emptyState.style.display = 'none'; gridContainer.style.display = 'grid'; const fragment = document.createDocumentFragment(); let milestonesToShow = 0; milestoneDays.forEach(milestoneDay => { const config = MILESTONE_REWARDS_CONFIG[milestoneDay]; if (!config) return; const milestoneElement = document.createElement('div'); milestoneElement.classList.add('milestone-card'); milestoneElement.dataset.milestone = milestoneDay; const isClaimed = lastClaimed >= milestoneDay; const isClaimable = currentStreak >= milestoneDay && !isClaimed; const isLocked = currentStreak < milestoneDay; let statusHTML = ''; let buttonHTML = ''; if (isClaimed) { milestoneElement.classList.add('claimed'); statusHTML = `<span class="reward-status">Získáno</span>`; } else if (isClaimable) { milestoneElement.classList.add('available'); statusHTML = `<span class="reward-status">Dostupné</span>`; buttonHTML = `<button class="claim-button btn btn-sm btn-success"><i class="fas fa-check"></i> Vyzvednout</button>`; } else { milestoneElement.classList.add('locked'); const daysNeeded = milestoneDay - currentStreak; statusHTML = `<span class="reward-status">Ještě ${daysNeeded} ${daysNeeded === 1 ? 'den' : (daysNeeded < 5 ? 'dny' : 'dní')}</span>`; } milestoneElement.innerHTML = `<span class="day-number">Série ${milestoneDay}</span><div class="reward-icon"><i class="fas ${config.icon || 'fa-award'}"></i></div><span class="reward-text" title="${sanitizeHTML(config.description)}">${sanitizeHTML(config.name)}</span>${statusHTML}${buttonHTML}`; const claimButton = milestoneElement.querySelector('.claim-button'); if (claimButton) { claimButton.addEventListener('click', (e) => { e.stopPropagation(); claimMilestoneReward(milestoneDay, claimButton); }); } fragment.appendChild(milestoneElement); milestonesToShow++; }); if (milestonesToShow > 0) { gridContainer.appendChild(fragment); } else { emptyState.style.display = 'block'; gridContainer.style.display = 'none'; } if(ui.streakMilestonesModal) ui.streakMilestonesModal.querySelector('.modal-body')?.classList.remove('loading'); console.log("[RenderMilestones] Milestones rendered in modal."); setLoadingState('streakMilestones', false); initTooltips(); }
      function renderMilestoneSkeletons() { const gridContainer = ui.modalMilestonesGrid; if (!gridContainer) return; gridContainer.innerHTML = ''; gridContainer.style.display = 'grid'; const skeletonCount = 6; let skeletonHTML = ''; for(let i=0; i < skeletonCount; i++) { skeletonHTML += '<div class="milestone-card skeleton"></div>'; } gridContainer.innerHTML = skeletonHTML; }
     // --- END: UI Update ---
 
     // --- START: Claim Reward Logic ---
-    async function claimMonthlyReward(day, buttonElement) { console.log(`[ClaimMonthly] Attempting claim for day ${day}`); if (!currentUser || !currentProfile || !supabase || isLoading.monthlyRewards) return; setLoadingState('monthlyRewards', true); if (buttonElement) { buttonElement.disabled = true; buttonElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; } const currentMonth = getCurrentMonthYearString(); currentProfile.monthly_claims = currentProfile.monthly_claims || {}; currentProfile.monthly_claims[currentMonth] = currentProfile.monthly_claims[currentMonth] || []; if (currentProfile.monthly_claims[currentMonth].includes(day)) { console.warn(`[ClaimMonthly] Day ${day} already claimed.`); showToast('Info', 'Odměna již byla vyzvednuta.', 'info'); setLoadingState('monthlyRewards', false); renderMonthlyCalendar(); return; } const updatedClaimsForMonth = [...currentProfile.monthly_claims[currentMonth], day]; const updatedFullClaims = { ...currentProfile.monthly_claims, [currentMonth]: updatedClaimsForMonth }; const dbSuccess = await updateMonthlyClaimsInDB(updatedFullClaims); if (dbSuccess) { currentProfile.monthly_claims = updatedFullClaims; console.log(`[ClaimMonthly] Reward claimed locally & simulated DB save. New claims:`, currentProfile.monthly_claims); showToast('Odměna Získána!', `Získali jste odměnu za ${day}. den měsíce! (Placeholder)`, 'success'); } else { showToast('Chyba', 'Nepodařilo se uložit vyzvednutí odměny.', 'error'); if (buttonElement) { buttonElement.disabled = false; buttonElement.innerHTML = '<i class="fas fa-check"></i> Vyzvednout'; } } setLoadingState('monthlyRewards', false); renderMonthlyCalendar(); }
-    async function claimMilestoneReward(milestoneDay, buttonElement) { console.log(`[ClaimMilestone] Attempting claim for milestone ${milestoneDay}`); if (!currentUser || !currentProfile || !supabase || isLoading.streakMilestones) return; setLoadingState('streakMilestones', true); if (buttonElement) { buttonElement.disabled = true; buttonElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; } const lastClaimed = currentProfile?.last_milestone_claimed || 0; const currentStreak = currentProfile?.streak_days || 0; if (lastClaimed >= milestoneDay) { console.warn(`[ClaimMilestone] Milestone ${milestoneDay} already claimed (last claimed: ${lastClaimed}).`); showToast('Info', 'Milník již byl dosažen.', 'info'); setLoadingState('streakMilestones', false); renderStreakMilestones(); return; } if (currentStreak < milestoneDay) { console.warn(`[ClaimMilestone] Milestone ${milestoneDay} not yet reached (current streak: ${currentStreak}).`); showToast('Chyba', 'Podmínky pro tento milník ještě nebyly splněny.', 'warning'); setLoadingState('streakMilestones', false); renderStreakMilestones(); return; } const rewardConfig = MILESTONE_REWARDS_CONFIG[milestoneDay]; const rewardName = rewardConfig?.name || `Odměna za ${milestoneDay} dní`; const dbSuccess = await updateLastMilestoneClaimedInDB(milestoneDay); if(dbSuccess) { currentProfile.last_milestone_claimed = milestoneDay; console.log(`[ClaimMilestone] Reward claimed locally & simulated DB save. Last claimed: ${currentProfile.last_milestone_claimed}`); showToast('Milník Dosažen!', `Získali jste: ${rewardName} (Placeholder)`, 'success'); } else { showToast('Chyba', 'Nepodařilo se uložit vyzvednutí milníkové odměny.', 'error'); if (buttonElement) { buttonElement.disabled = false; buttonElement.innerHTML = '<i class="fas fa-check"></i> Vyzvednout'; } } setLoadingState('streakMilestones', false); renderStreakMilestones(); }
+    async function claimMonthlyReward(day, buttonElement) { console.log(`[ClaimMonthly] Attempting claim for day ${day}`); if (!currentUser || !currentProfile || !supabase || isLoading.monthlyRewards) return; setLoadingState('monthlyRewards', true); if (buttonElement) { buttonElement.disabled = true; buttonElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; } const currentMonth = getCurrentMonthYearString(); currentProfile.monthly_claims = currentProfile.monthly_claims || {}; currentProfile.monthly_claims[currentMonth] = currentProfile.monthly_claims[currentMonth] || []; if (currentProfile.monthly_claims[currentMonth].includes(day)) { console.warn(`[ClaimMonthly] Day ${day} already claimed.`); showToast('Info', 'Odměna již byla vyzvednuta.', 'info'); setLoadingState('monthlyRewards', false); renderMonthlyCalendar(); return; } const updatedClaimsForMonth = [...currentProfile.monthly_claims[currentMonth], day]; const updatedFullClaims = { ...currentProfile.monthly_claims, [currentMonth]: updatedClaimsForMonth }; const dbSuccess = await updateMonthlyClaimsInDB(updatedFullClaims); if (dbSuccess) { currentProfile.monthly_claims = updatedFullClaims; console.log(`[ClaimMonthly] Reward claimed locally & DB save successful. New claims:`, currentProfile.monthly_claims); showToast('Odměna Získána!', `Získali jste odměnu za ${day}. den měsíce! (Placeholder)`, 'success'); } else { showToast('Chyba', 'Nepodařilo se uložit vyzvednutí odměny.', 'error'); if (buttonElement) { buttonElement.disabled = false; buttonElement.innerHTML = '<i class="fas fa-check"></i> Vyzvednout'; } } setLoadingState('monthlyRewards', false); renderMonthlyCalendar(); }
+    async function claimMilestoneReward(milestoneDay, buttonElement) { console.log(`[ClaimMilestone] Attempting claim for milestone ${milestoneDay}`); if (!currentUser || !currentProfile || !supabase || isLoading.streakMilestones) return; setLoadingState('streakMilestones', true); if (buttonElement) { buttonElement.disabled = true; buttonElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; } const lastClaimed = currentProfile?.last_milestone_claimed || 0; const currentStreak = currentProfile?.streak_days || 0; if (lastClaimed >= milestoneDay) { console.warn(`[ClaimMilestone] Milestone ${milestoneDay} already claimed (last claimed: ${lastClaimed}).`); showToast('Info', 'Milník již byl dosažen.', 'info'); setLoadingState('streakMilestones', false); renderStreakMilestones(); return; } if (currentStreak < milestoneDay) { console.warn(`[ClaimMilestone] Milestone ${milestoneDay} not yet reached (current streak: ${currentStreak}).`); showToast('Chyba', 'Podmínky pro tento milník ještě nebyly splněny.', 'warning'); setLoadingState('streakMilestones', false); renderStreakMilestones(); return; } const rewardConfig = MILESTONE_REWARDS_CONFIG[milestoneDay]; const rewardName = rewardConfig?.name || `Odměna za ${milestoneDay} dní`; const dbSuccess = await updateLastMilestoneClaimedInDB(milestoneDay); if(dbSuccess) { currentProfile.last_milestone_claimed = milestoneDay; console.log(`[ClaimMilestone] Reward claimed locally & DB save successful. Last claimed: ${currentProfile.last_milestone_claimed}`); showToast('Milník Dosažen!', `Získali jste: ${rewardName} (Placeholder)`, 'success'); } else { showToast('Chyba', 'Nepodařilo se uložit vyzvednutí milníkové odměny.', 'error'); if (buttonElement) { buttonElement.disabled = false; buttonElement.innerHTML = '<i class="fas fa-check"></i> Vyzvednout'; } } setLoadingState('streakMilestones', false); renderStreakMilestones(); }
     // --- END: Claim Reward Logic ---
 
     // --- START: Notification Logic ---
     async function markNotificationRead(notificationId) { console.log("[FUNC] markNotificationRead: Označení ID:", notificationId); if (!currentUser || !notificationId || !supabase) return false; try { const { error } = await supabase.from('user_notifications').update({ is_read: true }).eq('user_id', currentUser.id).eq('id', notificationId); if (error) throw error; console.log("[FUNC] markNotificationRead: Úspěch pro ID:", notificationId); return true; } catch (error) { console.error("[FUNC] markNotificationRead: Chyba:", error); showToast('Chyba', 'Nepodařilo se označit oznámení jako přečtené.', 'error'); return false; } }
-    async function markAllNotificationsRead() { console.log("[FUNC] markAllNotificationsRead: Start pro uživatele:", currentUser?.id); if (!currentUser || !ui.markAllReadBtn || !supabase) { console.warn("Cannot mark all read: Missing user, button, or supabase."); return; } if (isLoading.notifications) return; setLoadingState('notifications', true); ui.markAllReadBtn.disabled = true; try { const { error } = await supabase.from('user_notifications').update({ is_read: true }).eq('user_id', currentUser.id).eq('is_read', false); if (error) throw error; console.log("[FUNC] markAllNotificationsRead: Úspěch"); const { unreadCount, notifications } = await fetchNotifications(currentUser.id, 5); renderNotifications(unreadCount, notifications); showToast('SIGNÁLY VYMAZÁNY', 'Všechna oznámení byla označena jako přečtená.', 'success'); } catch (error) { console.error("[FUNC] markAllNotificationsRead: Chyba:", error); showToast('CHYBA PŘENOSU', 'Nepodařilo se označit všechna oznámení.', 'error'); const currentCount = parseInt(ui.notificationCount?.textContent?.replace('+', '') || '0'); ui.markAllReadBtn.disabled = currentCount === 0; } finally { setLoadingState('notifications', false); } }
+    async function markAllNotificationsRead() { console.log("[FUNC] markAllNotificationsRead: Start pro uživatele:", currentUser?.id); if (!currentUser || !ui.markAllReadBtn || !supabase) { console.warn("Cannot mark all read: Missing user, button, or supabase."); return; } if (isLoading.notifications) return; setLoadingState('notifications', true); ui.markAllReadBtn.disabled = true; try { const { error } = await supabase.from('user_notifications').update({ is_read: true }).eq('user_id', currentUser.id).eq('is_read', false); if (error) throw error; console.log("[FUNC] markAllNotificationsRead: Úspěch"); // Fetch and re-render notifications after marking all as read
+        const { unreadCount, notifications } = await fetchNotifications(currentUser.id, 5); renderNotifications(unreadCount, notifications); showToast('SIGNÁLY VYMAZÁNY', 'Všechna oznámení byla označena jako přečtená.', 'success'); } catch (error) { console.error("[FUNC] markAllNotificationsRead: Chyba:", error); showToast('CHYBA PŘENOSU', 'Nepodařilo se označit všechna oznámení.', 'error'); const currentCount = parseInt(ui.notificationCount?.textContent?.replace('+', '') || '0'); ui.markAllReadBtn.disabled = currentCount === 0; } finally { setLoadingState('notifications', false); } }
     // --- END: Notification Logic ---
 
     // --- START: Event Listeners Setup ---
+    // ИСПРАВЛЕНО: Улучшена установка слушателей
     function setupUIEventListeners() {
          console.log("[SETUP] setupUIEventListeners: Start");
-         if (!ui || Object.keys(ui).length === 0) { console.error("[SETUP] UI cache is empty! Cannot setup listeners."); return; }
+         // Check if base ui object exists, though it should by now
+         if (!ui) { console.error("[SETUP] UI cache (ui object) is missing! Cannot setup listeners."); return; }
+
          const listenersAdded = new Set();
 
-         const safeAddListener = (element, eventType, handler, key) => { if (element) { element.removeEventListener(eventType, handler); element.addEventListener(eventType, handler); listenersAdded.add(key); } else { console.warn(`[SETUP] Element not found for listener: ${key}`); } };
+         // Helper to safely add listeners, checking if element exists in ui cache
+         const safeAddListener = (elementKey, eventType, handler, listenerName) => {
+             const element = ui[elementKey]; // Get element from cache
+             if (element) {
+                 // Consider removing old listener first, though typically done once
+                 // element.removeEventListener(eventType, handler);
+                 element.addEventListener(eventType, handler);
+                 listenersAdded.add(listenerName || `${elementKey}-${eventType}`);
+             } else {
+                 // Log warning only if element is expected to exist commonly
+                  const commonElements = ['mainMobileMenuToggle', 'sidebarCloseToggle', 'sidebarOverlay', 'sidebarToggleBtn', 'refreshDataBtn', 'notificationBell', 'markAllReadBtn', 'notificationsList'];
+                  if (commonElements.includes(elementKey)) {
+                      console.warn(`[SETUP] Common element '${elementKey}' not found in UI cache for listener: ${listenerName || eventType}`);
+                  }
+             }
+         };
 
          // Sidebar/Menu
-         safeAddListener(ui.mainMobileMenuToggle, 'click', openMenu, 'mainMobileMenuToggle');
-         safeAddListener(ui.sidebarCloseToggle, 'click', closeMenu, 'sidebarCloseToggle');
-         safeAddListener(ui.sidebarOverlay, 'click', closeMenu, 'sidebarOverlay');
-         safeAddListener(ui.sidebarToggleBtn, 'click', toggleSidebar, 'sidebarToggleBtn');
-         document.querySelectorAll('.sidebar-link').forEach(link => { link.addEventListener('click', () => { if (window.innerWidth <= 992) closeMenu(); }); });
+         safeAddListener('mainMobileMenuToggle', 'click', openMenu, 'mainMobileMenuToggle');
+         safeAddListener('sidebarCloseToggle', 'click', closeMenu, 'sidebarCloseToggle');
+         safeAddListener('sidebarOverlay', 'click', closeMenu, 'sidebarOverlay');
+         safeAddListener('sidebarToggleBtn', 'click', toggleSidebar, 'sidebarToggleBtn');
 
-         // Core Actions
-         safeAddListener(ui.startPracticeBtn, 'click', () => { window.location.href = '/dashboard/procvicovani/main.html'; }, 'startPracticeBtn');
-         safeAddListener(ui.openMonthlyModalBtn, 'click', () => showModal('monthly-reward-modal'), 'openMonthlyModalBtn');
-         safeAddListener(ui.openStreakModalBtn, 'click', () => showModal('streak-milestones-modal'), 'openStreakModalBtn');
-         safeAddListener(ui.refreshDataBtn, 'click', async () => { if (!currentUser || !currentProfile) { showToast("Chyba", "Pro obnovení je nutné se přihlásit.", "error"); return; } if (Object.values(isLoading).some(state => state)) { showToast("PROBÍHÁ SYNCHRONIZACE", "Data se již načítají.", "info"); return; } const icon = ui.refreshDataBtn.querySelector('i'); const text = ui.refreshDataBtn.querySelector('.refresh-text'); if (icon) icon.classList.add('fa-spin'); if (text) text.textContent = 'RELOADING...'; ui.refreshDataBtn.disabled = true; await loadDashboardData(currentUser, currentProfile); if (icon) icon.classList.remove('fa-spin'); if (text) text.textContent = 'RELOAD'; ui.refreshDataBtn.disabled = false; }, 'refreshDataBtn');
+         // Add listener to sidebar links if they exist
+         document.querySelectorAll('.sidebar-link').forEach(link => {
+             link.addEventListener('click', () => { if (window.innerWidth <= 992) closeMenu(); });
+             // Note: This uses querySelectorAll, assumes links exist outside the `ui` cache
+         });
 
-         // Notifications
-         safeAddListener(ui.notificationBell, 'click', (event) => { event.stopPropagation(); ui.notificationsDropdown?.classList.toggle('active'); }, 'notificationBell');
-         safeAddListener(ui.markAllReadBtn, 'click', markAllNotificationsRead, 'markAllReadBtn');
-         safeAddListener(ui.notificationsList, 'click', async (event) => { const item = event.target.closest('.notification-item'); if (item) { const notificationId = item.dataset.id; const link = item.dataset.link; const isRead = item.classList.contains('is-read'); if (!isRead && notificationId) { const success = await markNotificationRead(notificationId); if (success) { item.classList.add('is-read'); item.querySelector('.unread-dot')?.remove(); const currentCountText = ui.notificationCount?.textContent?.replace('+', '') || '0'; const currentCount = parseInt(currentCountText) || 0; const newCount = Math.max(0, currentCount - 1); if(ui.notificationCount) { ui.notificationCount.textContent = newCount > 9 ? '9+' : (newCount > 0 ? String(newCount) : ''); ui.notificationCount.classList.toggle('visible', newCount > 0); } if(ui.markAllReadBtn) ui.markAllReadBtn.disabled = newCount === 0; } } if (link) window.location.href = link; } }, 'notificationsList');
-         document.addEventListener('click', (event) => { if (ui.notificationsDropdown?.classList.contains('active') && !ui.notificationsDropdown.contains(event.target) && !ui.notificationBell?.contains(event.target)) { ui.notificationsDropdown?.classList.remove('active'); } });
+         // Core Actions (listeners added only if button exists)
+         safeAddListener('startPracticeBtn', 'click', () => { window.location.href = '/dashboard/procvicovani/main.html'; }, 'startPracticeBtn');
+         safeAddListener('openMonthlyModalBtn', 'click', () => showModal('monthly-reward-modal'), 'openMonthlyModalBtn');
+         safeAddListener('openStreakModalBtn', 'click', () => showModal('streak-milestones-modal'), 'openStreakModalBtn');
+         safeAddListener('refreshDataBtn', 'click', async () => {
+             if (!currentUser || !currentProfile) { showToast("Chyba", "Pro obnovení je nutné se přihlásit.", "error"); return; }
+             if (Object.values(isLoading).some(state => state)) { showToast("PROBÍHÁ SYNCHRONIZACE", "Data se již načítají.", "info"); return; }
+             const icon = ui.refreshDataBtn?.querySelector('i'); // Check if button exists
+             const text = ui.refreshDataBtn?.querySelector('.refresh-text');
+             if (icon) icon.classList.add('fa-spin');
+             if (text) text.textContent = 'RELOADING...';
+             if (ui.refreshDataBtn) ui.refreshDataBtn.disabled = true;
+             await loadDashboardData(currentUser, currentProfile);
+             if (icon) icon.classList.remove('fa-spin');
+             if (text) text.textContent = 'RELOAD';
+             if (ui.refreshDataBtn) ui.refreshDataBtn.disabled = false;
+         }, 'refreshDataBtn');
 
-         // Modal Listeners
-         safeAddListener(ui.closeMonthlyModalBtn, 'click', () => hideModal('monthly-reward-modal'), 'closeMonthlyModalBtn');
-         safeAddListener(ui.monthlyRewardModal, 'click', (event) => { if (event.target === ui.monthlyRewardModal) { hideModal('monthly-reward-modal'); } }, 'monthlyRewardModal');
-         safeAddListener(ui.closeStreakModalBtn, 'click', () => hideModal('streak-milestones-modal'), 'closeStreakModalBtn');
-         safeAddListener(ui.streakMilestonesModal, 'click', (event) => { if (event.target === ui.streakMilestonesModal) { hideModal('streak-milestones-modal'); } }, 'streakMilestonesModal');
+         // Notifications (listeners added only if elements exist)
+         safeAddListener('notificationBell', 'click', (event) => { event.stopPropagation(); ui.notificationsDropdown?.classList.toggle('active'); }, 'notificationBell');
+         safeAddListener('markAllReadBtn', 'click', markAllNotificationsRead, 'markAllReadBtn');
+         safeAddListener('notificationsList', 'click', async (event) => {
+             const item = event.target.closest('.notification-item');
+             if (item && ui.notificationCount) { // Check if count exists
+                 const notificationId = item.dataset.id;
+                 const link = item.dataset.link;
+                 const isRead = item.classList.contains('is-read');
+                 if (!isRead && notificationId) {
+                     const success = await markNotificationRead(notificationId);
+                     if (success) {
+                         item.classList.add('is-read');
+                         item.querySelector('.unread-dot')?.remove();
+                         const currentCountText = ui.notificationCount.textContent?.replace('+', '') || '0'; // Use optional chaining
+                         const currentCount = parseInt(currentCountText) || 0;
+                         const newCount = Math.max(0, currentCount - 1);
+                         ui.notificationCount.textContent = newCount > 9 ? '9+' : (newCount > 0 ? String(newCount) : '');
+                         ui.notificationCount.classList.toggle('visible', newCount > 0);
+                         if(ui.markAllReadBtn) ui.markAllReadBtn.disabled = newCount === 0;
+                     }
+                 }
+                 if (link) window.location.href = link;
+             }
+         }, 'notificationsList');
+         // Close dropdown on outside click (global listener)
+         document.addEventListener('click', (event) => {
+              // Check if dropdown exists and is active
+             if (ui.notificationsDropdown?.classList.contains('active') &&
+                 !ui.notificationsDropdown.contains(event.target) &&
+                 !ui.notificationBell?.contains(event.target)) { // Check bell exists
+                 ui.notificationsDropdown.classList.remove('active');
+             }
+         });
+
+         // Modal Listeners (added only if modals exist)
+         safeAddListener('closeMonthlyModalBtn', 'click', () => hideModal('monthly-reward-modal'), 'closeMonthlyModalBtn');
+         safeAddListener('monthlyRewardModal', 'click', (event) => { if (event.target === ui.monthlyRewardModal) { hideModal('monthly-reward-modal'); } }, 'monthlyRewardModalClickOutside');
+         safeAddListener('closeStreakModalBtn', 'click', () => hideModal('streak-milestones-modal'), 'closeStreakModalBtn');
+         safeAddListener('streakMilestonesModal', 'click', (event) => { if (event.target === ui.streakMilestonesModal) { hideModal('streak-milestones-modal'); } }, 'streakMilestonesModalClickOutside');
 
          // Other global listeners
          window.addEventListener('online', updateOnlineStatus);
          window.addEventListener('offline', updateOnlineStatus);
-         if (ui.mainContent) ui.mainContent.addEventListener('scroll', initHeaderScrollDetection, { passive: true });
+         // Add scroll listener only if mainContent exists
+         if (ui.mainContent) {
+            ui.mainContent.addEventListener('scroll', initHeaderScrollDetection, { passive: true });
+            // Initial check
+            initHeaderScrollDetection();
+         }
+
 
          console.log(`[SETUP] Event listeners set up. Added: ${[...listenersAdded].length}`);
      }
@@ -498,10 +724,22 @@
 
     // --- START: App Initialization ---
     async function initializeApp() {
-        console.log("[INIT Dashboard] initializeApp: Start v23.4 - Notification Check Fix");
-        cacheDOMElements(); // Cache elements immediately
+        console.log("[INIT Dashboard] initializeApp: Start v23.5 - Robust DOM Handling");
+        cacheDOMElements(); // Cache elements first
 
-        const waitForSupabase = new Promise((resolve, reject) => { /* ... (same wait logic) ... */ const maxAttempts = 10; let attempts = 0; const intervalId = setInterval(() => { attempts++; if (typeof window.supabase !== 'undefined' && typeof window.supabase.createClient === 'function') { console.log(`[INIT Dashboard] Supabase library found after ${attempts} attempts.`); clearInterval(intervalId); resolve(); } else if (attempts >= maxAttempts) { console.error("[INIT Dashboard] Supabase library not found after waiting. Aborting."); clearInterval(intervalId); reject(new Error("Knihovna Supabase nebyla nalezena včas.")); } else { console.log(`[INIT Dashboard] Waiting for Supabase library... (Attempt ${attempts}/${maxAttempts})`); } }, 200); });
+        const waitForSupabase = new Promise((resolve, reject) => {
+            const maxAttempts = 10; let attempts = 0;
+            const intervalId = setInterval(() => {
+                attempts++;
+                if (typeof window.supabase !== 'undefined' && typeof window.supabase.createClient === 'function') {
+                    console.log(`[INIT Dashboard] Supabase library found after ${attempts} attempts.`);
+                    clearInterval(intervalId); resolve();
+                } else if (attempts >= maxAttempts) {
+                    console.error("[INIT Dashboard] Supabase library not found after waiting. Aborting.");
+                    clearInterval(intervalId); reject(new Error("Knihovna Supabase nebyla nalezena včas."));
+                } else { /* console.log(`[INIT Dashboard] Waiting for Supabase library... (Attempt ${attempts}/${maxAttempts})`); */ }
+            }, 200);
+        });
         try { await waitForSupabase; }
         catch (waitError) { showError(waitError.message, true); if(ui.initialLoader) ui.initialLoader.classList.add('hidden'); return; }
 
@@ -511,7 +749,7 @@
         setupUIEventListeners();    // Setup listeners AFTER caching and Supabase init
 
         if (ui.initialLoader) { ui.initialLoader.classList.remove('hidden'); ui.initialLoader.style.display = 'flex'; }
-        if (ui.mainContent) ui.mainContent.style.display = 'none';
+        if (ui.mainContent) ui.mainContent.style.display = 'none'; // Hide main content initially
 
         try {
             console.log("[INIT Dashboard] Checking auth session...");
@@ -522,39 +760,82 @@
                 currentUser = session.user;
                 console.log(`[INIT Dashboard] User authenticated (ID: ${currentUser.id}). Loading profile and titles...`);
 
-                const [profileResult, titlesResult] = await Promise.allSettled([ fetchUserProfile(currentUser.id), fetchTitles() ]);
+                const [profileResult, titlesResult] = await Promise.allSettled([
+                    fetchUserProfile(currentUser.id),
+                    fetchTitles() // Fetch all available titles definition
+                ]);
 
-                if (profileResult.status === 'fulfilled' && profileResult.value) { currentProfile = profileResult.value; console.log("[INIT Dashboard] Profile loaded:", currentProfile); }
-                else { console.warn("[INIT Dashboard] Profile not found or fetch failed, attempting to create default..."); currentProfile = await createDefaultProfile(currentUser.id, currentUser.email); if (!currentProfile) throw new Error("Nepodařilo se vytvořit/načíst profil uživatele."); console.log("[INIT Dashboard] Default profile created/retrieved."); }
+                if (profileResult.status === 'fulfilled' && profileResult.value) {
+                    currentProfile = profileResult.value;
+                    console.log("[INIT Dashboard] Profile loaded:", currentProfile);
+                } else {
+                    console.warn("[INIT Dashboard] Profile not found or fetch failed, attempting to create default...");
+                    currentProfile = await createDefaultProfile(currentUser.id, currentUser.email);
+                    if (!currentProfile) throw new Error("Nepodařilo se vytvořit/načíst profil uživatele.");
+                    console.log("[INIT Dashboard] Default profile created/retrieved.");
+                }
 
-                if (titlesResult.status === 'fulfilled') { allTitles = titlesResult.value || []; console.log("[INIT Dashboard] Titles loaded:", allTitles.length); }
-                else { console.warn("[INIT Dashboard] Failed to load titles:", titlesResult.reason); allTitles = []; }
+                if (titlesResult.status === 'fulfilled') {
+                    allTitles = titlesResult.value || []; // Store fetched titles globally
+                    console.log("[INIT Dashboard] Titles loaded:", allTitles.length);
+                } else {
+                    console.warn("[INIT Dashboard] Failed to load titles:", titlesResult.reason);
+                    allTitles = []; // Ensure it's an empty array on failure
+                }
 
-                updateSidebarProfile(currentProfile);
+                updateSidebarProfile(currentProfile); // Update sidebar with profile and titles
                 updateCopyrightYear();
                 updateOnlineStatus();
 
-                await loadDashboardData(currentUser, currentProfile);
+                await loadDashboardData(currentUser, currentProfile); // Load main dashboard data
 
-                if (ui.initialLoader) { ui.initialLoader.classList.add('hidden'); setTimeout(() => { if (ui.initialLoader) ui.initialLoader.style.display = 'none'; }, 500); }
-                if (ui.mainContent) { ui.mainContent.style.display = 'block'; requestAnimationFrame(() => { ui.mainContent.classList.add('loaded'); initScrollAnimations(); }); }
-                initMouseFollower();
-                initHeaderScrollDetection();
-                initTooltips();
+                 // Hide loader and show content only if elements exist
+                if (ui.initialLoader) {
+                    ui.initialLoader.classList.add('hidden');
+                    setTimeout(() => { if (ui.initialLoader) ui.initialLoader.style.display = 'none'; }, 500);
+                }
+                if (ui.mainContent) {
+                    ui.mainContent.style.display = 'block'; // Show main content
+                    requestAnimationFrame(() => { ui.mainContent.classList.add('loaded'); initScrollAnimations(); }); // Add loaded class for animations
+                }
+                // Initialize UI features that depend on content being visible
+                initMouseFollower(); // Init mouse follower if element exists
+                // initHeaderScrollDetection(); // Already called within setupUIEventListeners if mainContent exists
+                initTooltips(); // Init tooltips for potentially new elements
 
-                 // Dispatch a custom event when the dashboard is fully loaded
-                 const readyEvent = new CustomEvent('dashboardReady', { detail: { user: currentUser, profile: currentProfile } });
+                 // ИСПРАВЛЕНО: Dispatch 'dashboardReady' event with more data
+                 const readyEvent = new CustomEvent('dashboardReady', {
+                     detail: {
+                         user: currentUser,
+                         profile: currentProfile,
+                         client: supabase, // Pass the initialized Supabase client
+                         titles: allTitles // Pass the fetched titles list
+                     }
+                 });
                  document.dispatchEvent(readyEvent);
-                 console.log("[INIT Dashboard] Dispatching 'dashboardReady' event.");
+                 console.log("[INIT Dashboard] Dispatching 'dashboardReady' event with user, profile, client, and titles.");
 
                 console.log("✅ [INIT Dashboard] Page fully loaded and initialized.");
 
-            } else { console.log('[INIT Dashboard] V sezení není uživatel, přesměrování.'); window.location.href = '/auth/index.html'; }
-        } catch (error) { console.error("❌ [INIT Dashboard] Kritická chyba inicializace:", error); if (ui.initialLoader && !ui.initialLoader.classList.contains('hidden')) { ui.initialLoader.innerHTML = `<p style="color: var(--accent-pink);">CHYBA (${error.message}). OBNOVTE.</p>`; } else { showError(`Chyba inicializace: ${error.message}`, true); } if (ui.mainContent) ui.mainContent.style.display = 'none'; setLoadingState('all', false); }
+            } else {
+                console.log('[INIT Dashboard] V sezení není uživatel, přesměrování na přihlášení.');
+                window.location.href = '/auth/index.html'; // Redirect to login page
+            }
+        } catch (error) {
+            console.error("❌ [INIT Dashboard] Kritická chyba inicializace:", error);
+            if (ui.initialLoader && !ui.initialLoader.classList.contains('hidden')) {
+                 ui.initialLoader.innerHTML = `<p style="color: var(--accent-pink);">CHYBA (${error.message}). OBNOVTE.</p>`;
+            } else {
+                 showError(`Chyba inicializace: ${error.message}`, true);
+            }
+            if (ui.mainContent) ui.mainContent.style.display = 'none'; // Ensure content is hidden on error
+            setLoadingState('all', false); // Ensure loading states are off
+        }
     }
     // --- END: App Initialization ---
 
-    // Start the application
-    initializeApp();
+    // Start the application when the DOM is ready
+    // Using DOMContentLoaded is generally safer than just running initializeApp() directly
+    document.addEventListener('DOMContentLoaded', initializeApp);
 
 })(); // End of IIFE
