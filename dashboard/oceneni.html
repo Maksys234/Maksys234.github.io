@@ -44,10 +44,12 @@
             <li class="sidebar-item"> <a href="/dashboard/profile.html" class="sidebar-link"> <i class="fas fa-user-astronaut"></i> <span>Profil</span> </a> </li>
         </ul>
         <div class="user-profile">
-            <div class="user-avatar" id="sidebar-avatar">?</div>
+             <div class="avatar-wrapper" data-decoration-key="">
+                 <div class="user-avatar" id="sidebar-avatar">?</div>
+             </div>
             <div class="user-info">
                 <div class="user-name" id="sidebar-name">Načítání...</div>
-                <div class="user-role">Pilot</div>
+                <div class="user-role" id="sidebar-user-title" title="Váš titul">Pilot</div>
             </div>
         </div>
         <div class="sidebar-footer"> &copy; <span id="currentYearSidebar">2025</span> Justax Systems </div>
@@ -65,7 +67,7 @@
                      <button class="mobile-menu-toggle" id="main-mobile-menu-toggle" aria-label="Otevřít menu">
                          <i class="fas fa-bars"></i>
                     </button>
-                    <h1><i class="fas fa-medal"></i> Ocenění // KOLEKCE</h1>
+                    <h1 id="page-title"><i class="fas fa-medal"></i> Ocenění // KOLEKCE</h1>
                  </div>
                 <div class="header-actions">
                     <button class="refresh-btn btn btn-tooltip" id="refresh-data-btn" title="Obnovit data">
@@ -98,8 +100,8 @@
         <div class="main-content-wrapper">
             <div id="achievements-content">
                 <section class="achievement-stats" id="achievement-stats-container">
-                    <div class="stat-card card loading" id="badges-card" data-animate style="--animation-order: 1;">
-                        <div class="loading-skeleton"> <div class="skeleton-info"> <div class="skeleton title"></div> <div class="skeleton value"></div> <div class="skeleton text text-short"></div> </div> <div class="skeleton icon-placeholder"></div> </div>
+                     <div class="stat-card card loading" id="badges-card" data-animate style="--animation-order: 1;">
+                        <div class="loading-skeleton"> <div class="skeleton-info"> <div class="skeleton title-sm" style="width: 70%;"></div> <div class="skeleton value-lg" style="width: 50%;"></div> <div class="skeleton text-md" style="width: 90%;"></div> </div> <div style="margin-top: auto; border-top: 1px solid transparent; padding-top: 1rem;"> <div class="skeleton text-sm" style="width: 65%;"></div> </div> </div>
                         <div class="stat-card-content">
                             <div class="stat-card-info">
                                 <div class="stat-card-title"><i class="fas fa-medal"></i>Získané odznaky</div>
@@ -110,7 +112,7 @@
                         <div class="stat-card-icon-bg badges-icon"><i class="fas fa-medal"></i></div>
                     </div>
                     <div class="stat-card card loading" id="points-card" data-animate style="--animation-order: 2;">
-                         <div class="loading-skeleton"> <div class="skeleton-info"> <div class="skeleton title"></div> <div class="skeleton value"></div> <div class="skeleton text text-short"></div> </div> <div class="skeleton icon-placeholder"></div> </div>
+                         <div class="loading-skeleton"> <div class="skeleton-info"> <div class="skeleton title-sm" style="width: 60%;"></div> <div class="skeleton value-lg" style="width: 40%;"></div> <div class="skeleton text-md" style="width: 80%;"></div> </div> <div style="margin-top: auto; border-top: 1px solid transparent; padding-top: 1rem;"> <div class="skeleton text-sm" style="width: 70%;"></div> </div> </div>
                          <div class="stat-card-content">
                             <div class="stat-card-info">
                                 <div class="stat-card-title"><i class="fas fa-star"></i>Bodový zisk</div>
@@ -121,7 +123,7 @@
                         <div class="stat-card-icon-bg points-icon"><i class="fas fa-star"></i></div>
                     </div>
                     <div class="stat-card card loading" id="streak-card" data-animate style="--animation-order: 3;">
-                         <div class="loading-skeleton"> <div class="skeleton-info"> <div class="skeleton title"></div> <div class="skeleton value"></div> <div class="skeleton text text-short"></div> </div> <div class="skeleton icon-placeholder"></div> </div>
+                         <div class="loading-skeleton"> <div class="skeleton-info"> <div class="skeleton title-sm" style="width: 65%;"></div> <div class="skeleton value-lg" style="width: 30%;"></div> <div class="skeleton text-md" style="width: 85%;"></div> </div> <div style="margin-top: auto; border-top: 1px solid transparent; padding-top: 1rem;"> <div class="skeleton text-sm" style="width: 60%;"></div> </div> </div>
                          <div class="stat-card-content">
                             <div class="stat-card-info">
                                 <div class="stat-card-title"><i class="fas fa-fire"></i>Studijní série</div>
@@ -132,7 +134,7 @@
                         <div class="stat-card-icon-bg streak-icon"><i class="fas fa-fire"></i></div>
                     </div>
                     <div class="stat-card card loading" id="rank-card" data-animate style="--animation-order: 4;">
-                         <div class="loading-skeleton"> <div class="skeleton-info"> <div class="skeleton title"></div> <div class="skeleton value"></div> <div class="skeleton text text-short"></div> </div> <div class="skeleton icon-placeholder"></div> </div>
+                         <div class="loading-skeleton"> <div class="skeleton-info"> <div class="skeleton title-sm" style="width: 70%;"></div> <div class="skeleton value-lg" style="width: 40%;"></div> <div class="skeleton text-md" style="width: 70%;"></div> </div> <div style="margin-top: auto; border-top: 1px solid transparent; padding-top: 1rem;"> <div class="skeleton text-sm" style="width: 60%;"></div> </div> </div>
                          <div class="stat-card-content">
                             <div class="stat-card-info">
                                 <div class="stat-card-title"><i class="fas fa-trophy"></i>Pořadí v žebříčku</div>
@@ -149,8 +151,6 @@
                     <div style="padding: 1.5rem;">
                         <div class="badge-grid" id="badge-grid">
                              <div class="badge-card loading"> <div class="loading-skeleton"> <div class="skeleton badge-icon-placeholder"></div> <div class="skeleton badge-title-placeholder"></div> <div class="skeleton badge-desc-placeholder"></div> <div class="skeleton badge-desc-placeholder"></div> <div class="skeleton badge-date-placeholder"></div> </div> </div>
-                             <div class="badge-card loading"> <div class="loading-skeleton"> <div class="skeleton badge-icon-placeholder"></div> <div class="skeleton badge-title-placeholder"></div> <div class="skeleton badge-desc-placeholder"></div> <div class="skeleton badge-desc-placeholder"></div> <div class="skeleton badge-date-placeholder"></div> </div> </div>
-                             <div class="badge-card loading"> <div class="loading-skeleton"> <div class="skeleton badge-icon-placeholder"></div> <div class="skeleton badge-title-placeholder"></div> <div class="skeleton badge-desc-placeholder"></div> <div class="skeleton badge-desc-placeholder"></div> <div class="skeleton badge-date-placeholder"></div> </div> </div>
                         </div>
                         <div class="empty-state" id="empty-badges" style="display: none;">
                             <i class="fas fa-box-open empty-state-icon"></i>
@@ -161,12 +161,11 @@
                     </div>
                 </section>
 
-                <section class="available-achievements card loading" id="available-badges-container" data-animate style="--animation-order: 6;">
+                 <section class="available-achievements card loading" id="available-badges-container" data-animate style="--animation-order: 6;">
                      <h2 class="section-title" style="padding: 1.5rem 1.5rem 0; margin-bottom: 0;"><i class="fas fa-tasks"></i>Dostupné Výzvy</h2>
                      <div style="padding: 1.5rem;">
                          <div class="achievement-grid" id="available-badges-grid">
                              <div class="achievement-card loading"> <div class="loading-skeleton"> <div class="skeleton achievement-icon-placeholder"></div> <div class="skeleton achievement-content-placeholder"> <div class="skeleton achievement-title-placeholder"></div> <div class="skeleton achievement-desc-placeholder"></div> <div class="skeleton achievement-desc-placeholder"></div> <div class="skeleton achievement-progress-placeholder"></div> </div> </div> </div>
-                              <div class="achievement-card loading"> <div class="loading-skeleton"> <div class="skeleton achievement-icon-placeholder"></div> <div class="skeleton achievement-content-placeholder"> <div class="skeleton achievement-title-placeholder"></div> <div class="skeleton achievement-desc-placeholder"></div> <div class="skeleton achievement-desc-placeholder"></div> <div class="skeleton achievement-progress-placeholder"></div> </div> </div> </div>
                          </div>
                          <div class="empty-state" id="empty-available-badges" style="display: none;">
                               <i class="fas fa-check-double empty-state-icon" style="color: var(--accent-lime);"></i>
@@ -177,53 +176,52 @@
                 </section>
 
                 <section class="section title-shop-section card loading" id="title-shop-container" data-animate style="--animation-order: 8;">
-                    <h2 class="section-title">
-                        <i class="fas fa-store"></i> Obchod s Tituly
-                    </h2>
-                    <div class="current-credits" style="text-align: right; margin-bottom: 1.5rem; font-size: 1rem; color: var(--text-medium);">
+                    <h2 class="section-title"><i class="fas fa-store"></i> Obchod s Tituly</h2>
+                    <div class="current-credits" style="text-align: right; margin-bottom: 1.5rem; font-size: 1rem; color: var(--text-medium); padding: 0 1.5rem;">
                         Vaše kredity: <strong id="shop-user-credits" style="color: var(--accent-orange); font-size: 1.2em;">Načítání...</strong> <i class="fas fa-coins"></i>
                     </div>
+                    <div id="title-shop-loading" class="loader-container visible-loader"> <div class="loading-spinner"></div> <p>Načítání nabídky titulů...</p> </div>
+                    <div id="title-shop-grid" class="title-shop-grid" style="display: none; padding: 0 1.5rem 1.5rem;">
+                         </div>
+                    <div class="empty-state" id="title-shop-empty" style="display: none; margin: 1.5rem;"> <i class="fas fa-store-slash empty-state-icon"></i> <h3 class="empty-state-title">Obchod je prázdný</h3> <p class="empty-state-desc">Momentálně nejsou k dispozici žádné tituly k zakoupení.</p> </div>
+                </section>
 
-                    <div id="title-shop-loading" class="loader-container visible-loader"> <div class="loading-spinner"></div>
-                        <p>Načítání nabídky titulů...</p>
+                <section class="section avatar-decorations-shop card loading" id="avatar-decorations-shop" data-animate style="--animation-order: 9;">
+                    <h2 class="section-title">
+                        <i class="fas fa-gem"></i> Vylepšení Avatara
+                    </h2>
+                    <div class="current-credits" style="text-align: right; margin-bottom: 1.5rem; font-size: 1rem; color: var(--text-medium); padding: 0 1.5rem;">
+                        Vaše kredity: <strong id="shop-decor-credits" style="color: var(--accent-orange); font-size: 1.2em;">Načítání...</strong> <i class="fas fa-coins"></i>
                     </div>
 
-                    <div id="title-shop-grid" class="title-shop-grid" style="display: none; padding: 0 1.5rem 1.5rem;">
-                         <div class="title-item card loading">
-                              <div class="loading-skeleton">
-                                 <div style="display: flex; gap: 1.2rem; align-items: flex-start;">
-                                     <div class="skeleton" style="width: 60px; height: 60px; border-radius: 14px; flex-shrink: 0;"></div>
-                                     <div style="flex-grow: 1;">
-                                         <div class="skeleton" style="height: 20px; width: 60%; margin-bottom: 0.7rem;"></div>
-                                         <div class="skeleton" style="height: 14px; width: 90%; margin-bottom: 0.5rem;"></div>
-                                         <div class="skeleton" style="height: 14px; width: 75%;"></div>
-                                     </div>
-                                 </div>
-                                 <div style="margin-top: 1rem; padding-top: 0.8rem; border-top: 1px solid transparent; display: flex; justify-content: space-between; align-items: center;">
+                    <div id="avatar-decorations-loading" class="loader-container visible-loader">
+                        <div class="loading-spinner"></div>
+                        <p>Načítání vylepšení...</p>
+                    </div>
+
+                    <div id="avatar-decorations-grid" class="avatar-shop-grid" style="display: none; padding: 0 1.5rem 1.5rem;">
+                        <div class="decoration-item card loading"> <div class="loading-skeleton" style="padding:1rem;">
+                                <div class="skeleton" style="width: 80px; height: 80px; border-radius: 50%; margin: 0 auto 1rem auto;"></div>
+                                <div class="skeleton" style="height: 18px; width: 70%; margin: 0 auto 0.7rem auto;"></div>
+                                <div class="skeleton" style="height: 14px; width: 90%; margin-bottom: 0.5rem;"></div>
+                                <div class="skeleton" style="height: 14px; width: 80%;"></div>
+                                <div style="margin-top: 1rem; padding-top: 0.8rem; border-top: 1px solid transparent; display: flex; justify-content: space-between; align-items: center;">
                                      <div class="skeleton" style="height: 16px; width: 70px;"></div>
                                      <div class="skeleton" style="height: 30px; width: 90px; border-radius: var(--button-radius);"></div>
                                  </div>
-                              </div>
-                         </div>
-                     </div>
-                    <div class="empty-state" id="title-shop-empty" style="display: none; margin: 1.5rem;">
-                        <i class="fas fa-store-slash empty-state-icon"></i>
-                        <h3 class="empty-state-title">Obchod je prázdný</h3>
-                        <p class="empty-state-desc">Momentálně nejsou k dispozici žádné tituly k zakoupení.</p>
+                           </div>
+                        </div>
+                    </div>
+                    <div class="empty-state" id="avatar-decorations-empty" style="display: none; margin: 1.5rem;">
+                        <i class="fas fa-box-open empty-state-icon"></i>
+                        <h3 class="empty-state-title">Žádná vylepšení</h3>
+                        <p class="empty-state-desc">Momentálně nejsou k dispozici žádná vylepšení pro avatary.</p>
                     </div>
                 </section>
-
                 <section class="leaderboard-section card loading" id="leaderboard-container" data-animate style="--animation-order: 7;">
                     <div class="loading-skeleton leaderboard-skeleton">
-                         <div class="leaderboard-header-skeleton">
-                            <div class="skeleton" style="height: 24px; width: 150px;"></div>
-                            <div class="skeleton" style="height: 30px; width: 200px; border-radius: 8px;"></div>
-                         </div>
-                         <div class="leaderboard-table-skeleton">
-                             <div class="skeleton-row"> <div class="skeleton rank-placeholder"></div> <div class="skeleton avatar-placeholder"></div> <div class="skeleton name-placeholder"></div> <div class="skeleton score-placeholder"></div> <div class="skeleton badges-placeholder"></div> <div class="skeleton streak-placeholder"></div> </div>
-                              <div class="skeleton-row"> <div class="skeleton rank-placeholder"></div> <div class="skeleton avatar-placeholder"></div> <div class="skeleton name-placeholder"></div> <div class="skeleton score-placeholder"></div> <div class="skeleton badges-placeholder"></div> <div class="skeleton streak-placeholder"></div> </div>
-                             <div class="skeleton-row"> <div class="skeleton rank-placeholder"></div> <div class="skeleton avatar-placeholder"></div> <div class="skeleton name-placeholder"></div> <div class="skeleton score-placeholder"></div> <div class="skeleton badges-placeholder"></div> <div class="skeleton streak-placeholder"></div> </div>
-                         </div>
+                         <div class="leaderboard-header-skeleton"> <div class="skeleton" style="height: 24px; width: 150px;"></div> <div class="skeleton" style="height: 30px; width: 200px; border-radius: 8px;"></div> </div>
+                         <div class="leaderboard-table-skeleton"> <div class="skeleton-row"> <div class="skeleton rank-placeholder"></div> <div class="skeleton avatar-placeholder"></div> <div class="skeleton name-placeholder"></div> <div class="skeleton score-placeholder"></div> <div class="skeleton badges-placeholder"></div> <div class="skeleton streak-placeholder"></div> </div> </div>
                      </div>
                     <div class="leaderboard-header">
                         <h2 class="section-title leaderboard-title"><i class="fas fa-trophy"></i>Síň Slávy</h2>
@@ -250,16 +248,7 @@
                 </section>
 
                 <section class="recent-achievements card loading" id="recent-achievements-section" style="display: none;" data-animate style="--animation-order: 9;">
-                      <div class="recent-achievements-header">
-                         <h2 class="section-title" style="margin: 0; padding: 0; border: none;"><i class="fas fa-history"></i>Nedávné Úspěchy</h2>
-                      </div>
-                     <div class="loading-skeleton">
-                           <div class="skeleton-item"> <div class="skeleton recent-icon-placeholder"></div> <div class="skeleton recent-content-placeholder"> <div class="skeleton recent-title-placeholder"></div> <div class="skeleton recent-desc-placeholder"></div> <div class="skeleton recent-time-placeholder"></div> </div> </div>
-                           <div class="skeleton-item"> <div class="skeleton recent-icon-placeholder"></div> <div class="skeleton recent-content-placeholder"> <div class="skeleton recent-title-placeholder"></div> <div class="skeleton recent-desc-placeholder"></div> <div class="skeleton recent-time-placeholder"></div> </div> </div>
-                      </div>
-                     <div class="achievements-list" id="recent-achievements-list">
-                         </div>
-                 </section>
+                     </section>
 
             </div>
             <footer class="dashboard-footer">
@@ -271,6 +260,7 @@
     <div class="toast-container" id="toast-container"></div>
     <div id="mouse-follower" class="mouse-follower-glow"></div>
 
+    <script src="../dashboard.js" defer></script>
     <script src="oceneni.js" defer></script>
 </body>
 </html>
