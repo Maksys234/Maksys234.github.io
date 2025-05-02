@@ -1,5 +1,5 @@
 // oceneni.js
-// Версия: 23.10 - Oprava syntaktické chyby (kontrola závorek)
+// Версия: 23.11 - Oprava syntaktické chyby (chybějící '}')
 (function() {
     'use strict'; // Enable strict mode
 
@@ -42,8 +42,10 @@
             'recent-achievements-section', 'recent-achievements-list', 'currentYearFooter',
             'mouse-follower', 'title-shop-container', 'shop-user-credits', 'title-shop-loading',
             'title-shop-grid', 'title-shop-empty',
-            // Removed avatar decoration elements
-            'sidebar-toggle-btn', 'sidebar-user-role'
+            // Removed avatar decoration elements from caching
+            // 'avatar-decorations-shop', 'shop-decor-credits',
+            // 'avatar-decorations-loading', 'avatar-decorations-grid', 'avatar-decorations-empty',
+            'sidebar-toggle-btn', 'sidebar-user-role' // Check for both potential IDs
         ];
         const notFound = [];
         ids.forEach(id => {
@@ -61,7 +63,7 @@
         else { ui.sidebarRole = null; notFound.push('sidebar-user-title/role'); }
 
         if (notFound.length > 0) {
-            console.log(`[Oceneni CACHE DOM] Elements not found: (${notFound.length}) ['${notFound.join("', '")}']`);
+             console.log(`[Oceneni CACHE DOM] Elements not found: (${notFound.length}) ['${notFound.join("', '")}']`);
         }
         console.log("[Oceneni CACHE DOM] Caching complete.");
     }
@@ -101,7 +103,7 @@
                  if (config.contentEl) config.contentEl.style.display = isLoadingFlag ? 'none' : 'grid';
                  if (config.emptyEl) config.emptyEl.style.display = 'none';
              } else if (secKey === 'notifications') {
-                 if (isLoadingFlag && config.container) renderNotificationSkeletons(2);
+                 if (isLoadingFlag && config.container) renderNotificationSkeletons(2); // Call skeleton function
                  if (config.emptyEl) config.emptyEl.style.display = isLoadingFlag ? 'none' : (config.container?.innerHTML.trim() === '' ? 'block' : 'none');
              } else {
                  if (isLoadingFlag) {
@@ -140,7 +142,7 @@
     function renderAvailableBadgeSkeletons(container, count = 4) { if (!container) return; container.innerHTML = ''; container.style.display = 'grid'; let skeletonHTML = ''; for (let i = 0; i < count; i++) { skeletonHTML += `<div class="achievement-card card loading"><div class="loading-skeleton" style="display: flex !important;"><div class="skeleton achievement-icon-placeholder" style="width: 60px; height: 60px; border-radius: 16px; flex-shrink: 0;"></div><div class="skeleton achievement-content-placeholder" style="flex-grow: 1;"><div class="skeleton achievement-title-placeholder" style="height: 18px; width: 60%; margin-bottom: 0.6rem;"></div><div class="skeleton achievement-desc-placeholder" style="height: 14px; width: 95%; margin-bottom: 0.4rem;"></div><div class="skeleton achievement-desc-placeholder" style="height: 14px; width: 80%; margin-bottom: 0.8rem;"></div><div class="skeleton achievement-progress-placeholder" style="height: 20px; width: 100%;"></div></div></div></div>`; } container.innerHTML = skeletonHTML; }
     function renderLeaderboardSkeleton() { if (!ui.leaderboardSkeleton) return; ui.leaderboardSkeleton.style.display = 'block'; if(ui.leaderboardBody) ui.leaderboardBody.innerHTML = ''; if(ui.leaderboardTableContainer) ui.leaderboardTableContainer.style.visibility = 'hidden'; if(ui.leaderboardHeader) ui.leaderboardHeader.style.visibility = 'hidden'; if(ui.leaderboardEmpty) ui.leaderboardEmpty.style.display = 'none'; }
     function renderTitleShopSkeleton() { if (!ui.titleShopGrid) return; ui.titleShopGrid.innerHTML = ''; let skeletonHTML = ''; for(let i = 0; i < 3; i++) { skeletonHTML += `<div class="title-item card loading"><div class="loading-skeleton" style="display: flex !important;"><div style="display: flex; gap: 1.2rem; align-items: flex-start; width: 100%;"><div class="skeleton" style="width: 60px; height: 60px; border-radius: 14px; flex-shrink: 0;"></div><div style="flex-grow: 1;"><div class="skeleton" style="height: 20px; width: 60%; margin-bottom: 0.7rem;"></div><div class="skeleton" style="height: 14px; width: 90%; margin-bottom: 0.5rem;"></div><div class="skeleton" style="height: 14px; width: 75%;"></div></div></div></div></div>`; } ui.titleShopGrid.innerHTML = skeletonHTML; }
-    function renderAvatarDecorationsSkeleton() { console.log("[Skeleton] Avatar decorations section hidden, skipping skeleton render."); /* Function kept for structure but does nothing */ }
+    function renderAvatarDecorationsSkeleton() { console.log("[Skeleton] Avatar decorations section hidden, skipping skeleton render."); }
     function renderNotificationSkeletons(count = 2) { if (!ui.notificationsList || !ui.noNotificationsMsg) return; ui.notificationsList.innerHTML = ''; ui.noNotificationsMsg.style.display = 'none'; ui.notificationsList.style.display = 'block'; let skeletonHTML = ''; for (let i = 0; i < count; i++) { skeletonHTML += `<div class="notification-item skeleton"><div class="notification-icon skeleton" style="background-color: var(--skeleton-bg);"></div><div class="notification-content"><div class="skeleton" style="height: 16px; width: 70%; margin-bottom: 6px;"></div><div class="skeleton" style="height: 12px; width: 90%;"></div><div class="skeleton" style="height: 10px; width: 40%; margin-top: 6px;"></div></div></div>`; } ui.notificationsList.innerHTML = skeletonHTML; }
     // --- End Skeleton Rendering ---
 
@@ -167,7 +169,7 @@
     // --- Конец функций обновления UI ---
 
     // --- Обработчики событий ---
-    function setupUIEventListeners() { /* (Keep existing - safeAddListener handles missing elements) */ console.log("[SETUP] setupUIEventListeners: Start"); if (!ui || Object.keys(ui).length === 0) { console.error("[SETUP] UI cache is empty! Cannot setup listeners."); return; } const listenersAdded = new Set(); const safeAddListener = (element, eventType, handler, key) => { if (element) { element.removeEventListener(eventType, handler); element.addEventListener(eventType, handler); listenersAdded.add(key); } else { console.warn(`[SETUP] Element not found for listener: ${key}`); } }; safeAddListener(ui.mainMobileMenuToggle, 'click', openMenu, 'mainMobileMenuToggle'); safeAddListener(ui.sidebarCloseToggle, 'click', closeMenu, 'sidebarCloseToggle'); safeAddListener(ui.sidebarOverlay, 'click', closeMenu, 'sidebarOverlay'); safeAddListener(ui.sidebarToggleBtn, 'click', toggleSidebar, 'sidebarToggleBtn'); document.querySelectorAll('.sidebar-link').forEach(link => { link.addEventListener('click', () => { if (window.innerWidth <= 992) closeMenu(); }); }); window.addEventListener('online', updateOnlineStatus); window.addEventListener('offline', updateOnlineStatus); safeAddListener(ui.refreshDataBtn, 'click', handleGlobalRetry, 'refreshDataBtn'); safeAddListener(ui.notificationBell, 'click', (event) => { event.stopPropagation(); ui.notificationsDropdown?.classList.toggle('active'); }, 'notificationBell'); safeAddListener(ui.markAllReadBtn, 'click', markAllNotificationsRead, 'markAllReadBtn'); safeAddListener(ui.notificationsList, 'click', handleNotificationClick, 'notificationsList'); document.addEventListener('click', closeNotificationDropdownOnClickOutside); safeAddListener(ui.titleShopGrid, 'click', handleShopInteraction, 'titleShopGrid'); /* Removed listener for avatarDecorationsGrid */ console.log(`[SETUP] Event listeners set up. Added: ${[...listenersAdded].length}`); }
+    function setupUIEventListeners() { /* (Keep existing) */ console.log("[SETUP] setupUIEventListeners: Start"); if (!ui || Object.keys(ui).length === 0) { console.error("[SETUP] UI cache is empty! Cannot setup listeners."); return; } const listenersAdded = new Set(); const safeAddListener = (element, eventType, handler, key) => { if (element) { element.removeEventListener(eventType, handler); element.addEventListener(eventType, handler); listenersAdded.add(key); } else { console.warn(`[SETUP] Element not found for listener: ${key}`); } }; safeAddListener(ui.mainMobileMenuToggle, 'click', openMenu, 'mainMobileMenuToggle'); safeAddListener(ui.sidebarCloseToggle, 'click', closeMenu, 'sidebarCloseToggle'); safeAddListener(ui.sidebarOverlay, 'click', closeMenu, 'sidebarOverlay'); safeAddListener(ui.sidebarToggleBtn, 'click', toggleSidebar, 'sidebarToggleBtn'); document.querySelectorAll('.sidebar-link').forEach(link => { link.addEventListener('click', () => { if (window.innerWidth <= 992) closeMenu(); }); }); window.addEventListener('online', updateOnlineStatus); window.addEventListener('offline', updateOnlineStatus); safeAddListener(ui.refreshDataBtn, 'click', handleGlobalRetry, 'refreshDataBtn'); safeAddListener(ui.notificationBell, 'click', (event) => { event.stopPropagation(); ui.notificationsDropdown?.classList.toggle('active'); }, 'notificationBell'); safeAddListener(ui.markAllReadBtn, 'click', markAllNotificationsRead, 'markAllReadBtn'); safeAddListener(ui.notificationsList, 'click', handleNotificationClick, 'notificationsList'); document.addEventListener('click', closeNotificationDropdownOnClickOutside); safeAddListener(ui.titleShopGrid, 'click', handleShopInteraction, 'titleShopGrid'); /* Removed listener for avatarDecorationsGrid */ console.log(`[SETUP] Event listeners set up. Added: ${[...listenersAdded].length}`); }
     async function handleGlobalRetry() { /* (Keep existing) */ if (!currentUser || !currentProfile) { showToast("Chyba", "Pro obnovení je nutné být přihlášen a mít načtený profil.", "error"); if (!currentProfile) await initializeApp(); return; } if (Object.values(isLoading).some(state => state)) { showToast("PROBÍHÁ SYNCHRONIZACE", "Data se již načítají.", "info"); return; } hideError(); if (ui.refreshDataBtn) { const icon = ui.refreshDataBtn.querySelector('i'); const text = ui.refreshDataBtn.querySelector('.refresh-text'); if (icon) icon.classList.add('fa-spin'); if (text) text.textContent = 'RELOADING...'; ui.refreshDataBtn.disabled = true; } await loadAllAwardData(); if (ui.refreshDataBtn) { const icon = ui.refreshDataBtn.querySelector('i'); const text = ui.refreshDataBtn.querySelector('.refresh-text'); if (icon) icon.classList.remove('fa-spin'); if (text) text.textContent = 'RELOAD'; ui.refreshDataBtn.disabled = false; } }
     async function handleNotificationClick(event) { /* (Keep existing) */ const item = event.target.closest('.notification-item'); if (!item) return; const notificationId = item.dataset.id; const link = item.dataset.link; const isRead = item.classList.contains('is-read'); if (!isRead && notificationId) { const success = await markNotificationRead(notificationId); if (success) { item.classList.add('is-read'); item.querySelector('.unread-dot')?.remove(); const currentCountText = ui.notificationCount.textContent.replace('+', ''); const currentCount = parseInt(currentCountText) || 0; const newCount = Math.max(0, currentCount - 1); ui.notificationCount.textContent = newCount > 9 ? '9+' : (newCount > 0 ? String(newCount) : ''); ui.notificationCount.classList.toggle('visible', newCount > 0); if (ui.markAllReadBtn) ui.markAllReadBtn.disabled = newCount === 0; } } if (link) window.location.href = link; }
     function closeNotificationDropdownOnClickOutside(event) { /* (Keep existing) */ if (ui.notificationsDropdown?.classList.contains('active') && !ui.notificationsDropdown.contains(event.target) && !ui.notificationBell?.contains(event.target)) { ui.notificationsDropdown.classList.remove('active'); } }
@@ -193,13 +195,12 @@
                 fetchNotifications(currentUser.id, NOTIFICATION_FETCH_LIMIT)
             ]);
             console.log("[LoadAwards] Data fetch results (settled):", results);
-            const [statsResult, allBadgesResult, userBadgesResult, titleShopResult, leaderboardResult, notificationsResult] = results;
+            const [statsResult, allBadgesResult, userBadgesResult, titleShopResult, leaderboardResult, notificationsResult] = results; // Adjusted index
             currentUserStats = (statsResult.status === 'fulfilled') ? statsResult.value : null; if (!currentUserStats) console.warn("Failed to load user stats.");
             allBadges = (allBadgesResult.status === 'fulfilled') ? allBadgesResult.value : []; if (allBadgesResult.status !== 'fulfilled') console.warn("Failed to load all badge definitions.");
             userBadges = (userBadgesResult.status === 'fulfilled') ? userBadgesResult.value : []; if (userBadgesResult.status !== 'fulfilled') console.warn("Failed to load user earned badges.");
             leaderboardData = (leaderboardResult.status === 'fulfilled') ? leaderboardResult.value : []; if (leaderboardResult.status !== 'fulfilled') console.warn("Failed to load leaderboard.");
             const shopTitles = (titleShopResult.status === 'fulfilled') ? titleShopResult.value : []; if (titleShopResult.status !== 'fulfilled') console.warn("Failed to load title shop.");
-            // Removed decoration processing
             const { unreadCount, notifications } = (notificationsResult.status === 'fulfilled') ? notificationsResult.value : { unreadCount: 0, notifications: [] }; if (notificationsResult.status !== 'fulfilled') console.warn("Failed to load notifications.");
 
             updateStatsCards(currentProfile, currentUserStats, userBadges, leaderboardData);
@@ -232,4 +233,4 @@
     cacheDOMElements();
     console.log("[Oceneni] Waiting for 'dashboardReady' event...");
 
-})(); // End of IIFE - Ensure this is the VERY LAST line
+})(); // End of IIFE
