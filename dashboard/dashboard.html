@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Justax Kyber-Nástěnka v20 - Новый Прототип Наград</title>
+    <title>Justax Kyber-Nástěnka v22 - Модальный Календарь</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
@@ -85,7 +85,6 @@
                                  <button class="mark-all-read-btn" id="mark-all-read" disabled>Vymazat vše</button>
                              </div>
                              <div id="notifications-list">
-                                 <div class="notification-item skeleton"> <div class="notification-icon skeleton"></div> <div class="notification-content"> <div class="skeleton" style="height: 16px; width: 70%; margin-bottom: 6px;"></div> <div class="skeleton" style="height: 12px; width: 90%;"></div> <div class="skeleton" style="height: 10px; width: 40%; margin-top: 6px;"></div> </div> </div>
                                  <div id="no-notifications-msg" style="display: none;">ŽÁDNÉ NOVÉ SIGNÁLY</div>
                              </div>
                              <div class="notifications-footer">
@@ -104,7 +103,7 @@
                          <div class="welcome-text-content">
                              <h2 class="welcome-title" id="welcome-title">Vítejte!</h2>
                              <p class="welcome-text">Přehled vašeho kyber-profilu a rychlé akce.</p>
-                             <button class="welcome-button" id="start-practice-btn"><i class="fas fa-play"></i> Spustit Trénink</button>
+                             <button class="welcome-button" id="open-monthly-modal-btn"><i class="fas fa-calendar-alt"></i> Zobrazit Měsíční Odměny</button>
                          </div>
                          <div class="welcome-image">
                               <svg viewBox="0 0 220 160" fill="none" xmlns="http://www.w3.org/2000/svg"> <rect width="220" height="160" rx="12" fill="url(#paint0_linear_dash_db)"/> <path d="M30 110C30 100 70 60 110 80C150 100 190 40 190 40" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/> <circle cx="45" cy="105" r="6" fill="currentColor"/> <circle cx="110" cy="80" r="8" fill="currentColor"/> <circle cx="190" cy="40" r="6" fill="currentColor"/> <rect x="30" y="130" width="160" height="8" rx="4" fill="currentColor"/> <rect x="50" y="120" width="120" height="6" rx="3" fill="currentColor"/> <defs> <linearGradient id="paint0_linear_dash_db" x1="0" y1="0" x2="220" y2="160" gradientUnits="userSpaceOnUse"> <stop stop-color="currentColor" stop-opacity="0.15"/> <stop offset="1" stop-color="currentColor" stop-opacity="0"/> </linearGradient> </defs> </svg>
@@ -112,23 +111,10 @@
                      </div>
                  </section>
 
-                 <section class="section monthly-rewards-section card loading" id="monthly-calendar-section" data-animate style="--animation-order: 1;">
-                     <div class="loading-overlay hidden"> <div class="loading-spinner"></div></div>
-                     <h2 class="section-title"><i class="fas fa-calendar-alt"></i> Ежемесячные Награды (<span id="current-month-year">Načítání...</span>)</h2>
-                     <div class="calendar-grid" id="monthly-calendar-grid">
-                         <div class="calendar-day skeleton"></div><div class="calendar-day skeleton"></div><div class="calendar-day skeleton"></div><div class="calendar-day skeleton"></div><div class="calendar-day skeleton"></div><div class="calendar-day skeleton"></div><div class="calendar-day skeleton"></div>
-                         <div class="calendar-day skeleton"></div><div class="calendar-day skeleton"></div><div class="calendar-day skeleton"></div><div class="calendar-day skeleton"></div><div class="calendar-day skeleton"></div><div class="calendar-day skeleton"></div><div class="calendar-day skeleton"></div>
-                     </div>
-                     <div class="empty-state" id="monthly-calendar-empty" style="display: none;">
-                         <i class="fas fa-box-open"></i>
-                         <p>Награды на этот месяц скоро появятся.</p>
-                     </div>
-                 </section>
-
                  <section class="section streak-rewards-section card loading" id="streak-milestones-section" data-animate style="--animation-order: 2;">
                      <div class="loading-overlay hidden"> <div class="loading-spinner"></div></div>
                      <h2 class="section-title"><i class="fas fa-medal"></i> Награды за Серию Входа</h2>
-                     <p style="text-align: center; margin-bottom: 1.5rem; color: var(--text-muted);">Ваша текущая серия: <strong id="current-streak-value" style="color:var(--accent-pink);">0</strong> dní</p>
+                     <p style="text-align: center; margin-bottom: 1.5rem; color: var(--text-muted);">Vaše aktuální série: <strong id="current-streak-value" style="color:var(--accent-pink);">0</strong> dní</p>
                      <div class="milestone-list" id="streak-milestones-list">
                          <div class="milestone-item skeleton"></div>
                          <div class="milestone-item skeleton"></div>
@@ -193,22 +179,23 @@
 
     <div class="toast-container" id="toast-container"></div>
 
-    <div class="modal" id="reward-preview-modal">
-        <div class="modal-content reward-preview">
-            <div class="modal-header">
-                <h2 class="modal-title"><i class="fas fa-calendar-alt"></i> Náhled Odměn (7 dní)</h2>
-                <button type="button" class="modal-close" id="close-preview-modal-btn">&times;</button>
+    <div class="modal" id="monthly-reward-modal">
+        <div class="modal-content monthly-reward-modal-content"> <div class="modal-header">
+                <h2 class="modal-title"><i class="fas fa-calendar-alt"></i> Měsíční Odměny (<span id="modal-current-month-year">Měsíc</span>)</h2>
+                <button type="button" class="modal-close" data-dismiss="modal" id="close-monthly-modal-btn">&times;</button>
             </div>
             <div class="modal-body">
-                <p class="reward-preview-info">Odměny se zvyšují s délkou vaší přihlašovací série:</p>
-                <ul class="reward-preview-list" id="reward-preview-list">
-                    <li class="skeleton" style="height: 30px; width: 80%; margin-bottom: 0.5rem;"></li>
-                </ul>
+                <div class="loading-overlay hidden"> <div class="loading-spinner"></div></div>
+                <div class="calendar-grid modal-calendar-grid" id="modal-monthly-calendar-grid">
+                    <div class="calendar-day skeleton"></div>
+                    <div class="calendar-day skeleton"></div>
+                    </div>
+                <div class="empty-state" id="modal-monthly-calendar-empty" style="display: none; padding: 3rem 1rem;">
+                     <i class="fas fa-box-open"></i>
+                     <p>Odměny pro tento měsíc zatím nejsou k dispozici.</p>
+                 </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="document.getElementById('reward-preview-modal').style.display='none'; document.getElementById('reward-preview-modal').classList.remove('active');">Zavřít</button>
-             </div>
-        </div>
+            </div>
     </div>
 
     <div id="mouse-follower" class="mouse-follower-glow"></div>
