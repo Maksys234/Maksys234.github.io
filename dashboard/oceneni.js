@@ -1,5 +1,5 @@
 // oceneni.js
-// Версия: 23.11 - Oprava syntaktické chyby (chybějící '}')
+// Версия: 23.11 - Oprava syntaktické chyby (chybějící '}') + Experimental fix for unexpected end of input
 (function() {
     'use strict'; // Enable strict mode
 
@@ -112,7 +112,17 @@
                      if (secKey === 'userBadges' && config.contentEl) renderBadgeSkeletons(config.contentEl); // Call skeleton func
                      if (secKey === 'availableBadges' && config.contentEl) renderAvailableBadgeSkeletons(config.contentEl); // Call skeleton func
                  } else {
-                     if (config.contentEl && !config.contentEl.hasChildNodes() && config.emptyEl) { config.emptyEl.style.display = 'block'; }
+                     // This logic ensures empty state shows correctly AFTER loading if no content was rendered
+                     if (config.contentEl && !config.contentEl.hasChildNodes() && config.emptyEl) {
+                          config.emptyEl.style.display = 'block';
+                          config.contentEl.style.display = 'none'; // Hide the grid if empty
+                     } else if (config.contentEl && config.contentEl.hasChildNodes()) {
+                          config.emptyEl.style.display = 'none'; // Hide empty if there IS content
+                          // Ensure content grid is displayed (might have been set to none)
+                          if (config.contentEl.tagName === 'DIV' && window.getComputedStyle(config.contentEl).display === 'none') {
+                               config.contentEl.style.display = 'grid'; // Or 'block' depending on element
+                          }
+                     }
                  }
              }
 
@@ -184,6 +194,13 @@
     async function loadAllAwardData() {
         if (!currentUser || !currentProfile || !supabase) { console.error("[LoadAwards] Missing core data. Cannot load."); showError("Chyba: Nelze načíst data ocenění bez profilu uživatele.", true); setLoadingState('all', false); return; }
         console.log("🔄 [LoadAwards] Loading all award page data..."); hideError(); setLoadingState('all', true);
+        renderBadgeSkeletons(ui.badgeGrid); // Show skeletons immediately
+        renderAvailableBadgeSkeletons(ui.availableBadgesGrid);
+        renderLeaderboardSkeleton();
+        renderTitleShopSkeleton();
+        renderAvatarDecorationsSkeleton();
+        renderNotificationSkeletons(2);
+
         try {
             const results = await Promise.allSettled([
                 fetchUserStats(currentUser.id),
@@ -225,12 +242,8 @@
         if (!supabase || !currentUser || !currentProfile) { console.error("[Oceneni] Critical data missing from dashboardReady event detail:", detail); showError("Chyba načítání základních dat pro stránku Ocenění.", true); return; }
         console.log("[Oceneni] Core data received from dashboard. Initializing page specific content...");
         cacheDOMElements();
-        if (typeof PlanApp !== 'undefined' && typeof PlanApp.initializeUI === 'function') {
-            PlanApp.initializeUI(); // Setup base listeners before load
-        } else {
-            console.warn("PlanApp or PlanApp.initializeUI not found. Skipping UI init.");
-        }
-        setupUIEventListeners(); // Setup specific listeners for this page
+        // Initialize UI - assuming PlanApp might not exist, use local functions
+        setupUIEventListeners();
         applyInitialSidebarState();
         updateCopyrightYear();
         initMouseFollower();
@@ -248,4 +261,5 @@
     cacheDOMElements(); // Cache elements early
     console.log("[Oceneni] Waiting for 'dashboardReady' event...");
 
+} // <<<< ADDED THIS CLOSING BRACE
 })(); // End of IIFE
