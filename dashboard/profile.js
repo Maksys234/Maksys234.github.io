@@ -5,10 +5,12 @@
     let supabase = null;
     let currentUser = null;
     let currentProfile = null;
+    let allTitles = []; // <<< NEW: To store fetched titles
     let selectedBuiltInAvatarPath = null; // To store the path of the selected built-in avatar
     let isLoading = {
         profile: false, password: false, preferences: false,
-        avatar: false, delete: false, notifications: false
+        avatar: false, delete: false, notifications: false,
+        titles: false // <<< NEW: Loading state for titles
     };
     // Leveling Formula Constants
     const BASE_XP = 100;
@@ -26,6 +28,7 @@
         sidebarToggleBtn: document.getElementById('sidebar-toggle-btn'), // <<< NEW: Sidebar toggle button
         sidebarAvatar: document.getElementById('sidebar-avatar'),
         sidebarName: document.getElementById('sidebar-name'),
+        sidebarUserTitle: document.getElementById('sidebar-user-title'), // <<< NEW: Sidebar user title element
         logoutBtn: document.getElementById('logout-btn'),
         profileContent: document.getElementById('profile-content'),
         profileName: document.getElementById('profile-name'),
@@ -97,6 +100,9 @@
     }
     if (!ui.sidebarToggleBtn) {
         console.warn("Sidebar toggle button (#sidebar-toggle-btn) not found.");
+    }
+    if (!ui.sidebarUserTitle) {
+        console.warn("Sidebar user title element (#sidebar-user-title) not found."); // <<< NEW: Check for title element
     }
     // --- END: Initialization and Configuration ---
 
@@ -257,7 +263,7 @@
                 else if (section === 'preferences') button.innerHTML = `${spinnerIcon} Ukládám...`;
                 else if (section === 'avatar') button.innerHTML = `${spinnerIcon} Ukládám...`;
                 else if (section === 'delete') button.innerHTML = `${spinnerIcon} Mažu...`;
-                else if (section === 'notifications') button.textContent = 'MAŽU...';
+                else if (section === 'notifications') button.textContent = 'MAŽU...'; // Example for no icon button
                 else { button.innerHTML = `${spinnerIcon} Načítám...`; }
             } else {
                  if (button.dataset.originalContent) {
@@ -296,11 +302,65 @@
 
     // --- START: Supabase Interaction Functions ---
     function initializeSupabase() { try { if (typeof window.supabase === 'undefined' || typeof window.supabase.createClient !== 'function') { throw new Error("Knihovna Supabase nebyla správně načtena."); } supabase = window.supabase.createClient(supabaseUrl, supabaseKey); if (!supabase) throw new Error("Vytvoření klienta Supabase selhalo."); console.log('[Supabase] Klient úspěšně inicializován.'); return true; } catch (error) { console.error('[Supabase] Inicializace selhala:', error); showError("Kritická chyba: Nepodařilo se připojit k databázi.", true); return false; } }
-    async function fetchUserProfile(userId) { if (!supabase || !userId) return null; console.log(`[Profile] Načítání profilu pro ID: ${userId}`); try { const { data: profile, error } = await supabase.from('profiles').select('*').eq('id', userId).single(); if (error && error.code !== 'PGRST116') throw error; if (!profile) { console.warn(`[Profile] Profil nenalezen pro ${userId}. Vytváření výchozího...`); const defaultProfileData = { id: userId, email: currentUser.email, username: currentUser.email.split('@')[0], level: 1, points: 0, experience: 0, badges_count: 0, streak_days: 0, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), preferences: { dark_mode: window.matchMedia('(prefers-color-scheme: dark)').matches, language: 'cs' }, notifications: { email: true, study_tips: true, content_updates: true, practice_reminders: true } }; const { data: newProfile, error: createError } = await supabase.from('profiles').insert([defaultProfileData]).select().single(); if (createError) throw createError; console.log("[Profile] Výchozí profil úspěšně vytvořen."); return newProfile; } console.log("[Profile] Profil úspěšně načten."); return profile; } catch (error) { console.error('[Profile] Chyba při načítání/vytváření profilu:', error); showToast('Chyba Profilu', 'Nepodařilo se načíst data profilu.', 'error'); return null; } }
-    async function updateProfileData(data) { if (!currentUser || !supabase) { showToast('Chyba', 'Nejste přihlášeni.', 'error'); return false; } console.log("[Profile Update] Aktualizace dat:", data); setLoadingState('profile', true); try { const { data: updatedProfile, error } = await supabase.from('profiles').update({ first_name: data.first_name, last_name: data.last_name, username: data.username, school: data.school, grade: data.grade, bio: data.bio, updated_at: new Date().toISOString() }).eq('id', currentUser.id).select().single(); if (error) throw error; currentProfile = updatedProfile; updateProfileDisplay(currentProfile); showToast('ÚSPĚCH', 'Profil byl úspěšně aktualizován.', 'success'); console.log("[Profile Update] Úspěšně aktualizováno."); return true; } catch (error) { console.error('[Profile Update] Chyba:', error); showToast('CHYBA', `Aktualizace profilu selhala: ${error.message}`, 'error'); return false; } finally { setLoadingState('profile', false); } }
+
+    async function fetchUserProfile(userId) {
+        if (!supabase || !userId) return null;
+        console.log(`[Profile] Načítání profilu pro ID: ${userId}`);
+        try {
+            // <<< UPDATED: Ensure selected_title is fetched >>>
+            const { data: profile, error } = await supabase
+                .from('profiles')
+                .select('*, selected_title') // Fetch all including selected_title
+                .eq('id', userId)
+                .single();
+            if (error && error.code !== 'PGRST116') throw error;
+            if (!profile) {
+                console.warn(`[Profile] Profil nenalezen pro ${userId}. Vytváření výchozího...`);
+                const defaultProfileData = {
+                    id: userId, email: currentUser.email, username: currentUser.email.split('@')[0], level: 1, points: 0, experience: 0, badges_count: 0, streak_days: 0,
+                    created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
+                    preferences: { dark_mode: window.matchMedia('(prefers-color-scheme: dark)').matches, language: 'cs' },
+                    notifications: { email: true, study_tips: true, content_updates: true, practice_reminders: true }
+                };
+                const { data: newProfile, error: createError } = await supabase.from('profiles').insert([defaultProfileData]).select('*, selected_title').single(); // Fetch selected_title here too
+                if (createError) throw createError;
+                console.log("[Profile] Výchozí profil úspěšně vytvořen.");
+                return newProfile;
+            }
+            console.log("[Profile] Profil úspěšně načten.");
+            return profile;
+        } catch (error) {
+            console.error('[Profile] Chyba při načítání/vytváření profilu:', error);
+            showToast('Chyba Profilu', 'Nepodařilo se načíst data profilu.', 'error');
+            return null;
+        }
+    }
+
+    // <<< NEW: Function to fetch titles (copied from oceneni.js/dashboard.js) >>>
+    async function fetchTitles() {
+        if (!supabase) return [];
+        console.log("[Titles] Fetching available titles...");
+        setLoadingState('titles', true);
+        try {
+            const { data, error } = await supabase
+                .from('title_shop') // Assuming table name is 'title_shop'
+                .select('title_key, name'); // Select key and display name
+            if (error) throw error;
+            console.log("[Titles] Fetched titles:", data);
+            return data || [];
+        } catch (error) {
+            console.error("[Titles] Error fetching titles:", error);
+            showToast("Chyba načítání dostupných titulů.", "error");
+            return [];
+        } finally {
+            setLoadingState('titles', false);
+        }
+    }
+
+    async function updateProfileData(data) { if (!currentUser || !supabase) { showToast('Chyba', 'Nejste přihlášeni.', 'error'); return false; } console.log("[Profile Update] Aktualizace dat:", data); setLoadingState('profile', true); try { const { data: updatedProfile, error } = await supabase.from('profiles').update({ first_name: data.first_name, last_name: data.last_name, username: data.username, school: data.school, grade: data.grade, bio: data.bio, updated_at: new Date().toISOString() }).eq('id', currentUser.id).select('*, selected_title').single(); if (error) throw error; currentProfile = updatedProfile; updateProfileDisplay(currentProfile, allTitles); showToast('ÚSPĚCH', 'Profil byl úspěšně aktualizován.', 'success'); console.log("[Profile Update] Úspěšně aktualizováno."); return true; } catch (error) { console.error('[Profile Update] Chyba:', error); showToast('CHYBA', `Aktualizace profilu selhala: ${error.message}`, 'error'); return false; } finally { setLoadingState('profile', false); } }
     async function updateUserPassword(currentPassword, newPassword) { if (!currentUser || !supabase) { showToast('Chyba', 'Nejste přihlášeni.', 'error'); return false; } console.log("[Password Update] Pokus o změnu hesla."); setLoadingState('password', true); try { console.warn("Password Update: Client-side update doesn't verify current password securely."); const { error } = await supabase.auth.updateUser({ password: newPassword }); if (error) { let message = 'Změna hesla selhala.'; if (error.message.includes('requires recent login')) message = 'Vyžadováno nedávné přihlášení. Přihlaste se znovu.'; else if (error.message.includes('weak_password')) message = 'Heslo je příliš slabé.'; else if (error.message.includes('same password')) message = 'Nové heslo musí být jiné než současné.'; showToast('CHYBA HESLA', message, 'error'); console.error('[Password Update] Chyba Supabase:', error); if (message.includes('jiné')) { showFieldError('new_password', message); } else { showFieldError('current_password', 'Ověření selhalo nebo je vyžadováno nové přihlášení.'); } return false; } ui.passwordForm.reset(); clearAllErrors('password-form'); showToast('ÚSPĚCH', 'Heslo bylo úspěšně změněno.', 'success'); console.log("[Password Update] Heslo úspěšně změněno."); return true; } catch (error) { console.error('[Password Update] Neočekávaná chyba:', error); showToast('CHYBA', 'Došlo k neočekávané chybě při změně hesla.', 'error'); return false; } finally { setLoadingState('password', false); } }
-    async function updatePreferencesData() { if (!currentUser || !supabase) { showToast('Chyba', 'Nejste přihlášeni.', 'error'); return false; } console.log("[Preferences Update] Aktualizace nastavení."); setLoadingState('preferences', true); try { const preferences = { dark_mode: ui.darkModeToggle.checked, language: ui.languageSelect.value, }; const notifications = { email: ui.emailNotificationsToggle.checked, study_tips: ui.studyTipsToggle.checked, content_updates: ui.contentUpdatesToggle.checked, practice_reminders: ui.practiceRemindersToggle.checked }; const { data: updatedProfile, error } = await supabase.from('profiles').update({ preferences: preferences, notifications: notifications, updated_at: new Date().toISOString() }).eq('id', currentUser.id).select().single(); if (error) throw error; currentProfile = updatedProfile; applyPreferences(currentProfile.preferences); showToast('ÚSPĚCH', 'Nastavení byla uložena.', 'success'); console.log("[Preferences Update] Nastavení uložena."); return true; } catch (error) { console.error('[Preferences Update] Chyba:', error); showToast('CHYBA', 'Uložení nastavení selhalo.', 'error'); return false; } finally { setLoadingState('preferences', false); } }
-    async function saveSelectedAvatar() { if (!currentUser || !supabase) { showToast('Chyba', 'Nejste přihlášeni.', 'error'); return false; } setLoadingState('avatar', true); const file = ui.avatarUploadInput?.files[0]; let finalAvatarUrl = null; let uploadError = null; try { if (selectedBuiltInAvatarPath) { console.log("[Avatar Save] Saving built-in avatar:", selectedBuiltInAvatarPath); finalAvatarUrl = selectedBuiltInAvatarPath; } else if (file) { console.log("[Avatar Save] Uploading new file:", file.name); if (file.size > 2 * 1024 * 1024) { throw new Error('Soubor je příliš velký (max 2MB).'); } if (!['image/jpeg', 'image/png', 'image/gif'].includes(file.type)) { console.warn(`[Avatar Save] Unsupported file type: ${file.type}`); throw new Error('Nepodporovaný formát souboru (JPG, PNG, GIF).'); } const fileExt = file.name.split('.').pop(); const fileName = `${currentUser.id}/${Date.now()}.${fileExt}`; const { error } = await supabase.storage .from('avatars') .upload(fileName, file, { cacheControl: '3600', upsert: true }); uploadError = error; if (uploadError) throw new Error(`Chyba nahrávání souboru: ${uploadError.message}`); const { data: urlData } = supabase.storage .from('avatars') .getPublicUrl(fileName); if (!urlData || !urlData.publicUrl) throw new Error("Nepodařilo se získat URL obrázku."); finalAvatarUrl = urlData.publicUrl; console.log("[Avatar Save] File uploaded, URL:", finalAvatarUrl); } else { showToast('Info', 'Nevybrali jste žádný nový obrázek.', 'info'); setLoadingState('avatar', false); return false; } console.log("[Avatar Save] Updating profile with avatar_url:", finalAvatarUrl); const { data: updatedProfile, error: updateError } = await supabase .from('profiles') .update({ avatar_url: finalAvatarUrl, updated_at: new Date().toISOString() }) .eq('id', currentUser.id) .select() .single(); if (updateError) throw new Error(`Chyba aktualizace profilu: ${updateError.message}`); currentProfile = updatedProfile; updateProfileDisplay(currentProfile); hideModal('avatar-modal'); showToast('ÚSPĚCH', 'Profilový obrázek byl aktualizován.', 'success'); console.log("[Avatar Save] Avatar successfully updated."); return true; } catch (error) { console.error('[Avatar Save] Chyba:', error); showToast('CHYBA', `Aktualizace avataru selhala: ${error.message}`, 'error'); return false; } finally { setLoadingState('avatar', false); } }
+    async function updatePreferencesData() { if (!currentUser || !supabase) { showToast('Chyba', 'Nejste přihlášeni.', 'error'); return false; } console.log("[Preferences Update] Aktualizace nastavení."); setLoadingState('preferences', true); try { const preferences = { dark_mode: ui.darkModeToggle.checked, language: ui.languageSelect.value, }; const notifications = { email: ui.emailNotificationsToggle.checked, study_tips: ui.studyTipsToggle.checked, content_updates: ui.contentUpdatesToggle.checked, practice_reminders: ui.practiceRemindersToggle.checked }; const { data: updatedProfile, error } = await supabase.from('profiles').update({ preferences: preferences, notifications: notifications, updated_at: new Date().toISOString() }).eq('id', currentUser.id).select('*, selected_title').single(); if (error) throw error; currentProfile = updatedProfile; applyPreferences(currentProfile.preferences); showToast('ÚSPĚCH', 'Nastavení byla uložena.', 'success'); console.log("[Preferences Update] Nastavení uložena."); return true; } catch (error) { console.error('[Preferences Update] Chyba:', error); showToast('CHYBA', 'Uložení nastavení selhalo.', 'error'); return false; } finally { setLoadingState('preferences', false); } }
+    async function saveSelectedAvatar() { if (!currentUser || !supabase) { showToast('Chyba', 'Nejste přihlášeni.', 'error'); return false; } setLoadingState('avatar', true); const file = ui.avatarUploadInput?.files[0]; let finalAvatarUrl = null; let uploadError = null; try { if (selectedBuiltInAvatarPath) { console.log("[Avatar Save] Saving built-in avatar:", selectedBuiltInAvatarPath); finalAvatarUrl = selectedBuiltInAvatarPath; } else if (file) { console.log("[Avatar Save] Uploading new file:", file.name); if (file.size > 2 * 1024 * 1024) { throw new Error('Soubor je příliš velký (max 2MB).'); } if (!['image/jpeg', 'image/png', 'image/gif'].includes(file.type)) { console.warn(`[Avatar Save] Unsupported file type: ${file.type}`); throw new Error('Nepodporovaný formát souboru (JPG, PNG, GIF).'); } const fileExt = file.name.split('.').pop(); const fileName = `${currentUser.id}/${Date.now()}.${fileExt}`; const { error } = await supabase.storage .from('avatars') .upload(fileName, file, { cacheControl: '3600', upsert: true }); uploadError = error; if (uploadError) throw new Error(`Chyba nahrávání souboru: ${uploadError.message}`); const { data: urlData } = supabase.storage .from('avatars') .getPublicUrl(fileName); if (!urlData || !urlData.publicUrl) throw new Error("Nepodařilo se získat URL obrázku."); finalAvatarUrl = urlData.publicUrl; console.log("[Avatar Save] File uploaded, URL:", finalAvatarUrl); } else { showToast('Info', 'Nevybrali jste žádný nový obrázek.', 'info'); setLoadingState('avatar', false); return false; } console.log("[Avatar Save] Updating profile with avatar_url:", finalAvatarUrl); const { data: updatedProfile, error: updateError } = await supabase .from('profiles') .update({ avatar_url: finalAvatarUrl, updated_at: new Date().toISOString() }) .eq('id', currentUser.id) .select('*, selected_title') .single(); if (updateError) throw new Error(`Chyba aktualizace profilu: ${updateError.message}`); currentProfile = updatedProfile; updateProfileDisplay(currentProfile, allTitles); hideModal('avatar-modal'); showToast('ÚSPĚCH', 'Profilový obrázek byl aktualizován.', 'success'); console.log("[Avatar Save] Avatar successfully updated."); return true; } catch (error) { console.error('[Avatar Save] Chyba:', error); showToast('CHYBA', `Aktualizace avataru selhala: ${error.message}`, 'error'); return false; } finally { setLoadingState('avatar', false); } }
     async function deleteUserAccount(password) { if (!currentUser || !supabase) { showToast('Chyba', 'Nejste přihlášeni.', 'error'); return false; } if (!password) { showFieldError('confirm-delete-password', 'Zadejte heslo pro potvrzení.'); return false; } console.warn("[Account Deletion] Zahájení procesu smazání účtu pro:", currentUser.id); setLoadingState('delete', true); clearFieldError('confirm-delete-password'); try { console.log("[Account Deletion] Volání funkce 'delete-user-account'..."); const { data, error } = await supabase.functions.invoke('delete-user-account', { body: JSON.stringify({ password: password }) }); if (error) { let message = error.message || 'Neznámá chyba serverové funkce.'; if (message.includes('Invalid user credentials') || message.includes('Incorrect password')) { showFieldError('confirm-delete-password', 'Nesprávné heslo.'); message = 'Nesprávné heslo.'; } else if (message.includes('requires recent login')) { showFieldError('confirm-delete-password', 'Vyžadováno nedávné přihlášení.'); message = 'Pro smazání účtu se prosím znovu přihlaste.'; showToast('Chyba', message, 'warning'); } else { showToast('CHYBA SMAZÁNÍ', message, 'error'); } console.error('[Account Deletion] Chyba funkce:', error); return false; } console.log("[Account Deletion] Funkce úspěšně provedena:", data); showToast('ÚČET SMAZÁN', 'Váš účet byl úspěšně smazán.', 'success', 5000); setTimeout(() => { window.location.href = '/auth/index.html'; }, 3000); return true; } catch (error) { console.error('[Account Deletion] Chyba:', error); if (!document.getElementById('confirm-delete-password-error')?.textContent) { showToast('CHYBA SMAZÁNÍ', `Smazání účtu selhalo: ${error.message}`, 'error'); } return false; } finally { setLoadingState('delete', false); } }
     // --- END: Supabase Interaction Functions ---
 
@@ -314,11 +374,12 @@
 
 
     // --- START: UI Update Functions ---
-    function updateProfileDisplay(profileData) {
+    // <<< UPDATED: updateProfileDisplay now accepts titlesData >>>
+    function updateProfileDisplay(profileData, titlesData = []) {
         if (!profileData) { console.warn("updateProfileDisplay: Missing profile data."); return; }
         console.log("[UI Update] Updating profile display...");
 
-        // --- Sidebar Update ---
+        // --- Sidebar Update (including title) ---
         const sidebarDisplayName = `${profileData.first_name || ''} ${profileData.last_name || ''}`.trim() || profileData.username || currentUser?.email?.split('@')[0] || 'Pilot';
         if (ui.sidebarName) ui.sidebarName.textContent = sanitizeHTML(sidebarDisplayName);
         if (ui.sidebarAvatar) {
@@ -334,6 +395,24 @@
              const sidebarImg = ui.sidebarAvatar.querySelector('img');
              if (sidebarImg) { sidebarImg.onerror = function() { console.error(`[UI Update] Failed to load sidebar avatar: ${this.src}`); ui.sidebarAvatar.innerHTML = sanitizeHTML(initials); }; }
         }
+        // <<< NEW: Update Sidebar Title >>>
+        if(ui.sidebarUserTitle) {
+            const selectedTitleKey = profileData.selected_title;
+            let displayTitle = 'Pilot'; // Default
+            if (selectedTitleKey && titlesData && titlesData.length > 0) {
+                const foundTitle = titlesData.find(t => t.title_key === selectedTitleKey);
+                if (foundTitle && foundTitle.name) {
+                    displayTitle = foundTitle.name;
+                } else {
+                    console.warn(`[UI Update] Title with key "${selectedTitleKey}" not found in fetched titles.`);
+                }
+            } else if (selectedTitleKey) {
+                 console.warn(`[UI Update] Selected title key "${selectedTitleKey}" exists but title list is empty or not fetched yet.`);
+            }
+            ui.sidebarUserTitle.textContent = sanitizeHTML(displayTitle);
+            ui.sidebarUserTitle.setAttribute('title', sanitizeHTML(displayTitle)); // Update tooltip
+        }
+        // <<< END NEW >>>
 
         // --- Main Profile Section Update ---
         const profileDisplayName = `${profileData.first_name || ''} ${profileData.last_name || ''}`.trim() || profileData.username || 'Uživatel';
@@ -518,35 +597,60 @@
 
 
     // --- START: Main Logic ---
+    // <<< UPDATED: loadAndDisplayProfile now passes titlesData >>>
     async function loadAndDisplayProfile() {
         console.log("[MAIN] Loading and displaying profile...");
         if (!currentUser) { console.error("[MAIN] No logged-in user."); showError("Pro přístup k profilu se musíte přihlásit.", true); return; }
         if(ui.profileContent) ui.profileContent.style.display = 'none';
         hideError();
+        // Set loading state for profile section
+         setLoadingState('profile', true); // Indicate profile data loading
 
         try {
-            currentProfile = await fetchUserProfile(currentUser.id);
-            if (!currentProfile) { throw new Error("Nepodařilo se načíst nebo vytvořit profil."); }
-            updateProfileDisplay(currentProfile); // Now updates level and EXP bar too
+            // Fetch profile and titles concurrently
+             const [profileResult, titlesResult, notificationsResult] = await Promise.allSettled([
+                 fetchUserProfile(currentUser.id),
+                 fetchTitles(),
+                 fetchNotifications(currentUser.id, 5) // Fetch notifications here too
+             ]);
 
-            try {
-                console.log("[Notifications] Fetching notifications...");
-                setLoadingState('notifications', true);
-                const { unreadCount, notifications } = await fetchNotifications(currentUser.id, 5);
-                renderNotifications(unreadCount, notifications);
-            } catch (notifError) {
-                console.error("Error fetching notifications:", notifError);
-                renderNotifications(0, []);
-            } finally {
-                setLoadingState('notifications', false);
-            }
+             if (profileResult.status === 'fulfilled' && profileResult.value) {
+                 currentProfile = profileResult.value;
+                 console.log("[MAIN] Profile loaded successfully.");
+             } else {
+                 throw new Error(`Nepodařilo se načíst profil: ${profileResult.reason || 'Nenalezen'}`);
+             }
+
+             if (titlesResult.status === 'fulfilled') {
+                 allTitles = titlesResult.value || [];
+                 console.log("[MAIN] Titles loaded successfully.");
+             } else {
+                 console.warn("[MAIN] Failed to load titles:", titlesResult.reason);
+                 allTitles = []; // Default to empty
+             }
+
+             updateProfileDisplay(currentProfile, allTitles); // Pass both profile and titles
+
+             // Process notifications
+             if (notificationsResult.status === 'fulfilled') {
+                 const { unreadCount, notifications } = notificationsResult.value || { unreadCount: 0, notifications: [] };
+                 renderNotifications(unreadCount, notifications);
+             } else {
+                 console.error("Error fetching notifications:", notificationsResult.reason);
+                 renderNotifications(0, []); // Show empty state
+             }
 
             if(ui.profileContent) ui.profileContent.style.display = 'block';
             console.log("[MAIN] Profil a notifikace úspěšně načteny a zobrazeny.");
 
         } catch (error) {
-            console.error('[MAIN] Chyba při načítání profilu:', error);
+            console.error('[MAIN] Chyba při načítání profilu nebo titulů:', error);
             showError('Nepodařilo se načíst profil: ' + error.message, true);
+             renderNotifications(0, []); // Ensure notifications are cleared on error
+        } finally {
+             setLoadingState('profile', false); // Stop profile loading indicator
+             setLoadingState('notifications', false); // Stop notification loading indicator
+             setLoadingState('titles', false); // Stop title loading indicator
         }
     }
 
@@ -559,9 +663,9 @@
         if (ui.sidebarToggleBtn) ui.sidebarToggleBtn.addEventListener('click', toggleSidebar); // <<< NEW Listener
         document.querySelectorAll('.sidebar-link').forEach(link => { link.addEventListener('click', () => { if (window.innerWidth <= 992) closeMenu(); }); });
         // --- Forms ---
-        if (ui.profileForm) { ui.profileForm.addEventListener('submit', async (e) => { e.preventDefault(); if (!validateProfileForm() || isLoading.profile) return; setLoadingState('profile', true); await updateProfileData({ first_name: ui.firstNameField.value, last_name: ui.lastNameField.value, username: ui.usernameField.value, school: ui.schoolField.value, grade: ui.gradeField.value, bio: ui.bioField.value }); setLoadingState('profile', false); }); }
-        if (ui.passwordForm) { ui.passwordForm.addEventListener('submit', async (e) => { e.preventDefault(); if (!validatePasswordForm() || isLoading.password) return; setLoadingState('password', true); const success = await updateUserPassword(ui.currentPasswordField.value, ui.newPasswordField.value); setLoadingState('password', false); if (success) ui.passwordForm.reset(); }); }
-        if (ui.savePreferencesBtn) { ui.savePreferencesBtn.addEventListener('click', async () => { if(isLoading.preferences) return; setLoadingState('preferences', true); await updatePreferencesData(); setLoadingState('preferences', false); }); }
+        if (ui.profileForm) { ui.profileForm.addEventListener('submit', async (e) => { e.preventDefault(); if (!validateProfileForm() || isLoading.profile) return; await updateProfileData({ first_name: ui.firstNameField.value, last_name: ui.lastNameField.value, username: ui.usernameField.value, school: ui.schoolField.value, grade: ui.gradeField.value, bio: ui.bioField.value }); }); }
+        if (ui.passwordForm) { ui.passwordForm.addEventListener('submit', async (e) => { e.preventDefault(); if (!validatePasswordForm() || isLoading.password) return; const success = await updateUserPassword(ui.currentPasswordField.value, ui.newPasswordField.value); if (success) ui.passwordForm.reset(); }); }
+        if (ui.savePreferencesBtn) { ui.savePreferencesBtn.addEventListener('click', async () => { if(isLoading.preferences) return; await updatePreferencesData(); }); }
 
             // --- Avatar ---
             if (ui.profileAvatar) { ui.profileAvatar.addEventListener('click', (event) => { if (event.target.closest('#edit-avatar-btn') || event.target.closest('.edit-avatar-overlay')) { console.log("[Event] Edit avatar clicked, opening modal."); showModal('avatar-modal'); } }); }
@@ -598,11 +702,15 @@
         console.log("[SETUP] Posluchači událostí nastaveni.");
     }
 
+    // <<< UPDATED: initializeApp fetches titles and passes them to loadAndDisplayProfile >>>
     async function initializeApp() {
         console.log("[INIT] Spouštění inicializace aplikace profilu...");
         if (!initializeSupabase()) { return; }
+
+        // Set up basic listeners first
         setupEventListeners();
-        applyInitialSidebarState(); // <<< NEW: Apply saved sidebar state on load
+        // Apply saved sidebar state AFTER listeners are set but before potentially affecting elements
+        applyInitialSidebarState();
 
         if (ui.initialLoader) { ui.initialLoader.classList.remove('hidden'); ui.initialLoader.style.display = 'flex'; }
         if (ui.mainContent) ui.mainContent.style.display = 'none';
@@ -619,9 +727,10 @@
             }
 
             currentUser = session.user;
-            console.log(`[INIT] Uživatel ověřen (ID: ${currentUser.id}). Načítání profilu...`);
+            console.log(`[INIT] Uživatel ověřen (ID: ${currentUser.id}). Načítání profilu a titulů...`);
 
-            await loadAndDisplayProfile(); // Loads profile and notifications
+            // Load profile and titles (data loading part moved to loadAndDisplayProfile)
+            await loadAndDisplayProfile();
 
             if (ui.initialLoader) { ui.initialLoader.classList.add('hidden'); setTimeout(() => { if (ui.initialLoader) ui.initialLoader.style.display = 'none'; }, 600); }
             if (ui.mainContent) { ui.mainContent.style.display = 'block'; requestAnimationFrame(() => { ui.mainContent.classList.add('loaded'); }); }
