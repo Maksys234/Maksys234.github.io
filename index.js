@@ -1,9 +1,9 @@
 /**
  * JUSTAX Landing Page Script
  * Handles UI interactions, animations, and **INFINITE** testimonial slider.
- * Version: v2.5 (Infinite Scroll Implementation - INSECURE DEMO)
+ * Version: v2.6 (Fixed Init Dimension Calculation - INSECURE DEMO)
  * Author: Gemini Modification
- * Date: 2025-05-02 // Updated for infinite scroll
+ * Date: 2025-05-02 // Updated init logic
  *
  * !!! SECURITY WARNING !!!
  * This code demonstrates calling the Gemini API directly from the client-side
@@ -16,7 +16,7 @@
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log("DOM Ready. Initializing JUSTAX Interface v2.5 (Infinite Scroll - INSECURE DEMO)...");
+    console.log("DOM Ready. Initializing JUSTAX Interface v2.6 (Fixed Init - INSECURE DEMO)...");
 
     // --- Global Variables & DOM References ---
     const body = document.body;
@@ -52,7 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // --- Infinite Slider Config ---
             visibleCardsDesktop: 3, // How many cards are fully visible on desktop
             bufferCards: 2,         // How many extra cards to load on each side (before/after visible ones)
-            fetchBatchSize: 3,      // How many new testimonials to fetch at once when needed
+            // fetchBatchSize: 3,      // How many new testimonials to fetch at once when needed (can be added later)
             slideDuration: 500      // Corresponds to CSS transition duration in ms
         }
     };
@@ -60,12 +60,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Testimonial Slider State (Infinite Scroll) ---
     let testimonialDataCache = []; // Holds fetched testimonial data objects
     let cardsInTrack = []; // Holds the actual DOM elements of the cards
-    let currentVisibleStartIndex = 0; // Index in the conceptual infinite list
+    let currentVisibleStartIndex = 0; // Index in the conceptual infinite list (points to the first card *before* the visible ones)
     let totalCardsInDOM = 0; // Actual number of card elements in the DOM track
     let cardWidthAndMargin = 0; // Calculated width + margin of a single card
     let isSliding = false; // Flag to prevent multiple clicks during animation
     let isFetching = false; // Flag to prevent concurrent API calls
     let resizeTimeout; // Timeout ID for debounced resize handling
+    let initialLoadComplete = false; // Flag to indicate successful initialization
 
     // --- Utility Functions ---
     const setYear = () => { if (yearSpan) yearSpan.textContent = new Date().getFullYear(); };
@@ -164,7 +165,7 @@ document.addEventListener('DOMContentLoaded', () => {
     //    !!! USES INSECURE Client-Side Gemini API Call !!!
     // ========================================================
     if (sliderContainer && sliderTrack && prevBtn && nextBtn) {
-        console.log("Initializing Infinite Testimonial Slider...");
+        console.log("Initializing Infinite Testimonial Slider v2.6...");
 
         // --- Helper Functions for Slider ---
 
@@ -175,9 +176,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const generateStarsHTML = (rating) => {
             let starsHTML = '';
-            const clampedRating = Math.max(0, Math.min(5, rating || 0)); // Ensure rating is between 0 and 5
+            const clampedRating = Math.max(0, Math.min(5, rating || 0));
             const fullStars = Math.floor(clampedRating);
-            const halfStar = clampedRating % 1 >= 0.45; // Use 0.45 threshold for half star
+            const halfStar = clampedRating % 1 >= 0.45;
             const emptyStars = 5 - fullStars - (halfStar ? 1 : 0);
             for (let i = 0; i < fullStars; i++) starsHTML += '<i class="fas fa-star" aria-hidden="true"></i>';
             if (halfStar) starsHTML += '<i class="fas fa-star-half-alt" aria-hidden="true"></i>';
@@ -185,23 +186,21 @@ document.addEventListener('DOMContentLoaded', () => {
             return starsHTML;
         };
 
-        // Creates a placeholder or filled testimonial card element
-        const createTestimonialCardElement = (testimonialData = null) => {
+        // Creates a placeholder testimonial card element
+        const createPlaceholderCard = () => {
             const card = document.createElement('article');
-            card.className = 'testimonial-card';
-            // Add loading class if no data provided initially
-            if (!testimonialData) {
-                card.classList.add('is-loading');
-                card.innerHTML = '<div class="spinner"></div>';
-            } else {
-                updateCardContent(card, testimonialData); // Fill content immediately if data exists
-            }
+            card.className = 'testimonial-card is-loading';
+            card.innerHTML = '<div class="spinner"></div>';
+            card.setAttribute('aria-hidden', 'true'); // Hide placeholders from screen readers initially
             return card;
         };
 
         // Updates the content of an existing card element with new data
         const updateCardContent = (cardElement, testimonialData) => {
-            cardElement.classList.remove('is-loading'); // Remove loading state
+            if (!cardElement || !testimonialData) return; // Exit if no element or data
+
+            cardElement.classList.remove('is-loading');
+            cardElement.removeAttribute('aria-hidden'); // Make visible to screen readers
             cardElement.innerHTML = `
                 <div class="testimonial-content">
                     <div class="testimonial-rating" aria-label="Hodnocení"></div>
@@ -216,7 +215,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div class="testimonial-role"></div>
                     </div>
                 </div>
-            `; // Set inner structure
+            `;
 
             const ratingEl = cardElement.querySelector('.testimonial-rating');
             const textEl = cardElement.querySelector('.testimonial-text-content');
@@ -248,34 +247,19 @@ document.addEventListener('DOMContentLoaded', () => {
         // ***** INSECURE FUNCTION to call Gemini API Directly *****
         // ***** MUST BE REPLACED by a call to your secure backend *****
         const fetchTestimonialFromGeminiAPI = async () => {
-             if (isFetching) {
-                 console.warn("Already fetching testimonial data. Skipping request.");
-                 return null; // Return null if already fetching
-             }
-             isFetching = true;
+             // NOTE: isFetching flag is managed outside this function now before calling
              console.log("Fetching new testimonial directly from Gemini API (INSECURE)...");
-             // Disable buttons during fetch
-             prevBtn.disabled = true;
-             nextBtn.disabled = true;
+             // Buttons are disabled by the caller (moveSlider or initialize)
 
-            // !!! REPLACE "GEMINI_API_KEY" with your actual key ONLY FOR TESTING !!!
-            // !!! DO NOT DEPLOY THIS CODE WITH A REAL KEY !!!
-            const apiKey = config.testimonials.geminiApiKeyPlaceholder; // Use placeholder
-             if (!apiKey || apiKey === "YOUR_GEMINI_API_KEY" || apiKey.length < 20) { // Basic check for placeholder
+            const apiKey = config.testimonials.geminiApiKeyPlaceholder;
+             if (!apiKey || apiKey === "YOUR_GEMINI_API_KEY" || apiKey.length < 20) {
                  console.error("API Key Placeholder is not set or is invalid! Cannot fetch testimonials.");
-                 isFetching = false;
-                 // Re-enable buttons after short delay
-                 setTimeout(() => {
-                     prevBtn.disabled = isSliding; // Re-enable only if not sliding
-                     nextBtn.disabled = isSliding;
-                 }, 200);
                  return { name: "Chyba Konfigurace", text: "Chybí platný API klíč pro Gemini.", rating: 0, role:"Systém"};
              }
              const apiUrl = config.testimonials.geminiApiUrlTemplate + apiKey;
 
-            // --- Improved Prompt for Unique Testimonials ---
-             const existingNames = testimonialDataCache.map(t => t.name).filter(Boolean).join(', ');
-             const existingTexts = testimonialDataCache.map(t => t.text?.substring(0, 50)).filter(Boolean).join('; '); // Use parts of existing texts
+             const existingNames = testimonialDataCache.map(t => t?.name).filter(Boolean).join(', ');
+             const existingTexts = testimonialDataCache.map(t => t?.text?.substring(0, 50)).filter(Boolean).join('; ');
 
              const prompt = `Napiš 1 unikátní, krátkou, pozitivní recenzi (testimonial) pro online AI vzdělávací platformu Justax v češtině.
              Recenze by měla být od fiktivního českého studenta, rodiče nebo učitele (uveď roli).
@@ -283,8 +267,8 @@ document.addEventListener('DOMContentLoaded', () => {
              Text recenze by měl být specifický, ale stručný (1-3 věty).
 
              DŮLEŽITÉ:
-             1.  Vymysli **nové, neopakující se české jméno a příjmení** (např. Klára S., Tomáš P.). Vyhni se těmto jménům: ${existingNames || 'žádná'}.
-             2.  Napiš **originální text recenze**, který se liší od těchto začátků: ${existingTexts || 'žádné'}. Zdůrazni jiný přínos platformy (např. příprava na přijímačky, zlepšení známek, AI tutor, flexibilita, interaktivita).
+             1.  Vymysli **nové, neopakující se české jméno a příjmení** (např. Klára S., Tomáš P.). Vyhni se těmto jménům: ${existingNames.substring(0, 200) || 'žádná'}.
+             2.  Napiš **originální text recenze**, který se liší od těchto začátků: ${existingTexts.substring(0, 300) || 'žádné'}. Zdůrazni jiný přínos platformy (např. příprava na přijímačky, zlepšení známek, AI tutor, flexibilita, interaktivita).
              3.  Naformátuj odpověď **PŘESNĚ** takto, každý údaj na novém řádku:
                  Jméno: [Nové české jméno a příjmení]
                  Role: [Student/Rodič/Učitel]
@@ -295,37 +279,34 @@ document.addEventListener('DOMContentLoaded', () => {
             const requestBody = {
                 contents: [{ parts: [{ text: prompt }] }],
                 generationConfig: {
-                    temperature: 0.85, // Increased temperature for more variability
+                    temperature: 0.85,
                     maxOutputTokens: 180,
-                    // topP: 0.9, // Consider adjusting topP as well
                 }
             };
 
-            let testimonialData = { name: "Chyba API", text: "Nepodařilo se načíst data.", rating: 0, role:"Systém"}; // Default error data
+            let testimonialData = { name: "Chyba API", text: "Nepodařilo se načíst data.", rating: 0, role:"Systém"};
 
             try {
                 const response = await fetch(apiUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(requestBody),
-                    signal: AbortSignal.timeout(15000) // Add 15 second timeout
+                    signal: AbortSignal.timeout(15000)
                 });
 
                 if (!response.ok) {
                     let errorBody = null;
-                    try { errorBody = await response.json(); } catch (e) { /* ignore json parsing error */ }
+                    try { errorBody = await response.json(); } catch (e) { /* ignore */ }
                     console.error("Gemini API Error Response:", response.status, errorBody);
                     throw new Error(`Gemini API error! Status: ${response.status}. ${errorBody?.error?.message || 'No details'}`);
                 }
 
                 const data = await response.json();
-                // console.log("Raw Gemini API Response:", data); // Optional: Log raw response
 
                 if (data.candidates && data.candidates[0]?.content?.parts?.[0]?.text) {
                     const generatedText = data.candidates[0].content.parts[0].text;
-                    console.log("Generated Text:", generatedText);
+                    // console.log("Generated Text:", generatedText); // Less verbose logging
 
-                    // --- Parsing the Response ---
                     const lines = generatedText.split('\n');
                     const parsedData = { name: null, role: null, rating: null, text: null };
                     lines.forEach(line => {
@@ -339,29 +320,29 @@ document.addEventListener('DOMContentLoaded', () => {
                         else if (lowerLine.startsWith("text:")) parsedData.text = line.substring(5).trim();
                     });
 
-                     // Basic validation/defaults and assign to testimonialData
-                     testimonialData.name = parsedData.name || `AI Uživatel #${Math.floor(Math.random() * 1000)}`; // More unique fallback
+                     testimonialData.name = parsedData.name || `AI Uživatel #${Math.floor(Math.random() * 1000)}`;
                      testimonialData.role = parsedData.role || "Student";
-                     testimonialData.rating = (parsedData.rating >= 3 && parsedData.rating <= 5) ? parsedData.rating : 4.5; // Default rating
-                     testimonialData.text = parsedData.text || generatedText.trim(); // Fallback text
+                     testimonialData.rating = (parsedData.rating >= 3 && parsedData.rating <= 5) ? parsedData.rating : 4.5;
+                     // Ensure text isn't empty if parsing failed but text was generated
+                     testimonialData.text = parsedData.text || generatedText.trim().split('\n').pop() || "Generovaný text bez specifikace.";
 
-                    console.log("Parsed Testimonial Data:", testimonialData);
 
-                } else {
+                    // console.log("Parsed Testimonial Data:", testimonialData); // Less verbose logging
+
+                } else if (data.promptFeedback?.blockReason) {
+                     console.error("Gemini API Blocked:", data.promptFeedback.blockReason, data.promptFeedback.safetyRatings);
+                     testimonialData.text = `Obsah blokován API (${data.promptFeedback.blockReason})`;
+                }
+                 else {
                     console.error("Unexpected Gemini API response structure:", data);
-                    testimonialData.text = "Chyba při zpracování odpovědi API."; // More specific error
+                    testimonialData.text = "Chyba při zpracování odpovědi API.";
                 }
 
             } catch (error) {
                 console.error("Error calling/parsing Gemini API:", error);
                  testimonialData.text = `Nepodařilo se kontaktovat AI (${error.name === 'TimeoutError' ? 'časový limit vypršel' : error.message})`;
             } finally {
-                isFetching = false;
-                 // Re-enable buttons only if not currently sliding
-                 if (!isSliding) {
-                     prevBtn.disabled = false;
-                     nextBtn.disabled = false;
-                 }
+                // isFetching flag and button state are managed by the caller
                 console.log("Gemini API fetch attempt finished.");
             }
              return testimonialData;
@@ -371,114 +352,183 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Calculates the full width of a card including its right margin
         const calculateCardWidthAndMargin = () => {
+            // Try to find the first card that IS NOT a placeholder anymore
             const firstCard = sliderTrack.querySelector('.testimonial-card:not(.is-loading)');
-            if (!firstCard) return 0; // Cannot calculate yet
+            if (!firstCard) {
+                console.warn("calculateCardWidthAndMargin: No non-loading card found yet.");
+                // Fallback: try measuring a placeholder if available
+                const placeholderCard = sliderTrack.querySelector('.testimonial-card');
+                if (!placeholderCard) return 0; // No cards at all
+                const pStyle = window.getComputedStyle(placeholderCard);
+                const pWidth = placeholderCard.offsetWidth;
+                const pMarginRight = parseFloat(pStyle.marginRight);
+                if (pWidth > 0) {
+                     cardWidthAndMargin = pWidth + pMarginRight;
+                     console.log(`Recalculated cardWidthAndMargin from placeholder: ${cardWidthAndMargin}px (Width: ${pWidth}, Margin: ${pMarginRight})`);
+                     return cardWidthAndMargin;
+                }
+                return 0; // Still couldn't measure
+            }
 
             const style = window.getComputedStyle(firstCard);
-            const width = firstCard.offsetWidth; // Includes padding and border
+            const width = firstCard.offsetWidth;
             const marginRight = parseFloat(style.marginRight);
+
+            if (width === 0) {
+                console.warn("calculateCardWidthAndMargin: First non-loading card has zero width. Layout might not be ready.");
+                return 0;
+            }
+
             cardWidthAndMargin = width + marginRight;
             console.log(`Recalculated cardWidthAndMargin: ${cardWidthAndMargin}px (Width: ${width}, Margin: ${marginRight})`);
             return cardWidthAndMargin;
         };
 
         // Sets the slider track's position instantly (without transition)
-        const setTrackPosition = (index) => {
+        const setTrackPosition = (cardIndex) => {
+            if (!initialLoadComplete || cardWidthAndMargin === 0) {
+                console.warn("Cannot set track position: Initial load incomplete or card width unknown.");
+                return;
+            }
             sliderTrack.style.transition = 'none'; // Disable animation for instant jump
-            const position = -index * cardWidthAndMargin;
+            // We position based on the start of the *buffer* cards before the visible ones
+            const position = -cardIndex * cardWidthAndMargin;
             sliderTrack.style.transform = `translateX(${position}px)`;
             // Force reflow to apply the change immediately before re-enabling transition
-            sliderTrack.offsetHeight; // Reading offsetHeight forces reflow
+            void sliderTrack.offsetHeight; // Reading offsetHeight forces reflow
             sliderTrack.style.transition = `transform ${config.testimonials.slideDuration / 1000}s cubic-bezier(0.65, 0, 0.35, 1)`; // Re-enable animation
+            console.log(`Track position instantly set to index ${cardIndex} (translateX: ${position}px)`);
         };
 
         // Handles the end of the slide animation for infinite looping
         const handleTransitionEnd = async () => {
-            isSliding = false; // Allow next slide
+            if (!initialLoadComplete) return; // Don't run if slider hasn't initialized
 
             const direction = parseInt(sliderTrack.dataset.slideDirection || "0");
-            if (direction === 0) return; // No slide occurred
+            console.log(`Transition ended. Direction: ${direction}`);
+
+            if (direction === 0) {
+                 isSliding = false; // Ensure flag is reset if no slide occurred
+                 // Re-enable buttons if not fetching (safety check)
+                 if (!isFetching) {
+                     prevBtn.disabled = false;
+                     nextBtn.disabled = false;
+                 }
+                 return;
+            }
 
             sliderTrack.style.transition = 'none'; // Disable transition for DOM manipulation
 
+            // Start fetching the next required testimonial in the background
+            let fetchPromise = null;
+            if (!isFetching) { // Only fetch if not already fetching
+                isFetching = true; // Set fetching flag
+                fetchPromise = fetchTestimonialFromGeminiAPI();
+            } else {
+                 console.warn("Transition end: Already fetching, skipping new fetch.");
+                 fetchPromise = Promise.resolve(null); // Resolve immediately if already fetching
+            }
+
+
             if (direction > 0) { // Moved Right (Next)
-                const firstCard = cardsInTrack.shift(); // Remove first card from array
-                sliderTrack.removeChild(firstCard); // Remove first card from DOM
-                sliderTrack.appendChild(firstCard); // Add it to the end of DOM
-                cardsInTrack.push(firstCard); // Add it back to the end of array
+                const firstCard = cardsInTrack.shift();
+                sliderTrack.removeChild(firstCard);
+                sliderTrack.appendChild(firstCard);
+                cardsInTrack.push(firstCard);
 
-                // Update cache: Remove first, fetch new, add to end
-                testimonialDataCache.shift();
-                const newData = await fetchTestimonialFromGeminiAPI(); // Fetch new data
-                testimonialDataCache.push(newData || { name: "...", text: "Načítání...", rating: 0, role:""}); // Add new or placeholder data
-                updateCardContent(firstCard, testimonialDataCache[testimonialDataCache.length - 1]); // Update the moved card with latest data
-
-                // Adjust position instantly to compensate for the moved card
-                currentVisibleStartIndex++; // Increment logical index
+                // Adjust position instantly
+                currentVisibleStartIndex++;
                 const currentTranslateX = parseFloat(sliderTrack.style.transform.replace(/[^-\d.]/g, '')) || 0;
                 const newTranslateX = currentTranslateX + cardWidthAndMargin;
                 sliderTrack.style.transform = `translateX(${newTranslateX}px)`;
+                console.log(`Moved card first->last. New logical start index: ${currentVisibleStartIndex}. Adjusted translateX to: ${newTranslateX}px`);
+
+                 // Wait for the fetch to complete (or resolve immediately if skipped)
+                 const newData = await fetchPromise;
+                 isFetching = false; // Reset fetching flag AFTER await
+
+                // Update cache & card content
+                testimonialDataCache.shift();
+                testimonialDataCache.push(newData || { name: "...", text: "Načítání...", rating: 0, role:""});
+                updateCardContent(firstCard, testimonialDataCache[testimonialDataCache.length - 1]);
+
 
             } else { // Moved Left (Prev)
-                const lastCard = cardsInTrack.pop(); // Remove last card from array
-                sliderTrack.removeChild(lastCard); // Remove last card from DOM
-                sliderTrack.insertBefore(lastCard, sliderTrack.firstChild); // Add it to the beginning of DOM
-                cardsInTrack.unshift(lastCard); // Add it back to the beginning of array
-
-                // Update cache: Remove last, fetch new, add to beginning
-                testimonialDataCache.pop();
-                const newData = await fetchTestimonialFromGeminiAPI(); // Fetch new data
-                testimonialDataCache.unshift(newData || { name: "...", text: "Načítání...", rating: 0, role:""}); // Add new or placeholder data
-                updateCardContent(lastCard, testimonialDataCache[0]); // Update the moved card with latest data
+                const lastCard = cardsInTrack.pop();
+                sliderTrack.removeChild(lastCard);
+                sliderTrack.insertBefore(lastCard, sliderTrack.firstChild);
+                cardsInTrack.unshift(lastCard);
 
                 // Adjust position instantly
-                currentVisibleStartIndex--; // Decrement logical index
+                currentVisibleStartIndex--;
                 const currentTranslateX = parseFloat(sliderTrack.style.transform.replace(/[^-\d.]/g, '')) || 0;
                 const newTranslateX = currentTranslateX - cardWidthAndMargin;
                 sliderTrack.style.transform = `translateX(${newTranslateX}px)`;
+                 console.log(`Moved card last->first. New logical start index: ${currentVisibleStartIndex}. Adjusted translateX to: ${newTranslateX}px`);
+
+                 // Wait for the fetch to complete
+                 const newData = await fetchPromise;
+                 isFetching = false; // Reset fetching flag AFTER await
+
+                // Update cache & card content
+                testimonialDataCache.pop();
+                testimonialDataCache.unshift(newData || { name: "...", text: "Načítání...", rating: 0, role:""});
+                updateCardContent(lastCard, testimonialDataCache[0]);
             }
 
             // Force reflow before re-enabling transition
-            sliderTrack.offsetHeight;
+            void sliderTrack.offsetHeight;
             sliderTrack.style.transition = `transform ${config.testimonials.slideDuration / 1000}s cubic-bezier(0.65, 0, 0.35, 1)`;
 
-             // Re-enable buttons if not fetching
-             if (!isFetching) {
-                 prevBtn.disabled = false;
-                 nextBtn.disabled = false;
-             }
-            // Clear direction indicator
+            // Reset slide direction state
             sliderTrack.dataset.slideDirection = "0";
+            isSliding = false; // Allow next slide
+
+             // Re-enable buttons (final state after fetch and DOM manipulation)
+             prevBtn.disabled = false;
+             nextBtn.disabled = false;
+             console.log("handleTransitionEnd complete. Buttons enabled.");
         };
 
 
         // Moves the slider track visually
         const moveSlider = (direction) => {
-             if (isSliding || isFetching) return; // Prevent action if already sliding or fetching
+             if (isSliding || !initialLoadComplete) {
+                 console.warn(`Slide attempt blocked: isSliding=${isSliding}, initialLoadComplete=${initialLoadComplete}`);
+                 return;
+             }
              isSliding = true;
-             prevBtn.disabled = true; // Disable buttons during slide
+             prevBtn.disabled = true;
              nextBtn.disabled = true;
+             console.log(`Moving slider. Direction: ${direction}`);
 
-            // Store direction for transitionend handler
-            sliderTrack.dataset.slideDirection = direction.toString();
+            sliderTrack.dataset.slideDirection = direction.toString(); // Store direction
 
-            const currentTranslateX = parseFloat(sliderTrack.style.transform.replace(/[^-\d.]/g, '')) || 0;
+            const currentTranslateX = parseFloat(sliderTrack.style.transform.replace(/[^-\d.]/g, '')) || (-currentVisibleStartIndex * cardWidthAndMargin); // Recalculate offset based on index if needed
             const newTranslateX = currentTranslateX - (direction * cardWidthAndMargin);
 
-            sliderTrack.style.transform = `translateX(${newTranslateX}px)`;
+             // Apply the transition class if not already present (it should be set in setTrackPosition and after transitionend)
+             if (!sliderTrack.style.transition || sliderTrack.style.transition === 'none') {
+                 sliderTrack.style.transition = `transform ${config.testimonials.slideDuration / 1000}s cubic-bezier(0.65, 0, 0.35, 1)`;
+             }
 
-             // handleTransitionEnd will be called automatically when the CSS transition finishes
+            sliderTrack.style.transform = `translateX(${newTranslateX}px)`;
+             console.log(`Animating transform to: ${newTranslateX}px`);
+
+             // handleTransitionEnd will be called automatically by the browser when the CSS transition finishes
         };
 
         // Initializes the slider - fetches initial data, creates cards, sets position
         const initializeInfiniteSlider = async () => {
-            console.log("Starting infinite slider initialization...");
+            console.log("Starting infinite slider initialization v2.6...");
             isSliding = true; // Prevent interaction during init
+            initialLoadComplete = false;
             prevBtn.disabled = true;
             nextBtn.disabled = true;
             sliderTrack.innerHTML = ''; // Clear any existing placeholders
             testimonialDataCache = [];
             cardsInTrack = [];
+            cardWidthAndMargin = 0; // Reset width
 
             const numVisible = config.testimonials.visibleCardsDesktop; // Base on desktop view for initial load
             const numBuffer = config.testimonials.bufferCards;
@@ -487,55 +537,88 @@ document.addEventListener('DOMContentLoaded', () => {
 
             console.log(`Initial setup: Visible=${numVisible}, Buffer=${numBuffer}, TotalInDOM=${totalCardsInDOM}`);
 
-            // Create placeholder cards first
-            for (let i = 0; i < totalCardsInDOM; i++) {
-                const placeholderCard = createTestimonialCardElement(null); // Create loading card
-                sliderTrack.appendChild(placeholderCard);
-                cardsInTrack.push(placeholderCard);
-            }
+             // 1. Create and Append the FIRST placeholder card
+             const firstPlaceholder = createPlaceholderCard();
+             sliderTrack.appendChild(firstPlaceholder);
+             cardsInTrack.push(firstPlaceholder); // Add to our array tracker
 
-            // Calculate dimensions based on the first placeholder (assuming layout is ready)
-            await new Promise(resolve => setTimeout(resolve, 50)); // Short delay for layout
-            if (!calculateCardWidthAndMargin()) {
-                 console.error("Could not calculate card dimensions on init. Aborting slider setup.");
-                 sliderTrack.innerHTML = '<p style="color: var(--clr-accent-red);">Chyba layoutu slideru.</p>';
+             // 2. Fetch data ONLY for the first card
+             console.log("Fetching data for the first card...");
+             isFetching = true; // Set fetching flag
+             const firstCardData = await fetchTestimonialFromGeminiAPI();
+             isFetching = false; // Reset fetching flag
+
+             if (!firstCardData || firstCardData.name === "Chyba Konfigurace" || firstCardData.name === "Chyba API") {
+                 console.error("Failed to fetch data for the first card. Aborting initialization.", firstCardData);
+                 sliderTrack.innerHTML = `<p style="color: var(--clr-accent-red);">Chyba: Nepodařilo se načíst první recenzi (${firstCardData?.text || 'neznámá chyba'}).</p>`;
                  isSliding = false;
                  return;
-            }
+             }
 
-            // Fetch initial batch of real data concurrently
-            const initialFetchPromises = [];
-            for (let i = 0; i < totalCardsInDOM; i++) {
-                initialFetchPromises.push(fetchTestimonialFromGeminiAPI());
-            }
+             // 3. Update the first card with its data
+             updateCardContent(firstPlaceholder, firstCardData);
+             testimonialDataCache.push(firstCardData); // Add the fetched data to cache
+             console.log("First card loaded and updated.");
 
-            try {
-                 const initialDataResults = await Promise.all(initialFetchPromises);
-                 testimonialDataCache = initialDataResults.map(data => data || { name: "Chyba", text: "Nepodařilo se načíst.", rating: 0, role:"" }); // Fill cache, handle errors
+             // 4. NOW, calculate dimensions based on the loaded first card
+             // Use requestAnimationFrame to wait for the next paint cycle after update
+             await new Promise(resolve => requestAnimationFrame(resolve));
 
-                 // Update placeholder cards with fetched data
-                 cardsInTrack.forEach((card, index) => {
-                     if (testimonialDataCache[index]) {
-                         updateCardContent(card, testimonialDataCache[index]);
-                     }
-                 });
+             if (!calculateCardWidthAndMargin() || cardWidthAndMargin <= 0) {
+                 console.error("Could not calculate card dimensions AFTER loading first card. Aborting slider setup.");
+                 sliderTrack.innerHTML = '<p style="color: var(--clr-accent-red);">Chyba layoutu slideru i po načtení karty.</p>';
+                 isSliding = false;
+                 return; // Abort
+             }
 
-                 // Set the initial track position *without* animation
-                 setTrackPosition(currentVisibleStartIndex); // Position to show the 'visible' section
+             // 5. Create and append the REMAINING placeholder cards
+             const remainingCardsToCreate = totalCardsInDOM - 1;
+             for (let i = 0; i < remainingCardsToCreate; i++) {
+                 const placeholderCard = createPlaceholderCard();
+                 sliderTrack.appendChild(placeholderCard);
+                 cardsInTrack.push(placeholderCard);
+                 testimonialDataCache.push(null); // Add null placeholders to cache
+             }
+             console.log(`Added ${remainingCardsToCreate} more placeholder cards.`);
 
-                 console.log("Infinite slider initialized successfully.");
+             // 6. Fetch data for the remaining cards in the background
+             console.log("Fetching data for remaining cards...");
+             const remainingFetchPromises = [];
+             // Start fetching from index 1 (since index 0 is already fetched)
+             for (let i = 1; i < totalCardsInDOM; i++) {
+                 remainingFetchPromises.push(
+                     (async (index) => {
+                         isFetching = true; // Manage flag per fetch potentially (or keep global)
+                         const data = await fetchTestimonialFromGeminiAPI();
+                         isFetching = false; // Manage flag per fetch potentially
+                         if (data && cardsInTrack[index]) {
+                             testimonialDataCache[index] = data; // Update cache
+                             updateCardContent(cardsInTrack[index], data); // Update card content
+                         } else {
+                              testimonialDataCache[index] = { name: "Chyba", text: "Nepodařilo se načíst.", rating: 0, role:"" }; // Cache error
+                              if(cardsInTrack[index]) updateCardContent(cardsInTrack[index], testimonialDataCache[index]); // Show error on card
+                         }
+                     })(i) // Immediately invoke async function with index
+                 );
+             }
+             // We don't strictly need to wait for all fetches here for initialization
+             // Promise.all(remainingFetchPromises).then(() => console.log("All remaining initial fetches complete."));
 
-            } catch (error) {
-                 console.error("Error during initial testimonial fetch:", error);
-                 sliderTrack.innerHTML = '<p style="color: var(--clr-accent-red);">Chyba při načítání počátečních recenzí.</p>';
-            } finally {
-                 isSliding = false; // Re-enable interaction
-                 prevBtn.disabled = isFetching; // Enable if not fetching
-                 nextBtn.disabled = isFetching;
-                 // Add the transitionend listener *after* initial setup
-                 sliderTrack.addEventListener('transitionend', handleTransitionEnd);
-            }
+             // 7. Set the initial track position *without* animation
+             initialLoadComplete = true; // Mark load as complete HERE before setting position
+             setTrackPosition(currentVisibleStartIndex); // Position to show the 'visible' section (index `numBuffer`)
+
+             // 8. Add the transitionend listener *after* initial setup and positioning
+             sliderTrack.removeEventListener('transitionend', handleTransitionEnd); // Remove if already exists
+             sliderTrack.addEventListener('transitionend', handleTransitionEnd);
+
+             console.log("Infinite slider initialized successfully.");
+             isSliding = false; // Re-enable interaction
+             prevBtn.disabled = false; // Enable buttons
+             nextBtn.disabled = false;
+
         };
+
 
          // --- Event Listeners ---
          prevBtn.addEventListener('click', () => moveSlider(-1));
@@ -543,11 +626,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
          // Debounced resize handler
          window.addEventListener('resize', debounce(() => {
+             if (!initialLoadComplete) return; // Don't run on resize if not initialized
              console.log("Window resized, recalculating slider dimensions...");
              if (calculateCardWidthAndMargin()) {
-                 // Recalculate visible cards based on new width (optional, simple approach just recalculates width)
                  // Reposition instantly based on current logical index
                  setTrackPosition(currentVisibleStartIndex);
+             } else {
+                 console.error("Failed to recalculate dimensions on resize.");
              }
          }, 250));
 
@@ -563,6 +648,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // --- Final Initialization ---
-    console.log("JUSTAX Interface v2.5 Initialization Complete (Infinite Scroll - INSECURE DEMO).");
+    console.log("JUSTAX Interface v2.6 Initialization Complete (Fixed Init - INSECURE DEMO).");
 
 }); // End DOMContentLoaded
