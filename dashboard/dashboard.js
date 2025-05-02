@@ -1,5 +1,5 @@
 // dashboard.js
-// Версия: 22.1 - Полная версия с Модальным Календарем, Этапами Серии и Ожиданием Supabase
+// Версия: 23 - Полная версия с Модальным Календарем И Модальными Этапами Серии (Чешский)
 (function() {
     'use strict';
 
@@ -17,27 +17,32 @@
         activities: false,
         notifications: false,
         titles: false,
-        monthlyRewards: false, // Загрузка данных/рендеринг для модального окна
-        streakMilestones: false // Загрузка данных/рендеринг для этапов
+        monthlyRewards: false, // Для модального окна календаря
+        streakMilestones: false // Для модального окна этапов
     };
     const SIDEBAR_STATE_KEY = 'sidebarCollapsedState'; // Ключ для localStorage
 
-    // Конфигурация Наград
+    // --- Конфигурация Наград (Расширено и Переведено) ---
     const MONTHLY_REWARD_DAYS = 31; // Макс. дней в месяце
-    const MILESTONE_REWARDS_CONFIG = { // Пример этапов и наград (пока пустые)
-        10: { name: "10 Дней Серии!", description: "Маленький бонус за первую веху.", icon: "fa-star", reward_type: "placeholder", reward_value: 10 },
-        30: { name: "Месяц Без Пропусков!", description: "Стабильность вознаграждается.", icon: "fa-calendar-check", reward_type: "placeholder", reward_value: 30 },
-        50: { name: "Полсотни Дней!", description: "Вы на полпути к сотне!", icon: "fa-award", reward_type: "placeholder", reward_value: 50 },
-        100: { name: "Легендарная Сотня!", description: "Впечатляющая преданность!", icon: "fa-crown", reward_type: "placeholder", reward_value: 100 },
-        150: { name: "Ветеран Системы", description: "Вы знаете все ходы!", icon: "fa-shield-alt", reward_type: "placeholder", reward_value: 150 },
-        200: { name: "Двойная Сотня!", description: "Продолжайте в том же духе!", icon: "fa-gem", reward_type: "placeholder", reward_value: 200 },
-        300: { name: "Почти Год!", description: "Невероятная выдержка!", icon: "fa-trophy", reward_type: "placeholder", reward_value: 300 },
-        365: { name: "Годовщина Входа!", description: "Вы истинный пилот Justax!", icon: "fa-rocket", reward_type: "placeholder", reward_value: 365 }
-        // Можно добавить больше этапов
+    const MILESTONE_REWARDS_CONFIG = { // Пример этапов и наград
+         5: { name: "První Krůčky", description: "Gratulujeme k 5 dnům v řadě!", icon: "fa-shoe-prints", reward_type: "placeholder", reward_value: 5 },
+        10: { name: "Stabilních 10", description: "Udržujete tempo!", icon: "fa-star", reward_type: "placeholder", reward_value: 10 },
+        15: { name: "Patnáctka", description: "Půl cesty k měsíci!", icon: "fa-adjust", reward_type: "placeholder", reward_value: 15 },
+        20: { name: "Dvacítka!", description: "Pěkná série!", icon: "fa-angle-double-up", reward_type: "placeholder", reward_value: 20 },
+        30: { name: "Měsíc Bez Přestávky!", description: "Stabilita se vyplácí.", icon: "fa-calendar-check", reward_type: "placeholder", reward_value: 30 },
+        50: { name: "Půl Století Dnů!", description: "Jste na půli cesty ke stovce!", icon: "fa-award", reward_type: "placeholder", reward_value: 50 },
+        75: { name: "Tři Čtvrtě Stovky", description: "Blížíte se k velkému milníku.", icon: "fa-hourglass-half", reward_type: "placeholder", reward_value: 75 },
+        100: { name: "Legendární Stovka!", description: "Váš závazek je inspirující!", icon: "fa-crown", reward_type: "placeholder", reward_value: 100 },
+        125: { name: "Stovka a Čtvrt", description: "Stále silní!", icon: "fa-thumbs-up", reward_type: "placeholder", reward_value: 125 },
+        150: { name: "Věrný Pilot", description: "Jste skutečným veteránem systému.", icon: "fa-shield-alt", reward_type: "placeholder", reward_value: 150 },
+        200: { name: "Dvojitá Stovka!", description: "Úžasná vytrvalost!", icon: "fa-gem", reward_type: "placeholder", reward_value: 200 },
+        250: { name: "Čtvrt Tisíciletí Dnů", description: "Síla je s vámi.", icon: "fa-meteor", reward_type: "placeholder", reward_value: 250 },
+        300: { name: "Téměř Rok!", description: "Neuvěřitelná disciplína!", icon: "fa-trophy", reward_type: "placeholder", reward_value: 300 },
+        365: { name: "Roční Výročí!", description: "Jste absolutní legenda Justax!", icon: "fa-rocket", reward_type: "placeholder", reward_value: 365 }
     };
     const milestoneDays = Object.keys(MILESTONE_REWARDS_CONFIG).map(Number).sort((a, b) => a - b);
 
-    // DOM Elements Cache
+    // DOM Elements Cache (Обновлено для ДВУХ модальных окон)
     const ui = {
         initialLoader: document.getElementById('initial-loader'),
         sidebarOverlay: document.getElementById('sidebar-overlay'),
@@ -59,7 +64,8 @@
         markAllReadBtn: document.getElementById('mark-all-read'),
         welcomeTitle: document.getElementById('welcome-title'),
         startPracticeBtn: document.getElementById('start-practice-btn'),
-        openMonthlyModalBtn: document.getElementById('open-monthly-modal-btn'), // Кнопка для открытия модалки календаря
+        openMonthlyModalBtn: document.getElementById('open-monthly-modal-btn'), // Кнопка Календарь
+        openStreakModalBtn: document.getElementById('open-streak-modal-btn'), // Кнопка Этапы
         progressCard: document.getElementById('progress-card'),
         pointsCard: document.getElementById('points-card'),
         streakCard: document.getElementById('streak-card'),
@@ -79,11 +85,12 @@
         modalMonthlyCalendarEmpty: document.getElementById('modal-monthly-calendar-empty'),
         modalCurrentMonthYearSpan: document.getElementById('modal-current-month-year'),
         closeMonthlyModalBtn: document.getElementById('close-monthly-modal-btn'),
-        // Streak Milestones Elements
-        streakMilestonesSection: document.getElementById('streak-milestones-section'),
-        streakMilestonesList: document.getElementById('streak-milestones-list'),
-        streakMilestonesEmpty: document.getElementById('streak-milestones-empty'),
-        currentStreakValueSpan: document.getElementById('current-streak-value')
+        // Streak Milestones MODAL Elements
+        streakMilestonesModal: document.getElementById('streak-milestones-modal'),
+        modalMilestonesGrid: document.getElementById('modal-milestones-grid'), // Grid inside modal
+        modalMilestonesEmpty: document.getElementById('modal-milestones-empty'), // Empty state inside modal
+        modalCurrentStreakValue: document.getElementById('modal-current-streak-value'), // Span inside modal
+        closeStreakModalBtn: document.getElementById('close-streak-modal-btn')
     };
 
     // Visual settings for activities & notifications
@@ -119,28 +126,28 @@
 
             const loaderOverlay = {
                 monthlyRewards: ui.monthlyRewardModal?.querySelector('.loading-overlay'),
-                streakMilestones: ui.streakMilestonesSection?.querySelector('.loading-overlay'),
+                streakMilestones: ui.streakMilestonesModal?.querySelector('.loading-overlay'),
                 activities: ui.activityListContainer,
                 stats: null, notifications: null, titles: null
             }[sec];
 
             const contentContainer = {
                 monthlyRewards: ui.modalMonthlyCalendarGrid,
-                streakMilestones: ui.streakMilestonesList,
+                streakMilestones: ui.modalMilestonesGrid,
                 activities: ui.activityList,
                 stats: null, notifications: ui.notificationsList, titles: null
             }[sec];
 
              const emptyStateContainer = {
                  monthlyRewards: ui.modalMonthlyCalendarEmpty,
-                 streakMilestones: ui.streakMilestonesEmpty,
+                 streakMilestones: ui.modalMilestonesEmpty,
                  activities: ui.activityListEmptyState,
                  notifications: ui.noNotificationsMsg
              }[sec];
 
              const parentSection = {
                  monthlyRewards: ui.monthlyRewardModal?.querySelector('.modal-body'),
-                 streakMilestones: ui.streakMilestonesSection,
+                 streakMilestones: ui.streakMilestonesModal?.querySelector('.modal-body'),
                  activities: ui.activityListContainer,
                  stats: null, notifications: null, titles: null
              }[sec];
@@ -193,8 +200,11 @@
         if (modal) {
             console.log(`[Modal] Opening modal: ${modalId}`);
             modal.style.display = 'flex';
+            // Render content *when modal opens*
             if (modalId === 'monthly-reward-modal') {
-                renderMonthlyCalendar(); // Render fresh content when opened
+                renderMonthlyCalendar(); // Render monthly calendar content
+            } else if (modalId === 'streak-milestones-modal') {
+                renderStreakMilestones(); // Render streak milestone content
             }
             requestAnimationFrame(() => { modal.classList.add('active'); });
         } else { console.error(`[Modal] Modal element not found: #${modalId}`); }
@@ -204,7 +214,7 @@
          if (modal) {
              console.log(`[Modal] Closing modal: ${modalId}`);
              modal.classList.remove('active');
-             setTimeout(() => { modal.style.display = 'none'; }, 300); // Match CSS
+             setTimeout(() => { modal.style.display = 'none'; }, 300); // Match CSS transition duration
          }
      }
     // --- END: Helper Functions ---
@@ -271,14 +281,14 @@
     async function fetchTitles() {
         if (!supabase) return [];
         console.log("[Titles] Fetching available titles...");
-        // setLoadingState('titles', true); // Titles loading is usually fast, maybe skip visual loader
+        setLoadingState('titles', true);
         try {
             const { data, error } = await supabase.from('title_shop').select('title_key, name');
             if (error) throw error;
             console.log("[Titles] Fetched titles:", data);
             return data || [];
         } catch (error) { console.error("[Titles] Error fetching titles:", error); return []; }
-        // finally { setLoadingState('titles', false); }
+        finally { setLoadingState('titles', false); }
     }
     async function fetchUserStats(userId, profileData) { if (!supabase || !userId || !profileData) { console.error("[Stats] Chybí Supabase klient, ID uživatele nebo data profilu."); return null; } console.log(`[Stats] Načítání statistik pro uživatele ${userId}...`); let fetchedStats = null; let statsError = null; try { const { data, error } = await supabase.from('user_stats').select('progress, progress_weekly, points_weekly, streak_longest, completed_tests').eq('user_id', userId).maybeSingle(); fetchedStats = data; statsError = error; if (statsError) { console.warn("[Stats] Chyba Supabase při načítání user_stats:", statsError.message); } } catch (error) { console.error("[Stats] Neočekávaná chyba při načítání user_stats:", error); statsError = error; } const finalStats = { progress: fetchedStats?.progress ?? profileData.progress ?? 0, progress_weekly: fetchedStats?.progress_weekly ?? 0, points: profileData.points ?? 0, points_weekly: fetchedStats?.points_weekly ?? 0, streak_current: profileData.streak_days ?? 0, streak_longest: Math.max(fetchedStats?.streak_longest ?? 0, profileData.streak_days ?? 0), completed_exercises: profileData.completed_exercises ?? 0, completed_tests: profileData.completed_tests ?? fetchedStats?.completed_tests ?? 0 }; if (statsError) { console.warn("[Stats] Vracení statistik primárně z profilu kvůli chybě načítání."); } else { console.log("[Stats] Statistiky úspěšně načteny/sestaveny:", finalStats); } return finalStats; }
     async function fetchRecentActivities(userId, limit = 5) { if (!supabase || !userId) { console.error("[Activities] Chybí Supabase nebo ID uživatele."); return []; } console.log(`[Activities] Načítání posledních ${limit} aktivit pro uživatele ${userId}`); try { const { data, error } = await supabase .from('activities') .select('*') .eq('user_id', userId) .order('created_at', { ascending: false }) .limit(limit); if (error) throw error; console.log(`[Activities] Načteno ${data?.length || 0} aktivit.`); return data || []; } catch (error) { console.error('[Activities] Výjimka při načítání aktivit:', error); return []; } }
@@ -298,16 +308,9 @@
         if (!lastLogin || !isSameDate(today, lastLogin)) {
             needsDbUpdate = true;
             console.log("[StreakCheck] First login of the day detected.");
-            if (lastLogin && isYesterday(lastLogin, today)) {
-                currentStreak++;
-                console.log(`[StreakCheck] Streak continued! New streak: ${currentStreak}`);
-            } else if (lastLogin) {
-                currentStreak = 1;
-                console.log("[StreakCheck] Streak broken. Resetting to 1.");
-            } else {
-                currentStreak = 1;
-                console.log("[StreakCheck] First login ever. Setting streak to 1.");
-            }
+            if (lastLogin && isYesterday(lastLogin, today)) { currentStreak++; console.log(`[StreakCheck] Streak continued! New streak: ${currentStreak}`); }
+            else if (lastLogin) { currentStreak = 1; console.log("[StreakCheck] Streak broken. Resetting to 1."); }
+            else { currentStreak = 1; console.log("[StreakCheck] First login ever. Setting streak to 1."); }
             updateData.streak_days = currentStreak;
             updateData.last_login = today.toISOString();
         } else {
@@ -315,10 +318,10 @@
             currentStreak = currentProfile.streak_days || 0;
         }
 
-        // Update current streak display immediately
-        if (ui.currentStreakValueSpan) ui.currentStreakValueSpan.textContent = currentStreak;
         // Update local profile state for immediate UI consistency
         currentProfile.streak_days = currentStreak;
+        // Update streak display inside the milestone modal (if available)
+        if (ui.modalCurrentStreakValue) ui.modalCurrentStreakValue.textContent = currentStreak;
 
         // Check and Initialize Monthly Claims
         currentProfile.monthly_claims = currentProfile.monthly_claims || {};
@@ -349,7 +352,7 @@
         return false;
     }
 
-    // --- Database update functions (Placeholders for now) ---
+    // --- Database update functions (Placeholders) ---
     async function updateMonthlyClaimsInDB(newClaimsData) {
         if (!currentUser || !supabase) return false;
         console.log("[DB Update] Simulating update for monthly claims:", newClaimsData);
@@ -366,10 +369,9 @@
         //     showToast('Chyba Ukládání', 'Nepodařilo se uložit postup měsíčních odměn.', 'error');
         //     return false;
         // }
-        // **********************************
-        await new Promise(resolve => setTimeout(resolve, 100)); // Simulate delay
+        await new Promise(resolve => setTimeout(resolve, 100));
         console.log("[DB Update] Placeholder: Monthly claims update simulated.");
-        return true; // Assume success for placeholder
+        return true;
     }
 
     async function updateLastMilestoneClaimedInDB(milestoneDay) {
@@ -388,10 +390,9 @@
         //     showToast('Chyba Ukládání', 'Nepodařilo se uložit postup milníkových odměn.', 'error');
         //     return false;
         // }
-        // **********************************
-        await new Promise(resolve => setTimeout(resolve, 100)); // Simulate delay
+        await new Promise(resolve => setTimeout(resolve, 100));
         console.log(`[DB Update] Placeholder: Last claimed milestone update simulated.`);
-        return true; // Assume success for placeholder
+        return true;
     }
 
     // --- Main Data Loading Orchestration ---
@@ -402,11 +403,10 @@
         setLoadingState('stats', true);
         setLoadingState('activities', true);
         setLoadingState('notifications', true);
-        setLoadingState('streakMilestones', true);
-        // Monthly rewards loading state is handled when modal opens
+        // Milestones loading state is handled when modal opens
 
         renderActivitySkeletons(5);
-        renderMilestoneSkeletons();
+        // No need to render milestone skeletons here
 
         try {
             await checkAndUpdateLoginStreak();
@@ -420,25 +420,21 @@
             ]);
             console.log("[MAIN] loadDashboardData: Souběžné načítání dokončeno:", results);
 
-            // Process stats
+            // Process results
             if (results[0].status === 'fulfilled') { updateStatsCards(results[0].value || profile); }
             else { console.error("❌ Chyba při načítání statistik:", results[0].reason); updateStatsCards(profile); }
             setLoadingState('stats', false);
 
-            // Process activities
             if (results[1].status === 'fulfilled') { renderActivities(results[1].value || []); }
             else { console.error("❌ Chyba při načítání aktivit:", results[1].reason); renderActivities(null); }
             setLoadingState('activities', false);
 
-            // Process notifications
             if (results[2].status === 'fulfilled') { const { unreadCount, notifications } = results[2].value || { unreadCount: 0, notifications: [] }; renderNotifications(unreadCount, notifications); }
             else { console.error("❌ Chyba při načítání oznámení:", results[2].reason); renderNotifications(0, []); }
             setLoadingState('notifications', false);
 
-            // Render Streak Milestones section (not the modal calendar yet)
-            renderStreakMilestones();
-
-            console.log("[MAIN] loadDashboardData: Všechna data zpracována.");
+            // Do NOT render rewards here, they render on modal open
+            console.log("[MAIN] loadDashboardData: Statické секции обработаны.");
 
         } catch (error) {
              console.error('[MAIN] loadDashboardData: Zachycena hlavní chyba:', error);
@@ -446,9 +442,13 @@
              updateStatsCards(profile);
              renderActivities(null);
              renderNotifications(0, []);
-             renderStreakMilestones(); // Render empty/error state
+             // No reward rendering here
         } finally {
-            setLoadingState('all', false); // Ensure all general loaders are off
+            // Turn off any remaining general loaders
+            setLoadingState('stats', false);
+            setLoadingState('activities', false);
+            setLoadingState('notifications', false);
+            setLoadingState('streakMilestones', false); // Ensure this is off too
             initTooltips();
         }
     }
@@ -465,7 +465,7 @@
             const initials = getInitials(profile);
             const avatarUrl = profile.avatar_url;
             ui.sidebarAvatar.innerHTML = avatarUrl ? `<img src="${sanitizeHTML(avatarUrl)}" alt="${sanitizeHTML(initials)}">` : sanitizeHTML(initials);
-            // Title Logic
+            // Update Title
             const selectedTitleKey = profile.selected_title;
             let displayTitle = 'Pilot';
             if (selectedTitleKey && allTitles && allTitles.length > 0) {
@@ -485,11 +485,11 @@
             if (ui.welcomeTitle) ui.welcomeTitle.textContent = `Vítejte!`;
         }
     }
-    function updateStatsCards(stats) { console.log("[UI Update] Aktualizace karet statistik:", stats); const statElements = { progress: ui.progressCard?.querySelector('.stat-card-value'), progressChange: ui.progressCard?.querySelector('.stat-card-change'), points: ui.pointsCard?.querySelector('.stat-card-value'), pointsChange: ui.pointsCard?.querySelector('.stat-card-change'), streak: ui.streakCard?.querySelector('.stat-card-value'), streakLongest: ui.streakCard?.querySelector('.stat-card-change') }; const cards = [ui.progressCard, ui.pointsCard, ui.streakCard]; const displayError = (cardElement) => { if (cardElement) { const skel = cardElement.querySelector('.loading-skeleton'); const cont = cardElement.querySelector('.stat-card-content'); if(skel) skel.style.display='none'; if(cont) cont.style.visibility='hidden'; cardElement.classList.remove('loading'); /* Optional: Add error indicator */ } }; if (!stats) { cards.forEach(displayError); return; } cards.forEach(card => { if (card) { card.classList.remove('loading'); const skel = card.querySelector('.loading-skeleton'); const cont = card.querySelector('.stat-card-content'); if(skel) skel.style.display = 'none'; if(cont) cont.style.visibility = 'visible'; } }); /* ... (update values as before) ... */ }
+    function updateStatsCards(stats) { console.log("[UI Update] Aktualizace karet statistik:", stats); const statElements = { progress: ui.progressCard?.querySelector('.stat-card-value'), progressChange: ui.progressCard?.querySelector('.stat-card-change'), points: ui.pointsCard?.querySelector('.stat-card-value'), pointsChange: ui.pointsCard?.querySelector('.stat-card-change'), streak: ui.streakCard?.querySelector('.stat-card-value'), streakLongest: ui.streakCard?.querySelector('.stat-card-change') }; const cards = [ui.progressCard, ui.pointsCard, ui.streakCard]; const displayError = (cardElement) => { if (cardElement) { cardElement.classList.remove('loading'); const skel = cardElement.querySelector('.loading-skeleton'); const cont = cardElement.querySelector('.stat-card-content'); if(skel) skel.style.display = 'none'; if(cont) cont.style.visibility='hidden'; /* Optionally add error text */ } }; if (!stats) { cards.forEach(displayError); return; } cards.forEach(card => { if (card) { card.classList.remove('loading'); const skel = card.querySelector('.loading-skeleton'); const cont = card.querySelector('.stat-card-content'); if(skel) skel.style.display = 'none'; if(cont) cont.style.visibility = 'visible'; } }); if (statElements.progress && statElements.progressChange) { statElements.progress.textContent = `${stats.progress ?? 0}%`; const weeklyChange = stats.progress_weekly ?? 0; statElements.progressChange.classList.remove('positive', 'negative'); statElements.progressChange.innerHTML = weeklyChange > 0 ? `<i class="fas fa-arrow-up"></i> +${weeklyChange}% týdně` : weeklyChange < 0 ? `<i class="fas fa-arrow-down"></i> ${weeklyChange}% týdně` : `<i class="fas fa-minus"></i> --`; if (weeklyChange > 0) statElements.progressChange.classList.add('positive'); else if (weeklyChange < 0) statElements.progressChange.classList.add('negative'); } if (statElements.points && statElements.pointsChange) { statElements.points.textContent = stats.points ?? 0; const weeklyPoints = stats.points_weekly ?? 0; statElements.pointsChange.classList.remove('positive', 'negative'); statElements.pointsChange.innerHTML = weeklyPoints > 0 ? `<i class="fas fa-arrow-up"></i> +${weeklyPoints} týdně` : weeklyPoints < 0 ? `<i class="fas fa-arrow-down"></i> ${weeklyPoints} týdně` : `<i class="fas fa-minus"></i> --`; if (weeklyPoints > 0) statElements.pointsChange.classList.add('positive'); else if (weeklyPoints < 0) statElements.pointsChange.classList.add('negative'); } if (statElements.streak && statElements.streakLongest) { statElements.streak.textContent = stats.streak_current ?? 0; statElements.streakLongest.textContent = `MAX: ${stats.streak_longest ?? 0} dní`; } console.log("[UI Update] Karty statistik aktualizovány."); }
     function renderActivities(activities) { if (!ui.activityList || !ui.activityListContainer || !ui.activityListEmptyState || !ui.activityListErrorState) { console.error("[Render Activities] Chybí UI elementy."); setLoadingState('activities', false); return; } ui.activityList.innerHTML = ''; ui.activityListEmptyState.style.display = 'none'; ui.activityListErrorState.style.display = 'none'; if (activities === null) { ui.activityListErrorState.style.display = 'block'; ui.activityListContainer.classList.remove('loading'); setLoadingState('activities', false); return; } if (activities.length === 0) { ui.activityListEmptyState.style.display = 'block'; ui.activityListContainer.classList.remove('loading'); setLoadingState('activities', false); return; } const fragment = document.createDocumentFragment(); activities.forEach(activity => { const visual = activityVisuals[activity.type?.toLowerCase()] || activityVisuals.default; const title = sanitizeHTML(activity.title || 'Neznámá aktivita'); const description = sanitizeHTML(activity.description || ''); const timeAgo = formatRelativeTime(activity.created_at); const item = document.createElement('div'); item.className = 'activity-item'; item.innerHTML = `<div class="activity-icon ${visual.class}"><i class="fas ${visual.icon}"></i></div><div class="activity-content"><div class="activity-title">${title}</div><div class="activity-desc">${description}</div><div class="activity-time"><i class="far fa-clock"></i> ${timeAgo}</div></div>`; fragment.appendChild(item); }); ui.activityList.appendChild(fragment); ui.activityListContainer.classList.remove('loading'); console.log(`[Render Activities] Vykresleno ${activities.length} položek.`); setLoadingState('activities', false); }
     function renderActivitySkeletons(count = 5) { if (!ui.activityList || !ui.activityListContainer) return; ui.activityListContainer.classList.add('loading'); ui.activityList.innerHTML = ''; let skeletonHTML = '<div class="loading-placeholder">'; for (let i = 0; i < count; i++) { skeletonHTML += `<div class="skeleton-activity-item"> <div class="skeleton icon-placeholder"></div> <div style="flex-grow: 1;"> <div class="skeleton activity-line"></div> <div class="skeleton activity-line text-short"></div> <div class="skeleton activity-line-short"></div> </div> </div>`; } skeletonHTML += '</div>'; ui.activityList.innerHTML = skeletonHTML; }
-    function renderNotifications(count, notifications) { /* ... (keep as is) ... */ }
-    function renderNotificationSkeletons(count = 2) { /* ... (keep as is) ... */ }
+    function renderNotifications(count, notifications) { if (!ui.notificationCount || !ui.notificationsList || !ui.noNotificationsMsg || !ui.markAllReadBtn) { console.error("[Render Notifications] Chybí UI elementy."); setLoadingState('notifications', false); return; } console.log("[Render Notifications] Start, Počet:", count, "Oznámení:", notifications); ui.notificationCount.textContent = count > 9 ? '9+' : (count > 0 ? String(count) : ''); ui.notificationCount.classList.toggle('visible', count > 0); if (notifications && notifications.length > 0) { ui.notificationsList.innerHTML = notifications.map(n => { const visual = activityVisuals[n.type?.toLowerCase()] || activityVisuals.default; const isReadClass = n.is_read ? 'is-read' : ''; const linkAttr = n.link ? `data-link="${sanitizeHTML(n.link)}"` : ''; return `<div class="notification-item ${isReadClass}" data-id="${n.id}" ${linkAttr}> ${!n.is_read ? '<span class="unread-dot"></span>' : ''} <div class="notification-icon ${visual.class}"><i class="fas ${visual.icon}"></i></div> <div class="notification-content"> <div class="notification-title">${sanitizeHTML(n.title)}</div> <div class="notification-message">${sanitizeHTML(n.message)}</div> <div class="notification-time">${formatRelativeTime(n.created_at)}</div> </div> </div>`; }).join(''); ui.noNotificationsMsg.style.display = 'none'; ui.notificationsList.style.display = 'block'; ui.markAllReadBtn.disabled = count === 0; } else { ui.notificationsList.innerHTML = ''; ui.noNotificationsMsg.style.display = 'block'; ui.notificationsList.style.display = 'none'; ui.markAllReadBtn.disabled = true; } console.log("[Render Notifications] Hotovo"); setLoadingState('notifications', false); }
+    function renderNotificationSkeletons(count = 2) { if (!ui.notificationsList || !ui.noNotificationsMsg) return; let skeletonHTML = ''; for (let i = 0; i < count; i++) { skeletonHTML += `<div class="notification-item skeleton"><div class="notification-icon skeleton" style="background-color: var(--skeleton-bg);"></div><div class="notification-content"><div class="skeleton" style="height: 16px; width: 70%; margin-bottom: 6px;"></div><div class="skeleton" style="height: 12px; width: 90%;"></div><div class="skeleton" style="height: 10px; width: 40%; margin-top: 6px;"></div></div></div>`; } ui.notificationsList.innerHTML = skeletonHTML; ui.noNotificationsMsg.style.display = 'none'; ui.notificationsList.style.display = 'block'; }
 
     // --- Render Monthly Calendar (Targets MODAL grid) ---
     function renderMonthlyCalendar() {
@@ -528,17 +528,8 @@
             const isUpcoming = day > today;
             const isMissed = day < today && !isClaimed;
 
-            let rewardIconHtml = '<i class="fas fa-gift"></i>'; // Default gift
-            let rewardText = `Den ${day}`; // Placeholder text
-
-            // --- Placeholder: Add specific reward info if available ---
-            // Example: Fetch reward info for 'day' from a config/DB
-            // let rewardInfo = getMonthlyRewardConfigForDay(day);
-            // if (rewardInfo) {
-            //     rewardIconHtml = `<i class="${rewardInfo.icon || 'fas fa-gift'}"></i>`;
-            //     rewardText = rewardInfo.name || `Odměna ${day}`;
-            // }
-            // --- End Placeholder ---
+            let rewardIconHtml = '<i class="fas fa-gift"></i>';
+            let rewardText = `Den ${day}`;
 
             dayElement.innerHTML = `
                 <span class="day-number">${day}</span>
@@ -552,39 +543,18 @@
             const statusSpan = dayElement.querySelector('.reward-status');
             const claimButton = dayElement.querySelector('.claim-button');
 
-            if (isClaimed) {
-                dayElement.classList.add('claimed');
-                if (statusSpan) statusSpan.textContent = 'Získáno';
-            } else if (isClaimable) {
-                dayElement.classList.add('available');
-                if (statusSpan) statusSpan.textContent = 'Dostupné';
-                if (claimButton) {
-                    claimButton.style.display = 'block';
-                    claimButton.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        claimMonthlyReward(day, claimButton);
-                    });
-                }
-            } else if (isUpcoming) {
-                dayElement.classList.add('upcoming');
-                if (statusSpan) statusSpan.textContent = 'Připravuje se';
-            } else { // Missed
-                dayElement.classList.add('missed');
-                if (statusSpan) statusSpan.textContent = 'Zmeškáno';
-            }
+            if (isClaimed) { dayElement.classList.add('claimed'); if (statusSpan) statusSpan.textContent = 'Získáno'; }
+            else if (isClaimable) { dayElement.classList.add('available'); if (statusSpan) statusSpan.textContent = 'Dostupné'; if (claimButton) { claimButton.style.display = 'block'; claimButton.addEventListener('click', (e) => { e.stopPropagation(); claimMonthlyReward(day, claimButton); }); } }
+            else if (isUpcoming) { dayElement.classList.add('upcoming'); if (statusSpan) statusSpan.textContent = 'Připravuje se'; }
+            else { dayElement.classList.add('missed'); if (statusSpan) statusSpan.textContent = 'Zmeškáno'; }
              if(day === today) { dayElement.classList.add('today'); }
 
             fragment.appendChild(dayElement);
             daysRendered++;
         }
 
-        if (daysRendered > 0) {
-            gridContainer.appendChild(fragment);
-            gridContainer.style.display = 'grid';
-        } else {
-            emptyState.style.display = 'block';
-            gridContainer.style.display = 'none';
-        }
+        if (daysRendered > 0) { gridContainer.appendChild(fragment); gridContainer.style.display = 'grid'; }
+        else { emptyState.style.display = 'block'; gridContainer.style.display = 'none'; }
 
         ui.monthlyRewardModal?.querySelector('.modal-body')?.classList.remove('loading');
         console.log("[RenderMonthly] Modal calendar rendered.");
@@ -595,27 +565,29 @@
     function renderMonthlyCalendarSkeletons() {
         const gridContainer = ui.modalMonthlyCalendarGrid;
         if (!gridContainer) return;
-        gridContainer.innerHTML = '';
-        gridContainer.style.display = 'grid';
-        const skeletonCount = 21;
-        let skeletonHTML = '';
-        for(let i=0; i < skeletonCount; i++) {
-            skeletonHTML += '<div class="calendar-day skeleton"></div>';
-        }
+        gridContainer.innerHTML = ''; gridContainer.style.display = 'grid';
+        const skeletonCount = 21; let skeletonHTML = '';
+        for(let i=0; i < skeletonCount; i++) { skeletonHTML += '<div class="calendar-day skeleton"></div>'; }
         gridContainer.innerHTML = skeletonHTML;
     }
 
 
-    // --- Render Streak Milestones ---
+    // --- Render Streak Milestones (Targets MODAL grid) ---
     function renderStreakMilestones() {
-        if (!ui.streakMilestonesList || !ui.streakMilestonesSection || !ui.currentStreakValueSpan) { console.error("Streak milestones UI elements missing."); setLoadingState('streakMilestones', false); return; }
-        console.log("[RenderMilestones] Rendering streak milestones...");
+        const gridContainer = ui.modalMilestonesGrid;
+        const emptyState = ui.modalMilestonesEmpty;
+        const streakSpan = ui.modalCurrentStreakValue;
+
+        if (!gridContainer || !emptyState || !streakSpan) { console.error("Streak milestones MODAL UI elements missing."); setLoadingState('streakMilestones', false); return; }
+        console.log("[RenderMilestones] Rendering streak milestones INSIDE MODAL...");
+        setLoadingState('streakMilestones', true);
 
         const currentStreak = currentProfile?.streak_days || 0;
         const lastClaimed = currentProfile?.last_milestone_claimed || 0;
 
-        ui.currentStreakValueSpan.textContent = currentStreak;
-        ui.streakMilestonesList.innerHTML = '';
+        streakSpan.textContent = currentStreak;
+        gridContainer.innerHTML = '';
+        emptyState.style.display = 'none';
         const fragment = document.createDocumentFragment();
         let milestonesToShow = 0;
 
@@ -624,7 +596,8 @@
             if (!config) return;
 
             const milestoneElement = document.createElement('div');
-            milestoneElement.classList.add('milestone-item');
+            // --- ИСПОЛЬЗУЕМ КЛАССЫ, ПОХОЖИЕ НА КАЛЕНДАРЬ ---
+            milestoneElement.classList.add('milestone-card'); // Class for CSS grid card styling
             milestoneElement.dataset.milestone = milestoneDay;
 
             const isClaimed = lastClaimed >= milestoneDay;
@@ -636,31 +609,24 @@
 
             if (isClaimed) {
                 milestoneElement.classList.add('claimed');
-                statusHTML = `<span class="milestone-status claimed"><i class="fas fa-check-circle"></i> Získáno</span>`;
+                statusHTML = `<span class="reward-status">Získáno</span>`;
             } else if (isClaimable) {
                 milestoneElement.classList.add('available');
-                statusHTML = `<span class="milestone-status available"><i class="fas fa-gift"></i> Dostupné!</span>`;
+                statusHTML = `<span class="reward-status">Dostupné</span>`;
                 buttonHTML = `<button class="claim-button btn btn-sm btn-success"><i class="fas fa-check"></i> Vyzvednout</button>`;
             } else { // Locked
                 milestoneElement.classList.add('locked');
                 const daysNeeded = milestoneDay - currentStreak;
-                statusHTML = `<span class="milestone-status locked"><i class="fas fa-lock"></i> Ještě ${daysNeeded} ${daysNeeded === 1 ? 'den' : (daysNeeded < 5 ? 'dny' : 'dní')}</span>`;
+                statusHTML = `<span class="reward-status">Ještě ${daysNeeded} ${daysNeeded === 1 ? 'den' : (daysNeeded < 5 ? 'dny' : 'dní')}</span>`;
             }
 
+            // --- Структура карточки, похожая на день календаря ---
             milestoneElement.innerHTML = `
-                <div class="milestone-icon">
-                    <i class="fas ${config.icon || 'fa-award'}"></i>
-                </div>
-                <div class="milestone-info">
-                    <h4 class="milestone-title">${sanitizeHTML(config.name)}</h4>
-                    <p class="milestone-desc">${sanitizeHTML(config.description)}</p>
-                    <div class="milestone-req">Požadavek: ${milestoneDay} dní série</div>
-                </div>
-                <div class="milestone-status-action">
-                    ${statusHTML}
-                    ${buttonHTML}
-                </div>
+                <span class="day-number">Série ${milestoneDay}</span> <div class="reward-icon"><i class="fas ${config.icon || 'fa-award'}"></i></div>
+                <span class="reward-text" title="${sanitizeHTML(config.description)}">${sanitizeHTML(config.name)}</span> ${statusHTML}
+                ${buttonHTML}
             `;
+            // --- Конец структуры карточки ---
 
             const claimButton = milestoneElement.querySelector('.claim-button');
             if (claimButton) {
@@ -674,23 +640,32 @@
             milestonesToShow++;
         });
 
-        ui.streakMilestonesList.appendChild(fragment);
-        ui.streakMilestonesEmpty.style.display = milestonesToShow === 0 ? 'block' : 'none';
-        ui.streakMilestonesSection.classList.remove('loading');
-        console.log("[RenderMilestones] Milestones rendered.");
+        if (milestonesToShow > 0) {
+             gridContainer.appendChild(fragment);
+             gridContainer.style.display = 'grid'; // Use grid layout
+         } else {
+             emptyState.style.display = 'block';
+             gridContainer.style.display = 'none';
+         }
+
+        ui.streakMilestonesModal?.querySelector('.modal-body')?.classList.remove('loading');
+        console.log("[RenderMilestones] Milestones rendered in modal.");
         setLoadingState('streakMilestones', false);
         initTooltips();
     }
 
      function renderMilestoneSkeletons() {
-          if (!ui.streakMilestonesList) return;
-          ui.streakMilestonesList.innerHTML = '';
-          const skeletonCount = 3;
-          let skeletonHTML = '';
-          for(let i=0; i < skeletonCount; i++) {
-              skeletonHTML += '<div class="milestone-item skeleton"></div>';
-          }
-          ui.streakMilestonesList.innerHTML = skeletonHTML;
+         const gridContainer = ui.modalMilestonesGrid;
+         if (!gridContainer) return;
+         gridContainer.innerHTML = '';
+         gridContainer.style.display = 'grid';
+         const skeletonCount = 6;
+         let skeletonHTML = '';
+         for(let i=0; i < skeletonCount; i++) {
+             // Use a structure similar to calendar day skeleton
+             skeletonHTML += '<div class="milestone-card skeleton"></div>';
+         }
+         gridContainer.innerHTML = skeletonHTML;
       }
     // --- END: UI Update ---
 
@@ -699,25 +674,15 @@
         console.log(`[ClaimMonthly] Attempting claim for day ${day}`);
         if (!currentUser || !currentProfile || !supabase || isLoading.monthlyRewards) return;
 
-        isLoading.monthlyRewards = true; // Prevent double clicks while processing
-        if (buttonElement) {
-            buttonElement.disabled = true;
-            buttonElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-        }
+        isLoading.monthlyRewards = true;
+        if (buttonElement) { buttonElement.disabled = true; buttonElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; }
 
         const currentMonth = getCurrentMonthYearString();
         currentProfile.monthly_claims = currentProfile.monthly_claims || {};
         currentProfile.monthly_claims[currentMonth] = currentProfile.monthly_claims[currentMonth] || [];
 
-        if (currentProfile.monthly_claims[currentMonth].includes(day)) {
-            console.warn(`[ClaimMonthly] Day ${day} already claimed for ${currentMonth}.`);
-            showToast('Info', 'Tato odměna již byla vyzvednuta.', 'info');
-            isLoading.monthlyRewards = false;
-            renderMonthlyCalendar();
-            return;
-        }
+        if (currentProfile.monthly_claims[currentMonth].includes(day)) { console.warn(`[ClaimMonthly] Day ${day} already claimed.`); showToast('Info', 'Odměna již byla vyzvednuta.', 'info'); isLoading.monthlyRewards = false; renderMonthlyCalendar(); return; }
 
-        // Update local state optimistically
         const updatedClaimsForMonth = [...currentProfile.monthly_claims[currentMonth], day];
         const updatedFullClaims = { ...currentProfile.monthly_claims, [currentMonth]: updatedClaimsForMonth };
 
@@ -726,18 +691,14 @@
         // --- End Placeholder ---
 
         if (dbSuccess) {
-             currentProfile.monthly_claims = updatedFullClaims; // Confirm local state change
-             console.log(`[ClaimMonthly] Reward for day ${day} claimed successfully. New claims obj:`, currentProfile.monthly_claims);
-             showToast('Odměna Získána!', `Získali jste odměnu za ${day}. den měsíce! (Placeholder)`, 'success');
-             // **TODO (Future):** Grant actual reward (e.g., points) here
-             // e.g., grantReward({ type: 'monthly', day: day });
-         } else {
-              showToast('Chyba', 'Nepodařilo se uložit vyzvednutí odměny.', 'error');
-             // No need to rollback local state, as render will fix it based on failed save
-         }
+             currentProfile.monthly_claims = updatedFullClaims; // Update local state
+             console.log(`[ClaimMonthly] Reward claimed locally & simulated DB save. New claims:`, currentProfile.monthly_claims);
+             showToast('Odměna Získána!', `Získána odměna za ${day}. den! (Placeholder)`, 'success');
+             // **TODO (Future):** Grant actual reward here
+         } else { showToast('Chyba', 'Nepodařilo se uložit vyzvednutí odměny.', 'error'); }
 
         isLoading.monthlyRewards = false;
-        renderMonthlyCalendar(); // Re-render to show final state
+        renderMonthlyCalendar(); // Re-render modal
     }
 
     async function claimMilestoneReward(milestoneDay, buttonElement) {
@@ -745,18 +706,9 @@
         if (!currentUser || !currentProfile || !supabase || isLoading.streakMilestones) return;
 
         isLoading.streakMilestones = true;
-        if (buttonElement) {
-             buttonElement.disabled = true;
-             buttonElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-         }
+        if (buttonElement) { buttonElement.disabled = true; buttonElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; }
 
-        if ((currentProfile?.last_milestone_claimed || 0) >= milestoneDay) {
-            console.warn(`[ClaimMilestone] Milestone ${milestoneDay} already claimed.`);
-            showToast('Info', 'Tato milníková odměna již byla vyzvednuta.', 'info');
-            isLoading.streakMilestones = false;
-            renderStreakMilestones();
-            return;
-        }
+        if ((currentProfile?.last_milestone_claimed || 0) >= milestoneDay) { console.warn(`[ClaimMilestone] Milestone ${milestoneDay} already claimed.`); showToast('Info', 'Milník již byl dosažen.', 'info'); isLoading.streakMilestones = false; renderStreakMilestones(); return; }
 
         const rewardConfig = MILESTONE_REWARDS_CONFIG[milestoneDay];
         const rewardName = rewardConfig?.name || `Odměna za ${milestoneDay} dní`;
@@ -767,25 +719,21 @@
         // --- End Placeholder ---
 
         if(dbSuccess) {
-             currentProfile.last_milestone_claimed = milestoneDay; // Update local state *after* DB success
-             console.log(`[ClaimMilestone] Reward for ${milestoneDay} days claimed successfully. Last claimed now: ${currentProfile.last_milestone_claimed}`);
+             currentProfile.last_milestone_claimed = milestoneDay; // Update local state
+             console.log(`[ClaimMilestone] Reward claimed locally & simulated DB save. Last claimed: ${currentProfile.last_milestone_claimed}`);
              showToast('Milník Dosažen!', `Získali jste: ${rewardName} (Placeholder)`, 'success');
              console.log(`Placeholder: Grant reward for milestone ${milestoneDay}:`, rewardConfig);
              // **TODO (Future):** Grant actual reward here
-             // e.g., grantReward({ type: 'milestone', milestone: milestoneDay, config: rewardConfig });
-         } else {
-              showToast('Chyba', 'Nepodařilo se uložit vyzvednutí milníkové odměny.', 'error');
-              // No need to rollback local state (last_milestone_claimed wasn't updated)
-         }
+         } else { showToast('Chyba', 'Nepodařilo se uložit vyzvednutí milníkové odměny.', 'error'); }
 
         isLoading.streakMilestones = false;
-        renderStreakMilestones(); // Re-render to show final state
+        renderStreakMilestones(); // Re-render modal
     }
     // --- END: Claim Reward Logic ---
 
     // --- Notification Logic ---
-    async function markNotificationRead(notificationId) { console.log("[FUNC] markNotificationRead: Označení ID:", notificationId); if (!currentUser || !notificationId || !supabase) return false; try { const { error } = await supabase.from('user_notifications').update({ is_read: true }).eq('user_id', currentUser.id).eq('id', notificationId); if (error) throw error; console.log("[FUNC] markNotificationRead: Úspěch pro ID:", notificationId); return true; } catch (error) { console.error("[FUNC] markNotificationRead: Chyba:", error); showToast('Chyba', 'Nepodařilo se označit oznámení jako přečtené.', 'error'); return false; } }
-    async function markAllNotificationsRead() { console.log("[FUNC] markAllNotificationsRead: Start pro uživatele:", currentUser?.id); if (!currentUser || !ui.markAllReadBtn || !supabase) return; setLoadingState('notifications', true); ui.markAllReadBtn.disabled = true; ui.markAllReadBtn.textContent = 'MAŽU...'; try { const { error } = await supabase.from('user_notifications').update({ is_read: true }).eq('user_id', currentUser.id).eq('is_read', false); if (error) throw error; console.log("[FUNC] markAllNotificationsRead: Úspěch"); const { unreadCount, notifications } = await fetchNotifications(currentUser.id, 5); renderNotifications(unreadCount, notifications); showToast('SIGNÁLY VYMAZÁNY', 'Všechna oznámení byla označena jako přečtená.', 'success'); } catch (error) { console.error("[FUNC] markAllNotificationsRead: Chyba:", error); showToast('CHYBA PŘENOSU', 'Nepodařilo se označit všechna oznámení.', 'error'); } finally { setLoadingState('notifications', false); if(ui.markAllReadBtn) ui.markAllReadBtn.textContent = 'Vymazat vše'; } }
+    async function markNotificationRead(notificationId) { /* ... (keep as is) ... */ }
+    async function markAllNotificationsRead() { /* ... (keep as is) ... */ }
     // --- END: Notification Logic ---
 
     // --- START: Event Listeners Setup ---
@@ -799,11 +747,10 @@
         document.querySelectorAll('.sidebar-link').forEach(link => { link.addEventListener('click', () => { if (window.innerWidth <= 992) closeMenu(); }); });
         // Core Actions
         if (ui.startPracticeBtn) ui.startPracticeBtn.addEventListener('click', () => { window.location.href = '/dashboard/procvicovani/main.html'; });
-        // --- Use the CORRECT button ID for opening the modal ---
-        if (ui.openMonthlyModalBtn) {
-             ui.openMonthlyModalBtn.addEventListener('click', () => showModal('monthly-reward-modal'));
-        } else { console.warn("Button #open-monthly-modal-btn not found."); }
-        // --- End Corrected Button ID ---
+        if (ui.openMonthlyModalBtn) { ui.openMonthlyModalBtn.addEventListener('click', () => showModal('monthly-reward-modal')); }
+        else { console.warn("Button #open-monthly-modal-btn not found."); }
+        if (ui.openStreakModalBtn) { ui.openStreakModalBtn.addEventListener('click', () => showModal('streak-milestones-modal')); }
+        else { console.warn("Button #open-streak-modal-btn not found."); }
         if (ui.refreshDataBtn) { ui.refreshDataBtn.addEventListener('click', async () => { /* ... (keep refresh logic) ... */ }); }
         // Notifications
         if(ui.notificationBell) { ui.notificationBell.addEventListener('click', (event) => { event.stopPropagation(); ui.notificationsDropdown?.classList.toggle('active'); }); }
@@ -811,16 +758,20 @@
         if(ui.notificationsList) { ui.notificationsList.addEventListener('click', async (event) => { /* ... (keep notification item logic) ... */ }); }
         document.addEventListener('click', (event) => { if (ui.notificationsDropdown?.classList.contains('active') && !ui.notificationsDropdown.contains(event.target) && !ui.notificationBell?.contains(event.target)) { ui.notificationsDropdown?.classList.remove('active'); } });
         // Modal Listeners
-        if (ui.closeMonthlyModalBtn) {
-             ui.closeMonthlyModalBtn.addEventListener('click', () => hideModal('monthly-reward-modal'));
-        } else { console.warn("Close button for monthly modal not found."); }
-        if (ui.monthlyRewardModal) {
-            ui.monthlyRewardModal.addEventListener('click', (event) => { if (event.target === ui.monthlyRewardModal) { hideModal('monthly-reward-modal'); } });
-        } else { console.warn("Monthly reward modal element not found."); }
+        if (ui.closeMonthlyModalBtn) { ui.closeMonthlyModalBtn.addEventListener('click', () => hideModal('monthly-reward-modal')); }
+        else { console.warn("Close button for monthly modal not found."); }
+        if (ui.monthlyRewardModal) { ui.monthlyRewardModal.addEventListener('click', (event) => { if (event.target === ui.monthlyRewardModal) { hideModal('monthly-reward-modal'); } }); }
+        else { console.warn("Monthly reward modal element not found."); }
+        if (ui.closeStreakModalBtn) { ui.closeStreakModalBtn.addEventListener('click', () => hideModal('streak-milestones-modal')); }
+        else { console.warn("Close button for streak modal not found."); }
+        if (ui.streakMilestonesModal) { ui.streakMilestonesModal.addEventListener('click', (event) => { if (event.target === ui.streakMilestonesModal) { hideModal('streak-milestones-modal'); } }); }
+        else { console.warn("Streak milestones modal element not found."); }
         // Other
         window.addEventListener('online', updateOnlineStatus);
         window.addEventListener('offline', updateOnlineStatus);
         if (ui.mainContent) ui.mainContent.addEventListener('scroll', initHeaderScrollDetection, { passive: true });
+
+        // Claim button listeners are added dynamically in render functions
 
         console.log("[SETUP] Event listeners set up.");
     }
@@ -828,40 +779,23 @@
 
     // --- START THE APP ---
     async function initializeApp() {
-        console.log("[INIT Dashboard] initializeApp: Start v22.1 - Waiting for Supabase");
+        console.log("[INIT Dashboard] initializeApp: Start v23 - Modal Milestones");
 
         // --- Wait for Supabase library ---
         const waitForSupabase = new Promise((resolve, reject) => {
-            const maxAttempts = 20; // Wait up to 10 seconds
-            let attempts = 0;
+            const maxAttempts = 20; let attempts = 0;
             const intervalId = setInterval(() => {
                 attempts++;
-                if (typeof window.supabase !== 'undefined' && typeof window.supabase.createClient === 'function') {
-                    console.log(`[INIT Dashboard] Supabase library found after ${attempts} attempts.`);
-                    clearInterval(intervalId);
-                    resolve();
-                } else if (attempts >= maxAttempts) {
-                    console.error("[INIT Dashboard] Supabase library not found after waiting. Aborting.");
-                    clearInterval(intervalId);
-                    reject(new Error("Knihovna Supabase nebyla nalezena včas."));
-                } else {
-                     console.log(`[INIT Dashboard] Waiting for Supabase library... (Attempt ${attempts}/${maxAttempts})`);
-                }
+                if (typeof window.supabase !== 'undefined' && typeof window.supabase.createClient === 'function') { console.log(`[INIT Dashboard] Supabase library found after ${attempts} attempts.`); clearInterval(intervalId); resolve(); }
+                else if (attempts >= maxAttempts) { console.error("[INIT Dashboard] Supabase library not found after waiting. Aborting."); clearInterval(intervalId); reject(new Error("Knihovna Supabase nebyla nalezena včas.")); }
+                else { console.log(`[INIT Dashboard] Waiting for Supabase library... (Attempt ${attempts}/${maxAttempts})`); }
             }, 500);
         });
-
-        try {
-            await waitForSupabase;
-        } catch (waitError) {
-             if (typeof showError === 'function') { showError(waitError.message, true); }
-             else { alert(`Kritická chyba: ${waitError.message}`); }
-             if (ui.initialLoader && !ui.initialLoader.classList.contains('hidden')) { ui.initialLoader.classList.add('hidden'); setTimeout(() => { if(ui.initialLoader) ui.initialLoader.style.display = 'none'; }, 500); }
-             return;
-        }
+        try { await waitForSupabase; }
+        catch (waitError) { if (typeof showError === 'function') { showError(waitError.message, true); } else { alert(`Kritická chyba: ${waitError.message}`); } if (ui.initialLoader && !ui.initialLoader.classList.contains('hidden')) { ui.initialLoader.classList.add('hidden'); setTimeout(() => { if(ui.initialLoader) ui.initialLoader.style.display = 'none'; }, 500); } return; }
         // --- End Wait ---
 
-        if (!initializeSupabase()) { console.error("[INIT Dashboard] Supabase initialization function failed after wait. Aborting."); return; }
-
+        if (!initializeSupabase()) { console.error("[INIT Dashboard] Supabase init function failed. Aborting."); return; }
         applyInitialSidebarState();
         setupUIEventListeners();
 
