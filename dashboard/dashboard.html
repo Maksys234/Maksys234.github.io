@@ -3,22 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Justax Kyber-Nástěnka v19</title> <link rel="preconnect" href="https://fonts.googleapis.com">
+    <title>Justax Kyber-Nástěnka v20 - Новый Прототип Наград</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/css/tooltipster.bundle.min.css">
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script> <script src="https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/js/tooltipster.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/js/tooltipster.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
-    <link rel="stylesheet" href="dashboard.css">
-</head>
+    <link rel="stylesheet" href="dashboard.css"> </head>
 <body class="dark">
     <div class="initial-loading-overlay" id="initial-loader">
          <div class="loading-spinner"></div>
          <p>SYNCHRONIZACE...</p>
-    </div>
+     </div>
 
      <div class="offline-banner" id="offline-banner">
          <i class="fas fa-plug"></i> OFFLINE // SPOJENÍ ZTRACENO.
@@ -47,7 +49,8 @@
             <div class="user-avatar" id="sidebar-avatar">?</div>
             <div class="user-info">
                 <div class="user-name" id="sidebar-name">Načítání...</div>
-                <div class="user-role" id="sidebar-user-title" title="Váš titul">Pilot</div> </div>
+                <div class="user-role" id="sidebar-user-title" title="Váš titul">Pilot</div>
+             </div>
         </div>
         <div class="sidebar-footer"> &copy; <span id="currentYearSidebar">2025</span> Justax Systems </div>
     </aside>
@@ -57,7 +60,8 @@
 
         <header class="dashboard-header">
             <div class="header-content">
-                 <div class="header-left-group"> <button class="btn btn-icon-only sidebar-toggle-btn" id="sidebar-toggle-btn" aria-label="Přepnout postranní panel" title="Přepnout postranní panel">
+                 <div class="header-left-group">
+                     <button class="btn btn-icon-only sidebar-toggle-btn" id="sidebar-toggle-btn" aria-label="Přepnout postranní panel" title="Přepnout postranní panel">
                           <i class="fas fa-chevron-left"></i>
                       </button>
                       <button class="mobile-menu-toggle" id="main-mobile-menu-toggle" aria-label="Otevřít menu">
@@ -66,11 +70,13 @@
                       <h1 id="dashboard-title">Nástěnka // STATUS</h1>
                  </div>
                 <div class="header-actions">
-                    <button class="refresh-btn btn-tooltip" id="refresh-data-btn" title="Obnovit data"> <i class="fas fa-sync-alt"></i>
+                    <button class="refresh-btn btn-tooltip" id="refresh-data-btn" title="Obnovit data">
+                        <i class="fas fa-sync-alt"></i>
                         <span class="refresh-text">RELOAD</span>
                     </button>
                     <div class="notifications">
-                        <div class="notification-bell btn-tooltip" id="notification-bell" title="Oznámení"> <i class="far fa-bell"></i>
+                        <div class="notification-bell btn-tooltip" id="notification-bell" title="Oznámení">
+                             <i class="far fa-bell"></i>
                              <span class="notification-badge" id="notification-count">0</span>
                         </div>
                         <div class="notifications-dropdown-wrapper" id="notifications-dropdown">
@@ -79,6 +85,7 @@
                                  <button class="mark-all-read-btn" id="mark-all-read" disabled>Vymazat vše</button>
                              </div>
                              <div id="notifications-list">
+                                 <div class="notification-item skeleton"> <div class="notification-icon skeleton"></div> <div class="notification-content"> <div class="skeleton" style="height: 16px; width: 70%; margin-bottom: 6px;"></div> <div class="skeleton" style="height: 12px; width: 90%;"></div> <div class="skeleton" style="height: 10px; width: 40%; margin-top: 6px;"></div> </div> </div>
                                  <div id="no-notifications-msg" style="display: none;">ŽÁDNÉ NOVÉ SIGNÁLY</div>
                              </div>
                              <div class="notifications-footer">
@@ -105,86 +112,77 @@
                      </div>
                  </section>
 
-                 <section class="daily-reward-section card" id="daily-reward-card" data-animate style="--animation-order: 1; display: none;">
-                    <div class="loading-overlay hidden"> <div class="loading-spinner"></div>
-                    </div>
-                    <div class="daily-reward-content">
-                        <div class="daily-reward-icon">
-                            <i class="fas fa-gift"></i>
-                        </div>
-                        <div class="daily-reward-info">
-                            <h3 class="daily-reward-title">Denní Odměna za Přihlášení</h3>
-                            <p class="daily-reward-day" id="daily-reward-day">Den ?</p>
-                            <p class="daily-reward-amount-info">
-                                Odměna: <strong id="daily-reward-amount">---</strong> kr.
-                            </p>
-                            <p class="daily-reward-timer" id="daily-reward-timer" style="display: none;">
-                                Další odměna za: <span id="reward-countdown">--:--:--</span>
-                            </p>
-                        </div>
-                        <button class="btn btn-success claim-reward-btn btn-tooltip" id="claim-reward-btn" disabled title="Vyzvednout denní odměnu"> <i class="fas fa-gift"></i> Vyzvednout
-                        </button>
-                    </div>
-                </section>
-                <section class="stats-section">
-                    <h2 class="section-title" data-animate style="--animation-order: 1;"><i class="fas fa-chart-pie"></i>BOJOVÉ STATISTIKY</h2>
+                 <section class="section monthly-rewards-section card loading" id="monthly-calendar-section" data-animate style="--animation-order: 1;">
+                     <div class="loading-overlay hidden"> <div class="loading-spinner"></div></div>
+                     <h2 class="section-title"><i class="fas fa-calendar-alt"></i> Ежемесячные Награды (<span id="current-month-year">Načítání...</span>)</h2>
+                     <div class="calendar-grid" id="monthly-calendar-grid">
+                         <div class="calendar-day skeleton"></div><div class="calendar-day skeleton"></div><div class="calendar-day skeleton"></div><div class="calendar-day skeleton"></div><div class="calendar-day skeleton"></div><div class="calendar-day skeleton"></div><div class="calendar-day skeleton"></div>
+                         <div class="calendar-day skeleton"></div><div class="calendar-day skeleton"></div><div class="calendar-day skeleton"></div><div class="calendar-day skeleton"></div><div class="calendar-day skeleton"></div><div class="calendar-day skeleton"></div><div class="calendar-day skeleton"></div>
+                     </div>
+                     <div class="empty-state" id="monthly-calendar-empty" style="display: none;">
+                         <i class="fas fa-box-open"></i>
+                         <p>Награды на этот месяц скоро появятся.</p>
+                     </div>
+                 </section>
+
+                 <section class="section streak-rewards-section card loading" id="streak-milestones-section" data-animate style="--animation-order: 2;">
+                     <div class="loading-overlay hidden"> <div class="loading-spinner"></div></div>
+                     <h2 class="section-title"><i class="fas fa-medal"></i> Награды за Серию Входа</h2>
+                     <p style="text-align: center; margin-bottom: 1.5rem; color: var(--text-muted);">Ваша текущая серия: <strong id="current-streak-value" style="color:var(--accent-pink);">0</strong> dní</p>
+                     <div class="milestone-list" id="streak-milestones-list">
+                         <div class="milestone-item skeleton"></div>
+                         <div class="milestone-item skeleton"></div>
+                     </div>
+                      <div class="empty-state" id="streak-milestones-empty" style="display: none;">
+                         <i class="fas fa-road"></i>
+                         <p>Продолжайте заходить каждый день для получения наград!</p>
+                     </div>
+                 </section>
+
+                 <section class="stats-section">
+                    <h2 class="section-title" data-animate style="--animation-order: 3;"><i class="fas fa-chart-pie"></i>BOJOVÉ STATISTIKY</h2>
                     <div class="stat-cards">
-                        <div class="stat-card card loading" id="progress-card" data-animate style="--animation-order: 2;">
-                             <div class="loading-skeleton">
-                                 <div class="skeleton-info"> <div class="skeleton title"></div> <div class="skeleton value"></div> <div class="skeleton text text-short"></div> </div> <div class="skeleton icon-placeholder"></div>
-                             </div>
-                             <div class="stat-card-content">
-                                 <div class="stat-card-info"> <div class="stat-card-title"><i class="fas fa-tasks"></i>Celkový Progress</div> <div class="stat-card-value">- %</div> <div class="stat-card-change"><i class="fas fa-minus"></i> Načítání...</div> </div>
-                             </div>
-                             <div class="stat-card-icon-bg progress-icon"><i class="fas fa-chart-line"></i></div>
+                        <div class="stat-card card loading" id="progress-card" data-animate style="--animation-order: 4;">
+                             <div class="loading-skeleton"> <div class="skeleton-info"> <div class="skeleton title"></div> <div class="skeleton value"></div> <div class="skeleton text text-short"></div> </div> <div class="skeleton icon-placeholder"></div> </div>
+                             <div class="stat-card-content"> <div class="stat-card-info"> <div class="stat-card-title"><i class="fas fa-tasks"></i>Celkový Progress</div> <div class="stat-card-value">- %</div> <div class="stat-card-change"><i class="fas fa-minus"></i> Načítání...</div> </div> </div> <div class="stat-card-icon-bg progress-icon"><i class="fas fa-chart-line"></i></div>
                         </div>
-                        <div class="stat-card card loading" id="points-card" data-animate style="--animation-order: 3;">
-                             <div class="loading-skeleton">
-                                 <div class="skeleton-info"> <div class="skeleton title"></div> <div class="skeleton value"></div> <div class="skeleton text text-short"></div> </div> <div class="skeleton icon-placeholder"></div>
-                             </div>
-                              <div class="stat-card-content">
-                                  <div class="stat-card-info"> <div class="stat-card-title"><i class="fas fa-coins"></i>Kredity</div> <div class="stat-card-value">-</div> <div class="stat-card-change"><i class="fas fa-minus"></i> Načítání...</div> </div>
-                              </div>
-                              <div class="stat-card-icon-bg points-icon"><i class="fas fa-star"></i></div>
+                        <div class="stat-card card loading" id="points-card" data-animate style="--animation-order: 5;">
+                             <div class="loading-skeleton"> <div class="skeleton-info"> <div class="skeleton title"></div> <div class="skeleton value"></div> <div class="skeleton text text-short"></div> </div> <div class="skeleton icon-placeholder"></div> </div>
+                              <div class="stat-card-content"> <div class="stat-card-info"> <div class="stat-card-title"><i class="fas fa-coins"></i>Kredity</div> <div class="stat-card-value">-</div> <div class="stat-card-change"><i class="fas fa-minus"></i> Načítání...</div> </div> </div> <div class="stat-card-icon-bg points-icon"><i class="fas fa-star"></i></div>
                         </div>
-                         <div class="stat-card card loading" id="streak-card" data-animate style="--animation-order: 4;">
-                             <div class="loading-skeleton">
-                                 <div class="skeleton-info"> <div class="skeleton title"></div> <div class="skeleton value"></div> <div class="skeleton text text-short"></div> </div> <div class="skeleton icon-placeholder"></div>
-                             </div>
-                               <div class="stat-card-content">
-                                   <div class="stat-card-info"> <div class="stat-card-title"><i class="fas fa-calendar-check"></i>Série</div> <div class="stat-card-value">-</div> <div class="stat-card-change">MAX: - dní</div> </div>
-                               </div>
-                              <div class="stat-card-icon-bg streak-icon"><i class="fas fa-fire"></i></div>
+                         <div class="stat-card card loading" id="streak-card" data-animate style="--animation-order: 6;">
+                             <div class="loading-skeleton"> <div class="skeleton-info"> <div class="skeleton title"></div> <div class="skeleton value"></div> <div class="skeleton text text-short"></div> </div> <div class="skeleton icon-placeholder"></div> </div>
+                               <div class="stat-card-content"> <div class="stat-card-info"> <div class="stat-card-title"><i class="fas fa-calendar-check"></i>Série</div> <div class="stat-card-value">-</div> <div class="stat-card-change">MAX: - dní</div> </div> </div> <div class="stat-card-icon-bg streak-icon"><i class="fas fa-fire"></i></div>
                         </div>
                     </div>
                 </section>
 
                 <section class="shortcuts-section">
-                    <h2 class="section-title" data-animate style="--animation-order: 5;"><i class="fas fa-bolt"></i>RYCHLÉ PORTÁLY</h2>
+                    <h2 class="section-title" data-animate style="--animation-order: 7;"><i class="fas fa-bolt"></i>RYCHLÉ PORTÁLY</h2>
                     <div class="shortcut-grid">
-                        <a href="/dashboard/procvicovani/main.html" class="shortcut-card card" data-animate style="--animation-order: 6;"> <div class="shortcut-icon"> <i class="fas fa-laptop-code"></i> </div> <h3 class="shortcut-title">Tréninková Zóna</h3> <p class="shortcut-desc">Spusťte simulace a procvičte své dovednosti.</p> </a>
-                        <a href="/dashboard/pokrok.html" class="shortcut-card card" data-animate style="--animation-order: 7;"> <div class="shortcut-icon"> <i class="fas fa-chart-line"></i> </div> <h3 class="shortcut-title">Analýza Pokroku</h3> <p class="shortcut-desc">Sledujte metriky svého vývoje a úspěchů.</p> </a>
-                        <a href="/dashboard/materialy.html" class="shortcut-card card" data-animate style="--animation-order: 8;"> <div class="shortcut-icon"> <i class="fas fa-database"></i> </div> <h3 class="shortcut-title">Databanka Vědomostí</h3> <p class="shortcut-desc">Přístup k výukovým materiálům a zdrojům.</p> </a>
-                        <a href="/dashboard/profile.html" class="shortcut-card card" data-animate style="--animation-order: 9;"> <div class="shortcut-icon"> <i class="fas fa-user-astronaut"></i> </div> <h3 class="shortcut-title">Profil Pilota</h3> <p class="shortcut-desc">Konfigurace osobních údajů a nastavení.</p> </a>
+                        <a href="/dashboard/procvicovani/main.html" class="shortcut-card card" data-animate style="--animation-order: 8;"> <div class="shortcut-icon"> <i class="fas fa-laptop-code"></i> </div> <h3 class="shortcut-title">Tréninková Zóna</h3> <p class="shortcut-desc">Spusťte simulace a procvičte své dovednosti.</p> </a>
+                        <a href="/dashboard/pokrok.html" class="shortcut-card card" data-animate style="--animation-order: 9;"> <div class="shortcut-icon"> <i class="fas fa-chart-line"></i> </div> <h3 class="shortcut-title">Analýza Pokroku</h3> <p class="shortcut-desc">Sledujte metriky svého vývoje a úspěchů.</p> </a>
+                        <a href="/dashboard/materialy.html" class="shortcut-card card" data-animate style="--animation-order: 10;"> <div class="shortcut-icon"> <i class="fas fa-database"></i> </div> <h3 class="shortcut-title">Databanka Vědomostí</h3> <p class="shortcut-desc">Přístup k výukovým materiálům a zdrojům.</p> </a>
+                        <a href="/dashboard/profile.html" class="shortcut-card card" data-animate style="--animation-order: 11;"> <div class="shortcut-icon"> <i class="fas fa-user-astronaut"></i> </div> <h3 class="shortcut-title">Profil Pilota</h3> <p class="shortcut-desc">Konfigurace osobních údajů a nastavení.</p> </a>
                     </div>
                 </section>
 
                 <section class="activity-section">
-                    <h2 class="section-title" data-animate style="--animation-order: 10;"><i class="fas fa-history"></i>POSLEDNÍ ZÁZNAMY V LOGU</h2>
-                    <div class="activity-list-container card loading" id="activity-list-container" data-animate style="--animation-order: 11;">
-                        <div class="loading-placeholder">
+                    <h2 class="section-title" data-animate style="--animation-order: 12;"><i class="fas fa-history"></i>POSLEDNÍ ZÁZNAMY V LOGU</h2>
+                    <div class="activity-list-container card loading" id="activity-list-container" data-animate style="--animation-order: 13;">
+                         <div class="loading-placeholder">
                              </div>
-                        <div class="activity-list" id="activity-list">
+                         <div class="activity-list" id="activity-list">
                              </div>
-                        <div class="empty-state" style="display: none;">
+                         <div class="empty-state" id="activity-list-empty-state" style="display: none;">
                              <i class="fas fa-satellite-dish"></i><p>LOG PRÁZDNÝ // ŽÁDNÉ AKTIVITY</p>
-                        </div>
-                        <div class="card-error-state" style="display: none;">
-                            <i class="fas fa-exclamation-triangle"></i><p>CHYBA // NELZE NAČÍST LOG</p>
-                        </div>
-                        <a href="/dashboard/pokrok.html" class="view-all-link">Zobrazit Kompletní LOG <i class="fas fa-angle-double-right"></i></a>
+                         </div>
+                         <div class="card-error-state" id="activity-list-error-state" style="display: none;">
+                             <i class="fas fa-exclamation-triangle"></i><p>CHYBA // NELZE NAČÍST LOG</p>
+                         </div>
+                         <a href="/dashboard/pokrok.html" class="view-all-link">Zobrazit Kompletní LOG <i class="fas fa-angle-double-right"></i></a>
                      </div>
-                </section>
+                 </section>
             </div>
 
              <footer class="dashboard-footer">
@@ -205,8 +203,6 @@
                 <p class="reward-preview-info">Odměny se zvyšují s délkou vaší přihlašovací série:</p>
                 <ul class="reward-preview-list" id="reward-preview-list">
                     <li class="skeleton" style="height: 30px; width: 80%; margin-bottom: 0.5rem;"></li>
-                    <li class="skeleton" style="height: 30px; width: 75%; margin-bottom: 0.5rem;"></li>
-                    <li class="skeleton" style="height: 30px; width: 85%; margin-bottom: 0.5rem;"></li>
                 </ul>
             </div>
             <div class="modal-footer">
@@ -214,6 +210,7 @@
              </div>
         </div>
     </div>
+
     <div id="mouse-follower" class="mouse-follower-glow"></div>
 
     <script src="dashboard.js" defer></script>
