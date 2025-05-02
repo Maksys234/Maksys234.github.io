@@ -1,5 +1,5 @@
 // oceneni.js
-// Версия: 23.11 - Oprava syntaktické chyby (chybějící '}') + Experimental fix for unexpected end of input
+// Версия: 23.11 - Oprava syntaktické chyby (chybějící '}')
 (function() {
     'use strict'; // Enable strict mode
 
@@ -261,5 +261,4 @@
     cacheDOMElements(); // Cache elements early
     console.log("[Oceneni] Waiting for 'dashboardReady' event...");
 
-} // <<<< ADDED THIS CLOSING BRACE
 })(); // End of IIFE
