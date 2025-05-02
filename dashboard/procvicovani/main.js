@@ -1,5 +1,5 @@
 // main.js for dashboard/procvicovani/main.html
-// Version: 23.5 - SyntaxError fix, full rendering logic
+// Version: 23.6 - SyntaxError fix re-attempt
 
 (function() { // Start IIFE
     'use strict';
@@ -20,12 +20,11 @@
         tests: false,
         plan: false,
         topics: false,
-        notifications: false // Keep notification state consistent if dashboard.js modifies it
+        notifications: false
     };
 
     // Cache UI elements for this specific page (main.html)
     const ui = {
-        // Common elements
         initialLoader: document.getElementById('initial-loader'),
         sidebarOverlay: document.getElementById('sidebar-overlay'),
         mainContent: document.getElementById('main-content'),
@@ -49,8 +48,6 @@
         currentYearSidebar: document.getElementById('currentYearSidebar'),
         currentYearFooter: document.getElementById('currentYearFooter'),
         mouseFollower: document.getElementById('mouse-follower'),
-
-        // Elements specific to main.html
         contentTabs: document.querySelectorAll('.content-tab'),
         tabContents: document.querySelectorAll('.tab-content'),
         practiceTab: document.getElementById('practice-tab'),
@@ -133,26 +130,19 @@
 
         const config = sectionMap[section];
         if (!config && section !== 'notifications') {
-            if (section !== 'shortcuts') { // Allow missing shortcuts
-                console.warn(`[UI Loading] Unknown section '${section}' for setLoadingState in main.js.`);
-            }
+            if (section !== 'shortcuts') { console.warn(`[UI Loading] Unknown section '${section}' for setLoadingState in main.js.`); }
             return;
         }
 
-        if (config?.loader) {
-            config.loader.style.display = isLoadingFlag ? 'flex' : 'none';
-        }
+        if (config?.loader) { config.loader.style.display = isLoadingFlag ? 'flex' : 'none'; }
         if (isLoadingFlag) {
             if (config?.content) config.content.style.display = 'none';
             if (config?.empty) config.empty.style.display = 'none';
-            // Render skeletons
             if (section === 'tests' && config?.content) renderTestSkeletons(config.content);
             else if (section === 'plan' && config?.content) renderPlanSkeletons(config.content);
             else if (section === 'topics' && config?.content) renderTopicSkeletons(config.content);
             else if (section === 'stats' && config?.skeletonContainer) renderShortcutSkeletons(config.skeletonContainer);
-
         } else {
-            // After loading, determine visibility based on data
             let hasContent = false;
             if (section === 'tests') hasContent = diagnosticResultsData && diagnosticResultsData.length > 0;
             else if (section === 'plan') hasContent = !!studyPlanData;
@@ -163,18 +153,13 @@
                 if (config.content) config.content.style.display = hasContent ? 'block' : 'none';
                 if (config.empty) config.empty.style.display = hasContent ? 'none' : 'block';
             }
-             // Handle stats cards loading class separately
-             if (section === 'stats' && config?.container && config?.childrenSelector) {
-                config.container.querySelectorAll(config.childrenSelector).forEach(child => {
-                    child.classList.toggle('loading', !hasContent); // Keep loading if no stats
-                });
+            if (section === 'stats' && config?.container && config?.childrenSelector) {
+                config.container.querySelectorAll(config.childrenSelector).forEach(child => { child.classList.toggle('loading', !hasContent); });
             }
-            // Remove loading class from shortcuts when stats are done
             if (section === 'stats' && ui.shortcutsGrid) {
                  ui.shortcutsGrid.classList.remove('loading');
-                 // Restore actual shortcut content if it was replaced by skeletons
                  renderShortcuts();
-             }
+            }
         }
     }
 
@@ -231,7 +216,7 @@
             renderTestResults(diagnosticResultsData);
             renderStudyPlanOverview(studyPlanData, planActivitiesData);
             renderTopicAnalysis(topicProgressData);
-            renderShortcuts(); // Render actual shortcuts
+            renderShortcuts(); // Render actual shortcuts now
 
             if (diagnosticResultsData.length === 0 && ui.diagnosticPrompt) {
                 ui.diagnosticPrompt.style.display = 'flex';
@@ -304,9 +289,9 @@
 
             if (!supabase || !currentUser || !currentProfile) {
                 console.error("[INIT Procvičování] Critical data missing from dashboardReady event.");
-                showError("Chyba načítání základních dat. Zkuste obnovit stránku.", true);
-                if (ui.initialLoader && !ui.initialLoader.classList.contains('hidden')) { ui.initialLoader.classList.add('hidden'); setTimeout(() => { if (ui.initialLoader) ui.initialLoader.style.display = 'none'; }, 300); }
-                return;
+                 showError("Chyba načítání základních dat. Zkuste obnovit stránku.", true);
+                 if (ui.initialLoader && !ui.initialLoader.classList.contains('hidden')) { ui.initialLoader.classList.add('hidden'); setTimeout(() => { if (ui.initialLoader) ui.initialLoader.style.display = 'none'; }, 300); }
+                 return;
             }
 
             console.log(`[INIT Procvičování] User authenticated (ID: ${currentUser.id}). Profile and titles received.`);
