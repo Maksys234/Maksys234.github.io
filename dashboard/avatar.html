@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Justax - Аватарка (с Рамкой v3 - Fix Path)</title>
+    <title>Justax - Аватарка (с Рамкой v4 - Final Path)</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
@@ -91,8 +91,7 @@
             display: inline-block;
             line-height: 0;
             flex-shrink: 0;
-            /* Явно указываем overflow: visible; */
-            overflow: visible;
+            overflow: visible; /* Разрешаем рамке выходить за границы */
         }
         .avatar-content {
             display: flex;
@@ -122,11 +121,8 @@
             left: calc(-1 * var(--avatar-frame-offset));
             width: calc(100% + 2 * var(--avatar-frame-offset));
             height: calc(100% + 2 * var(--avatar-frame-offset));
-            /* --- ИСПРАВЛЕН ПУТЬ --- */
-            background-image: url('/assets/decor_1.png'); /* Путь от корня */
-            /* --- УБРАН ВРЕМЕННЫЙ ФОН --- */
-            /* background-color: rgba(255, 0, 0, 0.5); */
-            /* --------------------------- */
+            /* --- ИСПРАВЛЕН ПУТЬ (Относительный) --- */
+            background-image: url('assets/decor_1.png');
             background-size: contain;
             background-position: center;
             background-repeat: no-repeat;
@@ -271,7 +267,7 @@
     <script>
         (function() {
             'use strict';
-            console.log("[Init Avatar Standalone v4 - Path Fix] Starting...");
+            console.log("[Init Avatar Standalone v4 - Final Path] Starting...");
 
             const supabaseUrl = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
             const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10';
@@ -292,7 +288,7 @@
                 sidebarUserTitle: document.getElementById('sidebar-user-title'),
                 currentYearSidebar: document.getElementById('currentYearSidebar'),
                 currentYearFooter: document.getElementById('currentYearFooter'),
-                mainAvatarDisplay: document.getElementById('main-avatar-display'),
+                mainAvatarDisplay: document.getElementById('main-avatar-display'), // Контент внутри обертки
                 mainContent: document.getElementById('main-content')
             };
 
@@ -308,7 +304,7 @@
 
             async function fetchUserProfile(userId) { if (!supabase || !userId) return null; try { const { data, error } = await supabase.from('profiles').select('*, selected_title').eq('id', userId).single(); if (error && error.code !== 'PGRST116') throw error; return data; } catch (e) { console.error('Profile fetch error:', e); return null; } }
             async function fetchTitles() { if (!supabase) return []; try { const { data, error } = await supabase.from('title_shop').select('title_key, name'); if (error) throw error; return data || []; } catch (e) { console.error("Titles fetch error:", e); return []; } }
-             async function createDefaultProfile(userId, userEmail) { if (!supabase || !userId || !userEmail) return null; try { const defaultData = { id: userId, email: userEmail, username: userEmail.split('@')[0] || `user_${userId.substring(0, 6)}`, level: 1, points: 0, experience: 0, badges_count: 0, streak_days: 0, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), preferences: { dark_mode: window.matchMedia('(prefers-color-scheme: dark)').matches }, notifications: { email: true } }; const { data: newProfile, error } = await supabase.from('profiles').insert(defaultData).select('*, selected_title').single(); if (error) { if (error.code === '23505') { return await fetchUserProfile(userId); } throw error; } return newProfile; } catch (error) { console.error("Failed to create default profile:", error); return null; } }
+            async function createDefaultProfile(userId, userEmail) { if (!supabase || !userId || !userEmail) return null; try { const defaultData = { id: userId, email: userEmail, username: userEmail.split('@')[0] || `user_${userId.substring(0, 6)}`, level: 1, points: 0, experience: 0, badges_count: 0, streak_days: 0, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), preferences: { dark_mode: window.matchMedia('(prefers-color-scheme: dark)').matches }, notifications: { email: true } }; const { data: newProfile, error } = await supabase.from('profiles').insert(defaultData).select('*, selected_title').single(); if (error) { if (error.code === '23505') { return await fetchUserProfile(userId); } throw error; } return newProfile; } catch (error) { console.error("Failed to create default profile:", error); return null; } }
 
 
             function updateAvatars(profile) {
@@ -362,7 +358,7 @@
             }
 
             async function initializeApp() {
-                console.log("[Init Avatar Standalone v4 - Path Fix] Running initializeApp...");
+                console.log("[Init Avatar Standalone v4 - Final Path] Running initializeApp...");
                 if (!initializeSupabase()) return;
 
                 applyInitialSidebarState();
