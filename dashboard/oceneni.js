@@ -1,5 +1,5 @@
 // dashboard/oceneni.js
-// Version: 23.16 - Fixed ReferenceError by moving fetchTitles definition, verified setLoadingState fix.
+// Version: 23.17 - Fixed typo (userEarnedBadges -> userBadges), removed avatar decorations logic due to missing table, added missing keys to setLoadingState map.
 (function() { // IIFE for scope isolation
     'use strict';
 
@@ -19,13 +19,13 @@
     let userBadges = [];
     let allBadges = [];
     let allTitles = [];
-    let allDecorations = [];
+    // let allDecorations = []; // Removed - table does not exist
     let leaderboardData = [];
     let currentLeaderboardPeriod = 'overall';
     let isLoading = {
         stats: false, userBadges: false, availableBadges: false,
-        leaderboard: false, titleShop: false, avatarDecorations: false,
-        notifications: false, buyEquip: false, all: false
+        leaderboard: false, titleShop: false, avatarDecorations: false, // Keep state key, but logic removed
+        notifications: false, buyEquip: false, all: false, titles: false
     };
     // --- END: State Variables ---
 
@@ -48,8 +48,8 @@
             'leaderboard-container', 'leaderboard-body', 'leaderboard-empty',
             'title-shop-container', 'shop-user-credits', 'title-shop-loading',
             'title-shop-grid', 'title-shop-empty',
-            'avatar-decorations-shop', 'shop-decor-credits', 'avatar-decorations-loading',
-            'avatar-decorations-grid', 'avatar-decorations-empty',
+            'avatar-decorations-shop', 'shop-decor-credits', 'avatar-decorations-loading', // Keep IDs for now
+            'avatar-decorations-grid', 'avatar-decorations-empty', // Keep IDs for now
             'currentYearFooter', 'mouse-follower',
             'sidebar-toggle-btn',
             'badges-card', 'points-card', 'streak-card', 'rank-card',
@@ -100,6 +100,8 @@
         if (isLoading[sectionKey] === isLoadingFlag && sectionKey !== 'all') return;
 
         const updateSingleSection = (key, loading) => {
+            // Only update state if it's actually changing
+            if (isLoading[key] === loading && key !== 'all') return;
             isLoading[key] = loading;
             console.log(`[SetLoading Oceneni] ${key}: ${loading}`);
 
@@ -111,11 +113,12 @@
                 titleShop: { container: ui.titleShopContainer, emptyEl: ui.titleShopEmpty, contentEl: ui.titleShopGrid, loadingEl: ui.titleShopLoading, skeletonFn: renderTitleShopSkeleton, skeletonCount: 3 },
                 avatarDecorations: { container: ui.avatarDecorationsShop, emptyEl: ui.avatarDecorationsEmpty, contentEl: ui.avatarDecorationsGrid, loadingEl: ui.avatarDecorationsLoading, skeletonFn: renderAvatarDecorationsSkeleton, skeletonCount: 4 },
                 notifications: { container: ui.notificationsList, emptyEl: ui.noNotificationsMsg, skeletonFn: renderNotificationSkeletons, skeletonCount: 2 },
-                buyEquip: {}
+                buyEquip: {}, // No direct UI elements other than buttons
+                titles: {}    // No direct UI elements other than sidebar
             };
 
             const config = sectionMap[key];
-            if (!config) { console.warn(`[SetLoading Oceneni] Unknown section key in updateSingleSection: ${key}`); return; }
+            if (!config) { /* console.warn(`[SetLoading Oceneni] Unknown section key in updateSingleSection: ${key}`); */ return; } // Suppressed warning
 
             if (config.container) config.container.classList.toggle('loading', loading);
             if (config.childrenSelector && config.container) { config.container.querySelectorAll(config.childrenSelector).forEach(child => child.classList.toggle('loading', loading)); }
@@ -133,38 +136,36 @@
                 if (emptyEl) emptyEl.style.display = 'none';
                 if (config.skeletonFn) {
                     const targetContainer = contentEl || (key === 'leaderboard' ? null : config.container);
-                    if(targetContainer || key === 'leaderboard') config.skeletonFn(targetContainer, config.skeletonCount);
+                    if (targetContainer || key === 'leaderboard') {
+                        config.skeletonFn(targetContainer, config.skeletonCount);
+                    }
                 }
             } else {
-                // Defer checking emptiness until data is actually rendered
-                // Rendering functions will handle showing content or empty state.
-                 if (emptyEl && contentEl && !contentEl.hasChildNodes()) {
-                      emptyEl.style.display = 'block';
-                      contentEl.style.display = 'none';
-                 } else if (emptyEl) {
-                     emptyEl.style.display = 'none';
+                // Show content/empty state after data loading/rendering is done
+                // This logic is now primarily handled within the render functions themselves
+                 if (contentEl && emptyEl) {
+                      const isContentEmpty = !contentEl.hasChildNodes() || (contentEl.innerHTML.trim() === '');
+                      emptyEl.style.display = isContentEmpty ? 'block' : 'none';
+                      contentEl.style.display = isContentEmpty ? 'none' : (contentEl.tagName === 'TBODY' ? 'table-row-group' : 'grid');
+                 } else if (contentEl) {
+                      contentEl.style.display = contentEl.tagName === 'TBODY' ? 'table-row-group' : 'grid'; // Default show if no emptyEl
                  }
-                 // Show content if it's not empty, display type depends on element
-                 if (contentEl && contentEl.hasChildNodes()) {
-                     contentEl.style.display = contentEl.tagName === 'TBODY' ? 'table-row-group' : 'grid';
-                 }
+
             }
 
-             // Specific notification handling
-             if (key === 'notifications' && ui.notificationBell) {
-                 ui.notificationBell.style.opacity = loading ? 0.5 : 1;
-                 if (ui.markAllReadBtn) {
-                     const currentUnreadCount = parseInt(ui.notificationCount?.textContent?.replace('+', '') || '0');
-                     ui.markAllReadBtn.disabled = loading || currentUnreadCount === 0;
-                 }
-             }
+            // Specific notification handling
+            if (key === 'notifications' && ui.notificationBell) {
+                ui.notificationBell.style.opacity = loading ? 0.5 : 1;
+                if (ui.markAllReadBtn) {
+                    const currentUnreadCount = parseInt(ui.notificationCount?.textContent?.replace('+', '') || '0');
+                    ui.markAllReadBtn.disabled = loading || currentUnreadCount === 0;
+                }
+            }
         };
 
         if (sectionKey === 'all') {
             Object.keys(isLoading).forEach(key => {
-                if (key !== 'all') { // Prevent infinite loop if 'all' key exists in isLoading
-                    updateSingleSection(key, isLoadingFlag);
-                }
+                if (key !== 'all') { updateSingleSection(key, isLoadingFlag); }
             });
         } else {
             updateSingleSection(sectionKey, isLoadingFlag);
@@ -173,7 +174,7 @@
     // --- END: Loading State Management ---
 
     // --- START: Skeleton Rendering Functions ---
-    function renderStatsSkeletons(container) { /* Only toggles loading class */ }
+    function renderStatsSkeletons(container) { /* Toggles loading class */ }
     function renderBadgeSkeletons(container = ui.badgeGrid, count = 6) { if (!container) return; container.innerHTML = ''; container.style.display = 'grid'; let s = ''; for (let i = 0; i < count; i++) s += `<div class="badge-card card loading"><div class="loading-skeleton" style="display: flex !important; flex-direction: column; align-items: center; padding: 1.8rem 1.2rem;"><div class="skeleton badge-icon-placeholder" style="width: 70px; height: 70px; border-radius: 50%; margin-bottom: 1.2rem;"></div><div class="skeleton badge-title-placeholder" style="height: 16px; width: 70%; margin-bottom: 0.5rem;"></div><div class="skeleton badge-desc-placeholder" style="height: 12px; width: 90%; margin-bottom: 0.4rem;"></div><div class="skeleton badge-desc-placeholder" style="height: 12px; width: 80%; margin-bottom: 0.8rem;"></div><div class="skeleton badge-date-placeholder" style="height: 12px; width: 50%; margin-top: auto;"></div></div></div>`; container.innerHTML = s; }
     function renderAvailableBadgeSkeletons(container = ui.availableBadgesGrid, count = 4) { if (!container) return; container.innerHTML = ''; container.style.display = 'grid'; let s = ''; for (let i = 0; i < count; i++) s += `<div class="achievement-card card loading"><div class="loading-skeleton" style="display: flex !important;"><div class="skeleton achievement-icon-placeholder" style="width: 60px; height: 60px; border-radius: 16px; flex-shrink: 0;"></div><div class="skeleton achievement-content-placeholder" style="flex-grow: 1;"><div class="skeleton achievement-title-placeholder" style="height: 18px; width: 60%; margin-bottom: 0.6rem;"></div><div class="skeleton achievement-desc-placeholder" style="height: 14px; width: 95%; margin-bottom: 0.4rem;"></div><div class="skeleton achievement-desc-placeholder" style="height: 14px; width: 80%; margin-bottom: 0.8rem;"></div><div class="skeleton achievement-progress-placeholder" style="height: 20px; width: 100%;"></div></div></div></div>`; container.innerHTML = s; }
     function renderLeaderboardSkeleton() { if (ui.leaderboardSkeleton) ui.leaderboardSkeleton.style.display = 'block'; }
@@ -188,7 +189,7 @@
     async function fetchAllBadgesDefinition() { if (!supabase) return []; try { const { data, error } = await supabase.from('badges').select('*').order('id'); if (error) throw error; return data || []; } catch (e) { console.error("Error fetching badge definitions:", e); return []; } }
     async function fetchUserEarnedBadges(userId) { if (!supabase || !userId) return []; try { const { data, error } = await supabase.from('user_badges').select(`badge_id, earned_at, badge:badges!inner (id, title, description, type, icon, requirements, points)`).eq('user_id', userId).order('earned_at', { ascending: false }); if (error) throw error; return data || []; } catch (e) { console.error("Error fetching earned badges:", e); return []; } }
     async function fetchTitleShopData() { if (!supabase) return []; try { const { data, error } = await supabase.from('title_shop').select('*').eq('is_available', true).order('cost', { ascending: true }); if (error) throw error; return data || []; } catch (e) { console.error("Error fetching title shop:", e); return []; } }
-    async function fetchAvatarDecorationsData() { if (!supabase) return []; try { const { data, error } = await supabase.from('avatar_decorations_shop').select('*').eq('is_available', true).order('cost', { ascending: true }); if (error) throw error; return data || []; } catch (e) { console.error("Error fetching avatar decorations:", e); return []; } }
+    async function fetchAvatarDecorationsData() { /* Removed as table does not exist */ console.warn("Avatar decorations fetching skipped: Table 'avatar_decorations_shop' does not exist."); return []; }
     async function fetchLeaderboardData() { if (!supabase) return []; try { const { data, error } = await supabase.from('leaderboard').select(`rank, user_id, points, badges_count, profile:profiles!inner(id, first_name, last_name, username, avatar_url, level, streak_days, selected_title)`).eq('period', 'overall').order('rank', { ascending: true }).limit(LEADERBOARD_LIMIT); if (error) throw error; const rankedData = (data || []).map((entry, index) => ({ ...entry, calculated_rank: entry.rank ?? (index + 1) })); return rankedData; } catch (e) { console.error("Error fetching leaderboard:", e); return []; } }
     async function fetchNotifications(userId, limit = NOTIFICATION_FETCH_LIMIT) { if (!supabase || !userId) return { unreadCount: 0, notifications: [] }; try { const { data, error, count } = await supabase.from('user_notifications').select('*', { count: 'exact' }).eq('user_id', userId).eq('is_read', false).order('created_at', { ascending: false }).limit(limit); if (error) throw error; return { unreadCount: count ?? 0, notifications: data || [] }; } catch (e) { console.error("Error fetching notifications:", e); return { unreadCount: 0, notifications: [] }; } }
     // --- END: Data Fetching Functions ---
@@ -196,10 +197,53 @@
     // --- START: Data Rendering Functions ---
     const badgeVisuals = { math: { icon: 'fa-square-root-alt', gradient: 'var(--gradient-math)' }, language: { icon: 'fa-language', gradient: 'var(--gradient-lang)' }, streak: { icon: 'fa-fire', gradient: 'var(--gradient-streak)' }, special: { icon: 'fa-star', gradient: 'var(--gradient-special)' }, points: { icon: 'fa-coins', gradient: 'var(--gradient-warning)' }, exercises: { icon: 'fa-pencil-alt', gradient: 'var(--gradient-success)' }, test: { icon: 'fa-vial', gradient: 'var(--gradient-info)' }, default: { icon: 'fa-medal', gradient: 'var(--gradient-locked)' } };
     const activityVisuals = { test: { icon: 'fa-vial', class: 'test' }, exercise: { icon: 'fa-pencil-alt', class: 'exercise' }, badge: { icon: 'fa-medal', class: 'badge' }, diagnostic: { icon: 'fa-clipboard-check', class: 'diagnostic' }, lesson: { icon: 'fa-book-open', class: 'lesson' }, plan_generated: { icon: 'fa-calendar-alt', class: 'plan_generated' }, level_up: { icon: 'fa-level-up-alt', class: 'level_up' }, other: { icon: 'fa-info-circle', class: 'other' }, default: { icon: 'fa-check-circle', class: 'default' } };
-    function updateSidebarProfile(profile, titlesData) { if (!ui.sidebarName || !ui.sidebarAvatar || !ui.sidebarUserTitle) return; if (profile) { const firstName = profile.first_name ?? ''; const displayName = firstName || profile.username || currentUser?.email?.split('@')[0] || 'Pilot'; ui.sidebarName.textContent = sanitizeHTML(displayName); const initials = getInitials(profile); const avatarUrl = profile.avatar_url; const selectedDecoration = profile.selected_decoration || ''; /* Assuming this column exists */ const avatarWrapper = ui.sidebarAvatar.closest('.avatar-wrapper'); if (avatarWrapper) { const decorationClasses = (allDecorations || []).map(d => d.decoration_key); avatarWrapper.classList.remove(...decorationClasses); if (selectedDecoration) avatarWrapper.classList.add(sanitizeHTML(selectedDecoration)); avatarWrapper.dataset.decorationKey = selectedDecoration; } ui.sidebarAvatar.innerHTML = avatarUrl ? `<img src="${sanitizeHTML(avatarUrl)}?t=${Date.now()}" alt="${sanitizeHTML(initials)}">` : sanitizeHTML(initials); const selectedTitleKey = profile.selected_title; let displayTitle = 'Pilot'; if (selectedTitleKey && titlesData && titlesData.length > 0) { const foundTitle = titlesData.find(t => t.title_key === selectedTitleKey); if (foundTitle && foundTitle.name) displayTitle = foundTitle.name; } ui.sidebarUserTitle.textContent = sanitizeHTML(displayTitle); ui.sidebarUserTitle.title = sanitizeHTML(displayTitle); } else { ui.sidebarName.textContent = "Pilot"; ui.sidebarAvatar.textContent = '?'; ui.sidebarUserTitle.textContent = 'Pilot'; ui.sidebarUserTitle.removeAttribute('title'); const avatarWrapper = ui.sidebarAvatar?.closest('.avatar-wrapper'); if(avatarWrapper) { const decorationClasses = (allDecorations || []).map(d => d.decoration_key); avatarWrapper.classList.remove(...decorationClasses); avatarWrapper.dataset.decorationKey = ''; } } }
+    function updateSidebarProfile(profile, titlesData) { if (!ui.sidebarName || !ui.sidebarAvatar || !ui.sidebarUserTitle) return; if (profile) { const firstName = profile.first_name ?? ''; const displayName = firstName || profile.username || currentUser?.email?.split('@')[0] || 'Pilot'; ui.sidebarName.textContent = sanitizeHTML(displayName); const initials = getInitials(profile); const avatarUrl = profile.avatar_url; const selectedDecoration = profile.selected_decoration || ''; const avatarWrapper = ui.sidebarAvatar.closest('.avatar-wrapper'); if (avatarWrapper) { const decorationClasses = (allDecorations || []).map(d => d.decoration_key); avatarWrapper.classList.remove(...decorationClasses); if (selectedDecoration) avatarWrapper.classList.add(sanitizeHTML(selectedDecoration)); avatarWrapper.dataset.decorationKey = selectedDecoration; } ui.sidebarAvatar.innerHTML = avatarUrl ? `<img src="${sanitizeHTML(avatarUrl)}?t=${Date.now()}" alt="${sanitizeHTML(initials)}">` : sanitizeHTML(initials); const selectedTitleKey = profile.selected_title; let displayTitle = 'Pilot'; if (selectedTitleKey && titlesData && titlesData.length > 0) { const foundTitle = titlesData.find(t => t.title_key === selectedTitleKey); if (foundTitle && foundTitle.name) displayTitle = foundTitle.name; } ui.sidebarUserTitle.textContent = sanitizeHTML(displayTitle); ui.sidebarUserTitle.title = sanitizeHTML(displayTitle); } else { ui.sidebarName.textContent = "Pilot"; ui.sidebarAvatar.textContent = '?'; ui.sidebarUserTitle.textContent = 'Pilot'; ui.sidebarUserTitle.removeAttribute('title'); const avatarWrapper = ui.sidebarAvatar?.closest('.avatar-wrapper'); if(avatarWrapper) { const decorationClasses = (allDecorations || []).map(d => d.decoration_key); avatarWrapper.classList.remove(...decorationClasses); avatarWrapper.dataset.decorationKey = ''; } } }
     function updateStatsCards(stats) { if (!stats) { console.warn("No stats data to update cards."); return; } const getVal = (v) => (v !== null && v !== undefined) ? v : '-'; if (ui.badgesCount) ui.badgesCount.textContent = getVal(stats.badges); if (ui.pointsCount) ui.pointsCount.textContent = getVal(stats.points); if (ui.streakDays) ui.streakDays.textContent = getVal(stats.streak_current); if (ui.streakChange) ui.streakChange.textContent = `MAX: ${getVal(stats.streak_longest)} dní`; if (ui.rankValue) ui.rankValue.textContent = getVal(stats.rank); if (ui.rankChange && ui.totalUsers) ui.rankChange.innerHTML = `<i class="fas fa-users"></i> z ${getVal(stats.totalUsers)} pilotů`; if (ui.badgesCard) ui.badgesCard.classList.remove('loading'); if (ui.pointsCard) ui.pointsCard.classList.remove('loading'); if (ui.streakCard) ui.streakCard.classList.remove('loading'); if (ui.rankCard) ui.rankCard.classList.remove('loading'); }
     function renderUserBadges(earnedBadges) { setLoadingState('userBadges', false); if (!ui.badgeGrid || !ui.emptyBadges) return; ui.badgeGrid.innerHTML = ''; if (!earnedBadges || earnedBadges.length === 0) { ui.emptyBadges.style.display = 'block'; ui.badgeGrid.style.display = 'none'; return; } ui.emptyBadges.style.display = 'none'; ui.badgeGrid.style.display = 'grid'; const fragment = document.createDocumentFragment(); earnedBadges.forEach((ub, index) => { const badge = ub.badge; if (!badge) return; const badgeType = badge.type?.toLowerCase() || 'default'; const visual = badgeVisuals[badgeType] || badgeVisuals.default; const badgeElement = document.createElement('div'); badgeElement.className = 'badge-card card'; badgeElement.setAttribute('data-animate', ''); badgeElement.style.setProperty('--animation-order', index); badgeElement.innerHTML = `<div class="badge-icon ${badgeType}" style="background: ${visual.gradient};"><i class="fas ${visual.icon}"></i></div><h3 class="badge-title">${sanitizeHTML(badge.title)}</h3><p class="badge-desc">${sanitizeHTML(badge.description || '')}</p><div class="badge-date"><i class="far fa-calendar-alt"></i> ${formatDate(ub.earned_at)}</div>`; fragment.appendChild(badgeElement); }); ui.badgeGrid.appendChild(fragment); requestAnimationFrame(initScrollAnimations); }
-    function renderAvailableBadges(allBadgesDef, userEarnedBadges) { setLoadingState('availableBadges', false); if (!ui.availableBadgesGrid || !ui.emptyAvailableBadges) return; const earnedIds = new Set((userEarnedBadges || []).map(ub => ub.badge_id)); const available = (allBadgesDef || []).filter(b => !earnedIds.has(b.id)); ui.availableBadgesGrid.innerHTML = ''; if (available.length === 0) { ui.emptyAvailableBadges.style.display = 'block'; ui.availableBadgesGrid.style.display = 'none'; return; } ui.emptyAvailableBadges.style.display = 'none'; ui.availableBadgesGrid.style.display = 'grid'; const fragment = document.createDocumentFragment(); available.forEach((badge, index) => { const badgeType = badge.type?.toLowerCase() || 'default'; const visual = badgeVisuals[badgeType] || badgeVisuals.default; let progress = 0; let progressText = '???'; const req = badge.requirements; if (req && typeof req === 'object' && currentProfile) { const target = parseInt(req.target, 10) || 1; let current = 0; try { switch (req.type) { case 'points_earned': current = currentProfile.points ?? 0; progressText = `${current}/${target} KR`; break; case 'streak_days': current = currentProfile.streak_days ?? 0; progressText = `${current}/${target} dní`; break; case 'exercises_completed': current = currentProfile.completed_exercises ?? 0; progressText = `${current}/${target} cv.`; break; case 'level_reached': current = currentProfile.level ?? 1; progressText = `${current}/${target} úr.`; break; default: progressText = '?/?'; } if (target > 0) progress = Math.min(100, Math.max(0, Math.round((current / target) * 100))); } catch(e) { progressText = 'Chyba'; } } else { progressText = 'Nespec.'; } const badgeElement = document.createElement('div'); badgeElement.className = 'achievement-card card'; badgeElement.setAttribute('data-animate', ''); badgeElement.style.setProperty('--animation-order', index); badgeElement.innerHTML = `<div class="achievement-icon ${badgeType}" style="background: ${visual.gradient};"><i class="fas ${visual.icon}"></i></div><div class="achievement-content"><h3 class="achievement-title">${sanitizeHTML(badge.title)}</h3><p class="achievement-desc">${sanitizeHTML(badge.description || '')}</p><div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: ${progress}%; background: ${visual.gradient};"></div></div><div class="progress-stats">${progress}% (${progressText})</div></div></div>`; fragment.appendChild(badgeElement); }); ui.availableBadgesGrid.appendChild(fragment); requestAnimationFrame(initScrollAnimations); }
+    function renderAvailableBadges(allBadgesDef, userBadges) { // Changed parameter name
+        setLoadingState('availableBadges', false);
+        if (!ui.availableBadgesGrid || !ui.emptyAvailableBadges) return;
+        const earnedIds = new Set((userBadges || []).map(ub => ub.badge_id)); // Use correct variable
+        const available = (allBadgesDef || []).filter(b => !earnedIds.has(b.id));
+        ui.availableBadgesGrid.innerHTML = '';
+        if (available.length === 0) {
+            ui.emptyAvailableBadges.style.display = 'block';
+            ui.availableBadgesGrid.style.display = 'none';
+            return;
+        }
+        ui.emptyAvailableBadges.style.display = 'none';
+        ui.availableBadgesGrid.style.display = 'grid';
+        const fragment = document.createDocumentFragment();
+        available.forEach((badge, index) => {
+            const badgeType = badge.type?.toLowerCase() || 'default';
+            const visual = badgeVisuals[badgeType] || badgeVisuals.default;
+            let progress = 0;
+            let progressText = '???';
+            const req = badge.requirements;
+            if (req && typeof req === 'object' && currentProfile) {
+                const target = parseInt(req.target, 10) || 1;
+                let current = 0;
+                try {
+                    switch (req.type) {
+                        case 'points_earned': current = currentProfile.points ?? 0; progressText = `${current}/${target} KR`; break;
+                        case 'streak_days': current = currentProfile.streak_days ?? 0; progressText = `${current}/${target} dní`; break;
+                        case 'exercises_completed': current = currentProfile.completed_exercises ?? 0; progressText = `${current}/${target} cv.`; break;
+                        case 'level_reached': current = currentProfile.level ?? 1; progressText = `${current}/${target} úr.`; break;
+                        default: progressText = '?/?';
+                    }
+                    if (target > 0) progress = Math.min(100, Math.max(0, Math.round((current / target) * 100)));
+                } catch (e) { progressText = 'Chyba'; }
+            } else { progressText = 'Nespec.'; }
+            const badgeElement = document.createElement('div');
+            badgeElement.className = 'achievement-card card';
+            badgeElement.setAttribute('data-animate', '');
+            badgeElement.style.setProperty('--animation-order', index);
+            badgeElement.innerHTML = `<div class="achievement-icon ${badgeType}" style="background: ${visual.gradient};"><i class="fas ${visual.icon}"></i></div><div class="achievement-content"><h3 class="achievement-title">${sanitizeHTML(badge.title)}</h3><p class="achievement-desc">${sanitizeHTML(badge.description || '')}</p><div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: ${progress}%; background: ${visual.gradient};"></div></div><div class="progress-stats">${progress}% (${progressText})</div></div></div>`;
+            fragment.appendChild(badgeElement);
+        });
+        ui.availableBadgesGrid.appendChild(fragment);
+        requestAnimationFrame(initScrollAnimations);
+    }
     function renderLeaderboard(data) { setLoadingState('leaderboard', false); if (!ui.leaderboardBody || !ui.leaderboardEmpty || !ui.leaderboardTableContainer) return; ui.leaderboardBody.innerHTML = ''; if (!data || data.length === 0) { ui.leaderboardEmpty.style.display = 'block'; ui.leaderboardTableContainer.style.display = 'none'; } else { ui.leaderboardEmpty.style.display = 'none'; ui.leaderboardTableContainer.style.display = 'block'; const fragment = document.createDocumentFragment(); data.forEach((entry) => { const userProf = entry.profile; if (!userProf) return; const rank = entry.calculated_rank || '?'; const isCurrent = entry.user_id === currentUser?.id; const displayName = `${userProf.first_name || ''} ${userProf.last_name || ''}`.trim() || userProf.username || `Pilot #${entry.user_id.substring(0, 4)}`; const initials = getInitials(userProf); const avatarUrl = userProf.avatar_url; const pointsVal = entry.points ?? 0; const badgesCnt = entry.badges_count ?? 0; const streakVal = userProf.streak_days ?? 0; const decorationKey = userProf.selected_decoration || ''; const rowEl = document.createElement('tr'); if (isCurrent) rowEl.classList.add('highlight-row'); rowEl.innerHTML = `<td class="rank-cell">${rank}</td><td class="user-cell"><div class="avatar-wrapper ${sanitizeHTML(decorationKey)}" data-decoration-key="${sanitizeHTML(decorationKey)}"><div class="user-avatar-sm">${avatarUrl ? `<img src="${sanitizeHTML(avatarUrl)}?t=${Date.now()}" alt="${sanitizeHTML(displayName)}">` : sanitizeHTML(initials)}</div></div><div class="user-info-sm"><div class="user-name-sm">${sanitizeHTML(displayName)}</div><div class="user-level">Úroveň ${userProf.level || 1}</div></div></td><td class="score-cell">${pointsVal}</td><td class="badge-count-cell">${badgesCnt}</td><td class="streak-cell">${streakVal}</td>`; fragment.appendChild(rowEl); }); ui.leaderboardBody.appendChild(fragment); } }
     function renderTitleShop(titles, profile) { setLoadingState('titleShop', false); if (!ui.titleShopGrid || !ui.titleShopEmpty || !ui.shopUserCredits || !profile) return; ui.shopUserCredits.textContent = profile.points ?? 0; ui.titleShopGrid.innerHTML = ''; if (!titles || titles.length === 0) { ui.titleShopEmpty.style.display = 'block'; ui.titleShopGrid.style.display = 'none'; return; } ui.titleShopEmpty.style.display = 'none'; ui.titleShopGrid.style.display = 'grid'; const fragment = document.createDocumentFragment(); const purchasedKeys = new Set(profile.purchased_titles || []); const selectedKey = profile.selected_title; titles.forEach((title, index) => { const isPurchased = purchasedKeys.has(title.title_key); const isEquipped = isPurchased && title.title_key === selectedKey; const canAfford = profile.points >= title.cost; const itemElement = document.createElement('div'); itemElement.className = 'title-item card'; itemElement.setAttribute('data-title-key', title.title_key); itemElement.setAttribute('data-title-cost', title.cost); itemElement.setAttribute('data-animate', ''); itemElement.style.setProperty('--animation-order', index); itemElement.innerHTML = `<div class="title-item-icon"><i class="${sanitizeHTML(title.icon || 'fas fa-user-tag')}"></i></div><div class="title-item-content"><h4 class="title-item-name">${sanitizeHTML(title.name)}</h4>${title.description ? `<p class="title-item-desc">${sanitizeHTML(title.description)}</p>` : ''}<div class="title-item-footer"><span class="title-item-cost">Cena: ${title.cost} <i class="fas fa-coins"></i></span><div class="title-item-actions"><button class="btn btn-sm btn-primary buy-title-btn" ${isPurchased ? 'style="display: none;"' : ''} ${canAfford ? '' : 'disabled'} title="${canAfford ? 'Koupit titul' : 'Nedostatek kreditů'}"><i class="fas fa-shopping-cart"></i> Koupit</button><span class="title-status purchased" ${isPurchased && !isEquipped ? '' : 'style="display: none;"'}><i class="fas fa-check"></i> Zakoupeno</span><span class="title-status equipped" ${isEquipped ? '' : 'style="display: none;"'}><i class="fas fa-user-check"></i> Používá se</span><button class="btn btn-sm btn-secondary equip-title-btn" ${isPurchased && !isEquipped ? '' : 'style="display: none;"'}><i class="fas fa-check-square"></i> Použít</button></div></div></div>`; fragment.appendChild(itemElement); }); ui.titleShopGrid.appendChild(fragment); requestAnimationFrame(initScrollAnimations); }
     function renderAvatarDecorationsShop(decorations, profile) { setLoadingState('avatarDecorations', false); if (!ui.avatarDecorationsGrid || !ui.avatarDecorationsEmpty || !ui.shopDecorCredits || !profile) return; ui.shopDecorCredits.textContent = profile.points ?? 0; ui.avatarDecorationsGrid.innerHTML = ''; if (!decorations || decorations.length === 0) { ui.avatarDecorationsEmpty.style.display = 'block'; ui.avatarDecorationsGrid.style.display = 'none'; return; } ui.avatarDecorationsEmpty.style.display = 'none'; ui.avatarDecorationsGrid.style.display = 'grid'; const fragment = document.createDocumentFragment(); const purchasedKeys = new Set(profile.purchased_decorations || []); const selectedKey = profile.selected_decoration; const userInitials = getInitials(profile); const userAvatarUrl = profile.avatar_url; decorations.forEach((decor, index) => { const isPurchased = purchasedKeys.has(decor.decoration_key); const isEquipped = isPurchased && decor.decoration_key === selectedKey; const canAfford = profile.points >= decor.cost; const itemElement = document.createElement('div'); itemElement.className = 'decoration-item card'; itemElement.setAttribute('data-decoration-key', decor.decoration_key); itemElement.setAttribute('data-decoration-cost', decor.cost); itemElement.setAttribute('data-animate', ''); itemElement.style.setProperty('--animation-order', index); const previewAvatarHTML = userAvatarUrl ? `<img src="${sanitizeHTML(userAvatarUrl)}?t=${Date.now()}" alt="Avatar">` : sanitizeHTML(userInitials); itemElement.innerHTML = `<div class="decoration-preview"><div class="avatar-wrapper ${sanitizeHTML(decor.decoration_key)}"><div class="user-avatar-sm">${previewAvatarHTML}</div></div></div><div class="decoration-info"><h4 class="decoration-name">${sanitizeHTML(decor.name)}</h4><p class="decoration-desc">${sanitizeHTML(decor.description || '')}</p><div class="decoration-footer"><span class="decoration-cost">Cena: ${decor.cost} <i class="fas fa-coins"></i></span><div class="decoration-actions"><button class="btn btn-sm btn-primary buy-decor-btn" ${isPurchased ? 'style="display: none;"' : ''} ${canAfford ? '' : 'disabled'} title="${canAfford ? 'Koupit vylepšení' : 'Nedostatek kreditů'}"><i class="fas fa-shopping-cart"></i> Koupit</button><span class="title-status purchased" ${isPurchased && !isEquipped ? '' : 'style="display: none;"'}><i class="fas fa-check"></i> Zakoupeno</span><span class="title-status equipped" ${isEquipped ? '' : 'style="display: none;"'}><i class="fas fa-user-check"></i> Používá se</span><button class="btn btn-sm btn-secondary equip-decor-btn" ${isPurchased && !isEquipped ? '' : 'style="display: none;"'}><i class="fas fa-check-square"></i> Použít</button></div></div></div>`; fragment.appendChild(itemElement); }); ui.avatarDecorationsGrid.appendChild(fragment); requestAnimationFrame(initScrollAnimations); }
@@ -208,8 +252,14 @@
 
     // --- START: Shop Interaction Logic ---
     async function handleShopInteraction(event) { const buyTitleButton = event.target.closest('.buy-title-btn'); const equipTitleButton = event.target.closest('.equip-title-btn'); const buyDecorButton = event.target.closest('.buy-decor-btn'); const equipDecorButton = event.target.closest('.equip-decor-btn'); if (buyTitleButton) { const itemEl = buyTitleButton.closest('.title-item'); const key = itemEl?.dataset.titleKey; const cost = parseInt(itemEl?.dataset.titleCost, 10); if (key && !isNaN(cost)) handleBuyItem('title', key, cost, buyTitleButton); else showToast('Chyba: Nelze identifikovat titul.', 'error'); } else if (equipTitleButton) { const itemEl = equipTitleButton.closest('.title-item'); const key = itemEl?.dataset.titleKey; if (key) handleEquipItem('title', key, equipTitleButton); else showToast('Chyba: Nelze identifikovat titul.', 'error'); } else if (buyDecorButton) { const itemEl = buyDecorButton.closest('.decoration-item'); const key = itemEl?.dataset.decorationKey; const cost = parseInt(itemEl?.dataset.decorationCost, 10); if (key && !isNaN(cost)) handleBuyItem('decoration', key, cost, buyDecorButton); else showToast('Chyba: Nelze identifikovat dekoraci.', 'error'); } else if (equipDecorButton) { const itemEl = equipDecorButton.closest('.decoration-item'); const key = itemEl?.dataset.decorationKey; if (key) handleEquipItem('decoration', key, equipDecorButton); else showToast('Chyba: Nelze identifikovat dekoraci.', 'error'); } }
-    async function handleBuyItem(itemType, itemKey, cost, buttonElement) { if (!currentProfile || !supabase || !currentUser || isLoading.buyEquip) return; const currentCredits = currentProfile.points ?? 0; if (currentCredits < cost) { showToast('Nedostatek Kreditů', `Potřebujete ${cost} kreditů.`, 'warning'); return; } const itemData = (itemType === 'title' ? allTitles : allDecorations).find(it => it[itemType === 'title' ? 'title_key' : 'decoration_key'] === itemKey); const itemName = itemData?.name || itemKey; const itemTypeName = itemType === 'title' ? 'titul' : 'vylepšení'; if (!confirm(`Opravdu koupit ${itemTypeName} "${itemName}" za ${cost} kreditů?`)) return; setLoadingState('buyEquip', true); buttonElement.disabled = true; buttonElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; const purchaseField = itemType === 'title' ? 'purchased_titles' : 'purchased_decorations'; try { const currentPurchased = Array.isArray(currentProfile[purchaseField]) ? currentProfile[purchaseField] : []; if (currentPurchased.includes(itemKey)) { showToast('Již Vlastněno', `Tento ${itemTypeName} již máte.`, 'info'); return; } const newCredits = currentCredits - cost; const newPurchasedItems = [...currentPurchased, itemKey]; const updatePayload = { points: newCredits, [purchaseField]: newPurchasedItems }; const { data: updatedProfile, error: updateError } = await supabase.from('profiles').update(updatePayload).eq('id', currentUser.id).select('*, selected_title, purchased_titles, purchased_decorations, selected_decoration').single(); if (updateError) throw updateError; currentProfile = updatedProfile; if(itemType === 'title') renderTitleShop(allTitles, currentProfile); else renderAvatarDecorationsShop(allDecorations, currentProfile); updateSidebarProfile(currentProfile, allTitles); if (ui.shopUserCredits) ui.shopUserCredits.textContent = currentProfile.points; if (ui.shopDecorCredits) ui.shopDecorCredits.textContent = currentProfile.points; if (ui.pointsCount) ui.pointsCount.textContent = currentProfile.points; showToast('Nákup Úspěšný', `${itemTypeName} "${itemName}" zakoupen!`, 'success'); } catch (error) { console.error(`Error buying ${itemType}:`, error); showToast('Chyba Nákupu', error.message, 'error'); buttonElement.disabled = false; buttonElement.innerHTML = '<i class="fas fa-shopping-cart"></i> Koupit'; } finally { setLoadingState('buyEquip', false); const stillOwned = (currentProfile[purchaseField] || []).includes(itemKey); if (stillOwned) buttonElement.style.display = 'none'; else if (currentProfile.points < cost) buttonElement.disabled = true; } }
-    async function handleEquipItem(itemType, itemKey, buttonElement) { if (!currentProfile || !supabase || !currentUser || isLoading.buyEquip) return; const purchaseField = itemType === 'title' ? 'purchased_titles' : 'purchased_decorations'; const selectField = itemType === 'title' ? 'selected_title' : 'selected_decoration'; const purchasedKeys = Array.isArray(currentProfile[purchaseField]) ? currentProfile[purchaseField] : []; const itemTypeName = itemType === 'title' ? 'titul' : 'vylepšení'; if (!purchasedKeys.includes(itemKey)) { showToast('Chyba', `Tento ${itemTypeName} nemáte zakoupený.`, 'error'); return; } if (currentProfile[selectField] === itemKey) { showToast('Již Používáte', `Tento ${itemTypeName} již máte nastavený.`, 'info'); return; } setLoadingState('buyEquip', true); buttonElement.disabled = true; buttonElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; try { const { data: updatedProfile, error: updateError } = await supabase.from('profiles').update({ [selectField]: itemKey }).eq('id', currentUser.id).select('*, selected_title, purchased_titles, purchased_decorations, selected_decoration').single(); if (updateError) throw updateError; currentProfile = updatedProfile; if(itemType === 'title') renderTitleShop(allTitles, currentProfile); else renderAvatarDecorationsShop(allDecorations, currentProfile); updateSidebarProfile(currentProfile, allTitles); const itemData = (itemType === 'title' ? allTitles : allDecorations).find(it => it[itemType === 'title' ? 'title_key' : 'decoration_key'] === itemKey); const itemName = itemData?.name || itemKey; showToast('Položka Nastavena', `Nyní používáte ${itemTypeName} "${itemName}".`, 'success'); } catch (error) { console.error(`Error equipping ${itemType}:`, error); showToast('Chyba Nastavení', error.message, 'error'); } finally { setLoadingState('buyEquip', false); buttonElement.disabled = false; buttonElement.innerHTML = '<i class="fas fa-check-square"></i> Použít'; const stillSelected = currentProfile[selectField] === itemKey; const stillOwned = (currentProfile[purchaseField] || []).includes(itemKey); if (stillSelected || !stillOwned) buttonElement.style.display = 'none'; } }
+    async function handleBuyItem(itemType, itemKey, cost, buttonElement) { if (!currentProfile || !supabase || !currentUser || isLoading.buyEquip) return; const currentCredits = currentProfile.points ?? 0; if (currentCredits < cost) { showToast('Nedostatek Kreditů', `Potřebujete ${cost} kreditů.`, 'warning'); return; } const itemData = (itemType === 'title' ? allTitles : allDecorations).find(it => it[itemType === 'title' ? 'title_key' : 'decoration_key'] === itemKey); const itemName = itemData?.name || itemKey; const itemTypeName = itemType === 'title' ? 'titul' : 'vylepšení'; if (!confirm(`Opravdu koupit ${itemTypeName} "${itemName}" za ${cost} kreditů?`)) return; setLoadingState('buyEquip', true); buttonElement.disabled = true; buttonElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; const purchaseField = itemType === 'title' ? 'purchased_titles' : 'purchased_decorations'; const selectField = itemType === 'title' ? 'selected_title' : 'selected_decoration'; try { const currentPurchased = Array.isArray(currentProfile[purchaseField]) ? currentProfile[purchaseField] : []; if (currentPurchased.includes(itemKey)) { showToast('Již Vlastněno', `Tento ${itemTypeName} již máte.`, 'info'); return; } const newCredits = currentCredits - cost; const newPurchasedItems = [...currentPurchased, itemKey]; const updatePayload = { points: newCredits, [purchaseField]: newPurchasedItems }; const { data: updatedProfile, error: updateError } = await supabase.from('profiles').update(updatePayload).eq('id', currentUser.id).select(`*, selected_title, purchased_titles`).single(); // Removed decoration columns
+        if (updateError) throw updateError; currentProfile = updatedProfile; // Update local profile
+        if(itemType === 'title') renderTitleShop(allTitles, currentProfile); else renderAvatarDecorationsShop(allDecorations, currentProfile); updateSidebarProfile(currentProfile, allTitles); // Update sidebar
+        if (ui.shopUserCredits) ui.shopUserCredits.textContent = currentProfile.points; if (ui.shopDecorCredits) ui.shopDecorCredits.textContent = currentProfile.points; if (ui.pointsCount) ui.pointsCount.textContent = currentProfile.points; showToast('Nákup Úspěšný', `${itemTypeName} "${itemName}" zakoupen!`, 'success'); } catch (error) { console.error(`Error buying ${itemType}:`, error); showToast('Chyba Nákupu', error.message, 'error'); buttonElement.disabled = false; buttonElement.innerHTML = '<i class="fas fa-shopping-cart"></i> Koupit'; } finally { setLoadingState('buyEquip', false); const stillOwned = (currentProfile[purchaseField] || []).includes(itemKey); if (stillOwned) buttonElement.style.display = 'none'; else if (currentProfile.points < cost) buttonElement.disabled = true; } }
+    async function handleEquipItem(itemType, itemKey, buttonElement) { if (!currentProfile || !supabase || !currentUser || isLoading.buyEquip) return; const purchaseField = itemType === 'title' ? 'purchased_titles' : 'purchased_decorations'; const selectField = itemType === 'title' ? 'selected_title' : 'selected_decoration'; const purchasedKeys = Array.isArray(currentProfile[purchaseField]) ? currentProfile[purchaseField] : []; const itemTypeName = itemType === 'title' ? 'titul' : 'vylepšení'; if (!purchasedKeys.includes(itemKey)) { showToast('Chyba', `Tento ${itemTypeName} nemáte zakoupený.`, 'error'); return; } if (currentProfile[selectField] === itemKey) { showToast('Již Používáte', `Tento ${itemTypeName} již máte nastavený.`, 'info'); return; } setLoadingState('buyEquip', true); buttonElement.disabled = true; buttonElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; try { const { data: updatedProfile, error: updateError } = await supabase.from('profiles').update({ [selectField]: itemKey }).eq('id', currentUser.id).select(`*, selected_title, purchased_titles`).single(); // Removed decoration columns
+        if (updateError) throw updateError; currentProfile = updatedProfile; // Update local profile
+        if(itemType === 'title') renderTitleShop(allTitles, currentProfile); else renderAvatarDecorationsShop(allDecorations, currentProfile); updateSidebarProfile(currentProfile, allTitles); // Update sidebar
+        const itemData = (itemType === 'title' ? allTitles : allDecorations).find(it => it[itemType === 'title' ? 'title_key' : 'decoration_key'] === itemKey); const itemName = itemData?.name || itemKey; showToast('Položka Nastavena', `Nyní používáte ${itemTypeName} "${itemName}".`, 'success'); } catch (error) { console.error(`Error equipping ${itemType}:`, error); showToast('Chyba Nastavení', error.message, 'error'); } finally { setLoadingState('buyEquip', false); buttonElement.disabled = false; buttonElement.innerHTML = '<i class="fas fa-check-square"></i> Použít'; const stillSelected = currentProfile[selectField] === itemKey; const stillOwned = (currentProfile[purchaseField] || []).includes(itemKey); if (stillSelected || !stillOwned) buttonElement.style.display = 'none'; } }
     // --- END: Shop Interaction Logic ---
 
     // --- START: Notification Logic ---
@@ -218,8 +268,58 @@
     // --- END: Notification Logic ---
 
     // --- START: Load All Data ---
-    async function loadAllAwardData() { if (!currentUser || !currentProfile || !supabase) { showError("Chyba: Nelze načíst data ocenění bez profilu uživatele.", true); setLoadingState('all', false); return; } console.log("🔄 [LoadAwards] Loading all award page data..."); hideError(); setLoadingState('all', true); try { const results = await Promise.allSettled([ fetchUserStats(currentUser.id, currentProfile), fetchAllBadgesDefinition(), fetchUserEarnedBadges(currentUser.id), fetchTitleShopData(), fetchAvatarDecorationsData(), fetchLeaderboardData(), fetchNotifications(currentUser.id, NOTIFICATION_FETCH_LIMIT) ]); console.log("[LoadAwards] Data fetch results:", results); const [statsResult, allBadgesResult, userBadgesResult, titleShopResult, avatarShopResult, leaderboardResult, notificationsResult] = results; userStatsData = (statsResult.status === 'fulfilled') ? statsResult.value : null; allBadges = (allBadgesResult.status === 'fulfilled') ? allBadgesResult.value : []; userBadges = (userBadgesResult.status === 'fulfilled') ? userBadgesResult.value : []; allTitles = (titleShopResult.status === 'fulfilled') ? titleShopResult.value : []; allDecorations = (avatarShopResult.status === 'fulfilled') ? avatarShopResult.value : []; leaderboardData = (leaderboardResult.status === 'fulfilled') ? leaderboardResult.value : []; const { unreadCount, notifications } = (notificationsResult.status === 'fulfilled') ? notificationsResult.value : { unreadCount: 0, notifications: [] }; updateStatsCards(userStatsData); // Pass combined stats
-        renderUserBadges(userBadges); renderAvailableBadges(allBadges, userEarnedBadges); renderLeaderboard(leaderboardData); renderTitleShop(allTitles, currentProfile); renderAvatarDecorationsShop(allDecorations, currentProfile); renderNotifications(unreadCount, notifications); updateSidebarProfile(currentProfile, allTitles); console.log("✅ [LoadAwards] All award page data loaded and rendered."); } catch (error) { console.error("❌ [LoadAwards] Error during loading award data:", error); showError(`Nepodařilo se načíst data pro stránku Ocenění: ${error.message}`, true); } finally { setLoadingState('all', false); initTooltips(); } }
+    async function loadAllAwardData() {
+        if (!currentUser || !currentProfile || !supabase) {
+            showError("Chyba: Nelze načíst data ocenění bez profilu uživatele.", true);
+            setLoadingState('all', false);
+            return;
+        }
+        console.log("🔄 [LoadAwards] Loading all award page data...");
+        hideError();
+        setLoadingState('all', true);
+        try {
+            const results = await Promise.allSettled([
+                fetchUserStats(currentUser.id, currentProfile),
+                fetchAllBadgesDefinition(),
+                fetchUserEarnedBadges(currentUser.id),
+                fetchTitleShopData(),
+                fetchAvatarDecorationsData(), // This will now return [] gracefully
+                fetchLeaderboardData(),
+                fetchNotifications(currentUser.id, NOTIFICATION_FETCH_LIMIT)
+            ]);
+            console.log("[LoadAwards] Data fetch results:", results);
+
+            const [statsResult, allBadgesResult, userBadgesResult, titleShopResult, avatarShopResult, leaderboardResult, notificationsResult] = results;
+
+            userStatsData = (statsResult.status === 'fulfilled') ? statsResult.value : null;
+            allBadges = (allBadgesResult.status === 'fulfilled') ? allBadgesResult.value : [];
+            userBadges = (userBadgesResult.status === 'fulfilled') ? userBadgesResult.value : [];
+            allTitles = (titleShopResult.status === 'fulfilled') ? titleShopResult.value : [];
+            allDecorations = (avatarShopResult.status === 'fulfilled') ? avatarShopResult.value : []; // Will be empty
+            leaderboardData = (leaderboardResult.status === 'fulfilled') ? leaderboardResult.value : [];
+            const { unreadCount, notifications } = (notificationsResult.status === 'fulfilled') ? notificationsResult.value : { unreadCount: 0, notifications: [] };
+
+            // Render functions
+            updateStatsCards(userStatsData);
+            renderUserBadges(userBadges);
+            renderAvailableBadges(allBadges, userBadges); // Pass correct variable
+            renderLeaderboard(leaderboardData);
+            renderTitleShop(allTitles, currentProfile);
+            renderAvatarDecorationsShop(allDecorations, currentProfile); // Will render empty state
+            renderNotifications(unreadCount, notifications);
+            updateSidebarProfile(currentProfile, allTitles);
+
+            console.log("✅ [LoadAwards] All award page data loaded and rendered.");
+        } catch (error) {
+            // This catch block might not be reached if Promise.allSettled is used,
+            // unless an error occurs outside the promises themselves.
+            console.error("❌ [LoadAwards] Unexpected error during loading award data:", error);
+            showError(`Nepodařilo se načíst data pro stránku Ocenění: ${error.message}`, true);
+        } finally {
+            setLoadingState('all', false);
+            initTooltips();
+        }
+    }
     // --- END: Load All Data ---
 
     // --- START: Event Listeners Setup ---
@@ -227,75 +327,8 @@
     // --- END: Event Listeners Setup ---
 
     // --- START: Initialization ---
-    // <<< NEW: Moved fetchTitles definition BEFORE initializeApp >>>
-    async function fetchTitles() {
-        if (!supabase) return [];
-        console.log("[Titles] Fetching available titles...");
-        setLoadingState('titles', true); // Ensure this state is managed if needed elsewhere
-        try {
-            const { data, error } = await supabase
-                .from('title_shop')
-                .select('title_key, name');
-            if (error) throw error;
-            console.log("[Titles] Fetched titles:", data);
-            return data || [];
-        } catch (error) {
-            console.error("[Titles] Error fetching titles:", error);
-            showToast("Chyba načítání dostupných titulů.", "error");
-            return [];
-        } finally {
-            setLoadingState('titles', false);
-        }
-    }
-
-    async function initializeApp() {
-        console.log("🚀 [Init Oceneni v23.16] Starting...");
-        cacheDOMElements(); // Cache elements first
-        if (!initializeSupabase()) { // Initialize Supabase FIRST
-            console.error("[Init Oceneni] Supabase initialization failed. Aborting.");
-            return;
-        }
-        applyInitialSidebarState(); // Apply sidebar state early
-        if (ui.initialLoader) { ui.initialLoader.style.display = 'flex'; ui.initialLoader.classList.remove('hidden'); }
-        if (ui.mainContent) ui.mainContent.style.display = 'none';
-        hideError();
-
-        try {
-            console.log("[Init Oceneni] Checking auth session...");
-            const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-            if (sessionError) throw new Error(`Nepodařilo se ověřit přihlášení: ${sessionError.message}`);
-            if (!session || !session.user) { window.location.href = '/auth/index.html'; return; }
-            currentUser = session.user;
-            console.log(`[Init Oceneni] User authenticated (ID: ${currentUser.id}). Loading profile...`);
-
-            currentProfile = await fetchUserProfile(currentUser.id); // Fetch profile AFTER supabase is init
-            if (!currentProfile) throw new Error("Nepodařilo se načíst profil uživatele.");
-
-            // Fetch titles AFTER profile is loaded
-            allTitles = await fetchTitles(); // Now defined before call
-
-            updateSidebarProfile(currentProfile, allTitles); // Update sidebar immediately
-            setupEventListeners(); // Setup listeners AFTER caching and Supabase init
-            initMouseFollower();
-            initHeaderScrollDetection();
-            updateCopyrightYear();
-            updateOnlineStatus();
-            await loadAllAwardData(); // Load the rest of the page data
-
-            if (ui.initialLoader) { ui.initialLoader.classList.add('hidden'); setTimeout(() => { if (ui.initialLoader) ui.initialLoader.style.display = 'none'; }, 500); }
-            if (ui.mainContent) { ui.mainContent.style.display = 'block'; requestAnimationFrame(() => { ui.mainContent.classList.add('loaded'); initScrollAnimations(); }); }
-            initTooltips();
-
-            console.log("✅ [Init Oceneni] Page initialized.");
-        } catch (error) {
-            console.error("❌ [Init Oceneni] Kritická chyba inicializace:", error);
-            if (ui.initialLoader && !ui.initialLoader.classList.contains('hidden')) { ui.initialLoader.innerHTML = `<p style="color: var(--accent-pink);">CHYBA (${error.message}). OBNOVTE.</p>`; }
-            else { showError(`Chyba inicializace: ${error.message}`, true); }
-            if (ui.mainContent) ui.mainContent.style.display = 'block'; // Show error container
-            setLoadingState('all', false); // Ensure loading state is off
-        }
-    }
-
+    async function fetchTitles() { if (!supabase) return []; console.log("[Titles] Fetching available titles..."); setLoadingState('titles', true); try { const { data, error } = await supabase.from('title_shop').select('title_key, name'); if (error) throw error; console.log("[Titles] Fetched titles:", data); return data || []; } catch (error) { console.error("[Titles] Error fetching titles:", error); return []; } finally { setLoadingState('titles', false); } }
+    async function initializeApp() { console.log("🚀 [Init Oceneni v23.17] Starting..."); cacheDOMElements(); if (!initializeSupabase()) return; applyInitialSidebarState(); if (ui.initialLoader) { ui.initialLoader.style.display = 'flex'; ui.initialLoader.classList.remove('hidden'); } if (ui.mainContent) ui.mainContent.style.display = 'none'; hideError(); try { console.log("[Init Oceneni] Checking auth session..."); const { data: { session }, error: sessionError } = await supabase.auth.getSession(); if (sessionError) throw new Error(`Nepodařilo se ověřit přihlášení: ${sessionError.message}`); if (!session || !session.user) { window.location.href = '/auth/index.html'; return; } currentUser = session.user; console.log(`[Init Oceneni] User authenticated (ID: ${currentUser.id}). Loading profile...`); currentProfile = await fetchUserProfile(currentUser.id); if (!currentProfile) throw new Error("Nepodařilo se načíst profil uživatele."); allTitles = await fetchTitles(); updateSidebarProfile(currentProfile, allTitles); setupEventListeners(); initMouseFollower(); initHeaderScrollDetection(); updateCopyrightYear(); updateOnlineStatus(); await loadAllAwardData(); if (ui.initialLoader) { ui.initialLoader.classList.add('hidden'); setTimeout(() => { if (ui.initialLoader) ui.initialLoader.style.display = 'none'; }, 500); } if (ui.mainContent) { ui.mainContent.style.display = 'block'; requestAnimationFrame(() => { ui.mainContent.classList.add('loaded'); initScrollAnimations(); }); } initTooltips(); console.log("✅ [Init Oceneni] Page initialized."); } catch (error) { console.error("❌ [Init Oceneni] Kritická chyba inicializace:", error); if (ui.initialLoader && !ui.initialLoader.classList.contains('hidden')) { ui.initialLoader.innerHTML = `<p style="color: var(--accent-pink);">CHYBA (${error.message}). OBNOVTE.</p>`; } else { showError(`Chyba inicializace: ${error.message}`, true); } if (ui.mainContent) ui.mainContent.style.display = 'block'; setLoadingState('all', false); } }
     function initializeSupabase() { try { if (typeof window.supabase === 'undefined' || typeof window.supabase.createClient !== 'function') { throw new Error("Supabase library not loaded."); } supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); if (!supabase) throw new Error("Supabase client creation failed."); console.log('[Supabase] Client initialized.'); return true; } catch (error) { console.error('[Supabase] Initialization failed:', error); showError("Kritická chyba: Nepodařilo se připojit k databázi.", true); return false; } }
     // --- END: Initialization ---
 
