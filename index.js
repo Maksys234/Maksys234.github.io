@@ -1,14 +1,15 @@
 /**
  * JUSTAX Landing Page Script
- * Handles UI interactions, animations, and infinite testimonial slider using a local data array.
- * Version: v2.13 (Slider Fixes)
+ * Handles UI interactions, animations, infinite testimonial slider,
+ * NEW: Hero text mask reveal and interactive gradient.
+ * Version: v2.20 (Hero Animation Update)
  * Author: Gemini Modification
- * Date: 2025-05-02 // Added fixes for slider button reliability
+ * Date: 2025-05-03 // Added Mask Reveal + Interactive Gradient
  *
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log("DOM Ready. Initializing JUSTAX Interface v2.13 (Slider Fixes - Local Data)...");
+    console.log("DOM Ready. Initializing JUSTAX Interface v2.20 (Hero Animation Update)...");
 
     // --- Global Variables & DOM References ---
     const body = document.body;
@@ -31,33 +32,42 @@ document.addEventListener('DOMContentLoaded', () => {
     const prevBtn = document.getElementById('prevTestimonialBtn');
     const nextBtn = document.getElementById('nextTestimonialBtn');
 
+    // *** NEW: Hero Elements for Interactive Gradient ***
+    const heroSection = document.querySelector('.hero');
+    // Ensure we select the potentially re-created span later
+    let heroHighlightSpan = document.querySelector('.hero h1 .highlight');
+    let rafId = null; // requestAnimationFrame ID
+
     // --- Configuration ---
     const config = {
         mouseFollower: { enabled: true, followSpeed: 0.1, clickScale: 0.8, hoverScale: 1.6 },
-        animations: { scrollThreshold: 0.15, staggerDelay: 120, letterDelay: 40, letterRandomOffset: 250 },
+        animations: {
+            scrollThreshold: 0.15,
+            staggerDelay: 120, // General stagger delay for non-letter elements
+            letterMaskRevealDelay: 45 // Delay between each letter reveal (ms)
+        },
         aiDemo: { enabled: true, typingSpeed: 40, stepBaseDelay: 200, stepRandomDelay: 450 },
         testimonials: {
             placeholderAvatarBaseUrl: 'https://placehold.co/100x100/',
             visibleCardsDesktop: 3,
-            bufferCards: 2, // Number of cards cloned on each side for infinite effect
-            // MODIFIED: Ensured slideDuration matches the CSS transition variable --transition-smooth-slider (0.5s = 500ms)
+            bufferCards: 2,
             slideDuration: 500
         }
     };
 
     // --- Testimonial Slider State ---
     let localTestimonials = [];
-    let testimonialDataCache = []; // Holds data for cards currently in DOM
-    let cardsInTrack = []; // Holds the actual DOM elements of the cards
-    let stableVisibleStartIndex = config.testimonials.bufferCards; // The index corresponding to the first *logically* visible card
+    let testimonialDataCache = [];
+    let cardsInTrack = [];
+    let stableVisibleStartIndex = config.testimonials.bufferCards;
     let totalCardsInDOM = 0;
     let cardWidthAndMargin = 0;
-    let isSliding = false; // Flag to prevent multiple clicks during animation
+    let isSliding = false;
     let resizeTimeout;
     let initialLoadComplete = false;
-    let transitionEndCounter = 0; // Debug counter for transition ends
+    let transitionEndCounter = 0;
 
-    // --- REVISED Hardcoded Testimonial Data (Identical to previous version) ---
+    // --- REVISED Hardcoded Testimonial Data ---
     localTestimonials = [
         // Students (Mix of names, nicknames, initials) - Role always 'Student' or 'Studentka'
         { name: "Petra N.", role: "Studentka", rating: 5, text: "Skvělá příprava na přijímačky! AI mi přesně ukázala, co potřebuju dohnat. Doporučuji!" },
@@ -119,7 +129,6 @@ document.addEventListener('DOMContentLoaded', () => {
         { name: "Hedvika D.", role: "Studentka", rating: 5, text: "Platforma mi pomohla zorganizovat si učení a dodržovat studijní plán." },
         { name: "Radim J.", role: "Student", rating: 4.5, text: "AI je skvělá v identifikaci mých slabých míst a doporučení cvičení." },
         { name: "Alice K.", role: "Studentka", rating: 5, text: "Stoprocentně doporučuji všem, kdo bojují s matematikou!" },
-
         // Parents (Role always 'Rodič')
         { name: "Jana K.", role: "Rodič", rating: 5, text: "Syn se výrazně zlepšil v matematice. Platforma ho baví a motivuje." },
         { name: "Petr S.", role: "Rodič", rating: 4.5, text: "Oceňuji přehled o pokroku dcery. Vidím, na čem pracuje a jak jí to jde." },
@@ -150,7 +159,7 @@ document.addEventListener('DOMContentLoaded', () => {
         { name: "Dalibor P.", role: "Rodič", rating: 4.5, text: "Líbí se nám podrobná analýza chyb, kterou AI poskytuje." },
         { name: "Luděk R.", role: "Rodič", rating: 4.5, text: "Cena za roční předplatné je velmi rozumná vzhledem k možnostem." },
         { name: "Helena", role: "Rodič", rating: 4.5, text: "Syn si konečně věří v matice. Platforma mu dodala sebevědomí." },
-        { name: "Ludmila K.", role: "Rodič", rating: 5, text: "Koupila jsem vnukovi k Vánocům a je nadšený. Pomáhá mu to." }, // Assuming Babička = Rodič
+        { name: "Ludmila K.", role: "Rodič", rating: 5, text: "Koupila jsem vnukovi k Vánocům a je nadšený. Pomáhá mu to." },
         { name: "Věra", role: "Rodič", rating: 5, text: "Klidnější rána před písemkou. Dcera je lépe připravená." },
         { name: "Oldřich P.", role: "Rodič", rating: 4, text: "Dobrá investice do budoucnosti dítěte." },
         { name: "Božena M.", role: "Rodič", rating: 4.5, text: "Syn se učí rychleji a efektivněji než s učebnicí." }
@@ -196,7 +205,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         cardElement.classList.remove('is-loading');
         cardElement.removeAttribute('aria-hidden');
-        // MODIFIED: Ensure consistent structure when updating
         cardElement.innerHTML = `
             <div class="testimonial-content">
                 <div class="testimonial-rating" aria-label="Hodnocení"></div>
@@ -235,73 +243,53 @@ document.addEventListener('DOMContentLoaded', () => {
      };
 
     const getRandomLocalTestimonial = () => {
-        // ADDED: More robust check for available testimonials
         if (!localTestimonials || localTestimonials.length === 0) {
             console.error("getRandomLocalTestimonial: localTestimonials array is empty or undefined.");
             return { name: "Chyba", text: "Žádné dostupné recenze.", rating: 0, role: "Systém" };
         }
-
-        // Get names of testimonials currently in the DOM cache
         const currentCacheNames = new Set(testimonialDataCache.map(item => item?.name).filter(Boolean));
-
-        // Filter out testimonials already in the cache
         let availableTestimonials = localTestimonials.filter(item => !currentCacheNames.has(item.name));
-
-        // If no unique testimonials are left outside the cache, use the full list but log a warning
         if (availableTestimonials.length === 0) {
             console.warn("No unique testimonials available outside the current cache. Reusing testimonials.");
             availableTestimonials = localTestimonials;
-             // Prevent infinite loop if localTestimonials itself is empty (already checked above, but belts and suspenders)
              if (availableTestimonials.length === 0) {
                  return { name: "Chyba", text: "Žádné dostupné recenze.", rating: 0, role: "Systém" };
              }
         }
-
         const randomIndex = Math.floor(Math.random() * availableTestimonials.length);
         return availableTestimonials[randomIndex];
      };
 
     const calculateCardWidthAndMargin = () => {
-        // ADDED: More robust check for sliderTrack existence
         if (!sliderTrack) {
             console.error("calculateCardWidthAndMargin: sliderTrack element not found.");
             return 0;
         }
-        // Try to find a non-loading card first
         const firstCard = sliderTrack.querySelector('.testimonial-card:not(.is-loading)');
-        const cardElement = firstCard || sliderTrack.querySelector('.testimonial-card'); // Fallback to any card
-
+        const cardElement = firstCard || sliderTrack.querySelector('.testimonial-card');
         if (!cardElement) {
             console.warn("calculateCardWidthAndMargin: No card elements found in the track.");
             return 0;
         }
-
         const style = window.getComputedStyle(cardElement);
         const width = cardElement.offsetWidth;
-        const marginRight = parseFloat(style.marginRight) || 0; // Ensure default 0
-
+        const marginRight = parseFloat(style.marginRight) || 0;
         if (width <= 0) {
             console.warn(`calculateCardWidthAndMargin: Card element has zero or negative width (${width}px). Check CSS.`);
-            // Attempt a small delay and recalculate once, in case layout wasn't ready
-            // This is a simple fallback, might need more sophisticated handling
             if (!cardElement.dataset.recalcAttempted) {
                 cardElement.dataset.recalcAttempted = "true";
                 console.log("Attempting delayed recalculation...");
                 setTimeout(calculateCardWidthAndMargin, 150);
             }
-            return 0; // Return 0 for now
+            return 0;
         }
-
         cardWidthAndMargin = width + marginRight;
-        // console.log(`Recalculated cardWidthAndMargin: ${cardWidthAndMargin}px (Width: ${width}, Margin: ${marginRight})`);
-        delete cardElement.dataset.recalcAttempted; // Clean up attribute if successful
+        delete cardElement.dataset.recalcAttempted;
         return cardWidthAndMargin;
      };
 
     const setTrackPositionInstantly = (logReason = "default") => {
-        // MODIFIED: Added more checks and logging
         if (!initialLoadComplete) {
-            // console.log(`setTrackPositionInstantly (${logReason}): Aborted - initialLoadComplete is false.`);
             return;
         }
          if (!sliderTrack) {
@@ -316,111 +304,67 @@ document.addEventListener('DOMContentLoaded', () => {
              }
              console.log(`setTrackPositionInstantly (${logReason}): Recalculation successful.`);
          }
-
-        // Remove listener before changing style to prevent it firing from this change
         sliderTrack.removeEventListener('transitionend', handleTransitionEnd);
-
-        // Disable transitions for the instant jump
         sliderTrack.style.transition = 'none';
-
         const position = -stableVisibleStartIndex * cardWidthAndMargin;
         sliderTrack.style.transform = `translateX(${position}px)`;
-
-        // Force browser reflow to ensure the 'none' transition and position are applied immediately
         void sliderTrack.offsetHeight;
-
-        // MODIFIED: Re-enable transition only AFTER the instant jump and reflow
-        // Use the transition defined in CSS via the variable
         sliderTrack.style.transition = `transform var(--transition-smooth-slider)`;
-
-        // Re-attach the listener AFTER re-enabling transitions
-        // Use { once: true } if only one transitionend is expected per slide action,
-        // but since DOM manipulation might cause multiple reflows/events,
-        // it's safer to manage the listener state carefully in handleTransitionEnd.
         sliderTrack.addEventListener('transitionend', handleTransitionEnd);
+    };
 
-        // console.log(`Track position INSTANTLY set (${logReason}) for stable index ${stableVisibleStartIndex} (translateX: ${position}px)`);
-     };
-
-
-    // MODIFIED: Refined handleTransitionEnd logic for robustness
     const handleTransitionEnd = (event) => {
-        // Ensure the event is for the transform property on the track itself
         if (event.target !== sliderTrack || event.propertyName !== 'transform' || !initialLoadComplete || !isSliding) {
-             // console.log(`handleTransitionEnd: Ignoring event (target: ${event.target.id}, property: ${event.propertyName}, initialLoad: ${initialLoadComplete}, isSliding: ${isSliding})`);
             return;
         }
-
-        // Make sure the listener is removed immediately to prevent multiple triggers from the same slide action
         sliderTrack.removeEventListener('transitionend', handleTransitionEnd);
-
         const direction = parseInt(sliderTrack.dataset.slideDirection || "0");
         transitionEndCounter++;
-        // console.log(`--> Transition ended (#${transitionEndCounter}). Direction: ${direction}.`);
-
         if (direction === 0) {
             console.warn("handleTransitionEnd: Transition ended but direction was 0 (unexpected). Resetting state.");
-            // Fallback state reset
              isSliding = false;
              prevBtn.disabled = false;
              nextBtn.disabled = false;
-             sliderTrack.style.transition = `transform var(--transition-smooth-slider)`; // Ensure transition is re-enabled
+             sliderTrack.style.transition = `transform var(--transition-smooth-slider)`;
             return;
         }
-
-        // Select the card to move and update based on direction
         let cardToMove;
         let newData;
         try {
              newData = getRandomLocalTestimonial();
              if (!newData) throw new Error("Failed to get new testimonial data.");
-
-            if (direction > 0) { // Moved Right (Next button)
-                cardToMove = cardsInTrack.shift(); // Get first card DOM element
+            if (direction > 0) {
+                cardToMove = cardsInTrack.shift();
                 if (!cardToMove) throw new Error("Failed to get first card element from cardsInTrack array.");
-                testimonialDataCache.shift(); // Remove corresponding data
-                testimonialDataCache.push(newData); // Add new data to end
-            } else { // Moved Left (Prev button)
-                cardToMove = cardsInTrack.pop(); // Get last card DOM element
+                testimonialDataCache.shift();
+                testimonialDataCache.push(newData);
+            } else {
+                cardToMove = cardsInTrack.pop();
                  if (!cardToMove) throw new Error("Failed to get last card element from cardsInTrack array.");
-                testimonialDataCache.pop(); // Remove corresponding data
-                testimonialDataCache.unshift(newData); // Add new data to beginning
+                testimonialDataCache.pop();
+                testimonialDataCache.unshift(newData);
             }
-
-            // Update the content of the card *before* moving it in the DOM
              updateCardContent(cardToMove, newData);
-
         } catch (error) {
              console.error("Error during data/card selection in handleTransitionEnd:", error);
-             // Attempt to reset state gracefully
              isSliding = false;
-             setTrackPositionInstantly("error recovery"); // Visually reset
-             prevBtn.disabled = false; // Re-enable buttons cautiously
+             setTrackPositionInstantly("error recovery");
+             prevBtn.disabled = false;
              nextBtn.disabled = false;
-             sliderTrack.style.transition = `transform var(--transition-smooth-slider)`; // Re-enable transition
-             return; // Stop execution
+             sliderTrack.style.transition = `transform var(--transition-smooth-slider)`;
+             return;
         }
-
-
-        // --- DOM Manipulation and Position Reset ---
-        // CRITICAL: Perform DOM manipulation *after* selecting card and data,
-        // and *before* resetting the track position instantly.
-
-        // Disable transition for the instant jump and DOM change
         sliderTrack.style.transition = 'none';
-
         try {
-            // Move the card in the DOM
-            if (direction > 0) { // Moved Right (Next)
-                sliderTrack.appendChild(cardToMove); // Move first card to end
-                cardsInTrack.push(cardToMove); // Update JS array
-            } else { // Moved Left (Prev)
-                sliderTrack.insertBefore(cardToMove, sliderTrack.firstChild); // Move last card to beginning
-                cardsInTrack.unshift(cardToMove); // Update JS array
+            if (direction > 0) {
+                sliderTrack.appendChild(cardToMove);
+                cardsInTrack.push(cardToMove);
+            } else {
+                sliderTrack.insertBefore(cardToMove, sliderTrack.firstChild);
+                cardsInTrack.unshift(cardToMove);
             }
         } catch (domError) {
              console.error("Error during DOM manipulation (appendChild/insertBefore) in handleTransitionEnd:", domError);
-             // Attempt recovery
              isSliding = false;
              setTrackPositionInstantly("dom error recovery");
              prevBtn.disabled = false;
@@ -428,129 +372,88 @@ document.addEventListener('DOMContentLoaded', () => {
              sliderTrack.style.transition = `transform var(--transition-smooth-slider)`;
              return;
         }
-
-        // Reset visual position to the stable starting point *instantly*
-        // This must happen AFTER the DOM manipulation is complete
         setTrackPositionInstantly("transition end");
-
-        // --- Re-enable Interaction ---
-        sliderTrack.dataset.slideDirection = "0"; // Reset direction marker
-        isSliding = false; // Allow next slide IMPORTANT: Must be after instant reset
-
-        // Re-enable buttons AFTER everything is stable
+        sliderTrack.dataset.slideDirection = "0";
+        isSliding = false;
         prevBtn.disabled = false;
         nextBtn.disabled = false;
-        // console.log("<-- handleTransitionEnd complete.");
      };
 
-    // MODIFIED: Refined moveSlider logic
     const moveSlider = (direction) => {
-         // console.log(`moveSlider called with direction: ${direction}. isSliding: ${isSliding}, initialLoadComplete: ${initialLoadComplete}`);
          if (isSliding || !initialLoadComplete) {
              console.warn(`Slide attempt blocked: isSliding=${isSliding}, initialLoadComplete=${initialLoadComplete}`);
              return;
         }
-
-        // Check card dimensions again just before sliding, recalculate if necessary
         if (cardWidthAndMargin <= 0) {
              console.warn("moveSlider: cardWidthAndMargin is invalid. Attempting recalculation.");
              if (!calculateCardWidthAndMargin() || cardWidthAndMargin <= 0) {
                  console.error("moveSlider: Recalculation failed. Cannot slide.");
-                 return; // Abort slide
+                 return;
              }
              console.log("moveSlider: Recalculation successful.");
-             // Ensure the track is correctly positioned after recalculation before sliding
              setTrackPositionInstantly("pre-slide recalc");
          }
-
         isSliding = true;
         prevBtn.disabled = true;
         nextBtn.disabled = true;
-        // console.log(`Moving slider. Direction: ${direction}.`);
-
-        sliderTrack.dataset.slideDirection = direction.toString(); // Mark direction for transitionEnd
-
-        // Ensure the correct transition is set just before triggering the transform
+        sliderTrack.dataset.slideDirection = direction.toString();
         sliderTrack.style.transition = `transform var(--transition-smooth-slider)`;
-
-        // Calculate the target position based on the CURRENT visual position
         const currentTransform = window.getComputedStyle(sliderTrack).transform;
         let currentTranslateX = 0;
         if (currentTransform && currentTransform !== 'none') {
             const matrix = new DOMMatrixReadOnly(currentTransform);
-            currentTranslateX = matrix.m41; // e value in matrix(a, b, c, d, e, f)
+            currentTranslateX = matrix.m41;
         } else {
-             // Fallback if transform is 'none' or invalid - calculate from stable index
              currentTranslateX = -stableVisibleStartIndex * cardWidthAndMargin;
              console.warn("moveSlider: Could not get current transform, using stable index as base.");
         }
-
         const newTranslateX = currentTranslateX - (direction * cardWidthAndMargin);
-
-        // Add the transitionend listener just before starting the animation
-        // Remove any previous listener first to avoid duplicates
         sliderTrack.removeEventListener('transitionend', handleTransitionEnd);
         sliderTrack.addEventListener('transitionend', handleTransitionEnd);
-
-        // Apply the smooth transform to trigger the animation
         sliderTrack.style.transform = `translateX(${newTranslateX}px)`;
-        // console.log(`Animating transform from ${currentTranslateX}px to: ${newTranslateX}px`);
      };
 
-    // MODIFIED: Enhanced initialization with more checks
     const initializeInfiniteSlider = async () => {
          console.log("Starting infinite slider initialization v2.13 (Slider Fixes)...");
-        isSliding = true; // Block interactions during init
+        isSliding = true;
         initialLoadComplete = false;
-
-         // Ensure essential elements exist
          if (!sliderTrack || !prevBtn || !nextBtn) {
              console.error("Slider initialization failed: Essential DOM elements (track or buttons) not found.");
-             isSliding = false; // Unblock
+             isSliding = false;
              return;
          }
-
         prevBtn.disabled = true;
         nextBtn.disabled = true;
-        sliderTrack.innerHTML = ''; // Clear previous content
+        sliderTrack.innerHTML = '';
         testimonialDataCache = [];
         cardsInTrack = [];
         cardWidthAndMargin = 0;
         stableVisibleStartIndex = config.testimonials.bufferCards;
-
         if (!localTestimonials || localTestimonials.length === 0) {
             console.error("Local testimonial data is empty! Cannot initialize slider.");
             sliderTrack.innerHTML = `<p style="color: var(--clr-accent-red); padding: 20px; text-align: center;">Chyba: Chybí data pro recenze.</p>`;
             isSliding = false;
             return;
         }
-
-        const numVisible = config.testimonials.visibleCardsDesktop; // Base calculation on desktop
+        const numVisible = config.testimonials.visibleCardsDesktop;
         const numBuffer = config.testimonials.bufferCards;
         totalCardsInDOM = numVisible + 2 * numBuffer;
         console.log(`Initial setup: Visible=${numVisible}, Buffer=${numBuffer}, TotalInDOM=${totalCardsInDOM}, StableStartIdx=${stableVisibleStartIndex}`);
-
         if (localTestimonials.length < totalCardsInDOM) {
             console.warn(`Warning: Not enough unique testimonials (${localTestimonials.length}) to fill the initial track (${totalCardsInDOM}) without potential immediate reuse.`);
         }
-
-        // 1. Create and append placeholder cards
         for (let i = 0; i < totalCardsInDOM; i++) {
             const cardElement = createPlaceholderCard();
             sliderTrack.appendChild(cardElement);
-            cardsInTrack.push(cardElement); // Add placeholder DOM element
+            cardsInTrack.push(cardElement);
         }
-
-        // 2. Populate the data cache
         let attempt = 0;
-        const maxAttempts = localTestimonials.length * 2; // Limit attempts to avoid infinite loops
+        const maxAttempts = localTestimonials.length * 2;
         while (testimonialDataCache.length < totalCardsInDOM && attempt < maxAttempts && localTestimonials.length > 0) {
              let randomIndex = Math.floor(Math.random() * localTestimonials.length);
              let randomTestimonial = localTestimonials[randomIndex];
              let retries = 0;
-             const maxRetries = 5; // Try a few times to find a unique one if possible
-
-             // Try to find a non-duplicate if enough unique items exist
+             const maxRetries = 5;
              while (testimonialDataCache.some(d => d && d.name === randomTestimonial.name) && retries < maxRetries && testimonialDataCache.length + (localTestimonials.length - testimonialDataCache.length) > totalCardsInDOM) {
                  randomIndex = Math.floor(Math.random() * localTestimonials.length);
                  randomTestimonial = localTestimonials[randomIndex];
@@ -559,12 +462,9 @@ document.addEventListener('DOMContentLoaded', () => {
              testimonialDataCache.push(randomTestimonial);
              attempt++;
          }
-         // If still not enough (e.g., very few testimonials), fill with potential duplicates
          while (testimonialDataCache.length < totalCardsInDOM && localTestimonials.length > 0) {
               testimonialDataCache.push(localTestimonials[Math.floor(Math.random() * localTestimonials.length)]);
          }
-
-        // 3. Update placeholder cards with actual data
         cardsInTrack.forEach((card, index) => {
             const data = testimonialDataCache[index];
             if (data) {
@@ -575,31 +475,22 @@ document.addEventListener('DOMContentLoaded', () => {
              }
         });
         console.log(`Created and populated ${cardsInTrack.length} initial cards from local data.`);
-
-        // 4. Wait for layout and calculate dimensions
-        // Use requestAnimationFrame for better timing with layout updates
-        await new Promise(resolve => requestAnimationFrame(resolve)); // Wait for next frame
-
+        await new Promise(resolve => requestAnimationFrame(resolve));
         if (!calculateCardWidthAndMargin() || cardWidthAndMargin <= 0) {
             console.error("Could not calculate card dimensions after initial population and layout. Aborting slider setup.");
             sliderTrack.innerHTML = '<p style="color: var(--clr-accent-red); padding: 20px; text-align: center;">Chyba layoutu slideru.</p>';
             isSliding = false;
             return;
         }
-
-        // 5. Set initial position WITHOUT animation
-        initialLoadComplete = true; // Mark as ready BEFORE setting position
+        initialLoadComplete = true;
         setTrackPositionInstantly("initialization");
-
         console.log("Infinite slider initialized successfully (Local Data).");
-        isSliding = false; // Ready for user interaction
+        isSliding = false;
         prevBtn.disabled = false;
         nextBtn.disabled = false;
      };
 
-    // --- Other Initializations (Header Scroll, Mobile Menu, etc. - Unchanged) ---
-
-    // Header scroll effect
+    // --- Header Scroll Effect ---
     const handleScroll = () => {
         if (header) {
             if (window.scrollY > 50) {
@@ -608,40 +499,35 @@ document.addEventListener('DOMContentLoaded', () => {
                 header.classList.remove('scrolled');
             }
         }
-         // Add active class to nav links based on scroll position
          const sections = document.querySelectorAll('main section[id]');
          let currentSectionId = '';
          sections.forEach(section => {
              const sectionTop = section.offsetTop;
-             // Adjust trigger point (e.g., activate when section is halfway visible)
              if (window.scrollY >= sectionTop - window.innerHeight / 2) {
                  currentSectionId = section.getAttribute('id');
              }
          });
-
          const navItems = navLinks.querySelectorAll('.nav-item');
          navItems.forEach(item => {
              item.classList.remove('active');
-              // Check if the item's href includes the current section ID
              if (item.getAttribute('href')?.includes(`#${currentSectionId}`)) {
                  item.classList.add('active');
              }
          });
     };
 
-    // Mobile Menu Toggle
+    // --- Mobile Menu Toggle ---
     const toggleMenu = () => {
         if (hamburger && navLinks && menuOverlay && body && header) {
             const isActive = hamburger.classList.toggle('active');
             navLinks.classList.toggle('active', isActive);
             menuOverlay.classList.toggle('active', isActive);
-            body.classList.toggle('no-scroll', isActive); // Prevent body scroll
-            header.classList.toggle('menu-open', isActive); // Style header when menu is open
+            body.classList.toggle('no-scroll', isActive);
+            header.classList.toggle('menu-open', isActive);
             hamburger.setAttribute('aria-expanded', isActive ? 'true' : 'false');
         }
     };
 
-    // Close menu when clicking a link or overlay
     const closeMenu = () => {
         if (hamburger && navLinks && menuOverlay && body && header) {
             if (hamburger.classList.contains('active')) {
@@ -665,7 +551,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Mouse Follower (Unchanged)
+    // --- Mouse Follower ---
     let mouseX = 0, mouseY = 0;
     let followerX = 0, followerY = 0;
     let isHoveringInteractable = false;
@@ -680,68 +566,22 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
     if (!isTouchDevice && follower && config.mouseFollower.enabled) {
-        // console.log("Initializing mouse follower."); // Keep logging minimal
         window.addEventListener('mousemove', (e) => { mouseX = e.clientX; mouseY = e.clientY; if(follower.style.opacity !== '1') follower.style.opacity = '1'; });
         document.addEventListener('mouseleave', () => { if (follower) follower.style.opacity = '0'; });
         document.addEventListener('mouseenter', () => { if (follower) follower.style.opacity = '0.7'; });
-        document.querySelectorAll('a, button, .btn, .slider-btn').forEach(el => { // Added .slider-btn
+        document.querySelectorAll('a, button, .btn, .slider-btn').forEach(el => {
             el.addEventListener('mouseenter', () => isHoveringInteractable = true);
             el.addEventListener('mouseleave', () => isHoveringInteractable = false);
         });
         requestAnimationFrame(updateFollower);
     } else if (follower) {
         follower.style.display = 'none';
-        // console.log("Mouse follower disabled (touch device or config).");
     }
 
-
-    // Scroll Animations (Intersection Observer - Unchanged)
-    const animatedElements = document.querySelectorAll('[data-animate], [data-animate-letters]');
-    const observerOptions = { root: null, rootMargin: '0px', threshold: config.animations.scrollThreshold };
-    const animationObserver = new IntersectionObserver((entries, observer) => {
-        entries.forEach((entry) => {
-            if (entry.isIntersecting) {
-                const element = entry.target;
-                if (element.dataset.animateLetters !== undefined) {
-                    if (!element.classList.contains('letters-animating')) { animateLetters(element); }
-                } else { element.classList.add('animated'); }
-                observer.unobserve(element);
-            }
-        });
-    }, observerOptions);
-    if (animatedElements.length > 0) {
-        animatedElements.forEach(el => {
-            const delay = parseInt(el.style.getPropertyValue('--animation-order') || '0') * config.animations.staggerDelay;
-            el.style.transitionDelay = `${delay}ms`;
-            animationObserver.observe(el);
-         });
-        // console.log(`Observing ${animatedElements.length} elements for scroll animations.`);
-     }
-
-    // Function to animate letters (Unchanged)
-    const animateLetters = (element) => {
-        const text = element.textContent;
-        const highlightElement = element.querySelector('.highlight');
-        const highlightText = highlightElement ? highlightElement.dataset.text || highlightElement.textContent : '';
-        element.innerHTML = ''; let charIndex = 0;
-        text.split('').forEach(char => {
-            const span = document.createElement('span');
-            span.textContent = char === ' ' ? '\u00A0' : char; span.style.opacity = '0'; span.style.display = 'inline-block';
-            if (highlightElement && text.includes(highlightText) && text.indexOf(highlightText) <= charIndex && charIndex < text.indexOf(highlightText) + highlightText.length) {
-                 if (!element.querySelector('.highlight-wrapper')) { const wrapper = document.createElement('span'); wrapper.className = 'highlight highlight-wrapper'; wrapper.dataset.text = highlightText; element.appendChild(wrapper); }
-                 element.querySelector('.highlight-wrapper').appendChild(span);
-            } else { element.appendChild(span); }
-             const delay = Math.random() * config.animations.letterRandomOffset + charIndex * config.animations.letterDelay;
-             span.style.animation = `letter-pop-in 0.6s ${delay}ms forwards ease-out`;
-            charIndex++;
-        });
-         element.classList.add('letters-animating');
-    };
-
-    // Footer Year (Unchanged)
+    // --- Footer Year ---
     if (yearSpan) { yearSpan.textContent = new Date().getFullYear(); }
 
-    // AI Demo Simulation (Unchanged logic, kept for completeness)
+    // --- AI Demo Simulation ---
     const aiDemoSteps = [ { type: 'status', text: 'AI jádro aktivní. Monitoruji interakce...' }, { type: 'status', text: 'Detekováno načtení dat o výkonu studenta ID: 734B' }, { type: 'input', text: 'getUserPerformance("734B") --area=algebra --level=základní' }, { type: 'process', text: 'Zpracování požadavku...', duration: 800, progress: 15 }, { type: 'analysis', text: 'Analýza dat: Nalezeno 156 záznamů...' }, { type: 'analysis', text: 'Identifikace slabých míst: Zlomky (úspěšnost 45%), Rovnice (úspěšnost 58%)' }, { type: 'analysis', text: 'Silné stránky: Procenta (úspěšnost 92%)' }, { type: 'process', text: 'Generování doporučení...', duration: 1200, progress: 40 }, { type: 'output', text: 'Doporučení: 3x cvičení na sčítání zlomků, 2x cvičení na lineární rovnice.' }, { type: 'input', text: 'generateAdaptivePlan("734B", ["zlomky", "rovnice"])' }, { type: 'process', text: 'Vytváření personalizovaného plánu...', duration: 1500, progress: 75 }, { type: 'output', text: 'Plán vygenerován: 5 kroků, odhadovaná doba 45 minut.' }, { type: 'status', text: 'Aktualizace profilu studenta...' }, { type: 'process', text: 'Synchronizace s databází...', duration: 600, progress: 90 }, { type: 'status', text: 'Systém připraven pro další vstup.', progress: 100 } ];
     let currentAiStep = 0; let isAiDemoRunning = false; let aiDemoTimeout;
     const addAiLogLine = (text, type) => { if (!aiOutput) return; const line = document.createElement('div'); line.className = `ai-log-line ${type}`; line.textContent = `[${new Date().toLocaleTimeString()}] ${text}`; aiOutput.appendChild(line); aiOutput.scrollTop = aiOutput.scrollHeight; };
@@ -751,34 +591,172 @@ document.addEventListener('DOMContentLoaded', () => {
     const aiDemoObserver = new IntersectionObserver((entries) => { entries.forEach(entry => { if (config.aiDemo.enabled && entry.isIntersecting && !isAiDemoRunning) { isAiDemoRunning = true; currentAiStep = 0; if (aiOutput) aiOutput.innerHTML = ''; updateAiProgress(0); if (aiProgressLabel) aiProgressLabel.textContent = 'Inicializace...'; if (aiFakeInput) aiFakeInput.textContent = ''; runAiDemoStep(); } else if (!entry.isIntersecting && isAiDemoRunning) { clearTimeout(aiDemoTimeout); isAiDemoRunning = false; if(aiStatusIndicator) aiStatusIndicator.textContent = 'POZASTAVENO'; } }); }, { threshold: 0.5 });
     if (demoSection && config.aiDemo.enabled) { aiDemoObserver.observe(demoSection); } else { if (aiProgressLabel) aiProgressLabel.textContent = 'AI Demo není aktivní'; if (aiOutput) addAiLogLine('AI Demo je momentálně neaktivní.', 'status'); }
 
+
+    // --- *** NEW/REVISED: Scroll Animations (Intersection Observer & Letter Animation) *** ---
+
+    const animatedElements = document.querySelectorAll('[data-animate], [data-animate-letters]');
+    const observerOptions = { root: null, rootMargin: '0px', threshold: config.animations.scrollThreshold };
+
+    // *** REVISED: Function to SET UP letters for mask animation ***
+    const setupLetterAnimation = (element) => {
+        const textContent = element.textContent || '';
+        // Use the globally scoped heroHighlightSpan initially
+        const originalHighlightElement = element.querySelector('.highlight');
+        const highlightText = originalHighlightElement ? (originalHighlightElement.dataset.text || originalHighlightElement.textContent || '') : '';
+        let currentHighlightSpan = null;
+        let letterIndex = 0;
+
+        element.innerHTML = ''; // Clear original content
+        element.style.setProperty('--letter-count', textContent.length); // Set total count for subsequent delays
+
+        textContent.split('').forEach(char => {
+            const span = document.createElement('span');
+            span.className = 'letter-span'; // Class for CSS targeting
+            span.textContent = char === ' ' ? '\u00A0' : char; // Handle spaces
+            span.style.setProperty('--letter-index', letterIndex); // Set index for staggered delay
+
+            const isHighlightChar = originalHighlightElement &&
+                                   highlightText &&
+                                   textContent.includes(highlightText) &&
+                                   charIndex >= textContent.indexOf(highlightText) &&
+                                   charIndex < textContent.indexOf(highlightText) + highlightText.length;
+
+            if (isHighlightChar) {
+                if (!currentHighlightSpan) {
+                    currentHighlightSpan = document.createElement('span');
+                    currentHighlightSpan.className = originalHighlightElement.className; // Copy classes
+                    if (originalHighlightElement.dataset.text) {
+                        currentHighlightSpan.dataset.text = originalHighlightElement.dataset.text; // Copy data-text
+                    }
+                    // Update the global reference *if* this is the hero highlight element
+                    if (originalHighlightElement === heroHighlightSpan) {
+                        heroHighlightSpan = currentHighlightSpan; // Update global reference
+                        console.log("Hero highlight span reference updated during setup.");
+                    }
+                    element.appendChild(currentHighlightSpan);
+                }
+                currentHighlightSpan.appendChild(span);
+            } else {
+                element.appendChild(span);
+                currentHighlightSpan = null;
+            }
+
+            letterIndex++;
+        });
+        console.log(`Setup letter animation for: ${element.id || element.tagName}`);
+    };
+
+    // *** REVISED: Intersection Observer Callback ***
+    const animationObserver = new IntersectionObserver((entries, observer) => {
+        entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+                const element = entry.target;
+                // console.log(`Element intersecting: ${element.id || element.tagName}`);
+
+                if (element.dataset.animateLetters !== undefined) {
+                    if (!element.classList.contains('letters-setup')) {
+                        setupLetterAnimation(element); // Prepare the spans
+                        element.classList.add('letters-setup');
+                        setTimeout(() => {
+                             element.classList.add('is-revealing'); // Trigger the reveal
+                             // console.log(`Added 'is-revealing' to ${element.id || element.tagName}`);
+                        }, 10);
+                    }
+                } else {
+                     const delay = parseInt(element.style.getPropertyValue('--animation-order') || '0') * config.animations.staggerDelay;
+                     element.style.transitionDelay = `${delay}ms`;
+                    element.classList.add('animated');
+                    // console.log(`Added 'animated' to ${element.id || element.tagName}`);
+                }
+                observer.unobserve(element);
+                // console.log(`Unobserved: ${element.id || element.tagName}`);
+            }
+        });
+    }, observerOptions);
+
+    if (animatedElements.length > 0) {
+        animatedElements.forEach(el => {
+            animationObserver.observe(el);
+        });
+        console.log(`Observing ${animatedElements.length} elements for scroll animations.`);
+    }
+
+    // --- *** NEW: Interactive Gradient Logic *** ---
+    const handleHeroMouseMove = (event) => {
+        // Make sure heroHighlightSpan is the correct, potentially recreated element
+        if (!heroSection || !heroHighlightSpan) {
+            // Attempt to re-select if it became null after setup
+             if(heroSection) heroHighlightSpan = heroSection.querySelector('.hero h1 .highlight');
+             if (!heroHighlightSpan) return; // Still not found, exit
+        }
+
+        if (rafId) {
+            cancelAnimationFrame(rafId);
+        }
+
+        rafId = requestAnimationFrame(() => {
+            const rect = heroSection.getBoundingClientRect();
+            const x = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
+            const y = Math.max(0, Math.min(1, (event.clientY - rect.top) / rect.height));
+
+            heroHighlightSpan.style.setProperty('--mouse-x', x.toFixed(3));
+            heroHighlightSpan.style.setProperty('--mouse-y', y.toFixed(3));
+        });
+    };
+
+    // Add listener only if the necessary elements exist AND not on touch device
+    if (heroSection && heroHighlightSpan && !isTouchDevice) {
+         console.log("Initializing interactive hero gradient.");
+        heroSection.addEventListener('mousemove', handleHeroMouseMove);
+         heroSection.addEventListener('mouseleave', () => {
+             if (rafId) cancelAnimationFrame(rafId);
+             rafId = requestAnimationFrame(() => {
+                // Ensure heroHighlightSpan is still valid
+                if(heroHighlightSpan) {
+                    heroHighlightSpan.style.setProperty('--mouse-x', 0.5);
+                    heroHighlightSpan.style.setProperty('--mouse-y', 0.5);
+                } else {
+                     // Attempt re-selection on mouseleave if needed
+                     const currentHighlight = heroSection?.querySelector('.hero h1 .highlight');
+                     if (currentHighlight) {
+                         currentHighlight.style.setProperty('--mouse-x', 0.5);
+                         currentHighlight.style.setProperty('--mouse-y', 0.5);
+                     }
+                }
+             });
+         });
+    } else if (!heroHighlightSpan) {
+         console.warn("Hero highlight span (.hero h1 .highlight) not found initially. Interactive gradient disabled.");
+    } else if (isTouchDevice) {
+         console.log("Touch device detected. Interactive hero gradient disabled.");
+         if (heroHighlightSpan) {
+            heroHighlightSpan.style.setProperty('--mouse-x', 0.5);
+            heroHighlightSpan.style.setProperty('--mouse-y', 0.2);
+         }
+    }
+
     // --- Event Listeners ---
     window.addEventListener('scroll', debounce(handleScroll, 50));
-    // ADDED: Slider button listeners
     if (prevBtn && nextBtn) {
-        prevBtn.addEventListener('click', () => moveSlider(-1)); // -1 for previous
-        nextBtn.addEventListener('click', () => moveSlider(1));  //  1 for next
+        prevBtn.addEventListener('click', () => moveSlider(-1));
+        nextBtn.addEventListener('click', () => moveSlider(1));
     } else {
         console.error("Failed to attach listeners: Slider buttons not found.");
     }
-    // ADDED: Resize listener for slider adjustments (debounced)
     window.addEventListener('resize', debounce(() => {
         console.log("Window resized, recalculating slider dimensions...");
-        // Recalculate width and reset position instantly
         if (initialLoadComplete && calculateCardWidthAndMargin() > 0) {
              setTrackPositionInstantly("resize");
         } else if (initialLoadComplete) {
              console.warn("Recalculation failed after resize.");
-             // Optionally disable buttons if calculation fails critically
-             // prevBtn.disabled = true;
-             // nextBtn.disabled = true;
         }
-    }, 250)); // 250ms debounce delay
+    }, 250));
 
     // --- Initialize Components ---
-    handleScroll(); // Initial scroll check for nav links
-    initializeInfiniteSlider(); // Initialize the testimonial slider
+    handleScroll();
+    initializeInfiniteSlider();
 
     // --- Final Log ---
-    console.log("JUSTAX Interface v2.13 (Slider Fixes) Initialization Complete.");
+    console.log("JUSTAX Interface v2.20 (Hero Animation Update) Initialization Complete.");
 
 }); // End DOMContentLoaded
