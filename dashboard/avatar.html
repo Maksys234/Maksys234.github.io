@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Justax - Аватарки с Уникальными Рамками</title>
+    <title>Justax - Аватарки с CSS Декорациями</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
@@ -23,8 +23,8 @@
             --accent-cyan: var(--accent-primary); --accent-cyan-rgb: var(--accent-primary-rgb);
             --accent-cyan-glow: rgba(var(--accent-cyan-rgb), 0.6); --accent-glow: rgba(var(--accent-primary-rgb), 0.6);
             --accent-secondary-glow: rgba(var(--accent-secondary-rgb), 0.5);
-            --accent-pink-glow: rgba(var(--accent-pink-rgb), 0.4); /* Added Pink glow */
-            --accent-lime-glow: rgba(var(--accent-lime-rgb), 0.5); /* Added Lime glow */
+            --accent-pink-glow: rgba(var(--accent-pink-rgb), 0.4);
+            --accent-lime-glow: rgba(var(--accent-lime-rgb), 0.5);
             --text-light: #f1f5f9; --text-medium: #b8c4e0; --text-muted: #808db0;
             --text-heading: #ffffff; --text-link: var(--accent-primary); --text-link-hover: #ffffff;
             --text-fixed-dark: #03020c; --white: #ffffff; --white-rgb: 255, 255, 255; --black: #000000;
@@ -34,7 +34,6 @@
             --gradient-button-hover: linear-gradient(100deg, var(--accent-primary) 0%, var(--accent-pink) 100%);
             --gradient-sidebar: linear-gradient(190deg, var(--bg-secondary) 0%, var(--dark-purple-accent) 100%);
             --gradient-profile-avatar: linear-gradient(145deg, var(--accent-primary), var(--accent-secondary));
-            --gradient-frame: linear-gradient(45deg, var(--accent-secondary), var(--accent-primary), var(--accent-pink), var(--accent-secondary));
             --font-primary: 'Inter', sans-serif; --font-secondary: 'Poppins', sans-serif; --font-mono: 'Roboto Mono', monospace;
             --shadow-glow: 0 0 25px var(--accent-glow); --shadow-card: 0 12px 40px rgba(0, 0, 0, 0.4);
             --shadow-interactive: 0 8px 20px rgba(var(--accent-primary-rgb), 0.4);
@@ -44,7 +43,6 @@
             --card-radius: 14px; --button-radius: 10px;
             --container-padding-x: 2rem;
             --transition-fast: all 0.2s ease-out; --transition-medium: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-            --avatar-frame-offset: 10px; /* Уменьшаем отступ для CSS рамки */
         }
 
         /* Базовые стили */
@@ -94,9 +92,7 @@
             display: inline-block;
             line-height: 0;
             flex-shrink: 0;
-            overflow: visible; /* Разрешаем рамке выходить за границы */
-            /* Уменьшаем стандартный отступ для CSS рамок */
-             --avatar-frame-offset: 6px;
+            /* overflow: visible; -- Убираем, т.к. украшения теперь ВНУТРИ или НА границе */
         }
         .avatar-content {
             display: flex;
@@ -108,104 +104,90 @@
             background-color: var(--accent-secondary);
             color: var(--white);
             font-weight: 600;
-            overflow: hidden;
+            overflow: hidden; /* Обрезаем изображение по кругу */
             border: 2px solid rgba(var(--accent-primary-rgb), 0.3);
             position: relative;
-            z-index: 1; /* Аватар НАД рамкой */
+            z-index: 1;
         }
         .avatar-content img {
             width: 100%;
             height: 100%;
             object-fit: cover;
         }
-        /* --- Общие стили для псевдоэлементов рамки --- */
+        /* --- Общие стили для псевдоэлементов украшений --- */
         .avatar-wrapper::before,
         .avatar-wrapper::after {
             content: '';
             position: absolute;
-            /* Позиционируем вокруг */
-            top: calc(-1 * var(--avatar-frame-offset));
-            left: calc(-1 * var(--avatar-frame-offset));
-            width: calc(100% + 2 * var(--avatar-frame-offset));
-            height: calc(100% + 2 * var(--avatar-frame-offset));
-            border-radius: 50%; /* Делаем рамку круглой */
-            pointer-events: none;
-            z-index: 0; /* Рамка ПОД аватаром */
-            box-sizing: border-box;
-            background: none; /* Убираем фон */
-            border: none; /* Убираем базовую границу */
-            /* Убираем background-image */
-            /* background-image: url('assets/decor_1.png'); */
-            /* background-size: contain; */
-            /* background-position: center; */
-            /* background-repeat: no-repeat; */
+            pointer-events: none; /* Не мешают кликам */
+            z-index: 2; /* Поверх аватара */
+            transition: all 0.3s ease;
         }
 
-        /* --- СТИЛЬ 1: Пульсирующий Неон --- */
-        .avatar-wrapper.frame-style-1::before {
-            border: 3px solid var(--accent-primary);
-            box-shadow: 0 0 12px var(--accent-glow);
-            animation: neonPulse 2s infinite ease-in-out;
+        /* --- СТИЛЬ 1: Корона --- */
+        .avatar-wrapper.decor-crown::before {
+            content: '👑';
+            font-size: 2em; /* Размер короны */
+            top: -18px; /* Положение над аватаром */
+            left: 50%;
+            transform: translateX(-50%) rotate(-5deg);
+            text-shadow: 0 2px 5px rgba(0,0,0,0.5);
+        }
+        .avatar-wrapper.decor-crown::after { content: none; } /* Убираем второй элемент */
+
+        /* --- СТИЛЬ 2: Лозы (Простая симуляция) --- */
+        .avatar-wrapper.decor-vines::before,
+        .avatar-wrapper.decor-vines::after {
+            content: '🌿';
+            font-size: 1.8em; /* Размер листиков */
             opacity: 0.9;
-            /* Сдвигаем немного ближе */
-            top: calc(-1 * var(--avatar-frame-offset) + 3px);
-            left: calc(-1 * var(--avatar-frame-offset) + 3px);
-            width: calc(100% + 2 * var(--avatar-frame-offset) - 6px);
-            height: calc(100% + 2 * var(--avatar-frame-offset) - 6px);
+            color: var(--accent-lime); /* Цвет */
+            text-shadow: 0 1px 3px rgba(0,0,0,0.4);
         }
-        .avatar-wrapper.frame-style-1::after {
-            display: none; /* Второй псевдоэлемент не нужен */
+        .avatar-wrapper.decor-vines::before {
+            bottom: -10px; left: -15px; transform: rotate(-40deg);
         }
-        @keyframes neonPulse {
-            0%, 100% { box-shadow: 0 0 8px var(--accent-glow); opacity: 0.8; }
-            50% { box-shadow: 0 0 16px var(--accent-glow), 0 0 5px var(--white); opacity: 1; }
+        .avatar-wrapper.decor-vines::after {
+            top: -15px; right: -10px; transform: rotate(130deg) scaleX(-1); /* Отражаем */
         }
 
-        /* --- СТИЛЬ 2: Двойная Пунктирная Рамка --- */
-        .avatar-wrapper.frame-style-2::before {
-            border: 2px dashed var(--accent-secondary);
-            opacity: 0.8;
-             top: calc(-1 * var(--avatar-frame-offset) + 2px);
-             left: calc(-1 * var(--avatar-frame-offset) + 2px);
-             width: calc(100% + 2 * var(--avatar-frame-offset) - 4px);
-             height: calc(100% + 2 * var(--avatar-frame-offset) - 4px);
-            animation: rotateFrame 15s linear infinite reverse; /* Медленнее и в другую сторону */
+        /* --- СТИЛЬ 3: Вращающаяся орбита --- */
+        .avatar-wrapper.decor-orbit::before {
+            content: '';
+            inset: -5px; /* Отступ орбиты */
+            border: 2px solid transparent;
+            border-top-color: var(--accent-pink);
+            border-right-color: var(--accent-pink); /* Добавляем цвет для полукруга */
+            border-radius: 50%;
+            animation: rotateFrame 4s linear infinite;
+            opacity: 0.9;
         }
-        .avatar-wrapper.frame-style-2::after {
-            border: 1px dashed var(--accent-pink);
-            opacity: 0.6;
-             top: calc(-1 * var(--avatar-frame-offset) + 5px);
-             left: calc(-1 * var(--avatar-frame-offset) + 5px);
-             width: calc(100% + 2 * var(--avatar-frame-offset) - 10px);
-             height: calc(100% + 2 * var(--avatar-frame-offset) - 10px);
-            animation: rotateFrame 12s linear infinite; /* С другой скоростью */
-        }
-
-        /* --- СТИЛЬ 3: Градиентная Вращающаяся Рамка --- */
-        .avatar-wrapper.frame-style-3::before {
-             /* Используем before для статичного свечения */
-             inset: -3px;
+        .avatar-wrapper.decor-orbit::after {
+             content: '';
+             position: absolute;
+             width: 8px; /* Размер "спутника" */
+             height: 8px;
+             background-color: var(--accent-pink);
              border-radius: 50%;
-             box-shadow: 0 0 15px var(--accent-secondary-glow);
-             opacity: 0.5;
+             top: -7px; /* = inset + border-width of ::before */
+             left: 50%;
+             transform: translateX(-50%);
+             box-shadow: 0 0 6px var(--accent-pink-glow);
+             animation: rotateFrameReverse 4s linear infinite; /* Вращается вместе с рамкой */
          }
-        .avatar-wrapper.frame-style-3::after {
-             inset: -5px; /* Немного дальше */
-             border: 2px solid transparent; /* Основа для border-image */
-             border-image: conic-gradient(from 0deg, var(--accent-lime), var(--accent-secondary), var(--accent-pink), var(--accent-lime)) 1;
-             animation: rotateFrame 8s linear infinite;
-         }
+         @keyframes rotateFrameReverse { from { transform: translateX(-50%) rotate(0deg); } to { transform: translateX(-50%) rotate(-360deg); } }
 
-         /* --- СТИЛЬ 4: Тонкая Яркая Рамка --- */
-         .avatar-wrapper.frame-style-4::before {
-             inset: -2px;
-             border: 2px solid var(--accent-lime);
-             box-shadow: 0 0 6px var(--accent-lime-glow);
-         }
-         .avatar-wrapper.frame-style-4::after {
-             display: none; /* Второй псевдоэлемент не нужен */
-         }
 
+        /* --- СТИЛЬ 4: Яркое Свечение --- */
+        .avatar-wrapper.decor-glow {
+            /* Свечение добавляется прямо к обертке */
+            box-shadow: 0 0 25px 5px var(--accent-lime-glow);
+            border-radius: 50%; /* Обязательно для круглого свечения */
+        }
+        .avatar-wrapper.decor-glow::before,
+        .avatar-wrapper.decor-glow::after {
+            content: none; /* Псевдоэлементы не нужны */
+        }
 
         @keyframes rotateFrame {
             from { transform: rotate(0deg); }
@@ -218,17 +200,14 @@
             width: 42px; height: 42px;
             margin-right: 0.85rem;
             transition: margin-right var(--transition-medium) ease, width var(--transition-medium) ease, height var(--transition-medium) ease;
-            --avatar-frame-offset: 3px; /* Меньший отступ */
         }
-         /* Упрощаем рамку в сайдбаре */
-         .sidebar .avatar-wrapper::before {
-             inset: -2px;
-             border: 1px solid var(--accent-primary);
-             opacity: 0.6;
-             box-shadow: none;
-             animation: none;
-         }
-         .sidebar .avatar-wrapper::after { display: none; }
+        /* Уменьшаем украшения в сайдбаре */
+        .sidebar .avatar-wrapper::before,
+        .sidebar .avatar-wrapper::after { font-size: 1em; /* Меньше символы */ top: -5px; left: -5px; bottom: -5px; right: -5px; }
+        .sidebar .avatar-wrapper.decor-orbit::before { inset: -3px; border-width: 1px; }
+        .sidebar .avatar-wrapper.decor-orbit::after { width: 4px; height: 4px; top: -4px; }
+        .sidebar .avatar-wrapper.decor-glow { box-shadow: 0 0 10px 2px var(--accent-lime-glow); }
+
         .sidebar .avatar-content {
             font-size: 1.1rem;
             transition: font-size var(--transition-medium) ease;
@@ -262,25 +241,24 @@
         /* Стили для основного аватара */
         #avatar-display-area {
             display: flex;
-            flex-wrap: wrap; /* Разрешаем перенос */
+            flex-wrap: wrap;
             justify-content: center;
             align-items: center;
             flex-grow: 1;
             padding: 2rem;
-            gap: 3rem; /* Отступы */
-            overflow-y: auto; /* Скролл */
+            gap: 4rem; /* Увеличим отступ, чтобы рамки не перекрывались */
+            overflow-y: auto;
         }
         #avatar-display-area .avatar-wrapper {
-            width: 150px; /* Уменьшенный размер */
+            width: 150px;
             height: 150px;
             border-radius: 50%;
-            --avatar-frame-offset: 6px; /* Немного уменьшенный отступ */
         }
         #avatar-display-area .avatar-content {
             border: 4px solid var(--accent-primary);
             box-shadow: 0 0 20px rgba(var(--accent-primary-rgb), 0.5), inset 0 0 10px rgba(0,0,0,0.2);
             background: var(--gradient-profile-avatar, var(--card-solid));
-            font-size: 3rem; /* Уменьшенный шрифт */
+            font-size: 3rem;
             font-weight: 600;
         }
         #avatar-display-area .avatar-placeholder span { line-height: 1; }
@@ -294,11 +272,11 @@
 
         /* Адаптивность */
         @media (max-width: 992px) { .mobile-menu-toggle#main-mobile-menu-toggle { display: block; } }
-        @media (max-width: 768px) { main { padding: 0 1rem; } .dashboard-header { padding: 0.8rem 1rem; } .header-content { flex-direction: column; align-items: stretch; } .header-left-group { justify-content: space-between;} #avatar-display-area { padding: 1.5rem; gap: 2rem;} #avatar-display-area .avatar-wrapper { width: 120px; height: 120px; } }
-        @media (max-width: 576px) { main { padding: 0 0.75rem; margin-left: 0; width: 100%; } .sidebar { transform: translateX(-110%); width: 280px; z-index: 1000; } .sidebar.active { transform: translateX(0); } .sidebar.active .sidebar-logo span, .sidebar.active .sidebar-link span, .sidebar.active .user-info, .sidebar.active .sidebar-footer { display: block; } .sidebar.active .sidebar-link i { margin-right: 0.85rem; font-size: 1.25rem; } .sidebar.active .sidebar-header, .sidebar.active .sidebar-link { justify-content: flex-start; } .sidebar.active .user-profile { padding: 1rem; } .sidebar.active .user-profile .avatar-wrapper { margin-right: 0.85rem; width: 42px; height: 42px; } .sidebar.active .user-profile .avatar-content { font-size: 1.1rem; } .sidebar-toggle-btn { display: none; } #avatar-display-area { padding: 1rem; gap: 1.5rem;} #avatar-display-area .avatar-wrapper { width: 100px; height: 100px; } #avatar-display-area .avatar-content { font-size: 2rem; } }
+        @media (max-width: 768px) { main { padding: 0 1rem; } .dashboard-header { padding: 0.8rem 1rem; } .header-content { flex-direction: column; align-items: stretch; } .header-left-group { justify-content: space-between;} #avatar-display-area { padding: 1.5rem; gap: 2.5rem;} #avatar-display-area .avatar-wrapper { width: 120px; height: 120px; } }
+        @media (max-width: 576px) { main { padding: 0 0.75rem; margin-left: 0; width: 100%; } .sidebar { transform: translateX(-110%); width: 280px; z-index: 1000; } .sidebar.active { transform: translateX(0); } .sidebar.active .sidebar-logo span, .sidebar.active .sidebar-link span, .sidebar.active .user-info, .sidebar.active .sidebar-footer { display: block; } .sidebar.active .sidebar-link i { margin-right: 0.85rem; font-size: 1.25rem; } .sidebar.active .sidebar-header, .sidebar.active .sidebar-link { justify-content: flex-start; } .sidebar.active .user-profile { padding: 1rem; } .sidebar.active .user-profile .avatar-wrapper { margin-right: 0.85rem; width: 42px; height: 42px; } .sidebar.active .user-profile .avatar-content { font-size: 1.1rem; } .sidebar-toggle-btn { display: none; } #avatar-display-area { padding: 1rem; gap: 2rem;} #avatar-display-area .avatar-wrapper { width: 100px; height: 100px; } #avatar-display-area .avatar-content { font-size: 2rem; } }
 
         /* Уменьшение движения */
-        @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; } .sidebar, main { transition: none !important; } .btn-icon-only i { transition: none !important; } .avatar-wrapper::after { animation: none !important; } }
+        @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; } .sidebar, main { transition: none !important; } .btn-icon-only i { transition: none !important; } .avatar-wrapper::after, .avatar-wrapper::before { animation: none !important; } }
         /* --- END: Встроенные стили --- */
     </style>
 </head>
@@ -320,7 +298,7 @@
             <li class="sidebar-item"> <a href="/dashboard/profile.html" class="sidebar-link active"> <i class="fas fa-user-astronaut"></i> <span>Profil</span> </a> </li>
         </ul>
         <div class="user-profile">
-             <div class="avatar-wrapper frame-style-1" data-decoration-key=""> <div class="avatar-content" id="sidebar-avatar">?</div>
+             <div class="avatar-wrapper decor-crown" data-decoration-key=""> <div class="avatar-content" id="sidebar-avatar">?</div>
              </div>
             <div class="user-info">
                 <div class="user-name" id="sidebar-name">Загрузка...</div>
@@ -344,35 +322,33 @@
 
         <div class="main-content-wrapper">
             <div id="avatar-display-area" class="avatar-container">
-                <div class="avatar-wrapper frame-style-1">
+                <div class="avatar-wrapper decor-crown">
                     <div class="avatar-content"><span class="avatar-placeholder">A</span></div>
                 </div>
-                <div class="avatar-wrapper frame-style-2">
+                <div class="avatar-wrapper decor-vines">
                     <div class="avatar-content"><span class="avatar-placeholder">B</span></div>
                 </div>
-                <div class="avatar-wrapper frame-style-3">
+                <div class="avatar-wrapper decor-orbit">
                     <div class="avatar-content"><span class="avatar-placeholder">C</span></div>
                 </div>
-                <div class="avatar-wrapper frame-style-4">
+                <div class="avatar-wrapper decor-glow">
                     <div class="avatar-content"><span class="avatar-placeholder">D</span></div>
                 </div>
-                <div class="avatar-wrapper frame-style-1">
-                    <div class="avatar-content"><span class="avatar-placeholder">E</span></div>
+                <div class="avatar-wrapper frame-style-1"> <div class="avatar-content"><span class="avatar-placeholder">E</span></div>
                 </div>
-                <div class="avatar-wrapper frame-style-2">
+                <div class="avatar-wrapper decor-crown">
                     <div class="avatar-content"><span class="avatar-placeholder">F</span></div>
                 </div>
-                <div class="avatar-wrapper frame-style-3">
+                <div class="avatar-wrapper decor-vines">
                     <div class="avatar-content"><span class="avatar-placeholder">G</span></div>
                 </div>
-                <div class="avatar-wrapper frame-style-4">
+                <div class="avatar-wrapper decor-orbit">
                     <div class="avatar-content"><span class="avatar-placeholder">H</span></div>
                 </div>
-                <div class="avatar-wrapper frame-style-1">
+                <div class="avatar-wrapper decor-glow">
                     <div class="avatar-content"><span class="avatar-placeholder">I</span></div>
                 </div>
-                <div class="avatar-wrapper frame-style-2">
-                    <div class="avatar-content"><span class="avatar-placeholder">J</span></div>
+                <div class="avatar-wrapper frame-style-3"> <div class="avatar-content"><span class="avatar-placeholder">J</span></div>
                 </div>
             </div>
         </div>
@@ -386,7 +362,7 @@
     <script>
         (function() {
             'use strict';
-            console.log("[Init Avatar Standalone v7 - Multiple CSS Frames] Starting...");
+            console.log("[Init Avatar Standalone v8 - Decorations] Starting...");
 
             const supabaseUrl = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
             const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10';
@@ -425,15 +401,14 @@
             async function fetchTitles() { if (!supabase) return []; try { const { data, error } = await supabase.from('title_shop').select('title_key, name'); if (error) throw error; return data || []; } catch (e) { console.error("Titles fetch error:", e); return []; } }
             async function createDefaultProfile(userId, userEmail) { if (!supabase || !userId || !userEmail) return null; try { const defaultData = { id: userId, email: userEmail, username: userEmail.split('@')[0] || `user_${userId.substring(0, 6)}`, level: 1, points: 0, experience: 0, badges_count: 0, streak_days: 0, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), preferences: { dark_mode: window.matchMedia('(prefers-color-scheme: dark)').matches }, notifications: { email: true } }; const { data: newProfile, error } = await supabase.from('profiles').insert(defaultData).select('*, selected_title').single(); if (error) { if (error.code === '23505') { return await fetchUserProfile(userId); } throw error; } return newProfile; } catch (error) { console.error("Failed to create default profile:", error); return null; } }
 
-
             function updateSidebarAvatar(profile) {
                  if (!ui.sidebarAvatar) return;
                  const avatarContainer = ui.sidebarAvatar.closest('.avatar-wrapper'); // Получаем обертку
-                 if (!avatarContainer) return; // Проверка на существование обертки
+                 if (!avatarContainer) return;
 
                  if (!profile) {
                      ui.sidebarAvatar.innerHTML = '?';
-                      avatarContainer.className = 'avatar-wrapper'; // Сброс классов рамки
+                      avatarContainer.className = 'avatar-wrapper'; // Сброс классов
                      return;
                  }
 
@@ -447,9 +422,14 @@
                  const sidebarImg = ui.sidebarAvatar.querySelector('img');
                  if (sidebarImg) sidebarImg.onerror = () => { ui.sidebarAvatar.innerHTML = `<span>${sanitizeHTML(initials)}</span>`; };
 
-                 // Применяем стиль рамки (здесь можно добавить логику выбора стиля)
-                 // Пока просто добавим стиль 1 как пример
-                  avatarContainer.className = 'avatar-wrapper frame-style-1';
+                 // --- ПРИМЕНЕНИЕ СТИЛЯ РАМКИ/ДЕКОРАЦИИ В САЙДБАРЕ ---
+                 // Здесь можно добавить логику выбора стиля на основе данных профиля
+                 // Например, если у пользователя есть `profile.selected_decoration`
+                 // const decorationClass = profile.selected_decoration ? `decor-${profile.selected_decoration}` : 'decor-default'; // Пример
+                 // avatarContainer.className = `avatar-wrapper ${decorationClass}`;
+                 // Пока используем фиксированный стиль для примера:
+                  avatarContainer.className = 'avatar-wrapper decor-crown';
+                 // --- КОНЕЦ ПРИМЕНЕНИЯ СТИЛЯ ---
             }
 
             function updateUI(profile, titles) {
@@ -465,9 +445,8 @@
                         ui.sidebarUserTitle.title = sanitizeHTML(displayTitle);
                     } else { ui.sidebarName.textContent = "Nepřihlášen"; ui.sidebarUserTitle.textContent = 'Pilot'; }
                 }
-                // Обновляем только аватар в сайдбаре
                  updateSidebarAvatar(profile);
-                 // Основные аватары уже добавлены в HTML статически
+                 // Основные аватары статичны, обновлять не нужно
             }
 
             function setupEventListeners() {
@@ -481,7 +460,7 @@
             }
 
             async function initializeApp() {
-                console.log("[Init Avatar Standalone v7 - Multiple CSS Frames] Running initializeApp...");
+                console.log("[Init Avatar Standalone v8 - Decorations] Running initializeApp...");
                 if (!initializeSupabase()) return;
 
                 applyInitialSidebarState();
