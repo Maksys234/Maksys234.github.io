@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Justax - Аватарки (Тест Фона Обертки)</title>
+    <title>Justax - Аватарки (Тест Фона + Отн. Путь)</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
@@ -90,17 +90,16 @@
             margin-right: 0.85rem; transition: margin-right var(--transition-medium) ease;
             flex-shrink: 0;
             width: 42px; height: 42px;
-            /* Убираем фон и padding с wrapper в сайдбаре */
-             background: none; padding: 0; border-radius: 50%; /* Скругление на всякий случай */
+             background: none; padding: 0; border-radius: 50%;
         }
         .user-avatar { /* Сам аватар в сайдбаре */
             width: 100%; height: 100%; border-radius: 50%;
             background-color: var(--accent-secondary);
             display: flex; align-items: center; justify-content: center;
             font-weight: 600; font-size: 1.1rem; overflow: hidden; color: var(--white);
-            border: 2px solid rgba(var(--accent-primary-rgb), 0.3); /* Оставляем границу здесь */
+            border: 2px solid rgba(var(--accent-primary-rgb), 0.3);
             transition: all var(--transition-medium) ease;
-            position: relative; /* Для z-index */
+            position: relative;
         }
         .user-avatar img { width: 100%; height: 100%; object-fit: cover; }
         .user-info { flex-grow: 1; overflow: hidden; transition: opacity 0.1s linear, max-width 0.2s linear 0.1s; opacity: 1; max-width: 150px; }
@@ -116,7 +115,7 @@
         body.sidebar-collapsed .sidebar-link i { margin-right: 0; font-size: 1.4rem; }
         body.sidebar-collapsed .user-profile { padding: 0.8rem 0; justify-content: center; }
         body.sidebar-collapsed .user-profile .avatar-wrapper { margin-right: 0; width: 40px; height: 40px; padding: 0; background: none; }
-        body.sidebar-collapsed .user-avatar { font-size: 1rem; width: 100%; height: 100%; } /* Аватар заполняет wrapper */
+        body.sidebar-collapsed .user-avatar { font-size: 1rem; width: 100%; height: 100%; }
         body.sidebar-collapsed main#main-content { margin-left: var(--sidebar-collapsed-width); width: calc(100% - var(--sidebar-collapsed-width)); }
         body.sidebar-collapsed .sidebar-toggle-btn i { transform: rotate(180deg); }
 
@@ -134,54 +133,45 @@
 
         #avatar-display-area .avatar-wrapper {
             position: relative; display: inline-block; line-height: 0;
-            /* --- ЗАДАЙТЕ РАЗМЕРЫ ОБЕРТКИ СОГЛАСНО РАМКЕ --- */
+            /* --- РАЗМЕРЫ ОБЕРТКИ --- */
             width: 220px;  /* Пример */
             height: 260px; /* Пример */
-            /* --- УБИРАЕМ BORDER-RADIUS --- */
+            /* --- БЕЗ СКРУГЛЕНИЯ --- */
             border-radius: 0;
-            /* --- ДОБАВЛЯЕМ PADDING --- */
+            /* --- PADDING --- */
             padding: var(--avatar-frame-padding, 15px);
-            /* --- ДОБАВЛЯЕМ ФОН (РАМКА + ДЕБАГ-ЦВЕТ) --- */
+            /* --- ФОН: КАРТИНКА + ЦВЕТ --- */
             background-size: 100% 100%;
             background-position: center;
             background-repeat: no-repeat;
-            box-sizing: border-box;
-            border: none;
-            box-shadow: none;
+            box-sizing: border-box; border: none; box-shadow: none;
         }
         /* Классы для разных рамок */
         #avatar-display-area .avatar-wrapper.frame-png-1 {
-            /* --- ТЕСТОВЫЙ ПУТЬ ОТ КОРНЯ --- */
-            background-image: url('/dashboard/assets/frame1.png');
+            /* --- ОТНОСИТЕЛЬНЫЙ ПУТЬ --- */
+            background-image: url('assets/frame1.png');
             background-color: lime; /* <-- ДЕБАГ ЦВЕТ */
         }
         #avatar-display-area .avatar-wrapper.frame-png-2 {
-             /* --- ТЕСТОВЫЙ ПУТЬ ОТ КОРНЯ --- */
-            background-image: url('/dashboard/assets/frame2.png');
+             /* --- ОТНОСИТЕЛЬНЫЙ ПУТЬ --- */
+            background-image: url('assets/frame2.png');
             background-color: lime; /* <-- ДЕБАГ ЦВЕТ */
         }
 
         #avatar-display-area .avatar-content {
             width: 100%; height: 100%;
-            border-radius: 50%; /* --- ДЕЛАЕМ КОНТЕНТ КРУГЛЫМ --- */
-            /* --- ДОБАВЛЯЕМ ЦВЕТ КОНТЕНТА ДЛЯ ТЕСТА --- */
+            border-radius: 50%; /* --- КРУГЛЫЙ КОНТЕНТ --- */
+            /* --- ДЕБАГ ЦВЕТ КОНТЕНТА --- */
             background-color: yellow;
-            /* background-color: var(--accent-secondary); */
-            color: var(--text-fixed-dark); /* Темный текст на желтом */
-            /* -------------------------------------- */
+            color: var(--text-fixed-dark);
+            /* --------------------------- */
             display: flex; align-items: center; justify-content: center;
-            overflow: hidden;
-            position: relative; z-index: 1;
-            border: none; /* Убираем границу контента */
+            overflow: hidden; position: relative; z-index: 1; border: none;
             box-sizing: border-box;
         }
         #avatar-display-area .avatar-content img { display: block; width: 100%; height: 100%; object-fit: cover; }
-        #avatar-display-area .avatar-content .avatar-placeholder {
-             font-size: 4rem; font-weight: 600; line-height: 1; display: flex;
-             align-items: center; justify-content: center; width: 100%; height: 100%;
-             /* background: var(--gradient-profile-avatar); */ /* Убираем градиент на время теста */
-        }
-        /* --- Убираем неиспользуемые стили --- */
+        #avatar-display-area .avatar-content .avatar-placeholder { font-size: 4rem; font-weight: 600; line-height: 1; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; }
+         /* --- Убираем неиспользуемые стили --- */
          #avatar-display-area .avatar-wrapper::after { content: none; }
          #avatar-display-area .avatar-frame-overlay { display: none; }
          /* ---------------------------------- */
@@ -273,7 +263,7 @@
     <script>
         (function() {
             'use strict';
-            console.log("[Init Avatar Standalone v19 - Debug Background Frame] Starting...");
+            console.log("[Init Avatar Standalone v19 - Debug Path] Starting...");
 
             const supabaseUrl = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
             const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10';
@@ -322,18 +312,15 @@
                         ui.sidebarName.textContent = sanitizeHTML(displayName);
                         const initials = getInitials(profile);
                         const avatarUrl = profile.avatar_url;
-                        // Обновление аватара в сайдбаре
                         ui.sidebarAvatar.innerHTML = avatarUrl ? `<img src="${sanitizeHTML(avatarUrl)}?t=${Date.now()}" alt="${sanitizeHTML(initials)}">` : sanitizeHTML(initials);
                          const sidebarImg = ui.sidebarAvatar.querySelector('img');
                          if (sidebarImg) { sidebarImg.onerror = () => { ui.sidebarAvatar.innerHTML = sanitizeHTML(initials); }; }
-                        // Обновление титула
                         const selectedTitleKey = profile.selected_title;
                         let displayTitle = 'Pilot';
                         if (selectedTitleKey && titles?.length > 0) { const foundTitle = titles.find(t => t.title_key === selectedTitleKey); if (foundTitle) displayTitle = foundTitle.name; }
                         ui.sidebarUserTitle.textContent = sanitizeHTML(displayTitle); ui.sidebarUserTitle.title = sanitizeHTML(displayTitle);
                     } else { ui.sidebarName.textContent = "Nepřihlášen"; ui.sidebarAvatar.textContent = '?'; ui.sidebarUserTitle.textContent = 'Pilot'; }
                 }
-                 // Основные аватары остаются статичными с плейсхолдерами в HTML
                  console.log("Main avatars in HTML are static placeholders.");
             }
 
