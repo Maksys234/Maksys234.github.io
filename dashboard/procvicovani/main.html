@@ -24,9 +24,9 @@
 
     <style>
         /* --- Goal Selection Modal Styles --- */
-        .modal { /* Общие стили модального окна (ensure these are defined) */
+        .modal { /* Общие стили модального окна */
             display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background-color: rgba(var(--bg-color, 3, 2, 12), 0.85); /* Используем переменные, если есть */
+            background-color: rgba(var(--bg-color, 3, 2, 12), 0.85); /* Используем переменные CSS */
             z-index: 1050; align-items: center; justify-content: center;
             opacity: 0; transition: opacity 0.3s ease, backdrop-filter 0.3s ease;
             backdrop-filter: blur(5px); padding: 1rem;
@@ -35,11 +35,11 @@
         .modal-content {
             background-color: var(--interface-bg, #0a071f);
             border-radius: var(--card-radius, 14px);
-            width: 90%; max-width: 600px; /* Макс ширина окна */
+            width: 90%; max-width: 700px; /* Немного шире для 4 опций */
             box-shadow: var(--shadow-card, 0 12px 40px rgba(0, 0, 0, 0.4));
             border: 1px solid var(--border-color-medium, rgba(160, 92, 255, 0.45));
             display: flex; flex-direction: column;
-            max-height: 85vh;
+            max-height: 90vh; /* Увеличим максимальную высоту */
             animation: modalFadeIn 0.4s ease-out;
         }
         @keyframes modalFadeIn { from { opacity: 0; transform: translateY(-20px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
@@ -50,19 +50,16 @@
         .modal-footer { padding: 1rem 1.5rem; border-top: 1px solid var(--border-color-light, rgba(160, 92, 255, 0.25)); }
         .modal-footer small { color: var(--text-muted); font-size: 0.85rem; }
 
-        /* Goal Selection Specific Styles */
+        /* Стили для выбора цели */
         .goal-options {
-            display: flex;
+            display: grid; /* Используем grid для лучшего контроля */
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); /* Адаптивные колонки */
             gap: 1.5rem;
             margin-top: 1.5rem;
             justify-content: center;
-            flex-wrap: wrap;
         }
         .goal-option-card {
-            flex: 1;
-            min-width: 220px;
-            max-width: 300px;
-            padding: 1.8rem;
+            padding: 1.5rem; /* Уменьшим padding */
             text-align: center;
             cursor: pointer;
             transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
@@ -72,7 +69,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            border-radius: var(--card-radius, 14px); /* Ensure card radius */
+            border-radius: var(--card-radius, 14px);
         }
          .goal-option-card:hover {
              transform: translateY(-5px) scale(1.02);
@@ -80,22 +77,22 @@
              border-color: var(--accent-primary, #00e0ff);
          }
         .goal-icon {
-            font-size: 2.5rem;
+            font-size: 2.2rem; /* Уменьшим иконку */
             color: var(--accent-primary, #00e0ff);
-            margin-bottom: 1rem;
+            margin-bottom: 0.8rem; /* Уменьшим отступ */
             display: block;
         }
          .goal-option-card h3 {
-             font-size: 1.2rem;
+             font-size: 1.1rem; /* Уменьшим заголовок */
              color: var(--text-heading, #fff);
              margin-bottom: 0.5rem;
              font-weight: 600;
          }
          .goal-option-card p {
-             font-size: 0.9rem;
+             font-size: 0.85rem; /* Уменьшим текст */
              color: var(--text-medium, #b8c4e0);
              margin-bottom: 0;
-             line-height: 1.5;
+             line-height: 1.4; /* Уменьшим межстрочный интервал */
          }
         /* --- End Goal Selection Modal Styles --- */
     </style>
@@ -149,10 +146,10 @@
                       <button class="btn btn-icon-only sidebar-toggle-btn" id="sidebar-toggle-btn" aria-label="Přepnout postranní panel" title="Přepnout postranní panel">
                            <i class="fas fa-chevron-left"></i>
                        </button>
-                       <button class="mobile-menu-toggle" id="main-mobile-menu-toggle" aria-label="Otevřít menu">
+                      <button class="mobile-menu-toggle" id="main-mobile-menu-toggle" aria-label="Otevřít menu">
                           <i class="fas fa-bars"></i>
                      </button>
-                     <h1><i class="fas fa-laptop-code"></i> Procvičování // Přehled</h1>
+                     <h1 id="dashboard-title"><i class="fas fa-laptop-code"></i> Procvičování // Přehled</h1>
                  </div>
                 <div class="header-actions">
                     <button class="refresh-btn btn-tooltip" id="refresh-data-btn" title="Obnovit data">
@@ -231,7 +228,7 @@
                         <div class="shortcut-grid loading" id="shortcuts-grid">
                             <div class="shortcut-card card loading"> <div class="loading-skeleton" style="align-items: center; padding: 1.8rem;"><div class="skeleton" style="width: 60px; height: 60px; border-radius: 16px; margin-bottom: 1.2rem;"></div><div class="skeleton" style="height: 18px; width: 70%; margin-bottom: 0.8rem;"></div><div class="skeleton" style="height: 14px; width: 90%; margin-bottom: 0.4rem;"></div><div class="skeleton" style="height: 14px; width: 80%;"></div></div></div>
                             <div class="shortcut-card card loading"> <div class="loading-skeleton" style="align-items: center; padding: 1.8rem;"><div class="skeleton" style="width: 60px; height: 60px; border-radius: 16px; margin-bottom: 1.2rem;"></div><div class="skeleton" style="height: 18px; width: 65%; margin-bottom: 0.8rem;"></div><div class="skeleton" style="height: 14px; width: 85%; margin-bottom: 0.4rem;"></div><div class="skeleton" style="height: 14px; width: 75%;"></div></div></div>
-                        </div>
+                            </div>
                     </section>
                 </div>
 
@@ -319,16 +316,26 @@
                     Toto nastavení ovlivní doporučený obsah a funkce.
                 </p>
                 <div class="goal-options">
-                    <button class="goal-option-card card" id="select-goal-exam">
+                    <button class="goal-option-card card" id="select-goal-exam" data-goal="exam_prep">
                         <i class="fas fa-graduation-cap goal-icon"></i>
                         <h3>Příprava na přijímačky</h3>
-                        <p>Cvičení a testy zaměřené na typické úlohy z přijímacích zkoušek.</p>
+                        <p>Cílená příprava, testy a témata typická pro přijímací zkoušky.</p>
                     </button>
-                    <button class="goal-option-card card" id="select-goal-math">
-                        <i class="fas fa-calculator goal-icon"></i>
-                        <h3>Zlepšení v matematice</h3>
-                        <p>Procvičování konkrétních matematických témat a dovedností podle školní osnovy.</p>
+                    <button class="goal-option-card card" id="select-goal-accelerate" data-goal="math_accelerate">
+                        <i class="fas fa-rocket goal-icon"></i>
+                        <h3>Učení napřed</h3>
+                        <p>Chci se učit matematiku rychleji než ve škole nebo probírat pokročilejší témata.</p>
                     </button>
+                    <button class="goal-option-card card" id="select-goal-review" data-goal="math_review">
+                        <i class="fas fa-sync-alt goal-icon"></i>
+                        <h3>Doplnění mezer</h3>
+                        <p>Potřebuji zopakovat a procvičit témata, ve kterých si nejsem jistý/á.</p>
+                    </button>
+                     <button class="goal-option-card card" id="select-goal-explore" data-goal="math_explore">
+                         <i class="fas fa-compass goal-icon"></i>
+                         <h3>Volné prozkoumávání</h3>
+                         <p>Chci si sám/sama vybírat témata k učení a procvičování.</p>
+                     </button>
                 </div>
             </div>
              <div class="modal-footer" style="justify-content: center; border-top: none; padding-top: 0; margin-top: 1rem;">
