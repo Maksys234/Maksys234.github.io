@@ -388,4 +388,4 @@
 	// Call initializeApp directly since it's defined now
 	initializeApp();
 
-}; // <<<< END IIFE
+)}; // <<<< END IIFE
