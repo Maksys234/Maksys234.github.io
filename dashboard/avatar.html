@@ -3,63 +3,158 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Justax - Аватарка (Улучшенная)</title>
+    <title>Justax - Аватарка (Самодостаточная)</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
-    <link rel="stylesheet" href="../dashboard.css"> <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/css/tooltipster.bundle.min.css"> <style>
-      #avatar-display-area {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        flex-grow: 1; /* Занимает доступное пространство */
-        padding: 2rem;
-      }
-      .avatar-wrapper {
-        position: relative;
-        width: 250px; /* Немного больше */
-        height: 250px;
-        border-radius: 50%;
-        overflow: hidden;
-        border: 5px solid var(--accent-primary); /* Ярче рамка */
-        box-shadow: 0 0 30px rgba(var(--accent-primary-rgb), 0.6), inset 0 0 15px rgba(0,0,0,0.2);
-        background: var(--gradient-profile-avatar, var(--card-solid)); /* Фоновый градиент */
-      }
-      .avatar-wrapper img,
-      .avatar-wrapper .avatar-placeholder {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        display: flex; /* Для плейсхолдера */
-        align-items: center;
-        justify-content: center;
-        color: var(--white);
-        font-size: 5rem; /* Крупнее плейсхолдер */
-        font-weight: 600;
-        background-color: transparent; /* Убираем фон плейсхолдера, если есть градиент */
-      }
+    <style>
+        /* --- START: Скопированные и адаптированные стили --- */
+        /* Глобальные переменные (скопированы из dashboard.css) */
+        :root {
+            --bg-color: #03020c; --bg-secondary: #0a071f; --bg-secondary-rgb: 10, 7, 31;
+            --card-bg: rgba(15, 10, 45, 0.88); --card-solid: #0f0a2d; --card-solid-rgb: 15, 10, 45;
+            --interface-bg: rgba(6, 4, 22, 0.92); --interface-border: rgba(0, 240, 255, 0.35);
+            --dark-purple-accent: #160c41; --accent-primary: #00e0ff; --accent-primary-rgb: 0, 224, 255;
+            --accent-secondary: #a05cff; --accent-secondary-rgb: 160, 92, 255;
+            --accent-pink: #ff33a8; --accent-pink-rgb: 255, 51, 168;
+            --accent-lime: #6fff3a; --accent-lime-rgb: 111, 255, 58;
+            --accent-cyan: var(--accent-primary); --accent-cyan-rgb: var(--accent-primary-rgb);
+            --accent-cyan-glow: rgba(var(--accent-cyan-rgb), 0.6); --accent-glow: rgba(var(--accent-primary-rgb), 0.6);
+            --accent-secondary-glow: rgba(var(--accent-secondary-rgb), 0.5);
+            --accent-pink-glow: rgba(var(--accent-pink-rgb), 0.4); --accent-lime-glow: rgba(var(--accent-lime-rgb), 0.5);
+            --accent-border-glow: rgba(var(--accent-primary-rgb), 0.7); --accent-orange: #f8961e;
+            --accent-orange-rgb: 248, 150, 30; --accent-orange-glow: rgba(var(--accent-orange-rgb), 0.5);
+            --text-light: #f1f5f9; --text-medium: #b8c4e0; --text-muted: #808db0;
+            --text-heading: #ffffff; --text-link: var(--accent-primary); --text-link-hover: #ffffff;
+            --text-fixed-dark: #03020c; --white: #ffffff; --white-rgb: 255, 255, 255; --black: #000000;
+            --border-color-light: rgba(var(--accent-secondary-rgb), 0.25); --border-color-medium: rgba(var(--accent-secondary-rgb), 0.45);
+            --border-color-strong: rgba(var(--accent-primary-rgb), 0.65); --border-interactive: var(--accent-primary);
+            --gradient-button: linear-gradient(100deg, var(--accent-secondary) 0%, var(--accent-primary) 100%);
+            --gradient-button-hover: linear-gradient(100deg, var(--accent-primary) 0%, var(--accent-pink) 100%);
+            --gradient-sidebar: linear-gradient(190deg, var(--bg-secondary) 0%, var(--dark-purple-accent) 100%);
+            --gradient-profile-avatar: linear-gradient(145deg, var(--accent-primary), var(--accent-secondary));
+            --font-primary: 'Inter', sans-serif; --font-secondary: 'Poppins', sans-serif; --font-mono: 'Roboto Mono', monospace;
+            --shadow-glow: 0 0 25px var(--accent-glow); --shadow-card: 0 12px 40px rgba(0, 0, 0, 0.4);
+            --shadow-interactive: 0 8px 20px rgba(var(--accent-primary-rgb), 0.4);
+            --shadow-hud: 0 4px 15px rgba(0,0,0,0.3), inset 0 1px 2px rgba(var(--accent-primary-rgb), 0.1);
+            --shadow-text-glow: 0 0 8px rgba(var(--accent-primary-rgb), 0.6);
+            --sidebar-width: 260px; --sidebar-collapsed-width: 80px;
+            --card-radius: 14px; --button-radius: 10px;
+            --container-padding-x: 2rem;
+            --transition-fast: all 0.2s ease-out; --transition-medium: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-entrance: all 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
+        }
+
+        /* Базовые стили */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; font-size: 16px; -webkit-text-size-adjust: 100%; }
+        body { background-color: var(--bg-color); color: var(--text-medium); font-family: var(--font-primary); line-height: 1.7; min-height: 100vh; display: flex; overflow: hidden; position: relative; }
+        body::before { content: ""; position: fixed; inset: 0; z-index: -3; background-image: linear-gradient(rgba(var(--accent-secondary-rgb), 0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(var(--accent-secondary-rgb), 0.04) 1px, transparent 1px); background-size: 40px 40px; opacity: 0.6; pointer-events: none; }
+        h1 { font-family: var(--font-secondary); font-weight: 700; color: var(--text-heading); margin-bottom: 1em; text-shadow: 0 1px 3px rgba(0,0,0,0.3); font-size: clamp(1.6rem, 3vw, 1.9rem); }
+        a:focus-visible, button:focus-visible { outline: 3px solid var(--accent-primary); outline-offset: 4px; border-radius: 6px; box-shadow: 0 0 12px var(--accent-glow); }
+        :is(a, button):focus { outline: none; }
+
+        /* Кнопки (упрощенные) */
+        .btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.5em; padding: 0.6rem 1.2rem; background: transparent; color: var(--accent-primary); border: 2px solid var(--accent-primary); border-radius: var(--button-radius); font-family: var(--font-secondary); font-weight: 600; font-size: 0.9rem; cursor: pointer; transition: all var(--transition-medium); }
+        .btn:hover:not(:disabled) { color: var(--text-fixed-dark); background: var(--gradient-button); border-color: transparent; transform: translateY(-2px); }
+        .btn-icon-only { padding: 0.5rem; width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--border-color-medium); color: var(--text-muted); background-color: rgba(var(--bg-secondary-rgb), 0.3); }
+        .btn-icon-only i { margin-right: 0; font-size: 1rem; transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        .btn-icon-only:hover:not(:disabled) { background-color: rgba(var(--accent-primary-rgb), 0.15); border-color: var(--accent-primary); color: var(--accent-primary); }
+        .sidebar-toggle-btn { margin-right: 0.8rem; display: none; }
+        @media (min-width: 993px) { .sidebar-toggle-btn { display: inline-flex; } }
+
+        /* --- Sidebar --- */
+        .sidebar { width: var(--sidebar-width); height: 100vh; position: fixed; top: 0; left: 0; background: var(--gradient-sidebar); color: var(--text-medium); padding: 1.5rem 1rem; display: flex; flex-direction: column; z-index: 1000; box-shadow: 5px 0 30px rgba(0, 0, 0, 0.4); border-right: 1px solid var(--border-color-light); transition: width var(--transition-medium), transform var(--transition-medium) ease; overflow: hidden; }
+        .sidebar-header { display: flex; align-items: center; margin-bottom: 2.5rem; padding: 0 0.5rem; position: relative; min-height: 45px; transition: padding var(--transition-medium) ease; }
+        .sidebar-logo { font-size: 1.7rem; font-weight: 700; color: var(--text-heading); text-decoration: none; display: flex; align-items: center; gap: 0.8rem; transition: gap var(--transition-medium) ease; width: 100%; }
+        .sidebar-logo i { font-size: 1.8rem; color: var(--accent-secondary); flex-shrink: 0; }
+        .sidebar-logo span { transition: opacity 0.1s linear, max-width 0.2s linear 0.1s; opacity: 1; max-width: 150px; overflow: hidden; white-space: nowrap; display: inline-block; }
+        .sidebar-menu { list-style: none; padding: 0; margin: 0; flex-grow: 1; overflow-y: auto; overflow-x: hidden; }
+        .sidebar-menu::-webkit-scrollbar { display: none; }
+        .sidebar-menu { scrollbar-width: none; }
+        .sidebar-item { margin-bottom: 0.6rem; }
+        .sidebar-link { display: flex; align-items: center; padding: 0.85rem 1rem; color: var(--text-medium); text-decoration: none; border-radius: var(--button-radius); transition: background-color 0.25s ease, color 0.25s ease, border-left-color 0.25s ease; font-weight: 500; position: relative; border-left: 4px solid transparent; overflow: hidden; white-space: nowrap; }
+        .sidebar-link i { margin-right: 0.85rem; font-size: 1.25rem; width: 25px; text-align: center; transition: color 0.25s ease, margin-right var(--transition-medium) ease, font-size var(--transition-medium) ease; color: var(--text-muted); flex-shrink: 0; }
+        .sidebar-link span { transition: opacity 0.1s linear, max-width 0.2s linear 0.1s; opacity: 1; max-width: 150px; overflow: hidden; white-space: nowrap; display: inline-block; vertical-align: middle;}
+        .sidebar-link:hover { background-color: rgba(var(--accent-primary-rgb), 0.1); color: var(--text-light); }
+        .sidebar-link:hover i { color: var(--accent-primary); }
+        .sidebar-link.active { background-color: rgba(var(--accent-primary-rgb), 0.15); color: var(--white); font-weight: 600; border-left-color: var(--accent-primary); }
+        .sidebar-link.active i { color: var(--accent-primary); }
+        .user-profile { display: flex; align-items: center; padding: 1rem; margin-top: 1.5rem; background-color: rgba(var(--accent-secondary-rgb), 0.1); border-radius: 12px; border: 1px solid var(--border-color-light); flex-shrink: 0; transition: padding var(--transition-medium) ease; overflow: hidden; white-space: nowrap; }
+        .user-avatar { width: 42px; height: 42px; border-radius: 50%; background-color: var(--accent-secondary); display: flex; align-items: center; justify-content: center; margin-right: 0.85rem; font-weight: 600; font-size: 1.1rem; overflow: hidden; color: var(--white); border: 2px solid rgba(var(--accent-primary-rgb), 0.3); flex-shrink: 0; transition: all var(--transition-medium) ease; }
+        .user-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .user-info { flex-grow: 1; overflow: hidden; transition: opacity 0.1s linear, max-width 0.2s linear 0.1s; opacity: 1; max-width: 150px; }
+        .user-name { font-weight: 600; font-size: 1rem; color: var(--text-light); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .user-role { font-size: 0.8rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .sidebar-footer { margin-top: 1.5rem; padding: 1rem; font-size: 0.8rem; color: var(--text-muted); text-align: center; flex-shrink: 0; opacity: 0.7; transition: opacity 0.2s ease, max-width 0.2s linear 0.1s; overflow: hidden; white-space: nowrap; max-width: 200px; }
+
+        /* Стили свернутого Sidebar */
+        body.sidebar-collapsed .sidebar { width: var(--sidebar-collapsed-width); }
+        body.sidebar-collapsed .sidebar-logo span, body.sidebar-collapsed .sidebar-link span, body.sidebar-collapsed .user-info, body.sidebar-collapsed .sidebar-footer { opacity: 0; max-width: 0; }
+        body.sidebar-collapsed .sidebar-header, body.sidebar-collapsed .sidebar-logo, body.sidebar-collapsed .sidebar-link, body.sidebar-collapsed .user-profile { justify-content: center; padding-left: 0; padding-right: 0; }
+        body.sidebar-collapsed .sidebar-link i, body.sidebar-collapsed .user-avatar { margin-right: 0; }
+        body.sidebar-collapsed .sidebar-link i { font-size: 1.4rem; }
+        body.sidebar-collapsed .user-avatar { width: 40px; height: 40px; font-size: 1rem; }
+        body.sidebar-collapsed main#main-content { margin-left: var(--sidebar-collapsed-width); width: calc(100% - var(--sidebar-collapsed-width)); }
+        body.sidebar-collapsed .sidebar-toggle-btn i { transform: rotate(180deg); }
+
+        /* Основной контент */
+        main#main-content { flex: 1; margin-left: var(--sidebar-width); transition: margin-left var(--transition-medium), width var(--transition-medium); width: calc(100% - var(--sidebar-width)); height: 100vh; display: flex; flex-direction: column; overflow: hidden; } /* Changed to flex */
+        .dashboard-header { margin-bottom: 1rem; background-color: rgba(var(--bg-secondary-rgb), 0.7); backdrop-filter: blur(10px); border-radius: 0 0 var(--card-radius) var(--card-radius); padding: 0.8rem var(--container-padding-x); box-shadow: var(--shadow-hud); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; position: sticky; top: 0; z-index: 900; border-bottom: 1px solid var(--border-color-light); }
+        .header-content { display: flex; justify-content: space-between; align-items: center; width: 100%; }
+        .header-left-group { display: flex; align-items: center; gap: 0.8rem; }
+        .header-actions { display: flex; align-items: center; gap: 1rem; }
+        #dashboard-title i { color: var(--accent-primary); margin-right: 0.5rem; }
+        .main-content-wrapper { flex-grow: 1; display: flex; flex-direction: column; padding: var(--section-padding-y) 0; }
+
+        /* Аватарка */
+        #avatar-display-area {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-grow: 1;
+            padding: 2rem;
+        }
+        .avatar-wrapper {
+            position: relative;
+            width: 250px; height: 250px; border-radius: 50%;
+            overflow: hidden; border: 5px solid var(--accent-primary);
+            box-shadow: 0 0 30px rgba(var(--accent-primary-rgb), 0.6), inset 0 0 15px rgba(0,0,0,0.2);
+            background: var(--gradient-profile-avatar, var(--card-solid));
+        }
+        .avatar-wrapper img, .avatar-wrapper .avatar-placeholder {
+            width: 100%; height: 100%; object-fit: cover;
+            display: flex; align-items: center; justify-content: center;
+            color: var(--white); font-size: 5rem; font-weight: 600;
+            background-color: transparent;
+        }
+        .avatar-placeholder span { line-height: 1; } /* Center initials better */
+
+        /* Футер */
+        .dashboard-footer { margin-top: auto; padding: 1.5rem var(--container-padding-x); text-align: center; color: var(--text-muted); font-size: 0.9rem; border-top: 1px solid var(--border-color-light); opacity: 0.6; flex-shrink: 0; }
+
+        /* --- Адаптивность --- */
+        @media (max-width: 992px) { .mobile-menu-toggle#main-mobile-menu-toggle { display: block; } }
+        @media (max-width: 768px) { main { padding: 0 1rem; } .dashboard-header { padding: 0.8rem 1rem; } .header-content { flex-direction: column; align-items: stretch; } .header-left-group { justify-content: space-between;} #avatar-display-area { padding: 1rem;} .avatar-wrapper { width: 200px; height: 200px; } }
+        @media (max-width: 576px) { main { padding: 0 0.75rem; margin-left: 0; width: 100%; } .sidebar { transform: translateX(-110%); width: 280px; z-index: 1000; } .sidebar.active { transform: translateX(0); } .sidebar.active .sidebar-logo span, .sidebar.active .sidebar-link span, .sidebar.active .user-info, .sidebar.active .sidebar-footer { display: block; } .sidebar.active .sidebar-link i { margin-right: 0.85rem; font-size: 1.25rem; } .sidebar.active .sidebar-header, .sidebar.active .sidebar-link { justify-content: flex-start; } .sidebar.active .user-profile { padding: 1rem; } .sidebar.active .user-avatar { margin-right: 0.85rem; width: 42px; height: 42px; } .sidebar-toggle-btn { display: none; } .avatar-wrapper { width: 150px; height: 150px; } .avatar-placeholder { font-size: 3rem; } }
+
+        /* Оверлей для мобильного меню */
+        .sidebar-overlay { display: none; position: fixed; inset: 0; background-color: rgba(3, 2, 12, 0.7); z-index: 999; opacity: 0; transition: opacity var(--transition-medium) ease; backdrop-filter: blur(5px); }
+        .sidebar-overlay.active { display: block; opacity: 1; }
+
+        /* --- Уменьшение движения --- */
+        @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; } .sidebar, main { transition: none !important; } }
+        /* --- END: Скопированные и адаптированные стили --- */
     </style>
 </head>
 <body class="dark">
-    <div class="initial-loading-overlay" id="initial-loader">
-        <div class="loading-spinner"></div>
-        <p>ЗАГРУЗКА ИНТЕРФЕЙСА...</p>
-    </div>
-
-    <div class="offline-banner" id="offline-banner"> <i class="fas fa-plug"></i> OFFLINE // SPOJENÍ ZTRACENO. </div>
-
-    <div class="sidebar-overlay" id="sidebar-overlay"></div>
 
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
-            <button class="mobile-menu-toggle" id="sidebar-close-toggle" aria-label="Zavřít menu">
-                <i class="fas fa-times"></i>
-            </button>
-            <a href="/dashboard/dashboard.html" class="sidebar-logo">
-                <i class="fas fa-atom"></i> <span>Justax</span>
-            </a>
+             <button class="mobile-menu-toggle" id="sidebar-close-toggle" aria-label="Zavřít menu"> <i class="fas fa-times"></i> </button>
+            <a href="/dashboard/dashboard.html" class="sidebar-logo"> <i class="fas fa-atom"></i> <span>Justax</span> </a>
         </div>
         <ul class="sidebar-menu">
              <li class="sidebar-item"> <a href="/dashboard/dashboard.html" class="sidebar-link"> <i class="fas fa-tachometer-alt"></i> <span>Nástěnka</span> </a> </li>
@@ -78,32 +173,30 @@
                 <div class="user-role" id="sidebar-user-title" title="Váš titul">Пилот</div>
             </div>
         </div>
-        <div class="sidebar-footer">
-            &copy; <span id="currentYearSidebar">2025</span> Justax Systems
-        </div>
+        <div class="sidebar-footer"> &copy; <span id="currentYearSidebar">2025</span> Justax Systems </div>
     </aside>
 
     <main id="main-content">
         <header class="dashboard-header">
-            <div class="header-content">
-                <div class="header-left-group">
-                    <button class="btn btn-icon-only sidebar-toggle-btn" id="sidebar-toggle-btn" aria-label="Přepnout postranní panel" title="Přepnout postranní panel">
-                         <i class="fas fa-chevron-left"></i>
-                     </button>
-                    <button class="mobile-menu-toggle" id="main-mobile-menu-toggle" aria-label="Otevřít menu">
-                        <i class="fas fa-bars"></i>
-                   </button>
-                   <h1 id="dashboard-title"><i class="fas fa-user-circle"></i> Твоя Аватарка</h1>
-                </div>
-                <div class="header-actions">
-                    </div>
-            </div>
-       </header>
+             <div class="header-content">
+                 <div class="header-left-group">
+                     <button class="btn btn-icon-only sidebar-toggle-btn" id="sidebar-toggle-btn" aria-label="Přepnout postranní panel" title="Přepnout postranní panel">
+                          <i class="fas fa-chevron-left"></i>
+                      </button>
+                     <button class="mobile-menu-toggle" id="main-mobile-menu-toggle" aria-label="Otevřít menu">
+                         <i class="fas fa-bars"></i>
+                    </button>
+                    <h1 id="dashboard-title"><i class="fas fa-user-circle"></i> Аватарка</h1>
+                 </div>
+                 <div class="header-actions">
+                     </div>
+             </div>
+        </header>
 
         <div class="main-content-wrapper">
-            <div id="avatar-display-area" class="section card">
+            <div id="avatar-display-area">
                  <div class="avatar-wrapper">
-                      <div class="avatar-placeholder" id="avatar-placeholder">?</div>
+                      <div class="avatar-placeholder" id="main-avatar-display">?</div>
                  </div>
             </div>
         </div>
@@ -113,68 +206,178 @@
         </footer>
     </main>
 
-    <div class="toast-container" id="toast-container"></div>
-    <div id="mouse-follower" class="mouse-follower-glow"></div>
-
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/js/tooltipster.bundle.min.js"></script>
-    <script src="../dashboard.js" defer></script>
-
     <script>
-        // Убедимся, что основной dashboard.js загрузился и выполнил свою инициализацию
-        document.addEventListener('dashboardReady', async (event) => {
-            console.log("Avatar page received dashboardReady event.");
-            const { user, profile, client, titles } = event.detail;
+        (function() {
+            'use strict';
+            console.log("Executing embedded script for avatar page...");
 
-            // Функция загрузки аватара (из старого avatar.html, но теперь использует profile из dashboard.js)
-            async function loadAvatar(profileData) {
-                const avatarElement = document.getElementById('avatar-placeholder');
-                if (!avatarElement) {
-                    console.error('Avatar placeholder element not found!');
-                    return;
-                }
-                if (!profileData) {
-                     console.warn('No profile data provided to loadAvatar.');
-                     avatarElement.textContent = '?';
-                     return;
-                }
+            // --- Конфигурация и Состояние ---
+            const supabaseUrl = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
+            const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10';
+            let supabase = null;
+            let currentUser = null;
+            let currentProfile = null;
+            let allTitles = []; // Для отображения титула
+            const SIDEBAR_STATE_KEY = 'sidebarCollapsedState';
 
-                const avatarUrl = profileData.avatar_url;
-                const initials = PlanApp.getInitials(profileData); // Предполагаем, что PlanApp или DashboardApp содержит getInitials
+            // --- Кэш UI Элементов ---
+            const ui = {
+                sidebar: document.getElementById('sidebar'),
+                sidebarOverlay: document.getElementById('sidebar-overlay'),
+                mainMobileMenuToggle: document.getElementById('main-mobile-menu-toggle'),
+                sidebarCloseToggle: document.getElementById('sidebar-close-toggle'),
+                sidebarToggleBtn: document.getElementById('sidebar-toggle-btn'),
+                sidebarAvatar: document.getElementById('sidebar-avatar'),
+                sidebarName: document.getElementById('sidebar-name'),
+                sidebarUserTitle: document.getElementById('sidebar-user-title'),
+                currentYearSidebar: document.getElementById('currentYearSidebar'),
+                currentYearFooter: document.getElementById('currentYearFooter'),
+                mainAvatarDisplay: document.getElementById('main-avatar-display'),
+                mainContent: document.getElementById('main-content')
+            };
 
-                if (avatarUrl) {
-                    const img = document.createElement('img');
-                    img.src = avatarUrl;
-                    img.alt = 'Аватар пользователя';
-                    img.onerror = () => { // Обработка ошибки загрузки
-                         console.error("Failed to load avatar image, showing initials.");
-                         avatarElement.innerHTML = `<span>${initials}</span>`;
-                    };
-                    avatarElement.innerHTML = ''; // Очищаем плейсхолдер
-                    avatarElement.appendChild(img);
-                     console.log("Avatar image loaded.");
-                } else {
-                    avatarElement.innerHTML = `<span>${initials}</span>`; // Показываем инициалы
-                     console.log("Avatar URL not found, showing initials.");
+            // --- Вспомогательные функции ---
+            function sanitizeHTML(str) { const temp = document.createElement('div'); temp.textContent = str || ''; return temp.innerHTML; }
+            function getInitials(userData) { if (!userData) return '?'; const f = userData.first_name?.[0] || ''; const l = userData.last_name?.[0] || ''; const nameInitial = (f + l).toUpperCase(); const usernameInitial = userData.username?.[0].toUpperCase() || ''; const emailInitial = userData.email?.[0].toUpperCase() || ''; return nameInitial || usernameInitial || emailInitial || '?'; }
+            function openMenu() { if (ui.sidebar && ui.sidebarOverlay) { document.body.classList.remove('sidebar-collapsed'); ui.sidebar.classList.add('active'); ui.sidebarOverlay.classList.add('active'); } }
+            function closeMenu() { if (ui.sidebar && ui.sidebarOverlay) { ui.sidebar.classList.remove('active'); ui.sidebarOverlay.classList.remove('active'); } }
+            function updateCopyrightYear() { const y = new Date().getFullYear(); if (ui.currentYearSidebar) ui.currentYearSidebar.textContent = y; if (ui.currentYearFooter) ui.currentYearFooter.textContent = y; }
+            function toggleSidebar() { if (!ui.sidebarToggleBtn) return; try { const isCollapsed = document.body.classList.toggle('sidebar-collapsed'); localStorage.setItem(SIDEBAR_STATE_KEY, isCollapsed ? 'collapsed' : 'expanded'); const icon = ui.sidebarToggleBtn.querySelector('i'); if (icon) icon.className = isCollapsed ? 'fas fa-chevron-right' : 'fas fa-chevron-left'; ui.sidebarToggleBtn.title = isCollapsed ? 'Rozbalit panel' : 'Sbalit panel'; } catch (e) { console.error("Sidebar toggle error:", e); } }
+            function applyInitialSidebarState() { if (!ui.sidebarToggleBtn) return; try { const savedState = localStorage.getItem(SIDEBAR_STATE_KEY); const shouldBeCollapsed = savedState === 'collapsed'; if (shouldBeCollapsed) document.body.classList.add('sidebar-collapsed'); else document.body.classList.remove('sidebar-collapsed'); const icon = ui.sidebarToggleBtn.querySelector('i'); if (icon) icon.className = shouldBeCollapsed ? 'fas fa-chevron-right' : 'fas fa-chevron-left'; ui.sidebarToggleBtn.title = shouldBeCollapsed ? 'Rozbalit panel' : 'Sbalit panel'; } catch (e) { console.error("Sidebar initial state error:", e); } }
+
+            // --- Инициализация Supabase ---
+            function initializeSupabase() { try { if (!window.supabase?.createClient) throw new Error("Supabase lib not loaded."); supabase = window.supabase.createClient(supabaseUrl, supabaseKey); if (!supabase) throw new Error("Client creation failed."); console.log('[Supabase] Client initialized.'); return true; } catch (e) { console.error('[Supabase] Init failed:', e); alert("Chyba připojení k databázi."); return false; } }
+
+            // --- Загрузка данных ---
+            async function fetchUserProfile(userId) { if (!supabase || !userId) return null; try { const { data, error } = await supabase.from('profiles').select('*, selected_title').eq('id', userId).single(); if (error && error.code !== 'PGRST116') throw error; return data || null; } catch (e) { console.error('Profile fetch error:', e); return null; } }
+            async function fetchTitles() { if (!supabase) return []; try { const { data, error } = await supabase.from('title_shop').select('title_key, name').eq('is_available', true); if (error) throw error; return data || []; } catch (e) { console.error("Error fetching titles:", e); return []; } }
+
+            // --- Обновление UI ---
+            function updateUI(profile, titles) {
+                // Обновление сайдбара
+                if (ui.sidebarName && ui.sidebarAvatar && ui.sidebarUserTitle) {
+                    if (profile) {
+                        const displayName = `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || profile.username || currentUser?.email?.split('@')[0] || 'Pilot';
+                        ui.sidebarName.textContent = sanitizeHTML(displayName);
+                        const initials = getInitials(profile);
+                        const avatarUrl = profile.avatar_url;
+                         let finalSidebarUrl = avatarUrl;
+                         if (avatarUrl && !avatarUrl.startsWith('http') && avatarUrl.includes('/')) { finalSidebarUrl = sanitizeHTML(avatarUrl); }
+                         else if (avatarUrl) { finalSidebarUrl = `${sanitizeHTML(avatarUrl)}?t=${Date.now()}`; }
+                        ui.sidebarAvatar.innerHTML = finalSidebarUrl ? `<img src="${finalSidebarUrl}" alt="${sanitizeHTML(initials)}">` : sanitizeHTML(initials);
+                        const selectedTitleKey = profile.selected_title;
+                        let displayTitle = 'Pilot';
+                        if (selectedTitleKey && titles?.length > 0) {
+                            const foundTitle = titles.find(t => t.title_key === selectedTitleKey);
+                            if (foundTitle) displayTitle = foundTitle.name;
+                        }
+                        ui.sidebarUserTitle.textContent = sanitizeHTML(displayTitle);
+                        ui.sidebarUserTitle.title = sanitizeHTML(displayTitle);
+                    } else {
+                        ui.sidebarName.textContent = "Nepřihlášen";
+                        ui.sidebarAvatar.textContent = '?';
+                        ui.sidebarUserTitle.textContent = 'Pilot';
+                        ui.sidebarUserTitle.removeAttribute('title');
+                    }
+                } else { console.warn("Sidebar UI elements missing for update."); }
+
+                // Обновление основного аватара
+                if (ui.mainAvatarDisplay) {
+                     if (profile) {
+                         const initials = getInitials(profile);
+                         const avatarUrl = profile.avatar_url;
+                         let finalMainUrl = avatarUrl;
+                         if (avatarUrl && !avatarUrl.startsWith('http') && avatarUrl.includes('/')) { finalMainUrl = sanitizeHTML(avatarUrl); }
+                         else if (avatarUrl) { finalMainUrl = `${sanitizeHTML(avatarUrl)}?t=${Date.now()}`; } // Cache bust
+
+                         if (finalMainUrl) {
+                             const img = document.createElement('img');
+                             img.src = finalMainUrl;
+                             img.alt = 'Аватар пользователя';
+                             img.onerror = () => { console.error("Failed to load main avatar, showing initials."); ui.mainAvatarDisplay.innerHTML = `<span>${sanitizeHTML(initials)}</span>`; };
+                             ui.mainAvatarDisplay.innerHTML = '';
+                             ui.mainAvatarDisplay.appendChild(img);
+                         } else {
+                             ui.mainAvatarDisplay.innerHTML = `<span>${sanitizeHTML(initials)}</span>`;
+                         }
+                     } else {
+                         ui.mainAvatarDisplay.innerHTML = `<span>?</span>`;
+                     }
+                } else { console.warn("Main avatar display element missing."); }
+            }
+
+            // --- Настройка обработчиков ---
+            function setupEventListeners() {
+                 if (ui.mainMobileMenuToggle) ui.mainMobileMenuToggle.addEventListener('click', openMenu);
+                 if (ui.sidebarCloseToggle) ui.sidebarCloseToggle.addEventListener('click', closeMenu);
+                 if (ui.sidebarOverlay) ui.sidebarOverlay.addEventListener('click', closeMenu);
+                 if (ui.sidebarToggleBtn) ui.sidebarToggleBtn.addEventListener('click', toggleSidebar);
+                 document.querySelectorAll('.sidebar-link').forEach(link => { link.addEventListener('click', () => { if (window.innerWidth <= 992) closeMenu(); }); });
+                 window.addEventListener('resize', () => { if (window.innerWidth > 992 && ui.sidebar?.classList.contains('active')) closeMenu(); });
+            }
+
+            // --- Инициализация приложения ---
+            async function initializeApp() {
+                console.log("[Init Avatar Page] Starting...");
+                if (!initializeSupabase()) return;
+
+                // Применяем состояние сайдбара и настраиваем обработчики
+                applyInitialSidebarState();
+                setupEventListeners();
+                updateCopyrightYear();
+
+                if (ui.mainContent) ui.mainContent.style.display = 'none'; // Скрыть до загрузки
+
+                try {
+                    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+                    if (sessionError) throw new Error(`Auth session error: ${sessionError.message}`);
+
+                    if (session?.user) {
+                        currentUser = session.user;
+                        console.log(`[Init Avatar Page] User authenticated (ID: ${currentUser.id}).`);
+
+                        const [profileResult, titlesResult] = await Promise.allSettled([
+                             fetchUserProfile(currentUser.id),
+                             fetchTitles()
+                        ]);
+
+                         if (profileResult.status === 'fulfilled' && profileResult.value) {
+                             currentProfile = profileResult.value;
+                         } else {
+                             console.warn("Failed to fetch profile, trying default creation...");
+                             currentProfile = await createDefaultProfile(currentUser.id, currentUser.email); // Function needs definition if used
+                             if (!currentProfile) throw new Error("Failed to fetch or create profile.");
+                         }
+
+                         if (titlesResult.status === 'fulfilled') {
+                             allTitles = titlesResult.value || [];
+                         } else {
+                              console.warn("Failed to fetch titles:", titlesResult.reason);
+                              allTitles = [];
+                         }
+
+                        updateUI(currentProfile, allTitles); // Обновляем и сайдбар, и основной аватар
+
+                        if (ui.mainContent) { ui.mainContent.style.display = 'flex'; } // Показываем контент
+
+                         console.log("✅ [Init Avatar Page] Page initialized.");
+
+                    } else {
+                        console.log('[Init Avatar Page] User not logged in, redirecting...');
+                        window.location.href = '/auth/index.html'; // Redirect to login if needed
+                    }
+                } catch (error) {
+                    console.error("❌ [Init Avatar Page] Critical initialization error:", error);
+                     if (ui.mainContent) ui.mainContent.innerHTML = `<p style='color:red; padding:2rem;'>Chyba inicializace: ${error.message}</p>`;
+                     if (ui.mainContent) ui.mainContent.style.display = 'flex'; // Show error
                 }
             }
 
-            // Загружаем аватар, используя данные, полученные от dashboard.js
-            if (profile) {
-                await loadAvatar(profile);
-            } else {
-                 console.error("Profile data not available from dashboardReady event.");
-                 const avatarElement = document.getElementById('avatar-placeholder');
-                 if (avatarElement) avatarElement.textContent = '!'; // Error indicator
-            }
-        });
+            // --- Запуск ---
+            initializeApp();
 
-        // Если dashboard.js не запускается сам или есть проблемы, можно добавить DOMContentLoaded
-        // document.addEventListener('DOMContentLoaded', () => {
-        //     // Тут можно вызвать какую-то базовую инициализацию, если dashboard.js её не делает
-        // });
+        })();
     </script>
-
 </body>
 </html>
