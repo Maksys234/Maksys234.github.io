@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Justax - Аватарки с Наложенной PNG Рамкой</title>
+    <title>Justax - Аватарки с Овальной PNG Рамкой</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
@@ -41,6 +41,8 @@
             --card-radius: 14px; --button-radius: 10px;
             --container-padding-x: 2rem;
             --transition-fast: all 0.2s ease-out; --transition-medium: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            /* --- NEW: Отступ для рамки --- */
+            --avatar-frame-padding: 15px; /* Примерное значение, подберите под вашу рамку */
         }
 
         /* Базовые стили */
@@ -57,7 +59,7 @@
         /* Кнопки */
         .btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.5em; padding: 0.6rem 1.2rem; background: transparent; color: var(--accent-primary); border: 2px solid var(--accent-primary); border-radius: var(--button-radius); font-family: var(--font-secondary); font-weight: 600; font-size: 0.9rem; cursor: pointer; transition: all var(--transition-medium); }
         .btn:hover:not(:disabled) { color: var(--text-fixed-dark); background: var(--gradient-button); border-color: transparent; transform: translateY(-2px); }
-        .btn-icon-only { padding: 0.5rem; width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--border-color-light); color: var(--text-muted); background-color: rgba(var(--bg-secondary-rgb), 0.3); }
+        .btn-icon-only { padding: 0.5rem; width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--border-color-medium); color: var(--text-muted); background-color: rgba(var(--bg-secondary-rgb), 0.3); }
         .btn-icon-only i { margin-right: 0; font-size: 1rem; transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
         .btn-icon-only:hover:not(:disabled) { background-color: rgba(var(--accent-primary-rgb), 0.15); border-color: var(--accent-primary); color: var(--accent-primary); }
         .sidebar-toggle-btn { margin-right: 0.8rem; display: none; }
@@ -83,73 +85,25 @@
         .sidebar-link.active { background-color: rgba(var(--accent-primary-rgb), 0.15); color: var(--white); font-weight: 600; border-left-color: var(--accent-primary); }
         .sidebar-link.active i { color: var(--accent-primary); }
         .user-profile { display: flex; align-items: center; padding: 1rem; margin-top: 1.5rem; background-color: rgba(var(--accent-secondary-rgb), 0.1); border-radius: 12px; border: 1px solid var(--border-color-light); flex-shrink: 0; transition: padding var(--transition-medium) ease; overflow: hidden; white-space: nowrap; }
-
-        /* --- Стили Аватара (Метод с вложенным <img> рамки) --- */
-        .avatar-wrapper {
-            position: relative; /* База для абсолютного позиционирования */
-            display: inline-block;
-            line-height: 0;
+        /* Сайдбар - Общий стиль */
+        .sidebar .user-profile .avatar-wrapper {
+            position: relative; display: inline-block; line-height: 0;
+            margin-right: 0.85rem; transition: margin-right var(--transition-medium) ease;
             flex-shrink: 0;
-            border-radius: 50%;
-            /* Убираем padding и background с обертки */
-            padding: 0;
-            background: none;
-            box-shadow: none; /* Убираем свечение с обертки */
-        }
-        .avatar-content {
-            display: flex; /* или block, если внутри img */
-            align-items: center;
-            justify-content: center;
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            background-color: var(--accent-secondary);
-            color: var(--white);
-            font-weight: 600;
-            overflow: hidden; /* Обрезаем контент по кругу */
-            /* Возвращаем границу, если нужна под рамкой */
-            border: 2px solid rgba(var(--accent-primary-rgb), 0.2);
-            position: relative; /* Управляем z-index */
-            z-index: 1; /* Контент ПОД рамкой */
-        }
-        .avatar-content img { /* Если внутри контента картинка */
-            display: block;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        .avatar-frame-overlay {
-            position: absolute; /* Позиционируем поверх */
-            top: 0;
-            left: 0;
-            width: 100%; /* Масштабируется с оберткой */
-            height: 100%; /* Масштабируется с оберткой */
-            border-radius: 50%; /* Скругляем изображение рамки */
-            pointer-events: none; /* Не мешает кликам */
-            z-index: 2; /* Рамка НАД контентом */
-            /* object-fit: contain; -- можно использовать, если рамка квадратная */
-        }
-        /* --- Убираем стили для псевдоэлементов --- */
-        .avatar-wrapper::before,
-        .avatar-wrapper::after {
-            content: none;
-        }
-
-        /* Специфичные стили для сайдбара */
-        .sidebar .avatar-wrapper {
             width: 42px; height: 42px;
-            margin-right: 0.85rem;
-            transition: margin-right var(--transition-medium) ease, width var(--transition-medium) ease, height var(--transition-medium) ease;
+            /* Убираем фон и padding с wrapper в сайдбаре */
+             background: none; padding: 0;
         }
-        .sidebar .avatar-content {
-            font-size: 1.1rem;
-             border-width: 1px; /* Тоньше граница в сайдбаре */
+        .user-avatar { /* Сам аватар в сайдбаре */
+            width: 100%; height: 100%; border-radius: 50%;
+            background-color: var(--accent-secondary);
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 600; font-size: 1.1rem; overflow: hidden; color: var(--white);
+            border: 2px solid rgba(var(--accent-primary-rgb), 0.3);
+            transition: all var(--transition-medium) ease;
+            position: relative; /* Для z-index */
         }
-        /* Убираем рамку-оверлей в сайдбаре */
-        .sidebar .avatar-frame-overlay {
-            display: none;
-        }
-
+        .user-avatar img { width: 100%; height: 100%; object-fit: cover; }
         .user-info { flex-grow: 1; overflow: hidden; transition: opacity 0.1s linear, max-width 0.2s linear 0.1s; opacity: 1; max-width: 150px; }
         .user-name { font-weight: 600; font-size: 1rem; color: var(--text-light); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .user-role { font-size: 0.8rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -163,7 +117,7 @@
         body.sidebar-collapsed .sidebar-link i { margin-right: 0; font-size: 1.4rem; }
         body.sidebar-collapsed .user-profile { padding: 0.8rem 0; justify-content: center; }
         body.sidebar-collapsed .user-profile .avatar-wrapper { margin-right: 0; width: 40px; height: 40px; }
-        body.sidebar-collapsed .user-profile .avatar-content { font-size: 1rem; }
+        body.sidebar-collapsed .user-avatar { font-size: 1rem; }
         body.sidebar-collapsed main#main-content { margin-left: var(--sidebar-collapsed-width); width: calc(100% - var(--sidebar-collapsed-width)); }
         body.sidebar-collapsed .sidebar-toggle-btn i { transform: rotate(180deg); }
 
@@ -176,30 +130,73 @@
         #dashboard-title i { color: var(--accent-primary); margin-right: 0.5rem; }
         .main-content-wrapper { flex-grow: 1; display: flex; flex-direction: column; padding: 1rem 0; }
 
-        /* Стили для основного аватара */
-        #avatar-display-area {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            align-items: center;
-            flex-grow: 1;
-            padding: 2rem;
-            gap: 3rem;
-            overflow-y: auto;
-        }
+        /* --- СТИЛИ ДЛЯ ОСНОВНЫХ АВАТАРОВ С ФОНОВОЙ РАМКОЙ --- */
+        #avatar-display-area { display: flex; justify-content: center; align-items: center; flex-grow: 1; padding: 2rem; flex-wrap: wrap; gap: 2rem; }
+
         #avatar-display-area .avatar-wrapper {
-            width: 200px; /* Увеличим размер для 4 аватарок */
-            height: 200px;
-            border-radius: 50%;
+            position: relative;
+            display: inline-block; /* или flex */
+            line-height: 0;
+            /* ЗАДАЙТЕ РАЗМЕР ОБЕРТКИ, СООТВЕТСТВУЮЩИЙ ПРОПОРЦИЯМ РАМКИ */
+            width: 220px;  /* Пример */
+            height: 260px; /* Пример */
+            /* УБИРАЕМ border-radius С ОБЕРТКИ! */
+            border-radius: 0;
+            /* ДОБАВЛЯЕМ PADDING */
+            padding: var(--avatar-frame-padding, 15px); /* Место для рамки */
+            background-size: 100% 100%; /* Растягиваем фон (рамку) */
+            background-position: center;
+            background-repeat: no-repeat;
+            box-sizing: border-box;
+            border: none; /* Убираем внешнюю границу, если была */
+            box-shadow: none; /* Убираем внешнюю тень, если была */
+            background-color: transparent; /* Фон обертки прозрачный */
         }
+        /* Классы для разных рамок */
+        #avatar-display-area .avatar-wrapper.frame-png-1 {
+            background-image: url('assets/frame1.png'); /* <-- ПРОВЕРЬ ПУТЬ! */
+        }
+        #avatar-display-area .avatar-wrapper.frame-png-2 {
+            background-image: url('assets/frame2.png'); /* <-- ПРОВЕРЬ ПУТЬ! */
+        }
+
         #avatar-display-area .avatar-content {
-            border: 3px solid var(--accent-primary); /* Немного толще */
-            box-shadow: inset 0 0 15px rgba(0,0,0,0.3); /* Внутренняя тень */
-            background: var(--gradient-profile-avatar, var(--card-solid));
-            font-size: 4rem; /* Крупнее шрифт */
-            font-weight: 600;
+            width: 100%; /* Заполняет область внутри padding */
+            height: 100%; /* Заполняет область внутри padding */
+            border-radius: 50%; /* ДЕЛАЕМ КОНТЕНТ КРУГЛЫМ */
+            background-color: var(--accent-secondary); /* Фон для инициалов */
+            color: var(--white);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden; /* Обрезаем img по кругу */
+            position: relative; /* Сбрасываем абсолютное позиционирование */
+            z-index: 1; /* На всякий случай */
+            border: 3px solid rgba(var(--accent-primary-rgb), 0.4); /* Можно добавить внутреннюю границу */
+            box-sizing: border-box;
         }
-        #avatar-display-area .avatar-placeholder span { line-height: 1; }
+        #avatar-display-area .avatar-content img {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        #avatar-display-area .avatar-content .avatar-placeholder {
+             font-size: 4rem; /* Подберите размер */
+             font-weight: 600;
+             line-height: 1;
+             display: flex;
+             align-items: center;
+             justify-content: center;
+             width: 100%;
+             height: 100%;
+             background: var(--gradient-profile-avatar);
+        }
+         /* Убираем ::after */
+         #avatar-display-area .avatar-wrapper::after { content: none; }
+         /* Убираем вложенный img рамки */
+         #avatar-display-area .avatar-frame-overlay { display: none; }
+         /* ------------------------------------------------------ */
 
         /* Футер */
         .dashboard-footer { margin-top: auto; padding: 1.5rem var(--container-padding-x); text-align: center; color: var(--text-muted); font-size: 0.9rem; border-top: 1px solid var(--border-color-light); opacity: 0.6; flex-shrink: 0; }
@@ -210,8 +207,8 @@
 
         /* Адаптивность */
         @media (max-width: 992px) { .mobile-menu-toggle#main-mobile-menu-toggle { display: block; } }
-        @media (max-width: 768px) { main { padding: 0 1rem; } .dashboard-header { padding: 0.8rem 1rem; } .header-content { flex-direction: column; align-items: stretch; } .header-left-group { justify-content: space-between;} #avatar-display-area { padding: 1.5rem; gap: 2rem;} #avatar-display-area .avatar-wrapper { width: 150px; height: 150px; } #avatar-display-area .avatar-content { font-size: 3rem; } }
-        @media (max-width: 576px) { main { padding: 0 0.75rem; margin-left: 0; width: 100%; } .sidebar { transform: translateX(-110%); width: 280px; z-index: 1000; } .sidebar.active { transform: translateX(0); } .sidebar.active .sidebar-logo span, .sidebar.active .sidebar-link span, .sidebar.active .user-info, .sidebar.active .sidebar-footer { display: block; } .sidebar.active .sidebar-link i { margin-right: 0.85rem; font-size: 1.25rem; } .sidebar.active .sidebar-header, .sidebar.active .sidebar-link { justify-content: flex-start; } .sidebar.active .user-profile { padding: 1rem; } .sidebar.active .user-profile .avatar-wrapper { margin-right: 0.85rem; width: 42px; height: 42px; } .sidebar.active .user-profile .avatar-content { font-size: 1.1rem; } .sidebar-toggle-btn { display: none; } #avatar-display-area { padding: 1rem; gap: 1.5rem;} #avatar-display-area .avatar-wrapper { width: 120px; height: 120px; } #avatar-display-area .avatar-content { font-size: 2.5rem; } }
+        @media (max-width: 768px) { main { padding: 0 1rem; } .dashboard-header { padding: 0.8rem 1rem; } .header-content { flex-direction: column; align-items: stretch; } .header-left-group { justify-content: space-between;} #avatar-display-area { padding: 1rem; gap: 1.5rem; } #avatar-display-area .avatar-wrapper { width: 180px; height: 210px; --avatar-frame-padding: 12px; } #avatar-display-area .avatar-placeholder { font-size: 3rem; } }
+        @media (max-width: 576px) { main { padding: 0 0.75rem; margin-left: 0; width: 100%; } .sidebar { transform: translateX(-110%); width: 280px; z-index: 1000; } .sidebar.active { transform: translateX(0); } .sidebar.active .sidebar-logo span, .sidebar.active .sidebar-link span, .sidebar.active .user-info, .sidebar.active .sidebar-footer { display: block; } .sidebar.active .sidebar-link i { margin-right: 0.85rem; font-size: 1.25rem; } .sidebar.active .sidebar-header, .sidebar.active .sidebar-link { justify-content: flex-start; } .sidebar.active .user-profile { padding: 1rem; } .sidebar.active .user-profile .avatar-wrapper { margin-right: 0.85rem; width: 42px; height: 42px; padding: 0; background: none; } .sidebar.active .user-avatar { font-size: 1.1rem; } .sidebar-toggle-btn { display: none; } #avatar-display-area { padding: 1rem; gap: 1rem;} #avatar-display-area .avatar-wrapper { width: 150px; height: 180px; --avatar-frame-padding: 10px; } #avatar-display-area .avatar-placeholder { font-size: 2.5rem; } }
 
         /* Уменьшение движения */
         @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; } .sidebar, main { transition: none !important; } .btn-icon-only i { transition: none !important; } }
@@ -237,11 +234,11 @@
         </ul>
         <div class="user-profile">
              <div class="avatar-wrapper" data-decoration-key="">
-                 <div class="avatar-content" id="sidebar-avatar">?</div>
-                 </div>
+                 <div class="user-avatar" id="sidebar-avatar">?</div>
+             </div>
             <div class="user-info">
                 <div class="user-name" id="sidebar-name">Загрузка...</div>
-                <div class="user-role" id="sidebar-user-title" title="Váš titul">Pilot</div>
+                <div class="user-role" id="sidebar-user-title" title="Váš titul">Пилот</div>
             </div>
         </div>
         <div class="sidebar-footer"> &copy; <span id="currentYearSidebar">2025</span> Justax Systems </div>
@@ -261,34 +258,22 @@
 
         <div class="main-content-wrapper">
             <div id="avatar-display-area" class="avatar-container">
-                <div class="avatar-wrapper">
-                    <div class="avatar-content">
-                        <span class="avatar-placeholder">A</span>
-                        </div>
-                    <img src="assets/frame1.png" class="avatar-frame-overlay" alt="Frame 1">
-                </div>
+                 <div class="avatar-wrapper frame-png-1">
+                     <div class="avatar-content"><span class="avatar-placeholder">A</span></div>
+                     </div>
 
-                <div class="avatar-wrapper">
-                    <div class="avatar-content">
-                        <span class="avatar-placeholder">B</span>
-                         </div>
-                    <img src="assets/frame1.png" class="avatar-frame-overlay" alt="Frame 1">
-                </div>
+                 <div class="avatar-wrapper frame-png-1">
+                     <div class="avatar-content"><span class="avatar-placeholder">B</span></div>
+                     </div>
 
-                <div class="avatar-wrapper">
-                    <div class="avatar-content">
-                        <span class="avatar-placeholder">C</span>
-                         </div>
-                    <img src="assets/frame2.png" class="avatar-frame-overlay" alt="Frame 2">
-                </div>
+                 <div class="avatar-wrapper frame-png-2">
+                     <div class="avatar-content"><span class="avatar-placeholder">C</span></div>
+                     </div>
 
-                <div class="avatar-wrapper">
-                    <div class="avatar-content">
-                        <span class="avatar-placeholder">D</span>
-                         </div>
-                    <img src="assets/frame2.png" class="avatar-frame-overlay" alt="Frame 2">
-                </div>
-            </div>
+                 <div class="avatar-wrapper frame-png-2">
+                     <div class="avatar-content"><span class="avatar-placeholder">D</span></div>
+                     </div>
+             </div>
         </div>
 
         <footer class="dashboard-footer">
@@ -300,7 +285,7 @@
     <script>
         (function() {
             'use strict';
-            console.log("[Init Avatar Standalone v17 - Nested Img Frame] Starting...");
+            console.log("[Init Avatar Standalone v18 - Background Frame Method] Starting...");
 
             const supabaseUrl = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
             const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10';
@@ -316,7 +301,7 @@
                 mainMobileMenuToggle: document.getElementById('main-mobile-menu-toggle'),
                 sidebarCloseToggle: document.getElementById('sidebar-close-toggle'),
                 sidebarToggleBtn: document.getElementById('sidebar-toggle-btn'),
-                sidebarAvatar: document.getElementById('sidebar-avatar'), // Контент в сайдбаре
+                sidebarAvatar: document.getElementById('sidebar-avatar'), // Контейнер для аватара в сайдбаре ('.user-avatar')
                 sidebarName: document.getElementById('sidebar-name'),
                 sidebarUserTitle: document.getElementById('sidebar-user-title'),
                 currentYearSidebar: document.getElementById('currentYearSidebar'),
@@ -337,58 +322,41 @@
 
             async function fetchUserProfile(userId) { if (!supabase || !userId) return null; try { const { data, error } = await supabase.from('profiles').select('*, selected_title').eq('id', userId).single(); if (error && error.code !== 'PGRST116') throw error; return data; } catch (e) { console.error('Profile fetch error:', e); return null; } }
             async function fetchTitles() { if (!supabase) return []; try { const { data, error } = await supabase.from('title_shop').select('title_key, name'); if (error) throw error; return data || []; } catch (e) { console.error("Titles fetch error:", e); return []; } }
-            async function createDefaultProfile(userId, userEmail) { if (!supabase || !userId || !userEmail) return null; try { const defaultData = { id: userId, email: userEmail, username: userEmail.split('@')[0] || `user_${userId.substring(0, 6)}`, level: 1, points: 0, experience: 0, badges_count: 0, streak_days: 0, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), preferences: { dark_mode: window.matchMedia('(prefers-color-scheme: dark)').matches }, notifications: { email: true } }; const { data: newProfile, error } = await supabase.from('profiles').insert(defaultData).select('*, selected_title').single(); if (error) { if (error.code === '23505') { return await fetchUserProfile(userId); } throw error; } return newProfile; } catch (error) { console.error("Failed to create default profile:", error); return null; } }
+             async function createDefaultProfile(userId, userEmail) { if (!supabase || !userId || !userEmail) return null; try { const defaultData = { id: userId, email: userEmail, username: userEmail.split('@')[0] || `user_${userId.substring(0, 6)}`, level: 1, points: 0, experience: 0, badges_count: 0, streak_days: 0, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), preferences: { dark_mode: window.matchMedia('(prefers-color-scheme: dark)').matches }, notifications: { email: true } }; const { data: newProfile, error } = await supabase.from('profiles').insert(defaultData).select('*, selected_title').single(); if (error) { if (error.code === '23505') { return await fetchUserProfile(userId); } throw error; } return newProfile; } catch (error) { console.error("Failed to create default profile:", error); return null; } }
 
-
-            function updateSidebarAvatar(profile) {
-                 if (!ui.sidebarAvatar) return;
-                 const avatarContainer = ui.sidebarAvatar.closest('.avatar-wrapper');
-                 if (!avatarContainer) return;
-                 const frameOverlay = avatarContainer.querySelector('.avatar-frame-overlay');
-
-                 if (!profile) {
-                     ui.sidebarAvatar.innerHTML = '?';
-                      // Убираем src у рамки в сайдбаре, если профиля нет
-                      if(frameOverlay) frameOverlay.style.display = 'none';
-                     return;
-                 }
-
-                 const initials = getInitials(profile);
-                 const avatarUrl = profile.avatar_url;
-                 const avatarContentHTML = avatarUrl
-                    ? `<img src="${sanitizeHTML(avatarUrl)}?t=${Date.now()}" alt="${sanitizeHTML(initials)}">`
-                    : `<span>${sanitizeHTML(initials)}</span>`;
-
-                 ui.sidebarAvatar.innerHTML = avatarContentHTML;
-                 const sidebarImg = ui.sidebarAvatar.querySelector('img');
-                 if (sidebarImg) sidebarImg.onerror = () => { ui.sidebarAvatar.innerHTML = `<span>${sanitizeHTML(initials)}</span>`; };
-
-                 // Можно динамически менять рамку в сайдбаре, если нужно
-                 // if (frameOverlay) {
-                 //    frameOverlay.src = 'assets/some_sidebar_frame.png';
-                 //    frameOverlay.style.display = 'block';
-                 // }
-                 // Пока просто скрываем рамку в сайдбаре
-                 if (frameOverlay) {
-                     frameOverlay.style.display = 'none';
-                 }
-            }
 
             function updateUI(profile, titles) {
                 console.log("Updating UI...");
-                if (ui.sidebarName && ui.sidebarUserTitle) {
+                // Сайдбар
+                if (ui.sidebarName && ui.sidebarAvatar && ui.sidebarUserTitle) {
                     if (profile) {
                         const displayName = `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || profile.username || currentUser?.email?.split('@')[0] || 'Pilot';
                         ui.sidebarName.textContent = sanitizeHTML(displayName);
+                        const initials = getInitials(profile);
+                        const avatarUrl = profile.avatar_url;
+
+                        ui.sidebarAvatar.innerHTML = avatarUrl ? `<img src="${sanitizeHTML(avatarUrl)}?t=${Date.now()}" alt="${sanitizeHTML(initials)}">` : sanitizeHTML(initials);
+                         const sidebarImg = ui.sidebarAvatar.querySelector('img');
+                         if (sidebarImg) { sidebarImg.onerror = () => { ui.sidebarAvatar.innerHTML = sanitizeHTML(initials); }; }
+
                         const selectedTitleKey = profile.selected_title;
                         let displayTitle = 'Pilot';
-                        if (selectedTitleKey && titles?.length > 0) { const foundTitle = titles.find(t => t.title_key === selectedTitleKey); if (foundTitle) displayTitle = foundTitle.name; }
+                        if (selectedTitleKey && titles?.length > 0) {
+                            const foundTitle = titles.find(t => t.title_key === selectedTitleKey);
+                            if (foundTitle) displayTitle = foundTitle.name;
+                        }
                         ui.sidebarUserTitle.textContent = sanitizeHTML(displayTitle);
                         ui.sidebarUserTitle.title = sanitizeHTML(displayTitle);
-                    } else { ui.sidebarName.textContent = "Nepřihlášen"; ui.sidebarUserTitle.textContent = 'Pilot'; }
+                    } else {
+                        ui.sidebarName.textContent = "Nepřihlášen";
+                        ui.sidebarAvatar.textContent = '?';
+                        ui.sidebarUserTitle.textContent = 'Pilot';
+                    }
                 }
-                 updateSidebarAvatar(profile);
-                 // Основные аватары статичны
+
+                 // Основные аватары (остаются статичными с плейсхолдерами)
+                 console.log("Main avatars in HTML are static placeholders.");
+
             }
 
             function setupEventListeners() {
@@ -402,7 +370,7 @@
             }
 
             async function initializeApp() {
-                console.log("[Init Avatar Standalone v17 - Nested Img Frame] Running initializeApp...");
+                console.log("[Init Avatar Standalone v18] Running initializeApp...");
                 if (!initializeSupabase()) return;
 
                 applyInitialSidebarState();
@@ -419,18 +387,32 @@
                         currentUser = session.user;
                         console.log(`[Init Avatar] User authenticated (ID: ${currentUser.id}).`);
 
-                         const [profileResult, titlesResult] = await Promise.allSettled([ fetchUserProfile(currentUser.id), fetchTitles() ]);
+                         const [profileResult, titlesResult] = await Promise.allSettled([
+                             fetchUserProfile(currentUser.id),
+                             fetchTitles()
+                        ]);
+
                          if (profileResult.status === 'fulfilled' && profileResult.value) { currentProfile = profileResult.value; }
                          else { currentProfile = await createDefaultProfile(currentUser.id, currentUser.email); if (!currentProfile) throw new Error("Failed profile fetch/create."); }
+
                          if (titlesResult.status === 'fulfilled') { allTitles = titlesResult.value || []; }
                          else { console.warn("Titles fetch failed:", titlesResult.reason); allTitles = []; }
 
-                        updateUI(currentProfile, allTitles); // Update sidebar
+                        updateUI(currentProfile, allTitles); // Обновляем только сайдбар
+
                         if (ui.mainContent) { ui.mainContent.style.display = 'flex'; }
+
                         console.log("✅ [Init Avatar] Page initialized.");
 
-                    } else { console.log('[Init Avatar] User not logged in, redirecting...'); window.location.href = '/auth/index.html'; }
-                } catch (error) { console.error("❌ [Init Avatar] Critical initialization error:", error); if (ui.mainContent) { ui.mainContent.innerHTML = `<p style='color:red; padding:2rem;'>Chyba: ${error.message}</p>`; ui.mainContent.style.display = 'flex'; } }
+                    } else {
+                        console.log('[Init Avatar] User not logged in, redirecting...');
+                        window.location.href = '/auth/index.html';
+                    }
+                } catch (error) {
+                    console.error("❌ [Init Avatar] Critical initialization error:", error);
+                     if (ui.mainContent) ui.mainContent.innerHTML = `<p style='color:red; padding:2rem;'>Chyba: ${error.message}</p>`;
+                     if (ui.mainContent) ui.mainContent.style.display = 'flex';
+                }
             }
 
             document.addEventListener('DOMContentLoaded', initializeApp);
