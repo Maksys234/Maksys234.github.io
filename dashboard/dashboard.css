@@ -1,5 +1,5 @@
 /* dashboard.css */
-/* Версия: 23 - Полная версия с стилями для Модальных Окон Наград */
+/* Версия: 24.1 - Oprava překrývání textu v Měsíčních Odměnách */
 
 /* --- START: Киберпанк CSS Тема (v19 + sidebar toggle + Daily Reward v3 - Countdown & Preview) --- */
         /* --- Глобальные Настройки и Переменные --- */
@@ -262,7 +262,6 @@
         @media (min-width: 993px) { body.sidebar-collapsed .mobile-menu-toggle#main-mobile-menu-toggle { display: none; } }
         body.sidebar-collapsed .sidebar-menu { overflow-y: hidden; scrollbar-width: none; }
         body.sidebar-collapsed .sidebar-menu::-webkit-scrollbar { display: none; }
-        /* --- Конец стилей свернутого Sidebar --- */
 
         /* Хедер дашборда */
         .dashboard-header { margin-bottom: var(--section-padding-y); background-color: rgba(var(--bg-secondary-rgb, 10, 7, 31), 0.7); backdrop-filter: blur(12px); border-radius: 0 0 var(--card-radius) var(--card-radius); padding: 1rem var(--container-padding-x); box-shadow: var(--shadow-hud); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; position: sticky; top: 0; z-index: 900; border-bottom: 1px solid var(--border-color-light); transition: background-color 0.3s ease, box-shadow 0.3s ease; margin-left: calc(var(--container-padding-x) * -1); margin-right: calc(var(--container-padding-x) * -1); }
@@ -469,26 +468,11 @@
         .dashboard-footer { margin-top: 3rem; padding: 1.5rem 0; text-align: center; color: var(--text-muted); font-size: 0.9rem; border-top: 1px solid var(--border-color-light); opacity: 0.6; }
 
         /* --- Стили Модальных Окон Наград (v23) --- */
-        .modal { /* Общие стили для модальных окон */
-            display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background-color: rgba(var(--bg-secondary-rgb, 10, 7, 31), 0.8); /* Темнее */
-            z-index: 1050; align-items: center; justify-content: center;
-            opacity: 0; transition: opacity 0.3s ease, backdrop-filter 0.3s ease;
-            backdrop-filter: blur(0px); padding: 1rem;
-        }
+        .modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(var(--bg-secondary-rgb, 10, 7, 31), 0.8); z-index: 1050; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s ease, backdrop-filter 0.3s ease; backdrop-filter: blur(0px); padding: 1rem; }
         .modal.active { display: flex; opacity: 1; backdrop-filter: blur(6px); }
-        .modal-content {
-            background-color: var(--interface-bg); border-radius: var(--card-radius);
-            width: 90%; box-shadow: var(--shadow-card);
-            transform: translateY(-20px) scale(0.97); transform-origin: center;
-            transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            overflow: hidden; border: 1px solid var(--border-color-medium);
-            display: flex; flex-direction: column; max-height: 85vh; /* Уменьшена макс. высота */
-        }
-        /* Размеры для разных модальных окон */
-        .monthly-reward-modal-content { max-width: 750px; /* Шире для календаря */ }
-        .streak-milestones-modal-content { max-width: 650px; /* Чуть уже для этапов */ }
-
+        .modal-content { background-color: var(--interface-bg); border-radius: var(--card-radius); width: 90%; box-shadow: var(--shadow-card); transform: translateY(-20px) scale(0.97); transform-origin: center; transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275); overflow: hidden; border: 1px solid var(--border-color-medium); display: flex; flex-direction: column; max-height: 85vh; }
+        .monthly-reward-modal-content { max-width: 750px; }
+        .streak-milestones-modal-content { max-width: 650px; }
         .modal.active .modal-content { transform: translateY(0) scale(1); }
         .modal-header { padding: 1rem 1.5rem; border-bottom: 1px solid var(--border-color-light); display: flex; justify-content: space-between; align-items: center; background: rgba(var(--dark-purple-accent-rgb), 0.3); flex-shrink: 0; }
         .modal-title { font-size: 1.2rem; font-weight: 600; color: var(--text-heading); text-shadow: var(--shadow-text-glow); margin: 0; display: flex; align-items: center; gap: 0.6em;}
@@ -505,20 +489,54 @@
 
         /* Месячный Календарь */
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.6rem; }
-        .calendar-day { aspect-ratio: 1 / 1; background-color: rgba(var(--card-solid-rgb), 0.6); border: 1px solid var(--border-color-light); border-radius: 8px; padding: 0.6rem; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; position: relative; overflow: hidden; transition: all 0.25s ease; cursor: default; min-height: 85px; }
+        .calendar-day {
+            aspect-ratio: 1 / 1.05; /* Make slightly taller */
+            background-color: rgba(var(--card-solid-rgb), 0.6);
+            border: 1px solid var(--border-color-light); border-radius: 8px;
+            padding: 0.6rem 0.4rem; /* Adjust padding */
+            display: flex; flex-direction: column; align-items: center; justify-content: space-between; /* Space out content */
+            text-align: center; position: relative; overflow: hidden;
+            transition: all 0.25s ease; cursor: default; min-height: 95px; /* Increased min-height */
+        }
         .calendar-day::before { content: ''; position: absolute; top: 0; left: 0; width: 0; height: 0; border-style: solid; border-width: 8px 8px 0 0; border-color: transparent; transition: border-color 0.25s ease; }
-        .day-number { font-size: 0.8rem; font-weight: 700; color: var(--text-light); position: absolute; top: 6px; left: 6px; background: rgba(var(--bg-secondary-rgb), 0.6); padding: 0.1rem 0.3rem; border-radius: 3px; line-height: 1; }
-        .reward-icon { font-size: 1.6rem; margin: 0.3rem 0; color: var(--accent-secondary); transition: color 0.25s ease, transform 0.25s ease; }
-        .reward-text { font-size: 0.7rem; font-weight: 500; color: var(--text-muted); line-height: 1.2; margin-bottom: 0.3rem; max-height: 2.4em; overflow: hidden;}
-        .reward-status { font-size: 0.65rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; position: absolute; bottom: 0.5rem; left: 0; right: 0; opacity: 0.7; transition: opacity 0.25s ease; }
-        .calendar-day .claim-button { display: none; position: absolute; bottom: 0.4rem; left: 50%; transform: translateX(-50%); padding: 0.25rem 0.6rem !important; font-size: 0.7rem !important; box-shadow: var(--shadow-interactive); z-index: 2; white-space: nowrap; border-color: var(--accent-lime); color: var(--accent-lime); }
+        .day-number { font-size: 0.8rem; font-weight: 700; color: var(--text-light); position: absolute; top: 6px; left: 6px; background: rgba(var(--bg-secondary-rgb), 0.6); padding: 0.1rem 0.3rem; border-radius: 3px; line-height: 1; z-index: 1;}
+        .reward-icon { font-size: 1.6rem; margin-top: 0.5rem; /* Push icon down slightly */ margin-bottom: 0.2rem; color: var(--accent-secondary); transition: color 0.25s ease, transform 0.25s ease; flex-shrink: 0; }
+        .reward-text {
+            font-size: 0.7rem; font-weight: 500; color: var(--text-medium);
+            line-height: 1.25; /* Slightly reduced line-height */
+            max-height: 2.5em; /* Limit to 2 lines */
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+            flex-grow: 1; /* Allow text to take available space */
+            margin-bottom: 0.3rem; /* Space before status/button */
+            width: 100%; /* Ensure it takes full width */
+        }
+        .reward-status {
+            font-size: 0.65rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
+            margin-top: auto; /* Push to bottom */
+            padding-top: 0.2rem; /* Space above status */
+            width: 100%;
+            opacity: 0.8;
+            transition: opacity 0.25s ease;
+            position: absolute; /* Position relative to parent */
+            bottom: 0.5rem; /* Position at the bottom */
+            left: 0;
+            right: 0;
+        }
+        .calendar-day .claim-button {
+             display: none; position: absolute; bottom: 0.4rem; left: 50%;
+             transform: translateX(-50%); padding: 0.25rem 0.6rem !important; font-size: 0.7rem !important;
+             box-shadow: var(--shadow-interactive); z-index: 2; white-space: nowrap;
+             border-color: var(--accent-lime); color: var(--accent-lime);
+         }
         .calendar-day .claim-button i { font-size: 0.9em; margin-right: 0.3em; }
         .calendar-day .claim-button:hover:not(:disabled) { color: var(--text-fixed-dark); background: var(--gradient-success); border-color: transparent; box-shadow: 0 0 12px var(--accent-lime-glow); }
         /* Состояния дней */
         .calendar-day.available { border-color: var(--accent-primary); background: linear-gradient(160deg, rgba(var(--accent-primary-rgb), 0.1), rgba(var(--card-solid-rgb), 0.8)); cursor: pointer; box-shadow: 0 0 10px rgba(var(--accent-primary-rgb), 0.1); }
         .calendar-day.available::before { border-left-color: var(--accent-primary); }
         .calendar-day.available .reward-icon { color: var(--accent-primary); }
-        .calendar-day.available .reward-status { display: none; }
+        .calendar-day.available .reward-status { display: none; } /* Hide status when button is visible */
         .calendar-day.available:hover { transform: scale(1.04); box-shadow: 0 0 20px rgba(var(--accent-primary-rgb), 0.25); border-color: var(--accent-cyan); z-index: 5; }
         .calendar-day.available:hover .reward-icon { transform: scale(1.1); }
         .calendar-day.claimed { opacity: 0.7; background-color: rgba(var(--accent-lime-rgb), 0.05); border-color: rgba(var(--accent-lime-rgb), 0.2); }
@@ -540,7 +558,7 @@
 
         /* Этапы Серии (в Модальном Окне) */
         .milestone-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 0.8rem; }
-        .milestone-card { /* Стилизуем как .calendar-day */ aspect-ratio: 1 / 1.1; background-color: rgba(var(--card-solid-rgb), 0.7); border: 1px solid var(--border-color-light); border-radius: 10px; padding: 0.8rem; display: flex; flex-direction: column; align-items: center; justify-content: space-between; text-align: center; position: relative; overflow: hidden; transition: all 0.3s ease; cursor: default; min-height: 100px; }
+        .milestone-card { aspect-ratio: 1 / 1.1; background-color: rgba(var(--card-solid-rgb), 0.7); border: 1px solid var(--border-color-light); border-radius: 10px; padding: 0.8rem; display: flex; flex-direction: column; align-items: center; justify-content: space-between; text-align: center; position: relative; overflow: hidden; transition: all 0.3s ease; cursor: default; min-height: 100px; }
         .milestone-card::before { content: ''; position: absolute; top: 0; left: 0; width: 0; height: 0; border-style: solid; border-width: 10px 10px 0 0; border-color: transparent; transition: border-color 0.3s ease; }
         .milestone-card .day-number { font-size: 0.8rem; font-weight: 700; color: var(--text-light); align-self: flex-start; line-height: 1.2; background: rgba(var(--bg-secondary-rgb), 0.5); padding: 0.2rem 0.4rem; border-radius: 4px; margin-bottom: 0.2rem; }
         .milestone-card .reward-icon { font-size: 1.8rem; margin: 0.4rem 0; color: var(--accent-secondary); transition: color 0.3s ease, transform 0.3s ease; }
@@ -580,7 +598,7 @@
         /* --- Адаптивность (Дополнения) --- */
         @media (max-width: 992px) {
             .stat-cards, .shortcut-grid { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
-            .calendar-grid, .milestone-grid { grid-template-columns: repeat(5, 1fr); gap: 0.6rem; } /* 5 колонок на планшете */
+            .calendar-grid, .milestone-grid { grid-template-columns: repeat(5, 1fr); gap: 0.6rem; }
         }
         @media (max-width: 768px) {
              main { padding: 0 1rem; }
@@ -591,7 +609,7 @@
              body.scrolled .dashboard-header { margin: 0 -1rem 1.5rem -1rem; padding: 0.8rem 1rem; }
              .section-title { font-size: 1.3rem; }
              .stat-cards, .shortcut-grid { grid-template-columns: 1fr; gap: 1.5rem; }
-             .calendar-grid, .milestone-grid { grid-template-columns: repeat(4, 1fr); gap: 0.5rem; } /* 4 на мобильном */
+             .calendar-grid, .milestone-grid { grid-template-columns: repeat(4, 1fr); gap: 0.5rem; }
              .modal-content { max-width: 95%; }
              .modal-body { padding: 1.2rem; }
              .modal-header, .modal-footer { padding: 1rem 1.2rem; }
@@ -610,7 +628,7 @@
              .stat-card-value { font-size: 2rem; }
              .mouse-follower-glow { display: none !important; }
              .toast-container { bottom: 1rem; right: 1rem; max-width: calc(100% - 2rem); }
-             .calendar-grid, .milestone-grid { grid-template-columns: repeat(3, 1fr); gap: 0.4rem; } /* 3 на маленьком */
+             .calendar-grid, .milestone-grid { grid-template-columns: repeat(3, 1fr); gap: 0.4rem; }
              .sidebar-toggle-btn { display: none; }
         }
         .sidebar-overlay { display: none; position: fixed; inset: 0; background-color: rgba(3, 2, 12, 0.7); z-index: 999; opacity: 0; transition: opacity var(--transition-medium) ease; backdrop-filter: blur(5px); }
