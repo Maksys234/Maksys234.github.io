@@ -569,6 +569,24 @@ ALTER TABLE public.profiles
 ADD COLUMN learning_goal TEXT CHECK (learning_goal IN ('exam_prep', 'math_learning')) NULL;
 
 COMMENT ON COLUMN public.profiles.learning_goal IS 'Stores the user''s primary learning goal (exam_prep or math_learning)';
+-- Сначала удаляем старое ограничение (если оно существует)
+-- Название ограничения может отличаться, проверьте его в вашей БД, если команда не сработает.
+-- Обычно оно называется что-то вроде profiles_learning_goal_check.
+ALTER TABLE public.profiles
+DROP CONSTRAINT IF EXISTS profiles_learning_goal_check;
+
+-- Добавляем новое ограничение с расширенным списком целей
+ALTER TABLE public.profiles
+ADD CONSTRAINT profiles_learning_goal_check
+CHECK (learning_goal IN (
+    'exam_prep',       -- Подготовка к экзаменам
+    'math_accelerate', -- Учение наперед / Ускоренный темп
+    'math_review',      -- Дополнение пробелов / Повторение
+    'math_explore'    -- Volné prozkoumávání témat
+    ));
+
+-- Обновляем комментарий к столбцу (рекомендуется)
+COMMENT ON COLUMN public.profiles.learning_goal IS 'Stores the user''s primary learning goal (exam_prep, math_accelerate, math_review, math_explore)';
 -- Přidání komentářů pro lepší orientaci
 COMMENT ON TABLE public.title_shop IS 'Tabulka obsahující tituly, které si uživatelé mohou zakoupit za kredity.';
 COMMENT ON COLUMN public.title_shop.title_key IS 'Unikátní textový identifikátor titulu pro interní použití.';
