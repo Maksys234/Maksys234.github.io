@@ -627,3 +627,15 @@ ON public.title_shop
 FOR SELECT
 USING (auth.role() = 'authenticated' AND is_available = true);
 ) TABLESPACE pg_default;
+-- Убеждаемся, что столбец 'preferences' существует в таблице 'profiles'
+ALTER TABLE public.profiles
+ADD COLUMN IF NOT EXISTS preferences jsonb DEFAULT '{}'::jsonb;
+
+-- (Необязательно, но рекомендуется) Убеждаемся, что значение по умолчанию - пустой объект '{}'
+-- Это безопаснее, чем предполагать наличие конкретных ключей по умолчанию.
+ALTER TABLE public.profiles
+ALTER COLUMN preferences SET DEFAULT '{}'::jsonb;
+
+-- (Необязательно) Добавляем комментарий к столбцу для ясности
+COMMENT ON COLUMN public.profiles.preferences
+IS 'Stores user interface and learning goal preferences as a JSONB object. Includes keys like "dark_mode", "language", and potentially "goal_details" for specific goal settings.';
