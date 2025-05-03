@@ -559,6 +559,12 @@ CREATE TABLE public.title_shop (
     is_available boolean DEFAULT true NOT NULL, -- Zda je titul aktuálně k dispozici v obchodě
     created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
 );
+-- Add the new column to the title_shop table
+ALTER TABLE public.title_shop
+ADD COLUMN is_purchasable boolean DEFAULT true NOT NULL;
+
+-- Add a comment to explain the new column
+COMMENT ON COLUMN public.title_shop.is_purchasable IS 'Indicates if the title can be bought in the shop (true) or is only awarded (false).';
 
 -- Přidání komentářů pro lepší orientaci
 COMMENT ON TABLE public.title_shop IS 'Tabulka obsahující tituly, které si uživatelé mohou zakoupit za kredity.';
