@@ -295,7 +295,7 @@ section:has(.section-title.animated) .section-title span::after,
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
-    width: 100%; /* ADDED THIS LINE */
+    /* width: 100%; */ /* REMOVED previous fix attempt */
 }
 
 .logo {
@@ -309,6 +309,7 @@ section:has(.section-title.animated) .section-title span::after,
 	gap: 10px;
 	transition: color var(--transition-fast), filter var(--transition-fast);
 	filter: drop-shadow(0 0 5px var(--clr-accent-cyan));
+    flex-shrink: 0; /* Prevent logo from shrinking */
 }
 .logo i {
 	color: var(--clr-accent-cyan);
@@ -322,11 +323,21 @@ section:has(.section-title.animated) .section-title span::after,
 	filter: drop-shadow(0 0 10px var(--clr-accent-cyan));
 }
 
+/* --- START: Added Styles --- */
+#header nav {
+    flex-grow: 1; /* Allow nav element to take up space */
+    display: flex; /* Needed to center its child ul */
+    justify-content: center; /* Center the ul within the nav */
+}
+/* --- END: Added Styles --- */
+
 .nav-links {
 	list-style: none;
 	display: flex;
 	gap: clamp(20px, 4vw, 35px); /* Responsive gap */
 	align-items: center;
+    /* justify-content: center; */ /* REMOVED - Moved justification to parent nav */
+    width: max-content; /* Prevent ul from stretching unnecessarily */
 }
 .nav-item {
 	font-family: var(--font-mono);
@@ -338,6 +349,7 @@ section:has(.section-title.animated) .section-title span::after,
 	position: relative;
 	transition: color var(--transition-fast), text-shadow var(--transition-fast);
 	letter-spacing: 0.5px;
+    white-space: nowrap; /* Prevent link text wrapping */
 }
 .nav-item::after { /* Underline effect */
 	content: '';
@@ -364,6 +376,7 @@ section:has(.section-title.animated) .section-title span::after,
 	display: flex;
 	align-items: center;
 	gap: 15px;
+    flex-shrink: 0; /* Prevent actions container from shrinking */
 }
 .desktop-auth-link { display: inline-flex; } /* Changed to inline-flex */
 .mobile-auth-link { display: none; }
@@ -1394,6 +1407,14 @@ button:hover ~ .mouse-follower-glow,
 	:root { --layout-header-height: 60px; }
 
 	/* Mobile Navigation Structure */
+    /* --- START: Added/Modified Styles for Mobile Nav --- */
+    #header nav { /* Override flex-grow for mobile */
+        flex-grow: 0;
+        display: block; /* Reset display for mobile */
+        justify-content: initial; /* Reset justify */
+    }
+    /* --- END: Added/Modified Styles for Mobile Nav --- */
+
 	.nav-links {
 		position: fixed; top: 0; right: -100%; /* Off-screen initially */
         width: min(75vw, 300px); /* Responsive width */
@@ -1405,6 +1426,8 @@ button:hover ~ .mouse-follower-glow,
         box-shadow: -5px 0 20px rgba(0, 0, 0, 0.5);
 		z-index: 999;
         border-left: 1px solid rgba(160, 92, 255, 0.15);
+        width: min(75vw, 300px); /* Ensure width is reset */
+        justify-content: flex-start; /* Align items to start in column */
 	}
 	.nav-links.active { right: 0; }
 	.nav-item { font-size: 1rem; width: 100%; padding-block: 10px; }
