@@ -219,10 +219,17 @@ create table public.profiles (
   notifications jsonb null default '{"email": true, "study_tips": true, "content_updates": true, "practice_reminders": true}'::jsonb,
   created_at timestamp with time zone null default now(),
   updated_at timestamp with time zone null default now(),
+  experience integer not null default 0,
+  purchased_titles text[] null default array[]::text[],
+  selected_title text null,
+  last_reward_claimed_at timestamp with time zone null,
+  monthly_claims jsonb null default '{}'::jsonb,
+  last_milestone_claimed integer not null default 0,
   constraint profiles_pkey primary key (id),
   constraint profiles_email_key unique (email),
   constraint profiles_username_key unique (username),
-  constraint profiles_id_fkey foreign KEY (id) references auth.users (id)
+  constraint profiles_id_fkey foreign KEY (id) references auth.users (id),
+  constraint profiles_selected_title_fkey foreign KEY (selected_title) references title_shop (title_key) on update CASCADE on delete set null
 ) TABLESPACE pg_default;
 create table public.progress_analytics (
   id uuid not null default extensions.uuid_generate_v4 (),
