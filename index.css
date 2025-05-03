@@ -53,6 +53,10 @@
 	--layout-border-radius-sm: 5px;
 	--layout-border-radius-md: 10px;
 	--layout-border-radius-lg: 15px;
+
+    /* --- Variables for Interactive Gradient --- */
+    --mouse-x: 0.5; /* Default center */
+    --mouse-y: 0.5; /* Default center */
 }
 
 /* ==========================================================================
@@ -472,56 +476,76 @@ section:has(.section-title.animated) .section-title span::after,
 }
 
 
-/* Animated Gradient for Highlight */
-@keyframes animated-gradient {
-	0% { background-position: 0% 50%; }
-	50% { background-position: 100% 50%; }
-	100% { background-position: 0% 50%; }
-}
+/* Interactive Gradient for Highlight */
 .hero h1 .highlight {
-	background: linear-gradient(90deg, var(--clr-accent-green), var(--clr-accent-purple), var(--clr-accent-orange), var(--clr-accent-green));
-	background-size: 300% 100%;
+	/* Gradient Definition */
+    background: linear-gradient(135deg, /* Adjust angle as needed */
+        var(--clr-accent-green),
+        var(--clr-accent-purple),
+        var(--clr-accent-orange),
+        var(--clr-accent-cyan),
+        var(--clr-accent-pink),
+        var(--clr-accent-green) /* Loop back */
+    );
+	background-size: 300% 300%; /* Make size larger for smooth movement */
 	-webkit-background-clip: text;
 	background-clip: text;
 	color: transparent;
-	animation: animated-gradient 6s linear infinite;
-	position: relative;
-	display: inline-block;
     text-shadow: none; /* Remove potential inherited shadow */
+    position: relative;
+	display: inline-block; /* Important for background clip */
+
+    /* Set background position based on mouse coordinates (updated by JS) */
+    /* The calc ensures the full gradient range is mapped to mouse movement */
+    background-position: calc(var(--mouse-x, 0.5) * 100%) calc(var(--mouse-y, 0.5) * 100%);
+
+    /* Smooth transition for background position */
+    transition: background-position 0.1s linear;
 }
 
-/* Glitch Layers for Highlight */
-/* MODIFIED: Removed transform properties from keyframes to prevent 'crooked' appearance */
-@keyframes glitch-layer-1 {
-  0%, 100% { clip-path: inset(0); opacity: 1; }
-  25% { clip-path: inset(20% 0 60% 0); /* transform: translate(-2px, 1px); */ opacity: 0.8;}
-  50% { clip-path: inset(50% 0 30% 0); opacity: 0.9; }
-  75% { clip-path: inset(75% 0 5% 0); /* transform: translate(1px, -1px); */ opacity: 0.7; }
-}
-@keyframes glitch-layer-2 {
-  0%, 100% { clip-path: inset(0); opacity: 1; }
-  25% { clip-path: inset(70% 0 10% 0); /* transform: translate(2px, -1px); */ opacity: 0.8;}
-  50% { clip-path: inset(10% 0 80% 0); opacity: 0.9; }
-  75% { clip-path: inset(40% 0 45% 0); /* transform: translate(-1px, 1px); */ opacity: 0.7; }
+/* --- NEW: Mask Reveal Animation --- */
+/* Remove the old letter-pop-in animation */
+/* @keyframes letter-pop-in { ... } */
+
+/* Reset container styles if they interfere */
+[data-animate-letters] {
+	opacity: 1; filter: none; transform: none;
+    /* Add perspective if needed for 3D letter effects later */
+    /* perspective: 800px; */
 }
 
-.hero h1[data-animate-letters].letters-animating .highlight::before,
-.hero h1[data-animate-letters].letters-animating .highlight::after {
-	content: attr(data-text);
-	position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-	background: var(--clr-bg-primary); overflow: hidden;
-	background: linear-gradient(90deg, var(--clr-accent-green), var(--clr-accent-purple), var(--clr-accent-orange), var(--clr-accent-green));
-	background-size: 300% 100%;
-	-webkit-background-clip: text;
-	background-clip: text;
-	color: transparent;
-	animation-duration: 1.2s;
-    animation-timing-function: steps(4, end);
-	animation-iteration-count: infinite;
-    opacity: 0.9;
+/* Style for individual letter spans (to be created by JS) */
+.letter-span { /* Use a more specific class if needed */
+	display: inline-block; /* Essential for transform and clip-path */
+	opacity: 1; /* Start visible */
+	clip-path: inset(0 100% 0 0); /* Hide from the right initially */
+	transition: clip-path 0.7s cubic-bezier(0.77, 0, 0.175, 1); /* Smooth reveal */
+
+	/* Stagger the reveal using CSS variable set by JS */
+	transition-delay: calc(var(--letter-index, 0) * 50ms); /* Adjust timing (50ms) as needed */
+
+    /* Optional: Add a subtle transform effect during reveal */
+    /* transform: translateY(10px) rotateX(-15deg); */
+    /* transition: clip-path 0.7s cb(...), transform 0.7s cb(...); */
+    /* transition-delay: calc(var(--letter-index, 0) * 50ms); */
 }
-.hero h1[data-animate-letters].letters-animating .highlight::before { animation-name: glitch-layer-1; }
-.hero h1[data-animate-letters].letters-animating .highlight::after { animation-name: glitch-layer-2; animation-delay: 0.18s; }
+
+/* Trigger the reveal when the parent container gets the 'is-revealing' class (from JS) */
+[data-animate-letters].is-revealing .letter-span {
+	clip-path: inset(0 0 0 0); /* Reveal the letter */
+    /* Optional: Reset transform if used */
+    /* transform: translateY(0) rotateX(0deg); */
+}
+
+/* --- End Mask Reveal Animation --- */
+
+
+/* --- REMOVED Glitch Effect --- */
+/* @keyframes glitch-layer-1 { ... } */
+/* @keyframes glitch-layer-2 { ... } */
+/* .hero h1[data-animate-letters].letters-animating .highlight::before, */
+/* .hero h1[data-animate-letters].letters-animating .highlight::after { ... } */
+
 
 .hero p {
 	font-size: clamp(1rem, 2vw, 1.2rem); /* Responsive size */
@@ -551,8 +575,7 @@ section:has(.section-title.animated) .section-title span::after,
 	flex-wrap: wrap;
 }
 
-/* Entry Animation for Hero Content (Refined) */
-.hero h1[data-animate-letters],
+/* Entry Animation for Hero Content (Paragraph and Buttons) - Keep generic animation */
 .hero p[data-animate],
 .hero .hero-buttons[data-animate] {
 	opacity: 0;
@@ -560,16 +583,17 @@ section:has(.section-title.animated) .section-title span::after,
 	transform: translateY(30px) scale(0.98);
 	transition: opacity 0.8s var(--transition-slow), transform 0.8s var(--transition-slow), filter 0.8s var(--transition-slow);
 }
-.hero h1[data-animate-letters].letters-animating, /* Use animating class */
+/* --- ADJUSTED: Trigger for p and buttons - relies on JS adding 'animated' --- */
 .hero p[data-animate].animated,
 .hero .hero-buttons[data-animate].animated {
 	opacity: 1;
 	filter: blur(0);
 	transform: translateY(0) scale(1);
 }
-/* Stagger delays */
-.hero p[data-animate].animated { transition-delay: 0.2s; }
-.hero .hero-buttons[data-animate].animated { transition-delay: 0.4s; }
+/* Stagger delays - ensure these apply correctly after the H1 animation is triggered */
+.hero p[data-animate].animated { transition-delay: calc( (var(--letter-count, 10) * 50ms) + 0.2s ); } /* Delay after H1 finishes */
+.hero .hero-buttons[data-animate].animated { transition-delay: calc( (var(--letter-count, 10) * 50ms) + 0.4s ); } /* Delay after P finishes */
+
 
 /* ==========================================================================
    Features Section
@@ -1353,37 +1377,22 @@ button:hover ~ .mouse-follower-glow,
 
 
 /* ==========================================================================
-   Animations (Scroll Based)
+   Animations (Scroll Based - Generic Fallback)
    ========================================================================== */
 
-/* General Entry Animation */
-[data-animate] {
+/* General Entry Animation for elements NOT using letter animation */
+[data-animate]:not([data-animate-letters]) { /* Exclude letter animation containers */
 	opacity: 0;
 	filter: blur(5px);
 	transform: perspective(1200px) translateY(40px) rotateY(10deg) scale(0.95);
 	transform-origin: center center;
 	transition: opacity 0.7s var(--transition-slow), transform 0.7s var(--transition-slow), filter 0.7s var(--transition-slow);
 }
-[data-animate].animated {
+[data-animate]:not([data-animate-letters]).animated {
 	opacity: 1;
 	filter: blur(0);
 	transform: perspective(1200px) translateY(0) rotateY(0) scale(1);
-	transition-delay: calc(var(--animation-order, 0) * 120ms); /* Slightly faster stagger */
-}
-
-/* Letter Animation */
-@keyframes letter-pop-in {
-	0% { opacity: 0; transform: translateY(15px) scale(0.8) rotateX(-20deg); }
-    60% { opacity: 1; transform: translateY(-5px) scale(1.05) rotateX(10deg); }
-	100% { opacity: 1; transform: translateY(0) scale(1) rotateX(0); }
-}
-[data-animate-letters] { /* Container reset */
-	opacity: 1; filter: none; transform: none;
-}
-[data-animate-letters].letters-animating span { /* Individual letter styles */
-	 opacity: 0;
-	 display: inline-block;
-	 /* Animation set by JS */
+	transition-delay: calc(var(--animation-order, 0) * 120ms); /* Stagger */
 }
 
 /* Specific adjustment for redesigned "How it Works" steps */
@@ -1484,13 +1493,14 @@ button:hover ~ .mouse-follower-glow,
 	}
 
 	/* Simpler entry animation */
-	[data-animate] {
+	[data-animate]:not([data-animate-letters]).animated {
+		transform: translateY(0) scale(1); filter: blur(0); opacity: 1;
+	}
+    [data-animate]:not([data-animate-letters]) {
 		transform: translateY(25px); filter: blur(3px); opacity: 0;
 		transform-origin: center center;
 	}
-	[data-animate].animated {
-		transform: translateY(0) scale(1); filter: blur(0); opacity: 1;
-	}
+
 
 	.footer-grid { grid-template-columns: 1fr; text-align: center; gap: 35px; }
 	.social-links { justify-content: center; }
@@ -1523,4 +1533,5 @@ button:hover ~ .mouse-follower-glow,
     .testimonial-slider-container { overflow: visible; } /* Show all cards on print */
     .testimonial-slider-track { display: block; /* Stack cards vertically */ transform: none !important; /* Reset transform */ }
     .testimonial-card { border: 1px solid #ccc; box-shadow: none; backdrop-filter: none; background: #f8f8f8; padding: 15px; break-inside: avoid; width: 100%; margin-bottom: 1cm; margin-right: 0; }
+    .hero h1 .highlight { background: none; color: #000; } /* Basic print style for highlighted text */
 }
